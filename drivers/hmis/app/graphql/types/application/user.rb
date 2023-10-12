@@ -18,7 +18,10 @@ module Types
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
 
     def name
-      [object.first_name, object.last_name].compact.join(' ')
+      names = [object.first_name, object.last_name].compact_blank
+      return "User #{object.id}" unless names.any?
+
+      names.join(' ')
     end
 
     def recent_items

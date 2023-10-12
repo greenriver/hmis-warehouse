@@ -43,7 +43,7 @@ RSpec.describe model, type: :model do
 
       it 'TH because of prior living situation' do
         en = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'TH')
-        en.LivingSituation = 11
+        en.LivingSituation = 411
         en.LOSUnderThreshold = 0
         en.DateToStreetESSH = en.EntryDate - 13.months
         en.TimesHomelessPastThreeYears = 4
@@ -53,7 +53,7 @@ RSpec.describe model, type: :model do
 
       it 'PH because of prior living situation' do
         en = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'PH')
-        en.LivingSituation = 11
+        en.LivingSituation = 411
         en.LOSUnderThreshold = 0
         en.DateToStreetESSH = en.EntryDate - 13.months
         en.TimesHomelessPastThreeYears = 4
@@ -63,7 +63,7 @@ RSpec.describe model, type: :model do
 
       it 'Chronic isn\'t affected by time in project' do
         en = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'PH')
-        en.LivingSituation = 11
+        en.LivingSituation = 411
         en.DateToStreetESSH = en.EntryDate - 11.months
         en.TimesHomelessPastThreeYears = 4
         en.MonthsHomelessPastThreeYears = 15
@@ -72,7 +72,7 @@ RSpec.describe model, type: :model do
 
       it 'and prior living situation was homeless, because of insufficient duration' do
         en = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'PH')
-        en.LivingSituation = 16
+        en.LivingSituation = 116
         en.DateToStreetESSH = en.EntryDate - 2.months
         en.TimesHomelessPastThreeYears = 99
         en.MonthsHomelessPastThreeYears = 99
@@ -130,7 +130,7 @@ RSpec.describe model, type: :model do
 
       it 'TH because of prior living situation and self-report' do
         en = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'TH')
-        en.LivingSituation = 16
+        en.LivingSituation = 116
         en.LOSUnderThreshold = 0
         en.DateToStreetESSH = en.EntryDate - 13.months
         en.TimesHomelessPastThreeYears = 4
@@ -140,7 +140,7 @@ RSpec.describe model, type: :model do
 
       it 'PH because of prior living situation and self-report' do
         en = GrdaWarehouse::Hud::Enrollment.find_by(EnrollmentID: 'PH')
-        en.LivingSituation = 16
+        en.LivingSituation = 116
         en.LOSUnderThreshold = 0
         en.DateToStreetESSH = en.EntryDate - 13.months
         en.TimesHomelessPastThreeYears = 4

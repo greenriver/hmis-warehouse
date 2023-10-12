@@ -75,14 +75,13 @@ module Filters
           :cohort_type,
           :age_ranges,
           :races,
-          :ethnicities,
           :genders,
           :acos,
         ]
       )
     end
 
-    def describe(key, value = chosen(key))
+    def describe(key, value = chosen(key), labels: {})
       title = case key
       when :acos
         'ACOs'
@@ -93,7 +92,7 @@ module Filters
       end
 
       return unless value.present?
-      return super(key, value) if title.blank?
+      return super(key, value, labels: labels) if title.blank?
 
       [title, value]
     end

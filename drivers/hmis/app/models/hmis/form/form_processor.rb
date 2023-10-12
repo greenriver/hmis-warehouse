@@ -267,6 +267,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       CurrentLivingSituation: Hmis::Hud::Processors::CurrentLivingSituationProcessor,
       Assessment: Hmis::Hud::Processors::CeAssessmentProcessor,
       Event: Hmis::Hud::Processors::CeEventProcessor,
+      CustomCaseNote: Hmis::Hud::Processors::CustomCaseNoteProcessor,
     }.freeze
   end
 
@@ -329,9 +330,20 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     related_records.each do |record|
       next if record.errors.none?
 
-      # Skip relation fields, to avoid errors like "Income Benefit is invalid" on the Enrollment
       ar_errors = record.errors.errors.reject do |e|
-        e.attribute.to_s.underscore.ends_with?('_id') || (record.respond_to?(e.attribute) && record.send(e.attribute).is_a?(ActiveRecord::Relation))
+        # Skip validations for ID fields
+        if e.attribute.to_s.underscore.ends_with?('_id')
+          true # reject
+        # Skip validations for relation fields ("Income Benefit is invalid" on the Enrollment)
+        elsif record.respond_to?(e.attribute) && record.send(e.attribute).is_a?(ActiveRecord::Relation)
+          true # reject
+        # Skip validations for Information Date if this is an assessment,
+        # since we validate the assessment date separately using CustomAssessmentValidator
+        elsif custom_assessment.present? && e.attribute.to_s.underscore == 'information_date'
+          true # reject
+        else
+          false
+        end
       end
       errors.add_ar_errors(ar_errors)
     end
@@ -360,6 +372,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
 
     # Collect errors from custom validator, in the context of this role
+    # TODO: remove this and switch to using validation contexts instead.
+    # This works OK for assessments, but not other types of forms. For example for
+    # an Enrollment form that creates/edits Client, this will NOT run he Client validator.
     role = definition&.role
     related_records.each do |record|
       validator = record.class.validators.find { |v| v.is_a?(Hmis::Hud::Validators::BaseValidator) }&.class

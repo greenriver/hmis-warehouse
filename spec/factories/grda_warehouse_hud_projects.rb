@@ -3,6 +3,6 @@ FactoryBot.define do
     sequence(:ProjectName, 100) { |n| "Project #{n}" }
     sequence(:ProjectID, 100)
     sequence(:OrganizationID, 200)
-    ProjectType { ::HudUtility.project_types.keys.sample }
+    ProjectType { ::HudUtility2024.project_types.keys.sample }
   end
 end

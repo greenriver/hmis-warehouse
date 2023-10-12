@@ -37,6 +37,7 @@ module Concerns::HudValidationUtil
 
     # for fuzzy translation from strings back to their controlled vocabulary key
     def forgiving_regex(str)
+      return str if str.blank?
       return str if str.is_a?(Integer)
 
       Regexp.new '^' + str.strip.gsub(/\W+/, '\W+') + '$', 'i'

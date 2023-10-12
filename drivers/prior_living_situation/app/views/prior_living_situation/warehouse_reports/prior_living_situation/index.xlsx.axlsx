@@ -23,7 +23,7 @@ wb.add_worksheet(name: 'Report Info') do |sheet|
   sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   sheet.add_row(
     [
-      _('Prior Living Situation Report'),
+      Translation.translate('Prior Living Situation Report'),
     ],
     style: header_style,
   )

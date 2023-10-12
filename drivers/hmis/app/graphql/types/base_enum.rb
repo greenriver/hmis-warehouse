@@ -37,7 +37,7 @@ module Types
         member_values = yield member if block_given?
 
         # Ensure we are using DATA_NOT_COLLECTED key for 99s
-        member_values[:key] = 'DATA_NOT_COLLECTED' if member_values[:value] == 99
+        member_values[:key] = 'DATA_NOT_COLLECTED' if member_values[:value]&.to_s == '99'
 
         value to_enum_key(member_values[:key]), member_values[:desc], value: member_values[:value]
       end
@@ -62,10 +62,13 @@ module Types
     end
 
     def self.hud_enum(hash)
+      # If ANY values are strings, then all enum values should all be stringified. Needed for VAMC station number.
+      stringify_values = hash.keys.any? { |k| k.is_a?(String) }
+
       values = hash.map do |key, desc|
         {
           key: desc,
-          value: key,
+          value: stringify_values ? key.to_s : key,
           desc: desc,
         }
       end
@@ -88,7 +91,8 @@ module Types
     end
 
     def self.data_not_collected_value
-      enum_member_for_value(99)&.last&.value
+      member = enum_member_for_value(99) || enum_member_for_value('99')
+      member&.last&.value
     end
   end
 end

@@ -27,6 +27,11 @@
                 "variable": "projectFunderComponents",
                 "operator": "INCLUDE",
                 "value": "HUD: ESG"
+              },
+              {
+                "variable": "projectFunderComponents",
+                "operator": "INCLUDE",
+                "value": "HUD: ESG RUSH"
               }
             ]
           }

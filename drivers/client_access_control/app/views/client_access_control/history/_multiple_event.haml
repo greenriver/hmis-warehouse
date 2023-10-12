@@ -5,7 +5,7 @@
       - total = project["total_#{key}".to_sym]
       - if total&.positive?
         %strong= "#{total} Total"
-- items = project[key.to_sym].sort.last(5)
+- items = project[key.to_sym].compact.sort.last(5)
 - items.reverse.each_with_index do |date, date_index|
   %tr
     %td

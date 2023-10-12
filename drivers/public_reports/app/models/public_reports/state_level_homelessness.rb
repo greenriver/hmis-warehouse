@@ -19,7 +19,7 @@ module PublicReports
     attr_accessor :map_max_rate, :map_max_count
 
     def title
-      _('State-Level Homelessness Report Generator')
+      Translation.translate('State-Level Homelessness Report Generator')
     end
 
     def yearly?
@@ -27,7 +27,7 @@ module PublicReports
     end
 
     def instance_title
-      _('State-Level Homelessness Report')
+      Translation.translate('State-Level Homelessness Report')
     end
 
     private def public_s3_directory
@@ -146,18 +146,18 @@ module PublicReports
 
     def populations
       {
-        youth: _('Youth and Young Adults'),
-        adults: _('Adult-Only Households'),
-        adults_with_children: _('Adults with Children'),
-        veterans: _('Veterans'),
+        youth: Translation.translate('Youth and Young Adults'),
+        adults: Translation.translate('Adult-Only Households'),
+        adults_with_children: Translation.translate('Adults with Children'),
+        veterans: Translation.translate('Veterans'),
       }
     end
 
     def household_types
       {
-        adults: _('Adult-Only Households'),
-        adults_with_children: _('Adults with Children'),
-        children: _('Child-Only Households'),
+        adults: Translation.translate('Adult-Only Households'),
+        adults_with_children: Translation.translate('Adults with Children'),
+        children: Translation.translate('Child-Only Households'),
       }
     end
 
@@ -352,7 +352,7 @@ module PublicReports
           count
         out_count = homeless_scope.entry.
           exit_within_date_range(start_date: start_date, end_date: end_date).
-          where(destination: ::HudUtility.permanent_destinations).
+          where(destination: ::HudUtility2024.permanent_destinations).
           select(:client_id).
           distinct.
           count
@@ -434,7 +434,8 @@ module PublicReports
       {}.tap do |charts|
         client_cache = GrdaWarehouse::Hud::Client.new
         # Manually do HUD race lookup to avoid a bunch of unnecessary mapping and lookups
-        races = ::HudUtility.races(multi_racial: true)
+        # NOTE: HispanicLatinaeo and MidEastNAfrican are not included in the census data, so we're ignoring them
+        races = ::HudUtility2024.races(multi_racial: true).except('HispanicLatinaeo', 'MidEastNAfrican')
         iteration_dates.each do |date|
           start_date = beginning_iteration(date)
           end_date = end_iteration(date)
@@ -487,7 +488,7 @@ module PublicReports
             # sum value after getting appropriate set of rows
             # add index on [accurate_on, identifier, type, measure]
             data: combined_data,
-            title: _('Racial Composition'),
+            title: Translation.translate('Racial Composition'),
             total: total_for(scope, nil),
             categories: ['Homeless Population', 'Overall Population'],
           }
@@ -822,12 +823,14 @@ module PublicReports
     end
 
     private def gender_breakdowns
+      # NOTE: only minorly updating this for now.  Since these are published publicly, we'll wait until we
+      # have better direction on the scope of what's desired
       setup = {
-        'Female' => GrdaWarehouse::Hud::Client.gender_female,
-        'Male' => GrdaWarehouse::Hud::Client.gender_male,
+        'Woman' => GrdaWarehouse::Hud::Client.gender_woman,
+        'Man' => GrdaWarehouse::Hud::Client.gender_man,
         'Transgender' => GrdaWarehouse::Hud::Client.gender_transgender,
-        'No Single Gender' => GrdaWarehouse::Hud::Client.no_single_gender.or(GrdaWarehouse::Hud::Client.questioning),
-        'Other or Unknown' => GrdaWarehouse::Hud::Client.gender_unknown,
+        'Non-Binary' => GrdaWarehouse::Hud::Client.gender_non_binary,
+        'Other or Unknown' => GrdaWarehouse::Hud::Client.gender_unknown.or(GrdaWarehouse::Hud::Client.questioning),
       }
       {}.tap do |charts|
         iteration_dates.each do |date|
@@ -855,11 +858,16 @@ module PublicReports
     end
 
     private def race_breakdowns
+      # TODO: DEPRECATED_FY2024 need to revisit this since race and ethnicity have been combined.
+      # We need to figure out how we'll represent that given the census data has a different shape.
       setup = {
         'American Indian or Alaska Native' => GrdaWarehouse::Hud::Client.with_races(['AmIndAKNative']),
         'Asian' => GrdaWarehouse::Hud::Client.with_races(['Asian']),
         'Black or African American' => GrdaWarehouse::Hud::Client.with_races(['BlackAfAmerican']),
         'Native Hawaiian or Pacific Islander' => GrdaWarehouse::Hud::Client.with_races(['NativeHIPacific']),
+        # NOTE: these two are not included in the census data, so we're ignoring them
+        # 'Hispanic/Latina/e/o' => GrdaWarehouse::Hud::Client.with_races(['HispanicLatinaeo']),
+        # 'Middle Eastern or North African' => GrdaWarehouse::Hud::Client.with_races(['MidEastNAfrican']),
         'White' => GrdaWarehouse::Hud::Client.with_races(['White']),
         'Other or Unknown' => GrdaWarehouse::Hud::Client.with_race_none,
       }

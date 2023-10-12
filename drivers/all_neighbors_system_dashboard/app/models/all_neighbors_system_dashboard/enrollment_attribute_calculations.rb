@@ -104,7 +104,7 @@ module AllNeighborsSystemDashboard
       end
 
       def gender(enrollment)
-        HudUtility.gender(enrollment.client.gender_binary)
+        HudUtility2024.gender(enrollment.client.gender_binary)
       end
 
       def primary_race(enrollment)
@@ -161,7 +161,7 @@ module AllNeighborsSystemDashboard
         # Due to the possibility of finding enrollments with ids from other data sources, this may pull
         # more events than required, but, they will end up in unused groups.
         GrdaWarehouse::Hud::Event.
-          where(enrollment_id: household_enrollments.values.map { |she| she.enrollment.enrollment_id }).
+          where(enrollment_id: household_enrollments.values.flatten.map { |she| she.enrollment.enrollment_id }).
           where(event: SERVICE_CODE_ID.keys, event_date: filter.range).
           order(event_date: :asc).
           group_by { |event| [event.enrollment_id, event.data_source_id] }.
@@ -199,7 +199,7 @@ module AllNeighborsSystemDashboard
             candidates = re_enrollments[housing_enrollment.client_id]
             next unless candidates.present?
 
-            h[housing_enrollment.id] = candidates.map(&:entry_date).min
+            h[housing_enrollment.id] = candidates.map(&:entry_date).max
           end
         end
       end
@@ -208,7 +208,7 @@ module AllNeighborsSystemDashboard
       # exit is from PH, in which case there doesn't need to be a gap.
       private def candidate_for_return?(exit_date, enrollment)
         enrollment.entry_date + 14.days >= exit_date ||
-          (enrollment.entry_date >= exit_date && !enrollment.project_type.in?(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]))
+          (enrollment.entry_date >= exit_date && !enrollment.project_type.in?(HudUtility2024.residential_project_type_numbers_by_code[:ph]))
       end
 
       def enrollment_data

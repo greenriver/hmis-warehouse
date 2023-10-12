@@ -29,7 +29,7 @@ class UploadsController < ApplicationController
     # Prevent create if user forgot to include file
     unless upload_params[:hmis_zip]
       @upload = upload_source.new
-      flash[:alert] = _('You must attach a file in the form.')
+      flash[:alert] = Translation.translate('You must attach a file in the form.')
       render :new
       return
     end
@@ -43,10 +43,10 @@ class UploadsController < ApplicationController
     )
     if @upload.persisted?
       run_import = true
-      flash[:notice] = _('Upload queued to start.')
+      flash[:notice] = Translation.translate('Upload queued to start.')
       redirect_to action: :index
     else
-      flash[:alert] = _('Upload failed to queue, did you attach a file?')
+      flash[:alert] = Translation.translate('Upload failed to queue, did you attach a file?')
       render :new
     end
     return unless run_import

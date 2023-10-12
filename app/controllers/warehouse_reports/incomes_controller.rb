@@ -41,7 +41,6 @@ module WarehouseReports
       headers += [
         'Gender',
         'Race',
-        'Ethnicity',
       ]
       headers
     end
@@ -63,7 +62,6 @@ module WarehouseReports
         row + [
           record.client.gender,
           record.client.race_description,
-          HudUtility.ethnicity(record.client.Ethnicity),
         ]
       end
     end
@@ -85,7 +83,7 @@ module WarehouseReports
     private def enrollment_source
       GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
-        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user))
+        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports))
     end
   end
 end

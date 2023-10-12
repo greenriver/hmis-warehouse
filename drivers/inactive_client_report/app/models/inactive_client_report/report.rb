@@ -19,7 +19,7 @@ module InactiveClientReport
     end
 
     def self.name
-      _('Client Activity Report')
+      Translation.translate('Client Activity Report')
     end
 
     def self.url

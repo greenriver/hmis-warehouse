@@ -61,7 +61,7 @@ module TxClientReports::WarehouseReports
       @filter ||= begin
         f = ::Filters::FilterBase.new(
           user_id: current_user.id,
-          project_type_numbers: GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS,
+          project_type_numbers: HudUtility2024.residential_project_type_ids,
           enforce_one_year_range: false,
         )
         f.update(filter_params)

@@ -16,12 +16,14 @@ module Types
     field :referred_by, String, null: false
     field :referral_notes, String
     field :chronic, Boolean
+    field :hud_chronic, Boolean
     field :score, Integer
     field :needs_wheelchair_accessible_unit, Boolean
 
     # Fields that come from ReferralHouseholdMembers
     field :hoh_name, String, null: false
     field :hoh_mci_id, ID, null: true
+    field :hoh_client, HmisSchema::Client, null: true
     field :household_size, Integer, null: false
     field :household_members, [HmisSchema::ReferralHouseholdMember], null: false
 
@@ -39,15 +41,18 @@ module Types
     field :denial_reason, HmisSchema::Enums::ReferralPostingDenialReasonType
     field :referral_result, HmisSchema::Enums::Hud::ReferralResult
     field :denial_note, String
-    field :referred_from, String, null: false
+    field :referred_from, String, null: false, description: 'Name of project or external source that the referral originated from'
     field :unit_type, HmisSchema::UnitTypeObject, null: false
-    field :project, HmisSchema::Project, null: true
+    field :project, HmisSchema::Project, null: true, description: 'Project that household is being referred to'
     field :organization, HmisSchema::Organization, null: true
 
     # If this posting has been accepted, this is the enrollment for the HoH at the enrolled household.
     # This enrollment is NOT necessarily the same as the `hoh_name`, because the HoH may have changed after
     # posting was accepted.
-    field :hoh_enrollment, HmisSchema::Enrollment, null: true
+    field :hoh_enrollment, HmisSchema::Enrollment, null: true, description: 'Enrollment for the HoH at the receiving Project (if the referral was accepted)'
+
+    # Decided not to add this yet, but leaving comment in case there is a request in the future to link them up.
+    # field :source_enrollment, HmisSchema::Enrollment, null: true, description: 'Source Enrollment in the Project that generated the referral (if any)'
 
     def referral_result
       object.referral_result_before_type_cast
@@ -65,6 +70,10 @@ module Types
       hoh_member&.mci_id
     end
 
+    def hoh_client
+      hoh_enrollment&.client
+    end
+
     def hoh_enrollment
       return unless object.household_id.present?
 
@@ -72,11 +81,24 @@ module Types
     end
 
     def household_members
-      referral.household_members
+      load_ar_association(referral, :household_members)
     end
 
     def household_size
-      household_members.size
+      household_members.map(&:client_id).uniq.size
+    end
+
+    def hud_chronic
+      # HUD Chronic status for the client that was referred as HoH
+      referred_hoh_client = hoh_member&.client
+      return unless referred_hoh_client.present?
+
+      # Users can see HUD Chronic status for clients being referred to their program, even if the client isn't enrolled yet.
+      # That's why the "entity" is project and not client.
+      return unless current_permission?(permission: :can_view_hud_chronic_status, entity: project)
+
+      # client.hud_chronic causes n+1 queries, only use when resolving 1 posting
+      !!referred_hoh_client.hud_chronic?(scope: referred_hoh_client.enrollments)
     end
 
     def referred_from
@@ -113,26 +135,34 @@ module Types
       end
     end
 
-    # FIXME: use graphql dataloader
     def project
-      object.project
+      load_ar_association(object, :project)
     end
 
-    # FIXME: use graphql dataloader
     def referral
-      object.referral
+      load_ar_association(object, :referral)
     end
+
+    # Decided not to add this yet, but leaving comment in case there is a request in the future to link them up.
+    # def source_enrollment
+    #   return unless current_permission?(permission: :can_view_project, entity: enrollment_project)
+    #   return unless current_permission?(permission: :can_view_enrollment_details, entity: enrollment_project)
+
+    #   protected_source_enrollment
+    # end
 
     protected
 
-    # FIXME: use graphql dataloader
-    def enrollment
-      referral.enrollment
+    # Note: The User who can view this referral may not have access to view the referring project.
+    def protected_source_enrollment
+      load_ar_association(referral, :enrollment)
     end
 
-    # FIXME: use graphql dataloader
+    # Note: The User who can view this referral may not have access to view the referring project.
     def enrollment_project
-      enrollment&.project
+      return unless protected_source_enrollment.present?
+
+      load_ar_association(protected_source_enrollment, :project)
     end
   end
 end

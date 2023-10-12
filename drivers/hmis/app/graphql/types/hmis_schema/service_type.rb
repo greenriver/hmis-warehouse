@@ -8,19 +8,16 @@
 
 module Types
   class HmisSchema::ServiceType < Types::BaseObject
+    include Types::HmisSchema::HasHudMetadata
+
     graphql_name 'ServiceType'
     field :id, ID, null: false
     field :name, String, null: false
     field :hud_record_type, HmisSchema::Enums::Hud::RecordType, null: true
     field :hud_type_provided, HmisSchema::Enums::ServiceTypeProvided, null: true
     field :category, String, null: false
-    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
-    field :user, HmisSchema::User, null: true
 
-    def user
-      load_ar_association(object, :user)
-    end
+    # object is a Hmis::Hud::CustomServiceType
 
     def category
       object.category.name

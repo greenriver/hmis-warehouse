@@ -141,9 +141,6 @@ module WarehouseReports
         :end,
         :sub_population,
         :household_type,
-        :race,
-        :ethnicity,
-        :gender,
         :veteran_status,
         :hoh_only,
         data_source_ids: [],
@@ -151,11 +148,14 @@ module WarehouseReports
         project_ids: [],
         project_group_ids: [],
         coc_codes: [],
+        races: [],
+        genders: [],
+        age_ranges: [],
       ]
     end
 
     private def project_source
-      GrdaWarehouse::Hud::Project.viewable_by(current_user)
+      GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports)
     end
 
     private def can_see_client_details?

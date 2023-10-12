@@ -6,6 +6,7 @@
 
 class Hmis::Filter::HouseholdFilter < Hmis::Filter::BaseFilter
   def filter_scope(scope)
+    scope = ensure_scope(scope)
     scope.joins(:enrollments).
       yield_self(&method(:with_statuses)).
       yield_self(&method(:with_open_on_date)).

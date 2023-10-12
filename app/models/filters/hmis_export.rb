@@ -9,7 +9,7 @@ module Filters
     include ArelHelper
     attribute :start_date, Date, default: 1.years.ago.to_date
     attribute :end_date, Date, default: Date.current
-    attribute :version, String, default: '2022'
+    attribute :version, String, default: '2024'
     attribute :hash_status, Integer, default: 1
     attribute :period_type, Integer, default: 3
     attribute :directive, Integer, default: 2
@@ -117,6 +117,14 @@ module Filters
     end
 
     def schedule_job(report_url:)
+      schedule_or_execute_job(report_url: report_url, mode: :schedule)
+    end
+
+    def execute_job(report_url:)
+      schedule_or_execute_job(report_url: report_url, mode: :execute)
+    end
+
+    private def schedule_or_execute_job(report_url:, mode:)
       table = Rails.application.config.hmis_exporters || []
 
       job_class = if version.present?
@@ -127,7 +135,13 @@ module Filters
 
       raise "Unable to find an HMIS Exporter for #{job_class}. Available: #{self.class.options_for_version} " unless job_class
 
-      job_class.constantize.perform_later(options_for_job, report_url: report_url)
+      if mode == :schedule
+        job_class.constantize.perform_later(options_for_job, report_url: report_url)
+      elsif mode == :execute
+        job_class.constantize.perform_now(options_for_job, report_url: report_url)
+      else
+        raise "Invalid mode: #{mode}. Must be :schedule or :execute"
+      end
     end
 
     private def options_for_job
@@ -201,9 +215,9 @@ module Filters
     end
 
     def viewable_project_scope
-      return GrdaWarehouse::Hud::Project.non_confidential.viewable_by(user) unless user.can_view_confidential_project_names?
+      return GrdaWarehouse::Hud::Project.non_confidential.viewable_by(user, permission: :can_view_projects) unless user.can_view_confidential_project_names?
 
-      GrdaWarehouse::Hud::Project.viewable_by(user)
+      GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_projects)
     end
 
     def all_project_ids

@@ -47,7 +47,7 @@ module CePerformance
     end
 
     def self.title
-      _('Number and Types of CE Events ')
+      Translation.translate('Number and Types of CE Events ')
     end
 
     def self.category

@@ -5,20 +5,12 @@
 ###
 
 class Hmis::Hud::Validators::CustomAssessmentValidator < Hmis::Hud::Validators::BaseValidator
-  IGNORED = [
-    :ExportID,
-    :DateCreated,
-    :DateUpdated,
-    # CE fields are not present on the custom assessment
-    :AssessmentID,
-    :AssessmentLocation,
-    :AssessmentType,
-    :AssessmentLevel,
-    :PrioritizationStatus,
-  ].freeze
+  def self.already_has_annual_full_message(date)
+    "Client already has an annual assessment on the same date (#{date.strftime('%m/%d/%Y')})"
+  end
 
-  def configuration
-    Hmis::Hud::CustomAssessment.hmis_configuration(version: '2024').except(*IGNORED)
+  def self.already_has_update_full_message(date)
+    "Client already has an update assessment on the same date (#{date.strftime('%m/%d/%Y')})"
   end
 
   # Validate assessment date
@@ -63,6 +55,21 @@ class Hmis::Hud::Validators::CustomAssessmentValidator < Hmis::Hud::Validators::
 
     # Add Exit Date validations if this is an intake assessment
     errors.push(*Hmis::Hud::Validators::ExitValidator.validate_exit_date(enrollment.exit, household_members: household_members, options: options)) if assessment.exit?
+
+    # HUD Annual/Update assessment date validations
+    if assessment.annual?
+      other_annual_dates = enrollment.annual_assessments.where.not(id: assessment.id).pluck(:assessment_date)
+      # Warning: shouldn't have 2 annuals on the same day.
+      # This could probably be an error, but, the user doesnt necessarily have access to delete the dup. Can make it a hard stop later if desired.
+      errors.add :assessment_date, :invalid, severity: :warning, full_message: already_has_annual_full_message(date), **options if other_annual_dates.include?(date)
+      # TODO: warn if annual is close to another annual?
+      # TODO: warn about relationship to other annuals dates?
+
+    elsif assessment.update?
+      other_update_dates = enrollment.update_assessments.where.not(id: assessment.id).pluck(:assessment_date)
+      # Warning: shouldn't have 2 updates on the same day
+      errors.add :assessment_date, :invalid, severity: :warning, full_message: already_has_update_full_message(date), **options if other_update_dates.include?(date)
+    end
 
     errors.deduplicate! # Drop any duplicates from entry/exit and default
     errors.errors

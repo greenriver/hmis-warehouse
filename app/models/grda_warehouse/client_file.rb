@@ -17,6 +17,7 @@ module GrdaWarehouse
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :vispdat, class_name: 'GrdaWarehouse::Vispdat::Base', optional: true
+    belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
     validates_inclusion_of :visible_in_window, in: [true, false]
     validates_presence_of :expiration_date, on: :requires_expiration_date, message: 'Expiration date is required'
     validates_presence_of :effective_date, on: :requires_effective_date, message: 'Effective date is required'
@@ -25,8 +26,30 @@ module GrdaWarehouse
     validates_presence_of :effective_date, on: :requires_expiration_and_effective_dates, message: 'Effective date is required'
     validates_presence_of :expiration_date, on: :requires_expiration_and_effective_dates, message: 'Expiration date is required'
 
+    validates_presence_of :enrollment_id, if: :confidential?
+
+    scope :confidential, -> do
+      where(confidential: true)
+    end
+
+    scope :non_confidential, -> do
+      where(confidential: false)
+    end
+
     scope :window, -> do
       where(visible_in_window: true)
+    end
+
+    scope :confidential_visible_by, ->(user) do
+      permission = :can_see_confidential_files
+      return none unless user&.send("#{permission}?")
+
+      ids = user.viewable_project_ids(permission)
+      # If have a set (not a nil) and it's empty, this user can't access any projects
+      return none if ids.is_a?(Set) && ids.empty?
+
+      confidential.joins(enrollment: :project).
+        merge(GrdaWarehouse::Hud::Project.where(id: ids))
     end
 
     scope :visible_by?, ->(user) do
@@ -241,7 +264,7 @@ module GrdaWarehouse
     end
 
     def consent_type_with_extras
-      full_string = _(consent_type)
+      full_string = Translation.translate(consent_type)
       full_string += " in #{coc_codes.to_sentence}" if coc_codes&.any?
       full_string
     end
@@ -329,6 +352,20 @@ module GrdaWarehouse
 
     def note_if_other
       errors.add :note, 'Note is required if Other is chosen above' if tag_list.include?('Other') && note.blank?
+    end
+
+    def enrollments_for_confidential_files(user, destination_client)
+      permission = :can_see_confidential_files
+      ids = user.viewable_project_ids(permission)
+      destination_client.source_enrollments.joins(:project).
+        merge(GrdaWarehouse::Hud::Project.where(id: ids)).
+        preload(:project).
+        map do |en|
+          [
+            "#{en.entry_date} - #{en.project.name(user, include_project_type: true)}",
+            en.id,
+          ]
+        end
     end
 
     def copy_to_s3!

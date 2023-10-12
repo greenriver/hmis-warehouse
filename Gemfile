@@ -208,17 +208,11 @@ gem 'aws-sdk-iam', '~> 1'
 gem 'aws-sdk-sns', require: false
 gem 'aws-sdk-ssm', '~> 1'
 gem 'json'
-gem 'json_schemer', require: false # external API validation
+gem 'json_schemer', '~> 2.0.0', require: false # external API validation
 gem 'oj'
 gem 'amazing_print'
 
 gem 'auto-session-timeout'
-
-# Translations
-gem 'gettext_i18n_rails'
-gem 'fast_gettext'
-gem 'gettext', '>=3.0.2'
-gem 'grosser-pomo'
 
 gem 'responders'
 
@@ -278,8 +272,9 @@ group :development do
   gem 'marginalia'
   gem 'overcommit', require: false
   gem 'rubocop', require: false
-  gem 'rubocop-rspec', require: false
-  gem 'rubocop-rails', require: false
+  # not used
+  # gem 'rubocop-rspec', require: false
+  # gem 'rubocop-rails', require: false
 
   # boot time/memory profiling
   gem 'derailed_benchmarks', require: false

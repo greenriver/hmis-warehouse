@@ -29,8 +29,6 @@
             Gender
           %th
             Race
-          %th
-            Ethnicity
       %tbody
         - @enrollments.each do |record|
           %tr
@@ -48,8 +46,6 @@
               = record.client.gender
             %td
               = record.client.race_description
-            %td
-              = HudUtility.ethnicity(record.client.Ethnicity)
   = render 'common/pagination_bottom', item_name: 'enrollment'
 - else
   .none-found.mt-4 No enrollments found.

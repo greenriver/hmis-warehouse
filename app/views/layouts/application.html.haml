@@ -7,7 +7,7 @@
       %meta{:name=>"viewport", :content=>"width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0"}
     %meta{:content => "IE=edge", "http-equiv" => "X-UA-Compatible"}
     = action_cable_meta_tag
-    %title= [(strip_tags content_for(:title)).presence, _('Boston DND Warehouse')].compact.join(' :: ')
+    %title= [(strip_tags content_for(:title)).presence, Translation.translate('Boston DND Warehouse')].compact.join(' :: ')
     %link{rel: :icon, type: 'image/png', href: 'data:;base64,iVBORw0KGgo='}
     %link{href: '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700|Poppins:400,300,500,700', rel: 'stylesheet', type: 'text/css'}
     = stylesheet_link_tag 'application', media: 'all'
@@ -32,9 +32,9 @@
         .site-name.d-flex
           .o-header--page__title.site-title
             = link_to root_path do
-              = _('Boston DND Warehouse')
+              = Translation.translate('Boston DND Warehouse')
         .o-header--page__sub-title.tagline
-          = _('Ending Veteran & Chronic Homelessness in Boston')
+          = Translation.translate('Ending Veteran & Chronic Homelessness in Boston')
         - unless @maintenance
           - content_for :prepended_nav_items do
             = render 'layouts/warehouse_alert'
@@ -69,7 +69,7 @@
         .d-flex.align-items-center.pt-4.pb-6
           = render 'layouts/footer_seal'
           %p.site-description
-            = _('The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care.')
+            = Translation.translate('The Boston DND Warehouse is operated by the Department of Neighborhood Development as the lead agency of the Boston Continuum of Care.')
           - links = Link.for(:footer)
           - if links.present?
             .ml-4.custom-footer-content

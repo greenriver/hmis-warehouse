@@ -1,4 +1,4 @@
-- title = _('Income, Non-Cash Benefits, Health Insurance Report')
+- title = Translation.translate('Income, Non-Cash Benefits, Health Insurance Report')
 - content_for :title, title
 
 = render 'breadcrumbs'
@@ -8,7 +8,7 @@
   .d-flex
     .mr-2
       %h3 Report Options
-      = @report.filter.describe_filter_as_html
+      = @report.describe_filter_as_html
     .mt-4
       %p
         %strong Run on:

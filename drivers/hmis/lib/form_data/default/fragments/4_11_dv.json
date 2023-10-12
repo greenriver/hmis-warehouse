@@ -26,30 +26,19 @@
         ]
       },
       {
-        "operator": "ALL",
         "_comment": "HUD: ESG – Collection required for all components ",
-        "parts": [
-          {
-            "variable": "projectFunderComponents",
-            "operator": "INCLUDE",
-            "value": "HUD: ESG"
-          },
-          {
-            "variable": "projectFunders",
-            "operator": "NOT_INCLUDE",
-            "_comment": "Exclude RUSH since it follows the next rule",
-            "value": 53
-          }
-        ]
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HUD: ESG"
       },
       {
         "operator": "ALL",
         "_comment": "HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach",
         "parts": [
           {
-            "variable": "projectFunders",
+            "variable": "projectFunderComponents",
             "operator": "INCLUDE",
-            "value": 54
+            "value": "HUD: ESG RUSH"
           },
           {
             "variable": "projectType",
@@ -72,16 +61,16 @@
         "_comment": "HUD: HOPWA – Collection required for all components",
         "variable": "projectFunderComponents",
         "operator": "INCLUDE",
-        "value": "HUD: HOWPA"
+        "value": "HUD: HOPWA"
       },
       {
         "operator": "ALL",
         "_comment": "HUD: Unsheltered Special NOFO – Collection required for all components except SSO Coordinated Entry",
         "parts": [
           {
-            "variable": "projectFunders",
+            "variable": "projectFunderComponents",
             "operator": "INCLUDE",
-            "value": 54
+            "value": "HUD: Unsheltered Special NOFO"
           },
           {
             "variable": "projectType",
@@ -100,9 +89,9 @@
         "_comment": "HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry",
         "parts": [
           {
-            "variable": "projectFunders",
+            "variable": "projectFunderComponents",
             "operator": "INCLUDE",
-            "value": 55
+            "value": "HUD: Rural Special NOFO"
           },
           {
             "variable": "projectType",
@@ -118,18 +107,18 @@
       },
       {
         "_comment": "HUD: HUD-VASH – Collection required for HUD VASH Collaborative Case Management",
-        "variable": "projectFunders",
+        "variable": "projectFunderComponents",
         "operator": "INCLUDE",
-        "value": 20
+        "value": "HUD: HUD-VASH"
       },
       {
         "operator": "ALL",
         "_comment": "HUD: PFS – Collection required for all permanent housing projects",
         "parts": [
           {
-            "variable": "projectFunders",
+            "variable": "projectFunderComponents",
             "operator": "INCLUDE",
-            "value": 35
+            "value": "HUD: PFS"
           },
           {
             "operator": "ANY",
@@ -169,9 +158,9 @@
         "_comment": "VA: SSVF – Collection required for RRH and Homelessness Prevention",
         "parts": [
           {
-            "variable": "projectFunders",
+            "variable": "projectFunderComponents",
             "operator": "INCLUDE",
-            "value": 33
+            "value": "VA: SSVF"
           },
           {
             "operator": "ANY",
@@ -194,7 +183,7 @@
         "_comment": "VA: GPD – Collection required for all components",
         "variable": "projectFunderComponents",
         "operator": "INCLUDE",
-        "value": "VA: Grant Per Diem"
+        "value": "VA: GPD"
       },
       {
         "_comment": "VA: Community Contract Safe Haven",
@@ -203,10 +192,15 @@
         "value": 30
       },
       {
-        "_comment": "VA: CRS Contract Residential Services",
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "VA: CRS Contract Residential Services"
+      },
+      {
+        "_comment": "YHDP",
         "variable": "projectFunders",
         "operator": "INCLUDE",
-        "value": 27
+        "value": 43
       }
     ]
   },

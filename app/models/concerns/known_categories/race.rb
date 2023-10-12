@@ -9,12 +9,12 @@ module KnownCategories::Race
 
   def race_calculations
     @race_calculations ||= {}.tap do |calcs|
-      HudUtility.races.each do |key, title|
+      HudUtility2024.races.each do |key, title|
         next if key.to_sym == :RaceNone
 
         calcs[title] = ->(value) { value == key }
       end
-      title = HudUtility.race('MultiRacial', multi_racial: true)
+      title = HudUtility2024.race('MultiRacial', multi_racial: true)
       calcs[title] = ->(value) { value == title }
       calcs['Client doesn\'t know'] = ->(value) { value == '8' }
       calcs['Client refused'] = ->(value) { value == '9' }
@@ -30,6 +30,8 @@ module KnownCategories::Race
       c_t[:BlackAfAmerican],
       c_t[:NativeHIPacific],
       c_t[:White],
+      c_t[:HispanicLatinaeo],
+      c_t[:MidEastNAfrican],
     ]
     conditions = [
       [Arel.sql(columns.map(&:to_sql).join(' + ')).between(2..98), 'MultiRacial'],
@@ -40,7 +42,8 @@ module KnownCategories::Race
       [c_t[:BlackAfAmerican].eq(1), 'BlackAfAmerican'],
       [c_t[:NativeHIPacific].eq(1), 'NativeHIPacific'],
       [c_t[:White].eq(1), 'White'],
-
+      [c_t[:HispanicLatinaeo].eq(1), 'HispanicLatinaeo'],
+      [c_t[:MidEastNAfrican].eq(1), 'MidEastNAfrican'],
     ]
     acase(conditions, elsewise: '99')
   end

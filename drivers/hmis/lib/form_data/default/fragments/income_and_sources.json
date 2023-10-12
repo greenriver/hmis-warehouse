@@ -4,7 +4,240 @@
   "text": "Income and Sources",
   "data_collected_about": "HOH_AND_ADULTS",
   "prefill": true,
-  "fragment": "#common_psde_applicability_rule",
+  "rule": {
+    "operator": "ANY",
+    "parts": [
+      {
+        "operator": "ALL",
+        "_comment": "HUD: CoC – Collection required for all components except SSO Coordinated Entry",
+        "parts": [
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "HUD: CoC"
+          },
+          {
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "value": 6
+          },
+          {
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "value": 14
+          }
+        ]
+      },
+      {
+        "operator": "ALL",
+        "_comment": "HUD: ESG – Collection required for all components except ES-NbN",
+        "parts": [
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "HUD: ESG"
+          },
+          {
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "operator": "ALL",
+        "_comment": "HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach",
+        "parts": [
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "HUD: ESG RUSH"
+          },
+          {
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "value": 0
+          },
+          {
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "value": 1
+          },
+          {
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "value": 4
+          }
+        ]
+      },
+      {
+        "_comment": "HUD: HOPWA – Collection required for all components",
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HUD: HOPWA"
+      },
+      {
+        "operator": "ALL",
+        "_comment": "HUD: Unsheltered Special NOFO – Collection required for all components except SSO Coordinated Entry",
+        "parts": [
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "HUD: Unsheltered Special NOFO"
+          },
+          {
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "value": 6
+          },
+          {
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "value": 14
+          }
+        ]
+      },
+      {
+        "operator": "ALL",
+        "_comment": "HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry",
+        "parts": [
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "HUD: Rural Special NOFO"
+          },
+          {
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "value": 6
+          },
+          {
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "value": 14
+          }
+        ]
+      },
+      {
+        "_comment": "HUD: HUD-VASH – Collection required for HUD VASH Collaborative Case Management",
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HUD: HUD-VASH"
+      },
+      {
+        "operator": "ALL",
+        "_comment": "HUD: PFS – Collection required for all permanent housing projects",
+        "parts": [
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "HUD: PFS"
+          },
+          {
+            "operator": "ANY",
+            "parts": [
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 3
+              },
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 9
+              },
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 10
+              },
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 13
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "_comment": "HHS: PATH – Collection required for all components",
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HHS: PATH"
+      },
+      {
+        "_comment": "HHS: RHY – Collection only required for MGH, TLP, and Demo",
+        "operator": "ANY",
+        "parts": [
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 23
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 24
+          },
+          {
+            "variable": "projectFunders",
+            "operator": "INCLUDE",
+            "value": 26
+          }
+        ]
+      },
+      {
+        "operator": "ALL",
+        "_comment": "VA: SSVF – Collection required for RRH and Homelessness Prevention",
+        "parts": [
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "VA: SSVF"
+          },
+          {
+            "operator": "ANY",
+            "parts": [
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 12
+              },
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 13
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "_comment": "VA: GPD – Collection required for all components",
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "VA: GPD"
+      },
+      {
+        "_comment": "VA: Community Contract Safe Haven",
+        "variable": "projectFunders",
+        "operator": "INCLUDE",
+        "value": 30
+      },
+      {
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "VA: CRS Contract Residential Services"
+      },
+      {
+        "_comment": "YHDP",
+        "variable": "projectFunders",
+        "operator": "INCLUDE",
+        "value": 43
+      }
+    ]
+  },
   "item": [
     {
       "type": "CHOICE",
@@ -122,45 +355,6 @@
       ],
       "item": [
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "link_id": "4.02.3",
-          "hidden": true,
-          "mapping": {
-            "record_type": "INCOME_BENEFIT",
-            "field_name": "earned"
-          },
-          "autofill_values": [
-            {
-              "value_code": "YES",
-              "autofill_behavior": "ALL",
-              "autofill_when": [
-                {
-                  "question": "4.02.A",
-                  "operator": "GREATER_THAN",
-                  "answer_number": 0
-                }
-              ]
-            },
-            {
-              "value_code": "NO",
-              "autofill_behavior": "ANY",
-              "autofill_when": [
-                {
-                  "question": "4.02.A",
-                  "operator": "LESS_THAN_EQUAL",
-                  "answer_number": 0
-                },
-                {
-                  "question": "4.02.A",
-                  "operator": "EXISTS",
-                  "answer_boolean": false
-                }
-              ]
-            }
-          ]
-        },
-        {
           "type": "CURRENCY",
           "link_id": "4.02.A",
           "text": "Earned Income (i.e., employment income)",
@@ -168,45 +362,6 @@
             "record_type": "INCOME_BENEFIT",
             "field_name": "earnedAmount"
           }
-        },
-        {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "link_id": "4.02.4",
-          "hidden": true,
-          "mapping": {
-            "record_type": "INCOME_BENEFIT",
-            "field_name": "unemployment"
-          },
-          "autofill_values": [
-            {
-              "value_code": "YES",
-              "autofill_behavior": "ALL",
-              "autofill_when": [
-                {
-                  "question": "4.02.B",
-                  "operator": "GREATER_THAN",
-                  "answer_number": 0
-                }
-              ]
-            },
-            {
-              "value_code": "NO",
-              "autofill_behavior": "ANY",
-              "autofill_when": [
-                {
-                  "question": "4.02.B",
-                  "operator": "LESS_THAN_EQUAL",
-                  "answer_number": 0
-                },
-                {
-                  "question": "4.02.B",
-                  "operator": "EXISTS",
-                  "answer_boolean": false
-                }
-              ]
-            }
-          ]
         },
         {
           "type": "CURRENCY",
@@ -218,45 +373,6 @@
           }
         },
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "link_id": "4.02.5",
-          "hidden": true,
-          "mapping": {
-            "record_type": "INCOME_BENEFIT",
-            "field_name": "ssi"
-          },
-          "autofill_values": [
-            {
-              "value_code": "YES",
-              "autofill_behavior": "ALL",
-              "autofill_when": [
-                {
-                  "question": "4.02.C",
-                  "operator": "GREATER_THAN",
-                  "answer_number": 0
-                }
-              ]
-            },
-            {
-              "value_code": "NO",
-              "autofill_behavior": "ANY",
-              "autofill_when": [
-                {
-                  "question": "4.02.C",
-                  "operator": "LESS_THAN_EQUAL",
-                  "answer_number": 0
-                },
-                {
-                  "question": "4.02.C",
-                  "operator": "EXISTS",
-                  "answer_boolean": false
-                }
-              ]
-            }
-          ]
-        },
-        {
           "type": "CURRENCY",
           "link_id": "4.02.C",
           "text": "Supplemental Security Income (SSI)",
@@ -264,45 +380,6 @@
             "record_type": "INCOME_BENEFIT",
             "field_name": "ssiAmount"
           }
-        },
-        {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "link_id": "4.02.6",
-          "hidden": true,
-          "mapping": {
-            "record_type": "INCOME_BENEFIT",
-            "field_name": "ssdi"
-          },
-          "autofill_values": [
-            {
-              "value_code": "YES",
-              "autofill_behavior": "ALL",
-              "autofill_when": [
-                {
-                  "question": "4.02.D",
-                  "operator": "GREATER_THAN",
-                  "answer_number": 0
-                }
-              ]
-            },
-            {
-              "value_code": "NO",
-              "autofill_behavior": "ANY",
-              "autofill_when": [
-                {
-                  "question": "4.02.D",
-                  "operator": "LESS_THAN_EQUAL",
-                  "answer_number": 0
-                },
-                {
-                  "question": "4.02.D",
-                  "operator": "EXISTS",
-                  "answer_boolean": false
-                }
-              ]
-            }
-          ]
         },
         {
           "type": "CURRENCY",
@@ -314,45 +391,6 @@
           }
         },
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "link_id": "4.02.7",
-          "hidden": true,
-          "mapping": {
-            "record_type": "INCOME_BENEFIT",
-            "field_name": "vaDisabilityService"
-          },
-          "autofill_values": [
-            {
-              "value_code": "YES",
-              "autofill_behavior": "ALL",
-              "autofill_when": [
-                {
-                  "question": "4.02.E",
-                  "operator": "GREATER_THAN",
-                  "answer_number": 0
-                }
-              ]
-            },
-            {
-              "value_code": "NO",
-              "autofill_behavior": "ANY",
-              "autofill_when": [
-                {
-                  "question": "4.02.E",
-                  "operator": "LESS_THAN_EQUAL",
-                  "answer_number": 0
-                },
-                {
-                  "question": "4.02.E",
-                  "operator": "EXISTS",
-                  "answer_boolean": false
-                }
-              ]
-            }
-          ]
-        },
-        {
           "type": "CURRENCY",
           "link_id": "4.02.E",
           "text": "VA Service-Connected Disability Compensation",
@@ -360,45 +398,6 @@
             "record_type": "INCOME_BENEFIT",
             "field_name": "vaDisabilityServiceAmount"
           }
-        },
-        {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "link_id": "4.02.8",
-          "hidden": true,
-          "mapping": {
-            "record_type": "INCOME_BENEFIT",
-            "field_name": "vaDisabilityNonService"
-          },
-          "autofill_values": [
-            {
-              "value_code": "YES",
-              "autofill_behavior": "ALL",
-              "autofill_when": [
-                {
-                  "question": "4.02.F",
-                  "operator": "GREATER_THAN",
-                  "answer_number": 0
-                }
-              ]
-            },
-            {
-              "value_code": "NO",
-              "autofill_behavior": "ANY",
-              "autofill_when": [
-                {
-                  "question": "4.02.F",
-                  "operator": "LESS_THAN_EQUAL",
-                  "answer_number": 0
-                },
-                {
-                  "question": "4.02.F",
-                  "operator": "EXISTS",
-                  "answer_boolean": false
-                }
-              ]
-            }
-          ]
         },
         {
           "type": "CURRENCY",
@@ -410,45 +409,6 @@
           }
         },
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "link_id": "4.02.9",
-          "hidden": true,
-          "mapping": {
-            "record_type": "INCOME_BENEFIT",
-            "field_name": "privateDisability"
-          },
-          "autofill_values": [
-            {
-              "value_code": "YES",
-              "autofill_behavior": "ALL",
-              "autofill_when": [
-                {
-                  "question": "4.02.G",
-                  "operator": "GREATER_THAN",
-                  "answer_number": 0
-                }
-              ]
-            },
-            {
-              "value_code": "NO",
-              "autofill_behavior": "ANY",
-              "autofill_when": [
-                {
-                  "question": "4.02.G",
-                  "operator": "LESS_THAN_EQUAL",
-                  "answer_number": 0
-                },
-                {
-                  "question": "4.02.G",
-                  "operator": "EXISTS",
-                  "answer_boolean": false
-                }
-              ]
-            }
-          ]
-        },
-        {
           "type": "CURRENCY",
           "link_id": "4.02.G",
           "text": "Private disability insurance",
@@ -456,45 +416,6 @@
             "record_type": "INCOME_BENEFIT",
             "field_name": "privateDisabilityAmount"
           }
-        },
-        {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "link_id": "4.02.10",
-          "hidden": true,
-          "mapping": {
-            "record_type": "INCOME_BENEFIT",
-            "field_name": "workersComp"
-          },
-          "autofill_values": [
-            {
-              "value_code": "YES",
-              "autofill_behavior": "ALL",
-              "autofill_when": [
-                {
-                  "question": "4.02.H",
-                  "operator": "GREATER_THAN",
-                  "answer_number": 0
-                }
-              ]
-            },
-            {
-              "value_code": "NO",
-              "autofill_behavior": "ANY",
-              "autofill_when": [
-                {
-                  "question": "4.02.H",
-                  "operator": "LESS_THAN_EQUAL",
-                  "answer_number": 0
-                },
-                {
-                  "question": "4.02.H",
-                  "operator": "EXISTS",
-                  "answer_boolean": false
-                }
-              ]
-            }
-          ]
         },
         {
           "type": "CURRENCY",
@@ -506,45 +427,6 @@
           }
         },
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "link_id": "4.02.11",
-          "hidden": true,
-          "mapping": {
-            "record_type": "INCOME_BENEFIT",
-            "field_name": "tanf"
-          },
-          "autofill_values": [
-            {
-              "value_code": "YES",
-              "autofill_behavior": "ALL",
-              "autofill_when": [
-                {
-                  "question": "4.02.I",
-                  "operator": "GREATER_THAN",
-                  "answer_number": 0
-                }
-              ]
-            },
-            {
-              "value_code": "NO",
-              "autofill_behavior": "ANY",
-              "autofill_when": [
-                {
-                  "question": "4.02.I",
-                  "operator": "LESS_THAN_EQUAL",
-                  "answer_number": 0
-                },
-                {
-                  "question": "4.02.I",
-                  "operator": "EXISTS",
-                  "answer_boolean": false
-                }
-              ]
-            }
-          ]
-        },
-        {
           "type": "CURRENCY",
           "link_id": "4.02.I",
           "text": "Temporary Assistance for Needy Families (TANF)",
@@ -552,45 +434,6 @@
             "record_type": "INCOME_BENEFIT",
             "field_name": "tanfAmount"
           }
-        },
-        {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "link_id": "4.02.12",
-          "hidden": true,
-          "mapping": {
-            "record_type": "INCOME_BENEFIT",
-            "field_name": "ga"
-          },
-          "autofill_values": [
-            {
-              "value_code": "YES",
-              "autofill_behavior": "ALL",
-              "autofill_when": [
-                {
-                  "question": "4.02.J",
-                  "operator": "GREATER_THAN",
-                  "answer_number": 0
-                }
-              ]
-            },
-            {
-              "value_code": "NO",
-              "autofill_behavior": "ANY",
-              "autofill_when": [
-                {
-                  "question": "4.02.J",
-                  "operator": "LESS_THAN_EQUAL",
-                  "answer_number": 0
-                },
-                {
-                  "question": "4.02.J",
-                  "operator": "EXISTS",
-                  "answer_boolean": false
-                }
-              ]
-            }
-          ]
         },
         {
           "type": "CURRENCY",
@@ -602,45 +445,6 @@
           }
         },
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "link_id": "4.02.13",
-          "hidden": true,
-          "mapping": {
-            "record_type": "INCOME_BENEFIT",
-            "field_name": "socSecRetirement"
-          },
-          "autofill_values": [
-            {
-              "value_code": "YES",
-              "autofill_behavior": "ALL",
-              "autofill_when": [
-                {
-                  "question": "4.02.K",
-                  "operator": "GREATER_THAN",
-                  "answer_number": 0
-                }
-              ]
-            },
-            {
-              "value_code": "NO",
-              "autofill_behavior": "ANY",
-              "autofill_when": [
-                {
-                  "question": "4.02.K",
-                  "operator": "LESS_THAN_EQUAL",
-                  "answer_number": 0
-                },
-                {
-                  "question": "4.02.K",
-                  "operator": "EXISTS",
-                  "answer_boolean": false
-                }
-              ]
-            }
-          ]
-        },
-        {
           "type": "CURRENCY",
           "link_id": "4.02.K",
           "text": "Retirement Income from Social Security",
@@ -648,45 +452,6 @@
             "record_type": "INCOME_BENEFIT",
             "field_name": "socSecRetirementAmount"
           }
-        },
-        {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "link_id": "4.02.14",
-          "hidden": true,
-          "mapping": {
-            "record_type": "INCOME_BENEFIT",
-            "field_name": "pension"
-          },
-          "autofill_values": [
-            {
-              "value_code": "YES",
-              "autofill_behavior": "ALL",
-              "autofill_when": [
-                {
-                  "question": "4.02.L",
-                  "operator": "GREATER_THAN",
-                  "answer_number": 0
-                }
-              ]
-            },
-            {
-              "value_code": "NO",
-              "autofill_behavior": "ANY",
-              "autofill_when": [
-                {
-                  "question": "4.02.L",
-                  "operator": "LESS_THAN_EQUAL",
-                  "answer_number": 0
-                },
-                {
-                  "question": "4.02.L",
-                  "operator": "EXISTS",
-                  "answer_boolean": false
-                }
-              ]
-            }
-          ]
         },
         {
           "type": "CURRENCY",
@@ -698,45 +463,6 @@
           }
         },
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "link_id": "4.02.15",
-          "hidden": true,
-          "mapping": {
-            "record_type": "INCOME_BENEFIT",
-            "field_name": "childSupport"
-          },
-          "autofill_values": [
-            {
-              "value_code": "YES",
-              "autofill_behavior": "ALL",
-              "autofill_when": [
-                {
-                  "question": "4.02.M",
-                  "operator": "GREATER_THAN",
-                  "answer_number": 0
-                }
-              ]
-            },
-            {
-              "value_code": "NO",
-              "autofill_behavior": "ANY",
-              "autofill_when": [
-                {
-                  "question": "4.02.M",
-                  "operator": "LESS_THAN_EQUAL",
-                  "answer_number": 0
-                },
-                {
-                  "question": "4.02.M",
-                  "operator": "EXISTS",
-                  "answer_boolean": false
-                }
-              ]
-            }
-          ]
-        },
-        {
           "type": "CURRENCY",
           "link_id": "4.02.M",
           "text": "Child support",
@@ -746,45 +472,6 @@
           }
         },
         {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "link_id": "4.02.16",
-          "hidden": true,
-          "mapping": {
-            "record_type": "INCOME_BENEFIT",
-            "field_name": "alimony"
-          },
-          "autofill_values": [
-            {
-              "value_code": "YES",
-              "autofill_behavior": "ALL",
-              "autofill_when": [
-                {
-                  "question": "4.02.N",
-                  "operator": "GREATER_THAN",
-                  "answer_number": 0
-                }
-              ]
-            },
-            {
-              "value_code": "NO",
-              "autofill_behavior": "ANY",
-              "autofill_when": [
-                {
-                  "question": "4.02.N",
-                  "operator": "LESS_THAN_EQUAL",
-                  "answer_number": 0
-                },
-                {
-                  "question": "4.02.N",
-                  "operator": "EXISTS",
-                  "answer_boolean": false
-                }
-              ]
-            }
-          ]
-        },
-        {
           "type": "CURRENCY",
           "link_id": "4.02.N",
           "text": "Alimony and other spousal support",
@@ -792,45 +479,6 @@
             "record_type": "INCOME_BENEFIT",
             "field_name": "alimonyAmount"
           }
-        },
-        {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "link_id": "4.02.17",
-          "hidden": true,
-          "mapping": {
-            "record_type": "INCOME_BENEFIT",
-            "field_name": "otherIncomeSource"
-          },
-          "autofill_values": [
-            {
-              "value_code": "YES",
-              "autofill_behavior": "ALL",
-              "autofill_when": [
-                {
-                  "question": "4.02.O",
-                  "operator": "GREATER_THAN",
-                  "answer_number": 0
-                }
-              ]
-            },
-            {
-              "value_code": "NO",
-              "autofill_behavior": "ANY",
-              "autofill_when": [
-                {
-                  "question": "4.02.O",
-                  "operator": "LESS_THAN_EQUAL",
-                  "answer_number": 0
-                },
-                {
-                  "question": "4.02.O",
-                  "operator": "EXISTS",
-                  "answer_boolean": false
-                }
-              ]
-            }
-          ]
         },
         {
           "type": "CURRENCY",

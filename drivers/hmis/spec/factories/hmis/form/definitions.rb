@@ -10,6 +10,7 @@ FactoryBot.define do
     sequence(:identifier, 100)
     role { 'UPDATE' }
     status { 'active' }
+    title { 'Form' }
     definition do
       {
         'item': [
@@ -43,6 +44,42 @@ FactoryBot.define do
                 'mapping': { 'field_name': 'fieldTwo' },
               },
             ],
+          },
+        ],
+      }
+    end
+  end
+
+  factory :hmis_intake_assessment_definition, parent: :hmis_form_definition do
+    role { :INTAKE }
+    definition do
+      {
+        'item': [
+          {
+            'type': 'DATE',
+            'link_id': 'date',
+            'required': true,
+            'warn_if_empty': false,
+            'assessment_date': true,
+            'mapping': { 'field_name': 'entryDate' },
+          },
+        ],
+      }
+    end
+  end
+
+  factory :hmis_exit_assessment_definition, parent: :hmis_form_definition do
+    role { :EXIT }
+    definition do
+      {
+        'item': [
+          {
+            'type': 'DATE',
+            'link_id': 'date',
+            'required': true,
+            'warn_if_empty': false,
+            'assessment_date': true,
+            'mapping': { 'field_name': 'exitDate' },
           },
         ],
       }

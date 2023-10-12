@@ -8,15 +8,15 @@ module SpmBasedReports
   extend ActiveSupport::Concern
   included do
     def spm_project_types
-      GrdaWarehouse::Hud::Project::SPM_PROJECT_TYPE_CODES
+      HudUtility2024.spm_project_type_codes
     end
 
     def project_type_ids
-      spm_project_types.map { |s| GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING[s.to_sym] }.flatten
+      spm_project_types.map { |s| HudUtility2024.performance_reporting[s.to_sym] }.flatten
     end
 
     def project_options_for_select(user)
-      GrdaWarehouse::Hud::Project.viewable_by(user).
+      GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).
         with_hud_project_type(project_type_ids).
         options_for_select(user: user)
     end

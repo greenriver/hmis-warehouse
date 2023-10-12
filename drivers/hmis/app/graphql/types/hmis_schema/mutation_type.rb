@@ -12,7 +12,7 @@ module Types
     field :delete_client_image, mutation: Mutations::DeleteClientImage
     field :delete_client_file, mutation: Mutations::DeleteClientFile
     field :update_relationship_to_ho_h, mutation: Mutations::UpdateRelationshipToHoH
-    field :update_custom_enrollment_value, mutation: Mutations::UpdateCustomEnrollmentValue
+
     field :delete_enrollment, mutation: Mutations::DeleteEnrollment
     field :delete_organization, mutation: Mutations::DeleteOrganization
     field :delete_project, mutation: Mutations::DeleteProject
@@ -46,5 +46,6 @@ module Types
     field :void_referral_request, mutation: Mutations::AcHmis::VoidReferralRequest
     field :update_referral_posting, mutation: Mutations::AcHmis::UpdateReferralPosting
     field :create_outgoing_referral_posting, mutation: Mutations::AcHmis::CreateOutgoingReferralPosting
+    field :delete_custom_case_note, mutation: Mutations::DeleteCustomCaseNote
   end
 end

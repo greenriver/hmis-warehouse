@@ -124,8 +124,8 @@ RSpec.describe GrdaWarehouse::WarehouseReports::Project::DataQuality::VersionFou
       end
 
       it 'exits to ph' do
-        source_clients = exiting_clients.where(ex_t[:Destination].in(HudUtility.permanent_destinations))
-        exits = @report.enrollments.exited.where(destination_id: HudUtility.permanent_destinations)
+        source_clients = exiting_clients.where(ex_t[:Destination].in(HudUtility2024.permanent_destinations))
+        exits = @report.enrollments.exited.where(destination_id: HudUtility2024.permanent_destinations)
         expect(source_clients.count).to eq exits.count
       end
 

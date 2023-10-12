@@ -7,43 +7,42 @@
 module Admin
   class TranslationKeysController < ApplicationController
     before_action :require_can_edit_translations!
-    before_action :find_translation_key, only: [:show, :edit, :update, :destroy]
+    before_action :set_translation, only: [:show, :edit, :update, :destroy]
     before_action :add_default_locales_to_translation, only: [:show, :new]
 
     def index
-      tt_t = TranslationText.arel_table
-      tk_t = translation_key_source.arel_table
-
-      search_options = params.require(:search).permit(:q, :missing_translations) if params[:search]
+      t_t = translation_source.arel_table
+      search_options = params.require(:search).permit(:q, :missing_translations, :common) if params[:search]
       @search = Search.new(search_options)
-      @translation_keys = translation_key_source.order(key: :asc)
+      @translations = translation_source.order(key: :asc)
       if @search.q.present?
-        @translation_keys = @translation_keys.where(
-          tk_t[:key].matches("%#{@search.q}%").
+        @translations = @translations.where(
+          t_t[:key].matches("%#{@search.q}%").
             or(
-              tk_t[:id].in(
+              t_t[:id].in(
                 Arel.sql(
-                  translation_text_source.where(tt_t[:text].matches("%#{@search.q}%")).select(:translation_key_id).to_sql,
+                  translation_source.where(t_t[:text].matches("%#{@search.q}%")).select(:id).to_sql,
                 ),
               ),
             ),
         )
       end
       if @search.missing_translations
-        @translation_keys = @translation_keys.
+        @translations = @translations.
           where(
-            id: translation_text_source.where(
-              tt_t[:text].eq(nil).or(tt_t[:text].eq('')),
-            ).select(:translation_key_id),
+            id: translation_source.where(
+              t_t[:text].eq(nil).or(t_t[:text].eq('')),
+            ).select(:id),
           )
       end
+      @translations = @translations.where(common: true) if @search.common
 
-      @pagy, @translation_keys = pagy(@translation_keys)
+      @pagy, @translations = pagy(@translations)
       render action: :index
     end
 
     def new
-      @translation_key = TranslationKey.new
+      @translation = Translation.new
 
       render action: :edit
     end
@@ -57,60 +56,37 @@ module Admin
     end
 
     def update
-      if @translation_key.update(translation_key_params)
-        FastGettext.expire_cache_for(@translation_key.key)
-        Rails.cache.write('translation-fresh-at', Time.current)
+      if @translation.update(translation_params)
+        @translation.invalidate_cache
         flash[:notice] = 'Saved!'
-        redirect_to @translation_key
+        redirect_to @translation
       else
         flash[:error] = 'Failed to save!'
         render action: :edit
       end
     end
 
-    def translation_key_source
-      TranslationKey
+    def translation_source
+      Translation
     end
 
-    def translation_text_source
-      TranslationText
-    end
-
-    def translation_key_params
-      params.require(:translation_key).
+    def translation_params
+      params.require(:translation).
         permit(
           :key,
-          translations_attributes: [:id, :text, :locale],
+          :text,
+          :id,
         )
     end
 
-    def self.tbe_config
-      @@tbe_config ||= begin # rubocop:disable Style/ClassVars
-        YAML.safe_load(File.read(Rails.root.join('config', 'translation_db_engine.yml'))).with_indifferent_access
-      rescue StandardError
-        {}
-      end
-    end
-
-    def choose_layout
-      self.class.tbe_config[:layout] || 'application'
-    end
-
-    def find_translation_key
-      @translation_key = TranslationKey.find(params[:id].to_i)
-    end
-
-    def add_default_locales_to_translation
-      existing_translations = @translation_key.translations.map(&:locale)
-      missing_translations = TranslationKey.available_locales.map(&:to_sym) - existing_translations.map(&:to_sym)
-      missing_translations.each do |locale|
-        @translation_key.translations.build(locale: locale)
-      end
+    def set_translation
+      @translation = Translation.find(params[:id].to_i)
     end
 
     class Search < ModelForm
       attribute :q, String, lazy: true, default: ''
       attribute :missing_translations, Boolean, lazy: true, default: false
+      attribute :common, Boolean, lazy: true, default: false
     end
   end
 end

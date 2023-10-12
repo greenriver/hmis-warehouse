@@ -1,4 +1,4 @@
-- title = "#{_('CoC Performance Measurement Dashboard')} Configurator"
+- title = "#{Translation.translate('CoC Performance Measurement Dashboard')} Configurator"
 - report = PerformanceMeasurement::Report.new(user: current_user)
 - content_for :title, title
 
@@ -6,7 +6,7 @@
 %h1.mb-5= title
 = simple_form_for @default_goal, url: performance_measurement_warehouse_reports_goal_config_path(@default_goal), as: :goal do |f|
   .well
-    %p The #{_('CoC Performance Measurement Dashboard')} can be run limited to the projects a user can see, or can be run for the entire CoC with detailed comparisons for all projects. Turning "Always run for full CoC" off is the safer choice.
+    %p The #{Translation.translate('CoC Performance Measurement Dashboard')} can be run limited to the projects a user can see, or can be run for the entire CoC with detailed comparisons for all projects. Turning "Always run for full CoC" off is the safer choice.
     .row
       .col-sm-3
         = f.input :always_run_for_coc, label: 'Always run for full CoC'

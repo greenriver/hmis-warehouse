@@ -56,9 +56,9 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
     let!(:assessment) { create(:hmis_custom_assessment, data_source: ds1, enrollment: e1) }
 
     def apply_assessment_date(date)
-      assessment.update(assessment_date: date)
-      assessment.enrollment.update(entry_date: date) if assessment.intake?
-      assessment.enrollment.exit.update(exit_date: date) if assessment.exit?
+      assessment.assessment_date = date
+      assessment.enrollment.entry_date = date if assessment.intake?
+      assessment.enrollment.exit.exit_date = date if assessment.exit?
     end
 
     [:INTAKE, :UPDATE, :ANNUAL, :EXIT].each do |role|
@@ -152,9 +152,13 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
 
   describe 'grouping related assessments' do
     include_context 'hmis base setup'
-    let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, relationship_to_ho_h: 1 }
-    let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, household_id: e1.household_id, relationship_to_ho_h: 8 }
-    let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, household_id: e1.household_id, relationship_to_ho_h: 8 }
+    let!(:c1) { create :hmis_hud_client, data_source: ds1 }
+    let!(:c2) { create :hmis_hud_client, data_source: ds1 }
+    let!(:c3) { create :hmis_hud_client, data_source: ds1 }
+
+    let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1 }
+    let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, household_id: e1.household_id, relationship_to_ho_h: 8 }
+    let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, household_id: e1.household_id, relationship_to_ho_h: 8 }
 
     it 'groups intake assessments, including WIP assessments' do
       a1 = create(:hmis_custom_assessment, data_collection_stage: 1, data_source: ds1, enrollment: e1)
@@ -172,8 +176,8 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
 
     it 'groups intake assessments on WIP enrollments' do
       e1.save_in_progress
-      a1 = create(:hmis_wip_custom_assessment, data_collection_stage: 1, data_source: ds1, enrollment: e1)
-      a2 = create(:hmis_custom_assessment, data_collection_stage: 1, data_source: ds1, enrollment: e2)
+      a1 = create(:hmis_wip_custom_assessment, data_collection_stage: 1, data_source: ds1, enrollment: e1, client: e1.client)
+      a2 = create(:hmis_custom_assessment, data_collection_stage: 1, data_source: ds1, enrollment: e2, client: e2.client)
 
       grouped = Hmis::Hud::CustomAssessment.group_household_assessments(
         household_enrollments: [e1, e2, e3],
@@ -181,18 +185,18 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
         threshold: 1.day,
         assessment_id: nil,
       )
-      expect(grouped).to include(a1, a2)
+      expect(grouped).to contain_exactly(a1, a2)
     end
 
     it 'groups annual assessments by date' do
       e1.save_in_progress
-      e1_a1 = create(:hmis_custom_assessment, assessment_date: 2.years.ago, data_collection_stage: 5, data_source: ds1, enrollment: e1)
+      e1_a1 = create(:hmis_custom_assessment, assessment_date: 2.years.ago, data_collection_stage: 5, data_source: ds1, enrollment: e1, client: e1.client)
 
-      _e2_a1 = create(:hmis_wip_custom_assessment, assessment_date: 6.months.ago, data_collection_stage: 5, data_source: ds1, enrollment: e1)
-      e2_a2 = create(:hmis_wip_custom_assessment, assessment_date: 3.months.ago, data_collection_stage: 5, data_source: ds1, enrollment: e1)
+      _e2_a1 = create(:hmis_wip_custom_assessment, assessment_date: 6.months.ago, data_collection_stage: 5, data_source: ds1, enrollment: e2, client: e2.client)
+      e2_a2 = create(:hmis_wip_custom_assessment, assessment_date: 2.months.ago, data_collection_stage: 5, data_source: ds1, enrollment: e2, client: e2.client)
 
-      e3_a1 = create(:hmis_custom_assessment, assessment_date: 1.month.ago, data_collection_stage: 5, data_source: ds1, enrollment: e1)
-      e3_a2 = create(:hmis_custom_assessment, assessment_date: 3.months.ago, data_collection_stage: 5, data_source: ds1, enrollment: e1)
+      e3_a1 = create(:hmis_custom_assessment, assessment_date: 1.month.ago, data_collection_stage: 5, data_source: ds1, enrollment: e3, client: e3.client)
+      e3_a2 = create(:hmis_custom_assessment, assessment_date: 2.months.ago, data_collection_stage: 5, data_source: ds1, enrollment: e3, client: e3.client)
 
       # no source assessments, include past 3 months
       grouped = Hmis::Hud::CustomAssessment.group_household_assessments(
@@ -201,7 +205,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
         threshold: 3.months,
         assessment_id: nil,
       )
-      expect(grouped).to include(e2_a2, e3_a1)
+      expect(grouped).to contain_exactly(e2_a2, e3_a1)
 
       # within 3 months of 2 years ago
       grouped = Hmis::Hud::CustomAssessment.group_household_assessments(
@@ -210,7 +214,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
         threshold: 3.months,
         assessment_id: e1_a1.id,
       )
-      expect(grouped).to include(e1_a1)
+      expect(grouped).to contain_exactly(e1_a1)
 
       # within 3 months of 3 months ago (ensure closer assmt is chosen)
       grouped = Hmis::Hud::CustomAssessment.group_household_assessments(
@@ -219,7 +223,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
         threshold: 3.months,
         assessment_id: e2_a2.id,
       )
-      expect(grouped).to include(e2_a2, e3_a2)
+      expect(grouped).to contain_exactly(e2_a2, e3_a2)
 
       # within 6 months of 1 month ago (ensure closer assmt is chosen)
       grouped = Hmis::Hud::CustomAssessment.group_household_assessments(
@@ -228,7 +232,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
         threshold: 6.months,
         assessment_id: e3_a1.id,
       )
-      expect(grouped).to include(e3_a1, e2_a2)
+      expect(grouped).to contain_exactly(e3_a1, e2_a2)
     end
   end
 end

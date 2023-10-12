@@ -11,3 +11,7 @@
 #
 # use with caution!
 RailsDrivers.loaded << :hmis
+
+Rails.application.config.queued_tasks[:hmis_check_constraints] = -> do
+  Hmis::Tasks::CheckConstraints.check_hud_constraints
+end

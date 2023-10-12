@@ -1,0 +1,26 @@
+[
+  {
+    "link_id": "name-dq",
+    "required": true
+  },
+  {
+    "link_id": "dob-dq",
+    "required": true
+  },
+  {
+    "link_id": "ssn-dq",
+    "required": true
+  },
+  {
+    "link_id": "race",
+    "required": true
+  },
+  {
+    "link_id": "gender",
+    "required": true
+  },
+  {
+    "link_id": "veteran-status",
+    "required": true
+  }
+]
