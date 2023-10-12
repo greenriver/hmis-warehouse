@@ -75,7 +75,7 @@ class AllNeighborsSystemDashboardBar {
       },
       bindto: this.selector,
       onrendered: function() {
-        const selector = this.config().bindto
+        const selector = this.internal.config.bindto
         const data = this.data()
         const percentages = data[0].values.map((d, i) => {
           const returned = data[1].values[i]
@@ -91,7 +91,7 @@ class AllNeighborsSystemDashboardBar {
           const barBox = bar.node().getBBox()
           const text = textGroup.selectAll('text')
           text.attr('transform', i === 0 ? `translate(${barBox.width/2*-1}, -20)` : `translate(${barBox.width/2}, -20)`)
-          const xYears = this.config().data.columns[0].slice(1)
+          const xYears = this.internal.config.data_columns[0].slice(1)
           text.each(function(t, ti) {
             const ele = d3.select(this)
             const currentLabel = ele.text()

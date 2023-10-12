@@ -14,6 +14,11 @@ module AllNeighborsSystemDashboard
       def title
         Translation.translate('All Neighbors System Dashboard')
       end
+      alias_method :instance_title, :title
+
+      private def public_s3_directory
+        'all-neighbors-system-dashboard'
+      end
 
       # TODO: update once we have the internal version
       def mask_small_populations?
@@ -26,6 +31,14 @@ module AllNeighborsSystemDashboard
           :warehouse_reports,
           :reports,
         ]
+      end
+
+      def controller_class
+        AllNeighborsSystemDashboard::WarehouseReports::ReportsController
+      end
+
+      def raw_layout
+        'external'
       end
 
       def default_project_type_codes
