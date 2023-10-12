@@ -267,14 +267,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'should return empty if user does not have view access' do
       remove_permissions(access_control, :can_view_enrollment_details)
       response, result = post_graphql(id: e1.id) { enrollment_query }
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       enrollment = result.dig('data', 'enrollment')
       expect(enrollment).to be_nil
     end
 
     it 'should resolve related records if user has view access' do
       response, result = post_graphql(id: e1.id) { enrollment_query }
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       enrollment = result.dig('data', 'enrollment')
       expect(enrollment['id']).to eq(e1.id.to_s)
       expect(enrollment['status']).to eq('ACTIVE')
@@ -305,7 +305,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       create(:hmis_unit_occupancy, enrollment: e4, start_date: e4.entry_date, end_date: e4.entry_date + 2.day)
 
       response, result = post_graphql(id: e1.id) { enrollment_query }
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       enrollment = result.dig('data', 'enrollment')
       expect(enrollment['id']).to eq(e1.id.to_s)
       expect(enrollment['currentUnit']['id']).to eq(unit1.id.to_s)
