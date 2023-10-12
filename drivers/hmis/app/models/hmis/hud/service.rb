@@ -19,7 +19,7 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   has_many :custom_data_elements, as: :owner, dependent: :destroy
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
-  alias_to_underscore [:FAAmount, :FAStartDate, :FAEndDate]
+
   validates_with Hmis::Hud::Validators::ServiceValidator
 
   # On user-initiated change, validate that there is max 1 bed night per date
@@ -38,6 +38,8 @@ class Hmis::Hud::Service < Hmis::Hud::Base
     # NOTE: we only really need to do this for bed-nights at the moment, but this is future-proofing against
     # pre-processing all services
     enrollment.invalidate_processing!
+    return if Delayed::Job.queued?(['GrdaWarehouse::Tasks::ServiceHistory::Enrollment', 'batch_process_unprocessed!'])
+
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).batch_process_unprocessed!
   end
 

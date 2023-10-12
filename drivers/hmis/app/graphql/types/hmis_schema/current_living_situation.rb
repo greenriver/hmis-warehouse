@@ -9,6 +9,7 @@
 module Types
   class HmisSchema::CurrentLivingSituation < Types::BaseObject
     include Types::HmisSchema::HasHudMetadata
+    include Types::HmisSchema::HasCustomDataElements
 
     def self.configuration
       Hmis::Hud::CurrentLivingSituation.hmis_configuration(version: '2024')
@@ -29,6 +30,8 @@ module Types
     hud_field :lease_own60_day, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :moved_two_or_more, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
     hud_field :location_details
+
+    custom_data_elements_field
 
     def enrollment
       load_ar_association(object, :enrollment)

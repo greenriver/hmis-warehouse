@@ -170,6 +170,16 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
         education_status1.reload
         expect(education_status1.date_deleted).to be_present
       end
+
+      it 'attaches record to exit assessment even if the information date is null' do
+        health_and_dv = records_by_data_collaction_stage[3].find { |record| record.instance_of?(Hmis::Hud::HealthAndDv) }
+        health_and_dv.update(information_date: nil)
+
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id)
+
+        expect(e1.custom_assessments.exits.count).to eq(1)
+        expect(e1.custom_assessments.exits.first.form_processor.health_and_dv).to eq(health_and_dv)
+      end
     end
   end
 end

@@ -50,6 +50,20 @@ module Delayed
         def self.queue_status
           where(failed_at: nil).group(:queue).count.transform_keys { |k| k&.humanize }
         end
+
+        # You can pass things you'd like to match that exist within the handlers column
+        # Often this is something like ['ClassName', 'method_name'] which will check to see
+        # if there's a call to ClassName.method_name in the handler
+        def self.queued?(handlers)
+          return false if handlers.blank?
+
+          handlers = Array.wrap(handlers)
+          scope = where(failed_at: nil, locked_at: nil)
+          handlers.each do |handler|
+            scope = scope.jobs_for_class(handler)
+          end
+          scope.exists?
+        end
       end
     end
   end

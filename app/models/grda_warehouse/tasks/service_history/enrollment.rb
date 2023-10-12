@@ -430,8 +430,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
         project_name: project.ProjectName,
         organization_id: project.OrganizationID,
         record_type: nil,
-        housing_status_at_entry: self.LivingSituation,
-        housing_status_at_exit: exit&.HousingAssessment,
+        housing_status_at_entry: self.LivingSituation, # NOTE: we should remove this and rely on the join
+        housing_status_at_exit: exit&.HousingAssessment, # NOTE: we should remove this and rely on the join
         other_clients_over_25: other_clients_over_25,
         other_clients_under_18: other_clients_under_18,
         other_clients_between_18_and_25: other_clients_between_18_and_25,

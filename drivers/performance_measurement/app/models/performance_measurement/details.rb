@@ -132,7 +132,7 @@ module PerformanceMeasurement::Details
 
     def my_projects(user, key)
       project_details(user, key).select do |project_id, _|
-        user.viewable_project_ids.include?(project_id)
+        user.viewable_project_ids(:can_view_assigned_reports).include?(project_id)
       end
     end
     memoize :my_projects
@@ -151,7 +151,7 @@ module PerformanceMeasurement::Details
 
     def other_projects(user, key)
       project_details(user, key).select do |project_id, _|
-        user.viewable_project_ids.exclude?(project_id)
+        user.viewable_project_ids(:can_view_assigned_reports).exclude?(project_id)
       end
     end
     memoize :other_projects

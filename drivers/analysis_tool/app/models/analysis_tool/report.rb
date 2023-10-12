@@ -23,6 +23,11 @@ module AnalysisTool
 
     def initialize(filter)
       @filter = filter
+      # Default breakdowns
+      self.breakdowns = {
+        row: :age,
+        col: :gender,
+      }
     end
 
     def self.viewable_by(user)
@@ -113,8 +118,11 @@ module AnalysisTool
       GrdaWarehouse::Hud::Client.where(id: client_ids)
     end
 
-    def section_ready?(section)
-      Rails.cache.exist?(cache_key_for_section(section))
+    def section_ready?(section) # rubocop:disable Lint/UnusedMethodArgument
+      return true
+
+      # NOTE: disabling this, it doesn't appear to be set anywhere
+      # Rails.cache.exist?(cache_key_for_section(section))
     end
 
     private def cache_key_for_section(section)

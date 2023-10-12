@@ -13,6 +13,13 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::Client
       # Added fields
       row['MidEastNAfrican'] = 0
       row['AdditionalRaceEthnicity'] = nil
+
+      # No race can be 99 or blank
+      row['Asian'] = 0 if row['Asian'].in?([99, nil])
+      row['BlackAfAmerican'] = 0 if row['BlackAfAmerican'].in?([99, nil])
+      row['NativeHIPacific'] = 0 if row['NativeHIPacific'].in?([99, nil])
+      row['White'] = 0 if row['White'].in?([99, nil])
+
       row
     end
   end

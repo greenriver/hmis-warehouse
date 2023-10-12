@@ -68,16 +68,16 @@ module Types
       case operator
       when 'EQUAL'
         # { variable: 'projectType', operator: 'EQUAL', value: 1 }
-        eval_var(rule.fetch('variable')) == rule.fetch('value')
+        eval_var(rule.fetch('variable')) == eval_value(rule)
       when 'NOT_EQUAL'
         # { variable: 'projectType', operator: 'NOT_EQUAL', value: 1 }
-        eval_var(rule.fetch('variable')) != rule.fetch('value')
+        eval_var(rule.fetch('variable')) != eval_value(rule)
       when 'INCLUDE'
         # { variable: 'projectFunders', operator: 'INCLUDE', value: 1 }
-        eval_var_multi(rule.fetch('variable')).include?(rule.fetch('value'))
+        eval_var_multi(rule.fetch('variable')).include?(eval_value(rule))
       when 'NOT_INCLUDE'
         # { variable: 'projectFunders', operator: 'NOT_INCLUDE', value: 1 }
-        eval_var_multi(rule.fetch('variable')).exclude?(rule.fetch('value'))
+        eval_var_multi(rule.fetch('variable')).exclude?(eval_value(rule))
       when 'ANY'
         # { operator: 'ANY', parts: [ ... ] },
         rule.fetch('parts').any? { |r| eval_rule(r) }
@@ -111,9 +111,23 @@ module Types
       when 'projectFunderComponents'
         project_funders.map { |f| HudUtility2024.funder_component(f.funder&.to_i) }.compact_blank
       when 'projectOtherFunders'
-        project_funders.map(&:other_funder).compact_blank
+        # ignore case for Funder.OtherFunder value which is a free text field
+        project_funders.map(&:other_funder).compact.map(&:strip).map(&:downcase).compact_blank
       else
         raise "unknown variable for eval_var_multi #{key}"
+      end
+    end
+
+    def eval_value(rule)
+      variable = rule.fetch('variable')
+      value = rule.fetch('value')
+
+      case variable
+      when 'projectOtherFunders'
+        # ignore case for Funder.OtherFunder value which is a free text field
+        value.strip.downcase
+      else
+        value
       end
     end
 
