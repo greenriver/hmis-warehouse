@@ -180,7 +180,6 @@ type Assessment {
   disabilityGroup: DisabilityGroup
   employmentEducation: EmploymentEducation
   enrollment: Enrollment!
-  enrollmentCoc: String
   exit: Exit
   healthAndDv: HealthAndDv
   id: ID!
