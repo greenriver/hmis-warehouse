@@ -22,16 +22,15 @@ module HudApr::Generators::Shared::Fy2024
         first_column: 'B',
         last_column: 'F',
         first_row: 2,
-        last_row: 35,
+        last_row: 32,
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
-      rows = (metadata[:first_row]..metadata[:last_row]).to_a
       sub_populations.values.each_with_index do |population_clause, col_index|
-        living_situations.values.each_with_index do |situation_clause, row_index|
-          cell = "#{cols[col_index]}#{rows[row_index]}"
-          next if intentionally_blank.include?(cell)
+        living_situations.map(&:last).each.with_index(2) do |situation_clause, row_index|
+          cell = "#{cols[col_index]}#{row_index}"
+          next unless situation_clause
 
           answer = @report.answer(question: table_name, cell: cell)
           members = universe.members.
@@ -45,31 +44,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def living_situation_headers
-      living_situations.keys.map do |label|
-        next 'Subtotal' if label.include?('Subtotal')
-
-        label
-      end
-    end
-
-    private def intentionally_blank
-      [
-        'B2',
-        'C2',
-        'D2',
-        'E2',
-        'F2',
-        'B9',
-        'C9',
-        'D9',
-        'E9',
-        'F9',
-        'B18',
-        'C18',
-        'D18',
-        'E18',
-        'F18',
-      ].freeze
+      living_situations.map(&:first)
     end
   end
 end
