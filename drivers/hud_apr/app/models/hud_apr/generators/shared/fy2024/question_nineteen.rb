@@ -141,7 +141,7 @@ module HudApr::Generators::Shared::Fy2024
         first_column: 'B',
         last_column: 'M',
         first_row: 2,
-        last_row: 14,
+        last_row: 18,
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
@@ -224,19 +224,9 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q19b_income_sources
-      other_sources = [
-        'Unemployment Insurance',
-        'VA Non-Service Connected Disability Pension',
-        'General Assistance (GA)',
-        'Alimony and other spousal support',
-        'Other Source',
-      ]
+      other_sources = ['Other Source']
 
       income_types(:exit).except(
-        'Unemployment Insurance',
-        'VA Non-Service Connected Disability Pension',
-        'General Assistance (GA)',
-        'Alimony and other spousal support',
         'Adults with Income Information at Start and Annual Assessment/Exit',
       ).merge(
         {
