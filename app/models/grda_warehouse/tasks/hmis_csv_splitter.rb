@@ -121,12 +121,9 @@ module GrdaWarehouse::Tasks
       end
     end
 
-    # we need to get clients enrolled in CE, thats really the thing.
     private def capture_unenrolled_clients
       all_enrolled_clients = Set.new
       ::CSV.foreach(File.join(source_path, 'Enrollment.csv'), **csv_options).each do |row|
-        # next if row['ProjectID'] == '1234'
-
         all_enrolled_clients.add(row['PersonalID'])
       end
 
