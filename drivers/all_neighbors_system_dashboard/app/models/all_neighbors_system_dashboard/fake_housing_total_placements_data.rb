@@ -1,5 +1,5 @@
 module AllNeighborsSystemDashboard
-  class HousingTotalPlacementsData < FakeData
+  class FakeHousingTotalPlacementsData < FakeData
     def data(title, id, type, options: {})
       keys = (options[:types] || []).map { |key| to_key(key) }
       {

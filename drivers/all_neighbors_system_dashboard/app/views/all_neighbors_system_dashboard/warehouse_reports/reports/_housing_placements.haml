@@ -1,6 +1,6 @@
 - start_date = (DateTime.current - 3.years).beginning_of_month
 - end_date = DateTime.current.beginning_of_month
-- all_data = AllNeighborsSystemDashboard::HousingTotalPlacementsData.new(start_date, end_date)
+- all_data = AllNeighborsSystemDashboard::FakeHousingTotalPlacementsData.new(start_date, end_date)
 - total_data = all_data.line_data
 - donut_data = all_data.donut_data
 - donut_ids = donut_data.map { |d| chart_id(tab[:id], d[:id]) }

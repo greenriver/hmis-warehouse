@@ -1,5 +1,5 @@
 module AllNeighborsSystemDashboard
-  class TimeToObtainHousing < FakeData
+  class FakeTimeToObtainHousing < FakeData
     def data(title, id, type, options: {})
       keys = (options[:types] || []).map { |key| to_key(key) }
       {

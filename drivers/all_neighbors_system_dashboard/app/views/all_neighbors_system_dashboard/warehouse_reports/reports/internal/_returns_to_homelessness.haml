@@ -3,7 +3,7 @@
 
 - start_date = (DateTime.current - 3.years).beginning_of_month
 - end_date = DateTime.current.beginning_of_month
-- all_data = AllNeighborsSystemDashboard::ReturnsToHomelessness.new(start_date, end_date)
+- all_data = AllNeighborsSystemDashboard::FakeReturnsToHomelessness.new(start_date, end_date)
 
 - bars_data = all_data.horizontal_bars_data
 - vertical_stack = all_data.internal_vertical_stack
