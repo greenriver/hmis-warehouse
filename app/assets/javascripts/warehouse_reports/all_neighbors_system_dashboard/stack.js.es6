@@ -28,6 +28,14 @@ class AllNeighborsSystemDashboardStack {
     console.log(this)
   }
 
+  inDateRange(dateString, range) {
+    const [year, month, day] = dateString.split('-')
+    //ruby date month is 1 based while js date month is 0
+    const date = Date.parse(new Date(year, month-1, day))
+    const [s, e] = range
+    return date >= s && date <= e
+  }
+
   getColumn(name) {
     let col = [name]
     if(name === 'x') {
@@ -37,10 +45,10 @@ class AllNeighborsSystemDashboardStack {
       this.series.forEach((d) => {
         const total = d.series.filter((n) => {
           if(this.state.dateRange) {
-            const [year, month, day] = n.date.split('-')
-            const date = Date.parse(new Date(year, month, day))
-            const [s, e] = this.state.dateRange
-            return date >= s && date <= e
+            return this.inDateRange(n.date, this.state.dateRange)
+          }
+          if(this.state.quarterDateRange) {
+            return this.inDateRange(n.date, this.state.quarterDateRange)
           }
           if(this.state.year) {
             const [year, month, day] = n.date.split('-')
@@ -174,33 +182,15 @@ class AllNeighborsSystemDashboardStack {
   }
 
   redraw(state) {
-    const old_columns = [...this.config.keys]
     this.state = state
     this.init()
-    
-    const unload = old_columns.filter((old) => this.config.keys.indexOf(old) === -1)
-
-    this.chart.load({
-      columns: [
-          this.getColumn('x'),
-        ].concat(this.config.keys.map((d) => this.getColumn(d))),
-      colors: this.config.colors,
-      names: this.config.names,
-      unload: unload
-    })
-    this.chart.internal.config.data_groups = [this.config.keys]
-    this.chart.internal.config.data_labels_colors = this.config.label_colors
-    this.chart.show()
-    this.chart.resize({
-      width: $(this.selector).width(),
-      height: this.series.length * 90,
-    })
-    
+    this.chart.destroy()
+    this.chart = bb.generate(this.getConfig())
+    this.draw()
   }
 
   draw() {
-    const config = this.getConfig()
-    this.chart = bb.generate(config)
+    this.chart = bb.generate(this.getConfig())
   }
 }
 

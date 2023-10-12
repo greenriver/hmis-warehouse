@@ -259,13 +259,13 @@ module AllNeighborsSystemDashboard
     def donut(options)
       project_type = options[:project_type] || options[:homelessness_status]
       options[:types].map do |type|
-        value = options[:fake_data] && project_type != 'All' && type != project_type ? 0 : rand(10..1500)
+        # value = options[:fake_data] && project_type != 'All' && type != project_type ? 0 : rand(10..1500)
         {
           name: type,
           series: date_range.map do |date|
             {
               date: date.strftime('%Y-%-m-%-d'),
-              values: [value],
+              values: [options[:fake_data] && project_type != 'All' && type != project_type ? 0 : rand(10..1500)],
             }
           end,
         }

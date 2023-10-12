@@ -17,7 +17,11 @@
         = render 'select_filter', tab: tab, name: 'count_level', label: 'Count Level', options: all_data.count_levels
          
     .col-xs-12.col-md-4
-      = render 'date_range_filter', tab: tab, name: 'date_range', label: 'Date Range', start_date: start_date.strftime("%b %Y"), end_date: end_date.strftime("%b %Y")
+      = render 'quarter_range_filter', tab: tab, name: 'quarter_range', label: 'Date Range', quarters: all_data.quarter_range
+.mb-7
+  %h5.mt-0 Time Period
+  %div{id: chart_id(tab[:id], 'quarters')}
+  
 .mb-7= render 'filter_labels', tab: tab, labels: ['project_type', 'count_level', 'date_range']
 
 = render 'donuts', tab: tab, donut_data: donut_data, filter_label: 'date_range'
@@ -29,6 +33,7 @@
   :javascript
     $(document).ready(function() {
       console.log('Housing Placement -----------------')
+      var quarterData = #{all_data.quarter_range.to_json.html_safe}
       var totalData = #{total_data.to_json.html_safe}
       var donutData = #{donut_data.to_json.html_safe}
       var donutIds = #{donut_ids.to_json.html_safe}
@@ -37,6 +42,12 @@
       var stackedId = '##{chart_id(tab[:id], "stacked_#{stacked_data[:id]}")}'
 
       var charts = [
+        {
+          chart: AllNeighborsSystemDashboardQuarters,
+          data: quarterData,
+          selector: '##{chart_id(tab[:id], 'quarters')}',
+          options: {}
+        },
         {
           chart: AllNeighborsSystemDashboardStack,
           data: stackedData,
@@ -71,9 +82,10 @@
           selector: '##{filter_id(tab[:id], 'count_level')}'
         },
         {
-          name: 'dateRange',
-          type: 'dateRange',
-          selector: '##{filter_id(tab[:id], 'date_range')} input'
+          name: 'quarterRange',
+          type: 'quarterRange',
+          selector: '##{filter_id(tab[:id], 'quarter_range')} select',
+          data: quarterData
         }
       ]
 
@@ -86,10 +98,10 @@
           name: 'countLevel',
           selector: '.#{filter_label_id(tab[:id], 'count_level')}'
         },
-        {
-          name: 'dateRange',
-          selector: '.#{filter_label_id(tab[:id], 'date_range')}'
-        },
+        // {
+        //   name: 'dateRange',
+        //   selector: '.#{filter_label_id(tab[:id], 'date_range')}'
+        // },
       ]
 
       var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts, labelConfig)

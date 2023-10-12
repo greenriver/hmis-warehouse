@@ -21,15 +21,22 @@ class AllNeighborsSystemDashboardLine {
     console.log(this)
   }
 
+  inDateRange(dateString, range) {
+    const [year, month, day] = dateString.split('-')
+    //ruby date month is 1 based while js date month is 0
+    const date = Date.parse(new Date(year, month-1, day))
+    const [s, e] = range
+    return date >= s && date <= e
+  }
+
   getColumns() {
     let xCols = ['x']
     let keyCols = (this.config.keys || []).map((key, i) => {
       let cols = [key]
       this.series[i].forEach((d) => {
-        const [year, month, day] = d[0].split('-')
-        const date = Date.parse(new Date(year, month, day))
-        const [s, e] = this.state.dateRange
-        if(date >= s && date <= e) {
+        const range = this.state.dateRnage || this.state.quarterDateRange || []
+        const inRange = this.inDateRange(d[0], range)
+        if(inRange) {
           const [x, y] = d
           if(xCols.indexOf(x) === -1) {
             xCols.push(x)
@@ -131,10 +138,9 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
         let cols = [key]
         let xCols = [`${key}_x`];
         series.forEach((d) => {
-          const [year, month, day] = d[0].split('-')
-          const date = Date.parse(new Date(year, month-1, day))
-          const [s, e] = this.state.dateRange
-          if(date >= s && date <= e) {
+          const range = this.state.dateRange || this.state.quarterDateRange || []
+          const inRange = this.inDateRange(d[0], range)
+          if(inRange) {
             const [w, x, y] = d
             xCols.push(x)
             cols.push(y)
@@ -276,6 +282,7 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
 class AllNeighborsSystemDashboardLineByQuarter extends AllNeighborsSystemDashboardLine {
   constructor(data, initialState, selector, options) {
     super(data, initialState, selector, options)
+    console.log('data', data)
   }
 
   getDataConfig() {
@@ -286,7 +293,7 @@ class AllNeighborsSystemDashboardLineByQuarter extends AllNeighborsSystemDashboa
     const quarter = this.quarters.find((q) => {
       const [s, e] = q.range.map((r) => {
         const [year, month, day] = r.split('-')
-        return new Date(year, month, day)
+        return new Date(year, month-1, day)
       })
       return d >= s && d <= e
     })

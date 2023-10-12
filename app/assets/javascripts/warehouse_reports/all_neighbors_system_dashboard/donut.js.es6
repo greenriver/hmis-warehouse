@@ -20,19 +20,27 @@ class AllNeighborsSystemDashboardDonut {
     console.log(this)
   }
 
+  inDateRange(dateString, range) {
+    const [year, month, day] = dateString.split('-')
+    //ruby date month is 1 based while js date month is 0
+    const date = Date.parse(new Date(year, month-1, day))
+    const [s, e] = range
+    return date >= s && date <= e
+  }
+
   getColumns() {
     return this.series.map((d, i) => {
       return [this.config.keys[i]].concat(
         d.series.filter((n) => {
           if(this.state.dateRange) {
-            const [year, month, day] = n.date.split('-')
-            const date = Date.parse(new Date(year, month, day))
-            const [s, e] = this.state.dateRange
-            return date >= s && date <= e
+            return this.inDateRange(n.date, this.state.dateRange)
+          }
+          if(this.state.quarterDateRange) {
+            return this.inDateRange(n.date, this.state.quarterDateRange)
           }
           if(this.state.year) {
             const [year, month, day] = n.date.split('-')
-            const date = new Date(year, month, day)
+            const date = new Date(year, month-1, day)
             const stateYear = this.state.year
             return date.getFullYear().toString() === stateYear
           }
@@ -67,7 +75,7 @@ class AllNeighborsSystemDashboardDonut {
             return d3.format(".0%")(ratio)
           }
         },
-      },
+      }
     }
     if(this.options.legend) {
       const legendData = this.options.legend

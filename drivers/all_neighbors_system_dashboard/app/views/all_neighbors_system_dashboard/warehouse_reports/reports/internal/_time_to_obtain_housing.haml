@@ -19,7 +19,10 @@
 
          
     .col-xs-12.col-md-4
-      = render render_path('date_range_filter'), tab: tab, name: 'date_range', label: 'Date Range', start_date: start_date.strftime("%b %Y"), end_date: end_date.strftime("%b %Y")
+      = render 'quarter_range_filter', tab: tab, name: 'quarter_range', label: 'Date Range', quarters: all_data.quarter_range
+.mb-7
+  %h5.mt-0 Time Period
+  %div{id: chart_id(tab[:id], 'quarters')}
 
 .mb-7= render render_path('filter_labels'), tab: tab, labels: ['project_type', 'household_type', 'demographics', 'date_range']
 .border.my-7
@@ -56,13 +59,19 @@
   :javascript
     $(document).ready(function() {
       console.log('Internal Time To Obtain Housing -----------------')
+      var quarterData = #{all_data.quarter_range.to_json.html_safe}
       var data = #{chart_data.to_json.html_safe}
       var lineData = #{line_data.to_json.html_safe}
       var lineId = '##{chart_id(tab[:id], 'id_to_move_in')}'
       var scatterData = #{scatter_data.to_json.html_safe}
-      console.log('scatterData', scatterData)
       var chartId = '##{chart_id(tab[:id], 'stacked')}'
       var charts = [
+        {
+          chart: AllNeighborsSystemDashboardQuarters,
+          data: quarterData,
+          selector: '##{chart_id(tab[:id], 'quarters')}',
+          options: {}
+        },
         {
           chart: AllNeighborsSystemDashboardTTOHStack, 
           data: data,
@@ -107,9 +116,10 @@
           selector: '##{filter_id(tab[:id], 'demographics')}'
         },
         {
-          name: 'dateRange',
-          type: 'dateRange',
-          selector: '##{filter_id(tab[:id], 'date_range')} input'
+          name: 'quarterRange',
+          type: 'quarterRange',
+          selector: '##{filter_id(tab[:id], 'quarter_range')} select',
+          data: quarterData,
         }
       ]
 
@@ -125,10 +135,6 @@
         {
           name: 'demographics',
           selector: '.#{filter_label_id(tab[:id], 'demographic')}'
-        },
-        {
-          name: 'dateRange',
-          selector: '.#{filter_label_id(tab[:id], 'date_range')}'
         },
       ]
 
