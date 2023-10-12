@@ -36,7 +36,7 @@ end
 desc 'Seed E2E HMIS test data'
 task seed_e2e: [:environment, 'log:info_to_stdout'] do
   next if Rails.env =~ /production|staging/
-  
+
   # Find or create HMIS DS
   hmis_ds = GrdaWarehouse::DataSource.source.where(hmis: ENV['HMIS_HOSTNAME']).first_or_create! do |ds|
     ds.name = 'HMIS'
