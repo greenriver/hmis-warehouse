@@ -26,7 +26,7 @@ module Health
     WELLCARE_WINDOW = 12.months
 
     DESCRIPTIONS = {
-      without_required_qa: 'Patients in their outreach period with no QA in the current month, or who have completed a care plan and have no QA in the current or previous.',
+      without_required_qa: 'Patients in their outreach period with no QA in the current month, or who have completed a care plan and have no QA in the current or previous month.',
       without_required_f2f_visit: "Patients who have not received a face-to-face visit in the last #{F2F_WINDOW.inspect}.",
       with_discharge_followup_completed: 'Number of discharge follow-up QAs within the month.',
       with_completed_intake: 'Patients with completed initial intake (Consent, Comp Assessment, HRSN, and Care Plan).',
