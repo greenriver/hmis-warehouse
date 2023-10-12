@@ -25,5 +25,6 @@ module Types
     hud_field :direct_services, HmisSchema::Enums::Hud::NoYes
     hud_field :housing_assessment, HmisSchema::Enums::Hud::NoYes
     hud_field :prevention_assessment, HmisSchema::Enums::Hud::NoYes
+    hud_field :receives_referrals, HmisSchema::Enums::Hud::NoYes
   end
 end

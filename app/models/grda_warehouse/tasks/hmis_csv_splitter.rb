@@ -26,15 +26,17 @@ require 'memery'
 module GrdaWarehouse::Tasks
   class HmisCsvSplitter
     include Memery
-    attr_accessor :project_ids, :enrollment_ids, :personal_ids, :export_id, :source_path, :destination_path, :organization_ids, :results
-    def initialize(source_path:, destination_path:, project_ids:)
+    attr_accessor :project_ids, :enrollment_ids, :personal_ids, :export_id, :source_path, :destination_path, :organization_ids, :results, :unenrolled_clients_personal_ids, :include_unenrolled_clients
+    def initialize(source_path:, destination_path:, project_ids:, include_unenrolled_clients: false)
       @source_path = source_path
       @destination_path = destination_path
       @project_ids = project_ids
       @organization_ids = Set.new
       @enrollment_ids = Set.new
       @personal_ids = Set.new
+      @unenrolled_clients_personal_ids = Set.new
       @results = {}
+      self.include_unenrolled_clients = include_unenrolled_clients
     end
 
     def run!
@@ -51,6 +53,11 @@ module GrdaWarehouse::Tasks
       capture_relevant_organization_ids
       Rails.logger.debug 'Finding relevant enrollment ids'
       capture_relevant_enrollment_ids
+      if include_unenrolled_clients
+        Rails.logger.debug 'Finding unenrolled clients'
+        capture_unenrolled_clients
+        Rails.logger.debug "Found #{unenrolled_clients_personal_ids.size} unenrolled clients"
+      end
 
       HmisCsvTwentyTwentyTwo.importable_files_map.each_key do |filename|
         next if filename.in?(manually_processed)
@@ -77,7 +84,7 @@ module GrdaWarehouse::Tasks
                 results[filename][:added] += 1
               end
             elsif filename == 'Client.csv'
-              if row['PersonalID'].in?(personal_ids)
+              if row['PersonalID'].in?(personal_ids) || row['PersonalID'].in?(unenrolled_clients_personal_ids)
                 output << row
                 results[filename][:added] += 1
               end
@@ -111,6 +118,19 @@ module GrdaWarehouse::Tasks
 
         enrollment_ids << row['EnrollmentID']
         personal_ids << row['PersonalID']
+      end
+    end
+
+    private def capture_unenrolled_clients
+      all_enrolled_clients = Set.new
+      ::CSV.foreach(File.join(source_path, 'Enrollment.csv'), **csv_options).each do |row|
+        all_enrolled_clients.add(row['PersonalID'])
+      end
+
+      ::CSV.foreach(File.join(source_path, 'Client.csv'), **csv_options).each do |row|
+        next if all_enrolled_clients.include?(row['PersonalID'])
+
+        unenrolled_clients_personal_ids.add(row['PersonalID'])
       end
     end
 

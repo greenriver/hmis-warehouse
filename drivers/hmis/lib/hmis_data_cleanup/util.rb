@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+require 'csv'
+
 # Utility functions for cleaning up HMIS data during a migration.
 # Be careful, some functions modify data and don't leave a paper trail.
 #
@@ -125,6 +127,55 @@ module HmisDataCleanup
         project.residential_affiliations.update_all(ResProjectID: new_id)
         project.project_id = new_id
         project.save!(validate: false)
+      end
+    end
+
+    def self.write_project_unit_summary!(filename: 'hmis_project_summary.csv')
+      direct_entry_cded = Hmis::Hud::CustomDataElementDefinition.find_by(key: :direct_entry)
+      project_pk_to_walkin_status = direct_entry_cded.values.pluck(:owner_id, :value_boolean).to_h if direct_entry_cded
+
+      rows = []
+      Hmis::Hud::Project.hmis.each do |project|
+        next if project.project_id.size == 32 # Skip internal projects
+
+        wip_enrollments = project.wip_enrollments.pluck(:id)
+
+        open_enrollments = project.enrollments.open_on_date.pluck(:id)
+        open_enrollments_with_referral = project.enrollments.open_on_date.joins(:source_postings).pluck(:id)
+        open_enrollments_missing_referral = open_enrollments - open_enrollments_with_referral
+
+        open_enrollments_with_unit = project.enrollments.open_on_date.joins(:current_unit).pluck(:id)
+        open_enrollments_missing_unit = open_enrollments - open_enrollments_with_unit
+
+        unit_capacity = project.units.size
+        open_households = project.enrollments.open_on_date.pluck(:household_id).uniq
+        hash = {
+          ProjectID: project.project_id,
+          ProjectName: project.project_name,
+          OperatingEndDate: project.operating_end_date&.strftime('%Y-%m-%d'),
+          UnitCapacity: unit_capacity,
+          OpenHouseholds: open_households.size,
+          OverCapacity: open_households.size > unit_capacity ? 'Yes' : 'No',
+          OpenEnrollments: open_enrollments.size,
+          OpenEnrollmentsWithoutReferral: open_enrollments_missing_referral.size,
+          OpenEnrollmentsWithoutUnit: open_enrollments_missing_unit.size,
+          AcceptedPendingIncompleteEnrollments: wip_enrollments.size,
+        }
+
+        if direct_entry_cded
+          accepts_walk_in = project_pk_to_walkin_status[project.id]
+          walkin_status = accepts_walk_in ? 'Yes' : 'No'
+          walkin_status = 'Unknown' if accepts_walk_in.nil?
+          hash[:DirectEntry] = walkin_status
+        end
+
+        rows << hash
+      end
+
+      CSV.open(filename, 'wb+', write_headers: true, headers: rows.first.keys) do |writer|
+        rows.each do |row|
+          writer << row.values
+        end
       end
     end
 
