@@ -28,7 +28,7 @@ module HudApr::Generators::Shared::Fy2024
         first_column: 'B',
         last_column: 'D',
         first_row: 2,
-        last_row: 13,
+        last_row: 12,
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
@@ -57,7 +57,7 @@ module HudApr::Generators::Shared::Fy2024
         first_column: 'B',
         last_column: 'D',
         first_row: 2,
-        last_row: 16,
+        last_row: 15,
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
@@ -127,7 +127,7 @@ module HudApr::Generators::Shared::Fy2024
         first_column: 'B',
         last_column: 'F',
         first_row: 2,
-        last_row: 13,
+        last_row: 14,
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
@@ -175,7 +175,7 @@ module HudApr::Generators::Shared::Fy2024
         first_column: 'B',
         last_column: 'F',
         first_row: 2,
-        last_row: 16,
+        last_row: 12,
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
@@ -204,7 +204,7 @@ module HudApr::Generators::Shared::Fy2024
         first_column: 'B',
         last_column: 'F',
         first_row: 2,
-        last_row: 14,
+        last_row: 15,
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
@@ -261,116 +261,97 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q22a1_lengths
-      {
-        '30 days or less' => '30 days or less',
-        '31 to 60 days' => '31 to 60 days',
-        '61 to 90 days' => '61 to 90 days',
-        '91 to 180 days' => '91 to 180 days',
-        '181 to 365 days' => '181 to 365 days',
-        '366 to 730 days (1-2 Yrs)' => '366 to 730 days (1-2 Yrs)',
-        '731 to 1,095 days (2-3 Yrs)' => '731 to 1,095 days (2-3 Yrs)',
-        '1,096 to 1,460 days (3-4 Yrs)' => '1,096 to 1,460 days (3-4 Yrs)',
-        '1,461 to 1,825 days (4-5 Yrs)' => '1,461 to 1,825 days (4-5 Yrs)',
-        'More than 1,825 days (> 5 Yrs)' => 'More than 1,825 days (> 5 Yrs)',
-        'Data Not Collected' => 'Data Not Collected',
-        'Total' => 'Total',
-      }.map do |k, label|
-        [label, lengths[k]]
-      end.to_h
+      [
+        '30 days or less',
+        '31 to 60 days',
+        '61 to 90 days',
+        '91 to 180 days',
+        '181 to 365 days',
+        '366 to 730 days (1-2 Yrs)',
+        '731 to 1,095 days (2-3 Yrs)',
+        '1,096 to 1,460 days (3-4 Yrs)',
+        '1,461 to 1,825 days (4-5 Yrs)',
+        'More than 1,825 days (> 5 Yrs)',
+        'Total',
+      ].to_h { [_1, lengths.fetch(_1)] }
     end
 
     private def q22a2_lengths
-      {
-        '0 to 7 days' => '0 to 7 days',
-        '8 to 14 days' => '8 to 14 days',
-        '15 to 21 days' => '15 to 21 days',
-        '22 to 30 days' => '22 to 30 days',
-        '31 to 60 days' => '31 to 60 days',
-        '61 to 90 days' => '61 to 90 days',
-        '91 to 180 days' => '91 to 180 days',
-        '181 to 365 days' => '181 to 365 days',
-        '366 to 730 days (1-2 Yrs)' => '366 to 730 days (1-2 Yrs)',
-        '731 to 1,095 days (2-3 Yrs)' => '731 to 1,095 days (2-3 Yrs)',
-        '1,096 to 1,460 days (3-4 Yrs)' => '1,096 to 1,460 days (3-4 Yrs)',
-        '1,461 to 1,825 days (4-5 Yrs)' => '1,461 to 1,825 days (4-5 Yrs)',
-        'More than 1,825 days (> 5 Yrs)' => 'More than 1,825 days (> 5 Yrs)',
-        'Data Not Collected' => 'Data Not Collected',
-        'Total' => 'Total',
-      }.map do |k, label|
-        [label, lengths[k]]
-      end.to_h
+      ret = [
+        '0 to 7 days',
+        '8 to 14 days',
+        '15 to 21 days',
+        '22 to 30 days',
+        '31 to 60 days',
+        '61 to 90 days',
+        '91 to 180 days',
+        '181 to 365 days',
+        '366 to 730 days (1-2 Yrs)',
+        '731 to 1,095 days (2-3 Yrs)',
+        '1,096 to 1,460 days (3-4 Yrs)',
+        '1,461 to 1,825 days (4-5 Yrs)',
+        'More than 1,825 days (> 5 Yrs)',
+        'Total',
+      ].to_h { [_1, lengths.fetch(_1)] }
     end
 
     private def q22c_lengths
-      {
-        '0 to 7 days' => a_t[:time_to_move_in].between(0..7).
-          and(a_t[:move_in_date].between(@report.start_date..@report.end_date)),
-        '8 to 14 days' => a_t[:time_to_move_in].between(8..14).
-          and(a_t[:move_in_date].between(@report.start_date..@report.end_date)),
-        '15 to 21 days' => a_t[:time_to_move_in].between(15..21).
-          and(a_t[:move_in_date].between(@report.start_date..@report.end_date)),
-        '22 to 30 days' => a_t[:time_to_move_in].between(22..30).
-          and(a_t[:move_in_date].between(@report.start_date..@report.end_date)),
-        '31 to 60 days' => a_t[:time_to_move_in].between(31..60).
-          and(a_t[:move_in_date].between(@report.start_date..@report.end_date)),
-        '61 to 180 days' => a_t[:time_to_move_in].between(61..180).
-          and(a_t[:move_in_date].between(@report.start_date..@report.end_date)),
-        '181 to 365 days' => a_t[:time_to_move_in].between(181..365).
-          and(a_t[:move_in_date].between(@report.start_date..@report.end_date)),
-        '366 to 730 days (1-2 Yrs)' => a_t[:time_to_move_in].between(366..730).
-          and(a_t[:move_in_date].between(@report.start_date..@report.end_date)),
+      ret = [
+        '7 days or less',
+        '8 to 14 days',
+        '15 to 21 days',
+        '22 to 30 days',
+        '31 to 60 days',
+        '61 to 90 days',
+        '91 to 180 days',
+        '181 to 365 days',
+        '366 to 730 days (1-2 Yrs)',
+        '731 days or more',
+      ]
+      ret = ret.to_h { [_1, lengths.fetch(_1)] }
+
+      ret.merge(
         'Total (persons moved into housing)' => a_t[:move_in_date].between(@report.start_date..@report.end_date),
         'Average length of time to housing' => :average,
         'Persons who were exited without move-in' => a_t[:move_in_date].eq(nil),
         'Total persons' => Arel.sql('1=1'),
-      }.freeze
+      ).freeze
     end
 
     private def q22d_lengths
-      {
-        '0 to 7 days' => '7 days or less',
-        '8 to 14 days' => '8 to 14 days',
-        '15 to 21 days' => '15 to 21 days',
-        '22 to 30 days' => '22 to 30 days',
-        '31 to 60 days' => '31 to 60 days',
-        '61 to 90 days' => '61 to 90 days',
-        '91 to 180 days' => '91 to 180 days',
-        '181 to 365 days' => '181 to 365 days',
-        '366 to 730 days (1-2 Yrs)' => '366 to 730 days (1-2 Yrs)',
-        '731 to 1,095 days (2-3 Yrs)' => '731 to 1,095 days (2-3 Yrs)',
-        '1,096 to 1,460 days (3-4 Yrs)' => '1,096 to 1,460 days (3-4 Yrs)',
-        '1,461 to 1,825 days (4-5 Yrs)' => '1,461 to 1,825 days (4-5 Yrs)',
-        'More than 1,825 days (> 5 Yrs)' => 'More than 1,825 days (> 5 Yrs)',
-        'Data Not Collected' => 'Data Not Collected',
-        'Total' => 'Total',
-      }.map do |k, label|
-        [label, lengths[k]]
-      end.to_h
+      [
+        '7 days or less',
+        '8 to 14 days',
+        '15 to 21 days',
+        '22 to 30 days',
+        '31 to 60 days',
+        '61 to 90 days',
+        '91 to 180 days',
+        '181 to 365 days',
+        '366 to 730 days (1-2 Yrs)',
+        '731 days or more',
+        'Total',
+      ].to_h { [_1, lengths.fetch(_1)] }
     end
 
     private def q22e_lengths
+      ret = [
+        '7 days or less',
+        '8 to 14 days',
+        '15 to 21 days',
+        '22 to 30 days',
+        '31 to 60 days',
+        '61 to 90 days',
+        '91 to 180 days',
+        '181 to 365 days',
+        '366 to 730 days (1-2 Yrs)',
+        '731 days or more',
+      ].to_h { [_1, lengths.fetch(_1)] }
+
       move_in_projects = HudUtility2024.residential_project_type_numbers_by_code[:ph]
       move_in_for_psh = a_t[:project_type].not_in(move_in_projects).
         or(a_t[:project_type].in(move_in_projects).and(a_t[:move_in_date].lteq(@report.end_date)))
-      {
-        '7 days or less' => a_t[:approximate_time_to_move_in].between(0..7).
-          and(move_in_for_psh),
-        '8 to 14 days' => a_t[:approximate_time_to_move_in].between(8..14).
-          and(move_in_for_psh),
-        '15 to 21 days' => a_t[:approximate_time_to_move_in].between(15..21).
-          and(move_in_for_psh),
-        '22 to 30 days' => a_t[:approximate_time_to_move_in].between(22..30).
-          and(move_in_for_psh),
-        '31 to 60 days' => a_t[:approximate_time_to_move_in].between(31..60).
-          and(move_in_for_psh),
-        '61 to 180 days' => a_t[:approximate_time_to_move_in].between(61..180).
-          and(move_in_for_psh),
-        '181 to 365 days' => a_t[:approximate_time_to_move_in].between(181..365).
-          and(move_in_for_psh),
-        '366 to 730 days (1-2 Yrs)' => a_t[:approximate_time_to_move_in].between(366..730).
-          and(move_in_for_psh),
-        '731 days or more' => a_t[:approximate_time_to_move_in].gteq(731).
-          and(move_in_for_psh),
+      ret.merge(
         'Total (persons moved into housing)' => a_t[:approximate_time_to_move_in].not_eq(nil).
           and(a_t[:project_type].not_in(move_in_projects).
             or(a_t[:project_type].in(move_in_projects).
@@ -387,7 +368,7 @@ module HudApr::Generators::Shared::Fy2024
             and(a_t[:move_in_date].lteq(@report.end_date).
               and(a_t[:date_to_street].eq(nil).or(a_t[:date_to_street].gt(a_t[:move_in_date]))))),
         'Total persons' => Arel.sql('1=1'),
-      }.freeze
+      )
     end
 
     private def intentionally_blank

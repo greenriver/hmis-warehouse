@@ -124,6 +124,7 @@ module HudReports::LengthOfStays
 
     private def lengths
       {
+        '7 days or less' => a_t[:bed_nights].between(0..7),
         '0 to 7 days' => a_t[:bed_nights].between(0..7),
         '8 to 14 days' => a_t[:bed_nights].between(8..14),
         '15 to 21 days' => a_t[:bed_nights].between(15..21),

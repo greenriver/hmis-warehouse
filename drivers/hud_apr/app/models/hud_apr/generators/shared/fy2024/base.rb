@@ -20,6 +20,7 @@ module HudApr::Generators::Shared::Fy2024
     INFORMATION_MISSING_DESC = 'Information Missing'.freeze
     DATA_NOT_COLLECTED_DESC = 'Data Not Collected'.freeze
 
+    # override HudReports::Clients concern
     def living_situations
       [
         ['Homeless Situations' , nil],
