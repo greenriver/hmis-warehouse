@@ -43,6 +43,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :assessments, **hmis_enrollment_relation('Assessment'), inverse_of: :enrollment, dependent: :destroy
   # Custom Assessments
   has_many :custom_assessments, **hmis_enrollment_relation('CustomAssessment'), inverse_of: :enrollment, dependent: :destroy
+  has_one :intake_assessment, -> { intakes }, **hmis_enrollment_relation('CustomAssessment')
+  has_one :exit_assessment, -> { exits }, **hmis_enrollment_relation('CustomAssessment')
+  has_many :update_assessments, -> { updates }, **hmis_enrollment_relation('CustomAssessment')
+  has_many :annual_assessments, -> { annuals }, **hmis_enrollment_relation('CustomAssessment')
+  has_many :post_exit_assessments, -> { post_exits }, **hmis_enrollment_relation('CustomAssessment')
 
   # Files
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :enrollment
@@ -275,14 +280,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     end
   end
 
-  def intake_assessment
-    custom_assessments.intakes.first
-  end
-
-  def exit_assessment
-    custom_assessments.exits.first
-  end
-
   def in_progress?
     @in_progress = project_id.nil? if @in_progress.nil?
     @in_progress
@@ -368,6 +365,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     return unless warehouse_columns_changed?
 
     invalidate_processing!
+    return if Delayed::Job.queued?(['GrdaWarehouse::Tasks::ServiceHistory::Enrollment', 'batch_process_unprocessed!'])
+
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).batch_process_unprocessed!
   end
 

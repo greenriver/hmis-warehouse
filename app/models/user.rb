@@ -137,9 +137,9 @@ class User < ApplicationRecord
   def clear_cached_project_ids
     Rails.cache.delete_matched("#{user_project_id_prefix}*")
   end
-  # To fetch the list of Controlss that grant a user access to a particular set of projects
+  # To fetch the list of Controls that grant a user access to a particular set of projects
   # user.access_group_for?('GrdaWarehouse::Hud::Project', 'can_view_projects')
-  # To fetch the list of Controlss that grant a user access to clients enrolled at as set of projects
+  # To fetch the list of Controls that grant a user access to clients enrolled at as set of projects
   # user.access_group_for?('GrdaWarehouse::Hud::Project', 'can_view_clients')
   # def access_groups_for?(entity_type, perm)
   #   return false unless entity_type.present? && perm.present?

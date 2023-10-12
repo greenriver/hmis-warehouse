@@ -19,7 +19,6 @@ module GrdaWarehouse::YouthIntake
                           :staff_believes_youth_under_24,
                           :client_gender,
                           :client_lgbtq,
-                          :client_ethnicity,
                           :client_primary_language,
                           :pregnant_or_parenting,
                           :needs_shelter,

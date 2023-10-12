@@ -14,6 +14,7 @@ class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base
   USE_VALUES = [
     :home,
     :work,
+    :school,
     :temp,
     :old,
     :mobile,
