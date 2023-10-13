@@ -2,13 +2,11 @@
   - start_date = (DateTime.current - 3.years).beginning_of_month
   - end_date = DateTime.current.beginning_of_month
   - all_data = AllNeighborsSystemDashboard::FakeHousingTotalPlacementsData.new(start_date, end_date)
-  - total_data = all_data.line_data
 - else
   - all_data = AllNeighborsSystemDashboard::HousingTotalPlacementsData.new(@report)
   - start_date = @report.filter.start_date
   - end_date = @report.filter.end_date
-  - total_data = all_data.data('Total Placements', 'total_placements', :line)
-
+- total_data = all_data.line_data
 - donut_data = all_data.donut_data
 - donut_ids = donut_data.map { |d| chart_id(tab[:id], d[:id]) }
 - donut_filter_label_ids = donut_data.map { |d| filter_label_id(tab[:id], d[:id]) }

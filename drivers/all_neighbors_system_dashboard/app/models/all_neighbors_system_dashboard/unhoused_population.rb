@@ -76,6 +76,7 @@ module AllNeighborsSystemDashboard
           'homelessness_status',
           :donut,
           options: {
+            filtered: true,
             data_set: :homelessness_status,
             types: homelessness_statuses.reject { |type| type == 'All' },
             colors: homelessness_status_colors,
@@ -129,18 +130,19 @@ module AllNeighborsSystemDashboard
     end
 
     def donut(options)
-      puts "TTTT #{options}"
-      options[:types].map do |project_type|
+      project_type = options[:project_type] || options[:homelessness_status]
+      options[:types].map do |type|
         {
-          name: project_type,
+          name: type,
           series: date_range.map do |date|
             scope = report_enrollments_enrollment_scope.
               distinct.
               select(:destination_client_id)
-            scope = filter_for_type(scope, project_type)
+            scope = filter_for_type(scope, type)
             scope = filter_for_count_level(scope, 'Individuals')
             scope = filter_for_date(scope, date)
             count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
+            count = options[:filtered] && project_type != 'All' && type != project_type ? 0 : count
             {
               date: date.strftime('%Y-%-m-%-d'),
               values: Array.wrap(count),

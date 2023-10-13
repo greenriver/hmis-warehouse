@@ -166,7 +166,7 @@ class AllNeighborsSystemDashboardFilters {
         $(label.selector).text(text)
       } else {
         // FIXME: not changing racial composition label when choosing Homelessness Status
-        console.log(this.state, label.selector, label.name)
+        // console.log(this.state, label.selector, label.name)
         $(label.selector).text(this.state[label.name])
       }
     })
