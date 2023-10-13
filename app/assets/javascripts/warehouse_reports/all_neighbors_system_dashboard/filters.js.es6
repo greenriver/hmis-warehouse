@@ -51,7 +51,7 @@ class AllNeighborsSystemDashboardFilters {
       const [s, e] = this.state.quarterRange
       const startQ = this.state.quarterData.find((d) => d.name === s).range[0]
       const endQ = this.state.quarterData.find((d) => d.name === e).range[1]
-      this.state.quarterDateRange = [startQ, endQ].map((d) => {
+      this.state.dateRange = [startQ, endQ].map((d) => {
         const [year, month, date] = d.split('-')
         return Date.parse(new Date(year, month-1, date))
       })

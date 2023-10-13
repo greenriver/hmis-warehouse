@@ -24,9 +24,12 @@ class AllNeighborsSystemDashboardLine {
   inDateRange(dateString, range) {
     const [year, month, day] = dateString.split('-')
     //ruby date month is 1 based while js date month is 0
-    const date = Date.parse(new Date(year, month-1, day))
-    const [s, e] = range
-    return date >= s && date <= e
+    if(range && range.length === 2) {
+      const date = Date.parse(new Date(year, month-1, day))
+      const [s, e] = range
+      return date >= s && date <= e
+    }
+    return false
   }
 
   getColumns() {
@@ -34,8 +37,7 @@ class AllNeighborsSystemDashboardLine {
     let keyCols = (this.config.keys || []).map((key, i) => {
       let cols = [key]
       this.series[i].forEach((d) => {
-        const range = this.state.dateRnage || this.state.quarterDateRange || []
-        const inRange = this.inDateRange(d[0], range)
+        const inRange = this.inDateRange(d[0], this.state.dateRange)
         if(inRange) {
           const [x, y] = d
           if(xCols.indexOf(x) === -1) {
@@ -125,6 +127,7 @@ class AllNeighborsSystemDashboardLine {
   }
 }
 
+//internal scatter
 class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine {
   constructor(data, initialState, selector, options) {
     super(data, initialState, selector, options)
@@ -138,8 +141,7 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
         let cols = [key]
         let xCols = [`${key}_x`];
         series.forEach((d) => {
-          const range = this.state.dateRange || this.state.quarterDateRange || []
-          const inRange = this.inDateRange(d[0], range)
+          const inRange = this.inDateRange(d[0], this.state.dateRange)
           if(inRange) {
             const [w, x, y] = d
             xCols.push(x)
@@ -223,7 +225,7 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
         })
       },
       onrendered: function() {
-        const selector = this.config().bindto
+        const selector = this.internal.config.bindto
         // total move in label
         let totals = d3.sum(this.data(), (d) => d3.sum(d.values, (n) => n.x))
         $(`${classOptions.total.selector}`).text(d3.format(',')(totals))
@@ -279,10 +281,10 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
   }
 }
 
+//internal scatter by quarter
 class AllNeighborsSystemDashboardLineByQuarter extends AllNeighborsSystemDashboardLine {
   constructor(data, initialState, selector, options) {
     super(data, initialState, selector, options)
-    console.log('data', data)
   }
 
   getDataConfig() {

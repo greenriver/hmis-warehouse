@@ -47,9 +47,6 @@ class AllNeighborsSystemDashboardStack {
           if(this.state.dateRange) {
             return this.inDateRange(n.date, this.state.dateRange)
           }
-          if(this.state.quarterDateRange) {
-            return this.inDateRange(n.date, this.state.quarterDateRange)
-          }
           if(this.state.year) {
             const [year, month, day] = n.date.split('-')
             const date = new Date(year, month, day)
@@ -109,6 +106,7 @@ class AllNeighborsSystemDashboardStack {
   getConfig() {
     //Default config, see subclasses below for custom config
     const normalizeDataLabels = this.normalizeDataLabels
+    const fitLabels = this.fitLabels
     const config = {
       size: {
         width: $(this.selector).width(),
@@ -124,6 +122,7 @@ class AllNeighborsSystemDashboardStack {
       legend: {show: false},
       onrendered: function() {
         normalizeDataLabels(this)
+        fitLabels(this)
       }
     }
     if(this.options.legend) {
@@ -154,6 +153,21 @@ class AllNeighborsSystemDashboardStack {
         },
       },
     }
+  }
+
+  fitLabels(chart) {
+    const selector = chart.internal.config.bindto
+    chart.data().forEach((d) => {
+      d.values.forEach((v, i) => {
+        const text = $(`${selector} .bb-texts-${d.id.replaceAll('_', '-')} .bb-text-${v.x}`)
+        const textBox = text[0].getBBox()
+        const bar = $(`${selector} .bb-bars-${d.id.replaceAll('_', '-')} .bb-bar-${v.x}`)
+        const barBox = bar[0].getBBox()
+        if(textBox.width >= barBox.width || textBox.height >= barBox.height) {
+          text.text('')
+        }
+      })
+    })
   }
 
   normalizeDataLabels(chart) {
@@ -196,7 +210,7 @@ class AllNeighborsSystemDashboardStack {
   }
 }
 
-// Unhoused Pop vertical stack
+// Unhoused Pop vertical stack + internal returns to homelessness vertical stack
 class AllNeighborsSystemDashboardUPVerticalStack extends AllNeighborsSystemDashboardStack {
   constructor(data, initialState, selector, options) {
     super(data, initialState, selector, options)
@@ -228,6 +242,7 @@ class AllNeighborsSystemDashboardUPVerticalStack extends AllNeighborsSystemDashb
   }
 
   getConfig() {
+    const fitLabels = this.fitLabels
     const superConfig = super.getConfig()
     const config = {
       size: {
@@ -239,11 +254,13 @@ class AllNeighborsSystemDashboardUPVerticalStack extends AllNeighborsSystemDashb
       grid: {
         y: {show: true}
       },
-      bar: {
-        width: 84,
-      },
+      // bar: {
+      //   width: 84,
+      // },
       padding: this.padding,
-      onrendered: function() {}
+      onrendered: function() {
+        fitLabels(this)
+      }
     }
     if(this.options.legend) {
       config.legend = this.getSimpleLegend(this.options.legend.selector)
@@ -294,6 +311,7 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
   }
 
   getConfig() {
+    const fitLabels = this.fitLabels
     const superConfig = super.getConfig()
     const superDrawTotals = super.drawTotals
     const padding = this.padding
@@ -312,6 +330,7 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
           .attr('x', (d) => this.internal.scale.y(d))
           .attr('y', (d, i) => this.internal.scale.x(i))
           .attr('transform', 'translate(30, 6)')
+        fitLabels(this)
       }
     }
     if(this.options.legend) {
@@ -321,12 +340,14 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
   }
 }
 
+// Returns to homelessness group stack with label on the left
 class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardStack {
   constructor(data, initialState, selector, options) {
     super(data, initialState, selector, options)
   }
 
   getConfig() {
+    const fitLabels = this.fitLabels
     const superConfig = super.getConfig()
     const superNormalizeDataLabels = super.normalizeDataLabels
     const data = this.data
@@ -339,6 +360,7 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
         bottom: 0,
       },
       onrendered: function() {
+        console.log('demographic', demographic)
         superNormalizeDataLabels(this)
         const selector = this.internal.config.bindto
         let container = d3.select(`${selector} .bb-main`)
@@ -353,6 +375,7 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
           .attr('x', (d) => this.internal.scale.y(100))
           .attr('y', (d, i) => this.internal.scale.x(i))
           .attr('transform', 'translate(30, 6)')
+        fitLabels(this)
       }
     }
     if(this.options.legend) {

@@ -283,7 +283,7 @@ module AllNeighborsSystemDashboard
           series: date_range.map do |date|
             {
               date: date.strftime('%Y-%-m-%-d'),
-              values: options[:types].map { |_| rand(0..150) },
+              values: options[:types].map.with_index { |_, i| i.zero? ? 1 : rand(0..150) },
             }
           end,
         }

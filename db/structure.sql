@@ -54,7 +54,7 @@ SET default_table_access_method = heap;
 
 CREATE TABLE public.access_controls (
     id bigint NOT NULL,
-    collection_id bigint,
+    access_group_id bigint,
     role_id bigint,
     user_group_id bigint,
     deleted_at timestamp without time zone,
@@ -1569,12 +1569,12 @@ CREATE TABLE public.roles (
     can_view_cohort_client_changes_report boolean DEFAULT false,
     can_approve_careplan boolean DEFAULT false,
     can_manage_inbound_api_configurations boolean DEFAULT false,
+    system boolean DEFAULT false NOT NULL,
     can_view_client_enrollments_with_roi boolean DEFAULT false,
     can_search_clients_with_roi boolean DEFAULT false,
-    can_see_confidential_files boolean DEFAULT false,
     can_edit_theme boolean DEFAULT false,
-    system boolean DEFAULT false NOT NULL,
     can_edit_collections boolean DEFAULT false,
+    can_see_confidential_files boolean DEFAULT false,
     can_publish_reports boolean DEFAULT false
 );
 
@@ -3097,10 +3097,10 @@ CREATE UNIQUE INDEX idx_oauth_on_provider_and_uid ON public.oauth_identities USI
 
 
 --
--- Name: index_access_controls_on_collection_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_access_controls_on_access_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_access_controls_on_collection_id ON public.access_controls USING btree (collection_id);
+CREATE INDEX index_access_controls_on_access_group_id ON public.access_controls USING btree (access_group_id);
 
 
 --
@@ -4010,6 +4010,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230322195141'),
 ('20230322204908'),
 ('20230328150855'),
+('20230329102609'),
+('20230329112926'),
+('20230329112954'),
 ('20230330161305'),
 ('20230412142430'),
 ('20230418170053'),
@@ -4024,6 +4027,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230511152438'),
 ('20230512175436'),
 ('20230513203001'),
+('20230514123118'),
 ('20230516131951'),
 ('20230522111726'),
 ('20230525153134'),

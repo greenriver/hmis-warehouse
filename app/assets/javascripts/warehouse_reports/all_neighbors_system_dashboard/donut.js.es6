@@ -35,9 +35,6 @@ class AllNeighborsSystemDashboardDonut {
           if(this.state.dateRange) {
             return this.inDateRange(n.date, this.state.dateRange)
           }
-          if(this.state.quarterDateRange) {
-            return this.inDateRange(n.date, this.state.quarterDateRange)
-          }
           if(this.state.year) {
             const [year, month, day] = n.date.split('-')
             const date = new Date(year, month-1, day)

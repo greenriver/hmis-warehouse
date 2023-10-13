@@ -3,8 +3,7 @@
 - end_date = DateTime.current.beginning_of_month
 - all_data = AllNeighborsSystemDashboard::FakeHousingTotalPlacementsData.new(start_date, end_date)
 - total_data = all_data.line_data
--#
-  real data
+-#real data
   - all_data = AllNeighborsSystemDashboard::HousingTotalPlacementsData.new(@report)
   - start_date = @report.filter.start_date
   - end_date = @report.filter.end_date

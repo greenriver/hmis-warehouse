@@ -158,7 +158,7 @@ class AllNeighborsSystemDashboardBar {
   }
 }
 
-class AllNeighborsSystemDashboarHorizontalBar extends AllNeighborsSystemDashboarBar {
+class AllNeighborsSystemDashboardHorizontalBar extends AllNeighborsSystemDashboardBar {
   constructor(data, initialState, selector, options) {
     super(data, initialState, selector, options)
   }
