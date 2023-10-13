@@ -102,16 +102,11 @@ module MaYyaReport
     end
 
     private def currently_homeless?(cls)
-      cls.present? && cls.CurrentLivingSituation.in?([1, 2, 16])
+      cls.present? && cls.CurrentLivingSituation.in?([101, 302, 116])
     end
 
     private def at_risk_of_homelessness?(cls)
       ! currently_homeless?(cls)
-      # cls.present? &&
-      #   cls.CurrentLivingSituation.in?(15, 6, 7, 25, 4, 5, 29, 14, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11) &&
-      #   cls.LeaveSituation14Days == 1 &&
-      #   cls.SubsequentResidence.in?([0, 8]) &&
-      #   cls.ResourcesToObtain.in?([0, 8])
     end
 
     private def initial_contact(enrollments)
@@ -187,7 +182,7 @@ module MaYyaReport
     private def rehoused_on(enrollment)
       enrollment.current_living_situations.
         detect do |cls|
-          cls.CurrentLivingSituation.in?([19, 3, 31, 33, 34, 10, 20, 21, 11]) &&
+          cls.CurrentLivingSituation.in?([435, 410, 421, 411]) &&
           cls.InformationDate > enrollment.EntryDate
         end&.InformationDate
     end
