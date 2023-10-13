@@ -1,9 +1,8 @@
--# fake data
-- start_date = (DateTime.current - 3.years).beginning_of_month
-- end_date = DateTime.current.beginning_of_month
-- all_data = AllNeighborsSystemDashboard::FakeUnhousedPopulation.new(start_date, end_date)
--# 
-  real data
+- if params[:fake].present? && Rails.env.development?
+  - start_date = (DateTime.current - 3.years).beginning_of_month
+  - end_date = DateTime.current.beginning_of_month
+  - all_data = AllNeighborsSystemDashboard::FakeUnhousedPopulation.new(start_date, end_date)
+- else
   - start_date = @report.filter.start_date.beginning_of_month
   - end_date = @report.filter.end_date.beginning_of_month
   - all_data = AllNeighborsSystemDashboard::UnhousedPopulation.new(@report)

@@ -1,9 +1,8 @@
--#fake data
-- start_date = (DateTime.current - 3.years).beginning_of_month
-- end_date = DateTime.current.beginning_of_month
-- all_data = AllNeighborsSystemDashboard::FakeReturnsToHomelessness.new(start_date, end_date)
--#
-  real data
+- if params[:fake].present? && Rails.env.development?
+  - start_date = (DateTime.current - 3.years).beginning_of_month
+  - end_date = DateTime.current.beginning_of_month
+  - all_data = AllNeighborsSystemDashboard::FakeReturnsToHomelessness.new(start_date, end_date)
+- else
   - all_data = AllNeighborsSystemDashboard::ReturnsToHomelessness.new(@report)
 
 - chart_data = all_data.stacked_data
