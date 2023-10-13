@@ -88,7 +88,7 @@ module HudApr::Generators::Shared::Fy2024
         'MEDICAID' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { Medicaid: 1 } } },
         'MEDICARE' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { Medicare: 1 } } },
         "State Children's Health Insurance Program" => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { SCHIP: 1 } } },
-        "Veteran’s Health Administration (VHA)" => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { VAMedicalServices: 1 } } },
+        'Veteran’s Health Administration (VHA)' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { VAMedicalServices: 1 } } },
         'Employer - Provided Health Insurances' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { EmployerProvided: 1 } } },
         'Health Insurance obtained through COBRA' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { COBRA: 1 } } },
         'Private Pay Health Insurance' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { PrivatePay: 1 } } },

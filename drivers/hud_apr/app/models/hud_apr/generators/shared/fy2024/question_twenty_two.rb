@@ -243,7 +243,7 @@ module HudApr::Generators::Shared::Fy2024
     # Universe: All active clients where the head of household had a move-in date in the report date range plus leavers who exited in the date range and never had a move-in date.
     def start_to_move_in_universe
       relevant_members = universe.members.where(a_t[:project_type].in([3, 13]))
-      members = relevant_members.where(
+      relevant_members.where(
         [
           a_t[:move_in_date].between(@report.start_date..@report.end_date),
           leavers_clause.and(a_t[:move_in_date].eq(nil)),
@@ -302,7 +302,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q22a2_lengths
-      ret = [
+      [
         '0 to 7 days',
         '8 to 14 days',
         '15 to 21 days',
@@ -408,7 +408,6 @@ module HudApr::Generators::Shared::Fy2024
 
     def time_by_race_and_ethnicity_question(question:, move_in_col:, members:)
       sheet = QuestionSheet.new(report: @report, question: question)
-      universe = @report.universe(question)
       first_row = 2
       last_row = 5
       groups = race_ethnicity_groups
@@ -427,7 +426,6 @@ module HudApr::Generators::Shared::Fy2024
       }
       sheet.update_metadata(metadata)
 
-      move_in_projects = HudUtility2024.residential_project_type_numbers_by_code[:ph]
       col_letters = (metadata[:first_column]..metadata[:last_column]).to_a
       groups.each.with_index do |group, idx|
         group_scope = members.where(group.fetch(:cond))
