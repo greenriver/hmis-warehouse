@@ -1,6 +1,13 @@
-- start_date = @report.filter.start_date.beginning_of_month
-- end_date = @report.filter.end_date.beginning_of_month
-- all_data = AllNeighborsSystemDashboard::UnhousedPopulation.new(@report)
+-# fake data
+- start_date = (DateTime.current - 3.years).beginning_of_month
+- end_date = DateTime.current.beginning_of_month
+- all_data = AllNeighborsSystemDashboard::FakeUnhousedPopulation.new(start_date, end_date)
+-# 
+  real data
+  - start_date = @report.filter.start_date.beginning_of_month
+  - end_date = @report.filter.end_date.beginning_of_month
+  - all_data = AllNeighborsSystemDashboard::UnhousedPopulation.new(@report)
+
 - donut_ids = all_data.donut_data.map{|d| chart_id(tab[:id], d[:id])}
 - donut_filter_label_ids = all_data.donut_data.map { |d| filter_label_id(tab[:id], d[:id]) }
 

@@ -1,4 +1,4 @@
-.all-neighbors__all__filter_labels.mb-7
+.all-neighbors__all__filter_labels
   %h3
     - if labels.include?('project_type')
       %span{class: filter_label_id(tab[:id], 'project_type')}
@@ -10,6 +10,9 @@
       %span= "Household Types | "
     - if labels.include?('demographics')
       %span{class: filter_label_id(tab[:id], 'demographic')}
+  - if labels.include?('cohort')
+    %h3
+      %span{class: filter_label_id(tab[:id], 'cohort')}
   - if labels.include?('date_range')
     %h3
       %span{class: filter_label_id(tab[:id], 'date_range')}

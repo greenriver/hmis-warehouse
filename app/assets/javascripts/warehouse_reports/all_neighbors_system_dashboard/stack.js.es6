@@ -17,14 +17,23 @@ class AllNeighborsSystemDashboardStack {
     this.project = (this.data.project_types || []).filter((d) => d.project_type === this.state.projectType)[0] || {}
     this.homelessnessStatus = (this.data.homelessness_statuses || []).filter((d) => d.homelessness_status === this.state.homelessnessStatus)[0] || {}
     this.countLevel = (this.project.count_levels || []).filter((d) => d.count_level === this.state.countLevel)[0] || {}
+    this.cohort = (this.countLevel.cohorts || []).filter((d) => d.cohort === this.state.cohort)[0] || {}
     this.householdType = (this.project.household_types || []).filter((d) => d.household_type === this.state.householdType)[0] || {}
     this.demographic = (this.householdType.demographics || this.data.demographics || []).filter((d) => d.demographic === this.state.demographics)[0] || {}
-    this.config = this.project.config || this.homelessnessStatus.config || this.demographic.config || this.data.config || {}
-    this.series = this.homelessnessStatus.series || this.demographic.series || this.countLevel.series || this.data.series || []
+    this.config = this.project.config || this.homelessnessStatus.config || this.demographic.config || this.cohort.config || this.data.config || {}
+    this.series = this.cohort.series || this.homelessnessStatus.series || this.demographic.series || this.countLevel.series || this.data.series || []
   }
 
   test() {
     console.log(this)
+  }
+
+  inDateRange(dateString, range) {
+    const [year, month, day] = dateString.split('-')
+    //ruby date month is 1 based while js date month is 0
+    const date = Date.parse(new Date(year, month-1, day))
+    const [s, e] = range
+    return date >= s && date <= e
   }
 
   getColumn(name) {
@@ -36,10 +45,7 @@ class AllNeighborsSystemDashboardStack {
       this.series.forEach((d) => {
         const total = d.series.filter((n) => {
           if(this.state.dateRange) {
-            const [year, month, day] = n.date.split('-')
-            const date = Date.parse(new Date(year, month, day))
-            const [s, e] = this.state.dateRange
-            return date >= s && date <= e
+            return this.inDateRange(n.date, this.state.dateRange)
           }
           if(this.state.year) {
             const [year, month, day] = n.date.split('-')
@@ -100,6 +106,7 @@ class AllNeighborsSystemDashboardStack {
   getConfig() {
     //Default config, see subclasses below for custom config
     const normalizeDataLabels = this.normalizeDataLabels
+    const fitLabels = this.fitLabels
     const config = {
       size: {
         width: $(this.selector).width(),
@@ -115,6 +122,7 @@ class AllNeighborsSystemDashboardStack {
       legend: {show: false},
       onrendered: function() {
         normalizeDataLabels(this)
+        fitLabels(this)
       }
     }
     if(this.options.legend) {
@@ -147,6 +155,21 @@ class AllNeighborsSystemDashboardStack {
     }
   }
 
+  fitLabels(chart) {
+    const selector = chart.internal.config.bindto
+    chart.data().forEach((d) => {
+      d.values.forEach((v, i) => {
+        const text = $(`${selector} .bb-texts-${d.id.replaceAll('_', '-')} .bb-text-${v.x}`)
+        const textBox = text[0].getBBox()
+        const bar = $(`${selector} .bb-bars-${d.id.replaceAll('_', '-')} .bb-bar-${v.x}`)
+        const barBox = bar[0].getBBox()
+        if(textBox.width >= barBox.width || textBox.height >= barBox.height) {
+          text.text('')
+        }
+      })
+    })
+  }
+
   normalizeDataLabels(chart) {
     // is there a better way to do this with billboard config?
     const selector = chart.internal.config.bindto
@@ -176,37 +199,18 @@ class AllNeighborsSystemDashboardStack {
   }
 
   redraw(state) {
-    const old_columns = [...this.config.keys]
     this.state = state
     this.init()
-
-    const unload = old_columns.filter((old) => this.config.keys.indexOf(old) === -1)
-
-    this.chart.load({
-      columns: [
-          this.getColumn('x'),
-        ].concat(this.config.keys.map((d) => this.getColumn(d))),
-      colors: this.config.colors,
-      names: this.config.names,
-      unload: unload
-    })
-    this.chart.internal.config.data_groups = [this.config.keys]
-    this.chart.internal.config.data_labels_colors = this.config.label_colors
-    this.chart.show()
-    this.chart.resize({
-      width: $(this.selector).width(),
-      height: this.series.length * 90,
-    })
-
+    this.chart.destroy()
+    this.draw()
   }
 
   draw() {
-    const config = this.getConfig()
-    this.chart = bb.generate(config)
+    this.chart = bb.generate(this.getConfig())
   }
 }
 
-// Unhoused Pop vertical stack
+// Unhoused Pop vertical stack + internal returns to homelessness vertical stack
 class AllNeighborsSystemDashboardUPVerticalStack extends AllNeighborsSystemDashboardStack {
   constructor(data, initialState, selector, options) {
     super(data, initialState, selector, options)
@@ -238,6 +242,7 @@ class AllNeighborsSystemDashboardUPVerticalStack extends AllNeighborsSystemDashb
   }
 
   getConfig() {
+    const fitLabels = this.fitLabels
     const superConfig = super.getConfig()
     const config = {
       size: {
@@ -249,11 +254,13 @@ class AllNeighborsSystemDashboardUPVerticalStack extends AllNeighborsSystemDashb
       grid: {
         y: {show: true}
       },
-      bar: {
-        width: 84,
-      },
+      // bar: {
+      //   width: 84,
+      // },
       padding: this.padding,
-      onrendered: function() {}
+      onrendered: function() {
+        fitLabels(this)
+      }
     }
     if(this.options.legend) {
       config.legend = this.getSimpleLegend(this.options.legend.selector)
@@ -304,6 +311,7 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
   }
 
   getConfig() {
+    const fitLabels = this.fitLabels
     const superConfig = super.getConfig()
     const superDrawTotals = super.drawTotals
     const padding = this.padding
@@ -322,6 +330,7 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
           .attr('x', (d) => this.internal.scale.y(d))
           .attr('y', (d, i) => this.internal.scale.x(i))
           .attr('transform', 'translate(30, 6)')
+        fitLabels(this)
       }
     }
     if(this.options.legend) {
@@ -331,12 +340,14 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
   }
 }
 
+// Returns to homelessness group stack with label on the left
 class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardStack {
   constructor(data, initialState, selector, options) {
     super(data, initialState, selector, options)
   }
 
   getConfig() {
+    const fitLabels = this.fitLabels
     const superConfig = super.getConfig()
     const superNormalizeDataLabels = super.normalizeDataLabels
     const data = this.data
@@ -349,6 +360,7 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
         bottom: 0,
       },
       onrendered: function() {
+        console.log('demographic', demographic)
         superNormalizeDataLabels(this)
         const selector = this.internal.config.bindto
         let container = d3.select(`${selector} .bb-main`)
@@ -363,6 +375,7 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
           .attr('x', (d) => this.internal.scale.y(100))
           .attr('y', (d, i) => this.internal.scale.x(i))
           .attr('transform', 'translate(30, 6)')
+        fitLabels(this)
       }
     }
     if(this.options.legend) {
