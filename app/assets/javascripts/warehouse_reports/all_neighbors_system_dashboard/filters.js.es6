@@ -97,6 +97,8 @@ class AllNeighborsSystemDashboardFilters {
         const dateStrings = this.state.dateRange.map((d) => new Date(d).toLocaleDateString('en-us', {year: 'numeric', month: 'short'}))
         $(label.selector).text(`${dateStrings[0]} - ${dateStrings[1]}`)
       } else {
+        // FIXME: not changing racial composition label when choosing Homelessness Status
+        console.log(this.state, label.selector, label.name)
         $(label.selector).text(this.state[label.name])
       }
     })

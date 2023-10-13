@@ -118,9 +118,9 @@ module AllNeighborsSystemDashboard
       return homelessness_status_data(
         'Racial Composition',
         'racial_composition',
-        :stack,
+        :race_stack,
         options: {
-          bars: ['Unhoused Population *', 'Overall Population (Census 2020)'],
+          bars: ['Unhoused Population', 'Overall Population (Census)'],
           demographic: :race,
           types: demographic_race,
           colors: demographic_race_colors,
@@ -129,6 +129,7 @@ module AllNeighborsSystemDashboard
     end
 
     def donut(options)
+      puts "TTTT #{options}"
       options[:types].map do |project_type|
         {
           name: project_type,
@@ -176,35 +177,38 @@ module AllNeighborsSystemDashboard
 
     def stack(options)
       project_type = options[:project_type]
-      homelessness_status = options[:homelessness_status]
-      demographic = options[:demographic]
+      # homelessness_status = options[:homelessness_status]
       bars = project_type.present? ? [project_type] + options[:bars] : options[:bars]
-      bars[0] = "#{homelessness_status} #{bars[0]}" if homelessness_status.present?
-      dd = bars.map do |bar|
-        dates_in_year = date_range.select { |d| d.year == bar }
+      bars.map do |bar|
+        relevant_dates = date_range.select { |d| d.year == bar }
         {
           name: bar,
-          series: dates_in_year.map do |date|
+          series: relevant_dates.map do |date|
             {
               date: date.strftime('%Y-%-m-%-d'),
-              values: options[:types].map { |label| stack_value(date, demographic, bar, label) },
+              values: options[:types].map { |label| housing_status_values(date, label) },
             }
           end,
         }
       end
-
-      dd
     end
 
-    def stack_value(date, demographic, bar, label)
-      case demographic
-      when :homelessness_type
-        housing_status_values(date, label)
-      when :race
-        race_status_values(date, bar, label)
-      else
-        puts [date, demographic, bar, label].inspect
-        raise "Unknown demographic category #{demographic}"
+    def race_stack(options)
+      project_type = options[:project_type]
+      homelessness_status = options[:homelessness_status]
+      bars = project_type.present? ? [project_type] + options[:bars] : options[:bars]
+      bars.map do |bar|
+        relevant_dates = date_range
+
+        {
+          name: bar,
+          series: relevant_dates.map do |date|
+            {
+              date: date.strftime('%Y-%-m-%-d'),
+              values: options[:types].map { |label| race_status_values(date, bar, label, homelessness_status) },
+            }
+          end,
+        }
       end
     end
 
@@ -213,6 +217,8 @@ module AllNeighborsSystemDashboard
         distinct.
         select(:destination_client_id)
       scope = filter_for_count_level(scope, 'Individuals')
+      # this entire set is limited to unhoused clients
+      scope = scope.where(project_type: HudUtility2024.homeless_project_type_numbers)
       scope = case label
       when 'Safe Haven', 'Transitional Housing'
         scope.where(project_type: HudUtility2024.project_type(label, true))
@@ -221,32 +227,38 @@ module AllNeighborsSystemDashboard
       when 'Unsheltered'
         scope.where(project_type: HudUtility2024.project_type('Street Outreach', true))
       end
+
       scope = filter_for_date(scope, date)
       count = bracket_small_population(scope.distinct.select(:destination_client_id).count, mask: @report.mask_small_populations?)
 
       count
     end
 
-    def race_status_values(date, bar, label)
-      population = bar.split.first
+    def race_status_values(date, bar, label, status)
+      if bar.include?('Census')
+        race_code = HudUtility2024.race(label, true)
+        return get_us_census_population_by_race(race_code: race_code, year: date.year).to_i
+      end
+
       scope = report_enrollments_enrollment_scope.
         distinct.
         select(:destination_client_id)
       scope = filter_for_count_level(scope, 'Individuals')
       scope = filter_for_date(scope, date)
-      scope = case population
-      when 'All'
-        scope
-      when 'Sheltered'
-        scope.where.not(project_type: HudUtility2024.project_type('Street Outreach', true))
+      # this entire set is limited to unhoused clients
+      scope = scope.where(project_type: HudUtility2024.homeless_project_type_numbers)
+
+      scope = case status
       when 'Unsheltered'
         scope.where(project_type: HudUtility2024.project_type('Street Outreach', true))
+      when 'Sheltered'
+        scope.where.not(project_type: HudUtility2024.project_type('Street Outreach', true))
       else
-        race_code = HudUtility2024.race(label, true)
-        return get_us_census_population_by_race(race_code: race_code, year: date.year).to_i
+        scope
       end
       scope = scope.where(primary_race: label)
       count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
+
       count
     end
   end
