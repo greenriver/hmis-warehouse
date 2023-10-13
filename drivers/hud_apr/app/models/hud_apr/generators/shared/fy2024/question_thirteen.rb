@@ -82,8 +82,8 @@ module HudApr::Generators::Shared::Fy2024
         '2 Conditions' => :two,
         '3+ Conditions' => :three,
         'Condition Unknown' => :unknown,
-        NO_CLIENT_ANSWER_DESC => :refused,
-        DATA_NOT_COLLECTED_DESC => :not_collected,
+        label_for(:dkptr) => :refused,
+        label_for(:data_not_collected) => :not_collected,
         'Total' => :total,
       }
     end

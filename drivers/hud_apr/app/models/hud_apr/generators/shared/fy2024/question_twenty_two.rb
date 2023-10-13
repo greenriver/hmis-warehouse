@@ -17,6 +17,8 @@ module HudApr::Generators::Shared::Fy2024
         'Q22c' => 'Length of Time between Project Start Date and Housing Move-in Date',
         'Q22d' => 'Length of Participation by Household Type',
         'Q22e' => 'Length of Time Prior to Housing - based on 3.917 Date Homelessness Started',
+        'Q22f' => 'Length of Time between Project Start Date and Housing Move-in Date by Race and Ethnicity',
+        'Q22g' => 'Length of Time Prior to Housing by Race and Ethnicity - based on 3.917 Date Homelessness Started',
       }.freeze
     end
 
@@ -133,21 +135,13 @@ module HudApr::Generators::Shared::Fy2024
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      relevant_members = universe.members.where(a_t[:project_type].in([3, 13]))
-      q22c_populations.values.each_with_index do |population_clause, col_index|
+      members = start_to_move_in_universe
+      q22c_populations.values.each_with_index do |_population_clause, col_index|
         q22c_lengths.values.each_with_index do |length_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
           next if intentionally_blank.include?(cell)
 
           answer = @report.answer(question: table_name, cell: cell)
-
-          # Universe: All active clients where the head of household had a move-in date in the report date range plus leavers who exited in the date range and never had a move-in date.
-          members = relevant_members.where(population_clause).
-            where(
-              a_t[:move_in_date].between(@report.start_date..@report.end_date).
-              or(leavers_clause.and(a_t[:move_in_date].eq(nil))),
-            )
-
           if length_clause.is_a?(Symbol)
             case length_clause
             when :average
@@ -210,7 +204,7 @@ module HudApr::Generators::Shared::Fy2024
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      relevant_members = universe.members.where(a_t[:project_type].in([1, 2, 3, 8, 9, 13]))
+      relevant_members = time_prior_to_housing_universe
       q22e_populations.values.each_with_index do |population_clause, col_index|
         q22e_lengths.values.each_with_index do |length_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"
@@ -224,6 +218,37 @@ module HudApr::Generators::Shared::Fy2024
           answer.update(summary: members.count)
         end
       end
+    end
+
+    def time_prior_to_housing_universe
+      universe.members.where(a_t[:project_type].in([1, 2, 3, 8, 9, 13]))
+    end
+
+    def q22f_start_to_move_in_by_race_and_ethnicity
+      time_by_race_and_ethnicity_question(
+        question: 'Q22f',
+        move_in_col: a_t[:time_to_move_in],
+        members: start_to_move_in_universe,
+      )
+    end
+
+    def q22g_time_prior_to_housing_by_race_and_ethnicity
+      time_by_race_and_ethnicity_question(
+        question: 'Q22g',
+        move_in_col: a_t[:approximate_time_to_move_in],
+        members: time_prior_to_housing_universe,
+      )
+    end
+
+    # Universe: All active clients where the head of household had a move-in date in the report date range plus leavers who exited in the date range and never had a move-in date.
+    def start_to_move_in_universe
+      relevant_members = universe.members.where(a_t[:project_type].in([3, 13]))
+      members = relevant_members.where(
+        [
+          a_t[:move_in_date].between(@report.start_date..@report.end_date),
+          leavers_clause.and(a_t[:move_in_date].eq(nil)),
+        ].inject(&:or),
+      )
     end
 
     private def q22b_populations
@@ -296,6 +321,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q22c_lengths
+      lengths = lengths(field: a_t[:time_to_move_in])
       ret = [
         '7 days or less',
         '8 to 14 days',
@@ -308,7 +334,10 @@ module HudApr::Generators::Shared::Fy2024
         '366 to 730 days (1-2 Yrs)',
         '731 days or more',
       ]
-      ret = ret.to_h { [_1, lengths.fetch(_1)] }
+      ret = ret.to_h do |label|
+        cond = lengths.fetch(label).and(a_t[:move_in_date].between(@report.start_date..@report.end_date))
+        [label, cond]
+      end
 
       ret.merge(
         'Total (persons moved into housing)' => a_t[:move_in_date].between(@report.start_date..@report.end_date),
@@ -335,6 +364,11 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q22e_lengths
+      move_in_field = a_t[:approximate_time_to_move_in]
+      move_in_projects = HudUtility2024.residential_project_type_numbers_by_code[:ph]
+      move_in_for_psh = a_t[:project_type].not_in(move_in_projects).
+        or(a_t[:project_type].in(move_in_projects).and(a_t[:move_in_date].lteq(@report.end_date)))
+      lengths = lengths(field: move_in_field)
       ret = [
         '7 days or less',
         '8 to 14 days',
@@ -346,11 +380,8 @@ module HudApr::Generators::Shared::Fy2024
         '181 to 365 days',
         '366 to 730 days (1-2 Yrs)',
         '731 days or more',
-      ].to_h { [_1, lengths.fetch(_1)] }
+      ].to_h { [_1, lengths.fetch(_1).and(move_in_for_psh)] }
 
-      move_in_projects = HudUtility2024.residential_project_type_numbers_by_code[:ph]
-      move_in_for_psh = a_t[:project_type].not_in(move_in_projects).
-        or(a_t[:project_type].in(move_in_projects).and(a_t[:move_in_date].lteq(@report.end_date)))
       ret.merge(
         'Total (persons moved into housing)' => a_t[:approximate_time_to_move_in].not_eq(nil).
           and(a_t[:project_type].not_in(move_in_projects).
@@ -373,6 +404,97 @@ module HudApr::Generators::Shared::Fy2024
 
     private def intentionally_blank
       [].freeze
+    end
+
+    def time_by_race_and_ethnicity_question(question:, move_in_col:, members:)
+      sheet = QuestionSheet.new(report: @report, question: question)
+      universe = @report.universe(question)
+      first_row = 2
+      last_row = 5
+      groups = race_ethnicity_groups
+      metadata = {
+        header_row: [''] + groups.map { _1[:label] },
+        row_labels: [
+          'Persons Moved into housing',
+          'Persons who were exited without move-in',
+          'Average time to Move-In',
+          'Median time to Move-In',
+        ],
+        first_column: 'B',
+        last_column: 'K',
+        first_row: first_row,
+        last_row: last_row,
+      }
+      sheet.update_metadata(metadata)
+
+      move_in_projects = HudUtility2024.residential_project_type_numbers_by_code[:ph]
+      col_letters = (metadata[:first_column]..metadata[:last_column]).to_a
+      groups.each.with_index do |group, idx|
+        group_scope = members.where(group.fetch(:cond))
+        letter = col_letters.fetch(idx)
+
+        sheet.update_cell_members(
+          cell: "#{letter}2",
+          members: group_scope.where(move_in_col.not_eq(nil)),
+        )
+        sheet.update_cell_members(
+          cell: "#{letter}3",
+          members: group_scope.where(move_in_col.eq(nil)),
+        )
+        sheet.update_cell_value(
+          cell: "#{letter}4",
+          value: group_scope.pluck(Arel.sql("AVG(#{move_in_col.to_sql})")).first&.to_d&.round,
+        )
+        sheet.update_cell_value(
+          cell: "#{letter}5",
+          # median in pg
+          value: group_scope.pluck(Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{move_in_col.to_sql})")).first&.to_i,
+        )
+      end
+    end
+
+    def race_ethnicity_groups
+      race_col = a_t[:race_multi]
+      [
+        {
+          label: 'American Indian, Alaska Native, or Indigenous',
+          cond: race_col.eq('1'),
+        },
+        {
+          label: 'Asian or Asian American',
+          cond: race_col.eq('2'),
+        },
+        {
+          label: 'Black, African American, or African',
+          cond: race_col.eq('3'),
+        },
+        {
+          label: 'Hispanic/Latina/e/o',
+          cond: race_col.eq('8'),
+        },
+        {
+          label: 'Middle Eastern or North African',
+          cond: race_col.eq('7'),
+        },
+        { label: 'Native Hawaiian or Pacific Islander',
+          cond: race_col.eq('4') },
+        {
+          label: 'White',
+          cond: race_col.eq('5'),
+        },
+        {
+          label: 'At Least 1 Race and Hispanic/Latina/e/o',
+          cond: race_col.matches_regexp('(\d+,){2,}').and(race_col.matches_regexp('\y6\y')),
+        },
+        {
+          label: 'Multi-racial (does not include Hispanic/Latina/e/o)',
+          cond: race_col.matches_regexp('(\d+,){2,}').and(race_col.does_not_match_regexp('\y6\y')),
+        },
+        {
+          label: 'Unknown (Doesn’t Know, Prefers not to Answer, Data not Collected)',
+          cond: race_col.in(['8', '9', '99']),
+        },
+      ]
     end
   end
 end

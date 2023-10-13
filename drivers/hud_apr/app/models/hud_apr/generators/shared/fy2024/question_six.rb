@@ -29,7 +29,7 @@ module HudApr::Generators::Shared::Fy2024
       metadata = {
         header_row: [
           'Data Element',
-          NO_CLIENT_ANSWER_DESC,
+          label_for(:dkptr),
           'Information Missing',
           'Data Issues',
           'Total',
@@ -269,8 +269,8 @@ module HudApr::Generators::Shared::Fy2024
       metadata = {
         header_row: [
           'Data Element',
-          NO_CLIENT_ANSWER_DESC,
-          INFORMATION_MISSING_DESC,
+          label_for(:dkptr),
+          label_for(:info_missing),
           'Data Issues',
           'Total',
           '% of Issue Rate',

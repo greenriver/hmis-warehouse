@@ -47,7 +47,7 @@ module HudApr::Generators::Shared::Fy2024
         'Questioning/Different Identity' => [29, gender_col.eq('6,3')],
         # 2 or more commas
         'More than 2 Gender Identities Selected' => [30, gender_col.matches_regexp('(\d+,){2,}')],
-        NO_CLIENT_ANSWER_DESC => [31, gender_col.in(['8', '9'])],
+        label_for(:dkptr) => [31, gender_col.in(['8', '9'])],
         'Data Not Collected' => [32, gender_col.eq('99')],
         'Total' => [33, Arel.sql('1=1')],
       }.freeze
@@ -93,7 +93,7 @@ module HudApr::Generators::Shared::Fy2024
         'Age 18-24',
         'Age 25-64',
         'Age 65+',
-        NO_CLIENT_ANSWER_DESC,
+        label_for(:dkptr),
         'Data Not Collected',
       ]
       columns = {

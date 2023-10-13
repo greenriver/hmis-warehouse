@@ -23,7 +23,7 @@ module HudApr::Generators::Shared::Fy2024
         row_labels: [
           'Adults',
           'Children',
-          NO_CLIENT_ANSWER_DESC,
+          label_for(:dkptr),
           'Data Not Collected',
           'Total',
           'For PSH & RRH - the total persons served who moved into housing',

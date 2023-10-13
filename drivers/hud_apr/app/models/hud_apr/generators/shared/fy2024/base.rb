@@ -7,6 +7,7 @@
 module HudApr::Generators::Shared::Fy2024
   class Base < ::HudReports::QuestionBase
     include ArelHelper
+    include SafeInspectable
     include HudReports::Util
     include HudReports::Clients
     include HudReports::Ages
@@ -16,59 +17,18 @@ module HudApr::Generators::Shared::Fy2024
     include HudReports::LengthOfStays
     include HudReports::Incomes
 
-    NO_CLIENT_ANSWER_DESC = 'Client Doesn’t Know/Prefers Not to Answer'.freeze
-    INFORMATION_MISSING_DESC = 'Information Missing'.freeze
-    DATA_NOT_COLLECTED_DESC = 'Data Not Collected'.freeze
-
-    # override HudReports::Clients concern
-    def living_situations
-      [
-        ['Homeless Situations', nil],
-        ['Place not meant for habitation', a_t[:prior_living_situation].eq(116)],
-        ['Emergency shelter, including hotel or motel paid for with emergency shelter voucher, Host Home shelter', a_t[:prior_living_situation].eq(101)],
-        ['Safe Haven', a_t[:prior_living_situation].eq(118)],
-        ['Subtotal', a_t[:prior_living_situation].in([101, 116, 118])],
-
-        ['Institutional Settings', nil],
-        ['Foster care home or foster care group home', a_t[:prior_living_situation].eq(215)],
-        ['Hospital or other residential non-psychiatric medical facility', a_t[:prior_living_situation].eq(206)],
-        ['Jail, prison or juvenile detention facility', a_t[:prior_living_situation].eq(207)],
-        ['Long-term care facility or nursing home', a_t[:prior_living_situation].eq(225)],
-        ['Psychiatric hospital or other psychiatric facility', a_t[:prior_living_situation].eq(204)],
-        ['Substance abuse treatment facility or detox center', a_t[:prior_living_situation].eq(205)],
-        ['Subtotal', a_t[:prior_living_situation].in([215, 206, 207, 225, 204, 205])],
-
-        ['Temporary Situation', nil],
-        ['Transitional housing for homeless persons (including homeless youth)', a_t[:prior_living_situation].eq(302)],
-        ['Residential project or halfway house with no homeless criteria', a_t[:prior_living_situation].eq(329)],
-        ['Hotel or motel paid for without emergency shelter voucher', a_t[:prior_living_situation].eq(314)],
-        ['Host Home (non-crisis)', a_t[:prior_living_situation].eq(332)],
-        ["Staying or living in a friend's room, apartment or house", a_t[:prior_living_situation].eq(336)],
-        ["Staying or living in a family member's room, apartment or house", a_t[:prior_living_situation].eq(335)],
-        ['Subtotal', a_t[:prior_living_situation].in([302, 329, 314, 332, 336, 335])],
-
-        ['Permanent Situations', nil],
-        ['Rental by client, no ongoing housing subsidy', a_t[:prior_living_situation].eq(410)],
-        ['Rental by client, with ongoing housing subsidy', a_t[:prior_living_situation].eq(435)],
-        ['Owned by client, with ongoing housing subsidy', a_t[:prior_living_situation].eq(421)],
-        ['Owned by client, no ongoing housing subsidy', a_t[:prior_living_situation].eq(411)],
-        ['Subtotal', a_t[:prior_living_situation].in([410, 435, 421, 411])],
-
-        [NO_CLIENT_ANSWER_DESC, a_t[:prior_living_situation].in([8, 9])],
-        [DATA_NOT_COLLECTED_DESC, a_t[:prior_living_situation].eq(99).or(a_t[:prior_living_situation].eq(nil))],
-        ['Subtotal', a_t[:prior_living_situation].in([8, 9, 99]).or(a_t[:prior_living_situation].eq(nil))],
-        ['Total', Arel.sql('1=1')],
-      ]
+    def to_s
     end
 
-    # override HudReports::Clients concern
-    def yes_know_dkn_clauses(column)
+    def label_for(key)
+      field_labels.fetch(key)
+    end
+
+    def field_labels
       {
-        'Yes' => column.eq(1),
-        'No' => column.eq(0),
-        NO_CLIENT_ANSWER_DESC => column.in([8, 9]),
-        DATA_NOT_COLLECTED_DESC => column.eq(99).or(column.eq(nil)),
-        'Total' => Arel.sql('1=1'),
+        dkptr: 'Client Doesn’t Know/Prefers Not to Answer',
+        info_missing: 'Information Missing',
+        data_not_collected: 'Data Not Collected',
       }
     end
 
@@ -823,7 +783,7 @@ module HudApr::Generators::Shared::Fy2024
         '45-54',
         '55-64',
         '65+',
-        NO_CLIENT_ANSWER_DESC,
+        label_for(:dkptr),
         'Data Not Collected',
         'Total',
       ].freeze
@@ -840,7 +800,7 @@ module HudApr::Generators::Shared::Fy2024
         '45-54' => a_t[:age].between(45..54),
         '55-64' => a_t[:age].between(55..64),
         '65+' => a_t[:age].gteq(65),
-        NO_CLIENT_ANSWER_DESC => a_t[:dob_quality].in([8, 9]).and(a_t[:dob].eq(nil)),
+        label_for(:dkptr) => a_t[:dob_quality].in([8, 9]).and(a_t[:dob].eq(nil)),
         'Data Not Collected' => a_t[:dob_quality].eq(99).and(a_t[:dob].eq(nil)),
         'Total' => Arel.sql('1=1'), # include everyone
       }

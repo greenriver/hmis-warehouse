@@ -118,11 +118,11 @@ module HudApr::Generators::Shared::Fy2024
           cond: race_col.matches_regexp('(\d+,){3,}').and(race_col.does_not_match_regexp('\y6\y')),
         },
         {
-          label: NO_CLIENT_ANSWER_DESC,
+          label: label_for(:dkptr),
           cond: race_col.eq('8').or(race_col.eq('9')),
         },
         {
-          label: DATA_NOT_COLLECTED_DESC,
+          label: label_for(:data_not_collected),
           cond: race_col.eq(nil).or(race_col.eq('99')),
         },
       ]

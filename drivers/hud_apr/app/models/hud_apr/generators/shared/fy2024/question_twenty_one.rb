@@ -98,9 +98,9 @@ module HudApr::Generators::Shared::Fy2024
 
         'No Health Insurance' => a_t["insurance_from_any_source_at_#{suffix}"].in([0, 1]).
           and(insurance_jsonb_clause(1, a_t["income_sources_at_#{suffix}"].to_sql, negation: true)),
-        NO_CLIENT_ANSWER_DESC => a_t["insurance_from_any_source_at_#{suffix}"].in([8, 9]).
+        label_for(:dkptr) => a_t["insurance_from_any_source_at_#{suffix}"].in([8, 9]).
           and(insurance_jsonb_clause(1, a_t["income_sources_at_#{suffix}"].to_sql, negation: true)),
-        DATA_NOT_COLLECTED_DESC => a_t["insurance_from_any_source_at_#{suffix}"].eq(99).
+        label_for(:data_not_collected) => a_t["insurance_from_any_source_at_#{suffix}"].eq(99).
           or(a_t["insurance_from_any_source_at_#{suffix}"].eq(nil)).
           and(insurance_jsonb_clause(1, a_t["income_sources_at_#{suffix}"].to_sql, negation: true)),
         'Number of Stayers not yet Required To Have an Annual Assessment' => a_t[:annual_assessment_expected].eq(false),
