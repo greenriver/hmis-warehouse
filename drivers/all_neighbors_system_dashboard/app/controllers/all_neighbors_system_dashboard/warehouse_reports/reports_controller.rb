@@ -58,6 +58,10 @@ module AllNeighborsSystemDashboard::WarehouseReports
       end
     end
 
+    def internal
+      @internal = true
+    end
+
     def destroy
       @report.destroy
       respond_with(@report, location: all_neighbors_system_dashboard_warehouse_reports_reports_path)
@@ -107,10 +111,17 @@ module AllNeighborsSystemDashboard::WarehouseReports
     end
     helper_method :filter_id
 
-    def chart_id(tab_id, name)
-      "#{css_namespace(tab_id, name)}__chart"
+    def chart_id(tab_id, name, item = nil)
+      id = "#{css_namespace(tab_id, name)}__chart"
+      id = "#{id}__#{item}" if item.present?
+      id
     end
     helper_method :chart_id
+
+    def legend_id(tab_id, name)
+      chart_id(tab_id, name, 'legend')
+    end
+    helper_method :legend_id
 
     def table_id(tab_id, name)
       "#{css_namespace(tab_id, name)}__table"
@@ -121,6 +132,11 @@ module AllNeighborsSystemDashboard::WarehouseReports
       "#{css_namespace(tab_id, name)}__filter_label"
     end
     helper_method :filter_label_id
+
+    def render_path(file_name)
+      @internal ? "all_neighbors_system_dashboard/warehouse_reports/reports/#{file_name}" : file_name
+    end
+    helper_method :render_path
 
     private def flash_interpolation_options
       { resource_name: @report.title }

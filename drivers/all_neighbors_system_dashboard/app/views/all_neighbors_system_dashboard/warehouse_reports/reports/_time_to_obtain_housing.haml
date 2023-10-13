@@ -1,8 +1,12 @@
--# - start_date = (DateTime.current - 3.years).beginning_of_month
--# - end_date = DateTime.current.beginning_of_month
-- start_date = @report.filter.start_date
-- end_date = @report.filter.end_date
-- all_data = AllNeighborsSystemDashboard::TimeToObtainHousing.new(@report)
+-# fake data
+- start_date = (DateTime.current - 3.years).beginning_of_month
+- end_date = DateTime.current.beginning_of_month
+- all_data = AllNeighborsSystemDashboard::FakeTimeToObtainHousing.new(start_date, end_date)
+-# 
+  real data
+  - start_date = @report.filter.start_date
+  - end_date = @report.filter.end_date
+  - all_data = AllNeighborsSystemDashboard::TimeToObtainHousing.new(@report)
 
 - chart_data = all_data.stacked_data
 
@@ -12,13 +16,15 @@
   .row.align-items-center
     .col-xs-12.col-md-8
       .d-flex
-        = render 'select_filter', tab: tab, name: 'project_type', label: 'Project Type', options: all_data.project_types
-        = render 'select_filter', tab: tab, name: 'household_type', label: 'Household Type', options: ['All'] + all_data.household_types
+        .pr-6= render 'select_filter', tab: tab, name: 'project_type', label: 'Project Type', options: all_data.project_types
+        .pr-6= render 'select_filter', tab: tab, name: 'household_type', label: 'Household Type', options: ['All'] + all_data.household_types
         = render 'select_filter', tab: tab, name: 'demographics', label: 'Demographics', options: all_data.demographics
 
     .col-xs-12.col-md-4
       = render 'date_range_filter', tab: tab, name: 'date_range', label: 'Date Range', start_date: start_date.strftime("%b %Y"), end_date: end_date.strftime("%b %Y")
-= render 'filter_labels', tab: tab, labels: ['project_type', 'household_type', 'demographics', 'date_range']
+
+.mb-7= render 'filter_labels', tab: tab, labels: ['project_type', 'household_type', 'demographics', 'date_range']
+
 .row.align-items-stretch.mb-7
   .col-xs-12.col-md-3.mb-4
     .h-100.d-flex.align-items-center

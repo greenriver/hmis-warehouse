@@ -36,7 +36,26 @@ class AllNeighborsSystemDashboardFilters {
           Date.parse(endDp)
         ]
       }
+      if(filter.type === 'quarterRange') {
+        const s = this.filters[filter.name].start.find('option:selected').val()
+        const e = this.filters[filter.name].end.find('option:selected').val()
+        this.state[filter.name] = [s, e]
+        this.state.quarterData = filter.data
+        this.setQuarterDateRange()
+      }
     })
+  }
+
+  setQuarterDateRange() {
+    if(this.state.quarterRange) {
+      const [s, e] = this.state.quarterRange
+      const startQ = this.state.quarterData.find((d) => d.name === s).range[0]
+      const endQ = this.state.quarterData.find((d) => d.name === e).range[1]
+      this.state.dateRange = [startQ, endQ].map((d) => {
+        const [year, month, date] = d.split('-')
+        return Date.parse(new Date(year, month-1, date))
+      })
+    }
   }
 
   initFilters(filters) {
@@ -48,6 +67,47 @@ class AllNeighborsSystemDashboardFilters {
           this.state[filter.name] = $(e.target).val()
           this.redrawCharts()
         })
+      }
+      if(filter.type === 'quarterRange') {
+        this.filters[filter.name] = {
+          range: $(filter.selector),
+          start: this.getDateElement($(filter.selector), 'start-date'),
+          end: this.getDateElement($(filter.selector), 'end-date')
+        }
+        const startQ = filter.data.find((f) => f.name === this.filters[filter.name].start.val())
+        const endQ = filter.data.find((f) => f.name === this.filters[filter.name].end.val())
+        const startDate = this.dateFromString(startQ.range[0])
+        const endDate = this.dateFromString(endQ.range[1])
+        this.filters[filter.name].start.on('change', (e) => {
+          const dataNames = filter.data.map((d) => d.name)
+          const value = $(e.target).find('option:selected').val()
+          const newValueIndex = dataNames.indexOf(value)
+          const newOptions = dataNames.filter((d, i) => i >= newValueIndex).map((d) => {
+            if(this.state[filter.name][1] === d) {
+              return `<option value="${d}" selected="selected">${d}</option>`
+            }
+            return `<option value="${d}">${d}</option>`
+          })
+          this.state[filter.name][0] = value
+          this.filters[filter.name].end.html(newOptions)
+          this.redrawCharts()
+        })
+
+        this.filters[filter.name].end.on('change', (e) => {
+          const dataNames = filter.data.map((d) => d.name)
+          const value = $(e.target).find('option:selected').val()
+          const newValueIndex = dataNames.indexOf(value)
+          const newOptions = dataNames.filter((d, i) => i <= newValueIndex).map((d) => {
+            if(this.state[filter.name][0] === d) {
+              return `<option value="${d}" selected="selected">${d}</option>`
+            }
+            return `<option value="${d}">${d}</option>`
+          })
+          this.state[filter.name][1] = value
+          this.filters[filter.name].start.html(newOptions)
+          this.redrawCharts()
+        })
+
       }
       if(filter.type === 'dateRange') {
         this.filters[filter.name] = {
@@ -84,6 +144,11 @@ class AllNeighborsSystemDashboardFilters {
     })
   }
 
+  dateFromString(string) {
+    const [year, month, date] = string.split('-')
+    return new Date(year, month-1, date)
+  }
+
   getDateElement(selector, dateClass) {
     const node = selector.filter(function() {
       return $(this).hasClass(dateClass)
@@ -96,6 +161,9 @@ class AllNeighborsSystemDashboardFilters {
       if(label.name === 'dateRange') {
         const dateStrings = this.state.dateRange.map((d) => new Date(d).toLocaleDateString('en-us', {year: 'numeric', month: 'short'}))
         $(label.selector).text(`${dateStrings[0]} - ${dateStrings[1]}`)
+      } else if(label.name === 'cohortYears') {
+        const text = this.state['cohort'].replace('after housing', '').replace('of housing', '')
+        $(label.selector).text(text)
       } else {
         $(label.selector).text(this.state[label.name])
       }
@@ -104,6 +172,7 @@ class AllNeighborsSystemDashboardFilters {
 
   redrawCharts() {
     this.updateLabels()
+    this.setQuarterDateRange()
     this.charts.forEach((chart) => {
       chart.redraw(this.state)
     })
