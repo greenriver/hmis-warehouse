@@ -33,7 +33,6 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   has_one :definition, through: :form_processor
   has_one :health_and_dv, through: :form_processor
   has_one :income_benefit, through: :form_processor
-  has_one :enrollment_coc, through: :form_processor
   has_one :physical_disability, through: :form_processor
   has_one :developmental_disability, through: :form_processor
   has_one :chronic_health_condition, through: :form_processor
@@ -113,6 +112,14 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     data_collection_stage == 3
   end
 
+  def annual?
+    data_collection_stage == 5
+  end
+
+  def update?
+    data_collection_stage == 2
+  end
+
   def save_submitted_assessment!(current_user:, as_wip: false)
     Hmis::Hud::CustomAssessment.transaction do
       # Save FormProcessor to save wip values and/or related records
@@ -169,13 +176,13 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
     case assessment_role.to_sym
     when :INTAKE, :EXIT
-      # Ensure we only return 1 assessment per person
-      household_assessments.index_by(&:personal_id).values
+      # Ensure we only return 1 assessment per enrollment
+      household_assessments.index_by(&:enrollment_id).values
     when :ANNUAL
       # If we have a source, find annuals "near" it (within threshold)
       # If we don't have a source, that means this is a new annual. Include any annuals from the past 3 months.
       source_date = source_assessment&.assessment_date || Date.current
-      household_assessments.group_by(&:personal_id).
+      household_assessments.group_by(&:enrollment_id).
         map do |_, assmts|
           nearest_assmt = assmts.min_by { |a| (source_date - a.assessment_date).abs }
           distance_in_days = (source_date - nearest_assmt.assessment_date).to_i.abs

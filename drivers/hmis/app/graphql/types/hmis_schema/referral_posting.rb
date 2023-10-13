@@ -16,6 +16,7 @@ module Types
     field :referred_by, String, null: false
     field :referral_notes, String
     field :chronic, Boolean
+    field :hud_chronic, Boolean
     field :score, Integer
     field :needs_wheelchair_accessible_unit, Boolean
 
@@ -80,11 +81,24 @@ module Types
     end
 
     def household_members
-      referral.household_members
+      load_ar_association(referral, :household_members)
     end
 
     def household_size
-      household_members.size
+      household_members.map(&:client_id).uniq.size
+    end
+
+    def hud_chronic
+      # HUD Chronic status for the client that was referred as HoH
+      referred_hoh_client = hoh_member&.client
+      return unless referred_hoh_client.present?
+
+      # Users can see HUD Chronic status for clients being referred to their program, even if the client isn't enrolled yet.
+      # That's why the "entity" is project and not client.
+      return unless current_permission?(permission: :can_view_hud_chronic_status, entity: project)
+
+      # client.hud_chronic causes n+1 queries, only use when resolving 1 posting
+      !!referred_hoh_client.hud_chronic?(scope: referred_hoh_client.enrollments)
     end
 
     def referred_from

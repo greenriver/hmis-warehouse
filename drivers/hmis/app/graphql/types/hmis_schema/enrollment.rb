@@ -212,7 +212,7 @@ module Types
     end
 
     def household_size
-      load_ar_association(household, :enrollments).size
+      load_ar_association(household, :enrollments).map(&:personal_id).uniq.size
     end
 
     def in_progress

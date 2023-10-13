@@ -308,5 +308,39 @@ module FormHelpers
         content: 'test',
       },
     },
+    HMIS_PARTICIPATION: {
+      values: {
+        "2.08.1": 'HMIS_PARTICIPATING',
+        "2.08.2": '2020-07-19',
+        "2.08.3": nil,
+      },
+      hud_values: {
+        "hmisParticipationType": 'HMIS_PARTICIPATING',
+        "hmisParticipationStatusStartDate": '2020-07-19',
+        "hmisParticipationStatusEndDate": nil,
+      },
+    },
+    CE_PARTICIPATION: {
+      values: {
+        "2.09.1": 'YES',
+        "2.09.A.prevention": 'YES',
+        "2.09.A.crisis": 'YES',
+        "2.09.A.housing": 'YES',
+        "2.09.A.services": 'YES',
+        "2.09.2": 'YES',
+        "2.09.3": '2020-07-01',
+        "2.09.4": nil,
+      },
+      hud_values: {
+        "accessPoint": 'YES',
+        "preventionAssessment": 'YES',
+        "crisisAssessment": 'YES',
+        "housingAssessment": 'YES',
+        "directServices": 'YES',
+        "receivesReferrals": 'YES',
+        "ceParticipationStatusStartDate": '2020-07-01',
+        "ceParticipationStatusEndDate": nil,
+      },
+    },
   }.freeze
 end

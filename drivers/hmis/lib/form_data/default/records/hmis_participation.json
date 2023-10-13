@@ -1,0 +1,67 @@
+{
+  "item": [
+    {
+      "type": "CHOICE",
+      "component": "DROPDOWN",
+      "required": true,
+      "link_id": "2.08.1",
+      "text": "HMIS Participation Type",
+      "pick_list_reference": "HMISParticipationType",
+      "mapping": {
+        "field_name": "hmisParticipationType"
+      }
+    },
+    {
+      "type": "DATE",
+      "required": true,
+      "link_id": "2.08.2",
+      "text": "Start Date",
+      "mapping": {
+        "field_name": "hmisParticipationStatusStartDate"
+      },
+      "bounds": [
+        {
+          "id": "min-start-date",
+          "type": "MIN",
+          "value_local_constant": "$projectStartDate"
+        },
+        {
+          "id": "max-start-date-project-end",
+          "type": "MAX",
+          "value_local_constant": "$projectEndDate"
+        },
+        {
+          "id": "max-start-date-range",
+          "type": "MAX",
+          "question": "2.08.3"
+        }
+      ]
+    },
+    {
+      "type": "DATE",
+      "required": false,
+      "link_id": "2.08.3",
+      "text": "End Date",
+      "mapping": {
+        "field_name": "hmisParticipationStatusEndDate"
+      },
+      "bounds": [
+        {
+          "id": "min-end-date",
+          "type": "MIN",
+          "value_local_constant": "$projectStartDate"
+        },
+        {
+          "id": "max-end-date-project-end",
+          "type": "MAX",
+          "value_local_constant": "$projectEndDate"
+        },
+        {
+          "id": "max-end-date-range",
+          "type": "MIN",
+          "question": "2.08.2"
+        }
+      ]
+    }
+  ]
+}

@@ -9,8 +9,8 @@
   = link_to new_hmis_admin_access_control_path, class: 'btn btn-primary mb-2' do
     %span.icon-plus
     Create a new Access Control
+= render 'filter'
 - if @pagy.count.positive?
-  = render 'filter'
   = render 'common/pagination_top', item_name: 'access control list'
   .table-responsive
     %table.table.table-striped
