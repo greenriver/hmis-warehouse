@@ -24,7 +24,9 @@ module Types
           end
 
           define_method(:resolve_hmis_participations) do |record|
-            record.hmis_participations.viewable_by(current_user)
+            record.hmis_participations.
+              viewable_by(current_user).
+              order(hmis_participation_status_start_date: :desc)
           end
         end
       end

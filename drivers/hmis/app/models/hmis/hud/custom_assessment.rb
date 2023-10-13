@@ -33,7 +33,6 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   has_one :definition, through: :form_processor
   has_one :health_and_dv, through: :form_processor
   has_one :income_benefit, through: :form_processor
-  has_one :enrollment_coc, through: :form_processor
   has_one :physical_disability, through: :form_processor
   has_one :developmental_disability, through: :form_processor
   has_one :chronic_health_condition, through: :form_processor

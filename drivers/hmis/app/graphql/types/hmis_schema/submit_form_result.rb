@@ -24,6 +24,8 @@ module Types
       Types::HmisSchema::CeAssessment,
       Types::HmisSchema::CustomCaseNote,
       Types::HmisSchema::Event,
+      Types::HmisSchema::HmisParticipation,
+      Types::HmisSchema::CeParticipation,
     )
 
     def self.resolve_type(object, _context)
@@ -56,6 +58,10 @@ module Types
         Types::HmisSchema::CustomCaseNote
       when Hmis::Hud::Event
         Types::HmisSchema::Event
+      when Hmis::Hud::HmisParticipation
+        Types::HmisSchema::HmisParticipation
+      when Hmis::Hud::CeParticipation
+        Types::HmisSchema::CeParticipation
       else
         raise "Invalid type: #{object.class.name}"
       end
