@@ -184,7 +184,7 @@ class AllNeighborsSystemDashboardStack {
   drawTotals(chart) {
     const sums = chart.categories().map((cat, i) => {
       return d3.sum(chart.data().map((d) => {
-        return d.values[i].value
+        return d3.format('.0f')(d.values[i].value)
       }))
     })
     const selector = chart.internal.config.bindto
@@ -282,11 +282,44 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
     }
   }
 
+  getColumn(name) {
+    let col = [name]
+    if(name === 'x') {
+      return col.concat(this.series.map((d) => d.name))
+    } else {
+      const index = this.config.keys.indexOf(name)
+      this.series.forEach((d) => {
+        const total = d.series.filter((n) => {
+          if(this.state.dateRange) {
+            return this.inDateRange(n.date, this.state.dateRange)
+          }
+          if(this.state.year) {
+            const [year, month, day] = n.date.split('-')
+            const date = new Date(year, month, day)
+            const stateYear = this.state.year
+            return date.getFullYear().toString() === stateYear
+          }
+          return true
+        })
+        .map((s) => s.values[index])
+        
+        col.push(d3.mean(total))
+      })
+      return col
+    }
+  }
+
   getDataConfig() {
     const superDataConfig = super.getDataConfig()
     const data = {
       stack: {
         normalize: false
+      },
+      labels: {
+        show: true,
+        centered: true,
+        colors: this.config.label_colors,
+        format: (v, id, i, texts) => d3.format('.0f')(v),
       }
     }
     return {...superDataConfig, ...data}
@@ -360,7 +393,6 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
         bottom: 0,
       },
       onrendered: function() {
-        console.log('demographic', demographic)
         superNormalizeDataLabels(this)
         const selector = this.internal.config.bindto
         let container = d3.select(`${selector} .bb-main`)
