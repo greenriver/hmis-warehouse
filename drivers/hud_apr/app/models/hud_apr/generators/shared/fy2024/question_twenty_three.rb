@@ -12,58 +12,83 @@ module HudApr::Generators::Shared::Fy2024
       {
         'Question 23' => '',
         'Q23c' => 'Exit Destination',
+        'Q23d' => 'Exit Destination – Subsidy Type of Persons Exiting to Rental by Client With An Ongoing Subsidy',
       }.freeze
     end
 
-    private def q23c_destination
+    def q23c_destination
       table_name = 'Q23c'
+      first_row = 2
+      sheet = question_sheet(question: table_name)
       metadata = {
         header_row: [' '] + q23c_populations.keys,
-        row_labels: q23c_destinations_headers,
+        row_labels: q23c_destinations.map(&:first),
         first_column: 'B',
         last_column: 'F',
-        first_row: 2,
-        last_row: 46,
+        first_row: first_row,
+        last_row: 43,
       }
-      @report.answer(question: table_name).update(metadata: metadata)
-
+      sheet.update_metadata(metadata)
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
-      rows = (metadata[:first_row]..metadata[:last_row]).to_a
-
       leavers = universe.members.where(leavers_clause)
 
       q23c_populations.values.each_with_index do |population_clause, col_index|
-        q23c_destinations.values.each_with_index do |destination_clause, row_index|
-          cell = "#{cols[col_index]}#{rows[row_index]}"
-          next if intentionally_blank.include?(cell)
+        q23c_destinations.map(&:last).each.with_index(first_row) do |destination_clause, row_index|
+          next unless destination_clause
 
-          answer = @report.answer(question: table_name, cell: cell)
+          col_letter = cols[col_index]
 
           members = leavers.where(population_clause)
           if destination_clause.is_a?(Symbol)
             case destination_clause
             when :percentage
               value = percentage(0.0)
-              positive = members.where(q23c_destinations['Total persons exiting to positive housing destinations']).count
-              total = members.where(q23c_destinations['Total']).count
-              excluded = members.where(q23c_destinations['Total persons whose destinations excluded them from the calculation']).count
+              total = sheet.cell_value([col_letter, 40])
+              positive = sheet.cell_value([col_letter, 41])
+              excluded = sheet.cell_value([col_letter, 42])
               value = percentage(positive.to_f / (total - excluded)) if total.positive? && excluded != total
+              sheet.update_cell_value( cell: [col_letter, row_index], value: value) if value
             end
           else
-            members = members.where(destination_clause)
-            value = members.count
+            sheet.update_cell_members(
+              cell: [col_letter, row_index],
+              members: members.where(destination_clause)
+            )
           end
-          answer.add_members(members)
-          answer.update(summary: value)
         end
       end
     end
 
-    private def q23c_destinations_headers
-      q23c_destinations.keys.map do |label|
-        next 'Subtotal' if label.include?('Subtotal')
+    def q23d_subsidy_type
+      sheet = question_sheet(question: 'Q23d')
 
-        label
+      # Leavers in the report date range with an exit destination of 435 (“Rental by client, with housing subsidy”).
+      leavers = universe.members.where(leavers_clause).where(a_t[:destination].eq(435))
+
+      first_row = 2
+      metadata = {
+        header_row: [' '] + sub_populations.keys,
+        row_labels: HudUtility2024.rental_subsidy_types.values + ['Total'],
+        first_column: 'B',
+        last_column: 'F',
+        first_row: first_row,
+        last_row: 13,
+      }
+      sheet.update_metadata(metadata)
+
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      sub_populations.values.each.with_index do |population_clause, col_index|
+        scope = leavers.where(population_clause)
+        HudUtility2024.rental_subsidy_types.keys.each.with_index(2) do |code, row_index|
+          sheet.update_cell_members(
+            cell: [cols[col_index], row_index],
+            members: scope.where(a_t[:exit_destination_subsidy_type].eq(code))
+          )
+        end
+        sheet.update_cell_members(
+          cell: [cols[col_index], 13],
+          members: scope
+        )
       end
     end
 
@@ -73,31 +98,6 @@ module HudApr::Generators::Shared::Fy2024
 
     private def q23c_destinations
       destination_clauses
-    end
-
-    private def intentionally_blank
-      [
-        'B2',
-        'C2',
-        'D2',
-        'E2',
-        'F2',
-        'B17',
-        'C17',
-        'D17',
-        'E17',
-        'F17',
-        'B28',
-        'C28',
-        'D28',
-        'E28',
-        'F28',
-        'B36',
-        'C36',
-        'D36',
-        'E36',
-        'F36',
-      ].freeze
     end
   end
 end

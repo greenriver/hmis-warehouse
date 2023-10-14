@@ -234,6 +234,7 @@ module HudApr::Generators::Shared::Fy2024
             enrollment_created: enrollment.DateCreated || enrollment.DateUpdated || DateTime.current,
             ethnicity: source_client.Ethnicity,
             exit_created: exit_record&.exit&.DateCreated,
+            exit_destination_subsidy_type: exit_record&.exit&.DestinationSubsidyType,
             first_date_in_program: last_service_history_enrollment.first_date_in_program,
             first_name: source_client.FirstName,
             gender_multi: source_client.gender_multi.sort.join(','),
