@@ -17,59 +17,71 @@ module HudReports::Destinations
   extend ActiveSupport::Concern
 
   included do
+    # NOTE: these are similar to living_situations but have slighting different coding and labels
     private def destination_clauses
-      {
-        'Permanent Destinations' => nil,
-        'Moved from one HOPWA funded project to HOPWA PH' => a_t[:destination].eq(26),
-        'Owned by client, no ongoing housing subsidy' => a_t[:destination].eq(11),
-        'Owned by client, with ongoing housing subsidy' => a_t[:destination].eq(21),
-        'Rental by client, no ongoing housing subsidy' => a_t[:destination].eq(10),
-        'Rental by client, with VASH housing subsidy' => a_t[:destination].eq(19),
-        'Rental by client, with GPD TIP housing subsidy' => a_t[:destination].eq(28),
-        'Rental by client, with other ongoing housing subsidy' => a_t[:destination].eq(20),
-        'Permanent housing (other than RRH) for formerly homeless persons' => a_t[:destination].eq(3),
-        'Staying or living with family, permanent tenure' => a_t[:destination].eq(22),
-        'Staying or living with friends, permanent tenure' => a_t[:destination].eq(23),
-        'Rental by client, with RRH or equivalent subsidy' => a_t[:destination].eq(31),
-        'Rental by client, with HCV voucher (tenant or project based)' => a_t[:destination].eq(33),
-        'Rental by client in a public housing unit' => a_t[:destination].eq(34),
-        'Subtotal - Permanent' => a_t[:destination].in([26, 11, 21, 10, 19, 28, 20, 3, 22, 23, 31, 33, 34]),
-        'Temporary Destinations' => nil,
-        'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or RHY-funded Host Home shelter' => a_t[:destination].eq(1),
-        'Moved from one HOPWA funded project to HOPWA TH' => a_t[:destination].eq(27),
-        'Transitional housing for homeless persons (including homeless youth)' => a_t[:destination].eq(2),
-        'Staying or living with family, temporary tenure (e.g. room, apartment or house)' => a_t[:destination].eq(12),
-        'Staying or living with friends, temporary tenure (e.g. room, apartment or house)' => a_t[:destination].eq(13),
-        'Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)' => a_t[:destination].eq(16),
-        'Safe Haven' => a_t[:destination].eq(18),
-        'Hotel or motel paid for without emergency shelter voucher' => a_t[:destination].eq(14),
-        'Host Home (non-crisis)' => a_t[:destination].eq(32),
-        'Subtotal - Temporary' => a_t[:destination].in([1, 27, 2, 12, 13, 16, 18, 14, 32]),
-        'Institutional Settings' => nil,
-        'Foster care home or group foster care home' => a_t[:destination].eq(15),
-        'Psychiatric hospital or other psychiatric facility' => a_t[:destination].eq(4),
-        'Substance abuse treatment facility or detox center' => a_t[:destination].eq(5),
-        'Hospital or other residential non-psychiatric medical facility' => a_t[:destination].eq(6),
-        'Jail, prison, or juvenile detention facility' => a_t[:destination].eq(7),
-        'Long-term care facility or nursing home' => a_t[:destination].eq(25),
-        'Subtotal - Institutional' => a_t[:destination].in([15, 4, 5, 6, 7, 25]),
-        'Other Destinations' => nil,
-        'Residential project or halfway house with no homeless criteria' => a_t[:destination].eq(29),
-        'Deceased' => a_t[:destination].eq(24),
-        'Other' => a_t[:destination].eq(17),
-        "Client Doesn't Know/Client Refused" => a_t[:destination].in([8, 9]),
-        'Data Not Collected (no exit interview completed)' => a_t[:destination].in([30, 99]),
-        'Subtotal - Other' => a_t[:destination].in([29, 24, 17, 8, 9, 30, 99]),
-        'Total' => leavers_clause,
-        'Total persons exiting to positive housing destinations' => a_t[:project_type].in([1, 2]).
-          and(a_t[:destination].in(positive_destinations(1))).
-          or(a_t[:project_type].eq(4).and(a_t[:destination].in(positive_destinations(4)))).
-          or(a_t[:project_type].not_in([1, 2, 4]).and(a_t[:destination].in(positive_destinations(8)))),
-        'Total persons whose destinations excluded them from the calculation' => a_t[:project_type].not_eq(4).
-          and(a_t[:destination].in(excluded_destinations(1))).
-          or(a_t[:project_type].eq(4).and(a_t[:destination].in(excluded_destinations(4)))),
-        'Percentage' => :percentage,
-      }.freeze
+      field = a_t[:destination]
+      [
+        ['Homeless Situations', nil],
+        ['Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)', field.eq(116)],
+        ['Emergency shelter, including hotel or motel paid for with emergency shelter voucher, Host Home shelter', field.eq(101)],
+        ['Safe Haven', field.eq(118)],
+        ['Subtotal', field.in([101, 116, 118])],
+
+        ['Institutional Situations', nil],
+        ['Foster care home or foster care group home', field.eq(215)],
+        ['Hospital or other residential non-psychiatric medical facility', field.eq(206)],
+        ['Jail, prison or juvenile detention facility', field.eq(207)],
+        ['Long-term care facility or nursing home', field.eq(225)],
+        ['Psychiatric hospital or other psychiatric facility', field.eq(204)],
+        ['Substance abuse treatment facility or detox center', field.eq(205)],
+        ['Subtotal', field.in([215, 206, 207, 225, 204, 205])],
+
+        ['Temporary Situations', nil],
+        ['Transitional housing for homeless persons (including homeless youth)', field.eq(302)],
+        ['Residential project or halfway house with no homeless criteria', field.eq(329)],
+        ['Hotel or motel paid for without emergency shelter voucher', field.eq(314)],
+        ['Host Home (non-crisis)', field.eq(332)],
+        ['Staying or living with family, temporary tenure (e.g., room, apartment, or house)', field.eq(312)],
+        ['Staying or living with friends, temporary tenure (e.g., room, apartment, or house)', field.eq(313)],
+        ['Moved from one HOPWA funded project to HOPWA TH ', field.eq(327)],
+        ['Subtotal', field.in([302, 329, 314, 332, 312, 313, 327])],
+
+        ['Permanent Situations', nil],
+        ['Staying or living with family, permanent tenure', field.eq(422)],
+        ['Staying or living with friends, permanent tenure', field.eq(423)],
+        ['Moved from one HOPWA funded project to HOPWA PH', field.eq(426)],
+        ['Rental by client, no ongoing housing subsidy', field.eq(410)],
+        ['Rental by client, with ongoing housing subsidy', field.eq(435)],
+        ['Owned by client, with ongoing housing subsidy', field.eq(421)],
+        ['Owned by client, no ongoing housing subsidy', field.eq(411)],
+        ['Subtotal', field.in([422, 423, 426, 410, 435, 421, 411])],
+
+        ['Other Situations', nil],
+        ['No Exit Interview completed', field.eq(30)],
+        ['Other', field.eq(17)],
+        ['Deceased', field.eq(24)],
+        [label_for(:dkptr), field.in([8, 9])],
+        [label_for(:data_not_collected), field.eq(99).or(field.eq(nil))],
+        ['Subtotal', field.in([8, 9, 17, 30, 99]).or(field.eq(nil))],
+        ['TOTAL', leavers_clause],
+        [
+          'Total persons exiting to positive housing destinations',
+          a_t[:project_type].in([1, 2]).
+            and(a_t[:destination].in(positive_destinations(1))).
+            or(a_t[:project_type].eq(4).and(a_t[:destination].in(positive_destinations(4)))).
+            or(a_t[:project_type].not_in([1, 2, 4]).and(a_t[:destination].in(positive_destinations(8)))),
+        ],
+        [
+          'Total persons whose destinations excluded them from the calculation',
+          a_t[:project_type].not_eq(4).
+            and(a_t[:destination].in(excluded_destinations(1))).
+            or(a_t[:project_type].eq(4).and(a_t[:destination].in(excluded_destinations(4)))),
+        ],
+        [
+          'Percentage of persons exiting to positive housing destinations',
+          :percentage,
+        ],
+      ]
     end
 
     private def positive_destinations(project_type)

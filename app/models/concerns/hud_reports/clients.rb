@@ -71,7 +71,6 @@ module HudReports::Clients
       assessment_date.between?(anniversary_date - 30.days, [anniversary_date + 30.days, @report.end_date].min)
     end
 
-    # override HudReports::Clients concern
     def living_situations
       [
         ['Homeless Situations', nil],
