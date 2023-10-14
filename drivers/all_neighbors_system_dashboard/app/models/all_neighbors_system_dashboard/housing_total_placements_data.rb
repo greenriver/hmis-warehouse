@@ -124,7 +124,7 @@ module AllNeighborsSystemDashboard
             scope = filter_for_count_level(scope, options[:count_level])
             scope = filter_for_date(scope, date)
             count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
-            count = options[:filtered] && project_type != 'All' && type != project_type ? 0 : count
+            count = options[:hide_others_when_not_all] && project_type != 'All' && type != project_type ? 0 : count
             {
               date: date.strftime('%Y-%-m-%-d'),
               values: [count],
@@ -141,7 +141,7 @@ module AllNeighborsSystemDashboard
           'project_type',
           :donut,
           options: {
-            filtered: true,
+            hide_others_when_not_all: true,
             types: project_types.reject { |type| type == 'All' },
             colors: project_type_colors,
           },

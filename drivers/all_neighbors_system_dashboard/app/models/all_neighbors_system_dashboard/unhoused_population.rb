@@ -76,7 +76,7 @@ module AllNeighborsSystemDashboard
           'homelessness_status',
           :donut,
           options: {
-            filtered: true,
+            hide_others_when_not_all: true,
             data_set: :homelessness_status,
             types: homelessness_statuses.reject { |type| type == 'All' },
             colors: homelessness_status_colors,
@@ -138,11 +138,13 @@ module AllNeighborsSystemDashboard
             scope = report_enrollments_enrollment_scope.
               distinct.
               select(:destination_client_id)
+            scope = filter_for_type(scope, project_type)
             scope = filter_for_type(scope, type)
+            # NOTE: there is no filter for households right now, but it could be added here
             scope = filter_for_count_level(scope, 'Individuals')
             scope = filter_for_date(scope, date)
             count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
-            count = options[:filtered] && project_type != 'All' && type != project_type ? 0 : count
+            count = options[:hide_others_when_not_all] && project_type != 'All' && type != project_type ? 0 : count
             {
               date: date.strftime('%Y-%-m-%-d'),
               values: Array.wrap(count),
@@ -196,9 +198,9 @@ module AllNeighborsSystemDashboard
     end
 
     def race_stack(options)
-      project_type = options[:project_type]
       homelessness_status = options[:homelessness_status]
-      bars = project_type.present? ? [project_type] + options[:bars] : options[:bars]
+      bars = options[:bars]
+      bars[0] = homelessness_status unless homelessness_status == 'All'
       bars.map do |bar|
         relevant_dates = date_range
 

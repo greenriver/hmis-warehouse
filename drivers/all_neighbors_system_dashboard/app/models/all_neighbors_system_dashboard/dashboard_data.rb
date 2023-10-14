@@ -235,11 +235,11 @@ module AllNeighborsSystemDashboard
       when 'Over 63'
         scope.where(age: 63..)
       when 'Unknown Age'
-        scope.where(age: nil)
-      when *HudUtility2024.genders.values
+        scope.where(age: nil).or(scope.where(age: ..0))
+      when *HudUtility2024.gender_known_values
         scope.where(gender: type)
       when 'Unknown Gender'
-        scope.where(gender: nil)
+        scope.where.not(gender: HudUtility2024.gender_known_values)
       when *HudUtility2024.races.values
         scope.where(primary_race: type)
       else
