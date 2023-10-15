@@ -6,7 +6,7 @@
 
 module HudApr::Generators::Apr::Fy2024
   class QuestionTwentyFive < HudApr::Generators::Shared::Fy2024::QuestionTwentyFive
-    QUESTION_TABLE_NUMBERS = ['Q25a', 'Q25b', 'Q25c', 'Q25d', 'Q25e', 'Q25f', 'Q25g', 'Q25h', 'Q25i'].freeze
+    QUESTION_TABLE_NUMBERS = ['Q25a', 'Q25b', 'Q25c', 'Q25d', 'Q25i', 'Q25j'].freeze
 
     def run_question!
       @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
@@ -15,11 +15,8 @@ module HudApr::Generators::Apr::Fy2024
       q25b_number_of_households
       q25c_veteran_gender
       q25d_veteran_age
-      q25e_health_conditions
-      q25f_income
-      q25g_income_sources
-      q25h_non_cash_benefits
       q25i_destination
+      q25j_exit_destination_subsidy
 
       @report.complete(QUESTION_NUMBER)
     end

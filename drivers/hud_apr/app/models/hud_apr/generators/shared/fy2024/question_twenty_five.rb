@@ -15,11 +15,8 @@ module HudApr::Generators::Shared::Fy2024
         'Q25b' => 'Number of Veteran Households',
         'Q25c' => 'Gender - Veterans',
         'Q25d' => 'Age - Veterans',
-        'Q25e' => 'Physical and Mental Health Conditions - Veterans',
-        'Q25f' => 'Cash Income Category - Income Category - by Start and Annual /Exit Status - Veterans',
-        'Q25g' => 'Type of Cash Income Sources - Veterans',
-        'Q25h' => 'Type of Non-Cash Benefit Sources - Veterans',
         'Q25i' => 'Exit Destination - Veterans',
+        'Q25j' => 'Exit Destination – Subsidy Type of Persons Exiting to Rental by Client With An Ongoing Subsidy - Veteran',
       }.freeze
     end
 
@@ -127,33 +124,20 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q25c_veteran_gender
-      table_name = 'Q25c'
-      metadata = {
-        header_row: [' '] + q25_populations.keys,
-        row_labels: q25c_responses.keys,
-        first_column: 'B',
-        last_column: 'E',
-        first_row: 2,
-        last_row: 9,
-      }
-      @report.answer(question: table_name).update(metadata: metadata)
+      veterans = universe.members.where(veteran_clause)
 
-      cols = (metadata[:first_column]..metadata[:last_column]).to_a
-      rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      q25_populations.values.each_with_index do |population_clause, col_index|
-        q25c_responses.values.each_with_index do |response_clause, row_index|
-          cell = "#{cols[col_index]}#{rows[row_index]}"
-          next if intentionally_blank.include?(cell)
+      question_sheet(question: 'Q25c') do  |sheet|
+        q25_populations.keys.each do |label|
+          sheet.add_header(label: label)
+        end
 
-          answer = @report.answer(question: table_name, cell: cell)
-
-          members = universe.members.where(veteran_clause).
-            where(population_clause).
-            where(response_clause)
-          value = members.count
-
-          answer.add_members(members)
-          answer.update(summary: value)
+        gender_identities.each_pair do |label, gender_cond|
+          gender_scope = veterans.where(gender_cond[1])
+          sheet.with_row(label: label) do |row|
+            q25_populations.values.each do |pop_cond|
+              row.add_members(members: gender_scope.where(pop_cond))
+            end
+          end
         end
       end
     end
@@ -182,192 +166,6 @@ module HudApr::Generators::Shared::Fy2024
           members = universe.members.where(veteran_clause).
             where(population_clause).
             where(response_clause)
-          value = members.count
-
-          answer.add_members(members)
-          answer.update(summary: value)
-        end
-      end
-    end
-
-    private def q25e_health_conditions
-      table_name = 'Q25e'
-      metadata = {
-        header_row: [' '] + q25e_populations.keys,
-        row_labels: disability_clauses(:entry).keys,
-        first_column: 'B',
-        last_column: 'D',
-        first_row: 2,
-        last_row: 9,
-      }
-      @report.answer(question: table_name).update(metadata: metadata)
-
-      cols = (metadata[:first_column]..metadata[:last_column]).to_a
-      rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      q25e_populations.values.each_with_index do |suffix, col_index|
-        disability_clauses(suffix).values.each_with_index do |response_clause, row_index|
-          cell = "#{cols[col_index]}#{rows[row_index]}"
-          next if intentionally_blank.include?(cell)
-
-          answer = @report.answer(question: table_name, cell: cell)
-
-          members = universe.members.where(veteran_clause).
-            where(response_clause)
-          case suffix
-          when :exit
-            members = members.where(leavers_clause)
-          when :latest
-            members = members.where(stayers_clause)
-          end
-
-          value = members.count
-
-          answer.add_members(members)
-          answer.update(summary: value)
-        end
-      end
-    end
-
-    private def q25f_income
-      table_name = 'Q25f'
-      metadata = {
-        header_row: [' '] + q25f_populations.keys,
-        row_labels: veteran_income_types(:entry).keys,
-        first_column: 'B',
-        last_column: 'D',
-        first_row: 2,
-        last_row: 10,
-      }
-      @report.answer(question: table_name).update(metadata: metadata)
-
-      cols = (metadata[:first_column]..metadata[:last_column]).to_a
-      rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      q25f_populations.values.each_with_index do |suffix, col_index|
-        veteran_income_types(suffix).values.each_with_index do |income_case, row_index|
-          cell = "#{cols[col_index]}#{rows[row_index]}"
-          next if intentionally_blank_25f.include?(cell)
-
-          answer = @report.answer(question: table_name, cell: cell)
-          adults = universe.members.where(veteran_clause)
-
-          case suffix
-          when :annual_assessment
-            adults = adults.where(stayers_clause)
-            # C8-10 will either add their own requirements or should include everyone
-            adults = adults.where(a_t[:annual_assessment_expected].eq(true)) unless cell.in?(q25f_annual_assessment_clause_not_required)
-          when :exit
-            adults = adults.where(leavers_clause)
-          end
-
-          ids = Set.new
-          if income_case.is_a?(Symbol)
-            adults.preload(:universe_membership).find_each do |member|
-              apr_client = member.universe_membership
-              case income_case
-              when :earned
-                ids << member.id if earned_income?(apr_client, suffix) && ! other_income?(apr_client, suffix)
-              when :other
-                ids << member.id if other_income?(apr_client, suffix) && ! earned_income?(apr_client, suffix)
-              when :both
-                ids << member.id if both_income_types?(apr_client, suffix)
-              when :none
-                ids << member.id if no_income?(apr_client, suffix)
-              end
-            end
-            members = adults.where(id: ids)
-          else
-            members = adults.where(income_case)
-          end
-
-          answer.add_members(members)
-          answer.update(summary: members.count)
-        end
-      end
-    end
-
-    private def q25g_income_sources
-      table_name = 'Q25g'
-      metadata = {
-        header_row: [' '] + q25g_populations.keys,
-        row_labels: veteran_income_sources(:entry).keys,
-        first_column: 'B',
-        last_column: 'D',
-        first_row: 2,
-        last_row: 17,
-      }
-      @report.answer(question: table_name).update(metadata: metadata)
-
-      cols = (metadata[:first_column]..metadata[:last_column]).to_a
-      rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      q25g_populations.values.each_with_index do |suffix, col_index|
-        veteran_income_sources(suffix).values.each_with_index do |income_clause, row_index|
-          cell = "#{cols[col_index]}#{rows[row_index]}"
-          next if intentionally_blank_25g.include?(cell)
-
-          answer = @report.answer(question: table_name, cell: cell)
-          members = universe.members.where(veteran_clause)
-
-          answer.update(summary: 0) and next if members.count.zero?
-
-          if income_clause.is_a?(Hash)
-            members = members.where.contains(income_clause)
-          else
-            # The final question doesn't require accessing the jsonb column
-            members = members.where(income_clause)
-          end
-          members = members.where(stayers_clause) if suffix == :annual_assessment
-          members = members.where(leavers_clause) if suffix == :exit
-
-          value = members.count
-
-          answer.add_members(members)
-          answer.update(summary: value)
-        end
-      end
-    end
-
-    private def q25h_non_cash_benefits
-      table_name = 'Q25h'
-      metadata = {
-        header_row: [' '] + q25h_populations.keys,
-        row_labels: non_cash_benefit_types(:entry).keys,
-        first_column: 'B',
-        last_column: 'D',
-        first_row: 2,
-        last_row: 7,
-      }
-      @report.answer(question: table_name).update(metadata: metadata)
-
-      cols = (metadata[:first_column]..metadata[:last_column]).to_a
-      rows = (metadata[:first_row]..metadata[:last_row]).to_a
-
-      q25h_populations.values.each_with_index do |suffix, col_index|
-        non_cash_benefit_types(suffix).values.each_with_index do |income_clause, row_index|
-          cell = "#{cols[col_index]}#{rows[row_index]}"
-          next if intentionally_blank.include?(cell)
-
-          answer = @report.answer(question: table_name, cell: cell)
-
-          members = universe.members.where(veteran_clause)
-          case suffix
-          when :annual_assessment
-            members = members.where(stayers_clause).
-              where(a_t[:annual_assessment_expected].eq(true))
-          when :exit
-            # non-HoH clients are limited to those who exited on or after the HoH
-            # For leavers, report only heads of households who left plus other adult household members who left at the same time as the head of household. Do not include household members who left prior to the head of household even though that person is otherwise considered a “leaver” in other report questions.
-            additional_leaver_ids = Set.new
-            members.where(leavers_clause).where(a_t[:head_of_household].eq(false)).
-              pluck(a_t[:id], a_t[:head_of_household_id], a_t[:last_date_in_program]).each do |id, hoh_id, exit_date|
-                hoh_exit_date = hoh_exit_dates[hoh_id]
-                additional_leaver_ids << id if exit_date.blank? || hoh_exit_date.blank? || exit_date >= hoh_exit_date
-              end
-            members = members.where(leavers_clause).where(hoh_clause.or(a_t[:id].in(additional_leaver_ids)))
-          end
-
-          answer.update(summary: 0) and next if members.count.zero?
-
-          members = members.where.contains(income_clause)
           value = members.count
 
           answer.add_members(members)
@@ -418,16 +216,12 @@ module HudApr::Generators::Shared::Fy2024
       end
     end
 
-    private def veteran_age_ranges
-      apr_age_ranges.except('Under 5', '5-12', '13-17')
+    def q25j_exit_destination_subsidy
+      raise 'tbd'
     end
 
-    private def q25e_populations
-      {
-        'Conditions At Start' => :entry,
-        'Conditions at Latest Assessment for Stayers' => :latest,
-        'Conditions at Exit for Leavers' => :exit,
-      }
+    private def veteran_age_ranges
+      apr_age_ranges.except('Under 5', '5-12', '13-17')
     end
 
     private def q25_populations
@@ -457,16 +251,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q25c_responses
-      {
-        'Male' => a_t[:gender_multi].eq('1'),
-        'Female' => a_t[:gender_multi].eq('0'),
-        'No Single Gender' => a_t[:gender_multi].in(::HudUtility.no_single_gender_queries),
-        'Questioning' => a_t[:gender_multi].in(::HudUtility.questioning_gender_queries),
-        'Transgender' => a_t[:gender_multi].in(::HudUtility.transgender_gender_queries),
-        'Client Doesn\'t Know/Client Refused' => a_t[:gender_multi].in(['8', '9']),
-        'Data Not Collected' => a_t[:gender_multi].eq('99'),
-        'Total' => Arel.sql('1=1'),
-      }.freeze
+      gender_identities
     end
 
     private def veteran_income_types(suffix)
@@ -481,38 +266,6 @@ module HudApr::Generators::Shared::Fy2024
       end
     end
 
-    private def q25f_populations
-      {
-        'Number of Veterans at Start' => :start,
-        'Number of Veterans at Annual Assessment (Stayers)' => :annual_assessment,
-        'Number of Veterans at Exit (Leavers)' => :exit,
-      }
-    end
-
-    private def q25f_annual_assessment_clause_not_required
-      [
-        'C8',
-        'C9',
-        'C10',
-      ]
-    end
-
-    private def q25g_populations
-      {
-        'Income at Start' => :start,
-        'Income at Latest Annual Assessment for Stayers' => :annual_assessment,
-        'Income at Exit for Leavers' => :exit,
-      }
-    end
-
-    private def q25h_populations
-      {
-        'Benefit at Start' => :start,
-        'Benefit at Latest Annual Assessment for Stayers' => :annual_assessment,
-        'Benefit at Exit for Leavers' => :exit,
-      }
-    end
-
     private def q25i_destinations
       destination_clauses
     end
@@ -523,29 +276,12 @@ module HudApr::Generators::Shared::Fy2024
 
     private def q25i_destinations_headers
       q25i_destinations.keys.map do |label|
-        next 'Subtotal' if label.include?('Subtotal')
-
         label
       end
     end
 
     private def intentionally_blank
       [].freeze
-    end
-
-    private def intentionally_blank_25f
-      [
-        'B8',
-        'B9',
-        'D8',
-        'D9',
-      ].freeze
-    end
-
-    private def intentionally_blank_25g
-      [
-        'B17',
-      ].freeze
     end
 
     private def intentionally_blank_25i

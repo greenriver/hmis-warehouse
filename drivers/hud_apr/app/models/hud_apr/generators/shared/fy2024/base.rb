@@ -859,5 +859,50 @@ module HudApr::Generators::Shared::Fy2024
         },
       ]
     end
+
+    private def gender_identities
+      gender_col = a_t[:gender_multi]
+      {
+        'Woman' => [2, gender_col.eq('0')],
+        'Man' => [3, gender_col.eq('1')],
+        'Culturally Specific Identity' => [4, gender_col.eq('2')],
+        'Transgender' => [5, gender_col.eq('5')],
+        'Non-Binary' => [6, gender_col.eq('4')],
+        'Questioning' => [7, gender_col.eq('6')],
+        'Different Identity' => [8, gender_col.eq('3')],
+
+        'Woman/Man' => [9, gender_col.eq('0,1')],
+        'Woman/Culturally Specific Identity' => [10, gender_col.eq('0,2')],
+        'Woman/Transgender' => [11, gender_col.eq('0,5')],
+        'Woman/Non-Binary' => [12, gender_col.eq('0,4')],
+        'Woman/Questioning' => [13, gender_col.eq('0,6')],
+        'Woman/Different Identity' => [14, gender_col.eq('0,3')],
+
+        'Man/Culturally Specific Identity' => [15, gender_col.eq('1,2')],
+        'Man/Transgender' => [16, gender_col.eq('1,5')],
+        'Man/Non-Binary' => [17, gender_col.eq('1,4')],
+        'Man/Questioning' => [18, gender_col.eq('1,6')],
+        'Man/Different Identity' => [19, gender_col.eq('1,3')],
+
+        'Culturally Specific Identity/Transgender' => [20, gender_col.eq('2,5')],
+        'Culturally Specific Identity/Non-Binary' => [21, gender_col.eq('2,4')],
+        'Culturally Specific Identity/Questioning' => [22, gender_col.eq('2,6')],
+        'Culturally Specific Identity/Different Identity' => [23, gender_col.eq('2,3')],
+
+        'Transgender/Non-Binary' => [24, gender_col.eq('5,4')],
+        'Transgender/Questioning' => [25, gender_col.eq('5,6')],
+        'Transgender/Different Identity' => [26, gender_col.eq('5,3')],
+
+        'Non-Binary/Questioning' => [27, gender_col.eq('4,6')],
+        'Non-Binary/Different Identity' => [28, gender_col.eq('4,3')],
+
+        'Questioning/Different Identity' => [29, gender_col.eq('6,3')],
+        # 2 or more commas
+        'More than 2 Gender Identities Selected' => [30, gender_col.matches_regexp('(\d+,){2,}')],
+        label_for(:dkptr) => [31, gender_col.in(['8', '9'])],
+        'Data Not Collected' => [32, gender_col.eq('99')],
+        'Total' => [33, Arel.sql('1=1')],
+      }.freeze
+    end
   end
 end

@@ -35,23 +35,29 @@ module HudApr::Generators::Shared::Fy2024
       @cell_values = {}
     end
 
-    def add_members(col:, members:)
+    def add_members(col: next_column, members:)
       check_col(col)
       cell_members[check_col(col)] = members
     end
 
-    def add_values(col:, value:)
+    def add_values(col: next_column, value:)
       cell_values[check_col(col)] = value
     end
 
     protected
 
     def check_col(col)
-      col=col.to_s
+      col = col.to_s
       raise unless col =~ /[A-Z]+/
       raise if cell_members.key?(col) || cell_values.key?(col)
 
       col
+    end
+
+    def next_column
+      max = [cell_members.keys.max, cell_values.keys.max].compact.max
+      # we start at B since A is the row-label column
+      max ? Util.next_column_identifier(max) : 'B'
     end
   end
 
@@ -61,25 +67,54 @@ module HudApr::Generators::Shared::Fy2024
 
     def initialize
       @rows = {}
-      @headers = { "A" => '' }
+      @headers = { 'A' => '' }
     end
 
-    def with_row(label: )
+    def with_row(label:)
       row = QuestionSheetRowBuilder.new
       yield(row)
       rows[label] = row
     end
 
-    #def with_column(label: )
+    # def with_column(label: )
     #  col = QuestionSheetColumnBuilder.new
     #  yield(col)
     #  columns[label] = col
-    #end
+    # end
 
-    def add_header(col:, label:)
+    def add_header(col: next_column, label:)
       raise unless col =~ /[A-Z]+/
 
       headers[col] = label
+    end
+
+    protected
+
+    def next_column
+      max = @headers.keys.max
+      max ? Util.next_column_identifier(max) : 'A'
+    end
+  end
+
+  class Util
+    def self.next_column_identifier(column)
+      # Convert the column identifier to an integer
+      n = 0
+      column.each_char do |char|
+        n = n * 26 + (char.ord - 65 + 1) # 65 is the ASCII code for 'A', add 1 for 1-based indexing
+      end
+
+      # Increment the integer and convert it back to a column identifier
+      n += 1
+
+      result = ''
+      while n > 0
+        remainder = (n - 1) % 26 # Subtracting 1 to handle 1-based indexing
+        result = (65 + remainder).chr + result # 65 is the ASCII code for 'A'
+        n = (n - 1) / 26 # Subtracting 1 to handle 1-based indexing
+      end
+
+      result
     end
   end
 
@@ -124,7 +159,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     def update_cell_value(cell:, value:)
-      answer = report.answer(question: question, cell:  cell_code(cell))
+      answer = report.answer(question: question, cell: cell_code(cell))
       answer.update!(summary: value)
       answer
     end
