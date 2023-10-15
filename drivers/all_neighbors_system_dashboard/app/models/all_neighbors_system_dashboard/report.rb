@@ -115,7 +115,7 @@ module AllNeighborsSystemDashboard
             adjusted_exit_date: adjusted_exit_date(filter, enrollment),
             exit_type: exit_type(filter, enrollment),
             destination: enrollment.destination,
-            destination_text: HudUtility.destination(enrollment.destination),
+            destination_text: HudUtility2024.destination(enrollment.destination),
             relationship: relationship(source_enrollment),
             relationship_to_hoh: source_enrollment.relationship_to_hoh,
             personal_id: source_enrollment.personal_id,
@@ -123,7 +123,7 @@ module AllNeighborsSystemDashboard
             gender: gender(enrollment),
             primary_race: primary_race(enrollment),
             race_list: enrollment.client.race_description(include_missing_reason: true),
-            ethnicity: HudUtility.ethnicity(enrollment.client.ethnicity),
+            # ethnicity: HudUtility2024.ethnicity(enrollment.client.ethnicity),
             ce_entry_date: ce_info&.entry_date,
             ce_referral_date: max_event&.event_date,
             ce_referral_id: max_event&.event_id,
@@ -149,7 +149,7 @@ module AllNeighborsSystemDashboard
             source_enrollment_id: event.enrollment_id,
             event_id: event.event_id,
             event_date: event.event_date,
-            event: HudUtility.event(event.event),
+            event: HudUtility2024.event(event.event),
             location: event.location_crisis_or_ph_housing,
             project_name: event.enrollment.project.name,
             project_type: event.enrollment.project.project_type,
@@ -161,7 +161,6 @@ module AllNeighborsSystemDashboard
       end
     end
 
-    # TODO: move this to the filtering of the data when filtering by DRTRR
     # NOTE: this report has two implementation phases
     # pre 5/1/2023 it was the DRTRR which is represented by filter.effective_project_ids_from_secondary_project_groups (we'll call this the pilot period)
     # 5/1/2023 onward is represented by filter.effective_project_ids (we'll call this the implementation period)
