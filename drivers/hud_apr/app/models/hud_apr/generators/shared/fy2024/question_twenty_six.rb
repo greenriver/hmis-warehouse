@@ -352,8 +352,8 @@ module HudApr::Generators::Shared::Fy2024
       {
         'Chronically Homeless' => a_t[:chronically_homeless_detail].eq('yes'),
         'Not Chronically Homeless' => a_t[:chronically_homeless_detail].eq('no'),
-        'Client Doesn\'t Know/Client Refused' => a_t[:chronically_homeless_detail].eq('dk_or_r'),
-        'Data Not Collected' => a_t[:chronically_homeless_detail].eq('missing'),
+        label_for(:dkptr) => a_t[:chronically_homeless_detail].eq('dk_or_r'),
+        label_for(:data_not_collected) => a_t[:chronically_homeless_detail].eq('missing'),
         'Total' => Arel.sql('1=1'),
       }.freeze
     end
