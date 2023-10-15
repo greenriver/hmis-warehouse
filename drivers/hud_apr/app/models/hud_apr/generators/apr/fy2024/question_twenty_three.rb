@@ -6,13 +6,14 @@
 
 module HudApr::Generators::Apr::Fy2024
   class QuestionTwentyThree < HudApr::Generators::Shared::Fy2024::QuestionTwentyThree
-    QUESTION_TABLE_NUMBERS = ['Q23c', 'Q23d'].freeze
+    QUESTION_TABLE_NUMBERS = ['Q23c', 'Q24c', 'Q23d'].freeze
 
     def run_question!
       @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
 
-      q23c_destination
-      q23d_subsidy_type
+      q24b_moving_on_assistance_provided_to_households_in_psh
+      q24c_sexual_orientation_of_adults_in_psh_in_psh
+      q24d_language_of_persons_requiring_translation_assistance
 
       @report.complete(QUESTION_NUMBER)
     end

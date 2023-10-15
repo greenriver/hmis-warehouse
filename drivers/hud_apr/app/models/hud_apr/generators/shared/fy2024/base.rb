@@ -33,7 +33,13 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     def question_sheet(question:)
-      QuestionSheet.new(report: @report, question: question)
+      sheet = QuestionSheet.new(report: @report, question: question)
+      if block_given?
+        builder = sheet.builder
+        yield(builder)
+        sheet.build(builder)
+      end
+      sheet
     end
 
     def self.filter_universe_members(associations)
@@ -315,6 +321,9 @@ module HudApr::Generators::Shared::Fy2024
             substance_abuse: disabilities.detect(&:substance?).present?,
             time_to_move_in: times_to_move_in[last_service_history_enrollment.client_id],
             times_homeless: enrollment.TimesHomelessPastThreeYears,
+            translation_needed: enrollment.TranslationNeeded,
+            preferred_language: enrollment.PreferredLanguage,
+            preferred_language_different: enrollment.PreferredLanguageDifferent,
             veteran_status: source_client.VeteranStatus,
           }
           if needs_ce_assessments?

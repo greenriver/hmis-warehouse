@@ -10,12 +10,16 @@ module HudApr::Generators::Shared::Fy2024
 
     def self.table_descriptions
       {
-        'Question 24' => 'Homelessness Prevention Housing Assessment at Exit',
+        'Question 24' => '',
+        'Question 24a' => 'Homelessness Prevention Housing Assessment at Exit',
+        'Question 24b' => 'Moving On Assistance Provided to Households in PSH',
+        'Question 24c' => 'Sexual Orientation of Adults in PSH',
+        'Question 24d' => 'Language of Persons Requiring Translation Assistance',
       }.freeze
     end
 
-    private def q24_destination
-      table_name = 'Q24'
+    def q24a_homelessness_prevention_housing_assessment_at_exit
+      table_name = 'Q24a'
       metadata = {
         header_row: [' '] + q24_populations.keys,
         row_labels: q24_assessment.keys,
@@ -47,6 +51,49 @@ module HudApr::Generators::Shared::Fy2024
       end
     end
 
+    def q24b_moving_on_assistance_provided_to_households_in_psh
+      raise 'tbd'
+    end
+
+    def q24c_sexual_orientation_of_adults_in_psh_in_psh
+      raise 'tbd'
+    end
+
+    def q24d_language_of_persons_requiring_translation_assistance
+      relevant_members = universe.members.where(a_t[:translation_needed].eq(true)).
+        where(a_t[:preferred_language].not_eq(nil).or(a_t[:preferred_language_different].not_eq(nil)))
+
+      different_language_members = []
+      language_rows = []
+      relevant_members.group_by(&:preferred_language).each_pair do |code, members|
+        if code
+          language_rows << [code.to_i, members]
+        else
+          different_language_members = members
+        end
+      end
+      # top 20 sorted by count with code as tie breaker
+      language_rows = language_rows.sort_by { |code, members| [members.size, code] }.take(20)
+
+      question_sheet(question: 'Q24d') do  |sheet|
+        sheet.add_header(col: 'A', label: 'Language Response (Top 20 Languages Selected')
+        sheet.add_header(col: 'B', label: 'Total Persons Requiring Translation Assistance')
+
+        language_rows.each do |code, members|
+          label = HudUtility2024.preferred_languages.fetch(code.to_i)
+          sheet.with_row(label: label) do |row|
+            row.add_members(col: 'B', members: members)
+          end
+        end
+        sheet.with_row(label: 'Different Preferred Language') do |row|
+          row.add_members(col: 'B', members: different_language_members)
+        end
+        sheet.with_row(label: 'Total') do |row|
+          row.add_members(col: 'B', members: relevant_members)
+        end
+      end
+    end
+
     private def q24_populations
       sub_populations
     end
@@ -69,9 +116,9 @@ module HudApr::Generators::Shared::Fy2024
         'Moved in with family/friends on a permanent basis' => a_t[:housing_assessment].eq(4),
         'Moved to a transitional or temporary housing facility or program' => a_t[:housing_assessment].eq(5),
         'Client became homeless - moving to a shelter or other place unfit for human habitation' => a_t[:housing_assessment].eq(6),
-        'Client went to jail/prison' => a_t[:housing_assessment].eq(7),
-        'Client died' => a_t[:housing_assessment].eq(10),
-        'Client doesn\'t know/Client refused' => a_t[:housing_assessment].in([8, 9]),
+        'Jail/prison' => a_t[:housing_assessment].eq(7),
+        'Deceased' => a_t[:housing_assessment].eq(10),
+        label_for(:dkptr) => a_t[:housing_assessment].in([8, 9]),
         'Data not collected (no exit interview completed)' => a_t[:housing_assessment].eq(99).or(leavers_clause.and(a_t[:housing_assessment].eq(nil))),
         'Total' => leavers_clause,
       }.freeze

@@ -22,6 +22,7 @@ require_relative 'datalab_caper/organization_s_es'
 # require_relative 'datalab_ce_apr/systemwide'
 
 RSpec.describe 'Datalab 2024', type: :model do
+  include_context 'datalab testkit context'
   def project_type_filter(project_type)
     project_ids = GrdaWarehouse::Hud::Project.where(ProjectType: project_type).pluck(:id)
     project_ids_filter(project_ids)
@@ -40,7 +41,6 @@ RSpec.describe 'Datalab 2024', type: :model do
   end
 
   if File.exist?('drivers/datalab_testkit/spec/fixtures/inputs/merged/source/Export.csv')
-    include_context 'datalab testkit context'
     include_context 'datalab multiple projects apr'
     include_context 'datalab organization a rrh apr'
     include_context 'datalab organization o sso apr'
