@@ -439,7 +439,7 @@ module HudApr::Generators::Shared::Fy2024
         'Chronically Homeless Veteran' => a_t[:chronically_homeless].eq(true).and(veteran_clause),
         'Non-Chronically Homeless Veteran' => a_t[:chronically_homeless].eq(false).and(veteran_clause),
         'Not a Veteran' => a_t[:veteran_status].eq(0).or(a_t[:veteran_status].eq(1).and(a_t[:age].lt(18))),
-        "Client Doesn't Know/Client Refused" => a_t[:veteran_status].in([8, 9]),
+        label_for(:dkptr) => a_t[:veteran_status].in([8, 9]),
         'Data Not Collected' => a_t[:veteran_status].eq(99),
         'Total' => Arel.sql('1=1'),
       }.freeze
@@ -450,7 +450,7 @@ module HudApr::Generators::Shared::Fy2024
         'Chronically Homeless Veteran' => :chronic,
         'Non-Chronically Homeless Veteran' => :not_chronic,
         'Not a Veteran' => :veteran,
-        "Client Doesn't Know/Client Refused" => :refused,
+        label_for(:dkptr) => :refused,
         'Data Not Collected' => :not_collected,
         'Total' => Arel.sql('1=1'),
       }.freeze
