@@ -451,48 +451,6 @@ module HudApr::Generators::Shared::Fy2024
       end
     end
 
-    def race_ethnicity_groups
-      race_col = a_t[:race_multi]
-      [
-        {
-          label: 'American Indian, Alaska Native, or Indigenous',
-          cond: race_col.eq('1'),
-        },
-        {
-          label: 'Asian or Asian American',
-          cond: race_col.eq('2'),
-        },
-        {
-          label: 'Black, African American, or African',
-          cond: race_col.eq('3'),
-        },
-        {
-          label: 'Hispanic/Latina/e/o',
-          cond: race_col.eq('8'),
-        },
-        {
-          label: 'Middle Eastern or North African',
-          cond: race_col.eq('7'),
-        },
-        { label: 'Native Hawaiian or Pacific Islander',
-          cond: race_col.eq('4') },
-        {
-          label: 'White',
-          cond: race_col.eq('5'),
-        },
-        {
-          label: 'At Least 1 Race and Hispanic/Latina/e/o',
-          cond: race_col.matches_regexp('(\d+,){2,}').and(race_col.matches_regexp('\y6\y')),
-        },
-        {
-          label: 'Multi-racial (does not include Hispanic/Latina/e/o)',
-          cond: race_col.matches_regexp('(\d+,){2,}').and(race_col.does_not_match_regexp('\y6\y')),
-        },
-        {
-          label: 'Unknown (Doesn’t Know, Prefers not to Answer, Data not Collected)',
-          cond: race_col.in(['8', '9', '99']),
-        },
-      ]
-    end
+
   end
 end

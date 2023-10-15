@@ -1574,8 +1574,7 @@ CREATE TABLE public.roles (
     can_see_confidential_files boolean DEFAULT false,
     can_edit_theme boolean DEFAULT false,
     system boolean DEFAULT false NOT NULL,
-    can_edit_collections boolean DEFAULT false,
-    can_publish_reports boolean DEFAULT false
+    can_edit_collections boolean DEFAULT false
 );
 
 
@@ -4046,7 +4045,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230916124819'),
 ('20230918231940'),
 ('20230923000619'),
-('20230927131152'),
-('20231009120833');
+('20230927131152');
 
 

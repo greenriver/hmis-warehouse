@@ -92,6 +92,66 @@ module HudApr::Generators::Shared::Fy2024
       end
     end
 
+    def q23e_destination_type_by_race_and_ethnicity
+      sheet = question_sheet(question: 'Q23e')
+
+      leavers = universe.members.where(leavers_clause)
+      groups = [{ label: 'Total', cond: nil }] +race_ethnicity_groups
+
+      first_row = 2
+      metadata = {
+        header_row: [''] + groups.map { _1[:label] },
+        row_labels: [
+          'Homeless Situations',
+          'Institutional Situations',
+          'Temporary Situations',
+          'Permanent Situations',
+          'Other Situations',
+          'Total',
+        ],
+        first_column: 'B',
+        last_column: 'L',
+        first_row: first_row,
+        last_row: 7,
+      }
+      sheet.update_metadata(metadata)
+
+      col_letters = (metadata[:first_column]..metadata[:last_column]).to_a
+      groups.each.with_index do |group, idx|
+        group_scope = group[:cond] ? leavers.where(group[:cond]) : leavers
+        letter = col_letters.fetch(idx)
+
+        #homeless
+        sheet.update_cell_members(
+          cell: [letter, 2],
+          members: group_scope.where(a_t[:destination].in([101, 116, 118])),
+        )
+        #institutional
+        sheet.update_cell_members(
+          cell: [letter, 3],
+          members: group_scope.where(a_t[:destination].in([215, 206, 207, 225, 204, 205])),
+        )
+        #temporary
+        sheet.update_cell_members(
+          cell: [letter, 4],
+          members: group_scope.where(a_t[:destination].in([302, 329, 314, 332, 312, 313, 327])),
+        )
+        #permanent
+        sheet.update_cell_members(
+          cell: [letter, 5],
+          members: group_scope.where(a_t[:destination].in([422, 423, 426, 410, 435, 421, 411])),
+        )
+        sheet.update_cell_members(
+          cell: [letter, 6],
+          members: group_scope.where(a_t[:destination].in([8, 9, 17, 30, 99])),
+        )
+        sheet.update_cell_members(
+          cell: [letter, 7],
+          members: group_scope
+        )
+      end
+    end
+
     private def q23c_populations
       sub_populations
     end
