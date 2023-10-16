@@ -9,7 +9,7 @@ RSpec.shared_context 'datalab organization m rrh caper', shared_context: :metada
     let(:results_dir) { 'caper/organization_m_rrh' }
     before(:all) do
       generator = HudApr::Generators::Caper::Fy2024::Generator
-      project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: ['Organization M RRH']).pluck(:id)
+      project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: ['Organization M - RRH']).pluck(:id)
       run(generator, project_ids_filter(project_ids))
     end
 
