@@ -19347,7 +19347,8 @@ CREATE TABLE public.hud_report_apr_clients (
     exit_destination_subsidy_type integer,
     translation_needed integer,
     preferred_language integer,
-    preferred_language_different character varying
+    preferred_language_different character varying,
+    domestic_violence_occurred integer
 );
 
 
@@ -60543,6 +60544,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231004203202'),
 ('20231009190301'),
 ('20231013190301'),
+('20231014150301'),
 ('20231014190301');
 
 
