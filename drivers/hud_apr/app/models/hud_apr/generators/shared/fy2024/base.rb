@@ -548,7 +548,7 @@ module HudApr::Generators::Shared::Fy2024
               enrollment.move_in_date.present? && # Check that move in date is present and is before the PIT data and on or after the entry date
               enrollment.move_in_date <= pit_date &&
               enrollment.move_in_date >= enrollment.first_date_in_program
-          when 1, 2, 8, 9, 10 # Other residential
+          when 0, 1, 2, 8, 9, 10 # Other residential
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) # Exclude exit date
           else # Other project types (4, 6, 11)
