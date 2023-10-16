@@ -37,7 +37,7 @@ module HudApr::Generators::Shared::Fy2024
           update_cell_members(cell: [column_letter, row_idx], members: members)
         end
         row.cell_values.each do |column_letter, value|
-          update_cell_value(cell: [column_letter, row_idx], values: value)
+          update_cell_value(cell: [column_letter, row_idx], value: value)
         end
       end
     end
@@ -143,12 +143,15 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     def add_members(col: next_column, members:)
-      check_col(col)
-      cell_members[check_col(col)] = members
+      col = check_col(col)
+      cell_members[col] = members
+      col
     end
 
-    def add_values(col: next_column, value:)
-      cell_values[check_col(col)] = value
+    def add_value(col: next_column, value:)
+      col = check_col(col)
+      cell_values[col] = value
+      col
     end
 
     protected
