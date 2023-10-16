@@ -299,9 +299,10 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
           return true
         })
         .map((s) => s.values[index])
-        
+        // console.log(total)
         col.push(d3.mean(total))
       })
+      // console.log(col)
       return col
     }
   }

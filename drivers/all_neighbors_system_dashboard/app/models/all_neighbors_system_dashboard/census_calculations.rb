@@ -16,7 +16,7 @@ module AllNeighborsSystemDashboard
         when 'BlackAfAmerican' then BLACK
         when 'NativeHIPacific' then PACIFIC_ISLANDER
         when 'White' then WHITE
-        when 'RaceNone' then OTHER_RACE
+        when 'RaceNone', '', nil then OTHER_RACE
         when 'MultiRacial' then TWO_OR_MORE_RACES
         when 'All' then ALL_PEOPLE
         else

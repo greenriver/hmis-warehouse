@@ -15,7 +15,7 @@ module AllNeighborsSystemDashboard
         title: title,
         id: id,
         demographics: demographics.map do |demo|
-          bars = ['Exited*', 'Returned']
+          bars = ['Exited', 'Returned']
           demo_names_meth = "demographic_#{demo.gsub(' ', '').underscore}".to_sym
           demo_colors_meth = "demographic_#{demo.gsub(' ', '').underscore}_colors".to_sym
           names = send(demo_names_meth)
@@ -25,6 +25,7 @@ module AllNeighborsSystemDashboard
           scope = filter_for_year(scope, Date.new(options[:year]))
           scope = filter_for_count_level(scope, 'Households')
           exited_household_count = scope.count
+          # NOTE: we filter return date on write and only add if the client returned within a year
           returned_household_count = scope.where.not(return_date: nil).count
           {
             demographic: demo,
@@ -106,7 +107,6 @@ module AllNeighborsSystemDashboard
     end
 
     private def filter_for_year(scope, date)
-      # NOTE: even though we aggregate at the year level, we calculate the month range and let JS do the aggregation
       range = date.beginning_of_year .. date.end_of_year
       where_clause = date_query(range)
       scope.where(where_clause)
@@ -120,14 +120,18 @@ module AllNeighborsSystemDashboard
 
     def stack_value(date, bar, demographic, label)
       scope = enrollment_scope
+      # NOTE: there is no picker for households, so we're always using individuals
       scope = filter_for_count_level(scope, 'Individuals')
-      scope = filter_for_date(scope, date)
+      scope = filter_for_year(scope, date)
 
       scope = case bar
-      when 'Exited*'
-        scope.where(exit_type: 'Permanent')
       when 'Returned'
+        # NOTE: we filter return date on write and only add if the client returned within a year
         scope.where(exit_type: 'Permanent').where.not(return_date: nil)
+      else
+        # NOTE: date filter enforces exit type is permanent since everyone in the page
+        # has to have exited to a permanent destination (or moved in)
+        scope
       end
 
       scope = case demographic

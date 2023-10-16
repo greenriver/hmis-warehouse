@@ -184,6 +184,8 @@ class AllNeighborsSystemDashboardFilters {
         const text = this.state['cohort'].replace('after housing', '').replace('of housing', '')
         $(label.selector).text(text)
       } else {
+        // FIXME: not changing racial composition label when choosing Homelessness Status
+        // console.log(this.state, label.selector, label.name)
         $(label.selector).text(this.state[label.name])
       }
     })

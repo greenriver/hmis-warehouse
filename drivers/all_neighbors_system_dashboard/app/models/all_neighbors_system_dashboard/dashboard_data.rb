@@ -72,7 +72,7 @@ module AllNeighborsSystemDashboard
     end
 
     def demographic_race
-      HudUtility2024.races(multi_racial: true).except(*ignored_races).values
+      HudUtility2024.races(multi_racial: true).except(*ignored_races).values + ["Doesn't know, prefers not to answer, or not collected"]
     end
 
     # Note, the census doesn't contain MidEastNAfrican and HispanicLatinaeo is represented as ethnicity
@@ -82,7 +82,6 @@ module AllNeighborsSystemDashboard
         'HispanicLatinaeo',
         'MidEastNAfrican',
         'RaceNone',
-        'MultiRacial',
       ]
     end
 
@@ -235,12 +234,12 @@ module AllNeighborsSystemDashboard
       when 'Over 63'
         scope.where(age: 63..)
       when 'Unknown Age'
-        scope.where(age: nil)
-      when *HudUtility2024.genders.values
+        scope.where(age: nil).or(scope.where(age: ..0))
+      when *HudUtility2024.gender_known_values
         scope.where(gender: type)
       when 'Unknown Gender'
-        scope.where(gender: nil)
-      when *HudUtility2024.races.values
+        scope.where.not(gender: HudUtility2024.gender_known_values)
+      when *HudUtility2024.races(multi_racial: true).values
         scope.where(primary_race: type)
       else
         raise "Unknown type: #{type}"

@@ -242,7 +242,7 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
             .attr('x2', scale.x(scale.x.domain()[1]))
             .attr('y2', (d) => scale.y(d))
             .style('stroke', 'rgba(0, 0, 0, 0.38)')
-        
+
         container.selectAll(`text.${chartEleId}__mean-label`)
           .data([mean])
           .join('text')
@@ -254,7 +254,7 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
             .text((d) => {
               return `Overall Average: ${d3.format('.0f')(d)} Days`
             })
-        
+
         // shapes with opacity fill and stroke
         const shapes = d3.selectAll(`${selector} .bb-shape`)
         shapes.each(function(d) {
@@ -265,7 +265,7 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
           styleShapes(this)
         })
 
-        
+
       }
     }
     return {...super.getConfig(), ...config}
@@ -313,4 +313,3 @@ class AllNeighborsSystemDashboardLineByQuarter extends AllNeighborsSystemDashboa
   }
 
 }
-
