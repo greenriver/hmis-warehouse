@@ -47,12 +47,12 @@ module HudApr::Generators::Shared::Fy2024
               positive = sheet.cell_value([col_letter, 41])
               excluded = sheet.cell_value([col_letter, 42])
               value = percentage(positive.to_f / (total - excluded)) if total.positive? && excluded != total
-              sheet.update_cell_value( cell: [col_letter, row_index], value: value) if value
+              sheet.update_cell_value(cell: [col_letter, row_index], value: value) if value
             end
           else
             sheet.update_cell_members(
               cell: [col_letter, row_index],
-              members: members.where(destination_clause)
+              members: members.where(destination_clause),
             )
           end
         end
@@ -82,12 +82,12 @@ module HudApr::Generators::Shared::Fy2024
         HudUtility2024.rental_subsidy_types.keys.each.with_index(2) do |code, row_index|
           sheet.update_cell_members(
             cell: [cols[col_index], row_index],
-            members: scope.where(a_t[:exit_destination_subsidy_type].eq(code))
+            members: scope.where(a_t[:exit_destination_subsidy_type].eq(code)),
           )
         end
         sheet.update_cell_members(
           cell: [cols[col_index], 13],
-          members: scope
+          members: scope,
         )
       end
     end
@@ -96,7 +96,7 @@ module HudApr::Generators::Shared::Fy2024
       sheet = question_sheet(question: 'Q23e')
 
       leavers = universe.members.where(leavers_clause)
-      groups = [{ label: 'Total', cond: nil }] +race_ethnicity_groups
+      groups = [{ label: 'Total', cond: nil }] + race_ethnicity_groups
 
       first_row = 2
       metadata = {
@@ -121,22 +121,22 @@ module HudApr::Generators::Shared::Fy2024
         group_scope = group[:cond] ? leavers.where(group[:cond]) : leavers
         letter = col_letters.fetch(idx)
 
-        #homeless
+        # homeless
         sheet.update_cell_members(
           cell: [letter, 2],
           members: group_scope.where(a_t[:destination].in([101, 116, 118])),
         )
-        #institutional
+        # institutional
         sheet.update_cell_members(
           cell: [letter, 3],
           members: group_scope.where(a_t[:destination].in([215, 206, 207, 225, 204, 205])),
         )
-        #temporary
+        # temporary
         sheet.update_cell_members(
           cell: [letter, 4],
           members: group_scope.where(a_t[:destination].in([302, 329, 314, 332, 312, 313, 327])),
         )
-        #permanent
+        # permanent
         sheet.update_cell_members(
           cell: [letter, 5],
           members: group_scope.where(a_t[:destination].in([422, 423, 426, 410, 435, 421, 411])),
@@ -147,7 +147,7 @@ module HudApr::Generators::Shared::Fy2024
         )
         sheet.update_cell_members(
           cell: [letter, 7],
-          members: group_scope
+          members: group_scope,
         )
       end
     end

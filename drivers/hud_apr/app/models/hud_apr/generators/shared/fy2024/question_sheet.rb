@@ -108,7 +108,7 @@ module HudApr::Generators::Shared::Fy2024
       n += 1
 
       result = ''
-      while n > 0
+      while n.positive?
         remainder = (n - 1) % 26 # Subtracting 1 to handle 1-based indexing
         result = (65 + remainder).chr + result # 65 is the ASCII code for 'A'
         n = (n - 1) / 26 # Subtracting 1 to handle 1-based indexing
@@ -138,7 +138,7 @@ module HudApr::Generators::Shared::Fy2024
         header_row: header_row,
         row_labels: builder.rows.keys,
         first_column: 'B',
-        last_column: builder.headers.keys.sort.last,
+        last_column: builder.headers.keys.max,
         first_row: first_row,
         last_row: 1 + builder.rows.size,
       }

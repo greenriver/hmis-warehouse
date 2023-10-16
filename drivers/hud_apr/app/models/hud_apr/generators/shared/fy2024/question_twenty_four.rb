@@ -75,7 +75,7 @@ module HudApr::Generators::Shared::Fy2024
       # top 20 sorted by count with code as tie breaker
       language_rows = language_rows.sort_by { |code, members| [members.size, code] }.take(20)
 
-      question_sheet(question: 'Q24d') do  |sheet|
+      question_sheet(question: 'Q24d') do |sheet|
         sheet.add_header(col: 'A', label: 'Language Response (Top 20 Languages Selected')
         sheet.add_header(col: 'B', label: 'Total Persons Requiring Translation Assistance')
 
