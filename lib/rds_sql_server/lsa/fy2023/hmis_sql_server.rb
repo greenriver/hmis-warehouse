@@ -6,18 +6,19 @@ module HmisSqlServer
     {
       'Export.csv' => HmisSqlServer::Export,
       'Funder.csv' => HmisSqlServer::Funder,
-      # 'Affiliation.csv' => HmisSqlServer::Affiliation,
+      'Affiliation.csv' => HmisSqlServer::Affiliation,
       'Inventory.csv' => HmisSqlServer::Inventory,
       'Organization.csv' => HmisSqlServer::Organization,
       'Project.csv' => HmisSqlServer::Project,
       'ProjectCoC.csv' => HmisSqlServer::ProjectCoc,
+      'HMISParticipation.csv' => HmisSqlServer::HmisParticipation,
+      # 'CEParticipation.csv' => HmisSqlServer::CeParticipation,
       # 'User.csv' => HmisSqlServer::User,
       'Client.csv' => HmisSqlServer::Client,
       # 'CurrentLivingSituation.csv' => HmisSqlServer::CurrentLivingSituation,
       # 'Disabilities.csv' => HmisSqlServer::Disability,
       # 'EmploymentEducation.csv' => HmisSqlServer::EmploymentEducation,
       'Enrollment.csv' => HmisSqlServer::Enrollment,
-      'EnrollmentCoC.csv' => HmisSqlServer::EnrollmentCoc,
       # 'Event.csv' => HmisSqlServer::Event,
       'Exit.csv' => HmisSqlServer::Exit,
       'HealthAndDV.csv' => HmisSqlServer::HealthAndDv,
@@ -211,6 +212,21 @@ module HmisSqlServer
       row[field_index] = row[field_index].presence || 99
       super(row: row, headers: headers)
     end
+  end
+
+  class HmisParticipation < LsaBase
+    self.table_name = :hmis_HMISParticipation
+    include ::HmisStructure::HmisParticipation
+
+    # def clean_row_for_import(row:, headers:)
+    #   field_index = headers.map(&:downcase).index('zip')
+    #   row[field_index] = row[field_index].presence || '0' * 5
+    #   field_index = headers.index('Geocode')
+    #   row[field_index] = row[field_index].presence || '0' * 6
+    #   field_index = headers.index('GeographyType')
+    #   row[field_index] = row[field_index].presence || 99
+    #   super(row: row, headers: headers)
+    # end
   end
 
   class Service < LsaBase
