@@ -6,6 +6,7 @@ module LsaSqlServer
       'Organization.csv' => LsaSqlServer::Organization,
       'Funder.csv' => LsaSqlServer::Funder,
       'ProjectCoC.csv' => LsaSqlServer::ProjectCoc,
+      'HMISParticipation.csv' => LsaSqlServer::HmisParticipation,
       'Inventory.csv' => LsaSqlServer::Inventory,
       'LSAReport.csv' => LsaSqlServer::LSAReport,
       'LSAPerson.csv' => LsaSqlServer::LSAPerson,
@@ -113,8 +114,7 @@ module LsaSqlServer
         :HHVet,
         :HHDisability,
         :HHFleeingDV,
-        :HoHRace,
-        :HoHEthnicity,
+        :HoHRaceEthnicity,
         :HHAdult,
         :HHChild,
         :HHNoDOB,
@@ -170,6 +170,8 @@ module LsaSqlServer
         :ESTAHAR,
         :RRHAHAR,
         :PSHAHAR,
+        :RRHSOStatus,
+        :RRHSOMoveIn,
         :ReportID,
       ]
     end
@@ -183,8 +185,7 @@ module LsaSqlServer
       [
         :RowTotal,
         :Gender,
-        :Race,
-        :Ethnicity,
+        :RaceEthnicity,
         :VetStatus,
         :DisabilityStatus,
         :CHTime,
@@ -238,6 +239,16 @@ module LsaSqlServer
         :AC3PlusPSH,
         :AHARPSH,
         :AHARHoHPSH,
+        :RRHSOAgeMin,
+        :RRHSOAgeMax,
+        :HHTypeRRHSONoMI,
+        :HHTypeRRHSOMI,
+        :HHTypeES,
+        :HHTypeSH,
+        :HHTypeTH,
+        :HIV,
+        :SMI,
+        :SUD,
         :ReportID,
       ]
     end
@@ -260,8 +271,7 @@ module LsaSqlServer
         :HHChronic,
         :HHDisability,
         :HHFleeingDV,
-        :HoHRace,
-        :HoHEthnicity,
+        :HoHRaceEthnicity,
         :HHAdultAge,
         :HHParent,
         :AC3Plus,
@@ -277,7 +287,6 @@ module LsaSqlServer
 
     def self.csv_columns
       [
-        :Value,
         :Cohort,
         :Universe,
         :HHType,
@@ -286,6 +295,7 @@ module LsaSqlServer
         :ProjectID,
         :ReportRow,
         :ReportID,
+        :Step,
       ]
     end
   end
@@ -295,7 +305,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      GrdaWarehouse::Hud::Organization.hud_csv_headers(version: '2022')
+      GrdaWarehouse::Hud::Organization.hud_csv_headers(version: '2024')
     end
   end
 
@@ -304,7 +314,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      GrdaWarehouse::Hud::Project.hud_csv_headers(version: '2022')
+      GrdaWarehouse::Hud::Project.hud_csv_headers(version: '2024')
     end
   end
 
@@ -313,7 +323,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      GrdaWarehouse::Hud::Funder.hud_csv_headers(version: '2022')
+      GrdaWarehouse::Hud::Funder.hud_csv_headers(version: '2024')
     end
   end
 
@@ -322,7 +332,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      GrdaWarehouse::Hud::Inventory.hud_csv_headers(version: '2022')
+      GrdaWarehouse::Hud::Inventory.hud_csv_headers(version: '2024')
     end
   end
 
@@ -331,7 +341,7 @@ module LsaSqlServer
     include TsqlImport
 
     def self.csv_columns
-      GrdaWarehouse::Hud::ProjectCoc.hud_csv_headers(version: '2022')
+      GrdaWarehouse::Hud::ProjectCoc.hud_csv_headers(version: '2024')
     end
   end
 
