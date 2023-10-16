@@ -36,14 +36,19 @@
       var data = #{chart_data.to_json.html_safe}
       var barData = #{all_data.bars.to_json.html_safe}
       var stackedIds = #{stacked_ids.to_json.html_safe}
-
-      var bar = new AllNeighborsSystemDashboardBar(
-        barData,
-        {},
-        '##{chart_id(tab[:id], 'bar')}',
-        {}
-      )
-      bar.draw()
+      
+      // this chart doesn't use filters but still wrapping to get resize behavior from filters class
+      var barFilter = new AllNeighborsSystemDashboardFilters(
+          [],
+          [
+           {
+              chart: AllNeighborsSystemDashboardBar,
+              data: barData,
+              selector: '##{chart_id(tab[:id], 'bar')}',
+              options: {}
+            } 
+          ]
+        )
 
       var charts = data.map(function(d, i) {
         return {

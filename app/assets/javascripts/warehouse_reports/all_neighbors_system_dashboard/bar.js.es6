@@ -34,6 +34,7 @@ class AllNeighborsSystemDashboardBar {
         centered: false,
         show: true,
         color: '#000000',
+        format: (v, id, i, text) => d3.format(',')(v)
       },
     }
   }
@@ -54,6 +55,7 @@ class AllNeighborsSystemDashboardBar {
       y: {
         tick: {
           stepSize: 250,
+          format: (y) => d3.format(',')(y)
         }
       }
     }
@@ -66,28 +68,6 @@ class AllNeighborsSystemDashboardBar {
         height: 500,
       },
       data: this.getDataConfig(),
-      // data: {
-      //   x: "x",
-      //   columns: [
-      //     ["x"].concat(this.config.keys)
-      //   ].concat(this.series.map((d) => [d.name].concat(d.values))),
-      //   types: {
-      //     exited: "bar",
-      //     returned: "bar",
-      //   },
-      //   colors: {
-      //     exited: (d) => this.config.colors[d.id][d.index],
-      //     returned: (d) => this.config.colors[d.id][d.index],
-      //   },
-      //   labels: {
-      //     centered: false,
-      //     show: true,
-      //     color: '#000000',
-      //     format: (v, id, i, j) => {
-      //       return d3.format(",")(v);
-      //     },
-      //   },
-      // },
       padding: {
         left: 60,
         top: 40,
@@ -95,7 +75,9 @@ class AllNeighborsSystemDashboardBar {
         bottom: 40
       },
       bar: {
-        width: 200,
+        width: {
+          ratio: 1,
+        }
       },
       grid: {
         y: {show: true}
@@ -146,11 +128,10 @@ class AllNeighborsSystemDashboardBar {
   }
 
   redraw(state) {
-    this.state = state
+    this.state = state || {}
     this.init()
-    this.chart.load({
-      columns: this.getColumns(),
-    })
+    this.chart.destroy()
+    this.draw()
   }
 
   draw() {

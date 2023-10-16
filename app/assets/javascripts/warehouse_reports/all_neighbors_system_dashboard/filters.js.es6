@@ -6,10 +6,29 @@ class AllNeighborsSystemDashboardFilters {
     this.filterLabels = filterLabels || []
     this.updateLabels()
     this.initCharts(charts)
+    this.initResize()
+    this.initTabChange()
   }
 
   test() {
     console.log(this)
+  }
+
+  initTabChange() {
+    $('.all-neighbors__all__tabs a[data-toggle="tab"]').on('shown.bs.tab', () => {
+      this.redrawCharts()
+    })
+  }
+
+  initResize() {
+    const debounce = (func, timeout = 300) => {
+      let timer;
+      return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => { func.apply(this, args); }, timeout);
+      };
+    }
+    window.addEventListener('resize', debounce(this.redrawCharts))
   }
 
   initCharts(chartConfig) {

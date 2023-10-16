@@ -103,10 +103,8 @@ class AllNeighborsSystemDashboardDonut {
   redraw(state) {
     this.state = state
     this.init()
-    this.chart.load({
-      columns: this.getColumns(),
-    })
-    this.updateLabels()
+    this.chart.destroy()
+    this.draw()
   }
 
   draw() {

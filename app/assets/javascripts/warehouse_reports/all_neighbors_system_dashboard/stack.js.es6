@@ -254,9 +254,6 @@ class AllNeighborsSystemDashboardUPVerticalStack extends AllNeighborsSystemDashb
       grid: {
         y: {show: true}
       },
-      // bar: {
-      //   width: 84,
-      // },
       padding: this.padding,
       onrendered: function() {
         fitLabels(this)
@@ -348,6 +345,8 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
     const superConfig = super.getConfig()
     const superDrawTotals = super.drawTotals
     const padding = this.padding
+    const series = this.series
+    const classConfig = this.config
     const config = {
       data: this.getDataConfig(),
       axis: this.getAxisConfig(),
@@ -364,6 +363,15 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
           .attr('y', (d, i) => this.internal.scale.x(i))
           .attr('transform', 'translate(30, 6)')
         fitLabels(this)
+        // add values to overall cards
+        const overallIndex = series.map((d) => d.name).indexOf('Overall')
+        const overallData = this.data().map((d) => d.values[overallIndex].value)
+        classConfig.keys.concat(['total']).forEach((d, i) => {
+          const labelClass = `${selector}__${d}`
+          const label = d3.select(`${selector}__${d}`)
+          const value = d === 'total' ? d3.sum(overallData) : overallData[i]
+          label.text(d3.format('.0f')(value))
+        })
       }
     }
     if(this.options.legend) {
@@ -371,6 +379,7 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
     }
     return {...superConfig, ...config}
   }
+
 }
 
 // Returns to homelessness group stack with label on the left

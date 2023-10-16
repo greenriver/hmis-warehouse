@@ -117,9 +117,8 @@ class AllNeighborsSystemDashboardLine {
   redraw(state) {
     this.state = state
     this.init()
-    this.chart.load({
-      columns: this.getColumns(),
-    })
+    this.chart.destroy()
+    this.draw()
   }
 
   draw() {
@@ -272,13 +271,6 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
     return {...super.getConfig(), ...config}
   }
 
-  redraw(state) {
-    this.state = state
-    this.init()
-    // the only way I could get this to keep the point shapes consistent
-    this.chart.destroy()
-    this.chart = bb.generate(this.getConfig())
-  }
 }
 
 //internal scatter by quarter
