@@ -52,18 +52,21 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q4_project_identifiers
-      table_name = 'Q4a'
       @report.universe(QUESTION_NUMBER)
+      headers = TABLE_HEADER.zip(('A'..'Q').to_a)
 
-      project_rows = []
+      question_sheet(question: 'Q4a') do |sheet|
+        headers.each { |label, col| sheet.add_header(col: col, label: label) }
+        q4_project_scope.order(ProjectName: :asc).preload(:ce_participations).each do |project|
+          project_row(sheet, project)
+        end
+      end
+    end
 
-      cell_columns = ('A'..'O').to_a
-      q4_project_scope.order(ProjectName: :asc).preload(:ce_participations).find_each.with_index do |project, i|
-        cell_row = i + 2
-
+    def project_row(sheet, project)
+      sheet.with_row(label: project.organization&.OrganizationName) do |row|
         ce_participation = detect_ce_participation(project)
-        project_row = [
-          project.organization&.OrganizationName,
+        [
           project.OrganizationID,
           project.ProjectName,
           project.ProjectID,
@@ -81,38 +84,14 @@ module HudApr::Generators::Shared::Fy2024
           HMIS_SOFTWARE_NAME,
           @report.start_date,
           @report.end_date,
-        ]
-        # Note for count
-        project_rows << project_row
-
-        project_row.each_with_index do |value, column_index|
-          cell_name = cell_columns[column_index] + cell_row.to_s
-          @report.answer(question: table_name, cell: cell_name).update(summary: value)
+        ].each do |value|
+          row.add_value(value: value)
         end
 
         # Note cells P and Q (active clients and active households)
-        cell = "P#{cell_row}"
-        answer = @report.answer(question: table_name, cell: cell)
-        members = universe.members.where(a_t[:project_id].eq(project.id))
-        answer.add_members(members)
-        answer.update(summary: members.count)
-
-        cell = "Q#{cell_row}"
-        answer = @report.answer(question: table_name, cell: cell)
-        members = universe.members.where(hoh_clause).where(a_t[:project_id].eq(project.id))
-        answer.add_members(members)
-        answer.update(summary: members.count)
+        row.add_members(members: universe.members.where(a_t[:project_id].eq(project.id)))
+        row.add_members(members: universe.members.where(hoh_clause).where(a_t[:project_id].eq(project.id)))
       end
-
-      metadata = {
-        header_row: TABLE_HEADER,
-        row_labels: [],
-        first_column: 'A',
-        last_column: 'Q',
-        first_row: 2,
-        last_row: project_rows.size + 1,
-      }
-      @report.answer(question: table_name).update(metadata: metadata)
     end
 
     private def q4_project_scope
