@@ -1,123 +1,11 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # utility class to dry up answers
 module HudApr::Generators::Shared::Fy2024
-  # internal class
-  class QuestionSheetColumnBuilder
-    attr_reader :cell_members, :cell_values
-    def initialize
-      @cell_members = {}
-      @cell_values = {}
-    end
-
-    def add_members(row:, members:)
-      check_col(row)
-      cell_members[check_row(row)] = members
-    end
-
-    def add_values(row:, value:)
-      cell_values[check_row(row)] = value
-    end
-
-    protected
-
-    def check_row(row)
-      raise unless row.to_s =~ /[0-9]+/
-      raise if cell_members.key?(row) || cell_values.key?(row)
-
-      row
-    end
-  end
-
-  # internal class
-  class QuestionSheetRowBuilder
-    attr_reader :cell_members, :cell_values
-    def initialize
-      @cell_members = {}
-      @cell_values = {}
-    end
-
-    def add_members(col: next_column, members:)
-      check_col(col)
-      cell_members[check_col(col)] = members
-    end
-
-    def add_values(col: next_column, value:)
-      cell_values[check_col(col)] = value
-    end
-
-    protected
-
-    def check_col(col)
-      col = col.to_s
-      raise unless col =~ /[A-Z]+/
-      raise if cell_members.key?(col) || cell_values.key?(col)
-
-      col
-    end
-
-    def next_column
-      max = [cell_members.keys.max, cell_values.keys.max].compact.max
-      # we start at B since A is the row-label column
-      max ? Util.next_column_identifier(max) : 'B'
-    end
-  end
-
-  # internal class
-  class QuestionSheetBuilder
-    attr_reader :rows, :headers
-
-    def initialize
-      @rows = {}
-      @headers = { 'A' => '' }
-    end
-
-    def with_row(label:)
-      row = QuestionSheetRowBuilder.new
-      yield(row)
-      rows[label] = row
-    end
-
-    # def with_column(label: )
-    #  col = QuestionSheetColumnBuilder.new
-    #  yield(col)
-    #  columns[label] = col
-    # end
-
-    def add_header(col: next_column, label:)
-      raise unless col =~ /[A-Z]+/
-
-      headers[col] = label
-    end
-
-    protected
-
-    def next_column
-      max = @headers.keys.max
-      max ? Util.next_column_identifier(max) : 'A'
-    end
-  end
-
-  class Util
-    def self.next_column_identifier(column)
-      # Convert the column identifier to an integer
-      n = 0
-      column.each_char do |char|
-        n = n * 26 + (char.ord - 65 + 1) # 65 is the ASCII code for 'A', add 1 for 1-based indexing
-      end
-
-      # Increment the integer and convert it back to a column identifier
-      n += 1
-
-      result = ''
-      while n.positive?
-        remainder = (n - 1) % 26 # Subtracting 1 to handle 1-based indexing
-        result = (65 + remainder).chr + result # 65 is the ASCII code for 'A'
-        n = (n - 1) / 26 # Subtracting 1 to handle 1-based indexing
-      end
-
-      result
-    end
-  end
-
   class QuestionSheet
     attr_reader :report, :question
 
@@ -142,7 +30,7 @@ module HudApr::Generators::Shared::Fy2024
         first_row: first_row,
         last_row: 1 + builder.rows.size,
       }
-      # FIXME: could use bulk insert for perf
+      # future optimization: could use bulk insert here
       update_metadata(metadata)
       builder.rows.values.each.with_index(first_row) do |row, row_idx|
         row.cell_members.each do |column_letter, members|
@@ -186,4 +74,124 @@ module HudApr::Generators::Shared::Fy2024
       end
     end
   end
+
+  # internal class
+  class QuestionSheetBuilder
+    attr_reader :rows, :headers
+
+    def initialize
+      @rows = {}
+      @headers = { 'A' => '' }
+    end
+
+    def with_row(label:)
+      row = QuestionSheetRowBuilder.new
+      yield(row)
+      rows[label] = row
+    end
+
+    # def with_column(label: )
+    #  col = QuestionSheetColumnBuilder.new
+    #  yield(col)
+    #  columns[label] = col
+    # end
+
+    def add_header(col: next_column, label:)
+      raise unless col =~ /[A-Z]+/
+
+      headers[col] = label
+    end
+
+    protected
+
+    def next_column
+      max = @headers.keys.max
+      max ? Util.next_column_identifier(max) : 'A'
+    end
+  end
+
+  # internal class
+  class Util
+    # given a column (letter), return the next col in sequence
+    # A => B, Z => AA, etc
+    def self.next_column_identifier(column)
+      # Convert the column to an integer
+      n = 0
+      column.each_char do |char|
+        n = n * 26 + (char.ord - 65 + 1) # 65 is the ASCII code for 'A', add 1 for 1-based indexing
+      end
+
+      # Increment the integer and convert it back to an identifier
+      n += 1
+      result = ''
+      while n.positive?
+        remainder = (n - 1) % 26 # Subtracting 1 to handle 1-based indexing
+        result = (65 + remainder).chr + result # 65 is the ASCII code for 'A'
+        n = (n - 1) / 26 # Subtracting 1 to handle 1-based indexing
+      end
+
+      result
+    end
+  end
+
+  # internal class
+  class QuestionSheetRowBuilder
+    attr_reader :cell_members, :cell_values
+    def initialize
+      @cell_members = {}
+      @cell_values = {}
+    end
+
+    def add_members(col: next_column, members:)
+      check_col(col)
+      cell_members[check_col(col)] = members
+    end
+
+    def add_values(col: next_column, value:)
+      cell_values[check_col(col)] = value
+    end
+
+    protected
+
+    def check_col(col)
+      col = col.to_s
+      raise unless col =~ /[A-Z]+/
+      raise if cell_members.key?(col) || cell_values.key?(col)
+
+      col
+    end
+
+    def next_column
+      max = [cell_members.keys.max, cell_values.keys.max].compact.max
+      # we start at B since A is the row-label column
+      max ? Util.next_column_identifier(max) : 'B'
+    end
+  end
+
+  # internal class
+  # class QuestionSheetColumnBuilder
+  #   attr_reader :cell_members, :cell_values
+  #   def initialize
+  #     @cell_members = {}
+  #     @cell_values = {}
+  #   end
+
+  #   def add_members(row:, members:)
+  #     check_col(row)
+  #     cell_members[check_row(row)] = members
+  #   end
+
+  #   def add_values(row:, value:)
+  #     cell_values[check_row(row)] = value
+  #   end
+
+  #   protected
+
+  #   def check_row(row)
+  #     raise unless row.to_s =~ /[0-9]+/
+  #     raise if cell_members.key?(row) || cell_values.key?(row)
+
+  #     row
+  #   end
+  # end
 end

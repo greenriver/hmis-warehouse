@@ -71,7 +71,7 @@ module HudApr::Generators::Shared::Fy2024
     private def generate_table(table_name, universe_clause, header_row, columns)
       metadata = {
         header_row: header_row,
-        row_labels: table_rows.keys,
+        row_labels: gender_identities.keys,
         first_column: 'B',
         last_column: columns.keys.last,
         first_row: 2,
