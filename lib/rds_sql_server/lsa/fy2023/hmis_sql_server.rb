@@ -16,7 +16,7 @@ module HmisSqlServer
       # 'User.csv' => HmisSqlServer::User,
       'Client.csv' => HmisSqlServer::Client,
       # 'CurrentLivingSituation.csv' => HmisSqlServer::CurrentLivingSituation,
-      # 'Disabilities.csv' => HmisSqlServer::Disability,
+      'Disabilities.csv' => HmisSqlServer::Disability,
       # 'EmploymentEducation.csv' => HmisSqlServer::EmploymentEducation,
       'Enrollment.csv' => HmisSqlServer::Enrollment,
       # 'Event.csv' => HmisSqlServer::Event,
@@ -119,6 +119,12 @@ module HmisSqlServer
     private def skip_date_fixes?
       true
     end
+
+    def clean_row_for_import(row:, headers:)
+      field_index = headers.index('ExportDate')
+      row[field_index] = row[field_index].to_date
+      super(row: row, headers: headers)
+    end
   end
 
   class Funder < LsaBase
@@ -192,8 +198,6 @@ module HmisSqlServer
         field_index = headers.index(k)
         row[field_index] = row[field_index].presence || 1 # this is incorrect, but HDX will reject a 99
       end
-      field_index = headers.index('HMISParticipatingProject')
-      row[field_index] = 0 if row[field_index].to_s == '99' || row[field_index].blank? # this is incorrect, but HDX will reject a 99
 
       super(row: row, headers: headers)
     end

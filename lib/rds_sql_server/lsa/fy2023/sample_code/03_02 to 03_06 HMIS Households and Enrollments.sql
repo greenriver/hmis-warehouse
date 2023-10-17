@@ -397,7 +397,7 @@ where hoh.DateDeleted is null
 	update n
 	set n.SUD = 1, n.Step = '3.4.7'
 	from tlsa_Enrollment n
-	inner join hmis_Disabilities d on d.EnrollmentID = n.EnrollmentID and d.DisabilityType = 10 and d.DisabilityResponse = 1
+	inner join hmis_Disabilities d on d.EnrollmentID = n.EnrollmentID and d.DisabilityType = 10 and d.DisabilityResponse in (1,2,3)
 		and d.IndefiniteAndImpairs = 1
 	where n.ActiveAge between 18 and 65 and d.InformationDate <= (select ReportEnd from lsa_Report) 
 

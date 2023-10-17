@@ -100,7 +100,7 @@ FY2023 Changes
 	group by p.ProjectID, rpt.ReportID
 
 /*
-	10.5	DQ – Enrollments in non-participating projects
+	10.5	DQ â€“ Enrollments in non-participating projects
 */
 	delete from lsa_Calculated where ReportRow = 906
 
@@ -119,7 +119,7 @@ FY2023 Changes
 	where n.Active = 1 and part.ProjectID is null
 	group by n.ProjectID, rpt.ReportID
 /*
-	10.6	DQ – Enrollments without exactly one HoH
+	10.6	DQ â€“ Enrollments without exactly one HoH
 */
 	delete from lsa_Calculated where ReportRow = 907
 
@@ -144,7 +144,7 @@ FY2023 Changes
 				(hx.ExitDate >= rpt.ReportStart and hx.ExitDate > hn.EntryDate))
 	group by hn.ProjectID, rpt.ReportID
 /*
-	10.7	DQ – Relationship to HoH
+	10.7	DQ â€“ Relationship to HoH
 */
 	delete from lsa_Calculated where ReportRow = 908
 
@@ -165,7 +165,7 @@ FY2023 Changes
 				(hx.ExitDate >= rpt.ReportStart and hx.ExitDate > hn.EntryDate))
 	group by hn.ProjectID, rpt.ReportID
 /*
-	10.8	DQ – Household Entry
+	10.8	DQ â€“ Household Entry
 */
 	delete from lsa_Calculated where ReportRow = 909
 
@@ -178,7 +178,7 @@ FY2023 Changes
 	where hh.Active = 1
 	group by hh.ProjectID, rpt.ReportID
 /*
-	10.9	DQ – Client Entry
+	10.9	DQ â€“ Client Entry
 */
 	delete from lsa_Calculated where ReportRow = 910
 
@@ -191,7 +191,7 @@ FY2023 Changes
 	where n.Active = 1
 	group by n.ProjectID, rpt.ReportID
 /*
-	10.10	DQ – Adult/HoH Entry
+	10.10	DQ â€“ Adult/HoH Entry
 */
 	delete from lsa_Calculated where ReportRow = 911
 
@@ -206,7 +206,7 @@ FY2023 Changes
 	group by n.ProjectID, rpt.ReportID
 
 /*
-	10.11	DQ – Client Exit
+	10.11	DQ â€“ Client Exit
 */
 	delete from lsa_Calculated where ReportRow = 912
 
@@ -219,7 +219,7 @@ FY2023 Changes
 	where n.Active = 1
 	group by n.ProjectID, rpt.ReportID
 /*
-	10.12	DQ – Disabling Condition
+	10.12	DQ â€“ Disabling Condition
 */
 	delete from lsa_Calculated where ReportRow = 913
 
@@ -232,7 +232,7 @@ FY2023 Changes
 	where n.Active = 1 and n.DisabilityStatus = 99
 	group by n.ProjectID, rpt.ReportID
 /*
-	10.13	DQ – Living Situation
+	10.13	DQ â€“ Living Situation
 */
 	delete from lsa_Calculated where ReportRow = 914
 
@@ -249,7 +249,7 @@ FY2023 Changes
 	group by n.ProjectID, rpt.ReportID
 
 /*
-	10.14	DQ – Length of Stay
+	10.14	DQ â€“ Length of Stay
 */
 	delete from lsa_Calculated where ReportRow = 915
 
@@ -265,7 +265,7 @@ FY2023 Changes
 		and (hn.LengthOfStay in (8,9,99) or hn.LengthOfStay is NULL)
 	group by n.ProjectID, rpt.ReportID
 /*
-	10.15	DQ – Date ES/SH/Street Homelessness Started
+	10.15	DQ â€“ Date ES/SH/Street Homelessness Started
 */
 	delete from lsa_Calculated where ReportRow = 916
 
@@ -288,7 +288,7 @@ FY2023 Changes
 		)	
 	group by n.ProjectID, rpt.ReportID
 /*
-	10.16	DQ – Times ES/SH/Street Homeless Last 3 Years
+	10.16	DQ â€“ Times ES/SH/Street Homeless Last 3 Years
 */
 	delete from lsa_Calculated where ReportRow = 917
 
@@ -308,7 +308,7 @@ FY2023 Changes
 				or hn.PreviousStreetESSH = 1)
 	group by n.ProjectID, rpt.ReportID
 /*
-	10.17	DQ – Months ES/SH/Street Homeless Last 3 Years
+	10.17	DQ â€“ Months ES/SH/Street Homeless Last 3 Years
 */
 	delete from lsa_Calculated where ReportRow = 918
 
@@ -328,7 +328,7 @@ FY2023 Changes
 		or hn.PreviousStreetESSH = 1)	
 	group by n.ProjectID, rpt.ReportID
 /*
-	10.18	DQ – Destination 
+	10.18	DQ â€“ Destination 
 */
 	delete from lsa_Calculated where ReportRow = 919
 
@@ -344,7 +344,7 @@ FY2023 Changes
 			or (x.Destination = 435 and x.DestinationSubsidyType is NULL))
 	group by n.ProjectID, rpt.ReportID
 /*
-	10.19	DQ – Date of Birth
+	10.19	DQ â€“ Date of Birth
 */
 
 	delete from lsa_Calculated where ReportRow = 920

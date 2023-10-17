@@ -7,6 +7,7 @@ module LsaSqlServer
       'Funder.csv' => LsaSqlServer::Funder,
       'ProjectCoC.csv' => LsaSqlServer::ProjectCoc,
       'HMISParticipation.csv' => LsaSqlServer::HmisParticipation,
+      'Affiliation.csv' => LsaSqlServer::Affiliation,
       'Inventory.csv' => LsaSqlServer::Inventory,
       'LSAReport.csv' => LsaSqlServer::LSAReport,
       'LSAPerson.csv' => LsaSqlServer::LSAPerson,
@@ -342,6 +343,24 @@ module LsaSqlServer
 
     def self.csv_columns
       GrdaWarehouse::Hud::ProjectCoc.hud_csv_headers(version: '2024')
+    end
+  end
+
+  class HmisParticipation < SqlServerBase
+    self.table_name = :lsa_HMISParticipation
+    include TsqlImport
+
+    def self.csv_columns
+      GrdaWarehouse::Hud::HmisParticipation.hud_csv_headers(version: '2024')
+    end
+  end
+
+  class Affiliation < SqlServerBase
+    self.table_name = :lsa_Affiliation
+    include TsqlImport
+
+    def self.csv_columns
+      GrdaWarehouse::Hud::Affiliation.hud_csv_headers(version: '2024')
     end
   end
 

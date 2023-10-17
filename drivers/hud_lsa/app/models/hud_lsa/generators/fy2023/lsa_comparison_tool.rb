@@ -4,6 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Run with:
+# r = HudLsa::Generators::Fy2023::LsaComparisonTool.new('var/lsa/sample', 'var/lsa/generated')
+# r.compare
 require 'csv'
 module HudLsa::Generators::Fy2023
   class LsaComparisonTool

@@ -12,7 +12,7 @@ end
 # Testing notes:
 # Re-use an existing report
 # r = HudLsa::Generators::Fy2023::Lsa.last
-# r.instance_variable_set(:@test, true)
+# r.instance_variable_set(:@test, true); r.destroy_rds = false
 # r.run!
 module HudLsa::Generators::Fy2023
   class Lsa < ::HudReports::ReportInstance
