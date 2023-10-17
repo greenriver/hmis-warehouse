@@ -163,6 +163,10 @@ module HudApr::Generators::Shared::Fy2024
             s.RecordType == 200 && s.DateProvided < @report.end_date
           end&.max_by(&:DateProvided)
 
+          move_on_assistance = enrollment.services.select do |s|
+            s.RecordType == 300 && s.DateProvided < @report.end_date
+          end&.max_by(&:DateProvided)
+
           if processed_source_clients.include?(source_client.id)
             @notifier.ping "Duplicate source client: #{source_client.id} for destination client: #{client.id} in enrollment: #{enrollment.id}" if @send_notifications
             next
@@ -221,6 +225,7 @@ module HudApr::Generators::Shared::Fy2024
             date_homeless: enrollment.DateToStreetESSH,
             date_of_engagement: last_service_history_enrollment.enrollment.DateOfEngagement,
             date_of_last_bed_night: last_bed_night&.DateProvided,
+            move_on_assistance_provided: move_on_assistance&.TypeProvided,
             los_under_threshold: enrollment.LOSUnderThreshold,
             date_to_street: dates_to_street[last_service_history_enrollment.client_id],
             destination: last_service_history_enrollment.destination,
@@ -313,6 +318,7 @@ module HudApr::Generators::Shared::Fy2024
             project_type: last_service_history_enrollment.computed_project_type,
             race_multi: source_client.race_multi.sort.join(','),
             relationship_to_hoh: enrollment.RelationshipToHoH,
+            sexual_orientation: enrollment.sexual_orientation,
             ssn_quality: source_client.SSNDataQuality,
             ssn: source_client.SSN,
             subsidy_information: last_service_history_enrollment.enrollment.exit&.SubsidyInformation,

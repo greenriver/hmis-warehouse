@@ -52,15 +52,70 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     def q24b_moving_on_assistance_provided_to_households_in_psh
-      raise 'tbd'
+      # Heads of household active in PSH during the report date range
+      relevant_members = universe.members.where(hoh_clause).where(a_t[:project_type].eq(3))
+      question_sheet(question: 'Q24b') do  |sheet|
+        sub_populations.keys.each do |label|
+          sheet.add_header(label: label)
+        end
+
+        moa_col = a_t[:move_on_assistance_provided]
+        [
+          ['Subsidized housing application assistance', moa_col.eq(1)],
+          ['Financial assistance for Moving On (e.g., security deposit, moving expenses)', moa_col.eq(2)],
+          ['Non-financial assistance for Moving On (e.g., housing navigation, transition support)', moa_col.eq(3)],
+          ['Housing referral/placement', moa_col.eq(4)],
+          ['Other', moa_col.eq(5)],
+        ].each do |label, moa_cond|
+          scope = relevant_members.where(moa_cond)
+          sheet.append_row(label: label) do |row|
+            sub_populations.values.each do |pop_cond|
+              row.append_cell_members(members: scope.where(pop_cond))
+            end
+          end
+        end
+      end
     end
 
     def q24c_sexual_orientation_of_adults_in_psh_in_psh
-      raise 'tbd'
+      relevant_members = universe.members.where(adult_or_hoh_clause).where(a_t[:project_type].eq(3))
+
+      question_sheet(question: 'Q24c') do  |sheet|
+        sub_populations.keys.each do |label|
+          sheet.add_header(label: label)
+        end
+
+        so_col = a_t[:sexual_orientation]
+        [
+          ['Heterosexual', so_col.eq(1)],
+          ['Gay', so_col.eq(2)],
+          ['Lesbian', so_col.eq(3)],
+          ['Bisexual', so_col.eq(4)],
+          ['Questioning / unsure', so_col.eq(5)],
+          ['Other', so_col.eq(6)],
+          [label_for(:dkptr), so_col.in([8, 9])],
+          [label_for(:data_not_collected), so_col.eq(99).or(so_col.eq(nil))],
+        ].each do |label, so_cond|
+          scope = relevant_members.where(so_cond)
+          sheet.append_row(label: label) do |row|
+            sub_populations.values.each do |pop_cond|
+              row.append_cell_members(members: scope.where(pop_cond))
+            end
+          end
+        end
+
+        sheet.append_row(label: 'Total') do |row|
+          sub_populations.values.each do |pop_cond|
+            row.append_cell_members(members: relevant_members.where(pop_cond))
+          end
+        end
+      end
     end
 
     def q24d_language_of_persons_requiring_translation_assistance
-      relevant_members = universe.members.where(a_t[:translation_needed].eq(true)).
+      relevant_members = universe.members.
+        where(hoh_clause).
+        where(a_t[:translation_needed].eq(true)).
         where(a_t[:preferred_language].not_eq(nil).or(a_t[:preferred_language_different].not_eq(nil)))
 
       different_language_members = []

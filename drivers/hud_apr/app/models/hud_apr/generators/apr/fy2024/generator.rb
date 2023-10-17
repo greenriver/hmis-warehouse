@@ -53,6 +53,7 @@ module HudApr::Generators::Apr::Fy2024
         HudApr::Generators::Apr::Fy2024::QuestionTwentyOne, # Health Insurance
         HudApr::Generators::Apr::Fy2024::QuestionTwentyTwo, # Length of participation
         HudApr::Generators::Apr::Fy2024::QuestionTwentyThree, # Destination
+        HudApr::Generators::Apr::Fy2024::QuestionTwentyFour,
         HudApr::Generators::Apr::Fy2024::QuestionTwentyFive, # Veterans
         HudApr::Generators::Apr::Fy2024::QuestionTwentySix, # Chronically Homeless
         HudApr::Generators::Apr::Fy2024::QuestionTwentySeven, # Youth
