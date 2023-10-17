@@ -19,8 +19,8 @@
   .mb-7= render 'tabs', tabs: tabs
   .tab-content
     - tabs.each_with_index do |tab, i|
-      - pane_classes = ['tab-pane', 'fade', 'show', 'active']
+      - pane_classes = ['tab-pane', 'fade']
       - if i == 0
-        - pane_classes += ['js-first']
+        - pane_classes += ['js-first', 'show', 'active']
       %div{class: pane_classes, id: tab[:id], role: 'tabpanel', aria: {labelledby: "#{tab[:id]}_tab"}}
         = render tab[:id], tab: tab

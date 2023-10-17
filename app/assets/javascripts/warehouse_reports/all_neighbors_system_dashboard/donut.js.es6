@@ -74,6 +74,26 @@ class AllNeighborsSystemDashboardDonut {
             return d3.format(".0%")(ratio)
           }
         },
+      },
+      tooltip: {
+        contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
+          const dateString = this.state.dateRange ? this.state.dateRange.map((d) => new Date(d).toLocaleDateString('en-us', {year: 'numeric', month: 'short'})).join(' - ') : this.state.year
+          const swatch = `<svg class="chart-legend-item-swatch-prs1 mb-2" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color(d[0].id)}"/></svg>`;
+          const swatchLabel = `<div class="d-flex justify-content-start align-items-center"><div style="width:20px;padding-right:10px;">${swatch}</div><div class="pl-2">${d[0].name}</div></div>`;
+
+          let html = "<table class='bb-tooltip'>"
+          html += "<thead>"
+          html += `<tr><th colspan='2'><div class="d-flex justify-content-between align-items-center"><span class="pr-4">${this.data.title}</span><small>${dateString}</small></div></th></tr>`
+          html += "</thead>"
+          html += "<tbody>"
+
+          html += `<tr><td colspan="2">${swatchLabel}</td></tr>`
+          html += `<tr><td>Percent of ${this.countLevel.count_level ? this.countLevel.count_level : 'Individuals'}</td><td>${d3.format('.0%')(d[0].ratio)}</td></tr>`
+          html += `<tr><td>${this.countLevel.count_level ? this.countLevel.count_level.slice(0, -1) : 'Individual'} count</td><td>${d3.format(',')(d[0].value)}</td></tr>`
+          html += "</tbody>"
+          html += "</table>"
+          return html
+        }
       }
     }
     if(this.options.legend) {
@@ -105,10 +125,8 @@ class AllNeighborsSystemDashboardDonut {
   redraw(state) {
     this.state = state
     this.init()
-    this.chart.load({
-      columns: this.getColumns(),
-    })
-    this.updateLabels()
+    this.chart.destroy()
+    this.draw()
   }
 
   draw() {

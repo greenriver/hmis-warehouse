@@ -123,6 +123,26 @@ class AllNeighborsSystemDashboardStack {
       onrendered: function() {
         normalizeDataLabels(this)
         fitLabels(this)
+      },
+      tooltip: {
+        contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
+          const index = d[0].index
+          const title = this.series[index].name
+          const swatches = d.map((n) => {
+            const swatch = `<svg class="chart-legend-item-swatch-prs1 mb-2" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color(n.id)}"/></svg>`;
+            const swatchLabel = `<div class="d-flex justify-content-start align-items-center"><div style="width:20px;padding-right:10px;">${swatch}</div><div class="pl-2">${n.name}</div></div>`;
+            return `<tr><td>${swatchLabel}</td><td>${d3.format('.1%')(n.ratio)}</td></tr>`
+          })
+          let html = "<table class='bb-tooltip'>"
+          html += "<thead>"
+          html += `<tr><th colspan="2">${title}</th></tr>`
+          html += "</thead>"
+          html += "<tbody>"
+          html += swatches.join('')
+          html += "</tbody>"
+          html += "</table>"
+          return html
+        }
       }
     }
     if(this.options.legend) {
@@ -254,12 +274,30 @@ class AllNeighborsSystemDashboardUPVerticalStack extends AllNeighborsSystemDashb
       grid: {
         y: {show: true}
       },
-      // bar: {
-      //   width: 84,
-      // },
       padding: this.padding,
       onrendered: function() {
         fitLabels(this)
+      },
+      tooltip: {
+        contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
+          const index = d[0].index
+          const title = this.series[index].name
+          const swatches = d.map((n) => {
+            const swatch = `<svg class="chart-legend-item-swatch-prs1 mb-2" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color(n.id)}"/></svg>`;
+            const swatchLabel = `<div class="d-flex justify-content-start align-items-center"><div style="width:20px;padding-right:10px;">${swatch}</div><div class="pl-2">${n.name}</div></div>`;
+            return `<tr><td>${swatchLabel}</td><td>${d3.format(',')(n.value)}</td></tr>`
+          })
+          let html = "<table class='bb-tooltip'>"
+          html += "<thead>"
+          html += `<tr><th colspan="2">${title}</th></tr>`
+          html += "</thead>"
+          html += "<tbody>"
+          html += swatches.join('')
+          html += `<tr><td>Total</td><td>${d3.format(',')(d3.sum(d, (n) => n.value))}</td></tr>`
+          html += "</tbody>"
+          html += "</table>"
+          return html
+        }
       }
     }
     if(this.options.legend) {
@@ -302,10 +340,8 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
           return true
         })
         .map((s) => s.values[index])
-        // console.log(total)
         col.push(d3.mean(total))
       })
-      // console.log(col)
       return col
     }
   }
@@ -349,6 +385,8 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
     const superConfig = super.getConfig()
     const superDrawTotals = super.drawTotals
     const padding = this.padding
+    const series = this.series
+    const classConfig = this.config
     const config = {
       data: this.getDataConfig(),
       axis: this.getAxisConfig(),
@@ -356,6 +394,34 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
         x: {show: true}
       },
       padding: padding,
+      tooltip: {
+        contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
+          const index = d[0].index
+          const householdTotal = d3.sum(
+            this.series[index].series.filter((n) => this.inDateRange(n.date, this.state.dateRange)),
+            (n) => n.household_count  
+          )
+          const barName = this.series[index].name
+          const dateString = this.state.dateRange.map((d) => new Date(d).toLocaleDateString('en-us', {year: 'numeric', month: 'short'})).join(' - ')
+          const swatches = d.map((n) => {
+            const swatch = `<svg class="chart-legend-item-swatch-prs1 mb-2" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color(n.id)}"/></svg>`;
+            const swatchLabel = `<div class="d-flex justify-content-start align-items-center"><div style="width:20px;padding-right:10px;">${swatch}</div><div class="pl-2">${n.name}</div></div>`;
+            return `<tr><td>${swatchLabel}</td><td>${d3.format('.0f')(n.value)}</td></tr>`
+          })
+          let html = "<table class='bb-tooltip'>"
+          html += "<thead>"
+          html += `<tr><th colspan='2'><div class="d-flex justify-content-between align-items-center"><span class="pr-4">Average Days</span><small>${dateString}</small></div></th></tr>`
+          html += "</thead>"
+          html += "<tbody>"
+          html += `<tr><td colspan='2'>${barName}</td></tr>`
+          html += swatches.join('')
+          html += `<tr><td>Total Average Days</td><td>${d3.format('.0f')(d3.sum(d, n => n.value))}</td></tr>`
+          html += `<tr><td>Total Households Moved-In</td><td>${d3.format('.0f')(householdTotal)}</td></tr>`
+          html += "</tbody>"
+          html += "</table>"
+          return html
+        }
+      },
       onrendered: function() {
         const selector = this.internal.config.bindto
         $(`${selector} .bb-axis-x .tick line`).attr('x2', padding.left*-1)
@@ -365,6 +431,15 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
           .attr('y', (d, i) => this.internal.scale.x(i))
           .attr('transform', 'translate(30, 6)')
         fitLabels(this)
+        // add values to overall cards
+        const overallIndex = series.map((d) => d.name).indexOf('Overall')
+        const overallData = this.data().map((d) => d.values[overallIndex].value)
+        classConfig.keys.concat(['total']).forEach((d, i) => {
+          const labelClass = `${selector}__${d}`
+          const label = d3.select(`${selector}__${d}`)
+          const value = d === 'total' ? d3.sum(overallData) : overallData[i]
+          label.text(d3.format('.0f')(value))
+        })
       }
     }
     if(this.options.legend) {
@@ -372,6 +447,7 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
     }
     return {...superConfig, ...config}
   }
+
 }
 
 // Returns to homelessness group stack with label on the left

@@ -104,10 +104,11 @@ module AllNeighborsSystemDashboard
     end
 
     def overall_data
+      # ids need to match the types above (except total)
       {
-        ident_to_move_in: { name: 'Identification to Move-In', value: 223 },
-        ident_to_referral: { name: 'Identification to Referral', value: 127 },
-        referral_to_move_in: { name: 'Referral to Move-In', value: 96 },
+        ident_to_move_in: { name: 'Identification to Move-In', id: to_key('total') },
+        ident_to_referral: { name: 'Identification to Referral', id: to_key('ID to Referral') },
+        referral_to_move_in: { name: 'Referral to Move-In', id: to_key('Referral to Move-in*') },
       }
     end
   end

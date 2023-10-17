@@ -6,10 +6,29 @@ class AllNeighborsSystemDashboardFilters {
     this.filterLabels = filterLabels || []
     this.updateLabels()
     this.initCharts(charts)
+    this.initResize()
+    this.initTabChange()
   }
 
   test() {
     console.log(this)
+  }
+
+  initTabChange() {
+    $('.all-neighbors__all__tabs a[data-toggle="tab"]').on('shown.bs.tab', () => {
+      this.redrawCharts()
+    })
+  }
+
+  initResize() {
+    const debounce = (func, timeout = 300) => {
+      let timer;
+      return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => { func.apply(this, args); }, timeout);
+      };
+    }
+    window.addEventListener('resize', debounce(this.redrawCharts))
   }
 
   initCharts(chartConfig) {
@@ -30,7 +49,7 @@ class AllNeighborsSystemDashboardFilters {
         let startDp = this.filters[filter.name].start.datepicker('getDate')
         startDp = new Date(startDp.getFullYear(), startDp.getMonth(), 1);
         let endDp = this.filters[filter.name].end.datepicker('getDate')
-        endDp = new Date(endDp.getFullYear(), endDp.getMonth() + 1, 1);
+        endDp = new Date(endDp.getFullYear(), endDp.getMonth() + 1, 0);
         this.state[filter.name] = [
           Date.parse(startDp),
           Date.parse(endDp)

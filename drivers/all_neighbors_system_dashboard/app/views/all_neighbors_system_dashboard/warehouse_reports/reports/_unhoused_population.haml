@@ -14,7 +14,7 @@
 .border.my-7.p-6
   %h3.mb-6 Homeless Population Over Time
   %div{id: chart_id(tab[:id], 'vertical_stack')}
-  .d-flex.justify-content-center{id: "#{chart_id(tab[:id], 'vertical_stack')}_legend"}
+  .d-flex.justify-content-center{id: legend_id(tab[:id], 'vertical_stack')}
 
 .border.my-7.p-4
   .row.align-items-center.justify-content-between
@@ -38,7 +38,7 @@
     $(document).ready(function() {
       console.log('Unhoused Population -----------------')
       var verticalStackData = #{all_data.vertical_stack.to_json.html_safe}
-      var verticalStackId = '##{chart_id(tab[:id], 'vertical_stack')}'
+      
       var donutData = #{all_data.donut_data.to_json.html_safe}
       var stackedData = #{all_data.stacked_data.to_json.html_safe}
       var stackedId = '##{chart_id(tab[:id], "stacked_#{all_data.stacked_data[:id]}")}'
@@ -91,24 +91,19 @@
       var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts, labelConfig)
       filters.test()
 
-      const verticalStackChart = new AllNeighborsSystemDashboardUPVerticalStack(
-          verticalStackData,
-          {},
-          verticalStackId,
-          {
-            legend: {
-              selector: verticalStackId+'_legend'
+      // this chart doesn't use filters but still wrapping to get resize behavior from filters class
+      var verticalStackFilter = new AllNeighborsSystemDashboardFilters(
+          [],
+          [
+            {
+              chart: AllNeighborsSystemDashboardUPVerticalStack,
+              data: verticalStackData,
+              selector: '##{chart_id(tab[:id], 'vertical_stack')}',
+              options: {
+                legend: {selector: '##{legend_id(tab[:id], 'vertical_stack')}'}
+              }
             }
-          }
+          ]
         )
-      verticalStackChart.draw()
 
-      // charts render weird if other tabs are hidden
-      // hide the other tabs after all the charts are done
-      $('.tab-pane').each(function(d) {
-        if(d > 0) {
-          $(this).removeClass('show')
-          $(this).removeClass('active')
-        }
-      })
     })

@@ -1,5 +1,6 @@
 class AllNeighborsSystemDashboardLine {
   constructor(data, initialState, selector, options) {
+    console.log('data', data)
     this.data = data
     this.state = initialState
     this.selector = selector
@@ -13,6 +14,7 @@ class AllNeighborsSystemDashboardLine {
     this.householdType = (this.projectType.household_types || []).filter((d) => d.household_type === this.state.householdType)[0] || {}
     this.demographic = (this.householdType.demographics || []).filter((d) => d.demographic === this.state.demographics)[0] || {}
     this.series = this.countLevel.series || this.demographic.series || []
+    this.monthlyCounts = this.countLevel.monthly_counts
     this.config = this.projectType.config || {}
     this.quarters = this.data.quarters || []
   }
@@ -106,6 +108,22 @@ class AllNeighborsSystemDashboardLine {
           },
         },
       },
+      tooltip: {
+        contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
+          const index = d[0].index
+          const monthlyCount = this.monthlyCounts[0][index][1]
+          let html = "<table class='bb-tooltip'>"
+          html += "<thead>"
+          html += `<tr><th colspan='2'>${defaultTitleFormat(d[0].x)}</th></tr>`
+          html += "</thead>"
+          html += "<tbody>"
+          html += `<tr><td>New ${this.countLevel.count_level.slice(0, -1)} Placements</td><td>${d3.format(',')(monthlyCount)}</td></tr>`
+          html += `<tr><td>Total ${this.countLevel.count_level} Placed to Date</td><td>${d3.format(',')(d[0].value)}</td></tr>`
+          html += "</tbody>"
+          html += "</table>"
+          return html
+        },
+      },
       bindto: this.selector
     }
   }
@@ -117,9 +135,8 @@ class AllNeighborsSystemDashboardLine {
   redraw(state) {
     this.state = state
     this.init()
-    this.chart.load({
-      columns: this.getColumns(),
-    })
+    this.chart.destroy()
+    this.draw()
   }
 
   draw() {
@@ -272,13 +289,6 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
     return {...super.getConfig(), ...config}
   }
 
-  redraw(state) {
-    this.state = state
-    this.init()
-    // the only way I could get this to keep the point shapes consistent
-    this.chart.destroy()
-    this.chart = bb.generate(this.getConfig())
-  }
 }
 
 //internal scatter by quarter

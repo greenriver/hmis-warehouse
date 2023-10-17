@@ -34,6 +34,7 @@ class AllNeighborsSystemDashboardBar {
         centered: false,
         show: true,
         color: '#000000',
+        format: (v, id, i, text) => d3.format(',')(v)
       },
     }
   }
@@ -54,6 +55,7 @@ class AllNeighborsSystemDashboardBar {
       y: {
         tick: {
           stepSize: 250,
+          format: (y) => d3.format(',')(y)
         }
       }
     }
@@ -66,28 +68,6 @@ class AllNeighborsSystemDashboardBar {
         height: 500,
       },
       data: this.getDataConfig(),
-      // data: {
-      //   x: "x",
-      //   columns: [
-      //     ["x"].concat(this.config.keys)
-      //   ].concat(this.series.map((d) => [d.name].concat(d.values))),
-      //   types: {
-      //     exited: "bar",
-      //     returned: "bar",
-      //   },
-      //   colors: {
-      //     exited: (d) => this.config.colors[d.id][d.index],
-      //     returned: (d) => this.config.colors[d.id][d.index],
-      //   },
-      //   labels: {
-      //     centered: false,
-      //     show: true,
-      //     color: '#000000',
-      //     format: (v, id, i, j) => {
-      //       return d3.format(",")(v);
-      //     },
-      //   },
-      // },
       padding: {
         left: 60,
         top: 40,
@@ -95,7 +75,9 @@ class AllNeighborsSystemDashboardBar {
         bottom: 40
       },
       bar: {
-        width: 200,
+        width: {
+          ratio: 1,
+        }
       },
       grid: {
         y: {show: true}
@@ -105,6 +87,31 @@ class AllNeighborsSystemDashboardBar {
         show: false,
       },
       bindto: this.selector,
+      tooltip: {
+        contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
+          const labels = {
+            exited: 'Exited to permanent destination',
+            returned: 'Returned to homelessness in 1 year'
+          }
+          const index = d[0].index
+          const title = this.config.keys[index]
+          const swatches = d.map((n) => {
+            const swatch = `<svg class="chart-legend-item-swatch-prs1 mb-2" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${this.config.colors[n.id][n.index]}"/></svg>`;
+            const swatchLabel = `<div class="d-flex justify-content-start align-items-center"><div style="width:20px;padding-right:10px;">${swatch}</div><div class="pl-2">${labels[n.name]}</div></div>`;
+            return `<tr><td>${swatchLabel}</td><td>${d3.format(',')(n.value)}</td></tr>`
+          })
+          let html = "<table class='bb-tooltip'>"
+          html += "<thead>"
+          html += `<tr><th colspan="2">${title}</th></tr>`
+          html += "</thead>"
+          html += "<tbody>"
+          html += swatches.join('')
+          html += `<tr><td>Rate of Return</td><td>${d3.format('.1%')(d[1].value/d[0].value)}</td></tr>`
+          html += "</tbody>"
+          html += "</table>"
+          return html
+        }
+      },
       onrendered: function() {
         const selector = this.internal.config.bindto
         const data = this.data()
@@ -146,11 +153,10 @@ class AllNeighborsSystemDashboardBar {
   }
 
   redraw(state) {
-    this.state = state
+    this.state = state || {}
     this.init()
-    this.chart.load({
-      columns: this.getColumns(),
-    })
+    this.chart.destroy()
+    this.draw()
   }
 
   draw() {

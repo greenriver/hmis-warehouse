@@ -17,10 +17,18 @@ module AllNeighborsSystemDashboard
             },
             count_levels: count_levels.map do |count_level|
               opts = options[:include_project_type] ? options.merge(project_type: project_type) : options
-              {
-                count_level: count_level,
-                series: send(type, opts),
-              }
+              if type == :line
+                {
+                  count_level: count_level,
+                  series: send(type, opts),
+                  monthly_counts: send(type, opts.merge({ range: [0, 300] })),
+                }
+              else
+                {
+                  count_level: count_level,
+                  series: send(type, opts),
+                }
+              end
             end,
           }
         end,

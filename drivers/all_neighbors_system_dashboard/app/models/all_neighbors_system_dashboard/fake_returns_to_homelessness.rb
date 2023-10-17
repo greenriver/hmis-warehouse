@@ -44,20 +44,20 @@ module AllNeighborsSystemDashboard
     end
 
     def bars
-      rate_of_return = ['15.1%', '26.7%']
+      rate_of_return = ['15.1%', '26.7%', '10%']
       {
         title: 'Returns to Homelessness',
         id: 'returns_to_homelessness',
         config: {
           colors: {
-            exited: ['#336770', '#884D01'],
-            returned: ['#85A4A9', '#B48F5F'],
+            exited: ['#336770', '#884D01', '#336770'],
+            returned: ['#85A4A9', '#B48F5F', '#85A4A9'],
           },
-          keys: ['2020 Cohort', '2021 Cohort'],
+          keys: ['2020 Cohort', '2021 Cohort', '2022 Cohort'],
         },
         series: [
-          { name: 'exited', values: [821, 1141] },
-          { name: 'returned', values: [200, 275] },
+          { name: 'exited', values: [821, 1141, 500] },
+          { name: 'returned', values: [200, 275, 450] },
           { name: 'rate', values: rate_of_return, table_only: true },
         ],
       }
