@@ -95,33 +95,19 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q26c_ch_gender
-      table_name = 'Q26c'
-      metadata = {
-        header_row: [' '] + q26_populations.keys,
-        row_labels: q26c_responses.keys,
-        first_column: 'B',
-        last_column: 'F',
-        first_row: 2,
-        last_row: 9,
-      }
-      @report.answer(question: table_name).update(metadata: metadata)
+      members = universe.members.where(a_t[:chronically_homeless].eq(true))
+      question_sheet(question: 'Q26c') do  |sheet|
+        q26_populations.keys.each do |label|
+          sheet.add_header(label: label)
+        end
 
-      cols = (metadata[:first_column]..metadata[:last_column]).to_a
-      rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      q26_populations.values.each_with_index do |population_clause, col_index|
-        q26c_responses.values.each_with_index do |response_clause, row_index|
-          cell = "#{cols[col_index]}#{rows[row_index]}"
-          next if intentionally_blank.include?(cell)
-
-          answer = @report.answer(question: table_name, cell: cell)
-
-          members = universe.members.where(a_t[:chronically_homeless].eq(true)).
-            where(population_clause).
-            where(response_clause)
-          value = members.count
-
-          answer.add_members(members)
-          answer.update(summary: value)
+        gender_identities.each_pair do |label, gender_cond|
+          gender_scope = members.where(gender_cond[1])
+          sheet.append_row(label: label) do |row|
+            q26_populations.values.each do |pop_cond|
+              row.append_cell_members(members: gender_scope.where(pop_cond))
+            end
+          end
         end
       end
     end

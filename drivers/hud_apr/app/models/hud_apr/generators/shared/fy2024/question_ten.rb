@@ -12,8 +12,6 @@ module HudApr::Generators::Shared::Fy2024
       {
         'Question 10' => 'Gender',
         'Q10a' => 'Gender',
-        # 'Q10b' => 'Gender of Children',
-        # 'Q10c' => 'Gender of Persons Missing Age Information',
         'Q10d' => 'Gender by Age Ranges',
       }.freeze
     end
