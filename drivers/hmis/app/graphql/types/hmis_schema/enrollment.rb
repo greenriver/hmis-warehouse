@@ -145,6 +145,7 @@ module Types
     access_field do
       can :edit_enrollments
       can :delete_enrollments
+      can :split_households
     end
     custom_data_elements_field
 
