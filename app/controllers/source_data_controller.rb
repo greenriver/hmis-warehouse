@@ -35,6 +35,15 @@ class SourceDataController < ApplicationController
     @importer = @importers.max_by do |importer|
       [@item.imported_item_type(importer.id), @importer&.created_at]
     end
+
+    # Only show current data for HMIS records
+    if @data_source.hmis
+      @imported = @csv = false
+      @hmis = true
+      @hmis_url = hmis_url
+      return
+    end
+
     year = @item.imported_item_type(@importer.id)
     @imported = @item.send("imported_items_#{year}").order(importer_log_id: :desc).first
     @csv = @item.send("loaded_items_#{year}").with_deleted.order(loader_id: :desc).first
@@ -85,5 +94,15 @@ class SourceDataController < ApplicationController
   private def item_scope
     @klass.joins(:data_source).
       merge(GrdaWarehouse::DataSource.editable_by(current_user).source)
+  end
+
+  private def hmis_url
+    return unless @data_source.hmis
+
+    base = "https://#{@data_source.hmis}"
+    return "#{base}/projects/#{@item.id}" if @item.is_a?(GrdaWarehouse::Hud::Project)
+    return "#{base}/organizations/#{@item.id}" if @item.is_a?(GrdaWarehouse::Hud::Organization)
+    return "#{base}/client/#{@item.id}" if @item.is_a?(GrdaWarehouse::Hud::Client)
+    return "#{base}/client/#{@item.client.id}/enrollments/#{@item.enrollment.id}" if @item.respond_to?(:enrollment) && @item.respond_to?(:client)
   end
 end
