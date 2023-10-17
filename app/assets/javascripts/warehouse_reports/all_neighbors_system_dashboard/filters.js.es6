@@ -49,7 +49,7 @@ class AllNeighborsSystemDashboardFilters {
         let startDp = this.filters[filter.name].start.datepicker('getDate')
         startDp = new Date(startDp.getFullYear(), startDp.getMonth(), 1);
         let endDp = this.filters[filter.name].end.datepicker('getDate')
-        endDp = new Date(endDp.getFullYear(), endDp.getMonth() + 1, 1);
+        endDp = new Date(endDp.getFullYear(), endDp.getMonth() + 1, 0);
         this.state[filter.name] = [
           Date.parse(startDp),
           Date.parse(endDp)

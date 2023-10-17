@@ -284,6 +284,8 @@ module AllNeighborsSystemDashboard
             {
               date: date.strftime('%Y-%-m-%-d'),
               values: options[:types].map.with_index { |_, i| i.zero? ? 1 : rand(0..150) },
+              # only need for time to obtain housing stack tooltip
+              household_count: rand(0..2),
             }
           end,
         }
