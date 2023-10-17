@@ -175,49 +175,11 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q25i_destination
-      table_name = 'Q25i'
-      metadata = {
-        header_row: [' '] + q25i_populations.keys,
-        row_labels: q25i_destinations_headers,
-        first_column: 'B',
-        last_column: 'F',
-        first_row: 2,
-        last_row: 46,
-      }
-      @report.answer(question: table_name).update(metadata: metadata)
-
-      cols = (metadata[:first_column]..metadata[:last_column]).to_a
-      rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      veterans_leavers = universe.members.where(veteran_clause.and(leavers_clause))
-      q25i_populations.values.each_with_index do |population_clause, col_index|
-        q25i_destinations.values.each_with_index do |destination_clause, row_index|
-          cell = "#{cols[col_index]}#{rows[row_index]}"
-          next if intentionally_blank_25i.include?(cell)
-
-          answer = @report.answer(question: table_name, cell: cell)
-
-          if destination_clause.is_a?(Symbol)
-            case destination_clause
-            when :percentage
-              value = percentage(0.0)
-              members = veterans_leavers.where(population_clause)
-              positive = members.where(q25i_destinations['Total persons exiting to positive housing destinations']).count
-              total = members.where(q25i_destinations['Total']).count
-              excluded = members.where(q25i_destinations['Total persons whose destinations excluded them from the calculation']).count
-              value = percentage(positive.to_f / (total - excluded)) if total.positive? && excluded != total
-            end
-          else
-            members = veterans_leavers.where(population_clause).where(destination_clause)
-            value = members.count
-          end
-          answer.add_members(members)
-          answer.update(summary: value)
-        end
-      end
+      sub_populations_by_subsidy_type(question: 'Q25i', members: universe.members.where(veteran_clause))
     end
 
     def q25j_exit_destination_subsidy
-      raise 'tbd'
+      sub_populations_by_destination(question: 'Q25j', members: universe.members.where(veteran_clause))
     end
 
     private def veteran_age_ranges
@@ -266,47 +228,8 @@ module HudApr::Generators::Shared::Fy2024
       end
     end
 
-    private def q25i_destinations
-      destination_clauses
-    end
-
-    private def q25i_populations
-      sub_populations
-    end
-
-    private def q25i_destinations_headers
-      q25i_destinations.keys.map do |label|
-        label
-      end
-    end
-
     private def intentionally_blank
       [].freeze
-    end
-
-    private def intentionally_blank_25i
-      [
-        'B2',
-        'C2',
-        'D2',
-        'E2',
-        'F2',
-        'B17',
-        'C17',
-        'D17',
-        'E17',
-        'F17',
-        'B28',
-        'C28',
-        'D28',
-        'E28',
-        'F28',
-        'B36',
-        'C36',
-        'D36',
-        'E36',
-        'F36',
-      ].freeze
     end
   end
 end
