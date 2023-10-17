@@ -649,7 +649,7 @@ module HudApr::Generators::Shared::Fy2024
         },
         'Unknown' => {
           order: 7,
-          label: "Client Doesn't Know/Client Refused",
+          label: label_for(:dkptr),
           clause: a_t[:race].in([8, 9]),
         },
         'Data Not Collected' => {

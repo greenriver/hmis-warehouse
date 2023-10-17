@@ -773,7 +773,7 @@ module HudApr::Generators::Shared::Fy2024
         'No Single Gender' => a_t[:gender_multi].in(::HudUtility.no_single_gender_queries),
         'Questioning' => a_t[:gender_multi].in(::HudUtility.questioning_gender_queries),
         'Transgender' => a_t[:gender_multi].in(::HudUtility.transgender_gender_queries),
-        'Client Doesn\'t Know/Client Refused' => a_t[:gender_multi].in(['8', '9']),
+        label_for(:dkptr) => a_t[:gender_multi].in(['8', '9']),
         'Data Not Collected' => a_t[:gender_multi].eq('99'),
         'Total' => youth_filter,
       }.freeze
@@ -783,7 +783,7 @@ module HudApr::Generators::Shared::Fy2024
       {
         '12-17' => a_t[:age].between(12..17).and(a_t[:dob_quality].in([1, 2])),
         '18-24' => a_t[:age].between(18..24).and(a_t[:dob_quality].in([1, 2])),
-        "Client Doesn't Know/Client Refused" => Arel.sql('0=1'), # Not used in APR
+        label_for(:dkptr) => Arel.sql('0=1'), # Not used in APR
         'Data Not Collected' => Arel.sql('0=1'), # Not used in APR
         'Total' => youth_filter,
       }
