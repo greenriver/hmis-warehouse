@@ -15,7 +15,11 @@ module Types
     end
 
     def nodes
-      @all_nodes.offset(@offset).limit(@limit)
+      if @all_nodes.is_a?(Array)
+        @all_nodes[@offset, @limit]
+      else
+        @all_nodes.offset(@offset).limit(@limit)
+      end
     end
 
     def nodes_count

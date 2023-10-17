@@ -159,18 +159,18 @@ module Types
       Hmis::Hud::CustomServiceType.find_by(id: id)
     end
 
-    field :get_form_definition, Types::Forms::FormDefinition, 'Get most relevant/recent form definition for the specified Role and project (optionally)', null: true do
-      argument :role, Types::Forms::Enums::FormRole, required: true
-      argument :enrollment_id, ID, required: false
-      argument :project_id, ID, required: false
-    end
-
     field :file, Types::HmisSchema::File, null: true do
       argument :id, ID, required: true
     end
 
     def file(id:)
       Hmis::File.viewable_by(current_user).find_by(id: id)
+    end
+
+    field :get_form_definition, Types::Forms::FormDefinition, 'Get most relevant/recent form definition for the specified Role and project (optionally)', null: true do
+      argument :role, Types::Forms::Enums::FormRole, required: true
+      argument :enrollment_id, ID, required: false
+      argument :project_id, ID, required: false
     end
 
     def get_form_definition(role:, enrollment_id: nil, project_id: nil)
@@ -234,6 +234,31 @@ module Types
       postings = HmisExternalApis::AcHmis::ReferralPosting.denied_pending_status
 
       scoped_referral_postings(postings, **args)
+    end
+
+    field :merge_candidates, Types::HmisSchema::ClientMergeCandidate.page_type, null: false
+    def merge_candidates
+      raise 'not allowed' unless current_user.can_merge_clients?
+
+      destination_id_to_source_ids = GrdaWarehouse::WarehouseClient.
+        where(data_source_id: current_user.hmis_data_source_id).
+        joins(:source). # drop non existent source clients
+        group(:destination_id).
+        having('count(*) > 1').
+        select('"destination_id", array_agg("source_id") as source_ids').
+        map { |r| [r.destination_id, r.source_ids] }.
+        to_h
+
+      source_lookup = Hmis::Hud::Client.
+        where(id: destination_id_to_source_ids.values.flatten).
+        index_by(&:id)
+
+      destination_id_to_source_ids.map do |dest_id, client_ids|
+        OpenStruct.new(
+          id: dest_id,
+          clients: client_ids.map { |id| source_lookup[id] }.compact,
+        )
+      end
     end
 
     # AC HMIS Queries
