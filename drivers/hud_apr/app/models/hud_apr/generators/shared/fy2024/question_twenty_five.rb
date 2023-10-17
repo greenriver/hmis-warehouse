@@ -133,9 +133,9 @@ module HudApr::Generators::Shared::Fy2024
 
         gender_identities.each_pair do |label, gender_cond|
           gender_scope = veterans.where(gender_cond[1])
-          sheet.with_row(label: label) do |row|
+          sheet.append_row(label: label) do |row|
             q25_populations.values.each do |pop_cond|
-              row.add_members(members: gender_scope.where(pop_cond))
+              row.append_cell_members(members: gender_scope.where(pop_cond))
             end
           end
         end

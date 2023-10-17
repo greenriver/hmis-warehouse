@@ -65,9 +65,9 @@ module HudApr::Generators::Shared::Fy2024
           ['Total', nil],
         ].each do |label, occurred_cond|
           members = occurred_cond ? dv_members.where(occurred_cond) : dv_members
-          sheet.with_row(label: label) do |row|
+          sheet.append_row(label: label) do |row|
             sub_populations.values.each do |dv_cond|
-              row.add_members(members: members.where(dv_cond))
+              row.append_cell_members(members: members.where(dv_cond))
             end
           end
         end

@@ -84,7 +84,7 @@ module HudApr::Generators::Shared::Fy2024
       @headers = { 'A' => '' }
     end
 
-    def with_row(label:)
+    def append_row(label:)
       row = QuestionSheetRowBuilder.new
       yield(row)
       rows[label] = row
@@ -142,13 +142,13 @@ module HudApr::Generators::Shared::Fy2024
       @cell_values = {}
     end
 
-    def add_members(col: next_column, members:)
+    def append_cell_members(col: next_column, members:)
       col = check_col(col)
       cell_members[col] = members
       col
     end
 
-    def add_value(col: next_column, value:)
+    def append_cell_value(col: next_column, value:)
       col = check_col(col)
       cell_values[col] = value
       col
@@ -171,6 +171,7 @@ module HudApr::Generators::Shared::Fy2024
     end
   end
 
+  # for column-wise building
   # internal class
   # class QuestionSheetColumnBuilder
   #   attr_reader :cell_members, :cell_values

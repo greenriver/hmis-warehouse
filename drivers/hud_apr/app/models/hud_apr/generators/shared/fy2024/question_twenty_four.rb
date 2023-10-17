@@ -81,15 +81,15 @@ module HudApr::Generators::Shared::Fy2024
 
         language_rows.each do |code, members|
           label = HudUtility2024.preferred_languages.fetch(code.to_i)
-          sheet.with_row(label: label) do |row|
-            row.add_members(members: members)
+          sheet.append_row(label: label) do |row|
+            row.append_cell_members(members: members)
           end
         end
-        sheet.with_row(label: 'Different Preferred Language') do |row|
-          row.add_members(members: different_language_members)
+        sheet.append_row(label: 'Different Preferred Language') do |row|
+          row.append_cell_members(members: different_language_members)
         end
-        sheet.with_row(label: 'Total') do |row|
-          row.add_members(members: relevant_members)
+        sheet.append_row(label: 'Total') do |row|
+          row.append_cell_members(members: relevant_members)
         end
       end
     end

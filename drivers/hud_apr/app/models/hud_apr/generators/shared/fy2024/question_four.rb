@@ -64,7 +64,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     def project_row(sheet, project)
-      sheet.with_row(label: project.organization&.OrganizationName) do |row|
+      sheet.append_row(label: project.organization&.OrganizationName) do |row|
         ce_participation = detect_ce_participation(project)
         [
           project.OrganizationID,
@@ -85,12 +85,12 @@ module HudApr::Generators::Shared::Fy2024
           @report.start_date,
           @report.end_date,
         ].each do |value|
-          row.add_value(value: value)
+          row.append_cell_value(value: value)
         end
 
         # Note cells P and Q (active clients and active households)
-        row.add_members(members: universe.members.where(a_t[:project_id].eq(project.id)))
-        row.add_members(members: universe.members.where(hoh_clause).where(a_t[:project_id].eq(project.id)))
+        row.append_cell_members(members: universe.members.where(a_t[:project_id].eq(project.id)))
+        row.append_cell_members(members: universe.members.where(hoh_clause).where(a_t[:project_id].eq(project.id)))
       end
     end
 
