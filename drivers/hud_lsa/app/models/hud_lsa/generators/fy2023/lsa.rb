@@ -9,6 +9,11 @@ if ENV['RDS_AWS_ACCESS_KEY_ID'].present? && !ENV['NO_LSA_RDS'].present?
   load 'lib/rds_sql_server/sql_server_base.rb'
 end
 
+# Testing notes:
+# Re-use an existing report
+# r = HudLsa::Generators::Fy2023::Lsa.last
+# r.instance_variable_set(:@test, true)
+# r.run!
 module HudLsa::Generators::Fy2023
   class Lsa < ::HudReports::ReportInstance
     include TsqlImport
@@ -48,7 +53,6 @@ module HudLsa::Generators::Fy2023
     end
 
     def calculate
-      # FIXME? we might not need this
       filter.coc_code = 'XX-501' if test?
 
       log_and_ping('Starting')
