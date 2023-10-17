@@ -142,7 +142,7 @@ module AllNeighborsSystemDashboard
       when 'Household Type'
         scope.where(household_type: label)
       end
-      count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
+      count = mask_small_populations(scope.count, mask: @report.mask_small_populations?)
       count
     end
 
@@ -164,8 +164,8 @@ module AllNeighborsSystemDashboard
         # NOTE: we filter return date on write and only add if the client returned within a year
         returned_scope = exited_scope.where.not(return_date: nil)
 
-        exited_counts[year] = bracket_small_population(exited_scope.count, mask: @report.mask_small_populations?)
-        returned_counts[year] = bracket_small_population(returned_scope.count, mask: @report.mask_small_populations?)
+        exited_counts[year] = mask_small_populations(exited_scope.count, mask: @report.mask_small_populations?)
+        returned_counts[year] = mask_small_populations(returned_scope.count, mask: @report.mask_small_populations?)
       end
       rates_of_return = returned_counts.values.zip(exited_counts.values).map do |returns, exits|
         rate = exits.zero? ? 0 : (returns.to_f / exits * 100).round(1)

@@ -22,7 +22,7 @@ module AllNeighborsSystemDashboard
 
       # TODO: update once we have the internal version
       def mask_small_populations?
-        false
+        true
       end
 
       def report_path_array

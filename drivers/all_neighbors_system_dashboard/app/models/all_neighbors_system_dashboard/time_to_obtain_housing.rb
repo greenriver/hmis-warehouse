@@ -63,21 +63,30 @@ module AllNeighborsSystemDashboard
       )
     end
 
-    def overall_data
-      identifier = "#{@report.cache_key}/#{self.class.name}/#{__method__}"
-      existing = @report.datasets.find_by(identifier: identifier)
-      return existing.data.with_indifferent_access if existing.present?
+    # def overall_data
+    #   identifier = "#{@report.cache_key}/#{self.class.name}/#{__method__}"
+    #   existing = @report.datasets.find_by(identifier: identifier)
+    #   return existing.data.with_indifferent_access if existing.present?
 
-      data = {
-        ident_to_move_in: { name: 'Identification to Move-In', value: identification_to_move_in },
-        ident_to_referral: { name: 'Identification to Referral', value: identification_to_referral },
-        referral_to_move_in: { name: 'Referral to Move-In', value: referral_to_move_in },
+    #   data = {
+    #     ident_to_move_in: { name: 'Identification to Move-In', value: identification_to_move_in },
+    #     ident_to_referral: { name: 'Identification to Referral', value: identification_to_referral },
+    #     referral_to_move_in: { name: 'Referral to Move-In', value: referral_to_move_in },
+    #   }
+    #   @report.datasets.create!(
+    #     identifier: identifier,
+    #     data: data,
+    #   )
+    #   data
+    # end
+    #
+    def overall_data
+      # ids need to match the types above (except total)
+      {
+        ident_to_move_in: { name: 'Identification to Move-In', id: to_key('total') },
+        ident_to_referral: { name: 'Identification to Referral', id: to_key('ID to Referral') },
+        referral_to_move_in: { name: 'Referral to Move-In', id: to_key('Referral to Move-in*') },
       }
-      @report.datasets.create!(
-        identifier: identifier,
-        data: data,
-      )
-      data
     end
 
     private def identification_to_referral(scope = moved_in_scope)
@@ -150,7 +159,7 @@ module AllNeighborsSystemDashboard
             {
               date: date.strftime('%Y-%-m-%-d'),
               values: averages,
-              households_count: bracket_small_population(household_scope.count, mask: @report.mask_small_populations?),
+              households_count: mask_small_populations(household_scope.count, mask: @report.mask_small_populations?),
             }
           end,
         }

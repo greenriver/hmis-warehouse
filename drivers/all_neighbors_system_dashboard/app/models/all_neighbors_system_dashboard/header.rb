@@ -19,7 +19,7 @@ module AllNeighborsSystemDashboard
         {
           id: 'individuals_housed',
           icon: 'icon-group-alt',
-          value: bracket_small_population(housed_count, mask: @report.mask_small_populations?),
+          value: mask_small_populations(housed_count, mask: @report.mask_small_populations?),
           name: 'Individuals Housed To-Date',
           display_method: :number_with_delimiter,
         },

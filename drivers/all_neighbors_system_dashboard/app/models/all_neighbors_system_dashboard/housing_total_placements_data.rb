@@ -75,7 +75,7 @@ module AllNeighborsSystemDashboard
         scope = filter_for_type(scope, options[:project_type])
         scope = filter_for_count_level(scope, options[:count_level])
         scope = filter_for_date(scope, date)
-        count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
+        count = mask_small_populations(scope.count, mask: @report.mask_small_populations?)
         [
           date.strftime('%Y-%-m-%-d'),
           count,
@@ -123,7 +123,7 @@ module AllNeighborsSystemDashboard
             scope = filter_for_type(scope, type)
             scope = filter_for_count_level(scope, options[:count_level])
             scope = filter_for_date(scope, date)
-            count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
+            count = mask_small_populations(scope.count, mask: @report.mask_small_populations?)
             count = options[:hide_others_when_not_all] && project_type != 'All' && type != project_type ? 0 : count
             {
               date: date.strftime('%Y-%-m-%-d'),
@@ -198,11 +198,11 @@ module AllNeighborsSystemDashboard
               when 'Overall Population (Census)'
                 get_us_census_population_by_race(race_code: race_code, year: date.year).to_i
               when 'All'
-                count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
+                count = mask_small_populations(scope.count, mask: @report.mask_small_populations?)
                 count
               else
                 scope = filter_for_type(scope, bar)
-                count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
+                count = mask_small_populations(scope.count, mask: @report.mask_small_populations?)
                 count
               end
             end

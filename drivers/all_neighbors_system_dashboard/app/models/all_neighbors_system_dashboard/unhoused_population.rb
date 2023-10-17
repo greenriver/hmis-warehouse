@@ -143,7 +143,7 @@ module AllNeighborsSystemDashboard
             # NOTE: there is no filter for households right now, but it could be added here
             scope = filter_for_count_level(scope, 'Individuals')
             scope = filter_for_date(scope, date)
-            count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
+            count = mask_small_populations(scope.count, mask: @report.mask_small_populations?)
             count = options[:hide_others_when_not_all] && project_type != 'All' && type != project_type ? 0 : count
             {
               date: date.strftime('%Y-%-m-%-d'),
@@ -233,7 +233,7 @@ module AllNeighborsSystemDashboard
       end
 
       scope = filter_for_date(scope, date)
-      count = bracket_small_population(scope.distinct.select(:destination_client_id).count, mask: @report.mask_small_populations?)
+      count = mask_small_populations(scope.distinct.select(:destination_client_id).count, mask: @report.mask_small_populations?)
 
       count
     end
@@ -261,7 +261,7 @@ module AllNeighborsSystemDashboard
         scope
       end
       scope = scope.where(primary_race: label)
-      count = bracket_small_population(scope.count, mask: @report.mask_small_populations?)
+      count = mask_small_populations(scope.count, mask: @report.mask_small_populations?)
 
       count
     end
