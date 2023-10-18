@@ -16,11 +16,12 @@ module Mutations
       clients = Hmis::Hud::Client.viewable_by(current_user).where(id: all_client_ids)
       raise 'not found' unless clients.size == all_client_ids.size
 
-      # kick off jobs
-      input.each do |obj|
-        next unless obj.client_ids.size > 1
+      Hmis::Hud::Client.transaction do
+        input.each do |obj|
+          next unless obj.client_ids.size > 1
 
-        Hmis::MergeClientsJob.perform_now(client_ids: obj.client_ids, actor_id: current_user.id)
+          Hmis::MergeClientsJob.perform_now(client_ids: obj.client_ids, actor_id: current_user.id)
+        end
       end
 
       { success: true }
