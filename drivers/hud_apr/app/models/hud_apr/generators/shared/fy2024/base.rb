@@ -163,9 +163,17 @@ module HudApr::Generators::Shared::Fy2024
             s.RecordType == 200 && s.DateProvided < @report.end_date
           end&.max_by(&:DateProvided)
 
-          move_on_assistance = enrollment.services.select do |s|
-            s.RecordType == 300 && s.DateProvided < @report.end_date
+          move_on_assistance = enrollment.services.filter do |service|
+            service.RecordType == 300 && service.DateProvided < @report.end_date
           end&.max_by(&:DateProvided)
+
+          youth_education_status_at_entry = enrollment.youth_education_statuses.filter do |status|
+            status.DataCollectionStage == 1 && status.InformationDate < @report.end_date
+          end&.max_by(&:InformationDate)
+
+          youth_education_status_at_exit = enrollment.youth_education_statuses.filter do |status|
+            status.DataCollectionStage == 3 && status.InformationDate < @report.end_date
+          end&.max_by(&:InformationDate)
 
           if processed_source_clients.include?(source_client.id)
             @notifier.ping "Duplicate source client: #{source_client.id} for destination client: #{client.id} in enrollment: #{enrollment.id}" if @send_notifications
@@ -226,6 +234,15 @@ module HudApr::Generators::Shared::Fy2024
             date_of_engagement: last_service_history_enrollment.enrollment.DateOfEngagement,
             date_of_last_bed_night: last_bed_night&.DateProvided,
             move_on_assistance_provided: move_on_assistance&.TypeProvided,
+
+            current_school_attend_at_entry: youth_education_status_at_entry&.CurrentSchoolAttend,
+            most_recent_ed_status_at_entry: youth_education_status_at_entry&.MostRecentEdStatus,
+            current_ed_status_at_entry:      youth_education_status_at_entry&.CurrentEdStatus,
+
+            current_school_attend_at_exit: youth_education_status_at_exit&.CurrentSchoolAttend,
+            most_recent_ed_status_at_exit: youth_education_status_at_exit&.MostRecentEdStatus,
+            current_ed_status_at_exit: youth_education_status_at_exit&.CurrentEdStatus,
+
             los_under_threshold: enrollment.LOSUnderThreshold,
             date_to_street: dates_to_street[last_service_history_enrollment.client_id],
             destination: last_service_history_enrollment.destination,
@@ -1017,7 +1034,6 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def gender_question(question:, members:, populations:)
-
       question_sheet(question: question) do  |sheet|
         populations.keys.each do |label|
           sheet.add_header(label: label)

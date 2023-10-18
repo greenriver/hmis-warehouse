@@ -504,6 +504,86 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     def q27m_education_status_youth
+      # Youth heads of household who exited from YHDP-funded projects in the report date range
+      members = universe.members.where(leavers_clause).where(youth_filter).where(hoh_clause.and(a_t[:age].between(12..24)))
+      question_sheet(question: 'Q27m') do |sheet|
+        sheet.add_header(col: 'A', label: 'Current school and attendance')
+        sheet.add_header(col: 'B', label: 'At Project Start')
+        sheet.add_header(col: 'C', label: 'At Project Exit')
+
+        current_school_attend_rows = [
+          ['Not currently enrolled in any school or education course', [0]],
+          ['Currently enrolled but not attending regularly', [1]],
+          ['Currently enrolled and attending regularly', [2]],
+          [label_for(:dkptr), [8, 9]],
+          [label_for(:data_not_collected), [99]],
+        ]
+        current_school_attend_rows.each do |label, values|
+          sheet.append_row(label: label) do |row|
+            row.append_cell_members(members: members.where(a_t[:current_school_attend_at_entry].in(values)))
+            row.append_cell_members(members: members.where(a_t[:current_school_attend_at_exit].in(values)))
+          end
+        end
+
+        sheet.append_row(label: 'For those not enrolled – most recent education status')
+        most_recent_ed_status_rows = [
+          ['K12: Graduated from high school', [0]],
+          ['K12: Obtained GED', [1]],
+          ['K12: Dropped out', [2]],
+          ['K12: Suspended', [3]],
+          ['K12: Expelled', [4]],
+          ['Higher education: Pursuing a credential but not currently attending', [5]],
+          ['Higher education: Dropped out', [6]],
+          ['Higher education: Obtained a credential/degree', [7]],
+          [label_for(:dkptr), [8, 9]],
+          [label_for(:data_not_collected), [99]],
+        ]
+        most_recent_ed_status_rows.each do |label, values|
+          sheet.append_row(label: label) do |row|
+            row.append_cell_members(members: members.where(a_t[:most_recent_ed_status_at_entry].in(values)))
+            row.append_cell_members(members: members.where(a_t[:most_recent_ed_status_at_exit].in(values)))
+          end
+        end
+
+        sheet.append_row(label: 'For those currently enrolled – current status')
+        current_ed_status_rows = [
+          ['Pursuing a high school diploma or GED', [0]],
+          ['Pursuing Associate Degree', [1]],
+          ['Pursuing Bachelor Degree', [2]],
+          ['Pursuing Graduate Degree', [3]],
+          ['Pursuing other post-secondary credential', [4]],
+          [label_for(:dkptr), [8, 9]],
+          [label_for(:data_not_collected), [99]],
+        ]
+        current_ed_status_rows.each do |label, values|
+          sheet.append_row(label: label) do |row|
+            row.append_cell_members(members: members.where(a_t[:current_ed_status_at_entry].in(values)))
+            row.append_cell_members(members: members.where(a_t[:current_ed_status_at_exit].in(values)))
+          end
+        end
+
+        # unclear how these would be exclusive
+        sheet.append_row(label: 'Total') do |row|
+          row.append_cell_members(
+            members: members.where(
+              [
+                a_t[:current_school_attend_at_entry].in(current_school_attend_rows.flat_map(&:last)),
+                a_t[:most_recent_ed_status_at_entry].in(most_recent_ed_status_rows.flat_map(&:last)),
+                a_t[:current_ed_status_at_entry].in(current_ed_status_rows.flat_map(&:last)),
+              ].inject(&:or),
+            ),
+          )
+          row.append_cell_members(
+            members: members.where(
+              [
+                a_t[:current_school_attend_at_exit].in(current_school_attend_rows.flat_map(&:last)),
+                a_t[:most_recent_ed_status_at_exit].in(most_recent_ed_status_rows.flat_map(&:last)),
+                a_t[:current_ed_status_at_exit].in(current_ed_status_rows.flat_map(&:last)),
+              ].inject(&:or),
+            ),
+          )
+        end
+      end
     end
 
     private def q27l_lengths
