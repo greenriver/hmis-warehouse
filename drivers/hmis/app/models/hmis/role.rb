@@ -316,6 +316,33 @@ class Hmis::Role < ::ApplicationRecord
           'Audit History',
         ],
       },
+      can_merge_clients: {
+        description: 'Grants the ability to merge and split client records',
+        administrative: true,
+        access: [:editable],
+        categories: [
+          'Administrative',
+          'Client Access',
+        ],
+      },
+      can_split_households: {
+        description: 'Grants the ability to merge and split households',
+        administrative: true,
+        access: [:editable],
+        categories: [
+          'Administrative',
+          'Enrollments',
+        ],
+      },
+      can_transfer_enrollments: {
+        description: 'Grants the ability to transfer enrollments between projects',
+        administrative: true,
+        access: [:editable],
+        categories: [
+          'Administrative',
+          'Enrollments',
+        ],
+      },
     }
   end
 end

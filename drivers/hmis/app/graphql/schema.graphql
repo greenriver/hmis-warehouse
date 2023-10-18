@@ -599,6 +599,7 @@ type Client {
 }
 
 type ClientAccess {
+  canAuditClients: Boolean!
   canDeleteAssessments: Boolean!
   canDeleteClient: Boolean!
   canDeleteEnrollments: Boolean!
@@ -2788,6 +2789,7 @@ type Enrollment {
 type EnrollmentAccess {
   canDeleteEnrollments: Boolean!
   canEditEnrollments: Boolean!
+  canSplitHouseholds: Boolean!
   id: ID!
 }
 
@@ -7733,6 +7735,9 @@ type QueryAccess {
   canManageInventory: Boolean!
   canManageOutgoingReferrals: Boolean!
   canManageOwnClientFiles: Boolean!
+  canMergeClients: Boolean!
+  canSplitHouseholds: Boolean!
+  canTransferEnrollments: Boolean!
   canViewAnyConfidentialClientFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
   canViewClients: Boolean!
