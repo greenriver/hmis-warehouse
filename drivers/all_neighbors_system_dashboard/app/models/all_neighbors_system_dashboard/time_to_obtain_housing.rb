@@ -34,7 +34,7 @@ module AllNeighborsSystemDashboard
                   bars = (['Overall'] + demo_bars)
                   {
                     demographic: demo,
-                    series: send(type, options.merge({ bars: bars })),
+                    series: send(type, options.merge({ bars: bars, project_type: project_type, household_type: household_type })),
                   }
                 end,
               }
@@ -63,23 +63,6 @@ module AllNeighborsSystemDashboard
       )
     end
 
-    # def overall_data
-    #   identifier = "#{@report.cache_key}/#{self.class.name}/#{__method__}"
-    #   existing = @report.datasets.find_by(identifier: identifier)
-    #   return existing.data.with_indifferent_access if existing.present?
-
-    #   data = {
-    #     ident_to_move_in: { name: 'Identification to Move-In', value: identification_to_move_in },
-    #     ident_to_referral: { name: 'Identification to Referral', value: identification_to_referral },
-    #     referral_to_move_in: { name: 'Referral to Move-In', value: referral_to_move_in },
-    #   }
-    #   @report.datasets.create!(
-    #     identifier: identifier,
-    #     data: data,
-    #   )
-    #   data
-    # end
-    #
     def overall_data
       # ids need to match the types above (except total)
       {
@@ -134,7 +117,7 @@ module AllNeighborsSystemDashboard
     def stack(options)
       project_type = options[:project_type]
       homelessness_status = options[:homelessness_status]
-      bars = project_type.present? ? [project_type] + options[:bars] : options[:bars]
+      bars = options[:bars]
       bars[0] = "#{homelessness_status} #{bars[0]}" if homelessness_status.present?
       bars.map do |bar|
         {
@@ -145,6 +128,10 @@ module AllNeighborsSystemDashboard
             household_scope = filter_for_date(household_scope, date)
             averages = options[:types].map do |category|
               scope = moved_in_scope
+              # Filter for high level type
+              scope = filter_for_type(scope, project_type)
+              # Filter for household type (need to write the filter logic)
+              scope = filter_for_type(scope, options[:household_type])
               scope = filter_for_date(scope, date)
               scope = filter_for_type(scope, bar)
               case category

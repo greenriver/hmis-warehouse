@@ -123,11 +123,12 @@ module AllNeighborsSystemDashboard
       # NOTE: there is no picker for households, so we're always using individuals
       scope = filter_for_count_level(scope, 'Individuals')
       scope = filter_for_year(scope, date)
+      scope = scope.where(exit_type: 'Permanent')
 
       scope = case bar
       when 'Returned'
         # NOTE: we filter return date on write and only add if the client returned within a year
-        scope.where(exit_type: 'Permanent').where.not(return_date: nil)
+        scope.where.not(return_date: nil)
       else
         # NOTE: date filter enforces exit type is permanent since everyone in the page
         # has to have exited to a permanent destination (or moved in)
