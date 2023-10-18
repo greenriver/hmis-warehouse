@@ -554,6 +554,28 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     hmis.present?
   end
 
+  def hmis_url_for(entity)
+    return unless hmis?
+    return unless entity&.data_source_id == id
+
+    base = "https://#{hmis}"
+    url = case entity
+    when GrdaWarehouse::Hud::Project
+      "#{base}/projects/#{entity.id}"
+    when GrdaWarehouse::Hud::Organization
+      "#{base}/organizations/#{entity.id}"
+    when GrdaWarehouse::Hud::Client
+      "#{base}/client/#{entity.id}"
+    when GrdaWarehouse::Hud::Enrollment
+      "#{base}/client/#{entity.client&.id}/enrollments/#{entity.id}"
+    end
+
+    # For any other Enrollment-related record, link to the enrollment page
+    url ||= "#{base}/client/#{entity.client&.id}/enrollments/#{entity.enrollment&.id}" if entity.respond_to?(:enrollment) && entity.respond_to?(:client)
+
+    url
+  end
+
   private def maintain_system_group
     if Rails.env.test?
       AccessGroup.maintain_system_groups(group: :data_sources)
