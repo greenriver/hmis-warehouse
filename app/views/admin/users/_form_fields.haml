@@ -65,7 +65,7 @@
     .form-access-control
       %h3 Permission Scheme
       .well
-        = f.input :permission_context, as: :select_two, label: 'Permission Version', hint: 'Unless you know what you are doing, you should leave this as "legacy" for the time-being.', collection: User.available_permission_contexts
+        = f.input :permission_context, as: :select_two, label: 'Permission Version', hint: 'Unless you know what you are doing, you should leave this as "legacy" for the time-being.', collection: User.available_permission_contexts.invert, include_blank: false
 
     - if @user.training_required?
       .form--user-training
