@@ -16,13 +16,15 @@ module HudApr::Generators::Shared::Fy2024
         'Q27c' => 'Gender - Youth',
         'Q27d' => 'Living Situation - Youth',
         'Q27e' => 'Length of Participation - Youth',
-        'Q27f' => 'Exit Destination - Youth',
+        'Q27f1' => 'Exit Destination - Youth',
+        'Q27f2' => 'Exit Destination - – Subsidy Type of Persons Exiting to Rental by Client With An Ongoing Subsidy',
         'Q27g' => 'Cash Income - Sources - Youth',
         'Q27h' => 'Client Cash Income Category - Earned/Other Income Category - by Start and Annual Assessment/Exit Status - Youth',
         'Q27i' => 'Disabling Conditions and Income for Youth at Exit',
         'Q27j' => 'Average and Median Length of Participation in Days - Youth',
         'Q27k' => 'Length of Time between Project Start Date and Housing Move-in Date - Youth',
         'Q27l' => 'Length of Time Prior to Housing - based on 3.917 Date Homelessness Started - Youth',
+        'Q27m' => 'Education Status - Youth',
       }.freeze
     end
 
@@ -69,7 +71,7 @@ module HudApr::Generators::Shared::Fy2024
       table_name = 'Q27b'
       metadata = {
         header_row: [' '] + q27b_populations.keys,
-        row_labels: youth_age_ranges.keys,
+        row_labels: ['Parent youth < 18', 'Parent youth 18 to 24'],
         first_column: 'B',
         last_column: 'E',
         first_row: 2,
@@ -145,67 +147,18 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q27c_youth_gender
-      table_name = 'Q27c'
-      metadata = {
-        header_row: [' '] + q27_populations.keys,
-        row_labels: q27c_responses.keys,
-        first_column: 'B',
-        last_column: 'F',
-        first_row: 2,
-        last_row: 9,
-      }
-      @report.answer(question: table_name).update(metadata: metadata)
-
-      cols = (metadata[:first_column]..metadata[:last_column]).to_a
-      rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      q27_populations.values.each_with_index do |population_clause, col_index|
-        q27c_responses.values.each_with_index do |response_clause, row_index|
-          cell = "#{cols[col_index]}#{rows[row_index]}"
-          next if intentionally_blank.include?(cell)
-
-          answer = @report.answer(question: table_name, cell: cell)
-
-          members = universe.members.where(youth_filter).
-            where(population_clause).
-            where(response_clause)
-          value = members.count
-
-          answer.add_members(members)
-          answer.update(summary: value)
-        end
-      end
+      gender_question(
+        question: 'Q27c',
+        members: universe.members.where(youth_filter),
+        populations: sub_populations,
+      )
     end
 
     private def q27d_youth_living_situation
-      table_name = 'Q27d'
-      metadata = {
-        header_row: [' '] + q27_populations.keys,
-        row_labels: living_situation_headers,
-        first_column: 'B',
-        last_column: 'F',
-        first_row: 2,
-        last_row: 35,
-      }
-      @report.answer(question: table_name).update(metadata: metadata)
-
-      cols = (metadata[:first_column]..metadata[:last_column]).to_a
-      rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      q27_populations.values.each_with_index do |population_clause, col_index|
-        living_situations.values.each_with_index do |situation_clause, row_index|
-          cell = "#{cols[col_index]}#{rows[row_index]}"
-          next if intentionally_blank_27d.include?(cell)
-
-          answer = @report.answer(question: table_name, cell: cell)
-          members = universe.members.
-            where(
-              hoh_clause.and(a_t[:age].in(12..24)).and(a_t[:other_clients_over_25].eq(false)),
-            ).
-            where(population_clause).
-            where(situation_clause)
-          answer.add_members(members)
-          answer.update(summary: members.count)
-        end
-      end
+      living_situations_question(
+        question: 'Q27d',
+        members: universe.members.where(hoh_clause.and(a_t[:age].in(12..24)).and(a_t[:other_clients_over_25].eq(false))),
+      )
     end
 
     private def q27e_youth_length_of_participation
@@ -216,7 +169,7 @@ module HudApr::Generators::Shared::Fy2024
         first_column: 'B',
         last_column: 'D',
         first_row: 2,
-        last_row: 13,
+        last_row: 12,
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
@@ -239,54 +192,15 @@ module HudApr::Generators::Shared::Fy2024
       end
     end
 
-    private def q27f_youth_destination
-      table_name = 'Q27f'
-      metadata = {
-        header_row: [' '] + q27_populations.keys,
-        row_labels: q27f_destinations_headers,
-        first_column: 'B',
-        last_column: 'F',
-        first_row: 2,
-        last_row: 46,
-      }
-      @report.answer(question: table_name).update(metadata: metadata)
+    def q27f1_youth_destination
+      sub_populations_by_destination(
+        question: 'Q27f1',
+        members: universe.members.where(youth_filter).where(youth_adult_or_youth_hoh_clause),
+      )
+    end
 
-      cols = (metadata[:first_column]..metadata[:last_column]).to_a
-      rows = (metadata[:first_row]..metadata[:last_row]).to_a
-
-      leavers = universe.members.where(leavers_clause)
-
-      q27_populations.values.each_with_index do |population_clause, col_index|
-        q27f_destinations.values.each_with_index do |destination_clause, row_index|
-          cell = "#{cols[col_index]}#{rows[row_index]}"
-          next if intentionally_blank_27f.include?(cell)
-
-          answer = @report.answer(question: table_name, cell: cell)
-          value = 0
-
-          members = leavers.
-            where(population_clause).
-            where(youth_filter).
-            where(youth_adult_or_youth_hoh_clause)
-
-          if destination_clause.is_a?(Symbol)
-            case destination_clause
-            when :percentage
-              positive = members.where(q27f_destinations['Total persons exiting to positive housing destinations']).count
-              total = members.count
-              excluded = members.where(q27f_destinations['Total persons whose destinations excluded them from the calculation']).count
-              percent = 0
-              percent = positive.to_f / (total - excluded) if total.positive? && excluded != total
-              value = percentage(percent)
-            end
-          else
-            members = members.where(destination_clause)
-            value = members.count
-          end
-          answer.add_members(members)
-          answer.update(summary: value)
-        end
-      end
+    def q27f2_subsidy_type_of_persons_exiting_to_rental_by_client_with_an_ongoing_subsidy
+      sub_populations_by_subsidy_type(question: 'Q27f2', members: universe.members.where(youth_filter))
     end
 
     private def q27g_youth_income_sources
@@ -395,7 +309,7 @@ module HudApr::Generators::Shared::Fy2024
         first_column: 'B',
         last_column: 'Q',
         first_row: 2,
-        last_row: 14,
+        last_row: 18,
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
@@ -496,10 +410,6 @@ module HudApr::Generators::Shared::Fy2024
       ]
 
       income_types(:exit).except(
-        'Unemployment Insurance',
-        'VA Non-Service Connected Disability Pension',
-        'General Assistance (GA)',
-        'Alimony and other spousal support',
         'Adults with Income Information at Start and Annual Assessment/Exit',
       ).merge(
         {
@@ -554,52 +464,11 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q27k_start_to_move_in
-      table_name = 'Q27k'
-      metadata = {
-        header_row: [' '] + q27k_populations.keys,
-        row_labels: q27k_lengths.keys,
-        first_column: 'B',
-        last_column: 'F',
-        first_row: 2,
-        last_row: 13,
-      }
-      @report.answer(question: table_name).update(metadata: metadata)
-
-      cols = (metadata[:first_column]..metadata[:last_column]).to_a
-      rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      relevant_members = universe.members.where(a_t[:project_type].in([3, 13]))
-      q27k_populations.values.each_with_index do |population_clause, col_index|
-        q27k_lengths.values.each_with_index do |length_clause, row_index|
-          cell = "#{cols[col_index]}#{rows[row_index]}"
-          next if intentionally_blank.include?(cell)
-
-          answer = @report.answer(question: table_name, cell: cell)
-
-          # Universe: All active clients where the head of household had a move-in date in the report date range plus leavers who exited in the date range and never had a move-in date.
-          members = relevant_members.where(population_clause).
-            where(youth_filter).
-            where(
-              a_t[:move_in_date].between(@report.start_date..@report.end_date).
-              or(leavers_clause.and(a_t[:move_in_date].eq(nil))),
-            )
-
-          if length_clause.is_a?(Symbol)
-            case length_clause
-            when :average
-              value = 0
-              members = members.where(a_t[:move_in_date].between(@report.start_date..@report.end_date))
-              stay_lengths = members.pluck(a_t[:time_to_move_in])
-              value = (stay_lengths.sum(0.0) / stay_lengths.count).round(2) if stay_lengths.any?
-            end
-          else
-            members = members.where(length_clause)
-            value = members.count
-          end
-
-          answer.add_members(members)
-          answer.update(summary: value)
-        end
-      end
+      # members: start_to_move_in_universe
+      start_to_move_in_question(
+        question: 'Q27k',
+        members: universe.members.where(youth_filter),
+      )
     end
 
     private def q27l_time_prior_to_housing
@@ -610,7 +479,7 @@ module HudApr::Generators::Shared::Fy2024
         first_column: 'B',
         last_column: 'F',
         first_row: 2,
-        last_row: 14,
+        last_row: 15,
       }
       @report.answer(question: table_name).update(metadata: metadata)
 
@@ -634,6 +503,9 @@ module HudApr::Generators::Shared::Fy2024
       end
     end
 
+    def q27m_education_status_youth
+    end
+
     private def q27l_lengths
       move_in_projects = HudUtility2024.residential_project_type_numbers_by_code[:ph]
       move_in_for_psh = a_t[:project_type].not_in(move_in_projects).
@@ -649,7 +521,9 @@ module HudApr::Generators::Shared::Fy2024
           and(move_in_for_psh),
         '31 to 60 days' => a_t[:approximate_time_to_move_in].between(31..60).
           and(move_in_for_psh),
-        '61 to 180 days' => a_t[:approximate_time_to_move_in].between(61..180).
+        '61 to 90 days' => a_t[:approximate_time_to_move_in].between(61..90).
+          and(move_in_for_psh),
+        '91 to 180 days' => a_t[:approximate_time_to_move_in].between(91..180).
           and(move_in_for_psh),
         '181 to 365 days' => a_t[:approximate_time_to_move_in].between(181..365).
           and(move_in_for_psh),
@@ -740,14 +614,6 @@ module HudApr::Generators::Shared::Fy2024
       }
     end
 
-    private def living_situation_headers
-      living_situations.keys.map do |label|
-        next 'Subtotal' if label.include?('Subtotal')
-
-        label
-      end
-    end
-
     private def income_headers_27g
       income_types('').keys
     end
@@ -801,7 +667,6 @@ module HudApr::Generators::Shared::Fy2024
         '1,096 to 1,460 days (3-4 Yrs)' => '1,096 to 1,460 days (3-4 Yrs)',
         '1,461 to 1,825 days (4-5 Yrs)' => '1,461 to 1,825 days (4-5 Yrs)',
         'More than 1,825 days (> 5 Yrs)' => 'More than 1,825 days (> 5 Yrs)',
-        'Data Not Collected' => 'Data Not Collected',
         'Total' => 'Total',
       }.map do |k, label|
         [label, lengths[k]]

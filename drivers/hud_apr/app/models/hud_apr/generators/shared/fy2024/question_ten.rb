@@ -17,24 +17,11 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q10a_gender_of_adults
-      table_name = 'Q10a'
-      header_row = [
-        ' ',
-        'Total',
-        'Without Children',
-        'With Children and Adults',
-        'With Only Children',
-        'Unknown Household Type',
-      ]
-      columns = {
-        'B' => Arel.sql('1=1'),
-        'C' => a_t[:household_type].eq(:adults_only),
-        'D' => a_t[:household_type].eq(:adults_and_children),
-        'E' => a_t[:household_type].eq(:children_only),
-        'F' => a_t[:household_type].eq(:unknown),
-      }
-
-      generate_table(table_name, adult_clause, header_row, columns)
+      gender_question(
+        question: '10a',
+        members: universe.members.where(adult_clause),
+        populations: sub_populations,
+      )
     end
 
     private def q10d_gender_by_age_range

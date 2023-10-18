@@ -124,22 +124,11 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q25c_veteran_gender
-      veterans = universe.members.where(veteran_clause)
-
-      question_sheet(question: 'Q25c') do  |sheet|
-        q25_populations.keys.each do |label|
-          sheet.add_header(label: label)
-        end
-
-        gender_identities.each_pair do |label, gender_cond|
-          gender_scope = veterans.where(gender_cond[1])
-          sheet.append_row(label: label) do |row|
-            q25_populations.values.each do |pop_cond|
-              row.append_cell_members(members: gender_scope.where(pop_cond))
-            end
-          end
-        end
-      end
+      gender_question(
+        question: '25c',
+        members: universe.members.where(veteran_clause),
+        populations: q25_populations,
+      )
     end
 
     private def q25d_veteran_age

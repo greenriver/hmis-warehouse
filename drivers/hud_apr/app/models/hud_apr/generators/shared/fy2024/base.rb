@@ -987,5 +987,124 @@ module HudApr::Generators::Shared::Fy2024
         end
       end
     end
+
+    def living_situations_question(question:, members:)
+      table_name = question
+      metadata = {
+        header_row: [' '] + sub_populations.keys,
+        row_labels: living_situations.map(&:first),
+        first_column: 'B',
+        last_column: 'F',
+        first_row: 2,
+        last_row: 32,
+      }
+      @report.answer(question: question).update(metadata: metadata)
+
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      sub_populations.values.each_with_index do |population_clause, col_index|
+        living_situations.map(&:last).each.with_index(2) do |situation_clause, row_index|
+          cell = "#{cols[col_index]}#{row_index}"
+          next unless situation_clause
+
+          answer = @report.answer(question: table_name, cell: cell)
+          scope = members.
+            where(population_clause).
+            where(situation_clause)
+          answer.add_members(scope)
+          answer.update(summary: scope.count)
+        end
+      end
+    end
+
+    private def gender_question(question:, members:, populations:)
+
+      question_sheet(question: question) do  |sheet|
+        populations.keys.each do |label|
+          sheet.add_header(label: label)
+        end
+
+        gender_identities.each_pair do |label, gender_cond|
+          gender_scope = members.where(gender_cond[1])
+          sheet.append_row(label: label) do |row|
+            populations.values.each do |pop_cond|
+              row.append_cell_members(members: gender_scope.where(pop_cond))
+            end
+          end
+        end
+      end
+    end
+
+    def start_to_move_in_lengths
+      lengths = lengths(field: a_t[:time_to_move_in])
+      ret = [
+        '7 days or less',
+        '8 to 14 days',
+        '15 to 21 days',
+        '22 to 30 days',
+        '31 to 60 days',
+        '61 to 90 days',
+        '91 to 180 days',
+        '181 to 365 days',
+        '366 to 730 days (1-2 Yrs)',
+      ]
+      ret = ret.to_h do |label|
+        cond = lengths.fetch(label).and(a_t[:move_in_date].between(@report.start_date..@report.end_date))
+        [label, cond]
+      end
+
+      ret.merge(
+        'Total (persons moved into housing)' => a_t[:move_in_date].between(@report.start_date..@report.end_date),
+        'Average length of time to housing' => :average,
+        'Persons who were exited without move-in' => a_t[:move_in_date].eq(nil),
+        'Total persons' => Arel.sql('1=1'),
+      ).freeze
+    end
+
+    def start_to_move_in_question(question:, members:, populations: sub_populations )
+      relevant_members = members.
+        where(a_t[:project_type].in([3, 13])).
+        where(
+          [
+            a_t[:move_in_date].between(@report.start_date..@report.end_date),
+            leavers_clause.and(a_t[:move_in_date].eq(nil)),
+          ].inject(&:or),
+        )
+
+      metadata = {
+        header_row: [' '] + populations.keys,
+        row_labels: start_to_move_in_lengths.keys,
+        first_column: 'B',
+        last_column: 'F',
+        first_row: 2,
+        last_row: 14,
+      }
+      @report.answer(question: question).update(metadata: metadata)
+
+      cols = (metadata[:first_column]..metadata[:last_column]).to_a
+      rows = (metadata[:first_row]..metadata[:last_row]).to_a
+      populations.values.each_with_index do |_population_clause, col_index|
+        start_to_move_in_lengths.values.each_with_index do |length_clause, row_index|
+          cell = "#{cols[col_index]}#{rows[row_index]}"
+          next if intentionally_blank.include?(cell)
+
+          answer = @report.answer(question: question, cell: cell)
+          if length_clause.is_a?(Symbol)
+            case length_clause
+            when :average
+              value = 0
+              scope = relevant_members.where(a_t[:move_in_date].between(@report.start_date..@report.end_date))
+              stay_lengths = members.pluck(a_t[:time_to_move_in])
+              value = (stay_lengths.sum(0.0) / stay_lengths.count).round if stay_lengths.any? # using round since this is an average number of days
+            end
+          else
+            scope = relevant_members.where(length_clause)
+            value = relevant_members.count
+          end
+
+          answer.add_members(scope)
+          answer.update(summary: value)
+        end
+      end
+    end
   end
 end

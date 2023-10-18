@@ -122,43 +122,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q22c_start_to_move_in
-      table_name = 'Q22c'
-      metadata = {
-        header_row: [' '] + q22c_populations.keys,
-        row_labels: q22c_lengths.keys,
-        first_column: 'B',
-        last_column: 'F',
-        first_row: 2,
-        last_row: 14,
-      }
-      @report.answer(question: table_name).update(metadata: metadata)
-
-      cols = (metadata[:first_column]..metadata[:last_column]).to_a
-      rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      members = start_to_move_in_universe
-      q22c_populations.values.each_with_index do |_population_clause, col_index|
-        q22c_lengths.values.each_with_index do |length_clause, row_index|
-          cell = "#{cols[col_index]}#{rows[row_index]}"
-          next if intentionally_blank.include?(cell)
-
-          answer = @report.answer(question: table_name, cell: cell)
-          if length_clause.is_a?(Symbol)
-            case length_clause
-            when :average
-              value = 0
-              members = members.where(a_t[:move_in_date].between(@report.start_date..@report.end_date))
-              stay_lengths = members.pluck(a_t[:time_to_move_in])
-              value = (stay_lengths.sum(0.0) / stay_lengths.count).round if stay_lengths.any? # using round since this is an average number of days
-            end
-          else
-            members = members.where(length_clause)
-            value = members.count
-          end
-
-          answer.add_members(members)
-          answer.update(summary: value)
-        end
-      end
+      start_to_move_in_question(question: 'Q22c', members: universe.members)
     end
 
     private def q22d_participation_by_household_type
@@ -320,32 +284,6 @@ module HudApr::Generators::Shared::Fy2024
       ].to_h { [_1, lengths.fetch(_1)] }
     end
 
-    private def q22c_lengths
-      lengths = lengths(field: a_t[:time_to_move_in])
-      ret = [
-        '7 days or less',
-        '8 to 14 days',
-        '15 to 21 days',
-        '22 to 30 days',
-        '31 to 60 days',
-        '61 to 90 days',
-        '91 to 180 days',
-        '181 to 365 days',
-        '366 to 730 days (1-2 Yrs)',
-        '731 days or more',
-      ]
-      ret = ret.to_h do |label|
-        cond = lengths.fetch(label).and(a_t[:move_in_date].between(@report.start_date..@report.end_date))
-        [label, cond]
-      end
-
-      ret.merge(
-        'Total (persons moved into housing)' => a_t[:move_in_date].between(@report.start_date..@report.end_date),
-        'Average length of time to housing' => :average,
-        'Persons who were exited without move-in' => a_t[:move_in_date].eq(nil),
-        'Total persons' => Arel.sql('1=1'),
-      ).freeze
-    end
 
     private def q22d_lengths
       [

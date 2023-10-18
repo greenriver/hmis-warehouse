@@ -20,9 +20,8 @@ module HudApr::Generators::Shared::Fy2024
       sub_populations_by_destination(question:'Q23c', members: universe.members)
     end
 
-
     def q23d_subsidy_type
-      sub_populations_by_subsidy_type(question:'Q23d', members: universe.members)
+      sub_populations_by_subsidy_type(question: 'Q23d', members: universe.members)
     end
 
     def q23e_destination_type_by_race_and_ethnicity
