@@ -56,7 +56,7 @@ module Types
     def object_changes
       return unless object.object_changes.present?
 
-      result = YAML.load(object.object_changes, permitted_classes: [Time, Date, Symbol], aliases: true).except('DateUpdated')
+      result = YAML.load(object.object_changes, permitted_classes: [Time, Date, Symbol], aliases: true).except('DateUpdated', 'lock_version')
 
       changed_record = record
       result = transform_changes(object, result).map do |key, value|
