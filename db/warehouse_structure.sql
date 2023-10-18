@@ -19348,7 +19348,15 @@ CREATE TABLE public.hud_report_apr_clients (
     translation_needed integer,
     preferred_language integer,
     preferred_language_different character varying,
-    domestic_violence_occurred integer
+    domestic_violence_occurred integer,
+    sexual_orientation integer,
+    move_on_assistance_provided integer,
+    current_school_attend_at_entry integer,
+    most_recent_ed_status_at_entry integer,
+    current_ed_status_at_entry integer,
+    current_school_attend_at_exit integer,
+    most_recent_ed_status_at_exit integer,
+    current_ed_status_at_exit integer
 );
 
 
@@ -60545,6 +60553,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231009190301'),
 ('20231013190301'),
 ('20231014150301'),
-('20231014190301');
+('20231014190301'),
+('20231016190301'),
+('20231017190301');
 
 
