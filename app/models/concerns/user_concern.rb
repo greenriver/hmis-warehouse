@@ -139,7 +139,7 @@ module UserConcern
     def self.available_permission_contexts
       {
         acls: 'Access Controls (modern granular access)',
-        role_based: 'Legacy Access Controls (current)',
+        role_based: 'Role-Based Access',
       }
     end
 
