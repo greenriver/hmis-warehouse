@@ -40,7 +40,7 @@ class SourceDataController < ApplicationController
     if @data_source.hmis
       @imported = @csv = false
       @hmis = true
-      @hmis_url = hmis_url
+      @hmis_url = @data_source.hmis_url_for(@item)
       return
     end
 
@@ -94,15 +94,5 @@ class SourceDataController < ApplicationController
   private def item_scope
     @klass.joins(:data_source).
       merge(GrdaWarehouse::DataSource.editable_by(current_user).source)
-  end
-
-  private def hmis_url
-    return unless @data_source.hmis
-
-    base = "https://#{@data_source.hmis}"
-    return "#{base}/projects/#{@item.id}" if @item.is_a?(GrdaWarehouse::Hud::Project)
-    return "#{base}/organizations/#{@item.id}" if @item.is_a?(GrdaWarehouse::Hud::Organization)
-    return "#{base}/client/#{@item.id}" if @item.is_a?(GrdaWarehouse::Hud::Client)
-    return "#{base}/client/#{@item.client.id}/enrollments/#{@item.enrollment.id}" if @item.respond_to?(:enrollment) && @item.respond_to?(:client)
   end
 end

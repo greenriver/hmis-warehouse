@@ -1,6 +1,6 @@
 = cache(['clients', 'demographics', @client, can_view_full_ssn?, controller_path, current_user], expires_in: 4.hours) do
   - authoritative_data_source_ids = GrdaWarehouse::DataSource.authoritative.pluck(:id)
-  - hmis_data_sources = GrdaWarehouse::DataSource.hmis.pluck(:id, :hmis).to_h
+  - hmis_data_sources = GrdaWarehouse::DataSource.hmis
   - source_clients = @client.source_clients.source_visible_to(current_user, client_ids: @client.source_client_ids)
   %table.table
     %thead
@@ -39,9 +39,7 @@
         %td{colspan: 2}
 
       - source_clients.joins(:data_source).each do |client|
-        - hmis_hostname = hmis_data_sources[client.data_source_id]
-        - hmis_url = "https://#{hmis_hostname}/client/#{client.id}" if hmis_hostname
-        = render 'clients/demographic_row', client: client, authoritative_data_source_ids: authoritative_data_source_ids, hmis_url: hmis_url
+        = render 'clients/demographic_row', client: client, authoritative_data_source_ids: authoritative_data_source_ids, hmis_data_sources: hmis_data_sources
 
 
 :css
