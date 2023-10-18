@@ -1086,39 +1086,25 @@ module HudApr::Generators::Shared::Fy2024
           ].inject(&:or),
         )
 
-      metadata = {
-        header_row: [' '] + populations.keys,
-        row_labels: start_to_move_in_lengths.keys,
-        first_column: 'B',
-        last_column: 'F',
-        first_row: 2,
-        last_row: 14,
-      }
-      @report.answer(question: question).update(metadata: metadata)
+      question_sheet(question: question) do |sheet|
+        populations.keys.each { sheet.add_header(label: _1) }
 
-      cols = (metadata[:first_column]..metadata[:last_column]).to_a
-      rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      populations.values.each_with_index do |_population_clause, col_index|
-        start_to_move_in_lengths.values.each_with_index do |length_clause, row_index|
-          cell = "#{cols[col_index]}#{rows[row_index]}"
-          next if intentionally_blank.include?(cell)
-
-          answer = @report.answer(question: question, cell: cell)
-          if length_clause.is_a?(Symbol)
-            case length_clause
-            when :average
-              value = 0
-              scope = relevant_members.where(a_t[:move_in_date].between(@report.start_date..@report.end_date))
-              stay_lengths = members.pluck(a_t[:time_to_move_in])
-              value = (stay_lengths.sum(0.0) / stay_lengths.count).round if stay_lengths.any? # using round since this is an average number of days
+        start_to_move_in_lengths.each_pair do |label, row_cond|
+          sheet.append_row(label: label) do |row|
+            populations.values.each do |col_cond|
+              case row_cond
+              when :average
+                value = 0
+                scope = relevant_members.where(col_cond).where(a_t[:move_in_date].between(@report.start_date..@report.end_date))
+                stay_lengths = scope.pluck(a_t[:time_to_move_in])
+                value = (stay_lengths.sum(0.0) / stay_lengths.count).round if stay_lengths.any? # using round since this is an average number of days
+                row.append_cell_value(value: value)
+              else
+                scope = relevant_members.where(col_cond).where(row_cond)
+                row.append_cell_members(members: scope)
+              end
             end
-          else
-            scope = relevant_members.where(length_clause)
-            value = relevant_members.count
           end
-
-          answer.add_members(scope)
-          answer.update(summary: value)
         end
       end
     end
