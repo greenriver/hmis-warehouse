@@ -17,7 +17,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     def q23c_destination
-      sub_populations_by_destination(question:'Q23c', members: universe.members)
+      sub_populations_by_destination(question: 'Q23c', members: universe.members)
     end
 
     def q23d_subsidy_type
@@ -83,6 +83,5 @@ module HudApr::Generators::Shared::Fy2024
         )
       end
     end
-
   end
 end

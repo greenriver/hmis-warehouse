@@ -284,7 +284,6 @@ module HudApr::Generators::Shared::Fy2024
       ].to_h { [_1, lengths.fetch(_1)] }
     end
 
-
     private def q22d_lengths
       [
         '7 days or less',

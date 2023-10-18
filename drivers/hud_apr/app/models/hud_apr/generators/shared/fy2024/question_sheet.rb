@@ -137,7 +137,7 @@ module HudApr::Generators::Shared::Fy2024
   # internal class
   class QuestionSheetRowBuilder
     attr_reader :label, :cell_members, :cell_values
-    def initialize(label: )
+    def initialize(label:)
       @label = label
       @cell_members = {}
       @cell_values = {}

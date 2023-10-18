@@ -237,7 +237,7 @@ module HudApr::Generators::Shared::Fy2024
 
             current_school_attend_at_entry: youth_education_status_at_entry&.CurrentSchoolAttend,
             most_recent_ed_status_at_entry: youth_education_status_at_entry&.MostRecentEdStatus,
-            current_ed_status_at_entry:      youth_education_status_at_entry&.CurrentEdStatus,
+            current_ed_status_at_entry: youth_education_status_at_entry&.CurrentEdStatus,
 
             current_school_attend_at_exit: youth_education_status_at_exit&.CurrentSchoolAttend,
             most_recent_ed_status_at_exit: youth_education_status_at_exit&.MostRecentEdStatus,
@@ -1034,7 +1034,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def gender_question(question:, members:, populations:)
-      question_sheet(question: question) do  |sheet|
+      question_sheet(question: question) do |sheet|
         populations.keys.each do |label|
           sheet.add_header(label: label)
         end
@@ -1076,7 +1076,7 @@ module HudApr::Generators::Shared::Fy2024
       ).freeze
     end
 
-    def start_to_move_in_question(question:, members:, populations: sub_populations )
+    def start_to_move_in_question(question:, members:, populations: sub_populations)
       relevant_members = members.
         where(a_t[:project_type].in([3, 13])).
         where(

@@ -59,7 +59,7 @@ module HudApr::Generators::Shared::Fy2024
           ['Within the past three months', occurred_col.eq(1)],
           ['Three to six months ago', occurred_col.eq(2)],
           ['Six months to one year', occurred_col.eq(3)],
-          ['One year ago, or more', occurred_col.eq(4) ],
+          ['One year ago, or more', occurred_col.eq(4)],
           [label_for(:dkptr), occurred_col.in([8, 9])],
           [label_for(:data_not_collected), occurred_col.eq(99).or(occurred_col.eq(nil))],
           ['Total', nil],

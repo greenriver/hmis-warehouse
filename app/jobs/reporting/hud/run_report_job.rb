@@ -12,7 +12,7 @@ module Reporting::Hud
       raise "Unknown HUD Report class: #{class_name}" unless Rails.application.config.hud_reports[class_name].present?
 
       report = HudReports::ReportInstance.find_by(id: report_id)
-      # Occasionally people delete the report before it actually runs
+      # Occassionally people delete the report before it actually runs
       return unless report.present?
 
       report.start_report
