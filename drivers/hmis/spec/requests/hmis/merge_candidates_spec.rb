@@ -67,8 +67,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     8.times.map do
       client1 = create(:hmis_hud_client, data_source: ds1)
       client2 = create(:hmis_hud_client, data_source: ds1)
-      wc1 = create(:hmis_warehouse_client, data_source: ds1, source: client1.as_warehouse)
-      _wc2 = create(:hmis_warehouse_client, data_source: ds1, source: client2.as_warehouse, destination_id: wc1.destination_id)
+      wc1 = create(:hmis_warehouse_client, data_source: ds1, source: client1)
+      _wc2 = create(:hmis_warehouse_client, data_source: ds1, source: client2, destination_id: wc1.destination_id)
     end
 
     # first page

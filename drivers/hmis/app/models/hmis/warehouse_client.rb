@@ -11,5 +11,5 @@ class Hmis::WarehouseClient < GrdaWarehouseBase
 
   belongs_to :destination, class_name: 'Hmis::Hud::Client', inverse_of: :warehouse_client_destination, optional: true
   belongs_to :source, class_name: 'Hmis::Hud::Client', inverse_of: :warehouse_client_source, optional: true
-  belongs_to :data_source, optional: true
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', optional: true
 end
