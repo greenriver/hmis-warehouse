@@ -67,10 +67,12 @@ module HudApr::CeApr::CeAprConcern
       }
     end
 
+    # FIXME - remove this when updating to 2024
     def default_report_version
       :fy2023
     end
 
+    # FIXME - remove this when updating to 2024
     def available_report_versions
       {
         'FY 2020' => { slug: :fy2020, active: false },

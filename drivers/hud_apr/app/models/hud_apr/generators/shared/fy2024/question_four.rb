@@ -38,12 +38,11 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     def detect_ce_participation(project)
-      # FIXME: this probably isn't right
       # Column G should show the response to 2.09.1 effective as of the [report end date]. This element is a transactional data element, and only the most recent value for the report period is displayed.
       records = project.ce_participations.filter do |record|
         start = record.CEParticipationStatusStartDate || 100.years.ago
-        stop = record.CEParticipationStatusEndDate || 100.years.from_now
-        @report.start_date.between?(start, stop)
+        stop = record.CEParticipationStatusEndDate || Date.current
+        @report.end_date.between?(start, stop)
       end
       records = records.sort_by do |record|
         [record.DateUpdated, record.id]

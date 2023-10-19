@@ -41,18 +41,18 @@ RSpec.describe 'Datalab 2024', type: :model do
   end
 
   if File.exist?('drivers/datalab_testkit/spec/fixtures/inputs/merged/source/Export.csv')
-    # include_context 'datalab multiple projects apr'
-    # include_context 'datalab organization a rrh apr'
-    # include_context 'datalab organization o sso apr'
-    # include_context 'datalab organization o th apr'
-    # include_context 'datalab organization s rrh apr'
-    # include_context 'datalab organization t psh apr'
+    include_context 'datalab multiple projects apr'
+    include_context 'datalab organization a rrh apr'
+    include_context 'datalab organization o sso apr'
+    include_context 'datalab organization o th apr'
+    include_context 'datalab organization s rrh apr'
+    include_context 'datalab organization t psh apr'
 
     include_context 'datalab organization a so caper'
-    # include_context 'datalab organization j hp caper'
-    # include_context 'datalab organization m es caper'
-    # include_context 'datalab organization m rrh caper'
-    # include_context 'datalab organization s es caper'
+    include_context 'datalab organization j hp caper'
+    include_context 'datalab organization m es caper'
+    include_context 'datalab organization m rrh caper'
+    include_context 'datalab organization s es caper'
 
     # TODO: re-enable when CE APR is built
     # include_context 'datalab systemwide ce apr'

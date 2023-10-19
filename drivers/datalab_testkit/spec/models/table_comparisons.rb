@@ -44,7 +44,6 @@ def compare_results(goal: nil, file_path:, question:, skip: [], detail_columns: 
 
   aggregate_failures 'comparing cells' do
     results_metadata = report_result.answer(question: question).metadata
-    # byebug
     expect(results_metadata['last_row']).to eq(goal.count), "expected #{results_metadata['last_row']} total rows, got #{goal.count} rows"
     (results_metadata['first_row'] .. results_metadata['last_row']).each do |row_number|
       (results_metadata['first_column'] .. results_metadata['last_column']).each do |column_name|

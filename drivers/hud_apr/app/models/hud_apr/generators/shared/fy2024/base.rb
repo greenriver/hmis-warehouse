@@ -635,75 +635,6 @@ module HudApr::Generators::Shared::Fy2024
       }
     end
 
-    # NOTE: HMIS allows for clients to report multiple races. The APR however, does not, and has a single
-    # race field. The order that the races appear in the report is encoded in the 'order' of this hash.
-    # This practice is very brittle, so we'll copy those here and hard code those relationships
-    private def races
-      {
-        'AmIndAKNative' => {
-          order: 4,
-          label: 'American Indian, Alaska Native, or Indigenous',
-          clause: a_t[:race].eq(race_number('AmIndAKNative')),
-        },
-        'Asian' => {
-          order: 3,
-          label: 'Asian or Asian American',
-          clause: a_t[:race].eq(race_number('Asian')),
-        },
-        'BlackAfAmerican' => {
-          order: 2,
-          label: 'Black, African American, or African',
-          clause: a_t[:race].eq(race_number('BlackAfAmerican')),
-        },
-        'NativeHIPacific' => {
-          order: 5,
-          label: 'Native Hawaiian or Pacific Islander',
-          clause: a_t[:race].eq(race_number('NativeHIPacific')),
-        },
-        'White' => {
-          order: 1,
-          label: 'White',
-          clause: a_t[:race].eq(race_number('White')),
-        },
-        'Multiple' => {
-          order: 6,
-          label: 'Multiple Races',
-          clause: a_t[:race].eq(6),
-        },
-        'Unknown' => {
-          order: 7,
-          label: label_for(:dkptr),
-          clause: a_t[:race].in([8, 9]),
-        },
-        'Data Not Collected' => {
-          order: 8,
-          label: 'Data Not Collected',
-          clause: a_t[:race].eq(99),
-        },
-        'Total' => {
-          order: 9,
-          label: 'Total',
-          clause: Arel.sql('1=1'),
-        },
-      }.sort_by { |_, m| m[:order] }.freeze
-    end
-
-    private def race_fields
-      HudUtility2024.race_field_name_to_id.stringify_keys.except('RaceNone').freeze
-    end
-
-    private def race_number(code)
-      race_fields[code]
-    end
-
-    def calculate_race(client)
-      return client.RaceNone if client.RaceNone.in?([8, 9, 99]) # bad data
-      return 6 if client.race_fields.count > 1 # multi-racial
-      return 99 if client.race_fields.empty?
-
-      race_number(client.race_fields.first) # return the HUD numeral equivalent
-    end
-
     private def income_types(suffix)
       {
         'Earned Income' => { hud_report_apr_clients: { "income_sources_at_#{suffix}" => { Earned: 1 } } },
@@ -823,23 +754,6 @@ module HudApr::Generators::Shared::Fy2024
       ].freeze
     end
 
-    private def age_ranges
-      {
-        'Under 5' => a_t[:age].between(0..4),
-        '5-12' => a_t[:age].between(5..12),
-        '13-17' => a_t[:age].between(13..17),
-        '18-24' => a_t[:age].between(18..24),
-        '25-34' => a_t[:age].between(25..34),
-        '35-44' => a_t[:age].between(35..44),
-        '45-54' => a_t[:age].between(45..54),
-        '55-64' => a_t[:age].between(55..64),
-        '65+' => a_t[:age].gteq(65),
-        label_for(:dkptr) => a_t[:dob_quality].in([8, 9]).and(a_t[:dob].eq(nil)),
-        'Data Not Collected' => a_t[:dob_quality].eq(99).and(a_t[:dob].eq(nil)),
-        'Total' => Arel.sql('1=1'), # include everyone
-      }
-    end
-
     def race_ethnicity_groups
       race_col = a_t[:race_multi]
       [
@@ -882,51 +796,6 @@ module HudApr::Generators::Shared::Fy2024
           cond: race_col.in(['8', '9', '99']),
         },
       ]
-    end
-
-    private def gender_identities
-      gender_col = a_t[:gender_multi]
-      {
-        'Woman' => [2, gender_col.eq('0')],
-        'Man' => [3, gender_col.eq('1')],
-        'Culturally Specific Identity' => [4, gender_col.eq('2')],
-        'Transgender' => [5, gender_col.eq('5')],
-        'Non-Binary' => [6, gender_col.eq('4')],
-        'Questioning' => [7, gender_col.eq('6')],
-        'Different Identity' => [8, gender_col.eq('3')],
-
-        'Woman/Man' => [9, gender_col.eq('0,1')],
-        'Woman/Culturally Specific Identity' => [10, gender_col.eq('0,2')],
-        'Woman/Transgender' => [11, gender_col.eq('0,5')],
-        'Woman/Non-Binary' => [12, gender_col.eq('0,4')],
-        'Woman/Questioning' => [13, gender_col.eq('0,6')],
-        'Woman/Different Identity' => [14, gender_col.eq('0,3')],
-
-        'Man/Culturally Specific Identity' => [15, gender_col.eq('1,2')],
-        'Man/Transgender' => [16, gender_col.eq('1,5')],
-        'Man/Non-Binary' => [17, gender_col.eq('1,4')],
-        'Man/Questioning' => [18, gender_col.eq('1,6')],
-        'Man/Different Identity' => [19, gender_col.eq('1,3')],
-
-        'Culturally Specific Identity/Transgender' => [20, gender_col.eq('2,5')],
-        'Culturally Specific Identity/Non-Binary' => [21, gender_col.eq('2,4')],
-        'Culturally Specific Identity/Questioning' => [22, gender_col.eq('2,6')],
-        'Culturally Specific Identity/Different Identity' => [23, gender_col.eq('2,3')],
-
-        'Transgender/Non-Binary' => [24, gender_col.eq('5,4')],
-        'Transgender/Questioning' => [25, gender_col.eq('5,6')],
-        'Transgender/Different Identity' => [26, gender_col.eq('5,3')],
-
-        'Non-Binary/Questioning' => [27, gender_col.eq('4,6')],
-        'Non-Binary/Different Identity' => [28, gender_col.eq('4,3')],
-
-        'Questioning/Different Identity' => [29, gender_col.eq('6,3')],
-        # 2 or more commas
-        'More than 2 Gender Identities Selected' => [30, gender_col.matches_regexp('(\d+,){2,}')],
-        label_for(:dkptr) => [31, gender_col.in(['8', '9'])],
-        'Data Not Collected' => [32, gender_col.eq('99')],
-        'Total' => [33, Arel.sql('1=1')],
-      }.freeze
     end
 
     def sub_populations_by_subsidy_type(question:, members:)
