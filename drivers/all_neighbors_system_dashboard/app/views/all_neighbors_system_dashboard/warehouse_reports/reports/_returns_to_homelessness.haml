@@ -33,9 +33,10 @@
     $(document).ready(function() {
       console.log('Returns To Homelessness -----------------')
       var data = #{chart_data.to_json.html_safe}
+      console.log(data)
       var barData = #{all_data.bars.to_json.html_safe}
       var stackedIds = #{stacked_ids.to_json.html_safe}
-      
+
       // this chart doesn't use filters but still wrapping to get resize behavior from filters class
       var barFilter = new AllNeighborsSystemDashboardFilters(
           [],
@@ -45,7 +46,7 @@
               data: barData,
               selector: '##{chart_id(tab[:id], 'bar')}',
               options: {}
-            } 
+            }
           ]
         )
 

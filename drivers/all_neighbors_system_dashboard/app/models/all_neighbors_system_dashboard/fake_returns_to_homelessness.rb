@@ -6,7 +6,7 @@ module AllNeighborsSystemDashboard
         title: title,
         id: id,
         demographics: demographics.map do |demo|
-          bars = ['Exited*', 'Returned']
+          bars = ['Exited', 'Returned']
           demo_names_meth = "demographic_#{demo.gsub(' ', '').underscore}".to_sym
           demo_colors_meth = "demographic_#{demo.gsub(' ', '').underscore}_colors".to_sym
           names = send(demo_names_meth)
@@ -21,6 +21,8 @@ module AllNeighborsSystemDashboard
               label_colors: keys.map.with_index { |key, i| [key, label_color(colors[i])] }.to_h,
             },
             series: send(type, { bars: bars, types: keys }),
+            exited_household_count: 10,
+            returned_household_count: 5,
           }
         end,
       }

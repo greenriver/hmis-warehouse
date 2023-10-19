@@ -40,12 +40,16 @@ module AllNeighborsSystemDashboard
     end
 
     def housed_count
-      @housed_count ||= report_enrollments_enrollment_scope.housed.distinct.select(:destination_client_id).count
+      @housed_count ||= report_enrollments_enrollment_scope.
+        housed_in_range(@report.filter.range).
+        distinct.
+        select(:destination_client_id).
+        count
     end
 
     def average_days_to_obtain_housing
       en_t = Enrollment.arel_table
-      report_enrollments_enrollment_scope.housed.average(
+      report_enrollments_enrollment_scope.housed_in_range(@report.filter.range).average(
         datediff(
           Enrollment,
           'day',
@@ -58,7 +62,7 @@ module AllNeighborsSystemDashboard
     def no_return_percent
       return 0 if housed_count.zero?
 
-      percent = ((report_enrollments_enrollment_scope.returned.select(:destination_client_id).count / housed_count.to_f) * 100).round
+      percent = ((report_enrollments_enrollment_scope.returned.distinct.select(:destination_client_id).count / housed_count.to_f) * 100).round
       "#{percent}%"
     end
   end

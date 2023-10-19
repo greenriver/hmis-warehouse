@@ -62,6 +62,7 @@ class AllNeighborsSystemDashboardBar {
   }
 
   getConfig() {
+    console.log('config', this.config)
     return {
       size: {
         width: $(this.selector).width(),
@@ -126,23 +127,26 @@ class AllNeighborsSystemDashboardBar {
           textGroup.attr('transform', i === 0 ? 'translate(15, 0)' : 'translate(-15, 0)')
           textGroup.selectAll('text').attr('text-anchor', i === 0 ? 'start' : 'end')
           const bar = barGroup.select(`.bb-bar-${i}`)
-          const barBox = bar.node().getBBox()
-          const text = textGroup.selectAll('text')
-          text.attr('transform', i === 0 ? `translate(${barBox.width/2*-1}, -20)` : `translate(${barBox.width/2}, -20)`)
-          const xYears = this.internal.config.data_columns[0].slice(1)
-          text.each(function(t, ti) {
-            const ele = d3.select(this)
-            const currentLabel = ele.text()
-            ele.text('')
-            const label = i === 0 ? `Exited in ${xYears[ti].split(' ')[0]}` : 'Returned in 1 year'
-            ele.selectAll('tspan')
-              .data([currentLabel, label])
-              .join('tspan')
-                .attr('x', ele.attr('x'))
-                .attr('y', ele.attr('y'))
-                .attr('dy', (d, di) => di === 0 ? 0 : 17)
-                .text((d, di) => i === 0 ? d : di == 0 ? d3.format('.1%')(percentages[ti]) : d)
-          })
+          // FIXME: if we only have one bar, billboard gets confused, ignore it for now
+          if(bar.length > 0) {
+            const barBox = bar.node().getBBox()
+            const text = textGroup.selectAll('text')
+            text.attr('transform', i === 0 ? `translate(${barBox.width/2*-1}, -20)` : `translate(${barBox.width/2}, -20)`)
+            const xYears = this.internal.config.data_columns[0].slice(1)
+            text.each(function(t, ti) {
+              const ele = d3.select(this)
+              const currentLabel = ele.text()
+              ele.text('')
+              const label = i === 0 ? `Exited in ${xYears[ti].split(' ')[0]}` : 'Returned in 1 year'
+              ele.selectAll('tspan')
+                .data([currentLabel, label])
+                .join('tspan')
+                  .attr('x', ele.attr('x'))
+                  .attr('y', ele.attr('y'))
+                  .attr('dy', (d, di) => di === 0 ? 0 : 17)
+                  .text((d, di) => i === 0 ? d : di == 0 ? d3.format('.1%')(percentages[ti]) : d)
+            })
+          }
         })
       }
     }

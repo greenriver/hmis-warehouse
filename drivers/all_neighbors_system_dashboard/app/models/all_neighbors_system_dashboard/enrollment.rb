@@ -19,10 +19,25 @@ module AllNeighborsSystemDashboard
     scope :housed, -> do
       where(exit_type: 'Permanent').
         or(moved_in)
+      # What do we need to do for diversion?  (exit_type Excludable)
+      # if the project_id is in the diversion projects, then use the other destinations (or maybe on calculation?)
+    end
+
+    scope :housed_in_range, ->(range) do
+      where(exit_type: 'Permanent', exit_date: range).
+        or(moved_in_in_range(range))
     end
 
     scope :moved_in, -> do
       where.not(move_in_date: nil)
+    end
+
+    scope :moved_in_in_range, ->(range) do
+      where(move_in_date: range, project_type: HudUtility2024.project_types_with_move_in_dates)
+    end
+
+    scope :homeless, -> do
+      where(project_type: HudUtility2024.homeless_project_types)
     end
 
     scope :returned, -> do

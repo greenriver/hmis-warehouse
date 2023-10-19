@@ -131,6 +131,10 @@ module AllNeighborsSystemDashboard
         # Don't admin any exit types, unless we have an exit before report end
         return nil unless exit_date(filter, enrollment).present?
 
+        # If this is a "diversion" project, we'll treat exit destination differently
+        diversion = enrollment.project.id.in?(filter.secondary_project_ids)
+        return 'Permanent' if diversion && enrollment.destination.in?(POSITIVE_DIVERSION_DESTINATIONS)
+
         case enrollment.destination
         when nil
           nil
@@ -176,15 +180,16 @@ module AllNeighborsSystemDashboard
       end
 
       def ce_infos_for_batch(filter, batch)
-        # Find the active enrollments in the CE Project set for the HoH of the enrollments in the batch
+        # Find the active enrollments with appropriate events for the HoH of the enrollments in the batch
         ce_project_enrollments = GrdaWarehouse::ServiceHistoryEnrollment.
           entry.
-          joins(:project).
-          merge(GrdaWarehouse::Hud::Project.where(id: filter.secondary_project_ids)).
+          joins(enrollment: :events).
+          merge(GrdaWarehouse::Hud::Event.where(event: SERVICE_CODE_IDS, event_date: filter.range)).
           open_between(start_date: filter.start_date, end_date: filter.end_date).
           where(id: batch.map { |en| en.service_history_enrollment_for_head_of_household&.id }.compact)
 
         enrollments_by_hoh = ce_project_enrollments.
+          distinct.
           preload(:client).
           group_by { |enrollment| [enrollment.client.personal_id, enrollment.data_source_id] }
 

@@ -80,7 +80,7 @@ module AllNeighborsSystemDashboard
           :secondary_project_ids,
           :secondary_project_group_ids,
         ]
-        filter.describe_filter_as_html(keys, inline: inline, labels: { secondary_projects: 'Coordinated Entry Referral Sources', secondary_project_groups: 'DRTRR Projects' })
+        filter.describe_filter_as_html(keys, inline: inline, labels: { secondary_projects: 'Diversion Projects', secondary_project_groups: 'DRTRR Project Group' })
       end
 
       def known_params

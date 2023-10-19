@@ -74,6 +74,7 @@ module AllNeighborsSystemDashboard
             {
               date: date.strftime('%Y-%-m-%-d'),
               values: options[:types].map { |label| stack_value(date, bar, demographic, label) },
+              household_count: 1, # NOTE: not used, just for JS compatability
             }
           end.compact,
         }

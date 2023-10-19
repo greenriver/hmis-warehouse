@@ -37,6 +37,7 @@ module AllNeighborsSystemDashboard
     # We don't de-compose numbers in this report, only add them up, so as long as no individual count
     # is less than 11, we don't need to mask it.
     def mask_small_populations(value, mask: true)
+      # return value
       return value unless mask
       return 0 if value.blank? || value < 11
 
@@ -207,8 +208,6 @@ module AllNeighborsSystemDashboard
       when 'All', 'Overall'
         scope
       when 'R.E.A.L. Time Initiative'
-        # TODO:
-        # we'll need to pass an additional argument to indicate which date is being filtered
         pilot_scope = Enrollment.
           where(date_query(pilot_date_range)).
           where(project_id: @report.filter.effective_project_ids_from_secondary_project_groups).

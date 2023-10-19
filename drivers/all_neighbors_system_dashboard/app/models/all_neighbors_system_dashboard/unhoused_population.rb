@@ -137,6 +137,7 @@ module AllNeighborsSystemDashboard
           series: date_range.map do |date|
             scope = report_enrollments_enrollment_scope.
               distinct.
+              homeless.
               select(:destination_client_id)
             scope = filter_for_type(scope, project_type)
             scope = filter_for_type(scope, type)

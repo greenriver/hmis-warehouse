@@ -169,7 +169,7 @@ module AllNeighborsSystemDashboard
         joins(:enrollment, :client).
         entry.
         open_between(start_date: filter.start_date, end_date: filter.end_date).
-        in_project(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids))
+        in_project(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids + filter.secondary_project_ids))
     end
 
     def event_scope
