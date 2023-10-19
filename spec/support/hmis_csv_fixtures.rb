@@ -62,7 +62,7 @@ module HmisCsvFixtures
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
     AccessGroup.maintain_system_groups
     AccessGroup.where(name: 'All Data Sources').first.add(user)
-    Delayed::Worker.new.work_off
+    Delayed::Worker.new.work_off while Delayed::Job.where(failed_at: nil).count > 0
   end
 
   def cleanup_hmis_csv_fixtures

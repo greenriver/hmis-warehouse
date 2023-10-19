@@ -19,8 +19,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   # Related records that were created/updated from this assessment
   belongs_to :health_and_dv, class_name: 'Hmis::Hud::HealthAndDv', optional: true, autosave: true
   belongs_to :income_benefit, class_name: 'Hmis::Hud::IncomeBenefit', optional: true, autosave: true
-  # TODO(2024) remove this column, once data has been migrated
-  belongs_to :enrollment_coc, class_name: 'Hmis::Hud::EnrollmentCoc', optional: true, autosave: true
   belongs_to :physical_disability, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
   belongs_to :developmental_disability, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
   belongs_to :chronic_health_condition, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
@@ -260,6 +258,8 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       Inventory: Hmis::Hud::Processors::InventoryProcessor,
       ProjectCoc: Hmis::Hud::Processors::ProjectCoCProcessor,
       Funder: Hmis::Hud::Processors::FunderProcessor,
+      CeParticipation: Hmis::Hud::Processors::CeParticipationProcessor,
+      HmisParticipation: Hmis::Hud::Processors::HmisParticipationProcessor,
       File: Hmis::Hud::Processors::FileProcessor,
       ReferralRequest: Hmis::Hud::Processors::ReferralRequestProcessor,
       YouthEducationStatus: Hmis::Hud::Processors::YouthEducationStatusProcessor,
