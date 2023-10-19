@@ -44,6 +44,10 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
     !!primary
   end
 
+  def full_name
+    [first, middle, last, suffix].compact.join(' ')
+  end
+
   def update_client_name
     client.update(
       first_name: first,

@@ -219,22 +219,12 @@ module Types
 
     def names
       names = load_ar_association(object, :names)
-      if names.empty?
-        # If client has no CustomClientNames, construct one based on the HUD Client name fields
-        return [
-          object.names.new(
-            id: '0',
-            first: object.first_name,
-            last: object.last_name,
-            middle: object.middle_name,
-            suffix: object.name_suffix,
-            primary: true,
-            **object.slice(:name_data_quality, :user_id, :data_source_id, :date_created, :date_updated),
-          ),
-        ]
-      end
+      return names unless names.empty?
 
-      names
+      # If client has no CustomClientNames, construct one based on the HUD Client name fields
+      unpersisted_name = object.build_primary_custom_client_name
+      unpersisted_name.id = "#{object.id}-primary-name" # placeholder
+      [unpersisted_name]
     end
 
     def contact_points

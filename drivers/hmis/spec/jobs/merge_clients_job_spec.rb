@@ -12,13 +12,13 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
 
   let(:data_source) { create(:hmis_data_source) }
   let(:user) { create(:hmis_hud_user, data_source: data_source) }
-  let(:client1) { create(:hmis_hud_client, pronouns: nil, date_created: Time.now - 1.day, data_source: data_source) }
+  let(:client1) { create(:hmis_hud_client_complete, pronouns: nil, date_created: Time.now - 1.day, data_source: data_source) }
 
   let!(:client1_name) { create(:hmis_hud_custom_client_name, client: client1, first: client1.first_name, last: client1.last_name, middle: client1.middle_name, suffix: client1.name_suffix, data_source: data_source) }
   let!(:client1_contact_point) { create(:hmis_hud_custom_client_contact_point, client: client1, data_source: data_source) }
   let!(:client1_address) { create(:hmis_hud_custom_client_address, client: client1, data_source: data_source) }
 
-  let(:client2) { create(:hmis_hud_client, pronouns: 'she', data_source: data_source) }
+  let(:client2) { create(:hmis_hud_client_complete, pronouns: 'she', data_source: data_source) }
   let!(:client2_name) { create(:hmis_hud_custom_client_name, client: client2, data_source: data_source) }
   let!(:client2_contact_point) { create(:hmis_hud_custom_client_contact_point, client: client2, data_source: data_source) }
   let!(:client2_address) { create(:hmis_hud_custom_client_address, client: client2, data_source: data_source) }
@@ -93,13 +93,13 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
 
     it 'has correct primary name' do
       client1.reload
-      expected = [client1.first_name, client1.middle_name, client1.last_name, client1.name_suffix].join(' ')
+      expected = [client1.full_name]
 
       result = client1.names.where(primary: true)
 
       expect(result.length).to eq(1)
 
-      actual = [result.first.first, result.first.middle, result.first.last, result.first.suffix].join(' ')
+      actual = result.map(&:full_name)
 
       expect(expected).to eq(actual)
     end
@@ -140,6 +140,79 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
 
     it 'merges external ids' do
       expect(client1.ac_hmis_mci_ids.pluck(:value).sort).to eq([external_id_client_1, external_id_client_2].map(&:value).sort)
+    end
+  end
+
+  context 'client names' do
+    let!(:c1_without_custom_name) { create(:hmis_hud_client_complete, date_created: Time.current - 3.days, data_source: data_source) }
+    let!(:c2_without_custom_name) { create(:hmis_hud_client_complete, date_created: Time.current, data_source: data_source) }
+    let!(:c3_with_custom_name) { create(:hmis_hud_client_complete, date_created: Time.current - 2.days, data_source: data_source, with_custom_client_name: true) }
+    let!(:c4_with_custom_name) { create(:hmis_hud_client_complete, date_created: Time.current, data_source: data_source, with_custom_client_name: true) }
+    let!(:c4_secondary_name) { create(:hmis_hud_custom_client_name, client: c4_with_custom_name, data_source: data_source) }
+
+    it 'is set up correctly' do
+      expect(c1_without_custom_name.names).to be_empty
+      expect(c2_without_custom_name.names).to be_empty
+      expect(c3_with_custom_name.names.size).to eq(1)
+      expect(c3_with_custom_name.names.primary_names.size).to eq(1)
+      expect(c4_with_custom_name.names.size).to eq(2)
+      expect(c4_with_custom_name.names.primary_names.size).to eq(1)
+    end
+
+    it 'works when neither clients have a CustomClientName' do
+      # Expected behavior: 2 CustomClientName records are created, one is primary, and its the one from the retained client
+      c1 = c1_without_custom_name
+      c2 = c2_without_custom_name
+      original_name = c1.full_name
+
+      client_ids = [c1.id, c2.id]
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+      c1.reload
+      found_names = c1.names.map(&:full_name).sort
+      expected_names = [c1, c2].map(&:full_name).sort
+      expect(found_names).to eq(expected_names)
+      expect(c1.names.primary_names.size).to eq(1)
+      expect(c1.primary_name.full_name).to eq(original_name)
+      expect(c1.full_name).to eq(original_name)
+    end
+
+    it 'works when both clients have CustomClientName(s)' do
+      # Expected behavior: all CustomClientNames are retained, one is primary
+      c1 = c3_with_custom_name
+      c2 = c4_with_custom_name
+      original_name = c1.full_name
+
+      client_ids = [c1.id, c2.id]
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+      c1.reload
+      found_names = c1.names.map(&:full_name).sort
+      expected_names = [c1.names.map(&:full_name), c2.names.map(&:full_name)].flatten.uniq.sort
+      expect(c1.names.size).to eq(3)
+      expect(found_names).to eq(expected_names)
+      expect(c1.names.primary_names.size).to eq(1)
+      expect(c1.primary_name.full_name).to eq(original_name)
+      expect(c1.full_name).to eq(original_name)
+    end
+
+    it 'works when 1 client has a CustomClientName and the other doesn\'t' do
+      # Expected behavior: 1 CustomClientName is created, so there are 2 total, and 1 is primary
+      c1 = c1_without_custom_name
+      c2 = c3_with_custom_name
+      original_name = c1.full_name
+
+      client_ids = [c1.id, c2.id]
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+      c1.reload
+      found_names = c1.names.map(&:full_name).sort
+      expected_names = [c1, c2].map(&:full_name).sort
+      expect(c1.names.size).to eq(2)
+      expect(found_names).to eq(expected_names)
+      expect(c1.names.primary_names.size).to eq(1)
+      expect(c1.primary_name.full_name).to eq(original_name)
+      expect(c1.full_name).to eq(original_name)
     end
   end
 

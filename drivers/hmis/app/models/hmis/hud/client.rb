@@ -155,6 +155,20 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
   # DEPRECATED_FY2024 - delete when warehouse moves to 2024
 
+  def build_primary_custom_client_name
+    return unless names.empty?
+
+    names.new(
+      primary: true,
+      first: first_name,
+      last: last_name,
+      middle: middle_name,
+      suffix: name_suffix,
+      user_id: user_id || Hmis::Hud::User.system_user(data_source_id: data_source_id).user_id,
+      **slice(:name_data_quality, :data_source_id, :date_created, :date_updated),
+    )
+  end
+
   def enrolled?
     enrollments.any?
   end
@@ -302,6 +316,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # Mirrors `clientBriefName` in frontend
   def brief_name
     [first_name, last_name].compact.join(' ')
+  end
+
+  def full_name
+    [first_name, middle_name, last_name, name_suffix].compact.join(' ')
   end
 
   # Run if we changed name/DOB/SSN

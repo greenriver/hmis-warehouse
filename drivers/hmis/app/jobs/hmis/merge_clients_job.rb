@@ -16,7 +16,16 @@ module Hmis
       raise 'You cannot merge less than two clients' if Array.wrap(client_ids).length < 2
 
       self.actor = User.find(actor_id)
-      self.clients = Hmis::Hud::Client.preload(:names, :contact_points, :addresses).order(Hmis::Hud::Client.arel_table['DateCreated']).find(client_ids)
+      self.clients = Hmis::Hud::Client.
+        preload(:names, :contact_points, :addresses).
+        find(client_ids).
+        map do |sc|
+          # set some defaults
+          sc.DateCreated ||= 10.years.ago.to_date
+          sc.DateUpdated ||= 10.years.ago.to_date
+          sc
+        end.sort_by { |sc| sc.DateCreated.to_datetime }
+
       self.client_to_retain = clients[0]
       self.clients_needing_reference_updates = clients[1..]
       self.data_source_id = \
@@ -72,18 +81,32 @@ module Hmis
     def merge_and_find_primary_name
       Rails.logger.info 'Merging names and finding primary one'
 
-      name_ids = clients.flat_map(&:names).map(&:id)
-      Hmis::Hud::CustomClientName.where(id: name_ids).update_all(primary: false)
+      # Create CustomCientName records for any Clients that don't have them
+      unpersisted_name_records = clients.map do |client|
+        next unless client.names.empty?
+
+        name = client.build_primary_custom_client_name
+        name.CustomClientNameID = Hmis::Hud::Base.generate_uuid
+        name.primary = client.id == client_to_retain.id # might get changed below
+        name
+      end.compact
+
+      # Dedup and save the new name records
+      unpersisted_name_records = dedup_unpersisted(unpersisted_name_records)
+      unpersisted_name_records.map(&:save!)
+
+      name_ids = clients.flat_map { |client| client.names.map(&:id) }
+      name_scope = Hmis::Hud::CustomClientName.where(id: name_ids)
 
       primary_found = false
-      clients.flat_map(&:names).sort_by(&:id).each do |name|
+      name_scope.sort_by(&:id).each do |name|
         client_val = [client_to_retain.first_name, client_to_retain.middle_name, client_to_retain.last_name, client_to_retain.name_suffix]
         custom_client_name_val = [name.first, name.middle, name.last, name.suffix]
         primary = (client_val == custom_client_name_val) && !primary_found
 
         name.client = client_to_retain
         name.primary = primary ? true : false
-        name.save!(validate: false)
+        name.save!(validate: false) # if primary, this save will update the Client name attributes (FirstName, LastName, etc)
 
         primary_found = true if name.primary
       end
@@ -126,6 +149,17 @@ module Hmis
         else
           keepers.push(record)
         end
+      end
+      keepers
+    end
+
+    def dedup_unpersisted(unpersisted_records)
+      keepers = []
+      unpersisted_records.each do |record|
+        seen = keepers.detect { |u| u.equal_for_merge?(record) }
+        next if seen
+
+        keepers.push(record)
       end
       keepers
     end
