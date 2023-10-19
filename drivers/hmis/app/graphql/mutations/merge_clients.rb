@@ -18,10 +18,10 @@ module Mutations
 
       Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: current_user.id)
 
-      retained_client = Hmis::Hud::Client.where(id: client_ids).first
-      raise 'merge failed' unless retained_client.present?
+      retained_clients = Hmis::Hud::Client.where(id: client_ids)
+      raise 'merge failed' unless retained_clients.size == 1
 
-      { client: retained_client }
+      { client: retained_clients.first }
     end
   end
 end

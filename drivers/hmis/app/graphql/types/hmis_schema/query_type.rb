@@ -240,25 +240,16 @@ module Types
     def merge_candidates
       raise 'not allowed' unless current_user.can_merge_clients?
 
-      destination_id_to_source_ids = GrdaWarehouse::WarehouseClient.
+      # Find all destination clients that have more than 1 source client in the HMIS
+      destination_ids_with_multiple_sources = GrdaWarehouse::WarehouseClient.
         where(data_source_id: current_user.hmis_data_source_id).
         joins(:source). # drop non existent source clients
         group(:destination_id).
         having('count(*) > 1').
-        select('"destination_id", array_agg("source_id") as source_ids').
-        map { |r| [r.destination_id, r.source_ids] }.
-        to_h
+        pluck(:destination_id)
 
-      source_lookup = Hmis::Hud::Client.
-        where(id: destination_id_to_source_ids.values.flatten).
-        index_by(&:id)
-
-      destination_id_to_source_ids.map do |dest_id, client_ids|
-        OpenStruct.new(
-          id: dest_id,
-          clients: client_ids.map { |id| source_lookup[id] }.compact,
-        )
-      end
+      # Resolve each destination client as a ClientMergeCandidate
+      Hmis::Hud::Client.where(id: destination_ids_with_multiple_sources)
     end
 
     # AC HMIS Queries
