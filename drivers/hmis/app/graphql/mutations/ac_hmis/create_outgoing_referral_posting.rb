@@ -14,20 +14,19 @@ module Mutations
     field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(input:)
-      handle_error('connection not configured') unless HmisExternalApis::AcHmis::LinkApi.enabled?
       # the front-end doesn't block submission if there are empty required fields, handle it here
       errors = basic_validation(input)
       return { errors: errors } if errors.any?
 
-      enrollment = Hmis::Hud::Enrollment
-        .viewable_by(current_user)
-        .find_by(id: input.enrollment_id)
+      enrollment = Hmis::Hud::Enrollment.
+        viewable_by(current_user).
+        find_by(id: input.enrollment_id)
       handle_error('enrollment not found') unless enrollment
       handle_error('access denied') unless current_user.can_manage_outgoing_referrals_for?(enrollment.project)
 
-      project = Hmis::Hud::Project
-        .viewable_by(current_user)
-        .find_by(id: input.project_id)
+      project = Hmis::Hud::Project.
+        viewable_by(current_user).
+        find_by(id: input.project_id)
       handle_error('project not found') unless project
 
       errors = validate_unit_type(project, input)

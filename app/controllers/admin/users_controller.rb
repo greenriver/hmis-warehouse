@@ -215,6 +215,7 @@ module Admin
         :expired_at,
         :training_completed,
         :copy_form_id,
+        :permission_context,
         user_group_ids: [],
         # TODO: START_ACL remove when ACL transition complete
         legacy_role_ids: [],
