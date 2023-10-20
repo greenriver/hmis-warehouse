@@ -29,11 +29,33 @@ module BostonReports::WarehouseReports
     end
     helper_method :across_the_country_data
 
-    def top_ten_zip_codes_data
-      [*1001..2791].map do |zip|
-        { zip_code: "0#{zip}", percent: rand(0..0.99) }
-      end.sort_by { |d| d[:percent] }.last(10)
+    def top_ten_zip_codes_data(scope)
+      scope.map do |shape|
+        { zip_code: shape.zcta5ce10, percent: rand(0..0.2) }
+      end
     end
     helper_method :top_ten_zip_codes_data
+
+    def zip_code_shape_data(scope)
+      GrdaWarehouse::Shape.geo_collection_hash(scope)
+    end
+    helper_method :zip_code_shape_data
+
+    def zip_code_fake_scope
+      # GrdaWarehouse::Shape::ZipCode.my_state.last(20)
+      GrdaWarehouse::Shape::ZipCode.my_state.sample(20)
+    end
+    helper_method :zip_code_fake_scope
+
+    def zip_code_colors
+      [
+        { color: '#BF216B', range: [0.02] },
+        { color: '#F22797', range: [0.02, 0.05] },
+        { color: '#F2BC1B', range: [0.05, 0.1] },
+        { color: '#F26A1B', range: [0.1, 0.15] },
+        { color: '#F5380E', range: [0.15] },
+      ]
+    end
+    helper_method :zip_code_colors
   end
 end
