@@ -19,12 +19,13 @@ module Hmis
       self.clients = Hmis::Hud::Client.
         preload(:names, :contact_points, :addresses).
         find(client_ids).
-        map do |sc|
+        map do |client|
           # set some defaults
-          sc.DateCreated ||= 10.years.ago.to_date
-          sc.DateUpdated ||= 10.years.ago.to_date
-          sc
-        end.sort_by { |sc| sc.DateCreated.to_datetime }
+          client.DateCreated ||= 10.years.ago.to_date
+          client.DateUpdated ||= 10.years.ago.to_date
+          client
+        end.
+        sort_by { |client| client.DateCreated.to_datetime }
 
       self.client_to_retain = clients[0]
       self.clients_needing_reference_updates = clients[1..]
@@ -81,23 +82,23 @@ module Hmis
     def merge_and_find_primary_name
       Rails.logger.info 'Merging names and finding primary one'
 
-      # Create CustomCientName records for any Clients that don't have them
+      # Create CustomClientName records for any Clients that don't have them
       unpersisted_name_records = clients.map do |client|
         next unless client.names.empty?
 
         name = client.build_primary_custom_client_name
         name.CustomClientNameID = Hmis::Hud::Base.generate_uuid
-        name.primary = client.id == client_to_retain.id # might get changed below
+        name.primary = client.id == client_to_retain.id
         name
       end.compact
 
       # Dedup and save the new name records
-      unpersisted_name_records = dedup_unpersisted(unpersisted_name_records)
-      unpersisted_name_records.map(&:save!)
+      dedup_unpersisted(unpersisted_name_records).map(&:save!)
 
       name_ids = clients.flat_map { |client| client.names.map(&:id) }
       name_scope = Hmis::Hud::CustomClientName.where(id: name_ids)
 
+      # Update all names to point to client_to_retain
       primary_found = false
       name_scope.sort_by(&:id).each do |name|
         client_val = [client_to_retain.first_name, client_to_retain.middle_name, client_to_retain.last_name, client_to_retain.name_suffix]
@@ -156,8 +157,7 @@ module Hmis
     def dedup_unpersisted(unpersisted_records)
       keepers = []
       unpersisted_records.each do |record|
-        seen = keepers.detect { |u| u.equal_for_merge?(record) }
-        next if seen
+        next if keepers.detect { |u| u.equal_for_merge?(record) }
 
         keepers.push(record)
       end
