@@ -159,18 +159,18 @@ module Types
       Hmis::Hud::CustomServiceType.find_by(id: id)
     end
 
-    field :get_form_definition, Types::Forms::FormDefinition, 'Get most relevant/recent form definition for the specified Role and project (optionally)', null: true do
-      argument :role, Types::Forms::Enums::FormRole, required: true
-      argument :enrollment_id, ID, required: false
-      argument :project_id, ID, required: false
-    end
-
     field :file, Types::HmisSchema::File, null: true do
       argument :id, ID, required: true
     end
 
     def file(id:)
       Hmis::File.viewable_by(current_user).find_by(id: id)
+    end
+
+    field :get_form_definition, Types::Forms::FormDefinition, 'Get most relevant/recent form definition for the specified Role and project (optionally)', null: true do
+      argument :role, Types::Forms::Enums::FormRole, required: true
+      argument :enrollment_id, ID, required: false
+      argument :project_id, ID, required: false
     end
 
     def get_form_definition(role:, enrollment_id: nil, project_id: nil)
@@ -234,6 +234,22 @@ module Types
       postings = HmisExternalApis::AcHmis::ReferralPosting.denied_pending_status
 
       scoped_referral_postings(postings, **args)
+    end
+
+    field :merge_candidates, Types::HmisSchema::ClientMergeCandidate.page_type, null: false
+    def merge_candidates
+      raise 'not allowed' unless current_user.can_merge_clients?
+
+      # Find all destination clients that have more than 1 source client in the HMIS
+      destination_ids_with_multiple_sources = GrdaWarehouse::WarehouseClient.
+        where(data_source_id: current_user.hmis_data_source_id).
+        joins(:source). # drop non existent source clients
+        group(:destination_id).
+        having('count(*) > 1').
+        pluck(:destination_id)
+
+      # Resolve each destination client as a ClientMergeCandidate
+      Hmis::Hud::Client.where(id: destination_ids_with_multiple_sources)
     end
 
     # AC HMIS Queries
