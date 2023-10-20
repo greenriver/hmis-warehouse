@@ -137,6 +137,7 @@ module Types
       can :manage_own_client_files
       can :view_any_nonconfidential_client_files
       can :view_any_confidential_client_files
+      can :audit_clients
     end
 
     def external_ids

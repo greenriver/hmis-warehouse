@@ -23,6 +23,8 @@ module Types
     field :delete_ce_assessment, mutation: Mutations::DeleteCeAssessment
     field :delete_ce_event, mutation: Mutations::DeleteCeEvent
     field :delete_current_living_situation, mutation: Mutations::DeleteCurrentLivingSituation
+    field :delete_hmis_participation, mutation: Mutations::DeleteHmisParticipation
+    field :delete_ce_participation, mutation: Mutations::DeleteCeParticipation
 
     field :create_units, mutation: Mutations::CreateUnits
     field :update_units, mutation: Mutations::UpdateUnits

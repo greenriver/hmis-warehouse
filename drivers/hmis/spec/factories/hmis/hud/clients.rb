@@ -32,17 +32,18 @@ FactoryBot.define do
     FirstName { Faker::Name.first_name }
     MiddleName { Faker::Name.middle_name }
     LastName { Faker::Name.last_name }
+    NameSuffix { Faker::Name.suffix }
     NameDataQuality { 1 }
     SSN { Faker::IDNumber.valid.gsub(/[^0-9]/, '') }
     SSNDataQuality { 1 }
     DOB { '1999-12-01' }
     DOBDataQuality { 1 }
-    VeteranStatus { 0 }
+    VeteranStatus { [0, 1, 8, 9, 99].sample }
     DateCreated { DateTime.current }
     DateUpdated { DateTime.current }
     after(:build) do |client|
-      HudUtility2024.races.except('RaceNone').keys.each { |f| client.send("#{f}=", 0) }
-      HudUtility2024.gender_fields.excluding(:GenderNone).each { |f| client.send("#{f}=", 0) }
+      HudUtility2024.races.except('RaceNone').keys.each { |f| client.send("#{f}=", [0, 1].sample) }
+      HudUtility2024.gender_fields.excluding(:GenderNone).each { |f| client.send("#{f}=", [0, 1].sample) }
     end
   end
 
