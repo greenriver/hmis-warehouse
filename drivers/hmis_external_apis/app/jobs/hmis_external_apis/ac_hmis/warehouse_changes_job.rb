@@ -113,8 +113,10 @@ module HmisExternalApis::AcHmis
     end
 
     def merge_clients_by_mci_unique_id
+      e_t = HmisExternalApis::ExternalId.arel_table
+
       self.merge_sets = HmisExternalApis::ExternalId.
-        joins(:client). # join to ensure we're not pulling in any ExternalIds for deleted clients
+        where(e_t[:source_type].eq('Hmis::Hud::Client')).
         where(namespace: NAMESPACE).
         group(:value).
         having('count(*) > 1').
