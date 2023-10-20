@@ -56,7 +56,8 @@ module HudApr::Generators::Shared::Fy2024
 
       question_sheet(question: 'Q4a') do |sheet|
         headers.each { |label, col| sheet.add_header(col: col, label: label) }
-        q4_project_scope.order(ProjectName: :asc).preload(:ce_participations).each do |project|
+        # Sorted to match test kit output, doesn't matter for submission
+        q4_project_scope.order(ProjectName: :desc).preload(:ce_participations).each do |project|
           project_row(sheet, project)
         end
       end
@@ -70,8 +71,7 @@ module HudApr::Generators::Shared::Fy2024
           project.ProjectName,
           project.ProjectID,
           project.computed_project_type,
-          # RRH Subtype
-          (project.RRHSubType == 13 ? 1 : 2),
+          project.RRHSubType,
           # Coordinated Entry Access Point
           ce_participation&.AccessPoint,
           # (If 2.02.6 =6 or (13 and 2.02.6A = 1)), then 0 or 1
