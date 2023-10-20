@@ -48,33 +48,33 @@ module LsaSqlServer
         insert into lsa_Project
           (ProjectID, OrganizationID, ProjectName
           , OperatingStartDate, OperatingEndDate
-          , ContinuumProject, ProjectType, HousingType
-          , TrackingMethod, HMISParticipatingProject
-          , TargetPopulation
+          , ContinuumProject, ProjectType, HousingType, RRHSubType
+          , ResidentialAffiliation, TargetPopulation
           , HOPWAMedAssistedLivingFac
           , DateCreated, DateUpdated, ExportID)
         select distinct
-          hp.ProjectID, hp.OrganizationID, left(hp.ProjectName, 100)
+          hp.ProjectID, hp.OrganizationID, left(hp.ProjectName, 200)
           , format(hp.OperatingStartDate, 'yyyy-MM-dd')
           , case when hp.OperatingEndDate is not null then format(hp.OperatingEndDate, 'yyyy-MM-dd') else null end
-          , hp.ContinuumProject, hp.ProjectType, hp.HousingType
-          , hp.TrackingMethod, hp.HMISParticipatingProject
+          , hp.ContinuumProject, hp.ProjectType
+          , case when hp.RRHSubType = 1 then null else hp.HousingType end
+          , case when hp.ProjectType = 13 then hp.RRHSubType else null end
+          , case when hp.RRHSubType = 1 then hp.ResidentialAffiliation else null end
           , hp.TargetPopulation
           , hp.HOPWAMedAssistedLivingFac
-          , format(hp.DateCreated, 'yyyy-MM-dd hh:mm:ss')
-          , format(hp.DateUpdated, 'yyyy-MM-dd hh:mm:ss')
+          , format(hp.DateCreated, 'yyyy-MM-dd HH:mm:ss')
+          , format(hp.DateUpdated, 'yyyy-MM-dd HH:mm:ss')
           , rpt.ReportID
         from hmis_Project hp
-        inner join lsa_Report rpt on hp.OperatingStartDate <= rpt.ReportEnd
+        inner join lsa_Report rpt on rpt.ReportEnd >= hp.OperatingStartDate
         inner join hmis_ProjectCoC coc on coc.CoCCode = rpt.ReportCoC
           and coc.ProjectID = hp.ProjectID
           and coc.DateDeleted is null
         where hp.DateDeleted is null
           and hp.ContinuumProject = 1
-          and hp.ProjectType in (1,2,3,8,9,10,13)
-          and hp.OperatingStartDate <= rpt.ReportEnd
+          and hp.ProjectType in (0,1,2,3,8,9,10,13)
           and (hp.OperatingEndDate is null
-            or	(hp.OperatingEndDate >= '10/1/2012'
+            or	(hp.OperatingEndDate >= rpt.LookbackDate
               and hp.OperatingEndDate > hp.OperatingStartDate)
             )
       SQL

@@ -123,6 +123,8 @@ module HmisSqlServer
     def clean_row_for_import(row:, headers:)
       field_index = headers.index('ExportDate')
       row[field_index] = row[field_index].to_date
+      field_index = headers.index('ImplementationID')
+      row[field_index] = row[field_index].presence || 'unknown'
       super(row: row, headers: headers)
     end
   end

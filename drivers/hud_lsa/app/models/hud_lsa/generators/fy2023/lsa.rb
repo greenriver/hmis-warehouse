@@ -12,7 +12,7 @@ end
 # Testing notes:
 # Re-use an existing report
 # r = HudLsa::Generators::Fy2023::Lsa.last
-# r.instance_variable_set(:@test, true); r.destroy_rds = false
+# r.test = true; r.destroy_rds = false
 # r.run!
 module HudLsa::Generators::Fy2023
   class Lsa < ::HudReports::ReportInstance
@@ -164,7 +164,7 @@ module HudLsa::Generators::Fy2023
           where(
             created_at: Time.zone.now.beginning_of_day..Time.zone.now.end_of_day,
             start_date: lookback_stop_date,
-            version: 2023,
+            version: 2024,
             period_type: 3,
             directive: 2,
             hash_status: 1,
@@ -182,8 +182,8 @@ module HudLsa::Generators::Fy2023
         end
       end
 
-      @hmis_export = HmisCsvTwentyTwentyTwo::Exporter::Base.new(
-        version: '2023',
+      @hmis_export = HmisCsvTwentyTwentyFour::Exporter::Base.new(
+        version: '2024',
         start_date: lookback_stop_date,
         end_date: filter.end,
         projects: filter.effective_project_ids,
@@ -304,20 +304,7 @@ module HudLsa::Generators::Fy2023
         end
         CSV.open(path, 'wb', force_quotes: force_quotes) do |csv|
           headers = klass.csv_columns.map { |m| if m == :Zip then :ZIP else m end }.map(&:to_s)
-          csv << headers
-          klass.find_each(batch_size: 10_000) do |item|
-            row = []
-            item.attributes.slice(*headers).each_value do |m|
-              if m.is_a?(Date)
-                row << m.strftime('%F')
-              elsif m.is_a?(Time)
-                row << m.utc.strftime('%F %T')
-              else
-                row << m
-              end
-            end
-            csv << row
-          end
+          add_rows_to_export(csv, headers: headers, klass: klass)
         end
         klass.primary_key = nil if remove_primary_key
       end
@@ -337,25 +324,29 @@ module HudLsa::Generators::Fy2023
         end
         CSV.open(path, 'wb') do |csv|
           # Force a primary key for fetching in batches
-          headers = klass.column_names
-          csv << headers
-          klass.find_each(batch_size: 10_000) do |item|
-            row = []
-            item.attributes.slice(*headers).each_value do |m|
-              if m.is_a?(Date)
-                row << m.strftime('%F')
-              elsif m.is_a?(Time)
-                row << m.utc.strftime('%F %T')
-              else
-                row << m
-              end
-            end
-            csv << row
-          end
+          add_rows_to_export(csv, headers: klass.column_names, klass: klass)
         end
         klass.primary_key = nil if remove_primary_key
       end
       # puts LsaSqlServer.models_by_filename.values.map(&:count).inspect
+    end
+
+    private def add_rows_to_export(csv, headers:, klass:)
+      csv << headers
+      klass.find_each(batch_size: 10_000) do |item|
+        row = []
+        item.attributes.slice(*headers).each_value do |m|
+          if m.is_a?(Date)
+            row << m.strftime('%F')
+          elsif m.is_a?(Time)
+            row << m.utc.strftime('%F %T')
+          else
+            row << m
+          end
+        end
+        csv << row
+      end
+      csv
     end
 
     def setup_lsa_report
