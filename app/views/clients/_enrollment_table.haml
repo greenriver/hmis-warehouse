@@ -130,9 +130,7 @@
         - if @client.hmis_source_visible_by?(current_user)
           %td
             - if e[:hmis_id]
-              - title = 'HMIS'
-              - if e[:hmis_exit_id]
-                - title = title + ' Enrollment'
+              - title = 'HMIS Enrollment'
               = link_to title, source_datum_path(e[:hmis_id], type: 'Enrollment'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
             - if e[:hmis_exit_id]
               - title = 'HMIS Exit'

@@ -98,11 +98,11 @@ module Hmis
 
       Rails.logger.info 'uniqify custom data elements for each definition'
 
-      working_set = Hmis::Hud::CustomDataElement
-        .where(id: element_ids)
-        .preload(:data_element_definition)
-        .to_a
-        .group_by(&:data_element_definition)
+      working_set = Hmis::Hud::CustomDataElement.
+        where(id: element_ids).
+        preload(:data_element_definition).
+        to_a.
+        group_by(&:data_element_definition)
 
       working_set.each do |definition, elements|
         next if definition.repeats
@@ -150,20 +150,20 @@ module Hmis
     def merge_mci_ids
       mci_ids = HmisExternalApis::AcHmis::Mci.external_ids
       # merge ids
-      records_by_value = mci_ids.where(source: clients_needing_reference_updates)
-        .order(:id).reverse.index_by(&:value) # de-duplicate by value, take first id
+      records_by_value = mci_ids.where(source: clients_needing_reference_updates).
+        order(:id).reverse.index_by(&:value) # de-duplicate by value, take first id
 
-      mci_ids.where(id: records_by_value.values.map(&:id))
-        .update_all(source_id: client_to_retain.id)
+      mci_ids.where(id: records_by_value.values.map(&:id)).
+        update_all(source_id: client_to_retain.id)
     end
 
     def delete_warehouse_clients
       Rails.logger.info 'Deleting warehouse clients of merged clients'
 
       # Very unsure I caught the desired behavior correctly here:
-      GrdaWarehouse::WarehouseClient
-        .where(source_id: clients_needing_reference_updates.map(&:id))
-        .find_each(&:destroy!)
+      GrdaWarehouse::WarehouseClient.
+        where(source_id: clients_needing_reference_updates.map(&:id)).
+        find_each(&:destroy!)
     end
 
     def update_personal_id_foreign_keys
@@ -178,7 +178,6 @@ module Hmis
         Hmis::Hud::Disability,
         Hmis::Hud::EmploymentEducation,
         Hmis::Hud::Enrollment,
-        Hmis::Hud::EnrollmentCoc,
         Hmis::Hud::Event,
         Hmis::Hud::Exit,
         Hmis::Hud::HealthAndDv,
@@ -194,10 +193,10 @@ module Hmis
 
         t = candidate.arel_table
 
-        candidate
-          .where(t['PersonalID'].in(personal_ids))
-          .where(t['data_source_id'].eq(data_source_id))
-          .update_all(PersonalID: client_to_retain.personal_id)
+        candidate.
+          where(t['PersonalID'].in(personal_ids)).
+          where(t['data_source_id'].eq(data_source_id)).
+          update_all(PersonalID: client_to_retain.personal_id)
       end
     end
 

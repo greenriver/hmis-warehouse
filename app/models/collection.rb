@@ -93,7 +93,7 @@ class Collection < ApplicationRecord
 
   def self.delayed_system_group_maintenance(group: nil)
     delay.maintain_system_groups_no_named_arguments(group)
-    Delayed::Worker.new.work_off if Rails.env.test?
+    Delayed::Worker.new.work_off(1_000) if Rails.env.test?
   end
 
   def self.maintain_system_groups_no_named_arguments(group)

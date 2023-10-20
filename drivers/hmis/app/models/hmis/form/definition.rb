@@ -32,6 +32,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :CLIENT,
     :NEW_CLIENT_ENROLLMENT,
     :ENROLLMENT,
+    :HMIS_PARTICIPATION,
+    :CE_PARTICIPATION,
   ].freeze
 
   # Forms used for data collection on Enrollments (features that can be "toggled" on and off by specifying Instances)
@@ -92,6 +94,14 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       owner_class: Hmis::Hud::ProjectCoc,
       permission: :can_edit_project_details,
     },
+    HMIS_PARTICIPATION: {
+      owner_class: Hmis::Hud::HmisParticipation,
+      permission: :can_edit_project_details,
+    },
+    CE_PARTICIPATION: {
+      owner_class: Hmis::Hud::CeParticipation,
+      permission: :can_edit_project_details,
+    },
     CE_ASSESSMENT: {
       owner_class: Hmis::Hud::Assessment,
       permission: :can_edit_enrollments,
@@ -135,7 +145,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   }.freeze
 
   use_enum_with_same_key :form_role_enum_map, FORM_ROLES
-  use_enum_with_same_key :assessment_type_enum_map, HUD_ASSESSMENT_FORM_ROLES
+  # may add back CE as HUD Assessment Role when we implement CE assessments. Same for implementing customs. Unsure at this point, so leaving them out.
+  use_enum_with_same_key :assessment_type_enum_map, HUD_ASSESSMENT_FORM_ROLES.excluding(:CUSTOM_ASSESSMENT, :CE)
   use_enum_with_same_key :data_collection_feature_role_enum_map, DATA_COLLECTION_FEATURE_ROLES
 
   scope :with_role, ->(role) { where(role: role) }
