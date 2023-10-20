@@ -51,9 +51,16 @@ FactoryBot.define do
     end
   end
 
+  factory :hmis_warehouse_client, class: 'Hmis::WarehouseClient' do
+    data_source { association :hmis_data_source }
+    destination { association :hmis_hud_base_client, data_source: data_source }
+    source { association :hmis_hud_base_client, data_source: data_source }
+    sequence(:id_in_source, 100)
+  end
+
   factory :hmis_hud_client_with_warehouse_client, parent: :hmis_hud_base_client do
     after(:create) do |client|
-      create(:warehouse_client, data_source: client.data_source, source: client.as_warehouse)
+      create(:hmis_warehouse_client, data_source: client.data_source, source: client)
     end
   end
 end
