@@ -50,7 +50,7 @@ module Hmis
 
     def save_audit_trail
       Rails.logger.info 'Saving audit trail with initial state'
-      # Create merge audit storing all the clients that were merged together
+      # Create merge audit trail, storing the attributes for each client at time of merge
       merge_audit = Hmis::ClientMergeAudit.create!(
         actor_id: actor.id,
         merged_at: Time.current,
