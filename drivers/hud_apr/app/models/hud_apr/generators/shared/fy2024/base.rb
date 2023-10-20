@@ -33,7 +33,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     def question_sheet(question:)
-      sheet = QuestionSheet.new(report: @report, question: question)
+      sheet = HudReports::QuestionSheet.new(report: @report, question: question)
       if block_given?
         builder = sheet.builder
         yield(builder)

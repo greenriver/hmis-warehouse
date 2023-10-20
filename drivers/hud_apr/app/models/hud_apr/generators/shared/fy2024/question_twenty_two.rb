@@ -345,7 +345,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     def time_by_race_and_ethnicity_question(question:, move_in_col:, members:)
-      sheet = QuestionSheet.new(report: @report, question: question)
+      sheet = question_sheet(question: question)
       first_row = 2
       last_row = 5
       groups = race_ethnicity_groups

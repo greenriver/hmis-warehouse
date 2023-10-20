@@ -20,7 +20,7 @@ module HudApr::Generators::Shared::Fy2024
 
     private def q10a_gender_of_adults
       gender_question(
-        question: '10a',
+        question: 'Q10a',
         members: universe.members.where(adult_clause),
         populations: sub_populations,
       )

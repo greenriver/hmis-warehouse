@@ -129,7 +129,7 @@ module HudApr::Generators::Shared::Fy2024
 
     private def q25c_veteran_gender
       gender_question(
-        question: '25c',
+        question: 'Q25c',
         members: universe.members.where(veteran_clause),
         populations: q25_populations,
       )
