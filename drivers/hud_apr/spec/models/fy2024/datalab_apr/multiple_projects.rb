@@ -27,6 +27,12 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q5a',
+        skip: [
+          # pending airtable https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/reccL2M1CXze5MJHZ
+          # HHID h_863316 includes a child with a relationship other than 2, glossary indicates this should be limited to relationship 2
+          'B14',
+          'C14',
+        ],
       )
     end
 
