@@ -6,6 +6,8 @@
 
 module HudApr::Generators::Shared::Fy2024
   class QuestionFifteen < Base
+    include HudReports::LivingSituationsQuestion
+
     QUESTION_NUMBER = 'Question 15'.freeze
 
     def self.table_descriptions

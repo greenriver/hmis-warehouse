@@ -6,6 +6,7 @@
 
 module HudApr::Generators::Shared::Fy2024
   class QuestionTwentyTwo < Base
+    include HudReports::StartToMoveInQuestion
     QUESTION_NUMBER = 'Question 22'.freeze
 
     def self.table_descriptions

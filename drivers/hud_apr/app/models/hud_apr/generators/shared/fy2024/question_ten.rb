@@ -6,6 +6,8 @@
 
 module HudApr::Generators::Shared::Fy2024
   class QuestionTen < Base
+    include HudReports::GenderQuestion
+
     QUESTION_NUMBER = 'Question 10'.freeze
 
     def self.table_descriptions

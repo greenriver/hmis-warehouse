@@ -6,6 +6,12 @@
 
 module HudApr::Generators::Shared::Fy2024
   class QuestionTwentySeven < Base
+    include HudReports::SubPopulationsBySubsidyTypeQuestion
+    include HudReports::SubPopulationsByDestinationQuestion
+    include HudReports::StartToMoveInQuestion
+    include HudReports::LivingSituationsQuestion
+    include HudReports::GenderQuestion
+
     QUESTION_NUMBER = 'Question 27'.freeze
 
     def self.table_descriptions
@@ -193,14 +199,14 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     def q27f1_youth_destination
-      sub_populations_by_destination(
+      sub_populations_by_destination_question(
         question: 'Q27f1',
         members: universe.members.where(youth_filter).where(youth_adult_or_youth_hoh_clause),
       )
     end
 
     def q27f2_subsidy_type_of_persons_exiting_to_rental_by_client_with_an_ongoing_subsidy
-      sub_populations_by_subsidy_type(question: 'Q27f2', members: universe.members.where(youth_filter))
+      sub_populations_by_subsidy_type_question(question: 'Q27f2', members: universe.members.where(youth_filter))
     end
 
     private def q27g_youth_income_sources

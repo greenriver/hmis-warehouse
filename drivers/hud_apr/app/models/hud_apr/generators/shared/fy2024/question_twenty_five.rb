@@ -6,6 +6,10 @@
 
 module HudApr::Generators::Shared::Fy2024
   class QuestionTwentyFive < Base
+    include HudReports::SubPopulationsBySubsidyTypeQuestion
+    include HudReports::SubPopulationsByDestinationQuestion
+    include HudReports::GenderQuestion
+
     QUESTION_NUMBER = 'Question 25'.freeze
 
     def self.table_descriptions
@@ -164,11 +168,11 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q25i_destination
-      sub_populations_by_subsidy_type(question: 'Q25i', members: universe.members.where(veteran_clause))
+      sub_populations_by_subsidy_type_question(question: 'Q25i', members: universe.members.where(veteran_clause))
     end
 
     def q25j_exit_destination_subsidy
-      sub_populations_by_destination(question: 'Q25j', members: universe.members.where(veteran_clause))
+      sub_populations_by_destination_question(question: 'Q25j', members: universe.members.where(veteran_clause))
     end
 
     private def veteran_age_ranges
