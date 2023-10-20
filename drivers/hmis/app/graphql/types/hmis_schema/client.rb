@@ -222,9 +222,7 @@ module Types
       return names unless names.empty?
 
       # If client has no CustomClientNames, construct one based on the HUD Client name fields
-      unpersisted_name = object.build_primary_custom_client_name
-      unpersisted_name.id = "#{object.id}-primary-name" # placeholder
-      [unpersisted_name]
+      [object.build_primary_custom_client_name]
     end
 
     def contact_points
