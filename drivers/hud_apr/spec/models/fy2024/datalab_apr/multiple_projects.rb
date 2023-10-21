@@ -347,7 +347,9 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
-    it 'Q24d' do
+    # Pending AirTable https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recGeOJDYAm528rAx
+    # Every enrollment has TranslationAssistance 0
+    xit 'Q24d' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q24d',

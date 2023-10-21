@@ -201,7 +201,8 @@ module HudApr::Generators::Shared::Fy2024
     def q27f1_youth_destination
       sub_populations_by_destination_question(
         question: 'Q27f1',
-        members: universe.members.where(youth_filter).where(youth_adult_or_youth_hoh_clause),
+        # FIXME: need to check this universe
+        members: universe.members.where(youth_filter), # .where(youth_adult_or_youth_hoh_clause),
       )
     end
 
@@ -874,31 +875,6 @@ module HudApr::Generators::Shared::Fy2024
       ].freeze
     end
 
-    private def intentionally_blank_27f
-      [
-        'B2',
-        'C2',
-        'D2',
-        'E2',
-        'F2',
-        'B17',
-        'C17',
-        'D17',
-        'E17',
-        'F17',
-        'B28',
-        'C28',
-        'D28',
-        'E28',
-        'F28',
-        'B36',
-        'C36',
-        'D36',
-        'E36',
-        'F36',
-      ].freeze
-    end
-
     private def intentionally_blank_27g
       [
         'B17',
@@ -917,10 +893,10 @@ module HudApr::Generators::Shared::Fy2024
 
     private def intentionally_blank_q27i
       [
-        'E14',
-        'I14',
-        'M14',
-        'Q14',
+        'E18',
+        'I18',
+        'M18',
+        'Q18',
       ].freeze
     end
   end

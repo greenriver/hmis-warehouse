@@ -771,7 +771,7 @@ module HudApr::Generators::Shared::Fy2024
         },
         {
           label: 'Hispanic/Latina/e/o',
-          cond: race_col.eq('8'),
+          cond: race_col.eq('6'),
         },
         {
           label: 'Middle Eastern or North African',
