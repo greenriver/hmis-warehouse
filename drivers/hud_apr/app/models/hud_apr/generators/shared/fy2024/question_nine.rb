@@ -103,11 +103,11 @@ module HudApr::Generators::Shared::Fy2024
       [
         {
           column: 'B',
-          situations: HudUtility.living_situations.keys,
+          situations: HudUtility2024.living_situations.keys,
         },
         {
           column: 'C',
-          situations: HudUtility.living_situations.keys - [16, 1, 18, 37, 8, 9, 99],
+          situations: HudUtility2024.living_situations.keys - [16, 1, 18, 37, 8, 9, 99],
         },
         {
           column: 'D',

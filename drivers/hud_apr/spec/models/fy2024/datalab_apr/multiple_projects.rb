@@ -288,6 +288,12 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22c',
+        # skip: [
+        #   # Pending AirTable
+        #   'B14',
+        #   'C14',
+
+        # ],
       )
     end
 
@@ -514,6 +520,11 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q27k',
+        # Pending AirTable https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recUA83elKFt0P9rN
+        skip: [
+          'B14',
+          'C14',
+        ],
       )
     end
 

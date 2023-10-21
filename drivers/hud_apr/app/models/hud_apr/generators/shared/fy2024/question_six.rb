@@ -127,7 +127,7 @@ module HudApr::Generators::Shared::Fy2024
       dq_universe_members.preload(:universe_membership).find_each do |u_member|
         member = u_member.universe_membership
         q_member_ids << u_member.id if member.ssn_quality == 2 ||
-          (member.ssn_quality == 1 && member.ssn.present? && !HudUtility.valid_social?(member.ssn))
+          (member.ssn_quality == 1 && member.ssn.present? && !HudUtility2024.valid_social?(member.ssn))
       end
       q_members = dq_universe_members.where(id: q_member_ids)
       answer.add_members(q_members)
@@ -367,7 +367,7 @@ module HudApr::Generators::Shared::Fy2024
       hoh_scope = dq_universe_members.where(hoh_clause)
 
       missing_cell = sheet.update_cell_members(cell: 'C5', members: hoh_scope.where(a_t[:enrollment_coc].eq(nil)))
-      issue_cell = sheet.update_cell_members(cell: 'D5', members: hoh_scope.where(a_t[:enrollment_coc].not_in(HudUtility.cocs.keys)))
+      issue_cell = sheet.update_cell_members(cell: 'D5', members: hoh_scope.where(a_t[:enrollment_coc].not_in(HudUtility2024.cocs.keys)))
 
       # Totals
       total_cell = sheet.update_cell_value(cell: 'E5', value: missing_cell.value + issue_cell.value)
@@ -389,13 +389,13 @@ module HudApr::Generators::Shared::Fy2024
       )
 
       qualifies_for_disability = [
-        a_t[:developmental_disability_latest].eq(true).or(a_t[:hiv_aids_latest].eq(true)),
+        a_t[:developmental_disability_latest].eq(1).or(a_t[:hiv_aids_latest].eq(1)),
         a_t[:indefinite_and_impairs].eq(true).and(
           [
-            a_t[:physical_disability_latest].eq(true),
-            a_t[:chronic_disability_latest].eq(true),
-            a_t[:mental_health_problem_latest].eq(true),
-            a_t[:substance_abuse_latest].eq(true),
+            a_t[:physical_disability_latest].eq(1),
+            a_t[:chronic_disability_latest].eq(1),
+            a_t[:mental_health_problem_latest].eq(1),
+            a_t[:substance_abuse_latest].in([1, 2, 3]),
           ].inject(&:or),
         ),
       ].inject(&:or)
@@ -419,8 +419,11 @@ module HudApr::Generators::Shared::Fy2024
       metadata = {
         header_row: [
           'Data Element',
-          'Error Count',
-          '% of Error Rate',
+          label_for(:dkptr),
+          label_for(:info_missing),
+          'Data Issues',
+          'Total',
+          '% of Issue Rate',
         ],
         row_labels: [
           'Destination (3.12)',
@@ -429,7 +432,7 @@ module HudApr::Generators::Shared::Fy2024
           'Income and Sources (4.02) at Exit',
         ],
         first_column: 'B',
-        last_column: 'C',
+        last_column: 'F',
         first_row: 2,
         last_row: 5,
       }
@@ -439,6 +442,21 @@ module HudApr::Generators::Shared::Fy2024
       leavers = dq_universe_members.where(leavers_clause)
 
       answer = @report.answer(question: table_name, cell: 'B2')
+      members = leavers.where(a_t[:destination].in([8, 9]))
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      answer = @report.answer(question: table_name, cell: 'C2')
+      members = leavers.where(
+        a_t[:destination].in([30, 99]).
+          or(a_t[:destination].eq(nil)),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      # D2 does not have programming specs
+      #
+      answer = @report.answer(question: table_name, cell: 'E2')
       members = leavers.where(
         a_t[:destination].in([8, 9, 30, 99]).
           or(a_t[:destination].eq(nil)),
@@ -446,13 +464,40 @@ module HudApr::Generators::Shared::Fy2024
       answer.add_members(members)
       answer.update(summary: members.count)
 
-      answer = @report.answer(question: table_name, cell: 'C2')
+      answer = @report.answer(question: table_name, cell: 'F2')
       answer.update(summary: percentage(members.count / leavers.count.to_f))
 
       # incomes
       adults_and_hohs = dq_universe_members.where(adult_or_hoh_clause)
       # income at start
       answer = @report.answer(question: table_name, cell: 'B3')
+      members = adults_and_hohs.where(a_t[:income_from_any_source_at_start].in([8, 9]))
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      answer = @report.answer(question: table_name, cell: 'C3')
+      members = adults_and_hohs.where(
+        a_t[:income_date_at_start].eq(nil).
+          or(a_t[:income_date_at_start].not_eq(a_t[:first_date_in_program])).
+          or(a_t[:income_from_any_source_at_start].in([99])).
+          or(a_t[:income_from_any_source_at_start].eq(nil)),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      answer = @report.answer(question: table_name, cell: 'D3')
+      members = adults_and_hohs.where(
+        a_t[:income_from_any_source_at_start].eq(0). # any says no, but there is a source
+          and(income_jsonb_clause(1, a_t[:income_sources_at_start].to_sql)).
+        or(
+          a_t[:income_from_any_source_at_start].eq(1). # any says yes, but no sources
+            and(income_jsonb_clause(1, a_t[:income_sources_at_start].to_sql, negation: true)),
+        ),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      answer = @report.answer(question: table_name, cell: 'E3')
       members = adults_and_hohs.where(
         a_t[:income_date_at_start].eq(nil).
           or(a_t[:income_date_at_start].not_eq(a_t[:first_date_in_program])).
@@ -466,7 +511,7 @@ module HudApr::Generators::Shared::Fy2024
       answer.add_members(members)
       answer.update(summary: members.count)
 
-      answer = @report.answer(question: table_name, cell: 'C3')
+      answer = @report.answer(question: table_name, cell: 'F3')
       answer.update(summary: percentage(members.count / adults_and_hohs.count.to_f))
 
       # income at anniversary
@@ -476,6 +521,33 @@ module HudApr::Generators::Shared::Fy2024
       )
 
       answer = @report.answer(question: table_name, cell: 'B4')
+      members = stayers_with_anniversary.where(a_t[:income_from_any_source_at_annual_assessment].in([8, 9]))
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      answer = @report.answer(question: table_name, cell: 'C4')
+      members = stayers_with_anniversary.where(
+        a_t[:income_date_at_annual_assessment].eq(nil).
+          or(a_t[:annual_assessment_in_window].eq(false)).
+          or(a_t[:income_from_any_source_at_annual_assessment].in([99])).
+          or(a_t[:income_from_any_source_at_annual_assessment].eq(nil)),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      answer = @report.answer(question: table_name, cell: 'D4')
+      members = stayers_with_anniversary.where(
+        a_t[:income_from_any_source_at_annual_assessment].eq(0).
+          and(income_jsonb_clause(1, a_t[:income_sources_at_annual_assessment].to_sql)).
+        or(
+          a_t[:income_from_any_source_at_annual_assessment].eq(1).
+            and(income_jsonb_clause(1, a_t[:income_sources_at_annual_assessment].to_sql, negation: true)),
+        ),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      answer = @report.answer(question: table_name, cell: 'E4')
       members = stayers_with_anniversary.where(
         a_t[:income_date_at_annual_assessment].eq(nil).
           or(a_t[:annual_assessment_in_window].eq(false)).
@@ -489,13 +561,40 @@ module HudApr::Generators::Shared::Fy2024
       answer.add_members(members)
       answer.update(summary: members.count)
 
-      answer = @report.answer(question: table_name, cell: 'C4')
+      answer = @report.answer(question: table_name, cell: 'F4')
       answer.update(summary: percentage(members.count / stayers_with_anniversary.count.to_f))
 
       # income at exit
       leavers = adults_and_hohs.where(a_t[:last_date_in_program].lteq(@report.end_date))
 
       answer = @report.answer(question: table_name, cell: 'B5')
+      members = leavers.where(a_t[:income_from_any_source_at_exit].in([8, 9, 99]))
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      answer = @report.answer(question: table_name, cell: 'C5')
+      members = leavers.where(
+        a_t[:income_date_at_exit].eq(nil).
+          or(a_t[:income_date_at_exit].not_eq(a_t[:last_date_in_program])).
+          or(a_t[:income_from_any_source_at_exit].in([99])).
+          or(a_t[:income_from_any_source_at_exit].eq(nil)),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      answer = @report.answer(question: table_name, cell: 'D5')
+      members = leavers.where(
+        a_t[:income_from_any_source_at_exit].eq(0).
+          and(income_jsonb_clause(1, a_t[:income_sources_at_exit].to_sql)).
+        or(
+          a_t[:income_from_any_source_at_exit].eq(1).
+            and(income_jsonb_clause(1, a_t[:income_sources_at_exit].to_sql, negation: true)),
+        ),
+      )
+      answer.add_members(members)
+      answer.update(summary: members.count)
+
+      answer = @report.answer(question: table_name, cell: 'E5')
       members = leavers.where(
         a_t[:income_date_at_exit].eq(nil).
           or(a_t[:income_date_at_exit].not_eq(a_t[:last_date_in_program])).
@@ -509,7 +608,7 @@ module HudApr::Generators::Shared::Fy2024
       answer.add_members(members)
       answer.update(summary: members.count)
 
-      answer = @report.answer(question: table_name, cell: 'C5')
+      answer = @report.answer(question: table_name, cell: 'F5')
       answer.update(summary: percentage(members.count / leavers.count.to_f))
     end
 
@@ -542,7 +641,7 @@ module HudApr::Generators::Shared::Fy2024
       @report.answer(question: table_name).update(metadata: metadata)
 
       adults_and_hohs = dq_universe_members.where(
-        a_t[:project_type].in([1, 4, 8, 2, 3, 9, 10, 13]).
+        a_t[:project_type].in([0, 1, 4, 8, 2, 3, 9, 10, 13]).
           and(a_t[:first_date_in_program].gt(Date.parse('2016-10-01')).
             and(a_t[:age].gteq(18).
               or(a_t[:head_of_household].eq(true).
@@ -629,15 +728,16 @@ module HudApr::Generators::Shared::Fy2024
         # missing time in institution
         {
           cell: "C#{row_number}",
-          clause: a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
+          clause: a_t[:prior_living_situation].in((200..299).to_a).
             and(a_t[:prior_length_of_stay].in([8, 9, 99]).
               or(a_t[:prior_length_of_stay].eq(nil))),
           include_in_percent: true,
         },
         # missing time in housing
+        # FIXME
         {
           cell: "D#{row_number}",
-          clause: a_t[:prior_living_situation].in([29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99]).
+          clause: a_t[:prior_living_situation].in((0..99).to_a + (300..499).to_a).
             or(a_t[:prior_living_situation].eq(nil)).
             and(a_t[:prior_length_of_stay].in([8, 9, 99]).
               or(a_t[:prior_length_of_stay].eq(nil))),
@@ -688,14 +788,14 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def residence_restriction
-      @residence_restriction ||= a_t[:prior_living_situation].in([16, 1, 18]).
+      @residence_restriction ||= a_t[:prior_living_situation].in((100..199).to_a).
         or(
-          a_t[:prior_living_situation].in([15, 6, 7, 25, 4, 5]).
+          a_t[:prior_living_situation].in((200..299).to_a).
             and(a_t[:prior_length_of_stay].in([10, 11, 2, 3])).
             and(a_t[:came_from_street_last_night].eq(1)),
         ).
         or(
-          a_t[:prior_living_situation].in([29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99]).
+          a_t[:prior_living_situation].in((0..99).to_a + (300..499).to_a).
             or(a_t[:prior_living_situation].eq(nil)).
             and(a_t[:prior_length_of_stay].in([10, 11])).
             and(a_t[:came_from_street_last_night].eq(1)),

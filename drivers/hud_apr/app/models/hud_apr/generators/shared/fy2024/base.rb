@@ -201,8 +201,7 @@ module HudApr::Generators::Shared::Fy2024
           end
 
           chronic_source = household_chronic_status(hh_id, last_service_history_enrollment.client_id)
-          move_in_date = last_service_history_enrollment.move_in_date
-          move_in_date = nil if move_in_date.present? && move_in_date < last_service_history_enrollment.first_date_in_program
+          move_in_date = calculate_move_in_date(hh_id, last_service_history_enrollment)
           processed_source_clients << source_client.id
           ce_hash = {}
           options = {
@@ -259,7 +258,7 @@ module HudApr::Generators::Shared::Fy2024
             drug_abuse_entry: [2, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
             drug_abuse_exit: [2, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
             drug_abuse_latest: [2, 3].include?(disabilities_latest.detect(&:substance?)&.DisabilityResponse),
-            enrollment_coc: enrollment.enrollment_coc_at_entry&.CoCCode,
+            enrollment_coc: enrollment.EnrollmentCoC,
             enrollment_created: enrollment.DateCreated || enrollment.DateUpdated || DateTime.current,
             ethnicity: source_client.Ethnicity,
             exit_created: exit_record&.exit&.DateCreated,
@@ -524,7 +523,6 @@ module HudApr::Generators::Shared::Fy2024
           :income_benefits_at_exit,
           :income_benefits_at_entry,
           :income_benefits_annual_update,
-          :enrollment_coc_at_entry,
           :health_and_dvs,
           :exit,
           :assessments,
@@ -546,11 +544,10 @@ module HudApr::Generators::Shared::Fy2024
         entry.
         open_between(start_date: @report.start_date, end_date: @report.end_date).
         joins(:enrollment).
-        left_outer_joins(enrollment: :enrollment_coc_at_entry).
         merge(
-          GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: @report.coc_codes).
-          or(GrdaWarehouse::Hud::EnrollmentCoc.where(CoCCode: nil)).
-          or(GrdaWarehouse::Hud::EnrollmentCoc.where.not(CoCCode: HudUtility.cocs.keys)),
+          GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: @report.coc_codes).
+          or(GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: nil)).
+          or(GrdaWarehouse::Hud::Enrollment.where.not(EnrollmentCoC: HudUtility2024.cocs.keys)),
         )
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
       scope
