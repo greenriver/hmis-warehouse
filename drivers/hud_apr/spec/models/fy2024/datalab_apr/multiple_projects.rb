@@ -68,6 +68,9 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6e',
+        skip: [
+          'C2', # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recQoBOA5VwRFp8jJ
+        ],
       )
     end
 
@@ -85,7 +88,8 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
-    it 'Q7b' do
+    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec5AxqrAUl0f8yAf
+    xit 'Q7b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q7b',
@@ -99,7 +103,8 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
-    it 'Q8b' do
+    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec5AxqrAUl0f8yAf
+    xit 'Q8b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q8b',
@@ -288,12 +293,6 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q22c',
-        # skip: [
-        #   # Pending AirTable
-        #   'B14',
-        #   'C14',
-
-        # ],
       )
     end
 

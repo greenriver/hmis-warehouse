@@ -199,7 +199,7 @@ module HudApr::Generators::Shared::Fy2024
       heads_of_household = universe.members.where(a_t[:head_of_household].eq(true))
       pit_date = pit_date(month: month, before: @report.end_date)
       # "?" is a jsonb postgres operator, true if value is contained in array
-      active_members = universe.members.where("pit_enrollments ? '#{pit_date}'")
+      active_members = universe.members.where("pit_enrollments ? '#{pit_date}'").where(a_t[:first_date_in_program].lteq(pit_date))
       heads_of_household.where(a_t[:household_id].in(active_members.pluck(a_t[:household_id])))
     end
   end

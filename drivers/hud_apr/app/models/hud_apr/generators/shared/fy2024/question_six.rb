@@ -830,8 +830,7 @@ module HudApr::Generators::Shared::Fy2024
       [
         {
           cell: 'B2',
-          # FIXME - check this
-          clause: a_t[:first_date_in_program].gt(a_t[:enrollment_created]),
+          clause: a_t[:first_date_in_program].gt(a_t[:enrollment_created]).and(a_t[:first_date_in_program].gteq(@report.start_date)),
         },
         # entry on date
         {
@@ -872,9 +871,10 @@ module HudApr::Generators::Shared::Fy2024
 
       [
         {
-          cell: 'B2',
-          # FIXME - check this
-          clause: a_t[:first_date_in_program].gt(a_t[:enrollment_created]),
+          cell: 'C2',
+          # It's possible we don't need the report start criteria, there's a current bug in the Test Kit
+          # https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recQoBOA5VwRFp8jJ
+          clause: a_t[:last_date_in_program].gt(a_t[:exit_created]).and(a_t[:exit_created].gteq(@report.start_date)),
         },
         # exit on date
         {
