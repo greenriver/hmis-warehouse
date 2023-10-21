@@ -15,10 +15,9 @@ module Mutations
     field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(id:, input:)
-      handle_error('connection not configured') unless HmisExternalApis::AcHmis::LinkApi.enabled?
-
       posting = HmisExternalApis::AcHmis::ReferralPosting.active.viewable_by(current_user).find(id)
       handle_error('referral not found') unless posting
+      handle_error('connection not configured') if posting.from_link? && !HmisExternalApis::AcHmis::LinkApi.enabled?
 
       errors = HmisErrors::Errors.new
 
@@ -113,6 +112,7 @@ module Mutations
       # Contact date should only be present when changing to AcceptedPending or DeniedPending
       contact_date = ['accepted_pending_status', 'denied_pending_status'].include?(posting.status) ? Time.current : nil
 
+      Rails.logger.info "Updating status in LINK for posting #{posting.identifier} from posting form"
       HmisExternalApis::AcHmis::UpdateReferralPostingJob.perform_now(
         posting_id: posting.identifier,
         posting_status_id: posting.status_before_type_cast,

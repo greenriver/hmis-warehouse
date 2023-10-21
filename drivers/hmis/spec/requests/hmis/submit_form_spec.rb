@@ -29,6 +29,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:f1) { create :hmis_hud_funder, data_source: ds1, project: p1, user: u1, end_date: nil }
   let!(:pc1) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-500', user: u1 }
   let!(:i1) { create :hmis_hud_inventory, data_source: ds1, project: p1, coc_code: pc1.coc_code, inventory_start_date: '2020-01-01', inventory_end_date: nil, user: u1 }
+  let!(:hmis_particip1) { create :hmis_hud_hmis_participation, data_source: ds1, project: p1 }
+  let!(:ce_particip1) { create :hmis_hud_ce_participation, data_source: ds1, project: p1 }
+
   let!(:s1) { create :hmis_hud_service, data_source: ds1, client: c2, enrollment: e1, user: u1 }
   let!(:cs1) { create :hmis_custom_service, custom_service_type: cst1, data_source: ds1, client: c2, enrollment: e1, user: u1 }
   let!(:a1) { create :hmis_hud_assessment, data_source: ds1, client: c2, enrollment: e1, user: u1 }
@@ -82,6 +85,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             ... on Enrollment {
               id
               inProgress
+              householdSize
             }
             ... on CurrentLivingSituation {
               id
@@ -90,6 +94,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               id
             }
             ... on Event {
+              id
+            }
+            ... on HmisParticipation {
+              id
+            }
+            ... on CeParticipation {
               id
             }
           }
@@ -105,6 +115,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       :FUNDER,
       :PROJECT_COC,
       :INVENTORY,
+      :HMIS_PARTICIPATION,
+      :CE_PARTICIPATION,
       :ORGANIZATION,
       :CLIENT,
       :SERVICE,
@@ -161,6 +173,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               f1.id
             when :INVENTORY
               i1.id
+            when :HMIS_PARTICIPATION
+              hmis_particip1.id
+            when :CE_PARTICIPATION
+              ce_particip1.id
             when :SERVICE
               hmis_hud_service1.id
             when :FILE
@@ -456,13 +472,30 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect_error_message(input, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.first_member_hoh_full_message)
     end
 
-    it 'should error if adding duplicate member to household' do
+    it 'should error if client already has an open enrollment in the household' do
+      e2 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: '2000-01-01', household_id: e1.household_id)
       input = merge_hud_values(
-        test_input.merge(client_id: e1.client.id),
+        test_input.merge(client_id: e2.client.id),
         'householdId' => e1.household_id,
         'relationshipToHoh' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2),
       )
       expect_error_message(input, exact: false, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.duplicate_member_full_message)
+    end
+
+    it 'should not error if client has a closed enrollment in the household' do
+      e2 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: '2000-01-01', household_id: e1.household_id)
+      create(:hmis_hud_exit, enrollment: e2, client: e2.client, data_source: ds1, exit_date: '2001-01-01')
+      input = merge_hud_values(
+        test_input.merge(client_id: e2.client.id),
+        'householdId' => e1.household_id,
+        'relationshipToHoh' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2),
+      )
+      response, result = post_graphql(input: { input: input }) { mutation }
+      errors = result.dig('data', 'submitForm', 'errors')
+      expect(response.status).to eq(200), result&.inspect
+      expect(errors).to be_empty
+      household_size = result.dig('data', 'submitForm', 'record', 'householdSize')
+      expect(household_size).to eq(2) # household size is 2 even though it contains 3 enrollments
     end
 
     it 'should warn if client already enrolled' do
@@ -584,14 +617,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(errors).to contain_exactly(include({ 'attribute' => 'dobDataQuality', 'type' => 'invalid' }))
     end
 
-    # FIXME(#186002677)
-    xit 'validates client (invalid DOB)' do
+    it 'validates client (invalid DOB)' do
       input = merge_hud_values(
         test_input,
         'Client.dob' => '2200-01-01', # future dob is not valid
       )
       _, errors = submit_form(input)
-      expect(errors).to contain_exactly(include({ 'attribute' => 'dob', 'type' => 'invalid' }))
+      expect(errors).to contain_exactly(include({ 'attribute' => 'dob', 'type' => 'out_of_range' }))
     end
   end
 end

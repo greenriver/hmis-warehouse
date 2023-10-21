@@ -27,7 +27,8 @@ class Hmis::Hud::User < Hmis::Hud::Base
       u.user_id = Hmis::Hud::Base.generate_uuid
       u.user_first_name = user.first_name
       u.user_last_name = user.last_name
-      u.user_phone = user.phone
+      phone = user.phone&.gsub(/\D/, '')
+      u.user_phone = phone if phone && phone.size < 11 # column has 10 char limit
     end
   end
 

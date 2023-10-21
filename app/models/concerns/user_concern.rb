@@ -136,6 +136,13 @@ module UserConcern
       self[:permission_context].to_s == 'acls'
     end
 
+    def self.available_permission_contexts
+      {
+        acls: 'Access Controls (modern granular access)',
+        role_based: 'Role-Based Access',
+      }
+    end
+
     # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }
     # scope :dnd_staff, -> { includes(:roles).where(roles: {name: :dnd_staff}) }
 

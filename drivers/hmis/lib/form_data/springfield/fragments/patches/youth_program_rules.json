@@ -1,6 +1,6 @@
 [
   {
-    "link_id": "C3",
+    "link_id": "c3-youth-education-status",
     "rule": {
       "operator": "ANY",
       "parts": [
@@ -12,22 +12,22 @@
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "67"
+          "value": "755"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "272"
+          "value": "785"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "74"
+          "value": "751"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "3627"
+          "value": "825"
         }
       ]
     }
@@ -62,17 +62,17 @@
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "272"
+          "value": "785"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "74"
+          "value": "751"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "3627"
+          "value": "825"
         }
       ]
     }
@@ -103,22 +103,22 @@
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "67"
+          "value": "755"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "272"
+          "value": "785"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "74"
+          "value": "751"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "3627"
+          "value": "825"
         }
       ]
     }
@@ -142,22 +142,22 @@
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "67"
+          "value": "755"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "272"
+          "value": "785"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "74"
+          "value": "751"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "3627"
+          "value": "825"
         }
       ]
     }
@@ -180,22 +180,22 @@
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "67"
+          "value": "755"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "272"
+          "value": "785"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "74"
+          "value": "751"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "3627"
+          "value": "825"
         }
       ]
     }
@@ -218,22 +218,22 @@
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "67"
+          "value": "755"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "272"
+          "value": "785"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "74"
+          "value": "751"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "3627"
+          "value": "825"
         }
       ]
     }

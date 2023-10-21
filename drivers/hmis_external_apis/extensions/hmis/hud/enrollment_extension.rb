@@ -19,11 +19,12 @@ module HmisExternalApis
 
           def accept_referral!(current_user:)
             return unless head_of_household?
-            return unless HmisExternalApis::AcHmis::LinkApi.enabled?
 
             # Posting can only be accepted if it is AcceptedPending or Closed (if re-opening exited enrollment)
             posting = source_postings.find_by(status: ['accepted_pending_status', 'closed_status'])
             return unless posting.present?
+
+            raise 'connection not configured' if posting.from_link? && !HmisExternalApis::AcHmis::LinkApi.enabled?
 
             posting.status = 20 # accepted
             posting.referral_result = 1 # successful result
@@ -31,6 +32,7 @@ module HmisExternalApis
               posting.save!
               posting.exit_origin_household(user: ::Hmis::Hud::User.from_user(current_user))
               if posting.from_link?
+                Rails.logger.info "Updating status in LINK for posting #{posting.identifier} because of enrollment #{id} being entered"
                 HmisExternalApis::AcHmis::UpdateReferralPostingJob.perform_now(
                   posting_id: posting.identifier,
                   posting_status_id: posting.status_before_type_cast,
@@ -43,15 +45,18 @@ module HmisExternalApis
 
           def close_referral!(current_user:)
             return unless head_of_household?
-            return unless HmisExternalApis::AcHmis::LinkApi.enabled?
 
             posting = source_postings.find_by(status: 'accepted_status')
             return unless posting.present?
 
+            raise 'connection not configured' if posting.from_link? && !HmisExternalApis::AcHmis::LinkApi.enabled?
+
+            # Note: doesn't use a transaction because the caller, save_submitted_assessment!, already calls it in a transaction
             posting.status = 13 # closed
             posting.save!
-            return unless posting.identifier.present? # HMIS Admin-assigned posting
+            return unless posting.from_link?
 
+            Rails.logger.info "Updating status in LINK for posting #{posting.identifier} because of enrollment #{id} being exited"
             HmisExternalApis::AcHmis::UpdateReferralPostingJob.perform_now(
               posting_id: posting.identifier,
               posting_status_id: posting.status_before_type_cast,

@@ -28,8 +28,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:c3) { create :hmis_hud_client, data_source: ds1, DOB: Date.current - 30.years }
   let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c3 }
 
-  # let!(:s1) { create :hmis_hud_service, data_source: ds1, enrollment: e1, client: c1 }
-  # let!(:cst1) { create :hmis_custom_service_type_for_hud_service, data_source: ds1, custom_service_category: csc1, user: u1 }
+  # canary
+  let!(:p_canary) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
+  let!(:e_canary) { create :hmis_hud_enrollment, data_source: ds1, project: p_canary, client: c1 }
 
   before(:each) do
     hmis_login(user)
@@ -50,6 +51,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           }
         }
       GRAPHQL
+    end
+
+    it 'filters households by all statuses' do
+      filters = { "status": ['INCOMPLETE', 'ACTIVE', 'EXITED'] }
+      response, result = post_graphql(id: p1.id, filters: filters) { query }
+      expect(response.status).to eq 200
+      [e1, e2, e3].map(&:household_id).tap do |expected|
+        expect(expected.size).to eq 3
+        households = result.dig('data', 'project', 'households', 'nodes')
+        expect(households.map { |r| r.fetch('id') }.sort).to eq expected.sort
+      end
     end
 
     it 'filters households by search term' do

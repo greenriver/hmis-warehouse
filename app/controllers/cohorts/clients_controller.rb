@@ -278,7 +278,7 @@ module Cohorts
           service_scope: service_scope,
         )
 
-        enrollment_scope = enrollment_scope.send(population)
+        enrollment_scope = enrollment_scope.joins(client: :processed_service_history).send(population)
       end
       # Active record seems to have trouble with the complicated nature of this scope
       @clients = @clients.where("EXISTS(#{enrollment_scope.to_sql})")
