@@ -13478,8 +13478,8 @@ ALTER SEQUENCE public.hmis_client_merge_audits_id_seq OWNED BY public.hmis_clien
 
 CREATE TABLE public.hmis_client_merge_histories (
     id bigint NOT NULL,
-    retained_client_id bigint,
-    deleted_client_id bigint,
+    retained_client_id bigint NOT NULL,
+    deleted_client_id bigint NOT NULL,
     client_merge_audit_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
@@ -58950,14 +58950,6 @@ ALTER TABLE ONLY public.service_history_services_2030
 
 
 --
--- Name: hmis_client_merge_histories fk_rails_3f0ae0620d; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_client_merge_histories
-    ADD CONSTRAINT fk_rails_3f0ae0620d FOREIGN KEY (client_merge_audit_id) REFERENCES public.hmis_client_merge_audits(id);
-
-
---
 -- Name: hmis_external_referral_postings fk_rails_41274b755e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -59302,27 +59294,11 @@ ALTER TABLE ONLY public.service_history_services_2025
 
 
 --
--- Name: hmis_client_merge_histories fk_rails_baf6c32a41; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_client_merge_histories
-    ADD CONSTRAINT fk_rails_baf6c32a41 FOREIGN KEY (deleted_client_id) REFERENCES public."Client"(id);
-
-
---
 -- Name: service_history_services_2005 fk_rails_bb256798ab; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.service_history_services_2005
     ADD CONSTRAINT fk_rails_bb256798ab FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
-
-
---
--- Name: hmis_client_merge_histories fk_rails_bc9639c6fa; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_client_merge_histories
-    ADD CONSTRAINT fk_rails_bc9639c6fa FOREIGN KEY (retained_client_id) REFERENCES public."Client"(id);
 
 
 --
