@@ -49,5 +49,8 @@ module Types
     field :update_referral_posting, mutation: Mutations::AcHmis::UpdateReferralPosting
     field :create_outgoing_referral_posting, mutation: Mutations::AcHmis::CreateOutgoingReferralPosting
     field :delete_custom_case_note, mutation: Mutations::DeleteCustomCaseNote
+
+    field :merge_clients, mutation: Mutations::MergeClients
+    field :bulk_merge_clients, mutation: Mutations::BulkMergeClients
   end
 end

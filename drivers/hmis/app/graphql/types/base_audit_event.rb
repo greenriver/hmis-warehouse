@@ -21,12 +21,14 @@ module Types
           changes
         end
 
-        define_method(:authorize_field) do |object, key|
-          authorized = true
-          authorized = current_user.permissions_for?(object.item, *Array.wrap(field_permissions[key])) if field_permissions[key].present?
-          authorized
+        define_method(:authorize_field) do |record, key|
+          return true unless field_permissions[key].present?
+
+          # Check if user has permission to view audit history for this particular field (for example SSN/DOB on Client)
+          current_user.permissions_for?(record, *Array.wrap(field_permissions[key]))
         end
       end
+
       Object.const_set(dynamic_name, klass) unless Object.const_defined?(dynamic_name)
       klass
     end
@@ -54,8 +56,9 @@ module Types
     def object_changes
       return unless object.object_changes.present?
 
-      result = YAML.load(object.object_changes, permitted_classes: [Time, Date, Symbol], aliases: true).except('DateUpdated')
+      result = YAML.load(object.object_changes, permitted_classes: [Time, Date, Symbol], aliases: true).except('DateUpdated', 'lock_version')
 
+      changed_record = record
       result = transform_changes(object, result).map do |key, value|
         name = key.camelize(:lower)
         gql_enum = Hmis::Hud::Processors::Base.graphql_enum(name, schema_type)
@@ -68,7 +71,8 @@ module Types
           gql_enum.key_for(val)
         end
 
-        values = 'changed' unless authorize_field(object, key)
+        # hide certain changes (SSN/DOB) if unauthorized
+        values = 'changed' if changed_record && !authorize_field(changed_record, key)
 
         [
           name,
@@ -81,6 +85,13 @@ module Types
       end.to_h
 
       result
+    end
+
+    private def record
+      return object.item if object.item_type.starts_with?('Hmis::')
+
+      # Attempt to convert GrdaWarehouse record to Hmis record
+      "Hmis::Hud::#{object.item_type.demodulize}".constantize.with_deleted.find_by(id: object.item_id)
     end
   end
 end

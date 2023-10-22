@@ -1,6 +1,13 @@
 - title = "HMIS #{@type} Source Data"
 - content_for :title, title
 %h1= content_for :title
+- if @hmis
+  .well
+    This record is managed in the HMIS.
+    - if @hmis_url
+      %a{href: @hmis_url, target: :blank}
+        View record in HMIS
+        %i.ml-1.icon-link-ext
 - if @imported
   .well
     %p

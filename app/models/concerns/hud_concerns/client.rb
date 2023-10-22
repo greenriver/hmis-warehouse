@@ -45,14 +45,15 @@ module HudConcerns::Client
       end
     end
 
+    # This can be used to retrieve numeric representations of the client's race
     def race_multi
-      ret = []
-      HudUtility2024.race_field_name_to_id.except(:RaceNone).each do |k, v|
-        ret << v if self[k] == 1
+      @race_multi ||= [].tap do |gm|
+        HudUtility2024.race_field_name_to_id.except(:RaceNone).each do |k, v|
+          gm << v if self[k] == 1
+        end
+        # Per the data standards, only look to RaceNone if we don't have a more specific response
+        gm << self.RaceNone if gm.empty? && self.RaceNone.in?([8, 9, 99])
       end
-      # Per the data standards, only look to RaceNone if we don't have a more specific response
-      ret << self.RaceNone if ret.empty? && self.RaceNone.in?([8, 9, 99])
-      ret
     end
 
     scope :age_group, ->(start_age: 0, end_age: nil) do
