@@ -14,6 +14,14 @@ module HmisDataCleanup
   class Util
     include ArelHelper
 
+    # Remove all ExportIDs from HMIS Enrollments.
+    # This should be done after an HMIS migration, otherwise ServiceHistoryService generation will behave incorrectly
+    def self.clear_enrollment_export_ids!
+      without_papertrail_or_timestamps do
+        Hmis::Hud::Enrollment.hmis.update_all(ExportID: nil)
+      end
+    end
+
     # Assign Household ID where missing
     #
     # Note: If this gets to be a large number, an upsert is probably worth doing.
@@ -130,7 +138,7 @@ module HmisDataCleanup
       end
     end
 
-    def self.write_project_unit_summary!(filename: 'hmis_project_summary.csv')
+    def self.write_project_unit_summary(filename: 'hmis_project_summary.csv')
       direct_entry_cded = Hmis::Hud::CustomDataElementDefinition.find_by(key: :direct_entry)
       project_pk_to_walkin_status = direct_entry_cded.values.pluck(:owner_id, :value_boolean).to_h if direct_entry_cded
 
@@ -172,6 +180,80 @@ module HmisDataCleanup
         rows << hash
       end
 
+      CSV.open(filename, 'wb+', write_headers: true, headers: rows.first.keys) do |writer|
+        rows.each do |row|
+          writer << row.values
+        end
+      end
+    end
+
+    def self.write_potential_duplicates(filename: 'hmis_potential_duplicates.csv', variant: 'all', full_name: true)
+      Rails.logger.info("Finding potential duplicates (variant: #{variant})")
+
+      data_source_id = GrdaWarehouse::DataSource.hmis.first.id
+
+      # Find all Destination clients that have >1 source client in HMIS
+      destination_id_to_source_ids = GrdaWarehouse::WarehouseClient.where(data_source_id: data_source_id).
+        joins(:source). # drop non existent source clients
+        group(:destination_id).
+        having('count(*) > 1').select('"destination_id", array_agg("source_id") as source_ids').
+        map { |r| [r.destination_id, r.source_ids] }.
+        to_h
+
+      # Map source ID => demographic details
+      source_id_to_info = Hmis::Hud::Client.where(id: destination_id_to_source_ids.values.flatten).
+        map do |client|
+          name_parts = if full_name
+            [client.first_name, client.middle_name, client.last_name, client.name_suffix]
+          else
+            [client.first_name, client.last_name]
+          end
+
+          comparison_attrs = {
+            name: name_parts.compact_blank.map(&:strip).join(' ').downcase,
+            dob: client.dob&.strftime('%Y-%m-%d'),
+            ssn: client.ssn,
+            genders: client.gender_multi.excluding(8, 9, 99).sort.map { |k| ::HudUtility2024.gender(k) }.join(', ').presence,
+          }
+          [client.id, comparison_attrs]
+        end.to_h
+
+      rows = []
+      destination_id_to_source_ids.each do |dest_id, source_ids|
+        row = {
+          WarehouseID: dest_id,
+        }
+
+        8.times do |idx|
+          client_id = source_ids[idx]
+          row["Client#{idx + 1}_ID"] = client_id
+          info = source_id_to_info.fetch(client_id, nil) || {}
+          row["Client#{idx + 1}_Name"] = info[:name]
+          row["Client#{idx + 1}_DOB"] = info[:dob]
+          row["Client#{idx + 1}_SSN"] = info[:ssn]
+          row["Client#{idx + 1}_Gender"] = info[:genders]
+        end
+
+        client_details = source_ids.map { |id| source_id_to_info[id] }.compact
+        exact_match = [:name, :dob, :ssn, :genders].all? do |field|
+          client_details.map { |r| r[field] }.compact.uniq.size < 2
+        end
+        case variant
+        when 'all'
+          rows << row
+        when 'only_exact_matches'
+          rows << row if exact_match
+        when 'only_non_exact_matches'
+          rows << row unless exact_match
+        else
+          raise 'unsupported variant'
+        end
+      end
+
+      return rows unless filename
+
+      skipped = destination_id_to_source_ids.size - rows.size
+      Rails.logger.info("Skipped #{skipped} potential duplicates; writing #{rows.count} to file")
       CSV.open(filename, 'wb+', write_headers: true, headers: rows.first.keys) do |writer|
         rows.each do |row|
           writer << row.values
