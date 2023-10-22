@@ -50,6 +50,15 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :client_projects
   has_many :projects_including_wip, through: :client_projects, source: :project
 
+  # History of merges into this client
+  has_many :merge_histories, class_name: 'Hmis::ClientMergeHistory', primary_key: :id, foreign_key: :retained_client_id
+  # History of this client being merged into other clients (only present for deleted clients)
+  has_many :reverse_merge_histories, class_name: 'Hmis::ClientMergeHistory', primary_key: :id, foreign_key: :deleted_client_id
+  # Merge Audits for merges into this client
+  has_many :merge_audits, -> { distinct }, through: :merge_histories, source: :client_merge_audit
+  # Merge Audits for merges from this client into another client
+  has_many :reverse_merge_audits, -> { distinct }, through: :reverse_merge_histories, source: :client_merge_audit
+
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
   accepts_nested_attributes_for :names, allow_destroy: true
   accepts_nested_attributes_for :addresses, allow_destroy: true
