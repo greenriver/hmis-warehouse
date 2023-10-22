@@ -57,7 +57,15 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   has_many :services, through: :enrollments_including_wip
   has_many :custom_services, through: :enrollments_including_wip
-  has_many :hmis_services, through: :enrollments_including_wip
+
+  # FIXME: joining services through client_projects confounds postgres. On larger projects, the query might take many
+  # minutes. It need optimization; for now it's much faster to pull down the ids.
+  # has_many :hmis_services, through: :enrollments_including_wip
+  def hmis_services
+    project = self
+    ids = project.enrollments_including_wip.pluck(:EnrollmentID)
+    Hmis::Hud::HmisService.where(data_source: project.data_source).where(hs_t[:EnrollmentID].in(ids))
+  end
 
   has_and_belongs_to_many :project_groups,
                           class_name: 'GrdaWarehouse::ProjectGroup',
