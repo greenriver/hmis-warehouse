@@ -98,8 +98,7 @@ class Hmis::Hud::Household < Hmis::Hud::Base
       order(
         hh_t[:any_wip].eq(true).desc,
         hh_t[:latest_exit].eq(nil).desc,
-        hh_t[:earliest_entry].desc,
-        hh_t[:HouseholdID].asc,
+        earliest_entry: :desc,
       )
     else
       raise NotImplementedError

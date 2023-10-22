@@ -89,8 +89,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   #
   # WARNING! This will include projects that the user does not have access to view (e.g. they lack can_view_projects)
   scope :with_access, ->(user, *permissions, **kwargs) do
-    raise "missing data source on user id #{user.id}" unless user.hmis_data_source_id
-
     ids = user.entities_with_permissions(Hmis::Hud::Project, *permissions, **kwargs).pluck(:id)
     ids += user.entities_with_permissions(Hmis::Hud::Organization, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
     ids += user.entities_with_permissions(GrdaWarehouse::DataSource, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
