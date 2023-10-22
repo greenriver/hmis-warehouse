@@ -60,4 +60,25 @@ module HudReports::Util
       format('%.2f', value.round(2))
     end
   end
+
+  # given a column (letter), return the next col in sequence
+  # A => B, Z => AA, etc
+  def self.next_column_identifier(column)
+    # Convert the column to an integer
+    n = 0
+    column.each_char do |char|
+      n = n * 26 + (char.ord - 65 + 1) # 65 is the ASCII code for 'A', add 1 for 1-based indexing
+    end
+
+    # Increment the integer and convert it back to an identifier
+    n += 1
+    result = ''
+    while n.positive?
+      remainder = (n - 1) % 26 # Subtracting 1 to handle 1-based indexing
+      result = (65 + remainder).chr + result # 65 is the ASCII code for 'A'
+      n = (n - 1) / 26 # Subtracting 1 to handle 1-based indexing
+    end
+
+    result
+  end
 end

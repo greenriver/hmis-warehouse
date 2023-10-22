@@ -6,7 +6,7 @@ test:
     timeout: 5000
     username: postgres
     password: postgres
-    database: boston_hmis_test
+    database: warehouse_app_test
   warehouse:
     adapter: postgis
     host: postgres
@@ -32,7 +32,7 @@ test:
     timeout: 5000
     username: postgres
     password: postgres
-    database: test_boston_reporting
+    database: reporting_test
     migrations_paths: db/reporting/migrate
   cas:
     adapter: postgresql
@@ -41,4 +41,4 @@ test:
     timeout: 5000
     username: postgres
     password: postgres
-    database: test_boston_cas
+    database: cas_test
