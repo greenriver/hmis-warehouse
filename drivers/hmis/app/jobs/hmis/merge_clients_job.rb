@@ -60,12 +60,28 @@ module Hmis
 
     def save_audit_trail
       Rails.logger.info 'Saving audit trail with initial state'
-
-      Hmis::ClientMergeAudit.create!(
+      # Create merge audit trail, storing the attributes for each client at time of merge
+      merge_audit = Hmis::ClientMergeAudit.create!(
         actor_id: actor.id,
-        merged_at: Time.now,
+        merged_at: Time.current,
         pre_merge_state: clients.map(&:attributes),
       )
+
+      retained_client_id = client_to_retain.id
+      deleted_client_ids = clients_needing_reference_updates.map(&:id)
+
+      # For any deleted clients, update any of their merge histories to point to the new retained client
+      Hmis::ClientMergeHistory.where(retained_client_id: deleted_client_ids).update_all(retained_client_id: retained_client_id)
+
+      # Create a new history record for each client that was deleted
+      history_records = deleted_client_ids.map do |deleted_client_id|
+        {
+          retained_client_id: retained_client_id,
+          deleted_client_id: deleted_client_id,
+          client_merge_audit_id: merge_audit.id,
+        }
+      end
+      Hmis::ClientMergeHistory.import!(history_records)
     end
 
     def update_oldest_client_with_merged_attributes
