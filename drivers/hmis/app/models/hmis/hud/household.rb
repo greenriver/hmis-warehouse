@@ -26,7 +26,7 @@ class Hmis::Hud::Household < Hmis::Hud::Base
   end
 
   scope :client_matches_search_term, ->(text_search) do
-    # FIXME
+    # FIXME: the sort order from text search is not preserved
     matching_ids = joins(:clients).
       merge(Hmis::Hud::Client.matching_search_term(text_search.to_s)).
       pluck(:id)
