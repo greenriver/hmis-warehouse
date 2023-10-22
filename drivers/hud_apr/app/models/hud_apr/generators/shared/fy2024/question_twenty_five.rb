@@ -168,7 +168,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q25i_destination
-      sub_populations_by_destination_question(question: 'Q25i', members: universe.members.where(veteran_clause), last_column: 'E')
+      sub_populations_by_destination_question(question: 'Q25i', members: universe.members.where(veteran_clause))
     end
 
     def q25j_exit_destination_subsidy
