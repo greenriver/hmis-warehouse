@@ -18511,13 +18511,13 @@ CREATE VIEW public.hmis_services AS
     "Services"."EnrollmentID",
     "Services"."PersonalID",
     "Services"."DateProvided",
-    "Services"."UserID",
+    ("Services"."UserID")::character varying AS "UserId",
     "Services"."DateCreated",
     "Services"."DateUpdated",
     "Services"."DateDeleted",
     "Services".data_source_id
    FROM (public."Services"
-     JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes"."DateDeleted" IS NULL))))
+     JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes".data_source_id = "Services".data_source_id) AND ("CustomServiceTypes"."DateDeleted" IS NULL))))
   WHERE ("Services"."DateDeleted" IS NULL)
 UNION ALL
  SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
@@ -18527,7 +18527,7 @@ UNION ALL
     "CustomServices"."EnrollmentID",
     "CustomServices"."PersonalID",
     "CustomServices"."DateProvided",
-    "CustomServices"."UserID",
+    "CustomServices"."UserID" AS "UserId",
     "CustomServices"."DateCreated",
     "CustomServices"."DateUpdated",
     "CustomServices"."DateDeleted",
@@ -57432,7 +57432,7 @@ CREATE UNIQUE INDEX tx_id_ds_id_ft_idx ON public.financial_transactions USING bt
 -- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL (ARRAY[('ac_hmis_mci'::character varying)::text, ('ac_hmis_mci_unique_id'::character varying)::text]));
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL ((ARRAY['ac_hmis_mci'::character varying, 'ac_hmis_mci_unique_id'::character varying])::text[]));
 
 
 --
@@ -60535,6 +60535,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230929205059'),
 ('20230930131206'),
 ('20231004162425'),
-('20231004203202');
+('20231004203202'),
+('20231021205059');
 
 
