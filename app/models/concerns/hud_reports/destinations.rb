@@ -62,8 +62,15 @@ module HudReports::Destinations
         ['Deceased', field.eq(24)],
         [label_for(:dkptr), field.in([8, 9])],
         [label_for(:data_not_collected), field.eq(99).or(field.eq(nil))],
-        ['Subtotal', field.in([8, 9, 17, 30, 99]).or(field.eq(nil))],
+        ['Subtotal', field.in([8, 9, 17, 24, 30, 99]).or(field.eq(nil))],
         ['TOTAL', leavers_clause],
+        [
+          'Total persons exiting to positive housing destinations',
+          a_t[:project_type].in([1, 2]).
+            and(a_t[:destination].in(positive_destinations(1))).
+            or(a_t[:project_type].eq(4).and(a_t[:destination].in(positive_destinations(4)))).
+            or(a_t[:project_type].not_in([1, 2, 4]).and(a_t[:destination].in(positive_destinations(8)))),
+        ],
         [
           'Total persons whose destinations excluded them from the calculation',
           a_t[:project_type].not_eq(4).
@@ -75,6 +82,22 @@ module HudReports::Destinations
           :percentage,
         ],
       ]
+    end
+
+    private def positive_destinations(project_type)
+      positive_permanent_destinations = [426, 411, 421, 410, 435, 422, 423]
+      case project_type
+      when 4
+        [101, 116, 118] +
+        [215, 207, 204, 205, 225] +
+        [314, 312, 313, 302, 327, 332] +
+        positive_permanent_destinations
+      when 0, 1, 2
+        [332] +
+        positive_permanent_destinations
+      else
+        positive_permanent_destinations
+      end
     end
 
     private def excluded_destinations(project_type)

@@ -78,7 +78,7 @@ module HudApr::Generators::Shared::Fy2024
         )
         sheet.update_cell_members(
           cell: [letter, 6],
-          members: group_scope.where(a_t[:destination].in([8, 9, 17, 30, 99])),
+          members: group_scope.where(a_t[:destination].in([8, 9, 17, 24, 30, 99]).or(a_t[:destination].eq(nil))),
         )
         sheet.update_cell_members(
           cell: [letter, 7],

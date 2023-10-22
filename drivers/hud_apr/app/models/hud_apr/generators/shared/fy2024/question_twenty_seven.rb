@@ -492,7 +492,7 @@ module HudApr::Generators::Shared::Fy2024
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      relevant_members = universe.members.where(a_t[:project_type].in([1, 2, 3, 8, 9, 13]))
+      relevant_members = universe.members.where(a_t[:project_type].in([0, 1, 2, 3, 8, 9, 13]))
       q27l_populations.values.each_with_index do |population_clause, col_index|
         q27l_lengths.values.each_with_index do |length_clause, row_index|
           cell = "#{cols[col_index]}#{rows[row_index]}"

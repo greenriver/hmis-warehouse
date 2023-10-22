@@ -951,8 +951,7 @@ module HudApr::Generators::Shared::Fy2024
       es_so_members = adults_and_hohs.where(
         a_t[:project_type].eq(4).
           and(a_t[:date_of_engagement].lt(@report.end_date).or(a_t[:date_of_engagement].eq(nil))).
-          or(a_t[:project_type].eq(1).
-            and(a_t[:project_tracking_method].eq(3))),
+          or(a_t[:project_type].eq(1)),
       )
       answer.add_members(es_so_members)
       answer.update(summary: es_so_members.count)

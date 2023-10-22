@@ -94,11 +94,12 @@ module HudApr::Generators::Shared::Fy2024
         [7, 3],
         [4, 3],
         [5, 3],
-        [2, 3],
+        # [2, 3], # combination not included
         [7, 6],
         [4, 6],
         [5, 6],
         [4, 7],
+        [5, 7],
         [5, 4],
       ].each do |combo|
         ret << {
@@ -110,12 +111,13 @@ module HudApr::Generators::Shared::Fy2024
         {
           label: 'Multiracial – more than 2 races/ethnicity, with one being Hispanic/Latina/e/o',
           # 6 & two or more of 1, 2, 3, 4, 5, or 7
-          cond: race_col.matches_regexp('(\d+,){3,}').and(race_col.matches_regexp('\y6\y')),
+          # NOTE: 2 commas and at least one 6
+          cond: race_col.matches_regexp('(\d+,){2,}').and(race_col.matches_regexp('\y6\y')),
         },
         {
           label: 'Multiracial – more than 2 races, where no option is Hispanic/Latina/e/o',
           # Three or more of 1, 2, 3, 4, 5, or 7
-          cond: race_col.matches_regexp('(\d+,){3,}').and(race_col.does_not_match_regexp('\y6\y')),
+          cond: race_col.matches_regexp('(\d+,){2,}').and(race_col.does_not_match_regexp('\y6\y')),
         },
         {
           label: label_for(:dkptr),

@@ -21,7 +21,7 @@ module HudReports::SubPopulationsByDestinationQuestion
       first_column: 'B',
       last_column: last_column,
       first_row: first_row,
-      last_row: 42,
+      last_row: 43,
     }
     sheet.update_metadata(metadata)
     cols = (metadata[:first_column]..metadata[:last_column]).to_a
@@ -38,10 +38,10 @@ module HudReports::SubPopulationsByDestinationQuestion
           case destination_clause
           when :percentage
             value = percentage(0.0)
-            sub_total = sheet.cell_value([col_letter, 32])
+            positive = sheet.cell_value([col_letter, 41])
             total = sheet.cell_value([col_letter, 40])
-            excluded = sheet.cell_value([col_letter, 41])
-            value = percentage(sub_total.to_f / (total - excluded)) if total.positive? && excluded != total
+            excluded = sheet.cell_value([col_letter, 42])
+            value = percentage(positive.to_f / (total - excluded)) if total.positive? && excluded != total
             sheet.update_cell_value(cell: [col_letter, row_index], value: value) if value
           end
         else

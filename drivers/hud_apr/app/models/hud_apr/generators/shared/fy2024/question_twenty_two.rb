@@ -186,7 +186,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     def time_prior_to_housing_universe
-      universe.members.where(a_t[:project_type].in([1, 2, 3, 8, 9, 13]))
+      universe.members.where(a_t[:project_type].in([0, 1, 2, 3, 8, 9, 13]))
     end
 
     def q22f_start_to_move_in_by_race_and_ethnicity

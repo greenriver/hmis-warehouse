@@ -155,7 +155,7 @@ module HudApr::Generators::Shared::Fy2024
           # added for the Datalab test kit
           health_and_dv = enrollment.health_and_dvs.
             select do |h|
-              h.InformationDate <= @report.end_date && !h.DomesticViolenceVictim.nil?
+              h.InformationDate <= @report.end_date && !h.DomesticViolenceSurvivor.nil?
             end.
             max_by { |h| [h.InformationDate, h.DateUpdated] }
 
@@ -253,7 +253,7 @@ module HudApr::Generators::Shared::Fy2024
             dob_quality: source_client.DOBDataQuality,
             dob: source_client.DOB,
             client_created_at: source_client.DateCreated || source_client.DateUpdated || DateTime.current,
-            domestic_violence: health_and_dv&.DomesticViolenceVictim,
+            domestic_violence: health_and_dv&.DomesticViolenceSurvivor,
             domestic_violence_occurred: health_and_dv&.WhenOccurred,
             drug_abuse_entry: [2, 3].include?(disabilities_at_entry.detect(&:substance?)&.DisabilityResponse),
             drug_abuse_exit: [2, 3].include?(disabilities_at_exit.detect(&:substance?)&.DisabilityResponse),
@@ -782,11 +782,11 @@ module HudApr::Generators::Shared::Fy2024
         },
         {
           label: 'At Least 1 Race and Hispanic/Latina/e/o',
-          cond: race_col.matches_regexp('(\d+,){2,}').and(race_col.matches_regexp('\y6\y')),
+          cond: race_col.matches_regexp('(\d+,){1,}').and(race_col.matches_regexp('\y6\y')),
         },
         {
           label: 'Multi-racial (does not include Hispanic/Latina/e/o)',
-          cond: race_col.matches_regexp('(\d+,){2,}').and(race_col.does_not_match_regexp('\y6\y')),
+          cond: race_col.matches_regexp('(\d+,){1,}').and(race_col.does_not_match_regexp('\y6\y')),
         },
         {
           label: 'Unknown (Doesn’t Know, Prefers not to Answer, Data not Collected)',
