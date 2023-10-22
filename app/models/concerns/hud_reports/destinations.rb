@@ -65,13 +65,6 @@ module HudReports::Destinations
         ['Subtotal', field.in([8, 9, 17, 30, 99]).or(field.eq(nil))],
         ['TOTAL', leavers_clause],
         [
-          'Total persons exiting to positive housing destinations',
-          a_t[:project_type].in([1, 2]).
-            and(a_t[:destination].in(positive_destinations(1))).
-            or(a_t[:project_type].eq(4).and(a_t[:destination].in(positive_destinations(4)))).
-            or(a_t[:project_type].not_in([1, 2, 4]).and(a_t[:destination].in(positive_destinations(8)))),
-        ],
-        [
           'Total persons whose destinations excluded them from the calculation',
           a_t[:project_type].not_eq(4).
             and(a_t[:destination].in(excluded_destinations(1))).
@@ -84,23 +77,12 @@ module HudReports::Destinations
       ]
     end
 
-    private def positive_destinations(project_type)
-      case project_type
-      when 4
-        [1, 15, 14, 27, 4, 18, 12, 13, 5, 2, 25, 32, 26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34]
-      when 1, 2
-        [32, 26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34]
-      else
-        [26, 11, 21, 3, 10, 28, 20, 19, 22, 23, 31, 33, 34]
-      end
-    end
-
     private def excluded_destinations(project_type)
       case project_type
       when 4
-        [6, 29, 24]
+        [206, 329, 24]
       else
-        [15, 6, 25, 24]
+        [215, 206, 225, 24]
       end
     end
   end

@@ -168,11 +168,11 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def q25i_destination
-      sub_populations_by_subsidy_type_question(question: 'Q25i', members: universe.members.where(veteran_clause))
+      sub_populations_by_subsidy_type_question(question: 'Q25i', members: universe.members.where(veteran_clause), sub_pops: q25_populations, last_column: 'E')
     end
 
     def q25j_exit_destination_subsidy
-      sub_populations_by_destination_question(question: 'Q25j', members: universe.members.where(veteran_clause))
+      sub_populations_by_destination_question(question: 'Q25j', members: universe.members.where(veteran_clause), sub_pops: q25_populations, last_column: 'E')
     end
 
     private def veteran_age_ranges
