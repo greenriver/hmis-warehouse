@@ -9,7 +9,7 @@ SELECT
 	"EnrollmentID",
 	"PersonalID",
 	"DateProvided",
-	"Services"."UserID"::varchar as "UserId",
+	"Services"."UserID"::varchar as "UserID",
 	"Services"."DateCreated" AS "DateCreated",
 	"Services"."DateUpdated" AS "DateUpdated",
 	"Services"."DateDeleted" AS "DateDeleted",
