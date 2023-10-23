@@ -599,6 +599,7 @@ type Client {
   koreanWar: NoYesReasonsForMissingData
   lastName: String
   lockVersion: Int!
+  mergeAuditHistory(limit: Int, offset: Int): MergeAuditEventsPaginated!
   middleName: String
   militaryBranch: MilitaryBranch
   nameDataQuality: NameDataQuality!
@@ -4750,6 +4751,24 @@ type MciClearanceMatch {
   nameSuffix: String
   score: Int!
   ssn: String
+}
+
+type MergeAuditEvent {
+  clientIdsMerged: [ID!]!
+  id: ID!
+  mergedAt: ISO8601DateTime!
+  preMergeState: JsonObject!
+  user: User
+}
+
+type MergeAuditEventsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [MergeAuditEvent!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """
