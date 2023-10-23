@@ -7784,6 +7784,7 @@ type Query {
   Inventory lookup
   """
   inventory(id: ID!): Inventory
+  mergeAuditHistory(limit: Int, offset: Int): MergeAuditEventsPaginated!
   mergeCandidates(limit: Int, offset: Int): ClientMergeCandidatesPaginated!
 
   """

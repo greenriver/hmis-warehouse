@@ -252,6 +252,13 @@ module Types
       Hmis::Hud::Client.where(id: destination_ids_with_multiple_sources)
     end
 
+    field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false
+    def merge_audit_history
+      raise 'not allowed' unless current_user.can_merge_clients?
+
+      Hmis::ClientMergeAudit.all.order(:merged_at)
+    end
+
     # AC HMIS Queries
 
     field :esg_funding_report, [Types::AcHmis::EsgFundingService], null: false do
