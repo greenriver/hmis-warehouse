@@ -7799,6 +7799,7 @@ type Query {
   Service type lookup
   """
   serviceType(id: ID!): ServiceType
+  users(filters: UserFilterOptions, limit: Int, offset: Int): UsersPaginated!
 }
 
 type QueryAccess {
@@ -7814,6 +7815,7 @@ type QueryAccess {
   canEditOrganization: Boolean!
   canEditProjectDetails: Boolean!
   canEnrollClients: Boolean!
+  canImpersonateUsers: Boolean!
   canManageAnyClientFiles: Boolean!
   canManageDeniedReferrals: Boolean!
   canManageIncomingReferrals: Boolean!
@@ -10082,6 +10084,20 @@ type User {
   dateUpdated: ISO8601DateTime
   id: ID!
   name: String!
+}
+
+input UserFilterOptions {
+  searchTerm: String
+}
+
+type UsersPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [User!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 type ValidationError {

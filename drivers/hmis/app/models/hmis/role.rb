@@ -156,6 +156,14 @@ class Hmis::Role < ::ApplicationRecord
           'Projects',
         ],
       },
+      can_impersonate_users: {
+        description: 'Ability to impersonate other users',
+        administrative: true,
+        access: [:editable],
+        categories: [
+          'Users',
+        ],
+      },
       can_edit_organization: {
         description: 'Grants access to edit organizations',
         administrative: false,

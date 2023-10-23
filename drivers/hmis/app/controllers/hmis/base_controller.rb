@@ -5,6 +5,8 @@
 ###
 
 class Hmis::BaseController < ApplicationController
+  impersonates :hmis_user
+
   include Hmis::Concerns::JsonErrors
   respond_to :json
   before_action :set_csrf_cookie

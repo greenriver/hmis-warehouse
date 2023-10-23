@@ -15,6 +15,10 @@ module Types
     field :date_created, GraphQL::Types::ISO8601DateTime, null: true
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
 
+    available_filter_options do
+      arg :search_term, String
+    end
+
     def name
       [object.user_first_name, object.user_last_name].compact.join(' ')
     end

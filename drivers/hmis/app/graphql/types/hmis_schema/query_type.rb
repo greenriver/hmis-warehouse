@@ -15,6 +15,7 @@ module Types
     include Types::HmisSchema::HasProjects
     include Types::HmisSchema::HasOrganizations
     include Types::HmisSchema::HasClients
+    include Types::HmisSchema::HasUsers
     include Types::HmisSchema::HasReferralPostings
     include ::Hmis::Concerns::HmisArelHelper
 
@@ -250,6 +251,13 @@ module Types
 
       # Resolve each destination client as a ClientMergeCandidate
       Hmis::Hud::Client.where(id: destination_ids_with_multiple_sources)
+    end
+
+    users_field :users
+    def users(**args)
+      raise unless current_user.can_impersonate_users?
+
+      resolve_users(Hmis::Hud::User, **args)
     end
 
     # AC HMIS Queries
