@@ -155,24 +155,24 @@ module HudApr::Generators::Shared::Fy2024
           # added for the Datalab test kit
           health_and_dv = enrollment.health_and_dvs.
             select do |h|
-              h.InformationDate <= @report.end_date && !h.DomesticViolenceSurvivor.nil?
+              h.InformationDate && h.InformationDate <= @report.end_date && !h.DomesticViolenceSurvivor.nil?
             end.
             max_by { |h| [h.InformationDate, h.DateUpdated] }
 
-          last_bed_night = enrollment.services.select do |s|
-            s.RecordType == 200 && s.DateProvided < @report.end_date
+          last_bed_night = enrollment.services.select do |service|
+            service.RecordType == 200 && service.DateProvided && service.DateProvided < @report.end_date
           end&.max_by(&:DateProvided)
 
-          move_on_assistance = enrollment.services.filter do |service|
-            service.RecordType == 300 && service.DateProvided < @report.end_date
+          move_on_assistance = enrollment.services.select do |service|
+            service.RecordType == 300 && service.DateProvided && service.DateProvided < @report.end_date
           end&.max_by(&:DateProvided)
 
           youth_education_status_at_entry = enrollment.youth_education_statuses.filter do |status|
-            status.DataCollectionStage == 1 && status.InformationDate < @report.end_date
+            status.DataCollectionStage == 1 && status.InformationDate && status.InformationDate < @report.end_date
           end&.max_by(&:InformationDate)
 
           youth_education_status_at_exit = enrollment.youth_education_statuses.filter do |status|
-            status.DataCollectionStage == 3 && status.InformationDate < @report.end_date
+            status.DataCollectionStage == 3 && status.InformationDate && status.InformationDate < @report.end_date
           end&.max_by(&:InformationDate)
 
           if processed_source_clients.include?(source_client.id)
