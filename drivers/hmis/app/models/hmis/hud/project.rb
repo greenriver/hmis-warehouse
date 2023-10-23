@@ -59,7 +59,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :custom_services, through: :enrollments_including_wip
 
   # FIXME: joining services through client_projects confounds postgres. On larger projects, the query might take many
-  # minutes. It need optimization; for now it's much faster to pull down the ids.
+  # minutes. It needs optimization; for now we pull down the ids
   # has_many :hmis_services, through: :enrollments_including_wip
   def hmis_services
     project = self
@@ -169,7 +169,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   def households_including_wip
     # correlated subquery for performance
     cp_t = Hmis::Hud::ClientProject.arel_table
-    hh_t = Hmis::Hud::Household.arel_table
     subquery = client_projects.where(cp_t[:HouseholdID].eq(hh_t[:HouseholdID]))
     Hmis::Hud::Household.where(data_source_id: data_source_id).where(subquery.arel.exists)
   end
