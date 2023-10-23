@@ -94,6 +94,23 @@ module HudReports::Households
       current_member
     end
 
+    private def calculate_move_in_date(hh_id, she)
+      return nil unless she.move_in_date.present?
+
+      move_in_date = she.move_in_date
+      # If the move-in-date is valid, just use it
+      return move_in_date if move_in_date >= she.first_date_in_program
+
+      # If the client moved in before the entry date, and the HoH was present on the move-in date, use the
+      # entry date as the move-in date.
+      household_members = households[hh_id]
+      hoh = household_members.detect { |hm| hm[:relationship_to_hoh] == 1 }
+      return she.first_date_in_program if hoh[:entry_date] <= move_in_date
+
+      # Otherwise this move-in is completely invalid
+      nil
+    end
+
     private def calculate_households
       @hoh_enrollments ||= {}
       @households ||= {}

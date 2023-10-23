@@ -9,6 +9,8 @@ module HudReports
   class ReportInstance < GrdaWarehouseBase
     acts_as_paranoid
     include ActionView::Helpers::DateHelper
+    include SafeInspectable
+
     self.table_name = 'hud_report_instances'
 
     belongs_to :user, optional: true

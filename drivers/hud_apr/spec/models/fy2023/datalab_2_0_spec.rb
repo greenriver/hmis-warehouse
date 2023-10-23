@@ -4,20 +4,20 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'rails_helper'
-require_relative '../../../../datalab_testkit/spec/models/datalab_testkit_context'
-require_relative 'datalab_apr/psh_coc_1'
-require_relative 'datalab_apr/rrh_coc_1'
-require_relative 'datalab_apr/rrh_coc_2'
-require_relative 'datalab_apr/rrh_coc_1_and_2'
-require_relative 'datalab_apr/sso_coc'
-require_relative 'datalab_apr/th'
-require_relative 'datalab_caper/es_ee_esg'
-require_relative 'datalab_caper/es_nbn_esg'
-require_relative 'datalab_caper/hp_esg'
-require_relative 'datalab_caper/rrh_esg'
-require_relative 'datalab_caper/so_esg'
-require_relative 'datalab_ce_apr/ce_only'
+# require 'rails_helper'
+# require_relative '../../../../datalab_testkit/spec/models/datalab_testkit_context'
+# require_relative 'datalab_apr/psh_coc_1'
+# require_relative 'datalab_apr/rrh_coc_1'
+# require_relative 'datalab_apr/rrh_coc_2'
+# require_relative 'datalab_apr/rrh_coc_1_and_2'
+# require_relative 'datalab_apr/sso_coc'
+# require_relative 'datalab_apr/th'
+# require_relative 'datalab_caper/es_ee_esg'
+# require_relative 'datalab_caper/es_nbn_esg'
+# require_relative 'datalab_caper/hp_esg'
+# require_relative 'datalab_caper/rrh_esg'
+# require_relative 'datalab_caper/so_esg'
+# require_relative 'datalab_ce_apr/ce_only'
 
 RSpec.describe 'Datalab 2023', type: :model do
   # DEPRECATED_FY2024 - disabling these tests, changes to filter scopes and other tangential
