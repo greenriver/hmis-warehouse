@@ -16,11 +16,10 @@ SELECT
 	"Services"."data_source_id" AS "data_source_id"
 FROM
 	"Services"
-	JOIN "CustomServiceTypes" ON
-		"CustomServiceTypes"."hud_record_type" = "Services"."RecordType"
-		AND "CustomServiceTypes"."hud_type_provided" = "Services"."TypeProvided"
-		AND "CustomServiceTypes"."data_source_id" = "Services"."data_source_id"
-		AND "CustomServiceTypes"."DateDeleted" IS NULL
+	JOIN "CustomServiceTypes" ON "CustomServiceTypes"."hud_record_type" = "Services"."RecordType"
+	AND "CustomServiceTypes"."hud_type_provided" = "Services"."TypeProvided"
+	AND "CustomServiceTypes"."data_source_id" = "Services"."data_source_id"
+	AND "CustomServiceTypes"."DateDeleted" IS NULL
 WHERE
 	"Services"."DateDeleted" IS NULL
 UNION
