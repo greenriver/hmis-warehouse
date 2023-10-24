@@ -69,6 +69,7 @@ module HudApr::Generators::CeApr::Fy2024
     # Find any clients that fit the filter criteria _and_ have at least one assessment in their enrollment
     # occurring within the report range
     def client_scope(start_date: @report.start_date, end_date: @report.end_date)
+      # TODO: an additional set of client_ids from projects with active CE Participation within_range
       household_ids = client_source.
         distinct.
         joins(service_history_enrollments: { enrollment: [:assessments, :project] }).
