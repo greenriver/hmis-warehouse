@@ -202,6 +202,7 @@ module HmisDataCleanup
 
       # Map source ID => demographic details
       source_id_to_info = Hmis::Hud::Client.where(id: destination_id_to_source_ids.values.flatten).
+        where(data_source_id: data_source_id).
         map do |client|
           name_parts = if full_name
             [client.first_name, client.middle_name, client.last_name, client.name_suffix]
@@ -254,6 +255,7 @@ module HmisDataCleanup
 
       skipped = destination_id_to_source_ids.size - rows.size
       Rails.logger.info("Skipped #{skipped} potential duplicates; writing #{rows.count} to file")
+
       CSV.open(filename, 'wb+', write_headers: true, headers: rows.first.keys) do |writer|
         rows.each do |row|
           writer << row.values
