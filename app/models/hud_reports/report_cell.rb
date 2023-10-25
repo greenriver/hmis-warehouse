@@ -5,6 +5,9 @@
 ###
 
 # A HUD report cell, identified by a question and cell name (e.g., question: 'Q1', cell_name: 'b2')
+# * the cell value appears to be stored in the "summary" field
+# * sometimes a cell is a question group (q6) with sub-questions (6a, 6b, etc.,)
+# * cells may also persist application errors in cell.error_messages
 module HudReports
   class ReportCell < GrdaWarehouseBase
     include ActionView::Helpers::DateHelper
@@ -14,6 +17,8 @@ module HudReports
 
     belongs_to :report_instance, class_name: 'HudReports::ReportInstance'
     has_many :universe_members # , dependent: :destroy # for the moment this is too slow
+
+    alias_attribute :value, :summary
 
     scope :universe, -> do
       where(universe: true)
