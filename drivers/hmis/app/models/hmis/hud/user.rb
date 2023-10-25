@@ -52,4 +52,8 @@ class Hmis::Hud::User < Hmis::Hud::Base
     system_user.hmis_data_source_id = data_source_id
     Hmis::Hud::User.from_user(system_user)
   end
+
+  def self.apply_filters(input)
+    Hmis::Filter::UserFilter.new(input).filter_scope(self)
+  end
 end

@@ -203,24 +203,4 @@ class Hmis::User < ApplicationRecord
       sessionDuration: Devise.timeout_in.in_seconds,
     }
   end
-
-  def self.from_hud_user(hud_user)
-    # FIXME: this is almost certainly not correct
-    raise if Rails.env.production?
-
-    user = nil
-    hud_user.with_lock do
-      users = where(email: hud_user.user_email.downcase).to_a
-      users = users.filter { |u| hud_user.data_source.in?(u.data_sources) }
-      raise "hud_user #{hud_user.id} matched #{users.map(&:id)} users" if users.many?
-
-      if users.empty?
-        # user = Hmis::User.create()a...
-      else
-        user = users.first
-      end
-    end
-
-    user
-  end
 end

@@ -10082,6 +10082,7 @@ type User {
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
+  hmisId: ID
   id: ID!
   name: String!
 }
