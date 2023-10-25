@@ -5,8 +5,8 @@
 
 - if @jobs.any?
   %p Showing #{pluralize(@jobs.count, 'job')}
-  .card
-    %table.table.table-striped.table-responsive.mb-0
+  .card.table-responsive
+    %table.table.table-striped.mb-0
       %thead
         %th Job
         %th Queue

@@ -6,13 +6,14 @@
 
 class Hmis::Filter::ServiceFilter < Hmis::Filter::BaseFilter
   def filter_scope(scope)
+    scope = ensure_scope(scope)
     scope.
       yield_self(&method(:with_date_provided)).
       yield_self(&method(:with_service_category)).
       yield_self(&method(:with_service_type)).
       yield_self(&method(:with_project_type)).
-      yield_self(&method(:with_project))
-    # yield_self(&method(:clean_scope)) #pluck has performance problems
+      yield_self(&method(:with_project)).
+      yield_self(&method(:clean_scope))
   end
 
   protected

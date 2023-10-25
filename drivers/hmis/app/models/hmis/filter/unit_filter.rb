@@ -6,6 +6,7 @@
 
 class Hmis::Filter::UnitFilter < Hmis::Filter::BaseFilter
   def filter_scope(scope)
+    scope = ensure_scope(scope)
     scope.
       yield_self(&method(:with_unit_type)).
       yield_self(&method(:with_status))

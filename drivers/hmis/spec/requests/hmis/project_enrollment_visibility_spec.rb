@@ -26,6 +26,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:cst1) { create :hmis_custom_service_type_for_hud_service, data_source: ds1, custom_service_category: csc1, user: u1 }
 
   # canary values
+  let!(:ed1) { create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c1).tap(&:destroy!) }
+  let!(:sd1) { create(:hmis_hud_service, data_source: ds1, enrollment: e1, client: c1).tap(&:destroy!) }
   let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
   let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p2, client: c1 }
   let!(:s2) { create :hmis_hud_service, data_source: ds1, enrollment: e2, client: c1 }

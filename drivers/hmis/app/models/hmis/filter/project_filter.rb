@@ -6,6 +6,7 @@
 
 class Hmis::Filter::ProjectFilter < Hmis::Filter::BaseFilter
   def filter_scope(scope)
+    scope = ensure_scope(scope)
     scope.
       yield_self(&method(:with_statuses)).
       yield_self(&method(:with_funders)).

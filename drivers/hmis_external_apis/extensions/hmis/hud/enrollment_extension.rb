@@ -31,6 +31,7 @@ module HmisExternalApis
               posting.save!
               posting.exit_origin_household(user: ::Hmis::Hud::User.from_user(current_user))
               if posting.from_link?
+                Rails.logger.info "Updating status in LINK for posting #{posting.identifier} because of enrollment #{id} being entered"
                 HmisExternalApis::AcHmis::UpdateReferralPostingJob.perform_now(
                   posting_id: posting.identifier,
                   posting_status_id: posting.status_before_type_cast,
@@ -48,10 +49,12 @@ module HmisExternalApis
             posting = source_postings.find_by(status: 'accepted_status')
             return unless posting.present?
 
+            # Note: doesn't use a transaction because the caller, save_submitted_assessment!, already calls it in a transaction
             posting.status = 13 # closed
             posting.save!
-            return unless posting.identifier.present? # HMIS Admin-assigned posting
+            return unless posting.from_link?
 
+            Rails.logger.info "Updating status in LINK for posting #{posting.identifier} because of enrollment #{id} being exited"
             HmisExternalApis::AcHmis::UpdateReferralPostingJob.perform_now(
               posting_id: posting.identifier,
               posting_status_id: posting.status_before_type_cast,

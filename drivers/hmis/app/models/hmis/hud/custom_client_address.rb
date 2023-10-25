@@ -11,6 +11,7 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
   USE_VALUES = [
     :home,
     :work,
+    :school,
     :temp,
     :old,
     :mail,
