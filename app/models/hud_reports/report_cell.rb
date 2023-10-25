@@ -5,6 +5,9 @@
 ###
 
 # A HUD report cell, identified by a question and cell name (e.g., question: 'Q1', cell_name: 'b2')
+# * the cell value appears to be stored in the "summary" field
+# * sometimes a cell is a question group (q6) with sub-questions (6a, 6b, etc.,)
+# * cells may also persist application errors in cell.error_messages
 module HudReports
   class ReportCell < GrdaWarehouseBase
     include ActionView::Helpers::DateHelper
@@ -14,6 +17,8 @@ module HudReports
 
     belongs_to :report_instance, class_name: 'HudReports::ReportInstance'
     has_many :universe_members # , dependent: :destroy # for the moment this is too slow
+
+    alias_attribute :value, :summary
 
     scope :universe, -> do
       where(universe: true)
@@ -115,7 +120,9 @@ module HudReports
       # joins don't work for polymorphic associations since it could join multiple tables.
       # However, for a given report cell, all of the universe members must be in the same table
       # and we can compute the name based on a single member.
-      universe_table_name = universe_members.first.universe_membership.class.arel_table
+      # NOTE: need to specify order by report_cell_id or the postgres planner gets really unhappy when
+      # the universe members table gets large
+      universe_table_name = universe_members.order(:report_cell_id).first.universe_membership.class.arel_table
       members_table = universe_members.arel_table
 
       table_join = members_table.join(universe_table_name).on(members_table[:universe_membership_id].eq(universe_table_name[:id]))

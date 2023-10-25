@@ -42,14 +42,14 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
           first_name: client.first_name,
           middle_name: client.middle_name,
           last_name: client.last_name,
-          gender: client.gender,
+          suffix: client.name_suffix,
+          gender: client.gender_multi,
           dob: client.dob,
           ssn: client.ssn,
-          # veteran_status: client.veteran_status,
-          # discharge_status: 0,
-          # race: 0,
-          # ethnicity: 0,
-          # disabling_condition: 0,
+          veteran_status: client.veteran_status,
+          race: client.race_multi,
+          different_identity_text: client.different_identity_text,
+          additional_race_ethnicity: client.additional_race_ethnicity,
         }.compact
       end
     end
@@ -130,8 +130,8 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       end
 
       it 'receives referral for referral request' do
-        params = referral_params(household)
-          .merge({ referral_request_id: referral_request.identifier })
+        params = referral_params(household).
+          merge({ referral_request_id: referral_request.identifier })
         post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
         check_response_okay
 
@@ -183,8 +183,8 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
         end
 
         it 'receives new postings' do
-          params = referral_params(household)
-            .merge({ referral_id: referral.identifier })
+          params = referral_params(household).
+            merge({ referral_id: referral.identifier })
           post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
           check_response_okay
           expect(referral.postings.size).to(eq(2))
@@ -196,8 +196,8 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
           household[0][:relationship_to_hoh] = 'other_relative'
           household[1][:relationship_to_hoh] = 'self_head_of_household'
 
-          params = referral_params(household)
-            .merge({ referral_id: referral.identifier })
+          params = referral_params(household).
+            merge({ referral_id: referral.identifier })
           post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
           check_response_okay
           referral.reload
@@ -211,8 +211,8 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
 
         it 'removes stale household members' do
           reduced_household = household.take(1)
-          params = referral_params(reduced_household)
-            .merge({ referral_id: referral.identifier })
+          params = referral_params(reduced_household).
+            merge({ referral_id: referral.identifier })
           post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
           check_response_okay
           expect(referral.household_members.to_a.map(&:client)).to eq(reduced_household.map { |h| h[:client] })
@@ -225,8 +225,8 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
             mci_id: random_id,
             relationship_to_hoh: 'other_relative',
           ]
-          params = referral_params(expanded_household)
-            .merge({ referral_id: referral.identifier })
+          params = referral_params(expanded_household).
+            merge({ referral_id: referral.identifier })
           post hmis_external_apis_referrals_path, params: params, headers: headers, as: :json
           check_response_okay
           expect(referral.household_members.size).to eq(expanded_household.size)
@@ -238,9 +238,10 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
 
     it 'receives referral for new clients' do
       mci_id = random_id
+      source_client = build(:hmis_hud_client_complete, different_identity_text: 'test', additional_race_ethnicity: 'test this too')
       household = [
         {
-          client: build(:hmis_hud_client_complete),
+          client: source_client,
           mci_id: mci_id,
           relationship_to_hoh: 'self_head_of_household',
         },
@@ -257,6 +258,11 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
       expect(client.addresses.size).to(eq(1))
       expect(client.contact_points.group_by(&:system)['phone'].size).to(eq(1))
       expect(client.contact_points.group_by(&:system)['email'].size).to(eq(1))
+
+      expected_fields = [:dob, :ssn, :veteran_status, :first_name, :last_name, :middle_name, :name_suffix, :different_identity_text, :additional_race_ethnicity]
+      expect(client.slice(*expected_fields)).to match(source_client.slice(*expected_fields))
+      expect(client.gender_multi).to eq(source_client.gender_multi)
+      expect(client.race_multi).to eq(source_client.race_multi)
     end
 
     it 'updates client attributes' do

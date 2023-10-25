@@ -47,6 +47,14 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
 
     it 'saves an audit trail' do
       expect(Hmis::ClientMergeAudit.count).to eq(1)
+      audit = Hmis::ClientMergeAudit.first
+      expect(audit.client_merge_histories.count).to eq(1)
+      expect(Hmis::ClientMergeHistory.count).to eq(1)
+      expect(Hmis::ClientMergeHistory.first).to have_attributes(
+        retained_client_id: client1.id,
+        deleted_client_id: client2.id,
+        client_merge_audit_id: audit.id,
+      )
     end
 
     it 'minimally seems to merge correctly' do
@@ -140,6 +148,71 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
 
     it 'merges external ids' do
       expect(client1.ac_hmis_mci_ids.pluck(:value).sort).to eq([external_id_client_1, external_id_client_2].map(&:value).sort)
+    end
+  end
+
+  context 'audit history' do
+    let!(:c1) { create(:hmis_hud_client_complete, date_created: Time.current - 1.week, data_source: data_source) }
+    let!(:c2) { create(:hmis_hud_client_complete, date_created: Time.current - 5.days, data_source: data_source) }
+    let!(:c3) { create(:hmis_hud_client_complete, date_created: Time.current - 2.days, data_source: data_source) }
+    let!(:c4) { create(:hmis_hud_client_complete, date_created: Time.current, data_source: data_source) }
+    let!(:c5) { create(:hmis_hud_client_complete, date_created: Time.current, data_source: data_source) }
+
+    it 'preserves audit history when client with merge history is merged' do
+      expect(Hmis::ClientMergeAudit.count).to eq(0)
+
+      # First merge: c4 and c5 into c3
+      Hmis::MergeClientsJob.perform_now(client_ids: [c3.id, c4.id, c5.id], actor_id: actor.id)
+
+      expect(Hmis::ClientMergeAudit.count).to eq(1)
+      expect(Hmis::ClientMergeHistory.count).to eq(2)
+      audit1 = Hmis::ClientMergeAudit.last
+      expect(audit1.client_merge_histories.count).to eq(2)
+      expect(audit1.client_merge_histories).to contain_exactly(
+        have_attributes(retained_client_id: c3.id, deleted_client_id: c4.id),
+        have_attributes(retained_client_id: c3.id, deleted_client_id: c5.id),
+      )
+      c3.reload
+      expect(c3.merge_histories).to eq(audit1.client_merge_histories)
+      expect(c3.merge_audits.map(&:id)).to contain_exactly(audit1.id)
+      expect(c3.reverse_merge_histories).to be_empty
+
+      c4.reload
+      expect(c4.merge_histories).to be_empty
+      expect(c4.reverse_merge_histories).to eq(audit1.client_merge_histories.where(deleted_client_id: c4.id))
+      expect(c4.reverse_merge_audits.map(&:id)).to contain_exactly(audit1.id)
+
+      # Second merge: c2 into c1
+      Hmis::MergeClientsJob.perform_now(client_ids: [c2.id, c1.id], actor_id: actor.id)
+
+      expect(Hmis::ClientMergeAudit.count).to eq(2)
+      audit2 = Hmis::ClientMergeAudit.last
+      expect(audit2.client_merge_histories.count).to eq(1)
+      expect(audit2.client_merge_histories.first).to have_attributes(
+        retained_client_id: c1.id,
+        deleted_client_id: c2.id,
+      )
+      expect(Hmis::ClientMergeHistory.all).to contain_exactly(
+        have_attributes(retained_client_id: c3.id, deleted_client_id: c4.id, client_merge_audit_id: audit1.id),
+        have_attributes(retained_client_id: c3.id, deleted_client_id: c5.id, client_merge_audit_id: audit1.id),
+        have_attributes(retained_client_id: c1.id, deleted_client_id: c2.id, client_merge_audit_id: audit2.id),
+      )
+
+      # Third merge: c3 into c1
+      Hmis::MergeClientsJob.perform_now(client_ids: [c3.id, c1.id], actor_id: actor.id)
+
+      expect(Hmis::ClientMergeAudit.count).to eq(3)
+      audit3 = Hmis::ClientMergeAudit.last
+      expect(audit3.client_merge_histories.count).to eq(1)
+      expect(Hmis::ClientMergeHistory.all).to contain_exactly(
+        # all updated to point to c1
+        have_attributes(retained_client_id: c1.id, deleted_client_id: c4.id, client_merge_audit_id: audit1.id),
+        have_attributes(retained_client_id: c1.id, deleted_client_id: c5.id, client_merge_audit_id: audit1.id),
+        have_attributes(retained_client_id: c1.id, deleted_client_id: c2.id, client_merge_audit_id: audit2.id),
+        have_attributes(retained_client_id: c1.id, deleted_client_id: c3.id, client_merge_audit_id: audit3.id),
+      )
+      expect(c1.reload.merge_histories).to eq(Hmis::ClientMergeHistory.all)
+      expect(c1.merge_audits).to contain_exactly(audit1, audit2, audit3)
     end
   end
 

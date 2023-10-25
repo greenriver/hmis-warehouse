@@ -64,6 +64,7 @@ module HudApr::Apr::AprConcern
         fy2020: HudApr::Generators::Apr::Fy2020::Generator,
         fy2021: HudApr::Generators::Apr::Fy2021::Generator,
         fy2023: HudApr::Generators::Apr::Fy2023::Generator,
+        fy2024: HudApr::Generators::Apr::Fy2024::Generator,
       }
     end
   end
