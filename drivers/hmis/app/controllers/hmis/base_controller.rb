@@ -5,7 +5,7 @@
 ###
 
 class Hmis::BaseController < ApplicationController
-  impersonates :hmis_user
+  impersonates :hmis_user, with: ->(id) { Hmis::User.find_by(id: id) }
 
   include Hmis::Concerns::JsonErrors
   respond_to :json
@@ -55,5 +55,9 @@ class Hmis::BaseController < ApplicationController
 
   def set_git_revision_header
     response.headers['X-git-revision'] = Git.revision
+  end
+
+  def impersonating?
+    true_hmis_user != current_hmis_user
   end
 end

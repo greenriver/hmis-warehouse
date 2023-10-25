@@ -8,7 +8,7 @@
 
 module Types
   class Application::User < Types::BaseObject
-    # Hmis::Hud::User
+    # maps to Hmis::Hud::User
 
     description 'User account for a user of the system'
     graphql_name 'ApplicationUser'
@@ -18,7 +18,6 @@ module Types
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
-
 
     def name
       names = [object.first_name, object.last_name].compact_blank

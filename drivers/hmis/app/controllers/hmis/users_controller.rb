@@ -14,7 +14,9 @@ class Hmis::UsersController < Hmis::BaseController
   # This is called by the frontend on initial page load, to determine whether
   # there is a currently active session.
   def show
-    render json: (current_hmis_user&.current_user_api_values || {})
+    payload = current_hmis_user&.current_user_api_values || {}
+    payload[:impersonating] = impersonating?
+    render json: payload
   end
 
   # clear etag to prevent caching
