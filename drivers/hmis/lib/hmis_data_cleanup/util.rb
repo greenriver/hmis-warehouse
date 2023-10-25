@@ -180,17 +180,6 @@ module HmisDataCleanup
         rows << hash
       end
 
-      # Actually perform all of the merges
-      #
-      # actor_id = User.system_user.id
-      # rows.each do |row|
-      #   client_ids = []
-      #   8.times do |idx|
-      #     client_ids << row["Client#{idx + 1}_ID"]
-      #   end
-      #   Hmis::MergeClientsJob.perform_now(client_ids: client_ids.compact, actor_id: actor_id)
-      # end
-
       CSV.open(filename, 'wb+', write_headers: true, headers: rows.first.keys) do |writer|
         rows.each do |row|
           writer << row.values
@@ -266,6 +255,17 @@ module HmisDataCleanup
 
       skipped = destination_id_to_source_ids.size - rows.size
       Rails.logger.info("Skipped #{skipped} potential duplicates; writing #{rows.count} to file")
+
+      # Actually perform all of the merges
+      #
+      # actor_id = User.system_user.id
+      # rows.each do |row|
+      #   client_ids = []
+      #   8.times do |idx|
+      #     client_ids << row["Client#{idx + 1}_ID"]
+      #   end
+      #   Hmis::MergeClientsJob.perform_now(client_ids: client_ids.compact, actor_id: actor_id)
+      # end
 
       CSV.open(filename, 'wb+', write_headers: true, headers: rows.first.keys) do |writer|
         rows.each do |row|
