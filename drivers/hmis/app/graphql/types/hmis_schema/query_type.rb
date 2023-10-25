@@ -256,7 +256,7 @@ module Types
     def merge_audit_history
       raise 'not allowed' unless current_user.can_merge_clients?
 
-      Hmis::ClientMergeAudit.all.order(:merged_at)
+      Hmis::ClientMergeAudit.all.order(merged_at: :desc)
     end
 
     # AC HMIS Queries

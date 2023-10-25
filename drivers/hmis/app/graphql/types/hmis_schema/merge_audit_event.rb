@@ -11,6 +11,7 @@ module Types
     field :pre_merge_state, Types::JsonObject, null: false
     field :user, HmisSchema::User, null: true
     field :client_ids_merged, [ID], null: false
+    field :client, HmisSchema::Client, null: true
 
     # object is a Hmis::ClientMergeAudit
 
@@ -22,6 +23,10 @@ module Types
 
     def client_ids_merged
       object.pre_merge_state.map { |attrs| attrs['id'] }
+    end
+
+    def client
+      load_ar_association(object, :retained_client)
     end
   end
 end

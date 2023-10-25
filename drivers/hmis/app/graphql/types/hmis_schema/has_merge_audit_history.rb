@@ -35,7 +35,7 @@ module Types
           define_method(:merge_audit_history) do
             return Hmis::ClientMergeAudit.none unless current_user.can_merge_clients?
 
-            object.merge_audits.order(:merged_at)
+            object.merge_audits.order(merged_at: :desc)
           end
         end
       end

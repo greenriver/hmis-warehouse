@@ -4754,6 +4754,7 @@ type MciClearanceMatch {
 }
 
 type MergeAuditEvent {
+  client: Client
   clientIdsMerged: [ID!]!
   id: ID!
   mergedAt: ISO8601DateTime!
