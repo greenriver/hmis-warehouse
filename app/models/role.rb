@@ -739,6 +739,13 @@ class Role < ApplicationRecord
           'Reporting',
         ],
       },
+      can_publish_reports: {
+        description: 'Ability to publish reports to a public facing website (S3)',
+        administrative: false,
+        categories: [
+          'Reporting',
+        ],
+      },
       can_view_all_user_client_assignments: {
         description: 'Administrative permission to see all assignments',
         administrative: true,

@@ -1,0 +1,77 @@
+%html(lang="en")
+  %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
+  %meta{:content => "IE=edge", "http-equiv" => "X-UA-Compatible"}
+  %title= [@report.instance_title, Translation.translate('Boston DND Warehouse')].join(' :: ')
+  %link{href: '//fonts.googleapis.com/css?family=Open+Sans:300,400,400italic,600,700|Open+Sans+Condensed:700|Poppins:400,300,500,700', rel: 'stylesheet', type: 'text/css'}
+  <link rel="stylesheet" media="all" href="./application.css" type="text/css">
+  = stylesheet_link_tag('https://cdnjs.cloudflare.com/ajax/libs/billboard.js/3.4.1/billboard.min.css')
+  = stylesheet_link_tag('https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.6.1/font/bootstrap-icons.min.css')
+  = stylesheet_link_tag('https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css', integrity: 'sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l', crossorigin: 'anonymous')
+  = javascript_include_tag('https://d3js.org/d3.v6.min.js')
+  = javascript_include_tag('https://cdnjs.cloudflare.com/ajax/libs/billboard.js/3.4.1/billboard.min.js')
+  = javascript_include_tag('https://code.jquery.com/jquery-3.5.1.slim.min.js', integrity: 'sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj', crossorigin: 'anonymous')
+  = javascript_include_tag('https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js', integrity: 'sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF', crossorigin: 'anonymous')
+  = javascript_include_tag('https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/js/bootstrap-datepicker.min.js', integrity: 'sha256-bqVeqGdJ7h/lYPq6xrPv/YGzMEb6dNxlfiTUHSgRCp8=', crossorigin: 'anonymous')
+  = javascript_include_tag('https://kit.fontawesome.com/b8b025dd15.js', crossorigin: 'anonymous')
+  <script src='./bar.js' crossorigin='anonymous'></script>
+  <script src='./donut.js' crossorigin='anonymous'></script>
+  <script src='./filters.js' crossorigin='anonymous'></script>
+  <script src='./line.js' crossorigin='anonymous'></script>
+  <script src='./stack.js' crossorigin='anonymous'></script>
+  :css
+    body {
+      background-color: transparent;
+    }
+    body,
+    .bb-legend-item,
+    .bb svg {
+      font-family: 'Poppins', sans-serif;
+      font-style: normal;
+      font-weight: 300;
+      font-size: 1rem;
+    }
+    .bb-legend-item {
+      font-size: 0.8rem;
+    }
+    .completed-at {
+      font-size: 0.75rem;
+      color: #8D8D8D;
+      text-align: right;
+      margin-right: 2em;
+    }
+    .legend-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .legend-wrapper-vertical {
+      flex-direction: row;
+      justify-content: flex-end;
+      align-items: center;
+      align-content: center;
+    }
+    .legend-wrapper-vertical .chart-legend-item-prs1 {
+      display: flex;
+      width: 100%;
+      margin-right: 2rem;
+      margin-bottom: 0.5rem;
+      align-content: flex-end;
+    }
+    .legend-wrapper-horizontal .chart-legend-item-prs1 {
+      display: flex;
+      width: 40%;
+      margin-right: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    .chart-legend-item-prs1 .chart-legend-item-swatch-prs1 {
+      width: 20px;
+      height: 20px;
+      margin-right: 0.8rem;
+    }
+
+  %body
+    = yield
+
+    %p.completed-at
+      = Translation.translate('Data accurate as of')
+      #{@report.completed_at.to_date}
+    = yield :page_js
