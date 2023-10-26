@@ -159,9 +159,24 @@ type ApplicationUser {
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
+  email: String
   id: ID!
   name: String!
   recentItems: [OmnisearchResult!]!
+}
+
+input ApplicationUserFilterOptions {
+  searchTerm: String
+}
+
+type ApplicationUsersPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ApplicationUser!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """
@@ -7696,6 +7711,7 @@ type ProjectsPaginated {
 
 type Query {
   access: QueryAccess!
+  applicationUsers(filters: ApplicationUserFilterOptions, limit: Int, offset: Int): ApplicationUsersPaginated!
 
   """
   Assessment lookup
@@ -7799,7 +7815,6 @@ type Query {
   Service type lookup
   """
   serviceType(id: ID!): ServiceType
-  users(filters: UserFilterOptions, limit: Int, offset: Int): UsersPaginated!
 }
 
 type QueryAccess {
@@ -10082,23 +10097,8 @@ type User {
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
-  hmisId: ID
   id: ID!
   name: String!
-}
-
-input UserFilterOptions {
-  searchTerm: String
-}
-
-type UsersPaginated {
-  hasMoreAfter: Boolean!
-  hasMoreBefore: Boolean!
-  limit: Int!
-  nodes: [User!]!
-  nodesCount: Int!
-  offset: Int!
-  pagesCount: Int!
 }
 
 type ValidationError {

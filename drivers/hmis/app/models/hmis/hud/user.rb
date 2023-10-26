@@ -21,20 +21,6 @@ class Hmis::Hud::User < Hmis::Hud::Base
   has_many :custom_data_elements, **hmis_relation(:UserID, 'CustomDataElement')
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
-  replace_scope :viewable_by, ->(user) do
-    data_source_id = user.hmis_data_source_id
-    raise 'user missing data source id' unless data_source_id
-
-    return none unless user.permissions?(:can_impersonate_users)
-
-    # FIXME:
-    # perhaps there's some additional restriction needed here to prevent users
-    # from escalating privileges or jumping data sources within the app?
-    skipped_ids = []
-    skipped_ids << system_user(data_source_id: data_source_id).id
-    where(data_source_id: data_source_id).where.not(id: skipped_ids)
-  end
-
   # Find or create the Hmis::Hud::User corresponding to the provided application user (Hmis::User)
   def self.from_user(user)
     Hmis::Hud::User.where(user_email: user.email.downcase, data_source_id: user.hmis_data_source_id).first_or_create do |u|
@@ -51,9 +37,5 @@ class Hmis::Hud::User < Hmis::Hud::Base
     system_user = Hmis::User.find(User.system_user.id)
     system_user.hmis_data_source_id = data_source_id
     Hmis::Hud::User.from_user(system_user)
-  end
-
-  def self.apply_filters(input)
-    Hmis::Filter::UserFilter.new(input).filter_scope(self)
   end
 end

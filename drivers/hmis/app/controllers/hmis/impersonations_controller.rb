@@ -11,9 +11,7 @@ class Hmis::ImpersonationsController < Hmis::BaseController
   def create
     return render_error("Already impersonating #{true_hmis_user.id} => #{current_hmis_user.id}") if impersonating?
 
-    # FIXME: probably want some more robust permission check
-    raise if Rails.env.production?
-    scope = Hmis::User.active.not_system
+    scope = Hmis::User.viewable_by(current_hmis_user)
     user = scope.find(params[:user_id])
 
     return render_error('Cannot impersonate current user') if user.id == current_hmis_user.id
