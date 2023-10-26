@@ -23,7 +23,6 @@ module Types
     include Types::HmisSchema::HasGender
     include Types::HmisSchema::HasCustomDataElements
     include Types::HmisSchema::HasHudMetadata
-    include Types::HmisSchema::HasMergeAuditHistory
 
     def self.configuration
       Hmis::Hud::Client.hmis_configuration(version: '2024')
@@ -85,7 +84,7 @@ module Types
     custom_case_notes_field
     files_field
     custom_data_elements_field
-    merge_audit_history_field
+    field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false
     audit_history_field(
       field_permissions: {
         'SSN' => :can_view_full_ssn,
@@ -278,6 +277,12 @@ module Types
         where.not(object_changes: nil, event: 'update').
         unscope(:order).
         order(created_at: :desc)
+    end
+
+    def merge_audit_history
+      return unless current_user.can_merge_clients?
+
+      object.merge_audits.order(merged_at: :desc)
     end
   end
 end
