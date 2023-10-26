@@ -374,7 +374,7 @@ module HmisUtil
         elsif type.to_s.include?('::Enums::')
           enums << type.graphql_name
         # Hacky way to traverse into paginated node, because its an anonymous class
-        elsif type.to_s&.ends_with?('Paginated') && !type.to_s.include?('AuditEvent')
+        elsif type.to_s&.ends_with?('Paginated') && !type.to_s.include?('AuditEvent') && !type.to_s.include?('ApplicationUser')
           node_type = "Types::HmisSchema::#{type.to_s.gsub('Paginated', '').singularize}".constantize
           seen_node_type = traversed_types.include?(node_type)
           traversed_types << node_type

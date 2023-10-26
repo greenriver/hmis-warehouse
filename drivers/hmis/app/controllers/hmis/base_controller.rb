@@ -4,7 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::BaseController < ApplicationController
+class Hmis::BaseController < ActionController::Base
+  include BaseApplicationControllerBehavior
+
+  before_action :authenticate_hmis_user!
   impersonates :hmis_user, with: ->(id) { Hmis::User.find_by(id: id) }
 
   include Hmis::Concerns::JsonErrors
@@ -15,10 +18,6 @@ class Hmis::BaseController < ApplicationController
 
   private def set_csrf_cookie
     cookies['CSRF-Token'] = form_authenticity_token
-  end
-
-  def authenticate_user!
-    authenticate_hmis_user!
   end
 
   # Override the devise implementation to reset the session
@@ -59,5 +58,25 @@ class Hmis::BaseController < ApplicationController
 
   def impersonating?
     true_hmis_user != current_hmis_user
+  end
+
+  def authenticate_user!
+    handle_wrong_user_class
+  end
+
+  def current_app_user
+    current_hmis_user
+  end
+
+  def current_user
+    handle_wrong_user_class
+  end
+
+  def handle_wrong_user_class
+    raise '::User devise method called from HMIS controller. Did you mean current_hmis_user/'
+  end
+
+  def not_authorized!
+    head :unauthorized
   end
 end

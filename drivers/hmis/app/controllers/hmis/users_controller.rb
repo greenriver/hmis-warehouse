@@ -5,7 +5,7 @@
 ###
 
 class Hmis::UsersController < Hmis::BaseController
-  skip_before_action :authenticate_user!, only: [:show]
+  skip_before_action :authenticate_hmis_user!, only: [:show]
   prepend_before_action :skip_timeout, only: [:show]
   before_action :clear_etag, only: [:index]
 

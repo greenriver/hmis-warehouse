@@ -40,6 +40,6 @@ class Hmis::ImpersonationsController < Hmis::BaseController
   end
 
   def render_error(message)
-    render status: :bad_request, json: {error: message}
+    render status: :bad_request, json: { error: message }
   end
 end

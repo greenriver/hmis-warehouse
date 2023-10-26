@@ -9,7 +9,7 @@
 # dynamically switching out the theme from the browser console.
 # The default theme is fetched from AppSettingsController.
 class Hmis::ThemeController < Hmis::BaseController
-  skip_before_action :authenticate_user!
+  skip_before_action :authenticate_hmis_user!
   prepend_before_action :skip_timeout
 
   def index

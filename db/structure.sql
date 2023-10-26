@@ -54,7 +54,7 @@ SET default_table_access_method = heap;
 
 CREATE TABLE public.access_controls (
     id bigint NOT NULL,
-    collection_id bigint,
+    access_group_id bigint,
     role_id bigint,
     user_group_id bigint,
     deleted_at timestamp without time zone,
@@ -3100,10 +3100,10 @@ CREATE UNIQUE INDEX idx_oauth_on_provider_and_uid ON public.oauth_identities USI
 
 
 --
--- Name: index_access_controls_on_collection_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_access_controls_on_access_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_access_controls_on_collection_id ON public.access_controls USING btree (collection_id);
+CREATE INDEX index_access_controls_on_access_group_id ON public.access_controls USING btree (access_group_id);
 
 
 --

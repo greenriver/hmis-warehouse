@@ -11,10 +11,10 @@ module Types
 
       class_methods do
         def application_users_field(name = :services, description = nil, filter_args: {}, **override_options, &block)
-          default_field_options = { type: Application::User.page_type, null: false, description: description }
+          default_field_options = { type: ::Types::Application::User.page_type, null: false, description: description }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
-            filters_argument Application::User, **filter_args
+            filters_argument ::Types::Application::User, **filter_args
             instance_eval(&block) if block_given?
           end
         end
