@@ -13402,6 +13402,46 @@ ALTER SEQUENCE public.hmis_client_merge_audits_id_seq OWNED BY public.hmis_clien
 
 
 --
+-- Name: hmis_client_merge_histories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_client_merge_histories (
+    id bigint NOT NULL,
+    retained_client_id bigint NOT NULL,
+    deleted_client_id bigint NOT NULL,
+    client_merge_audit_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: COLUMN hmis_client_merge_histories.client_merge_audit_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_client_merge_histories.client_merge_audit_id IS 'Audit log for the merge that deleted the deleted_client';
+
+
+--
+-- Name: hmis_client_merge_histories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_client_merge_histories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_client_merge_histories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_client_merge_histories_id_seq OWNED BY public.hmis_client_merge_histories.id;
+
+
+--
 -- Name: hmis_wips; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -19245,7 +19285,20 @@ CREATE TABLE public.hud_report_apr_clients (
     project_id integer,
     client_created_at timestamp without time zone,
     personal_id character varying,
-    race_multi character varying
+    race_multi character varying,
+    exit_destination_subsidy_type integer,
+    domestic_violence_occurred integer,
+    translation_needed integer,
+    preferred_language integer,
+    preferred_language_different character varying,
+    sexual_orientation integer,
+    move_on_assistance_provided integer,
+    current_school_attend_at_entry integer,
+    most_recent_ed_status_at_entry integer,
+    current_ed_status_at_entry integer,
+    current_school_attend_at_exit integer,
+    most_recent_ed_status_at_exit integer,
+    current_ed_status_at_exit integer
 );
 
 
@@ -27240,6 +27293,13 @@ ALTER TABLE ONLY public.hmis_client_merge_audits ALTER COLUMN id SET DEFAULT nex
 
 
 --
+-- Name: hmis_client_merge_histories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_client_merge_histories ALTER COLUMN id SET DEFAULT nextval('public.hmis_client_merge_histories_id_seq'::regclass);
+
+
+--
 -- Name: hmis_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -30932,6 +30992,14 @@ ALTER TABLE ONLY public.hmis_client_attributes_defined_text
 
 ALTER TABLE ONLY public.hmis_client_merge_audits
     ADD CONSTRAINT hmis_client_merge_audits_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_client_merge_histories hmis_client_merge_histories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_client_merge_histories
+    ADD CONSTRAINT hmis_client_merge_histories_pkey PRIMARY KEY (id);
 
 
 --
@@ -51423,6 +51491,27 @@ CREATE INDEX index_hmis_client_attributes_defined_text_on_data_source_id ON publ
 
 
 --
+-- Name: index_hmis_client_merge_histories_on_client_merge_audit_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_client_merge_histories_on_client_merge_audit_id ON public.hmis_client_merge_histories USING btree (client_merge_audit_id);
+
+
+--
+-- Name: index_hmis_client_merge_histories_on_deleted_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_client_merge_histories_on_deleted_client_id ON public.hmis_client_merge_histories USING btree (deleted_client_id);
+
+
+--
+-- Name: index_hmis_client_merge_histories_on_retained_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_client_merge_histories_on_retained_client_id ON public.hmis_client_merge_histories USING btree (retained_client_id);
+
+
+--
 -- Name: index_hmis_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -59671,6 +59760,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231004172833'),
 ('20231004203202'),
 ('20231009121430'),
-('20231012131855');
+('20231009190301'),
+('20231012131855'),
+('20231013190301'),
+('20231014150301'),
+('20231014190301'),
+('20231016190301'),
+('20231017190301'),
+('20231020151224');
 
 
