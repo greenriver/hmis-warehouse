@@ -9,7 +9,12 @@ if ENV['RDS_AWS_ACCESS_KEY_ID'].present? && !ENV['NO_LSA_RDS'].present?
   load 'lib/rds_sql_server/sql_server_base.rb'
 end
 
-module HudLsa::Generators::Fy2022
+# Testing notes:
+# Re-use an existing report
+# r = HudLsa::Generators::Fy2023::Lsa.last
+# r.test = true; r.destroy_rds = false
+# r.run!
+module HudLsa::Generators::Fy2023
   class Lsa < ::HudReports::ReportInstance
     include TsqlImport
     include NotifierConfig
@@ -23,7 +28,7 @@ module HudLsa::Generators::Fy2022
     attr_accessor :report, :destroy_rds, :hmis_export_id, :test
     has_one_attached :result_file
     has_one_attached :intermediate_file
-    has_one :summary_result, class_name: 'HudLsa::Fy2022::SummaryResult', foreign_key: :hud_report_instance_id
+    has_one :summary_result, class_name: 'HudLsa::Fy2023::SummaryResult', foreign_key: :hud_report_instance_id
     belongs_to :export, class_name: 'GrdaWarehouse::HmisExport', optional: true
 
     def self.find_report(user)
@@ -48,8 +53,7 @@ module HudLsa::Generators::Fy2022
     end
 
     def calculate
-      # FIXME? we might not need this
-      filter.coc_code = 'XX-500' if test?
+      filter.coc_code = 'XX-501' if test?
 
       log_and_ping('Starting')
       begin
@@ -112,7 +116,7 @@ module HudLsa::Generators::Fy2022
       ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
       ::Rds.database = sql_server_database
       ::Rds.timeout = 60_000_000
-      load 'lib/rds_sql_server/lsa/fy2022/lsa_queries.rb'
+      load 'lib/rds_sql_server/lsa/fy2023/lsa_queries.rb'
       rep = LsaSqlServer::LSAQueries.new
       rep.test_run = test?
       rep.project_ids = filter.effective_project_ids
@@ -139,7 +143,7 @@ module HudLsa::Generators::Fy2022
     end
 
     def fetch_summary_results
-      load 'lib/rds_sql_server/lsa/fy2022/lsa_report_summary.rb'
+      load 'lib/rds_sql_server/lsa/fy2023/lsa_report_summary.rb'
       summary = LsaSqlServer::LSAReportSummary.new
       create_summary_result(summary: summary.fetch_summary)
     end
@@ -160,7 +164,7 @@ module HudLsa::Generators::Fy2022
           where(
             created_at: Time.zone.now.beginning_of_day..Time.zone.now.end_of_day,
             start_date: lookback_stop_date,
-            version: 2022,
+            version: 2024,
             period_type: 3,
             directive: 2,
             hash_status: 1,
@@ -178,8 +182,8 @@ module HudLsa::Generators::Fy2022
         end
       end
 
-      @hmis_export = HmisCsvTwentyTwentyTwo::Exporter::Base.new(
-        version: '2022',
+      @hmis_export = HmisCsvTwentyTwentyFour::Exporter::Base.new(
+        version: '2024',
         start_date: lookback_stop_date,
         end_date: filter.end,
         projects: filter.effective_project_ids,
@@ -231,9 +235,9 @@ module HudLsa::Generators::Fy2022
     end
 
     def populate_hmis_tables
-      load 'lib/rds_sql_server/lsa/fy2022/hmis_sql_server.rb' # provides thin wrappers to all HMIS tables
+      load 'lib/rds_sql_server/lsa/fy2023/hmis_sql_server.rb' # provides thin wrappers to all HMIS tables
       extract_path = if test?
-        source = Rails.root.join('drivers/hud_lsa/spec/fixtures/files/lsa/fy2022/sample_hmis_export/')
+        source = Rails.root.join('drivers/hud_lsa/spec/fixtures/files/lsa/fy2023/sample_hmis_export/')
         existing = Dir.glob(File.join(unzip_path, '*.csv'))
         FileUtils.rm(existing) if existing
         Dir.glob(File.join(source, '*.csv')).each do |f|
@@ -271,7 +275,7 @@ module HudLsa::Generators::Fy2022
       ReportingBase.connection.reconnect!
     end
 
-    # This reverses some export changes we made to maintain case sensitive matching with the 2022 spec
+    # This reverses some export changes we made to maintain case sensitive matching with the 2023 spec
     private def standardize_headers(headers)
       # ZIP -> Zip
       zip_index = headers.index('ZIP')
@@ -285,7 +289,7 @@ module HudLsa::Generators::Fy2022
     end
 
     def fetch_results
-      load 'lib/rds_sql_server/lsa/fy2022/lsa_sql_server.rb'
+      load 'lib/rds_sql_server/lsa/fy2023/lsa_sql_server.rb'
       # Make note of completion time, LSA requirements are very specific that this should be the time the report was completed, not when it was initiated.
       # There will only ever be one of these.
       LsaSqlServer.models_by_filename.each do |filename, klass|
@@ -300,20 +304,7 @@ module HudLsa::Generators::Fy2022
         end
         CSV.open(path, 'wb', force_quotes: force_quotes) do |csv|
           headers = klass.csv_columns.map { |m| if m == :Zip then :ZIP else m end }.map(&:to_s)
-          csv << headers
-          klass.find_each(batch_size: 10_000) do |item|
-            row = []
-            item.attributes.slice(*headers).each_value do |m|
-              if m.is_a?(Date)
-                row << m.strftime('%F')
-              elsif m.is_a?(Time)
-                row << m.utc.strftime('%F %T')
-              else
-                row << m
-              end
-            end
-            csv << row
-          end
+          add_rows_to_export(csv, headers: headers, klass: klass)
         end
         klass.primary_key = nil if remove_primary_key
       end
@@ -321,7 +312,7 @@ module HudLsa::Generators::Fy2022
     end
 
     def fetch_intermediate_results
-      load 'lib/rds_sql_server/lsa/fy2022/lsa_sql_server.rb'
+      load 'lib/rds_sql_server/lsa/fy2023/lsa_sql_server.rb'
       # Make note of completion time, LSA requirements are very specific that this should be the time the report was completed, not when it was initiated.
       # There will only ever be one of these.
       LsaSqlServer.intermediate_models_by_filename.each do |filename, klass|
@@ -333,34 +324,38 @@ module HudLsa::Generators::Fy2022
         end
         CSV.open(path, 'wb') do |csv|
           # Force a primary key for fetching in batches
-          headers = klass.column_names
-          csv << headers
-          klass.find_each(batch_size: 10_000) do |item|
-            row = []
-            item.attributes.slice(*headers).each_value do |m|
-              if m.is_a?(Date)
-                row << m.strftime('%F')
-              elsif m.is_a?(Time)
-                row << m.utc.strftime('%F %T')
-              else
-                row << m
-              end
-            end
-            csv << row
-          end
+          add_rows_to_export(csv, headers: klass.column_names, klass: klass)
         end
         klass.primary_key = nil if remove_primary_key
       end
       # puts LsaSqlServer.models_by_filename.values.map(&:count).inspect
     end
 
+    private def add_rows_to_export(csv, headers:, klass:)
+      csv << headers
+      klass.find_each(batch_size: 10_000) do |item|
+        row = []
+        item.attributes.slice(*headers).each_value do |m|
+          if m.is_a?(Date)
+            row << m.strftime('%F')
+          elsif m.is_a?(Time)
+            row << m.utc.strftime('%F %T')
+          else
+            row << m
+          end
+        end
+        csv << row
+      end
+      csv
+    end
+
     def setup_lsa_report
-      load 'lib/rds_sql_server/lsa/fy2022/lsa_sql_server.rb'
+      load 'lib/rds_sql_server/lsa/fy2023/lsa_sql_server.rb'
       if test?
         ::Rds.identifier = sql_server_identifier unless Rds.static_rds?
         ::Rds.database = sql_server_database
         ::Rds.timeout = 60_000_000
-        load 'lib/rds_sql_server/lsa/fy2022/lsa_queries.rb'
+        load 'lib/rds_sql_server/lsa/fy2023/lsa_queries.rb'
         LsaSqlServer::LSAQueries.new.setup_test_report
       else
         LsaSqlServer::LSAReport.delete_all

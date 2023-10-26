@@ -4,8 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Run with:
+# r = HudLsa::Generators::Fy2023::LsaComparisonTool.new('var/lsa/sample', 'var/lsa/generated')
+# r.compare
 require 'csv'
-module HudLsa::Generators::Fy2022
+module HudLsa::Generators::Fy2023
   class LsaComparisonTool
     attr_accessor :sample_data_path, :generated_data_path
 
@@ -61,6 +64,8 @@ module HudLsa::Generators::Fy2022
         'VendorEmail',
         'OrganizationID',
         'ProjectCoCID',
+        'AffiliationID',
+        'HMISParticipationID',
       ]
     end
   end
