@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module PublicReports::S3Toolset
+module WarehouseReports::S3Toolset
   extend ActiveSupport::Concern
   # Setup the S3 configuration if not setup if possible
   # Returns true if we're good to publish things, false if not
@@ -77,7 +77,8 @@ module PublicReports::S3Toolset
     end
   end
 
-  # NOTE: this is duplicated in 2 other reports that differ minimally
+  # NOTE: this is duplicated in 2 other reports that differ minimally and is replaced with
+  # push_all_to_s3 for the generic version
   private def push_to_s3
     bucket = s3_bucket
     prefix = public_s3_directory
@@ -98,7 +99,30 @@ module PublicReports::S3Toolset
     end
   end
 
-  # NOTE: this is duplicated in 2 other reports that differ minimally
+  private def push_all_to_s3
+    bucket = s3_bucket
+    prefix = public_s3_directory
+
+    publish_files.each do |file|
+      key = File.join(prefix, path.to_s, file[:name])
+      resp = s3_client.put_object(
+        acl: 'public-read',
+        bucket: bucket,
+        key: key,
+        body: file[:content].call,
+        content_disposition: 'inline',
+        content_type: file[:type],
+      )
+      if resp.etag
+        Rails.logger.info "Successfully uploaded report file to s3 (#{key})"
+      else
+        Rails.logger.info "Unable to upload report file (#{key}})"
+      end
+    end
+  end
+
+  # NOTE: this is duplicated in 2 other reports that differ minimally and is replaced with
+  # remove_all_from_s3 for the generic version
   private def remove_from_s3
     bucket = s3_bucket
     prefix = public_s3_directory
@@ -111,6 +135,24 @@ module PublicReports::S3Toolset
       Rails.logger.info "Successfully removed report file from s3 (#{key})"
     else
       Rails.logger.info "Unable to remove the report file (#{key})"
+    end
+  end
+
+  private def remove_all_from_s3
+    bucket = s3_bucket
+    prefix = public_s3_directory
+
+    publish_files.each do |file|
+      key = File.join(prefix, path.to_s, file[:name])
+      resp = s3_client.delete_object(
+        bucket: bucket,
+        key: key,
+      )
+      if resp.delete_marker
+        Rails.logger.info "Successfully removed report file from s3 (#{key})"
+      else
+        Rails.logger.info "Unable to remove the report file (#{key})"
+      end
     end
   end
 end
