@@ -56,10 +56,13 @@ module HudApr::Generators::CeApr::Fy2024
     end
 
     # NOTE: Questions 4 through 9
-    # Clients in any HMIS project using Method 2 - Active Clients by Date of Service where the enrollment has data in element 4.19 (CE Assessment) with a Date of Assessment in the date range of the report.
-    # When including CE Events (element 4.20) for these clients, the system should include data up to 90 days past the report end date. Detailed instructions for this are found on 9c and 9d.  In addition, we are including these events in the calculation of involved projects in Q4
-    # Unless otherwise instructed, use data from the enrollment with the latest assessment.
-    # Include household members attached to the head of household’s enrollment who were active at the time of that latest assessment, as determined by the household members’ entry and exit dates.
+    # Depending on the HMIS implementation and how the CoC’s Coordinated Entry System is set up, CE data could be entered into a single project or scattered
+    # across multiple projects in HMIS. Every HMIS project must have a response to data element 2.09 [Coordinated Entry Participation Status]; projects that operate
+    # as a Coordinated Entry access point and/or receive referrals through Coordinated Entry processes will be included in the report. If data is collected for 4.19
+    # [Coordinated Entry Assessment] and/or 4.20 [Coordinated Entry Event] but the project is indicated at data element 2.09 [Coordinated Entry Participation Status]
+    # as not participating in Coordinated Entry as an access point or receiving referrals then the project must be excluded from the report universe.
+    # The information to be reported on Coordinated Entry for the APR beginning October 1, 2023, is “system-wide." The system being reported on is the CoC where
+    # the Supportive Services Only: Coordinated Entry (SSO: CE) project was funded.
 
     # Question 10
     # The universe of data for this question is expanded to include all CE activity during the report date range. This includes data in elements 4.19 (CE Assessment) and 4.20 (CE Event) regardless of project or enrollment in which the data was collected.
@@ -68,8 +71,8 @@ module HudApr::Generators::CeApr::Fy2024
     # so that we can find in batches.
     # Find any clients that fit the filter criteria _and_ have at least one assessment in their enrollment
     # occurring within the report range
+    #
     def client_scope(start_date: @report.start_date, end_date: @report.end_date)
-      # TODO: an additional set of client_ids from projects with active CE Participation within_range
       household_ids = client_source.
         distinct.
         joins(service_history_enrollments: { enrollment: [:assessments, :project] }).
@@ -79,7 +82,7 @@ module HudApr::Generators::CeApr::Fy2024
         merge(GrdaWarehouse::ServiceHistoryEnrollment.heads_of_households).
         pluck(:household_id)
 
-      event_ids = client_source.
+      client_ids_from_events = client_source.
         distinct.
         joins(service_history_enrollments: { enrollment: [:events, :project] }).
         merge(GrdaWarehouse::Hud::Project.coc_funded).
@@ -87,10 +90,20 @@ module HudApr::Generators::CeApr::Fy2024
         merge(GrdaWarehouse::Hud::Event.within_range(start_date..end_date)).
         pluck(:client_id)
 
+      # TODO: an additional set of client_ids from projects with active CE Participation within_range
+      ce_participating_projects_ids = GrdaWarehouse::Hud::Project.joins(:ce_participations).
+        merge(GrdaWarehouse::Hud::CeParticipation.within_range(start_date..end_date)).
+        distinct.
+        pluck(:id)
+
       scope = client_source.
         distinct.
         joins(service_history_enrollments: { enrollment: :project }).
-        where(she_t[:household_id].in(household_ids).or(she_t[:client_id].in(event_ids)))
+        where(
+          she_t[:household_id].in(household_ids).
+          or(she_t[:client_id].in(client_ids_from_events)).
+          or(p_t[:id].in(ce_participating_projects_ids)),
+        )
 
       @filter = self.class.filter_class.new(
         user_id: @report.user_id,
