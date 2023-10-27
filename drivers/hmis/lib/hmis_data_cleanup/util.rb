@@ -187,7 +187,7 @@ module HmisDataCleanup
       end
     end
 
-    def self.write_potential_duplicates(filename: 'hmis_potential_duplicates.csv', variant: 'all', full_name: true)
+    def self.write_potential_duplicates(filename: 'hmis_client_potential_duplicates.csv', variant: 'all', full_name: true)
       Rails.logger.info("Finding potential duplicates (variant: #{variant})")
 
       data_source_id = GrdaWarehouse::DataSource.hmis.first.id
@@ -225,7 +225,8 @@ module HmisDataCleanup
           WarehouseID: dest_id,
         }
 
-        8.times do |idx|
+        # Expect at most 10 HMIS clients per Warehouse ID (increase if needed)
+        10.times do |idx|
           client_id = source_ids[idx]
           row["Client#{idx + 1}_ID"] = client_id
           info = source_id_to_info.fetch(client_id, nil) || {}
@@ -261,7 +262,7 @@ module HmisDataCleanup
       # actor_id = User.system_user.id
       # rows.each do |row|
       #   client_ids = []
-      #   8.times do |idx|
+      #   10.times do |idx|
       #     client_ids << row["Client#{idx + 1}_ID"]
       #   end
       #   Hmis::MergeClientsJob.perform_now(client_ids: client_ids.compact, actor_id: actor_id)
