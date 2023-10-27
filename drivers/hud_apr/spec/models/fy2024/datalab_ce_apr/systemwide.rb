@@ -4,9 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-RSpec.shared_context 'datalab th ce ce apr', shared_context: :metadata do
-  describe 'Datalab 2024 CE APR - CE Only' do
-    let(:results_dir) { 'ce_apr/ce' }
+RSpec.shared_context 'datalab systemwide ce apr', shared_context: :metadata do
+  describe 'Datalab 2024 CE APR - SystemWide' do
+    let(:results_dir) { 'ce_apr/systemwide' }
     before(:all) do
       generator = HudApr::Generators::CeApr::Fy2024::Generator
       project_ids = GrdaWarehouse::Hud::Project.all.pluck(:id)
@@ -88,5 +88,5 @@ RSpec.shared_context 'datalab th ce ce apr', shared_context: :metadata do
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context 'datalab th ce ce apr', include_shared: true
+  rspec.include_context 'datalab systemwide ce apr', include_shared: true
 end
