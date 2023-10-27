@@ -415,6 +415,47 @@ module Health
         having(nf('count', [h_sd_t[:patient_id]]).between(range)).select(:patient_id))
     end
 
+    # Dashboard scopes
+    scope :needs_f2f, ->(on: Date.current) do
+      f2f_range = on - 60.days .. on
+
+      where.not(id: Health::QualifyingActivity.
+        payable.
+        not_valid_unpayable.
+        face_to_face.
+        in_range(f2f_range).
+        select(:id))
+    end
+
+    scope :needs_qa, ->(on: Date.current) do
+      without_intake_query = intake_required.
+        where(id: Health::QualifyingActivity.
+          payable.
+          not_valid_unpayable.
+          in_range(on - 30.days .. on).
+          select(:id))
+      with_intake_query = Health::QualifyingActivity.
+        payable.
+        not_valid_unpayable.
+        in_range(on - 60.days .. on).
+        select(:id)
+      where.not(id: without_intake_query).and(where.not(id: with_intake_query))
+    end
+
+    scope :needs_intake, ->(on: Date.current) do
+      intake_required.where(engagement_date: on - 30.days ..)
+    end
+
+    scope :intake_required, -> do
+      joins(:careplans).
+        where(h_cp_t[:careplan_sent].eq(false))
+    end
+
+    scope :needs_renewal, ->(on: Date.current) do
+      joins(:recent_pctp_form).
+        where.not(h_cp_t[:careplan_sent_on].between(.. on - 365))
+    end
+
     # For now, all patients are visible to all health users
     # BUT, all patients must have a referral
     scope :viewable_by_user, ->(user) do
