@@ -113,5 +113,10 @@ module BaseApplicationControllerBehavior
 
       Sentry.configure_scope { |scope| scope.set_user(id: current_app_user.id, email: current_app_user.email) } if Sentry.initialized? && defined?(current_app_user) && current_app_user.is_a?(User)
     end
+
+    def bypass_2fa_enabled?
+      GrdaWarehouse::Config.get(:bypass_2fa_duration)&.positive?
+    end
+    helper_method :bypass_2fa_enabled?
   end
 end

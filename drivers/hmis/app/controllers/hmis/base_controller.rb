@@ -9,6 +9,7 @@ class Hmis::BaseController < ActionController::Base
 
   before_action :authenticate_hmis_user!
   impersonates :hmis_user, with: ->(id) { Hmis::User.find_by(id: id) }
+  auto_session_timeout Hmis::User.timeout_in
 
   include Hmis::Concerns::JsonErrors
   respond_to :json
