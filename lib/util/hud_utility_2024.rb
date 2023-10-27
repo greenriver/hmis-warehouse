@@ -256,6 +256,20 @@ module HudUtility2024
     }.freeze
   end
 
+  def gender_known_ids
+    [0, 1, 2, 3, 4, 5, 6].freeze
+  end
+
+  def gender_known_values
+    genders.values_at(*gender_known_ids).freeze
+  end
+
+  def gender_comparison_value(key)
+    return key if key.in?([8, 9, 99])
+
+    1
+  end
+
   def race_fields
     race_id_to_field_name.values.uniq.freeze
   end
@@ -280,10 +294,12 @@ module HudUtility2024
     }.freeze
   end
 
-  def gender_comparison_value(key)
-    return key if key.in?([8, 9, 99])
+  def race_known_ids
+    [1, 2, 3, 4, 5, 6, 7].freeze
+  end
 
-    1
+  def race_known_values
+    races.values_at(*race_known_ids).freeze
   end
 
   def residence_prior_length_of_stay_brief(id, reverse = false)
