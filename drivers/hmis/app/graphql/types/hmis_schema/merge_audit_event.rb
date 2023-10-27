@@ -17,6 +17,8 @@ module Types
 
     def user
       application_user = load_ar_association(object, :actor)
+      return unless application_user
+
       application_user.hmis_data_source_id = current_user.hmis_data_source_id
       Hmis::Hud::User.from_user(application_user)
     end
