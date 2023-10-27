@@ -60,20 +60,17 @@ class Hmis::BaseController < ActionController::Base
     true_hmis_user != current_hmis_user
   end
 
-  def authenticate_user!
-    handle_wrong_user_class
-  end
-
+  # for mixins
   def current_app_user
     current_hmis_user
   end
 
-  def current_user
-    handle_wrong_user_class
+  def authenticate_user!
+    raise 'authenticate_user called in HMIS controller. Did you mean authenticate_user?'
   end
 
-  def handle_wrong_user_class
-    raise '::User devise method called from HMIS controller. Did you mean current_hmis_user/'
+  def current_user
+    raise 'current_user called in HMIS controller. Did you mean current_hmis_user?'
   end
 
   def not_authorized!

@@ -186,11 +186,6 @@ class Hmis::User < ApplicationRecord
     active.not_system.where(id: Hmis::UserGroupMember.pluck(:user_id))
   end
 
-  # gve_ids = Hmis::GroupViewableEntity.data_sources.where(entity_type: data_source_id).pluck(:id)
-  # scope.with_hmis_access(data_source_id) do
-  #   where(id: Hmis::UserGroupMember.select(:user_id))
-  # end
-
   def editable_data_sources
     editable GrdaWarehouse::DataSource
   end
