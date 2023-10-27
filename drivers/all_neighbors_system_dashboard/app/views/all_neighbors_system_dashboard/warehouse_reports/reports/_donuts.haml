@@ -1,0 +1,14 @@
+.row
+  - donut_data.each do |d|
+    .col-6.mb-7
+      .row
+        .col-xs-12.col-md
+          .position-relative
+            %div{id: filter_label_id(tab[:id], d[:id]), class: css_namespace('all', 'donut-filter-label')}
+            %div{id: chart_id(tab[:id], d[:id]), class: css_namespace('all', 'donut')}
+        .col-xs-12.col-md
+          .mb-4
+            %h3= d[:title]
+            %div
+              %span{class: filter_label_id(tab[:id], filter_label)}
+          %div{id: "#{chart_id(tab[:id], d[:id])}_legend"}
