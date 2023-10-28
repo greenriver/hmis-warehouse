@@ -177,6 +177,30 @@ module Concerns::HudLists2024
       _translate project_types, id, reverse
     end
 
+    # 2.02.6.brief
+    def project_type_briefs
+      {
+        0 => 'ES - Entry/Exit',
+        1 => 'ES - NBN',
+        2 => 'TH',
+        3 => 'PH - PSH',
+        4 => 'SO',
+        6 => 'SSO',
+        8 => 'SH',
+        9 => 'PH - PH',
+        7 => 'Other',
+        10 => 'PH - OPH',
+        11 => 'Day Shelter',
+        12 => 'HP',
+        13 => 'PH - RRH',
+        14 => 'CE',
+      }.freeze
+    end
+
+    def project_type_brief(id, reverse = false)
+      _translate project_type_briefs, id, reverse
+    end
+
     # 2.02.7
     def target_populations
       {
@@ -226,6 +250,404 @@ module Concerns::HudLists2024
 
     def housing_type(id, reverse = false)
       _translate housing_types, id, reverse
+    end
+
+    # 2.03.1
+    def coc_codes_options
+      {
+        'AK-500' => 'Anchorage CoC',
+        'AK-501' => 'Alaska Balance of State CoC',
+        'AL-500' => 'Birmingham/Jefferson, St. Clair, Shelby Counties CoC',
+        'AL-501' => 'Mobile City & County/Baldwin County CoC',
+        'AL-502' => 'Florence/Northwest Alabama CoC',
+        'AL-503' => 'Huntsville/North Alabama CoC',
+        'AL-504' => 'Montgomery City & County CoC',
+        'AL-505' => 'Gadsden/Northeast Alabama CoC',
+        'AL-506' => 'Tuscaloosa City & County CoC',
+        'AL-507' => 'Alabama Balance of State CoC',
+        'AR-500' => 'Little Rock/Central Arkansas CoC',
+        'AR-501' => 'Fayetteville/Northwest Arkansas CoC',
+        'AR-503' => 'Arkansas Balance of State CoC',
+        'AR-505' => 'Southeast Arkansas CoC',
+        'AR-508' => 'Fort Smith CoC',
+        'AS-500' => 'American Samoa CoC',
+        'AZ-500' => 'Arizona Balance of State CoC',
+        'AZ-501' => 'Tucson/Pima County CoC',
+        'AZ-502' => 'Phoenix, Mesa/Maricopa County CoC',
+        'CA-500' => 'San Jose/Santa Clara City & County CoC',
+        'CA-501' => 'San Francisco CoC',
+        'CA-502' => 'Oakland, Berkeley/Alameda County CoC',
+        'CA-503' => 'Sacramento City & County CoC',
+        'CA-504' => 'Santa Rosa, Petaluma/Sonoma County CoC',
+        'CA-505' => 'Contra Costa County CoC',
+        'CA-506' => 'Salinas/Monterey, San Benito Counties CoC',
+        'CA-507' => 'Marin County CoC',
+        'CA-508' => 'Watsonville/Santa Cruz City & County CoC',
+        'CA-509' => 'Mendocino County CoC',
+        'CA-510' => 'Turlock, Modesto/Stanislaus County CoC',
+        'CA-511' => 'Stockton/San Joaquin County CoC',
+        'CA-512' => 'Daly City/San Mateo County CoC',
+        'CA-513' => 'Visalia/Kings, Tulare Counties CoC',
+        'CA-514' => 'Fresno City & County/Madera County CoC',
+        'CA-515' => 'Roseville, Rocklin/Placer County',
+        'CA-516' => 'Redding/Shasta Siskiyou, Lassen, Plumas, Del Norte, Modoc, Sierra Counties CoC',
+        'CA-517' => 'Napa City & County CoC',
+        'CA-518' => 'Vallejo/Solano County CoC',
+        'CA-519' => 'Chico, Paradise/Butte County CoC',
+        'CA-520' => 'Merced City & County CoC',
+        'CA-521' => 'Davis, Woodland/Yolo County CoC',
+        'CA-522' => 'Humboldt County CoC',
+        'CA-523' => 'Colusa, Glen, Trinity Counties CoC',
+        'CA-524' => 'Yuba City & County/Sutter County CoC',
+        'CA-525' => 'El Dorado County CoC',
+        'CA-526' => 'Amador, Calaveras, Mariposa, Tuolumne Counties CoC',
+        'CA-527' => 'Tehama County CoC',
+        'CA-529' => 'Lake County CoC',
+        'CA-530' => 'Alpine, Inyo, Mono Counties CoC',
+        'CA-531' => 'Nevada County CoC',
+        'CA-600' => 'Los Angeles City & County CoC',
+        'CA-601' => 'San Diego City and County CoC',
+        'CA-602' => 'Santa Ana, Anaheim/Orange County CoC',
+        'CA-603' => 'Santa Maria/Santa Barbara County CoC',
+        'CA-604' => 'Bakersfield/Kern County CoC',
+        'CA-606' => 'Long Beach CoC',
+        'CA-607' => 'Pasadena CoC',
+        'CA-608' => 'Riverside City & County CoC',
+        'CA-609' => 'San Bernardino City & County CoC',
+        'CA-611' => 'Oxnard, San Buenaventura/Ventura County CoC',
+        'CA-612' => 'Glendale CoC',
+        'CA-613' => 'Imperial County CoC',
+        'CA-614' => 'San Luis Obispo County CoC',
+        'CO-500' => 'Colorado Balance of State CoC',
+        'CO-503' => 'Metropolitan Denver CoC',
+        'CO-504' => 'Colorado Springs/El Paso County CoC',
+        'CO-505' => 'Fort Collins, Greeley, Loveland/Larimer, Weld Counties CoC',
+        'CT-503' => 'Bridgeport, Stamford, Norwalk, Danbury/Fairfield County CoC',
+        'CT-505' => 'Connecticut Balance of State CoC',
+        'DC-500' => 'District of Columbia CoC',
+        'DE-500' => 'Delaware Statewide CoC',
+        'FL-500' => 'Sarasota, Bradenton/Manatee, Sarasota Counties CoC',
+        'FL-501' => 'Tampa/Hillsborough County CoC',
+        'FL-502' => 'St. Petersburg, Clearwater, Largo/Pinellas County CoC',
+        'FL-503' => 'Lakeland/Polk County CoC',
+        'FL-504' => 'Deltona, Daytona Beach/Volusia, Flagler Counties CoC',
+        'FL-505' => 'Fort Walton Beach/Okaloosa, Walton Counties CoC',
+        'FL-506' => 'Tallahassee/Leon County CoC',
+        'FL-507' => 'Orlando/Orange, Osceola, Seminole Counties CoC',
+        'FL-508' => 'Gainesville/Alachua, Putnam Counties CoC',
+        'FL-509' => 'Fort Pierce/St. Lucie, Indian River, Martin Counties CoC',
+        'FL-510' => 'Jacksonville-Duval, Clay Counties CoC',
+        'FL-511' => 'Pensacola/Escambia, Santa Rosa Counties CoC',
+        'FL-512' => 'St. Johns County CoC',
+        'FL-513' => 'Palm Bay, Melbourne/Brevard County CoC',
+        'FL-514' => 'Ocala/Marion County CoC',
+        'FL-515' => 'Panama City/Bay, Jackson Counties CoC',
+        'FL-517' => 'Hendry, Hardee, Highlands Counties CoC',
+        'FL-518' => 'Columbia, Hamilton, Lafayette, Suwannee Counties CoC',
+        'FL-519' => 'Pasco County CoC',
+        'FL-520' => 'Citrus, Hernando, Lake, Sumter Counties CoC',
+        'FL-600' => 'Miami-Dade County CoC',
+        'FL-601' => 'Ft Lauderdale/Broward County CoC',
+        'FL-602' => 'Charlotte County CoC',
+        'FL-603' => 'Ft Myers, Cape Coral/Lee County CoC',
+        'FL-604' => 'Monroe County CoC',
+        'FL-605' => 'West Palm Beach/Palm Beach County CoC',
+        'FL-606' => 'Naples/Collier County CoC',
+        'GA-500' => 'Atlanta CoC',
+        'GA-501' => 'Georgia Balance of State CoC',
+        'GA-502' => 'Fulton County CoC',
+        'GA-503' => 'Athens-Clarke County CoC',
+        'GA-504' => 'Augusta-Richmond County CoC',
+        'GA-505' => 'Columbus-Muscogee/Russell County CoC',
+        'GA-506' => 'Marietta/Cobb County CoC',
+        'GA-507' => 'Savannah/Chatham County CoC',
+        'GA-508' => 'DeKalb County CoC',
+        'GU-500' => 'Guam CoC',
+        'HI-500' => 'Hawaii Balance of State CoC',
+        'HI-501' => 'Honolulu City and County CoC',
+        'IA-500' => 'Sioux City/Dakota, Woodbury Counties CoC',
+        'IA-501' => 'Iowa Balance of State CoC',
+        'IA-502' => 'Des Moines/Polk County CoC',
+        'ID-500' => 'Boise/Ada County CoC',
+        'ID-501' => 'Idaho Balance of State CoC',
+        'IL-500' => 'McHenry County CoC',
+        'IL-501' => 'Rockford/DeKalb, Winnebago, Boone Counties CoC',
+        'IL-502' => 'Waukegan, North Chicago/Lake County CoC',
+        'IL-503' => 'Champaign, Urbana, Rantoul/Champaign County CoC',
+        'IL-504' => 'Madison County CoC',
+        'IL-506' => 'Joliet, Bolingbrook/Will County CoC',
+        'IL-507' => 'Peoria, Pekin/Fulton, Tazewell, Peoria, Woodford Counties CoC',
+        'IL-508' => 'East St. Louis, Belleville/St. Clair County CoC',
+        'IL-510' => 'Chicago CoC',
+        'IL-511' => 'Cook County CoC',
+        'IL-512' => 'Bloomington/Central Illinois CoC',
+        'IL-513' => 'Springfield/Sangamon County CoC',
+        'IL-514' => 'DuPage County CoC',
+        'IL-515' => 'South Central Illinois CoC',
+        'IL-516' => 'Decatur/Macon County CoC',
+        'IL-517' => 'Aurora, Elgin/Kane County CoC',
+        'IL-518' => 'Rock Island, Moline/Northwestern Illinois CoC',
+        'IL-519' => 'West Central Illinois CoC',
+        'IL-520' => 'Southern Illinois CoC',
+        'IN-502' => 'Indiana Balance of State CoC',
+        'IN-503' => 'Indianapolis CoC',
+        'KS-502' => 'Wichita/Sedgwick County CoC',
+        'KS-503' => 'Topeka/Shawnee County CoC',
+        'KS-505' => 'Overland Park, Shawnee/Johnson County CoC',
+        'KS-507' => 'Kansas Balance of State CoC',
+        'KY-500' => 'Kentucky Balance of State CoC',
+        'KY-501' => 'Louisville-Jefferson County CoC',
+        'KY-502' => 'Lexington-Fayette County CoC',
+        'LA-500' => 'Lafayette/Acadiana Regional CoC',
+        'LA-502' => 'Shreveport, Bossier/Northwest Louisiana CoC',
+        'LA-503' => 'New Orleans/Jefferson Parish CoC',
+        'LA-505' => 'Monroe/Northeast Louisiana CoC',
+        'LA-506' => 'Slidell/Southeast Louisiana CoC',
+        'LA-507' => 'Alexandria/Central Louisiana CoC',
+        'LA-509' => 'Louisiana Balance of State CoC',
+        'MA-500' => 'Boston CoC',
+        'MA-502' => 'Lynn CoC',
+        'MA-503' => 'Cape Cod Islands CoC',
+        'MA-504' => 'Springfield/Hampden County CoC',
+        'MA-505' => 'New Bedford CoC',
+        'MA-506' => 'Worcester City & County CoC',
+        'MA-507' => 'Pittsfield/Berkshire, Franklin, Hampshire Counties CoC',
+        'MA-509' => 'Cambridge CoC',
+        'MA-511' => 'Quincy, Brockton, Weymouth, Plymouth City and County CoC',
+        'MA-515' => 'Fall River CoC',
+        'MA-516' => 'Massachusetts Balance of State CoC',
+        'MA-519' => 'Attleboro, Taunton/Bristol County CoC',
+        'MD-501' => 'Baltimore CoC',
+        'MD-503' => 'Annapolis/Anne Arundel County CoC',
+        'MD-504' => 'Howard County CoC',
+        'MD-505' => 'Baltimore County CoC',
+        'MD-506' => 'Carroll County CoC',
+        'MD-509' => 'Frederick City & County CoC',
+        'MD-511' => 'Mid-Shore Regional CoC',
+        'MD-513' => 'Wicomico, Somerset, Worcester Counties CoC',
+        'MD-514' => 'Maryland Balance of Sate',
+        'MD-600' => "Prince George's County CoC",
+        'MD-601' => 'Montgomery County CoC',
+        'ME-500' => 'Maine Statewide CoC',
+        'MI-500' => 'Michigan Balance of State CoC',
+        'MI-501' => 'Detroit CoC',
+        'MI-502' => 'Dearborn, Dearborn Heights, Westland/Wayne County CoC',
+        'MI-503' => 'St. Clair Shores, Warren/Macomb County CoC',
+        'MI-504' => 'Pontiac, Royal Oak/Oakland County CoC',
+        'MI-505' => 'Flint/Genesee County CoC',
+        'MI-506' => 'Grand Rapids, Wyoming/Kent County CoC',
+        'MI-507' => 'Portage, Kalamazoo City & County CoC',
+        'MI-508' => 'Lansing, East Lansing/Ingham County CoC',
+        'MI-509' => 'Washtenaw County CoC',
+        'MI-510' => 'Saginaw City & County CoC',
+        'MI-511' => 'Lenawee County CoC',
+        'MI-512' => 'Grand Traverse, Antrim, Leelanau Counties CoC',
+        'MI-514' => 'Battle Creek/Calhoun County CoC',
+        'MI-515' => 'Monroe City & County CoC',
+        'MI-516' => 'Norton Shores, Muskegon City & County CoC',
+        'MI-517' => 'Jackson City & County CoC',
+        'MI-518' => 'Livingston County CoC',
+        'MI-519' => 'Holland/Ottawa County CoC',
+        'MI-523' => 'Eaton County CoC',
+        'MN-500' => 'Minneapolis/Hennepin County CoC',
+        'MN-501' => 'St. Paul/Ramsey County CoC',
+        'MN-502' => 'Rochester/Southeast Minnesota CoC',
+        'MN-503' => 'Dakota, Anoka, Washington, Scott, Carver Counties CoC',
+        'MN-504' => 'Northeast Minnesota CoC',
+        'MN-505' => 'St. Cloud/Central Minnesota CoC',
+        'MN-506' => 'Northwest Minnesota CoC',
+        'MN-508' => 'Moorhead/West Central Minnesota CoC',
+        'MN-509' => 'Duluth/St. Louis County CoC',
+        'MN-511' => 'Southwest Minnesota CoC',
+        'MO-500' => 'St. Louis County CoC',
+        'MO-501' => 'St. Louis CoC',
+        'MO-503' => 'St. Charles, Lincoln, Warren Counties CoC',
+        'MO-600' => 'Springfield/Greene, Christian, Webster Counties CoC',
+        'MO-602' => 'Joplin/Jasper, Newton Counties CoC',
+        'MO-603' => 'St. Joseph/Andrew, Buchanan, DeKalb Counties CoC',
+        'MO-604' => 'Kansas City (MO&KS), Independence, Lee’s Summit/Jackson, Wyandotte Counties CoC',
+        'MO-606' => 'Missouri Balance of State CoC',
+        'MP-500' => 'Northern Mariana Islands CoC',
+        'MS-500' => 'Jackson/Rankin, Madison Counties CoC',
+        'MS-501' => 'Mississippi Balance of State CoC',
+        'MS-503' => 'Gulf Port/Gulf Coast Regional CoC',
+        'MT-500' => 'Montana Statewide CoC',
+        'NC-500' => 'Winston-Salem/Forsyth County CoC',
+        'NC-501' => 'Asheville/Buncombe County CoC',
+        'NC-502' => 'Durham City & County CoC',
+        'NC-503' => 'North Carolina Balance of State CoC',
+        'NC-504' => 'Greensboro, High Point/Guilford County CoC',
+        'NC-505' => 'Charlotte/Mecklenburg County CoC',
+        'NC-506' => 'Wilmington/Brunswick, New Hanover, Pender Counties CoC',
+        'NC-507' => 'Raleigh/Wake County CoC',
+        'NC-509' => 'Gastonia/Cleveland, Gaston, Lincoln Counties CoC',
+        'NC-511' => 'Fayetteville/Cumberland County CoC',
+        'NC-513' => 'Chapel Hill/Orange County CoC',
+        'NC-516' => 'Northwest North Carolina CoC',
+        'ND-500' => 'North Dakota Statewide CoC',
+        'NE-500' => 'Nebraska Balance of State CoC',
+        'NE-501' => 'Omaha, Council Bluffs CoC',
+        'NE-502' => 'Lincoln CoC',
+        'NH-500' => 'New Hampshire Balance of State CoC',
+        'NH-501' => 'Manchester CoC',
+        'NH-502' => 'Nashua/Hillsborough County CoC',
+        'NJ-500' => 'Atlantic City & County CoC',
+        'NJ-501' => 'Bergen County CoC',
+        'NJ-502' => 'Burlington County CoC',
+        'NJ-503' => 'Camden City & County/Gloucester, Cape May, Cumberland Counties CoC',
+        'NJ-504' => 'Newark/Essex County CoC',
+        'NJ-506' => 'Jersey City, Bayonne/Hudson County CoC',
+        'NJ-507' => 'New Brunswick/Middlesex County CoC',
+        'NJ-508' => 'Monmouth County CoC',
+        'NJ-509' => 'Morris County CoC',
+        'NJ-510' => 'Lakewood Township/Ocean County CoC',
+        'NJ-511' => 'Paterson/Passaic County CoC',
+        'NJ-512' => 'Salem County CoC',
+        'NJ-513' => 'Somerset County CoC',
+        'NJ-514' => 'Trenton/Mercer County CoC',
+        'NJ-515' => 'Elizabeth/Union County CoC',
+        'NJ-516' => 'Warren, Sussex, Hunterdon Counties CoC',
+        'NM-500' => 'Albuquerque CoC',
+        'NM-501' => 'New Mexico Balance of State CoC',
+        'NV-500' => 'Las Vegas/Clark County CoC',
+        'NV-501' => 'Reno, Sparks/Washoe County CoC',
+        'NV-502' => 'Nevada Balance of State CoC',
+        'NY-500' => 'Rochester, Irondequoit, Greece/Monroe County CoC',
+        'NY-501' => 'Elmira/Steuben, Allegany, Livingston, Chemung, Schuyler Counties CoC',
+        'NY-503' => 'Albany City & County CoC',
+        'NY-505' => 'Syracuse, Auburn/Onondaga, Oswego, Cayuga Counties CoC',
+        'NY-507' => 'Schenectady City & County CoC',
+        'NY-508' => 'Buffalo, Niagara Falls/Erie, Niagara, Orleans, Genesee, Wyoming Counties CoC',
+        'NY-510' => 'Ithaca/Tompkins County CoC',
+        'NY-511' => 'Binghamton, Union Town/Broome, Otsego, Chenango, Delaware, Cortland, Tioga Counties CoC',
+        'NY-512' => 'Troy/Rensselaer County CoC',
+        'NY-513' => 'Wayne, Ontario, Seneca, Yates Counties CoC',
+        'NY-514' => 'Jamestown, Dunkirk/Chautauqua County CoC',
+        'NY-518' => 'Utica, Rome/Oneida, Madison Counties CoC',
+        'NY-519' => 'Columbia, Greene Counties CoC',
+        'NY-520' => 'Franklin, Essex Counties CoC',
+        'NY-522' => 'Jefferson, Lewis, St. Lawrence Counties CoC',
+        'NY-523' => 'Glens Falls, Saratoga Springs/Saratoga, Washington, Warren, Hamilton Counties CoC',
+        'NY-525' => 'New York Balance of State CoC',
+        'NY-600' => 'New York City CoC',
+        'NY-601' => 'Poughkeepsie/Dutchess County CoC',
+        'NY-602' => 'Newburgh, Middletown/Orange County CoC',
+        'NY-603' => 'Nassau, Suffolk Counties CoC',
+        'NY-604' => 'Yonkers, Mount Vernon/Westchester County CoC',
+        'NY-606' => 'Rockland County CoC',
+        'NY-608' => 'Kingston/Ulster County CoC',
+        'OH-500' => 'Cincinnati/Hamilton County CoC',
+        'OH-501' => 'Toledo/Lucas County CoC',
+        'OH-502' => 'Cleveland/Cuyahoga County CoC',
+        'OH-503' => 'Columbus/Franklin County CoC',
+        'OH-504' => 'Youngstown/Mahoning County CoC',
+        'OH-505' => 'Dayton, Kettering/Montgomery County CoC',
+        'OH-506' => 'Akron, Barberton/Summit County CoC',
+        'OH-507' => 'Ohio Balance of State CoC',
+        'OH-508' => 'Canton, Massillon, Alliance/Stark County CoC',
+        'OK-500' => 'North Central Oklahoma CoC',
+        'OK-501' => 'Tulsa City & County CoC',
+        'OK-502' => 'Oklahoma City CoC',
+        'OK-503' => 'Oklahoma Balance of State CoC',
+        'OK-504' => 'Norman/Cleveland County CoC',
+        'OK-505' => 'Northeast Oklahoma CoC',
+        'OK-506' => 'Southwest Oklahoma Regional CoC',
+        'OK-507' => 'Southeastern Oklahoma Regional CoC',
+        'OR-500' => 'Eugene, Springfield/Lane County CoC',
+        'OR-501' => 'Portland, Gresham/Multnomah County CoC',
+        'OR-502' => 'Medford, Ashland/Jackson County CoC',
+        'OR-503' => 'Central Oregon CoC',
+        'OR-504' => 'Salem/Marion, Polk Counties CoC',
+        'OR-505' => 'Oregon Balance of State CoC',
+        'OR-506' => 'Hillsboro, Beaverton/Washington County CoC',
+        'OR-507' => 'Clackamas County CoC',
+        'PA-500' => 'Philadelphia CoC',
+        'PA-501' => 'Harrisburg/Dauphin County CoC',
+        'PA-502' => 'Upper Darby, Chester, Haverford/Delaware County CoC',
+        'PA-503' => 'Wilkes-Barre, Hazleton/ Luzerne County CoC',
+        'PA-504' => 'Lower Merion, Norristown, Abington/Montgomery County CoC',
+        'PA-505' => 'Chester County CoC',
+        'PA-506' => 'Reading/Berks County CoC',
+        'PA-508' => 'Scranton/Lackawanna County CoC',
+        'PA-509' => 'Eastern Pennsylvania CoC',
+        'PA-510' => 'Lancaster City & County CoC',
+        'PA-511' => 'Bristol, Bensalem/Bucks County CoC',
+        'PA-512' => 'York City & County CoC',
+        'PA-600' => 'Pittsburgh, McKeesport, Penn Hills/Allegheny County CoC',
+        'PA-601' => 'Western Pennsylvania CoC',
+        'PA-603' => 'Beaver County CoC',
+        'PA-605' => 'Erie City & County CoC',
+        'PR-502' => 'Puerto Rico Balance of Commonwealth CoC',
+        'PR-503' => 'South-Southeast Puerto Rico CoC',
+        'RI-500' => 'Rhode Island Statewide CoC',
+        'SC-500' => 'Charleston/Low Country CoC',
+        'SC-501' => 'Greenville, Anderson, Spartanburg/Upstate CoC',
+        'SC-502' => 'Columbia/Midlands CoC',
+        'SC-503' => 'Sumter City & County CoC',
+        'SD-500' => 'South Dakota Statewide CoC',
+        'TN-500' => 'Chattanooga/Southeast Tennessee CoC',
+        'TN-501' => 'Memphis/Shelby County CoC',
+        'TN-502' => 'Knoxville/Knox County CoC',
+        'TN-503' => 'Central Tennessee CoC',
+        'TN-504' => 'Nashville-Davidson County CoC',
+        'TN-506' => 'Upper Cumberland CoC',
+        'TN-507' => 'Jackson/West Tennessee CoC',
+        'TN-509' => 'Appalachian Regional CoC',
+        'TN-510' => 'Murfreesboro/Rutherford County CoC',
+        'TN-512' => 'Morristown/Blount, Sevier, Campbell, Cocke Counties CoC',
+        'TX-500' => 'San Antonio/Bexar County CoC',
+        'TX-503' => 'Austin/Travis County CoC',
+        'TX-600' => 'Dallas City & County, Irving CoC',
+        'TX-601' => 'Fort Worth, Arlington/Tarrant County CoC',
+        'TX-603' => 'El Paso City & County CoC',
+        'TX-604' => 'Waco/McLennan County CoC',
+        'TX-607' => 'Texas Balance of State CoC',
+        'TX-611' => 'Amarillo CoC',
+        'TX-624' => 'Wichita Falls/Wise, Palo Pinto, Wichita, Archer Counties CoC',
+        'TX-700' => 'Houston, Pasadena, Conroe/Harris, Ft. Bend, Montgomery Counties CoC',
+        'TX-701' => 'Bryan, College Station/Brazos Valley CoC',
+        'UT-500' => 'Salt Lake City & County CoC',
+        'UT-503' => 'Utah Balance of State CoC',
+        'UT-504' => 'Provo/Mountainland CoC',
+        'VA-500' => 'Richmond/Henrico, Chesterfield, Hanover Counties CoC',
+        'VA-501' => 'Norfolk, Chesapeake, Suffolk/Isle of Wight, Southampton Counties CoC',
+        'VA-502' => 'Roanoke City & County, Salem CoC',
+        'VA-503' => 'Virginia Beach CoC',
+        'VA-504' => 'Charlottesville CoC',
+        'VA-505' => 'Newport News, Hampton/Virginia Peninsula CoC',
+        'VA-507' => 'Portsmouth CoC',
+        'VA-508' => 'Lynchburg CoC',
+        'VA-513' => 'Harrisonburg, Winchester/Western Virginia CoC',
+        'VA-514' => 'Fredericksburg/Spotsylvania, Stafford Counties CoC',
+        'VA-521' => 'Virginia Balance of State CoC',
+        'VA-600' => 'Arlington County CoC',
+        'VA-601' => 'Fairfax County CoC',
+        'VA-602' => 'Loudoun County CoC',
+        'VA-603' => 'Alexandria CoC',
+        'VA-604' => 'Prince William County CoC',
+        'VI-500' => 'Virgin Islands CoC',
+        'VT-500' => 'Vermont Balance of State CoC',
+        'VT-501' => 'Burlington/Chittenden County CoC',
+        'WA-500' => 'Seattle/King County CoC',
+        'WA-501' => 'Washington Balance of State CoC',
+        'WA-502' => 'Spokane City & County CoC',
+        'WA-503' => 'Tacoma, Lakewood/Pierce County CoC',
+        'WA-504' => 'Everett/Snohomish County CoC',
+        'WA-508' => 'Vancouver/Clark County CoC',
+        'WI-500' => 'Wisconsin Balance of State CoC',
+        'WI-501' => 'Milwaukee City & County CoC',
+        'WI-502' => 'Racine City & County CoC',
+        'WI-503' => 'Madison/Dane County CoC',
+        'WV-500' => 'Wheeling, Weirton Area CoC',
+        'WV-501' => 'Huntington/Cabell, Wayne Counties CoC',
+        'WV-503' => 'Charleston/Kanawha, Putnam, Boone, Clay Counties CoC',
+        'WV-508' => 'West Virginia Balance of State CoC',
+        'WY-500' => 'Wyoming Statewide CoC',
+      }.freeze
+    end
+
+    def coc_codes(id, reverse = false)
+      _translate coc_codes_options, id, reverse
     end
 
     # 2.03.4
@@ -356,19 +778,6 @@ module Concerns::HudLists2024
       _translate hmis_participation_types, id, reverse
     end
 
-    # 2.7.B
-    def youth_age_groups
-      {
-        1 => 'Only under age 18',
-        2 => 'Only ages 18 to 24',
-        3 => 'Only youth under age 24 (both of the above)',
-      }.freeze
-    end
-
-    def youth_age_group(id, reverse = false)
-      _translate youth_age_groups, id, reverse
-    end
-
     # 3.01.5
     def name_data_quality_options
       {
@@ -412,21 +821,6 @@ module Concerns::HudLists2024
 
     def dob_data_quality(id, reverse = false)
       _translate dob_data_quality_options, id, reverse
-    end
-
-    # 3.05.1
-    def ethnicities
-      {
-        0 => 'Non-Hispanic/Non-Latin(a)(o)(x)',
-        1 => 'Hispanic/Latin(a)(o)(x)',
-        8 => "Client doesn't know",
-        9 => 'Client prefers not to answer',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def ethnicity(id, reverse = false)
-      _translate ethnicities, id, reverse
     end
 
     # 3.12
@@ -509,11 +903,13 @@ module Concerns::HudLists2024
     # 3.6.1
     def genders
       {
-        0 => 'Female',
-        1 => 'Male',
-        4 => 'A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)',
+        0 => 'Woman (Girl, if child)',
+        1 => 'Man (Boy, if child)',
+        2 => 'Culturally Specific Identity (e.g., Two-Spirit)',
+        4 => 'Non-Binary',
         5 => 'Transgender',
         6 => 'Questioning',
+        3 => 'Different Identity',
         8 => "Client doesn't know",
         9 => 'Client prefers not to answer',
         99 => 'Data not collected',
@@ -635,25 +1031,6 @@ module Concerns::HudLists2024
       _translate reason_not_insureds, id, reverse
     end
 
-    # 4.1.1
-    def housing_statuses
-      {
-        1 => 'Category 1 - Homeless',
-        2 => 'Category 2 - At imminent risk of losing housing',
-        3 => 'At-risk of homelessness',
-        4 => 'Stably housed',
-        5 => 'Category 3 - Homeless only under other federal statutes',
-        6 => 'Category 4 - Fleeing domestic violence',
-        8 => "Client doesn't know",
-        9 => 'Client prefers not to answer',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def housing_status(id, reverse = false)
-      _translate housing_statuses, id, reverse
-    end
-
     # 4.10.2
     def disability_responses
       {
@@ -725,36 +1102,12 @@ module Concerns::HudLists2024
     # 4.14
     def bed_night_options
       {
-        200 => 'BedNight',
+        200 => 'Bed Night',
       }.freeze
     end
 
     def bed_night(id, reverse = false)
       _translate bed_night_options, id, reverse
-    end
-
-    # 4.18.1
-    def housing_assessment_dispositions
-      {
-        1 => 'Referred to emergency shelter/safe haven',
-        2 => 'Referred to transitional housing',
-        3 => 'Referred to rapid re-housing',
-        4 => 'Referred to permanent supportive housing',
-        5 => 'Referred to homelessness prevention',
-        6 => 'Referred to street outreach',
-        7 => 'Referred to other continuum project type',
-        8 => 'Referred to a homelessness diversion program',
-        9 => 'Unable to refer/accept within continuum; ineligible for continuum projects',
-        10 => 'Unable to refer/accept within continuum; continuum services unavailable',
-        11 => 'Referred to other community project (non-continuum)',
-        12 => 'Applicant declined referral/acceptance',
-        13 => 'Applicant terminated assessment prior to completion',
-        14 => 'Other/specify',
-      }.freeze
-    end
-
-    def housing_assessment_disposition(id, reverse = false)
-      _translate housing_assessment_dispositions, id, reverse
     end
 
     # 4.19.3
@@ -833,184 +1186,6 @@ module Concerns::HudLists2024
 
     def referral_result(id, reverse = false)
       _translate referral_results, id, reverse
-    end
-
-    # 4.21.6
-    def service_provideds
-      {
-        0 => 'None',
-        1 => 'Financial Assistance',
-        2 => 'Other Assistance',
-        3 => 'Both Financial & Other Assistance',
-      }.freeze
-    end
-
-    def service_provided(id, reverse = false)
-      _translate service_provideds, id, reverse
-    end
-
-    # 4.21.A
-    def prevention_outcomes
-      {
-        1 => 'Referral to a HP project opening',
-        2 => 'No HP referral – no availability, placed on priority/waiting list',
-        3 => 'No HP referral - determined ineligible',
-        4 => 'Referral to emergency assistance/flex fund/furniture assistance',
-        5 => 'Client declined HP referral',
-        6 => 'Don’t know outcome or outcome pending',
-      }.freeze
-    end
-
-    def prevention_outcome(id, reverse = false)
-      _translate prevention_outcomes, id, reverse
-    end
-
-    # 4.21.E
-    def shelter_outcomes
-      {
-        1 => 'Referral to Diversion project opening',
-        2 => 'Client declined Diversion referral',
-        3 => 'Referral to Emergency Shelter bed opening',
-        4 => 'Client declined shelter referral - street outreach connection made',
-        5 => 'Client declined shelter referral - no connections/referrals',
-        6 => 'Placed on prioritization list',
-        7 => 'No connections/referrals provided',
-        8 => 'Don’t know yet or outcome pending',
-      }.freeze
-    end
-
-    def shelter_outcome(id, reverse = false)
-      _translate shelter_outcomes, id, reverse
-    end
-
-    # 4.21.I
-    def housing_outcomes
-      {
-        1 => 'Referral to Diversion project opening',
-        2 => 'Referral to Transitional Housing bed/unit opening',
-        3 => 'Referral to Joint TH-RRH project/unit opening',
-        4 => 'Referral to RRH project/unit opening',
-        5 => 'Referral to PSH project/unit opening',
-        6 => 'Referral to Other PH project/unit opening',
-        7 => 'Referral to a Housing Stability Voucher',
-        8 => 'Client declined Diversion referral',
-        9 => 'Placed on prioritization list',
-        10 => 'No availability - Provided other housing information',
-        11 => 'Ineligible – Provided other housing information',
-        12 => 'Client declined housing referral',
-        13 => 'Don’t know yet or outcome pending',
-      }.freeze
-    end
-
-    def housing_outcome(id, reverse = false)
-      _translate housing_outcomes, id, reverse
-    end
-
-    # 4.21.M
-    def service_outcomes
-      {
-        1 => 'Maintained housing they had at CE entry',
-        2 => 'Secured other permanent housing',
-        3 => 'Referred back to CE for shelter assessment',
-        4 => 'Referred back to CE for housing assessment',
-        5 => "Don't know yet or outcome pending",
-      }.freeze
-    end
-
-    def service_outcome(id, reverse = false)
-      _translate service_outcomes, id, reverse
-    end
-
-    # 4.33.A
-    def incarcerated_parent_statuses
-      {
-        1 => 'One parent / legal guardian is incarcerated',
-        2 => 'Both parents / legal guardians are incarcerated',
-        3 => 'The only parent / legal guardian is incarcerated',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def incarcerated_parent_status(id, reverse = false)
-      _translate incarcerated_parent_statuses, id, reverse
-    end
-
-    # 4.36.1
-    def exit_actions
-      {
-        0 => 'No',
-        1 => 'Yes',
-        9 => 'Client prefers not to answer',
-      }.freeze
-    end
-
-    def exit_action(id, reverse = false)
-      _translate exit_actions, id, reverse
-    end
-
-    # 4.37.A
-    def early_exit_reasons
-      {
-        1 => 'Left for other opportunities - independent living',
-        2 => 'Left for other opportunities - education',
-        3 => 'Left for other opportunities - military',
-        4 => 'Left for other opportunities - other',
-        5 => 'Needs could not be met by project',
-      }.freeze
-    end
-
-    def early_exit_reason(id, reverse = false)
-      _translate early_exit_reasons, id, reverse
-    end
-
-    # 4.49.1
-    def crisis_services_uses
-      {
-        0 => '0',
-        1 => '1-2',
-        2 => '3-5',
-        3 => '6-10',
-        4 => '11-20',
-        5 => 'More than 20',
-        8 => "Client doesn't know",
-        9 => 'Client prefers not to answer',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def crisis_services_use(id, reverse = false)
-      _translate crisis_services_uses, id, reverse
-    end
-
-    # 4.9.D
-    def path_how_confirmeds
-      {
-        1 => 'Unconfirmed; presumptive or self-report',
-        2 => 'Confirmed through assessment and clinical evaluation',
-        3 => 'Confirmed by prior evaluation or clinical records',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def path_how_confirmed(id, reverse = false)
-      _translate path_how_confirmeds, id, reverse
-    end
-
-    # 4.9.E
-    def pathsmi_informations
-      {
-        0 => 'No',
-        1 => 'Unconfirmed; presumptive or self-report',
-        2 => 'Confirmed through assessment and clinical evaluation',
-        3 => 'Confirmed by prior evaluation or clinical records',
-        8 => "Client doesn't know",
-        9 => 'Client prefers not to answer',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def pathsmi_information(id, reverse = false)
-      _translate pathsmi_informations, id, reverse
     end
 
     # 5.03.1
@@ -1098,6 +1273,347 @@ module Concerns::HudLists2024
       _translate current_ed_statuses, id, reverse
     end
 
+    # C4.A
+    def preferred_languages
+      {
+        100 => 'Acholi',
+        101 => 'Afar',
+        102 => 'Afrikaans',
+        103 => 'Ahtna',
+        104 => 'Akan',
+        105 => 'Akateko',
+        106 => 'Akuzipigestun / St. Lawrence Island Yupik (aka Siberian Yupik)',
+        107 => 'Albanian',
+        108 => 'Algonquian',
+        109 => 'Alutiiq',
+        110 => 'American Sign Language',
+        111 => 'Amharic',
+        112 => 'Anuak',
+        113 => 'Apache',
+        114 => 'Arabic',
+        115 => 'Armenian',
+        116 => 'Assyrian',
+        117 => 'Atnakenaege’ / Ahtna',
+        118 => 'Aymara',
+        119 => 'Azerbaijani',
+        120 => 'Bahasa',
+        121 => 'Bahdini',
+        122 => 'Bajuni',
+        123 => 'Bambara',
+        124 => 'Bantu',
+        125 => 'Barese',
+        126 => 'Basque',
+        127 => 'Bassa',
+        128 => 'Belorussian',
+        129 => 'Bemba',
+        130 => 'Benaadir',
+        131 => 'Bengali',
+        132 => 'Berber',
+        133 => 'Black American Sign Language',
+        134 => 'Bosnian',
+        135 => 'Bravanese',
+        136 => 'Bulgarian',
+        137 => 'Burmese',
+        138 => 'Cambodian',
+        139 => 'Cantonese',
+        140 => 'Cape Verdean Creole',
+        141 => 'Catalan',
+        142 => 'Cebuano',
+        143 => 'Central Alaskan Yup’ik / Yugtun',
+        144 => 'Chaldean',
+        145 => 'Chamorro',
+        146 => 'Chaochow',
+        147 => 'Cherokee',
+        148 => 'Chinese',
+        149 => 'Chipewyan',
+        150 => 'Choctaw',
+        151 => 'Chuukese',
+        152 => 'Cree',
+        153 => 'Croatian',
+        154 => 'Czech',
+        155 => 'Dakota',
+        156 => 'Danish',
+        157 => 'Dari',
+        158 => 'Deg Xinag',
+        159 => "Dena'inaq' / Dena'ina",
+        160 => "Denaakk'e / Koyukon",
+        161 => 'Dewoin',
+        162 => "Dinak'i / Upper Kuskokwim",
+        163 => "Dinjii Zhuh K'yaa / Gwich'in",
+        164 => 'Dinka',
+        165 => 'Doogh Qinaq / Holikachuk',
+        166 => 'Duala',
+        167 => 'Dutch',
+        168 => 'Dzongkha',
+        169 => 'Edo',
+        170 => 'Ekegusli',
+        171 => 'English',
+        172 => 'Estonian',
+        173 => 'Ewe',
+        174 => 'Eyak',
+        175 => 'Farsi',
+        176 => 'Fijian',
+        177 => 'Filipino',
+        178 => 'Finnish',
+        179 => 'Flemish',
+        180 => 'French',
+        181 => 'French Cajun',
+        182 => 'French Canadian',
+        183 => 'French Creole',
+        184 => 'French Haitian',
+        185 => 'Fukienese',
+        186 => 'Fulani',
+        187 => 'Fuzhou',
+        188 => 'Ga',
+        189 => 'Gaddang',
+        190 => 'Gaelic',
+        191 => 'Garre',
+        192 => 'Gen',
+        193 => 'Georgian',
+        194 => 'German',
+        195 => 'Gheg',
+        196 => 'Gokana',
+        197 => 'Greek',
+        198 => 'Gujarati',
+        199 => 'Gulay',
+        200 => 'Gullah',
+        201 => 'Gurani',
+        202 => "Gwich'in",
+        203 => 'Haida',
+        204 => 'Haitian',
+        205 => 'Haitian Creole',
+        206 => 'Hakka',
+        207 => 'Häl golan / Hän',
+        208 => 'Hassaniyya',
+        209 => 'Hausa',
+        210 => "Hawai'i Sign Language",
+        211 => 'Hawaiian',
+        212 => 'Hebrew',
+        213 => 'Hiligaynon',
+        214 => 'Hindi',
+        215 => 'Hindko',
+        216 => 'Hmong',
+        217 => 'Hokkien',
+        218 => 'Holikachuk',
+        219 => 'Hopi',
+        220 => 'Huanese',
+        221 => 'Hungarian',
+        222 => 'Ibanag',
+        223 => 'Icelandic',
+        224 => 'Igbo',
+        225 => 'Ilocano',
+        226 => 'Indonesian',
+        227 => 'Inuktitut',
+        228 => 'Inupiatun / Inupiaq',
+        229 => 'Italian',
+        230 => 'Jakartanese',
+        231 => 'Jamaican Patois',
+        232 => 'Japanese',
+        233 => 'Jarai',
+        234 => 'Javanese',
+        235 => 'Jingpho',
+        236 => 'Jinyu',
+        237 => 'Juba Arabic',
+        238 => 'Jula',
+        239 => 'Kaba',
+        240 => 'Kamba',
+        241 => 'Kam Muang',
+        242 => 'Kanjobal',
+        243 => 'Kannada',
+        244 => 'Karen',
+        245 => 'Kashmiri',
+        246 => 'Kayah',
+        247 => 'Kazakh',
+        248 => 'Keresan',
+        249 => 'Keresan Sign Language',
+        250 => 'Kham',
+        251 => 'Khana',
+        252 => 'Khmer',
+        253 => "K'iche'",
+        254 => 'Kikuyu',
+        255 => 'Kimiiru',
+        256 => 'Kinyarwanda',
+        257 => 'Kiowa',
+        258 => 'Koho',
+        259 => 'Korean',
+        260 => 'Koyukon',
+        261 => 'Krahn',
+        262 => 'Krio',
+        263 => 'Kunama',
+        264 => 'Kurmanji',
+        265 => 'Kyrgyz',
+        266 => 'Lakota',
+        267 => 'Laotian',
+        268 => 'Latvian',
+        269 => 'Liberian Pidgin English',
+        270 => 'Lingala',
+        271 => 'Lingít / Tlingit',
+        272 => 'Lithuanian',
+        273 => 'Lombard',
+        274 => 'Luba-Kasai',
+        275 => 'Luganda',
+        276 => 'Luo',
+        277 => 'Maay',
+        278 => 'Macedonian',
+        279 => 'Malay',
+        280 => 'Malayalam',
+        281 => 'Maltese',
+        282 => 'Mam',
+        283 => 'Mandarin',
+        284 => 'Mandinka',
+        285 => 'Maninka',
+        286 => 'Manobo',
+        287 => 'Marathi',
+        288 => 'Marka',
+        289 => 'Marshallese',
+        290 => 'Masalit',
+        291 => 'Mbay',
+        292 => 'Mien',
+        293 => 'Mirpuri',
+        294 => 'Mixteco',
+        295 => 'Mizo',
+        296 => 'Mnong',
+        297 => 'Mongolian',
+        298 => 'Montenegrin',
+        299 => 'Moroccan Arabic',
+        300 => 'Mortlockese',
+        301 => 'Muscogee',
+        302 => 'Napoletano',
+        303 => 'Navajo',
+        304 => 'Navajo Family Sign',
+        305 => 'Ndebele',
+        306 => 'Neapolitan',
+        307 => 'Nee’aandeg’ / Tanacross',
+        308 => 'Nepali',
+        309 => 'Ngambay',
+        310 => 'Nigerian Pidgin',
+        311 => 'Northern Sotho',
+        312 => 'Norwegian',
+        313 => 'Nuer',
+        314 => 'Nupe',
+        315 => 'Nyanja',
+        316 => 'Nyoro',
+        317 => "O'odham",
+        318 => 'Ojibwe',
+        319 => 'Oromo',
+        320 => 'Pampangan',
+        321 => 'Papiamento',
+        322 => 'Pashto',
+        323 => 'Pennsylvania Dutch',
+        324 => 'Persian',
+        325 => 'Plains Sign Language',
+        326 => 'Plateau Sign Language',
+        327 => 'Plautdietsch',
+        328 => 'Pohnpeian',
+        329 => 'Polish',
+        330 => 'Portuguese',
+        331 => 'Portuguese Brazilian',
+        332 => 'Portuguese Cape Verdean',
+        333 => 'Portuguese Creole',
+        334 => 'Puerto Rican Sign Language',
+        335 => 'Pugliese',
+        336 => 'Pulaar',
+        337 => 'Punjabi',
+        338 => 'Putian',
+        339 => 'Quechua',
+        340 => 'Quichua',
+        341 => 'Rade',
+        342 => 'Rakhine',
+        343 => 'Rohingya',
+        344 => 'Romanian',
+        345 => 'Kirundi',
+        346 => 'Russian',
+        347 => 'Samoan',
+        348 => 'Samoan Sign Language',
+        349 => 'Sango',
+        350 => 'Seraiki',
+        351 => 'Serbian',
+        352 => 'Shanghainese',
+        353 => 'Shona',
+        354 => 'Sichuan Yi',
+        355 => 'Sicilian',
+        356 => 'Sindhi',
+        357 => 'Sinhalese',
+        358 => 'Sioux',
+        359 => 'Slovak',
+        360 => 'Slovenian',
+        361 => 'Sm’algyax / (Coast) Tsimshian',
+        362 => 'Soga',
+        363 => 'Somali',
+        364 => 'Soninke',
+        365 => 'Sorani',
+        366 => 'Sothern Sotho',
+        367 => 'Spanish',
+        368 => 'Spanish Creole',
+        369 => 'Sudanese Arabic',
+        370 => 'Sugpiaq / Alutiiq',
+        371 => 'Sunda',
+        372 => 'Susu',
+        373 => 'Swahili',
+        374 => 'Swati',
+        375 => 'Swedish',
+        376 => 'Sylhetti',
+        377 => 'Tagalog',
+        378 => 'Taiwanese',
+        379 => 'Tajik',
+        380 => 'Tamil',
+        381 => 'Tanacross',
+        382 => 'Tanana',
+        383 => 'Telugu',
+        384 => 'Thai',
+        385 => 'Tibetan',
+        386 => 'Tigre',
+        387 => 'Tigrigna',
+        388 => 'Tlingit',
+        389 => 'Toishanese',
+        390 => 'Tongan',
+        391 => 'Tooro',
+        392 => 'Trique',
+        393 => 'Tsimshian',
+        394 => 'Tsonga',
+        395 => 'Tswana',
+        396 => 'Turkish',
+        397 => 'Turkmen',
+        398 => 'Twi',
+        399 => 'Tzotzil',
+        400 => 'Ukrainian',
+        401 => 'Unangam Tunuu / Aleutian Aleut',
+        402 => 'Upper Kuskokwim',
+        403 => 'Urdu',
+        404 => 'Uyghur',
+        405 => 'Uzbek',
+        406 => 'Venda',
+        407 => 'Vietnamese',
+        408 => 'Visayan',
+        409 => 'Welsh',
+        410 => 'Wodaabe',
+        411 => 'Wolof',
+        412 => 'Wuzhou',
+        413 => 'Xaat Kíl / Haida',
+        414 => 'Xhosa',
+        415 => 'Xiang',
+        416 => 'Yemeni Arabic',
+        417 => 'Yiddish',
+        418 => 'Yoruba',
+        419 => 'Yunnanese',
+        420 => 'Yupik',
+        421 => 'Zapoteco',
+        422 => 'Zarma',
+        423 => 'Zo',
+        424 => 'Zulu',
+        425 => 'Zuni',
+        426 => 'Zyphe',
+        21 => 'Different preferred language',
+        8 => "Client doesn't know",
+        9 => 'Client prefers not to answer',
+        99 => 'Data not collected',
+      }.freeze
+    end
+
+    def preferred_language(id, reverse = false)
+      _translate preferred_languages, id, reverse
+    end
+
     # P1.2
     def path_services_options
       {
@@ -1175,13 +1691,12 @@ module Concerns::HudLists2024
         7 => 'Outreach Project',
         8 => "Client doesn't know",
         9 => 'Client prefers not to answer',
-        10 => 'Outreach project: other',
         11 => 'Temporary Shelter',
         18 => 'Residential Project',
         28 => 'Hotline',
         30 => 'Child Welfare/CPS',
         34 => 'Juvenile Justice',
-        35 => 'Law Enforcement/ Police',
+        35 => 'Law Enforcement/Police',
         37 => 'Mental Hospital',
         38 => 'School',
         39 => 'Other organization',
@@ -1260,6 +1775,21 @@ module Concerns::HudLists2024
 
     def project_completion_status(id, reverse = false)
       _translate project_completion_statuses, id, reverse
+    end
+
+    # R17.A
+    def early_exit_reasons
+      {
+        1 => 'Left for other opportunities - independent living',
+        2 => 'Left for other opportunities - education',
+        3 => 'Left for other opportunities - military',
+        4 => 'Left for other opportunities - other',
+        5 => 'Needs could not be met by project',
+      }.freeze
+    end
+
+    def early_exit_reason(id, reverse = false)
+      _translate early_exit_reasons, id, reverse
     end
 
     # R17.A
@@ -2035,7 +2565,7 @@ module Concerns::HudLists2024
         0 => 'No',
         1 => 'Yes',
         8 => "Don't Know",
-        9 => 'Refused',
+        9 => 'Prefers not to answer',
         99 => 'Data not collected',
       }.freeze
     end
@@ -2045,19 +2575,21 @@ module Concerns::HudLists2024
     end
 
     # race
-    def races
+    def race_field_name_to_description
       {
         'AmIndAKNative' => 'American Indian, Alaska Native, or Indigenous',
         'Asian' => 'Asian or Asian American',
         'BlackAfAmerican' => 'Black, African American, or African',
         'NativeHIPacific' => 'Native Hawaiian or Pacific Islander',
         'White' => 'White',
-        'RaceNone' => "Doesn't Know, refused, or not collected",
+        'HispanicLatinaeo' => 'Hispanic/Latina/e/o',
+        'MidEastNAfrican' => 'Middle Eastern or North African',
+        'RaceNone' => "Doesn't know, prefers not to answer, or not collected",
       }.freeze
     end
 
     def race(id, reverse = false)
-      _translate races, id, reverse
+      _translate race_field_name_to_description, id, reverse
     end
   end
 end

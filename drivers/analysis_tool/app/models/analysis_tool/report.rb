@@ -15,7 +15,6 @@ module AnalysisTool
     include ::KnownCategories::HouseholdType
     include ::KnownCategories::Race
     include ::KnownCategories::VeteranStatus
-    include ::KnownCategories::Ethnicity
     include ::KnownCategories::Lot
     include ::KnownCategories::LotThreeYears
 
@@ -24,6 +23,11 @@ module AnalysisTool
 
     def initialize(filter)
       @filter = filter
+      # Default breakdowns
+      self.breakdowns = {
+        row: :age,
+        col: :gender,
+      }
     end
 
     def self.viewable_by(user)
@@ -114,8 +118,11 @@ module AnalysisTool
       GrdaWarehouse::Hud::Client.where(id: client_ids)
     end
 
-    def section_ready?(section)
-      Rails.cache.exist?(cache_key_for_section(section))
+    def section_ready?(section) # rubocop:disable Lint/UnusedMethodArgument
+      return true
+
+      # NOTE: disabling this, it doesn't appear to be set anywhere
+      # Rails.cache.exist?(cache_key_for_section(section))
     end
 
     private def cache_key_for_section(section)
@@ -193,7 +200,6 @@ module AnalysisTool
         household: { title: 'Household Type', method: :household_type_calculations, calculation_column: standard_household_type_calculation },
         veteran: { title: 'Veteran Status', method: :veteran_status_calculations, calculation_column: standard_veteran_status_calculation },
         race: { title: 'Race', method: :race_calculations, calculation_column: standard_race_calculation },
-        ethnicity: { title: 'Ethnicity', method: :ethnicity_calculations, calculation_column: standard_ethnicity_calculation },
         lot_homeless_three_years: { title: 'LOT Homeless (last 3 years)', method: :lot_three_years_calculations, calculation_column: standard_lot_three_years_calculation },
         lot_homeless: { title: 'LOT Homeless (all time)', method: :lot_calculations, calculation_column: standard_lot_calculation },
       }

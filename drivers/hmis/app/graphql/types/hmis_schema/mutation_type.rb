@@ -11,10 +11,8 @@ module Types
     field :update_client_image, mutation: Mutations::UpdateClientImage
     field :delete_client_image, mutation: Mutations::DeleteClientImage
     field :delete_client_file, mutation: Mutations::DeleteClientFile
-    field :create_enrollment, mutation: Mutations::CreateEnrollment
-    field :add_to_household, mutation: Mutations::AddToHousehold
     field :update_relationship_to_ho_h, mutation: Mutations::UpdateRelationshipToHoH
-    field :update_custom_enrollment_value, mutation: Mutations::UpdateCustomEnrollmentValue
+
     field :delete_enrollment, mutation: Mutations::DeleteEnrollment
     field :delete_organization, mutation: Mutations::DeleteOrganization
     field :delete_project, mutation: Mutations::DeleteProject
@@ -22,6 +20,11 @@ module Types
     field :delete_funder, mutation: Mutations::DeleteFunder
     field :delete_inventory, mutation: Mutations::DeleteInventory
     field :delete_client, mutation: Mutations::DeleteClient
+    field :delete_ce_assessment, mutation: Mutations::DeleteCeAssessment
+    field :delete_ce_event, mutation: Mutations::DeleteCeEvent
+    field :delete_current_living_situation, mutation: Mutations::DeleteCurrentLivingSituation
+    field :delete_hmis_participation, mutation: Mutations::DeleteHmisParticipation
+    field :delete_ce_participation, mutation: Mutations::DeleteCeParticipation
 
     field :create_units, mutation: Mutations::CreateUnits
     field :update_units, mutation: Mutations::UpdateUnits
@@ -29,6 +32,8 @@ module Types
 
     field :create_service, mutation: Mutations::CreateService
     field :delete_service, mutation: Mutations::DeleteService
+    field :update_bed_nights, mutation: Mutations::UpdateBedNights
+
     field :save_assessment, mutation: Mutations::SaveAssessment
     field :submit_assessment, mutation: Mutations::SubmitAssessment
     field :delete_assessment, mutation: Mutations::DeleteAssessment
@@ -43,5 +48,9 @@ module Types
     field :void_referral_request, mutation: Mutations::AcHmis::VoidReferralRequest
     field :update_referral_posting, mutation: Mutations::AcHmis::UpdateReferralPosting
     field :create_outgoing_referral_posting, mutation: Mutations::AcHmis::CreateOutgoingReferralPosting
+    field :delete_custom_case_note, mutation: Mutations::DeleteCustomCaseNote
+
+    field :merge_clients, mutation: Mutations::MergeClients
+    field :bulk_merge_clients, mutation: Mutations::BulkMergeClients
   end
 end

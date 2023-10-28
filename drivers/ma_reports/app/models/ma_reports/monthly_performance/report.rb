@@ -94,8 +94,6 @@ module MaReports::MonthlyPerformance
           cocs = project.project_cocs || project.build_project_coc
 
           cocs.each do |project_coc|
-            ethnicity = nil
-            ethnicity = client.ethnicity == 1 if client.ethnicity.in?([1, 0])
             new_enrollment = Enrollment.new(
               report_id: id,
               client_id: client.id,
@@ -117,12 +115,15 @@ module MaReports::MonthlyPerformance
               black_af_american: client.black_af_american == 1,
               native_hi_pacific: client.native_hi_pacific == 1,
               white: client.white == 1,
-              ethnicity: ethnicity,
-              male: client.male == 1,
-              female: client.female == 1,
+              hispanic_latinaeo: client.hispanic_latinaeo == 1,
+              mid_east_n_african: client.mid_east_n_african == 1,
+              man: client.man == 1,
+              woman: client.woman == 1,
+              culturally_specific: client.culturally_specific == 1,
+              different_identity: client.different_identity == 1,
               transgender: client.transgender == 1,
               questioning: client.questioning == 1,
-              no_single_gender: client.no_single_gender == 1,
+              non_binary: client.non_binary == 1,
               disabling_condition: enrollment.enrollment.disabling_condition == 1,
               reporting_age: age,
               relationship_to_hoh: enrollment.enrollment.relationship_to_ho_h,
@@ -275,7 +276,7 @@ module MaReports::MonthlyPerformance
             count: enrollments_for(*key).select(:client_id).distinct.count,
           },
         }
-        HudUtility.races.each do |k, label|
+        HudUtility2024.races.each do |k, label|
           next if k == 'RaceNone'
 
           key = ['Race', k]
@@ -284,20 +285,10 @@ module MaReports::MonthlyPerformance
             count: enrollments_for(*key).count,
           }
         end
-        key = ['Ethnicity', 0]
-        breakdowns['Ethnicity: Non-Hispanic/Non-Latin(a)(o)(x)'] = {
-          key: key,
-          count: enrollments_for(*key).count,
-        }
-        key = ['Ethnicity', 1]
-        breakdowns['Ethnicity: Hispanic/Latin(a)(o)(x)'] = {
-          key: key,
-          count: enrollments_for(*key).count,
-        }
-        HudUtility.gender_id_to_field_name.
+        HudUtility2024.gender_id_to_field_name.
           reject { |k, _| k.in?([8, 9, 99]) }.
           each do |gender_id, gender_column|
-            label = HudUtility.gender(gender_id)
+            label = HudUtility2024.gender(gender_id)
             key = ['Gender', gender_column]
             breakdowns["Gender: #{label}"] = {
               key: key,
@@ -316,21 +307,21 @@ module MaReports::MonthlyPerformance
             count: enrollments_for(*key).count,
           }
         end
-        HudUtility.valid_prior_living_situations.reject { |k, _| k.in?([8, 9, 99]) }.each do |k|
+        HudUtility2024.valid_prior_living_situations.reject { |k, _| k.in?([8, 9, 99]) }.each do |k|
           key = ['PriorLivingSituation', k]
-          breakdowns["Prior Living Situation: #{HudUtility.living_situation(k)}"] = {
+          breakdowns["Prior Living Situation: #{HudUtility2024.living_situation(k)}"] = {
             key: key,
             count: enrollments_for(*key).count,
           }
         end
-        HudUtility.times_homeless_options.reject { |k, _| k.in?([8, 9, 99]) }.each do |k, label|
+        HudUtility2024.times_homeless_options.reject { |k, _| k.in?([8, 9, 99]) }.each do |k, label|
           key = ['TimesHomeless', k]
           breakdowns["Times Homeless in the past three years: #{label}"] = {
             key: key,
             count: enrollments_for(*key).count,
           }
         end
-        HudUtility.month_categories.reject { |k, _| k.in?([8, 9, 99]) }.each do |k, label|
+        HudUtility2024.month_categories.reject { |k, _| k.in?([8, 9, 99]) }.each do |k, label|
           key = ['MonthsHomeless', k]
           breakdowns["Months homeless in the past 3 years: #{label}"] = {
             key: key,
@@ -346,15 +337,11 @@ module MaReports::MonthlyPerformance
       when 'All'
         enrollments
       when 'Race'
-        return enrollments.none unless HudUtility.races.key?(sub_key)
+        return enrollments.none unless HudUtility2024.races.key?(sub_key)
 
         enrollments.where(sub_key.underscore => true)
-      when 'Ethnicity'
-        return enrollments.none unless HudUtility.ethnicities.key?(sub_key.to_i)
-
-        enrollments.where(ethnicity: sub_key.to_i)
       when 'Gender'
-        return enrollments.none unless HudUtility.gender_id_to_field_name.value?(sub_key)
+        return enrollments.none unless HudUtility2024.gender_id_to_field_name.value?(sub_key)
 
         enrollments.where(sub_key.to_s.underscore => true)
       when 'DisablingCondition'
@@ -364,15 +351,15 @@ module MaReports::MonthlyPerformance
 
         enrollments.where(reporting_age: ::Filters::FilterBase.age_range(sub_key.to_sym))
       when 'PriorLivingSituation'
-        return enrollments.none unless HudUtility.valid_prior_living_situations.include?(sub_key.to_i)
+        return enrollments.none unless HudUtility2024.valid_prior_living_situations.include?(sub_key.to_i)
 
         enrollments.where(prior_living_situation: sub_key)
       when 'TimesHomeless'
-        return enrollments.none unless HudUtility.times_homeless_options.key?(sub_key.to_i)
+        return enrollments.none unless HudUtility2024.times_homeless_options.key?(sub_key.to_i)
 
         enrollments.where(times_homeless_past_three_years: sub_key)
       when 'MonthsHomeless'
-        return enrollments.none unless HudUtility.month_categories.key?(sub_key.to_i)
+        return enrollments.none unless HudUtility2024.month_categories.key?(sub_key.to_i)
 
         enrollments.where(months_homeless_past_three_years: sub_key)
       else
@@ -385,13 +372,10 @@ module MaReports::MonthlyPerformance
       when 'All'
         'Unique Enrolled Clients'
       when 'Race'
-        label = HudUtility.race(sub_key)
-        "#{key}: #{label}"
-      when 'Ethnicity'
-        label = HudUtility.ethnicity(sub_key.to_i)
+        label = HudUtility2024.race(sub_key)
         "#{key}: #{label}"
       when 'Gender'
-        label = HudUtility.gender(sub_key.to_i)
+        label = HudUtility2024.gender(sub_key.to_i)
         "#{key}: #{label}"
       when 'DisablingCondition'
         'Disabling Condition'
@@ -399,13 +383,13 @@ module MaReports::MonthlyPerformance
         label = ::Filters::FilterBase.new(user_id: user_id).available_age_ranges.invert[sub_key.to_sym]
         "#{key}: #{label}"
       when 'PriorLivingSituation'
-        label = HudUtility.living_situation(sub_key.to_i)
+        label = HudUtility2024.living_situation(sub_key.to_i)
         "#{key}: #{label}"
       when 'TimesHomeless'
-        label = HudUtility.times_homeless_past_three_years(sub_key.to_i)
+        label = HudUtility2024.times_homeless_past_three_years(sub_key.to_i)
         "#{key}: #{label}"
       when 'MonthsHomeless'
-        label = HudUtility.months_homeless_past_three_years(sub_key.to_i)
+        label = HudUtility2024.months_homeless_past_three_years(sub_key.to_i)
         "#{key}: #{label}"
       end
     end

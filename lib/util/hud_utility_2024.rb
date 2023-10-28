@@ -10,24 +10,16 @@ module HudUtility2024
 
   module_function
 
-  # def race(field, reverse = false, multi_racial: false)
-  #   map = races(multi_racial: multi_racial)
-  #   _translate map, field, reverse
-  # end
+  def races(multi_racial: false)
+    return race_field_name_to_description unless multi_racial
 
-  # # NOTE: HUD, in the APR specifies these by order ID, as noted in the comments below
-  # def races(multi_racial: false)
-  #   race_list = {
-  #     'AmIndAKNative' => 'American Indian, Alaska Native, or Indigenous', # 1
-  #     'Asian' => 'Asian or Asian American', # 2
-  #     'BlackAfAmerican' => 'Black, African American, or African', # 3
-  #     'NativeHIPacific' => 'Native Hawaiian or Pacific Islander', # 4
-  #     'White' => 'White', # 5
-  #     'RaceNone' => 'Doesn\'t Know, refused, or not collected', # 6 (can be 99, 8, 9, null only if all other race fields are 99 or 0)
-  #   }
-  #   race_list['MultiRacial'] = 'Multi-Racial' if multi_racial
-  #   race_list
-  # end
+    { **race_field_name_to_description, 'MultiRacial' => 'Multi-Racial' }
+  end
+
+  def race(field, reverse = false, multi_racial: false)
+    map = races(multi_racial: multi_racial)
+    _translate map, field, reverse
+  end
 
   # 1.6
   def gender_none(id, reverse = false)
@@ -51,13 +43,186 @@ module HudUtility2024
     project_type_brief(type, true) # reversed
   end
 
+  def residential_project_type_numbers_by_code
+    {
+      ph: [3, 9, 10, 13],
+      rrh: [13],
+      psh: [3],
+      oph: [9, 10],
+      th: [2],
+      es: [0, 1],
+      es_nbn: [1],
+      es_entry_exit: [0],
+      so: [4],
+      sh: [8],
+    }.freeze
+  end
+
+  def performance_reporting
+    { # duplicate of code in various places
+      ph: [3, 9, 10, 13],
+      rrh: [13],
+      psh: [3],
+      oph: [9, 10],
+      th: [2],
+      es: [0, 1],
+      es_nbn: [1],
+      es_entry_exit: [0],
+      so: [4],
+      sh: [8],
+      ce: [14],
+      other: [7],
+      day_shelter: [11],
+      prevention: [12],
+      services_only: [6],
+    }.freeze
+  end
+
+  def project_type_group_titles
+    {
+      ph: 'Permanent Housing (PH, PSH, & RRH)',
+      es: 'Emergency Shelter (ES NBN & ES Entry/Exit)',
+      es_nbn: 'Emergency Shelter (ES NBN)',
+      es_entry_exit: 'Emergency Shelter (ES Entry/Exit)',
+      th: 'Transitional Housing (TH)',
+      sh: 'Safe Haven (SH)',
+      so: 'Street Outreach (SO)',
+      rrh: 'Rapid Re-Housing (RRH)',
+      ce: 'Coordinated Entry (CE)',
+      psh: 'Permanent Supportive Housing (PSH)',
+      oph: 'Permanent Housing Only (OPH)',
+      other: 'Other',
+      day_shelter: 'Day Shelter',
+      prevention: 'Homelessness Prevention',
+      services_only: 'Services Only',
+    }.freeze
+  end
+
+  def project_types_without_inventory
+    [4, 6, 7, 11, 12, 14].freeze
+  end
+
   def homeless_project_type_numbers
+    residential_project_type_numbers_by_code.
+      values_at(*homeless_project_type_codes).
+      flatten.
+      uniq.
+      sort.
+      freeze
+  end
+
+  def project_type_number_from_code(code)
+    residential_project_type_numbers_by_code[code.to_sym]
+  end
+
+  def homeless_project_type_codes
+    [:es, :so, :sh, :th].freeze
+  end
+
+  def spm_project_type_codes
+    [:es, :so, :sh, :th, :ph].freeze
+  end
+
+  def path_project_type_codes
+    [:so, :services_only].freeze
+  end
+
+  def residential_project_type_ids
+    residential_project_type_numbers_by_code.
+      values.
+      flatten.
+      uniq.
+      sort.
+      freeze
+  end
+
+  def chronic_project_types
+    literally_homeless_project_types
+  end
+
+  def literally_homeless_project_types
+    residential_project_type_numbers_by_code.
+      values_at(:es, :so, :sh).
+      flatten.
+      uniq.
+      sort.
+      freeze
+  end
+
+  def homeless_project_types
+    residential_project_type_numbers_by_code.
+      values_at(:es, :so, :sh, :th).
+      flatten.
+      uniq.
+      sort.
+      freeze
+  end
+
+  def homeless_sheltered_project_types
+    residential_project_type_numbers_by_code.
+      values_at(:es, :sh, :th).
+      flatten.
+      uniq.
+      sort.
+      freeze
+  end
+
+  def homeless_unsheltered_project_types
+    residential_project_type_numbers_by_code.
+      values_at(:so).
+      flatten.
+      uniq.
+      sort.
+      freeze
+  end
+
+  def project_type_titles
+    project_type_group_titles.
+      select { |k, _| k.in?([:ph, :es, :th, :sh, :so]) }.
+      freeze
+  end
+
+  def homeless_type_titles
+    project_type_titles.except(:ph)
+  end
+
+  def chronic_type_titles
+    project_type_titles.except(:ph)
+  end
+
+  def residential_type_titles
+    project_type_group_titles.
+      select { |k, _| k.in?([:ph, :es, :th, :sh, :so, :rrh, :psh, :oph]) }.
+      freeze
+  end
+
+  def all_project_types
+    project_types.keys
+  end
+
+  def project_types_with_inventory
+    all_project_types - project_types_without_inventory
+  end
+
+  def project_types_with_move_in_dates
+    residential_project_type_numbers_by_code[:ph]
+  end
+
+  def permanent_housing_project_types
     [
-      0, # ES E/E
-      1, # ES NBN
-      2, # TH
-      4, # SO
-      8, # SH
+      3, # PH – Permanent Supportive Housing
+      9, # PH – Housing Only
+      10, # PH – Housing with Services (no disability required for entry)
+      13, # PH – Rapid Re-Housing
+    ].freeze
+  end
+
+  # Projects collecting 4.13 Date of Engagement
+  def doe_project_types
+    [
+      1, # Emergency Shelter – Night-by-Night
+      4, # Street Outreach
+      6, # Services Only
     ].freeze
   end
 
@@ -69,7 +234,14 @@ module HudUtility2024
     gender_id_to_field_name.invert.freeze
   end
 
+  def gender_field_name_label
+    genders.transform_keys do |k|
+      gender_id_to_field_name[k]
+    end
+  end
+
   def gender_id_to_field_name
+    # Integer values from HUD Data Dictionary
     {
       0 => :Woman,
       1 => :Man,
@@ -84,25 +256,50 @@ module HudUtility2024
     }.freeze
   end
 
+  def gender_known_ids
+    [0, 1, 2, 3, 4, 5, 6].freeze
+  end
+
+  def gender_known_values
+    genders.values_at(*gender_known_ids).freeze
+  end
+
   def gender_comparison_value(key)
     return key if key.in?([8, 9, 99])
 
     1
   end
 
-  # TODO(2024) update for APR/CAPER/CE APR
-  def no_single_gender_queries
-    HudUtility.no_single_gender_queries
+  def race_fields
+    race_id_to_field_name.values.uniq.freeze
   end
 
-  # TODO(2024) update for APR/CAPER/CE APR
-  def questioning_gender_queries
-    HudUtility.questioning_gender_queries
+  def race_field_name_to_id
+    race_id_to_field_name.invert.freeze
   end
 
-  # TODO(2024) update for APR/CAPER/CE APR
-  def transgender_gender_queries
-    HudUtility.transgender_gender_queries
+  def race_id_to_field_name
+    # Integer values from HUD Data Dictionary
+    {
+      1 => :AmIndAKNative,
+      2 => :Asian,
+      3 => :BlackAfAmerican,
+      4 => :NativeHIPacific,
+      5 => :White,
+      6 => :HispanicLatinaeo,
+      7 => :MidEastNAfrican,
+      8 => :RaceNone,
+      9 => :RaceNone,
+      99 => :RaceNone,
+    }.freeze
+  end
+
+  def race_known_ids
+    [1, 2, 3, 4, 5, 6, 7].freeze
+  end
+
+  def race_known_values
+    races.values_at(*race_known_ids).freeze
   end
 
   def residence_prior_length_of_stay_brief(id, reverse = false)
@@ -243,7 +440,7 @@ module HudUtility2024
   end
 
   def destination_type(id)
-    situation_type(id)
+    situation_type(id).gsub('Housing', '').strip
   end
 
   def permanent_destinations
@@ -303,26 +500,179 @@ module HudUtility2024
   end
 
   def cocs_with_codes
-    HudUtility.cocs_with_codes
+    cocs.map do |code, name|
+      [
+        code,
+        "#{name} (#{code})",
+      ]
+    end.to_h.freeze
   end
 
   def cocs
-    HudUtility.cocs
+    codes = coc_codes_options
+    return codes.freeze if Rails.env.production?
+
+    codes.merge(
+      {
+        'XX-500' => 'Test CoC',
+        'XX-501' => '2nd Test CoC',
+      },
+    ).freeze
   end
 
   def cocs_in_state(state)
-    HudUtility.cocs_in_state(state)
-  end
+    return cocs if state.blank?
 
-  # This value indicates that the field is null if the column is non-nullable
-  def ignored_enum_value
-    999
+    cocs.select { |code, _| code.starts_with?(state) }
   end
 
   # tranform up hud list for use as an enum
   # {1 => 'Test (this)'} => {'test_this' => 1}
   # @param name [Symbol] method on HudLists
   def hud_list_map_as_enumerable(name)
-    HudUtility.hud_list_map_as_enumerable(name)
+    original = send(name)
+    keyed = original.invert.transform_keys do |key|
+      key.downcase.gsub(/[^a-z0-9]+/, ' ').strip.gsub(' ', '_')
+    end
+    raise "cannot key #{name}" if keyed.size != original.size
+
+    keyed
+  end
+
+  def path_funders
+    [21]
+  end
+
+  # "Funder components" that are referenced by the 2024 HUD Data Dictionary.
+  # These are used by assessment Form Definition to specify funder applicability rules.
+  def funder_components
+    {
+      'HUD: CoC' => [1, 2, 3, 4, 5, 6, 7, 43, 44, 49], # Includes YHDP
+      'HUD: ESG' => [8, 9, 10, 11, 47], # Excludes ESG RUSH
+      'HUD: ESG RUSH' => [53], # Even though it has the same "HUD ESG" prefix, HUD Data Dictionary treats it as a separate component
+      'HUD: HOPWA' => [13, 14, 15, 16, 17, 18, 19, 48],
+      'HHS: PATH' => path_funders,
+      'HHS: RHY' => [22, 23, 24, 25, 26],
+      'VA: GPD' => [37, 38, 39, 40, 41, 42, 45],
+      'VA: SSVF' => [33],
+      'VA: Community Contract Safe Haven' => [30],
+      'VA: CRS Contract Residential Services' => [27],
+      'HUD: Unsheltered Special NOFO' => [54],
+      'HUD: Rural Special NOFO' => [55],
+      'HUD: HUD-VASH' => [20],
+      'HUD: PFS' => [35], # Pay for Success
+    }
+  end
+
+  def funder_component(funder)
+    funder_components.find { |_, funders| funders.include?(funder) }&.first
+  end
+
+  # field name => ID from Data Dictionary
+  def aftercare_method_fields
+    {
+      email_social_media: 1,
+      telephone: 2,
+      in_person_individual: 3,
+      in_person_group: 4,
+    }
+  end
+
+  # field name => ID from Data Dictionary
+  def counseling_method_fields
+    {
+      individual_counseling: 1,
+      family_counseling: 2,
+      group_counseling: 3,
+    }
+  end
+
+  def ce_events_referrals_to_housing
+    [
+      12,
+      13,
+      14,
+      15,
+      17,
+      18,
+    ]
+  end
+
+  def service_types_provided_map
+    {
+      141 => {
+        list: ::HudUtility2024.path_services_options,
+        label_method: :path_services,
+      },
+      142 => {
+        list: ::HudUtility2024.rhy_services_options,
+        label_method: :rhy_services,
+      },
+      143 => {
+        list: ::HudUtility2024.hopwa_services_options,
+        label_method: :hopwa_services,
+      },
+      144 => {
+        list: ::HudUtility2024.ssvf_services_options,
+        label_method: :ssvf_services,
+      },
+      151 => {
+        list: ::HudUtility2024.hopwa_financial_assistance_options,
+        label_method: :hopwa_financial_assistance,
+      },
+      152 => {
+        list: ::HudUtility2024.ssvf_financial_assistance_options,
+        label_method: :ssvf_financial_assistance,
+      },
+      161 => {
+        list: ::HudUtility2024.path_referral_options,
+        label_method: :path_referral_options,
+      },
+      200 => {
+        list: ::HudUtility2024.bed_night_options,
+        label_method: :bed_night,
+      },
+      210 => {
+        list: ::HudUtility2024.voucher_tracking_options,
+        label_method: :voucher_tracking,
+      },
+      300 => {
+        list: ::HudUtility2024.moving_on_assistance_options,
+        label_method: :moving_on_assistance,
+      },
+    }.freeze
+  end
+
+  def service_type_provided(record_type, type_provided)
+    label_method = service_types_provided_map.dig(record_type, :label_method)
+    return type_provided unless label_method.present?
+
+    send(label_method, type_provided)
+  end
+
+  def service_sub_types_provided_map
+    {
+      3 => {
+        list: ::HudUtility2024.ssvf_sub_type3s,
+        label_method: :ssvf_sub_type3,
+      },
+      4 => {
+        list: ::HudUtility2024.ssvf_sub_type4s,
+        label_method: :ssvf_sub_type4,
+      },
+      5 => {
+        list: ::HudUtility2024.ssvf_sub_type5s,
+        label_method: :ssvf_sub_type5,
+      },
+    }
+  end
+
+  def service_sub_type_provided(record_type, type_provided, sub_type_provided)
+    return nil unless record_type == 144 && type_provided.in?(service_sub_types_provided_map.keys)
+
+    label_method = service_sub_types_provided_map.dig(type_provided, :label_method)
+    return sub_type_provided unless label_method.present?
+
+    send(label_method, sub_type_provided)
   end
 end

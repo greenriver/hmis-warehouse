@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# TODO: START_ACL remove when ACL transition complete
 class AccessGroup < ApplicationRecord
   acts_as_paranoid
   has_paper_trail
@@ -81,7 +82,7 @@ class AccessGroup < ApplicationRecord
 
   def self.delayed_system_group_maintenance(group: nil)
     delay.maintain_system_groups_no_named_arguments(group)
-    Delayed::Worker.new.work_off if Rails.env.test?
+    Delayed::Worker.new.work_off(1_000) if Rails.env.test?
   end
 
   def self.maintain_system_groups_no_named_arguments(group)
@@ -249,5 +250,9 @@ class AccessGroup < ApplicationRecord
       project_groups: 'GrdaWarehouse::ProjectGroup',
       cohorts: 'GrdaWarehouse::Cohort',
     }.freeze
+  end
+
+  def associated_entity_set
+    @associated_entity_set ||= group_viewable_entities.pluck(:entity_type, :entity_id).sort.to_set
   end
 end

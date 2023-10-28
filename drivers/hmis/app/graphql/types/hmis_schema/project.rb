@@ -17,9 +17,13 @@ module Types
     include Types::HmisSchema::HasReferralRequests
     include Types::HmisSchema::HasReferralPostings
     include Types::HmisSchema::HasCustomDataElements
+    include Types::HmisSchema::HasServices
+    include Types::HmisSchema::HasHmisParticipations
+    include Types::HmisSchema::HasCeParticipations
+    include Types::HmisSchema::HasHudMetadata
 
     def self.configuration
-      Hmis::Hud::Project.hmis_configuration(version: '2022')
+      Hmis::Hud::Project.hmis_configuration(version: '2024')
     end
 
     available_filter_options do
@@ -45,21 +49,22 @@ module Types
     funders_field
     units_field
     households_field
-    hud_field :operating_start_date
+    hmis_participations_field
+    ce_participations_field
+    services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForProject' }
+    hud_field :operating_start_date, null: true
     hud_field :operating_end_date
     hud_field :description, String, null: true
     hud_field :contact_information, String, null: true
     hud_field :housing_type, Types::HmisSchema::Enums::Hud::HousingType
-    hud_field :tracking_method, Types::HmisSchema::Enums::Hud::TrackingMethod
+    field :rrh_sub_type, Types::HmisSchema::Enums::Hud::RRHSubType, null: true
     hud_field :target_population, HmisSchema::Enums::Hud::TargetPopulation
     hud_field :HOPWAMedAssistedLivingFac, HmisSchema::Enums::Hud::HOPWAMedAssistedLivingFac
-    hud_field :continuum_project, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    hud_field :residential_affiliation, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :HMISParticipatingProject, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
-    field :user, HmisSchema::User, null: true
+    hud_field :continuum_project, HmisSchema::Enums::Hud::NoYes, null: true
+    hud_field :residential_affiliation, HmisSchema::Enums::Hud::NoYes, null: true
+    field :residential_affiliation_project_ids, [ID], null: false
+    field :residential_affiliation_projects, [HmisSchema::Project], null: false
+    field :affiliated_projects, [HmisSchema::Project], null: false
     field :active, Boolean, null: false
     enrollments_field filter_args: { omit: [:project_type], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field
@@ -85,6 +90,12 @@ module Types
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
     field :has_units, Boolean, null: false
 
+    field :data_collection_features, [Types::HmisSchema::DataCollectionFeature], null: false, description: 'Occurrence Point data collection features that are enabled for this Project (e.g. Current Living Situations, Events)'
+    field :occurrence_point_forms, [Types::HmisSchema::OccurrencePointForm], null: false, method: :occurrence_point_form_instances, description: 'Forms for individual data elements that are collected at occurrence for this Project (e.g. Move-In Date)'
+
+    # TODO: resolve related HMISParticipation records
+    # TODO: resolve related CEParticipation records
+
     def hud_id
       object.project_id
     end
@@ -92,16 +103,7 @@ module Types
     def enrollments(**args)
       return Hmis::Hud::Enrollment.none unless current_user.can_view_enrollment_details_for?(object)
 
-      # Apply the enrollment limit before we pass it in, to avoid doing an unnecessary join to the WIP table
-      scope = if args[:enrollment_limit] == 'NON_WIP_ONLY'
-        object.enrollments
-      elsif args[:enrollment_limit] == 'WIP_ONLY'
-        object.wip_enrollments
-      else
-        object.enrollments_including_wip
-      end
-
-      resolve_enrollments(scope, **args)
+      resolve_enrollments(object.enrollments_including_wip, **args)
     end
 
     def organization
@@ -110,6 +112,22 @@ module Types
 
     def inventories(**args)
       resolve_inventories(**args)
+    end
+
+    def services(**args)
+      resolve_services(**args)
+    end
+
+    def residential_affiliation_projects
+      load_ar_association(object, :residential_projects)
+    end
+
+    def residential_affiliation_project_ids
+      residential_affiliation_projects.map(&:id)
+    end
+
+    def affiliated_projects
+      load_ar_association(object, :affiliated_projects)
     end
 
     # Build OpenStructs to resolve as UnitTypeCapacity
@@ -142,24 +160,33 @@ module Types
     end
 
     def referral_requests(**args)
+      raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_incoming_referrals)
+
       scoped_referral_requests(object.external_referral_requests, **args)
     end
 
+    # TODO(#186102846) support user-specified sorting/filtering
     def incoming_referral_postings(**args)
-      scoped_referral_postings(object.external_referral_postings.active, **args)
+      raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_incoming_referrals)
+
+      # Only show Active postings on the incoming referral table
+      scoped_referral_postings(object.external_referral_postings.active, sort_order: :oldest_to_newest, **args)
     end
 
     def arel
       Hmis::ArelHelper.instance
     end
 
+    # TODO(#186102846) support user-specified sorting/filtering
     def outgoing_referral_postings(**args)
       raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_outgoing_referrals)
 
-      scope = HmisExternalApis::AcHmis::ReferralPosting.active
-        .joins(referral: :enrollment)
-        .where(arel.e_t[:ProjectID].eq(object.ProjectID))
-      scoped_referral_postings(scope, **args)
+      # Show all postings on the outgoing referral table
+      scope = HmisExternalApis::AcHmis::ReferralPosting.
+        joins(referral: :enrollment).
+        where(arel.e_t[:ProjectID].eq(object.ProjectID))
+
+      scoped_referral_postings(scope, sort_order: :relevent_status, **args)
     end
   end
 end

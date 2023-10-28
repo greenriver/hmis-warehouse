@@ -57,7 +57,6 @@ module ProjectPassFail
         'SSN' => ssn_error_rate,
         'DOB' => dob_error_rate,
         'Race' => race_error_rate,
-        'Ethnicity' => ethnicity_error_rate,
         'Gender' => gender_error_rate,
         'Veteran' => veteran_status_error_rate,
         'Entry Date' => start_date_error_rate,
@@ -75,7 +74,6 @@ module ProjectPassFail
         'SSN' => ['Q6a', 'F3'],
         'DOB' => ['Q6a', 'F4'],
         'Race' => ['Q6a', 'F5'],
-        'Ethnicity' => ['Q6a', 'F6'],
         'Gender' => ['Q6a', 'F7'],
         'Veteran' => ['Q6b', 'C2'],
         'Entry Date' => ['Q6b', 'C3'],
@@ -127,7 +125,6 @@ module ProjectPassFail
       self.ssn_error_rate = apr.answer(question: 'Q6a', cell: 'F3').summary.to_f
       self.dob_error_rate = apr.answer(question: 'Q6a', cell: 'F4').summary.to_f
       self.race_error_rate = apr.answer(question: 'Q6a', cell: 'F5').summary.to_f
-      self.ethnicity_error_rate = apr.answer(question: 'Q6a', cell: 'F6').summary.to_f
       self.gender_error_rate = apr.answer(question: 'Q6a', cell: 'F7').summary.to_f
       self.veteran_status_error_rate = apr.answer(question: 'Q6b', cell: 'C2').summary.to_f
       self.start_date_error_rate = apr.answer(question: 'Q6b', cell: 'C3').summary.to_f
@@ -140,7 +137,6 @@ module ProjectPassFail
       self.ssn_error_count = apr.answer(question: 'Q6a', cell: 'E3').summary.to_f
       self.dob_error_count = apr.answer(question: 'Q6a', cell: 'E4').summary.to_f
       self.race_error_count = apr.answer(question: 'Q6a', cell: 'E5').summary.to_f
-      self.ethnicity_error_count = apr.answer(question: 'Q6a', cell: 'E6').summary.to_f
       self.gender_error_count = apr.answer(question: 'Q6a', cell: 'E7').summary.to_f
       self.veteran_status_error_count = apr.answer(question: 'Q6b', cell: 'B2').summary.to_f
       self.start_date_error_count = apr.answer(question: 'Q6b', cell: 'B3').summary.to_f

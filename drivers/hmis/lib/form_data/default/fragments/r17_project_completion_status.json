@@ -3,49 +3,43 @@
   "link_id": "R17",
   "data_collected_about": "HOH_AND_ADULTS",
   "rule": {
-    "operator": "ALL",
+    "operator": "ANY",
     "parts": [
       {
-        "operator": "ANY",
+        "operator": "ALL",
+        "_comment": "HHS: RHY – Collection required for all components except for Street Outreach and BCP-Prevention",
         "parts": [
           {
-            "variable": "projectFunders",
+            "variable": "projectFunderComponents",
             "operator": "INCLUDE",
-            "value": 23
+            "value": "HHS: RHY"
           },
           {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 24
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "_comment": "street outreach",
+            "value": 4
           },
           {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 26
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "_comment": "prevention",
+            "value": 12
           }
         ]
       },
       {
-        "operator": "ANY",
-        "parts": [
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 0
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 2
-          }
-        ]
+        "_comment": "Included in YHDP Supplemental CSV. Recommended for YHDP projects.",
+        "variable": "projectFunders",
+        "operator": "INCLUDE",
+        "value": 43
       }
     ]
   },
   "item": [
     {
       "type": "CHOICE",
-      "component":"DROPDOWN",
+      "component": "DROPDOWN",
       "link_id": "R17.1",
       "required": false,
       "warn_if_empty": true,

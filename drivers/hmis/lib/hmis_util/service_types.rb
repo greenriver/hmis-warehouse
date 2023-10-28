@@ -9,11 +9,11 @@ module HmisUtil
     # Ensures all HUD service types exist in CustomServiceTypes table,
     # and organizes them by Category according to the record type.
     def self.seed_hud_service_types(data_source_id)
-      system_user = Hmis::User.find(User.system_user.id)
+      system_user = Hmis::User.system_user
       system_user.hmis_data_source_id = data_source_id
       hud_user = Hmis::Hud::User.from_user(system_user)
 
-      HudUtility.record_types.except(12, 13).each do |record_type, category_name|
+      HudUtility2024.record_types.each do |record_type, category_name|
         category = Hmis::Hud::CustomServiceCategory.where(
           name: category_name,
           data_source_id: data_source_id,
@@ -35,7 +35,6 @@ module HmisUtil
     BED_NIGHT_CONFIG = {
       record_type: 200, # BedNight
       project_types: [
-        0, # Emergency Shelter - Entry Exit
         1, # Emergency Shelter - NbN
       ],
     }.freeze
@@ -53,7 +52,7 @@ module HmisUtil
     R14_RHY_SERVICE_CONFIG = {
       record_type: 142, # R14 RHY Service Connections
       # All HHS RHY funders except the Street Outreach one (25), plus YHDP (43)
-      funders: HudUtility.funding_sources.select { |_, v| v.start_with?('HHS: RHY') }.keys - [25] + [43],
+      funders: HudUtility2024.funding_sources.select { |_, v| v.start_with?('HHS: RHY') }.keys - [25] + [43],
     }.freeze
 
     W1_HOPWA_SERVICE_CONFIG = {
@@ -68,7 +67,7 @@ module HmisUtil
       #   6, # Services Only
       #   12, # Homelessness Prevention
       # ],
-      funders: HudUtility.funding_sources.select { |_, v| v.start_with?('HUD: HOPWA') }.keys,
+      funders: HudUtility2024.funding_sources.select { |_, v| v.start_with?('HUD: HOPWA') }.keys,
     }.freeze
 
     W2_HOPWA_FINANCIAL_CONFIG = {
@@ -79,19 +78,19 @@ module HmisUtil
       #   6, # Services Only
       #   12, # Homelessness Prevention
       # ],
-      funders: HudUtility.funding_sources.select { |_, v| v.start_with?('HUD: HOPWA') }.keys,
+      funders: HudUtility2024.funding_sources.select { |_, v| v.start_with?('HUD: HOPWA') }.keys,
     }.freeze
 
     V2_SSVF_SERVICE_CONFIG = {
       record_type: 144, # V2 Services Provided – SSVF
       # 33 - VA: SSVF - Collection required only for RRH(13) & HP(12)
       # Optional for all other VA
-      funders: HudUtility.funding_sources.select { |_, v| v.start_with?('VA:') }.keys,
+      funders: HudUtility2024.funding_sources.select { |_, v| v.start_with?('VA:') }.keys,
     }.freeze
 
     V3_SSVF_FINANCIAL_CONFIG = {
       record_type: 152, # V3 Financial Assistance – SSVF
-      funders: HudUtility.funding_sources.select { |_, v| v.start_with?('VA:') }.keys,
+      funders: HudUtility2024.funding_sources.select { |_, v| v.start_with?('VA:') }.keys,
     }.freeze
 
     V8_HUD_VASH_VOUCHER_CONFIG = {
@@ -118,7 +117,8 @@ module HmisUtil
       C2_MOVING_ON_CONFIG,
     ].freeze
 
-    # Ensures that Form Instances exist for each HUD Service Type according to the configuration.
+    # Set up initial Form Instances exist for each HUD Service Type according to the configuration.
+    # These are NOT system-level instances; they can be deleted or changed as needed.
     def self.seed_hud_service_form_instances
       HUD_SERVICE_INSTANCE_CONFIG.each do |config|
         (record_type, project_types, funders) = config.values_at(:record_type, :project_types, :funders)
@@ -135,6 +135,8 @@ module HmisUtil
               custom_service_category_id: custom_service_category&.id,
               project_type: project_type,
               funder: funder,
+              system: false, # Thesea aren't system records, they can be deleted.
+              active: true,
             ).first_or_create
           end
         end

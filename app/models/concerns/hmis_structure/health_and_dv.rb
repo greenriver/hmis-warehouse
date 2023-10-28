@@ -174,6 +174,77 @@ module HmisStructure::HealthAndDv
             null: false,
           },
         }
+      when '2024'
+        {
+          HealthAndDVID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          EnrollmentID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          PersonalID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          InformationDate: {
+            type: :date,
+            null: false,
+          },
+          DomesticViolenceSurvivor: {
+            type: :integer,
+          },
+          WhenOccurred: {
+            type: :integer,
+          },
+          CurrentlyFleeing: {
+            type: :integer,
+          },
+          GeneralHealthStatus: {
+            type: :integer,
+          },
+          DentalHealthStatus: {
+            type: :integer,
+          },
+          MentalHealthStatus: {
+            type: :integer,
+          },
+          PregnancyStatus: {
+            type: :integer,
+          },
+          DueDate: {
+            type: :date,
+          },
+          DataCollectionStage: {
+            type: :integer,
+            null: false,
+          },
+          DateCreated: {
+            type: :datetime,
+            null: false,
+          },
+          DateUpdated: {
+            type: :datetime,
+            null: false,
+          },
+          UserID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          DateDeleted: {
+            type: :datetime,
+          },
+          ExportID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+        }
       end
     end
 

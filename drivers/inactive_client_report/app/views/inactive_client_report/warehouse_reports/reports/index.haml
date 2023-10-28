@@ -31,8 +31,9 @@
           %table.table.table-striped.mb-0
             %thead
               %tr
+                - age_label = if can_view_full_dob? then 'DOB' else 'Age' end
                 %th Client
-                %th Age
+                %th= age_label
                 %th Last Seen
                 %th Ongoing Enrollments
                 %th Days Homeless in the Last 3 Years

@@ -12,39 +12,45 @@ module Types
     include Types::HmisSchema::HasServices
     include Types::HmisSchema::HasIncomeBenefits
     include Types::HmisSchema::HasDisabilities
-    include Types::HmisSchema::HasDisabilityGroups
     include Types::HmisSchema::HasHealthAndDvs
     include Types::HmisSchema::HasYouthEducationStatuses
     include Types::HmisSchema::HasEmploymentEducations
     include Types::HmisSchema::HasCurrentLivingSituations
     include Types::HmisSchema::HasAssessments
+    include Types::HmisSchema::HasCustomCaseNotes
     include Types::HmisSchema::HasFiles
     include Types::HmisSchema::HasAuditHistory
     include Types::HmisSchema::HasGender
     include Types::HmisSchema::HasCustomDataElements
+    include Types::HmisSchema::HasHudMetadata
 
     def self.configuration
-      Hmis::Hud::Client.hmis_configuration(version: '2022')
+      Hmis::Hud::Client.hmis_configuration(version: '2024')
+    end
+
+    available_filter_options do
+      arg :project, [ID]
+      arg :organization, [ID]
     end
 
     description 'HUD Client'
     field :id, ID, null: false
+    field :lock_version, Integer, null: false
     field :external_ids, [Types::HmisSchema::ExternalIdentifier], null: false
     hud_field :personal_id
     hud_field :first_name
     hud_field :middle_name
     hud_field :last_name
     hud_field :name_suffix
-    hud_field :name_data_quality, Types::HmisSchema::Enums::Hud::NameDataQuality
+    field :name_data_quality, Types::HmisSchema::Enums::Hud::NameDataQuality, null: false, default_value: 99
     hud_field :dob
     field :age, Int, null: true
-    hud_field :dob_data_quality, Types::HmisSchema::Enums::Hud::DOBDataQuality
+    field :dob_data_quality, Types::HmisSchema::Enums::Hud::DOBDataQuality, null: false, default_value: 99
     hud_field :ssn
-    hud_field :ssn_data_quality, Types::HmisSchema::Enums::Hud::SSNDataQuality
+    field :ssn_data_quality, Types::HmisSchema::Enums::Hud::SSNDataQuality, null: false, default_value: 99
     gender_field
     field :race, [Types::HmisSchema::Enums::Race], null: false
-    hud_field :ethnicity, Types::HmisSchema::Enums::Hud::Ethnicity
-    hud_field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    field :veteran_status, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: false, default_value: 99
     hud_field :year_entered_service
     hud_field :year_separated
     hud_field :world_war_ii, Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData
@@ -58,23 +64,27 @@ module Types
     hud_field :military_branch, Types::HmisSchema::Enums::Hud::MilitaryBranch
     hud_field :discharge_status, Types::HmisSchema::Enums::Hud::DischargeStatus
     field :pronouns, [String], null: false
+    field :different_identity_text, String, null: true
+    field :additional_race_ethnicity, String, null: true
     field :names, [HmisSchema::ClientName], null: false
     field :addresses, [HmisSchema::ClientAddress], null: false
     field :contact_points, [HmisSchema::ClientContactPoint], null: false
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
-    enrollments_field filter_args: { omit: [:search_term], type_name: 'EnrollmentsForClient' }
+    field :hud_chronic, Boolean, null: true
+    enrollments_field filter_args: { omit: [:search_term, :bed_night_on_date], type_name: 'EnrollmentsForClient' }
     income_benefits_field
     disabilities_field
-    disability_groups_field
     health_and_dvs_field
     youth_education_statuses_field
     employment_educations_field
     current_living_situations_field
     assessments_field
     services_field
+    custom_case_notes_field
     files_field
     custom_data_elements_field
+    field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false
     audit_history_field(
       field_permissions: {
         'SSN' => :can_view_full_ssn,
@@ -111,10 +121,7 @@ module Types
         result
       end,
     )
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
-    field :user, HmisSchema::User, null: true
+
     field :image, HmisSchema::ClientImage, null: true
 
     access_field do
@@ -131,6 +138,7 @@ module Types
       can :manage_own_client_files
       can :view_any_nonconfidential_client_files
       can :view_any_confidential_client_files
+      can :audit_clients
     end
 
     def external_ids
@@ -170,6 +178,10 @@ module Types
       resolve_services(**args)
     end
 
+    def custom_case_notes(...)
+      resolve_custom_case_notes(...)
+    end
+
     def files(**args)
       resolve_files(**args)
     end
@@ -179,7 +191,7 @@ module Types
     end
 
     def race
-      selected_races = ::HudUtility.races.except('RaceNone').keys.select { |f| object.send(f).to_i == 1 }
+      selected_races = ::HudUtility2024.races.except('RaceNone').keys.select { |f| object.send(f).to_i == 1 }
       selected_races << object.RaceNone if object.RaceNone && selected_races.empty?
       selected_races
     end
@@ -208,22 +220,10 @@ module Types
 
     def names
       names = load_ar_association(object, :names)
-      if names.empty?
-        # If client has no CustomClientNames, construct one based on the HUD Client name fields
-        return [
-          object.names.new(
-            id: '0',
-            first: object.first_name,
-            last: object.last_name,
-            middle: object.middle_name,
-            suffix: object.name_suffix,
-            primary: true,
-            **object.slice(:name_data_quality, :user_id, :data_source_id, :date_created, :date_updated),
-          ),
-        ]
-      end
+      return names unless names.empty?
 
-      names
+      # If client has no CustomClientNames, construct one based on the HUD Client name fields
+      [object.build_primary_custom_client_name]
     end
 
     def contact_points
@@ -242,6 +242,14 @@ module Types
       load_ar_association(object, :addresses)
     end
 
+    def hud_chronic
+      return unless current_permission?(permission: :can_view_hud_chronic_status, entity: object)
+
+      # client.hud_chronic causes n+1 queries
+      enrollments = object.enrollments.hmis
+      !!object.hud_chronic?(scope: enrollments)
+    end
+
     def resolve_audit_history
       address_ids = object.addresses.with_deleted.pluck(:id)
       name_ids = object.names.with_deleted.pluck(:id)
@@ -257,6 +265,12 @@ module Types
         where.not(object_changes: nil, event: 'update').
         unscope(:order).
         order(created_at: :desc)
+    end
+
+    def merge_audit_history
+      return unless current_user.can_merge_clients?
+
+      object.merge_audits.order(merged_at: :desc)
     end
   end
 end

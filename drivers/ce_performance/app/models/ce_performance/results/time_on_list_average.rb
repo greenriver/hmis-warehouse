@@ -28,7 +28,7 @@ module CePerformance
     end
 
     def self.title
-      _('Average Length of Time on Prioritization List')
+      Translation.translate('Average Length of Time on Prioritization List')
     end
 
     def description
@@ -54,7 +54,7 @@ module CePerformance
     end
 
     def detail_link_text
-      "Average: #{value.to_i} #{unit}"
+      "Average: #{number_with_delimiter(value.to_i)} #{unit}"
     end
 
     def goal_direction

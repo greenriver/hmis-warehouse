@@ -7,7 +7,7 @@
 FactoryBot.define do
   factory :hmis_hud_user, class: 'Hmis::Hud::User' do
     data_source { association :hmis_data_source }
-    sequence(:UserID) { |n| n + 500 }
+    sequence(:UserID) { |n| n + 5000 }
     DateCreated { Time.now }
     DateUpdated { Time.now }
     sequence(:ExportID, 1)

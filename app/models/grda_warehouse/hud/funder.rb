@@ -56,9 +56,9 @@ module GrdaWarehouse::Hud
       end
     end
 
-    scope :viewable_by, ->(user) do
+    scope :viewable_by, ->(user, permission: :can_view_projects) do
       joins(:project).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(user))
+        merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: permission))
     end
 
     def valid_funder_code?
@@ -66,7 +66,7 @@ module GrdaWarehouse::Hud
     end
 
     def self.valid_funder_code? funder
-      HudUtility.funding_sources.keys.include?(funder)
+      HudUtility2024.funding_sources.keys.include?(funder)
     end
 
     def operating_year
@@ -80,7 +80,7 @@ module GrdaWarehouse::Hud
         pluck(:Funder).
         map do |funder_code|
           [
-            "#{HudUtility.funding_source(funder_code&.to_i)} (#{funder_code})",
+            "#{HudUtility2024.funding_source(funder_code&.to_i)} (#{funder_code})",
             funder_code,
           ]
         end

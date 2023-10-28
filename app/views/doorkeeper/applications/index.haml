@@ -1,0 +1,28 @@
+.border-bottom.mb-4
+  %h1= t('.title')
+%p= link_to t('.new'), new_oauth_application_path, class: 'btn btn-success'
+%p
+  - if RailsDrivers.loaded.include?(:superset)
+    = link_to Superset.superset_base_url do
+      « Go to Superset »
+%table.table.table-striped
+  %thead
+    %tr
+      %th= t('.name')
+      %th= t('.callback_url')
+      %th= t('.confidential')
+      %th= t('.actions')
+      %th
+  %tbody
+    - @applications.each do |application|
+      %tr{id: "application_#{application.id}"}
+        %td.align-middle
+          = link_to application.name, oauth_application_path(application)
+        %td.align-middle
+          = simple_format(application.redirect_uri)
+        %td.align-middle
+          = application.confidential? ? t('doorkeeper.applications.index.confidentiality.yes') : t('doorkeeper.applications.index.confidentiality.no')
+        %td.align-middle
+          = link_to t('doorkeeper.applications.buttons.edit'), edit_oauth_application_path(application), class: 'btn btn-link'
+        %td.align-middle
+          = render 'delete_form', application: application

@@ -35,7 +35,13 @@ module Types
     end
 
     def client_search(input:, **args)
-      search_scope = Hmis::Hud::Client.client_search(input: input.to_params, user: current_user)
+      # if the search should also sort by rank
+      sorted = args[:sort_order] == :best_match
+      search_scope = Hmis::Hud::Client.client_search(
+        input: input.to_params,
+        user: current_user,
+        sorted: sorted,
+      )
       resolve_clients(search_scope, **args)
     end
 
@@ -44,12 +50,9 @@ module Types
     end
 
     def client_omni_search(text_search:)
-      client_scope = Hmis::Hud::Client.searchable_to(current_user).
+      Hmis::Hud::Client.searchable_to(current_user).
         matching_search_term(text_search).
-        includes(:enrollments).
-        order(qualified_column(e_t[:date_updated]))
-
-      resolve_clients(client_scope, no_sort: true)
+        sort_by_option(:recently_added)
     end
 
     field :client, Types::HmisSchema::Client, 'Client lookup', null: true do
@@ -156,18 +159,18 @@ module Types
       Hmis::Hud::CustomServiceType.find_by(id: id)
     end
 
-    field :get_form_definition, Types::Forms::FormDefinition, 'Get most relevant/recent form definition for the specified Role and project (optionally)', null: true do
-      argument :role, Types::Forms::Enums::FormRole, required: true
-      argument :enrollment_id, ID, required: false
-      argument :project_id, ID, required: false
-    end
-
     field :file, Types::HmisSchema::File, null: true do
       argument :id, ID, required: true
     end
 
     def file(id:)
       Hmis::File.viewable_by(current_user).find_by(id: id)
+    end
+
+    field :get_form_definition, Types::Forms::FormDefinition, 'Get most relevant/recent form definition for the specified Role and project (optionally)', null: true do
+      argument :role, Types::Forms::Enums::FormRole, required: true
+      argument :enrollment_id, ID, required: false
+      argument :project_id, ID, required: false
     end
 
     def get_form_definition(role:, enrollment_id: nil, project_id: nil)
@@ -231,6 +234,29 @@ module Types
       postings = HmisExternalApis::AcHmis::ReferralPosting.denied_pending_status
 
       scoped_referral_postings(postings, **args)
+    end
+
+    field :merge_candidates, Types::HmisSchema::ClientMergeCandidate.page_type, null: false
+    def merge_candidates
+      raise 'not allowed' unless current_user.can_merge_clients?
+
+      # Find all destination clients that have more than 1 source client in the HMIS
+      destination_ids_with_multiple_sources = GrdaWarehouse::WarehouseClient.
+        where(data_source_id: current_user.hmis_data_source_id).
+        joins(:source). # drop non existent source clients
+        group(:destination_id).
+        having('count(*) > 1').
+        pluck(:destination_id)
+
+      # Resolve each destination client as a ClientMergeCandidate
+      Hmis::Hud::Client.where(id: destination_ids_with_multiple_sources)
+    end
+
+    field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false
+    def merge_audit_history
+      raise 'not allowed' unless current_user.can_merge_clients?
+
+      Hmis::ClientMergeAudit.all.order(merged_at: :desc)
     end
 
     # AC HMIS Queries

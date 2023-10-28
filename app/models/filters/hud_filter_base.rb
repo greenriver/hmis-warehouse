@@ -79,7 +79,6 @@ module Filters
         :filter_for_age,
         :filter_for_gender,
         :filter_for_race,
-        :filter_for_ethnicity,
         :filter_for_sub_population,
         :filter_for_enrollment_cocs,
       ] - Array.wrap(except)

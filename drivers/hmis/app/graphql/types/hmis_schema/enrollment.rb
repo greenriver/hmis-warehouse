@@ -12,29 +12,32 @@ module Types
     include Types::HmisSchema::HasServices
     include Types::HmisSchema::HasAssessments
     include Types::HmisSchema::HasCeAssessments
+    include Types::HmisSchema::HasCustomCaseNotes
     include Types::HmisSchema::HasFiles
     include Types::HmisSchema::HasIncomeBenefits
     include Types::HmisSchema::HasDisabilities
-    include Types::HmisSchema::HasDisabilityGroups
     include Types::HmisSchema::HasHealthAndDvs
     include Types::HmisSchema::HasYouthEducationStatuses
     include Types::HmisSchema::HasEmploymentEducations
     include Types::HmisSchema::HasCurrentLivingSituations
     include Types::HmisSchema::HasCustomDataElements
+    include Types::HmisSchema::HasHudMetadata
 
     def self.configuration
-      Hmis::Hud::Enrollment.hmis_configuration(version: '2022')
+      Hmis::Hud::Enrollment.hmis_configuration(version: '2024')
     end
 
     available_filter_options do
       arg :status, [HmisSchema::Enums::EnrollmentFilterOptionStatus]
       arg :open_on_date, GraphQL::Types::ISO8601Date
+      arg :bed_night_on_date, GraphQL::Types::ISO8601Date
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
       arg :search_term, String
     end
 
     description 'HUD Enrollment'
     field :id, ID, null: false
+    field :lock_version, Integer, null: false
     field :project, Types::HmisSchema::Project, null: false
     hud_field :entry_date
     field :exit_date, GraphQL::Types::ISO8601Date, null: true
@@ -43,11 +46,11 @@ module Types
     assessments_field
     events_field
     services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForEnrollment' }
+    custom_case_notes_field
     files_field
     ce_assessments_field
     income_benefits_field
     disabilities_field
-    disability_groups_field
     health_and_dvs_field
     youth_education_statuses_field
     employment_educations_field
@@ -58,19 +61,18 @@ module Types
     field :household_size, Integer, null: false
     field :client, HmisSchema::Client, null: false
     # 3.15.1
-    hud_field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false
+    field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false, default_value: 99
     # 3.16.1
     field :enrollment_coc, String, null: true
     # 3.08
-    hud_field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true, default_value: 99
     # 3.13.1
     field :date_of_engagement, GraphQL::Types::ISO8601Date, null: true
     # 3.20.1
     field :move_in_date, GraphQL::Types::ISO8601Date, null: true
     # 3.917
-    field :living_situation, HmisSchema::Enums::Hud::LivingSituation
-    # TODO(2024) enable 3.917.A
-    # hud_field :rental_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
+    field :living_situation, HmisSchema::Enums::Hud::PriorLivingSituation
+    hud_field :rental_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
     hud_field :length_of_stay, HmisSchema::Enums::Hud::ResidencePriorLengthOfStay
     hud_field :los_under_threshold, HmisSchema::Enums::Hud::NoYesMissing
     hud_field :previous_street_essh, HmisSchema::Enums::Hud::NoYesMissing
@@ -130,31 +132,28 @@ module Types
     field :dependent_under6, HmisSchema::Enums::Hud::DependentUnder6, null: true
     field :hh5_plus, HmisSchema::Enums::Hud::NoYesMissing, null: true
     field :coc_prioritized, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :hp_screening_score, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :threshold_score, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    # TODO(2024): C4 with preferred language list
-    # field :translation_needed, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
-    # field :preferred_language, Integer, null: true
-    # field :preferred_language_different, String, null: true
+    field :hp_screening_score, Integer, null: true
+    field :threshold_score, Integer, null: true
+    # C4
+    field :translation_needed, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    field :preferred_language, HmisSchema::Enums::Hud::PreferredLanguage, null: true
+    field :preferred_language_different, String, null: true
 
     field :in_progress, Boolean, null: false
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
-    field :user, HmisSchema::User, null: true
     field :intake_assessment, HmisSchema::Assessment, null: true
     field :exit_assessment, HmisSchema::Assessment, null: true
     access_field do
       can :edit_enrollments
       can :delete_enrollments
+      can :split_households
     end
     custom_data_elements_field
 
     field :current_unit, HmisSchema::Unit, null: true
-
+    field :num_units_assigned_to_household, Integer, null: false
     field :reminders, [HmisSchema::Reminder], null: false
-
     field :open_enrollment_summary, [HmisSchema::EnrollmentSummary], null: false
+    field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
 
     def open_enrollment_summary
       return [] unless current_user.can_view_open_enrollment_summary_for?(object)
@@ -168,6 +167,12 @@ module Types
       project = object.project
       enrollments = project.enrollments_including_wip.where(household_id: object.HouseholdID)
       Hmis::Reminders::ReminderGenerator.perform(project: project, enrollments: enrollments)
+    end
+
+    def last_bed_night_date
+      return unless project.project_type == 1
+
+      load_ar_association(object, :bed_nights).map(&:date_provided).max
     end
 
     def project
@@ -191,11 +196,6 @@ module Types
       load_ar_association(object, :exit)
     end
 
-    # TODO(2024): remove once 2024 enrollmentcoc column is added
-    def enrollment_coc
-      object.enrollment_cocs.first&.coc_code
-    end
-
     def status
       Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(object)
     end
@@ -213,7 +213,7 @@ module Types
     end
 
     def household_size
-      load_ar_association(household, :enrollments).size
+      load_ar_association(household, :enrollments).map(&:personal_id).uniq.size
     end
 
     def in_progress
@@ -236,6 +236,10 @@ module Types
       resolve_ce_assessments(**args)
     end
 
+    def custom_case_notes(...)
+      resolve_custom_case_notes(...)
+    end
+
     def files(**args)
       resolve_files(**args)
     end
@@ -256,12 +260,15 @@ module Types
       resolve_health_and_dvs(**args)
     end
 
-    def user
-      load_ar_association(object, :user)
-    end
-
     def current_unit
       load_ar_association(object, :current_unit)
+    end
+
+    # ALERT: n+1, dont use when resolving multiple enrollments
+    def num_units_assigned_to_household
+      object.household_members.
+        map { |hhm| hhm.current_unit&.id }.
+        compact.uniq.size
     end
   end
 end

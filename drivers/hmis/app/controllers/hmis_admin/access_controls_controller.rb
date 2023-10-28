@@ -12,33 +12,36 @@ class HmisAdmin::AccessControlsController < ApplicationController
   before_action :set_access_control, only: [:edit, :update, :destroy]
 
   def index
-    @access_controls = access_control_scope.order(:role_id)
+    @access_controls = access_control_scope.
+      ordered.
+      filtered(params[:filter])
+
     @pagy, @access_controls = pagy(@access_controls)
   end
 
   def new
-    @acl = access_control_scope.new
+    @access_control = access_control_scope.new
   end
 
   def create
-    @acl = access_control_scope.new
-    @acl.update(access_control_params)
-    @acl.save
-    respond_with(@acl, location: hmis_admin_access_controls_path)
+    @access_control = access_control_scope.new
+    @access_control.update(access_control_params)
+    @access_control.save
+    respond_with(@access_control, location: hmis_admin_access_controls_path)
   end
 
   def edit
   end
 
   def update
-    @acl.update(access_control_params)
-    @acl.save
+    @access_control.update(access_control_params)
+    @access_control.save
 
     redirect_to({ action: :index }, notice: 'Access Control List updated.')
   end
 
   def destroy
-    @acl.destroy
+    @access_control.destroy
     redirect_to({ action: :index }, notice: 'Access Control List removed.')
   end
 
@@ -50,12 +53,13 @@ class HmisAdmin::AccessControlsController < ApplicationController
     params.require(:access_control).permit(
       :role_id,
       :access_group_id,
+      :user_group_id,
     )
   end
 
   private def set_access_control
-    @acl = access_control_scope.find(params[:id].to_i)
+    @access_control = access_control_scope.find(params[:id].to_i)
     # Set a name to be used by the user_members_table partial
-    @acl.define_singleton_method(:name) { "Access Control List #{id}" }
+    @access_control.define_singleton_method(:name) { "Access Control List #{id}" }
   end
 end

@@ -1,8 +1,8 @@
 - url = polymorphic_path(@report.report_path_array)
-- alert = 'Included projects are limited by selected CoCs, and selected Funding Sources.'
+- alert = 'Included projects are limited by selected CoCs.'
 
 
-= simple_form_for @filter, as: :filters, url: url, data: { controller: 'filter-projects', 'filter-projects-supported-project-types-value': @report.project_type_ids } do |f|
+= simple_form_for @filter, as: :filters, url: url, data: { controller: 'filter-projects' } do |f|
   - content_for :filters_col_full do
     .row.mb-4
       .col-sm-3
@@ -13,23 +13,21 @@
         = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose CoCs', data: {'filter-projects-target' => 'cocCodes', 'action': 'change->filter-projects#update'}}, label: 'CoC Codes', required: true
     = render 'hud_reports/project_filter', f: f, api_projects_parameters: { project_types: @filter.default_project_type_codes }, alert: alert, show_organization_picker: true
 
-    %h2= _('Additional Report Details')
+    %h2= Translation.translate('Additional Report Details')
+    .alert.alert-info
+      %div
+        %p
+          For the Community Dashboard to function correctly, you'll need to choose two items below:
+        %ol
+          %li A project group that represents the DRTRR projects
+          %li A set of projects that should be used in calculating successful diversion
+        %p These projects should also be a part of the project set chosen above.  Additionally, The full list of projects above should include any project that might generate a CE Event which are used when calculating time between identification, referral, and move-in.
     .row
       .col-sm-6
-        = f.input :secondary_project_group_ids, as: :select_two, collection: @filter.project_groups_options_for_select(user: current_user), input_html: { multiple: true, data: {placeholder: 'Choose Project Groups' }}, include_blank: false, label: _('Tracked Project Groups')
+        = f.input :secondary_project_group_ids, as: :select_two, collection: @filter.project_groups_options_for_select(user: current_user), input_html: { multiple: true, data: { placeholder: 'Choose Project Groups' }}, include_blank: false, label: 'DRTRR Project Group', hint: 'These projects will be used as the DRTRR source for data prior to 5/1/2023'
       .col-sm-6
-        = f.input :secondary_project_ids, collection: [], as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Choose Projects', data: { 'filter-projects-target' => 'projects', action: 'change->filter-projects#update', 'collection-path' => api_projects_path(selected_project_ids: @filter.secondary_project_ids, project_types: [:ca]) } }, label: _('Associated CE Projects')
+        = f.input :secondary_project_ids, collection: [], as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Choose Projects', data: { 'filter-projects-target' => 'projects', action: 'change->filter-projects#update', 'collection-path' => api_projects_path(selected_project_ids: @filter.secondary_project_ids, project_types: @filter.default_project_type_codes) } }, label: 'Diversion Projects', hint: 'Include any project that should be used when calculating successful diversion'
 
-    %h2 Limits
-    .row.mt-4
-      - @sections.in_groups(2).each do |sections|
-        .col-md-6
-          - sections.compact.each do |section|
-            - next unless section
-            - data = {'funding_sources': {'filter-projects-target' => 'funderIds', 'action': 'change->filter-projects#update'}}
-            .form-filters-section-prs1
-              = render 'filters/filter_controls/section_form_fields',
-                section: section, f: f, data: data
   - content_for :filter_actions do
     = f.submit 'Queue Report', class: ['btn', 'btn-primary'], data: { 'filter-projects-target' => 'submitButton' }
 

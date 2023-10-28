@@ -19,7 +19,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   # Related records that were created/updated from this assessment
   belongs_to :health_and_dv, class_name: 'Hmis::Hud::HealthAndDv', optional: true, autosave: true
   belongs_to :income_benefit, class_name: 'Hmis::Hud::IncomeBenefit', optional: true, autosave: true
-  belongs_to :enrollment_coc, class_name: 'Hmis::Hud::EnrollmentCoc', optional: true, autosave: true
   belongs_to :physical_disability, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
   belongs_to :developmental_disability, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
   belongs_to :chronic_health_condition, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
@@ -131,19 +130,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       personal_id: custom_assessment&.personal_id,
       information_date: custom_assessment&.assessment_date,
     }
-  end
-
-  # The items associated with the enrollments are all singletons, so return
-  # them if they already exist, otherwise create them
-  def enrollment_coc_factory(create: true)
-    return enrollment_coc if enrollment_coc.present? || !create
-
-    self.enrollment_coc = enrollment_factory.enrollment_cocs.
-      build(
-        household_id: enrollment_factory.household_id,
-        project_id: enrollment_factory.project_id,
-        **common_attributes,
-      )
   end
 
   def exit_factory(create: true)
@@ -261,7 +247,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       # Assessment-related records
       DisabilityGroup: Hmis::Hud::Processors::DisabilityGroupProcessor,
       Enrollment: Hmis::Hud::Processors::EnrollmentProcessor,
-      EnrollmentCoc: Hmis::Hud::Processors::EnrollmentCocProcessor,
       HealthAndDv: Hmis::Hud::Processors::HealthAndDvProcessor,
       IncomeBenefit: Hmis::Hud::Processors::IncomeBenefitProcessor,
       Exit: Hmis::Hud::Processors::ExitProcessor,
@@ -273,18 +258,22 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       Inventory: Hmis::Hud::Processors::InventoryProcessor,
       ProjectCoc: Hmis::Hud::Processors::ProjectCoCProcessor,
       Funder: Hmis::Hud::Processors::FunderProcessor,
+      CeParticipation: Hmis::Hud::Processors::CeParticipationProcessor,
+      HmisParticipation: Hmis::Hud::Processors::HmisParticipationProcessor,
       File: Hmis::Hud::Processors::FileProcessor,
       ReferralRequest: Hmis::Hud::Processors::ReferralRequestProcessor,
       YouthEducationStatus: Hmis::Hud::Processors::YouthEducationStatusProcessor,
       EmploymentEducation: Hmis::Hud::Processors::EmploymentEducationProcessor,
       CurrentLivingSituation: Hmis::Hud::Processors::CurrentLivingSituationProcessor,
+      Assessment: Hmis::Hud::Processors::CeAssessmentProcessor,
+      Event: Hmis::Hud::Processors::CeEventProcessor,
+      CustomCaseNote: Hmis::Hud::Processors::CustomCaseNoteProcessor,
     }.freeze
   end
 
   private def all_factories
     [
       :enrollment_factory,
-      :enrollment_coc_factory,
       :health_and_dv_factory,
       :income_benefit_factory,
       :physical_disability_factory,
@@ -341,9 +330,20 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     related_records.each do |record|
       next if record.errors.none?
 
-      # Skip relation fields, to avoid errors like "Income Benefit is invalid" on the Enrollment
       ar_errors = record.errors.errors.reject do |e|
-        e.attribute.to_s.underscore.ends_with?('_id') || (record.respond_to?(e.attribute) && record.send(e.attribute).is_a?(ActiveRecord::Relation))
+        # Skip validations for ID fields
+        if e.attribute.to_s.underscore.ends_with?('_id')
+          true # reject
+        # Skip validations for relation fields ("Income Benefit is invalid" on the Enrollment)
+        elsif record.respond_to?(e.attribute) && record.send(e.attribute).is_a?(ActiveRecord::Relation)
+          true # reject
+        # Skip validations for Information Date if this is an assessment,
+        # since we validate the assessment date separately using CustomAssessmentValidator
+        elsif custom_assessment.present? && e.attribute.to_s.underscore == 'information_date'
+          true # reject
+        else
+          false
+        end
       end
       errors.add_ar_errors(ar_errors)
     end
@@ -372,6 +372,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
 
     # Collect errors from custom validator, in the context of this role
+    # TODO: remove this and switch to using validation contexts instead.
+    # This works OK for assessments, but not other types of forms. For example for
+    # an Enrollment form that creates/edits Client, this will NOT run he Client validator.
     role = definition&.role
     related_records.each do |record|
       validator = record.class.validators.find { |v| v.is_a?(Hmis::Hud::Validators::BaseValidator) }&.class

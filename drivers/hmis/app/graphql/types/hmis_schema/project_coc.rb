@@ -8,13 +8,14 @@
 
 module Types
   class HmisSchema::ProjectCoc < Types::BaseObject
+    include Types::HmisSchema::HasHudMetadata
+
     def self.configuration
-      Hmis::Hud::ProjectCoc.hmis_configuration(version: '2022')
+      Hmis::Hud::ProjectCoc.hmis_configuration(version: '2024')
     end
 
     hud_field :id, ID, null: false
-    hud_field :project, Types::HmisSchema::Project, null: false
-    hud_field :coc_code
+    hud_field :coc_code, null: true
     hud_field :geocode
     hud_field :address1
     hud_field :address2
@@ -22,9 +23,5 @@ module Types
     hud_field :state
     hud_field :zip
     hud_field :geography_type, HmisSchema::Enums::Hud::GeographyType
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
-    field :user, HmisSchema::User, null: true
   end
 end

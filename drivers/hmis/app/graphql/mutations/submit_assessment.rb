@@ -9,20 +9,26 @@ module Mutations
     description 'Create/Submit assessment, and create/update related HUD records'
 
     argument :input, Types::HmisSchema::AssessmentInput, required: true
+    argument :assessment_lock_version, Integer, required: false
 
     field :assessment, Types::HmisSchema::Assessment, null: true
 
-    def resolve(input:)
+    def resolve(input:, assessment_lock_version: nil)
       assessment, errors = input.find_or_create_assessment
       return { errors: errors } if errors.any?
 
+      assessment.lock_version = assessment_lock_version if assessment_lock_version
       enrollment = assessment.enrollment
 
       errors = HmisErrors::Errors.new
 
+      # FIXME: several of the below errors are duplicative of SubmitHouseholdAssessments error checks. They should be moved into the CustomAssessmentValidator instead.
+
+      has_already_been_submitted = assessment.persisted? && !assessment.in_progress?
+
       # HoH Exit constraints
-      if enrollment.head_of_household? && assessment.exit?
-        open_enrollments = Hmis::Hud::Enrollment.open_on_date.
+      if enrollment.head_of_household? && assessment.exit? && !has_already_been_submitted
+        open_enrollments = Hmis::Hud::Enrollment.open_on_date(Date.tomorrow). # if other members exited today, its OK
           viewable_by(current_user).
           where(household_id: enrollment.household_id).
           where.not(id: enrollment.id)
@@ -32,8 +38,8 @@ module Mutations
       end
 
       # Non-HoH Intake constraints
-      if !enrollment.head_of_household? && assessment.intake?
-        hoh_enrollment = Hmis::Hud::Enrollment.open_on_date(Date.tomorrow).
+      if !enrollment.head_of_household? && assessment.intake? && !has_already_been_submitted
+        hoh_enrollment = Hmis::Hud::Enrollment.open_on_date(Date.tomorrow). # if HoH entered today, it's OK
           heads_of_households.
           viewable_by(current_user).
           where(household_id: enrollment.household_id).

@@ -1,5 +1,5 @@
-%h2= _('Project Performance 50%')
-%p= simple_format(_('Achieving project outcomes provides a benchmark for how well projects help to end homelessness. Assessing & monitoring project outcomes is necessary to understand a project\'s rate of success and contribution to CoC-wide performance goals.'))
+%h2= Translation.translate('Project Performance 50%')
+%p= simple_format(Translation.translate('Achieving project outcomes provides a benchmark for how well projects help to end homelessness. Assessing & monitoring project outcomes is necessary to understand a project\'s rate of success and contribution to CoC-wide performance goals.'))
 %table.table.table-bordered
   %thead
     %tr
@@ -13,7 +13,7 @@
     %tr
       %th Quarterly Occupancy Utilization Rate
       %th
-        = simple_format(_('Household utilization rates demonstrate that the CoC is fully utilizing its inventory.'))
+        = simple_format(Translation.translate('Household utilization rates demonstrate that the CoC is fully utilizing its inventory.'))
         %br
         = link_to_apr('APR Q8b', 'Question 8')
         = '& Application'
@@ -58,7 +58,7 @@
       %th
         Percentage of participants who remained in PSH or exited to permanent housing
       %th
-        = simple_format(_('Successful housing outcomes are one of the most important measures of project success.'))
+        = simple_format(Translation.translate('Successful housing outcomes are one of the most important measures of project success.'))
         %br
         = link_to_apr('APR Q23c', 'Question 23')
       %td.p-0
@@ -102,7 +102,7 @@
       %th
         Average length of stay of program leavers
       %th
-        = simple_format(_('Length of Stay is measured to determine if clients are moving through the programs in an appropriate length of time and are efficiently moving towards a permanent and stable home. It also assists community system modeling efforts.'))
+        = simple_format(Translation.translate('Length of Stay is measured to determine if clients are moving through the programs in an appropriate length of time and are efficiently moving towards a permanent and stable home. It also assists community system modeling efforts.'))
         %br
         = link_to_apr('APR Q22b', 'Question 22')
       %th
@@ -132,7 +132,7 @@
       %th
         Percentage of adults at exit or annual assessment who gained or increased employment income
       %th
-        = simple_format(_('Improving household access to financial resources is crucial to reducing vulnerability to homelessness. Increase in income is measured in the NOFA & System Performance Measures'))
+        = simple_format(Translation.translate('Improving household access to financial resources is crucial to reducing vulnerability to homelessness. Increase in income is measured in the NOFA & System Performance Measures'))
         %br
         = link_to_apr('APR Q19a1, Q19a2', 'Question 19')
       %th
@@ -166,7 +166,7 @@
       %th
         Percentage of adults at exit or annual assessment who gained or increased non-employment cash income
       %th
-        = simple_format(_('Improving a household\'s access to financial resources is crucial to reducing vulnerability to homelessness. Increase in income is measured through the NOFA & System Performance Measures.'))
+        = simple_format(Translation.translate('Improving a household\'s access to financial resources is crucial to reducing vulnerability to homelessness. Increase in income is measured through the NOFA & System Performance Measures.'))
         %br
         = link_to_apr('APR Q19a1, Q19a2', 'Question 19')
       %th
@@ -200,7 +200,7 @@
       %th
         Returns to Homelessness
       %th
-        = simple_format(_('Reducing returns to homelessness is one of the most important measures of program success and is HUD System Performance Measure 2a.'))
+        = simple_format(Translation.translate('Reducing returns to homelessness is one of the most important measures of program success and is HUD System Performance Measure 2a.'))
         = link_to_spm('SPM Measure 2', 'Measure 2')
       %th
 

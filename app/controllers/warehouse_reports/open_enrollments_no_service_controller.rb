@@ -17,9 +17,9 @@ module WarehouseReports
       cutoff = 30.days.ago.to_date
 
       open_enrollments = service_history_enrollment_source.entry.
-        ongoing.bed_night
+        ongoing.es_nbn
       service_in_last_30_days = service_history_enrollment_source.entry.
-        ongoing.bed_night.
+        ongoing.es_nbn.
         with_service_between(start_date: cutoff, end_date: Date.current)
       open_enrollments_no_service = open_enrollments - service_in_last_30_days
       earliest_entry = begin

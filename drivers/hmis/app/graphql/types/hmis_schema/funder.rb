@@ -9,21 +9,18 @@
 module Types
   class HmisSchema::Funder < Types::BaseObject
     include Types::HmisSchema::HasCustomDataElements
+    include Types::HmisSchema::HasHudMetadata
+
     def self.configuration
-      Hmis::Hud::Funder.hmis_configuration(version: '2022')
+      Hmis::Hud::Funder.hmis_configuration(version: '2024')
     end
 
     hud_field :id, ID, null: false
-    hud_field :project, Types::HmisSchema::Project, null: false
     hud_field :funder, HmisSchema::Enums::Hud::FundingSource
     hud_field :other_funder
-    hud_field :grant_id
-    hud_field :start_date, null: false
+    hud_field :grant_id, null: true
+    hud_field :start_date, null: true
     hud_field :end_date
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
-    field :user, HmisSchema::User, null: true
     field :active, Boolean, null: false
     custom_data_elements_field
   end

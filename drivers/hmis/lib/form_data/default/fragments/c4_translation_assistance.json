@@ -1,0 +1,119 @@
+{
+  "data_collected_about": "HOH",
+  "link_id": "C4-group",
+  "type": "GROUP",
+  "rule": {
+    "operator": "ANY",
+    "parts": [
+      {
+        "_comment": "HUD: CoC – Collection required for all components",
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HUD: CoC"
+      },
+      {
+        "_comment": "HUD: ESG – Collection required for all components ",
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HUD: ESG"
+      },
+      {
+        "operator": "ALL",
+        "_comment": "HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach",
+        "parts": [
+          {
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "HUD: ESG RUSH"
+          },
+          {
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "value": 0
+          },
+          {
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "value": 1
+          },
+          {
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "value": 4
+          }
+        ]
+      },
+      {
+        "_comment": "HUD: Unsheltered Special NOFO – Collection required for all components",
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HUD: Unsheltered Special NOFO"
+      },
+      {
+        "_comment": "HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry",
+        "variable": "projectFunders",
+        "operator": "INCLUDE",
+        "value": 55
+      }
+    ]
+  },
+  "item": [
+    {
+      "link_id": "C4",
+      "type": "CHOICE",
+      "text": "Translation Assistance Needed",
+      "required": false,
+      "warn_if_empty": true,
+      "pick_list_reference": "NoYesReasonsForMissingData",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "translationNeeded"
+      }
+    },
+    {
+      "link_id": "C4.dependents",
+      "type": "GROUP",
+      "item": [
+        {
+          "link_id": "C4.A",
+          "type": "CHOICE",
+          "text": "Preferred Language",
+          "required": false,
+          "warn_if_empty": true,
+          "pick_list_reference": "PreferredLanguage",
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "preferredLanguage"
+          },
+          "enable_behavior": "ANY",
+          "enable_when": [
+            {
+              "question": "C4",
+              "operator": "EQUAL",
+              "answer_code": "YES"
+            }
+          ]
+        },
+        {
+          "link_id": "C4.B",
+          "type": "STRING",
+          "text": "Different Preferred Language",
+          "required": false,
+          "warn_if_empty": true,
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "preferredLanguageDifferent"
+          },
+          "enable_behavior": "ANY",
+          "enable_when": [
+            {
+              "question": "C4.A",
+              "operator": "EQUAL",
+              "answer_code": "DIFFERENT_PREFERRED_LANGUAGE"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

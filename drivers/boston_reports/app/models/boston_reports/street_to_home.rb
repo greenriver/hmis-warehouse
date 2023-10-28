@@ -170,9 +170,6 @@ module BostonReports
         'Race' => ->(cc, download: false) { # rubocop:disable Lint/UnusedBlockArgument
           CohortColumns::Race.new(cohort_client: cc).display_read_only(filter.user)
         },
-        'Ethnicity' => ->(cc, download: false) { # rubocop:disable Lint/UnusedBlockArgument
-          CohortColumns::Ethnicity.new(cohort_client: cc).display_read_only(filter.user)
-        },
         'Cohort' => ->(cc, download: false) { # rubocop:disable Lint/UnusedBlockArgument
           cc[filter.cohort_column]
         },
@@ -246,9 +243,6 @@ module BostonReports
         races.each_value do |race|
           counts[race] ||= Set.new
         end
-        ethnicities.each_value do |ethnicity|
-          counts[ethnicity] ||= Set.new
-        end
 
         report_scope.find_each do |client|
           all_client_breakdowns.each do |(key, breakdown)|
@@ -269,12 +263,6 @@ module BostonReports
               counts[race] << client.client_id if value == race_key
             end
           end
-          # Loop over all ethnicities so we don't end up with missing categories
-          ethnicities.each_value do |ethnicity|
-            CohortColumns::Ethnicity.new.value(client).each do |value|
-              counts[ethnicity] << client.client_id if value == ethnicity
-            end
-          end
         end
       end
     end
@@ -292,24 +280,13 @@ module BostonReports
       values = scope.pluck(*GrdaWarehouse::Hud::Client.race_fields)
       counts = {}
       GrdaWarehouse::Hud::Client.race_fields.each.with_index do |col, i|
-        race = HudUtility.race(col)
+        race = HudUtility2024.race(col)
         counts[race] ||= 0
         values.each do |row|
           val = row[i]
           # Count any where the value is 1.  For RaceNone, count any positive value
           counts[race] += 1 if (col == 'RaceNone' && val&.positive?) || val == 1
         end
-      end
-      counts
-    end
-
-    def ethnicity_counts_for(scope)
-      values = scope.where(Ethnicity: [0, 1]).pluck(:Ethnicity)
-      counts = ethnicities.values.map { |e| [e, 0] }.to_h
-
-      values.each do |ethnicity|
-        counts[HudUtility.ethnicity(0)] += 1 if ethnicity&.zero?
-        counts[HudUtility.ethnicity(1)] += 1 if ethnicity == 1
       end
       counts
     end
@@ -524,108 +501,6 @@ module BostonReports
       end
     end
 
-    def stacked_ethnicity_by_stage
-      @stacked_ethnicity_by_stage ||= {}.tap do |data|
-        data['x'] = 'x'
-        data['type'] = 'bar'
-        data['stack'] = { normalize: true }
-        data['columns'] = [['x', 'Unsheltered Population', 'Inactive'] + stages.values.map { |d| d[:label] }]
-        data['groups'] = [ethnicities.values]
-        data['colors'] = {}
-        data['labels'] = { 'colors' => {} }
-        ethnicities.each_value.with_index do |ethnicity, i|
-          row = [ethnicity, ethnicity_counts_for(unsheltered_in_past_year)[ethnicity]]
-          { 'Inactive' => all_client_breakdowns['Inactive'] }.merge(stages).each_key do |k|
-            row << (clients[k.to_s] & clients[ethnicity]).count
-          end
-          data['columns'] << row
-          data['colors'][ethnicity] = config["breakdown_3_color_#{i}"]
-          data['labels']['colors'][ethnicity] = config.foreground_color(config["breakdown_3_color_#{i}"])
-        end
-      end
-    end
-
-    def stacked_ethnicity_by_cohort
-      @stacked_ethnicity_by_cohort ||= {}.tap do |data|
-        data['x'] = 'x'
-        data['type'] = 'bar'
-        data['stack'] = { normalize: true }
-        data['columns'] = [['x', 'Unsheltered Population'] + cohort_names]
-        data['groups'] = [ethnicities.values]
-        data['colors'] = {}
-        data['labels'] = { 'colors' => {} }
-        ethnicities.each_value.with_index do |ethnicity, i|
-          row = [ethnicity, ethnicity_counts_for(unsheltered_in_past_year)[ethnicity]]
-          cohort_names.each do |cohort|
-            row << (clients[cohort] & clients[ethnicity]).count
-          end
-          data['columns'] << row
-          data['colors'][ethnicity] = config["breakdown_2_color_#{i}"]
-          data['labels']['colors'][ethnicity] = config.foreground_color(config["breakdown_2_color_#{i}"])
-        end
-      end
-    end
-
-    def stacked_stage_by_ethnicity
-      @stacked_stage_by_ethnicity ||= {}.tap do |data|
-        data['x'] = 'x'
-        data['type'] = 'bar'
-        data['stack'] = { normalize: true }
-        data['columns'] = [['x'] + ethnicities.values]
-        data['groups'] = [['Inactive'] + stages.values.map { |d| d[:label] }]
-        data['colors'] = {}
-        data['labels'] = { 'colors' => {} }
-        { 'Inactive' => all_client_breakdowns['Inactive'] }.merge(stages).each.with_index do |(k, stage), i|
-          row = [stage[:label]]
-          ethnicities.each_value do |ethnicity|
-            row << (clients[k.to_s] & clients[ethnicity]).count
-          end
-          data['columns'] << row
-          data['colors'][stage[:label]] = config["breakdown_2_color_#{i}"]
-          data['labels']['colors'][stage[:label]] = config.foreground_color(config["breakdown_2_color_#{i}"])
-        end
-      end
-    end
-
-    def stacked_cohort_by_ethnicity
-      @stacked_cohort_by_ethnicity ||= {}.tap do |data|
-        data['x'] = 'x'
-        data['type'] = 'bar'
-        data['stack'] = { normalize: true }
-        data['columns'] = [['x'] + ethnicities.values]
-        data['groups'] = [cohort_names]
-        data['colors'] = {}
-        data['labels'] = { 'colors' => {} }
-        cohort_names.each.with_index do |cohort, i|
-          row = [cohort]
-          ethnicities.each_value do |ethnicity|
-            row << (clients[cohort] & clients[ethnicity]).count
-          end
-          data['columns'] << row
-          data['colors'][cohort] = config["breakdown_1_color_#{i}"]
-          data['labels']['colors'][cohort] = config.foreground_color(config["breakdown_1_color_#{i}"])
-        end
-      end
-    end
-
-    def ethnicity_by_cohort
-      @ethnicity_by_cohort ||= {}.tap do |charts|
-        cohort_names.each do |cohort|
-          cohort_slug = cohort.parameterize(separator: '_')
-          charts[cohort_slug] = {}
-          charts[cohort_slug]['type'] = 'pie'
-          charts[cohort_slug]['columns'] = []
-          charts[cohort_slug]['colors'] = {}
-          charts[cohort_slug]['labels'] = { 'colors' => {} }
-          ethnicities.each_value.with_index do |ethnicity, i|
-            charts[cohort_slug]['columns'] << [ethnicity, (clients[cohort] & clients[ethnicity]).count]
-            charts[cohort_slug]['colors'][ethnicity] = config["breakdown_4_color_#{i}"]
-            charts[cohort_slug]['labels']['colors'][ethnicity] = config.foreground_color(config["breakdown_4_color_#{i}"])
-          end
-        end
-      end
-    end
-
     def stage_by_cohort
       @stage_by_cohort ||= {}.tap do |data|
         data['x'] = 'x'
@@ -746,11 +621,7 @@ module BostonReports
     end
 
     private def races
-      ::HudUtility.races
-    end
-
-    private def ethnicities
-      ::HudUtility.ethnicities.select { |id, _| id.in?([0, 1]) }
+      ::HudUtility2024.races
     end
 
     def cohort_names
@@ -848,7 +719,6 @@ module BostonReports
       [
         :client_id,
         *GrdaWarehouse::Hud::Client.race_fields.map { |f| c_t[f] },
-        c_t[:Ethnicity],
       ]
     end
 
@@ -865,22 +735,6 @@ module BostonReports
           # client_id is in the first column, followed by race fields, increment those by 1
           pit_clients.each do |row|
             counts[key][:ids] << row.first if row[i + 1] == 1
-          end
-          # Average last two PIT dates
-          counts.each do |k, v|
-            counts[k][:count] = v[:ids].count / pit_dates.count
-          end
-        end
-      end
-    end
-
-    def pit_ethnicities
-      @pit_ethnicities ||= {}.tap do |counts|
-        ::HudUtility.ethnicities.select { |id, _| id.in?([0, 1]) }.each do |key, label|
-          counts[label] ||= { ids: Set.new, count: 0, pit_dates: pit_dates }
-          # client_id is in the first column, ethnicity in the last
-          pit_clients.each do |row|
-            counts[label][:ids] << row.first if key == row.last
           end
           # Average last two PIT dates
           counts.each do |k, v|

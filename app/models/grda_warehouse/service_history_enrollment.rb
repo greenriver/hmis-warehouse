@@ -30,7 +30,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   has_many :household_enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', primary_key: [:data_source_id, :project_id, :household_id], foreign_key: [:data_source_id, :ProjectID, :HouseholdID], autosave: false
 
   # make a scope for every project type and a type? method for instances
-  GrdaWarehouse::Hud::Project::PERFORMANCE_REPORTING.each do |k, v|
+  HudUtility2024.performance_reporting.each do |k, v|
     next unless k.is_a?(Symbol)
 
     scope k, -> { where project_type_column => v }
@@ -42,8 +42,8 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   scope :entry, -> { where record_type: 'entry' }
   # hide previous declaration of :exit (from Kernel), we'll use this one
   replace_scope :exit, -> { where record_type: 'exit' }
-  scope :bed_night, -> { where project_tracking_method: 3 }
-  scope :night_by_night, -> { bed_night }
+  scope :bed_night, -> { es_nbn }
+  scope :night_by_night, -> { es_nbn }
   # the first date individuals entered a residential service
   scope :first_date, -> { where record_type: 'first' }
 
@@ -52,11 +52,11 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     service_types << 'extrapolated' if GrdaWarehouse::Config.get(:so_day_as_month)
   end
   scope :residential, -> {
-    in_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
+    in_project_type(HudUtility2024.residential_project_type_ids)
   }
 
   scope :hud_residential, -> do
-    hud_project_type(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPE_IDS)
+    hud_project_type(HudUtility2024.residential_project_type_ids)
   end
 
   scope :hud_non_residential, -> do
@@ -64,23 +64,23 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   scope :residential_non_homeless, -> do
-    r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]
+    r_non_homeless = HudUtility2024.residential_project_type_numbers_by_code[:ph] + HudUtility2024.residential_project_type_numbers_by_code[:th]
     in_project_type(r_non_homeless)
   end
   scope :hud_residential_non_homeless, -> do
-    r_non_homeless = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]
+    r_non_homeless = HudUtility2024.residential_project_type_numbers_by_code[:ph] + HudUtility2024.residential_project_type_numbers_by_code[:th]
     hud_project_type(r_non_homeless)
   end
   scope :permanent_housing, -> do
-    project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES.values_at(:ph).flatten
+    project_types = HudUtility2024.residential_project_type_numbers_by_code.values_at(:ph).flatten
     in_project_type(project_types)
   end
 
   scope :homeless_sheltered, -> do
-    in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_SHELTERED_PROJECT_TYPES)
+    in_project_type(HudUtility2024.homeless_sheltered_project_types)
   end
   scope :homeless_unsheltered, -> do
-    in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_UNSHELTERED_PROJECT_TYPES)
+    in_project_type(HudUtility2024.homeless_unsheltered_project_types)
   end
 
   scope :ongoing, ->(on_date: Date.current) do
@@ -106,24 +106,24 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   scope :homeless, ->(chronic_types_only: false) do
     if chronic_types_only
-      project_types = GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES
+      project_types = HudUtility2024.chronic_project_types
     else
-      project_types = GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES
+      project_types = HudUtility2024.homeless_project_types
     end
     in_project_type(project_types)
   end
 
   # this is always only chronic
   scope :hud_homeless, ->(chronic_types_only: true) do # rubocop:disable Lint/UnusedBlockArgument
-    hud_project_type(GrdaWarehouse::Hud::Project::CHRONIC_PROJECT_TYPES)
+    hud_project_type(HudUtility2024.chronic_project_types)
   end
 
   # The client is enrolled in ES, SO, SH (TH) or PH prior to move-in and has no overlapping PH (TH) after move in
   scope :currently_homeless, ->(date: Date.current, chronic_types_only: false) do
     if chronic_types_only # literally homeless
-      residential_project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]
+      residential_project_types = HudUtility2024.residential_project_type_numbers_by_code[:ph] + HudUtility2024.residential_project_type_numbers_by_code[:th]
     else
-      residential_project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+      residential_project_types = HudUtility2024.residential_project_type_numbers_by_code[:ph]
     end
 
     homeless_scope = entry.
@@ -140,9 +140,9 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   scope :hud_currently_homeless, ->(date: Date.current, chronic_types_only: false) do
     if chronic_types_only # literally homeless
-      residential_project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th]
+      residential_project_types = HudUtility2024.residential_project_type_numbers_by_code[:ph] + HudUtility2024.residential_project_type_numbers_by_code[:th]
     else
-      residential_project_types = GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph]
+      residential_project_types = HudUtility2024.residential_project_type_numbers_by_code[:ph]
     end
     homeless_scope = entry.
       ongoing(on_date: date).
@@ -233,11 +233,17 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   # Category 3 is "Homeless only under other federal statuses" and
   # is defined as a housing status of value 5
+  # TODO: updated this for FY2024 to not use cached values,
+  # this appears to only be used in the SPM, so maybe we can just tear it out and use
+  # source data there instead
   scope :category_3, -> do
-    where(
-      arel_table[:housing_status_at_entry].eq(5).
-        or(arel_table[:housing_status_at_exit].eq(5)),
-    )
+    # pre FY2024 logic, remove after we confirm the new version works
+    # where(
+    #   arel_table[:housing_status_at_entry].eq(5).
+    #     or(arel_table[:housing_status_at_exit].eq(5)),
+    # )
+    left_outer_joins(enrollment: :exit).
+      where(e_t[:LivingSituation].eq(205).or(ex_t[:HousingAssessment].eq(5)))
   end
 
   scope :grant_funded_between, ->(start_date:, end_date:) do
@@ -398,7 +404,8 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   # Relevant Project Types/Program Types
-  # 1: Emergency Shelter (ES)
+  # 0: Emergency Shelter (ES Entry/Exit)
+  # 1: Emergency Shelter (ES NBN)
   # 2: Transitional Housing (TH)
   # 3: Permanent Supportive Housing (disability required for entry) (PH)
   # 4: Street Outreach (SO)
@@ -412,11 +419,17 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   # 13: Rapid Re-Housing (PH)
   # 14: Coordinated Entry
   def service_type
-    ::HudUtility.project_type(computed_project_type)
+    ::HudUtility2024.project_type(computed_project_type)
   end
 
   def service_type_brief
-    ::HudUtility.project_type_brief(computed_project_type)
+    ::HudUtility2024.project_type_brief(computed_project_type)
+  end
+
+  def computed_project_type_group_es
+    pt = computed_project_type
+    pt = 1 if computed_project_type&.zero?
+    pt
   end
 
   def start_time
@@ -424,19 +437,19 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   def so?
-    self[self.class.project_type_column] == HudUtility.project_type_number('SO')
+    self[self.class.project_type_column] == HudUtility2024.project_type_number('SO')
   end
 
   def ce?
-    self[self.class.project_type_column] == HudUtility.project_type_number('CE')
+    self[self.class.project_type_column] == HudUtility2024.project_type_number('CE')
   end
 
   def homeless?
-    self[self.class.project_type_column].in?(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES)
+    self[self.class.project_type_column].in?(HudUtility2024.homeless_project_types)
   end
 
   def nbn?
-    project_tracking_method == 3
+    es_nbn?
   end
 
   # How many distinct bed nights does the client have in this enrollment?

@@ -9,8 +9,6 @@ module Hmis::Hud::Processors
     # DO NOT CHANGE: Frontend code sends these values
     # Indicates that a new MCI ID should be created.
     MCI_CREATE_MCI_ID_VALUE = '_CREATE_MCI_ID'.freeze
-    # Indicates that no MCI ID should be created. Use this instead of null, because the user should be required to make a selection
-    MCI_CREATE_UNCLEARED_CLIENT_VALUE = '_CREATE_UNCLEARED_CLIENT'.freeze
 
     def process(field, value)
       attribute_name = ar_attribute_name(field)
@@ -49,6 +47,9 @@ module Hmis::Hud::Processors
       when 'mci_id'
         process_mci(value)
         {}
+      when 'veteran_status'
+        # Veteran status is non-nullable. It should be saved as 99 even if hidden. (It's hidden for minors)
+        { attribute_name => attribute_value || 99 }
       else
         { attribute_name => attribute_value }
       end
@@ -134,7 +135,6 @@ module Hmis::Hud::Processors
     end
 
     private def process_names(field, value)
-      client = @processor.send(factory_name)
       # Drop names that don't have any meaningful values
       values = Array.wrap(value).filter do |v|
         raise "Expected Hash, found #{v.class.name}" unless v.is_a?(Hash)
@@ -142,40 +142,49 @@ module Hmis::Hud::Processors
         v.slice('first', 'last', 'middle', 'primary').compact_blank.any?
       end
 
-      # Build attributes
+      primary = values.find { |v| v['primary'] == true }
+      # Build attributes for Client based on the Primary name. This already happens in the after_save hook on CustomClientName,
+      # but we need it here so that the correct values are present on the unpersisted record for validation.
+      client_attributes = if primary.present?
+        {
+          first_name: primary['first'],
+          last_name: primary['last'],
+          middle_name: primary['middle'],
+          name_suffix: primary['suffix'],
+          name_data_quality: attribute_value_for_enum(Types::HmisSchema::Enums::Hud::NameDataQuality, primary['nameDataQuality']) || 99,
+        }
+      else
+        {}
+      end
+
+      # Build attributes for CustomClientName record(s)
       name_attributes = construct_nested_attributes(field, values, additional_attributes: related_record_attributes)
 
-      # Set NameDataQuality to 99, it will be overridden to match primary name in the after_save hook
-      name_attributes[:name_data_quality] = 99 unless client.name_data_quality.present?
-      name_attributes
+      name_attributes.merge(client_attributes)
     end
 
     # Custom handler for MCI field
     private def process_mci(value)
       return unless HmisExternalApis::AcHmis::Mci.enabled?
-      return if value.nil? # Shouldn't happen, the form validation should ensure presence because it is required
+
+      # If no MCI selection was made, do nothing. Client/Enrollment validators will handle
+      # validation if MCI is required in the given context.
+      return if value.nil? || value == Base::HIDDEN_FIELD_VALUE
 
       client = @processor.send(factory_name)
+
       current_mci_ids = client.ac_hmis_mci_ids
-      # If MCI ID hasn't changed, do nothing.
+      # If MCI ID hasn't changed, set flag to perform after-save update to send demographic changes to MCI.
       if current_mci_ids.present? && value.in?(current_mci_ids.map(&:value))
         client.update_mci_attributes = true
         return
       end
 
-      # If field is hidden, that means that there was not enough information to clear MCI.
-      # Do nothing, which will create an "uncleared" client. If client is already cleared, nothing happens.
-      return if value == Base::HIDDEN_FIELD_VALUE
-
-      # If value is MCI_CREATE_MCI_ID_VALUE, that means the use explicitly chose NOT to link or create an MCI ID.
-      # Do nothing, which will create an "uncleared" client. If client is already cleared, nothing happens.
-      return if value == MCI_CREATE_UNCLEARED_CLIENT_VALUE
-
       # Changing MCI ID is not supported.
       raise 'Client already has an MCI ID' if current_mci_ids.present?
 
       # If value indicates that a new MCI ID should be created, do that.
-      # Actual MCI ID creation happens in an after_save hook on Client.
+      # Actual MCI ID creation happens in an after_save hook on the HmisExternalApis ClientExtension
       if value == MCI_CREATE_MCI_ID_VALUE
         client.create_mci_id = true
         return

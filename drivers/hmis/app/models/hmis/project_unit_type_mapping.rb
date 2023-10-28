@@ -21,13 +21,14 @@ class Hmis::ProjectUnitTypeMapping < Hmis::HmisBase
     unit_attrs = scope.filter(&:active?).flat_map do |record|
       unit_type = record.unit_type
       project = record.project
+      next if project.nil? # could happen if project was deleted but ProjectUnitTypeMapping wasn't properly cleaned up
 
       # If this ProjectID is already mapped to this UnitTypeID in our system, and it is marked as Active=Y, do nothing.
       key = [project.id, unit_type.id]
       next if unit_counts_by_project_and_unit_type_id[key]
 
       # If this ProjectID is not already mapped to this UnitTypeID, add it and add the number of units specified in the UnitCapacity column.
-      record.unit_capacity.to_i.times.map do |i|
+      record.unit_capacity.to_i.times.map do
         {
           project_id: project.id,
           unit_type_id: unit_type.id,

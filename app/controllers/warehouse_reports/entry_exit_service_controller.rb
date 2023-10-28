@@ -18,10 +18,10 @@ module WarehouseReports
       ).
         where(
           p_t[project_source.project_type_column].in(
-            project_source::RESIDENTIAL_PROJECT_TYPE_IDS,
+            HudUtility2024.residential_project_type_ids,
           ),
         ).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user)).
+        merge(GrdaWarehouse::Hud::Project.viewable_by(current_user, permission: :can_view_assigned_reports)).
         where(ex_t[:ExitDate].eq s_t[:DateProvided]).
         where(e_t[:EntryDate].eq s_t[:DateProvided]).
         distinct

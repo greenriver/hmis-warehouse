@@ -67,7 +67,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
-  describe 'ENROLLABLE_PROJECTS lost' do
+  describe 'ENROLLABLE_PROJECTS list' do
     it 'should return no projects if no permission' do
       remove_permissions(access_control, :can_enroll_clients)
       response, result = post_graphql(pick_list_type: 'ENROLLABLE_PROJECTS') { query }
@@ -113,10 +113,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     aggregate_failures 'checking response' do
       expect(response.status).to eq 200
       options = result.dig('data', 'pickList')
-      expect(options[0]['code']).to eq(Types::HmisSchema::Enums::Hud::LivingSituation.all_enum_value_definitions.find { |v| v.value == 16 }.graphql_name)
-      expect(options[0]['label']).to eq(::HudUtility.living_situation(16))
+      expect(options[0]['code']).to eq(Types::HmisSchema::Enums::Hud::PriorLivingSituation.all_enum_value_definitions.find { |v| v.value == 101 }.graphql_name)
+      expect(options[0]['label']).to eq(::HudUtility2024.living_situation(101))
       expect(options[0]['groupCode']).to eq('HOMELESS')
-      expect(options[0]['groupLabel']).to eq('Homeless')
+      expect(options[0]['groupLabel']).to eq('Homeless Situations')
     end
   end
 
@@ -133,7 +133,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     options = result.dig('data', 'pickList')
     expect(options.length).to eq(1)
     expect(options[0]['code']).to eq(pc1.coc_code)
-    expect(options[0]['label']).to include(::HudUtility.cocs[pc1.coc_code])
+    expect(options[0]['label']).to include(::HudUtility2024.cocs[pc1.coc_code])
     expect(options[0]['initialSelected']).to eq(true)
   end
 
@@ -316,6 +316,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'includes units that are currently occupied by the household' do
       expect(picklist_option_codes(p1, e1.household_id)).to contain_exactly(un1.id, un2.id)
+    end
+
+    it 'if household is occupied by a unit that has a type, excludes other unit typoes from list' do
+      un1.unit_type = create(:hmis_unit_type)
+      un1.save!
+      expect(picklist_option_codes(p1, e1.household_id)).to contain_exactly(un1.id)
     end
   end
 end

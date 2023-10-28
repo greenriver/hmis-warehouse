@@ -51,7 +51,7 @@ module HmisDataQualityTool::WarehouseReports
     end
 
     private def flash_interpolation_options
-      { resource_name: "#{_('HMIS Data Quality Tool')} Configuration" }
+      { resource_name: "#{Translation.translate('HMIS Data Quality Tool')} Configuration" }
     end
   end
 end

@@ -10,16 +10,39 @@ class Hmis::AccessControl < ApplicationRecord
 
   belongs_to :access_group, class_name: '::Hmis::AccessGroup'
   belongs_to :role, class_name: 'Hmis::Role'
-  has_many :user_access_controls, class_name: '::Hmis::UserAccessControl', inverse_of: :access_control
-  has_many :users, through: :user_access_controls
+  belongs_to :user_group, class_name: '::Hmis::UserGroup', required: false, inverse_of: :access_controls
+  has_many :users, through: :user_group
 
-  def add(users)
-    Array.wrap(users).uniq.each do |user|
-      user_access_controls.where(user_id: user.id).first_or_create!
-    end
+  scope :ordered, -> do
+    joins(:user_group, :role, :access_group).
+      order(
+        Hmis::UserGroup.arel_table[:name].lower.asc,
+        Hmis::Role.arel_table[:name].lower.asc,
+        Hmis::AccessGroup.arel_table[:name].lower.asc,
+      )
   end
 
-  def remove(users)
-    user_access_controls.where(user_id: users.pluck(:id)).destroy_all
+  # filter for access controls that somehow interact with the following
+  # User, UserGroup, Role, AccessGroup
+  scope :filtered, ->(filter_params) do
+    return current_scope unless filter_params
+
+    user_scope = current_scope
+    user_group_scope = current_scope
+    role_scope = current_scope
+    entity_group_scope = current_scope
+
+    user_scope = Hmis::UserGroup.with_user_id(filter_params[:user_id].to_i) if filter_params[:user_id].present?
+    user_group_scope = where(user_group_id: filter_params[:user_group_id].to_i) if filter_params[:user_group_id].present?
+    role_scope = where(role_id: filter_params[:role_id].to_i) if filter_params[:role_id].present?
+    entity_group_scope = where(access_group_id: filter_params[:access_group_id].to_i) if filter_params[:access_group_id].present?
+
+    ids = joins(:user_group, :role, :access_group).
+      merge(user_scope).
+      merge(user_group_scope).
+      merge(role_scope).
+      merge(entity_group_scope).
+      pluck(:id)
+    where(id: ids)
   end
 end

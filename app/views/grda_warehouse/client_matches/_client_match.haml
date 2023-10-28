@@ -58,24 +58,24 @@
         %tr
           %th Name
           %td= client_a.full_name
-          %td= data_qaulity_warning :name, client_a.NameDataQuality
+          %td= data_quality_warning :name, client_a.NameDataQuality
           %td= match_contribution_flags(match, [:FirstName, :MiddleName, :LastName])
           %td= client_b.full_name
-          %td= data_qaulity_warning :name, client_b.NameDataQuality
+          %td= data_quality_warning :name, client_b.NameDataQuality
         %tr
           %th SSN
           %td= ssn client_a.SSN
-          %td= data_qaulity_warning :ssn, client_a.SSNDataQuality
+          %td= data_quality_warning :ssn, client_a.SSNDataQuality
           %td= match_contribution_flags(match, :SSN)
           %td= ssn client_b.SSN
-          %td= data_qaulity_warning :ssn, client_b.SSNDataQuality
+          %td= data_quality_warning :ssn, client_b.SSNDataQuality
         %tr
           %th DOB
           %td= "#{client_a.DOB} (#{client_a.age})"
-          %td= data_qaulity_warning :dob, client_a.DOBDataQuality
+          %td= data_quality_warning :dob, client_a.DOBDataQuality
           %td= match_contribution_flags(match, :DOB)
           %td= "#{client_b.DOB} (#{client_b.age})"
-          %td= data_qaulity_warning :dob, client_b.DOBDataQuality
+          %td= data_quality_warning :dob, client_b.DOBDataQuality
         %tr
           %th Race
           %td= client_a.race_description
@@ -84,18 +84,11 @@
           %td= client_b.race_description
           %td
         %tr
-          %th Ethnicity
-          %td= HudUtility.ethnicity client_a.Ethnicity
-          %td
-          %td= match_contribution_flags(match, :Ethnicity)
-          %td= HudUtility.ethnicity client_b.Ethnicity
-          %td
-        %tr
           %th Veteran
-          %td= HudUtility.veteran_status client_a.VeteranStatus
+          %td= HudUtility2024.veteran_status client_a.VeteranStatus
           %td
           %td= match_contribution_flags(match, :VeteranStatus)
-          %td= HudUtility.veteran_status client_b.VeteranStatus
+          %td= HudUtility2024.veteran_status client_b.VeteranStatus
           %td
         %tr
           %th Active enrollments

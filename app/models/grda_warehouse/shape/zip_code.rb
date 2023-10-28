@@ -33,12 +33,12 @@ module GrdaWarehouse
         where(shape_states: { geoid: st_geoid }).
           joins(Arel.sql(<<~SQL))
             join shape_states ON (
-              (shape_zip_codes.simplified_geom && shape_states.simplified_geom)
+              (shape_zip_codes.geom && shape_states.geom)
               and
               (
-                ST_Area(ST_Intersection(shape_zip_codes.simplified_geom, shape_states.simplified_geom))
+                ST_Area(ST_Intersection(shape_zip_codes.geom, shape_states.geom))
                 /
-                ST_Area(shape_zip_codes.simplified_geom)
+                ST_Area(shape_zip_codes.geom)
                 >
                 0.95
               )
@@ -46,18 +46,51 @@ module GrdaWarehouse
           SQL
       end
 
-      def self.calculate_states
-        State.pluck(:geoid).each do |geoid|
-          missing_assigned_state.spatial_in_state(geoid).each do |zip|
-            zip.update(st_geoid: geoid)
-          end
-        end
+      def self.all_we_need?
+        count >= 33_000
       end
 
-      def self.calculate_counties
-        missing_assigned_county.each do |zip|
-          zip.update(county_name_lower: zip.spatial_county.first&.namelsad&.downcase)
-        end
+      def self.calculate_states
+        connection.execute(<<~SQL)
+          UPDATE
+            shape_zip_codes AS z
+          SET
+            st_geoid = s.geoid
+          FROM
+            shape_states s
+          WHERE
+            z.st_geoid IS NULL
+            AND
+              (
+                ST_Area(ST_Intersection(z.geom, s.geom))
+                /
+                ST_Area(z.geom)
+                >
+                0.95
+              )
+        SQL
+      end
+
+      def self.calculate_counties(state_code = GrdaWarehouse::Shape::State.my_fips_state_code)
+        connection.execute(<<~SQL)
+          UPDATE
+            shape_zip_codes AS z
+          SET
+            county_name_lower = LOWER(namelsad)
+          FROM
+            shape_counties c
+          WHERE
+            z.county_name_lower IS NULL
+            AND z.st_geoid = '#{state_code}'
+            AND
+              (
+                ST_Area(ST_Intersection(z.geom, c.geom))
+                /
+                ST_Area(z.geom)
+                >
+                0.95
+              )
+        SQL
       end
 
       def county
@@ -82,10 +115,10 @@ module GrdaWarehouse
             shape_zip_codes.id = #{id}
             AND
             ST_Area(
-              ST_Intersection(shape_zip_codes.simplified_geom, shape_counties.simplified_geom)
+              ST_Intersection(shape_zip_codes.geom, shape_counties.geom)
             )
             >=
-            (0.5 * ST_Area(shape_zip_codes.simplified_geom))
+            (0.5 * ST_Area(shape_zip_codes.geom))
           )
         SQL
       end
@@ -94,10 +127,10 @@ module GrdaWarehouse
         joins(<<~SQL)
           JOIN shape_counties ON (
             ST_Area(
-              ST_Intersection(shape_zip_codes.simplified_geom, shape_counties.simplified_geom)
+              ST_Intersection(shape_zip_codes.geom, shape_counties.geom)
             )
             >=
-            (0.5 * ST_Area(shape_zip_codes.simplified_geom))
+            (0.5 * ST_Area(shape_zip_codes.geom))
           )
         SQL
       end

@@ -56,7 +56,7 @@ module GrdaWarehouse::WarehouseReports::Exports
         clients = clients_with_ongoing_enrollments(clients)
         clients = heads_of_household(clients)
         clients = filter_for_sub_population(clients)
-        clients = clients.where(id: clients_within_projects.select(:id)) unless filter.all_projects?
+        clients = clients.where(id: clients_within_projects.select(:id)) unless filter.project_ids.blank?
         clients
       end
     end
@@ -65,7 +65,7 @@ module GrdaWarehouse::WarehouseReports::Exports
       fields = client.race_fields
       return 'Multi-Racial' if fields.count > 1
 
-      fields.map { |f| ::HudUtility.race f }.join ', '
+      fields.map { |f| ::HudUtility2024.race f }.join ', '
     end
 
     def rows_for_export
@@ -80,20 +80,19 @@ module GrdaWarehouse::WarehouseReports::Exports
               client.LastName,
               client.age(filter.end),
               race_for_client(client),
-              HudUtility.ethnicity(client.Ethnicity),
               client.gender,
               report_calculator.pregnancy_status_for(client),
-              HudUtility.veteran_status(client.VeteranStatus),
+              HudUtility2024.veteran_status(client.VeteranStatus),
               yes_no(report_calculator.disabled_and_impairing?(client)),
               report_calculator.episode_length_for(client),
               report_calculator.average_episode_length_for(client),
               report_calculator.days_homeless(client),
               report_calculator.episode_counts_past_3_years_for(client),
-              HudUtility.project_type(report_calculator.enrollment_for_client(client)&.project&.computed_project_type),
-              HudUtility.destination(report_calculator.exit_for_client(client)&.Destination),
-              HudUtility.destination(report_calculator.most_recent_exit_with_destination_for_client(client)&.Destination),
+              HudUtility2024.project_type(report_calculator.enrollment_for_client(client)&.project&.computed_project_type),
+              HudUtility2024.destination(report_calculator.exit_for_client(client)&.Destination),
+              HudUtility2024.destination(report_calculator.most_recent_exit_with_destination_for_client(client)&.Destination),
               yes_no(report_calculator.returned?(client)),
-              HudUtility.living_situation(report_calculator.enrollment_for_client(client)&.LivingSituation),
+              HudUtility2024.living_situation(report_calculator.enrollment_for_client(client)&.LivingSituation),
               report_calculator.vispdat_for_client(client)&.score,
               report_calculator.household_size_for(client),
             ]
@@ -110,7 +109,6 @@ module GrdaWarehouse::WarehouseReports::Exports
         'Last Name',
         'Age',
         'Race',
-        'Ethnicity',
         'Gender',
         'Pregnancy Status',
         'Veteran Status',

@@ -24,7 +24,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   let!(:ds_access_control) do
-    create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_view_dob, :can_view_enrollment_details])
+    create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_view_dob, :can_view_enrollment_details, :can_view_project])
   end
 
   before(:each) do
@@ -55,7 +55,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         fragment ClientFields on Client {
           ...ClientIdentificationFields
           dobDataQuality
-          ethnicity
           gender
           pronouns
           nameDataQuality

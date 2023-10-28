@@ -8,7 +8,7 @@ module CohortColumns
   class RrhSsvfEligible < ReadOnly
     attribute :column, String, lazy: true, default: :rrh_ssvf_eligible
     attribute :translation_key, String, lazy: true, default: 'SSVF Eligible (from RRH Assessment)'
-    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
+    attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
 
     def cast_value(val)
       val.to_s == 'true'

@@ -20,6 +20,6 @@ end
 
 desc 'Generate GraphQL Enums'
 task generate_graphql_enums: [:environment, 'log:info_to_stdout'] do
-  filename = HudCodeGen.generate_graphql_enums('2022')
+  filename = HudCodeGen.generate_graphql_enums('2024')
   exec("bundle exec rubocop -A --format simple #{filename}")
 end

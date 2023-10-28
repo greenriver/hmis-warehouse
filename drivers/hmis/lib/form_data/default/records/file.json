@@ -1,22 +1,25 @@
 {
-  "name": "file",
   "item": [
     {
       "type": "GROUP",
-      "link_id": "1",
+      "link_id": "file-group",
       "item": [
         {
           "type": "STRING",
           "link_id": "file-id",
           "hidden": true,
-          "mapping": { "field_name": "id" }
+          "mapping": {
+            "field_name": "id"
+          }
         },
         {
           "type": "FILE",
           "required": true,
-          "link_id": "fileBlobId",
+          "link_id": "file-blob-id",
           "text": "Attachment",
-          "mapping": { "field_name": "fileBlobId" },
+          "mapping": {
+            "field_name": "fileBlobId"
+          },
           "enable_behavior": "ANY",
           "enable_when": [
             {
@@ -30,27 +33,33 @@
           "type": "CHOICE",
           "required": true,
           "repeats": true,
-          "link_id": "tags",
+          "link_id": "file-tags",
           "text": "File Tags",
           "pick_list_reference": "AVAILABLE_FILE_TYPES",
-          "mapping": { "field_name": "tags" }
+          "mapping": {
+            "field_name": "tags"
+          }
         },
         {
           "type": "CHOICE",
           "required": false,
-          "link_id": "enrollmentId",
+          "link_id": "file-enrollment",
           "text": "Enrollment",
           "pick_list_reference": "ENROLLMENTS_FOR_CLIENT",
-          "mapping": { "field_name": "enrollmentId" },
+          "mapping": {
+            "field_name": "enrollmentId"
+          },
           "helper_text": "Optional. Access will be limited to users who can view this Enrollment."
         },
         {
           "type": "BOOLEAN",
-          "required": false,
-          "link_id": "confidential",
+          "required": true,
+          "link_id": "file-confidential",
           "text": "Confidential File?",
           "readonly_text": "Confidential File",
-          "mapping": { "field_name": "confidential" },
+          "mapping": {
+            "field_name": "confidential"
+          },
           "helper_text": "If yes, access will be limited to users who can view confidential files.",
           "initial": [
             {

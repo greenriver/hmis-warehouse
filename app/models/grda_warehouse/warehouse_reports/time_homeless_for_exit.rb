@@ -69,7 +69,7 @@ module GrdaWarehouse::WarehouseReports
           dates[client_id] ||= OpenStruct.new(
             {
               exit_date: date,
-              destination: "#{HudUtility.destination(destination)} (#{destination})",
+              destination: "#{HudUtility2024.destination(destination)} (#{destination})",
             },
           )
         end
@@ -161,7 +161,7 @@ module GrdaWarehouse::WarehouseReports
       scope = client_source.destination_visible_to(filter.user).
         send(filter.sub_population).
         joins(source_enrollments: [:project, :organization]).
-        merge(GrdaWarehouse::Hud::Project.viewable_by(filter.user))
+        merge(GrdaWarehouse::Hud::Project.viewable_by(filter.user, permission: :can_view_assigned_reports))
       scope = scope.merge(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids)) if filter.effective_project_ids.reject(&:zero?).any?
       scope = scope.where(id: cohort_client_scope.select(:client_id)) if filter.cohort_ids.any?
       scope

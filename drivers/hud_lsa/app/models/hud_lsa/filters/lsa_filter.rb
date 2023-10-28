@@ -7,7 +7,7 @@
 module HudLsa::Filters
   class LsaFilter < ::Filters::HudFilterBase
     validates_presence_of :coc_code
-    attribute :default_project_type_codes, Array, default: [:es, :th, :psh, :sh, :oph, :rrh]
+    attribute :default_project_type_codes, Array, default: [:es_nbn, :es_entry_exit, :th, :psh, :sh, :oph, :rrh]
     attribute :coc_codes, Array, default: [GrdaWarehouse::Config.default_site_coc_codes&.first]
 
     # This lets parent validation pass
@@ -32,14 +32,14 @@ module HudLsa::Filters
 
       # limit the project IDs to those that are relevant to the LSA
       if @effective_project_ids.any?
-        @effective_project_ids &= GrdaWarehouse::Hud::Project.viewable_by(user).
+        @effective_project_ids &= GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).
           in_coc(coc_code: coc_code).
           with_hud_project_type(relevant_project_types).
           coc_funded.
           pluck(:id)
       else
         # For system-wide just limit by project type and coc_funded
-        GrdaWarehouse::Hud::Project.viewable_by(user).
+        GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).
           in_coc(coc_code: coc_code).
           with_hud_project_type(relevant_project_types).
           coc_funded.
@@ -47,9 +47,9 @@ module HudLsa::Filters
       end
     end
 
-    # Confirmed with HUD only project types 1, 2, 3, 8, 9, 10, 13 need to be included in hmis_ tables.
+    # Confirmed with HUD only project types 0, 1, 2, 3, 8, 9, 10, 13 need to be included in hmis_ tables.
     def relevant_project_types
-      [1, 2, 3, 8, 9, 10, 13].freeze
+      [0, 1, 2, 3, 8, 9, 10, 13].freeze
     end
   end
 end

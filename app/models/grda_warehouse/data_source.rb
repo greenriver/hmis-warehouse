@@ -6,9 +6,12 @@
 
 class GrdaWarehouse::DataSource < GrdaWarehouseBase
   include RailsDrivers::Extensions
+  include EntityAccess
+  include ArelHelper
+
   self.primary_key = :id
   require 'memery'
-  include ArelHelper
+
   acts_as_paranoid
   validates :name, presence: true
   validates :short_name, presence: true
@@ -25,8 +28,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   has_many :clients, class_name: 'GrdaWarehouse::Hud::Client', inverse_of: :data_source
   has_many :organizations, class_name: 'GrdaWarehouse::Hud::Organization', inverse_of: :data_source
   has_many :projects, class_name: 'GrdaWarehouse::Hud::Project', inverse_of: :data_source
+  accepts_nested_attributes_for :projects
   has_many :exports, class_name: 'GrdaWarehouse::Hud::Export', inverse_of: :data_source
-  has_many :group_viewable_entities, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
+  has_many :group_viewable_entities, -> { where(entity_type: 'GrdaWarehouse::DataSource') }, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
 
   has_many :uploads
   has_many :non_hmis_uploads
@@ -37,7 +41,9 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   accepts_nested_attributes_for :projects
 
   scope :importable, -> do
-    source.where(authoritative: false, hmis: nil)
+    # Authoritative data sources are not importable. There is a temporary exception for HMIS data sources,
+    # since they need to continue to accept imports during the migration phase. (PT #185835773)
+    source.where(arel_table[:authoritative].eq(false).or(arel_table[:hmis].not_eq(nil)))
   end
 
   scope :source, -> do
@@ -64,28 +70,64 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(obey_consent: true)
   end
 
-  scope :viewable_by, ->(user) do
-    qc = ->(s) { connection.quote_column_name s }
-    q  = ->(s) { connection.quote s }
+  scope :viewable_by, ->(user, permission: :can_view_projects) do
+    # TODO: START_ACL cleanup after migration to ACLs
+    if user.using_acls?
+      return none unless user&.send("#{permission}?")
 
-    where(
-      [
-        has_access_to_data_source_through_viewable_entities(user, q, qc),
-        has_access_to_data_source_through_organizations(user, q, qc),
-        has_access_to_data_source_through_projects(user, q, qc),
-      ].join(' OR '),
-    )
+      ids = data_source_ids_viewable_by(user, permission: permission)
+      # If have a set (not a nil) and it's empty, this user can't access any projects
+      return none if ids.is_a?(Set) && ids.empty?
+
+      where(id: ids)
+    else
+      qc = ->(s) { connection.quote_column_name s }
+      q  = ->(s) { connection.quote s }
+
+      where(
+        [
+          has_access_to_data_source_through_viewable_entities(user, q, qc),
+          has_access_to_data_source_through_organizations(user, q, qc),
+          has_access_to_data_source_through_projects(user, q, qc),
+        ].join(' OR '),
+      )
+    end
+    # END_ACL
   end
 
   scope :editable_by, ->(user) do
-    directly_viewable_by(user)
+    # TODO: START_ACL cleanup after migration to ACLs
+    return none if user.using_acls? && ! user&.can_edit_data_sources?
+
+    if user.using_acls?
+      ids = data_source_ids_from_viewable_entities(user, :can_edit_data_sources)
+      # If have a set (not a nil) and it's empty, this user can't access any projects
+      return none if ids.is_a?(Set) && ids.empty?
+
+      where(id: ids)
+    else
+      directly_viewable_by(user)
+    end
+    # END_ACL
   end
 
-  scope :directly_viewable_by, ->(user) do
-    qc = ->(s) { connection.quote_column_name s }
-    q  = ->(s) { connection.quote s }
+  scope :directly_viewable_by, ->(user, permission: :can_view_projects) do
+    # TODO: START_ACL cleanup after migration to ACLs
+    return none if user.using_acls? && ! user&.send("#{permission}?")
 
-    where has_access_to_data_source_through_viewable_entities(user, q, qc)
+    if user.using_acls?
+      ids = data_source_ids_from_viewable_entities(user, permission)
+      # If we have a set (not a nil) and it's empty, this user can't access any projects
+      return none if ids.is_a?(Set) && ids.empty?
+
+      where(id: ids)
+    else
+      qc = ->(s) { connection.quote_column_name s }
+      q  = ->(s) { connection.quote s }
+
+      where has_access_to_data_source_through_viewable_entities(user, q, qc)
+    end
+    # END_ACL
   end
 
   scope :authoritative, -> do
@@ -98,6 +140,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     scope
   end
 
+  scope :not_hmis, -> { where(hmis: nil) }
+
   scope :scannable, -> do
     where(service_scannable: true)
   end
@@ -106,6 +150,11 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     where(visible_in_window: true)
   end
 
+  scope :available_for_new_clients, -> do
+    authoritative.not_hmis
+  end
+
+  # TODO: START_ACL remove after migration to ACLs
   scope :visible_in_window_for_cohorts_to, ->(user) do
     return none unless user&.can_view_clients?
 
@@ -115,6 +164,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     scope = scope.or(where(id: ds_ids)) if ds_ids.any?
     scope
   end
+  # END_ACL
 
   scope :youth, -> do
     where(authoritative_type: 'youth')
@@ -130,6 +180,52 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   scope :coordinated_assessment, -> do
     where(authoritative_type: 'coordinated_assessment')
+  end
+
+  def self.data_source_ids_viewable_by(user, permission: :can_view_projects)
+    return Set.new unless user&.send("#{permission}?")
+
+    ids = Set.new
+    ids += data_source_ids_from_viewable_entities(user, permission)
+    ids += data_source_ids_from_organizations(user, permission)
+    ids += data_source_ids_from_projects(user, permission)
+    ids
+  end
+
+  def self.data_source_ids_from_viewable_entities(user, permission)
+    return [] unless user.present?
+    return [] unless user.send("#{permission}?")
+
+    group_ids = user.collections_for_permission(permission)
+    return [] if group_ids.empty?
+
+    GrdaWarehouse::GroupViewableEntity.where(
+      collection_id: group_ids,
+      entity_type: 'GrdaWarehouse::DataSource',
+    ).pluck(:entity_id)
+  end
+
+  def self.data_source_ids_from_entity_type(user, permission, entity_class)
+    return [] unless user.present?
+    return [] unless user.send("#{permission}?")
+
+    group_ids = user.collections_for_permission(permission)
+    return [] if group_ids.empty?
+
+    entity_class.where(
+      id: GrdaWarehouse::GroupViewableEntity.where(
+        collection_id: group_ids,
+        entity_type: entity_class.sti_name,
+      ).select(:entity_id),
+    ).joins(:data_source).pluck(ds_t[:id])
+  end
+
+  def self.data_source_ids_from_projects(user, permission)
+    data_source_ids_from_entity_type(user, permission, GrdaWarehouse::Hud::Project)
+  end
+
+  def self.data_source_ids_from_organizations(user, permission)
+    data_source_ids_from_entity_type(user, permission, GrdaWarehouse::Hud::Organization)
   end
 
   def self.source_data_source_ids
@@ -184,6 +280,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     }
   end
 
+  # TODO: START_ACL remove after migration to ACLs
   def self.has_access_to_data_source_through_viewable_entities(user, q, qc) # rubocop:disable Naming/PredicateName,Naming/MethodParameterName
     data_source_table = quoted_table_name
     viewability_table = GrdaWarehouse::GroupViewableEntity.quoted_table_name
@@ -286,8 +383,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
     SQL
   end
-
-  accepts_nested_attributes_for :projects
+  # END_ACL
 
   def self.names
     importable.select(:id, :short_name).distinct.pluck(:short_name, :id)
@@ -338,8 +434,14 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
   end
 
-  def directly_viewable_by?(user)
-    self.class.directly_viewable_by(user).where(id: id).exists?
+  def directly_viewable_by?(user, permission: :can_view_projects)
+    # TODO: START_ACL cleanup after migration to ACLs
+    if user.using_acls?
+      self.class.directly_viewable_by(user, permission: permission).where(id: id).exists?
+    else
+      self.class.directly_viewable_by(user).where(id: id).exists?
+    end
+    # END_ACL
   end
 
   def users
@@ -448,6 +550,32 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     projects.joins(:organization).count
   end
 
+  def hmis?
+    hmis.present?
+  end
+
+  def hmis_url_for(entity)
+    return unless hmis?
+    return unless entity&.data_source_id == id
+
+    base = "https://#{hmis}"
+    url = case entity
+    when GrdaWarehouse::Hud::Project
+      "#{base}/projects/#{entity.id}"
+    when GrdaWarehouse::Hud::Organization
+      "#{base}/organizations/#{entity.id}"
+    when GrdaWarehouse::Hud::Client
+      "#{base}/client/#{entity.id}"
+    when GrdaWarehouse::Hud::Enrollment
+      "#{base}/client/#{entity.client&.id}/enrollments/#{entity.id}"
+    end
+
+    # For any other Enrollment-related record, link to the enrollment page
+    url ||= "#{base}/client/#{entity.client&.id}/enrollments/#{entity.enrollment&.id}" if entity.respond_to?(:enrollment) && entity.respond_to?(:client)
+
+    url
+  end
+
   private def maintain_system_group
     if Rails.env.test?
       AccessGroup.maintain_system_groups(group: :data_sources)
@@ -463,6 +591,24 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       :authoritative_data_source_ids,
       :window_data_source_ids,
     ].each { |key| Rails.cache.delete(key) }
+  end
+
+  private def editable_role_name
+    'System Role - Can Edit Data Sources'
+  end
+
+  private def editable_permission
+    :can_edit_data_sources
+  end
+
+  private def editable_permissions
+    [
+      editable_permission,
+    ]
+  end
+
+  def entity_relation_type
+    :data_sources
   end
 
   class << self

@@ -1,7 +1,7 @@
 .well
   .row
     .col
-      = f.input :patient_signed_on, as: :date_picker, label: 'Patient signed on'
+      = f.input :patient_signed_on, as: :date_picker, label: 'Patient signed on', input_html: { class: :jPatientSignature }
     .col
       .mt-6= f.input :verbal_approval, as: :pretty_boolean, label: 'Patient unable to sign – verbal approval received - signature is required within 90 days', input_html: { class: :jVerbalApproval }
   - if @careplan.verbal_approval?
@@ -17,7 +17,8 @@
   .row
     .col
       - if current_user.can_approve_cha?
-        = f.input :review_by_rn_complete, as: :pretty_boolean, label: 'The Person-Centered Treatment Plan was reviewed and approved by the CP registered nurse (RN)'
+        - disabled = @careplan.patient_signed_on.blank?
+        = f.input :review_by_rn_complete, as: :pretty_boolean, label: 'The Person-Centered Treatment Plan was reviewed and approved by the CP registered nurse (RN)', input_html: { class: :jRNApproval, disabled: disabled }
       - if @careplan.review_by_rn_complete
         .row
           .col.mb-4
@@ -25,8 +26,9 @@
   .row
     .col
       - if current_user.can_approve_careplan
+        - disabled = ! @careplan.review_by_rn_complete
         %h4 By approving this record, you agree that the above information is true to the best of your knowledge
-        = f.input :review_by_ccm_complete, as: :pretty_boolean, label: 'The Person-Centered Treatment Plan was reviewed and approved by the CP clinical care manager'
+        = f.input :review_by_ccm_complete, as: :pretty_boolean, label: 'The Person-Centered Treatment Plan was reviewed and approved by the CP clinical care manager', input_html: { class: :jCCMApproval, disabled: disabled }
       - if @careplan.review_by_ccm_complete
         .row
           .col.mb-4
@@ -36,7 +38,8 @@
       = f.input :name_sent_to, label: 'Primary Care Provider or PCP Designee'
   .row
     .col
-      = f.input :was_sent_to_pcp, as: :pretty_boolean, label: 'The careplan was sent to the PCP'
+      - disabled = ! @careplan.reviewed_by_ccm
+      = f.input :was_sent_to_pcp, as: :pretty_boolean, label: 'The careplan was sent to the PCP', input_html: { class: :jSentToPCP, disabled: disabled }
       - if @careplan.was_sent_to_pcp
         .row.mb-4
           .col
@@ -52,5 +55,21 @@
             $('#health_pctp_careplan_patient_signed_on').datepicker('setDate', Date());
           }
         };
+      });
+
+      $('.jPatientSignature').on('change', function(e) {
+        // prev() is to work around structure of pretty boolean
+        $('.jRNApproval').prev().attr('disabled', $('.jPatientSignature').val() == '');
+        $('.jRNApproval').attr('disabled', $('.jPatientSignature').val() == '');
+      });
+
+      $('.jRNApproval').on('change', function(e) {
+        $('.jCCMApproval').prev().attr('disabled', ! $('.jRNApproval').is(':checked'));
+        $('.jCCMApproval').attr('disabled', ! $('.jRNApproval').is(':checked'));
+      });
+
+      $('.jCCMApproval').on('change', function(e) {
+        $('.jSentToPCP').prev().attr('disabled', ! $('.jCCMApproval').is(':checked'));
+        $('.jSentToPCP').attr('disabled', ! $('.jCCMApproval').is(':checked'));
       });
     });

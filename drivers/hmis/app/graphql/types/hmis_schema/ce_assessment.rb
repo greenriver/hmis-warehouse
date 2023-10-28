@@ -8,6 +8,8 @@
 
 module Types
   class HmisSchema::CeAssessment < Types::BaseObject
+    include Types::HmisSchema::HasHudMetadata
+
     description 'HUD Coordinated Entry Assessment'
     field :id, ID, null: false
     field :enrollment, HmisSchema::Enrollment, null: false
@@ -16,26 +18,14 @@ module Types
     field :assessment_type, HmisSchema::Enums::Hud::AssessmentType, null: true
     field :assessment_level, HmisSchema::Enums::Hud::AssessmentLevel, null: true
     field :prioritization_status, HmisSchema::Enums::Hud::PrioritizationStatus, null: true
-    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
-    field :user, HmisSchema::User, null: true
     field :client, HmisSchema::Client, null: false
-
-    [
-      :assessment_level,
-      :assessment_type,
-      :prioritization_status,
-    ].each do |field_name|
-      define_method(field_name) { resolve_null_enum(object.send(field_name)) }
-    end
 
     def enrollment
       load_ar_association(object, :enrollment)
     end
 
-    def user
-      load_ar_association(object, :user)
+    def client
+      load_ar_association(object, :client)
     end
   end
 end

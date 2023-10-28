@@ -8,8 +8,8 @@
 
 module Types
   class HmisSchema::Assessment < Types::BaseObject
-    include Types::HmisSchema::HasDisabilityGroups
     include Types::HmisSchema::HasCustomDataElements
+    include Types::HmisSchema::HasHudMetadata
 
     available_filter_options do
       arg :type, [Types::Forms::Enums::AssessmentRole]
@@ -19,14 +19,10 @@ module Types
 
     description 'Custom Assessment'
     field :id, ID, null: false
+    field :lock_version, Integer, null: false
     field :enrollment, HmisSchema::Enrollment, null: false
     field :assessment_date, GraphQL::Types::ISO8601Date, null: false
     field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: true
-    field :enrollment_coc, String, null: true
-    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
-    field :user, HmisSchema::User, null: true
     field :client, HmisSchema::Client, null: false
     field :in_progress, Boolean, null: false
     access_field do
@@ -71,7 +67,7 @@ module Types
       definition = load_ar_association(form_processor, :definition)
       # If there was no definition specified, which would occur if this is a migrated assessment, choose an appropriate one.
       definition ||= Hmis::Form::Definition.find_definition_for_role(role, project: project)
-      definition.filter_context = { project: project }
+      definition.filter_context = { project: project, active_date: object.assessment_date }
       definition
     end
 
@@ -104,33 +100,29 @@ module Types
       form_processor = load_ar_association(object, :form_processor)
       return unless form_processor.present?
 
-      # Construct AR scope if Disability records to use for the group
-      disability_record_ids = []
-      disability_record_ids << form_processor.physical_disability&.id
-      disability_record_ids << form_processor.developmental_disability&.id
-      disability_record_ids << form_processor.chronic_health_condition&.id
-      disability_record_ids << form_processor.hiv_aids&.id
-      disability_record_ids << form_processor.mental_health_disorder&.id
-      disability_record_ids << form_processor.substance_use_disorder&.id
-      disability_record_ids.compact!
-      scope = Hmis::Hud::Disability.where(id: disability_record_ids)
-      return if scope.empty?
+      # Load all the disability records
+      disability_records = [
+        :physical_disability,
+        :developmental_disability,
+        :chronic_health_condition,
+        :hiv_aids,
+        :mental_health_disorder,
+        :substance_use_disorder,
+      ].map { |d| load_ar_association(form_processor, d) }.compact
+      return if disability_records.empty? && enrollment.disabling_condition.nil?
 
-      # Build DisabilityGroup from the scope
-      disability_groups = resolve_disability_groups(scope)
-
-      # Error if there is more than one group. Could happen if records have different Data Collection Stages or Information dates or Users, which they shouldn't.
-      # raise 'Multiple disability groups constructed for one assessment' if disability_groups.size > 1
-
-      disability_groups.first
+      # Build OpenStruct for DisabilityGroup type
+      OpenStruct.new(
+        information_date: object.assessment_date,
+        data_collection_stage: object.data_collection_stage,
+        enrollment: enrollment,
+        user: user,
+        disabilities: disability_records,
+      )
     end
 
     def enrollment
       load_ar_association(object, :enrollment)
-    end
-
-    def user
-      load_ar_association(object, :user)
     end
   end
 end

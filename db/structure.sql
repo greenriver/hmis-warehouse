@@ -54,7 +54,7 @@ SET default_table_access_method = heap;
 
 CREATE TABLE public.access_controls (
     id bigint NOT NULL,
-    access_group_id bigint,
+    collection_id bigint,
     role_id bigint,
     user_group_id bigint,
     deleted_at timestamp without time zone,
@@ -449,6 +449,42 @@ ALTER SEQUENCE public.clients_unduplicated_id_seq OWNED BY public.clients_undupl
 
 
 --
+-- Name: collections; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.collections (
+    id bigint NOT NULL,
+    name character varying,
+    user_id bigint,
+    coc_codes jsonb DEFAULT '{}'::jsonb,
+    system jsonb DEFAULT '[]'::jsonb,
+    must_exist boolean DEFAULT false NOT NULL,
+    deleted_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: collections_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.collections_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: collections_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.collections_id_seq OWNED BY public.collections.id;
+
+
+--
 -- Name: consent_limits; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -611,7 +647,8 @@ CREATE TABLE public.hmis_access_controls (
     role_id bigint,
     deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    user_group_id bigint
 );
 
 
@@ -703,7 +740,12 @@ CREATE TABLE public.hmis_roles (
     can_manage_outgoing_referrals boolean DEFAULT false,
     can_manage_denied_referrals boolean DEFAULT false,
     can_enroll_clients boolean DEFAULT false,
-    can_view_open_enrollment_summary boolean DEFAULT false
+    can_view_open_enrollment_summary boolean DEFAULT false,
+    can_view_project boolean DEFAULT false,
+    can_view_hud_chronic_status boolean DEFAULT false,
+    can_merge_clients boolean DEFAULT false,
+    can_split_households boolean DEFAULT false,
+    can_transfer_enrollments boolean DEFAULT false
 );
 
 
@@ -757,6 +799,71 @@ CREATE SEQUENCE public.hmis_user_access_controls_id_seq
 --
 
 ALTER SEQUENCE public.hmis_user_access_controls_id_seq OWNED BY public.hmis_user_access_controls.id;
+
+
+--
+-- Name: hmis_user_group_members; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_user_group_members (
+    id bigint NOT NULL,
+    user_group_id bigint,
+    user_id bigint,
+    deleted_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_user_group_members_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_user_group_members_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_user_group_members_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_user_group_members_id_seq OWNED BY public.hmis_user_group_members.id;
+
+
+--
+-- Name: hmis_user_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_user_groups (
+    id bigint NOT NULL,
+    name character varying,
+    deleted_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_user_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_user_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_user_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_user_groups_id_seq OWNED BY public.hmis_user_groups.id;
 
 
 --
@@ -1006,6 +1113,115 @@ CREATE SEQUENCE public.nicknames_id_seq
 --
 
 ALTER SEQUENCE public.nicknames_id_seq OWNED BY public.nicknames.id;
+
+
+--
+-- Name: oauth_access_grants; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.oauth_access_grants (
+    id bigint NOT NULL,
+    resource_owner_id bigint NOT NULL,
+    application_id bigint NOT NULL,
+    token character varying NOT NULL,
+    expires_in integer NOT NULL,
+    redirect_uri text NOT NULL,
+    scopes character varying DEFAULT ''::character varying NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    revoked_at timestamp without time zone
+);
+
+
+--
+-- Name: oauth_access_grants_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.oauth_access_grants_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: oauth_access_grants_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.oauth_access_grants_id_seq OWNED BY public.oauth_access_grants.id;
+
+
+--
+-- Name: oauth_access_tokens; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.oauth_access_tokens (
+    id bigint NOT NULL,
+    resource_owner_id bigint,
+    application_id bigint NOT NULL,
+    token character varying NOT NULL,
+    refresh_token character varying,
+    expires_in integer,
+    scopes character varying,
+    created_at timestamp without time zone NOT NULL,
+    revoked_at timestamp without time zone,
+    previous_refresh_token character varying DEFAULT ''::character varying NOT NULL
+);
+
+
+--
+-- Name: oauth_access_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.oauth_access_tokens_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: oauth_access_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.oauth_access_tokens_id_seq OWNED BY public.oauth_access_tokens.id;
+
+
+--
+-- Name: oauth_applications; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.oauth_applications (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    uid character varying NOT NULL,
+    secret character varying NOT NULL,
+    redirect_uri text NOT NULL,
+    scopes character varying DEFAULT ''::character varying NOT NULL,
+    confidential boolean DEFAULT true NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: oauth_applications_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.oauth_applications_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: oauth_applications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.oauth_applications_id_seq OWNED BY public.oauth_applications.id;
 
 
 --
@@ -1356,10 +1572,13 @@ CREATE TABLE public.roles (
     can_view_cohort_client_changes_report boolean DEFAULT false,
     can_approve_careplan boolean DEFAULT false,
     can_manage_inbound_api_configurations boolean DEFAULT false,
-    system boolean DEFAULT false NOT NULL,
     can_view_client_enrollments_with_roi boolean DEFAULT false,
     can_search_clients_with_roi boolean DEFAULT false,
-    can_edit_theme boolean DEFAULT false
+    can_see_confidential_files boolean DEFAULT false,
+    can_edit_theme boolean DEFAULT false,
+    system boolean DEFAULT false NOT NULL,
+    can_edit_collections boolean DEFAULT false,
+    can_publish_reports boolean DEFAULT false
 );
 
 
@@ -1497,6 +1716,41 @@ ALTER SEQUENCE public.tags_id_seq OWNED BY public.tags.id;
 
 
 --
+-- Name: task_queues; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.task_queues (
+    id bigint NOT NULL,
+    task_key character varying,
+    active boolean DEFAULT true NOT NULL,
+    queued_at timestamp without time zone,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: task_queues_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.task_queues_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: task_queues_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.task_queues_id_seq OWNED BY public.task_queues.id;
+
+
+--
 -- Name: tokens; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1594,6 +1848,39 @@ CREATE SEQUENCE public.translation_texts_id_seq
 --
 
 ALTER SEQUENCE public.translation_texts_id_seq OWNED BY public.translation_texts.id;
+
+
+--
+-- Name: translations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.translations (
+    id bigint NOT NULL,
+    key character varying,
+    text character varying,
+    common boolean DEFAULT false NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: translations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.translations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: translations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.translations_id_seq OWNED BY public.translations.id;
 
 
 --
@@ -1872,7 +2159,8 @@ CREATE TABLE public.users (
     exclude_phone_from_directory boolean DEFAULT false,
     notify_on_new_account boolean DEFAULT false NOT NULL,
     credentials character varying,
-    hmis_unique_session_id character varying
+    hmis_unique_session_id character varying,
+    permission_context character varying DEFAULT 'role_based'::character varying
 );
 
 
@@ -2042,6 +2330,13 @@ ALTER TABLE ONLY public.clients_unduplicated ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: collections id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.collections ALTER COLUMN id SET DEFAULT nextval('public.collections_id_seq'::regclass);
+
+
+--
 -- Name: consent_limits id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2098,6 +2393,20 @@ ALTER TABLE ONLY public.hmis_user_access_controls ALTER COLUMN id SET DEFAULT ne
 
 
 --
+-- Name: hmis_user_group_members id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_user_group_members ALTER COLUMN id SET DEFAULT nextval('public.hmis_user_group_members_id_seq'::regclass);
+
+
+--
+-- Name: hmis_user_groups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_user_groups ALTER COLUMN id SET DEFAULT nextval('public.hmis_user_groups_id_seq'::regclass);
+
+
+--
 -- Name: imports id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2144,6 +2453,27 @@ ALTER TABLE ONLY public.messages ALTER COLUMN id SET DEFAULT nextval('public.mes
 --
 
 ALTER TABLE ONLY public.nicknames ALTER COLUMN id SET DEFAULT nextval('public.nicknames_id_seq'::regclass);
+
+
+--
+-- Name: oauth_access_grants id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_grants ALTER COLUMN id SET DEFAULT nextval('public.oauth_access_grants_id_seq'::regclass);
+
+
+--
+-- Name: oauth_access_tokens id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_tokens ALTER COLUMN id SET DEFAULT nextval('public.oauth_access_tokens_id_seq'::regclass);
+
+
+--
+-- Name: oauth_applications id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_applications ALTER COLUMN id SET DEFAULT nextval('public.oauth_applications_id_seq'::regclass);
 
 
 --
@@ -2210,6 +2540,13 @@ ALTER TABLE ONLY public.tags ALTER COLUMN id SET DEFAULT nextval('public.tags_id
 
 
 --
+-- Name: task_queues id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.task_queues ALTER COLUMN id SET DEFAULT nextval('public.task_queues_id_seq'::regclass);
+
+
+--
 -- Name: tokens id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2228,6 +2565,13 @@ ALTER TABLE ONLY public.translation_keys ALTER COLUMN id SET DEFAULT nextval('pu
 --
 
 ALTER TABLE ONLY public.translation_texts ALTER COLUMN id SET DEFAULT nextval('public.translation_texts_id_seq'::regclass);
+
+
+--
+-- Name: translations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.translations ALTER COLUMN id SET DEFAULT nextval('public.translations_id_seq'::regclass);
 
 
 --
@@ -2382,6 +2726,14 @@ ALTER TABLE ONLY public.clients_unduplicated
 
 
 --
+-- Name: collections collections_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.collections
+    ADD CONSTRAINT collections_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: consent_limits consent_limits_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2446,6 +2798,22 @@ ALTER TABLE ONLY public.hmis_user_access_controls
 
 
 --
+-- Name: hmis_user_group_members hmis_user_group_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_user_group_members
+    ADD CONSTRAINT hmis_user_group_members_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_user_groups hmis_user_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_user_groups
+    ADD CONSTRAINT hmis_user_groups_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: imports imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2499,6 +2867,30 @@ ALTER TABLE ONLY public.messages
 
 ALTER TABLE ONLY public.nicknames
     ADD CONSTRAINT nicknames_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth_access_grants oauth_access_grants_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_grants
+    ADD CONSTRAINT oauth_access_grants_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth_access_tokens oauth_access_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_tokens
+    ADD CONSTRAINT oauth_access_tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth_applications oauth_applications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_applications
+    ADD CONSTRAINT oauth_applications_pkey PRIMARY KEY (id);
 
 
 --
@@ -2582,6 +2974,14 @@ ALTER TABLE ONLY public.tags
 
 
 --
+-- Name: task_queues task_queues_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.task_queues
+    ADD CONSTRAINT task_queues_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: tokens tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2603,6 +3003,14 @@ ALTER TABLE ONLY public.translation_keys
 
 ALTER TABLE ONLY public.translation_texts
     ADD CONSTRAINT translation_texts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: translations translations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.translations
+    ADD CONSTRAINT translations_pkey PRIMARY KEY (id);
 
 
 --
@@ -2692,10 +3100,10 @@ CREATE UNIQUE INDEX idx_oauth_on_provider_and_uid ON public.oauth_identities USI
 
 
 --
--- Name: index_access_controls_on_access_group_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_access_controls_on_collection_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_access_controls_on_access_group_id ON public.access_controls USING btree (access_group_id);
+CREATE INDEX index_access_controls_on_collection_id ON public.access_controls USING btree (collection_id);
 
 
 --
@@ -2825,6 +3233,13 @@ CREATE INDEX index_agencies_consent_limits_on_consent_limit_id ON public.agencie
 
 
 --
+-- Name: index_collections_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_collections_on_user_id ON public.collections USING btree (user_id);
+
+
+--
 -- Name: index_consent_limits_on_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2867,6 +3282,13 @@ CREATE INDEX index_hmis_access_controls_on_role_id ON public.hmis_access_control
 
 
 --
+-- Name: index_hmis_access_controls_on_user_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_access_controls_on_user_group_id ON public.hmis_access_controls USING btree (user_group_id);
+
+
+--
 -- Name: index_hmis_user_access_controls_on_access_control_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2878,6 +3300,20 @@ CREATE INDEX index_hmis_user_access_controls_on_access_control_id ON public.hmis
 --
 
 CREATE INDEX index_hmis_user_access_controls_on_user_id ON public.hmis_user_access_controls USING btree (user_id);
+
+
+--
+-- Name: index_hmis_user_group_members_on_user_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_user_group_members_on_user_group_id ON public.hmis_user_group_members USING btree (user_group_id);
+
+
+--
+-- Name: index_hmis_user_group_members_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_user_group_members_on_user_id ON public.hmis_user_group_members USING btree (user_id);
 
 
 --
@@ -2899,6 +3335,62 @@ CREATE INDEX index_login_activities_on_identity ON public.login_activities USING
 --
 
 CREATE INDEX index_login_activities_on_ip ON public.login_activities USING btree (ip);
+
+
+--
+-- Name: index_oauth_access_grants_on_application_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_oauth_access_grants_on_application_id ON public.oauth_access_grants USING btree (application_id);
+
+
+--
+-- Name: index_oauth_access_grants_on_resource_owner_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_oauth_access_grants_on_resource_owner_id ON public.oauth_access_grants USING btree (resource_owner_id);
+
+
+--
+-- Name: index_oauth_access_grants_on_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_oauth_access_grants_on_token ON public.oauth_access_grants USING btree (token);
+
+
+--
+-- Name: index_oauth_access_tokens_on_application_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_oauth_access_tokens_on_application_id ON public.oauth_access_tokens USING btree (application_id);
+
+
+--
+-- Name: index_oauth_access_tokens_on_refresh_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_oauth_access_tokens_on_refresh_token ON public.oauth_access_tokens USING btree (refresh_token);
+
+
+--
+-- Name: index_oauth_access_tokens_on_resource_owner_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_oauth_access_tokens_on_resource_owner_id ON public.oauth_access_tokens USING btree (resource_owner_id);
+
+
+--
+-- Name: index_oauth_access_tokens_on_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_oauth_access_tokens_on_token ON public.oauth_access_tokens USING btree (token);
+
+
+--
+-- Name: index_oauth_applications_on_uid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_oauth_applications_on_uid ON public.oauth_applications USING btree (uid);
 
 
 --
@@ -3056,6 +3548,13 @@ CREATE INDEX index_translation_texts_on_translation_key_id ON public.translation
 
 
 --
+-- Name: index_translations_on_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_translations_on_key ON public.translations USING btree (key);
+
+
+--
 -- Name: index_two_factors_memorized_devices_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3183,6 +3682,14 @@ ALTER TABLE ONLY public.user_roles
 
 
 --
+-- Name: oauth_access_grants fk_rails_330c32d8d9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_grants
+    ADD CONSTRAINT fk_rails_330c32d8d9 FOREIGN KEY (resource_owner_id) REFERENCES public.users(id);
+
+
+--
 -- Name: user_roles fk_rails_3369e0d5fc; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3207,6 +3714,14 @@ ALTER TABLE ONLY public.two_factors_memorized_devices
 
 
 --
+-- Name: oauth_access_tokens fk_rails_732cb83ab7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_tokens
+    ADD CONSTRAINT fk_rails_732cb83ab7 FOREIGN KEY (application_id) REFERENCES public.oauth_applications(id);
+
+
+--
 -- Name: active_storage_variant_records fk_rails_993965df05; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3223,6 +3738,14 @@ ALTER TABLE ONLY public.reports
 
 
 --
+-- Name: oauth_access_grants fk_rails_b4b53e07b8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_grants
+    ADD CONSTRAINT fk_rails_b4b53e07b8 FOREIGN KEY (application_id) REFERENCES public.oauth_applications(id);
+
+
+--
 -- Name: active_storage_attachments fk_rails_c3b3935057; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3236,6 +3759,14 @@ ALTER TABLE ONLY public.active_storage_attachments
 
 ALTER TABLE ONLY public.report_results
     ADD CONSTRAINT fk_rails_cd0d43bf48 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: oauth_access_tokens fk_rails_ee63f25419; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.oauth_access_tokens
+    ADD CONSTRAINT fk_rails_ee63f25419 FOREIGN KEY (resource_owner_id) REFERENCES public.users(id);
 
 
 --
@@ -3482,26 +4013,44 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230322195141'),
 ('20230322204908'),
 ('20230328150855'),
-('20230329102609'),
-('20230329112926'),
-('20230329112954'),
 ('20230330161305'),
 ('20230412142430'),
 ('20230418170053'),
 ('20230420195221'),
+('20230424123118'),
 ('20230426170051'),
+('20230429102609'),
+('20230429112926'),
+('20230429112954'),
 ('20230509131056'),
 ('20230511132156'),
 ('20230511152438'),
 ('20230512175436'),
 ('20230513203001'),
-('20230514123118'),
 ('20230516131951'),
+('20230522111726'),
+('20230525153134'),
+('20230528142249'),
+('20230528143426'),
+('20230530183732'),
 ('20230623113136'),
 ('20230711223507'),
+('20230723145218'),
 ('20230726183720'),
 ('20230730013646'),
 ('20230730013746'),
-('20230730021030');
+('20230730021030'),
+('20230807121912'),
+('20230807142127'),
+('20230807193335'),
+('20230910175113'),
+('20230910175333'),
+('20230910180118'),
+('20230916124819'),
+('20230918231940'),
+('20230923000619'),
+('20230927131152'),
+('20231009120833'),
+('20231017185729');
 
 

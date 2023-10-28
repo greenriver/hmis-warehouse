@@ -138,6 +138,48 @@ module HmisStructure::Organization
             null: false,
           },
         }
+      when '2024'
+        {
+          OrganizationID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          OrganizationName: {
+            type: :string,
+            limit: 200,
+            null: false,
+          },
+          VictimServiceProvider: {
+            type: :integer,
+            null: false,
+          },
+          OrganizationCommonName: {
+            type: :string,
+            limit: 200,
+          },
+          DateCreated: {
+            type: :datetime,
+            null: false,
+          },
+          DateUpdated: {
+            type: :datetime,
+            null: false,
+          },
+          UserID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          DateDeleted: {
+            type: :datetime,
+          },
+          ExportID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+        }
       end
     end
 

@@ -86,6 +86,79 @@ module HmisStructure::CurrentLivingSituation
             null: false,
           },
         }
+      when '2024'
+        {
+          CurrentLivingSitID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          EnrollmentID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          PersonalID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          InformationDate: {
+            type: :date,
+            null: false,
+          },
+          CurrentLivingSituation: {
+            type: :integer,
+            null: false,
+          },
+          CLSSubsidyType: {
+            type: :integer,
+          },
+          VerifiedBy: {
+            type: :string,
+            limit: 100,
+          },
+          LeaveSituation14Days: {
+            type: :integer,
+          },
+          SubsequentResidence: {
+            type: :integer,
+          },
+          ResourcesToObtain: {
+            type: :integer,
+          },
+          LeaseOwn60Day: {
+            type: :integer,
+          },
+          MovedTwoOrMore: {
+            type: :integer,
+          },
+          LocationDetails: {
+            type: :string,
+            limit: 250,
+          },
+          DateCreated: {
+            type: :datetime,
+            null: false,
+          },
+          DateUpdated: {
+            type: :datetime,
+            null: false,
+          },
+          UserID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+          DateDeleted: {
+            type: :datetime,
+          },
+          ExportID: {
+            type: :string,
+            limit: 32,
+            null: false,
+          },
+        }
       end
     end
 

@@ -1,4 +1,6 @@
 wb = xlsx_package.workbook
+# DEPRECATED_FY2024 - unsure if this is still in use.
+# TODO: We should update or remove once we determine current state
 wb.add_worksheet(name: 'Youth Intakes') do |sheet|
   intake_order = [
     :entered_by_user,
@@ -26,7 +28,6 @@ wb.add_worksheet(name: 'Youth Intakes') do |sheet|
     :gender,
     :client_lgbtq,
     :race_array,
-    :ethnicity_description,
     :client_primary_language,
     :pregnant_or_parenting,
     :disabilities,

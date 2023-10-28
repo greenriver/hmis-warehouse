@@ -8,7 +8,7 @@
       %td
         - if data_span = @data_source.data_span
           = "#{data_span[:start_date]} - #{data_span[:end_date]}"
-    - if ! @data_source.authoritative? && can_view_imports? && @data_source.uploads.any? && @data_source.directly_viewable_by?(current_user)
+    - if (!@data_source.authoritative? || @data_source.hmis?) && can_view_imports? && @data_source.uploads.any? && @data_source.directly_viewable_by?(current_user, permission: :can_view_imports)
       %tr
         %th.pl-2 Uploads
         %td
@@ -19,6 +19,11 @@
         %th.pl-2 Dashboard Extras Uploads
         %td
           = link_to 'View', data_source_non_hmis_uploads_path(@data_source)
+    - if @data_source.hmis?
+      %tr
+        %th.pl-2 HMIS URL
+        %td
+          %a{ :href => "https://#{@data_source.hmis}", :title => "HMIS" }= @data_source.hmis
     - if can_edit_data_sources?
       %tr
         %th.pl-2
@@ -55,5 +60,5 @@
         %td= yes_no(@data_source.service_scannable)
     %tr
       %th.pl-2 Viewable by the following users, regardless of visibility in window
-      %td= @data_source.users.active.joins(:roles).where(roles: {can_view_clients: true}).diet.distinct.map(&:name).join(', ')
+      %td= @data_source.users.active.joins(:roles).where(roles: {can_view_clients: true}).diet.map(&:name).uniq.join(', ')
   .text-right.m-2.mb-4

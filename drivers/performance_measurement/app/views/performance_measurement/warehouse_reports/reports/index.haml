@@ -1,8 +1,9 @@
-- title = _('CoC Performance Measurement Dashboard')
+- title = Translation.translate('CoC Performance Measurement Dashboard')
 - content_for :title, title
 
 = render '/warehouse_reports/breadcrumbs', tab: 'performance'
 %h1.mb-5= title
-
+.mt-4
+  = render '/warehouse_reports/twenty_twenty_four_warning'
 = render 'form'
 = render 'history_table'

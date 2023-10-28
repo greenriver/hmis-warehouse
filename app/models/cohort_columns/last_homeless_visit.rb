@@ -8,7 +8,7 @@ module CohortColumns
   class LastHomelessVisit < ReadOnly
     attribute :column, String, lazy: true, default: :last_seen
     attribute :translation_key, String, lazy: true, default: 'Last Seen'
-    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
+    attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
 
     def available_for_rules?
       false

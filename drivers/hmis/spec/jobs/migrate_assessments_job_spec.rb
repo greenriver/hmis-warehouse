@@ -41,10 +41,9 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
         records << create(:hmis_youth_education_status, **shared_attributes, date_created: date - 2.days)
         # Offset some of the date_updated values to ensure latest is chosen
         records << create(:hmis_employment_education, **shared_attributes, date_updated: date - 7.days)
-        records << create(:hmis_enrollment_coc, **shared_attributes, date_updated: date - 3.days)
 
         # create 1 record per disability type
-        HudUtility.disability_types.keys.each do |typ|
+        HudUtility2024.disability_types.keys.each do |typ|
           records << create(:hmis_disability, disability_type: typ, **shared_attributes)
         end
 
@@ -82,7 +81,6 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
           related_records = [
             :health_and_dv,
             :income_benefit,
-            :enrollment_coc,
             :physical_disability,
             :developmental_disability,
             :chronic_health_condition,
@@ -116,14 +114,71 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
     end
 
     describe 'bad data' do
-      # Not handled yet, job should probably be made more robust in dealing with bad data
-      xit 'doesnt create a second intake assessment' do
+      it 'doesnt create a second intake assessment' do
         # Create a second IncomeBenefit record at Entry that has a different information date
         create(:hmis_income_benefit, data_source: ds1, enrollment: e1, client: c1, data_collection_stage: 1, information_date: 1.week.ago)
 
         Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id)
 
         expect(e1.custom_assessments.intakes.count).to eq(1)
+      end
+
+      it 'deletes dangling records if specified (duplicates)' do
+        dup1 = create(:hmis_income_benefit, data_source: ds1, enrollment: e1, client: c1, data_collection_stage: 1, information_date: 1.week.ago, date_created: 2.month.ago, date_updated: 2.months.ago)
+        dup2 = create(:hmis_income_benefit, data_source: ds1, enrollment: e1, client: c1, data_collection_stage: 1, information_date: 1.week.ago, date_created: 3.months.ago, date_updated: 3.months.ago)
+
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, delete_dangling_records: true)
+
+        expect(e1.custom_assessments.intakes.count).to eq(1)
+
+        [dup1, dup2].each(&:reload)
+        expect(dup1.date_deleted).to be_present
+        expect(dup2.date_deleted).to be_present
+      end
+
+      it 'deletes dangling records if specified (exit dcs on open en)' do
+        # Remove exit for e1
+        e1.exit.destroy
+
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, delete_dangling_records: true)
+
+        expect(e1.custom_assessments.intakes.count).to eq(1)
+        expect(e1.custom_assessments.exits.count).to eq(0) # no exit assessment created
+
+        # Exit-related records should all be deleted
+        records_by_data_collaction_stage[3].each(&:reload).each do |record|
+          expect(record.date_deleted).to be_present, record.class.name
+        end
+      end
+
+      it 'prefers specific source hash for duplicate records' do
+        education_status1 = records_by_data_collaction_stage[1].find { |record| record.instance_of?(Hmis::Hud::YouthEducationStatus) }
+        # create a duplicate record that is older, but has the preferred hash
+        education_status2 = create(:hmis_youth_education_status, source_hash: 'PREFERRED_HASH', date_created: education_status1.date_updated - 1.day, **education_status1.slice(:data_source, :enrollment, :client, :data_collection_stage, :information_date, :date_created))
+
+        # without hash preference, it should choose education_status1
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id)
+        expect(e1.custom_assessments.intakes.first.form_processor.youth_education_status).to eq(education_status1)
+
+        # with hash preference, it should choose education_status2
+        e1.custom_assessments.intakes.first.destroy!
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, delete_dangling_records: true, preferred_source_hash: 'PREFERRED_HASH')
+
+        expect(e1.custom_assessments.intakes.count).to eq(1)
+        expect(e1.custom_assessments.intakes.first.form_processor.youth_education_status).to eq(education_status2)
+
+        education_status1.reload
+        expect(education_status1.date_deleted).to be_present
+      end
+
+      it 'attaches record to exit assessment even if the information date is null' do
+        health_and_dv = records_by_data_collaction_stage[3].find { |record| record.instance_of?(Hmis::Hud::HealthAndDv) }
+        health_and_dv.update(information_date: nil)
+
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id)
+
+        expect(e1.custom_assessments.exits.count).to eq(1)
+        expect(e1.custom_assessments.exits.first.form_processor.health_and_dv).to eq(health_and_dv)
       end
     end
   end

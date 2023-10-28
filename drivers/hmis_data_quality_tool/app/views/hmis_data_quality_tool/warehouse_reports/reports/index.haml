@@ -3,4 +3,7 @@
 = render '/warehouse_reports/breadcrumbs', tab: 'data-quality'
 %h1.mb-5= @report.title
 = render 'common/background_report/job_form', show_organization_picker: true
+.d-flex
+  .ml-auto.mb-4
+    = render 'common/background_report/history_filter'
 = render 'common/background_report/history_table'

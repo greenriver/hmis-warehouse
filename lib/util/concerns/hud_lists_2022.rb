@@ -703,7 +703,7 @@ module Concerns::HudLists2022
     # 4.14
     def bed_night_options
       {
-        200 => 'BedNight',
+        200 => 'Bed Night',
       }.freeze
     end
 
@@ -2008,7 +2008,7 @@ module Concerns::HudLists2022
     end
 
     # race
-    def races
+    def race_field_name_to_description
       {
         'AmIndAKNative' => 'American Indian, Alaska Native, or Indigenous',
         'Asian' => 'Asian or Asian American',
@@ -2020,7 +2020,7 @@ module Concerns::HudLists2022
     end
 
     def race(id, reverse = false)
-      _translate races, id, reverse
+      _translate race_field_name_to_description, id, reverse
     end
   end
 end

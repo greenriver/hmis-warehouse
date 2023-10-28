@@ -9,21 +9,21 @@
 module Types
   class HmisSchema::Exit < Types::BaseObject
     include Types::HmisSchema::HasCustomDataElements
+    include Types::HmisSchema::HasHudMetadata
 
     def self.configuration
-      Hmis::Hud::Exit.hmis_configuration(version: '2022')
+      Hmis::Hud::Exit.hmis_configuration(version: '2024')
     end
 
     field :id, ID, null: false
     field :enrollment, HmisSchema::Enrollment, null: false
     field :client, HmisSchema::Client, null: false
-    field :user, HmisSchema::User, null: true
     # 3.11
+    # WARNING: ExitDate is nullable in the database. It should be updated.
     hud_field :exit_date, null: false
     # 3.12
-    hud_field :destination, Types::HmisSchema::Enums::Hud::Destination, null: false
-    # TODO(2024) enable
-    # hud_field :destination_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
+    hud_field :destination, Types::HmisSchema::Enums::Hud::Destination, null: false, default_value: 99
+    hud_field :destination_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
     hud_field :other_destination
     # W5
     hud_field :housing_assessment, Types::HmisSchema::Enums::Hud::HousingAssessmentAtExit
@@ -63,9 +63,7 @@ module Types
     field :aftercare_methods, [Types::HmisSchema::Enums::AftercareMethod]
     # V1
     hud_field :cm_exit_reason, Types::HmisSchema::Enums::Hud::CmExitReason
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
+
     custom_data_elements_field
 
     def enrollment
@@ -74,10 +72,6 @@ module Types
 
     def client
       load_ar_association(object, :client)
-    end
-
-    def user
-      load_ar_association(object, :user)
     end
   end
 end

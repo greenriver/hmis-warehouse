@@ -9,19 +9,21 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   include ::HmisStructure::Client
   include ::Hmis::Hud::Concerns::Shared
   include ::HudConcerns::Client
+  include ::HudChronicDefinition
   include ClientSearch
 
   attr_accessor :gender, :race
 
   self.table_name = :Client
   self.sequence_name = "public.\"#{table_name}_id_seq\""
-  self.ignored_columns = ['preferred_name']
+  self.ignored_columns += [:preferred_name]
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
-  has_many :names, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client
-  has_many :addresses, **hmis_relation(:PersonalID, 'CustomClientAddress'), inverse_of: :client
-  has_many :contact_points, **hmis_relation(:PersonalID, 'CustomClientContactPoint'), inverse_of: :client
+  has_many :names, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client, dependent: :destroy
+  has_many :addresses, **hmis_relation(:PersonalID, 'CustomClientAddress'), inverse_of: :client, dependent: :destroy
+  has_many :contact_points, **hmis_relation(:PersonalID, 'CustomClientContactPoint'), inverse_of: :client, dependent: :destroy
+  has_many :custom_case_notes, **hmis_relation(:PersonalID, 'CustomCaseNote'), inverse_of: :client, dependent: :destroy
   has_one :primary_name, -> { where(primary: true) }, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client
 
   # Enrollments for this Client, including WIP Enrollments
@@ -44,32 +46,35 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :client
   has_many :current_living_situations, through: :enrollments
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
-  has_many :custom_data_elements, as: :owner
+  has_many :custom_data_elements, as: :owner, dependent: :destroy
   has_many :client_projects
   has_many :projects_including_wip, through: :client_projects, source: :project
+
+  # History of merges into this client
+  has_many :merge_histories, class_name: 'Hmis::ClientMergeHistory', primary_key: :id, foreign_key: :retained_client_id
+  # History of this client being merged into other clients (only present for deleted clients)
+  has_many :reverse_merge_histories, class_name: 'Hmis::ClientMergeHistory', primary_key: :id, foreign_key: :deleted_client_id
+  # Merge Audits for merges into this client
+  has_many :merge_audits, -> { distinct }, through: :merge_histories, source: :client_merge_audit
+  # Merge Audits for merges from this client into another client
+  has_many :reverse_merge_audits, -> { distinct }, through: :reverse_merge_histories, source: :client_merge_audit
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
   accepts_nested_attributes_for :names, allow_destroy: true
   accepts_nested_attributes_for :addresses, allow_destroy: true
   accepts_nested_attributes_for :contact_points, allow_destroy: true
 
-  # NOTE: only used for getting the client's Warehouse ID. Should not be used for anything else. See #184132767
-  has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source
+  # NOTE: only used for getting the client's Warehouse ID, or finding potential duplicates.
+  has_one :warehouse_client_source, class_name: 'Hmis::WarehouseClient', foreign_key: :source_id, inverse_of: :source
+  has_one :destination_client, through: :warehouse_client_source, source: :destination, inverse_of: :source_clients
+  has_many :warehouse_client_destination, class_name: 'Hmis::WarehouseClient', foreign_key: :destination_id, inverse_of: :destination
+  has_many :source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
 
-  validates_with Hmis::Hud::Validators::ClientValidator
-
-  CUSTOM_NAME_OPTIONS = {
-    association: :names,
-    klass: Hmis::Hud::CustomClientName,
-    field_map: {
-      FirstName: :first,
-      LastName: :last,
-    },
-  }.freeze
+  validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 
   attr_accessor :image_blob_id
-  attr_accessor :create_mci_id
-  attr_accessor :update_mci_attributes
+  after_create :warehouse_identify_duplicate_clients
+  after_update :warehouse_match_existing_clients
   after_save do
     current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
     self.image_blob_id = nil
@@ -86,25 +91,12 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
-  after_save do
-    if HmisExternalApis::AcHmis::Mci.enabled?
-      # Create a new MCI ID if specified by the ClientProcessor
-      if create_mci_id
-        self.create_mci_id = nil
-        HmisExternalApis::AcHmis::Mci.new.create_mci_id(self)
-      end
-
-      # For MCI-linked clients, we notify the MCI any time relevant fields change (name, dob, etc).
-      # 'update_mci_attributes' attr is specified by the ClientProcessor
-      if update_mci_attributes
-        self.update_mci_attributes = nil
-        trigger_columns = HmisExternalApis::AcHmis::UpdateMciClientJob::MCI_CLIENT_COLS
-        relevant_fields_changed = trigger_columns.any? { |field| previous_changes&.[](field) }
-        HmisExternalApis::AcHmis::UpdateMciClientJob.perform_later(client_id: id) if relevant_fields_changed
-      end
-    end
-  end
-
+  # Includes clients where..
+  #  1. The Client has enrollment(s) at any Project where the User has this specified Permissions(s)
+  #     OR,
+  #  2. The Client has NO enrollments AND the User has these Permission(s) at _any_ project
+  #
+  # NOTE: This could include clients that are enrolled at projects that the User can't necessarily see (e.g. they lack can_view_projects at that project).
   scope :with_access, ->(user, *permissions, **kwargs) do
     pids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id)
 
@@ -128,11 +120,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :matching_search_term, ->(text_search) do
-    text_searcher(text_search, custom_name_options: CUSTOM_NAME_OPTIONS) do |where|
-      left_outer_joins(:names).where(where).pluck(:id)
-    rescue RangeError
-      return none
-    end
+    text_searcher(text_search, sorted: true)
   end
 
   scope :older_than, ->(age, or_equal: false) do
@@ -146,6 +134,33 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   scope :unenrolled, -> do
     # Clients that have no projects, AND no wip enrollments
     left_outer_joins(:projects, :wip).where(p_t[:id].eq(nil).and(wip_t[:id].eq(nil)))
+  end
+
+  scope :with_open_enrollment_in_project, ->(project_ids) do
+    joins(:projects_including_wip).where(p_t[:id].in(Array.wrap(project_ids)))
+  end
+
+  scope :with_open_enrollment_in_organization, ->(organization_ids) do
+    tuples = Hmis::Hud::Organization.where(id: Array.wrap(organization_ids)).pluck(:data_source_id, :organization_id)
+    ds_ids = tuples.map(&:first).compact.map(&:to_i).uniq
+    hud_org_ids = tuples.map(&:second)
+    raise 'orgs are in multiple data sources' if ds_ids.size > 1
+
+    joins(:projects_including_wip).where(p_t[:organization_id].in(hud_org_ids).and(p_t[:data_source_id].eq(ds_ids.first)))
+  end
+
+  def build_primary_custom_client_name
+    return unless names.empty?
+
+    names.new(
+      primary: true,
+      first: first_name,
+      last: last_name,
+      middle: middle_name,
+      suffix: name_suffix,
+      user_id: user_id || Hmis::Hud::User.system_user(data_source_id: data_source_id).user_id,
+      **slice(:name_data_quality, :data_source_id, :date_created, :date_updated),
+    )
   end
 
   def enrolled?
@@ -168,35 +183,28 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   SORT_OPTIONS = [
+    :best_match,
     :last_name_a_to_z,
     :last_name_z_to_a,
     :first_name_a_to_z,
     :first_name_z_to_a,
     :age_youngest_to_oldest,
     :age_oldest_to_youngest,
+    :recently_added,
   ].freeze
 
   SORT_OPTION_DESCRIPTIONS = {
+    best_match: 'Most Relevant',
     last_name_a_to_z: 'Last Name: A-Z',
     last_name_z_to_a: 'Last Name: Z-A',
     first_name_a_to_z: 'First Name: A-Z',
     first_name_z_to_a: 'First Name: Z-A',
     age_youngest_to_oldest: 'Age: Youngest to Oldest',
     age_oldest_to_youngest: 'Age: Oldest to Youngest',
+    recently_added: 'Recently Added',
   }.freeze
 
-  # Unused
-  def fake_client_image_data
-    gender = if self[:Male].in?([1]) then 'male' else 'female' end
-    age_group = if age.blank? || age > 18 then 'adults' else 'children' end
-    image_directory = File.join('public', 'fake_photos', age_group, gender)
-    available = Dir[File.join(image_directory, '*.jpg')]
-    image_id = "#{self.FirstName}#{self.LastName}".sum % available.count
-    Rails.logger.debug "Client#image id:#{self.id} faked #{self.PersonalID} #{available.count} #{available[image_id]}" # rubocop:disable Style/RedundantSelf
-    image_data = File.read(available[image_id]) # rubocop:disable Lint/UselessAssignment
-  end
-
-  def self.client_search(input:, user: nil)
+  def self.client_search(input:, user: nil, sorted: false)
     # Apply ID searches directly, as they can only ever return a single client
     return searchable_to(user).where(id: input.id) if input.id.present?
     return searchable_to(user).where(PersonalID: input.personal_id) if input.personal_id
@@ -204,11 +212,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
     # Build search scope
     scope = Hmis::Hud::Client.where(id: searchable_to(user).select(:id))
-    if input.text_search.present?
-      scope = text_searcher(input.text_search, custom_name_options: CUSTOM_NAME_OPTIONS) do |where|
-        scope.left_outer_joins(:names).where(where).pluck(:id)
-      end
-    end
+    # early return to preserve sort order, avoids client.where(id: scope.select(:id))
+    return scope.text_searcher(input.text_search, sorted: sorted) if input.text_search.present?
 
     if input.first_name.present?
       query = c_t[:FirstName].matches("#{input.first_name}%")
@@ -246,6 +251,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 
     case option
+    when :best_match
+      current_scope # no order, use text search rank
     when :last_name_a_to_z
       order(arel_table[:last_name].asc.nulls_last)
     when :last_name_z_to_a
@@ -265,11 +272,15 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
+  def self.apply_filters(input)
+    Hmis::Filter::ClientFilter.new(input).filter_scope(self)
+  end
+
   # fix these so they use DATA_NOT_COLLECTED And the other standard names
-  use_enum(:gender_enum_map, ::HudUtility.genders) do |hash|
+  use_enum(:gender_enum_map, ::HudUtility2024.genders) do |hash|
     hash.map do |value, desc|
       {
-        key: [8, 9, 99].include?(value) ? desc : ::HudUtility.gender_id_to_field_name[value],
+        key: [8, 9, 99].include?(value) ? desc : ::HudUtility2024.gender_id_to_field_name[value],
         value: value,
         desc: desc,
         null: [8, 9, 99].include?(value),
@@ -277,7 +288,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     end
   end
 
-  use_enum(:race_enum_map, ::HudUtility.races.except('RaceNone'), include_base_null: true) do |hash|
+  use_enum(:race_enum_map, ::HudUtility2024.races.except('RaceNone'), include_base_null: true) do |hash|
     hash.map do |value, desc|
       {
         key: value,
@@ -299,6 +310,29 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # Mirrors `clientBriefName` in frontend
   def brief_name
     [first_name, last_name].compact.join(' ')
+  end
+
+  def full_name
+    [first_name, middle_name, last_name, name_suffix].compact.join(' ')
+  end
+
+  # Run if we changed name/DOB/SSN
+  private def warehouse_match_existing_clients
+    return unless warehouse_columns_changed?
+    return if Delayed::Job.queued?(['GrdaWarehouse::Tasks::IdentifyDuplicates', 'match_existing!'])
+
+    GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).match_existing!
+  end
+
+  # Run when we add a new client to the system
+  private def warehouse_identify_duplicate_clients
+    return if Delayed::Job.where(failed_at: nil, locked_at: nil).jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').jobs_for_class('run!').exists?
+
+    GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run!
+  end
+
+  private def warehouse_columns_changed?
+    (saved_changes.keys & ['FirstName', 'LastName', 'DOB', 'SSN', 'DateDeleted']).any?
   end
 
   include RailsDrivers::Extensions

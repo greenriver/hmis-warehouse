@@ -17,7 +17,7 @@ module HudApr
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
         merge(::HudReports::ReportInstance.where(id: @report.id))
-      @name = "#{generator.file_prefix} #{@question} #{@cell}"
+      @name = "#{generator.file_prefix} #{@question} #{@table} #{@cell}"
       respond_to do |format|
         format.html {}
         format.xlsx do

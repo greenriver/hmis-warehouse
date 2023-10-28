@@ -16,11 +16,17 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :projects
-  has_many :custom_data_elements, as: :owner
+  has_many :custom_data_elements, as: :owner, dependent: :destroy
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
   SORT_OPTIONS = [:start_date].freeze
+
+  scope :open_on_date, ->(date = Date.current) do
+    on_or_after_start = f_t[:start_date].lteq(date)
+    on_or_before_end = f_t[:end_date].eq(nil).or(f_t[:end_date].gteq(date))
+    where(on_or_after_start.and(on_or_before_end))
+  end
 
   # Convert funder string to int #183572073
   def Funder # rubocop:disable Naming/MethodName
@@ -47,9 +53,11 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
     ]
   end
 
-  def active
-    return true unless end_date.present?
+  def active_on?(date = Date.current)
+    return false if start_date.nil?
+    return false if start_date > date
 
-    end_date >= Date.current
+    end_date.nil? || end_date >= date
   end
+  alias active? active_on?
 end

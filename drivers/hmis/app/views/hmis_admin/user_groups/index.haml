@@ -1,0 +1,33 @@
+- content_for :title, 'HMIS Group Administration'
+%h1= content_for :title
+= render 'hmis_admin/tabs', active_tab: :user_groups
+
+.alert.alert-info
+  %i.icon-warning.mr-4
+  %p User Groups are a set of users who should all have similar abilities within HMIS.  Access Controls can then use User Groups to assign those permissions.
+.text-right
+  = link_to new_hmis_admin_user_group_path, class: 'btn btn-primary mb-2' do
+    %span.icon-plus
+    Add a User Group
+- if @pagy.count.positive?
+  = render 'common/pagination_top', item_name: 'user group'
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Group Name
+          %th.text-center Users
+          %th
+      %tbody
+        - @user_groups.each do |user_group|
+          %tr
+            %td= link_to user_group.name, edit_hmis_admin_user_group_path(user_group)
+            %td.text-center= user_group.users.count
+            %td
+              - unless user_group.users.count.positive?
+                = link_to hmis_admin_user_group_path(user_group),  method: :delete, data: {confirm: "Would you really like to delete the user group #{user_group.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
+                  %span.icon-cross
+                  Delete
+  = render 'common/pagination_bottom', item_name: 'user group'
+- else
+  .none-found No groups found.

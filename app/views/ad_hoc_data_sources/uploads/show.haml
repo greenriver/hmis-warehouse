@@ -46,7 +46,7 @@
                 %th SSN
                 %th DOB
                 %th Possible Matches
-                %th.text-center= _('Health Priority')
+                %th.text-center= Translation.translate('Health Priority')
             %tbody
               - @upload.ad_hoc_clients.find_each.with_index do |client, i|
                 - odd_class = if i.even? then 'even' else 'odd' end

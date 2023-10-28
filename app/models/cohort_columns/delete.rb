@@ -8,7 +8,7 @@ module CohortColumns
   class Delete < Base
     include ArelHelper
     attribute :column, String, lazy: true, default: :delete
-    attribute :title, String, lazy: true, default: _('Delete')
+    attribute :title, String, lazy: true, default: Translation.translate('Delete')
 
     def available_for_rules?
       false

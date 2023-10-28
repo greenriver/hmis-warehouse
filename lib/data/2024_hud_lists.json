@@ -348,6 +348,68 @@
     ]
   },
   {
+    "name": "ProjectTypeBrief",
+    "code": "2.02.6.brief",
+    "values": [
+      {
+        "key": 0,
+        "description": "ES - Entry/Exit"
+      },
+      {
+        "key": 1,
+        "description": "ES - NBN"
+      },
+      {
+        "key": 2,
+        "description": "TH"
+      },
+      {
+        "key": 3,
+        "description": "PH - PSH"
+      },
+      {
+        "key": 4,
+        "description": "SO"
+      },
+      {
+        "key": 6,
+        "description": "SSO"
+      },
+      {
+        "key": 8,
+        "description": "SH"
+      },
+      {
+        "key": 9,
+        "description": "PH - PH"
+      },
+      {
+        "key": 7,
+        "description": "Other"
+      },
+      {
+        "key": 10,
+        "description": "PH - OPH"
+      },
+      {
+        "key": 11,
+        "description": "Day Shelter"
+      },
+      {
+        "key": 12,
+        "description": "HP"
+      },
+      {
+        "key": 13,
+        "description": "PH - RRH"
+      },
+      {
+        "key": 14,
+        "description": "CE"
+      }
+    ]
+  },
+  {
     "name": "RRHSubType",
     "code": "2.02.A",
     "values": [
@@ -399,7 +461,7 @@
       },
       {
         "key": 9,
-        "description": "HUD: ESG - Homelessness Prevention "
+        "description": "HUD: ESG - Homelessness Prevention"
       },
       {
         "key": 10,
@@ -630,20 +692,1560 @@
     ]
   },
   {
-    "name": "YouthAgeGroup",
-    "code": "2.7.B",
+    "name": "CoCCodes",
+    "code": "2.03.1",
     "values": [
       {
-        "key": 1,
-        "description": "Only under age 18"
+        "key": "AK-500",
+        "description": "Anchorage CoC"
       },
       {
-        "key": 2,
-        "description": "Only ages 18 to 24"
+        "key": "AK-501",
+        "description": "Alaska Balance of State CoC"
       },
       {
-        "key": 3,
-        "description": "Only youth under age 24 (both of the above)"
+        "key": "AL-500",
+        "description": "Birmingham/Jefferson, St. Clair, Shelby Counties CoC"
+      },
+      {
+        "key": "AL-501",
+        "description": "Mobile City & County/Baldwin County CoC"
+      },
+      {
+        "key": "AL-502",
+        "description": "Florence/Northwest Alabama CoC"
+      },
+      {
+        "key": "AL-503",
+        "description": "Huntsville/North Alabama CoC"
+      },
+      {
+        "key": "AL-504",
+        "description": "Montgomery City & County CoC"
+      },
+      {
+        "key": "AL-505",
+        "description": "Gadsden/Northeast Alabama CoC"
+      },
+      {
+        "key": "AL-506",
+        "description": "Tuscaloosa City & County CoC"
+      },
+      {
+        "key": "AL-507",
+        "description": "Alabama Balance of State CoC"
+      },
+      {
+        "key": "AR-500",
+        "description": "Little Rock/Central Arkansas CoC"
+      },
+      {
+        "key": "AR-501",
+        "description": "Fayetteville/Northwest Arkansas CoC"
+      },
+      {
+        "key": "AR-503",
+        "description": "Arkansas Balance of State CoC"
+      },
+      {
+        "key": "AR-505",
+        "description": "Southeast Arkansas CoC"
+      },
+      {
+        "key": "AR-508",
+        "description": "Fort Smith CoC"
+      },
+      {
+        "key": "AS-500",
+        "description": "American Samoa CoC"
+      },
+      {
+        "key": "AZ-500",
+        "description": "Arizona Balance of State CoC"
+      },
+      {
+        "key": "AZ-501",
+        "description": "Tucson/Pima County CoC"
+      },
+      {
+        "key": "AZ-502",
+        "description": "Phoenix, Mesa/Maricopa County CoC"
+      },
+      {
+        "key": "CA-500",
+        "description": "San Jose/Santa Clara City & County CoC"
+      },
+      {
+        "key": "CA-501",
+        "description": "San Francisco CoC"
+      },
+      {
+        "key": "CA-502",
+        "description": "Oakland, Berkeley/Alameda County CoC"
+      },
+      {
+        "key": "CA-503",
+        "description": "Sacramento City & County CoC"
+      },
+      {
+        "key": "CA-504",
+        "description": "Santa Rosa, Petaluma/Sonoma County CoC"
+      },
+      {
+        "key": "CA-505",
+        "description": "Contra Costa County CoC"
+      },
+      {
+        "key": "CA-506",
+        "description": "Salinas/Monterey, San Benito Counties CoC"
+      },
+      {
+        "key": "CA-507",
+        "description": "Marin County CoC"
+      },
+      {
+        "key": "CA-508",
+        "description": "Watsonville/Santa Cruz City & County CoC"
+      },
+      {
+        "key": "CA-509",
+        "description": "Mendocino County CoC"
+      },
+      {
+        "key": "CA-510",
+        "description": "Turlock, Modesto/Stanislaus County CoC"
+      },
+      {
+        "key": "CA-511",
+        "description": "Stockton/San Joaquin County CoC "
+      },
+      {
+        "key": "CA-512",
+        "description": "Daly City/San Mateo County CoC"
+      },
+      {
+        "key": "CA-513",
+        "description": "Visalia/Kings, Tulare Counties CoC "
+      },
+      {
+        "key": "CA-514",
+        "description": "Fresno City & County/Madera County CoC"
+      },
+      {
+        "key": "CA-515",
+        "description": "Roseville, Rocklin/Placer County"
+      },
+      {
+        "key": "CA-516",
+        "description": "Redding/Shasta Siskiyou, Lassen, Plumas, Del Norte, Modoc, Sierra Counties CoC"
+      },
+      {
+        "key": "CA-517",
+        "description": "Napa City & County CoC"
+      },
+      {
+        "key": "CA-518",
+        "description": "Vallejo/Solano County CoC"
+      },
+      {
+        "key": "CA-519",
+        "description": "Chico, Paradise/Butte County CoC "
+      },
+      {
+        "key": "CA-520",
+        "description": "Merced City & County CoC"
+      },
+      {
+        "key": "CA-521",
+        "description": "Davis, Woodland/Yolo County CoC "
+      },
+      {
+        "key": "CA-522",
+        "description": "Humboldt County CoC"
+      },
+      {
+        "key": "CA-523",
+        "description": "Colusa, Glen, Trinity Counties CoC "
+      },
+      {
+        "key": "CA-524",
+        "description": "Yuba City & County/Sutter County CoC"
+      },
+      {
+        "key": "CA-525",
+        "description": "El Dorado County CoC"
+      },
+      {
+        "key": "CA-526",
+        "description": "Amador, Calaveras, Mariposa, Tuolumne Counties CoC"
+      },
+      {
+        "key": "CA-527",
+        "description": "Tehama County CoC"
+      },
+      {
+        "key": "CA-529",
+        "description": "Lake County CoC"
+      },
+      {
+        "key": "CA-530",
+        "description": "Alpine, Inyo, Mono Counties CoC"
+      },
+      {
+        "key": "CA-531",
+        "description": "Nevada County CoC"
+      },
+      {
+        "key": "CA-600",
+        "description": "Los Angeles City & County CoC"
+      },
+      {
+        "key": "CA-601",
+        "description": "San Diego City and County CoC"
+      },
+      {
+        "key": "CA-602",
+        "description": "Santa Ana, Anaheim/Orange County CoC "
+      },
+      {
+        "key": "CA-603",
+        "description": "Santa Maria/Santa Barbara County CoC"
+      },
+      {
+        "key": "CA-604",
+        "description": "Bakersfield/Kern County CoC"
+      },
+      {
+        "key": "CA-606",
+        "description": "Long Beach CoC"
+      },
+      {
+        "key": "CA-607",
+        "description": "Pasadena CoC"
+      },
+      {
+        "key": "CA-608",
+        "description": "Riverside City & County CoC"
+      },
+      {
+        "key": "CA-609",
+        "description": "San Bernardino City & County CoC "
+      },
+      {
+        "key": "CA-611",
+        "description": "Oxnard, San Buenaventura/Ventura County CoC"
+      },
+      {
+        "key": "CA-612",
+        "description": "Glendale CoC"
+      },
+      {
+        "key": "CA-613",
+        "description": "Imperial County CoC  "
+      },
+      {
+        "key": "CA-614",
+        "description": "San Luis Obispo County CoC"
+      },
+      {
+        "key": "CO-500",
+        "description": "Colorado Balance of State CoC "
+      },
+      {
+        "key": "CO-503",
+        "description": "Metropolitan Denver CoC"
+      },
+      {
+        "key": "CO-504",
+        "description": "Colorado Springs/El Paso County CoC"
+      },
+      {
+        "key": "CO-505",
+        "description": "Fort Collins, Greeley, Loveland/Larimer, Weld Counties CoC "
+      },
+      {
+        "key": "CT-503",
+        "description": "Bridgeport, Stamford, Norwalk, Danbury/Fairfield County CoC"
+      },
+      {
+        "key": "CT-505",
+        "description": "Connecticut Balance of State CoC"
+      },
+      {
+        "key": "DC-500",
+        "description": "District of Columbia CoC"
+      },
+      {
+        "key": "DE-500",
+        "description": "Delaware Statewide CoC  "
+      },
+      {
+        "key": "FL-500",
+        "description": "Sarasota, Bradenton/Manatee, Sarasota Counties CoC "
+      },
+      {
+        "key": "FL-501",
+        "description": "Tampa/Hillsborough County CoC"
+      },
+      {
+        "key": "FL-502",
+        "description": "St. Petersburg, Clearwater, Largo/Pinellas County CoC "
+      },
+      {
+        "key": "FL-503",
+        "description": "Lakeland/Polk County CoC"
+      },
+      {
+        "key": "FL-504",
+        "description": "Deltona, Daytona Beach/Volusia, Flagler Counties CoC "
+      },
+      {
+        "key": "FL-505",
+        "description": "Fort Walton Beach/Okaloosa, Walton Counties CoC"
+      },
+      {
+        "key": "FL-506",
+        "description": "Tallahassee/Leon County CoC"
+      },
+      {
+        "key": "FL-507",
+        "description": "Orlando/Orange, Osceola, Seminole Counties CoC"
+      },
+      {
+        "key": "FL-508",
+        "description": "Gainesville/Alachua, Putnam Counties CoC "
+      },
+      {
+        "key": "FL-509",
+        "description": "Fort Pierce/St. Lucie, Indian River, Martin Counties CoC"
+      },
+      {
+        "key": "FL-510",
+        "description": "Jacksonville-Duval, Clay Counties CoC "
+      },
+      {
+        "key": "FL-511",
+        "description": "Pensacola/Escambia, Santa Rosa Counties CoC"
+      },
+      {
+        "key": "FL-512",
+        "description": "St. Johns County CoC"
+      },
+      {
+        "key": "FL-513",
+        "description": "Palm Bay, Melbourne/Brevard County CoC"
+      },
+      {
+        "key": "FL-514",
+        "description": "Ocala/Marion County CoC"
+      },
+      {
+        "key": "FL-515",
+        "description": "Panama City/Bay, Jackson Counties CoC"
+      },
+      {
+        "key": "FL-517",
+        "description": "Hendry, Hardee, Highlands Counties CoC"
+      },
+      {
+        "key": "FL-518",
+        "description": "Columbia, Hamilton, Lafayette, Suwannee Counties CoC"
+      },
+      {
+        "key": "FL-519",
+        "description": "Pasco County CoC"
+      },
+      {
+        "key": "FL-520",
+        "description": "Citrus, Hernando, Lake, Sumter Counties CoC"
+      },
+      {
+        "key": "FL-600",
+        "description": "Miami-Dade County CoC"
+      },
+      {
+        "key": "FL-601",
+        "description": "Ft Lauderdale/Broward County CoC"
+      },
+      {
+        "key": "FL-602",
+        "description": "Charlotte County CoC"
+      },
+      {
+        "key": "FL-603",
+        "description": "Ft Myers, Cape Coral/Lee County CoC"
+      },
+      {
+        "key": "FL-604",
+        "description": "Monroe County CoC "
+      },
+      {
+        "key": "FL-605",
+        "description": "West Palm Beach/Palm Beach County CoC"
+      },
+      {
+        "key": "FL-606",
+        "description": "Naples/Collier County CoC"
+      },
+      {
+        "key": "GA-500",
+        "description": "Atlanta CoC"
+      },
+      {
+        "key": "GA-501",
+        "description": "Georgia Balance of State CoC"
+      },
+      {
+        "key": "GA-502",
+        "description": "Fulton County CoC"
+      },
+      {
+        "key": "GA-503",
+        "description": "Athens-Clarke County CoC"
+      },
+      {
+        "key": "GA-504",
+        "description": "Augusta-Richmond County CoC "
+      },
+      {
+        "key": "GA-505",
+        "description": "Columbus-Muscogee/Russell County CoC"
+      },
+      {
+        "key": "GA-506",
+        "description": "Marietta/Cobb County CoC "
+      },
+      {
+        "key": "GA-507",
+        "description": "Savannah/Chatham County CoC"
+      },
+      {
+        "key": "GA-508",
+        "description": "DeKalb County CoC"
+      },
+      {
+        "key": "GU-500",
+        "description": "Guam CoC"
+      },
+      {
+        "key": "HI-500",
+        "description": "Hawaii Balance of State CoC"
+      },
+      {
+        "key": "HI-501",
+        "description": "Honolulu City and County CoC"
+      },
+      {
+        "key": "IA-500",
+        "description": "Sioux City/Dakota, Woodbury Counties CoC"
+      },
+      {
+        "key": "IA-501",
+        "description": "Iowa Balance of State CoC"
+      },
+      {
+        "key": "IA-502",
+        "description": "Des Moines/Polk County CoC"
+      },
+      {
+        "key": "ID-500",
+        "description": "Boise/Ada County CoC"
+      },
+      {
+        "key": "ID-501",
+        "description": "Idaho Balance of State CoC"
+      },
+      {
+        "key": "IL-500",
+        "description": "McHenry County CoC"
+      },
+      {
+        "key": "IL-501",
+        "description": "Rockford/DeKalb, Winnebago, Boone Counties CoC"
+      },
+      {
+        "key": "IL-502",
+        "description": "Waukegan, North Chicago/Lake County CoC"
+      },
+      {
+        "key": "IL-503",
+        "description": "Champaign, Urbana, Rantoul/Champaign County CoC"
+      },
+      {
+        "key": "IL-504",
+        "description": "Madison County CoC"
+      },
+      {
+        "key": "IL-506",
+        "description": "Joliet, Bolingbrook/Will County CoC"
+      },
+      {
+        "key": "IL-507",
+        "description": "Peoria, Pekin/Fulton, Tazewell, Peoria, Woodford Counties CoC "
+      },
+      {
+        "key": "IL-508",
+        "description": "East St. Louis, Belleville/St. Clair County CoC"
+      },
+      {
+        "key": "IL-510",
+        "description": "Chicago CoC"
+      },
+      {
+        "key": "IL-511",
+        "description": "Cook County CoC"
+      },
+      {
+        "key": "IL-512",
+        "description": "Bloomington/Central Illinois CoC"
+      },
+      {
+        "key": "IL-513",
+        "description": "Springfield/Sangamon County CoC"
+      },
+      {
+        "key": "IL-514",
+        "description": "DuPage County CoC"
+      },
+      {
+        "key": "IL-515",
+        "description": "South Central Illinois CoC"
+      },
+      {
+        "key": "IL-516",
+        "description": "Decatur/Macon County CoC"
+      },
+      {
+        "key": "IL-517",
+        "description": "Aurora, Elgin/Kane County CoC"
+      },
+      {
+        "key": "IL-518",
+        "description": "Rock Island, Moline/Northwestern Illinois CoC"
+      },
+      {
+        "key": "IL-519",
+        "description": "West Central Illinois CoC"
+      },
+      {
+        "key": "IL-520",
+        "description": "Southern Illinois CoC"
+      },
+      {
+        "key": "IN-502",
+        "description": "Indiana Balance of State CoC"
+      },
+      {
+        "key": "IN-503",
+        "description": "Indianapolis CoC"
+      },
+      {
+        "key": "KS-502",
+        "description": "Wichita/Sedgwick County CoC"
+      },
+      {
+        "key": "KS-503",
+        "description": "Topeka/Shawnee County CoC "
+      },
+      {
+        "key": "KS-505",
+        "description": "Overland Park, Shawnee/Johnson County CoC"
+      },
+      {
+        "key": "KS-507",
+        "description": "Kansas Balance of State CoC"
+      },
+      {
+        "key": "KY-500",
+        "description": "Kentucky Balance of State CoC"
+      },
+      {
+        "key": "KY-501",
+        "description": "Louisville-Jefferson County CoC"
+      },
+      {
+        "key": "KY-502",
+        "description": "Lexington-Fayette County CoC"
+      },
+      {
+        "key": "LA-500",
+        "description": "Lafayette/Acadiana Regional CoC"
+      },
+      {
+        "key": "LA-502",
+        "description": "Shreveport, Bossier/Northwest Louisiana CoC"
+      },
+      {
+        "key": "LA-503",
+        "description": "New Orleans/Jefferson Parish CoC"
+      },
+      {
+        "key": "LA-505",
+        "description": "Monroe/Northeast Louisiana CoC"
+      },
+      {
+        "key": "LA-506",
+        "description": "Slidell/Southeast Louisiana CoC"
+      },
+      {
+        "key": "LA-507",
+        "description": "Alexandria/Central Louisiana CoC"
+      },
+      {
+        "key": "LA-509",
+        "description": "Louisiana Balance of State CoC"
+      },
+      {
+        "key": "MA-500",
+        "description": "Boston CoC"
+      },
+      {
+        "key": "MA-502",
+        "description": "Lynn CoC"
+      },
+      {
+        "key": "MA-503",
+        "description": "Cape Cod Islands CoC"
+      },
+      {
+        "key": "MA-504",
+        "description": "Springfield/Hampden County CoC"
+      },
+      {
+        "key": "MA-505",
+        "description": "New Bedford CoC"
+      },
+      {
+        "key": "MA-506",
+        "description": "Worcester City & County CoC"
+      },
+      {
+        "key": "MA-507",
+        "description": "Pittsfield/Berkshire, Franklin, Hampshire Counties CoC"
+      },
+      {
+        "key": "MA-509",
+        "description": "Cambridge CoC"
+      },
+      {
+        "key": "MA-511",
+        "description": "Quincy, Brockton, Weymouth, Plymouth City and County CoC"
+      },
+      {
+        "key": "MA-515",
+        "description": "Fall River CoC"
+      },
+      {
+        "key": "MA-516",
+        "description": "Massachusetts Balance of State CoC"
+      },
+      {
+        "key": "MA-519",
+        "description": "Attleboro, Taunton/Bristol County CoC  "
+      },
+      {
+        "key": "MD-501",
+        "description": "Baltimore CoC "
+      },
+      {
+        "key": "MD-503",
+        "description": "Annapolis/Anne Arundel County CoC"
+      },
+      {
+        "key": "MD-504",
+        "description": "Howard County CoC"
+      },
+      {
+        "key": "MD-505",
+        "description": "Baltimore County CoC"
+      },
+      {
+        "key": "MD-506",
+        "description": "Carroll County CoC"
+      },
+      {
+        "key": "MD-509",
+        "description": "Frederick City & County CoC"
+      },
+      {
+        "key": "MD-511",
+        "description": "Mid-Shore Regional CoC"
+      },
+      {
+        "key": "MD-513",
+        "description": "Wicomico, Somerset, Worcester Counties CoC"
+      },
+      {
+        "key": "MD-514",
+        "description": "Maryland Balance of Sate"
+      },
+      {
+        "key": "MD-600",
+        "description": "Prince George's County CoC"
+      },
+      {
+        "key": "MD-601",
+        "description": "Montgomery County CoC"
+      },
+      {
+        "key": "ME-500",
+        "description": "Maine Statewide CoC"
+      },
+      {
+        "key": "MI-500",
+        "description": "Michigan Balance of State CoC"
+      },
+      {
+        "key": "MI-501",
+        "description": "Detroit CoC"
+      },
+      {
+        "key": "MI-502",
+        "description": "Dearborn, Dearborn Heights, Westland/Wayne County CoC"
+      },
+      {
+        "key": "MI-503",
+        "description": "St. Clair Shores, Warren/Macomb County CoC"
+      },
+      {
+        "key": "MI-504",
+        "description": "Pontiac, Royal Oak/Oakland County CoC"
+      },
+      {
+        "key": "MI-505",
+        "description": "Flint/Genesee County CoC"
+      },
+      {
+        "key": "MI-506",
+        "description": "Grand Rapids, Wyoming/Kent County CoC"
+      },
+      {
+        "key": "MI-507",
+        "description": "Portage, Kalamazoo City & County CoC"
+      },
+      {
+        "key": "MI-508",
+        "description": "Lansing, East Lansing/Ingham County CoC"
+      },
+      {
+        "key": "MI-509",
+        "description": "Washtenaw County CoC"
+      },
+      {
+        "key": "MI-510",
+        "description": "Saginaw City & County CoC"
+      },
+      {
+        "key": "MI-511",
+        "description": "Lenawee County CoC"
+      },
+      {
+        "key": "MI-512",
+        "description": "Grand Traverse, Antrim, Leelanau Counties CoC"
+      },
+      {
+        "key": "MI-514",
+        "description": "Battle Creek/Calhoun County CoC"
+      },
+      {
+        "key": "MI-515",
+        "description": "Monroe City & County CoC"
+      },
+      {
+        "key": "MI-516",
+        "description": "Norton Shores, Muskegon City & County CoC"
+      },
+      {
+        "key": "MI-517",
+        "description": "Jackson City & County CoC"
+      },
+      {
+        "key": "MI-518",
+        "description": "Livingston County CoC"
+      },
+      {
+        "key": "MI-519",
+        "description": "Holland/Ottawa County CoC"
+      },
+      {
+        "key": "MI-523",
+        "description": "Eaton County CoC"
+      },
+      {
+        "key": "MN-500",
+        "description": "Minneapolis/Hennepin County CoC"
+      },
+      {
+        "key": "MN-501",
+        "description": "St. Paul/Ramsey County CoC"
+      },
+      {
+        "key": "MN-502",
+        "description": "Rochester/Southeast Minnesota CoC"
+      },
+      {
+        "key": "MN-503",
+        "description": "Dakota, Anoka, Washington, Scott, Carver Counties CoC"
+      },
+      {
+        "key": "MN-504",
+        "description": "Northeast Minnesota CoC"
+      },
+      {
+        "key": "MN-505",
+        "description": "St. Cloud/Central Minnesota CoC"
+      },
+      {
+        "key": "MN-506",
+        "description": "Northwest Minnesota CoC"
+      },
+      {
+        "key": "MN-508",
+        "description": "Moorhead/West Central Minnesota CoC"
+      },
+      {
+        "key": "MN-509",
+        "description": "Duluth/St. Louis County CoC"
+      },
+      {
+        "key": "MN-511",
+        "description": "Southwest Minnesota CoC"
+      },
+      {
+        "key": "MO-500",
+        "description": "St. Louis County CoC"
+      },
+      {
+        "key": "MO-501",
+        "description": "St. Louis CoC"
+      },
+      {
+        "key": "MO-503",
+        "description": "St. Charles, Lincoln, Warren Counties CoC"
+      },
+      {
+        "key": "MO-600",
+        "description": "Springfield/Greene, Christian, Webster Counties CoC"
+      },
+      {
+        "key": "MO-602",
+        "description": "Joplin/Jasper, Newton Counties CoC"
+      },
+      {
+        "key": "MO-603",
+        "description": "St. Joseph/Andrew, Buchanan, DeKalb Counties CoC"
+      },
+      {
+        "key": "MO-604",
+        "description": "Kansas City (MO&KS), Independence, Lee’s Summit/Jackson, Wyandotte Counties CoC"
+      },
+      {
+        "key": "MO-606",
+        "description": "Missouri Balance of State CoC"
+      },
+      {
+        "key": "MP-500",
+        "description": "Northern Mariana Islands CoC"
+      },
+      {
+        "key": "MS-500",
+        "description": "Jackson/Rankin, Madison Counties CoC"
+      },
+      {
+        "key": "MS-501",
+        "description": "Mississippi Balance of State CoC"
+      },
+      {
+        "key": "MS-503",
+        "description": "Gulf Port/Gulf Coast Regional CoC"
+      },
+      {
+        "key": "MT-500",
+        "description": "Montana Statewide CoC"
+      },
+      {
+        "key": "NC-500",
+        "description": "Winston-Salem/Forsyth County CoC"
+      },
+      {
+        "key": "NC-501",
+        "description": "Asheville/Buncombe County CoC"
+      },
+      {
+        "key": "NC-502",
+        "description": "Durham City & County CoC"
+      },
+      {
+        "key": "NC-503",
+        "description": "North Carolina Balance of State CoC"
+      },
+      {
+        "key": "NC-504",
+        "description": "Greensboro, High Point/Guilford County CoC"
+      },
+      {
+        "key": "NC-505",
+        "description": "Charlotte/Mecklenburg County CoC"
+      },
+      {
+        "key": "NC-506",
+        "description": "Wilmington/Brunswick, New Hanover, Pender Counties CoC"
+      },
+      {
+        "key": "NC-507",
+        "description": "Raleigh/Wake County CoC"
+      },
+      {
+        "key": "NC-509",
+        "description": "Gastonia/Cleveland, Gaston, Lincoln Counties CoC"
+      },
+      {
+        "key": "NC-511",
+        "description": "Fayetteville/Cumberland County CoC"
+      },
+      {
+        "key": "NC-513",
+        "description": "Chapel Hill/Orange County CoC"
+      },
+      {
+        "key": "NC-516",
+        "description": "Northwest North Carolina CoC"
+      },
+      {
+        "key": "ND-500",
+        "description": "North Dakota Statewide CoC"
+      },
+      {
+        "key": "NE-500",
+        "description": "Nebraska Balance of State CoC"
+      },
+      {
+        "key": "NE-501",
+        "description": "Omaha, Council Bluffs CoC"
+      },
+      {
+        "key": "NE-502",
+        "description": "Lincoln CoC"
+      },
+      {
+        "key": "NH-500",
+        "description": "New Hampshire Balance of State CoC"
+      },
+      {
+        "key": "NH-501",
+        "description": "Manchester CoC"
+      },
+      {
+        "key": "NH-502",
+        "description": "Nashua/Hillsborough County CoC"
+      },
+      {
+        "key": "NJ-500",
+        "description": "Atlantic City & County CoC"
+      },
+      {
+        "key": "NJ-501",
+        "description": "Bergen County CoC"
+      },
+      {
+        "key": "NJ-502",
+        "description": "Burlington County CoC"
+      },
+      {
+        "key": "NJ-503",
+        "description": "Camden City & County/Gloucester, Cape May, Cumberland Counties CoC"
+      },
+      {
+        "key": "NJ-504",
+        "description": "Newark/Essex County CoC"
+      },
+      {
+        "key": "NJ-506",
+        "description": "Jersey City, Bayonne/Hudson County CoC"
+      },
+      {
+        "key": "NJ-507",
+        "description": "New Brunswick/Middlesex County CoC"
+      },
+      {
+        "key": "NJ-508",
+        "description": "Monmouth County CoC"
+      },
+      {
+        "key": "NJ-509",
+        "description": "Morris County CoC"
+      },
+      {
+        "key": "NJ-510",
+        "description": "Lakewood Township/Ocean County CoC"
+      },
+      {
+        "key": "NJ-511",
+        "description": "Paterson/Passaic County CoC"
+      },
+      {
+        "key": "NJ-512",
+        "description": "Salem County CoC"
+      },
+      {
+        "key": "NJ-513",
+        "description": "Somerset County CoC"
+      },
+      {
+        "key": "NJ-514",
+        "description": "Trenton/Mercer County CoC"
+      },
+      {
+        "key": "NJ-515",
+        "description": "Elizabeth/Union County CoC"
+      },
+      {
+        "key": "NJ-516",
+        "description": "Warren, Sussex, Hunterdon Counties CoC"
+      },
+      {
+        "key": "NM-500",
+        "description": "Albuquerque CoC"
+      },
+      {
+        "key": "NM-501",
+        "description": "New Mexico Balance of State CoC"
+      },
+      {
+        "key": "NV-500",
+        "description": "Las Vegas/Clark County CoC"
+      },
+      {
+        "key": "NV-501",
+        "description": "Reno, Sparks/Washoe County CoC"
+      },
+      {
+        "key": "NV-502",
+        "description": "Nevada Balance of State CoC"
+      },
+      {
+        "key": "NY-500",
+        "description": "Rochester, Irondequoit, Greece/Monroe County CoC"
+      },
+      {
+        "key": "NY-501",
+        "description": "Elmira/Steuben, Allegany, Livingston, Chemung, Schuyler Counties CoC"
+      },
+      {
+        "key": "NY-503",
+        "description": "Albany City & County CoC"
+      },
+      {
+        "key": "NY-505",
+        "description": "Syracuse, Auburn/Onondaga, Oswego, Cayuga Counties CoC"
+      },
+      {
+        "key": "NY-507",
+        "description": "Schenectady City & County CoC"
+      },
+      {
+        "key": "NY-508",
+        "description": "Buffalo, Niagara Falls/Erie, Niagara, Orleans, Genesee, Wyoming Counties CoC"
+      },
+      {
+        "key": "NY-510",
+        "description": "Ithaca/Tompkins County CoC"
+      },
+      {
+        "key": "NY-511",
+        "description": "Binghamton, Union Town/Broome, Otsego, Chenango, Delaware, Cortland, Tioga Counties CoC"
+      },
+      {
+        "key": "NY-512",
+        "description": "Troy/Rensselaer County CoC"
+      },
+      {
+        "key": "NY-513",
+        "description": "Wayne, Ontario, Seneca, Yates Counties CoC"
+      },
+      {
+        "key": "NY-514",
+        "description": "Jamestown, Dunkirk/Chautauqua County CoC"
+      },
+      {
+        "key": "NY-518",
+        "description": "Utica, Rome/Oneida, Madison Counties CoC"
+      },
+      {
+        "key": "NY-519",
+        "description": "Columbia, Greene Counties CoC"
+      },
+      {
+        "key": "NY-520",
+        "description": "Franklin, Essex Counties CoC"
+      },
+      {
+        "key": "NY-522",
+        "description": "Jefferson, Lewis, St. Lawrence Counties CoC"
+      },
+      {
+        "key": "NY-523",
+        "description": "Glens Falls, Saratoga Springs/Saratoga, Washington, Warren, Hamilton Counties CoC"
+      },
+      {
+        "key": "NY-525",
+        "description": "New York Balance of State CoC"
+      },
+      {
+        "key": "NY-600",
+        "description": "New York City CoC"
+      },
+      {
+        "key": "NY-601",
+        "description": "Poughkeepsie/Dutchess County CoC"
+      },
+      {
+        "key": "NY-602",
+        "description": "Newburgh, Middletown/Orange County CoC"
+      },
+      {
+        "key": "NY-603",
+        "description": "Nassau, Suffolk Counties CoC"
+      },
+      {
+        "key": "NY-604",
+        "description": "Yonkers, Mount Vernon/Westchester County CoC"
+      },
+      {
+        "key": "NY-606",
+        "description": "Rockland County CoC"
+      },
+      {
+        "key": "NY-608",
+        "description": "Kingston/Ulster County CoC"
+      },
+      {
+        "key": "OH-500",
+        "description": "Cincinnati/Hamilton County CoC"
+      },
+      {
+        "key": "OH-501",
+        "description": "Toledo/Lucas County CoC"
+      },
+      {
+        "key": "OH-502",
+        "description": "Cleveland/Cuyahoga County CoC"
+      },
+      {
+        "key": "OH-503",
+        "description": "Columbus/Franklin County CoC"
+      },
+      {
+        "key": "OH-504",
+        "description": "Youngstown/Mahoning County CoC"
+      },
+      {
+        "key": "OH-505",
+        "description": "Dayton, Kettering/Montgomery County CoC"
+      },
+      {
+        "key": "OH-506",
+        "description": "Akron, Barberton/Summit County CoC"
+      },
+      {
+        "key": "OH-507",
+        "description": "Ohio Balance of State CoC"
+      },
+      {
+        "key": "OH-508",
+        "description": "Canton, Massillon, Alliance/Stark County CoC"
+      },
+      {
+        "key": "OK-500",
+        "description": "North Central Oklahoma CoC"
+      },
+      {
+        "key": "OK-501",
+        "description": "Tulsa City & County CoC"
+      },
+      {
+        "key": "OK-502",
+        "description": "Oklahoma City CoC"
+      },
+      {
+        "key": "OK-503",
+        "description": "Oklahoma Balance of State CoC"
+      },
+      {
+        "key": "OK-504",
+        "description": "Norman/Cleveland County CoC"
+      },
+      {
+        "key": "OK-505",
+        "description": "Northeast Oklahoma CoC"
+      },
+      {
+        "key": "OK-506",
+        "description": "Southwest Oklahoma Regional CoC"
+      },
+      {
+        "key": "OK-507",
+        "description": "Southeastern Oklahoma Regional CoC"
+      },
+      {
+        "key": "OR-500",
+        "description": "Eugene, Springfield/Lane County CoC"
+      },
+      {
+        "key": "OR-501",
+        "description": "Portland, Gresham/Multnomah County CoC"
+      },
+      {
+        "key": "OR-502",
+        "description": "Medford, Ashland/Jackson County CoC"
+      },
+      {
+        "key": "OR-503",
+        "description": "Central Oregon CoC"
+      },
+      {
+        "key": "OR-504",
+        "description": "Salem/Marion, Polk Counties CoC"
+      },
+      {
+        "key": "OR-505",
+        "description": "Oregon Balance of State CoC"
+      },
+      {
+        "key": "OR-506",
+        "description": "Hillsboro, Beaverton/Washington County CoC"
+      },
+      {
+        "key": "OR-507",
+        "description": "Clackamas County CoC"
+      },
+      {
+        "key": "PA-500",
+        "description": "Philadelphia CoC"
+      },
+      {
+        "key": "PA-501",
+        "description": "Harrisburg/Dauphin County CoC"
+      },
+      {
+        "key": "PA-502",
+        "description": "Upper Darby, Chester, Haverford/Delaware County CoC"
+      },
+      {
+        "key": "PA-503",
+        "description": "Wilkes-Barre, Hazleton/ Luzerne County CoC"
+      },
+      {
+        "key": "PA-504",
+        "description": "Lower Merion, Norristown, Abington/Montgomery County CoC"
+      },
+      {
+        "key": "PA-505",
+        "description": "Chester County CoC"
+      },
+      {
+        "key": "PA-506",
+        "description": "Reading/Berks County CoC"
+      },
+      {
+        "key": "PA-508",
+        "description": "Scranton/Lackawanna County CoC"
+      },
+      {
+        "key": "PA-509",
+        "description": "Eastern Pennsylvania CoC"
+      },
+      {
+        "key": "PA-510",
+        "description": "Lancaster City & County CoC"
+      },
+      {
+        "key": "PA-511",
+        "description": "Bristol, Bensalem/Bucks County CoC"
+      },
+      {
+        "key": "PA-512",
+        "description": "York City & County CoC"
+      },
+      {
+        "key": "PA-600",
+        "description": "Pittsburgh, McKeesport, Penn Hills/Allegheny County CoC"
+      },
+      {
+        "key": "PA-601",
+        "description": "Western Pennsylvania CoC"
+      },
+      {
+        "key": "PA-603",
+        "description": "Beaver County CoC"
+      },
+      {
+        "key": "PA-605",
+        "description": "Erie City & County CoC"
+      },
+      {
+        "key": "PR-502",
+        "description": "Puerto Rico Balance of Commonwealth CoC"
+      },
+      {
+        "key": "PR-503",
+        "description": "South-Southeast Puerto Rico CoC"
+      },
+      {
+        "key": "RI-500",
+        "description": "Rhode Island Statewide CoC"
+      },
+      {
+        "key": "SC-500",
+        "description": "Charleston/Low Country CoC"
+      },
+      {
+        "key": "SC-501",
+        "description": "Greenville, Anderson, Spartanburg/Upstate CoC"
+      },
+      {
+        "key": "SC-502",
+        "description": "Columbia/Midlands CoC"
+      },
+      {
+        "key": "SC-503",
+        "description": "Sumter City & County CoC"
+      },
+      {
+        "key": "SD-500",
+        "description": "South Dakota Statewide CoC"
+      },
+      {
+        "key": "TN-500",
+        "description": "Chattanooga/Southeast Tennessee CoC"
+      },
+      {
+        "key": "TN-501",
+        "description": "Memphis/Shelby County CoC"
+      },
+      {
+        "key": "TN-502",
+        "description": "Knoxville/Knox County CoC"
+      },
+      {
+        "key": "TN-503",
+        "description": "Central Tennessee CoC"
+      },
+      {
+        "key": "TN-504",
+        "description": "Nashville-Davidson County CoC"
+      },
+      {
+        "key": "TN-506",
+        "description": "Upper Cumberland CoC"
+      },
+      {
+        "key": "TN-507",
+        "description": "Jackson/West Tennessee CoC"
+      },
+      {
+        "key": "TN-509",
+        "description": "Appalachian Regional CoC"
+      },
+      {
+        "key": "TN-510",
+        "description": "Murfreesboro/Rutherford County CoC"
+      },
+      {
+        "key": "TN-512",
+        "description": "Morristown/Blount, Sevier, Campbell, Cocke Counties CoC"
+      },
+      {
+        "key": "TX-500",
+        "description": "San Antonio/Bexar County CoC"
+      },
+      {
+        "key": "TX-503",
+        "description": "Austin/Travis County CoC"
+      },
+      {
+        "key": "TX-600",
+        "description": "Dallas City & County, Irving CoC"
+      },
+      {
+        "key": "TX-601",
+        "description": "Fort Worth, Arlington/Tarrant County CoC"
+      },
+      {
+        "key": "TX-603",
+        "description": "El Paso City & County CoC"
+      },
+      {
+        "key": "TX-604",
+        "description": "Waco/McLennan County CoC"
+      },
+      {
+        "key": "TX-607",
+        "description": "Texas Balance of State CoC"
+      },
+      {
+        "key": "TX-611",
+        "description": "Amarillo CoC"
+      },
+      {
+        "key": "TX-624",
+        "description": "Wichita Falls/Wise, Palo Pinto, Wichita, Archer Counties CoC"
+      },
+      {
+        "key": "TX-700",
+        "description": "Houston, Pasadena, Conroe/Harris, Ft. Bend, Montgomery Counties CoC"
+      },
+      {
+        "key": "TX-701",
+        "description": "Bryan, College Station/Brazos Valley CoC"
+      },
+      {
+        "key": "UT-500",
+        "description": "Salt Lake City & County CoC"
+      },
+      {
+        "key": "UT-503",
+        "description": "Utah Balance of State CoC"
+      },
+      {
+        "key": "UT-504",
+        "description": "Provo/Mountainland CoC"
+      },
+      {
+        "key": "VA-500",
+        "description": "Richmond/Henrico, Chesterfield, Hanover Counties CoC"
+      },
+      {
+        "key": "VA-501",
+        "description": "Norfolk, Chesapeake, Suffolk/Isle of Wight, Southampton Counties CoC"
+      },
+      {
+        "key": "VA-502",
+        "description": "Roanoke City & County, Salem CoC"
+      },
+      {
+        "key": "VA-503",
+        "description": "Virginia Beach CoC"
+      },
+      {
+        "key": "VA-504",
+        "description": "Charlottesville CoC"
+      },
+      {
+        "key": "VA-505",
+        "description": "Newport News, Hampton/Virginia Peninsula CoC"
+      },
+      {
+        "key": "VA-507",
+        "description": "Portsmouth CoC"
+      },
+      {
+        "key": "VA-508",
+        "description": "Lynchburg CoC"
+      },
+      {
+        "key": "VA-513",
+        "description": "Harrisonburg, Winchester/Western Virginia CoC"
+      },
+      {
+        "key": "VA-514",
+        "description": "Fredericksburg/Spotsylvania, Stafford Counties CoC"
+      },
+      {
+        "key": "VA-521",
+        "description": "Virginia Balance of State CoC"
+      },
+      {
+        "key": "VA-600",
+        "description": "Arlington County CoC"
+      },
+      {
+        "key": "VA-601",
+        "description": "Fairfax County CoC"
+      },
+      {
+        "key": "VA-602",
+        "description": "Loudoun County CoC"
+      },
+      {
+        "key": "VA-603",
+        "description": "Alexandria CoC"
+      },
+      {
+        "key": "VA-604",
+        "description": "Prince William County CoC"
+      },
+      {
+        "key": "VI-500",
+        "description": "Virgin Islands CoC"
+      },
+      {
+        "key": "VT-500",
+        "description": "Vermont Balance of State CoC"
+      },
+      {
+        "key": "VT-501",
+        "description": "Burlington/Chittenden County CoC"
+      },
+      {
+        "key": "WA-500",
+        "description": "Seattle/King County CoC"
+      },
+      {
+        "key": "WA-501",
+        "description": "Washington Balance of State CoC"
+      },
+      {
+        "key": "WA-502",
+        "description": "Spokane City & County CoC"
+      },
+      {
+        "key": "WA-503",
+        "description": "Tacoma, Lakewood/Pierce County CoC"
+      },
+      {
+        "key": "WA-504",
+        "description": "Everett/Snohomish County CoC"
+      },
+      {
+        "key": "WA-508",
+        "description": "Vancouver/Clark County CoC"
+      },
+      {
+        "key": "WI-500",
+        "description": "Wisconsin Balance of State CoC"
+      },
+      {
+        "key": "WI-501",
+        "description": "Milwaukee City & County CoC"
+      },
+      {
+        "key": "WI-502",
+        "description": "Racine City & County CoC"
+      },
+      {
+        "key": "WI-503",
+        "description": "Madison/Dane County CoC"
+      },
+      {
+        "key": "WV-500",
+        "description": "Wheeling, Weirton Area CoC"
+      },
+      {
+        "key": "WV-501",
+        "description": "Huntington/Cabell, Wayne Counties CoC"
+      },
+      {
+        "key": "WV-503",
+        "description": "Charleston/Kanawha, Putnam, Boone, Clay Counties CoC"
+      },
+      {
+        "key": "WV-508",
+        "description": "West Virginia Balance of State CoC"
+      },
+      {
+        "key": "WY-500",
+        "description": "Wyoming Statewide CoC"
       }
     ]
   },
@@ -956,46 +2558,24 @@
     ]
   },
   {
-    "name": "Ethnicity",
-    "code": "3.05.1",
-    "values": [
-      {
-        "key": 0,
-        "description": "Non-Hispanic/Non-Latin(a)(o)(x)"
-      },
-      {
-        "key": 1,
-        "description": "Hispanic/Latin(a)(o)(x)"
-      },
-      {
-        "key": 8,
-        "description": "Client doesn't know"
-      },
-      {
-        "key": 9,
-        "description": "Client prefers not to answer"
-      },
-      {
-        "key": 99,
-        "description": "Data not collected"
-      }
-    ]
-  },
-  {
     "name": "Gender",
     "code": "3.6.1",
     "values": [
       {
         "key": 0,
-        "description": "Female"
+        "description": "Woman (Girl, if child)"
       },
       {
         "key": 1,
-        "description": "Male"
+        "description": "Man (Boy, if child)"
+      },
+      {
+        "key": 2,
+        "description": "Culturally Specific Identity (e.g., Two-Spirit)"
       },
       {
         "key": 4,
-        "description": "A gender other than singularly female or male (e.g., non-binary, genderfluid, agender, culturally specific gender)"
+        "description": "Non-Binary"
       },
       {
         "key": 5,
@@ -1004,6 +2584,10 @@
       {
         "key": 6,
         "description": "Questioning"
+      },
+      {
+        "key": 3,
+        "description": "Different Identity"
       },
       {
         "key": 8,
@@ -1412,48 +2996,6 @@
     ]
   },
   {
-    "name": "HousingStatus",
-    "code": "4.1.1",
-    "values": [
-      {
-        "key": 1,
-        "description": "Category 1 - Homeless"
-      },
-      {
-        "key": 2,
-        "description": "Category 2 - At imminent risk of losing housing"
-      },
-      {
-        "key": 3,
-        "description": "At-risk of homelessness"
-      },
-      {
-        "key": 4,
-        "description": "Stably housed"
-      },
-      {
-        "key": 5,
-        "description": "Category 3 - Homeless only under other federal statutes"
-      },
-      {
-        "key": 6,
-        "description": "Category 4 - Fleeing domestic violence"
-      },
-      {
-        "key": 8,
-        "description": "Client doesn't know"
-      },
-      {
-        "key": 9,
-        "description": "Client prefers not to answer"
-      },
-      {
-        "key": 99,
-        "description": "Data not collected"
-      }
-    ]
-  },
-  {
     "name": "DisabilityResponse",
     "code": "4.10.2",
     "values": [
@@ -1527,7 +3069,7 @@
     "values": [
       {
         "key": 200,
-        "description": "BedNight"
+        "description": "Bed Night"
       }
     ]
   },
@@ -1660,68 +3202,6 @@
       {
         "key": 18,
         "description": "Tenant Incentive"
-      }
-    ]
-  },
-  {
-    "name": "HousingAssessmentDisposition",
-    "code": "4.18.1",
-    "values": [
-      {
-        "key": 1,
-        "description": "Referred to emergency shelter/safe haven"
-      },
-      {
-        "key": 2,
-        "description": "Referred to transitional housing"
-      },
-      {
-        "key": 3,
-        "description": "Referred to rapid re-housing"
-      },
-      {
-        "key": 4,
-        "description": "Referred to permanent supportive housing"
-      },
-      {
-        "key": 5,
-        "description": "Referred to homelessness prevention"
-      },
-      {
-        "key": 6,
-        "description": "Referred to street outreach"
-      },
-      {
-        "key": 7,
-        "description": "Referred to other continuum project type"
-      },
-      {
-        "key": 8,
-        "description": "Referred to a homelessness diversion program"
-      },
-      {
-        "key": 9,
-        "description": "Unable to refer/accept within continuum; ineligible for continuum projects"
-      },
-      {
-        "key": 10,
-        "description": "Unable to refer/accept within continuum; continuum services unavailable"
-      },
-      {
-        "key": 11,
-        "description": "Referred to other community project (non-continuum)"
-      },
-      {
-        "key": 12,
-        "description": "Applicant declined referral/acceptance"
-      },
-      {
-        "key": 13,
-        "description": "Applicant terminated assessment prior to completion"
-      },
-      {
-        "key": 14,
-        "description": "Other/specify"
       }
     ]
   },
@@ -1868,222 +3348,8 @@
     ]
   },
   {
-    "name": "PreventionOutcome",
-    "code": "4.21.A",
-    "values": [
-      {
-        "key": 1,
-        "description": "Referral to a HP project opening"
-      },
-      {
-        "key": 2,
-        "description": "No HP referral – no availability, placed on priority/waiting list"
-      },
-      {
-        "key": 3,
-        "description": "No HP referral - determined ineligible"
-      },
-      {
-        "key": 4,
-        "description": "Referral to emergency assistance/flex fund/furniture assistance"
-      },
-      {
-        "key": 5,
-        "description": "Client declined HP referral"
-      },
-      {
-        "key": 6,
-        "description": "Don’t know outcome or outcome pending"
-      }
-    ]
-  },
-  {
-    "name": "ShelterOutcome",
-    "code": "4.21.E",
-    "values": [
-      {
-        "key": 1,
-        "description": "Referral to Diversion project opening"
-      },
-      {
-        "key": 2,
-        "description": "Client declined Diversion referral"
-      },
-      {
-        "key": 3,
-        "description": "Referral to Emergency Shelter bed opening"
-      },
-      {
-        "key": 4,
-        "description": "Client declined shelter referral - street outreach connection made"
-      },
-      {
-        "key": 5,
-        "description": "Client declined shelter referral - no connections/referrals"
-      },
-      {
-        "key": 6,
-        "description": "Placed on prioritization list"
-      },
-      {
-        "key": 7,
-        "description": "No connections/referrals provided"
-      },
-      {
-        "key": 8,
-        "description": "Don’t know yet or outcome pending"
-      }
-    ]
-  },
-  {
-    "name": "HousingOutcome",
-    "code": "4.21.I",
-    "values": [
-      {
-        "key": 1,
-        "description": "Referral to Diversion project opening"
-      },
-      {
-        "key": 2,
-        "description": "Referral to Transitional Housing bed/unit opening"
-      },
-      {
-        "key": 3,
-        "description": "Referral to Joint TH-RRH project/unit opening"
-      },
-      {
-        "key": 4,
-        "description": "Referral to RRH project/unit opening"
-      },
-      {
-        "key": 5,
-        "description": "Referral to PSH project/unit opening"
-      },
-      {
-        "key": 6,
-        "description": "Referral to Other PH project/unit opening"
-      },
-      {
-        "key": 7,
-        "description": "Referral to a Housing Stability Voucher"
-      },
-      {
-        "key": 8,
-        "description": "Client declined Diversion referral"
-      },
-      {
-        "key": 9,
-        "description": "Placed on prioritization list"
-      },
-      {
-        "key": 10,
-        "description": "No availability - Provided other housing information"
-      },
-      {
-        "key": 11,
-        "description": "Ineligible – Provided other housing information"
-      },
-      {
-        "key": 12,
-        "description": "Client declined housing referral"
-      },
-      {
-        "key": 13,
-        "description": "Don’t know yet or outcome pending"
-      }
-    ]
-  },
-  {
-    "name": "ServiceProvided",
-    "code": "4.21.6",
-    "values": [
-      {
-        "key": 0,
-        "description": "None"
-      },
-      {
-        "key": 1,
-        "description": "Financial Assistance"
-      },
-      {
-        "key": 2,
-        "description": "Other Assistance"
-      },
-      {
-        "key": 3,
-        "description": "Both Financial & Other Assistance"
-      }
-    ]
-  },
-  {
-    "name": "ServiceOutcome",
-    "code": "4.21.M",
-    "values": [
-      {
-        "key": 1,
-        "description": "Maintained housing they had at CE entry"
-      },
-      {
-        "key": 2,
-        "description": "Secured other permanent housing"
-      },
-      {
-        "key": 3,
-        "description": "Referred back to CE for shelter assessment"
-      },
-      {
-        "key": 4,
-        "description": "Referred back to CE for housing assessment"
-      },
-      {
-        "key": 5,
-        "description": "Don't know yet or outcome pending"
-      }
-    ]
-  },
-  {
-    "name": "IncarceratedParentStatus",
-    "code": "4.33.A",
-    "values": [
-      {
-        "key": 1,
-        "description": "One parent / legal guardian is incarcerated"
-      },
-      {
-        "key": 2,
-        "description": "Both parents / legal guardians are incarcerated"
-      },
-      {
-        "key": 3,
-        "description": "The only parent / legal guardian is incarcerated"
-      },
-      {
-        "key": 99,
-        "description": "Data not collected"
-      }
-    ]
-  },
-  {
-    "name": "ExitAction",
-    "code": "4.36.1",
-    "values": [
-      {
-        "key": 0,
-        "description": "No"
-      },
-      {
-        "key": 1,
-        "description": "Yes"
-      },
-      {
-        "key": 9,
-        "description": "Client prefers not to answer"
-      }
-    ]
-  },
-  {
     "name": "EarlyExitReason",
-    "code": "4.37.A",
+    "code": "R17.A",
     "values": [
       {
         "key": 1,
@@ -2104,104 +3370,6 @@
       {
         "key": 5,
         "description": "Needs could not be met by project"
-      }
-    ]
-  },
-  {
-    "name": "CrisisServicesUse",
-    "code": "4.49.1",
-    "values": [
-      {
-        "key": 0,
-        "description": "0"
-      },
-      {
-        "key": 1,
-        "description": "1-2"
-      },
-      {
-        "key": 2,
-        "description": "3-5"
-      },
-      {
-        "key": 3,
-        "description": "6-10"
-      },
-      {
-        "key": 4,
-        "description": "11-20"
-      },
-      {
-        "key": 5,
-        "description": "More than 20"
-      },
-      {
-        "key": 8,
-        "description": "Client doesn't know"
-      },
-      {
-        "key": 9,
-        "description": "Client prefers not to answer"
-      },
-      {
-        "key": 99,
-        "description": "Data not collected"
-      }
-    ]
-  },
-  {
-    "name": "PATHHowConfirmed",
-    "code": "4.9.D",
-    "values": [
-      {
-        "key": 1,
-        "description": "Unconfirmed; presumptive or self-report"
-      },
-      {
-        "key": 2,
-        "description": "Confirmed through assessment and clinical evaluation"
-      },
-      {
-        "key": 3,
-        "description": "Confirmed by prior evaluation or clinical records"
-      },
-      {
-        "key": 99,
-        "description": "Data not collected"
-      }
-    ]
-  },
-  {
-    "name": "PATHSMIInformation",
-    "code": "4.9.E",
-    "values": [
-      {
-        "key": 0,
-        "description": "No"
-      },
-      {
-        "key": 1,
-        "description": "Unconfirmed; presumptive or self-report"
-      },
-      {
-        "key": 2,
-        "description": "Confirmed through assessment and clinical evaluation"
-      },
-      {
-        "key": 3,
-        "description": "Confirmed by prior evaluation or clinical records"
-      },
-      {
-        "key": 8,
-        "description": "Client doesn't know"
-      },
-      {
-        "key": 9,
-        "description": "Client prefers not to answer"
-      },
-      {
-        "key": 99,
-        "description": "Data not collected"
       }
     ]
   },
@@ -2540,10 +3708,6 @@
         "description": "Client prefers not to answer"
       },
       {
-        "key": 10,
-        "description": "Outreach project: other"
-      },
-      {
         "key": 11,
         "description": "Temporary Shelter"
       },
@@ -2565,7 +3729,7 @@
       },
       {
         "key": 35,
-        "description": "Law Enforcement/ Police"
+        "description": "Law Enforcement/Police"
       },
       {
         "key": 37,
@@ -3397,7 +4561,7 @@
       },
       {
         "key": 523,
-        "description": "(523) VA Boston HCS, MA "
+        "description": "(523) VA Boston HCS, MA"
       },
       {
         "key": 526,
@@ -3445,7 +4609,7 @@
       },
       {
         "key": 544,
-        "description": "(544) Columbia, SC "
+        "description": "(544) Columbia, SC"
       },
       {
         "key": 546,
@@ -3505,7 +4669,7 @@
       },
       {
         "key": 568,
-        "description": "(568) Black Hills HCS, SD "
+        "description": "(568) Black Hills HCS, SD"
       },
       {
         "key": 570,
@@ -3517,7 +4681,7 @@
       },
       {
         "key": 575,
-        "description": "(575) Grand Junction, CO "
+        "description": "(575) Grand Junction, CO"
       },
       {
         "key": 578,
@@ -3553,7 +4717,7 @@
       },
       {
         "key": 593,
-        "description": "(593) Las Vegas, NV "
+        "description": "(593) Las Vegas, NV"
       },
       {
         "key": 595,
@@ -3561,19 +4725,19 @@
       },
       {
         "key": 596,
-        "description": "(596) Lexington, KY "
+        "description": "(596) Lexington, KY"
       },
       {
         "key": 598,
-        "description": "(598) Little Rock, AR "
+        "description": "(598) Little Rock, AR"
       },
       {
         "key": 600,
-        "description": "(600) Long Beach, CA "
+        "description": "(600) Long Beach, CA"
       },
       {
         "key": 603,
-        "description": "(603) Louisville, KY "
+        "description": "(603) Louisville, KY"
       },
       {
         "key": 605,
@@ -3657,11 +4821,11 @@
       },
       {
         "key": 640,
-        "description": "(640) Palo Alto, CA "
+        "description": "(640) Palo Alto, CA"
       },
       {
         "key": 642,
-        "description": "(642) Philadelphia, PA "
+        "description": "(642) Philadelphia, PA"
       },
       {
         "key": 644,
@@ -3853,7 +5017,7 @@
       },
       {
         "key": "636A6",
-        "description": "(636A6) Central Iowa, IA "
+        "description": "(636A6) Central Iowa, IA"
       },
       {
         "key": "636A8",
@@ -4421,7 +5585,7 @@
       },
       {
         "key": 9,
-        "description": "Refused"
+        "description": "Prefers not to answer"
       },
       {
         "key": 99,
@@ -4454,8 +5618,1347 @@
         "description": "White"
       },
       {
+        "key": "HispanicLatinaeo",
+        "description": "Hispanic/Latina/e/o"
+      },
+      {
+        "key": "MidEastNAfrican",
+        "description": "Middle Eastern or North African"
+      },
+      {
         "key": "RaceNone",
-        "description": "Doesn't Know, refused, or not collected"
+        "description": "Doesn't know, prefers not to answer, or not collected"
+      }
+    ]
+  },
+  {
+    "name": "PreferredLanguage",
+    "code": "C4.A",
+    "_comment": "Full list from HUD C4 2024 Supplement. Includes some fixes to spelling errors, and renaming Rundi=>Kirundi, preferred spelling requested for customer.",
+    "values": [
+      {
+        "key": 100,
+        "description": "Acholi"
+      },
+      {
+        "key": 101,
+        "description": "Afar"
+      },
+      {
+        "key": 102,
+        "description": "Afrikaans"
+      },
+      {
+        "key": 103,
+        "description": "Ahtna"
+      },
+      {
+        "key": 104,
+        "description": "Akan"
+      },
+      {
+        "key": 105,
+        "description": "Akateko"
+      },
+      {
+        "key": 106,
+        "description": "Akuzipigestun / St. Lawrence Island Yupik (aka Siberian Yupik)"
+      },
+      {
+        "key": 107,
+        "description": "Albanian"
+      },
+      {
+        "key": 108,
+        "description": "Algonquian"
+      },
+      {
+        "key": 109,
+        "description": "Alutiiq"
+      },
+      {
+        "key": 110,
+        "description": "American Sign Language"
+      },
+      {
+        "key": 111,
+        "description": "Amharic"
+      },
+      {
+        "key": 112,
+        "description": "Anuak"
+      },
+      {
+        "key": 113,
+        "description": "Apache"
+      },
+      {
+        "key": 114,
+        "description": "Arabic"
+      },
+      {
+        "key": 115,
+        "description": "Armenian"
+      },
+      {
+        "key": 116,
+        "description": "Assyrian"
+      },
+      {
+        "key": 117,
+        "description": "Atnakenaege’ / Ahtna"
+      },
+      {
+        "key": 118,
+        "description": "Aymara"
+      },
+      {
+        "key": 119,
+        "description": "Azerbaijani"
+      },
+      {
+        "key": 120,
+        "description": "Bahasa"
+      },
+      {
+        "key": 121,
+        "description": "Bahdini"
+      },
+      {
+        "key": 122,
+        "description": "Bajuni"
+      },
+      {
+        "key": 123,
+        "description": "Bambara"
+      },
+      {
+        "key": 124,
+        "description": "Bantu"
+      },
+      {
+        "key": 125,
+        "description": "Barese"
+      },
+      {
+        "key": 126,
+        "description": "Basque"
+      },
+      {
+        "key": 127,
+        "description": "Bassa"
+      },
+      {
+        "key": 128,
+        "description": "Belorussian"
+      },
+      {
+        "key": 129,
+        "description": "Bemba"
+      },
+      {
+        "key": 130,
+        "description": "Benaadir"
+      },
+      {
+        "key": 131,
+        "description": "Bengali"
+      },
+      {
+        "key": 132,
+        "description": "Berber"
+      },
+      {
+        "key": 133,
+        "description": "Black American Sign Language"
+      },
+      {
+        "key": 134,
+        "description": "Bosnian"
+      },
+      {
+        "key": 135,
+        "description": "Bravanese"
+      },
+      {
+        "key": 136,
+        "description": "Bulgarian"
+      },
+      {
+        "key": 137,
+        "description": "Burmese"
+      },
+      {
+        "key": 138,
+        "description": "Cambodian"
+      },
+      {
+        "key": 139,
+        "description": "Cantonese"
+      },
+      {
+        "key": 140,
+        "description": "Cape Verdean Creole"
+      },
+      {
+        "key": 141,
+        "description": "Catalan"
+      },
+      {
+        "key": 142,
+        "description": "Cebuano"
+      },
+      {
+        "key": 143,
+        "description": "Central Alaskan Yup’ik / Yugtun"
+      },
+      {
+        "key": 144,
+        "description": "Chaldean"
+      },
+      {
+        "key": 145,
+        "description": "Chamorro"
+      },
+      {
+        "key": 146,
+        "description": "Chaochow"
+      },
+      {
+        "key": 147,
+        "description": "Cherokee"
+      },
+      {
+        "key": 148,
+        "description": "Chinese"
+      },
+      {
+        "key": 149,
+        "description": "Chipewyan"
+      },
+      {
+        "key": 150,
+        "description": "Choctaw"
+      },
+      {
+        "key": 151,
+        "description": "Chuukese"
+      },
+      {
+        "key": 152,
+        "description": "Cree"
+      },
+      {
+        "key": 153,
+        "description": "Croatian"
+      },
+      {
+        "key": 154,
+        "description": "Czech"
+      },
+      {
+        "key": 155,
+        "description": "Dakota"
+      },
+      {
+        "key": 156,
+        "description": "Danish"
+      },
+      {
+        "key": 157,
+        "description": "Dari"
+      },
+      {
+        "key": 158,
+        "description": "Deg Xinag"
+      },
+      {
+        "key": 159,
+        "description": "Dena'inaq' / Dena'ina"
+      },
+      {
+        "key": 160,
+        "description": "Denaakk'e / Koyukon"
+      },
+      {
+        "key": 161,
+        "description": "Dewoin"
+      },
+      {
+        "key": 162,
+        "description": "Dinak'i / Upper Kuskokwim"
+      },
+      {
+        "key": 163,
+        "description": "Dinjii Zhuh K'yaa / Gwich'in"
+      },
+      {
+        "key": 164,
+        "description": "Dinka"
+      },
+      {
+        "key": 165,
+        "description": "Doogh Qinaq / Holikachuk"
+      },
+      {
+        "key": 166,
+        "description": "Duala"
+      },
+      {
+        "key": 167,
+        "description": "Dutch"
+      },
+      {
+        "key": 168,
+        "description": "Dzongkha"
+      },
+      {
+        "key": 169,
+        "description": "Edo"
+      },
+      {
+        "key": 170,
+        "description": "Ekegusli"
+      },
+      {
+        "key": 171,
+        "description": "English"
+      },
+      {
+        "key": 172,
+        "description": "Estonian"
+      },
+      {
+        "key": 173,
+        "description": "Ewe"
+      },
+      {
+        "key": 174,
+        "description": "Eyak"
+      },
+      {
+        "key": 175,
+        "description": "Farsi"
+      },
+      {
+        "key": 176,
+        "description": "Fijian"
+      },
+      {
+        "key": 177,
+        "description": "Filipino"
+      },
+      {
+        "key": 178,
+        "description": "Finnish"
+      },
+      {
+        "key": 179,
+        "description": "Flemish"
+      },
+      {
+        "key": 180,
+        "description": "French"
+      },
+      {
+        "key": 181,
+        "description": "French Cajun"
+      },
+      {
+        "key": 182,
+        "description": "French Canadian"
+      },
+      {
+        "key": 183,
+        "description": "French Creole"
+      },
+      {
+        "key": 184,
+        "description": "French Haitian"
+      },
+      {
+        "key": 185,
+        "description": "Fukienese"
+      },
+      {
+        "key": 186,
+        "description": "Fulani"
+      },
+      {
+        "key": 187,
+        "description": "Fuzhou"
+      },
+      {
+        "key": 188,
+        "description": "Ga"
+      },
+      {
+        "key": 189,
+        "description": "Gaddang"
+      },
+      {
+        "key": 190,
+        "description": "Gaelic"
+      },
+      {
+        "key": 191,
+        "description": "Garre"
+      },
+      {
+        "key": 192,
+        "description": "Gen"
+      },
+      {
+        "key": 193,
+        "description": "Georgian"
+      },
+      {
+        "key": 194,
+        "description": "German"
+      },
+      {
+        "key": 195,
+        "description": "Gheg"
+      },
+      {
+        "key": 196,
+        "description": "Gokana"
+      },
+      {
+        "key": 197,
+        "description": "Greek"
+      },
+      {
+        "key": 198,
+        "description": "Gujarati"
+      },
+      {
+        "key": 199,
+        "description": "Gulay"
+      },
+      {
+        "key": 200,
+        "description": "Gullah"
+      },
+      {
+        "key": 201,
+        "description": "Gurani"
+      },
+      {
+        "key": 202,
+        "description": "Gwich'in"
+      },
+      {
+        "key": 203,
+        "description": "Haida"
+      },
+      {
+        "key": 204,
+        "description": "Haitian"
+      },
+      {
+        "key": 205,
+        "description": "Haitian Creole"
+      },
+      {
+        "key": 206,
+        "description": "Hakka"
+      },
+      {
+        "key": 207,
+        "description": "Häl golan / Hän"
+      },
+      {
+        "key": 208,
+        "description": "Hassaniyya"
+      },
+      {
+        "key": 209,
+        "description": "Hausa"
+      },
+      {
+        "key": 210,
+        "description": "Hawai'i Sign Language"
+      },
+      {
+        "key": 211,
+        "description": "Hawaiian"
+      },
+      {
+        "key": 212,
+        "description": "Hebrew"
+      },
+      {
+        "key": 213,
+        "description": "Hiligaynon"
+      },
+      {
+        "key": 214,
+        "description": "Hindi"
+      },
+      {
+        "key": 215,
+        "description": "Hindko"
+      },
+      {
+        "key": 216,
+        "description": "Hmong"
+      },
+      {
+        "key": 217,
+        "description": "Hokkien"
+      },
+      {
+        "key": 218,
+        "description": "Holikachuk"
+      },
+      {
+        "key": 219,
+        "description": "Hopi"
+      },
+      {
+        "key": 220,
+        "description": "Huanese"
+      },
+      {
+        "key": 221,
+        "description": "Hungarian"
+      },
+      {
+        "key": 222,
+        "description": "Ibanag"
+      },
+      {
+        "key": 223,
+        "description": "Icelandic"
+      },
+      {
+        "key": 224,
+        "description": "Igbo"
+      },
+      {
+        "key": 225,
+        "description": "Ilocano"
+      },
+      {
+        "key": 226,
+        "description": "Indonesian"
+      },
+      {
+        "key": 227,
+        "description": "Inuktitut"
+      },
+      {
+        "key": 228,
+        "description": "Inupiatun / Inupiaq"
+      },
+      {
+        "key": 229,
+        "description": "Italian"
+      },
+      {
+        "key": 230,
+        "description": "Jakartanese"
+      },
+      {
+        "key": 231,
+        "description": "Jamaican Patois"
+      },
+      {
+        "key": 232,
+        "description": "Japanese"
+      },
+      {
+        "key": 233,
+        "description": "Jarai"
+      },
+      {
+        "key": 234,
+        "description": "Javanese"
+      },
+      {
+        "key": 235,
+        "description": "Jingpho"
+      },
+      {
+        "key": 236,
+        "description": "Jinyu"
+      },
+      {
+        "key": 237,
+        "description": "Juba Arabic"
+      },
+      {
+        "key": 238,
+        "description": "Jula"
+      },
+      {
+        "key": 239,
+        "description": "Kaba"
+      },
+      {
+        "key": 240,
+        "description": "Kamba"
+      },
+      {
+        "key": 241,
+        "description": "Kam Muang"
+      },
+      {
+        "key": 242,
+        "description": "Kanjobal"
+      },
+      {
+        "key": 243,
+        "description": "Kannada"
+      },
+      {
+        "key": 244,
+        "description": "Karen"
+      },
+      {
+        "key": 245,
+        "description": "Kashmiri"
+      },
+      {
+        "key": 246,
+        "description": "Kayah"
+      },
+      {
+        "key": 247,
+        "description": "Kazakh"
+      },
+      {
+        "key": 248,
+        "description": "Keresan"
+      },
+      {
+        "key": 249,
+        "description": "Keresan Sign Language"
+      },
+      {
+        "key": 250,
+        "description": "Kham"
+      },
+      {
+        "key": 251,
+        "description": "Khana"
+      },
+      {
+        "key": 252,
+        "description": "Khmer"
+      },
+      {
+        "key": 253,
+        "description": "K'iche'"
+      },
+      {
+        "key": 254,
+        "description": "Kikuyu"
+      },
+      {
+        "key": 255,
+        "description": "Kimiiru"
+      },
+      {
+        "key": 256,
+        "description": "Kinyarwanda"
+      },
+      {
+        "key": 257,
+        "description": "Kiowa"
+      },
+      {
+        "key": 258,
+        "description": "Koho"
+      },
+      {
+        "key": 259,
+        "description": "Korean"
+      },
+      {
+        "key": 260,
+        "description": "Koyukon"
+      },
+      {
+        "key": 261,
+        "description": "Krahn"
+      },
+      {
+        "key": 262,
+        "description": "Krio"
+      },
+      {
+        "key": 263,
+        "description": "Kunama"
+      },
+      {
+        "key": 264,
+        "description": "Kurmanji"
+      },
+      {
+        "key": 265,
+        "description": "Kyrgyz"
+      },
+      {
+        "key": 266,
+        "description": "Lakota"
+      },
+      {
+        "key": 267,
+        "description": "Laotian"
+      },
+      {
+        "key": 268,
+        "description": "Latvian"
+      },
+      {
+        "key": 269,
+        "description": "Liberian Pidgin English"
+      },
+      {
+        "key": 270,
+        "description": "Lingala"
+      },
+      {
+        "key": 271,
+        "description": "Lingít / Tlingit"
+      },
+      {
+        "key": 272,
+        "description": "Lithuanian"
+      },
+      {
+        "key": 273,
+        "description": "Lombard"
+      },
+      {
+        "key": 274,
+        "description": "Luba-Kasai"
+      },
+      {
+        "key": 275,
+        "description": "Luganda"
+      },
+      {
+        "key": 276,
+        "description": "Luo"
+      },
+      {
+        "key": 277,
+        "description": "Maay"
+      },
+      {
+        "key": 278,
+        "description": "Macedonian"
+      },
+      {
+        "key": 279,
+        "description": "Malay"
+      },
+      {
+        "key": 280,
+        "description": "Malayalam"
+      },
+      {
+        "key": 281,
+        "description": "Maltese"
+      },
+      {
+        "key": 282,
+        "description": "Mam"
+      },
+      {
+        "key": 283,
+        "description": "Mandarin"
+      },
+      {
+        "key": 284,
+        "description": "Mandinka"
+      },
+      {
+        "key": 285,
+        "description": "Maninka"
+      },
+      {
+        "key": 286,
+        "description": "Manobo"
+      },
+      {
+        "key": 287,
+        "description": "Marathi"
+      },
+      {
+        "key": 288,
+        "description": "Marka"
+      },
+      {
+        "key": 289,
+        "description": "Marshallese"
+      },
+      {
+        "key": 290,
+        "description": "Masalit"
+      },
+      {
+        "key": 291,
+        "description": "Mbay"
+      },
+      {
+        "key": 292,
+        "description": "Mien"
+      },
+      {
+        "key": 293,
+        "description": "Mirpuri"
+      },
+      {
+        "key": 294,
+        "description": "Mixteco"
+      },
+      {
+        "key": 295,
+        "description": "Mizo"
+      },
+      {
+        "key": 296,
+        "description": "Mnong"
+      },
+      {
+        "key": 297,
+        "description": "Mongolian"
+      },
+      {
+        "key": 298,
+        "description": "Montenegrin"
+      },
+      {
+        "key": 299,
+        "description": "Moroccan Arabic"
+      },
+      {
+        "key": 300,
+        "description": "Mortlockese"
+      },
+      {
+        "key": 301,
+        "description": "Muscogee"
+      },
+      {
+        "key": 302,
+        "description": "Napoletano"
+      },
+      {
+        "key": 303,
+        "description": "Navajo"
+      },
+      {
+        "key": 304,
+        "description": "Navajo Family Sign"
+      },
+      {
+        "key": 305,
+        "description": "Ndebele"
+      },
+      {
+        "key": 306,
+        "description": "Neapolitan"
+      },
+      {
+        "key": 307,
+        "description": "Nee’aandeg’ / Tanacross"
+      },
+      {
+        "key": 308,
+        "description": "Nepali"
+      },
+      {
+        "key": 309,
+        "description": "Ngambay"
+      },
+      {
+        "key": 310,
+        "description": "Nigerian Pidgin"
+      },
+      {
+        "key": 311,
+        "description": "Northern Sotho"
+      },
+      {
+        "key": 312,
+        "description": "Norwegian"
+      },
+      {
+        "key": 313,
+        "description": "Nuer"
+      },
+      {
+        "key": 314,
+        "description": "Nupe"
+      },
+      {
+        "key": 315,
+        "description": "Nyanja"
+      },
+      {
+        "key": 316,
+        "description": "Nyoro"
+      },
+      {
+        "key": 317,
+        "description": "O'odham"
+      },
+      {
+        "key": 318,
+        "description": "Ojibwe"
+      },
+      {
+        "key": 319,
+        "description": "Oromo"
+      },
+      {
+        "key": 320,
+        "description": "Pampangan"
+      },
+      {
+        "key": 321,
+        "description": "Papiamento"
+      },
+      {
+        "key": 322,
+        "description": "Pashto"
+      },
+      {
+        "key": 323,
+        "description": "Pennsylvania Dutch"
+      },
+      {
+        "key": 324,
+        "description": "Persian"
+      },
+      {
+        "key": 325,
+        "description": "Plains Sign Language"
+      },
+      {
+        "key": 326,
+        "description": "Plateau Sign Language"
+      },
+      {
+        "key": 327,
+        "description": "Plautdietsch"
+      },
+      {
+        "key": 328,
+        "description": "Pohnpeian"
+      },
+      {
+        "key": 329,
+        "description": "Polish"
+      },
+      {
+        "key": 330,
+        "description": "Portuguese"
+      },
+      {
+        "key": 331,
+        "description": "Portuguese Brazilian"
+      },
+      {
+        "key": 332,
+        "description": "Portuguese Cape Verdean"
+      },
+      {
+        "key": 333,
+        "description": "Portuguese Creole"
+      },
+      {
+        "key": 334,
+        "description": "Puerto Rican Sign Language"
+      },
+      {
+        "key": 335,
+        "description": "Pugliese"
+      },
+      {
+        "key": 336,
+        "description": "Pulaar"
+      },
+      {
+        "key": 337,
+        "description": "Punjabi"
+      },
+      {
+        "key": 338,
+        "description": "Putian"
+      },
+      {
+        "key": 339,
+        "description": "Quechua"
+      },
+      {
+        "key": 340,
+        "description": "Quichua"
+      },
+      {
+        "key": 341,
+        "description": "Rade"
+      },
+      {
+        "key": 342,
+        "description": "Rakhine"
+      },
+      {
+        "key": 343,
+        "description": "Rohingya"
+      },
+      {
+        "key": 344,
+        "description": "Romanian"
+      },
+      {
+        "key": 345,
+        "description": "Kirundi"
+      },
+      {
+        "key": 346,
+        "description": "Russian"
+      },
+      {
+        "key": 347,
+        "description": "Samoan"
+      },
+      {
+        "key": 348,
+        "description": "Samoan Sign Language"
+      },
+      {
+        "key": 349,
+        "description": "Sango"
+      },
+      {
+        "key": 350,
+        "description": "Seraiki"
+      },
+      {
+        "key": 351,
+        "description": "Serbian"
+      },
+      {
+        "key": 352,
+        "description": "Shanghainese"
+      },
+      {
+        "key": 353,
+        "description": "Shona"
+      },
+      {
+        "key": 354,
+        "description": "Sichuan Yi"
+      },
+      {
+        "key": 355,
+        "description": "Sicilian"
+      },
+      {
+        "key": 356,
+        "description": "Sindhi"
+      },
+      {
+        "key": 357,
+        "description": "Sinhalese"
+      },
+      {
+        "key": 358,
+        "description": "Sioux"
+      },
+      {
+        "key": 359,
+        "description": "Slovak"
+      },
+      {
+        "key": 360,
+        "description": "Slovenian"
+      },
+      {
+        "key": 361,
+        "description": "Sm’algyax / (Coast) Tsimshian"
+      },
+      {
+        "key": 362,
+        "description": "Soga"
+      },
+      {
+        "key": 363,
+        "description": "Somali"
+      },
+      {
+        "key": 364,
+        "description": "Soninke"
+      },
+      {
+        "key": 365,
+        "description": "Sorani"
+      },
+      {
+        "key": 366,
+        "description": "Sothern Sotho"
+      },
+      {
+        "key": 367,
+        "description": "Spanish"
+      },
+      {
+        "key": 368,
+        "description": "Spanish Creole"
+      },
+      {
+        "key": 369,
+        "description": "Sudanese Arabic"
+      },
+      {
+        "key": 370,
+        "description": "Sugpiaq / Alutiiq"
+      },
+      {
+        "key": 371,
+        "description": "Sunda"
+      },
+      {
+        "key": 372,
+        "description": "Susu"
+      },
+      {
+        "key": 373,
+        "description": "Swahili"
+      },
+      {
+        "key": 374,
+        "description": "Swati"
+      },
+      {
+        "key": 375,
+        "description": "Swedish"
+      },
+      {
+        "key": 376,
+        "description": "Sylhetti"
+      },
+      {
+        "key": 377,
+        "description": "Tagalog"
+      },
+      {
+        "key": 378,
+        "description": "Taiwanese"
+      },
+      {
+        "key": 379,
+        "description": "Tajik"
+      },
+      {
+        "key": 380,
+        "description": "Tamil"
+      },
+      {
+        "key": 381,
+        "description": "Tanacross"
+      },
+      {
+        "key": 382,
+        "description": "Tanana"
+      },
+      {
+        "key": 383,
+        "description": "Telugu"
+      },
+      {
+        "key": 384,
+        "description": "Thai"
+      },
+      {
+        "key": 385,
+        "description": "Tibetan"
+      },
+      {
+        "key": 386,
+        "description": "Tigre"
+      },
+      {
+        "key": 387,
+        "description": "Tigrigna"
+      },
+      {
+        "key": 388,
+        "description": "Tlingit"
+      },
+      {
+        "key": 389,
+        "description": "Toishanese"
+      },
+      {
+        "key": 390,
+        "description": "Tongan"
+      },
+      {
+        "key": 391,
+        "description": "Tooro"
+      },
+      {
+        "key": 392,
+        "description": "Trique"
+      },
+      {
+        "key": 393,
+        "description": "Tsimshian"
+      },
+      {
+        "key": 394,
+        "description": "Tsonga"
+      },
+      {
+        "key": 395,
+        "description": "Tswana"
+      },
+      {
+        "key": 396,
+        "description": "Turkish"
+      },
+      {
+        "key": 397,
+        "description": "Turkmen"
+      },
+      {
+        "key": 398,
+        "description": "Twi"
+      },
+      {
+        "key": 399,
+        "description": "Tzotzil"
+      },
+      {
+        "key": 400,
+        "description": "Ukrainian"
+      },
+      {
+        "key": 401,
+        "description": "Unangam Tunuu / Aleutian Aleut"
+      },
+      {
+        "key": 402,
+        "description": "Upper Kuskokwim"
+      },
+      {
+        "key": 403,
+        "description": "Urdu"
+      },
+      {
+        "key": 404,
+        "description": "Uyghur"
+      },
+      {
+        "key": 405,
+        "description": "Uzbek"
+      },
+      {
+        "key": 406,
+        "description": "Venda"
+      },
+      {
+        "key": 407,
+        "description": "Vietnamese"
+      },
+      {
+        "key": 408,
+        "description": "Visayan"
+      },
+      {
+        "key": 409,
+        "description": "Welsh"
+      },
+      {
+        "key": 410,
+        "description": "Wodaabe"
+      },
+      {
+        "key": 411,
+        "description": "Wolof"
+      },
+      {
+        "key": 412,
+        "description": "Wuzhou"
+      },
+      {
+        "key": 413,
+        "description": "Xaat Kíl / Haida"
+      },
+      {
+        "key": 414,
+        "description": "Xhosa"
+      },
+      {
+        "key": 415,
+        "description": "Xiang"
+      },
+      {
+        "key": 416,
+        "description": "Yemeni Arabic"
+      },
+      {
+        "key": 417,
+        "description": "Yiddish"
+      },
+      {
+        "key": 418,
+        "description": "Yoruba"
+      },
+      {
+        "key": 419,
+        "description": "Yunnanese"
+      },
+      {
+        "key": 420,
+        "description": "Yupik"
+      },
+      {
+        "key": 421,
+        "description": "Zapoteco"
+      },
+      {
+        "key": 422,
+        "description": "Zarma"
+      },
+      {
+        "key": 423,
+        "description": "Zo"
+      },
+      {
+        "key": 424,
+        "description": "Zulu"
+      },
+      {
+        "key": 425,
+        "description": "Zuni"
+      },
+      {
+        "key": 426,
+        "description": "Zyphe"
+      },
+      {
+        "key": 21,
+        "description": "Different preferred language"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
       }
     ]
   }

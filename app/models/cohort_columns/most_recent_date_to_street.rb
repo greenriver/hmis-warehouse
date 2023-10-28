@@ -8,7 +8,7 @@ module CohortColumns
   class MostRecentDateToStreet < ReadOnly
     attribute :column, String, lazy: true, default: :most_recent_date_to_street
     attribute :translation_key, String, lazy: true, default: 'Most Recent Date To Street'
-    attribute :title, String, lazy: true, default: ->(model, _attr) { _(model.translation_key) }
+    attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
 
     def cast_value(val)
       val.to_date

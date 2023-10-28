@@ -7,7 +7,7 @@
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "R4.1",
+      "link_id": "R4",
       "required": false,
       "warn_if_empty": true,
       "text": "Last Grade Completed",
@@ -17,10 +17,17 @@
         "field_name": "lastGradeCompleted"
       },
       "rule": {
-        "operator": "ALL",
+        "operator": "ANY",
         "parts": [
           {
-            "operator": "ANY",
+            "_comment": "HUD: HUD-VASH – – Collection required for HUD/VASH- Continuum",
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "HUD: HUD-VASH"
+          },
+          {
+            "operator": "ALL",
+            "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
             "parts": [
               {
                 "variable": "projectFunderComponents",
@@ -28,44 +35,36 @@
                 "value": "HHS: RHY"
               },
               {
-                "variable": "projectFunders",
-                "operator": "INCLUDE",
-                "value": 20
-              },
-              {
-                "variable": "projectFunders",
-                "operator": "INCLUDE",
-                "value": 33
+                "variable": "projectType",
+                "operator": "NOT_EQUAL",
+                "value": 4
               }
             ]
           },
           {
-            "operator": "ANY",
+            "operator": "ALL",
+            "_comment": "VA: SSVF – Collection required for RRH and Homelessness Prevention",
             "parts": [
               {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 0
+                "variable": "projectFunderComponents",
+                "operator": "INCLUDE",
+                "value": "VA: SSVF"
               },
               {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 2
-              },
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 3
-              },
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 12
-              },
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 13
+                "operator": "ANY",
+                "_comment": "RRH or HP",
+                "parts": [
+                  {
+                    "variable": "projectType",
+                    "operator": "EQUAL",
+                    "value": 12
+                  },
+                  {
+                    "variable": "projectType",
+                    "operator": "EQUAL",
+                    "value": 13
+                  }
+                ]
               }
             ]
           }
@@ -74,7 +73,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "R5.1",
+      "link_id": "R5",
       "required": false,
       "warn_if_empty": true,
       "text": "School Status",
@@ -85,6 +84,7 @@
       },
       "rule": {
         "operator": "ALL",
+        "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
         "parts": [
           {
             "variable": "projectFunderComponents",
@@ -92,24 +92,9 @@
             "value": "HHS: RHY"
           },
           {
-            "operator": "ANY",
-            "parts": [
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 0
-              },
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 2
-              },
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 12
-              }
-            ]
+            "variable": "projectType",
+            "operator": "NOT_EQUAL",
+            "value": 4
           }
         ]
       }
@@ -118,72 +103,62 @@
       "type": "GROUP",
       "link_id": "R6",
       "rule": {
-        "operator": "ALL",
+        "operator": "ANY",
         "parts": [
           {
-            "operator": "ANY",
+            "_comment": "HUD: HUD-VASH – – Collection required for HUD/VASH- Continuum",
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "HUD: HUD-VASH"
+          },
+          {
+            "operator": "ALL",
+            "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
             "parts": [
-              {
-                "variable": "projectFunderComponents",
-                "operator": "INCLUDE",
-                "value": "VA: Grant Per Diem"
-              },
               {
                 "variable": "projectFunderComponents",
                 "operator": "INCLUDE",
                 "value": "HHS: RHY"
               },
               {
-                "variable": "projectFunders",
-                "operator": "INCLUDE",
-                "value": 20
-              },
-              {
-                "variable": "projectFunders",
-                "operator": "INCLUDE",
-                "value": 33
+                "variable": "projectType",
+                "operator": "NOT_EQUAL",
+                "value": 4
               }
             ]
           },
           {
-            "operator": "ANY",
+            "operator": "ALL",
+            "_comment": "VA: SSVF – Collection required for RRH and Homelessness Prevention",
             "parts": [
               {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 0
+                "variable": "projectFunderComponents",
+                "operator": "INCLUDE",
+                "value": "VA: SSVF"
               },
               {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 2
-              },
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 3
-              },
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 8
-              },
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 9
-              },
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 12
-              },
-              {
-                "variable": "projectType",
-                "operator": "EQUAL",
-                "value": 13
+                "operator": "ANY",
+                "_comment": "RRH or HP",
+                "parts": [
+                  {
+                    "variable": "projectType",
+                    "operator": "EQUAL",
+                    "value": 12
+                  },
+                  {
+                    "variable": "projectType",
+                    "operator": "EQUAL",
+                    "value": 13
+                  }
+                ]
               }
             ]
+          },
+          {
+            "_comment": "VA: GPD – collection required for all components",
+            "variable": "projectFunderComponents",
+            "operator": "INCLUDE",
+            "value": "VA: GPD"
           }
         ]
       },

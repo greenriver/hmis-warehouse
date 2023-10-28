@@ -6,7 +6,7 @@
         %th Social Security Number
         %th Age
         %th Gender
-        %th Ethnicity/Race
+        %th Race
     %tbody
       - @client.family_members.each do |client|
         %tr
@@ -19,7 +19,4 @@
               = masked_ssn(client.SSN)
           %td= client.age
           %td= client.gender
-          %td
-            = HudUtility.ethnicity client.Ethnicity
-            \/
-            = client.race_fields.map{ |f| HudUtility.race f }.join ', '
+          %td= client.race_fields.map{ |f| HudUtility2024.race(f) }.join ', '

@@ -19,72 +19,121 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   has_many :form_processors
   has_many :custom_service_types, through: :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
 
-  FORM_ROLES = {
-    # Assessment forms
-    INTAKE: 'Intake Assessment',
-    UPDATE: 'Update Assessment',
-    ANNUAL: 'Annual Assessment',
-    EXIT: 'Exit Assessment',
-    CE: 'Coordinated Entry',
-    POST_EXIT: 'Post-Exit Assessment',
-    CUSTOM: 'Custom Assessment',
-    # Record-editing forms
-    SERVICE: 'Service',
-    PROJECT: 'Project',
-    ORGANIZATION: 'Organization',
-    CLIENT: 'Client',
-    NEW_CLIENT_ENROLLMENT: 'New Client Enrollment',
-    FUNDER: 'Funder',
-    INVENTORY: 'Inventory',
-    PROJECT_COC: 'Project CoC',
-    FILE: 'File',
-    REFERRAL_REQUEST: 'Referral Request',
-    ENROLLMENT: 'Enrollment',
-    CURRENT_LIVING_SITUATION: 'Current Living Situation',
-    # Occurrence-point collection forms
-    MOVE_IN_DATE: 'Move-in Date',
-    DATE_OF_ENGAGEMENT: 'Date of Engagement',
-    UNIT_ASSIGNMENT: 'Unit Assignment',
-    PATH_STATUS: 'PATH Status',
-  }.freeze
+  # Forms that are assessments
+  HUD_ASSESSMENT_FORM_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT, :CE, :POST_EXIT, :CUSTOM_ASSESSMENT].freeze
 
-  validates :role, inclusion: { in: FORM_ROLES.keys.map(&:to_s) }
+  # System forms (required for basic HMIS functionality)
+  SYSTEM_FORM_ROLES = [
+    :PROJECT,
+    :ORGANIZATION,
+    :PROJECT_COC,
+    :FUNDER,
+    :INVENTORY,
+    :CLIENT,
+    :NEW_CLIENT_ENROLLMENT,
+    :ENROLLMENT,
+    :HMIS_PARTICIPATION,
+    :CE_PARTICIPATION,
+  ].freeze
+
+  # Forms used for data collection on Enrollments (features that can be "toggled" on and off by specifying Instances)
+  DATA_COLLECTION_FEATURE_ROLES = [
+    :CURRENT_LIVING_SITUATION,
+    :SERVICE,
+    :CE_EVENT,
+    :CE_ASSESSMENT,
+    :CASE_NOTE,
+    # Would be nice if we could use instances to enable/disable the referral feature (instead of using permissions for it).
+    # That would mean creating an Instance for this form for each non-Direct Entry program.
+    # Maybe less cumbersome than dealing with data access groups, but we'd need that anyway to handle Direct Enrollment permission?
+    :REFERRAL_REQUEST,
+  ].freeze
+
+  FORM_ROLES = [
+    *HUD_ASSESSMENT_FORM_ROLES,
+    *SYSTEM_FORM_ROLES,
+    *DATA_COLLECTION_FEATURE_ROLES,
+    :OCCURRENCE_POINT,
+    # Other/misc forms
+    :FILE, # should maybe be considered a data collection feature, but different becase its at Client-level (not Project)
+  ].freeze
+
+  validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }
 
   ENROLLMENT_CONFIG = {
-    class_name: 'Hmis::Hud::Enrollment',
+    owner_class: Hmis::Hud::Enrollment,
     permission: :can_edit_enrollments,
-    resolve_as: 'Types::HmisSchema::Enrollment',
   }.freeze
 
   FORM_ROLE_CONFIG = {
-    SERVICE: { class_name: 'Hmis::Hud::HmisService', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Service' },
-    PROJECT: { class_name: 'Hmis::Hud::Project', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Project' },
-    ORGANIZATION: { class_name: 'Hmis::Hud::Organization', permission: :can_edit_organization, resolve_as: 'Types::HmisSchema::Organization' },
-    CLIENT: { class_name: 'Hmis::Hud::Client', permission: :can_edit_clients, resolve_as: 'Types::HmisSchema::Client' },
-    FUNDER: { class_name: 'Hmis::Hud::Funder', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Funder' },
-    INVENTORY: { class_name: 'Hmis::Hud::Inventory', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Inventory' },
-    PROJECT_COC: { class_name: 'Hmis::Hud::ProjectCoc', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::ProjectCoc' },
+    SERVICE: {
+      owner_class: Hmis::Hud::HmisService,
+      permission: :can_edit_enrollments,
+    },
+    PROJECT: {
+      owner_class: Hmis::Hud::Project,
+      permission: :can_edit_project_details,
+    },
+    ORGANIZATION: {
+      owner_class: Hmis::Hud::Organization,
+      permission: :can_edit_organization,
+    },
+    CLIENT: {
+      owner_class: Hmis::Hud::Client,
+      permission: :can_edit_clients,
+    },
+    FUNDER: {
+      owner_class: Hmis::Hud::Funder,
+      permission: :can_edit_project_details,
+    },
+    INVENTORY: {
+      owner_class: Hmis::Hud::Inventory,
+      permission: :can_edit_project_details,
+    },
+    PROJECT_COC: {
+      owner_class: Hmis::Hud::ProjectCoc,
+      permission: :can_edit_project_details,
+    },
+    HMIS_PARTICIPATION: {
+      owner_class: Hmis::Hud::HmisParticipation,
+      permission: :can_edit_project_details,
+    },
+    CE_PARTICIPATION: {
+      owner_class: Hmis::Hud::CeParticipation,
+      permission: :can_edit_project_details,
+    },
+    CE_ASSESSMENT: {
+      owner_class: Hmis::Hud::Assessment,
+      permission: :can_edit_enrollments,
+    },
+    CE_EVENT: {
+      owner_class: Hmis::Hud::Event,
+      permission: :can_edit_enrollments,
+    },
+    CASE_NOTE: {
+      owner_class: Hmis::Hud::CustomCaseNote,
+      permission: :can_edit_enrollments,
+    },
     FILE: {
-      class_name: 'Hmis::File',
+      owner_class: Hmis::File,
       permission: [:can_manage_any_client_files, :can_manage_own_client_files],
       authorize: Hmis::File.authorize_proc,
-      resolve_as: 'Types::HmisSchema::File',
     },
     REFERRAL_REQUEST: {
-      class_name: 'HmisExternalApis::AcHmis::ReferralRequest',
+      owner_class: HmisExternalApis::AcHmis::ReferralRequest,
       permission: :can_manage_incoming_referrals,
-      resolve_as: 'Types::HmisSchema::ReferralRequest',
     },
-    CURRENT_LIVING_SITUATION: { class_name: 'Hmis::Hud::CurrentLivingSituation', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CurrentLivingSituation' },
+    CURRENT_LIVING_SITUATION: {
+      owner_class: Hmis::Hud::CurrentLivingSituation,
+      permission: :can_edit_enrollments,
+    },
+    OCCURRENCE_POINT: ENROLLMENT_CONFIG,
     ENROLLMENT: ENROLLMENT_CONFIG,
     # This form creates an enrollment, but it ALSO creates a client, so it requires an additional permission
-    NEW_CLIENT_ENROLLMENT: { **ENROLLMENT_CONFIG, permission: [:can_edit_clients, :can_edit_enrollments] },
-    # These are all basically Enrollment-editing forms ("occurrence point"),
-    # but they need different "roles" so that the frontend can request the correct one.
-    MOVE_IN_DATE: ENROLLMENT_CONFIG,
-    DATE_OF_ENGAGEMENT: ENROLLMENT_CONFIG,
-    UNIT_ASSIGNMENT: ENROLLMENT_CONFIG,
-    PATH_STATUS: ENROLLMENT_CONFIG,
+    NEW_CLIENT_ENROLLMENT: {
+      **ENROLLMENT_CONFIG,
+      permission: [:can_edit_clients, :can_edit_enrollments],
+    },
   }.freeze
 
   FORM_DATA_COLLECTION_STAGES = {
@@ -95,10 +144,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     POST_EXIT: 6,
   }.freeze
 
-  HUD_ASSESSMENT_FORM_ROLES = FORM_ROLES.slice(:INTAKE, :UPDATE, :ANNUAL, :EXIT, :CE, :POST_EXIT).freeze
-
   use_enum_with_same_key :form_role_enum_map, FORM_ROLES
-  use_enum_with_same_key :assessment_type_enum_map, HUD_ASSESSMENT_FORM_ROLES
+  # may add back CE as HUD Assessment Role when we implement CE assessments. Same for implementing customs. Unsure at this point, so leaving them out.
+  use_enum_with_same_key :assessment_type_enum_map, HUD_ASSESSMENT_FORM_ROLES.excluding(:CUSTOM_ASSESSMENT, :CE)
+  use_enum_with_same_key :data_collection_feature_role_enum_map, DATA_COLLECTION_FEATURE_ROLES
 
   scope :with_role, ->(role) { where(role: role) }
 
@@ -109,15 +158,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     base_scope = Hmis::Form::Instance.joins(:definition).merge(definition_scope)
 
     # Choose the first scope that has any records. Prefer more specific instances.
-    instance_scope = [
-      base_scope.for_project(project.id),
-      base_scope.for_organization(project.organization.id),
-      base_scope.for_project_by_funder_and_project_type(project),
-      base_scope.for_project_by_funder(project),
-      base_scope.for_project_by_project_type(project.project_type),
-      base_scope.defaults,
-    ].detect(&:exists?)
-
+    instance_scope = Hmis::Form::Instance.detect_best_instance_scope_for_project(base_scope, project: project)
     return none unless instance_scope.present?
 
     where(identifier: instance_scope.pluck(:definition_identifier))
@@ -153,17 +194,20 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   # Validate JSON definition when loading, to ensure no duplicate link IDs
-  def self.validate_json(json)
+  def self.validate_json(json, valid_pick_lists: [])
     seen_link_ids = Set.new
 
     recur_check = lambda do |item|
       (item['item'] || []).each do |child_item|
         link_id = child_item['link_id']
         raise "Missing link ID: #{child_item}" unless link_id.present?
-
         raise "Duplicate link ID: #{link_id}" if seen_link_ids.include?(link_id)
 
         seen_link_ids.add(link_id)
+
+        # Ensure pick list reference is valid
+        raise "Invalid pick list for Link ID #{link_id}: #{child_item['pick_list_reference']}" if child_item['pick_list_reference'] && valid_pick_lists.exclude?(child_item['pick_list_reference'])
+
         recur_check.call(child_item)
       end
     end
@@ -172,13 +216,13 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def self.validate_schema(json)
-    schema_path = Rails.root
-      .join('drivers/hmis_external_apis/public/schemas/form_definition.json')
+    schema_path = Rails.root.
+      join('drivers/hmis_external_apis/public/schemas/form_definition.json')
     HmisExternalApis::JsonValidator.perform(json, schema_path)
   end
 
   def hud_assessment?
-    HUD_ASSESSMENT_FORM_ROLES.keys.include?(role.to_sym)
+    HUD_ASSESSMENT_FORM_ROLES.include?(role.to_sym)
   end
 
   def intake?
@@ -189,10 +233,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     role.to_sym == :EXIT
   end
 
-  def record_class_name
+  def owner_class
     return unless FORM_ROLE_CONFIG[role.to_sym].present?
 
-    FORM_ROLE_CONFIG[role.to_sym][:class_name]
+    FORM_ROLE_CONFIG[role.to_sym][:owner_class]
   end
 
   def record_editing_permissions
@@ -229,12 +273,13 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
         section: link_id_section_hash[item.link_id],
       }
 
-      is_missing = value.blank? || value == 'DATA_NOT_COLLECTED'
+      is_missing = value.nil? || (value.respond_to?(:empty?) && value.empty?)
+      is_data_not_collected = value == 'DATA_NOT_COLLECTED'
       field_name = item.mapping&.field_name
       # Validate required status
       if item.required && is_missing
         errors.add field_name || :base, :required, **error_context
-      elsif item.warn_if_empty && is_missing
+      elsif item.warn_if_empty && (is_missing || is_data_not_collected)
         errors.add field_name || :base, :data_not_collected, severity: :warning, **error_context
       end
 

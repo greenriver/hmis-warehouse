@@ -15,8 +15,8 @@ wb.add_worksheet(name: "Project Type Reconciliation") do |sheet|
       project.data_source.short_name,
       project.organization.name(current_user),
       project.name(current_user),
-      HudUtility.project_type(project.ProjectType),
-      HudUtility.project_type(project.act_as_project_type),
+      HudUtility2024.project_type(project.ProjectType),
+      HudUtility2024.project_type(project.act_as_project_type),
     ]
     sheet.add_row(row)
   end

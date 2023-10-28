@@ -13,6 +13,7 @@ module Types
     value 'COC'
     value 'PROJECT', 'All Projects that the User can see'
     value 'ENROLLABLE_PROJECTS', 'Projects that the User can enroll Clients in'
+    value 'RESIDENTIAL_PROJECTS', 'Residential Projects'
     value 'ORGANIZATION', 'All Organizations that the User can see'
     value 'GEOCODE'
     value 'STATE'
@@ -33,5 +34,6 @@ module Types
     value 'AVAILABLE_FILE_TYPES'
     value 'ENROLLMENTS_FOR_CLIENT', 'Enrollments for the client, including WIP and Exited.'
     value 'OPEN_HOH_ENROLLMENTS_FOR_PROJECT', 'Open HoH enrollments at the project.'
+    value 'CE_EVENTS', 'Grouped HUD CE Event types'
   end
 end

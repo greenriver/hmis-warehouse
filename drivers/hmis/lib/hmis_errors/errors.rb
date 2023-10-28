@@ -46,8 +46,20 @@ module HmisErrors
       @errors = @errors.reject(&:warning?)
     end
 
+    UNIQ_FOR_ATTRIBUTE_TYPES = [:required, :data_not_collected].freeze
+
     def deduplicate!
-      @errors = @errors.uniq { |e| [e.attribute.to_s.downcase, e.type.to_sym, e.severity, e.full_message.downcase, e.record_id] }
+      # Do a sort before deduping, so that errors with link_ids are preferred over those without.
+      # The errors that have link ids have more context.
+      @errors = @errors.sort_by { |e| e.link_id.present? ? -1 : 1 }.uniq do |e|
+        [
+          e.attribute.to_s.downcase,
+          e.type.to_sym,
+          e.severity,
+          e.record_id,
+          UNIQ_FOR_ATTRIBUTE_TYPES.include?(e.type.to_sym) ? nil : e.full_message.downcase,
+        ]
+      end
     end
 
     def self.errors_are_equal(first, second)

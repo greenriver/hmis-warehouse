@@ -1,0 +1,91 @@
+[
+  {
+    "link_id": "C4.A",
+    "pick_list_options": [
+      {
+        "code": "SPANISH",
+        "label": "Spanish"
+      },
+      {
+        "code": "HINDI",
+        "label": "Hindi"
+      },
+      {
+        "code": "FRENCH",
+        "label": "French"
+      },
+      {
+        "code": "CHINESE",
+        "label": "Chinese"
+      },
+      {
+        "code": "VIETNAMESE",
+        "label": "Vietnamese"
+      },
+      {
+        "code": "ARABIC",
+        "label": "Arabic"
+      },
+      {
+        "code": "FARSI",
+        "label": "Farsi"
+      },
+      {
+        "code": "BURMESE",
+        "label": "Burmese"
+      },
+      {
+        "code": "PORTUGUESE",
+        "label": "Portuguese"
+      },
+      {
+        "code": "RUSSIAN",
+        "label": "Russian"
+      },
+      {
+        "code": "NEPALI",
+        "label": "Nepali"
+      },
+      {
+        "code": "SWAHILI",
+        "label": "Swahili"
+      },
+      {
+        "code": "PASHTO",
+        "label": "Pashto"
+      },
+      {
+        "code": "KIRUNDI",
+        "label": "Kirundi"
+      },
+      {
+        "code": "KAREN",
+        "label": "Karen"
+      },
+      {
+        "code": "DARI",
+        "label": "Dari"
+      },
+      {
+        "code": "UZBEK",
+        "label": "Uzbek"
+      },
+      {
+        "code": "KINYARWANDA",
+        "label": "Kinyarwanda"
+      },
+      {
+        "code": "AMERICAN_SIGN_LANGUAGE",
+        "label": "American Sign Language"
+      },
+      {
+        "code": "BLACK_AMERICAN_SIGN_LANGUAGE",
+        "label": "Black American Sign Language"
+      },
+      {
+        "code": "DIFFERENT_PREFERRED_LANGUAGE",
+        "label": "Different preferred language"
+      }
+    ]
+  }
+]

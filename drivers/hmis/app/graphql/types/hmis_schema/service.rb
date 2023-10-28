@@ -8,11 +8,13 @@
 
 module Types
   class HmisSchema::Service < Types::BaseObject
+    include Types::HmisSchema::HasHudMetadata
     include Types::HmisSchema::HasCustomDataElements
+
     description 'HUD or Custom Service rendered'
 
     def self.configuration
-      Hmis::Hud::Service.hmis_configuration(version: '2022')
+      Hmis::Hud::Service.hmis_configuration(version: '2024')
     end
 
     available_filter_options do
@@ -20,13 +22,14 @@ module Types
       arg :service_type, [ID]
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
       arg :project, [ID]
+      arg :date_provided, GraphQL::Types::ISO8601Date
     end
 
     field :id, ID, null: false
     field :enrollment, Types::HmisSchema::Enrollment, null: false
     field :client, HmisSchema::Client, null: false
     field :service_type, HmisSchema::ServiceType, null: false
-    field :date_provided, GraphQL::Types::ISO8601Date, null: false
+    field :date_provided, GraphQL::Types::ISO8601Date, null: true
     field :fa_amount, Float, null: true
     field :fa_start_date, GraphQL::Types::ISO8601Date, null: true
     field :fa_end_date, GraphQL::Types::ISO8601Date, null: true
@@ -38,16 +41,6 @@ module Types
     hud_field :moving_on_other_type
     hud_field :sub_type_provided, HmisSchema::Enums::ServiceSubTypeProvided
     hud_field :referral_outcome, HmisSchema::Enums::Hud::PATHReferralOutcome
-
-    # Metadata
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
-    hud_field :user, HmisSchema::User, null: true
-
-    def user
-      load_ar_association(object, :user)
-    end
 
     def type_provided
       [object.record_type, object.type_provided].join(':')
@@ -63,14 +56,24 @@ module Types
       load_ar_association(object, :custom_service_type)
     end
 
+    def enrollment
+      load_ar_association(object, :enrollment)
+    end
+
+    def client
+      load_ar_association(object, :client)
+    end
+
     # Custom data elements are linked to the underlying record (Hmis::Hud::Service or Hmis::Hud::CustomService)
     # So we pass the record to the resolver.
     def custom_data_elements
+      owner_service = load_ar_association(object, :owner)
+
       definition_scope = Hmis::Hud::CustomDataElementDefinition.
-        for_type(object.owner.class.sti_name).
+        for_type(owner_service.class.sti_name).
         for_service_type(object.custom_service_type_id)
 
-      resolve_custom_data_elements(object.owner, definition_scope: definition_scope)
+      resolve_custom_data_elements(owner_service, definition_scope: definition_scope)
     end
   end
 end

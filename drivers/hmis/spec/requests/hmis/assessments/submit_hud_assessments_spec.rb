@@ -140,6 +140,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         new_assessment_date = Date.yesterday.strftime('%Y-%m-%d')
         input = {
           assessment_id: assessment.id,
+          enrollment_id: assessment.enrollment.id,
           form_definition_id: definition.id,
           **build_minimum_values(definition, assessment_date: new_assessment_date),
         }
@@ -191,6 +192,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         new_assessment_date = Date.yesterday.strftime('%Y-%m-%d')
         input = {
           assessment_id: assessment.id,
+          enrollment_id: assessment.enrollment.id,
           form_definition_id: definition.id,
           **build_minimum_values(definition, assessment_date: new_assessment_date),
         }
@@ -211,6 +213,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         new_assessment_date = Date.yesterday.strftime('%Y-%m-%d')
         input = {
           assessment_id: assessment.id,
+          enrollment_id: assessment.enrollment.id,
           form_definition_id: definition.id,
           **build_minimum_values(definition, assessment_date: new_assessment_date),
         }
@@ -230,8 +233,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
-  let!(:exited_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: 1.week.ago }
-  let!(:exit1) { create :hmis_hud_exit, enrollment: exited_enrollment, data_source: ds1, client: c1, user: u1, exit_date: 3.days.ago }
+  let(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
+  let!(:exited_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, user: u1, entry_date: 1.week.ago }
+  let!(:exit1) { create :hmis_hud_exit, enrollment: exited_enrollment, data_source: ds1, client: c2, user: u1, exit_date: 3.days.ago }
 
   it 'Can update the Exit Date when submitting a NEW Exit assessment on an Enrollment that has already been exited (edge case)' do
     definition = Hmis::Form::Definition.find_by(role: :EXIT)
@@ -345,9 +349,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'DisabilityGroup.disablingCondition': 'YES',
             # income
             'IncomeBenefit.incomeFromAnySource': 'NO',
-            'IncomeBenefit.insuranceFromAnySource': 'CLIENT_REFUSED',
+            'IncomeBenefit.insuranceFromAnySource': 'CLIENT_PREFERS_NOT_TO_ANSWER',
             # health & dv
-            'HealthAndDv.domesticViolenceVictim': 'NO',
+            'HealthAndDv.domesticViolenceSurvivor': 'NO',
           },
         ),
         confirmed: true,
@@ -364,8 +368,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(assessment['disabilityGroup']['disablingCondition']).to eq('YES')
       expect(assessment['enrollment']['disablingCondition']).to eq('YES')
       expect(assessment['incomeBenefit']['incomeFromAnySource']).to eq('NO')
-      expect(assessment['incomeBenefit']['insuranceFromAnySource']).to eq('CLIENT_REFUSED')
-      expect(assessment['healthAndDv']['domesticViolenceVictim']).to eq('NO')
+      expect(assessment['incomeBenefit']['insuranceFromAnySource']).to eq('CLIENT_PREFERS_NOT_TO_ANSWER')
+      expect(assessment['healthAndDv']['domesticViolenceSurvivor']).to eq('NO')
     end
 
     it 'fails if trying to create a second intake assessment' do

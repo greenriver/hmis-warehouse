@@ -1,11 +1,12 @@
-- content_for :title, _('Project Scorecards')
+- content_for :title, Translation.translate('Project Scorecards')
 .d-flex
   %h1= content_for :title
   .ml-auto
     = link_to history_boston_project_scorecard_warehouse_reports_scorecards_path, class: 'btn btn-secondary' do
       %i.icon-settings_backup_restore
       View Previous Reports
-
+.mt-4
+  = render '/warehouse_reports/twenty_twenty_four_warning'
 = content_for :crumbs do
   = link_to warehouse_reports_path(anchor: 'performance') do
     &laquo; Performance

@@ -1,0 +1,37 @@
+- role = access_control.role
+- collection = access_control.collection
+.well.mb-6
+  %dl
+    %dt Role
+    %dd= role.name
+    %dt Collection
+    %dd= collection.name
+    %dt User Group
+    %dd= access_control.user_group.name
+.row
+  .col
+    %h3 #{role.name} Permissions
+    .card.mb-6
+      %table.table.table-striped
+        %thead
+          %tr
+            %th Permission
+            %th Description
+        %tbody
+          - role.enabled_permissions.each do |k, perm|
+            %tr
+              %th= k.to_s.humanize
+              %td= perm[:description]
+  .col
+    %h3 #{collection.name} Entities
+    - collection.all_associated_entities.each do |section, items|
+      - next if items.count.zero?
+      .card.mb-4
+        %table.table.table-striped
+          %thead
+            %tr
+              %th= section
+          %tbody
+            - items.each do |name|
+              %tr
+                %td= name

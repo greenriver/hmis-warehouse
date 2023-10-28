@@ -22,9 +22,7 @@ require 'deprecation_helper'
 # Add additional requires below this line. Rails is not loaded until this point!
 
 # Requires supporting ruby files with custom matchers and macros
-# Lazy way if we get many of these Dir[Rails.root.join('spec/support/**/*.rb')].sort.each { |f| require f }
-require Rails.root.join('spec/support/hmis_csv_fixtures')
-require Rails.root.join('spec/support/refresh_materialized_views')
+Dir[Rails.root.join('spec/support/**/*.rb')].sort.each { |f| require f }
 
 # Checks for pending migration and applies them before tests are run.
 # If you are not using ActiveRecord, you can remove this line.
@@ -66,6 +64,7 @@ RSpec.configure do |config|
   config.include Devise::Test::IntegrationHelpers, type: :request
   config.include FactoryBot::Syntax::Methods
   config.include HmisCsvFixtures
+  config.include AccessControlSetup
 
   require_relative 'support/s3_utils'
   config.include S3Utils
@@ -75,6 +74,10 @@ RSpec.configure do |config|
       FileUtils.rm(filename)
     end
     Dir.glob('{drivers,spec}/**/fixpoints/*.sql').each do |filename|
+      # The 2024 test kit is HUGE, so we'll use the preprocessed version
+      # This means when the test kit changes, we need to update both the CSVs and the SQL fixpoint
+      next if filename.include?('drivers/datalab_testkit/spec/fixpoints')
+
       FileUtils.rm(filename)
     end
 
@@ -82,6 +85,9 @@ RSpec.configure do |config|
     Delayed::Job.delete_all
     GrdaWarehouse::WarehouseReports::ReportDefinition.maintain_report_definitions
     AccessGroup.maintain_system_groups
+
+    # disable papertrail for test performance
+    PaperTrail.enabled = false
 
     if ENV['ENABLE_HMIS_API'] == 'true'
       ::HmisUtil::JsonForms.new.tap do |builder|
@@ -115,7 +121,7 @@ def cleanup_test_environment
 end
 
 def default_excluded_tables
-  ['versions', 'spatial_ref_sys', 'homeless_summary_report_clients', 'homeless_summary_report_results', 'hmis_csv_importer_logs', 'hap_report_clients', 'simple_report_cells', 'simple_report_universe_members', 'whitelisted_projects_for_clients', 'hmis_csv_import_validations', 'uploads', 'hmis_csv_loader_logs', 'import_logs'] +
+  ['versions', 'spatial_ref_sys', 'homeless_summary_report_clients', 'homeless_summary_report_results', 'hmis_csv_importer_logs', 'hap_report_clients', 'simple_report_cells', 'simple_report_universe_members', 'whitelisted_projects_for_clients', 'hmis_csv_import_validations', 'uploads', 'hmis_csv_loader_logs', 'import_logs', 'delayed_jobs', 'translations'] +
   HmisCsvImporter::Loader::Loader.loadable_files.values.map(&:table_name) +
   HmisCsvImporter::Importer::Importer.importable_files.values.map(&:table_name)
 end

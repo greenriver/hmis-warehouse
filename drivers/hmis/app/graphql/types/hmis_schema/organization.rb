@@ -10,9 +10,10 @@ module Types
   class HmisSchema::Organization < Types::BaseObject
     include Types::HmisSchema::HasProjects
     include Types::HmisSchema::HasCustomDataElements
+    include Types::HmisSchema::HasHudMetadata
 
     def self.configuration
-      Hmis::Hud::Organization.hmis_configuration(version: '2022')
+      Hmis::Hud::Organization.hmis_configuration(version: '2024')
     end
 
     hud_field :id, ID, null: false
@@ -22,10 +23,6 @@ module Types
     hud_field :victim_service_provider, HmisSchema::Enums::Hud::NoYesMissing
     field :description, String, null: true
     field :contact_information, String, null: true
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
-    field :user, HmisSchema::User, null: true
     custom_data_elements_field
     access_field do
       can :delete_organization

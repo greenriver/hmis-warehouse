@@ -9,21 +9,31 @@ module Mutations
     description 'Submit a form to create/update HUD record(s)'
 
     argument :input, Types::HmisSchema::FormInput, required: true
+    argument :record_lock_version, Integer, required: false
 
     field :record, Types::HmisSchema::SubmitFormResult, null: true
 
-    def resolve(input:)
+    def resolve(...)
+      Hmis::Hud::Base.transaction do
+        _resolve(...)
+      end
+    end
+
+    protected
+
+    def _resolve(input:, record_lock_version: nil)
       # Look up form definition
       definition = Hmis::Form::Definition.find_by(id: input.form_definition_id)
       raise HmisErrors::ApiError, 'Form Definition not found' unless definition.present?
 
       # Determine record class
-      klass = definition.record_class_name&.constantize
+      klass = definition.owner_class
       raise HmisErrors::ApiError, 'Form Definition not configured' unless klass.present?
 
       # Find or create record
       if input.record_id.present?
         record = klass.viewable_by(current_user).find_by(id: input.record_id)
+        record.lock_version = record_lock_version if record_lock_version
         entity_for_permissions = record # If we're editing an existing record, always use that as the permission base
       else
         entity_for_permissions, record = permission_base_and_record(klass, input, current_user.hmis_data_source_id)
@@ -60,11 +70,11 @@ module Mutations
       form_validations = form_processor.collect_form_validations
       errors.push(*form_validations)
 
-      # Run processor to create/update record(s)
+      # Run processor to assign attributes to the record(s)
       form_processor.run!(owner: record, user: current_user)
 
-      # Validate record
-      is_valid = record.valid?(:form_submission)
+      # Validate record. Pass 2 contexts: 1 for general form submission, 1 for this specific role.
+      is_valid = record.valid?([:form_submission, "#{definition.role.to_s.downcase}_form".to_sym])
 
       # Collect validations and warnings from AR Validator classes
       record_validations = form_processor.collect_record_validations(user: current_user)
@@ -117,18 +127,12 @@ module Mutations
     end
 
     private def perform_side_effects(record)
-      if record.is_a?(Hmis::Hud::Client)
-        if record.new_record?
-          GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.run!
-        else
-          GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay.match_existing!
-        end
+      case record
+      when Hmis::Hud::Project
+        # If a project was closed, close related Funders and Inventory
+        project_closed = record.operating_end_date_was.nil? && record.operating_end_date.present?
+        record.close_related_funders_and_inventory! if project_closed
       end
-
-      return unless record.is_a? Hmis::Hud::Project
-      return unless record.operating_end_date_was.nil? && record.operating_end_date.present?
-
-      record.close_related_funders_and_inventory!
     end
 
     # For NEW RECORD CREATION ONLY, get the permission base that should be used to check permissions,
@@ -150,7 +154,7 @@ module Mutations
         [nil, klass.new(ds)]
       when 'Hmis::Hud::Project'
         [organization, klass.new({ organization_id: organization&.organization_id, **ds })]
-      when 'Hmis::Hud::Funder', 'Hmis::Hud::ProjectCoc', 'Hmis::Hud::Inventory'
+      when 'Hmis::Hud::Funder', 'Hmis::Hud::ProjectCoc', 'Hmis::Hud::Inventory', 'Hmis::Hud::CeParticipation', 'Hmis::Hud::HmisParticipation'
         [project, klass.new({ project_id: project&.project_id, **ds })]
       when 'Hmis::Hud::Enrollment'
         [project, klass.new({ project_id: project&.project_id, personal_id: client&.personal_id, **ds })]
@@ -169,6 +173,8 @@ module Mutations
         [project, klass.new({ project_id: project&.id })]
       when 'Hmis::File'
         [client, klass.new({ client_id: client&.id, enrollment_id: enrollment&.id })]
+      when 'Hmis::Hud::Assessment', 'Hmis::Hud::CustomCaseNote', 'Hmis::Hud::Event'
+        [enrollment, klass.new({ personal_id: enrollment&.personal_id, enrollment_id: enrollment&.enrollment_id, **ds })]
       else
         raise "No permission base specified for creating a new record of type #{klass.name}"
       end

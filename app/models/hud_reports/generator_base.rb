@@ -131,7 +131,6 @@ module HudReports
         :hoh_only,
         :genders,
         :races,
-        :ethnicities,
       ]
     end
   end

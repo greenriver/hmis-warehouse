@@ -1,68 +1,21 @@
 {
   "type": "GROUP",
   "link_id": "R10",
+  "data_collected_about": "HOH_AND_ADULTS",
   "rule": {
-    "operator": "ALL",
+    "operator": "ANY",
     "parts": [
       {
-        "operator": "ANY",
-        "parts": [
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 22
-          },
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 23
-          },
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 24
-          },
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 25
-          },
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 26
-          }
-        ]
+        "_comment": "HHS: RHY – Collection required for all components",
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HHS: RHY"
       },
       {
-        "operator": "ANY",
-        "parts": [
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 0
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 1
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 2
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 4
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 12
-          }
-        ]
+        "_comment": "Included in YHDP Supplemental CSV. Recommended for YHDP projects.",
+        "variable": "projectFunders",
+        "operator": "INCLUDE",
+        "value": 43
       }
     ]
   },
@@ -100,7 +53,14 @@
           "mapping": {
             "record_type": "HEALTH_AND_DV",
             "field_name": "dueDate"
-          }
+          },
+          "bounds": [
+            {
+              "id": "min-due-date",
+              "type": "MIN",
+              "value_local_constant": "$today"
+            }
+          ]
         }
       ]
     }

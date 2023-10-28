@@ -41,8 +41,8 @@ module HmisExternalApis::AcHmis
     end
 
     def validate_request(data)
-      schema_path = Rails.root
-        .join('drivers/hmis_external_apis/public/schemas/referral.json')
+      schema_path = Rails.root.
+        join('drivers/hmis_external_apis/public/schemas/referral.json')
       HmisExternalApis::JsonValidator.perform(data, schema_path)
     end
 
@@ -55,7 +55,7 @@ module HmisExternalApis::AcHmis
         [key, value]
       end
 
-      res_hash.to_h.compact_blank
+      res_hash.to_h.filter { |_, v| v.to_s.present? }
     end
   end
 end

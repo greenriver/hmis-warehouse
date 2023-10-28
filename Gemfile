@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'rails', '~> 6.1'
+gem 'activesupport', '>= 6.1.7.5' # CVE-2023-38037
 gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'master'
 gem 'rack', '>= 2.2.6.3'
 gem 'rexml'
@@ -8,7 +9,7 @@ gem 'rexml'
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc
 
-gem 'nokogiri', '>= 1.13.10' # >= 1.13.10 due to GHSA-qv4q-mr5r-qprj
+gem 'nokogiri', '>= 1.13.10' # CVE-2017-15412
 gem 'loofah', '>= 2.19.1' # >= 2.19.1 due to GHSA-228g-948r-83gx
 gem 'rubyzip', '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'rails-html-sanitizer', '>= 1.4.4' # >= 1.4.4 due to CVE-2022-23519
@@ -80,6 +81,7 @@ gem 'devise-pwned_password'
 gem 'devise-security'
 gem 'devise-two-factor'
 gem 'rack-cors'
+gem 'doorkeeper'
 
 gem 'omniauth', '~> 2.1'
 gem 'omniauth-oauth2', '~> 1.7.3'
@@ -134,7 +136,7 @@ gem 'babel-transpiler'
 # gem 'sprockets-es6'
 gem 'jquery-ui-rails'
 # gem 'chart-js-rails'
-gem 'nominatim', git: 'https://github.com/greenriver/nominatim.git', branch: 'aw/faraday-2'
+# gem 'nominatim', git: 'https://github.com/greenriver/nominatim.git', branch: 'aw/faraday-2'
 gem 'linefit'
 gem 'jquery-minicolors-rails'
 gem 'htmlentities'
@@ -174,7 +176,7 @@ gem 'progress_bar', require: false
 
 gem 'slack-notifier'
 
-gem 'puma', '~> 4.3.11'
+gem 'puma', '~> 6.3'
 
 gem 'dotenv-rails'
 
@@ -206,17 +208,11 @@ gem 'aws-sdk-iam', '~> 1'
 gem 'aws-sdk-sns', require: false
 gem 'aws-sdk-ssm', '~> 1'
 gem 'json'
-gem 'json_schemer', require: false # external API validation
+gem 'json_schemer', '~> 2.0.0', require: false # external API validation
 gem 'oj'
 gem 'amazing_print'
 
 gem 'auto-session-timeout'
-
-# Translations
-gem 'gettext_i18n_rails'
-gem 'fast_gettext'
-gem 'gettext', '>=3.0.2'
-gem 'grosser-pomo'
 
 gem 'responders'
 
@@ -276,8 +272,9 @@ group :development do
   gem 'marginalia'
   gem 'overcommit', require: false
   gem 'rubocop', require: false
-  gem 'rubocop-rspec', require: false
-  gem 'rubocop-rails', require: false
+  # not used
+  # gem 'rubocop-rspec', require: false
+  # gem 'rubocop-rails', require: false
 
   # boot time/memory profiling
   gem 'derailed_benchmarks', require: false

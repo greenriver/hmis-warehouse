@@ -109,7 +109,6 @@ RSpec.describe ClaimsReporting::QualityMeasuresReport, type: :model do
       date_range: date_range,
       filter: Filters::QualityMeasuresFilter.new(
         races: ['NativeHIPacific', 'MultiRacial'],
-        ethnicities: ['1', '8'],
         genders: ['2', '3'],
         age_ranges: [:forty_to_forty_nine],
         acos: [aco.id],
@@ -117,11 +116,11 @@ RSpec.describe ClaimsReporting::QualityMeasuresReport, type: :model do
     )
 
     # puts report.assigned_enrollements_scope.to_sql
-    expect(report.assigned_enrollements_scope.pluck(:member_id)).to eq(['QMTEST000001', 'QMTEST000002'])
+    expect(report.assigned_enrollements_scope.pluck(:member_id)).to eq(['QMTEST000002'])
 
     data = report.serializable_hash
     expect(data).to be_kind_of(Hash)
     expect(data.keys).to include(:measures)
-    expect(data.dig(:measures, :assigned_enrollees, :value)).to be(2)
+    expect(data.dig(:measures, :assigned_enrollees, :value)).to be(1)
   end
 end

@@ -9,7 +9,7 @@ require 'rails_helper'
 RSpec.describe HmisExternalApis::AcHmis::Exporters::ClientExport, type: :model do
   let(:today) { Date.today }
   let!(:ds) { create(:hmis_data_source) }
-  let!(:client) { create(:hmis_hud_client, data_source: ds, DateCreated: today) }
+  let!(:client) { create(:hmis_hud_client_with_warehouse_client, data_source: ds, DateCreated: today) }
   let(:subject) { HmisExternalApis::AcHmis::Exporters::ClientExport.new }
   let(:output) do
     subject.output.rewind
@@ -25,7 +25,7 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::ClientExport, type: :model d
     subject.run!
     result = CSV.parse(output, headers: true)
     expect(result.length).to eq(1)
-    expect(result.first['FirstName']).to eq(client.first_name)
+    expect(result.first['PersonalID']).to eq(client.warehouse_id.to_s)
   end
 
   it 'includes most recently updated address' do
@@ -42,10 +42,5 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::ClientExport, type: :model d
     subject.run!
     expect(output).to include(mci.value)
     expect(output).to_not include(irrelevant.value)
-  end
-
-  it 'formats dates correctly' do
-    subject.run!
-    expect(output).to include(today.strftime('%Y-%m-%d'))
   end
 end

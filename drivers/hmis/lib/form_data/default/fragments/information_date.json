@@ -11,7 +11,30 @@
       "mapping": { "field_name": "assessmentDate" },
       "required": true,
       "warn_if_empty": false,
-      "assessment_date": true
+      "assessment_date": true,
+      "initial": [
+        {
+          "initial_behavior": "IF_EMPTY",
+          "value_local_constant": "$today"
+        }
+      ],
+      "bounds": [
+        {
+          "id": "min-date",
+          "type": "MIN",
+          "value_local_constant": "$entryDate"
+        },
+        {
+          "id": "max-date",
+          "type": "MAX",
+          "value_local_constant": "$exitDate"
+        },
+        {
+          "id": "max-today",
+          "type": "MAX",
+          "value_local_constant": "$today"
+        }
+      ]
     }
   ]
 }

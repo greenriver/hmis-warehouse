@@ -20,6 +20,7 @@ module HmisExternalApis::AcHmis
     # Enrollment(s) are only present if this referral was accepted
     has_many :enrollments, **Hmis::Hud::Base.hmis_relation(:HouseholdID, 'Enrollment')
     has_one :hoh_enrollment, -> { where(relationship_to_hoh: 1) }, **Hmis::Hud::Base.hmis_relation(:HouseholdID, 'Enrollment')
+    # see note about enrollment / household_id on enrollment in the Referral class
     has_one :household, **Hmis::Hud::Base.hmis_relation(:HouseholdID, 'Household')
 
     scope :viewable_by, ->(_user) { raise } # this scope is replaced by ::Hmis::Hud::Concerns::ProjectRelated
@@ -42,7 +43,7 @@ module HmisExternalApis::AcHmis
         assigned_to_other_program_status: 60,
         # closed: 65,
       },
-      referral_result: ::HudUtility.hud_list_map_as_enumerable(:referral_results),
+      referral_result: ::HudUtility2024.hud_list_map_as_enumerable(:referral_results),
     )
 
     # Referrals in Denied Pending status can either be move to Denied (denial accepted) or to Assigned (denial rejected)
@@ -92,6 +93,27 @@ module HmisExternalApis::AcHmis
     ACTIVE_STATUSES = [:assigned_status, :accepted_pending_status, :denied_pending_status].freeze
     scope :active, -> { where(status: ACTIVE_STATUSES) }
 
+    SORT_OPTIONS = [:relevent_status, :oldest_to_newest].freeze
+    def self.sort_by_option(option)
+      raise NotImplementedError unless SORT_OPTIONS.include?(option)
+
+      case option
+      when :relevent_status
+        order(
+          arel_table[:status].eq('assigned_status').desc,
+          arel_table[:status].eq('accepted_pending_status').desc,
+          arel_table[:status].eq('denied_pending_status').desc,
+          arel_table[:status].eq('accepted_status').desc,
+          arel_table[:status].eq('denied_status').desc,
+          created_at: :desc,
+        )
+      when :oldest_to_newest
+        order(created_at: :asc)
+      else
+        scope
+      end
+    end
+
     private def validate_status_change
       return unless status_changed? && status.present? && status_was.present?
 
@@ -106,6 +128,10 @@ module HmisExternalApis::AcHmis
       identifier.present?
     end
 
+    def inactive?
+      closed_status? || denied_status?
+    end
+
     attr_accessor :current_user
     before_update :track_status_changes
     def track_status_changes
@@ -118,6 +144,36 @@ module HmisExternalApis::AcHmis
         self.status_updated_at = Time.current unless status_updated_at_changed?
         self.status_updated_by_id = user.id unless status_updated_by_id_changed?
       end
+    end
+
+    # If a household has been referred out from a project (e.g. the HMIS Coordinated Entry Project) and the referral has
+    # been accepted or denied, and there are no active referrals for the household, exit the household.
+    def exit_origin_household(user:)
+      # don't auto-exit if referral is from link
+      return if from_link?
+
+      # for find the origin household through the enrollment
+      referral_household = referral&.enrollment&.household
+      return unless referral_household
+
+      referral_postings = referral_household.
+        enrollments.
+        preload(:external_referrals).
+        flat_map { |e| e.external_referrals.flat_map(&:postings) }.
+        filter { |p| p.id != id } # filter out self
+      return unless referral_postings.all?(&:inactive?)
+
+      today = Date.current
+      origin_household = from_link? ? household : referral.enrollment.household
+      exits = origin_household.enrollments.open_excluding_wip.map do |other_enrollment|
+        other_enrollment.build_exit(
+          exit_date: today,
+          personal_id: other_enrollment.personal_id,
+          user: user,
+          destination: 30, # no exit interview performed
+        )
+      end
+      Hmis::Hud::Exit.import!(exits)
     end
   end
 end

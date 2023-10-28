@@ -10,11 +10,6 @@
       },
       "bounds": [
         {
-          "id": "min-start-date",
-          "type": "MIN",
-          "value_local_constant": "$entryDate"
-        },
-        {
           "id": "max-start-date",
           "type": "MAX",
           "question": "fa-end-date"
@@ -24,7 +19,7 @@
     {
       "type": "DATE",
       "link_id": "fa-end-date",
-      "required": true,
+      "required": false,
       "text": "End Date",
       "mapping": {
         "field_name": "faEndDate"
@@ -34,27 +29,6 @@
           "id": "min-end-date",
           "type": "MIN",
           "question": "fa-start-date"
-        }
-      ]
-    },
-    {
-      "type": "DATE",
-      "link_id": "date-provided",
-      "hidden": true,
-      "mapping": {
-        "field_name": "dateProvided"
-      },
-      "autofill_values": [
-        {
-          "value_question": "fa-start-date",
-          "autofill_behavior": "ANY",
-          "autofill_when": [
-            {
-              "question": "fa-start-date",
-              "operator": "EXISTS",
-              "answer_boolean": true
-            }
-          ]
         }
       ]
     },
@@ -82,7 +56,6 @@
     {
       "type": "CHOICE",
       "required": false,
-      "warn_if_empty": true,
       "link_id": "payment-type",
       "text": "Payment Type",
       "mapping": {

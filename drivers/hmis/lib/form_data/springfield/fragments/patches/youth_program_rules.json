@@ -1,0 +1,241 @@
+[
+  {
+    "link_id": "c3-youth-education-status",
+    "rule": {
+      "operator": "ANY",
+      "parts": [
+        {
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "755"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "785"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "751"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "825"
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "R1",
+    "rule": {
+      "operator": "ANY",
+      "parts": [
+        {
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "_comment": "All YHDP",
+          "value": 43
+        },
+        {
+          "operator": "ALL",
+          "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
+          "parts": [
+            {
+              "variable": "projectFunderComponents",
+              "operator": "INCLUDE",
+              "value": "HHS: RHY"
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 4
+            }
+          ]
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "785"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "751"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "825"
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "R3",
+    "rule": {
+      "operator": "ANY",
+      "parts": [
+        {
+          "_comment": "HUD: CoC – Youth Homeless Demonstration Program (YHDP) – collection required for all components",
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        },
+        {
+          "_comment": "HHS: RHY – Collection required for all components",
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HHS: RHY"
+        },
+        {
+          "_comment": "HUD: CoC – Permanent Supportive Housing",
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 2
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "755"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "785"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "751"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "825"
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "R10",
+    "rule": {
+      "operator": "ANY",
+      "parts": [
+        {
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        },
+        {
+          "_comment": "HHS: RHY – Collection required for all components",
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HHS: RHY"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "755"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "785"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "751"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "825"
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "R11",
+    "rule": {
+      "operator": "ANY",
+      "parts": [
+        {
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        },
+        {
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HHS: RHY"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "755"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "785"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "751"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "825"
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "R12",
+    "rule": {
+      "operator": "ANY",
+      "parts": [
+        {
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        },
+        {
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HHS: RHY"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "755"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "785"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "751"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "825"
+        }
+      ]
+    }
+  }
+]

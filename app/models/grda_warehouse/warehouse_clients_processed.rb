@@ -255,7 +255,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         source = source.service_excluding_extrapolated unless GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
 
         dates = source.homeless.
-          in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES). # for index hinting
+          in_project_type(HudUtility2024.homeless_project_types). # for index hinting
           where(client_id: @client_ids).
           group(:client_id).
           maximum(:date)
@@ -274,7 +274,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
     def first_homeless_dates
       @first_homeless_dates ||= GrdaWarehouse::ServiceHistoryServiceMaterialized.homeless.
-        in_project_type(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES). # for index hinting
+        in_project_type(HudUtility2024.homeless_project_types). # for index hinting
         where(client_id: @client_ids).
         group(:client_id).
         minimum(:date)
@@ -290,7 +290,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
         non_homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_a[:homeless].eq(false)).
-          where(shsm_a[:project_type].in(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph])). # for index hinting
+          where(shsm_a[:project_type].in(HudUtility2024.residential_project_type_numbers_by_code[:ph])). # for index hinting
           where(shsm_a[:client_id].in(@client_ids)).
           where(shsm_a[:date].eq(shsm_b[:date])).
           where(shsm_a[:client_id].eq(shsm_b[:client_id])).
@@ -301,7 +301,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
         homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_b[:homeless].eq(true)).
-          where(shsm_b[:project_type].in(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES)). # for index hinting
+          where(shsm_b[:project_type].in(HudUtility2024.homeless_project_types)). # for index hinting
           where(shsm_b[:client_id].in(@client_ids)).
           where(non_homeless_sql).
           select(shsm_b[:client_id], shsm_b[:date]).
@@ -336,7 +336,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
         non_homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_a[:homeless].eq(false)).
-          where(shsm_a[:project_type].in(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph])). # for index hinting
+          where(shsm_a[:project_type].in(HudUtility2024.residential_project_type_numbers_by_code[:ph])). # for index hinting
           where(shsm_a[:client_id].in(@client_ids)).
           where(shsm_a[:date].eq(shsm_b[:date])).
           where(shsm_a[:client_id].eq(shsm_b[:client_id])).
@@ -347,7 +347,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
         homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_b[:homeless].eq(true)).
-          where(shsm_b[:project_type].in(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES)). # for index hinting
+          where(shsm_b[:project_type].in(HudUtility2024.homeless_project_types)). # for index hinting
           where(shsm_b[:client_id].in(@client_ids)).
           where(non_homeless_sql).
           select(shsm_b[:client_id], shsm_b[:date]).
@@ -373,7 +373,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
         non_homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_a[:literally_homeless].eq(false)).
-          where(shsm_a[:project_type].in(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th])). # for index hinting
+          where(shsm_a[:project_type].in(HudUtility2024.residential_project_type_numbers_by_code[:ph] + HudUtility2024.residential_project_type_numbers_by_code[:th])). # for index hinting
           where(shsm_a[:date].between(3.years.ago.to_date..Date.current)).
           where(shsm_a[:client_id].in(@client_ids)).
           where(shsm_a[:date].eq(shsm_b[:date])).
@@ -385,7 +385,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
         homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_b[:literally_homeless].eq(true)).
-          where(shsm_b[:project_type].in(GrdaWarehouse::Hud::Project::LITERALLY_HOMELESS_PROJECT_TYPES)). # for index hinting
+          where(shsm_b[:project_type].in(HudUtility2024.literally_homeless_project_types)). # for index hinting
           where(shsm_b[:date].between(3.years.ago.to_date..Date.current)).
           where(shsm_b[:client_id].in(@client_ids)).
           where(non_homeless_sql).
@@ -412,7 +412,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
         non_homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_a[:homeless].eq(false)).
-          where(shsm_a[:project_type].in(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph])). # for index hinting
+          where(shsm_a[:project_type].in(HudUtility2024.residential_project_type_numbers_by_code[:ph])). # for index hinting
           where(shsm_a[:date].between(3.years.ago.to_date..Date.current)).
           where(shsm_a[:client_id].in(@client_ids)).
           where(shsm_a[:date].eq(shsm_b[:date])).
@@ -424,7 +424,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
         homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_b[:homeless].eq(true)).
-          where(shsm_b[:project_type].in(GrdaWarehouse::Hud::Project::HOMELESS_PROJECT_TYPES)). # for index hinting
+          where(shsm_b[:project_type].in(HudUtility2024.homeless_project_types)). # for index hinting
           where(shsm_b[:date].between(3.years.ago.to_date..Date.current)).
           where(shsm_b[:client_id].in(@client_ids)).
           where(non_homeless_sql).
@@ -442,7 +442,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
     def most_recent_chronic_dates
       @most_recent_chronic_dates ||= GrdaWarehouse::ServiceHistoryServiceMaterialized.literally_homeless.
-        in_project_type(GrdaWarehouse::Hud::Project::LITERALLY_HOMELESS_PROJECT_TYPES). # for index hinting
+        in_project_type(HudUtility2024.literally_homeless_project_types). # for index hinting
         where(client_id: @client_ids).
         group(:client_id).
         maximum(:date)
@@ -450,7 +450,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
     def first_chronic_dates
       @first_chronic_dates ||= GrdaWarehouse::ServiceHistoryServiceMaterialized.literally_homeless.
-        in_project_type(GrdaWarehouse::Hud::Project::LITERALLY_HOMELESS_PROJECT_TYPES). # for index hinting
+        in_project_type(HudUtility2024.literally_homeless_project_types). # for index hinting
         where(client_id: @client_ids).
         group(:client_id).
         minimum(:date)
@@ -466,7 +466,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
         non_homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_a[:literally_homeless].eq(false)).
-          where(shsm_a[:project_type].in(GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:ph] + GrdaWarehouse::Hud::Project::RESIDENTIAL_PROJECT_TYPES[:th])). # for index hinting
+          where(shsm_a[:project_type].in(HudUtility2024.residential_project_type_numbers_by_code[:ph] + HudUtility2024.residential_project_type_numbers_by_code[:th])). # for index hinting
           where(shsm_a[:date].between(3.years.ago.to_date..Date.current)).
           where(shsm_a[:client_id].in(@client_ids)).
           where(shsm_a[:date].eq(shsm_b[:date])).
@@ -478,7 +478,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
 
         homeless_sql = GrdaWarehouse::ServiceHistoryServiceMaterialized.
           where(shsm_b[:literally_homeless].eq(true)).
-          where(shsm_b[:project_type].in(GrdaWarehouse::Hud::Project::LITERALLY_HOMELESS_PROJECT_TYPES)). # for index hinting
+          where(shsm_b[:project_type].in(HudUtility2024.literally_homeless_project_types)). # for index hinting
           where(shsm_b[:date].between(3.years.ago.to_date..Date.current)).
           where(shsm_b[:client_id].in(@client_ids)).
           where(non_homeless_sql).
@@ -652,7 +652,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
             oe[id] << if project_type == 13
               [project_type, 'RRH']
             else
-              [project_type, ::HudUtility.project_type_brief(project_type)]
+              [project_type, ::HudUtility2024.project_type_brief(project_type)]
             end
           end
       end
@@ -702,11 +702,11 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
             destination_string = if destination_code == 17
               other_destination
             else
-              ::HudUtility.destination(destination_code)
+              ::HudUtility2024.destination(destination_code)
             end
 
             destinations[id] ||= []
-            destinations[id] << "#{last_date_in_program} - Destination: #{destination_string}, from: #{::HudUtility.project_type_brief(project_type)}"
+            destinations[id] << "#{last_date_in_program} - Destination: #{destination_string}, from: #{::HudUtility2024.project_type_brief(project_type)}"
           end
       end
       @last_exit_destination[client_id]&.join('; ') || 'No exits in past 3 months'
@@ -790,6 +790,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
         open_enrollments.
           joins(enrollment: [:project, :services]).
           group(she_t[:client_id], p_t[:id]).maximum(s_t[:date_provided]).
+          reject { |_, d| d.blank? }.
           sort_by { |_, d| d }.
           reverse_each do |(service_client_id, project_id), date|
             h[service_client_id] ||= {}

@@ -14,6 +14,7 @@ class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base
   USE_VALUES = [
     :home,
     :work,
+    :school,
     :temp,
     :old,
     :mobile,
@@ -33,7 +34,7 @@ class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base
   alias_to_underscore [:NameDataQuality, :ContactPointID]
 
   scope :active, ->(date = Date.current) do
-    left_outer_joins(:active_range).where(ar_t[:end].eq(nil).or(ar_t[:end].gteq(date)))
+    left_outer_joins(:active_range).where(Hmis::ActiveRange.arel_active_on(date))
   end
 
   replace_scope :viewable_by, ->(user) do
