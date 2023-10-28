@@ -30,6 +30,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :custom_case_notes, **hmis_enrollment_relation('CustomCaseNote'), inverse_of: :enrollment, dependent: :destroy
   # All services (combined view of HUD and Custom services)
   has_many :hmis_services, **hmis_enrollment_relation('HmisService'), inverse_of: :enrollment
+  has_many :addresses, **hmis_relation(:EnrollmentID, 'CustomClientAddress'), inverse_of: :enrollment, dependent: :destroy
 
   has_many :events, **hmis_enrollment_relation('Event'), inverse_of: :enrollment, dependent: :destroy
   has_many :income_benefits, **hmis_enrollment_relation('IncomeBenefit'), inverse_of: :enrollment, dependent: :destroy
@@ -65,6 +66,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
+  accepts_nested_attributes_for :addresses, allow_destroy: true
 
   validates_with Hmis::Hud::Validators::EnrollmentValidator
   validate :client_is_valid, on: :new_client_enrollment_form

@@ -669,6 +669,11 @@ enum ClientAddressType {
   both
 
   """
+  Move in
+  """
+  move_in
+
+  """
   Physical
   """
   physical
@@ -2734,6 +2739,7 @@ HUD Enrollment
 """
 type Enrollment {
   access: EnrollmentAccess!
+  addresses: [ClientAddress!]!
   alcoholDrugUseDisorderFam: NoYesMissing
   annualPercentAmi: AnnualPercentAMI
   assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!

@@ -932,7 +932,8 @@ CREATE TABLE public."CustomClientAddress" (
     data_source_id integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    "EnrollmentID" character varying
 );
 
 
@@ -59767,6 +59768,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231014190301'),
 ('20231016190301'),
 ('20231017190301'),
-('20231020151224');
+('20231020151224'),
+('20231028140507');
 
 

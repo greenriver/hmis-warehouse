@@ -21,10 +21,12 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
     :postal,
     :physical,
     :both,
+    MOVE_IN_TYPE = :move_in, # ag-specific
   ].freeze
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User')
+  belongs_to :enrollment, **hmis_relation(:PersonalID, 'Enrollment'), optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_one :active_range, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
   alias_to_underscore [:NameDataQuality, :AddressID]
@@ -57,6 +59,10 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
     address_type
   end
 
+  def move_in_type?
+    address_type&.to_sym == MOVE_IN_TYPE
+  end
+
   def self.hud_key
     :AddressID
   end
@@ -67,5 +73,18 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
 
   def self.type_values
     TYPE_VALUES
+  end
+
+  def validate_required_fields?
+    move_in_type?
+  end
+
+  # maybe there's a list of states somewhere else we can use?
+  USA_STATES = ['AK', 'AL', 'AR', 'AS', 'AZ', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'GU', 'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME', 'MI', 'MN', 'MO', 'MP', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NJ', 'NM', 'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'PR', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VA', 'VI', 'VT', 'WA', 'WI', 'WV', 'WY'].freeze
+  with_options(if: :validate_required_fields?) do
+    validates :line1, presence: true
+    validates :city, presence: true
+    validates :state, inclusion: { in: USA_STATES, message: 'is not a valid US state' }
+    validates :postal_code, presence: true, format: { with: /\A\d{5}/, message: 'should be a valid ZIP Code' }
   end
 end

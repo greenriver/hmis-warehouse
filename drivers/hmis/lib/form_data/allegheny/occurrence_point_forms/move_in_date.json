@@ -28,15 +28,16 @@
       ]
     },
     {
-      "link_id": "3.20.custom.address",
-      "type": "TEXT",
+      "type": "OBJECT",
+      "component": "ADDRESS",
+      "repeats": false,
       "required": true,
-      "text": "Move-in Address",
-      "readonly_text": "Address",
+      "link_id": "addresses",
       "mapping": {
         "record_type": "ENROLLMENT",
-        "custom_field_key": "move_in_date_address"
+        "field_name": "addresses"
       },
+      "text": "Move in address",
       "enable_when": [
         {
           "question": "3.20",
