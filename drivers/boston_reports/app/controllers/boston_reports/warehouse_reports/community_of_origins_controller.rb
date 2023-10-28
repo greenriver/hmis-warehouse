@@ -4,7 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 module BostonReports::WarehouseReports
-  class CommunityOfOriginController < ApplicationController
+  class CommunityOfOriginsController < ApplicationController
+    include WarehouseReportAuthorization
+    include AjaxModalRails::Controller
+    include BaseFilters
+
+    before_action :set_report
+    before_action :set_pdf_export
     def index
       render layout: 'report_with_map'
     end
@@ -29,12 +35,12 @@ module BostonReports::WarehouseReports
     end
     helper_method :across_the_country_data
 
-    def top_ten_zip_codes_data(scope)
+    def top_zip_codes_data(scope)
       scope.map do |shape|
         { zip_code: shape.zcta5ce10, percent: rand(0..0.2) }
       end
     end
-    helper_method :top_ten_zip_codes_data
+    helper_method :top_zip_codes_data
 
     def zip_code_shape_data(scope)
       GrdaWarehouse::Shape.geo_collection_hash(scope)
@@ -57,5 +63,28 @@ module BostonReports::WarehouseReports
       ]
     end
     helper_method :zip_code_colors
+
+    private def set_report
+      @report = report_class.new(@filter)
+    end
+
+    private def report_class
+      BostonReports::CommunityOfOrigin
+    end
+
+    def filter_params
+      return report_class.default_filter_options unless params[:filters].present?
+
+      params.permit(filters: @filter.known_params)
+    end
+    helper_method :filter_params
+
+    private def filter_class
+      ::Filters::FilterBase
+    end
+
+    private def set_pdf_export
+      @pdf_export = BostonReports::DocumentExports::CommunityOfOriginPdfExport.new
+    end
   end
 end

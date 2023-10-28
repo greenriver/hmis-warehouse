@@ -1,18 +1,18 @@
 :javascript
   (function() {
-    var topTenZipsData = #{data.to_json.html_safe}
-    console.log('topTenZipsData', topTenZipsData)
+    var topZipData = #{data.to_json.html_safe}
+    console.log('topZipData', topZipData)
     var shapeData = #{shape_data.to_json.html_safe}
     console.log('shapeData', shapeData)
     var colors = #{colors.to_json.html_safe}
-    
+
     var topTenZipsMap = new L.Map('coo-map__top-ten-zips').setView([37.8, -96], 4)
 
     var geojson = L.geoJSON(
-      shapeData, 
+      shapeData,
       {
         style: function(feature) {
-          var data = topTenZipsData.find(function(d){
+          var data = topZipData.find(function(d){
             return d.zip_code === feature.properties.name
           })
           var color = colors.find(function (d, i) {
@@ -33,7 +33,7 @@
     topTenZipsMap.fitBounds(geojson.getBounds())
 
     var tiles = L.tileLayer(
-      'https://tile.openstreetmap.org/{z}/{x}/{y}.png', 
+      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
       {
         maxZoom: 19,
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
