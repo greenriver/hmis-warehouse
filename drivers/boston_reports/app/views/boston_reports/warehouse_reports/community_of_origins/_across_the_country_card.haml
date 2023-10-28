@@ -14,7 +14,7 @@
           .d-flex.align-items-center.pr-4
             .coo-map__atc__circle
             .pl-2 > 60%
-        .text-center 
+        .text-center
           %strong Percent of Clients
       .col-4
         %table.table
@@ -26,5 +26,5 @@
             - data.each do |d|
               %tr
                 %td= d[:name]
-                %td.text-right
+                %td.text-right{data: { toggle: :tooltip, title: "#{d[:count]} of #{d[:total]}" }}
                   = d[:display_percent]

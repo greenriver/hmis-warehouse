@@ -9,7 +9,7 @@
         %p Unique Clients
     .d-flex.pr-6.border-right.ml-auto.mr-auto
       .count.font-weight-bolder.ml-auto.mr-auto
-        = number_with_delimiter(@report.enrolled_with_community_of_origin.select(:client_id).distinct.count)
+        = number_with_delimiter(@report.count_enrolled_with_community_of_origin)
       .count-description
         %h3 With Community of Origin
         %p of the Unique Enrolled Clients

@@ -9,7 +9,8 @@ module GrdaWarehouse
     include NotifierConfig
 
     belongs_to :shape_zip_code, class_name: 'GrdaWarehouse::Shape::ZipCode', primary_key: 'zcta5ce10', foreign_key: 'zipcode', optional: true
-    belongs_to :shape_state, class_name: 'GrdaWarehouse::Shape::State', primary_key: 'stusps', foreign_key: 'state', optional: true
+    belongs_to :shape_state, class_name: 'GrdaWarehouse::Shape::State', primary_key: 'name', foreign_key: 'state', optional: true
+    belongs_to :cls, class_name: 'ClientLocationHistory::Location', primary_key: [:lat, :lon], foreign_key: [:lat, :lon], optional: true
 
     def self.lookup_lat_lon(query: nil, city: nil, state: nil, postalcode: nil, country: 'us')
       place = lookup(query: query, city: city, state: state, postalcode: postalcode, country: country)&.lat_lon
@@ -29,10 +30,14 @@ module GrdaWarehouse
           # we see a ton of missing zeros at the beginning of zipcodes, store what we have, but lookup the correct value
           nr = nominatim_lookup(query, city, state, postalcode&.rjust(5, '0'), country)
           if nr.present?
-            lat_lon = { lat: nr.coordinates.first, lon: nr.coordinates.last, bounds: nr.boundingbox }.with_indifferent_access
+            lat = nr.coordinates.first
+            lon = nr.coordinates.last
+            lat_lon = { lat: lat, lon: lon, bounds: nr.boundingbox }.with_indifferent_access
             Place.create!(
               location: key,
               lat_lon: lat_lon,
+              lat: lat,
+              lon: lon,
               city: nr.town,
               state: nr.state,
               zipcode: nr.postal_code,

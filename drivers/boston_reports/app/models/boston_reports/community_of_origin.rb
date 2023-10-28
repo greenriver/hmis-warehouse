@@ -102,7 +102,15 @@ module BostonReports
     end
 
     def enrolled_with_community_of_origin
-      enrolled_clients.joins(client: :client_location_histories)
+      enrolled_clients.joins(**state_joins)
+    end
+
+    def enrolled_with_community_of_origin_zip
+      enrolled_clients.joins(**zip_joins)
+    end
+
+    def count_enrolled_with_community_of_origin
+      @count_enrolled_with_community_of_origin ||= enrolled_with_community_of_origin.select(:client_id).distinct.count
     end
 
     def entering_clients
@@ -110,7 +118,72 @@ module BostonReports
     end
 
     def entering_with_community_of_origin
-      entering_clients.joins(client: :client_location_histories)
+      entering_clients.joins(**state_joins)
+    end
+
+    private def state_joins
+      # FIXME: need a CTE/Window Function for client.most_recent_location_history so it only returns
+      # the most recent location for each client within the date range
+      { client: [client_location_histories: { place: :shape_state }] }
+    end
+
+    private def zip_joins
+      # FIXME: need a CTE/Window Function for client.most_recent_location_history so it only returns
+      # the most recent location for each client within the date range
+      { client: [client_location_histories: { place: :shape_zip_code }] }
+    end
+
+    def across_the_country_data
+      percent_of_clients_data = enrolled_with_community_of_origin.group(:state).count.map do |state, count|
+        percentage = percent(numerator: count, denominator: count_enrolled_with_community_of_origin)
+        {
+          name: state,
+          count: count,
+          total: count_enrolled_with_community_of_origin,
+          percent: percentage,
+          display_percent: ActiveSupport::NumberHelper.number_to_percentage(percentage, precision: 1, strip_insignificant_zeros: true),
+        }
+      end
+      percent_names = percent_of_clients_data.map { |d| d[:name] }
+      GrdaWarehouse::Shape::State.where(name: percent_names).map do |state|
+        state.geo_json_properties.merge(percent_of_clients_data.select { |d| d[:name] == state.name }.first)
+      end.sort_by { |d| d[:percent] }.reverse
+    end
+
+    private def zip_code_scope
+      enrolled_with_community_of_origin.group(:zipcode).count
+    end
+
+    def top_zip_codes_data
+      zip_code_scope.map do |zip, count|
+        percentage = percent(numerator: count, denominator: count_enrolled_with_community_of_origin)
+        {
+          zip_code: zip,
+          count: count,
+          total: count_enrolled_with_community_of_origin,
+          percent: percentage,
+          display_percent: ActiveSupport::NumberHelper.number_to_percentage(percentage, precision: 1, strip_insignificant_zeros: true),
+        }
+      end
+    end
+
+    def zip_code_shape_data
+      GrdaWarehouse::Shape.geo_collection_hash(GrdaWarehouse::Shape::ZipCode.where(zcta5ce10: zip_code_scope.keys))
+    end
+
+    # def zip_code_fake_scope
+    #   # GrdaWarehouse::Shape::ZipCode.my_state.last(20)
+    #   GrdaWarehouse::Shape::ZipCode.my_state.sample(20)
+    # end
+
+    def zip_code_colors
+      [
+        { color: '#BF216B', range: [0.02] },
+        { color: '#F22797', range: [0.02, 0.05] },
+        { color: '#F2BC1B', range: [0.05, 0.1] },
+        { color: '#F26A1B', range: [0.1, 0.15] },
+        { color: '#F5380E', range: [0.15] },
+      ]
     end
 
     def detail_headers

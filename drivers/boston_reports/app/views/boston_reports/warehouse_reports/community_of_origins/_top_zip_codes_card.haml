@@ -5,20 +5,20 @@
       .col-8
         #coo-map__top-ten-zips{style: 'height:450px;'}
         .d-flex.justify-content-center.align-items-center.flex-wrap.mb-4
-          - zip_code_colors.each_with_index do |color, i|
+          - @report.zip_code_colors.each_with_index do |color, i|
             - range = color[:range].map{|d| number_to_percentage(d*100, percision: 1, strip_insignificant_zeros: true)}
             .d-flex.align-items-center.flex-nowrap.mr-4.mt-4
               .mr-2{style: "width:20px;height:20px;background-color:#{color[:color]}"}
               %div{style: "white-space:nowrap;"}
                 - if i == 0
                   = "< #{range[0]}"
-                - elsif i == zip_code_colors.count - 1
+                - elsif i == @report.zip_code_colors.count - 1
                   = "> #{range[0]}"
-                - elsif i == zip_code_colors.count - 2
+                - elsif i == @report.zip_code_colors.count - 2
                   = "#{range[0]} - #{range[1]}"
                 - else
                   = "#{range[0]} - <#{range[1]}"
-        .text-center 
+        .text-center
           %strong Percent of Clients
 
       .col-4
@@ -30,6 +30,6 @@
           %tbody
             - data.sort_by{|d| d[:percent]}.last(10).reverse.each do |d|
               %tr
-                %td= "Zip Code #{d[:zip_code]}"
+                %td= "Zip Code #{d[:zip_code] || 'Unknown'}"
                 %td.text-right
-                  = number_to_percentage(d[:percent]*100, precision: 1, strip_insignificant_zeros: true)
+                  = number_to_percentage(d[:percent], precision: 1, strip_insignificant_zeros: true)

@@ -15,11 +15,9 @@
     .main-inner-prs1
       = render 'header_counts'
 
-      FAKE Below here
-      - fake_scope = zip_code_fake_scope
-      .mb-8= render 'across_the_country_card', data: across_the_country_data
-      .mb-8= render 'top_zip_codes_card', data: top_zip_codes_data(fake_scope)
+      .mb-8= render 'across_the_country_card', data: @report.across_the_country_data
+      .mb-8= render 'top_zip_codes_card', data: @report.top_zip_codes_data
 
-      = render 'across_the_country_card_js', data: across_the_country_data
+      = render 'across_the_country_card_js', data: @report.across_the_country_data
 
-      = render 'top_zip_codes_card_js', data: top_zip_codes_data(fake_scope), shape_data: zip_code_shape_data(fake_scope), colors: zip_code_colors
+      = render 'top_zip_codes_card_js', data: @report.top_zip_codes_data, shape_data: @report.zip_code_shape_data, colors: @report.zip_code_colors
