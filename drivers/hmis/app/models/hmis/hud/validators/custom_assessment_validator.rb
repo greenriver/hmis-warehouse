@@ -53,14 +53,17 @@ class Hmis::Hud::Validators::CustomAssessmentValidator < Hmis::Hud::Validators::
     # Add Entry Date validations if this is an intake assessment
     errors.push(*Hmis::Hud::Validators::EnrollmentValidator.validate_entry_date(enrollment, household_members: household_members, options: options)) if assessment.intake?
 
-    # Add Exit Date validations if this is an intake assessment
-    errors.push(*Hmis::Hud::Validators::ExitValidator.validate_exit_date(enrollment.exit, household_members: household_members, options: options)) if assessment.exit?
+    # Add Exit Date validations if this is an exit assessment
+    if assessment.exit?
+      enrollment.exit.exit_date = assessment.assessment_date
+      errors.push(*Hmis::Hud::Validators::ExitValidator.validate_exit_date(enrollment.exit, household_members: household_members, options: options))
+    end
 
     # HUD Annual/Update assessment date validations
     if assessment.annual?
       other_annual_dates = enrollment.annual_assessments.where.not(id: assessment.id).pluck(:assessment_date)
       # Warning: shouldn't have 2 annuals on the same day.
-      # This could probably be an error, but, the user doesnt necessarily have access to delete the dup. Can make it a hard stop later if desired.
+      # This could probably be an error, but, the user doesn't necessarily have access to delete the dup. Can make it a hard stop later if desired.
       errors.add :assessment_date, :invalid, severity: :warning, full_message: already_has_annual_full_message(date), **options if other_annual_dates.include?(date)
       # TODO: warn if annual is close to another annual?
       # TODO: warn about relationship to other annuals dates?
