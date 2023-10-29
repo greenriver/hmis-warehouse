@@ -123,13 +123,13 @@ module BostonReports
 
     private def state_joins
       # FIXME: need a CTE/Window Function for client.most_recent_location_history so it only returns
-      # the most recent location for each client within the date range
+      # the earliest location for each client for the earliest enrollment overlapping the date range
       { client: [client_location_histories: { place: :shape_state }] }
     end
 
     private def zip_joins
       # FIXME: need a CTE/Window Function for client.most_recent_location_history so it only returns
-      # the most recent location for each client within the date range
+      # the earliest location for each client for the earliest enrollment overlapping the date range
       { client: [client_location_histories: { place: :shape_zip_code }] }
     end
 
