@@ -2838,6 +2838,7 @@ type EnrollmentAccess {
   canDeleteEnrollments: Boolean!
   canEditEnrollments: Boolean!
   canSplitHouseholds: Boolean!
+  canViewEnrollmentDetails: Boolean!
   id: ID!
 }
 
