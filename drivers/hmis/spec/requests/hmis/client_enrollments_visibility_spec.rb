@@ -32,6 +32,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p2, client: c1, sexual_orientation: 2 }
   let!(:s2) { create :hmis_hud_service, data_source: ds1, enrollment: e2, client: c1 }
   let!(:a2) { create :hmis_hud_assessment, data_source: e1.data_source, enrollment: e2, client: c1 }
+  let!(:c3) { create :hmis_hud_client, data_source: ds1 }
+  let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p2, client: c3 }
 
   before(:each) do
     hmis_login(user)
@@ -106,6 +108,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(services.map { |r| r.fetch('id') }).to contain_exactly(*expected)
         end
       end
+    end
+
+    it 'does not resolve limited enrollments for clients where the user doesn\'t have any detailed enrollments access' do
+      create_access_control(hmis_user, p2, with_permission: :can_view_limited_enrollment_details)
+      expect(c3.enrollments.where(project_id: p2.project_id).exists?).to eq(true) # ensure setup
+
+      response, result = post_graphql(id: c3.id) { query }
+      expect(response.status).to eq(200), result.inspect
+      enrollments = result.dig('data', 'client', 'enrollments', 'nodes')
+      expect(enrollments).to be_empty
     end
 
     describe 'resolving limited-access enrollments' do

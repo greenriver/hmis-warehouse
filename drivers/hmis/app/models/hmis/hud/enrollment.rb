@@ -113,12 +113,12 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     return none unless user.permissions?(:can_view_enrollment_details, :can_view_limited_enrollment_details, mode: 'any')
 
     # Projects where the user has full enrollment access
-    full_acccess_project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details, :can_view_project, mode: 'all').pluck(:id, :ProjectID)
+    full_access_project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details, :can_view_project, mode: 'all').pluck(:id, :ProjectID)
     # Projects where the user has limited enrollment access
-    limited_acccess_project_ids = Hmis::Hud::Project.with_access(user, :can_view_limited_enrollment_details).pluck(:id, :ProjectID)
+    limited_access_project_ids = Hmis::Hud::Project.with_access(user, :can_view_limited_enrollment_details).pluck(:id, :ProjectID)
 
-    viewable_wip = wip_t[:project_id].in(full_acccess_project_ids.map(&:first) + limited_acccess_project_ids.map(&:first))
-    viewable_enrollment = e_t[:ProjectID].in(full_acccess_project_ids.map(&:second) + limited_acccess_project_ids.map(&:second))
+    viewable_wip = wip_t[:project_id].in(full_access_project_ids.map(&:first) + limited_access_project_ids.map(&:first))
+    viewable_enrollment = e_t[:ProjectID].in(full_access_project_ids.map(&:second) + limited_access_project_ids.map(&:second))
 
     left_outer_joins(:wip).where(viewable_wip.or(viewable_enrollment))
   end

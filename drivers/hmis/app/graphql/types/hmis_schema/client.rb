@@ -151,8 +151,12 @@ module Types
     end
 
     def enrollments(**args)
-      # Scope client enrollments that this user has full OR limited access to
-      scope = object.enrollments.viewable_by(current_user, include_limited_access_enrollments: true)
+      # If current user has "detailed" access to any enrollment for this client, then we also resolve
+      # "limited access" enrollments (if permitted). The purpose is to show additional enrollment history
+      # for "my" clients, but not for other clients in the system that I can see.
+      # This would need to change if we wanted to support the ability to see limited enrollment details for all clients.
+      has_some_detailed_access = current_permission?(permission: :can_view_enrollment_details, entity: object)
+      scope = object.enrollments.viewable_by(current_user, include_limited_access_enrollments: has_some_detailed_access)
       resolve_enrollments(scope, **args, dangerous_skip_permission_check: true)
     end
 
