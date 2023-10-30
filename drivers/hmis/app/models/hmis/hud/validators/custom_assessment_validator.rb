@@ -55,8 +55,9 @@ class Hmis::Hud::Validators::CustomAssessmentValidator < Hmis::Hud::Validators::
 
     # Add Exit Date validations if this is an exit assessment
     if assessment.exit?
-      enrollment.exit.exit_date = assessment.assessment_date
-      errors.push(*Hmis::Hud::Validators::ExitValidator.validate_exit_date(enrollment.exit, household_members: household_members, options: options))
+      exit = enrollment.exit
+      exit.exit_date = assessment.assessment_date if exit
+      errors.push(*Hmis::Hud::Validators::ExitValidator.validate_exit_date(exit, household_members: household_members, options: options))
     end
 
     # HUD Annual/Update assessment date validations
