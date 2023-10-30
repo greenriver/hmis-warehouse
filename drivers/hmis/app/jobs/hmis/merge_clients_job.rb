@@ -222,9 +222,12 @@ module Hmis
         Hmis::Hud::AssessmentQuestion,
         Hmis::Hud::AssessmentResult,
         Hmis::Hud::CurrentLivingSituation,
+        Hmis::Hud::CustomAssessment,
+        Hmis::Hud::CustomCaseNote,
         Hmis::Hud::CustomClientAddress,
         Hmis::Hud::CustomClientContactPoint,
         # Hmis::Hud::CustomClientName,      # Handled in separate method
+        Hmis::Hud::CustomService,
         Hmis::Hud::Disability,
         Hmis::Hud::EmploymentEducation,
         Hmis::Hud::Enrollment,
