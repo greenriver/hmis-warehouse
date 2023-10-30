@@ -151,7 +151,9 @@ module Types
     end
 
     def enrollments(**args)
-      resolve_enrollments(**args)
+      # Scope client enrollments that this user has full OR limited access to
+      scope = object.enrollments.viewable_by(current_user, include_limited_access_enrollments: true)
+      resolve_enrollments(scope, **args, dangerous_skip_permission_check: true)
     end
 
     def income_benefits(**args)

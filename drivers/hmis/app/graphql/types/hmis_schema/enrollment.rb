@@ -27,6 +27,16 @@ module Types
       Hmis::Hud::Enrollment.hmis_configuration(version: '2024')
     end
 
+    def self.enrollment_detail_perms
+      [:can_view_enrollment_details, :can_view_project]
+    end
+
+    # Special field function to perform field-level authorization, to ensure that user has Detail-level access to this Enrollment.
+    # If user lacks sufficient access, field is resolved as null. See Types::BaseField `authorized?` function.
+    def self.detail_field(name, type = nil, **kwargs)
+      field(name, type, **kwargs, require_permissions: enrollment_detail_perms)
+    end
+
     available_filter_options do
       arg :status, [HmisSchema::Enums::EnrollmentFilterOptionStatus]
       arg :open_on_date, GraphQL::Types::ISO8601Date
@@ -36,124 +46,134 @@ module Types
     end
 
     description 'HUD Enrollment'
+
+    # LIMITED ACCESS FIELDS. These fields are visible with `can_view_limited_enrollment_details` permission (or `can_view_enrollment_details` + `can_view_project` perms).
     field :id, ID, null: false
     field :lock_version, Integer, null: false
-    field :project, Types::HmisSchema::Project, null: false
-    hud_field :entry_date
+    field :project_name, String, null: false
+    field :project_type, Types::HmisSchema::Enums::ProjectType, null: true
+    field :organization_name, String, null: false
+    field :entry_date, GraphQL::Types::ISO8601Date, null: false
     field :exit_date, GraphQL::Types::ISO8601Date, null: true
-    field :exit_destination, Types::HmisSchema::Enums::Hud::Destination, null: true
     field :status, HmisSchema::Enums::EnrollmentStatus, null: false
-    assessments_field
-    events_field
-    services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForEnrollment' }
-    custom_case_notes_field
-    files_field
-    ce_assessments_field
-    income_benefits_field
-    disabilities_field
-    health_and_dvs_field
-    youth_education_statuses_field
-    employment_educations_field
-    current_living_situations_field
-    field :household_id, ID, null: false
-    field :household_short_id, ID, null: false
-    field :household, HmisSchema::Household, null: false
-    field :household_size, Integer, null: false
     field :client, HmisSchema::Client, null: false
-    # 3.15.1
-    field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false, default_value: 99
-    # 3.16.1
-    field :enrollment_coc, String, null: true
-    # 3.08
-    field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true, default_value: 99
-    # 3.13.1
-    field :date_of_engagement, GraphQL::Types::ISO8601Date, null: true
-    # 3.20.1
-    field :move_in_date, GraphQL::Types::ISO8601Date, null: true
-    # 3.917
-    field :living_situation, HmisSchema::Enums::Hud::PriorLivingSituation
-    hud_field :rental_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
-    hud_field :length_of_stay, HmisSchema::Enums::Hud::ResidencePriorLengthOfStay
-    hud_field :los_under_threshold, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :previous_street_essh, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :date_to_street_essh
-    hud_field :times_homeless_past_three_years, HmisSchema::Enums::Hud::TimesHomelessPastThreeYears
-    hud_field :months_homeless_past_three_years, HmisSchema::Enums::Hud::MonthsHomelessPastThreeYears
-    # P3
-    field :date_of_path_status, GraphQL::Types::ISO8601Date, null: true
-    field :client_enrolled_in_path, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :reason_not_enrolled, HmisSchema::Enums::Hud::ReasonNotEnrolled, null: true
-    # V4
-    field :percent_ami, HmisSchema::Enums::Hud::PercentAMI, null: true
-    # R1
-    field :referral_source, HmisSchema::Enums::Hud::ReferralSource, null: true
-    field :count_outreach_referral_approaches, Integer, null: true
-    # R2
-    field :date_of_bcp_status, GraphQL::Types::ISO8601Date, null: true
-    field :eligible_for_rhy, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :reason_no_services, HmisSchema::Enums::Hud::ReasonNoServices, null: true
-    field :runaway_youth, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
-    # R3
-    field :sexual_orientation, HmisSchema::Enums::Hud::SexualOrientation, null: true
-    field :sexual_orientation_other, String, null: true
-    # R11
-    field :former_ward_child_welfare, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
-    field :child_welfare_years, HmisSchema::Enums::Hud::RHYNumberofYears, null: true
-    field :child_welfare_months, Integer, null: true
-    # R12
-    field :former_ward_juvenile_justice, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
-    field :juvenile_justice_years, HmisSchema::Enums::Hud::RHYNumberofYears, null: true
-    field :juvenile_justice_months, Integer, null: true
-    # R13
-    field :unemployment_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :mental_health_disorder_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :physical_disability_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :alcohol_drug_use_disorder_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :insufficient_income, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :incarcerated_parent, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    # V6
-    field :vamc_station, HmisSchema::Enums::Hud::VamcStationNumber, null: true
-    # V7
-    field :target_screen_reqd, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :time_to_housing_loss, HmisSchema::Enums::Hud::TimeToHousingLoss, null: true
-    field :annual_percent_ami, HmisSchema::Enums::Hud::AnnualPercentAMI, null: true
-    field :literal_homeless_history, HmisSchema::Enums::Hud::LiteralHomelessHistory, null: true
-    field :client_leaseholder, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :hoh_leaseholder, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :subsidy_at_risk, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :eviction_history, HmisSchema::Enums::Hud::EvictionHistory, null: true
-    field :criminal_record, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :incarcerated_adult, HmisSchema::Enums::Hud::IncarceratedAdult, null: true
-    field :prison_discharge, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :sex_offender, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :disabled_hoh, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :current_pregnant, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :single_parent, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :dependent_under6, HmisSchema::Enums::Hud::DependentUnder6, null: true
-    field :hh5_plus, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :coc_prioritized, HmisSchema::Enums::Hud::NoYesMissing, null: true
-    field :hp_screening_score, Integer, null: true
-    field :threshold_score, Integer, null: true
-    # C4
-    field :translation_needed, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
-    field :preferred_language, HmisSchema::Enums::Hud::PreferredLanguage, null: true
-    field :preferred_language_different, String, null: true
-
     field :in_progress, Boolean, null: false
-    field :intake_assessment, HmisSchema::Assessment, null: true
-    field :exit_assessment, HmisSchema::Assessment, null: true
+    field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false, default_value: 99
+
+    # DETAILED ACCESS FIELDS. These fields are visible with `can_view_enrollment_details` + `can_view_project` permissions.
+    # For non-nullable fields, an error will be thrown if the client tries to query them for a Limited-access enrollment.
+    # For nullable fields, they will be resolved as null for Limited-access enrollments.
+    detail_field :project, Types::HmisSchema::Project, null: false
+    detail_field :exit_destination, Types::HmisSchema::Enums::Hud::Destination, null: true
+    detail_field :household_id, ID, null: false
+    detail_field :household_short_id, ID, null: false
+    detail_field :household, HmisSchema::Household, null: false
+    detail_field :household_size, Integer, null: false
+    # Associated records (detail-access)
+    assessments_field require_permissions: enrollment_detail_perms
+    events_field require_permissions: enrollment_detail_perms
+    services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForEnrollment' }, require_permissions: enrollment_detail_perms
+    custom_case_notes_field require_permissions: enrollment_detail_perms
+    files_field require_permissions: enrollment_detail_perms
+    ce_assessments_field require_permissions: enrollment_detail_perms
+    income_benefits_field require_permissions: enrollment_detail_perms
+    disabilities_field require_permissions: enrollment_detail_perms
+    health_and_dvs_field require_permissions: enrollment_detail_perms
+    youth_education_statuses_field require_permissions: enrollment_detail_perms
+    employment_educations_field require_permissions: enrollment_detail_perms
+    current_living_situations_field require_permissions: enrollment_detail_perms
+    custom_data_elements_field require_permissions: enrollment_detail_perms
+    # 3.16.1
+    detail_field :enrollment_coc, String, null: true
+    # 3.08
+    detail_field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true, default_value: 99
+    # 3.13.1
+    detail_field :date_of_engagement, GraphQL::Types::ISO8601Date, null: true
+    # 3.20.1
+    detail_field :move_in_date, GraphQL::Types::ISO8601Date, null: true
+    # 3.917
+    detail_field :living_situation, HmisSchema::Enums::Hud::PriorLivingSituation
+    detail_field :rental_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
+    detail_field :length_of_stay, HmisSchema::Enums::Hud::ResidencePriorLengthOfStay
+    detail_field :los_under_threshold, HmisSchema::Enums::Hud::NoYesMissing
+    detail_field :previous_street_essh, HmisSchema::Enums::Hud::NoYesMissing
+    detail_field :date_to_street_essh, GraphQL::Types::ISO8601Date
+    detail_field :times_homeless_past_three_years, HmisSchema::Enums::Hud::TimesHomelessPastThreeYears
+    detail_field :months_homeless_past_three_years, HmisSchema::Enums::Hud::MonthsHomelessPastThreeYears
+    # P3
+    detail_field :date_of_path_status, GraphQL::Types::ISO8601Date, null: true
+    detail_field :client_enrolled_in_path, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    detail_field :reason_not_enrolled, HmisSchema::Enums::Hud::ReasonNotEnrolled, null: true
+    # V4
+    detail_field :percent_ami, HmisSchema::Enums::Hud::PercentAMI, null: true
+    # R1
+    detail_field :referral_source, HmisSchema::Enums::Hud::ReferralSource, null: true
+    detail_field :count_outreach_referral_approaches, Integer, null: true
+    # R2
+    detail_field :date_of_bcp_status, GraphQL::Types::ISO8601Date, null: true
+    detail_field :eligible_for_rhy, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    detail_field :reason_no_services, HmisSchema::Enums::Hud::ReasonNoServices, null: true
+    detail_field :runaway_youth, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    # R3
+    detail_field :sexual_orientation, HmisSchema::Enums::Hud::SexualOrientation, null: true
+    detail_field :sexual_orientation_other, String, null: true
+    # R11
+    detail_field :former_ward_child_welfare, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    detail_field :child_welfare_years, HmisSchema::Enums::Hud::RHYNumberofYears, null: true
+    detail_field :child_welfare_months, Integer, null: true
+    # R12
+    detail_field :former_ward_juvenile_justice, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    detail_field :juvenile_justice_years, HmisSchema::Enums::Hud::RHYNumberofYears, null: true
+    detail_field :juvenile_justice_months, Integer, null: true
+    # R13
+    detail_field :unemployment_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    detail_field :mental_health_disorder_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    detail_field :physical_disability_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    detail_field :alcohol_drug_use_disorder_fam, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    detail_field :insufficient_income, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    detail_field :incarcerated_parent, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    # V6
+    detail_field :vamc_station, HmisSchema::Enums::Hud::VamcStationNumber, null: true, require_permissions: [:can_view_enrollment_details, :can_view_project]
+    # V7
+    detail_field :target_screen_reqd, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    detail_field :time_to_housing_loss, HmisSchema::Enums::Hud::TimeToHousingLoss, null: true
+    detail_field :annual_percent_ami, HmisSchema::Enums::Hud::AnnualPercentAMI, null: true
+    detail_field :literal_homeless_history, HmisSchema::Enums::Hud::LiteralHomelessHistory, null: true
+    detail_field :client_leaseholder, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    detail_field :hoh_leaseholder, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    detail_field :subsidy_at_risk, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    detail_field :eviction_history, HmisSchema::Enums::Hud::EvictionHistory, null: true
+    detail_field :criminal_record, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    detail_field :incarcerated_adult, HmisSchema::Enums::Hud::IncarceratedAdult, null: true
+    detail_field :prison_discharge, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    detail_field :sex_offender, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    detail_field :disabled_hoh, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    detail_field :current_pregnant, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    detail_field :single_parent, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    detail_field :dependent_under6, HmisSchema::Enums::Hud::DependentUnder6, null: true
+    detail_field :hh5_plus, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    detail_field :coc_prioritized, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    detail_field :hp_screening_score, Integer, null: true
+    detail_field :threshold_score, Integer, null: true
+    # C4
+    detail_field :translation_needed, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    detail_field :preferred_language, HmisSchema::Enums::Hud::PreferredLanguage, null: true
+    detail_field :preferred_language_different, String, null: true
+
+    detail_field :intake_assessment, HmisSchema::Assessment, null: true
+    detail_field :exit_assessment, HmisSchema::Assessment, null: true
     access_field do
+      can :view_enrollment_details
       can :edit_enrollments
       can :delete_enrollments
       can :split_households
     end
-    custom_data_elements_field
 
-    field :current_unit, HmisSchema::Unit, null: true
-    field :num_units_assigned_to_household, Integer, null: false
-    field :reminders, [HmisSchema::Reminder], null: false
-    field :open_enrollment_summary, [HmisSchema::EnrollmentSummary], null: false
-    field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
+    detail_field :current_unit, HmisSchema::Unit, null: true
+    detail_field :num_units_assigned_to_household, Integer, null: false, default_value: 0
+    detail_field :reminders, [HmisSchema::Reminder], null: false
+    detail_field :open_enrollment_summary, [HmisSchema::EnrollmentSummary], null: false
+    detail_field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
 
     def open_enrollment_summary
       return [] unless current_user.can_view_open_enrollment_summary_for?(object)
@@ -182,6 +202,21 @@ module Types
       else
         load_ar_association(object, :project)
       end
+    end
+
+    # Independent ProjectName field is needed because limited access viewers cannot resolve the project
+    def project_name
+      project&.project_name
+    end
+
+    # Independent ProjectType field is needed because limited access viewers cannot resolve the project
+    def project_type
+      project&.project_type
+    end
+
+    # Independent OrganizationName field is needed because limited access viewers cannot resolve the project
+    def organization_name
+      load_ar_association(project, :organization).organization_name
     end
 
     def exit_date

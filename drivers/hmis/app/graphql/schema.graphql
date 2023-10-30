@@ -2811,6 +2811,7 @@ type Enrollment {
   prisonDischarge: NoYesMissing
   project: Project!
   projectName: String!
+  projectType: ProjectType
   reasonNoServices: ReasonNoServices
   reasonNotEnrolled: ReasonNotEnrolled
   referralSource: ReferralSource
