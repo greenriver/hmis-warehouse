@@ -120,13 +120,15 @@ module HudApr::Generators::Shared::Fy2024
 
       different_language_members = []
       language_rows = []
-      relevant_members.group_by(&:preferred_language).each_pair do |code, members|
+      grouped_members = relevant_members.preload(:universe_membership).group_by { |m| m.universe_membership.preferred_language }
+      grouped_members.each_pair do |code, members|
         if code
           language_rows << [code.to_i, members]
         else
           different_language_members = members
         end
       end
+
       # top 20 sorted by count with code as tie breaker
       language_rows = language_rows.sort_by { |code, members| [members.size, code] }.take(20)
 
@@ -135,7 +137,8 @@ module HudApr::Generators::Shared::Fy2024
         sheet.add_header(col: 'B', label: 'Total Persons Requiring Translation Assistance')
 
         language_rows.each do |code, members|
-          label = HudUtility2024.preferred_languages.fetch(code.to_i)
+          # label = HudUtility2024.preferred_languages.fetch(code.to_i)
+          label = code.to_s
           sheet.append_row(label: label) do |row|
             row.append_cell_members(members: members)
           end

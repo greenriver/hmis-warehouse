@@ -105,6 +105,7 @@ module HudReports::Households
       # entry date as the move-in date.
       household_members = households[hh_id]
       hoh = household_members.detect { |hm| hm[:relationship_to_hoh] == 1 }
+      return nil unless hoh.present?
       return she.first_date_in_program if hoh[:entry_date] <= move_in_date
 
       # Otherwise this move-in is completely invalid

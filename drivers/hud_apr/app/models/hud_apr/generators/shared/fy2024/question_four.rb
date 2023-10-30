@@ -73,7 +73,7 @@ module HudApr::Generators::Shared::Fy2024
           project.computed_project_type,
           project.RRHSubType,
           # Coordinated Entry Access Point
-          ce_participation&.AccessPoint,
+          (ce_participation&.AccessPoint || 0),
           # (If 2.02.6 =6 or (13 and 2.02.6A = 1)), then 0 or 1
           (project.computed_project_type == 6 || (project.computed_project_type == 13 && project.RRHSubType == 1) ? project.ResidentialAffiliation : 0),
           if project.computed_project_type == 6 && project.ResidentialAffiliation == 1 then project.residential_affiliations.map(&:ResProjectID).join(', ') else ' ' end,

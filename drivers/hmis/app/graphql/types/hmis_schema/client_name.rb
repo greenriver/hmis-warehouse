@@ -23,6 +23,14 @@ module Types
 
     # Object is a Hmis::Hud::CustomClientName
 
+    def id
+      return object.id if object.persisted?
+
+      # Placeholder ID for unpersisted primary name based on Client attributes.
+      # Use personal ID so its unique in the cache.
+      "#{object.personal_id}-primary"
+    end
+
     def client
       load_ar_association(object, :client)
     end
