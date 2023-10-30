@@ -6,6 +6,8 @@
 
 module Health
   class PctpCareplan < HealthBase
+    include ArelHelper
+
     self.table_name = :any_careplans # pctp_careplans is the name of the HealthPctp::Careplan table
     acts_as_paranoid
 
@@ -38,7 +40,7 @@ module Health
     end
 
     scope :recent, -> do
-      sorted.limit(1)
+      one_for_column(:created_at, source_arel_table: arel_table, group_on: :patient_id)
     end
 
     scope :sorted, -> do
@@ -81,6 +83,13 @@ module Health
     scope :reviewed_within, ->(range) do
       v1_ids = joins(:v1).merge(Health::Careplan.reviewed_within(range)).pluck(:instrument_id)
       v2_ids = joins(:v2).merge(HealthPctp::Careplan.reviewed_within(range).signature_present).pluck(:instrument_id)
+      where(instrument_id: v1_ids, instrument_type: 'Health::Careplan').
+        or(where(instrument_id: v2_ids, instrument_type: 'HealthPctp::Careplan'))
+    end
+
+    scope :sent_within, ->(range) do
+      v1_ids = joins(:v1).merge(Health::Careplan.sent_within(range)).pluck(:instrument_id)
+      v2_ids = joins(:v2).merge(HealthPctp::Careplan.sent_within(range)).pluck(:instrument_id)
       where(instrument_id: v1_ids, instrument_type: 'Health::Careplan').
         or(where(instrument_id: v2_ids, instrument_type: 'HealthPctp::Careplan'))
     end
