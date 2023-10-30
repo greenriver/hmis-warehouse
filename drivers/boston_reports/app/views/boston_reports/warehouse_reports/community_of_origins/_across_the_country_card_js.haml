@@ -7,11 +7,11 @@
     font-weight: bold;
   }
   .coo-map__atc__triangle-old {
-    width: 0; 
-    height: 0; 
+    width: 0;
+    height: 0;
     border-left: 15px solid transparent;
     border-right: 15px solid transparent;
-    
+
     border-bottom: 15px solid #0DCAF0;
   }
   .coo-map__atc__triangle {
@@ -44,12 +44,12 @@
   }
 :javascript
   (function() {
-    var acrossTheCountryData = #{data.to_json.html_safe}
-    
+    var acrossTheCountryData = #{@report.across_the_country_data.to_json.html_safe}
+
     var map = new L.Map('coo-map__across-the-country').setView([37.8, -96], 4)
 
     var tiles = L.tileLayer(
-      'https://tile.openstreetmap.org/{z}/{x}/{y}.png', 
+      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
       {
         maxZoom: 19,
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -60,29 +60,29 @@
       let color = null;
       let className = ''
       let innerClassName = ''
-      if(d.percent < 0.1) {
+      if(d.percent < 10) {
         color = '#0DCAF0'
         innerClassName = 'coo-map__atc__triangle'
         className = 'coo-map__atc__icon'
       }
-      if(d.percent >= 0.1 && d.percent <= 0.6) {
+      if(d.percent >= 10 && d.percent <= 60) {
         color = '#6F42C1'
         innerClassName = 'coo-map__atc__square'
         className = 'coo-map__atc__icon'
       }
-      if(d.percent > 0.6) {
+      if(d.percent > 60) {
         color = '#20C997'
         innerClassName = 'coo-map__atc__circle'
         className = 'coo-map__atc__icon'
       }
       if(color) {
         // var circle = L.circleMarker(d.centroid, {radius: 15, color: color});
-        
+
         // circle.addTo(map);
         var myIcon = L.divIcon({className: className, html: '<div class="'+innerClassName+'"><span>'+d.display_percent+'</span></div>', iconSize: 30});
         L.marker(d.centroid, {icon: myIcon}).addTo(map);
       }
-      
-      
+
+
     })
   }).call(this);

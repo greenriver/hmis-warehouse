@@ -13,6 +13,8 @@ module BostonReports
 
     attr_reader :filter, :config
 
+    ZIP_LIMIT = 10
+
     def initialize(filter)
       @filter = filter
       @config = BostonReports::Config.first_or_create(&:default_colors)
@@ -85,12 +87,24 @@ module BostonReports
     end
 
     def report_scope(all_project_types: false, include_date_range: true)
-      filter.apply(
+      scope = filter.apply(
         report_scope_source,
         report_scope_source,
         all_project_types: all_project_types,
         include_date_range: include_date_range,
       )
+      # Limit to the earliest started enrollment overlapping the universe per client
+      scope = scope.one_for_column(
+        :entry_date,
+        source_arel_table: she_t,
+        group_on: :client_id,
+        direction: :asc,
+        scope: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(
+          start_date: filter.start_date,
+          end_date: filter.end_date,
+        ),
+      )
+      scope
     end
 
     def report_scope_source
@@ -109,6 +123,12 @@ module BostonReports
       enrolled_clients.joins(**zip_joins)
     end
 
+    # NOTE, at this time we only have CoCs for my_state, so we don't need to specify that
+    def enrolled_with_community_of_origin_my_state
+      enrolled_clients.joins(**coc_joins).
+        merge(GrdaWarehouse::Place.with_shape_cocs)
+    end
+
     def count_enrolled_with_community_of_origin
       @count_enrolled_with_community_of_origin ||= enrolled_with_community_of_origin.select(:client_id).distinct.count
     end
@@ -122,40 +142,61 @@ module BostonReports
     end
 
     private def state_joins
-      # FIXME: need a CTE/Window Function for client.most_recent_location_history so it only returns
-      # the earliest location for each client for the earliest enrollment overlapping the date range
-      { client: [client_location_histories: { place: :shape_state }] }
+      { enrollment: [earliest_enrollment_location_history: { place: :shape_state }] }
     end
 
     private def zip_joins
-      # FIXME: need a CTE/Window Function for client.most_recent_location_history so it only returns
-      # the earliest location for each client for the earliest enrollment overlapping the date range
-      { client: [client_location_histories: { place: :shape_zip_code }] }
+      { enrollment: [earliest_enrollment_location_history: { place: :shape_zip_code }] }
+    end
+
+    private def coc_joins
+      { enrollment: { earliest_enrollment_location_history: :place } }
     end
 
     def across_the_country_data
-      percent_of_clients_data = enrolled_with_community_of_origin.group(:state).count.map do |state, count|
+      @across_the_country_data ||= begin
+        percent_of_clients_data = enrolled_with_community_of_origin.group(:state).count.map do |state, count|
+          percentage = percent(numerator: count, denominator: count_enrolled_with_community_of_origin)
+          {
+            name: state,
+            count: count,
+            total: count_enrolled_with_community_of_origin,
+            percent: percentage,
+            display_percent: ActiveSupport::NumberHelper.number_to_percentage(percentage, precision: 1, strip_insignificant_zeros: true),
+          }
+        end
+        percent_names = percent_of_clients_data.map { |d| d[:name] }
+        GrdaWarehouse::Shape::State.where(name: percent_names).map do |state|
+          state.geo_json_properties.merge(percent_of_clients_data.detect { |d| d[:name] == state.name })
+        end.sort_by { |d| d[:percent] }.reverse
+      end
+    end
+
+    def across_my_state_data
+      @across_my_state_data ||= enrolled_with_community_of_origin_my_state.group('shape_cocs.cocnum').count.map do |coc_num, count|
         percentage = percent(numerator: count, denominator: count_enrolled_with_community_of_origin)
         {
-          name: state,
+          name: HudUtility2024.coc_codes(coc_num),
           count: count,
           total: count_enrolled_with_community_of_origin,
           percent: percentage,
           display_percent: ActiveSupport::NumberHelper.number_to_percentage(percentage, precision: 1, strip_insignificant_zeros: true),
         }
-      end
-      percent_names = percent_of_clients_data.map { |d| d[:name] }
-      GrdaWarehouse::Shape::State.where(name: percent_names).map do |state|
-        state.geo_json_properties.merge(percent_of_clients_data.select { |d| d[:name] == state.name }.first)
       end.sort_by { |d| d[:percent] }.reverse
     end
 
+    def my_state_data
+      across_the_country_data.detect { |d| d[:name] == GrdaWarehouse::Shape::State.my_state.first.name }
+    end
+
     private def zip_code_scope
-      enrolled_with_community_of_origin.group(:zipcode).count
+      enrolled_with_community_of_origin.group(:zipcode).count.
+        sort_by(&:last).
+        reverse # Ensure descending order
     end
 
     def top_zip_codes_data
-      zip_code_scope.map do |zip, count|
+      zip_code_scope.first(ZIP_LIMIT).map do |zip, count|
         percentage = percent(numerator: count, denominator: count_enrolled_with_community_of_origin)
         {
           zip_code: zip,
@@ -168,13 +209,9 @@ module BostonReports
     end
 
     def zip_code_shape_data
-      GrdaWarehouse::Shape.geo_collection_hash(GrdaWarehouse::Shape::ZipCode.where(zcta5ce10: zip_code_scope.keys))
+      zips = zip_code_scope.first(ZIP_LIMIT).map(&:first)
+      GrdaWarehouse::Shape.geo_collection_hash(GrdaWarehouse::Shape::ZipCode.where(zcta5ce10: zips))
     end
-
-    # def zip_code_fake_scope
-    #   # GrdaWarehouse::Shape::ZipCode.my_state.last(20)
-    #   GrdaWarehouse::Shape::ZipCode.my_state.sample(20)
-    # end
 
     def zip_code_colors
       [

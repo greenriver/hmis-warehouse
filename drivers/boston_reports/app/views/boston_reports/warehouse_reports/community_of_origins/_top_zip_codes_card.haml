@@ -1,6 +1,7 @@
+- data = @report.top_zip_codes_data
 .card
   .card-body
-    %h2.mb-4 Top 10 Zip Codes
+    %h2.mb-4 Top #{BostonReports::CommunityOfOrigin::ZIP_LIMIT} Zip Codes
     .row
       .col-8
         #coo-map__top-ten-zips{style: 'height:450px;'}
@@ -28,8 +29,9 @@
               %th Location
               %th.text-right Percent of Clients
           %tbody
-            - data.sort_by{|d| d[:percent]}.last(10).reverse.each do |d|
+            - data.sort_by{|d| d[:percent]}.reverse.each do |d|
               %tr
                 %td= "Zip Code #{d[:zip_code] || 'Unknown'}"
                 %td.text-right
-                  = number_to_percentage(d[:percent], precision: 1, strip_insignificant_zeros: true)
+                  %span{data: { toggle: :tooltip, title: "#{d[:count]} of #{d[:total]}" }}
+                    = number_to_percentage(d[:percent], precision: 1, strip_insignificant_zeros: true)

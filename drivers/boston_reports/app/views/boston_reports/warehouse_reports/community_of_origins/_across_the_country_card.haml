@@ -23,8 +23,24 @@
               %th Location
               %th.text-right Percent of Clients
           %tbody
-            - data.each do |d|
+            - @report.across_my_state_data.each do |d|
               %tr
                 %td= d[:name]
-                %td.text-right{data: { toggle: :tooltip, title: "#{d[:count]} of #{d[:total]}" }}
-                  = d[:display_percent]
+                %td.text-right
+                  %span{data: { toggle: :tooltip, title: "#{d[:count]} of #{d[:total]}" }}
+                    = d[:display_percent]
+            - my_state = @report.my_state_data
+            - if my_state.present?
+              %tr
+                %td= my_state[:name]
+                %td.text-right
+                  %span{data: { toggle: :tooltip, title: "#{my_state[:count]} of #{my_state[:total]}" }}
+                    = my_state[:display_percent]
+            - @report.across_the_country_data.reject { |d| d[:name] == my_state.try(:[], :name) }.each.with_index do |d, i|
+              - style = ''
+              - style = 'border-top: 1px solid black' if i.zero?
+              %tr
+                %td{style: style}= d[:name]
+                %td.text-right{style: style}
+                  %span{data: { toggle: :tooltip, title: "#{d[:count]} of #{d[:total]}" }}
+                    = d[:display_percent]

@@ -1,27 +1,25 @@
-.well
-  %h2 Clients
-  .d-flex
-    .d-flex.ml-auto.mr-auto
-      .count.font-weight-bolder.ml-auto.mr-auto
-        = number_with_delimiter(@report.enrolled_clients.select(:client_id).distinct.count)
+.d-flex.flex-wrap
+  .hero-prs1
+    .d-flex.align-items-center
+      .h1.hero-value-prs1.mr-3= number_with_delimiter(@report.enrolled_clients.select(:client_id).distinct.count)
       .count-description
-        %h3 Enrolled
-        %p Unique Clients
-    .d-flex.pr-6.border-right.ml-auto.mr-auto
-      .count.font-weight-bolder.ml-auto.mr-auto
-        = number_with_delimiter(@report.count_enrolled_with_community_of_origin)
+        .hero-label-prs1.h5-prs1 Enrolled
+        .hero-unit-prs1 Unique Clients
+  .hero-prs1
+    .d-flex.align-items-center
+      .h1.hero-value-prs1.mr-3= number_with_delimiter(@report.count_enrolled_with_community_of_origin)
       .count-description
-        %h3 With Community of Origin
-        %p of the Unique Enrolled Clients
-    .d-flex.ml-auto.mr-auto
-      .count.font-weight-bolder.ml-auto.mr-auto
-        = number_with_delimiter(@report.entering_clients.select(:client_id).distinct.count)
+        .hero-label-prs1.h5-prs1 With Community of Origin
+        .hero-unit-prs1 of the Unique Enrolled Clients
+  .hero-prs1
+    .d-flex.align-items-center
+      .h1.hero-value-prs1.mr-3= number_with_delimiter(@report.entering_clients.select(:client_id).distinct.count)
       .count-description
-        %h3 Entering
-        %p Unique Clients
-    .d-flex.ml-auto.mr-auto
-      .count.font-weight-bolder.ml-auto.mr-auto
-        = number_with_delimiter(@report.entering_with_community_of_origin.select(:client_id).distinct.count)
+        .hero-label-prs1.h5-prs1 Entering
+        .hero-unit-prs1 Unique Clients
+  .hero-prs1
+    .d-flex.align-items-center
+      .h1.hero-value-prs1.mr-3= number_with_delimiter(@report.entering_with_community_of_origin.select(:client_id).distinct.count)
       .count-description
-        %h3 With Community of Origin
-        %p of the Unique Entering Clients
+        .hero-label-prs1.h5-prs1 With Community of Origin
+        .hero-unit-prs1 of the Unique Entering Clients

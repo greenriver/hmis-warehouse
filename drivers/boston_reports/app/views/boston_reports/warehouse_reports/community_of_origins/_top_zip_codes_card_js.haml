@@ -1,3 +1,6 @@
+- data = @report.top_zip_codes_data
+- shape_data = @report.zip_code_shape_data
+- colors = @report.zip_code_colors
 :javascript
   (function() {
     var topZipData = #{data.to_json.html_safe}

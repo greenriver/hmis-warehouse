@@ -12,6 +12,10 @@ module GrdaWarehouse
     belongs_to :shape_state, class_name: 'GrdaWarehouse::Shape::State', primary_key: 'name', foreign_key: 'state', optional: true
     belongs_to :cls, class_name: 'ClientLocationHistory::Location', primary_key: [:lat, :lon], foreign_key: [:lat, :lon], optional: true
 
+    scope :with_shape_cocs, -> do
+      joins('inner join shape_cocs on ST_Within(ST_SetSRID(ST_Point(places.lon, places.lat), 4326), shape_cocs.geom)')
+    end
+
     def self.lookup_lat_lon(query: nil, city: nil, state: nil, postalcode: nil, country: 'us')
       place = lookup(query: query, city: city, state: state, postalcode: postalcode, country: country)&.lat_lon
       [place.try(:[], 'lat'), place.try(:[], 'lon'), place.try(:[], 'bounds')]
