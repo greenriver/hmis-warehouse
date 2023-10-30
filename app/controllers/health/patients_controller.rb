@@ -18,7 +18,7 @@ module Health
     include Search
 
     def index
-      apply_filter
+      @search, @patients, @active_filter = apply_filter(@patients, @search_string, params[:filter])
 
       @column = params[:sort] || 'name'
       @direction = params[:direction]&.to_sym || :asc

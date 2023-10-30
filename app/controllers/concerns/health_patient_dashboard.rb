@@ -48,74 +48,82 @@ module HealthPatientDashboard
       raise 'Unknown sort column'
     end
 
-    def apply_filter
-      @search = search_setup(scope: :full_text_search)
-      @patients = @search.distinct if @search_string.present?
+    # @param patients Initial patients scope
+    # @param search_string|nil Search string
+    # @param Hash<String>|nil Filters
+    # @return patient_scope, search_scope, active_filter
+    def apply_filter(patients, search_string, filter)
+      search = search_setup(scope: :full_text_search)
+      patients = search.distinct if search_string.present?
+      active_filter = false
 
-      return unless params[:filter].present?
+      return search, patients, active_filter unless filter.present?
 
       # Status Filter
-      @active_filter = true if params[:filter][:population] != 'all'
-      case params[:filter][:population]
+      active_filter = true if filter[:population] != 'all'
+      case filter[:population]
       when 'not_engaged'
-        @patients = @patients.not_engaged
+        patients = patients.not_engaged
       when 'needs_f2f'
-        @patients = @patients.needs_f2f
+        patients = patients.needs_f2f
       when 'needs_qa'
-        @patients = @patients.needs_qa
+        patients = patients.needs_qa
       when 'needs_intake'
-        @patients = @patients.needs_intake
+        patients = patients.needs_intake
       when 'needs_renewal'
-        @patients = @patients.needs_renewal
+        patients = patients.needs_renewal
       end
 
       # Needs filter
       current_careplans = HealthPctp::Careplan.
-        where(patient_id: @patients.pluck(:id)).
+        where(patient_id: patients.select(:id)).
         order(created_at: :asc).
         index_by(&:patient_id)
 
       patients_with_needs = []
-      if params[:filter][:ncm_review].present?
+      needs_filter = false
+      if filter[:ncm_review].present?
         needs_filter = true
         patients_with_needs += current_careplans.select { |_, v| v.reviewed_by_rn_on.blank? }.values.map(&:patient_id)
       end
-      if params[:filter][:manager_review].present?
+      if filter[:manager_review].present?
         needs_filter = true
         patients_with_needs += current_careplans.select { |_, v| v.reviewed_by_ccm_on.blank? }.values.map(&:patient_id)
       end
-      if params[:filter][:sent_to_pcp].present?
+      if filter[:sent_to_pcp].present?
         needs_filter = true
         patients_with_needs += current_careplans.select { |_, v| v.sent_to_pcp_on.blank? }.values.map(&:patient_id)
       end
 
       if needs_filter
-        @active_filter = true
-        @patients = @patients.where(id: patients_with_needs)
+        active_filter = true
+        patients = patients.where(id: patients_with_needs)
       end
 
       # Team Member filter
-      if params[:filter][:user].present?
-        @active_filter = true
-        user_id = if params[:filter][:user] == 'unassigned'
+      if filter[:user].present?
+        active_filter = true
+        user_id = if filter[:user] == 'unassigned'
           nil
         else
-          params[:filter][:user].to_i
+          filter[:user].to_i
         end
 
-        @patients = @patients.where(care_coordinator_id: user_id)
+        patients = patients.where(care_coordinator_id: user_id)
       end
 
-      if params[:filter][:nurse_care_manager_id].present? # rubocop:disable Style/GuardClause
-        @active_filter = true
-        nurse_care_manager_id = if params[:filter][:nurse_care_manager_id] == 'unassigned'
+      if filter[:nurse_care_manager_id].present?
+        active_filter = true
+        nurse_care_manager_id = if filter[:nurse_care_manager_id] == 'unassigned'
           nil
         else
-          params[:filter][:nurse_care_manager_id].to_i
+          filter[:nurse_care_manager_id].to_i
         end
 
-        @patients = @patients.where(nurse_care_manager_id: nurse_care_manager_id)
+        patients = patients.where(nurse_care_manager_id: nurse_care_manager_id)
       end
+
+      return search, patients, active_filter
     end
   end
 end

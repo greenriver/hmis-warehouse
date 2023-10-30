@@ -43,7 +43,7 @@ module Health
         patient_source.where(id: @report.total_counts.patient_referrals)
       end
 
-      apply_filter
+      @search, @patients, @active_filter = apply_filter(@patients, @search_string, params[:filter])
 
       @column = params[:sort] || 'name'
       @direction = params[:direction]&.to_sym || :asc
