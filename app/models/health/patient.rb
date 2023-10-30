@@ -447,8 +447,10 @@ module Health
     end
 
     scope :intake_required, -> do
-      joins(:careplans).
-        where(h_cp_t[:careplan_sent].eq(false))
+      where.not(id:
+        joins(:pctp_careplans).
+          merge(Health::PctpCareplan.sent).
+          select(:id))
     end
 
     scope :needs_renewal, ->(on: Date.current) do

@@ -58,6 +58,10 @@ module Health
       completed_within(.. Date.current.end_of_day)
     end
 
+    scope :sent, -> do
+      sent_within(.. Date.current)
+    end
+
     scope :incomplete, -> do
       where.not(id: completed.pluck(:id))
     end
