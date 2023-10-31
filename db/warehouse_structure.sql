@@ -18470,7 +18470,7 @@ ALTER SEQUENCE public.hmis_project_unit_type_mappings_id_seq OWNED BY public.hmi
 --
 
 CREATE VIEW public.hmis_services AS
- SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
+( SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
     "Services".id AS owner_id,
     'Hmis::Hud::Service'::text AS owner_type,
     "CustomServiceTypes".id AS custom_service_type_id,
@@ -18485,8 +18485,9 @@ CREATE VIEW public.hmis_services AS
    FROM (public."Services"
      JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes".data_source_id = "Services".data_source_id) AND ("CustomServiceTypes"."DateDeleted" IS NULL))))
   WHERE ("Services"."DateDeleted" IS NULL)
+  ORDER BY "Services"."DateProvided")
 UNION ALL
- SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
+( SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
     ("CustomServices".id)::integer AS owner_id,
     'Hmis::Hud::CustomService'::text AS owner_type,
     "CustomServices".custom_service_type_id,
@@ -18499,7 +18500,8 @@ UNION ALL
     "CustomServices"."DateDeleted",
     "CustomServices".data_source_id
    FROM public."CustomServices"
-  WHERE ("CustomServices"."DateDeleted" IS NULL);
+  WHERE ("CustomServices"."DateDeleted" IS NULL)
+  ORDER BY "CustomServices"."DateProvided");
 
 
 --
