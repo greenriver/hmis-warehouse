@@ -14,6 +14,16 @@ module AllNeighborsSystemDashboard
       def title
         Translation.translate('All Neighbors System Dashboard')
       end
+      alias_method :instance_title, :title
+
+      private def public_s3_directory
+        'all-neighbors-system-dashboard'
+      end
+
+      # TODO: update once we have the internal version
+      def mask_small_populations?
+        true
+      end
 
       def report_path_array
         [
@@ -21,6 +31,14 @@ module AllNeighborsSystemDashboard
           :warehouse_reports,
           :reports,
         ]
+      end
+
+      def controller_class
+        AllNeighborsSystemDashboard::WarehouseReports::ReportsController
+      end
+
+      def raw_layout
+        'external'
       end
 
       def default_project_type_codes
@@ -62,7 +80,7 @@ module AllNeighborsSystemDashboard
           :secondary_project_ids,
           :secondary_project_group_ids,
         ]
-        filter.describe_filter_as_html(keys, inline: inline, labels: { secondary_projects: Translation.translate('Associated CE Projects'), secondary_project_groups: Translation.translate('Tracked Project Groups') })
+        filter.describe_filter_as_html(keys, inline: inline, labels: { secondary_projects: 'Diversion Projects', secondary_project_groups: 'DRTRR Project Group' })
       end
 
       def known_params

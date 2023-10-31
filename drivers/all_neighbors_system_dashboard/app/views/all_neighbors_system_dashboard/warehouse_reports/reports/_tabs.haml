@@ -1,0 +1,7 @@
+%ul.nav.nav-tabs.justify-content-between.w-100.ml-0.mr-0{role: 'tablist', class: css_namespace('all', 'tabs')}
+  - tabs.each_with_index do |tab, i|
+    %li.nav-item
+      - link_classes = ['nav-link']
+      - if i == 0
+        - link_classes.push('active')
+      = link_to tab[:name], "##{tab[:id]}", class: link_classes, id: "#{tab[:id]}_tab", data: {toggle: 'tab'}, role: 'tab', aria: {controls: tab[:id]}
