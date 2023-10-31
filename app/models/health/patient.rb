@@ -424,7 +424,7 @@ module Health
         not_valid_unpayable.
         face_to_face.
         in_range(f2f_range).
-        select(:id))
+        select(:patient_id))
     end
 
     scope :needs_qa, ->(on: Date.current) do
@@ -433,12 +433,12 @@ module Health
           payable.
           not_valid_unpayable.
           in_range(on - 30.days .. on).
-          select(:id))
-      with_intake_query = Health::QualifyingActivity.
+          select(:patient_id))
+      with_intake_query = where(id: Health::QualifyingActivity.
         payable.
         not_valid_unpayable.
         in_range(on - 60.days .. on).
-        select(:id)
+        select(:patient_id))
       where.not(id: without_intake_query).and(where.not(id: with_intake_query))
     end
 
@@ -447,15 +447,12 @@ module Health
     end
 
     scope :intake_required, -> do
-      where.not(id:
-        joins(:pctp_careplans).
-          merge(Health::PctpCareplan.sent).
-          select(:id))
+      where.not(id: Health::PctpCareplan.sent.select(:patient_id))
     end
 
     scope :needs_renewal, ->(on: Date.current) do
       joins(:recent_pctp_careplan).
-        merge(Health::PctpCareplan.sent_within(.. on - 365.days))
+        merge(Health::PctpCareplan.recent.sent_within(.. on - 365.days))
     end
 
     # For now, all patients are visible to all health users
