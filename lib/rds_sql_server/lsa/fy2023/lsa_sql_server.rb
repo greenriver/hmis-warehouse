@@ -288,6 +288,7 @@ module LsaSqlServer
 
     def self.csv_columns
       [
+        :Value,
         :Cohort,
         :Universe,
         :HHType,

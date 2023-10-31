@@ -101,9 +101,10 @@ module Types
     end
 
     def enrollments(**args)
-      return Hmis::Hud::Enrollment.none unless current_user.can_view_enrollment_details_for?(object)
+      # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
+      return unless current_user.can_view_enrollment_details_for?(object)
 
-      resolve_enrollments(object.enrollments_including_wip, **args)
+      resolve_enrollments(object.enrollments_including_wip, dangerous_skip_permission_check: true, **args)
     end
 
     def organization
@@ -115,7 +116,10 @@ module Types
     end
 
     def services(**args)
-      resolve_services(**args)
+      # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
+      return unless current_user.can_view_enrollment_details_for?(object)
+
+      resolve_services(**args, dangerous_skip_permission_check: true)
     end
 
     def residential_affiliation_projects
@@ -156,7 +160,10 @@ module Types
     end
 
     def households(**args)
-      resolve_households(object.households_including_wip, **args)
+      # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
+      return unless current_user.can_view_enrollment_details_for?(object)
+
+      resolve_households(object.households_including_wip, **args, dangerous_skip_permission_check: true)
     end
 
     def referral_requests(**args)
