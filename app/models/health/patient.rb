@@ -452,7 +452,7 @@ module Health
 
     scope :needs_renewal, ->(on: Date.current) do
       joins(:recent_pctp_careplan).
-        merge(Health::PctpCareplan.recent.sent_within(.. on - 365.days))
+        merge(Health::PctpCareplan.recent.sent_within(.. on - 335.days)) # 1 year - 30 days
     end
 
     # For now, all patients are visible to all health users
