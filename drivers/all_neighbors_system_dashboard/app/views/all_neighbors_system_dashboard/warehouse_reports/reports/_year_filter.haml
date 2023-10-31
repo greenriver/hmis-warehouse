@@ -1,0 +1,11 @@
+- label_hint ||= false
+- years = Array(start_date.year..end_date.year)
+.form-group.mb-0
+  - id = filter_id(tab[:id], name)
+  - input_class = filter_id(tab[:id], 'datepicker')
+  %label{for: id}
+    = label
+  %select.form-control{name: id, id: id}
+    - years.each do |option|
+      %option{value: option, selected: date.year == option}= option
+

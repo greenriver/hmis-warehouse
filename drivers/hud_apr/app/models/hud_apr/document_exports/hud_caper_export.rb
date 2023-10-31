@@ -22,6 +22,7 @@ module HudApr::DocumentExports
         HudApr::Generators::Caper::Fy2020::Generator,
         HudApr::Generators::Caper::Fy2021::Generator,
         HudApr::Generators::Caper::Fy2023::Generator,
+        HudApr::Generators::Caper::Fy2024::Generator,
       ]
     end
   end
