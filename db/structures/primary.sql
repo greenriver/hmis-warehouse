@@ -48,38 +48,6 @@ SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
---
--- Name: access_controls; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.access_controls (
-    id bigint NOT NULL,
-    access_group_id bigint,
-    role_id bigint,
-    deleted_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: access_controls_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.access_controls_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: access_controls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.access_controls_id_seq OWNED BY public.access_controls.id;
-
 
 --
 -- Name: access_group_members; Type: TABLE; Schema: public; Owner: -
@@ -2806,13 +2774,6 @@ CREATE SEQUENCE public.weighting_rules_id_seq
 
 
 --
--- Name: access_controls id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.access_controls ALTER COLUMN id SET DEFAULT nextval('public.access_controls_id_seq'::regclass);
-
-
---
 -- Name: access_group_members id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3118,15 +3079,6 @@ ALTER TABLE ONLY public.versions ALTER COLUMN id SET DEFAULT nextval('public.ver
 --
 
 ALTER TABLE ONLY public.warehouse_alerts ALTER COLUMN id SET DEFAULT nextval('public.warehouse_alerts_id_seq'::regclass);
-
-
---
--- Name: access_controls access_controls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.access_controls
-    ADD CONSTRAINT access_controls_pkey PRIMARY KEY (id);
-
 
 --
 -- Name: access_group_members access_group_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
@@ -3508,21 +3460,6 @@ CREATE INDEX delayed_jobs_priority ON public.delayed_jobs USING btree (priority,
 --
 
 CREATE UNIQUE INDEX idx_oauth_on_provider_and_uid ON public.oauth_identities USING btree (provider, uid);
-
-
---
--- Name: index_access_controls_on_access_group_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_access_controls_on_access_group_id ON public.access_controls USING btree (access_group_id);
-
-
---
--- Name: index_access_controls_on_role_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_access_controls_on_role_id ON public.access_controls USING btree (role_id);
-
 
 --
 -- Name: index_account_requests_on_user_id; Type: INDEX; Schema: public; Owner: -
