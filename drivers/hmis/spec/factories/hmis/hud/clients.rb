@@ -41,15 +41,26 @@ FactoryBot.define do
     VeteranStatus { [0, 1, 8, 9, 99].sample }
     DateCreated { DateTime.current }
     DateUpdated { DateTime.current }
-    after(:build) do |client|
+    transient do
+      with_custom_client_name { false }
+    end
+    after(:build) do |client, evaluator|
       HudUtility2024.races.except('RaceNone').keys.each { |f| client.send("#{f}=", [0, 1].sample) }
       HudUtility2024.gender_fields.excluding(:GenderNone).each { |f| client.send("#{f}=", [0, 1].sample) }
+      client.build_primary_custom_client_name if evaluator.with_custom_client_name
     end
+  end
+
+  factory :hmis_warehouse_client, class: 'Hmis::WarehouseClient' do
+    data_source { association :hmis_data_source }
+    destination { association :hmis_hud_base_client, data_source: data_source }
+    source { association :hmis_hud_base_client, data_source: data_source }
+    sequence(:id_in_source, 100)
   end
 
   factory :hmis_hud_client_with_warehouse_client, parent: :hmis_hud_base_client do
     after(:create) do |client|
-      create(:warehouse_client, data_source: client.data_source, source: client.as_warehouse)
+      create(:hmis_warehouse_client, data_source: client.data_source, source: client)
     end
   end
 end

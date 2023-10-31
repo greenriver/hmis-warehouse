@@ -50,13 +50,25 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :client_projects
   has_many :projects_including_wip, through: :client_projects, source: :project
 
+  # History of merges into this client
+  has_many :merge_histories, class_name: 'Hmis::ClientMergeHistory', primary_key: :id, foreign_key: :retained_client_id
+  # History of this client being merged into other clients (only present for deleted clients)
+  has_many :reverse_merge_histories, class_name: 'Hmis::ClientMergeHistory', primary_key: :id, foreign_key: :deleted_client_id
+  # Merge Audits for merges into this client
+  has_many :merge_audits, -> { distinct }, through: :merge_histories, source: :client_merge_audit
+  # Merge Audits for merges from this client into another client
+  has_many :reverse_merge_audits, -> { distinct }, through: :reverse_merge_histories, source: :client_merge_audit
+
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
   accepts_nested_attributes_for :names, allow_destroy: true
   accepts_nested_attributes_for :addresses, allow_destroy: true
   accepts_nested_attributes_for :contact_points, allow_destroy: true
 
-  # NOTE: only used for getting the client's Warehouse ID. Should not be used for anything else. See #184132767
-  has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source
+  # NOTE: only used for getting the client's Warehouse ID, or finding potential duplicates.
+  has_one :warehouse_client_source, class_name: 'Hmis::WarehouseClient', foreign_key: :source_id, inverse_of: :source
+  has_one :destination_client, through: :warehouse_client_source, source: :destination, inverse_of: :source_clients
+  has_many :warehouse_client_destination, class_name: 'Hmis::WarehouseClient', foreign_key: :destination_id, inverse_of: :destination
+  has_many :source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
 
   validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 
@@ -135,6 +147,20 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     raise 'orgs are in multiple data sources' if ds_ids.size > 1
 
     joins(:projects_including_wip).where(p_t[:organization_id].in(hud_org_ids).and(p_t[:data_source_id].eq(ds_ids.first)))
+  end
+
+  def build_primary_custom_client_name
+    return unless names.empty?
+
+    names.new(
+      primary: true,
+      first: first_name,
+      last: last_name,
+      middle: middle_name,
+      suffix: name_suffix,
+      user_id: user_id || Hmis::Hud::User.system_user(data_source_id: data_source_id).user_id,
+      **slice(:name_data_quality, :data_source_id, :date_created, :date_updated),
+    )
   end
 
   def enrolled?
@@ -284,6 +310,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # Mirrors `clientBriefName` in frontend
   def brief_name
     [first_name, last_name].compact.join(' ')
+  end
+
+  def full_name
+    [first_name, middle_name, last_name, name_suffix].compact.join(' ')
   end
 
   # Run if we changed name/DOB/SSN

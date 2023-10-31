@@ -151,9 +151,15 @@ db/cas_structure.sql
 drivers/datalab_testkit/spec/fixtures/inputs/merged/source/*
 drivers/datalab_testkit/spec/fixtures/results/*
 /drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/*
+drivers/hud_lsa/spec/fixtures/files/lsa/fy2023/sample_hmis_export/*.csv
 
 # Superset storage
 docker/superset/op/superset.db
 docker/superset/op/__pycache__/*
 docker/superset/op/__pycache__/**
 docker/superset/op/.did.db.init
+/superset/**
+
+# Development ENV
+/dev/minio/**
+/app/assets/builds/**
