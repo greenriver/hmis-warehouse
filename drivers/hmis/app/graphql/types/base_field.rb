@@ -6,11 +6,11 @@
 
 module Types
   class BaseField < GraphQL::Schema::Field
+    include GraphqlPermissionChecker
     argument_class Types::BaseArgument
 
-    def initialize(*args, default_value: nil, require_permissions: nil, permission_mode: 'all', **kwargs, &block)
-      @require_permissions = Array.wrap(require_permissions)
-      @permission_mode = permission_mode
+    def initialize(*args, default_value: nil, permission: nil, **kwargs, &block)
+      @permissions = Array.wrap(permission)
 
       super(*args, **kwargs, &block)
 
@@ -25,10 +25,12 @@ module Types
     # Field-level authorization
     # https://graphql-ruby.org/authorization/authorization.html#field-authorization
     def authorized?(object, args, ctx)
-      # if `require_permissions:` was given, then require the current user to have the specified permissions on the object
+      # if `permission:` was given, then require the current user to have the specified permissions on the object
       base_authorized = super(object, args, ctx)
-      if @require_permissions.any?
-        base_authorized && ctx[:current_user]&.permissions_for?(object, *@require_permissions, mode: @permission_mode)
+      if @permissions.any?
+        base_authorized && @permissions.all? do |perm|
+          current_permission_for_context?(ctx, permission: perm, entity: object)
+        end
       else
         base_authorized
       end

@@ -27,14 +27,10 @@ module Types
       Hmis::Hud::Enrollment.hmis_configuration(version: '2024')
     end
 
-    def self.enrollment_detail_perms
-      [:can_view_enrollment_details, :can_view_project]
-    end
-
     # Special field function to perform field-level authorization, to ensure that user has Detail-level access to this Enrollment.
     # If user lacks sufficient access, field is resolved as null. See Types::BaseField `authorized?` function.
     def self.detail_field(name, type = nil, **kwargs)
-      field(name, type, **kwargs, require_permissions: enrollment_detail_perms)
+      field(name, type, **kwargs, permission: :can_view_enrollment_details)
     end
 
     available_filter_options do
@@ -70,19 +66,19 @@ module Types
     detail_field :household, HmisSchema::Household, null: false
     detail_field :household_size, Integer, null: false
     # Associated records (detail-access)
-    assessments_field require_permissions: enrollment_detail_perms
-    events_field require_permissions: enrollment_detail_perms
-    services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForEnrollment' }, require_permissions: enrollment_detail_perms
-    custom_case_notes_field require_permissions: enrollment_detail_perms
-    files_field require_permissions: enrollment_detail_perms
-    ce_assessments_field require_permissions: enrollment_detail_perms
-    income_benefits_field require_permissions: enrollment_detail_perms
-    disabilities_field require_permissions: enrollment_detail_perms
-    health_and_dvs_field require_permissions: enrollment_detail_perms
-    youth_education_statuses_field require_permissions: enrollment_detail_perms
-    employment_educations_field require_permissions: enrollment_detail_perms
-    current_living_situations_field require_permissions: enrollment_detail_perms
-    custom_data_elements_field require_permissions: enrollment_detail_perms
+    assessments_field permission: :can_view_enrollment_details
+    events_field permission: :can_view_enrollment_details
+    services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForEnrollment' }, permission: :can_view_enrollment_details
+    custom_case_notes_field permission: :can_view_enrollment_details
+    files_field permission: :can_view_enrollment_details
+    ce_assessments_field permission: :can_view_enrollment_details
+    income_benefits_field permission: :can_view_enrollment_details
+    disabilities_field permission: :can_view_enrollment_details
+    health_and_dvs_field permission: :can_view_enrollment_details
+    youth_education_statuses_field permission: :can_view_enrollment_details
+    employment_educations_field permission: :can_view_enrollment_details
+    current_living_situations_field permission: :can_view_enrollment_details
+    custom_data_elements_field permission: :can_view_enrollment_details
     # 3.16.1
     detail_field :enrollment_coc, String, null: true
     # 3.08
@@ -133,7 +129,7 @@ module Types
     detail_field :insufficient_income, HmisSchema::Enums::Hud::NoYesMissing, null: true
     detail_field :incarcerated_parent, HmisSchema::Enums::Hud::NoYesMissing, null: true
     # V6
-    detail_field :vamc_station, HmisSchema::Enums::Hud::VamcStationNumber, null: true, require_permissions: [:can_view_enrollment_details, :can_view_project]
+    detail_field :vamc_station, HmisSchema::Enums::Hud::VamcStationNumber, null: true
     # V7
     detail_field :target_screen_reqd, HmisSchema::Enums::Hud::NoYesMissing, null: true
     detail_field :time_to_housing_loss, HmisSchema::Enums::Hud::TimeToHousingLoss, null: true

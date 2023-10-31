@@ -19,10 +19,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     create :hmis_hud_client_complete, data_source: ds1, user: u1
   end
   let!(:enrollments) do
-    10.times.map do
+    enrollments = []
+    5.times.each do
       project = create :hmis_hud_project, data_source: ds1, organization: o1, user: u1
-      create(:hmis_hud_enrollment, data_source: ds1, project: project, client: client, user: u1)
+      enrollments << create(:hmis_hud_enrollment, data_source: ds1, project: project, client: client, user: u1)
+      enrollments << create(:hmis_hud_wip_enrollment, data_source: ds1, project: project, client: client, user: u1)
     end
+    enrollments
   end
   let!(:ds_access_control) do
     create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_view_dob, :can_view_enrollment_details, :can_view_project])
@@ -48,7 +51,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               limit
               nodesCount
               nodes {
-                ...EnrollmentFields
+                ...ClientEnrollmentFields
                 __typename
               }
               __typename
@@ -57,39 +60,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           }
         }
 
-        fragment EnrollmentFields on Enrollment {
+        fragment ClientEnrollmentFields on Enrollment {
           id
+          lockVersion
           entryDate
           exitDate
-          project {
-            id
-            projectName
-            projectType
-            __typename
-          }
+          moveInDate
+          lastBedNightDate
+          projectName
+          organizationName
+          projectType
           inProgress
           relationshipToHoH
-          household {
-            id
-            shortId
-            __typename
-          }
-          householdSize
-          client {
-            id
-            __typename
-          }
           access {
-            ...EnrollmentAccessFields
+            id
+            canViewEnrollmentDetails
             __typename
           }
-          __typename
-        }
-
-        fragment EnrollmentAccessFields on EnrollmentAccess {
-          id
-          canEditEnrollments
-          canDeleteEnrollments
           __typename
         }
       GRAPHQL
@@ -105,16 +92,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'minimizes n+1 queries' do
       expect do
-        _, result = post_graphql(**variables) { query }
+        response, result = post_graphql(**variables) { query }
+        expect(response.status).to eq(200), result.inspect
         expect(result.dig('data', 'client', 'enrollments', 'nodes').size).to eq(enrollments.size)
-      end.to make_database_queries(count: 10..30)
+      end.to make_database_queries(count: 10..35)
     end
 
     it 'is responsive' do
       expect do
         _, result = post_graphql(**variables) { query }
         expect(result.dig('data', 'client', 'enrollments', 'nodes').size).to eq(enrollments.size)
-      end.to perform_under(250).ms
+      end.to perform_under(150).ms
     end
   end
 end
