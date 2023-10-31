@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -933,7 +933,8 @@ CREATE TABLE public."CustomClientAddress" (
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
-    "EnrollmentID" character varying
+    "EnrollmentID" character varying,
+    enrollment_address_type character varying
 );
 
 
@@ -48914,6 +48915,11 @@ CREATE INDEX "index_CustomCaseNote_on_PersonalID" ON public."CustomCaseNote" USI
 
 CREATE INDEX "index_CustomCaseNote_on_UserID" ON public."CustomCaseNote" USING btree ("UserID");
 
+--
+-- Name: index_CustomClientAddress_on_data_source_id_and_EnrollmentID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX "index_CustomClientAddress_on_data_source_id_and_EnrollmentID" ON public."CustomClientAddress" USING btree (data_source_id, "EnrollmentID") WHERE (((enrollment_address_type)::text = 'move_in'::text) AND ("DateDeleted" IS NULL));
 
 --
 -- Name: index_CustomDataElementDefinitions_on_custom_service_type_id; Type: INDEX; Schema: public; Owner: -
@@ -59769,6 +59775,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231016190301'),
 ('20231017190301'),
 ('20231020151224'),
-('20231028140507');
-
-
+('20231028140507'),
+('20231030140507');

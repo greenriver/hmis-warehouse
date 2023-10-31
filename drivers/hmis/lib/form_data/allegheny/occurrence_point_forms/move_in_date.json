@@ -32,10 +32,10 @@
       "component": "ADDRESS",
       "repeats": false,
       "required": true,
-      "link_id": "addresses",
+      "link_id": "moveInAddresses",
       "mapping": {
         "record_type": "ENROLLMENT",
-        "field_name": "addresses"
+        "field_name": "moveInAddresses"
       },
       "text": "Move in address",
       "enable_when": [

@@ -21,8 +21,14 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
     :postal,
     :physical,
     :both,
-    MOVE_IN_TYPE = :move_in, # ag-specific
   ].freeze
+
+  # enrollment_address_type that specifies in what capacity is this address related to the EnrollmentID. May either null
+  # or 'move_in' but could incorporate other types in the future (address at exit, or prior address at intake etc)
+  ENROLLMENT_TYPES = [
+    ENROLLMENT_MOVE_IN_TYPE = 'move_in'.freeze,
+  ].freeze
+  validates :enrollment_address_type, presence: { in: ENROLLMENT_TYPES }, allow_nil: true
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User')
@@ -59,8 +65,8 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
     address_type
   end
 
-  def move_in_type?
-    address_type&.to_sym == MOVE_IN_TYPE
+  def enrollment_move_in_type?
+    enrollment_address_type == ENROLLMENT_MOVE_IN_TYPE
   end
 
   def self.hud_key
@@ -76,7 +82,7 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
   end
 
   def validate_required_fields?
-    move_in_type?
+    enrollment_move_in_type?
   end
 
   # maybe there's a list of states somewhere else we can use?
