@@ -297,7 +297,6 @@ module LsaSqlServer
         :ProjectID,
         :ReportRow,
         :ReportID,
-        :Step,
       ]
     end
   end
