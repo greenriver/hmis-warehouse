@@ -47,5 +47,83 @@ module HealthPatientDashboard
       end
       raise 'Unknown sort column'
     end
+
+    # @param patients Initial patients scope
+    # @param search_string|nil Search string
+    # @param Hash<String>|nil Filters
+    # @return patient_scope, search_scope, active_filter
+    def apply_filter(patients, search_string, filter)
+      search = search_setup(scope: :full_text_search)
+      patients = search.distinct if search_string.present?
+      active_filter = false
+
+      return search, patients, active_filter unless filter.present?
+
+      # Status Filter
+      active_filter = true if filter[:population] != 'all'
+      case filter[:population]
+      when 'not_engaged'
+        patients = patients.not_engaged
+      when 'needs_f2f'
+        patients = patients.needs_f2f
+      when 'needs_qa'
+        patients = patients.needs_qa
+      when 'needs_intake'
+        patients = patients.needs_intake
+      when 'needs_renewal'
+        patients = patients.needs_renewal
+      end
+
+      # Needs filter
+      current_careplans = HealthPctp::Careplan.
+        where(patient_id: patients.select(:id)).
+        order(created_at: :asc).
+        index_by(&:patient_id)
+
+      patients_with_needs = []
+      needs_filter = false
+      if filter[:ncm_review].present?
+        needs_filter = true
+        patients_with_needs += current_careplans.select { |_, v| v.reviewed_by_rn_on.blank? }.values.map(&:patient_id)
+      end
+      if filter[:manager_review].present?
+        needs_filter = true
+        patients_with_needs += current_careplans.select { |_, v| v.reviewed_by_ccm_on.blank? }.values.map(&:patient_id)
+      end
+      if filter[:sent_to_pcp].present?
+        needs_filter = true
+        patients_with_needs += current_careplans.select { |_, v| v.sent_to_pcp_on.blank? }.values.map(&:patient_id)
+      end
+
+      if needs_filter
+        active_filter = true
+        patients = patients.where(id: patients_with_needs)
+      end
+
+      # Team Member filter
+      if filter[:user].present?
+        active_filter = true
+        user_id = if filter[:user] == 'unassigned'
+          nil
+        else
+          filter[:user].to_i
+        end
+
+        patients = patients.where(care_coordinator_id: user_id)
+      end
+
+      if filter[:nurse_care_manager_id].present?
+        active_filter = true
+        nurse_care_manager_id = if filter[:nurse_care_manager_id] == 'unassigned'
+          nil
+        else
+          filter[:nurse_care_manager_id].to_i
+        end
+
+        patients = patients.where(nurse_care_manager_id: nurse_care_manager_id)
+      end
+
+      return search, patients, active_filter
+    end
   end
 end
