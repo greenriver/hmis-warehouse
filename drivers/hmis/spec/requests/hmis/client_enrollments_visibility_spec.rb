@@ -48,8 +48,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             enrollments(limit: 10, offset: 0) {
               nodes {
                 id
-                entryDate # limited-access
-                projectName # limited-access
+                entryDate # summary-access
+                projectName # summary-access
+                access {
+                  canViewEnrollmentDetails # summary-access
+                }
                 sexualOrientation # detail-access
               }
             }
@@ -99,6 +102,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(resolved_e2['sexualOrientation']).to be_nil # redacted due to permissions
           expect(resolved_e2['entryDate']).to be_present
           expect(resolved_e2['projectName']).to be_present
+          expect(resolved_e2['access']['canViewEnrollmentDetails']).to eq(false)
         end
 
         # Only resolves services for e1
