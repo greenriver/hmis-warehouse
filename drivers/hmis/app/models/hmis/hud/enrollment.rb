@@ -104,10 +104,23 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     left_outer_joins(:wip).where(viewable_wip.or(viewable_enrollment))
   end
 
-  # hide previous declaration of :viewable_by, we'll use this one
-  # A user can see any enrollment associated with a project they can view
-  replace_scope :viewable_by, ->(user) do
-    with_access(user, :can_view_enrollment_details, :can_view_project, mode: 'all')
+  # Enrollments that this user has access to. By default, only returns enrollments that the user has full
+  # access to (can_view_enrollment_details).
+  #
+  # Note: use "replace_scope" hide previous declaration of :viewable_by
+  replace_scope :viewable_by, ->(user, include_limited_access_enrollments: false) do
+    return with_access(user, :can_view_enrollment_details, :can_view_project, mode: 'all') unless include_limited_access_enrollments
+    return none unless user.permissions?(:can_view_enrollment_details, :can_view_limited_enrollment_details, mode: 'any')
+
+    # Projects where the user has full enrollment access
+    full_access_project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details, :can_view_project, mode: 'all').pluck(:id, :ProjectID)
+    # Projects where the user has limited enrollment access
+    limited_access_project_ids = Hmis::Hud::Project.with_access(user, :can_view_limited_enrollment_details).pluck(:id, :ProjectID)
+
+    viewable_wip = wip_t[:project_id].in(full_access_project_ids.map(&:first) + limited_access_project_ids.map(&:first))
+    viewable_enrollment = e_t[:ProjectID].in(full_access_project_ids.map(&:second) + limited_access_project_ids.map(&:second))
+
+    left_outer_joins(:wip).where(viewable_wip.or(viewable_enrollment))
   end
 
   # Free-text search for Enrollment
