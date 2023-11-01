@@ -58,8 +58,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :services, through: :enrollments_including_wip
   has_many :custom_services, through: :enrollments_including_wip
 
-  # FIXME: joining services through client_projects confounds postgres. On larger projects, the query might take many
-  # minutes. It needs optimization; for now we user a class method instead of a AR association
+  # FIXME: joining services through enrollments confounds postgres. On larger projects, the query might take many
+  # minutes. It needs optimization; for now we use a class method instead of a AR association
   # has_many :hmis_services, through: :enrollments_including_wip
   def hmis_services
     Hmis::Hud::HmisService.joins(:project).where(Hmis::Hud::Project.arel_table[:id].eq(id))
