@@ -23,7 +23,7 @@ class Hmis::Filter::HouseholdFilter < Hmis::Filter::BaseFilter
         return scope if input.status.sort == ['ACTIVE', 'INCOMPLETE', 'EXITED'].sort
 
         ids = []
-        # FIXME
+        # pulling down client ids is not optimal here
         ids += scope.active.pluck(:id) if input.status.include?('ACTIVE')
         ids += scope.in_progress.pluck(:id) if input.status.include?('INCOMPLETE')
         ids += scope.exited.pluck(:id) if input.status.include?('EXITED')
