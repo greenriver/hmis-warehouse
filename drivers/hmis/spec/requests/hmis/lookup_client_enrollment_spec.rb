@@ -211,7 +211,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   describe 'Client lookup' do
     it 'should resolve no related records if user does not have view access' do
-      remove_permissions(access_control, :can_view_enrollment_details)
+      remove_permissions(access_control, :can_view_enrollment_details, :can_view_limited_enrollment_details)
       response, result = post_graphql(id: c1.id) { client_query }
       expect(response.status).to eq 200
       client = result.dig('data', 'client')

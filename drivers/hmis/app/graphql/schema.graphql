@@ -2803,6 +2803,7 @@ type Enrollment {
   moveInDate: ISO8601Date
   numUnitsAssignedToHousehold: Int!
   openEnrollmentSummary: [EnrollmentSummary!]!
+  organizationName: String!
   percentAmi: PercentAMI
   physicalDisabilityFam: NoYesMissing
   preferredLanguage: PreferredLanguage
@@ -2810,6 +2811,8 @@ type Enrollment {
   previousStreetEssh: NoYesMissing
   prisonDischarge: NoYesMissing
   project: Project!
+  projectName: String!
+  projectType: ProjectType
   reasonNoServices: ReasonNoServices
   reasonNotEnrolled: ReasonNotEnrolled
   referralSource: ReferralSource
@@ -2839,6 +2842,7 @@ type EnrollmentAccess {
   canDeleteEnrollments: Boolean!
   canEditEnrollments: Boolean!
   canSplitHouseholds: Boolean!
+  canViewEnrollmentDetails: Boolean!
   id: ID!
 }
 
@@ -7852,6 +7856,7 @@ type QueryAccess {
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
   canViewHudChronicStatus: Boolean!
+  canViewLimitedEnrollmentDetails: Boolean!
   canViewOpenEnrollmentSummary: Boolean!
   canViewPartialSsn: Boolean!
   canViewProject: Boolean!

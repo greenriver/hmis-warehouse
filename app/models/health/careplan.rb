@@ -194,6 +194,8 @@ module Health
 
     scope :reviewed_within, ->(range) { where(rn_approved_on: range) }
 
+    scope :sent_within, ->(range) { where(careplan_sent_on: range) }
+
     # End Scope
 
     def edit_path(anchor: nil)
