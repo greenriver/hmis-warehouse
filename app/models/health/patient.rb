@@ -305,56 +305,9 @@ module Health
 
     # CP 2 relaxed the requirements for the PCTP so that it required in-house clinical approval instead of needing
     # to be approved by the patients PCP.
+    # Oct 31, 2023: simplified engagement to be based on PCTP being sent to PCP in the last year
     def self.cp_2_engagement(on) # rubocop:disable Naming/MethodParameterName
-      ssm_patient_id_scope = Health::HrsnScreening.distinct.
-        completed_within(..on.to_time).
-        allowed_for_engagement.
-        select(:patient_id)
-
-      epic_ssm_patient_id_scope = Health::EpicSsm.distinct.
-        allowed_for_engagement.
-        where(ssm_updated_at: (..on.to_time)).
-        select(hp_t[:id].to_sql)
-
-      release_form_patient_id_scope = Health::ReleaseForm.distinct.
-        valid.
-        allowed_for_engagement.
-        select(:patient_id)
-
-      cha_patient_id_scope = Health::CaAssessment.distinct.
-        completed.
-        allowed_for_engagement.
-        completed_within(..on.to_time).
-        select(:patient_id)
-
-      epic_cha_patient_id_scope = Health::EpicCha.distinct.
-        allowed_for_engagement.
-        where(cha_updated_at: (..on.to_time)).
-        select(hp_t[:id].to_sql)
-
-      pctp_signed_patient_id_scope = Health::PctpCareplan.distinct.
-        rn_approved.
-        reviewed_within(..on.to_time).
-        select(:patient_id)
-
-      where(
-        arel_table[:id].in(Arel.sql(release_form_patient_id_scope.to_sql)).
-          and(
-            arel_table[:id].in(Arel.sql(cha_patient_id_scope.to_sql)).
-              or(
-                arel_table[:id].in(Arel.sql(epic_cha_patient_id_scope.to_sql)),
-              ),
-          ).
-          and(
-            arel_table[:id].in(Arel.sql(ssm_patient_id_scope.to_sql)).
-              or(
-                arel_table[:id].in(Arel.sql(epic_ssm_patient_id_scope.to_sql)),
-              ),
-          ).
-          and(
-            arel_table[:id].in(Arel.sql(pctp_signed_patient_id_scope.to_sql)),
-          ),
-      )
+      where(id: Health::PctpCareplan.recent.sent_within(on - 365.days .. on).select(:patient_id))
     end
 
     scope :engagement_required_by, ->(date) do
