@@ -35,7 +35,7 @@ module Types
     # to other Enrollments.
     def self.field(name, type = nil, **kwargs)
       # See Types::BaseField `authorized?` function.
-      super(name, type, permission: :can_view_enrollment_details, **kwargs)
+      super(name, type, permissions: :can_view_enrollment_details, **kwargs)
     end
 
     # Add a separate "field" function to use for summary fields which are visible
@@ -44,7 +44,7 @@ module Types
     # No field-level authorization is needed here, because the enrollment necessarily
     # has some level of visibility if it's being resolved.
     def self.summary_field(name, type = nil, **kwargs)
-      field(name, type, **kwargs, permission: nil)
+      field(name, type, **kwargs, permissions: nil)
     end
 
     available_filter_options do
@@ -71,7 +71,7 @@ module Types
     summary_field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false, default_value: 99
     # Override permission requirement for the access object. This is necessary so the frontend
     # knows whether its safe to link to the full enrollment dashboard for a given enrollment.
-    access_field permission: nil do
+    access_field permissions: nil do
       can :view_enrollment_details
       can :edit_enrollments
       can :delete_enrollments

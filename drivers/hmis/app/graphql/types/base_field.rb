@@ -9,8 +9,8 @@ module Types
     include GraphqlPermissionChecker
     argument_class Types::BaseArgument
 
-    def initialize(*args, default_value: nil, permission: nil, **kwargs, &block)
-      @permissions = Array.wrap(permission)
+    def initialize(*args, default_value: nil, permissions: nil, **kwargs, &block)
+      @permissions = Array.wrap(permissions)
 
       super(*args, **kwargs, &block)
 
@@ -25,7 +25,7 @@ module Types
     # Field-level authorization
     # https://graphql-ruby.org/authorization/authorization.html#field-authorization
     def authorized?(object, args, ctx)
-      # if `permission:` was given, then require the current user to have the specified permissions on the object
+      # if `permissions:` was given, then require the current user to have the specified permissions on the object
       base_authorized = super(object, args, ctx)
       if @permissions.any?
         base_authorized && @permissions.all? do |perm|
