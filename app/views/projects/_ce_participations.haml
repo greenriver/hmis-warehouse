@@ -1,5 +1,5 @@
 .d-flex.justify-content-between.mb-2
-  %h2 CE Participations
+  %h2 CE Participation Records
 .card.mb-4
   - if ce_participations.any?
     %table.table.table-sm.table-striped.mb-0
@@ -15,12 +15,12 @@
         - ce_participations.each do |ce_participation|
           %tr
             %td
-              - if can_see_raw_hmis_data? 
+              - if can_see_raw_hmis_data?
                 = link_to 'HMIS', source_datum_path(ce_participation.id, type: 'CEParticipation'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
             %td= ce_participation.CEParticipationID
             %td= HudUtility2024.no_yes(ce_participation.AccessPoint)
             %td= ce_participation.CEParticipationStatusStartDate
             %td= ce_participation.CEParticipationStatusEndDate
-            
+
   - else
     %h4.text-center No funding sources
