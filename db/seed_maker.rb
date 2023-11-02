@@ -322,6 +322,8 @@ class SeedMaker
     # Create HMIS Administrator role
     hmis_admin_role = Hmis::Role.where(can_administer_hmis: true).first_or_create! do |role|
       role.name = 'HMIS Administrator'
+      role.can_view_project = true
+      role.can_view_clients = true
     end
 
     # Create HMIS Data Source
@@ -337,14 +339,18 @@ class SeedMaker
     user = Hmis::User.not_system.first
     return unless user.present?
 
-    user.hmis_data_source_id = hmis_ds.id
-
-    # Create Access Group with no data access
-    access_group = Hmis::AccessGroup.where(name: 'Empty Access Group').first_or_create!
-    # Create ACL linking the group and the role
-    acl = Hmis::AccessControl.where(role: hmis_admin_role, access_group: access_group).first_or_create!
-    # Assign user to the ACL
-    user.user_access_controls.create(user: user, access_control: acl)
+    # Create Access Group (Collection) with data source access
+    access_group = Hmis::AccessGroup.where(name: 'All HMIS Projects').first_or_create!
+    access_group.add_viewable(hmis_ds)
+    # Create User Group
+    user_group = Hmis::UserGroup.where(name: 'Admin Users').first_or_create!
+    user_group.add(user)
+    # Create Access Control
+    Hmis::AccessControl.where(
+      role: hmis_admin_role,
+      access_group: access_group,
+      user_group: user_group,
+    ).first_or_create!
     puts "#{user.name} is now an HMIS Administrator. Go to https://hmis-warehouse.dev.test/hmis_admin/roles to manage data access and permissions."
   end
 
