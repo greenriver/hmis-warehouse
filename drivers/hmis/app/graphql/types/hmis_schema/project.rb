@@ -93,16 +93,13 @@ module Types
     field :data_collection_features, [Types::HmisSchema::DataCollectionFeature], null: false, description: 'Occurrence Point data collection features that are enabled for this Project (e.g. Current Living Situations, Events)'
     field :occurrence_point_forms, [Types::HmisSchema::OccurrencePointForm], null: false, method: :occurrence_point_form_instances, description: 'Forms for individual data elements that are collected at occurrence for this Project (e.g. Move-In Date)'
 
-    # TODO: resolve related HMISParticipation records
-    # TODO: resolve related CEParticipation records
-
     def hud_id
       object.project_id
     end
 
     def enrollments(**args)
       # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
-      return unless current_user.can_view_enrollment_details_for?(object)
+      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
 
       resolve_enrollments(object.enrollments_including_wip, dangerous_skip_permission_check: true, **args)
     end
@@ -117,7 +114,7 @@ module Types
 
     def services(**args)
       # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
-      return unless current_user.can_view_enrollment_details_for?(object)
+      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
 
       resolve_services(**args, dangerous_skip_permission_check: true)
     end
@@ -161,7 +158,7 @@ module Types
 
     def households(**args)
       # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
-      return unless current_user.can_view_enrollment_details_for?(object)
+      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
 
       resolve_households(object.households_including_wip, **args, dangerous_skip_permission_check: true)
     end

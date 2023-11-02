@@ -116,6 +116,8 @@ class Hmis::User < ApplicationRecord
   end
 
   def entities_with_permissions(model, *permissions, mode: :any)
+    raise "missing data source on user id #{id}" unless hmis_data_source_id
+
     # Get all the roles that have this permission
     roles_with_permission = Hmis::Role.with_permissions(*permissions, mode: mode).pluck(:id)
 

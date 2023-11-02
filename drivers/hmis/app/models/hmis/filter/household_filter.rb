@@ -6,13 +6,12 @@
 
 class Hmis::Filter::HouseholdFilter < Hmis::Filter::BaseFilter
   def filter_scope(scope)
-    scope = ensure_scope(scope)
-    scope.joins(:enrollments).
+    # we aren't joining to enrollments to avoid duplicate household records
+    scope.
       yield_self(&method(:with_statuses)).
       yield_self(&method(:with_open_on_date)).
       yield_self(&method(:with_hoh_age_range)).
-      yield_self(&method(:with_search_term)).
-      yield_self(&method(:clean_scope))
+      yield_self(&method(:with_search_term))
   end
 
   protected
@@ -24,6 +23,7 @@ class Hmis::Filter::HouseholdFilter < Hmis::Filter::BaseFilter
         return scope if input.status.sort == ['ACTIVE', 'INCOMPLETE', 'EXITED'].sort
 
         ids = []
+        # pulling down client ids is not optimal here
         ids += scope.active.pluck(:id) if input.status.include?('ACTIVE')
         ids += scope.in_progress.pluck(:id) if input.status.include?('INCOMPLETE')
         ids += scope.exited.pluck(:id) if input.status.include?('EXITED')
@@ -44,14 +44,34 @@ class Hmis::Filter::HouseholdFilter < Hmis::Filter::BaseFilter
   end
 
   def with_search_term(scope)
-    with_filter(scope, :search_term) { scope.merge(Hmis::Hud::Enrollment.matching_search_term(input.search_term)) }
+    with_filter(scope, :search_term) do
+      e_t = Hmis::Hud::Enrollment.arel_table
+      hh_t = Hmis::Hud::Household.arel_table
+      scope.where(
+        Hmis::Hud::Enrollment.
+          matching_search_term(input.search_term).
+          where(
+            e_t[:data_source_id].eq(hh_t[:data_source_id]).and(e_t[:HouseholdID].eq(hh_t[:HouseholdID])),
+          ).arel.exists,
+      )
+    end
   end
 
   def with_hoh_age_range(scope)
     with_filter(scope, :hoh_age_range) do
+      e_t = Hmis::Hud::Enrollment.arel_table
+      hh_t = Hmis::Hud::Household.arel_table
+
       start_age = input.hoh_age_range.begin
       end_age = input.hoh_age_range.end
-      scope.merge(Hmis::Hud::Enrollment.heads_of_households.in_age_group(start_age: start_age, end_age: end_age))
+
+      scope.where(
+        Hmis::Hud::Enrollment.
+          heads_of_households.in_age_group(start_age: start_age, end_age: end_age).
+          where(
+            e_t[:data_source_id].eq(hh_t[:data_source_id]).and(e_t[:HouseholdID].eq(hh_t[:HouseholdID])),
+          ).arel.exists,
+      )
     end
   end
 end

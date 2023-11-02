@@ -932,7 +932,9 @@ CREATE TABLE public."CustomClientAddress" (
     data_source_id integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    "EnrollmentID" character varying,
+    enrollment_address_type character varying
 );
 
 
@@ -18345,25 +18347,49 @@ UNION
 --
 
 CREATE VIEW public.hmis_households AS
- SELECT concat("Enrollment"."HouseholdID", ':', max(("Project"."ProjectID")::text), ':', max("Enrollment".data_source_id)) AS id,
-    "Enrollment"."HouseholdID",
-    max(("Project"."ProjectID")::text) AS "ProjectID",
-    max("Enrollment".data_source_id) AS data_source_id,
-    min("Enrollment"."EntryDate") AS earliest_entry,
+ WITH tmp1 AS (
+         SELECT "Enrollment"."HouseholdID",
+            "Project"."ProjectID",
+            false AS wip,
+            "Project".data_source_id,
+            "Enrollment"."EntryDate",
+            "Exit"."ExitDate",
+            "Enrollment"."DateUpdated",
+            "Enrollment"."DateCreated"
+           FROM ((public."Enrollment"
+             LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
+             JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = "Enrollment".data_source_id) AND (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text))))
+          WHERE ("Enrollment"."DateDeleted" IS NULL)
+        UNION ALL
+         SELECT "Enrollment"."HouseholdID",
+            "Project"."ProjectID",
+            true AS wip,
+            "Project".data_source_id,
+            "Enrollment"."EntryDate",
+            "Exit"."ExitDate",
+            "Enrollment"."DateUpdated",
+            "Enrollment"."DateCreated"
+           FROM (((public."Enrollment"
+             LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
+             JOIN public.hmis_wips ON (((hmis_wips.source_id = "Enrollment".id) AND ((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text))))
+             JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = hmis_wips.project_id))))
+          WHERE (("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment"."ProjectID" IS NULL))
+        )
+ SELECT concat(tmp1."HouseholdID", ':', tmp1."ProjectID", ':', tmp1.data_source_id) AS id,
+    tmp1."HouseholdID",
+    tmp1."ProjectID",
+    tmp1.data_source_id,
+    min(tmp1."EntryDate") AS earliest_entry,
         CASE
-            WHEN bool_or(("Exit"."ExitDate" IS NULL)) THEN NULL::date
-            ELSE max("Exit"."ExitDate")
+            WHEN bool_or((tmp1."ExitDate" IS NULL)) THEN NULL::date
+            ELSE max(tmp1."ExitDate")
         END AS latest_exit,
-    bool_or(("Enrollment"."ProjectID" IS NULL)) AS any_wip,
+    bool_or(tmp1.wip) AS any_wip,
     NULL::text AS "DateDeleted",
-    max("Enrollment"."DateUpdated") AS "DateUpdated",
-    min("Enrollment"."DateCreated") AS "DateCreated"
-   FROM (((public."Enrollment"
-     LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
-     LEFT JOIN public.hmis_wips ON (((hmis_wips.source_id = "Enrollment".id) AND ((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text))))
-     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = "Enrollment".data_source_id) AND (("Project".id = hmis_wips.project_id) OR (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text)))))
-  WHERE (("Enrollment"."HouseholdID" IS NOT NULL) AND ("Enrollment"."DateDeleted" IS NULL))
-  GROUP BY "Enrollment"."HouseholdID", "Project"."ProjectID", "Enrollment".data_source_id;
+    max(tmp1."DateUpdated") AS "DateUpdated",
+    min(tmp1."DateCreated") AS "DateCreated"
+   FROM tmp1
+  GROUP BY tmp1."HouseholdID", tmp1."ProjectID", tmp1.data_source_id;
 
 
 --
@@ -18446,7 +18472,7 @@ ALTER SEQUENCE public.hmis_project_unit_type_mappings_id_seq OWNED BY public.hmi
 --
 
 CREATE VIEW public.hmis_services AS
- SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
+( SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
     "Services".id AS owner_id,
     'Hmis::Hud::Service'::text AS owner_type,
     "CustomServiceTypes".id AS custom_service_type_id,
@@ -18459,10 +18485,11 @@ CREATE VIEW public.hmis_services AS
     "Services"."DateDeleted",
     "Services".data_source_id
    FROM (public."Services"
-     JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes"."DateDeleted" IS NULL))))
+     JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes".data_source_id = "Services".data_source_id) AND ("CustomServiceTypes"."DateDeleted" IS NULL))))
   WHERE ("Services"."DateDeleted" IS NULL)
+  ORDER BY "Services"."DateProvided")
 UNION ALL
- SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
+( SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
     ("CustomServices".id)::integer AS owner_id,
     'Hmis::Hud::CustomService'::text AS owner_type,
     "CustomServices".custom_service_type_id,
@@ -18475,7 +18502,8 @@ UNION ALL
     "CustomServices"."DateDeleted",
     "CustomServices".data_source_id
    FROM public."CustomServices"
-  WHERE ("CustomServices"."DateDeleted" IS NULL);
+  WHERE ("CustomServices"."DateDeleted" IS NULL)
+  ORDER BY "CustomServices"."DateProvided");
 
 
 --
@@ -48917,6 +48945,13 @@ CREATE INDEX "index_CustomCaseNote_on_UserID" ON public."CustomCaseNote" USING b
 
 
 --
+-- Name: index_CustomClientAddress_on_data_source_id_and_EnrollmentID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX "index_CustomClientAddress_on_data_source_id_and_EnrollmentID" ON public."CustomClientAddress" USING btree (data_source_id, "EnrollmentID") WHERE (((enrollment_address_type)::text = 'move_in'::text) AND ("DateDeleted" IS NULL));
+
+
+--
 -- Name: index_CustomDataElementDefinitions_on_custom_service_type_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -59764,6 +59799,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230926205059'),
 ('20230927205059'),
 ('20230929205059'),
+('20230930131206'),
 ('20231003220010'),
 ('20231004162425'),
 ('20231004172833'),
@@ -59777,7 +59813,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231016190301'),
 ('20231017190301'),
 ('20231020151224'),
+('20231021205059'),
+('20231028140507'),
 ('20231028230227'),
-('20231028231546');
+('20231028231546'),
+('20231030140507');
 
 

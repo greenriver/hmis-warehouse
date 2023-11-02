@@ -188,8 +188,8 @@ module Health
       due = overdue + COMPLETION_WINDOW
       @intake_renewal_due ||= Health::Patient.
         where(id: patient_ids).
-        joins(:recent_pctp_form).
-        where(h_cp_t[:careplan_sent_on].between(overdue .. due)).
+        joins(:recent_pctp_careplan).
+        merge(Health::PctpCareplan.sent_within(overdue .. due)).
         pluck(:id).uniq
     end
 
@@ -197,8 +197,8 @@ module Health
       overdue = [@range.last, Date.current].min - RENEWAL_WINDOW
       @intake_renewal_overdue = Health::Patient.
         where(id: patient_ids).
-        joins(:recent_pctp_form).
-        where(h_cp_t[:careplan_sent_on].lt(overdue)).
+        joins(:recent_pctp_careplan).
+        merge(Health::PctpCareplan.sent_within(.. overdue)).
         pluck(:id).uniq
     end
 

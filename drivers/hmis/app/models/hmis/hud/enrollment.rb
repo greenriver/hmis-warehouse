@@ -30,6 +30,13 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :custom_case_notes, **hmis_enrollment_relation('CustomCaseNote'), inverse_of: :enrollment, dependent: :destroy
   # All services (combined view of HUD and Custom services)
   has_many :hmis_services, **hmis_enrollment_relation('HmisService'), inverse_of: :enrollment
+  has_many(
+    :move_in_addresses,
+    -> { where(enrollment_address_type: Hmis::Hud::CustomClientAddress::ENROLLMENT_MOVE_IN_TYPE) },
+    **hmis_relation(:EnrollmentID, 'CustomClientAddress'),
+    inverse_of: :enrollment,
+    dependent: :destroy,
+  )
 
   has_many :events, **hmis_enrollment_relation('Event'), inverse_of: :enrollment, dependent: :destroy
   has_many :income_benefits, **hmis_enrollment_relation('IncomeBenefit'), inverse_of: :enrollment, dependent: :destroy
@@ -65,6 +72,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
+  accepts_nested_attributes_for :move_in_addresses, allow_destroy: true
 
   validates_with Hmis::Hud::Validators::EnrollmentValidator
   validate :client_is_valid, on: :new_client_enrollment_form
@@ -104,10 +112,23 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     left_outer_joins(:wip).where(viewable_wip.or(viewable_enrollment))
   end
 
-  # hide previous declaration of :viewable_by, we'll use this one
-  # A user can see any enrollment associated with a project they can view
-  replace_scope :viewable_by, ->(user) do
-    with_access(user, :can_view_enrollment_details, :can_view_project, mode: 'all')
+  # Enrollments that this user has access to. By default, only returns enrollments that the user has full
+  # access to (can_view_enrollment_details).
+  #
+  # Note: use "replace_scope" hide previous declaration of :viewable_by
+  replace_scope :viewable_by, ->(user, include_limited_access_enrollments: false) do
+    return with_access(user, :can_view_enrollment_details, :can_view_project, mode: 'all') unless include_limited_access_enrollments
+    return none unless user.permissions?(:can_view_enrollment_details, :can_view_limited_enrollment_details, mode: 'any')
+
+    # Projects where the user has full enrollment access
+    full_access_project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details, :can_view_project, mode: 'all').pluck(:id, :ProjectID)
+    # Projects where the user has limited enrollment access
+    limited_access_project_ids = Hmis::Hud::Project.with_access(user, :can_view_limited_enrollment_details).pluck(:id, :ProjectID)
+
+    viewable_wip = wip_t[:project_id].in(full_access_project_ids.map(&:first) + limited_access_project_ids.map(&:first))
+    viewable_enrollment = e_t[:ProjectID].in(full_access_project_ids.map(&:second) + limited_access_project_ids.map(&:second))
+
+    left_outer_joins(:wip).where(viewable_wip.or(viewable_enrollment))
   end
 
   # Free-text search for Enrollment
