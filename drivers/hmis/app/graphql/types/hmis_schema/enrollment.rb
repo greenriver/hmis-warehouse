@@ -185,6 +185,8 @@ module Types
     field :open_enrollment_summary, [HmisSchema::EnrollmentSummary], null: false
     field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
 
+    field :move_in_addresses, [HmisSchema::ClientAddress], null: false
+
     def open_enrollment_summary
       return [] unless current_user.can_view_open_enrollment_summary_for?(object)
 
@@ -314,6 +316,10 @@ module Types
       object.household_members.
         map { |hhm| hhm.current_unit&.id }.
         compact.uniq.size
+    end
+
+    def move_in_addresses
+      load_ar_association(object, :move_in_addresses)
     end
   end
 end
