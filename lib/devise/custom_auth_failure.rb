@@ -7,9 +7,9 @@
 class CustomAuthFailure < Devise::FailureApp
   def respond
     if scope == :hmis_user
-      return redirect_to_hmis if ENV['HMIS_OKTA_CLIENT_ID'].present?
+      return json_error_response if request.content_type == 'application/json' || request.format == :json
 
-      return json_error_response if request.format == :json
+      return redirect_to_hmis if ENV['HMIS_OKTA_CLIENT_ID'].present?
     end
     super
   end
