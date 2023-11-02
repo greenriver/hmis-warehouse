@@ -8,6 +8,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   include ::HmisStructure::Enrollment
   include ::Hmis::Hud::Concerns::Shared
   include ::HudConcerns::Enrollment
+  include ::Hmis::Hud::Concerns::ServiceHistoryQueuer
 
   self.table_name = :Enrollment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
@@ -386,9 +387,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     return unless warehouse_columns_changed?
 
     invalidate_processing!
-    return if Delayed::Job.queued?(['GrdaWarehouse::Tasks::ServiceHistory::Enrollment', 'batch_process_unprocessed!'])
-
-    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).batch_process_unprocessed!
+    queue_service_history_processing!
   end
 
   private def warehouse_columns_changed?
