@@ -81,6 +81,8 @@
         // circle.addTo(map);
         var myIcon = L.divIcon({className: className, html: '<div class="'+innerClassName+'"><span>'+d.display_percent+'</span></div>', iconSize: 30});
         L.marker(d.centroid, {icon: myIcon}).addTo(map);
+        // might need this for the PDF version
+        // https://codesandbox.io/s/leaflet-to-image-c57w6?from-embed
       }
 
 
