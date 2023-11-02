@@ -303,8 +303,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   def in_progress?
-    @in_progress = project_id.nil? if @in_progress.nil?
-    @in_progress
+    project_id.nil?
   end
 
   def exit_in_progress?
