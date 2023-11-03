@@ -742,7 +742,10 @@ CREATE TABLE public.hmis_roles (
     can_enroll_clients boolean DEFAULT false,
     can_view_open_enrollment_summary boolean DEFAULT false,
     can_view_project boolean DEFAULT false,
-    can_view_hud_chronic_status boolean DEFAULT false
+    can_view_hud_chronic_status boolean DEFAULT false,
+    can_merge_clients boolean DEFAULT false,
+    can_split_households boolean DEFAULT false,
+    can_transfer_enrollments boolean DEFAULT false
 );
 
 
@@ -1574,7 +1577,8 @@ CREATE TABLE public.roles (
     can_see_confidential_files boolean DEFAULT false,
     can_edit_theme boolean DEFAULT false,
     system boolean DEFAULT false NOT NULL,
-    can_edit_collections boolean DEFAULT false
+    can_edit_collections boolean DEFAULT false,
+    can_publish_reports boolean DEFAULT false
 );
 
 
@@ -4045,6 +4049,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230916124819'),
 ('20230918231940'),
 ('20230923000619'),
-('20230927131152');
+('20230927131152'),
+('20231009120833'),
+('20231017185729');
 
 

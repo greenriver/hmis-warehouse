@@ -1,0 +1,130 @@
+{
+  "item": [
+    {
+      "type": "CHOICE",
+      "required": true,
+      "link_id": "2.09.1",
+      "text": "Access Point",
+      "pick_list_reference": "NoYes",
+      "mapping": {
+        "field_name": "accessPoint"
+      }
+    },
+    {
+      "type": "GROUP",
+      "link_id": "2.09.A.conditionals",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "2.09.1",
+          "operator": "EQUAL",
+          "answer_code": "YES"
+        }
+      ],
+      "item": [
+        {
+          "type": "CHOICE",
+          "required": true,
+          "link_id": "2.09.A.prevention",
+          "text": "Prevention Assessment",
+          "pick_list_reference": "NoYes",
+          "mapping": {
+            "field_name": "preventionAssessment"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "required": true,
+          "link_id": "2.09.A.crisis",
+          "text": "Crisis Assessment",
+          "pick_list_reference": "NoYes",
+          "mapping": {
+            "field_name": "crisisAssessment"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "required": true,
+          "link_id": "2.09.A.housing",
+          "text": "Housing Assessment",
+          "pick_list_reference": "NoYes",
+          "mapping": {
+            "field_name": "housingAssessment"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "required": true,
+          "link_id": "2.09.A.services",
+          "text": "Direct Services",
+          "pick_list_reference": "NoYes",
+          "mapping": {
+            "field_name": "directServices"
+          }
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "required": true,
+      "link_id": "2.09.2",
+      "text": "Receives Referrals",
+      "pick_list_reference": "NoYes",
+      "mapping": {
+        "field_name": "receivesReferrals"
+      }
+    },
+    {
+      "type": "DATE",
+      "required": true,
+      "link_id": "2.09.3",
+      "text": "Start Date",
+      "mapping": {
+        "field_name": "ceParticipationStatusStartDate"
+      },
+      "bounds": [
+        {
+          "id": "min-start-date",
+          "type": "MIN",
+          "value_local_constant": "$projectStartDate"
+        },
+        {
+          "id": "max-start-date-project-end",
+          "type": "MAX",
+          "value_local_constant": "$projectEndDate"
+        },
+        {
+          "id": "max-start-date-range",
+          "type": "MAX",
+          "question": "2.09.4"
+        }
+      ]
+    },
+    {
+      "type": "DATE",
+      "required": false,
+      "link_id": "2.09.4",
+      "text": "End Date",
+      "mapping": {
+        "field_name": "ceParticipationStatusEndDate"
+      },
+      "bounds": [
+        {
+          "id": "min-end-date",
+          "type": "MIN",
+          "value_local_constant": "$projectStartDate"
+        },
+        {
+          "id": "max-end-date-project-end",
+          "type": "MAX",
+          "value_local_constant": "$projectEndDate"
+        },
+        {
+          "id": "max-end-date-range",
+          "type": "MIN",
+          "question": "2.09.3"
+        }
+      ]
+    }
+  ]
+}

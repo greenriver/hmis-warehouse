@@ -327,6 +327,11 @@
           "variable": "projectId",
           "operator": "EQUAL",
           "value": "680"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "825"
         }
       ]
     }

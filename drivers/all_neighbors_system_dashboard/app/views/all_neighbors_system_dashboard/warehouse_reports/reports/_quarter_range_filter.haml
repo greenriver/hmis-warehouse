@@ -1,0 +1,12 @@
+.form-group.mb-0
+  - id = filter_id(tab[:id], name)
+  - input_class = filter_id(tab[:id], 'quarterpicker')
+  %label{for: id}= label
+  .input-group.input-daterange.d-flex.align-items-center{id: id}
+    %select.form-control{id: filter_id(tab[:id], "#{name}_start"), class: [input_class, 'start-date']}
+      - quarters.each do | option |
+        %option{value: option[:name]}= option[:name]
+    .input-group-addon.px-4 to
+    %select.form-control{id: filter_id(tab[:id], "#{name}_end"), class: [input_class, 'end-date']}
+      - quarters.each_with_index do | option, i |
+        %option{value: option[:name], selected: i+1 == quarters.size-1 ? 'selected' : ''}= option[:name]

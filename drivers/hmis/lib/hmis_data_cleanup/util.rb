@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+require 'csv'
+
 # Utility functions for cleaning up HMIS data during a migration.
 # Be careful, some functions modify data and don't leave a paper trail.
 #
@@ -11,6 +13,14 @@
 module HmisDataCleanup
   class Util
     include ArelHelper
+
+    # Remove all ExportIDs from HMIS Enrollments.
+    # This should be done after an HMIS migration, otherwise ServiceHistoryService generation will behave incorrectly
+    def self.clear_enrollment_export_ids!
+      without_papertrail_or_timestamps do
+        Hmis::Hud::Enrollment.hmis.update_all(ExportID: nil)
+      end
+    end
 
     # Assign Household ID where missing
     #
@@ -125,6 +135,143 @@ module HmisDataCleanup
         project.residential_affiliations.update_all(ResProjectID: new_id)
         project.project_id = new_id
         project.save!(validate: false)
+      end
+    end
+
+    def self.write_project_unit_summary(filename: 'hmis_project_summary.csv')
+      direct_entry_cded = Hmis::Hud::CustomDataElementDefinition.find_by(key: :direct_entry)
+      project_pk_to_walkin_status = direct_entry_cded.values.pluck(:owner_id, :value_boolean).to_h if direct_entry_cded
+
+      rows = []
+      Hmis::Hud::Project.hmis.each do |project|
+        next if project.project_id.size == 32 # Skip internal projects
+
+        wip_enrollments = project.wip_enrollments.pluck(:id)
+
+        open_enrollments = project.enrollments.open_on_date.pluck(:id)
+        open_enrollments_with_referral = project.enrollments.open_on_date.joins(:source_postings).pluck(:id)
+        open_enrollments_missing_referral = open_enrollments - open_enrollments_with_referral
+
+        open_enrollments_with_unit = project.enrollments.open_on_date.joins(:current_unit).pluck(:id)
+        open_enrollments_missing_unit = open_enrollments - open_enrollments_with_unit
+
+        unit_capacity = project.units.size
+        open_households = project.enrollments.open_on_date.pluck(:household_id).uniq
+        hash = {
+          ProjectID: project.project_id,
+          ProjectName: project.project_name,
+          OperatingEndDate: project.operating_end_date&.strftime('%Y-%m-%d'),
+          UnitCapacity: unit_capacity,
+          OpenHouseholds: open_households.size,
+          OverCapacity: open_households.size > unit_capacity ? 'Yes' : 'No',
+          OpenEnrollments: open_enrollments.size,
+          OpenEnrollmentsWithoutReferral: open_enrollments_missing_referral.size,
+          OpenEnrollmentsWithoutUnit: open_enrollments_missing_unit.size,
+          AcceptedPendingIncompleteEnrollments: wip_enrollments.size,
+        }
+
+        if direct_entry_cded
+          accepts_walk_in = project_pk_to_walkin_status[project.id]
+          walkin_status = accepts_walk_in ? 'Yes' : 'No'
+          walkin_status = 'Unknown' if accepts_walk_in.nil?
+          hash[:DirectEntry] = walkin_status
+        end
+
+        rows << hash
+      end
+
+      CSV.open(filename, 'wb+', write_headers: true, headers: rows.first.keys) do |writer|
+        rows.each do |row|
+          writer << row.values
+        end
+      end
+    end
+
+    def self.write_potential_duplicates(filename: 'hmis_client_potential_duplicates.csv', variant: 'all', full_name: true)
+      Rails.logger.info("Finding potential duplicates (variant: #{variant})")
+
+      data_source_id = GrdaWarehouse::DataSource.hmis.first.id
+
+      # Find all Destination clients that have >1 source client in HMIS
+      destination_id_to_source_ids = GrdaWarehouse::WarehouseClient.where(data_source_id: data_source_id).
+        joins(:source). # drop non existent source clients
+        group(:destination_id).
+        having('count(*) > 1').select('"destination_id", array_agg("source_id") as source_ids').
+        map { |r| [r.destination_id, r.source_ids] }.
+        to_h
+
+      # Map source ID => demographic details
+      source_id_to_info = Hmis::Hud::Client.where(id: destination_id_to_source_ids.values.flatten).
+        where(data_source_id: data_source_id).
+        map do |client|
+          name_parts = if full_name
+            [client.first_name, client.middle_name, client.last_name, client.name_suffix]
+          else
+            [client.first_name, client.last_name]
+          end
+
+          comparison_attrs = {
+            name: name_parts.compact_blank.map(&:strip).join(' ').downcase,
+            dob: client.dob&.strftime('%Y-%m-%d'),
+            ssn: client.ssn,
+            genders: client.gender_multi.excluding(8, 9, 99).sort.map { |k| ::HudUtility2024.gender(k) }.join(', ').presence,
+          }
+          [client.id, comparison_attrs]
+        end.to_h
+
+      rows = []
+      destination_id_to_source_ids.each do |dest_id, source_ids|
+        row = {
+          WarehouseID: dest_id,
+        }
+
+        # Expect at most 10 HMIS clients per Warehouse ID (increase if needed)
+        10.times do |idx|
+          client_id = source_ids[idx]
+          row["Client#{idx + 1}_ID"] = client_id
+          info = source_id_to_info.fetch(client_id, nil) || {}
+          row["Client#{idx + 1}_Name"] = info[:name]
+          row["Client#{idx + 1}_DOB"] = info[:dob]
+          row["Client#{idx + 1}_SSN"] = info[:ssn]
+          row["Client#{idx + 1}_Gender"] = info[:genders]
+        end
+
+        client_details = source_ids.map { |id| source_id_to_info[id] }.compact
+        exact_match = [:name, :dob, :ssn, :genders].all? do |field|
+          client_details.map { |r| r[field] }.compact.uniq.size < 2
+        end
+        case variant
+        when 'all'
+          rows << row
+        when 'only_exact_matches'
+          rows << row if exact_match
+        when 'only_non_exact_matches'
+          rows << row unless exact_match
+        else
+          raise 'unsupported variant'
+        end
+      end
+
+      return rows unless filename
+
+      skipped = destination_id_to_source_ids.size - rows.size
+      Rails.logger.info("Skipped #{skipped} potential duplicates; writing #{rows.count} to file")
+
+      # Actually perform all of the merges
+      #
+      # actor_id = User.system_user.id
+      # rows.each do |row|
+      #   client_ids = []
+      #   10.times do |idx|
+      #     client_ids << row["Client#{idx + 1}_ID"]
+      #   end
+      #   Hmis::MergeClientsJob.perform_now(client_ids: client_ids.compact, actor_id: actor_id)
+      # end
+
+      CSV.open(filename, 'wb+', write_headers: true, headers: rows.first.keys) do |writer|
+        rows.each do |row|
+          writer << row.values
+        end
       end
     end
 

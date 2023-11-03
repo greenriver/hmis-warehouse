@@ -39,6 +39,8 @@ module GrdaWarehouse::Hud
       'Event.csv' => GrdaWarehouse::Hud::Event,
       'User.csv' => GrdaWarehouse::Hud::User,
       'YouthEducationStatus.csv' => GrdaWarehouse::Hud::YouthEducationStatus,
+      'CEParticipation.csv' => GrdaWarehouse::Hud::CeParticipation,
+      'HMISParticipation.csv' => GrdaWarehouse::Hud::HmisParticipation,
     }.freeze
   end
 

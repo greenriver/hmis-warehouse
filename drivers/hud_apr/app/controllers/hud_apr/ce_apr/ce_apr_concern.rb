@@ -64,6 +64,7 @@ module HudApr::CeApr::CeAprConcern
         fy2020: HudApr::Generators::CeApr::Fy2020::Generator,
         fy2021: HudApr::Generators::CeApr::Fy2021::Generator,
         fy2023: HudApr::Generators::CeApr::Fy2023::Generator,
+        fy2024: HudApr::Generators::CeApr::Fy2024::Generator,
       }
     end
   end

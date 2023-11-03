@@ -12,13 +12,13 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
 
   let(:data_source) { create(:hmis_data_source) }
   let(:user) { create(:hmis_hud_user, data_source: data_source) }
-  let(:client1) { create(:hmis_hud_client, pronouns: nil, date_created: Time.now - 1.day, data_source: data_source) }
+  let(:client1) { create(:hmis_hud_client_complete, pronouns: nil, date_created: Time.now - 1.day, data_source: data_source) }
 
   let!(:client1_name) { create(:hmis_hud_custom_client_name, client: client1, first: client1.first_name, last: client1.last_name, middle: client1.middle_name, suffix: client1.name_suffix, data_source: data_source) }
   let!(:client1_contact_point) { create(:hmis_hud_custom_client_contact_point, client: client1, data_source: data_source) }
   let!(:client1_address) { create(:hmis_hud_custom_client_address, client: client1, data_source: data_source) }
 
-  let(:client2) { create(:hmis_hud_client, pronouns: 'she', data_source: data_source) }
+  let(:client2) { create(:hmis_hud_client_complete, pronouns: 'she', data_source: data_source) }
   let!(:client2_name) { create(:hmis_hud_custom_client_name, client: client2, data_source: data_source) }
   let!(:client2_contact_point) { create(:hmis_hud_custom_client_contact_point, client: client2, data_source: data_source) }
   let!(:client2_address) { create(:hmis_hud_custom_client_address, client: client2, data_source: data_source) }
@@ -47,6 +47,14 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
 
     it 'saves an audit trail' do
       expect(Hmis::ClientMergeAudit.count).to eq(1)
+      audit = Hmis::ClientMergeAudit.first
+      expect(audit.client_merge_histories.count).to eq(1)
+      expect(Hmis::ClientMergeHistory.count).to eq(1)
+      expect(Hmis::ClientMergeHistory.first).to have_attributes(
+        retained_client_id: client1.id,
+        deleted_client_id: client2.id,
+        client_merge_audit_id: audit.id,
+      )
     end
 
     it 'minimally seems to merge correctly' do
@@ -93,13 +101,13 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
 
     it 'has correct primary name' do
       client1.reload
-      expected = [client1.first_name, client1.middle_name, client1.last_name, client1.name_suffix].join(' ')
+      expected = [client1.full_name]
 
       result = client1.names.where(primary: true)
 
       expect(result.length).to eq(1)
 
-      actual = [result.first.first, result.first.middle, result.first.last, result.first.suffix].join(' ')
+      actual = result.map(&:full_name)
 
       expect(expected).to eq(actual)
     end
@@ -140,6 +148,144 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
 
     it 'merges external ids' do
       expect(client1.ac_hmis_mci_ids.pluck(:value).sort).to eq([external_id_client_1, external_id_client_2].map(&:value).sort)
+    end
+  end
+
+  context 'client names' do
+    let!(:c1_without_custom_name) { create(:hmis_hud_client_complete, date_created: Time.current - 3.days, data_source: data_source) }
+    let!(:c2_without_custom_name) { create(:hmis_hud_client_complete, date_created: Time.current, data_source: data_source) }
+    let!(:c3_with_custom_name) { create(:hmis_hud_client_complete, date_created: Time.current - 2.days, data_source: data_source, with_custom_client_name: true) }
+    let!(:c4_with_custom_name) { create(:hmis_hud_client_complete, date_created: Time.current, data_source: data_source, with_custom_client_name: true) }
+    let!(:c4_secondary_name) { create(:hmis_hud_custom_client_name, client: c4_with_custom_name, data_source: data_source) }
+
+    it 'is set up correctly' do
+      expect(c1_without_custom_name.names).to be_empty
+      expect(c2_without_custom_name.names).to be_empty
+      expect(c3_with_custom_name.names.size).to eq(1)
+      expect(c3_with_custom_name.names.primary_names.size).to eq(1)
+      expect(c4_with_custom_name.names.size).to eq(2)
+      expect(c4_with_custom_name.names.primary_names.size).to eq(1)
+    end
+
+    it 'works when neither clients have a CustomClientName' do
+      # Expected behavior: 2 CustomClientName records are created, one is primary, and its the one from the retained client
+      c1 = c1_without_custom_name
+      c2 = c2_without_custom_name
+      original_name = c1.full_name
+
+      client_ids = [c1.id, c2.id]
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+      c1.reload
+      found_names = c1.names.map(&:full_name).sort
+      expected_names = [c1, c2].map(&:full_name).sort
+      expect(found_names).to eq(expected_names)
+      expect(c1.names.primary_names.size).to eq(1)
+      expect(c1.primary_name.full_name).to eq(original_name)
+      expect(c1.full_name).to eq(original_name)
+    end
+
+    it 'works when both clients have CustomClientName(s)' do
+      # Expected behavior: all CustomClientNames are retained, one is primary
+      c1 = c3_with_custom_name
+      c2 = c4_with_custom_name
+      original_name = c1.full_name
+
+      client_ids = [c1.id, c2.id]
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+      c1.reload
+      found_names = c1.names.map(&:full_name).sort
+      expected_names = [c1.names.map(&:full_name), c2.names.map(&:full_name)].flatten.uniq.sort
+      expect(c1.names.size).to eq(3)
+      expect(found_names).to eq(expected_names)
+      expect(c1.names.primary_names.size).to eq(1)
+      expect(c1.primary_name.full_name).to eq(original_name)
+      expect(c1.full_name).to eq(original_name)
+    end
+
+    it 'works when 1 client has a CustomClientName and the other doesn\'t' do
+      # Expected behavior: 1 CustomClientName is created, so there are 2 total, and 1 is primary
+      c1 = c1_without_custom_name
+      c2 = c3_with_custom_name
+      original_name = c1.full_name
+
+      client_ids = [c1.id, c2.id]
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+
+      c1.reload
+      found_names = c1.names.map(&:full_name).sort
+      expected_names = [c1, c2].map(&:full_name).sort
+      expect(c1.names.size).to eq(2)
+      expect(found_names).to eq(expected_names)
+      expect(c1.names.primary_names.size).to eq(1)
+      expect(c1.primary_name.full_name).to eq(original_name)
+      expect(c1.full_name).to eq(original_name)
+    end
+  end
+
+  context 'audit history' do
+    let!(:c1) { create(:hmis_hud_client_complete, date_created: Time.current - 1.week, data_source: data_source) }
+    let!(:c2) { create(:hmis_hud_client_complete, date_created: Time.current - 5.days, data_source: data_source) }
+    let!(:c3) { create(:hmis_hud_client_complete, date_created: Time.current - 2.days, data_source: data_source) }
+    let!(:c4) { create(:hmis_hud_client_complete, date_created: Time.current, data_source: data_source) }
+    let!(:c5) { create(:hmis_hud_client_complete, date_created: Time.current, data_source: data_source) }
+
+    it 'preserves audit history when client with merge history is merged' do
+      expect(Hmis::ClientMergeAudit.count).to eq(0)
+
+      # First merge: c4 and c5 into c3
+      Hmis::MergeClientsJob.perform_now(client_ids: [c3.id, c4.id, c5.id], actor_id: actor.id)
+
+      expect(Hmis::ClientMergeAudit.count).to eq(1)
+      expect(Hmis::ClientMergeHistory.count).to eq(2)
+      audit1 = Hmis::ClientMergeAudit.last
+      expect(audit1.client_merge_histories.count).to eq(2)
+      expect(audit1.client_merge_histories).to contain_exactly(
+        have_attributes(retained_client_id: c3.id, deleted_client_id: c4.id),
+        have_attributes(retained_client_id: c3.id, deleted_client_id: c5.id),
+      )
+      c3.reload
+      expect(c3.merge_histories).to eq(audit1.client_merge_histories)
+      expect(c3.merge_audits.map(&:id)).to contain_exactly(audit1.id)
+      expect(c3.reverse_merge_histories).to be_empty
+
+      c4.reload
+      expect(c4.merge_histories).to be_empty
+      expect(c4.reverse_merge_histories).to eq(audit1.client_merge_histories.where(deleted_client_id: c4.id))
+      expect(c4.reverse_merge_audits.map(&:id)).to contain_exactly(audit1.id)
+
+      # Second merge: c2 into c1
+      Hmis::MergeClientsJob.perform_now(client_ids: [c2.id, c1.id], actor_id: actor.id)
+
+      expect(Hmis::ClientMergeAudit.count).to eq(2)
+      audit2 = Hmis::ClientMergeAudit.last
+      expect(audit2.client_merge_histories.count).to eq(1)
+      expect(audit2.client_merge_histories.first).to have_attributes(
+        retained_client_id: c1.id,
+        deleted_client_id: c2.id,
+      )
+      expect(Hmis::ClientMergeHistory.all).to contain_exactly(
+        have_attributes(retained_client_id: c3.id, deleted_client_id: c4.id, client_merge_audit_id: audit1.id),
+        have_attributes(retained_client_id: c3.id, deleted_client_id: c5.id, client_merge_audit_id: audit1.id),
+        have_attributes(retained_client_id: c1.id, deleted_client_id: c2.id, client_merge_audit_id: audit2.id),
+      )
+
+      # Third merge: c3 into c1
+      Hmis::MergeClientsJob.perform_now(client_ids: [c3.id, c1.id], actor_id: actor.id)
+
+      expect(Hmis::ClientMergeAudit.count).to eq(3)
+      audit3 = Hmis::ClientMergeAudit.last
+      expect(audit3.client_merge_histories.count).to eq(1)
+      expect(Hmis::ClientMergeHistory.all).to contain_exactly(
+        # all updated to point to c1
+        have_attributes(retained_client_id: c1.id, deleted_client_id: c4.id, client_merge_audit_id: audit1.id),
+        have_attributes(retained_client_id: c1.id, deleted_client_id: c5.id, client_merge_audit_id: audit1.id),
+        have_attributes(retained_client_id: c1.id, deleted_client_id: c2.id, client_merge_audit_id: audit2.id),
+        have_attributes(retained_client_id: c1.id, deleted_client_id: c3.id, client_merge_audit_id: audit3.id),
+      )
+      expect(c1.reload.merge_histories).to eq(Hmis::ClientMergeHistory.all)
+      expect(c1.merge_audits).to contain_exactly(audit1, audit2, audit3)
     end
   end
 

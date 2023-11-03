@@ -23,7 +23,6 @@ module Types
     field :enrollment, HmisSchema::Enrollment, null: false
     field :assessment_date, GraphQL::Types::ISO8601Date, null: false
     field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: true
-    field :enrollment_coc, String, null: true
     field :client, HmisSchema::Client, null: false
     field :in_progress, Boolean, null: false
     access_field do

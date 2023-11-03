@@ -190,7 +190,7 @@ module HudReports::Incomes
         'Adults with Only Other Income' => :other,
         'Adults with Both Earned and Other Income' => :both,
         'Adults with No Income' => :none,
-        'Adults with Client Doesn\'t Know/Client Refused Income Information' => a_t["income_from_any_source_at_#{suffix}"].in([8, 9]),
+        "Adults with #{label_for(:dkptr)}" => a_t["income_from_any_source_at_#{suffix}"].in([8, 9]),
       }
 
       if suffix == :annual_assessment

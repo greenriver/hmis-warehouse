@@ -16,7 +16,17 @@ module Hmis
       raise 'You cannot merge less than two clients' if Array.wrap(client_ids).length < 2
 
       self.actor = User.find(actor_id)
-      self.clients = Hmis::Hud::Client.preload(:names, :contact_points, :addresses).order(Hmis::Hud::Client.arel_table['DateCreated']).find(client_ids)
+      self.clients = Hmis::Hud::Client.
+        preload(:names, :contact_points, :addresses).
+        find(client_ids).
+        map do |client|
+          # set some defaults
+          client.DateCreated ||= 10.years.ago.to_date
+          client.DateUpdated ||= 10.years.ago.to_date
+          client
+        end.
+        sort_by { |client| client.DateCreated.to_datetime }
+
       self.client_to_retain = clients[0]
       self.clients_needing_reference_updates = clients[1..]
       self.data_source_id = \
@@ -50,12 +60,28 @@ module Hmis
 
     def save_audit_trail
       Rails.logger.info 'Saving audit trail with initial state'
-
-      Hmis::ClientMergeAudit.create!(
+      # Create merge audit trail, storing the attributes for each client at time of merge
+      merge_audit = Hmis::ClientMergeAudit.create!(
         actor_id: actor.id,
-        merged_at: Time.now,
+        merged_at: Time.current,
         pre_merge_state: clients.map(&:attributes),
       )
+
+      retained_client_id = client_to_retain.id
+      deleted_client_ids = clients_needing_reference_updates.map(&:id)
+
+      # For any deleted clients, update any of their merge histories to point to the new retained client
+      Hmis::ClientMergeHistory.where(retained_client_id: deleted_client_ids).update_all(retained_client_id: retained_client_id)
+
+      # Create a new history record for each client that was deleted
+      history_records = deleted_client_ids.map do |deleted_client_id|
+        {
+          retained_client_id: retained_client_id,
+          deleted_client_id: deleted_client_id,
+          client_merge_audit_id: merge_audit.id,
+        }
+      end
+      Hmis::ClientMergeHistory.import!(history_records)
     end
 
     def update_oldest_client_with_merged_attributes
@@ -72,18 +98,32 @@ module Hmis
     def merge_and_find_primary_name
       Rails.logger.info 'Merging names and finding primary one'
 
-      name_ids = clients.flat_map(&:names).map(&:id)
-      Hmis::Hud::CustomClientName.where(id: name_ids).update_all(primary: false)
+      # Create CustomClientName records for any Clients that don't have them
+      unpersisted_name_records = clients.map do |client|
+        next unless client.names.empty?
 
+        name = client.build_primary_custom_client_name
+        name.CustomClientNameID = Hmis::Hud::Base.generate_uuid
+        name.primary = client.id == client_to_retain.id
+        name
+      end.compact
+
+      # Dedup and save the new name records
+      dedup_unpersisted(unpersisted_name_records).map(&:save!)
+
+      name_ids = clients.flat_map { |client| client.names.map(&:id) }
+      name_scope = Hmis::Hud::CustomClientName.where(id: name_ids)
+
+      # Update all names to point to client_to_retain
       primary_found = false
-      clients.flat_map(&:names).sort_by(&:id).each do |name|
+      name_scope.sort_by(&:id).each do |name|
         client_val = [client_to_retain.first_name, client_to_retain.middle_name, client_to_retain.last_name, client_to_retain.name_suffix]
         custom_client_name_val = [name.first, name.middle, name.last, name.suffix]
         primary = (client_val == custom_client_name_val) && !primary_found
 
         name.client = client_to_retain
         name.primary = primary ? true : false
-        name.save!(validate: false)
+        name.save!(validate: false) # if primary, this save will update the Client name attributes (FirstName, LastName, etc)
 
         primary_found = true if name.primary
       end
@@ -98,11 +138,11 @@ module Hmis
 
       Rails.logger.info 'uniqify custom data elements for each definition'
 
-      working_set = Hmis::Hud::CustomDataElement
-        .where(id: element_ids)
-        .preload(:data_element_definition)
-        .to_a
-        .group_by(&:data_element_definition)
+      working_set = Hmis::Hud::CustomDataElement.
+        where(id: element_ids).
+        preload(:data_element_definition).
+        to_a.
+        group_by(&:data_element_definition)
 
       working_set.each do |definition, elements|
         next if definition.repeats
@@ -130,6 +170,16 @@ module Hmis
       keepers
     end
 
+    def dedup_unpersisted(unpersisted_records)
+      keepers = []
+      unpersisted_records.each do |record|
+        next if keepers.detect { |u| u.equal_for_merge?(record) }
+
+        keepers.push(record)
+      end
+      keepers
+    end
+
     def update_client_id_foreign_keys
       candidates = [
         GrdaWarehouse::ClientFile,
@@ -150,20 +200,20 @@ module Hmis
     def merge_mci_ids
       mci_ids = HmisExternalApis::AcHmis::Mci.external_ids
       # merge ids
-      records_by_value = mci_ids.where(source: clients_needing_reference_updates)
-        .order(:id).reverse.index_by(&:value) # de-duplicate by value, take first id
+      records_by_value = mci_ids.where(source: clients_needing_reference_updates).
+        order(:id).reverse.index_by(&:value) # de-duplicate by value, take first id
 
-      mci_ids.where(id: records_by_value.values.map(&:id))
-        .update_all(source_id: client_to_retain.id)
+      mci_ids.where(id: records_by_value.values.map(&:id)).
+        update_all(source_id: client_to_retain.id)
     end
 
     def delete_warehouse_clients
       Rails.logger.info 'Deleting warehouse clients of merged clients'
 
       # Very unsure I caught the desired behavior correctly here:
-      GrdaWarehouse::WarehouseClient
-        .where(source_id: clients_needing_reference_updates.map(&:id))
-        .find_each(&:destroy!)
+      GrdaWarehouse::WarehouseClient.
+        where(source_id: clients_needing_reference_updates.map(&:id)).
+        find_each(&:destroy!)
     end
 
     def update_personal_id_foreign_keys
@@ -178,7 +228,6 @@ module Hmis
         Hmis::Hud::Disability,
         Hmis::Hud::EmploymentEducation,
         Hmis::Hud::Enrollment,
-        Hmis::Hud::EnrollmentCoc,
         Hmis::Hud::Event,
         Hmis::Hud::Exit,
         Hmis::Hud::HealthAndDv,
@@ -194,10 +243,10 @@ module Hmis
 
         t = candidate.arel_table
 
-        candidate
-          .where(t['PersonalID'].in(personal_ids))
-          .where(t['data_source_id'].eq(data_source_id))
-          .update_all(PersonalID: client_to_retain.personal_id)
+        candidate.
+          where(t['PersonalID'].in(personal_ids)).
+          where(t['data_source_id'].eq(data_source_id)).
+          update_all(PersonalID: client_to_retain.personal_id)
       end
     end
 
