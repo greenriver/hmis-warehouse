@@ -6,6 +6,8 @@
 
 module Hmis
   class GraphqlController < Hmis::BaseController
+    include Hmis::Concerns::HmisActivityLogger
+
     # If accessing from outside this domain, nullify the session
     # This allows for outside API access while preventing CSRF attacks,
     # but you'll have to authenticate your user separately
@@ -15,11 +17,13 @@ module Hmis
       context = {
         current_user: current_hmis_user,
       }
+
       case params[:schema]
       when :hmis
         if params[:_json]
           # We have a batch of operations
           queries = params[:_json].map do |param|
+            log_gql_activity(param) # Log each operation. Might not be necessary?
             {
               query: param[:query],
               operation_name: param[:operationName],
@@ -30,6 +34,7 @@ module Hmis
           result = HmisSchema.multiplex(queries)&.to_json
         else
           # We have a single operation
+          log_gql_activity(param)
           result = HmisSchema.execute(
             query: params[:query],
             variables: prepare_variables(params[:variables]),
