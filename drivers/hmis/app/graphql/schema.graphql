@@ -2962,7 +2962,7 @@ type EnrollmentSummary {
 }
 
 input EnrollmentsForClientFilterOptions {
-  householdTasks: EnrollmentFilterOptionHouseholdTask
+  householdTasks: [EnrollmentFilterOptionHouseholdTask!]
   openOnDate: ISO8601Date
   projectType: [ProjectType!]
   status: [EnrollmentFilterOptionStatus!]
@@ -2970,7 +2970,7 @@ input EnrollmentsForClientFilterOptions {
 
 input EnrollmentsForProjectFilterOptions {
   bedNightOnDate: ISO8601Date
-  householdTasks: EnrollmentFilterOptionHouseholdTask
+  householdTasks: [EnrollmentFilterOptionHouseholdTask!]
   openOnDate: ISO8601Date
   searchTerm: String
   status: [EnrollmentFilterOptionStatus!]
