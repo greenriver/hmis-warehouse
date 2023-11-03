@@ -52,6 +52,7 @@ module Types
       arg :open_on_date, GraphQL::Types::ISO8601Date
       arg :bed_night_on_date, GraphQL::Types::ISO8601Date
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
+      arg :household_tasks, HmisSchema::Enums::EnrollmentFilterOptionHouseholdTask
       arg :search_term, String
     end
 

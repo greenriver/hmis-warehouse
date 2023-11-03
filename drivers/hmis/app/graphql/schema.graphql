@@ -2846,6 +2846,13 @@ type EnrollmentAccess {
   id: ID!
 }
 
+enum EnrollmentFilterOptionHouseholdTask {
+  """
+  Annual Due
+  """
+  ANNUAL_DUE
+}
+
 enum EnrollmentFilterOptionStatus {
   """
   Active
@@ -2955,6 +2962,7 @@ type EnrollmentSummary {
 }
 
 input EnrollmentsForClientFilterOptions {
+  householdTasks: EnrollmentFilterOptionHouseholdTask
   openOnDate: ISO8601Date
   projectType: [ProjectType!]
   status: [EnrollmentFilterOptionStatus!]
@@ -2962,6 +2970,7 @@ input EnrollmentsForClientFilterOptions {
 
 input EnrollmentsForProjectFilterOptions {
   bedNightOnDate: ISO8601Date
+  householdTasks: EnrollmentFilterOptionHouseholdTask
   openOnDate: ISO8601Date
   searchTerm: String
   status: [EnrollmentFilterOptionStatus!]
