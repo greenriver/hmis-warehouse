@@ -77,7 +77,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     ids = user.viewable_projects.pluck(:id)
     ids += user.viewable_organizations.joins(:projects).pluck(p_t[:id])
     ids += user.viewable_data_sources.joins(:projects).pluck(p_t[:id])
-    ids += user.viewable_project_access_groups.joins(:projects).pluck(p_t[:id])
 
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
@@ -90,7 +89,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     ids = user.entities_with_permissions(Hmis::Hud::Project, *permissions, **kwargs).pluck(:id)
     ids += user.entities_with_permissions(Hmis::Hud::Organization, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
     ids += user.entities_with_permissions(GrdaWarehouse::DataSource, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
-    ids += user.entities_with_permissions(GrdaWarehouse::ProjectAccessGroup, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
 
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end

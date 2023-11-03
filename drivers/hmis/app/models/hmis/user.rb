@@ -127,7 +127,7 @@ class Hmis::User < ApplicationRecord
     access_group_ids = access_controls.where(role_id: roles_with_permission).pluck(:access_group_id)
 
     entity_ids = Hmis::GroupViewableEntity.where(
-      access_group_id: access_group_ids,
+      collection_id: access_group_ids,
       entity_type: model.sti_name,
     ).select(:entity_id)
 
@@ -149,10 +149,6 @@ class Hmis::User < ApplicationRecord
 
   def viewable_projects
     viewable Hmis::Hud::Project
-  end
-
-  def viewable_project_access_groups
-    viewable GrdaWarehouse::ProjectAccessGroup
   end
 
   def viewable_project_ids
@@ -186,10 +182,6 @@ class Hmis::User < ApplicationRecord
 
   def editable_projects
     editable Hmis::Hud::Project
-  end
-
-  def editable_project_access_groups
-    editable GrdaWarehouse::ProjectAccessGroup
   end
 
   def editable_project_ids
