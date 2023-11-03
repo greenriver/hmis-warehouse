@@ -745,7 +745,8 @@ CREATE TABLE public.hmis_roles (
     can_view_hud_chronic_status boolean DEFAULT false,
     can_merge_clients boolean DEFAULT false,
     can_split_households boolean DEFAULT false,
-    can_transfer_enrollments boolean DEFAULT false
+    can_transfer_enrollments boolean DEFAULT false,
+    can_view_limited_enrollment_details boolean DEFAULT false
 );
 
 
@@ -4051,6 +4052,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230923000619'),
 ('20230927131152'),
 ('20231009120833'),
-('20231017185729');
+('20231017185729'),
+('20231030184613');
 
 

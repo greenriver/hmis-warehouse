@@ -26,6 +26,10 @@ class Hmis::Filter::BaseFilter
   private
 
   def with_filter(scope, filter)
+    # if scope is a class, convert to scope to avoid clobbering current_scope
+    scope = scope.all unless scope.is_a?(ActiveRecord::Relation)
+    raise 'must be a relation' unless scope.is_a?(ActiveRecord::Relation)
+
     return scope unless input.respond_to?(filter) && input.send(filter)&.present?
 
     yield

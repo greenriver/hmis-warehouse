@@ -6,6 +6,7 @@
 
 module Types
   class BaseObject < GraphQL::Schema::Object
+    include GraphqlPermissionChecker
     edge_type_class(Types::BaseEdge)
     connection_type_class(Types::BaseConnection)
     field_class Types::BaseField
@@ -83,20 +84,12 @@ module Types
     end
 
     # Does the current user have the given permission on entity?
+    #
     # @param permission [Symbol] :can_do_foo
     # @param entity [#record] Client, project, etc
     def current_permission?(permission:, entity:)
-      return false unless current_user&.present?
-
-      # Just return false if we don't have this permission at all for anything
-      return false unless current_user.send("#{permission}?")
-
-      loader, subject = current_user.entity_access_loader_factory(entity) do |record, association|
-        load_ar_association(record, association)
-      end
-      raise "Missing loader for #{entity.class.name}##{entity.id}" unless loader
-
-      dataloader.with(Sources::UserEntityAccessSource, loader).load([subject, permission])
+      # defined in GraphqlPermissionChecker
+      current_permission_for_context?(context, permission: permission, entity: entity)
     end
   end
 end

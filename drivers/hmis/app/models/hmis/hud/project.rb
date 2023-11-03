@@ -57,7 +57,13 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   has_many :services, through: :enrollments_including_wip
   has_many :custom_services, through: :enrollments_including_wip
-  has_many :hmis_services, through: :enrollments_including_wip
+
+  # FIXME: joining services through enrollments confounds postgres. On larger projects, the query might take many
+  # minutes. It needs optimization; for now we use a class method instead of a AR association
+  # has_many :hmis_services, through: :enrollments_including_wip
+  def hmis_services
+    Hmis::Hud::HmisService.joins(:project).where(Hmis::Hud::Project.arel_table[:id].eq(id))
+  end
 
   has_and_belongs_to_many :project_groups,
                           class_name: 'GrdaWarehouse::ProjectGroup',
@@ -71,7 +77,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     ids = user.viewable_projects.pluck(:id)
     ids += user.viewable_organizations.joins(:projects).pluck(p_t[:id])
     ids += user.viewable_data_sources.joins(:projects).pluck(p_t[:id])
-    ids += user.viewable_project_access_groups.joins(:projects).pluck(p_t[:id])
 
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
@@ -84,7 +89,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     ids = user.entities_with_permissions(Hmis::Hud::Project, *permissions, **kwargs).pluck(:id)
     ids += user.entities_with_permissions(Hmis::Hud::Organization, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
     ids += user.entities_with_permissions(GrdaWarehouse::DataSource, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
-    ids += user.entities_with_permissions(GrdaWarehouse::ProjectAccessGroup, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
 
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
@@ -159,9 +163,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   end
 
   def households_including_wip
-    household_ids = enrollments_including_wip.pluck(:household_id)
-
-    Hmis::Hud::Household.where(HouseholdID: household_ids, data_source_id: data_source_id)
+    # correlated subquery for performance
+    cp_t = Hmis::Hud::ClientProject.arel_table
+    subquery = client_projects.where(cp_t[:HouseholdID].eq(hh_t[:HouseholdID]))
+    Hmis::Hud::Household.where(data_source_id: data_source_id).where(subquery.arel.exists)
   end
 
   def close_related_funders_and_inventory!

@@ -4,9 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class SystemStatusController < ApplicationController
-  skip_before_action :authenticate_user!
-
+class SystemStatusController < ActionController::Base
   def exception
     raise 'A forced exception for testing purposes.'
   end
@@ -17,19 +15,9 @@ class SystemStatusController < ApplicationController
     render status: 200, plain: 'Ping'
   end
 
-  # Provide a path for nagios or other system checker to determine if the system is
-  # operational
+  # minimal health check
   def operational
-    user_count = User.all.count
-    data_source_count = GrdaWarehouse::DataSource.count
-    patient_count = Health::Patient.count
-    if user_count.present? && data_source_count.present? && patient_count.present?
-      Rails.logger.info 'Operating system is operational'
-      render plain: 'OK'
-    else
-      Rails.logger.info 'Operating system is not operational'
-      render status: 500, plain: 'FAIL'
-    end
+    render plain: 'OK'
   end
 
   def cache_status

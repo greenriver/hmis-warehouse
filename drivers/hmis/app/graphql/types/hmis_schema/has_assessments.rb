@@ -15,6 +15,7 @@ module Types
         def assessments_field(name = :assessments, description = nil, filter_args: {}, **override_options, &block)
           default_field_options = { type: HmisSchema::Assessment.page_type, null: false, description: description }
           field_options = default_field_options.merge(override_options)
+
           field(name, **field_options) do
             argument :sort_order, Types::HmisSchema::AssessmentSortOption, required: false
             argument :in_progress, GraphQL::Types::Boolean, required: false

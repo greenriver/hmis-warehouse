@@ -29,7 +29,8 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
         question: 'Q5a',
         skip: [
           # pending airtable https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/reccL2M1CXze5MJHZ
-          # HHID h_863316 includes a child with a relationship other than 2, glossary indicates this should be limited to relationship 2
+          # Follow-up https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recCDGtYIVXlTmAvk
+          # Test kit is including a client (682943) with RelationToHoH = 4 in the parenting count
           'B14',
           'C14',
         ],
