@@ -1,46 +1,47 @@
 - data = @report.top_zip_codes_data
 - shape_data = @report.zip_code_shape_data
 - colors = @report.zip_code_colors
-:javascript
-  (function() {
-    var topZipData = #{data.to_json.html_safe}
-    console.log('topZipData', topZipData)
-    var shapeData = #{shape_data.to_json.html_safe}
-    console.log('shapeData', shapeData)
-    var colors = #{colors.to_json.html_safe}
+= content_for :page_js do
+  :javascript
+    (function() {
+      var topZipData = #{data.to_json.html_safe}
+      console.log('topZipData', topZipData)
+      var shapeData = #{shape_data.to_json.html_safe}
+      console.log('shapeData', shapeData)
+      var colors = #{colors.to_json.html_safe}
 
-    var topTenZipsMap = new L.Map('coo-map__top-ten-zips').setView([37.8, -96], 4)
+      var topTenZipsMap = new L.Map('coo-map__top-ten-zips').setView([37.8, -96], 4)
 
-    var geojson = L.geoJSON(
-      shapeData,
-      {
-        style: function(feature) {
-          var data = topZipData.find(function(d){
-            return d.zip_code === feature.properties.name
-          })
-          var color = colors.find(function (d, i) {
-            if(i === 0) {
-              return data.percent < d.range[0]
-            } else if(i === colors.length -1) {
-              return data.percent > d.range[0]
-            } else if(i === colors.length -2) {
-              return data.percent >= d.range[0] && data.percent <= d.range[1]
-            } else {
-              return data.percent >= d.range[0] && data.percent < d.range[1]
-            }
-          })
-          return {color: color.color, fillOpacity: 0.6}
+      var geojson = L.geoJSON(
+        shapeData,
+        {
+          style: function(feature) {
+            var data = topZipData.find(function(d){
+              return d.zip_code === feature.properties.name
+            })
+            var color = colors.find(function (d, i) {
+              if(i === 0) {
+                return data.percent < d.range[0]
+              } else if(i === colors.length -1) {
+                return data.percent > d.range[0]
+              } else if(i === colors.length -2) {
+                return data.percent >= d.range[0] && data.percent <= d.range[1]
+              } else {
+                return data.percent >= d.range[0] && data.percent < d.range[1]
+              }
+            })
+            return {color: color.color, fillOpacity: 0.6}
+          }
         }
-      }
-    ).addTo(topTenZipsMap)
-    topTenZipsMap.fitBounds(geojson.getBounds())
+      ).addTo(topTenZipsMap)
+      topTenZipsMap.fitBounds(geojson.getBounds())
 
-    var tiles = L.tileLayer(
-      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-      {
-        maxZoom: 19,
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-      }
-    ).addTo(topTenZipsMap);
+      var tiles = L.tileLayer(
+        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {
+          maxZoom: 19,
+          attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }
+      ).addTo(topTenZipsMap);
 
-  }).call(this);
+    }).call(this);

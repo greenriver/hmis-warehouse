@@ -26,7 +26,7 @@ module BostonReports::DocumentExports
     def perform
       with_status_progression do
         template_file = (BostonReports::CommunityOfOrigin.report_path_array + ['index_pdf']).join('/')
-        layout = 'layouts/performance_report'
+        layout = 'layouts/pdf_with_map'
 
         html = PdfGenerator.html(
           controller: controller_class,

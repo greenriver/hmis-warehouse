@@ -13,7 +13,8 @@ module BostonReports::WarehouseReports
     before_action :set_pdf_export
 
     def index
-      render layout: 'report_with_map'
+      # Enable to test PDF generation
+      # render 'index_pdf', layout: 'layouts/pdf_with_map'
     end
 
     private def set_report
