@@ -3,8 +3,12 @@ require_relative './e2e_tests'
 E2eTests::Setup.perform
 Capybara.default_driver = E2eTests::DRIVER_NAME
 
+# test helper methods
 module SystemSpecHelper
-  def sign_in(user, password: Digest::SHA256.hexdigest('abcd1234abcd1234'))
+  # from user factory
+  DEFAULT_USER_PASSWORD = Digest::SHA256.hexdigest('abcd1234abcd1234')
+
+  def sign_in(user, password: DEFAULT_USER_PASSWORD)
     visit('/')
     fill_in 'Email Address', with: user.email
     fill_in 'Password', with: password

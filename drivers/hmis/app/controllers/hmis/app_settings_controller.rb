@@ -10,7 +10,6 @@ class Hmis::AppSettingsController < Hmis::BaseController
 
   def show
     okta_enabled = ENV['HMIS_OKTA_CLIENT_ID'].present? && ENV['OKTA_DOMAIN'].present?
-    okta_enabled = false if Rails.env.test?
 
     logo = ENV['LOGO']
     if logo.present?
