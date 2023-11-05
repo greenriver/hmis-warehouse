@@ -8,19 +8,20 @@ module ClientLocationHistory::GrdaWarehouse
 end
 
 module ClientLocationHistory::GrdaWarehouse::Hud
-  module ClientExtension
+  module EnrollmentExtension
     extend ActiveSupport::Concern
 
     included do
-      has_many :client_location_histories, class_name: 'ClientLocationHistory::Location'
+      has_many :enrollment_location_histories, class_name: 'ClientLocationHistory::Location', as: :source
 
-      has_one :earliest_client_location_history, -> do
+      has_one :earliest_enrollment_location_history, -> do
         one_for_column(
           :located_on,
+          direction: :asc,
           source_arel_table: ClientLocationHistory::Location.arel_table,
-          group_on: :client_id,
+          group_on: :source_id,
         )
-      end, class_name: 'ClientLocationHistory::Location'
+      end, class_name: 'ClientLocationHistory::Location', as: :source
     end
   end
 end

@@ -1,0 +1,46 @@
+.card
+  .card-body
+    %h2.mb-4 Across the Country
+    .row
+      .col-8
+        #coo-map__across-the-country{style: 'height:350px;'}
+        .d-flex.justify-content-center.py-4
+          .d-flex.align-items-center.pr-4
+            .coo-map__atc__triangle
+            .pl-2 < 10%
+          .d-flex.align-items-center.pr-4
+            .coo-map__atc__square
+            .pl-2 10% - 60%
+          .d-flex.align-items-center.pr-4
+            .coo-map__atc__circle
+            .pl-2 > 60%
+        .text-center
+          %strong Percent of Clients
+      .col-4
+        %table.table
+          %thead
+            %tr
+              %th Location
+              %th.text-right Percent of Clients
+          %tbody
+            - @report.across_my_state_data.each do |d|
+              %tr
+                %td= d[:name]
+                %td.text-right
+                  %span{data: { toggle: :tooltip, title: "#{d[:count]} of #{d[:total]}" }}
+                    = d[:display_percent]
+            - my_state = @report.my_state_data
+            - if my_state.present?
+              %tr
+                %td= my_state[:name]
+                %td.text-right
+                  %span{data: { toggle: :tooltip, title: "#{my_state[:count]} of #{my_state[:total]}" }}
+                    = my_state[:display_percent]
+            - @report.across_the_country_data.reject { |d| d[:name] == my_state.try(:[], :name) }.each.with_index do |d, i|
+              - style = ''
+              - style = 'border-top: 1px solid black' if i.zero?
+              %tr
+                %td{style: style}= d[:name]
+                %td.text-right{style: style}
+                  %span{data: { toggle: :tooltip, title: "#{d[:count]} of #{d[:total]}" }}
+                    = d[:display_percent]
