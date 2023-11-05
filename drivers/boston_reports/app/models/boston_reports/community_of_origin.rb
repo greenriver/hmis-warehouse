@@ -213,6 +213,7 @@ module BostonReports
       GrdaWarehouse::Shape.geo_collection_hash(GrdaWarehouse::Shape::ZipCode.where(zcta5ce10: zips))
     end
 
+    # this is used to generate colors in JavaScript and should not be converted to ranges
     def zip_code_colors
       [
         { color: '#BF216B', range: [0.02] },
@@ -223,6 +224,7 @@ module BostonReports
       ]
     end
 
+    # Leaving this here until we are sure we are _not_ building a detail page
     def detail_headers
       # {
       #   'First Name' => ->(cc, download: false) {
