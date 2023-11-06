@@ -113,6 +113,8 @@ class CohortsController < ApplicationController
         @user = current_user
         not_authorized! unless can_download_cohorts?
 
+        # Limit is imposed above to prevent loading all clients, but for the download, we actually want them all
+        @cohort_clients = @cohort_clients.limit(nil)
         headers['Content-Disposition'] = "attachment; filename=#{@cohort.sanitized_name}.xlsx"
       end
     end
