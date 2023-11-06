@@ -63,7 +63,7 @@ cd /app
 # skip okta if it's set in our local env
 unset HMIS_OKTA_CLIENT_ID
 unset OKTA_DOMAIN
-SYSTEM_TEST=true RAILS_ENV=test CAPYBARA_APP_HOST="http://$HOSTNAME:5173" rspec drivers/hmis/spec/system/hmis/*
+RUN_SYSTEM_TESTS=true RAILS_ENV=test CAPYBARA_APP_HOST="http://$HOSTNAME:5173" rspec drivers/hmis/spec/system/hmis/*
 
 TEST_EXIT_CODE=$?
 

@@ -1,7 +1,8 @@
-require_relative './e2e_tests'
-
-E2eTests::Setup.perform
-Capybara.default_driver = E2eTests::DRIVER_NAME
+if ENV['RUN_SYSTEM_TESTS']
+  require_relative './e2e_tests'
+  E2eTests::Setup.perform
+  Capybara.default_driver = E2eTests::DRIVER_NAME
+end
 
 # test helper methods
 module SystemSpecHelper
@@ -27,6 +28,8 @@ module SystemSpecHelper
 end
 
 RSpec.configure do |config|
+  next unless ENV['RUN_SYSTEM_TESTS']
+
   config.include E2eTests::Helpers, type: :system
   config.include SystemSpecHelper, type: :system
 
