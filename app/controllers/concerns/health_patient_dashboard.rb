@@ -49,14 +49,12 @@ module HealthPatientDashboard
     end
 
     # @param patients Initial patients scope
-    # @param search_string|nil Search string
     # @param Hash<String>|nil Filters
     # @return patient_scope, search_scope, active_filter
-    def apply_filter(patients, search_string, filter)
-      search = search_setup(scope: :full_text_search)
-      patients = search.distinct if search_string.present?
+    def apply_filter(patients, filter)
+      search = search_setup(search: patients, scope: :full_text_search)
+      patients = search.distinct if @search_string.present?
       active_filter = false
-
       return search, patients, active_filter unless filter.present?
 
       # Status Filter

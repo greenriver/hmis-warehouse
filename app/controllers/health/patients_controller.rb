@@ -18,7 +18,7 @@ module Health
     include Search
 
     def index
-      @search, @patients, @active_filter = apply_filter(@patients, @search_string, params[:filter])
+      @search, @patients, @active_filter = apply_filter(@patients, params[:filter])
 
       @column = params[:sort] || 'name'
       @direction = params[:direction]&.to_sym || :asc
@@ -35,10 +35,6 @@ module Health
       end
       @pagy, @patients = pagy(@patients)
       @scores = calculate_dashboards(medicaid_ids)
-    end
-
-    private def search_scope
-      patient_scope
     end
 
     def load_active_agency
