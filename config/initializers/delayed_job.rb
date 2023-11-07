@@ -64,6 +64,17 @@ module Delayed
           end
           scope.exists?
         end
+
+        def self.running?(handlers)
+          return false if handlers.blank?
+
+          handlers = Array.wrap(handlers)
+          scope = where(failed_at: nil).where.not(locked_at: nil)
+          handlers.each do |handler|
+            scope = scope.jobs_for_class(handler)
+          end
+          scope.exists?
+        end
       end
     end
   end

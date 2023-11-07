@@ -873,6 +873,13 @@ module GrdaWarehouse::WarehouseReports
           limitable: false,
           health: false,
         }
+        r_list['Performance'] << {
+          url: 'boston_reports/warehouse_reports/community_of_origins',
+          name: Translation.translate('Community of Origin'),
+          description: 'Summary information and maps covering client communities of origin.',
+          limitable: true,
+          health: false,
+        }
       end
       if RailsDrivers.loaded.include?(:project_scorecard)
         r_list['Performance'] << {
@@ -1379,6 +1386,7 @@ module GrdaWarehouse::WarehouseReports
       unless RailsDrivers.loaded.include?(:boston_reports)
         cleanup << 'boston_reports/warehouse_reports/street_to_homes'
         cleanup << 'boston_reports/warehouse_reports/configs'
+        cleanup << 'boston_reports/warehouse_reports/community_of_origins'
       end
 
       unless RailsDrivers.loaded.include?(:claims_reporting)

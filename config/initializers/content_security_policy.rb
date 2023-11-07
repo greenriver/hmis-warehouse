@@ -7,10 +7,12 @@
 Rails.application.config.content_security_policy do |policy|
   policy.default_src :self
   policy.font_src    :self, :data, 'https://fonts.gstatic.com'
-  policy.img_src     :self, :data
+  policy.img_src     :self, :data, 'https://tile.openstreetmap.org'
   policy.object_src  :none
   policy.script_src  :self, 'https://cdnjs.cloudflare.com/ajax/libs/chance/1.0.4/chance.min.js', :unsafe_inline, :unsafe_eval
   policy.style_src   :self, 'https://fonts.googleapis.com', :unsafe_inline
+  policy.report_uri '/csp-violation-report-endpoint' # Placeholder so report only policy will work
+
   # If you are using webpack-dev-server then specify webpack-dev-server host
   # policy.connect_src :self, :https, "http://localhost:3035", "ws://localhost:3035" if Rails.env.development?
 
