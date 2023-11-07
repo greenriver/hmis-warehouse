@@ -136,6 +136,7 @@ module Health
 
     def with_initial_intake
       @with_initial_intake ||= Health::Patient.
+        preload(recent_pctp_careplan: :instrument).
         where(id: patient_ids).
         has_intake.
         map { |patient| [patient.id, patient.recent_pctp_careplan.instrument.careplan_sent_on] }.to_h
