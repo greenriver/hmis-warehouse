@@ -25,6 +25,13 @@ module SystemSpecHelper
   def set_hidden_field_value(id, value)
     find_field(id, type: :hidden).set(value)
   end
+
+  def mui_select(choice, from:)
+    label = find('label', text: from)
+    id = label['for']
+    find("##{id}").click
+    find('li[role=option]', text: choice).click
+  end
 end
 
 RSpec.configure do |config|

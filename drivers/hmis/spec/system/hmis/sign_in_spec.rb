@@ -15,8 +15,7 @@ RSpec.feature 'HMIS Sign In', type: :system do
   end
 
   context 'When signed in' do
-    let(:user) { create(:user) }
-    before(:each) { sign_in(user) }
+    before(:each) { sign_in(hmis_user) }
 
     it 'Loads client search' do
       expect(page).to have_content 'Clients'

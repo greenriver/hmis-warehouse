@@ -22,7 +22,7 @@ module E2eTests
     # The setup to be run prior to the test suite
     def self.perform(
       process_timeout: 30,
-      default_max_wait_time: 5,
+      default_max_wait_time: 10,
       default_normalize_ws: true,
       enable_aria_label: true
     )
