@@ -15,7 +15,7 @@ module Health
     include Search
 
     def index
-      @search, @patients, @active_filter = apply_filter(@patients, @search_string, params[:filter])
+      @search, @patients, @active_filter = apply_filter(@patients, params[:filter])
 
       @column = params[:sort] || 'name'
       @direction = params[:direction]&.to_sym || :asc
@@ -40,10 +40,6 @@ module Health
           render(xlsx: 'index', filename: "Tracking Sheet #{date}.xlsx")
         end
       end
-    end
-
-    private def search_scope
-      patient_scope
     end
 
     def patient_scope
