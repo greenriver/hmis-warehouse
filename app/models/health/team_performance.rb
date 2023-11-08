@@ -139,6 +139,7 @@ module Health
         preload(recent_pctp_careplan: :instrument).
         where(id: patient_ids).
         has_intake.
+        reject { |patient| patient.recent_pctp_careplan.nil? }.
         map { |patient| [patient.id, patient.recent_pctp_careplan.instrument.careplan_sent_on] }.to_h
     end
 
