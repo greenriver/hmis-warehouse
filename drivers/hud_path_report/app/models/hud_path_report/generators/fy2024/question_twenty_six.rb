@@ -141,17 +141,6 @@ module HudPathReport::Generators::Fy2024
       end.merge('Total' => :total)
     end
 
-    private def ethnicities
-      {
-        'Non-Hispanic/Non-Latin(a)(o)(x)' => a_t[:ethnicity].eq(0),
-        'Hispanic/Latin(a)(o)(x)' => a_t[:ethnicity].eq(1),
-        'Client Doesn\'t Know' => a_t[:ethnicity].eq(8),
-        'Client prefers not to answer' => a_t[:ethnicity].eq(9),
-        'Data Not Collected' => a_t[:ethnicity].eq(99).or(a_t[:ethnicity].eq(nil)),
-        'Total' => :total,
-      }.freeze
-    end
-
     private def veteran_statuses
       {
         'Veteran' => adults.and(a_t[:veteran].eq(1)),
