@@ -75,6 +75,10 @@ class Hmis::BaseController < ActionController::Base
   end
 
   def not_authorized!
+    raise HmisErrors::NotAuthorizedError
+  end
+
+  rescue_from 'HmisErrors::NotAuthorizedError' do |_exception|
     head :unauthorized
   end
 end
