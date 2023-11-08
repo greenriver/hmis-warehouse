@@ -34,7 +34,7 @@ module AllNeighborsSystemDashboard
           id: 'no_return',
           icon: 'icon-clip-board-check',
           value: returned_percent,
-          name: 'Returned to homelessness after 12 months',
+          name: 'Returned to Homelessness Within 12 Months',
         },
       ]
     end
