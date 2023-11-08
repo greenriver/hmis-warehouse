@@ -426,7 +426,7 @@ module PerformanceMeasurement
           data: ->(_filter) {
             {}.tap do |days_by_client_id|
               scope = report_scope.joins(:service_history_services, :project, :client).
-                in_project_type([1, 2, 4, 8]).
+                in_project_type([0, 1, 2, 4, 8]).
                 distinct
               dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
               scope.group(:client_id, p_t[:id]).
@@ -451,7 +451,7 @@ module PerformanceMeasurement
           data: ->(_filter) {
             {}.tap do |days_by_client_id|
               scope = report_scope.joins(:service_history_services, :project, :client).
-                in_project_type([1, 2, 4, 8]).
+                in_project_type([0, 1, 2, 4, 8]).
                 distinct
               dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
               scope.group(:client_id, p_t[:id]).
@@ -477,7 +477,7 @@ module PerformanceMeasurement
             {}.tap do |days_by_client_id|
               scope = report_scope.joins(:service_history_services, :project, :client).
                 merge(GrdaWarehouse::ServiceHistoryService.where(date: filter.range)).
-                in_project_type([1, 2, 4, 8]).
+                in_project_type([0, 1, 2, 4, 8]).
                 distinct
               dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
               scope.group(:client_id, p_t[:id]).
@@ -503,7 +503,7 @@ module PerformanceMeasurement
             {}.tap do |days_by_client_id|
               scope = report_scope.joins(:service_history_services, :project, :client).
                 merge(GrdaWarehouse::ServiceHistoryService.where(date: filter.range)).
-                in_project_type([1, 2, 4, 8]).
+                in_project_type([0, 1, 2, 4, 8]).
                 distinct
               dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
               scope.group(:client_id, p_t[:id]).
