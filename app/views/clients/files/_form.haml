@@ -66,13 +66,15 @@
             = f.input :consent_form_confirmed, as: :boolean
 
     - if can_see_confidential_files?
-      %h3 Confidentiality
-      .well
-        .row
-          .col
-            = f.input :confidential, as: :boolean, label: 'Confidential File', hint: 'Access will be restricted through associated enrollment'
-          .col
-            = f.input :enrollment_id, as: :select_two, label: 'Associated Enrollment', collection: @file.enrollments_for_confidential_files(current_user, @client), label_method: :first, value_method: :last, hint: 'Required if confidential'
+      - enrollments = @file.enrollments_for_confidential_files(current_user, @client)
+      - if enrollments.present?
+        %h3 Confidentiality
+        .well
+          .row
+            .col
+              = f.input :confidential, as: :boolean, label: 'Confidential File', hint: 'Access will be restricted through associated enrollment'
+            .col
+              = f.input :enrollment_id, as: :select_two, label: 'Associated Enrollment', collection: enrollments, label_method: :first, value_method: :last, hint: 'Required if confidential'
     %h3 Content
     .well
       .row
