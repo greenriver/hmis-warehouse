@@ -9,6 +9,8 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :lgbtq_from_hmis
     attribute :translation_key, String, lazy: true, default: 'Sexual Orientation (from HMIS)'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
+    attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }
+    attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def available_for_rules?
       false
