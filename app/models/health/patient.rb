@@ -407,8 +407,8 @@ module Health
     end
 
     scope :intake_required, -> do
-      where.not(id: Health::PctpCareplan.sent.pluck(:patient_id)).
-        or(where(id: where.missing(:pctp_careplans).pluck(:id)))
+      where.not(id: Health::PctpCareplan.sent.select(:patient_id)).
+        or(where(id: where.missing(:pctp_careplans).select(:id)))
     end
 
     scope :needs_renewal, ->(on: Date.current.end_of_month) do
