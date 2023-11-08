@@ -382,21 +382,28 @@ module Health
 
     scope :needs_qa, ->(on: Date.current) do
       without_intake_query = intake_required.
-        where(id: Health::QualifyingActivity.
+        where.not(id: Health::QualifyingActivity.
           payable.
           not_valid_unpayable.
           in_range(on - 30.days .. on).
-          select(:patient_id))
-      with_intake_query = where(id: Health::QualifyingActivity.
-        payable.
-        not_valid_unpayable.
-        in_range(on - 60.days .. on).
-        select(:patient_id))
-      where.not(id: without_intake_query).and(where.not(id: with_intake_query))
+          select(:patient_id)).
+        select(:id)
+      with_intake_query = has_intake.
+        where.not(id: Health::QualifyingActivity.
+          payable.
+          not_valid_unpayable.
+          in_range(on - 60.days .. on).
+          select(:patient_id)).
+        select(:id)
+      where(id: without_intake_query).or(where(id: with_intake_query))
     end
 
     scope :needs_intake, ->(on: Date.current) do
       intake_required.where(engagement_date: on - 30.days ..)
+    end
+
+    scope :has_intake, -> do
+      where(id: Health::PctpCareplan.sent.select(:patient_id))
     end
 
     scope :intake_required, -> do

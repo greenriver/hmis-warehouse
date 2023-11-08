@@ -43,7 +43,7 @@ module Health
         patient_source.where(id: @report.total_counts.patient_referrals)
       end
 
-      @search, @patients, @active_filter = apply_filter(@patients, @search_string, params[:filter])
+      @search, @patients, @active_filter = apply_filter(@patients, params[:filter])
 
       @column = params[:sort] || 'name'
       @direction = params[:direction]&.to_sym || :asc
@@ -68,10 +68,6 @@ module Health
           render(xlsx: 'index', filename: "Tracking Sheet #{date}.xlsx")
         end
       end
-    end
-
-    private def search_scope
-      Health::Patient
     end
 
     def detail
