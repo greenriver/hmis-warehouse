@@ -21,7 +21,13 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   has_many :names, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client, dependent: :destroy
-  has_many :addresses, **hmis_relation(:PersonalID, 'CustomClientAddress'), inverse_of: :client, dependent: :destroy
+  has_many(
+    :addresses,
+    # Exclude enrollment addresses from client record (per spec). This prevents client addresses from
+    # clobbering enrollment.addresses when saved via accepts_nested_attributes_for
+    -> { where(EnrollmentID: nil) },
+    **hmis_relation(:PersonalID, 'CustomClientAddress'), inverse_of: :client, dependent: :destroy,
+  )
   has_many :contact_points, **hmis_relation(:PersonalID, 'CustomClientContactPoint'), inverse_of: :client, dependent: :destroy
   has_many :custom_case_notes, **hmis_relation(:PersonalID, 'CustomCaseNote'), inverse_of: :client, dependent: :destroy
   has_one :primary_name, -> { where(primary: true) }, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client
@@ -147,6 +153,20 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     raise 'orgs are in multiple data sources' if ds_ids.size > 1
 
     joins(:projects_including_wip).where(p_t[:organization_id].in(hud_org_ids).and(p_t[:data_source_id].eq(ds_ids.first)))
+  end
+
+  def build_primary_custom_client_name
+    return unless names.empty?
+
+    names.new(
+      primary: true,
+      first: first_name,
+      last: last_name,
+      middle: middle_name,
+      suffix: name_suffix,
+      user_id: user_id || Hmis::Hud::User.system_user(data_source_id: data_source_id).user_id,
+      **slice(:name_data_quality, :data_source_id, :date_created, :date_updated),
+    )
   end
 
   def enrolled?
@@ -296,6 +316,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # Mirrors `clientBriefName` in frontend
   def brief_name
     [first_name, last_name].compact.join(' ')
+  end
+
+  def full_name
+    [first_name, middle_name, last_name, name_suffix].compact.join(' ')
   end
 
   # Run if we changed name/DOB/SSN

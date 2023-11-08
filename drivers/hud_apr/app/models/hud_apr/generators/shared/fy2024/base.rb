@@ -526,6 +526,7 @@ module HudApr::Generators::Shared::Fy2024
           :health_and_dvs,
           :exit,
           :assessments,
+          :youth_education_statuses,
           client: [
             assessments: [
               enrollment: :project,
@@ -535,6 +536,7 @@ module HudApr::Generators::Shared::Fy2024
             ],
           ],
         ],
+        client: [:source_events],
       }
       enrollment_scope_without_preloads.preload(preloads)
     end

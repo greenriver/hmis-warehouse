@@ -13,10 +13,10 @@ class Hmis::DataSourceAccessLoader < Hmis::BaseAccessLoader
     validate_items(items, GrdaWarehouse::DataSource)
     entity_ids = items.map { |i| i.first.id }.compact.uniq
 
-    access_group_ids_by_client_id = Hmis::GroupViewableEntity.data_sources
-      .where(entity_id: entity_ids)
-      .pluck('group_viewable_entities.entity_id', 'group_viewable_entities.access_group_id')
-      .group_by(&:shift).transform_values(&:flatten)
+    access_group_ids_by_client_id = Hmis::GroupViewableEntity.data_sources.
+      where(entity_id: entity_ids).
+      pluck(:entity_id, :collection_id).
+      group_by(&:shift).transform_values(&:flatten)
 
     items.map do |entity, permission|
       access_group_ids = access_group_ids_by_client_id[entity.id] || []

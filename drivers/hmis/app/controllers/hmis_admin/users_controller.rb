@@ -28,7 +28,7 @@ class HmisAdmin::UsersController < ApplicationController
   end
 
   private def user_scope
-    Hmis::User
+    Hmis::User.active.not_system
   end
 
   private def copy_user_groups

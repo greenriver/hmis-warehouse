@@ -84,6 +84,7 @@ module Types
     custom_case_notes_field
     files_field
     custom_data_elements_field
+    field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false
     audit_history_field(
       field_permissions: {
         'SSN' => :can_view_full_ssn,
@@ -150,7 +151,13 @@ module Types
     end
 
     def enrollments(**args)
-      resolve_enrollments(**args)
+      # If current user has "detailed" access to any enrollment for this client, then we also resolve
+      # "limited access" enrollments (if permitted). The purpose is to show additional enrollment history
+      # for "my" clients, but not for other clients in the system that I can see.
+      # This would need to change if we wanted to support the ability to see limited enrollment details for all clients.
+      has_some_detailed_access = current_permission?(permission: :can_view_enrollment_details, entity: object)
+      scope = object.enrollments.viewable_by(current_user, include_limited_access_enrollments: has_some_detailed_access)
+      resolve_enrollments(scope, **args, dangerous_skip_permission_check: true)
     end
 
     def income_benefits(**args)
@@ -219,22 +226,10 @@ module Types
 
     def names
       names = load_ar_association(object, :names)
-      if names.empty?
-        # If client has no CustomClientNames, construct one based on the HUD Client name fields
-        return [
-          object.names.new(
-            id: '0',
-            first: object.first_name,
-            last: object.last_name,
-            middle: object.middle_name,
-            suffix: object.name_suffix,
-            primary: true,
-            **object.slice(:name_data_quality, :user_id, :data_source_id, :date_created, :date_updated),
-          ),
-        ]
-      end
+      return names unless names.empty?
 
-      names
+      # If client has no CustomClientNames, construct one based on the HUD Client name fields
+      [object.build_primary_custom_client_name]
     end
 
     def contact_points
@@ -276,6 +271,12 @@ module Types
         where.not(object_changes: nil, event: 'update').
         unscope(:order).
         order(created_at: :desc)
+    end
+
+    def merge_audit_history
+      return unless current_user.can_merge_clients?
+
+      object.merge_audits.order(merged_at: :desc)
     end
   end
 end

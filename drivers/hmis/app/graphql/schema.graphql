@@ -614,6 +614,7 @@ type Client {
   koreanWar: NoYesReasonsForMissingData
   lastName: String
   lockVersion: Int!
+  mergeAuditHistory(limit: Int, offset: Int): MergeAuditEventsPaginated!
   middleName: String
   militaryBranch: MilitaryBranch
   nameDataQuality: NameDataQuality!
@@ -2813,9 +2814,11 @@ type Enrollment {
   losUnderThreshold: NoYesMissing
   mentalHealthDisorderFam: NoYesMissing
   monthsHomelessPastThreeYears: MonthsHomelessPastThreeYears
+  moveInAddresses: [ClientAddress!]!
   moveInDate: ISO8601Date
   numUnitsAssignedToHousehold: Int!
   openEnrollmentSummary: [EnrollmentSummary!]!
+  organizationName: String!
   percentAmi: PercentAMI
   physicalDisabilityFam: NoYesMissing
   preferredLanguage: PreferredLanguage
@@ -2823,6 +2826,8 @@ type Enrollment {
   previousStreetEssh: NoYesMissing
   prisonDischarge: NoYesMissing
   project: Project!
+  projectName: String!
+  projectType: ProjectType
   reasonNoServices: ReasonNoServices
   reasonNotEnrolled: ReasonNotEnrolled
   referralSource: ReferralSource
@@ -2852,6 +2857,7 @@ type EnrollmentAccess {
   canDeleteEnrollments: Boolean!
   canEditEnrollments: Boolean!
   canSplitHouseholds: Boolean!
+  canViewEnrollmentDetails: Boolean!
   id: ID!
 }
 
@@ -4765,6 +4771,25 @@ type MciClearanceMatch {
   nameSuffix: String
   score: Int!
   ssn: String
+}
+
+type MergeAuditEvent {
+  client: Client
+  clientIdsMerged: [ID!]!
+  id: ID!
+  mergedAt: ISO8601DateTime!
+  preMergeState: JsonObject!
+  user: User
+}
+
+type MergeAuditEventsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [MergeAuditEvent!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """
@@ -7781,6 +7806,7 @@ type Query {
   Inventory lookup
   """
   inventory(id: ID!): Inventory
+  mergeAuditHistory(limit: Int, offset: Int): MergeAuditEventsPaginated!
   mergeCandidates(limit: Int, offset: Int): ClientMergeCandidatesPaginated!
 
   """
@@ -7847,6 +7873,7 @@ type QueryAccess {
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
   canViewHudChronicStatus: Boolean!
+  canViewLimitedEnrollmentDetails: Boolean!
   canViewOpenEnrollmentSummary: Boolean!
   canViewPartialSsn: Boolean!
   canViewProject: Boolean!

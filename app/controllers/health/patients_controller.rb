@@ -18,41 +18,7 @@ module Health
     include Search
 
     def index
-      @search = search_setup(scope: :full_text_search)
-      @patients = @search.distinct if @search_string.present?
-      if params[:filter].present?
-        @active_filter = true if params[:filter][:population] != 'all'
-        case params[:filter][:population]
-        when 'not_engaged'
-          @patients = @patients.not_engaged
-        when 'no_activities'
-          @patients = @patients.engaged.no_qualifying_activities_this_month
-        when 'engagement_ending'
-          @patients = @patients.engagement_ending
-        end
-
-        if params[:filter][:user].present?
-          @active_filter = true
-          user_id = if params[:filter][:user] == 'unassigned'
-            nil
-          else
-            params[:filter][:user].to_i
-          end
-
-          @patients = @patients.where(care_coordinator_id: user_id)
-        end
-
-        if params[:filter][:nurse_care_manager_id].present?
-          @active_filter = true
-          nurse_care_manager_id = if params[:filter][:nurse_care_manager_id] == 'unassigned'
-            nil
-          else
-            params[:filter][:nurse_care_manager_id].to_i
-          end
-
-          @patients = @patients.where(nurse_care_manager_id: nurse_care_manager_id)
-        end
-      end
+      @search, @patients, @active_filter = apply_filter(@patients, params[:filter])
 
       @column = params[:sort] || 'name'
       @direction = params[:direction]&.to_sym || :asc
@@ -69,10 +35,6 @@ module Health
       end
       @pagy, @patients = pagy(@patients)
       @scores = calculate_dashboards(medicaid_ids)
-    end
-
-    private def search_scope
-      patient_scope
     end
 
     def load_active_agency
