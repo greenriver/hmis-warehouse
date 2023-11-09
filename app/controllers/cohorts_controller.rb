@@ -74,8 +74,11 @@ class CohortsController < ApplicationController
         @visible_columns << delete_column if can_add_cohort_clients? && ! @cohort.system_cohort && ! @cohort.auto_maintained?
         @column_headers = @visible_columns.each_with_index.map do |col, index|
           col.cohort = @cohort # Needed for display_as_editable?
+          description = if col.show_description? then col.description else '' end
           header = {
             headerName: col.title,
+            headerTooltip: description,
+            tooltipShowDelay: 250,
             field: col.column,
             editable: col.column_editable? && col.display_as_editable?(current_user, nil),
           }
