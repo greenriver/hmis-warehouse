@@ -346,7 +346,7 @@ module GrdaWarehouse::Hud
       when :active_clients
         range = GrdaWarehouse::Config.cas_sync_range
         # Homeless or Coordinated Entry
-        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.in_project_type([1, 2, 4, 8, 14]).
+        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.in_project_type([0, 1, 2, 4, 8, 14]).
           with_service_between(start_date: range.first, end_date: range.last)
         where(id: enrollment_scope.select(:client_id))
       when :project_group
