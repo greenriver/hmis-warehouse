@@ -9,7 +9,7 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :rrh_desired
     attribute :translation_key, String, lazy: true, default: 'Interested in RRH'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
-    attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" } # NO TRANSLATION KEY
+    attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }
     attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def cast_value(val)
