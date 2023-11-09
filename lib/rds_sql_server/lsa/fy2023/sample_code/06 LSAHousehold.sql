@@ -589,8 +589,8 @@ FY2023 Changes
 				then 5
 			when hh.StatEnrollmentID is null then 1
 			when dateadd(dd, 15, prior.ExitDate) > hh.FirstEntry then 5 
-			when prior.ExitDest between 1 and 6 then 2
-			when prior.ExitDest between 7 and 14 then 3
+			when prior.ExitDest between 400 and 499 then 2
+			when prior.ExitDest between 100 and 399 then 3
 			else 4 end  
 		--Note:  ReturnTime is set to the actual number of days here and grouped into LSA categories
 		--       in 6.19 like other counts of days
