@@ -32,7 +32,7 @@ module Talentlms
     # @return [String] URL to redirect the user to to login
     def create_account(user)
       login = "#{ENV['RAILS_ENV']}_#{user.id + Integer(ENV.fetch('DEV_OFFSET', 0))}"
-      password = random_password(16)
+      password = random_password
       server_domain = ENV['FQDN']
       account = {
         first_name: user.first_name,
@@ -106,17 +106,13 @@ module Talentlms
     def random_password(length = 16)
       raise ArgumentError 'Length must be at least 8' if length < 8
 
-      p = SecureRandom.urlsafe_base64(length)
-      loop do
-        break if p =~ /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])/
+      p = SecureRandom.urlsafe_base64(length - 4)
+      lower_letter = ('a'..'z').to_a.sample
+      upper_letter = ('A'..'Z').to_a.sample
+      number = ('0'..'9').to_a.sample
+      special = (('#'..'&').to_a + (':'..'?').to_a).sample
 
-        char_replace = (0...length).to_a.shuffle.take(4)
-        p[char_replace[0]] = ('a'..'z').to_a.sample unless p =~ /(?=.*[a-z])/
-        p[char_replace[1]] = ('A'..'Z').to_a.sample unless p =~ /(?=.*[A-Z])/
-        p[char_replace[2]] = ('0'..'9').to_a.sample unless p =~ /(?=.*[0-9])/
-        p[char_replace[3]] = (('#'..'&').to_a + (':'..'?').to_a).sample unless p =~ /(?=.*[^A-Za-z0-9])/
-      end
-      return p
+      "#{p}#{lower_letter}#{upper_letter}#{number}#{special}".chars.shuffle.join
     end
   end
 end
