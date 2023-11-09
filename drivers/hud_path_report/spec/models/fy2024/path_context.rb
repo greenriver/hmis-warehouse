@@ -32,9 +32,7 @@ RSpec.shared_context 'path context FY2024', shared_context: :metadata do
   end
 
   def default_setup_path
-    # re-use 2021 fixtures for now
-    # 'drivers/hud_path_report/spec/fixtures/files/fy2024/default'
-    'drivers/hud_path_report/spec/fixtures/files/fy2021/default'
+    'drivers/hud_path_report/spec/fixtures/files/fy2024/default'
   end
 
   def report_result
