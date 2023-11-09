@@ -9,9 +9,7 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :sleeping_location
     attribute :translation_key, String, lazy: true, default: 'Sleeping Location'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
-
-    def description
-      'Manually entered'
-    end
+    attribute :description_translation_key, String, lazy: true, default: 'Manually entered'
+    attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
   end
 end

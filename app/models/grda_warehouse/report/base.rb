@@ -60,7 +60,11 @@ module GrdaWarehouse::Report
         DROP TABLE IF EXISTS recent_service_history;
       SQL
       connection.execute(sql)
-      connection.execute('create unique index id_rsh_index on recent_service_history (id)')
+      begin
+        connection.execute('create unique index id_rsh_index on recent_service_history (id)')
+      rescue ActiveRecord::RecordNotUnique => e
+        Rails.logger.error(e.message)
+      end
       [
         :date,
         :client_id,

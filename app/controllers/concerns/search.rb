@@ -8,9 +8,9 @@ module Search
   extend ActiveSupport::Concern
 
   included do
-    private def search_setup(columns: [], scope: nil)
+    private def search_setup(columns: [], search: nil, scope: nil)
       columns = Array.wrap(columns)
-      search = search_scope
+      search ||= search_scope
       return search unless search_params[:q].present?
 
       @search_string = search_params[:q].strip
@@ -20,9 +20,9 @@ module Search
       return search if columns.blank?
 
       # Otherwise search the columns provided for a match
-      query = search_scope.klass.arel_table[columns.first].matches("%#{@search_string}%")
+      query = search.klass.arel_table[columns.first].matches("%#{@search_string}%")
       columns.drop(1).each do |column|
-        query = query.or(search_scope.klass.arel_table[column].matches("%#{@search_string}%"))
+        query = query.or(search.klass.arel_table[column].matches("%#{@search_string}%"))
       end
       search.where(query)
     end

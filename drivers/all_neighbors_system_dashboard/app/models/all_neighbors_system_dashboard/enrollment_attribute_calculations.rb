@@ -227,6 +227,7 @@ module AllNeighborsSystemDashboard
 
         # Find the any enrollments entered by the clients within the reporting period and the year after so we can find anyone who returned with a year of exiting
         enrollments_by_client = GrdaWarehouse::ServiceHistoryEnrollment.
+          homeless.
           entry.
           where(client_id: exited_enrollments.values.map(&:client_id), entry_date: (filter.start_date .. filter.end_date + 1.years)).
           group_by(&:client_id)

@@ -26,6 +26,7 @@ class PdfGenerator
       request_timeout: 600_000, # Stop after 10 minutes
       format: 'Letter',
       emulate_media: 'print',
+      wait_until: 'load',
       margin: {
         top: '.5in',
         bottom: '.5in',
