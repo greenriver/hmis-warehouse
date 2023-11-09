@@ -10,6 +10,8 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :agency
     attribute :translation_key, String, lazy: true, default: 'Agency'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
+    attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }
+    attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def available_options
       Rails.cache.fetch('all_project_names', expires_in: 5.minutes) do

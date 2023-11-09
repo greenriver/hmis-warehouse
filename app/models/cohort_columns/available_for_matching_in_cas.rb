@@ -9,6 +9,8 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :available_for_matching_in_cas
     attribute :translation_key, String, lazy: true, default: 'Available in CAS'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
+    attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }
+    attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def available_for_rules?
       false

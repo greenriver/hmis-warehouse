@@ -9,5 +9,7 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :minimum_bedroom_size
     attribute :translation_key, String, lazy: true, default: 'Minimum Bedroom Size'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
+    attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }
+    attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
   end
 end

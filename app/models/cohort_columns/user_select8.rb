@@ -9,5 +9,7 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :user_select_8
     attribute :translation_key, String, lazy: true, default: 'User Select 8'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
+    attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }
+    attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
   end
 end
