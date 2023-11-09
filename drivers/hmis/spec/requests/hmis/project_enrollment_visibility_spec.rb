@@ -68,7 +68,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'includes only services & enrollments at this project' do
       response, result = post_graphql(id: p1.id) { query }
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result.inspect
 
         p1.hmis_services.pluck(:id).map(&:to_s).tap do |expected|
           expect(expected.size).to eq 1
@@ -88,6 +88,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           expect(households.map { |r| r.fetch('id') }).to eq expected
         end
       end
+    end
+
+    it 'returns null if user lacks can_view_project permission' do
+      remove_permissions(access_control, :can_view_project)
+      response, result = post_graphql(id: p1.id) { query }
+      expect(response.status).to eq(200), result.inspect
+      project = result.dig('data', 'project')
+      expect(project).to be_nil
+    end
+
+    it 'fails if user lacks can_view_enrollment_details permission' do
+      remove_permissions(access_control, :can_view_enrollment_details)
+      # ensure setup. even if they have limited access to enrollments, this query should fail
+      expect(hmis_user.can_view_enrollment_details_for?(p1)).to eq(false)
+      expect(hmis_user.can_view_limited_enrollment_details_for?(p1)).to eq(true)
+
+      expect_gql_error post_graphql(id: p1.id) { query }, message: 'access denied'
     end
   end
 end

@@ -9,6 +9,7 @@ module ClientLocationHistory
     include Rails.application.routes.url_helpers
     belongs_to :source, polymorphic: true, optional: true
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
+    belongs_to :place, class_name: 'GrdaWarehouse::Place', primary_key: [:lat, :lon], foreign_key: [:lat, :lon], optional: true
 
     def as_point
       [lat, lon]

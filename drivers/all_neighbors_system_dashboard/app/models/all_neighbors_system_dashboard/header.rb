@@ -33,8 +33,8 @@ module AllNeighborsSystemDashboard
         {
           id: 'no_return',
           icon: 'icon-clip-board-check',
-          value: no_return_percent,
-          name: 'Did not return to homelessness after 12 months',
+          value: returned_percent,
+          name: 'Returned to Homelessness Within 12 Months',
         },
       ]
     end
@@ -59,7 +59,7 @@ module AllNeighborsSystemDashboard
       )
     end
 
-    def no_return_percent
+    def returned_percent
       return 0 if housed_count.zero?
 
       percent = ((report_enrollments_enrollment_scope.returned.distinct.select(:destination_client_id).count / housed_count.to_f) * 100).round

@@ -13,11 +13,11 @@ class Hmis::Hud::ProjectAccessLoader < Hmis::BaseAccessLoader
     validate_items(items, Hmis::Hud::Project)
     project_ids = items.map { |i| i.first.id }.uniq
 
-    access_group_ids_by_project_id = Hmis::Hud::Project
-      .joins(:group_viewable_entities)
-      .where(id: project_ids)
-      .pluck(arel.p_t[:id], 'group_viewable_entities.access_group_id')
-      .group_by(&:shift).transform_values(&:flatten)
+    access_group_ids_by_project_id = Hmis::Hud::Project.
+      joins(:group_viewable_entities).
+      where(id: project_ids).
+      pluck(arel.p_t[:id], 'hmis_group_viewable_entities.collection_id').
+      group_by(&:shift).transform_values(&:flatten)
 
     items.map do |item|
       project, permission = item
