@@ -6,7 +6,6 @@
 
 module Talentlms
   class Facade
-
     def initialize
       @api = Config.first
     end
@@ -20,7 +19,7 @@ module Talentlms
       if login.nil?
         result = create_account(user)
       else
-        result = @api.post('userlogin', {login: login.login, password: login.password})
+        result = @api.post('userlogin', { login: login.login, password: login.password })
       end
       result['login_key']
     end
@@ -33,7 +32,7 @@ module Talentlms
     # @return [String] URL to redirect the user to to login
     def create_account(user)
       login = "#{ENV['RAILS_ENV']}_#{user.id + Integer(ENV.fetch('DEV_OFFSET', 0))}"
-      password = SecureRandom.hex(8)
+      password = random_password(16)
       server_domain = ENV['FQDN']
       account = {
         first_name: user.first_name,
@@ -57,7 +56,7 @@ module Talentlms
       login = Login.find_by(user: user)
       return false if login.nil?
 
-      @api.post('addusertocourse', {course_id: course_id, user_id: login.lms_user_id})
+      @api.post('addusertocourse', { course_id: course_id, user_id: login.lms_user_id })
     rescue RuntimeError => e
       raise e unless e.message.include?('already enrolled')
     end
@@ -71,7 +70,7 @@ module Talentlms
       login = Login.find_by(user: user)
       return false if login.nil?
 
-      result = @api.get('getuserstatusincourse', {course_id: course_id, user_id: login.lms_user_id})
+      result = @api.get('getuserstatusincourse', { course_id: course_id, user_id: login.lms_user_id })
       result['completed_on'] if result['completion_status'] == 'Completed'
     end
 
@@ -89,14 +88,35 @@ module Talentlms
       encoded_redirect_url = Base64.strict_encode64(redirect_url)
       encoded_logout_url = Base64.strict_encode64(logout_url)
       result = @api.get('gotocourse',
-        {
-          course_id: course_id,
-          user_id: login.lms_user_id,
-          course_completed_redirect: encoded_redirect_url,
-          logout_redirect: encoded_logout_url,
-        },
-      )
+                        {
+                          course_id: course_id,
+                          user_id: login.lms_user_id,
+                          course_completed_redirect: encoded_redirect_url,
+                          logout_redirect: encoded_logout_url,
+                        })
       result['goto_url']
+    end
+
+    # Generate random password for talentlms user creation
+    #
+    # An ArgumentError is raised if the length is less than 8
+    #
+    # @param length [Integer] number of characters to generate
+    # @return [String] randomly generated string of the requested length with at least on upper, lower, numeric, and symbol character
+    def random_password(length = 16)
+      raise ArgumentError 'Length must be at least 8' if length < 8
+
+      p = SecureRandom.urlsafe_base64(length)
+      loop do
+        break if p =~ /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])/
+
+        char_replace = (0...length).to_a.shuffle.take(4)
+        p[char_replace[0]] = ('a'..'z').to_a.sample unless p =~ /(?=.*[a-z])/
+        p[char_replace[1]] = ('A'..'Z').to_a.sample unless p =~ /(?=.*[A-Z])/
+        p[char_replace[2]] = ('0'..'9').to_a.sample unless p =~ /(?=.*[0-9])/
+        p[char_replace[3]] = (('#'..'&').to_a + (':'..'?').to_a).sample unless p =~ /(?=.*[^A-Za-z0-9])/
+      end
+      return p
     end
   end
 end
