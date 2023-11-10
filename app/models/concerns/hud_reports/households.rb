@@ -202,8 +202,13 @@ module HudReports::Households
       household_adults(universe_client).map { |member| member['source_client_id'] }
     end
 
+    # Per HUD:
+    # https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recCDGtYIVXlTmAvk
+    # . The glossary does not make reference to the "relationship to head of household" required to include a youth in this category. Q27b ("Parenting Youth") is a bit clearer in the following language: "Report all heads of household plus all adults (age 18 – 24) in the household in column B according to the age of the head of household (age < 18 on line 2, or 18-24 on line 3). Include all adults in the household regardless of [relationship to head of household],"
     private def youth_parent?(universe_client)
-      universe_client.head_of_household && only_youth?(universe_client) && youth_children?(universe_client)
+      age = universe_client
+      adult = age.present? && age >= 18
+      (universe_client.head_of_household || adult) && only_youth?(universe_client) && youth_children?(universe_client)
     end
 
     private def household_makeup(household_id, date)

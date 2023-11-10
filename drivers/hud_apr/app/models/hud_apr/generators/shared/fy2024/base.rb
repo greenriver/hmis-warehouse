@@ -574,7 +574,7 @@ module HudApr::Generators::Shared::Fy2024
           when 0, 1, 2, 8, 9, 10 # Other residential
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) # Exclude exit date
-          else # Other project types (4, 6, 11)
+          else # Other project types (4, 6, 7, 11, 12, 14)
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program >= pit_date) # Include the exit date
           end
