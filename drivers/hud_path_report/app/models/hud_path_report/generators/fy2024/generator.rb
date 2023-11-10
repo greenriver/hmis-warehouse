@@ -19,7 +19,7 @@ module HudPathReport::Generators::Fy2024
     end
 
     def self.file_prefix
-      "v1.1 #{short_name} #{fiscal_year}"
+      "v1.2 #{short_name} #{fiscal_year}"
     end
 
     def self.default_project_type_codes

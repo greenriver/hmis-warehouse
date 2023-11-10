@@ -171,6 +171,7 @@ module HudPathReport::Generators::Fy2024
             active_client: active_in_path(enrollment),
             new_client: enrollment.EntryDate >= @report.start_date,
             enrolled_client: enrolled_in_path(enrollment),
+            newly_enrolled_client: newly_enrolled_in_path(enrollment),
             date_of_determination: enrollment.DateOfPATHStatus,
             reason_not_enrolled: enrollment.ReasonNotEnrolled,
             project_type: enrollment.project.ProjectType,
@@ -179,18 +180,18 @@ module HudPathReport::Generators::Fy2024
             contacts: path_contact_dates(client),
             services: path_services(enrollment),
             referrals: path_referrals(enrollment),
-            income_from_any_source_entry: enrollment.income_benefits_at_entry&.IncomeFromAnySource,
+            income_from_any_source_entry: enrollment.income_benefits_at_entry&.IncomeFromAnySource || 99,
             incomes_at_entry: income_sources(enrollment.income_benefits_at_entry),
-            income_from_any_source_exit: enrollment.income_benefits_at_exit&.IncomeFromAnySource,
+            income_from_any_source_exit: enrollment.income_benefits_at_exit&.IncomeFromAnySource || 99,
             incomes_at_exit: income_sources(enrollment.income_benefits_at_exit),
-            income_from_any_source_report_end: last_income_in_period(enrollment.income_benefits)&.IncomeFromAnySource,
+            income_from_any_source_report_end: last_income_in_period(enrollment.income_benefits)&.IncomeFromAnySource || 99,
             incomes_at_report_end: income_sources(last_income_in_period(enrollment.income_benefits)),
-            benefits_from_any_source_entry: enrollment.income_benefits_at_entry&.BenefitsFromAnySource,
-            benefits_from_any_source_exit: enrollment.income_benefits_at_exit&.BenefitsFromAnySource,
-            benefits_from_any_source_report_end: last_income_in_period(enrollment.income_benefits)&.BenefitsFromAnySource,
-            insurance_from_any_source_entry: enrollment.income_benefits_at_entry&.InsuranceFromAnySource,
-            insurance_from_any_source_exit: enrollment.income_benefits_at_exit&.InsuranceFromAnySource,
-            insurance_from_any_source_report_end: last_income_in_period(enrollment.income_benefits)&.InsuranceFromAnySource,
+            benefits_from_any_source_entry: enrollment.income_benefits_at_entry&.BenefitsFromAnySource || 99,
+            benefits_from_any_source_exit: enrollment.income_benefits_at_exit&.BenefitsFromAnySource || 99,
+            benefits_from_any_source_report_end: last_income_in_period(enrollment.income_benefits)&.BenefitsFromAnySource || 99,
+            insurance_from_any_source_entry: enrollment.income_benefits_at_entry&.InsuranceFromAnySource || 99,
+            insurance_from_any_source_exit: enrollment.income_benefits_at_exit&.InsuranceFromAnySource || 99,
+            insurance_from_any_source_report_end: last_income_in_period(enrollment.income_benefits)&.InsuranceFromAnySource || 99,
             destination: enrollment.exit&.Destination,
           )
         end
@@ -254,6 +255,13 @@ module HudPathReport::Generators::Fy2024
     private def enrolled_in_path(enrollment)
       return false unless enrollment.ClientEnrolledInPATH == 1
       return false unless enrollment.DateOfPATHStatus&.between?(enrollment.EntryDate, @report.end_date)
+
+      enrollment.exit&.ExitDate.nil? || enrollment.DateOfPATHStatus <= enrollment.exit.ExitDate
+    end
+
+    private def newly_enrolled_in_path(enrollment)
+      return false unless enrollment.ClientEnrolledInPATH == 1
+      return false unless enrollment.DateOfPATHStatus&.between?([enrollment.EntryDate, @report.start_date].min, @report.end_date)
 
       enrollment.exit&.ExitDate.nil? || enrollment.DateOfPATHStatus <= enrollment.exit.ExitDate
     end

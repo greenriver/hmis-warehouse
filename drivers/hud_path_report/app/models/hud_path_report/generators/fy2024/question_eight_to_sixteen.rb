@@ -54,8 +54,8 @@ module HudPathReport::Generators::Fy2024
         [new_and_active_clients, in_street_outreach],
         [new_and_active_clients, in_services_only],
         [new_and_active_clients, all_members],
-        nil, # These are contact counts, done below
-        nil,
+        nil, # Row 6 - These are contact counts, done below
+        nil, # Row 7
         [new_and_active_clients, a_t[:reason_not_enrolled].eq(1)],
         [new_and_active_clients, a_t[:reason_not_enrolled].eq(3)],
         [new_and_active_clients, a_t[:enrolled_client].eq(true)],
@@ -72,7 +72,7 @@ module HudPathReport::Generators::Fy2024
 
       # Contacts before date of determination
       answer = @report.answer(question: table_name, cell: 'B6')
-      members = universe.members.where(active_and_enrolled_clients).where(a_t[:date_of_determination].gt(any(a_t[:contacts])))
+      members = universe.members.where(active_and_newly_enrolled_clients).where(a_t[:date_of_determination].gt(any(a_t[:contacts])))
       count = 0
       members.each do |member|
         date_of_determination = member.universe_membership.date_of_determination
@@ -83,7 +83,8 @@ module HudPathReport::Generators::Fy2024
 
       # Contacts in reporting period
       answer = @report.answer(question: table_name, cell: 'B7')
-      members = universe.members.where(active_and_enrolled_clients).where(a_t[:contacts].not_eq([]))
+      # NOTE: table in spec says Active & Enrolled, programming instructions say Active & Newly Enrolled
+      members = universe.members.where(active_and_newly_enrolled_clients).where(a_t[:contacts].not_eq([]))
       count = 0
       members.each do |member|
         count += member.universe_membership.contacts.count
