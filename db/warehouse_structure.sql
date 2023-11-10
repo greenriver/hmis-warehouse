@@ -19940,7 +19940,9 @@ CREATE TABLE public.hud_report_path_clients (
     updated_at timestamp without time zone NOT NULL,
     gender_multi character varying,
     destination_client_id integer,
-    personal_id character varying
+    personal_id character varying,
+    race_multi character varying,
+    newly_enrolled_client boolean DEFAULT false
 );
 
 
@@ -59856,6 +59858,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231030140507'),
 ('20231103151804'),
 ('20231103153556'),
-('20231103154939');
+('20231103154939'),
+('20231107190301'),
+('20231110134113');
 
 
