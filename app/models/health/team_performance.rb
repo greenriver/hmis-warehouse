@@ -145,16 +145,12 @@ module Health
 
     def initial_intake_due
       date = [@range.last, Date.current].min
-      @initial_intake_due ||= Health::Patient.needs_intake(on: date).pluck(:id)
+      @initial_intake_due ||= Health::Patient.intake_due(on: date).pluck(:id)
     end
 
     def initial_intake_overdue
-      overdue = [@range.last, Date.current].min
-      @initial_intake_overdue ||= Health::Patient.
-        where(id: patient_ids).
-        where.not(id: with_initial_intake.keys).
-        where(engagement_date: ...overdue).
-        pluck(:id).uniq
+      date = [@range.last, Date.current].min
+      @initial_intake_overdue ||= Health::Patient.intake_overdue(on: date).pluck(:id)
     end
 
     def intake_renewal_due

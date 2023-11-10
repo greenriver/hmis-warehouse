@@ -399,7 +399,15 @@ module Health
     end
 
     scope :needs_intake, ->(on: Date.current.end_of_month) do
+      intake_due(on: on).or(intake_overdue(on: on))
+    end
+
+    scope :intake_due, ->(on: Date.current.end_of_month) do
       intake_required.where(engagement_date: on - 30.days ..)
+    end
+
+    scope :intake_overdue, ->(on: Date.current.end_of_month) do
+      intake_required.where(engagement_date: ... on)
     end
 
     scope :has_intake, -> do
