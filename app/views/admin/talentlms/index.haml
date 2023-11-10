@@ -6,6 +6,8 @@
     %h1 TalentLMS Configuration
 
     = simple_form_for @config, url: admin_talentlms_path, method: :post do |f|
+      - @config.valid?
+      = f.error_notification   
       = f.input :subdomain
       = f.input :api_key, label: 'API Key'
       = f.input :courseid, label: 'Course ID'
