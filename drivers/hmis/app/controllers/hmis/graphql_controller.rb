@@ -6,49 +6,55 @@
 
 module Hmis
   class GraphqlController < Hmis::BaseController
-    include Hmis::Concerns::HmisActivityLogger
-
     # If accessing from outside this domain, nullify the session
     # This allows for outside API access while preventing CSRF attacks,
     # but you'll have to authenticate your user separately
     before_action :attach_data_source_id
 
     def execute
-      context = {
-        current_user: current_hmis_user,
-      }
+      # not sure if this is needed, do we plan to support other schemas?
+      raise unless params[:schema] == :hmis
 
-      case params[:schema]
-      when :hmis
-        if params[:_json]
-          # We have a batch of operations
-          queries = params[:_json].map do |param|
-            log_gql_activity(param) # Log each operation. Might not be necessary?
-            {
-              query: param[:query],
-              operation_name: param[:operationName],
-              variables: prepare_variables(param[:variables]),
-              context: context,
-            }
-          end
-          result = HmisSchema.multiplex(queries)&.to_json
-        else
-          # We have a single operation
-          log_gql_activity(param)
-          result = HmisSchema.execute(
-            query: params[:query],
-            variables: prepare_variables(params[:variables]),
-            context: context,
-            operation_name: params[:operationName],
-          )
-        end
+      begin
+        result = params[:_json] ? query_multiplex : query_single
+        render json: result
+      rescue StandardError => e
+        handle_graphql_exception(e)
       end
-      render json: result
-    rescue StandardError => e
-      handle_graphql_exception(e)
     end
 
-    private
+    protected
+
+    def query_multiplex
+      queries = params[:_json].map do |gql_param|
+        query_for_params(gql_param)
+      end
+      result = HmisSchema.multiplex(queries)
+      queries.each do |query|
+        query.dig(:context, :activity_logger).finalize!
+      end
+      result
+    end
+
+    def query_single
+      query = query_for_params(params)
+      result = HmisSchema.execute(**query)
+      query.dig(:context, :activity_logger).finalize!
+      result
+    end
+
+    def query_for_params(gql_param)
+      log_record = graphql_activity_log(gql_param)
+      {
+        query: gql_param.fetch(:query),
+        operation_name: gql_param[:operationName],
+        variables: prepare_variables(gql_param[:variables]),
+        context: {
+          current_user: current_hmis_user,
+          activity_logger: Hmis::GraphqlFieldLogger.new(log_record),
+        },
+      }
+    end
 
     # Handle variables in form data, JSON body, or a blank value
     def prepare_variables(variables_param)
@@ -104,6 +110,23 @@ module Hmis
         ],
         data: {},
       }
+    end
+
+    def graphql_activity_log(gql_param)
+      Hmis::ActivityLog.new(
+        user_id: current_hmis_user.id, # FIXME: true_user if masquerading
+        data_source_id: current_hmis_user.hmis_data_source_id,
+        ip_address: request.remote_ip,
+        session_hash: session.id,
+        variables: gql_param[:variables],
+        # these are pulled from headers so they are not necessarily safe, could be tampered with
+        referer: request.referer,
+        operation_name: gql_param[:operationName],
+        header_page_path: request.headers['X-Hmis-Path'].presence,
+        header_client_id: request.headers['X-Hmis-Client-Id'].presence&.to_i,
+        header_enrollment_id: request.headers['X-Hmis-Enrollment-Id'].presence&.to_i,
+        header_project_id: request.headers['X-Hmis-Project-Id'].presence&.to_i,
+      )
     end
   end
 end

@@ -8,6 +8,7 @@
 
 module Types
   class Forms::EnableWhen < Types::BaseObject
+    skip_activity_log
     # Source value (1 must be specified)
     field :question, String, 'The linkId of question that determines whether item is enabled/disabled', null: true
     field :local_constant, String, 'The Local Constant that determines whether item is enabled/disabled', null: true

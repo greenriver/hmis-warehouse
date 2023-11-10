@@ -8,6 +8,7 @@
 
 module Types
   class Forms::PickListOption < Types::BaseObject
+    skip_activity_log
     include Hmis::Concerns::HmisArelHelper
 
     field :code, String, 'Code for the option', null: false

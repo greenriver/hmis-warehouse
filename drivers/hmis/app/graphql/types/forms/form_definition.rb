@@ -8,6 +8,7 @@
 
 module Types
   class Forms::FormDefinition < Types::BaseObject
+    skip_activity_log
     description 'FormDefinition'
     field :id, ID, null: false
     field :cache_key, ID, null: false

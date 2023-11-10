@@ -8,6 +8,8 @@
 
 module Types
   class HmisSchema::QueryType < Types::BaseObject
+    skip_activity_log
+
     # From generated QueryType:
     # Add `node(id: ID!) and `nodes(ids: [ID!]!)`
     include GraphQL::Types::Relay::HasNodeField
