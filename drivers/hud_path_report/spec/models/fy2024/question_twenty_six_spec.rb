@@ -25,46 +25,34 @@ RSpec.describe HudPathReport::Generators::Fy2024::QuestionTwentySix, type: :mode
     cleanup
   end
 
-  # DEPRECATED_FY2024 - these are expected to fail until we re-write the report
-  # describe 'genders' do
-  #   it 'counts identifies as female' do
-  #     expect(report_result.answer(question: 'Q26', cell: 'C2').summary).to eq(1)
-  #   end
-  #   it 'counts clients' do
-  #     expect(report_result.answer(question: 'Q26', cell: 'C10').summary).to eq(2)
-  #   end
-  # end
+  describe 'genders' do
+    it 'counts identifies as woman' do
+      expect(report_result.answer(question: 'Q26', cell: 'C2').summary).to eq(1)
+    end
+    it 'counts clients' do
+      expect(report_result.answer(question: 'Q26', cell: 'C12').summary).to eq(2)
+    end
+  end
 
   describe 'ages' do
-    it 'counts minors' do
+    it 'counts 17 and under' do
       expect(report_result.answer(question: 'Q26', cell: 'C13').summary).to eq(1)
     end
     it 'counts ages 18-24' do
       expect(report_result.answer(question: 'Q26', cell: 'C14').summary).to eq(1)
     end
-    # DEPRECATED_FY2024 - these are expected to fail until we re-write the report
-    # it 'counts clients' do
-    #   expect(report_result.answer(question: 'Q26', cell: 'C10').summary).to eq(2)
-    # end
+    it 'counts clients' do
+      expect(report_result.answer(question: 'Q26', cell: 'C23').summary).to eq(2)
+    end
   end
 
   describe 'race' do
-    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0].each_with_index do |count, index|
+    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2].each_with_index do |count, index|
       it "counts by race: index: #{index}" do
         expect(report_result.answer(question: 'Q26', cell: "C#{index + 24}").summary).to eq(count)
       end
     end
   end
-
-  # DEPRECATED_FY2024 - these are expected to fail until we re-write the report ethnicity became a race
-  # describe 'ethnicities' do
-  #   it 'counts identifies as non-hispanic/latino' do
-  #     expect(report_result.answer(question: 'Q26', cell: 'C31').summary).to eq(1)
-  #   end
-  #   it 'counts clients' do
-  #     expect(report_result.answer(question: 'Q26', cell: 'C36').summary).to eq(2)
-  #   end
-  # end
 
   describe 'veteran statuses' do
     it 'counts veterans' do
@@ -93,16 +81,14 @@ RSpec.describe HudPathReport::Generators::Fy2024::QuestionTwentySix, type: :mode
     end
   end
 
-  # DEPRECATED_FY2024 - these are expected to fail until we re-write the report living situations changed
-  # describe 'prior living situation' do
-  #   it 'counts safe haven' do
-  #     expect(report_result.answer(question: 'Q26', cell: 'C56').summary).to eq(1)
-  #   end
-  #   it 'counts clients' do
-  #     # Line 57 is missing from spec, so subtract 1 from all lines after this poing
-  #     expect(report_result.answer(question: 'Q26', cell: 'C84').summary).to eq(2)
-  #   end
-  # end
+  describe 'prior living situation' do
+    it 'counts safe haven' do
+      expect(report_result.answer(question: 'Q26', cell: 'C54').summary).to eq(1)
+    end
+    it 'counts clients' do
+      expect(report_result.answer(question: 'Q26', cell: 'C78').summary).to eq(2)
+    end
+  end
 
   it 'counts clients with length of stay' do
     expect(report_result.answer(question: 'Q26', cell: 'C88').summary).to eq(0)
@@ -117,13 +103,12 @@ RSpec.describe HudPathReport::Generators::Fy2024::QuestionTwentySix, type: :mode
     end
   end
 
-  # DEPRECATED_FY2024 - these are expected to fail until we re-write the report DV column changed
-  # describe 'domestic violence' do
-  #   it 'counts yeses' do
-  #     expect(report_result.answer(question: 'Q26', cell: 'C99').summary).to eq(1)
-  #   end
-  #   it 'counts clients' do
-  #     expect(report_result.answer(question: 'Q26', cell: 'C104').summary).to eq(1)
-  #   end
-  # end
+  describe 'domestic violence' do
+    it 'counts yeses' do
+      expect(report_result.answer(question: 'Q26', cell: 'C93').summary).to eq(0)
+    end
+    it 'counts clients' do
+      expect(report_result.answer(question: 'Q26', cell: 'C98').summary).to eq(1)
+    end
+  end
 end

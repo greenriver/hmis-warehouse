@@ -25,14 +25,13 @@ RSpec.describe HudPathReport::Generators::Fy2024::QuestionSeventeen, type: :mode
     cleanup
   end
 
-  # DEPRECATED_FY2024 - these are expected to fail until we re-write the report
-  # it 'counts substance abuse' do
-  #   expect(report_result.answer(question: 'Q17', cell: 'B7').summary).to eq(1)
-  # end
+  it 'counts substance abuse' do
+    expect(report_result.answer(question: 'Q17', cell: 'B7').summary).to eq(0)
+  end
 
-  # it 'counts case management' do
-  #   expect(report_result.answer(question: 'Q17', cell: 'B8').summary).to eq(1)
-  # end
+  it 'counts case management' do
+    expect(report_result.answer(question: 'Q17', cell: 'B8').summary).to eq(0)
+  end
 
   it 'others are zero' do
     (2..14).each do |row|

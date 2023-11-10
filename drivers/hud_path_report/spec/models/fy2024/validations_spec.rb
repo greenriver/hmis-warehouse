@@ -53,14 +53,15 @@ RSpec.describe HudPathReport::Generators::Fy2024::Generator, type: :model do
       end
     end
 
-    describe 'Q12b' do
-      xit 'The Total instances of contact during the reporting period must be greater than or equal to the Number of persons contacted by PATH-funded staff this reporting period).' do
-        # FIXME pending AAQ
-        persons_contacted = report_result.answer(question: 'Q8-Q16', cell: 'B2').summary
-        total_contacts = report_result.answer(question: 'Q8-Q16', cell: 'B7').summary
-        expect(total_contacts).to be >= persons_contacted
-      end
-    end
+    # AAQ confirmed this was an invalid validation, no new validations have been released
+    # describe 'Q12b' do
+    #   xit 'The Total instances of contact during the reporting period must be greater than or equal to the Number of persons contacted by PATH-funded staff this reporting period).' do
+    #     # FIXME pending AAQ
+    #     persons_contacted = report_result.answer(question: 'Q8-Q16', cell: 'B2').summary
+    #     total_contacts = report_result.answer(question: 'Q8-Q16', cell: 'B7').summary
+    #     expect(total_contacts).to be >= persons_contacted
+    #   end
+    # end
 
     describe 'Q13a' do
       it 'The total number of persons who could not be enrolled because they were ineligible can\'t be greater than the total number of persons who were outreached/contacted.' do

@@ -25,17 +25,16 @@ RSpec.describe HudPathReport::Generators::Fy2024::QuestionTwentyFive, type: :mod
     cleanup
   end
 
-  # DEPRECATED_FY2024 - these are expected to fail until we re-write the report as destination codes have changed
-  # it 'counts exits foster care' do
-  #   expect(report_result.answer(question: 'Q25', cell: 'B14').summary).to eq(1)
-  # end
-  #
-  # it 'sums the institutional destinations' do
-  #   expect(report_result.answer(question: 'Q25', cell: 'B20').summary).to eq(1)
-  # end
+  it 'counts exits foster care' do
+    expect(report_result.answer(question: 'Q25', cell: 'B8').summary).to eq(1)
+  end
+
+  it 'sums the institutional destinations' do
+    expect(report_result.answer(question: 'Q25', cell: 'B14').summary).to eq(1)
+  end
 
   it 'other subtotals are zero' do
-    [12, 36].each do |row|
+    [23, 32].each do |row|
       expect(report_result.answer(question: 'Q25', cell: 'B' + row.to_s).summary).to eq(0)
     end
   end
