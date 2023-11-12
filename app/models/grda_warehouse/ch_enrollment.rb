@@ -313,9 +313,9 @@ module GrdaWarehouse
     # Add steps for lines 15-16 and lines 22-23
     def self.length_of_stay_previous_sufficient(enrollment)
       steps = []
-      value = is_no?(enrollment.LOSUnderThreshold)
-      result = if value
-        value
+      value = enrollment.LOSUnderThreshold
+      result = if is_no?(value)
+        is_no?(value)
       elsif value.present?
         :continue
       else
@@ -325,9 +325,9 @@ module GrdaWarehouse
       steps.push({ result: result, display_value: enrollment.LOSUnderThreshold })
       return steps if terminating?(steps.last[:result])
 
-      value = is_no?(enrollment.PreviousStreetESSH)
-      result = if value
-        value
+      value = enrollment.PreviousStreetESSH
+      result = if is_no?(value)
+        is_no?(value)
       elsif value.present?
         :continue
       else

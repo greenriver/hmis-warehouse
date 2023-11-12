@@ -58,14 +58,11 @@ RSpec.shared_context 'datalab organization a rrh apr', shared_context: :metadata
       )
     end
 
+    # Previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recQoBOA5VwRFp8jJ
     it 'Q6e' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6e',
-        skip: [
-          'C2', # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recQoBOA5VwRFp8jJ
-          # fixed in future test kit
-        ],
       )
     end
 
@@ -358,10 +355,8 @@ RSpec.shared_context 'datalab organization a rrh apr', shared_context: :metadata
       )
     end
 
-    # Pending AirTable https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recGeOJDYAm528rAx
-    # Every enrollment has TranslationAssistance 0
-    # fixed in future test kit
-    xit 'Q24d' do
+    # Previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recGeOJDYAm528rAx
+    it 'Q24d' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q24d',
@@ -414,6 +409,13 @@ RSpec.shared_context 'datalab organization a rrh apr', shared_context: :metadata
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q26a',
+        # pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recZbEHrNyt7aUsfw
+        skip: [
+          'B3',
+          'D3',
+          'B5',
+          'D5',
+        ],
       )
     end
 
