@@ -200,8 +200,7 @@ RSpec.shared_context 'datalab organization a rrh apr', shared_context: :metadata
       )
     end
 
-    # TODO: off by one or two in a few categories, investigation needed,
-    # but sufficiently close for now
+    # pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recU9uhV7OK67j9G6
     xit 'Q16' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -216,9 +215,7 @@ RSpec.shared_context 'datalab organization a rrh apr', shared_context: :metadata
       )
     end
 
-    # TODO: off by one or two in a few categories, investigation needed,
-    # but sufficiently close for now
-    xit 'Q18' do
+    it 'Q18' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q18',
@@ -232,7 +229,8 @@ RSpec.shared_context 'datalab organization a rrh apr', shared_context: :metadata
       )
     end
 
-    it 'Q19a2' do
+    # pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recU9uhV7OK67j9G6
+    xit 'Q19a2' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19a2',
