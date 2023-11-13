@@ -1066,6 +1066,37 @@ CREATE SEQUENCE public.hmis_roles_id_seq
 ALTER SEQUENCE public.hmis_roles_id_seq OWNED BY public.hmis_roles.id;
 
 
+CREATE TABLE public.hmis_activity_logs (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    resolved_fields jsonb,
+    ip_address character varying NOT NULL,
+    session_hash character varying,
+    variables jsonb,
+    referer character varying,
+    operation_name character varying,
+    header_page_path character varying,
+    header_client_id bigint,
+    header_enrollment_id bigint,
+    header_project_id bigint,
+    created_at timestamp without time zone NOT NULL
+);
+
+CREATE SEQUENCE public.hmis_activity_logs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE public.hmis_activity_logs_id_seq OWNED BY public.hmis_activity_logs.id;
+ALTER TABLE ONLY public.hmis_activity_logs ALTER COLUMN id SET DEFAULT nextval('public.hmis_activity_logs_id_seq'::regclass);
+ALTER TABLE ONLY public.hmis_activity_logs
+    ADD CONSTRAINT hmis_activity_logs_pkey PRIMARY KEY (id);
+CREATE INDEX index_hmis_activity_logs_on_user_id ON public.hmis_activity_logs USING btree (user_id);
+
+
 --
 -- Name: hmis_user_access_controls; Type: TABLE; Schema: public; Owner: -
 --
@@ -4752,6 +4783,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230927131152'),
 ('20231009120833'),
 ('20231017185729'),
-('20231030184613');
+('20231030184613'),
+('20231103165752');
+
 
 
