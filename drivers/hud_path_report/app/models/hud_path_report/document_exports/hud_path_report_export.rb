@@ -21,6 +21,7 @@ module HudPathReport::DocumentExports
       [
         HudPathReport::Generators::Fy2020::Generator,
         HudPathReport::Generators::Fy2021::Generator,
+        HudPathReport::Generators::Fy2024::Generator,
       ]
     end
   end
