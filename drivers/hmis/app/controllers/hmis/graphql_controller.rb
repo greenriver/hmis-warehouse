@@ -26,32 +26,37 @@ module Hmis
     protected
 
     def query_multiplex
-      queries = params[:_json].map do |gql_param|
-        query_for_params(gql_param)
+      queries = []
+      log_records = []
+      params[:_json].each do |gql_param|
+        queries << query_for_params(gql_param)
+        log_records << graphql_activity_log(gql_param)
       end
       result = HmisSchema.multiplex(queries)
-      queries.each do |query|
-        query.dig(:context, :activity_logger).finalize!
+      log_records.zip(queries).each do |log_record, query|
+        log_record[:resolved_fields] = query.dig(:context, :activity_logger).collection
       end
+      Hmis::ActivityLog.insert_all!(log_records)
       result
     end
 
     def query_single
+      log_record = graphql_activity_log(params)
       query = query_for_params(params)
       result = HmisSchema.execute(**query)
-      query.dig(:context, :activity_logger).finalize!
+      log_record[:resolved_fields] = query.dig(:context, :activity_logger).collection
+      Hmis::ActivityLog.insert_all!([log_record])
       result
     end
 
     def query_for_params(gql_param)
-      log_record = graphql_activity_log(gql_param)
       {
         query: gql_param.fetch(:query),
         operation_name: gql_param[:operationName],
         variables: prepare_variables(gql_param[:variables]),
         context: {
           current_user: current_hmis_user,
-          activity_logger: Hmis::GraphqlFieldLogger.new(log_record),
+          activity_logger: Hmis::GraphqlFieldLogger.new,
         },
       }
     end
@@ -113,11 +118,11 @@ module Hmis
     end
 
     def graphql_activity_log(gql_param)
-      Hmis::ActivityLog.new(
+      {
         user_id: current_hmis_user.id, # FIXME: true_user if masquerading
         data_source_id: current_hmis_user.hmis_data_source_id,
-        ip_address: request.remote_ip,
-        session_hash: session.id,
+        ip_address: request.remote_ip&.to_s,
+        session_hash: session.id&.to_s,
         variables: gql_param[:variables],
         # these are pulled from headers so they are not necessarily safe, could be tampered with
         referer: request.referer,
@@ -126,7 +131,8 @@ module Hmis
         header_client_id: request.headers['X-Hmis-Client-Id'].presence&.to_i,
         header_enrollment_id: request.headers['X-Hmis-Enrollment-Id'].presence&.to_i,
         header_project_id: request.headers['X-Hmis-Project-Id'].presence&.to_i,
-      )
+        created_at: DateTime.current,
+      }
     end
   end
 end

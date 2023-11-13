@@ -16,7 +16,7 @@ class AddHmisActivityLog < ActiveRecord::Migration[6.1]
       t.references :header_client, comment: 'user-provided'
       t.references :header_enrollment, comment: 'user-provided'
       t.references :header_project, comment: 'user-provided'
-      t.timestamps
+      t.timestamp :created_at, null: false
     end
   end
 end

@@ -5,9 +5,8 @@
 ###
 
 class Hmis::GraphqlFieldLogger
-  # @param [Hmis::ActivityLog] record
-  def initialize(record)
-    @record = record
+  attr_reader :collection
+  def initialize
     @collection = {}
   end
 
@@ -26,9 +25,5 @@ class Hmis::GraphqlFieldLogger
     @collection[key] ||= []
     @collection[key].push(field.name)
     true
-  end
-
-  def finalize!
-    @record.update!(resolved_fields: @collection)
   end
 end

@@ -12971,8 +12971,7 @@ CREATE TABLE public.hmis_activity_logs (
     header_client_id bigint,
     header_enrollment_id bigint,
     header_project_id bigint,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    created_at timestamp without time zone NOT NULL
 );
 
 
