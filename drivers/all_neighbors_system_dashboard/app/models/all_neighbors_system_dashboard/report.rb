@@ -259,6 +259,11 @@ module AllNeighborsSystemDashboard
       ]
     end
 
+    # Override the default to remove the sandbox attribute
+    private def generate_embed_code
+      "<iframe width='800' height='1200' src='#{generate_publish_url}' frameborder='0'><a href='#{generate_publish_url}'>#{instance_title}</a></iframe>"
+    end
+
     private def asset_path(asset)
       Rails.root.join('app', 'assets', 'javascripts', 'warehouse_reports', 'all_neighbors_system_dashboard', asset)
     end
