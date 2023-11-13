@@ -215,7 +215,7 @@ module HmisExternalApis::AcHmis::Importers
         critical_columns: ['InventoryID'],
       )
 
-      @project_result = generic_upsert(
+      generic_upsert(
         file: file,
         conflict_target: ['"InventoryID"', 'data_source_id'],
         klass: GrdaWarehouse::Hud::Inventory,
@@ -305,7 +305,7 @@ module HmisExternalApis::AcHmis::Importers
         operating_end_date: :operating_end_date_override,
       }
 
-      Hmis::Hud::Project.where(data_source: data_source).map do |project|
+      Hmis::Hud::Project.where(id: @project_result.ids).map do |project|
         overrides.each do |key, override_key|
           override = project.send(override_key)
           next unless override.present?
