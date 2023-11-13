@@ -71,6 +71,10 @@ class AllNeighborsSystemDashboardLine {
 
   getAxisConfig() {
     return {
+      y: {
+        min: 0,
+        padding: 0,
+      },
       x: {
         type: "timeseries",
         tick: {
