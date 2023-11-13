@@ -15,14 +15,13 @@ module HudSpmReport::Fy2023
 
     attr_accessor :report # FIXME?
 
-    def compute_episode(included_project_types, excluded_project_types)
+    def compute_episode(included_project_types:, excluded_project_types:, include_self_reported:)
       raise 'Client undefined' unless client.present?
 
       enrollments = report.spm_enrollments.where(client_id: client.id)
-      calculated_bed_nights = candidate_bed_nights(enrollments, included_project_types)
+      calculated_bed_nights = candidate_bed_nights(enrollments, included_project_types, include_self_reported)
       calculated_excluded_dates = excluded_bed_nights(enrollments, excluded_project_types)
       calculated_bed_nights.reject! { |_, _, date| date.in?(calculated_excluded_dates) }
-      calculated_bed_nights.sort_by!(&:last)
 
       filtered_bed_nights = filter_episode(calculated_bed_nights)
 
@@ -52,7 +51,7 @@ module HudSpmReport::Fy2023
       )
     end
 
-    private def candidate_bed_nights(enrollments, project_types)
+    private def candidate_bed_nights(enrollments, project_types, include_self_reported)
       bed_nights = {} # Hash with date as key so we only get one candidate per overlapping night
       enrollments = enrollments.where(project_type: project_types).preload(enrollment: :services)
       enrollments.each do |enrollment|
@@ -66,8 +65,8 @@ module HudSpmReport::Fy2023
               end.group_by(&:last), # Unique by date
           )
         else
-          start_date = if enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:ph))
-            # PH includes self-reported dates, if any, otherwise later of project start and lookback date
+          start_date = if include_self_reported
+            # Include self-reported dates, if any, otherwise later of project start and lookback date
             enrollment.start_of_homelessness || [enrollment.entry_date, lookback_date].max
           else
             enrollment.entry_date
@@ -113,10 +112,22 @@ module HudSpmReport::Fy2023
       bed_nights
     end
 
+    # @param bed_nights [[Enrollment, service_id, Date]] Array of candidate bed nights to be processed
     private def filter_episode(bed_nights)
-      # TODO
+      bed_nights = bed_nights.sort_by(&:last)
+      client_end_date = bed_nights.last.last
+      client_start_date = client_end_date - 365.days
 
-      bed_nights
+      # Include continguous dates before the calculated client start date:
+      # First, find as close to the start date as possible in the array
+      index = 0
+      index += 1 while bed_nights[index].last < client_start_date
+
+      # Then walk back until there is a break
+      index -= 1 while index > 1 && bed_nights[index - 1].last == bed_nights[index].last - 1.day
+
+      # Finally, return the selected dates
+      bed_nights[index ..]
     end
 
     private def literally_homeless_at_entry(bed_nights, first_date)

@@ -23,7 +23,8 @@ RSpec.describe 'HUD SPM Universe', type: :model do
   it 'creates episode' do
     client = GrdaWarehouse::Hud::Client.destination.first
     episode = HudSpmReport::Fy2023::Episode.create(report: @report_result, client: client)
-    episode.compute_episode([0, 1, 8], [3, 4])
-    expect(episode).to be_present
+    episode.compute_episode(included_project_types: [0, 1, 8], excluded_project_types: [3, 4], include_self_reported: true)
+    expect(episode.first_date).to eq '2021-08-01'.to_date
+    expect(episode.last_date).to eq '2022-10-31'.to_date
   end
 end
