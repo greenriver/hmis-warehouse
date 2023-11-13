@@ -45,6 +45,12 @@ module HudReports::Households
       GrdaWarehouse::Hud::Client.age(date: date, dob: hoh_dob)
     end
 
+    private def hoh_exit_date(household_id)
+      return unless households[household_id]
+
+      households[household_id].detect { |hm| hm[:relationship_to_hoh] == 1 }&.try(:[], :exit_date)
+    end
+
     private def get_hh_id(service_history_enrollment)
       service_history_enrollment.household_id || "#{service_history_enrollment.enrollment_group_id}*HH"
     end

@@ -243,17 +243,14 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
-    # TODO: off by one or two in a few categories, investigation needed,
-    # but sufficiently close for now
-    xit 'Q19b' do
+    it 'Q19b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19b',
       )
     end
 
-    # TODO: off by one or two in a few categories, investigation needed,
-    # but sufficiently close for now
+    # pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recLnlLoLpQ2Dh1SI
     xit 'Q20a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -261,8 +258,7 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
-    # TODO: off by one or two in a few categories, investigation needed,
-    # but sufficiently close for now
+    # pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recZnCM2MofvBQIo5
     xit 'Q20b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
