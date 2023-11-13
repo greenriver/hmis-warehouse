@@ -1,8 +1,5 @@
 class AddHmisActivityLog < ActiveRecord::Migration[6.1]
   def change
-    # Should this go in the app db?
-    # Index on user id and ds id?
-
     create_table :hmis_activity_logs do |t|
       t.references :user, null: false, index: true
       t.references :data_source, null: false, index: false
