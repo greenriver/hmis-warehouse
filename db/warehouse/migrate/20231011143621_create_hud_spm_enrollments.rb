@@ -12,6 +12,10 @@ class CreateHudSpmEnrollments < ActiveRecord::Migration[6.1]
       t.date :move_in_date
       t.integer :project_type
       t.boolean :eligible_funding
+      t.integer :prior_living_situation
+      t.integer :length_of_stay
+      t.boolean :los_under_threshold
+      t.boolean :previous_street_essh
       t.integer :destination
       t.date :age # age at later of entry_date and report_start_date
       t.integer :previous_earned_income
@@ -21,7 +25,7 @@ class CreateHudSpmEnrollments < ActiveRecord::Migration[6.1]
       t.integer :current_non_employment_income
       t.integer :current_total_income
 
-      t.references :report, index: true
+      t.references :report_instance, index: true
       t.references :client, index: true # warehouse destination client, for de-duplication
       t.references :previous_income_benefits # annual or initial as appropriate
       t.references :current_income_benefits # at annual or, exit as appropriate
@@ -32,24 +36,23 @@ class CreateHudSpmEnrollments < ActiveRecord::Migration[6.1]
 
     # Summarizes the enrollment episode for measure 1
     create_table :hud_report_spm_episodes do |t|
-      t.date :start_of_homelessness # entry_date or start_of_homelessness as appropriate
-      t.date :entry_date
-      t.date :exit_date
-      t.date :move_in_date
-      t.integer :destination
-      t.integer :age
+      t.date :first_date
+      t.date :last_date
+      t.integer :days_homeless
+      t.boolean :literally_homeless_at_entry
       t.references :client, index: true # warehouse destination client, for de-duplication
     end
 
     # Join table
     create_table :hud_report_spm_enrollment_links do |t|
       t.references :enrollment
-      t.references :episode, polymorphic: true
+      t.references :episode
     end
 
     # contributing bed nights for night by night enrollments
     create_table :hud_report_spm_bed_nights do |t|
       t.date :date
+      t.references :episode
       t.references :service
       t.references :enrollment
       t.references :client, index: true # warehouse destination client, for de-duplication

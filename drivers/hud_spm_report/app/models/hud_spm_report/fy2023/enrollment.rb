@@ -9,7 +9,7 @@ module HudSpmReport::Fy2023
     self.table_name = 'hud_report_spm_enrollments'
     include ArelHelper
 
-    belongs_to :report, class_name: 'HudReports::ReportInstance'
+    belongs_to :report_instance, class_name: 'HudReports::ReportInstance'
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :current_income_benefits, class_name: 'GrdaWarehouse::Hud::IncomeBenefit', optional: true
     belongs_to :previous_income_benefits, class_name: 'GrdaWarehouse::Hud::IncomeBenefit', optional: true
@@ -22,8 +22,8 @@ module HudSpmReport::Fy2023
     # is constructed outside of the question universe, and then to preserve the 1:1 relationship between clients
     # and question universe members, the question universes either refer directly to an enrollment in this set, or
     # to an aggregation object that refers to enrollments in this set.
-    def self.create_enrollment_set(report)
-      filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(report.options)
+    def self.create_enrollment_set(report_instance)
+      filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(report_instance.options)
       household_info = household(filter)
       enrollments(filter).find_in_batches do |batch|
         members = []
@@ -31,7 +31,7 @@ module HudSpmReport::Fy2023
           current_income_benefits = current_income_benefits(enrollment, filter.end)
           previous_income_benefits = previous_income_benefits(enrollment, current_income_benefits&.information_date)
           members << {
-            report_id: report.id,
+            report_instance_id: report_instance.id,
 
             first_name: enrollment.client.first_name,
             last_name: enrollment.client.last_name,
@@ -48,6 +48,11 @@ module HudSpmReport::Fy2023
             project_type: enrollment.project.project_type,
             eligible_funding: eligible_funding?(enrollment, filter.start, filter.end),
             destination: enrollment.exit&.destination,
+
+            prior_living_situation: enrollment.living_situation,
+            length_of_stay: enrollment.length_of_stay,
+            los_under_threshold: enrollment.los_under_threshold == 1,
+            previous_street_essh: enrollment.previous_street_essh == 1,
 
             current_income_benefits_id: current_income_benefits&.id,
             current_earned_income: earned_income(current_income_benefits),
@@ -147,7 +152,7 @@ module HudSpmReport::Fy2023
       report_end_date = filter.end
       lookback_start_date = report_start_date - 7.years
       scope = GrdaWarehouse::Hud::Enrollment.preload(:client, :destination_client, :income_benefits, project: :funders).
-        open_between(start_date: lookback_start_date, end_date: report_end_date)
+        open_during_range(lookback_start_date .. report_end_date)
       # TODO: use filter
 
       scope

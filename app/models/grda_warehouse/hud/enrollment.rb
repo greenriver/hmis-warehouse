@@ -164,17 +164,6 @@ module GrdaWarehouse::Hud
       where(EntryDate: range)
     end
 
-    scope :open_between, ->(start_date:, end_date:) do
-      # Excellent discussion of why this works:
-      # http://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
-      d_1_start = start_date
-      d_1_end = end_date
-      d_2_start = e_t[:EntryDate]
-      d_2_end = ex_t[:ExitDate]
-      # Currently does not count as an overlap if one starts on the end of the other
-      joins(:exit).where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
-    end
-
     scope :with_permanent_exit, ->(range) do
       joins(:exit).merge(GrdaWarehouse::Hud::Exit.permanent.closed_within_range(range))
     end
