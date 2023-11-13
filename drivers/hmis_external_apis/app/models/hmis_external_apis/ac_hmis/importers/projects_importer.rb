@@ -88,6 +88,7 @@ module HmisExternalApis::AcHmis::Importers
         Hmis::ProjectUnitTypeMapping.freshen_project_units(user: sys_user)
         cleanup_project_dates
         cleanup_dangling_funders
+        apply_project_overrides
       end
       analyze
       finish
@@ -294,6 +295,26 @@ module HmisExternalApis::AcHmis::Importers
 
       @notifier.ping "Soft-deleting #{dangling_funders.size} dangling Funder records" if dangling_funders.any?
       dangling_funders.each(&:destroy!)
+    end
+
+    # Apply overrides that can be set in the Warehouse
+    def apply_project_overrides
+      overrides = {
+        project_type: :act_as_project_type,
+        operating_start_date: :operating_start_date_override,
+        operating_end_date: :operating_end_date_override,
+      }
+
+      Hmis::Hud::Project.where(data_source: data_source).map do |project|
+        overrides.each do |key, override_key|
+          override = project.send(override_key)
+          next unless override.present?
+
+          project.write_attribute(key, override)
+        end
+
+        project.save!(validate: false) if project.changed?
+      end
     end
 
     def analyze
