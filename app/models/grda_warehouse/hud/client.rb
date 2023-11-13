@@ -353,6 +353,17 @@ module GrdaWarehouse::Hud
         project_ids = GrdaWarehouse::Config.cas_sync_project_group.projects.ids
         enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.ongoing.in_project(project_ids)
         where(id: enrollment_scope.select(:client_id))
+      when :boston
+        # Release on file
+        scope = where(housing_release_status: [full_release_string, partial_release_string])
+        # enrolled in the chosen project group
+        project_ids = GrdaWarehouse::Config.cas_sync_project_group.projects.ids
+        if project_ids.any?
+          enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.ongoing.in_project(project_ids)
+          scope = scope.where(id: enrollment_scope.select(:client_id))
+        end
+        # with a Pathways assessment
+        scope.where(id: joins(source_clients: :most_recent_pathways_or_rrh_assessment).select(:id))
       else
         raise NotImplementedError
       end
