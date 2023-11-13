@@ -5,10 +5,13 @@
 ###
 
 module Hmis
-  class GroupViewableEntity < GrdaWarehouse::GroupViewableEntity
+  class GroupViewableEntity < GrdaWarehouseBase
     acts_as_paranoid
 
-    belongs_to :access_group, class_name: '::Hmis::AccessGroup', inverse_of: :group_viewable_entities
+    # TODO: rename AccessGroup class to `Collection`, update all references
+    belongs_to :collection, class_name: 'Hmis::AccessGroup', inverse_of: :group_viewable_entities
+    alias access_group collection
+
     belongs_to :entity, polymorphic: true
 
     has_many :group_viewable_entity_projects
@@ -17,18 +20,9 @@ module Hmis
     scope :projects, -> { where(entity_type: Hmis::Hud::Project.sti_name) }
     scope :organizations, -> { where(entity_type: Hmis::Hud::Organization.sti_name) }
     scope :data_sources, -> { where(entity_type: GrdaWarehouse::DataSource.sti_name) }
-    scope :project_access_groups, -> { where(entity_type: GrdaWarehouse::ProjectAccessGroup.sti_name) }
 
     scope :includes_project, ->(project) do
       joins(:projects).where(project: project)
-    end
-
-    scope :includes_project_access_group, ->(pag) do
-      where(entity: pag)
-    end
-
-    scope :includes_project_access_groups, ->(pags) do
-      where(entity_type: GrdaWarehouse::ProjectAccessGroup.name, entity_id: pags.pluck(:id))
     end
 
     scope :includes_organization, ->(organization) do
@@ -47,8 +41,6 @@ module Hmis
         includes_organization(entity)
       when GrdaWarehouse::DataSource.name
         includes_data_source(entity)
-      when GrdaWarehouse::ProjectAccessGroup.name
-        includes_project_access_group(entity)
       else
         none
       end

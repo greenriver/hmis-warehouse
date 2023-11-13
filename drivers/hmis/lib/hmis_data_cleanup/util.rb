@@ -285,5 +285,51 @@ module HmisDataCleanup
         ActiveRecord::Base.record_timestamps = true
       end
     end
+
+    # Cleanup function to run if/when we add a new Custom record type and forget to add it to the Hmis::MergeClientsJob.
+    # WARNING: this cleanup task is not the most efficient. If there are a lot of record to clean up, may need further optimization.
+    def self.cleanup_dangling_records_from_merge!(klass: Hmis::Hud::CustomCaseNote)
+      dangling_records = klass.left_outer_joins(:enrollment).where(enrollment: { id: nil })
+      Rails.logger.info "Found #{dangling_records.size} dangling records from deleted clients"
+
+      personal_ids = dangling_records.pluck(:personal_id)
+      raise 'Some personal IDs are not deleted' unless Hmis::Hud::Client.hmis.where(personal_id: personal_ids).zero?
+
+      num_deleted_clients = Hmis::Hud::Client.hmis.only_deleted.where(personal_id: personal_ids).size
+      Rails.logger.info "Records are from #{num_deleted_clients.size} deleted clients"
+
+      # Note: Using ClientMergeAudit instead of ClientMergeHistory because it was introduced first
+      merged_personal_ids = Hmis::ClientMergeAudit.all.map { |a| a.pre_merge_state.map { |f| f['PersonalID'] } }
+
+      # Record id => new PersonalID
+      record_to_personal_id = {}
+      dangling_records.each do |record|
+        match = merged_personal_ids.find { |arr| arr.include?(record.personal_id) }
+        new_personal_id = if match.size == 2
+          match.excluding(record.personal_id).first
+        else
+          Hmis::Hud::Client.hmis.where(personal_id: match).first&.personal_id
+        end
+        next unless new_personal_id
+
+        record_to_personal_id[record.id] = new_personal_id
+      end
+
+      dangling_records_by_id = dangling_records.index_by(&:id)
+
+      Rails.logger.info "Updating #{record_to_personal_id.size} records..."
+      without_papertrail_or_timestamps do
+        record_to_personal_id.each do |id, personal_id|
+          dangling_records_by_id[id].update_columns(personal_id: personal_id)
+        end
+      end
+
+      remaining_dangling = dangling_records.reload.size
+      if remaining_dangling.zero?
+        Rails.logger.info 'Success: all dangling records fixed!'
+      else
+        Rails.logger.info "WARNING: #{remaining_dangling} dangling records remain"
+      end
+    end
   end
 end

@@ -178,7 +178,7 @@ module CasClientData
       when :active_clients
         range = GrdaWarehouse::Config.cas_sync_range
         # Homeless or Coordinated Entry
-        enrollment_scope = service_history_enrollments.in_project_type([1, 2, 4, 8, 14])
+        enrollment_scope = service_history_enrollments.in_project_type([0, 1, 2, 4, 8, 14])
         if GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
           enrollment_scope.with_service_between(
             start_date: range.first,

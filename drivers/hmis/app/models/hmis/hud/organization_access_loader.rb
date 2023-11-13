@@ -13,11 +13,11 @@ class Hmis::Hud::OrganizationAccessLoader < Hmis::BaseAccessLoader
     validate_items(items, Hmis::Hud::Organization)
     organization_ids = items.map { |i| i.first.id }.compact.uniq
 
-    access_group_ids_by_organization_id = Hmis::Hud::Organization
-      .where(id: organization_ids)
-      .joins(:group_viewable_entities)
-      .pluck(arel.o_t[:id], 'group_viewable_entities.access_group_id')
-      .group_by(&:shift).transform_values(&:flatten)
+    access_group_ids_by_organization_id = Hmis::Hud::Organization.
+      where(id: organization_ids).
+      joins(:group_viewable_entities).
+      pluck(arel.o_t[:id], 'hmis_group_viewable_entities.collection_id').
+      group_by(&:shift).transform_values(&:flatten)
 
     items.map do |item|
       organization, permission = item

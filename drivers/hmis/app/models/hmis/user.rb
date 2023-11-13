@@ -116,6 +116,8 @@ class Hmis::User < ApplicationRecord
   end
 
   def entities_with_permissions(model, *permissions, mode: :any)
+    raise "missing data source on user id #{id}" unless hmis_data_source_id
+
     # Get all the roles that have this permission
     roles_with_permission = Hmis::Role.with_permissions(*permissions, mode: mode).pluck(:id)
 
@@ -125,7 +127,7 @@ class Hmis::User < ApplicationRecord
     access_group_ids = access_controls.where(role_id: roles_with_permission).pluck(:access_group_id)
 
     entity_ids = Hmis::GroupViewableEntity.where(
-      access_group_id: access_group_ids,
+      collection_id: access_group_ids,
       entity_type: model.sti_name,
     ).select(:entity_id)
 
@@ -147,10 +149,6 @@ class Hmis::User < ApplicationRecord
 
   def viewable_projects
     viewable Hmis::Hud::Project
-  end
-
-  def viewable_project_access_groups
-    viewable GrdaWarehouse::ProjectAccessGroup
   end
 
   def viewable_project_ids
@@ -184,10 +182,6 @@ class Hmis::User < ApplicationRecord
 
   def editable_projects
     editable Hmis::Hud::Project
-  end
-
-  def editable_project_access_groups
-    editable GrdaWarehouse::ProjectAccessGroup
   end
 
   def editable_project_ids

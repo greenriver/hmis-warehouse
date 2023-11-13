@@ -203,9 +203,12 @@ class AllNeighborsSystemDashboardStack {
 
   drawTotals(chart) {
     const sums = chart.categories().map((cat, i) => {
-      return d3.sum(chart.data().map((d) => {
-        return d3.format('.0f')(d.values[i].value)
-      }))
+      return {
+        text: d3.sum(
+          chart.data().map((d) => d3.format('.0f')(d.values[i].value))
+        ), 
+        value: d3.sum(chart.data().map((d) => d.values[i].value)),
+      }
     })
     const selector = chart.internal.config.bindto
     let container = d3.select(`${selector} .bb-main`)
@@ -426,10 +429,10 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
         const selector = this.internal.config.bindto
         $(`${selector} .bb-axis-x .tick line`).attr('x2', padding.left*-1)
         superDrawTotals(this)
-          .text((d) => d)
-          .attr('x', (d) => this.internal.scale.y(d))
+          .text((d) => d.text)
+          .attr('x', (d) =>  this.internal.scale.y(d.value))
           .attr('y', (d, i) => this.internal.scale.x(i))
-          .attr('transform', 'translate(30, 6)')
+          .attr('transform', (d) => d.value === 0 ? '' : 'translate(30, 6)')
         fitLabels(this)
         // add values to overall cards
         const overallIndex = series.map((d) => d.name).indexOf('Overall')
