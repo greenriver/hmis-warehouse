@@ -29,6 +29,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::ProjectsImporter, type: :mod
     end
 
     expect(GrdaWarehouse::Hud::Project.count).to eq(1)
+    expect(GrdaWarehouse::Hud::Project.first.project_type).to eq(1)
     expect(GrdaWarehouse::Hud::Funder.count).to eq(1)
     expect(GrdaWarehouse::Hud::Organization.count).to eq(1)
     expect(GrdaWarehouse::Hud::Inventory.count).to eq(20)

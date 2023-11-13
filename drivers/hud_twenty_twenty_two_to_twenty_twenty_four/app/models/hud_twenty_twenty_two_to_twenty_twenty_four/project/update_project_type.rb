@@ -10,6 +10,8 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::Project
       project_type = if row['ProjectType'].to_i == 1
         if row['TrackingMethod'].to_i == 3
           1
+        elsif row['TrackingMethod'].nil?
+          1 # Default to NBN if TrackingMethod is missing
         else
           0
         end
