@@ -19,6 +19,10 @@ module HudApr::Generators::Apr::Fy2024
       'APR'
     end
 
+    def self.file_prefix
+      "v1.2 #{short_name} #{fiscal_year}"
+    end
+
     def self.default_project_type_codes
       HudUtility2024.residential_project_type_numbers_by_code.keys
     end
