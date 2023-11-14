@@ -66,10 +66,10 @@ module HudReports::Destinations
         ['TOTAL', leavers_clause],
         [
           'Total persons exiting to positive housing destinations',
-          a_t[:project_type].in([1, 2]).
+          a_t[:project_type].in([0, 1, 2]).
             and(a_t[:destination].in(positive_destinations(1))).
             or(a_t[:project_type].eq(4).and(a_t[:destination].in(positive_destinations(4)))).
-            or(a_t[:project_type].not_in([1, 2, 4]).and(a_t[:destination].in(positive_destinations(8)))),
+            or(a_t[:project_type].not_in([0, 1, 2, 4]).and(a_t[:destination].in(positive_destinations(8)))),
         ],
         [
           'Total persons whose destinations excluded them from the calculation',

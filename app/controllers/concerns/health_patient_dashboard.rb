@@ -86,11 +86,11 @@ module HealthPatientDashboard
       end
       if filter[:manager_review].present?
         needs_filter = true
-        patients_with_needs += current_careplans.select { |_, v| v.reviewed_by_ccm_on.blank? }.values.map(&:patient_id)
+        patients_with_needs += current_careplans.select { |_, v| v.reviewed_by_ccm_on.blank? && v.reviewed_by_rn_on.present? }.values.map(&:patient_id)
       end
       if filter[:sent_to_pcp].present?
         needs_filter = true
-        patients_with_needs += current_careplans.select { |_, v| v.sent_to_pcp_on.blank? }.values.map(&:patient_id)
+        patients_with_needs += current_careplans.select { |_, v| v.sent_to_pcp_on.blank? && v.reviewed_by_ccm_on.present? && v.reviewed_by_rn_on.present? }.values.map(&:patient_id)
       end
 
       if needs_filter

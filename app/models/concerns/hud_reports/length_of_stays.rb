@@ -41,10 +41,6 @@ module HudReports::LengthOfStays
       ).pluck(:head_of_household_id)
     end
 
-    private def hoh_exit_dates
-      @hoh_exit_dates ||= universe.members.where(hoh_clause).pluck(a_t[:head_of_household_id], a_t[:last_date_in_program]).to_h
-    end
-
     private def hoh_entry_dates
       @hoh_entry_dates ||= {}.tap do |entries|
         enrollment_scope.where(client_id: client_scope).heads_of_households.

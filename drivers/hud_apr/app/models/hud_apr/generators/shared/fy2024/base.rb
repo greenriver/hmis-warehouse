@@ -321,6 +321,7 @@ module HudApr::Generators::Shared::Fy2024
                 head_of_household: last_service_history_enrollment[:head_of_household],
                 household_members: household_member_data(last_service_history_enrollment, household_calculation_date),
                 first_date_in_program: last_service_history_enrollment.first_date_in_program,
+                age: age,
               ),
             ),
             pit_enrollments: pit_enrollment_info(enrollments),
@@ -363,6 +364,7 @@ module HudApr::Generators::Shared::Fy2024
                   head_of_household: last_service_history_enrollment[:head_of_household],
                   household_members: household_member_data(last_service_history_enrollment, household_calculation_date),
                   first_date_in_program: last_service_history_enrollment.first_date_in_program,
+                  age: age,
                 ),
               ),
               ce_assessment_date: ce_latest_assessment&.AssessmentDate,
@@ -574,7 +576,7 @@ module HudApr::Generators::Shared::Fy2024
           when 0, 1, 2, 8, 9, 10 # Other residential
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) # Exclude exit date
-          else # Other project types (4, 6, 11)
+          else # Other project types (4, 6, 7, 11, 12, 14)
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program >= pit_date) # Include the exit date
           end
