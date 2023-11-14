@@ -315,7 +315,7 @@ module GrdaWarehouse
       steps = []
       value = enrollment.LOSUnderThreshold
       result = if is_no?(value)
-        is_no?(value)
+       :no
       elsif value.present?
         :continue
       else
@@ -327,7 +327,7 @@ module GrdaWarehouse
 
       value = enrollment.PreviousStreetESSH
       result = if is_no?(value)
-        is_no?(value)
+        :no
       elsif value.present?
         :continue
       else
