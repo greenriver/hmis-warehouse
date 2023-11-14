@@ -86,6 +86,11 @@ module HudReports::Incomes
       total_amount.present? && total_amount.positive?
     end
 
+    private def missing_income?(universe_client, suffix)
+      col = "income_total_at_#{suffix}"
+      universe_client.send(col).in?([nil, 99])
+    end
+
     private def income_for_category?(universe_client, category:, suffix:)
       case category
       when :earned
@@ -198,17 +203,15 @@ module HudReports::Incomes
           {
             'Adults with Missing Income Information' => a_t[:annual_assessment_expected].eq(true).
               and(a_t[:annual_assessment_in_window].eq(true)).
-              and(a_t["income_from_any_source_at_#{suffix}"].eq(99).
-                or(a_t["income_from_any_source_at_#{suffix}"].eq(nil)).
-                and(a_t["income_sources_at_#{suffix}"].not_eq(nil))),
+              and(a_t["income_total_at_#{suffix}"].eq(99).
+                or(a_t["income_total_at_#{suffix}"].eq(nil))),
           },
         )
       else
         responses.merge!(
           {
-            'Adults with Missing Income Information' => a_t["income_from_any_source_at_#{suffix}"].eq(99).
-              or(a_t["income_from_any_source_at_#{suffix}"].eq(nil)).
-              and(a_t["income_sources_at_#{suffix}"].not_eq(nil)),
+            'Adults with Missing Income Information' => a_t["income_total_at_#{suffix}"].eq(99).
+              or(a_t["income_total_at_#{suffix}"].eq(nil)),
           },
         )
       end

@@ -369,7 +369,7 @@ module Health
     end
 
     # Dashboard scopes
-    scope :needs_f2f, ->(on: Date.current) do
+    scope :needs_f2f, ->(on: Date.current.end_of_month) do
       f2f_range = on - 60.days .. on
 
       where.not(id: Health::QualifyingActivity.
@@ -380,32 +380,53 @@ module Health
         select(:patient_id))
     end
 
-    scope :needs_qa, ->(on: Date.current) do
+    scope :needs_qa, ->(on: Date.current.end_of_month) do
       without_intake_query = intake_required.
-        where(id: Health::QualifyingActivity.
+        where.not(id: Health::QualifyingActivity.
           payable.
           not_valid_unpayable.
           in_range(on - 30.days .. on).
-          select(:patient_id))
-      with_intake_query = where(id: Health::QualifyingActivity.
-        payable.
-        not_valid_unpayable.
-        in_range(on - 60.days .. on).
-        select(:patient_id))
-      where.not(id: without_intake_query).and(where.not(id: with_intake_query))
+          select(:patient_id)).
+        select(:id)
+      with_intake_query = has_intake.
+        where.not(id: Health::QualifyingActivity.
+          payable.
+          not_valid_unpayable.
+          in_range(on - 60.days .. on).
+          select(:patient_id)).
+        select(:id)
+      where(id: without_intake_query).or(where(id: with_intake_query))
     end
 
-    scope :needs_intake, ->(on: Date.current) do
+    scope :needs_intake, ->(on: Date.current.end_of_month) do
+      intake_due(on: on).or(intake_overdue(on: on))
+    end
+
+    scope :intake_due, ->(on: Date.current.end_of_month) do
       intake_required.where(engagement_date: on - 30.days ..)
     end
 
-    scope :intake_required, -> do
-      where.not(id: Health::PctpCareplan.sent.select(:patient_id))
+    scope :intake_overdue, ->(on: Date.current.end_of_month) do
+      intake_required.where(engagement_date: ... on)
     end
 
-    scope :needs_renewal, ->(on: Date.current) do
+    scope :has_intake, -> do
+      where(id: Health::PctpCareplan.sent.select(:patient_id))
+    end
+
+    scope :intake_required, -> do
+      where.not(id: Health::PctpCareplan.sent.select(:patient_id)).
+        or(where(id: where.missing(:pctp_careplans).select(:id)))
+    end
+
+    scope :needs_renewal, ->(on: Date.current.end_of_month) do
       joins(:recent_pctp_careplan).
         merge(Health::PctpCareplan.recent.sent_within(.. on - 335.days)) # 1 year - 30 days
+    end
+
+    scope :overdue_for_renewal, ->(on: Date.current.end_of_month) do
+      joins(:recent_pctp_careplan).
+        merge(Health::PctpCareplan.recent.sent_within(.. on - 365.days)) # 1 year
     end
 
     # For now, all patients are visible to all health users

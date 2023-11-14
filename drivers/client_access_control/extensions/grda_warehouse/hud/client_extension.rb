@@ -173,7 +173,7 @@ module ClientAccessControl::GrdaWarehouse::Hud
             project = entry.project
             organization = entry.organization
             dates_served = entry.service_history_services.where(record_type: service_types).distinct.pluck(:date)
-            project_name = if project.confidential? && ! include_confidential_names
+            project_name = if project.confidential_for_user?(user)
               project.safe_project_name
             else
               cocs = ''

@@ -21,3 +21,8 @@ Rails.application.config.hud_reports['HudPathReport::Generators::Fy2021::Generat
   title: 'Annual PATH Report',
   helper: 'hud_reports_paths_path',
 }
+
+Rails.application.config.hud_reports['HudPathReport::Generators::Fy2024::Generator'] = {
+  title: 'Annual PATH Report',
+  helper: 'hud_reports_paths_path',
+}

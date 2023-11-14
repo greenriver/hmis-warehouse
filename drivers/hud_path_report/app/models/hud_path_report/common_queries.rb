@@ -22,6 +22,11 @@ module HudPathReport::CommonQueries
         and(a_t[:enrolled_client].eq(true))
     end
 
+    def active_and_newly_enrolled_clients
+      a_t[:active_client].eq(true).
+        and(a_t[:newly_enrolled_client].eq(true))
+    end
+
     def all_members
       Arel.sql('1 = 1')
     end
@@ -48,7 +53,7 @@ module HudPathReport::CommonQueries
     end
 
     def received_service(service)
-    "jsonb_path_exists (#{a_t[:services].to_sql}, '$.* ? (@ == #{service})')"
+      "jsonb_path_exists (#{a_t[:services].to_sql}, '$.* ? (@ == #{service})')"
     end
   end
 end

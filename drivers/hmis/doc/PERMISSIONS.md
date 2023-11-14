@@ -40,7 +40,6 @@ When checking if a user has permission on a given entity, each type of entity re
 - `Hmis::Hud::Project`
 - `Hmis::Hud::Organization`
 - `GrdaWarehouse::DataSource`
-- `GrdaWarehouse::ProjectAccessGroup`
 
 Once the permissions base is determined, the permission check involves determining whether the user is connected to an `AccessControl` that meets the following conditions:
 
