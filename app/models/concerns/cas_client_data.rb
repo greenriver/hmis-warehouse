@@ -174,11 +174,11 @@ module CasClientData
       when :hud_chronic
         hud_chronics.where(hud_chronics: { date: GrdaWarehouse::HudChronic.most_recent_day }).exists?
       when :release_present
-        [self.class.full_release_string, self.class.partial_release_string].include?(housing_release_status)
+        any_release_on_file?
       when :active_clients
         range = GrdaWarehouse::Config.cas_sync_range
         # Homeless or Coordinated Entry
-        enrollment_scope = service_history_enrollments.in_project_type([1, 2, 4, 8, 14])
+        enrollment_scope = service_history_enrollments.in_project_type([0, 1, 2, 4, 8, 14])
         if GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
           enrollment_scope.with_service_between(
             start_date: range.first,
@@ -194,6 +194,17 @@ module CasClientData
       when :project_group
         project_ids = GrdaWarehouse::Config.cas_sync_project_group.projects.ids
         service_history_enrollments.ongoing.in_project(project_ids).exists?
+      when :boston
+        # Enrolled in project in the project group
+        project_ids = GrdaWarehouse::Config.cas_sync_project_group.projects.ids
+        project_group_scope = service_history_enrollments.ongoing
+        project_group_scope = project_group_scope.in_project(project_ids) if project_ids.any?
+
+        # current requirement:
+        # 1. an ongoing enrollment at a project in the chosen group (if no group, just an ongoing enrollment)
+        # 2. a release of some sort on file
+        # 3. Pathways or Transfer assessment on file (currently no date range restriction)
+        project_group_scope.exists? && any_release_on_file? && most_recent_pathways_or_rrh_assessment_for_destination.present?
       else
         raise NotImplementedError
       end
@@ -219,6 +230,10 @@ module CasClientData
         return 'Expired' unless consent_form_valid? && consent_confirmed?
       end
       return Translation.translate(housing_release_status)
+    end
+
+    private def any_release_on_file?
+      [self.class.full_release_string, self.class.partial_release_string].include?(housing_release_status)
     end
 
     def health_prioritization_options

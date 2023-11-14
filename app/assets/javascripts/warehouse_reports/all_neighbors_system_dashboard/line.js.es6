@@ -34,6 +34,12 @@ class AllNeighborsSystemDashboardLine {
     return false
   }
 
+  getMonthlyTotals() {
+    return this.monthlyCounts[0].filter((d) => {
+      return this.inDateRange(d[0], this.state.dateRange)
+    }).map((d) => d[1])
+  }
+
   getColumns() {
     let xCols = ['x']
     let keyCols = (this.config.keys || []).map((key, i) => {
@@ -65,6 +71,10 @@ class AllNeighborsSystemDashboardLine {
 
   getAxisConfig() {
     return {
+      y: {
+        min: 0,
+        padding: 0,
+      },
       x: {
         type: "timeseries",
         tick: {
@@ -111,7 +121,7 @@ class AllNeighborsSystemDashboardLine {
       tooltip: {
         contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
           const index = d[0].index
-          const monthlyCount = this.monthlyCounts[0][index][1]
+          const monthlyCount = this.getMonthlyTotals()[index]
           let html = "<table class='bb-tooltip'>"
           html += "<thead>"
           html += `<tr><th colspan='2'>${defaultTitleFormat(d[0].x)}</th></tr>`

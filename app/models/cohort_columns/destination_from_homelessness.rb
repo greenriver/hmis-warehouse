@@ -10,6 +10,8 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :destination_from_homelessness
     attribute :translation_key, String, lazy: true, default: 'Recent Exits from Homelessness'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
+    attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }
+    attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def value(cohort_client) # OK
       # This will return a hidden span with the most recent date for sorting as part of the display value

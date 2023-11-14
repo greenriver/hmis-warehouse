@@ -21,7 +21,13 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   has_many :names, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client, dependent: :destroy
-  has_many :addresses, **hmis_relation(:PersonalID, 'CustomClientAddress'), inverse_of: :client, dependent: :destroy
+  has_many(
+    :addresses,
+    # Exclude enrollment addresses from client record (per spec). This prevents client addresses from
+    # clobbering enrollment.addresses when saved via accepts_nested_attributes_for
+    -> { where(EnrollmentID: nil) },
+    **hmis_relation(:PersonalID, 'CustomClientAddress'), inverse_of: :client, dependent: :destroy,
+  )
   has_many :contact_points, **hmis_relation(:PersonalID, 'CustomClientContactPoint'), inverse_of: :client, dependent: :destroy
   has_many :custom_case_notes, **hmis_relation(:PersonalID, 'CustomCaseNote'), inverse_of: :client, dependent: :destroy
   has_one :primary_name, -> { where(primary: true) }, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client

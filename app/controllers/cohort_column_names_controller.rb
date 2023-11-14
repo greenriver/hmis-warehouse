@@ -19,11 +19,22 @@ class CohortColumnNamesController < ApplicationController
 
   def translate_columns(translations)
     columns = cohort_source.available_columns
+
     columns.each do |column|
       next unless column.attributes.include?(:translation_key)
 
       proposed_translation = translations[column.column]
       key = column.translation_key
+      translation = Translation.where(key: key).first_or_create
+      translation.update(text: proposed_translation)
+      Translation.invalidate_translation_cache(key) # force re-calculation
+    end
+
+    columns.each do |column|
+      next unless column.attributes.include?(:description_translation_key)
+
+      proposed_translation = translations["#{column.column}_description"].presence
+      key = column.description_translation_key
       translation = Translation.where(key: key).first_or_create
       translation.update(text: proposed_translation)
       Translation.invalidate_translation_cache(key) # force re-calculation

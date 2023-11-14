@@ -9,13 +9,11 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :last_intentional_contact_location
     attribute :translation_key, String, lazy: true, default: 'Last Intentional Contacts'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
+    attribute :description_translation_key, String, lazy: true, default: 'Locations of the most recent client contact'
+    attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def available_for_rules?
       false
-    end
-
-    def description
-      'Locations of the most recent client contact'
     end
 
     def display_read_only(user)

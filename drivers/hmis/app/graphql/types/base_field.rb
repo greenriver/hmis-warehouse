@@ -6,9 +6,12 @@
 
 module Types
   class BaseField < GraphQL::Schema::Field
+    include GraphqlPermissionChecker
     argument_class Types::BaseArgument
 
-    def initialize(*args, default_value: nil, **kwargs, &block)
+    def initialize(*args, default_value: nil, permissions: nil, **kwargs, &block)
+      @permissions = Array.wrap(permissions)
+
       super(*args, **kwargs, &block)
 
       extension(DefaultValueExtension, default_value: default_value) if default_value.present?
@@ -17,6 +20,20 @@ module Types
       return unless return_type.is_a?(Class) && return_type < BasePaginated
 
       extension(PaginationWrapperExtension)
+    end
+
+    # Field-level authorization
+    # https://graphql-ruby.org/authorization/authorization.html#field-authorization
+    def authorized?(object, args, ctx)
+      # if `permissions:` was given, then require the current user to have the specified permissions on the object
+      base_authorized = super(object, args, ctx)
+      if @permissions.any?
+        base_authorized && @permissions.all? do |perm|
+          current_permission_for_context?(ctx, permission: perm, entity: object)
+        end
+      else
+        base_authorized
+      end
     end
 
     def filters_argument(node_class, arg_name = :filters, type_name: nil, omit: [], **kwargs)

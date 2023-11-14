@@ -579,8 +579,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   private def maintain_system_group
     if Rails.env.test?
       AccessGroup.maintain_system_groups(group: :data_sources)
+      Collection.maintain_system_groups(group: :data_sources)
     else
       AccessGroup.delayed_system_group_maintenance(group: :data_sources)
+      Collection.delayed_system_group_maintenance(group: :data_sources)
     end
   end
 

@@ -165,7 +165,8 @@ FY2023 Changes
 		, lp.ExportID	
 	from hmis_HMISParticipation hp
 	inner join lsa_Project lp on lp.ProjectID = hp.ProjectID
-	where hp.DateDeleted is null
+	where hp.DateDeleted is null 
+		and (lp.OperatingEndDate is null or lp.OperatingEndDate >= (select ReportStart from lsa_Report))
 
 	
 /*

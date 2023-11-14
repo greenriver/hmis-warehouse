@@ -305,56 +305,9 @@ module Health
 
     # CP 2 relaxed the requirements for the PCTP so that it required in-house clinical approval instead of needing
     # to be approved by the patients PCP.
+    # Oct 31, 2023: simplified engagement to be based on PCTP being sent to PCP in the last year
     def self.cp_2_engagement(on) # rubocop:disable Naming/MethodParameterName
-      ssm_patient_id_scope = Health::HrsnScreening.distinct.
-        completed_within(..on.to_time).
-        allowed_for_engagement.
-        select(:patient_id)
-
-      epic_ssm_patient_id_scope = Health::EpicSsm.distinct.
-        allowed_for_engagement.
-        where(ssm_updated_at: (..on.to_time)).
-        select(hp_t[:id].to_sql)
-
-      release_form_patient_id_scope = Health::ReleaseForm.distinct.
-        valid.
-        allowed_for_engagement.
-        select(:patient_id)
-
-      cha_patient_id_scope = Health::CaAssessment.distinct.
-        completed.
-        allowed_for_engagement.
-        completed_within(..on.to_time).
-        select(:patient_id)
-
-      epic_cha_patient_id_scope = Health::EpicCha.distinct.
-        allowed_for_engagement.
-        where(cha_updated_at: (..on.to_time)).
-        select(hp_t[:id].to_sql)
-
-      pctp_signed_patient_id_scope = Health::PctpCareplan.distinct.
-        rn_approved.
-        reviewed_within(..on.to_time).
-        select(:patient_id)
-
-      where(
-        arel_table[:id].in(Arel.sql(release_form_patient_id_scope.to_sql)).
-          and(
-            arel_table[:id].in(Arel.sql(cha_patient_id_scope.to_sql)).
-              or(
-                arel_table[:id].in(Arel.sql(epic_cha_patient_id_scope.to_sql)),
-              ),
-          ).
-          and(
-            arel_table[:id].in(Arel.sql(ssm_patient_id_scope.to_sql)).
-              or(
-                arel_table[:id].in(Arel.sql(epic_ssm_patient_id_scope.to_sql)),
-              ),
-          ).
-          and(
-            arel_table[:id].in(Arel.sql(pctp_signed_patient_id_scope.to_sql)),
-          ),
-      )
+      where(id: Health::PctpCareplan.recent.sent_within(on - 365.days .. on).select(:patient_id))
     end
 
     scope :engagement_required_by, ->(date) do
@@ -413,6 +366,67 @@ module Health
     scope :engaged_for, ->(range) do
       where(id: Health::StatusDate.engaged.group(h_sd_t[:patient_id]).
         having(nf('count', [h_sd_t[:patient_id]]).between(range)).select(:patient_id))
+    end
+
+    # Dashboard scopes
+    scope :needs_f2f, ->(on: Date.current.end_of_month) do
+      f2f_range = on - 60.days .. on
+
+      where.not(id: Health::QualifyingActivity.
+        payable.
+        not_valid_unpayable.
+        face_to_face.
+        in_range(f2f_range).
+        select(:patient_id))
+    end
+
+    scope :needs_qa, ->(on: Date.current.end_of_month) do
+      without_intake_query = intake_required.
+        where.not(id: Health::QualifyingActivity.
+          payable.
+          not_valid_unpayable.
+          in_range(on - 30.days .. on).
+          select(:patient_id)).
+        select(:id)
+      with_intake_query = has_intake.
+        where.not(id: Health::QualifyingActivity.
+          payable.
+          not_valid_unpayable.
+          in_range(on - 60.days .. on).
+          select(:patient_id)).
+        select(:id)
+      where(id: without_intake_query).or(where(id: with_intake_query))
+    end
+
+    scope :needs_intake, ->(on: Date.current.end_of_month) do
+      intake_due(on: on).or(intake_overdue(on: on))
+    end
+
+    scope :intake_due, ->(on: Date.current.end_of_month) do
+      intake_required.where(engagement_date: on - 30.days ..)
+    end
+
+    scope :intake_overdue, ->(on: Date.current.end_of_month) do
+      intake_required.where(engagement_date: ... on)
+    end
+
+    scope :has_intake, -> do
+      where(id: Health::PctpCareplan.sent.select(:patient_id))
+    end
+
+    scope :intake_required, -> do
+      where.not(id: Health::PctpCareplan.sent.select(:patient_id)).
+        or(where(id: where.missing(:pctp_careplans).select(:id)))
+    end
+
+    scope :needs_renewal, ->(on: Date.current.end_of_month) do
+      joins(:recent_pctp_careplan).
+        merge(Health::PctpCareplan.recent.sent_within(.. on - 335.days)) # 1 year - 30 days
+    end
+
+    scope :overdue_for_renewal, ->(on: Date.current.end_of_month) do
+      joins(:recent_pctp_careplan).
+        merge(Health::PctpCareplan.recent.sent_within(.. on - 365.days)) # 1 year
     end
 
     # For now, all patients are visible to all health users

@@ -33,7 +33,7 @@ class SourceDataController < ApplicationController
     return unless @importers.present?
 
     @importer = @importers.max_by do |importer|
-      [@item.imported_item_type(importer.id), @importer&.created_at]
+      [@item.imported_item_type(importer.id), importer&.created_at]
     end
 
     # Only show current data for HMIS records

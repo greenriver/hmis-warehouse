@@ -36,7 +36,7 @@
           %td
             = column.title
           %td
-            = column.description
+            = if column.show_description? then column.description else '' end
   = f.submit value: 'Update Cohort', class: 'btn btn-primary'
 
 - content_for :page_js do

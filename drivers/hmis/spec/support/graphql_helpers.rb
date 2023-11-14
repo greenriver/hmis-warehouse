@@ -68,7 +68,7 @@ module GraphqlHelpers
   def expect_gql_error(arr, message: nil)
     response, result = arr
     error_message = result.dig('errors', 0, 'message')
-    expect(response.status).to eq 500
+    expect(response.status).to eq(500), result.inspect
     expect(error_message).to be_present
     expect(error_message).to eq(message) if message.present?
   end
