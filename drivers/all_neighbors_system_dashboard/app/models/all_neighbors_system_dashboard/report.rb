@@ -65,7 +65,7 @@ module AllNeighborsSystemDashboard
     end
 
     def url
-      all_neighbors_system_dashboard_warehouse_reports_report_url(host: ENV.fetch('FQDN'), id: id, protocol: :https, format: :xlsx)
+      all_neighbors_system_dashboard_warehouse_reports_report_url(host: ENV.fetch('FQDN'), id: id, protocol: :https)
     end
 
     def a_t
