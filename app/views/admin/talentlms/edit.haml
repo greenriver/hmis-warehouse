@@ -1,0 +1,13 @@
+- title = 'Update TalentLMS Configuration'
+- content_for :title, title
+
+= render 'breadcrumbs'
+.row
+  .col-sm-4
+    %h1= content_for :title
+
+= simple_form_for @config, url: admin_talentlm_path(@config.id) do |f|
+  = f.error_notification
+  = render 'form', f: f
+  .form_actions.mt-4
+    = f.submit 'Save Configuration'
