@@ -71,7 +71,7 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
         ) - interval '30 days' - interval '1 year'
       SQL
 
-      # SQL-ized version of the logic here: drivers/hmis/app/models/hmis/reminders/reminder_generator.rbannual_assessment_reminder
+      # SQL-ized version of the logic here: drivers/hmis/app/models/hmis/reminders/reminder_generator.rb#annual_assessment_reminder
       scope = scope.
         joins(:household).
         joins(
