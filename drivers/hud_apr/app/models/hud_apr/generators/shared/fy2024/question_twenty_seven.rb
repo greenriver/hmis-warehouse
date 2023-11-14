@@ -512,7 +512,7 @@ module HudApr::Generators::Shared::Fy2024
 
     def q27m_education_status_youth
       # Youth heads of household who exited from YHDP-funded projects in the report date range
-      members = universe.members.where(leavers_clause).where(youth_filter).where(hoh_clause.and(a_t[:age].between(12..24)))
+      members = universe.members.where(leavers_clause).where(youth_filter).where(hoh_clause.and(a_t[:age].between(12..24)).and(a_t[:project_type].in([2, 3, 4, 6, 13])))
       question_sheet(question: 'Q27m') do |sheet|
         sheet.add_header(col: 'A', label: 'Current school and attendance')
         sheet.add_header(col: 'B', label: 'At Project Start')
