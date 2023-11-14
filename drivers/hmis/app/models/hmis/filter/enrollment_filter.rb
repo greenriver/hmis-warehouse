@@ -53,32 +53,49 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
 
   def with_household_tasks(scope)
     with_filter(scope, :household_tasks) do
-      if input.household_tasks&.include?('ANNUAL_DUE')
-        entry_anniversary = Arel.sql('make_date(extract(year from current_date)::integer, extract(month from "EntryDate")::integer, extract(day from "EntryDate")::integer)')
-        start_date = Arel.sql('make_date(extract(year from current_date)::integer, extract(month from "EntryDate")::integer, extract(day from "EntryDate")::integer) - interval \'30 days\'')
+      return scope.all unless input.household_tasks&.include?('ANNUAL_DUE')
 
-        assessment_ids = Hmis::Hud::CustomAssessment.
-          where(
-            enrollment_id: scope.pluck(:enrollment_id),
-            data_source_id: scope.joins(:project).pluck(p_t[:data_source_id]).uniq,
-            data_collection_stage: 5,
-            wip: false,
-          ).
-          pluck(:id)
+      start_date = Arel.sql <<~SQL
+        make_date(
+          extract(year from current_date)::integer,
+          extract(month from "EntryDate")::integer,
+          extract(day from "EntryDate")::integer
+        ) - interval '30 days'
+      SQL
 
-        # SQL-ized version of the logic here: drivers/hmis/app/models/hmis/reminders/reminder_generator.rb#annual_assessment_reminder
-        scope = scope.
-          left_outer_joins(:exit).
-          joins(e_t.join(cas_t, Arel::Nodes::OuterJoin).on(cas_t[:enrollment_id].eq(e_t[:enrollment_id]).and(cas_t[:id]).in(assessment_ids)).join_sources).
-          # Include anything where the entry date is outside of the year window
-          where(e_t[:entry_date].lteq(Date.today - 1.year + 30.days)).
-          # Include anything that isn't exited, or was exited after the entry anniversary
-          where(ex_t[:exit_date].eq(nil).or(ex_t[:exit_date].gt(entry_anniversary))).
-          # Include anything that was last assessed before the anniversary start date minus window
-          where(cas_t[:assessment_date].eq(nil).or(cas_t[:assessment_date].lt(start_date)))
-      end
+      last_start_date = Arel.sql <<~SQL
+        make_date(
+          extract(year from current_date)::integer,
+          extract(month from "EntryDate")::integer,
+          extract(day from "EntryDate")::integer
+        ) - interval '30 days' - interval '1 year'
+      SQL
 
-      scope
+      # SQL-ized version of the logic here: drivers/hmis/app/models/hmis/reminders/reminder_generator.rbannual_assessment_reminder
+      scope = scope.
+        joins(:household).
+        joins(
+          e_t.
+          join(cas_t, Arel::Nodes::OuterJoin).
+          on(
+            cas_t[:enrollment_id].eq(e_t[:enrollment_id]).
+            and(cas_t[:data_collection_stage]).eq(5).
+            and(cas_t[:wip]).eq(false),
+          ).join_sources,
+        ).
+        # Earliest entry was more than a year ago
+        where(hh_t[:earliest_entry].lteq(Date.today - 1.year)).
+        # Household is not exited
+        where(hh_t[:latest_exit].eq(nil)).
+        where(
+          # There haven't been any annual assessments yet
+          cas_t[:assessment_date].eq(nil).
+          # OR an annual assessment is now due for this year and hasn't been done yet
+          or(start_date.lteq(Date.today).and(cas_t[:assessment_date].lt(start_date))).
+          # OR an annual assessment is not due yet for this year but one was not done for last year
+          or(start_date.gteq(Date.today).and(cas_t[:assessment_date].lt(last_start_date))),
+        ).
+        distinct
     end
   end
 end

@@ -116,12 +116,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
 
       it 'should filter annuals due excluding enrollments exited before the entry anniversary' do
-        # Exited before the entry anniversary, annual is not due
+        # Has exited, annual is not due
         e4 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, entry_date: Date.today - 3.years)
         create(:hmis_hud_exit, enrollment: e4, data_source: ds1, client: c3, user: u1, exit_date: Date.today - 6.months)
-        # Exited after the entry anniversary, annual is due
+        # Has not exited, annual is due
         e5 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, entry_date: Date.today - 3.years)
-        create(:hmis_hud_exit, enrollment: e5, data_source: ds1, client: c3, user: u1).update(exit_date: Date.today + 2.months)
         response, result = post_graphql(id: p1.id, filters: { "householdTasks": ['ANNUAL_DUE'] }) { query }
         expect(response.status).to eq 200
         expect(result.dig('data', 'project', 'enrollments', 'nodes')).to contain_exactly(include('id' => e5.id.to_s))
@@ -134,10 +133,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         # Had an assessment today, annual is not due
         e5 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, entry_date: Date.today - 3.year)
         create(:hmis_custom_assessment, data_source: ds1, enrollment: e5, data_collection_stage: 5, assessment_date: Date.today)
+        # Annual not due yet this year, but assessment was not done last year, annual is due
+        e6 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, entry_date: Date.today - 3.year + 60.days)
+        create(:hmis_custom_assessment, data_source: ds1, enrollment: e6, data_collection_stage: 5, assessment_date: Date.today - 2.year + 60.days)
+        # Annual not due yet this year, but assessment was done last year, annual is not due
+        e7 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, entry_date: Date.today - 3.year + 60.days)
+        create(:hmis_custom_assessment, data_source: ds1, enrollment: e7, data_collection_stage: 5, assessment_date: Date.today - 1.year + 60.days)
 
         response, result = post_graphql(id: p1.id, filters: { "householdTasks": ['ANNUAL_DUE'] }) { query }
         expect(response.status).to eq 200
-        expect(result.dig('data', 'project', 'enrollments', 'nodes')).to contain_exactly(include('id' => e4.id.to_s))
+        expect(result.dig('data', 'project', 'enrollments', 'nodes')).to contain_exactly(include('id' => e4.id.to_s), include('id' => e6.id.to_s))
       end
     end
   end
