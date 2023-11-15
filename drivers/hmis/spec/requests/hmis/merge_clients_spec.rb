@@ -79,6 +79,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(response.status).to eq(200), result.inspect
       expect(Hmis::Hud::Client.where(id: client_ids1).size).to eq(1)
       expect(Hmis::Hud::Client.where(id: client_ids2).size).to eq(1)
+
+      # hijack this test, ensure deleted id search works
+      [
+        client_ids1,
+        client_ids2,
+      ].each do |ids|
+        ids.each do |id|
+          results = Hmis::Hud::Client.searchable_to(hmis_user).matching_search_term(id.to_s)
+          expect(results.map(&:id)).to contain_exactly(ids.first)
+        end
+      end
     end
 
     it 'should fail if user lacks permission' do
