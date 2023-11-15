@@ -55,6 +55,7 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
     with_filter(scope, :household_tasks) do
       return scope.all unless input.household_tasks&.include?('ANNUAL_DUE')
 
+      # Start of the 60-day window during which this year's Annual should be performed. (Anniversary - 30 days)
       start_date = Arel.sql <<~SQL
         make_date(
           extract(year from current_date)::integer,
