@@ -100,7 +100,7 @@ module
           dv_status_percentage(id) / 100,
         ]
       end
-      rows['*DV Victim/Survivor - Most Recent Occurance'] ||= []
+      rows['*DV Victim/Survivor - Most Recent Occurrence'] ||= []
       rows['*DV Occurrence Timing'] ||= []
       rows['*DV Occurrence Timing'] += ['Timing', nil, 'Count', 'Percentage', nil]
       ::HudUtility2024.when_occurreds.each do |id, title|

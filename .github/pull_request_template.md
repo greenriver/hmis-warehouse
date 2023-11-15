@@ -1,8 +1,12 @@
+[//]: # 'remove this if PR is for a release-* branch'
+# _Please squash merge this PR_
+
 ## Description
 
 Include a summary of the changes and a link to the related issue. List any dependencies that are required for this change.
 
 ## Type of change
+[//]: # 'remove options that are not relevant'
 - [ ] Bug fix
 - [ ] New feature (adds functionality)
 - [ ] Code clean-up / housekeeping
