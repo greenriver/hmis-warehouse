@@ -190,7 +190,7 @@ module BostonReports
     end
 
     private def zip_code_scope
-      enrolled_with_community_of_origin.group(:zipcode).count.
+      @zip_code_scope ||= enrolled_with_community_of_origin.group(:zipcode).count.
         sort_by(&:last).
         reverse # Ensure descending order
     end
