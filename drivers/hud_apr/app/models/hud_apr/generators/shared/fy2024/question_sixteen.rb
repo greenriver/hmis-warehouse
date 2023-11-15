@@ -67,12 +67,8 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def income_levels(suffix)
-      not_collected = a_t["income_total_at_#{suffix}".to_sym].eq(nil).
-        or(a_t["income_total_at_#{suffix}".to_sym].eq(0)).
-        and(
-          a_t["income_from_any_source_at_#{suffix}".to_sym].eq(99).
-          or(a_t["income_from_any_source_at_#{suffix}".to_sym].eq(nil)),
-        )
+      not_collected = a_t["income_total_at_#{suffix}".to_sym].eq(nil)
+
       # for annual assessments, only count as missing if the annual assessment actually happened
       not_collected = not_collected.and(a_t[:annual_assessment_in_window].eq(true)) if suffix == :annual_assessment
       {

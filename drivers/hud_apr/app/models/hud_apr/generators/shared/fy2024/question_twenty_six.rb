@@ -36,7 +36,7 @@ module HudApr::Generators::Shared::Fy2024
 
       cols = (metadata[:first_column]..metadata[:last_column]).to_a
       rows = (metadata[:first_row]..metadata[:last_row]).to_a
-      relevant_clients = universe.members.where(a_t[:project_type].in([0, 1, 2, 3, 4, 6, 8, 9, 10, 11, 12, 13, 14]))
+      relevant_clients = universe.members
       q26_populations.values.each_with_index do |population_clause, col_index|
         households = Set.new
         ch_categories.values.each_with_index do |ch_clause, row_index|

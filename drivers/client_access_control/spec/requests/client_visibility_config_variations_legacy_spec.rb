@@ -44,14 +44,14 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request, vcr: true
   configs_variations.each do |variation|
     context "when using variable configs #{variation}" do
       before(:all) do
-        if variation[:cas_available_method] == :project_group
+        if variation[:cas_available_method].in?([:project_group, :boston])
           @cas_project_group = GrdaWarehouse::ProjectGroup.new(name: 'test group for cas sync config')
           @cas_project_group.save!
           variation[:cas_sync_project_group_id] = @cas_project_group.id
         end
       end
       after(:all) do
-        @cas_project_group.destroy if variation[:cas_available_method] == :project_group
+        @cas_project_group.destroy if variation[:cas_available_method].in?([:project_group, :boston])
       end
 
       before do
