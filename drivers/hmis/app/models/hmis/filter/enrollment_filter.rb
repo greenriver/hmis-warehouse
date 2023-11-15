@@ -90,7 +90,7 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
         # Household is not exited
         where(hh_t[:latest_exit].eq(nil)).
         where(
-          # There haven't been any annual assessments yet
+          # This enrollment has not had any annual assessments
           cas_t[:assessment_date].eq(nil).
           # OR an annual assessment is now due for this year and hasn't been done yet
           or(start_date.lteq(Date.today).and(cas_t[:assessment_date].lt(start_date))).
