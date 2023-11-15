@@ -159,9 +159,24 @@ type ApplicationUser {
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
+  email: String
   id: ID!
   name: String!
   recentItems: [OmnisearchResult!]!
+}
+
+input ApplicationUserFilterOptions {
+  searchTerm: String
+}
+
+type ApplicationUsersPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ApplicationUser!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """
@@ -7721,6 +7736,7 @@ type ProjectsPaginated {
 
 type Query {
   access: QueryAccess!
+  applicationUsers(filters: ApplicationUserFilterOptions, limit: Int, offset: Int): ApplicationUsersPaginated!
 
   """
   Assessment lookup
@@ -7840,6 +7856,7 @@ type QueryAccess {
   canEditOrganization: Boolean!
   canEditProjectDetails: Boolean!
   canEnrollClients: Boolean!
+  canImpersonateUsers: Boolean!
   canManageAnyClientFiles: Boolean!
   canManageDeniedReferrals: Boolean!
   canManageIncomingReferrals: Boolean!
