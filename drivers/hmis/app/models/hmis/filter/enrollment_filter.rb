@@ -86,7 +86,7 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
           ).join_sources,
         ).
         # Earliest entry was more than a year ago
-        where(hh_t[:earliest_entry].lteq(Date.today - 1.year)).
+        where(hh_t[:earliest_entry].lteq(Date.today - 11.months)).
         # Household is not exited
         where(hh_t[:latest_exit].eq(nil)).
         where(
