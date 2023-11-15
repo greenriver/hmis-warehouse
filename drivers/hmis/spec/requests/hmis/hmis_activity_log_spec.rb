@@ -24,8 +24,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let(:operation_name) { 'getTestProject' }
     let(:project_query) do
       <<~GRAPHQL
-        query #{operation_name}($id: ID!) {
-          project(id: $id) {
+        query #{operation_name}($projectId: ID!, $clientId: ID!) {
+          client(id: $clientId) {
+            id
+            ssn
+          }
+          project(id: $projectId) {
             id
             projectName
             projectType
@@ -48,12 +52,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       queries = [
         {
           query: project_query,
-          variables: { 'id' => p1.id.to_s },
+          variables: { 'projectId' => p1.id.to_s, 'clientId' => c1.id.to_s },
           operation_name: operation_name,
         },
         {
           query: project_query,
-          variables: { 'id' => p2.id.to_s },
+          variables: { 'projectId' => p2.id.to_s, 'clientId' => c1.id.to_s },
           operation_name: operation_name,
         },
       ]
@@ -71,12 +75,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           operation_name: query[:operation_name],
           headers: headers,
         )
-        check_project_fields(log, project_id: query.dig(:variables, 'id'))
+        check_project_fields(
+          log,
+          project_id: query.dig(:variables, 'projectId'),
+          client_id: query.dig(:variables, 'clientId'),
+        )
       end
     end
 
     it 'should log a single query' do
-      variables = { 'id' => p1.id.to_s }
+      variables = { 'projectId' => p1.id.to_s, 'clientId' => c1.id.to_s }
       expect do
         response, _result = post_graphql_single(variables: variables, headers: headers, operation_name: operation_name, query: project_query)
         expect(response.status).to eq 200
@@ -84,7 +92,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       log = Hmis::ActivityLog.order(:id).last
       check_log(log, user: user, variables: variables, operation_name: operation_name, headers: headers)
-      check_project_fields(log, project_id: p1.id)
+      check_project_fields(log, project_id: p1.id, client_id: c1.id)
     end
   end
 
@@ -128,13 +136,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(log.header_project_id).to eq(headers['X-Hmis-Project-Id'])
   end
 
-  def check_project_fields(log, project_id:)
+  def check_project_fields(log, project_id:, client_id:)
     project = Hmis::Hud::Project.find(project_id)
     organization = project.organization
     expect(log.resolved_fields).to eq(
       {
-        "Project/#{project.id}" => ['id', 'projectName', 'projectType', 'organization'],
-        "Organization/#{organization.id}" => ['id'],
+        "Project/#{project.id}" => [],
+        "Organization/#{organization.id}" => [],
+        "Client/#{client_id}" => ['ssn'],
       },
     )
   end

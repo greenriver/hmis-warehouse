@@ -97,6 +97,14 @@ module Types
       current_permission_for_context?(context, permission: permission, entity: entity)
     end
 
+    # How should we log this field access? Return nil to skip. Override as needed
+    # @param [String] field_name
+    # @return [String, nil]
+    def activity_log_field_name(_field_name)
+      nil
+    end
+
+    # identify the current object
     def activity_log_object_identity
       return if self.class.should_skip_activity_log
 

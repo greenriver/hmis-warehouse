@@ -5,7 +5,6 @@
 ###
 
 class Hmis::GraphqlFieldLogger
-  attr_reader :collection
   def initialize
     @collection = {}
   end
@@ -23,7 +22,13 @@ class Hmis::GraphqlFieldLogger
 
     key = "#{object.class.graphql_name}/#{object_identity}"
     @collection[key] ||= []
-    @collection[key].push(field.name)
+
+    field_name = object.activity_log_field_name(field.name)
+    @collection[key].push(field_name) if field_name
     true
+  end
+
+  def collection
+    @collection.transform_values { |v| v.sort.uniq }
   end
 end
