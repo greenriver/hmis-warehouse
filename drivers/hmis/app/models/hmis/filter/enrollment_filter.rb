@@ -64,6 +64,7 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
         ) - interval '30 days'
       SQL
 
+      # Start of the 60-day window during which _last_ year's Annual should have been performed
       last_start_date = Arel.sql <<~SQL
         make_date(
           extract(year from current_date)::integer,
