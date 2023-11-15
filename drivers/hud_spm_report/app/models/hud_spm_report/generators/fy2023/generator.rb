@@ -27,7 +27,15 @@ module HudSpmReport::Generators::Fy2023
     end
 
     def self.questions
-      [].map do |q|
+      [
+        HudSpmReport::Generators::Fy2023::MeasureOne,
+        HudSpmReport::Generators::Fy2023::MeasureTwo,
+        HudSpmReport::Generators::Fy2023::MeasureThree,
+        HudSpmReport::Generators::Fy2023::MeasureFour,
+        HudSpmReport::Generators::Fy2023::MeasureFive,
+        HudSpmReport::Generators::Fy2023::MeasureSix,
+        HudSpmReport::Generators::Fy2023::MeasureSeven,
+      ].map do |q|
         [q.question_number, q]
       end.to_h.freeze
     end
