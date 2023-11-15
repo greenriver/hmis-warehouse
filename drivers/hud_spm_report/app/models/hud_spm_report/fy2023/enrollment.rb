@@ -148,14 +148,8 @@ module HudSpmReport::Fy2023
     end
 
     private_class_method def self.enrollments(filter)
-      report_start_date = filter.start
-      report_end_date = filter.end
-      lookback_start_date = report_start_date - 7.years
-      scope = GrdaWarehouse::Hud::Enrollment.preload(:client, :destination_client, :income_benefits, project: :funders).
-        open_during_range(lookback_start_date .. report_end_date)
-      # TODO: use filter
-
-      scope
+      scope = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(filter).enrollments
+      scope.preload(:client, :destination_client, :income_benefits, project: :funders)
     end
 
     private_class_method def self.household(filter)
