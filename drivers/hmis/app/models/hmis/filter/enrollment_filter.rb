@@ -60,8 +60,8 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
         make_date(
           extract(year from current_date)::integer,
           extract(month from "EntryDate")::integer,
-          extract(day from "EntryDate")::integer
-        ) - interval '1 month'
+          1
+        ) - interval '30 days' + "interval"((extract(day from "EntryDate")::integer - 1) || ' days')
       SQL
 
       # Start of the 60-day window during which _last_ year's Annual should have been performed
@@ -69,8 +69,8 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
         make_date(
           extract(year from current_date)::integer,
           extract(month from "EntryDate")::integer,
-          extract(day from "EntryDate")::integer
-        ) - interval '1 month' - interval '1 year'
+          1
+        ) - interval '30 days' + "interval"((extract(day from "EntryDate")::integer - 1) || ' days') - interval '1 year'
       SQL
 
       # SQL-ized version of the logic here: drivers/hmis/app/models/hmis/reminders/reminder_generator.rb#annual_assessment_reminder
