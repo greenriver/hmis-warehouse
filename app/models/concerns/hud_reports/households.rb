@@ -45,6 +45,12 @@ module HudReports::Households
       GrdaWarehouse::Hud::Client.age(date: date, dob: hoh_dob)
     end
 
+    private def hoh_exit_date(household_id)
+      return unless households[household_id]
+
+      households[household_id].detect { |hm| hm[:relationship_to_hoh] == 1 }&.try(:[], :exit_date)
+    end
+
     private def get_hh_id(service_history_enrollment)
       service_history_enrollment.household_id || "#{service_history_enrollment.enrollment_group_id}*HH"
     end
@@ -202,8 +208,13 @@ module HudReports::Households
       household_adults(universe_client).map { |member| member['source_client_id'] }
     end
 
+    # Per HUD:
+    # https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recCDGtYIVXlTmAvk
+    # . The glossary does not make reference to the "relationship to head of household" required to include a youth in this category. Q27b ("Parenting Youth") is a bit clearer in the following language: "Report all heads of household plus all adults (age 18 – 24) in the household in column B according to the age of the head of household (age < 18 on line 2, or 18-24 on line 3). Include all adults in the household regardless of [relationship to head of household],"
     private def youth_parent?(universe_client)
-      universe_client.head_of_household && only_youth?(universe_client) && youth_children?(universe_client)
+      age = universe_client.age
+      adult = age.present? && age >= 18
+      (universe_client.head_of_household || adult) && only_youth?(universe_client) && youth_children?(universe_client)
     end
 
     private def household_makeup(household_id, date)

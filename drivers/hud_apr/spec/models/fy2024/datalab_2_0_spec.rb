@@ -41,8 +41,8 @@ RSpec.describe 'Datalab 2024', type: :model do
   end
 
   if File.exist?('drivers/datalab_testkit/spec/fixtures/inputs/merged/source/Export.csv')
-    # include_context 'datalab multiple projects apr'
-    # include_context 'datalab organization a rrh apr'
+    include_context 'datalab multiple projects apr'
+    include_context 'datalab organization a rrh apr'
     # include_context 'datalab organization o sso apr'
     # include_context 'datalab organization o th apr'
     # include_context 'datalab organization s rrh apr'
