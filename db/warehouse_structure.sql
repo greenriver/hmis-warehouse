@@ -5599,7 +5599,7 @@ CREATE TABLE public.clh_locations (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    enrollment_id integer
+    enrollment_id bigint
 );
 
 
