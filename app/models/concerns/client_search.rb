@@ -38,13 +38,11 @@ module ClientSearch
         if term_is_possibly_pk
           conditions = [where, sa[:id].eq(text)]
 
-          # if we are dealing with HMIS client records, match against deleted/merged ids
-          if self == Hmis::Hud::Client
-            cmh_t = Hmis::ClientMergeHistory.arel_table
-            conditions.push(
-              sa[:id].in(cmh_t.project(:retained_client_id).where(cmh_t[:deleted_client_id].eq(text))),
-            )
-          end
+          # Match against deleted/merged ids
+          cmh_t = Hmis::ClientMergeHistory.arel_table
+          conditions.push(
+            sa[:id].in(cmh_t.project(:retained_client_id).where(cmh_t[:deleted_client_id].eq(text))),
+          )
           where = conditions.reduce(:or)
         end
       else
