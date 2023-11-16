@@ -4366,12 +4366,12 @@ enum HousingType {
 """
 An ISO 8601-encoded date
 """
-scalar ISO8601Date
+scalar ISO8601Date @specifiedBy(url: "https://tools.ietf.org/html/rfc3339")
 
 """
 An ISO 8601-encoded datetime
 """
-scalar ISO8601DateTime
+scalar ISO8601DateTime @specifiedBy(url: "https://tools.ietf.org/html/rfc3339")
 
 """
 V7.I
