@@ -159,9 +159,24 @@ type ApplicationUser {
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
+  email: String
   id: ID!
   name: String!
   recentItems: [OmnisearchResult!]!
+}
+
+input ApplicationUserFilterOptions {
+  searchTerm: String
+}
+
+type ApplicationUsersPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ApplicationUser!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """
@@ -2846,6 +2861,13 @@ type EnrollmentAccess {
   id: ID!
 }
 
+enum EnrollmentFilterOptionHouseholdTask {
+  """
+  Annual Due
+  """
+  ANNUAL_DUE
+}
+
 enum EnrollmentFilterOptionStatus {
   """
   Active
@@ -2955,6 +2977,7 @@ type EnrollmentSummary {
 }
 
 input EnrollmentsForClientFilterOptions {
+  householdTasks: [EnrollmentFilterOptionHouseholdTask!]
   openOnDate: ISO8601Date
   projectType: [ProjectType!]
   status: [EnrollmentFilterOptionStatus!]
@@ -2962,6 +2985,7 @@ input EnrollmentsForClientFilterOptions {
 
 input EnrollmentsForProjectFilterOptions {
   bedNightOnDate: ISO8601Date
+  householdTasks: [EnrollmentFilterOptionHouseholdTask!]
   openOnDate: ISO8601Date
   searchTerm: String
   status: [EnrollmentFilterOptionStatus!]
@@ -7721,6 +7745,7 @@ type ProjectsPaginated {
 
 type Query {
   access: QueryAccess!
+  applicationUsers(filters: ApplicationUserFilterOptions, limit: Int, offset: Int): ApplicationUsersPaginated!
 
   """
   Assessment lookup
@@ -7840,6 +7865,7 @@ type QueryAccess {
   canEditOrganization: Boolean!
   canEditProjectDetails: Boolean!
   canEnrollClients: Boolean!
+  canImpersonateUsers: Boolean!
   canManageAnyClientFiles: Boolean!
   canManageDeniedReferrals: Boolean!
   canManageIncomingReferrals: Boolean!

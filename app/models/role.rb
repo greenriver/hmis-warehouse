@@ -5,6 +5,9 @@
 ###
 
 class Role < ApplicationRecord
+  acts_as_paranoid
+  has_paper_trail
+
   include UserPermissionCache
 
   # Keep for health roles

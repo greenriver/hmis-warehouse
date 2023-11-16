@@ -27,9 +27,12 @@ FactoryBot.define do
       ]
       dates[n % 5].to_date
     end
-    # after(:build) do |enrollment|
-    #   enrollment.data_source = enrollment.project.data_source
-    # end
+    transient do
+      exit_date { nil }
+    end
+    after(:create) do |enrollment, evaluator|
+      enrollment.exit = create(:hmis_hud_exit, exit_date: evaluator.exit_date, enrollment: enrollment, data_source: enrollment.data_source, client: enrollment.client) if evaluator.exit_date
+    end
   end
 
   factory :hmis_hud_wip_enrollment, parent: :hmis_hud_enrollment do
