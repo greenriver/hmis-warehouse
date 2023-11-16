@@ -172,6 +172,18 @@ class Hmis::User < ApplicationRecord
     )
   end
 
+  scope :viewable_by, ->(user) do
+    data_source_id = user.hmis_data_source_id
+    raise 'user missing data source id' unless data_source_id
+
+    return none unless user.permissions?(:can_impersonate_users)
+
+    # FIXME:
+    # perhaps there's some additional restriction needed here to prevent users
+    # from escalating privileges or jumping data sources within the app?
+    active.not_system.where(id: Hmis::UserGroupMember.pluck(:user_id))
+  end
+
   def editable_data_sources
     editable GrdaWarehouse::DataSource
   end
@@ -196,5 +208,9 @@ class Hmis::User < ApplicationRecord
       phone: phone,
       sessionDuration: Devise.timeout_in.in_seconds,
     }
+  end
+
+  def self.apply_filters(input)
+    Hmis::Filter::ApplicationUserFilter.new(input).filter_scope(self)
   end
 end

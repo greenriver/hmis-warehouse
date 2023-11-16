@@ -10,7 +10,7 @@ module Types
     field :can_view_enrollment, Boolean, null: false
 
     def project_name
-      return 'Confidential Project' if project.confidential
+      return Hmis::Hud::Project::CONFIDENTIAL_PROJECT_NAME if project.confidential && !can_view_enrollment
 
       project.project_name
     end
@@ -28,7 +28,7 @@ module Types
     end
 
     def can_view_enrollment
-      current_user.can_view_enrollment_details_for?(object)
+      current_permission?(permission: :can_view_enrollment_details, entity: object)
     end
 
     def project
