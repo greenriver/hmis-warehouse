@@ -47,10 +47,9 @@ class Hmis::BaseController < ActionController::Base
   # PaperTrail whodunnit (set in ApplicationController) uses this method to determine the label to be stored
   def user_for_paper_trail
     return 'unauthenticated' unless current_hmis_user.present?
-    return current_hmis_user.id unless true_user.present?
-    return current_hmis_user.id if true_user == current_hmis_user
+    return current_hmis_user.id unless impersonating?
 
-    "#{true_user.id} as #{current_hmis_user.id}"
+    "#{true_hmis_user.id} as #{current_hmis_user.id}"
   end
 
   def set_app_user_header
