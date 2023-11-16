@@ -55,6 +55,13 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
     with_filter(scope, :household_tasks) do
       return scope.all unless input.household_tasks&.include?('ANNUAL_DUE')
 
+      # The SQL statement "interval"((extract(day from "EntryDate")::integer - 1) || ' days') is present to handle leap
+      # year dates. That is, if the entry date is 2/29/2020, then just using make_date directly will produce an
+      # anniversary date of 2/29/2023, which is invalid. To prevent this, make_date is used to create a date of
+      # 2/1/2023, then we add 28 days (29th - 1) to that date to shift it to the proper anniversary date. For any date
+      # except for 2/29, this shift should result in the same month and day as the entry date, and for 2/29 it should
+      # shift it to 3/1, which is a valid date and avoids the leap year issue.
+
       # Start of the 60-day window during which this year's Annual should be performed. (Anniversary - 30 days)
       start_date = Arel.sql <<~SQL
         make_date(
@@ -74,7 +81,7 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
       SQL
 
       # SQL-ized version of the logic here: drivers/hmis/app/models/hmis/reminders/reminder_generator.rb#annual_assessment_reminder
-      scope = scope.
+      scope.
         joins(:household).
         joins(
           e_t.
