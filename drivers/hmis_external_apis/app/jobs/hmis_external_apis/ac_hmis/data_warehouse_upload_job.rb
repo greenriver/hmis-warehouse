@@ -19,6 +19,7 @@ module HmisExternalApis::AcHmis
         when 'clients_with_mci_ids_and_address' then clients_with_mci_ids_and_address
         when 'hmis_csv_export' then hmis_csv_export
         when 'project_crosswalk' then project_crosswalk
+        when 'move_in_addresses' then move_in_address_export
         else
           raise "invalid item to upload: #{mode}"
         end
@@ -81,6 +82,23 @@ module HmisExternalApis::AcHmis
           OpenStruct.new(
             name: 'Project-cross-walk.csv',
             io: export.projects_csv_stream,
+          ),
+        ],
+      )
+
+      uploader.run!
+    end
+
+    def move_in_address_export
+      export = HmisExternalApis::AcHmis::Exporters::MoveInAddressExport.new
+      export.run!
+
+      uploader = Exporters::DataWarehouseUploader.new(
+        filename_format: '%Y-%m-%d-move-in-addresses.zip',
+        io_streams: [
+          OpenStruct.new(
+            name: 'MoveInAddresses.csv',
+            io: export.output,
           ),
         ],
       )
