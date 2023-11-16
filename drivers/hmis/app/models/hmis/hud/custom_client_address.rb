@@ -37,6 +37,8 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
   has_one :active_range, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
   alias_to_underscore [:NameDataQuality, :AddressID, :PersonalID, :UserID, :EnrollmentID]
 
+  validates_presence_of :EnrollmentID, if: :enrollment_address_type
+
   scope :active, ->(date = Date.current) do
     left_outer_joins(:active_range).where(Hmis::ActiveRange.arel_active_on(date))
   end
@@ -89,7 +91,6 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
     enrollment_move_in_type?
   end
 
-  # maybe there's a list of states somewhere else we can use?
   USA_STATES = ['AK', 'AL', 'AR', 'AS', 'AZ', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'GU', 'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME', 'MI', 'MN', 'MO', 'MP', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NJ', 'NM', 'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'PR', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VA', 'VI', 'VT', 'WA', 'WI', 'WV', 'WY'].freeze
   with_options(if: :validate_required_fields?) do
     validates :line1, presence: true
