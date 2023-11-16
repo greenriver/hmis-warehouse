@@ -5,6 +5,8 @@
 ###
 
 class Hmis::Filter::BaseFilter
+  include ::Hmis::Concerns::HmisArelHelper
+
   attr_accessor :input
   def initialize(input)
     self.input = input
