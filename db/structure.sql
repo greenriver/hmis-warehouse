@@ -1670,7 +1670,8 @@ CREATE TABLE public.roles (
     can_edit_theme boolean DEFAULT false,
     system boolean DEFAULT false NOT NULL,
     can_edit_collections boolean DEFAULT false,
-    can_publish_reports boolean DEFAULT false
+    can_publish_reports boolean DEFAULT false,
+    deleted_at timestamp without time zone
 );
 
 
@@ -4168,6 +4169,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231017185729'),
 ('20231023000619'),
 ('20231030184613'),
-('20231103165752');
+('20231103165752'),
+('20231116185857');
 
 

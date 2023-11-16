@@ -6,7 +6,8 @@
 
 class Hmis::Role < ::ApplicationRecord
   self.table_name = :hmis_roles
-  # Warehouse roles do not have a paper trail, so neither do these
+  acts_as_paranoid
+  has_paper_trail
 
   has_many :access_controls, class_name: '::Hmis::AccessControl', inverse_of: :role
   has_many :users, through: :access_controls
