@@ -214,7 +214,7 @@ module Types
 
     def activity_log_field_name(field_name)
       case field_name
-      when 'ssn', 'dob', 'disabilities', 'disability_groups'
+      when 'ssn', 'dob'
         field_name
       end
     end
