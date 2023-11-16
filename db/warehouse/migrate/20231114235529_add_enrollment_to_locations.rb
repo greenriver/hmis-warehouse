@@ -6,7 +6,7 @@ class AddEnrollmentToLocations < ActiveRecord::Migration[6.1]
     #   id = if source.is_a?(GrdaWarehouse::Hud::Enrollment)
     #     source.id
     #   else
-    #     source.enrollment_id
+    #     source.enrollment&.id
     #   end
     #   clh.update(enrollment_id: id)
     # end

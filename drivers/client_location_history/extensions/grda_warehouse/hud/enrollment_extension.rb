@@ -13,6 +13,7 @@ module ClientLocationHistory::GrdaWarehouse::Hud
 
     included do
       has_many :enrollment_location_histories, class_name: 'ClientLocationHistory::Location', as: :source
+      has_many :direct_enrollment_location_histories, class_name: 'ClientLocationHistory::Location', inverse_of: :enrollment
 
       has_one :earliest_enrollment_location_history, -> do
         one_for_column(

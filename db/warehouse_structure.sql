@@ -50218,6 +50218,13 @@ CREATE INDEX index_clh_locations_on_client_id ON public.clh_locations USING btre
 
 
 --
+-- Name: index_clh_locations_on_lat_and_lon; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_clh_locations_on_lat_and_lon ON public.clh_locations USING btree (lat, lon);
+
+
+--
 -- Name: index_clh_locations_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -59862,6 +59869,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231103154939'),
 ('20231107190301'),
 ('20231110134113'),
-('20231114235529');
+('20231114235529'),
+('20231115170459');
 
 
