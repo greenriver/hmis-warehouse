@@ -184,7 +184,7 @@ module ArelHelper
         source = scope.arel
         group_table = scope.arel_table
       else
-        source = source_arel_table.project(source_arel_table[:id])
+        source = table_model(source_arel_table).select(source_arel_table[:id]).arel # Referencing class to bring in Paranoia
         group_table = source_arel_table
       end
 
@@ -200,6 +200,11 @@ module ArelHelper
       )
 
       joins(join)
+    end
+
+    def table_model(arel_table)
+      # FIXME: This is dependent on the implementation of Arel, so could change at any time
+      arel_table.instance_variable_get(:@klass)
     end
 
     # This will create a correlated exists clause and attach it to the relation it is called in
