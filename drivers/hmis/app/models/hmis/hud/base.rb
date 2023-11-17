@@ -24,6 +24,10 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
     end
   end
 
+  def paper_trail_info_for_mutation
+    {}
+  end
+
   before_validation :ensure_id
 
   scope :viewable_by, ->(_) do

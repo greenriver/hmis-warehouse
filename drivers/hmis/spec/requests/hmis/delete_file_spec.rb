@@ -72,6 +72,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect_gql_error post_graphql(file_id: file_id) { mutation }
       expect(Hmis::File.all).to include(have_attributes(id: file_id))
     end
+
+    context 'with paper trail enabled' do
+      include_context 'with paper trail'
+      it 'tracks metadata' do
+        # there's also an update that gets logged. Not sure why
+        versions = PaperTrail::Version.where(client_id: c1.id, enrollment_id: e1.id, project_id: p1.id, operation: 'delete')
+        expect do
+          call_mutation(f1.id)
+        end.to change(versions, :count).by(2)
+      end
+    end
   end
 end
 

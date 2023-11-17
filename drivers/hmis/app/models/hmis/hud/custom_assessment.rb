@@ -215,4 +215,8 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
       where(e_t[:entry_date].gteq(enrollment.entry_date)).
       any?
   end
+
+  def paper_trail_info_for_mutation
+    { client_id: client&.id, enrollment_id: enrollment&.id, project_id: enrollment&.project&.id }
+  end
 end

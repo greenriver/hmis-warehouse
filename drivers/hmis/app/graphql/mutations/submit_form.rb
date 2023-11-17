@@ -86,31 +86,33 @@ module Mutations
 
       if is_valid
         # Perform any side effects
-        perform_side_effects(record)
+        with_paper_trail_meta(**record.paper_trail_info_for_mutation) do
+          perform_side_effects(record)
 
-        case record
-        when Hmis::Hud::HmisService
-          record.owner.save! # Save the actual service record
-          record = Hmis::Hud::HmisService.find_by(owner: record.owner) # Refresh from View
-        when HmisExternalApis::AcHmis::ReferralRequest
-          HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(record)
-        when Hmis::Hud::Enrollment
-          record.client.save! if record.client.changed? # Enrollment form may create or update client
-          if record.new_record? || record.in_progress?
-            record.save_in_progress
+          case record
+          when Hmis::Hud::HmisService
+            record.owner.save! # Save the actual service record
+            record = Hmis::Hud::HmisService.find_by(owner: record.owner) # Refresh from View
+          when HmisExternalApis::AcHmis::ReferralRequest
+            HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(record)
+          when Hmis::Hud::Enrollment
+            record.client.save! if record.client.changed? # Enrollment form may create or update client
+            if record.new_record? || record.in_progress?
+              record.save_in_progress
+            else
+              record.save!
+            end
           else
             record.save!
+            record.touch
           end
-        else
-          record.save!
-          record.touch
-        end
 
-        if record.respond_to?(:enrollment)
-          # Update DateUpdated on the Enrollment, if record is Enrollment-related
-          record.enrollment&.touch
-          # Update Enrollment itself in case this form changed any fields on Enrollment
-          record.enrollment&.save!
+          if record.respond_to?(:enrollment)
+            # Update DateUpdated on the Enrollment, if record is Enrollment-related
+            record.enrollment&.touch
+            # Update Enrollment itself in case this form changed any fields on Enrollment
+            record.enrollment&.save!
+          end
         end
       else
         errors.add_ar_errors(record.errors&.errors)

@@ -40,6 +40,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(response.status).to eq 200
       client = result.dig('data', 'deleteClient', 'client')
       errors = result.dig('data', 'deleteClient', 'errors')
+      next unless block_given?
+
       yield client, errors
     end
   end
@@ -110,6 +112,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(Hmis::Hud::Client.all).to include(have_attributes(id: c1.id))
     # Should NOT modify HoH of other enrollments if client is not deleted
     expect(e2.reload.relationship_to_ho_h).to eq(prev_hoh_value)
+  end
+
+  context 'with paper trail enabled' do
+    include_context 'with paper trail'
+    it 'tracks metadata' do
+      versions = PaperTrail::Version.where(client_id: c1.id)
+      expect do
+        mutate(input: { id: c1.id })
+      end.to change(versions, :count).by(2) # client and enrollment
+    end
   end
 end
 

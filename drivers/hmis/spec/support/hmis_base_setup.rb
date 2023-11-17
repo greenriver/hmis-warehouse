@@ -65,6 +65,16 @@ RSpec.shared_context 'hmis base setup', shared_context: :metadata do
   end
 end
 
+RSpec.shared_context 'with paper trail', shared_context: :metadata do
+  before(:all) do
+    @paper_trail_was = PaperTrail.enabled?
+    PaperTrail.enabled = true
+  end
+  after(:all) do
+    PaperTrail.enabled = @paper_trail_was
+  end
+end
+
 RSpec.shared_context 'hmis service setup', shared_context: :metadata do
   before(:each) do
     ::HmisUtil::ServiceTypes.seed_hud_service_types(ds1.id)

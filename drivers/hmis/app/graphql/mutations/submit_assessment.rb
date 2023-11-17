@@ -83,7 +83,9 @@ module Mutations
       return { assessments: assessments, errors: [] } if input.validate_only
 
       if is_valid
-        assessment.save_submitted_assessment!(current_user: current_user)
+        with_paper_trail_meta(**assessment.paper_trail_info_for_mutation) do
+          assessment.save_submitted_assessment!(current_user: current_user)
+        end
       else
         # These are potentially unfixable errors. Maybe should be server error instead.
         # For now, return them all because they are useful in development.

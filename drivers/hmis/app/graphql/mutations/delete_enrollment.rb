@@ -18,7 +18,9 @@ module Mutations
 
       errors = []
       if enrollment.in_progress?
-        enrollment.destroy!
+        with_paper_trail_meta(**enrollment.paper_trail_info_for_mutation) do
+          enrollment.destroy!
+        end
       else
         # Deleting non-WIP Enrollments requires can_delete_enrollments, and can only occur via DeleteAssessment mutation (deleting intake)
         errors << HmisErrors::Error.new(:base, full_message: 'Completed enrollments can not be deleted. Please exit the client instead.')

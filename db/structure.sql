@@ -2294,7 +2294,11 @@ CREATE TABLE public.versions (
     request_id character varying,
     object_changes text,
     referenced_user_id integer,
-    referenced_entity_name character varying
+    referenced_entity_name character varying,
+    true_user_id bigint,
+    client_id bigint,
+    enrollment_id bigint,
+    project_id bigint
 );
 
 
@@ -4170,6 +4174,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231023000619'),
 ('20231030184613'),
 ('20231103165752'),
-('20231116185857');
+('20231116185857'),
+('20231117165752');
 
 

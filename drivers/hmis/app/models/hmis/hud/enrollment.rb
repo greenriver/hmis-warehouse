@@ -374,6 +374,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     Hmis::UnitOccupancy.active(date).where(enrollment: self).first&.unit
   end
 
+  def paper_trail_info_for_mutation
+    { client_id: client&.id, enrollment_id: id, project_id: project&.id }
+  end
+
   # When submitting a new_client_enrollment form, we validate the client too, with the same validation contexts
   private def client_is_valid
     return unless client.present?

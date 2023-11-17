@@ -6,6 +6,18 @@ module GraphqlMutationHelper
     argument name, String, description, validates: { format: { with: /\d{4}-\d{2}-\d{2}/ } }, **kwargs
   end
 
+  # assign meta data info for paper trail versions created with block
+  def with_paper_trail_meta(client_id: nil, enrollment_id: nil, project_id: nil, &block)
+    controller_info = {
+      client_id: client_id,
+      enrollment_id: enrollment_id,
+      project_id: project_id,
+      true_user_id: true_user&.id,
+    }
+
+    PaperTrail.request(controller_info: controller_info, &block)
+  end
+
   # Default CRUD Update functionality
   # If confirm is not specified, treat as confirmed (aka ignore warnings)
   def default_update_record(record:, field_name:, input:, confirmed: true, **auth_args)
@@ -67,11 +79,13 @@ module GraphqlMutationHelper
 
   # Default CRUD Delete functionality
   def default_delete_record(record:, field_name:, after_delete: nil, **auth_args)
-    raise HmisErrors::ApiError, 'Record not found' unless record.present?
-    raise HmisErrors::ApiError, 'Access denied' unless allowed?(record: record, **auth_args)
+    with_paper_trail_meta(**record.paper_trail_info_for_mutation) do
+      raise HmisErrors::ApiError, 'Record not found' unless record.present?
+      raise HmisErrors::ApiError, 'Access denied' unless allowed?(record: record, **auth_args)
 
-    record.destroy!
-    after_delete&.call
+      record.destroy!
+      after_delete&.call
+    end
 
     {
       field_name => record,
