@@ -24,7 +24,7 @@ module Mutations
       return { errors: errors.errors } if errors.any?
 
       # Create Units
-      common = { user_id: hmis_user.user_id, created_at: Time.now, updated_at: Time.now }
+      common = { user_id: current_user.id, created_at: Time.now, updated_at: Time.now }
       units = (1..input.count).map do
         Hmis::Unit.new(
           project_id: project.id,

@@ -43,7 +43,12 @@ module CasCeData::Synthetic
     end
 
     def self.add_new
-      new_events = CasCeData::GrdaWarehouse::CasReferralEvent.where.not(id: self.select(:source_id))
+      # Replaced the following with a lateral join for performance, leaving temporarily for easy reversal
+      # new_events = CasCeData::GrdaWarehouse::CasReferralEvent.where.not(id: self.select(:source_id))
+      existing = where('"cas_referral_events"."id" = source_id').select(:source_id).limit(1)
+      new_events = CasCeData::GrdaWarehouse::CasReferralEvent.
+        joins("LEFT JOIN LATERAL (#{existing.to_sql}) findings ON true").
+        where('findings.source_id is NULL')
       new_events.find_each do |event|
         next unless event.client.present?
         next unless event.referral_date.present?

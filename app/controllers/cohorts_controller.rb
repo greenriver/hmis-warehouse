@@ -74,8 +74,11 @@ class CohortsController < ApplicationController
         @visible_columns << delete_column if can_add_cohort_clients? && ! @cohort.system_cohort && ! @cohort.auto_maintained?
         @column_headers = @visible_columns.each_with_index.map do |col, index|
           col.cohort = @cohort # Needed for display_as_editable?
+          description = if col.show_description? then col.description else '' end
           header = {
             headerName: col.title,
+            headerTooltip: description,
+            tooltipShowDelay: 250,
             field: col.column,
             editable: col.column_editable? && col.display_as_editable?(current_user, nil),
           }
@@ -113,6 +116,8 @@ class CohortsController < ApplicationController
         @user = current_user
         not_authorized! unless can_download_cohorts?
 
+        # Limit is imposed above to prevent loading all clients, but for the download, we actually want them all
+        @cohort_clients = @cohort_clients.limit(nil)
         headers['Content-Disposition'] = "attachment; filename=#{@cohort.sanitized_name}.xlsx"
       end
     end

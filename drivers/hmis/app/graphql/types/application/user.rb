@@ -8,14 +8,20 @@
 
 module Types
   class Application::User < Types::BaseObject
+    # maps to Hmis::User
     description 'User account for a user of the system'
     graphql_name 'ApplicationUser'
     field :id, ID, null: false
     field :name, String, null: false
+    field :email, String, null: true
     field :recent_items, [Types::HmisSchema::OmnisearchResult], null: false
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
+
+    available_filter_options do
+      arg :search_term, String
+    end
 
     def name
       names = [object.first_name, object.last_name].compact_blank

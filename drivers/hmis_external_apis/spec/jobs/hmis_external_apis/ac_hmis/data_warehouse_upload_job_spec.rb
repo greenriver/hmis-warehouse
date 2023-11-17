@@ -45,4 +45,9 @@ RSpec.describe HmisExternalApis::AcHmis::DataWarehouseUploadJob, type: :job do
     subject.perform('project_crosswalk')
     expect(subject.state).to eq(:success)
   end
+
+  it 'uploads move in addresses' do
+    subject.perform('move_in_addresses')
+    expect(subject.state).to eq(:success)
+  end
 end

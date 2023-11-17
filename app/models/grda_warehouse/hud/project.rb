@@ -650,6 +650,14 @@ module GrdaWarehouse::Hud
       super || GrdaWarehouse::Hud::Organization.confidential_org?(self.OrganizationID, data_source_id)
     end
 
+    def confidential_for_user?(user)
+      return false unless confidential?
+      # Pre ACLs anyone with can_view_confidential_project_names? can view all confidential projects
+      return false if user.can_view_confidential_project_names? && ! user.using_acls?
+
+      ! user.can_access_project?(self, permission: :can_view_confidential_project_names)
+    end
+
     # Get the name for this project, protecting confidential names if appropriate.
     # Confidential names are shown if the user has permission to view confidential projects
     # AND the project is in the user's project list.

@@ -8,6 +8,7 @@
 
 module Types
   class HmisSchema::MutationType < Types::BaseObject
+    skip_activity_log
     field :update_client_image, mutation: Mutations::UpdateClientImage
     field :delete_client_image, mutation: Mutations::DeleteClientImage
     field :delete_client_file, mutation: Mutations::DeleteClientFile

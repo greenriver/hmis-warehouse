@@ -32,7 +32,7 @@ module LoginAndPermissionsSpecHelper
   # If "with_permission" passed, role will only include the permissions passed.
   # If "without_permission" passed, role will include all perms EXCEPT the permissions passed.
   # If neither permission arg passed, role will include all permission.
-  def create_access_control(user, entities, with_permission: nil, without_permission: nil)
+  def create_access_control(user, entities, with_permission: nil, without_permission: nil, user_group: create(:hmis_user_group))
     # Create role with the correct permissions
     role = if with_permission.present?
       create(:hmis_role_with_no_permissions)
@@ -46,7 +46,6 @@ module LoginAndPermissionsSpecHelper
     collection = create(:hmis_access_group, with_entities: entities)
 
     # Create user group
-    user_group = create(:hmis_user_group)
     user_group.add(user)
 
     # Create access control

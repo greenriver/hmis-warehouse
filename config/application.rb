@@ -17,7 +17,7 @@ module BostonHmis
     config.autoload_paths << Rails.root.join('lib', 'devise')
 
     # ActionCable
-    config.action_cable.mount_path = "/cable"
+    config.action_cable.mount_path = '/cable'
     config.action_cable.url = ENV.fetch('ACTION_CABLE_URL') { "wss://#{ENV['FQDN']}/cable" }
 
     Rails.application.config.active_record.belongs_to_required_by_default = true
@@ -48,13 +48,16 @@ module BostonHmis
     config.active_job.queue_adapter = :delayed_job
     config.action_mailer.deliver_later_queue_name = :mailers
 
+    # GraphQL config
+    config.graphql.parser_cache = true
+
     config.generators do |generate|
       generate.helper false
       generate.assets false
       generate.test_framework :rspec
     end
 
-    require_relative("setup_logging")
+    require_relative('setup_logging')
     setup_logging = SetupLogging.new(config)
     setup_logging.run!
 
@@ -67,7 +70,7 @@ module BostonHmis
 
     # serve error pages from the Rails app itself
     # rather than using static error pages in public/.
-    config.exceptions_app = self.routes
+    config.exceptions_app = routes
 
     config.middleware.use Rack::Attack # needed pre rails 5.1
     config.middleware.use IdProtector

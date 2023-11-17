@@ -8,6 +8,7 @@
 
 module Types
   class Forms::InitialValue < Types::BaseObject
+    skip_activity_log
     description 'Initial value when item is first rendered'
 
     field :initial_behavior, Types::Forms::Enums::InitialBehavior, null: false

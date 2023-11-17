@@ -12,6 +12,7 @@
       %tr
         %th Original Name
         %th Current Name
+        %th Description
         %th Type
     %tbody
       - @columns.each do |column|
@@ -20,7 +21,10 @@
             %td
               = column.translation_key
             %td
-              = f.input "#{column.column}", label: false, input_html: { value: column.title }
+              = f.input "#{column.column}", label: false, input_html: { value: column.title } 
+            %td
+              - value = if column.show_description? then column.description else '' end
+              = f.input "#{column.column}_description", label: false, input_html: { value: value } 
             %td
               = column_type(column)
   .text-right

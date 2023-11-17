@@ -8,6 +8,7 @@
 
 module Types
   class HmisSchema::User < Types::BaseObject
+    # maps to Hmis::Hud::User
     description 'HUD User'
     field :id, ID, null: false
     field :name, String, null: false
