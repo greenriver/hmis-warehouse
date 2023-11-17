@@ -32,6 +32,16 @@ module SystemSpecHelper
     find("##{id}").click
     find('li[role=option]', text: choice).click
   end
+
+  def with_hidden
+    last_value = Capybara.ignore_hidden_elements
+    begin
+      Capybara.ignore_hidden_elements = false
+      yield
+    ensure
+      Capybara.ignore_hidden_elements = last_value
+    end
+  end
 end
 
 RSpec.configure do |config|
