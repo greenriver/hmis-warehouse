@@ -36,6 +36,17 @@ module BostonReports
       report_path_array.join('/')
     end
 
+    def self.available_section_types
+      [
+        'across_the_country',
+        'top_zip_codes',
+      ]
+    end
+
+    def section_ready?(_)
+      true
+    end
+
     def percent(numerator:, denominator:)
       return 0 unless numerator&.positive? && denominator&.positive?
 

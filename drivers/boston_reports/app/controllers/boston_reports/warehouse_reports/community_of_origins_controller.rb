@@ -8,9 +8,18 @@ module BostonReports::WarehouseReports
     include WarehouseReportAuthorization
     include AjaxModalRails::Controller
     include BaseFilters
+    extend BackgroundRenderAction
 
     before_action :set_report
     before_action :set_pdf_export
+
+    background_render_action(:render_section, ::BackgroundRender::CommunityOfOriginReportJob) do
+      {
+        partial: params.require(:partial).underscore,
+        filters: @filter.for_params[:filters].to_json,
+        user_id: current_user.id,
+      }
+    end
 
     def index
       # Enable to test PDF generation
