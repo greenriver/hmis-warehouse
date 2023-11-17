@@ -103,6 +103,7 @@ module CustomImportsBostonCommunityOfOrigin
             collected_by: row.enrollment.project&.name,
             source_id: row.id,
             source_type: row.class.name,
+            enrollment_id: row.enrollment.id,
           )
         end
         # Remove any pre-existing locations

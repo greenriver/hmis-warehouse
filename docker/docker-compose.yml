@@ -193,6 +193,7 @@ services:
       POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
       PGPASSWORD: postgres
       PGUSER: postgres
+      DB_DATA_VOLUME: ${DB_DATA_VOLUME:-dbdata_pg13}
     healthcheck:
       test: ["CMD-SHELL", "sh -c 'pg_isready -d postgres'"]
       interval: 10s
@@ -200,7 +201,7 @@ services:
       retries: 3
     volumes:
       # Name each new postgres major version explicitly (dbdata_pg14 when we get to that)
-      - dbdata_pg13:/var/lib/postgresql/data
+      - ${DB_DATA_VOLUME-./dev/db_data}:/var/lib/postgresql/data
       - ./tmp/dumps:/tmp/dumps
     ports:
       - 5432
