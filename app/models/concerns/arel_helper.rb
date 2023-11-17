@@ -206,12 +206,14 @@ module ArelHelper
     # it functions similar to a merge, but can be used when you need two merges with the same key
     # Usage:
     # User.joins(:role).correlated_exists(Role.health)
-    def correlated_exists(scope, quoted_table_name: scope.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: 'id', negated: false)
+    def correlated_exists(scope, quoted_table_name: scope.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: ['id'], negated: false)
       where(exists_sql(scope, quoted_table_name: quoted_table_name, alias_name: alias_name, column_name: column_name, negated: negated))
     end
 
-    def exists_sql(ar_query, quoted_table_name: ar_query.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: 'id', negated: false)
-      sql = ar_query.select(column_name).to_sql.
+    def exists_sql(ar_query, quoted_table_name: ar_query.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: ['id'], negated: false)
+      column_names = Array.wrap(column_name)
+
+      sql = ar_query.select('1').to_sql.
         gsub("#{quoted_table_name}.", "\"#{alias_name}\"."). # alias all columns
         gsub(quoted_table_name, "#{quoted_table_name} as \"#{alias_name}\"") # alias table
       exists_type = if negated
@@ -219,7 +221,13 @@ module ArelHelper
       else
         'EXISTS'
       end
-      Arel.sql("#{exists_type} (#{sql} and #{quoted_table_name}.\"#{column_name}\" = \"#{alias_name}\".\"#{column_name}\") ")
+      join_clauses = [].tap do |clauses|
+        column_names.each do |col_name|
+          clauses << "and #{quoted_table_name}.\"#{col_name}\" = \"#{alias_name}\".\"#{col_name}\""
+        end
+      end
+
+      Arel.sql("#{exists_type} (#{sql} #{join_clauses.join(' ')}) ")
     end
 
     # Some shortcuts for arel tables

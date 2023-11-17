@@ -17,6 +17,8 @@ BostonHmis::Application.routes.draw do
       resources :community_of_origins, only: [:index] do
         get :filters, on: :collection
         get :download, on: :collection
+        get 'section/:partial', on: :collection, to: 'community_of_origins#section', as: :section
+        post :render_section, on: :collection
       end
       resources :configs, only: [:index, :update]
     end
