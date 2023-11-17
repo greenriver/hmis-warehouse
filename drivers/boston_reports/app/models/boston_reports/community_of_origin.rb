@@ -23,6 +23,8 @@ module BostonReports
     def self.default_filter_options
       {
         filters: {
+          start: 1.months.ago.to_date,
+          end: 1.days.ago.to_date,
         },
       }
     end
