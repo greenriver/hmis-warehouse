@@ -201,7 +201,7 @@ services:
       retries: 3
     volumes:
       # Name each new postgres major version explicitly (dbdata_pg14 when we get to that)
-      - ${DB_DATA_VOLUME-./dev/db_data}:/var/lib/postgresql/data
+      - ${DB_DATA_VOLUME-.dbdata_pg13}:/var/lib/postgresql/data
       - ./tmp/dumps:/tmp/dumps
     ports:
       - 5432
