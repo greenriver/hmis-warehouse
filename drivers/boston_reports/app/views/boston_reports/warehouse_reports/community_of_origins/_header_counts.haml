@@ -1,0 +1,25 @@
+.d-flex.flex-wrap
+  .hero-prs1
+    .d-flex.align-items-center
+      .h1.hero-value-prs1.mr-3= number_with_delimiter(@report.enrolled_clients.select(:client_id).distinct.count)
+      .count-description
+        .hero-label-prs1.h5-prs1 Enrolled
+        .hero-unit-prs1 Unique Clients
+  .hero-prs1
+    .d-flex.align-items-center
+      .h1.hero-value-prs1.mr-3= number_with_delimiter(@report.count_enrolled_with_community_of_origin)
+      .count-description
+        .hero-label-prs1.h5-prs1 With Community of Origin
+        .hero-unit-prs1 of the Unique Enrolled Clients
+  .hero-prs1
+    .d-flex.align-items-center
+      .h1.hero-value-prs1.mr-3= number_with_delimiter(@report.entering_clients.select(:client_id).distinct.count)
+      .count-description
+        .hero-label-prs1.h5-prs1 Entering
+        .hero-unit-prs1 Unique Clients
+  .hero-prs1
+    .d-flex.align-items-center
+      .h1.hero-value-prs1.mr-3= number_with_delimiter(@report.entering_with_community_of_origin.select(:client_id).distinct.count)
+      .count-description
+        .hero-label-prs1.h5-prs1 With Community of Origin
+        .hero-unit-prs1 of the Unique Entering Clients

@@ -65,7 +65,7 @@ module AllNeighborsSystemDashboard
     end
 
     def url
-      all_neighbors_system_dashboard_warehouse_reports_report_url(host: ENV.fetch('FQDN'), id: id, protocol: :https, format: :xlsx)
+      all_neighbors_system_dashboard_warehouse_reports_report_url(host: ENV.fetch('FQDN'), id: id, protocol: :https)
     end
 
     def a_t
@@ -257,6 +257,11 @@ module AllNeighborsSystemDashboard
           type: 'text/javascript',
         },
       ]
+    end
+
+    # Override the default to remove the sandbox attribute
+    private def generate_embed_code
+      "<iframe width='800' height='1200' src='#{generate_publish_url}' frameborder='0'><a href='#{generate_publish_url}'>#{instance_title}</a></iframe>"
     end
 
     private def asset_path(asset)

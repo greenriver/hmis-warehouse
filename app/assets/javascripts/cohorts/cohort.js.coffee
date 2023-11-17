@@ -111,6 +111,8 @@ class App.Cohorts.Cohort
     @grid_column_headers = $.map @column_headers, (column, index) =>
       header = {
         headerName: column.headerName,
+        headerTooltip: column.headerTooltip,
+        tooltipShowDelay: 250,
         field: column.field,
         editable: column.editable,
         # tooltip: (params) ->

@@ -1,0 +1,70 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+module HudPathReport::Generators::Fy2024
+  class QuestionTwentyFive < Base
+    include ArelHelper
+
+    QUESTION_NUMBER = 'Q25: Housing Outcomes'.freeze
+    QUESTION_TABLE_NUMBER = 'Q25'.freeze
+    QUESTION_TABLE_NUMBERS = [QUESTION_TABLE_NUMBER].freeze
+
+    TABLE_HEADER = [
+      '25. Destination at Exit',
+      'count',
+    ].freeze
+
+    def self.question_number
+      QUESTION_NUMBER
+    end
+
+    def run_question!
+      @report.start(QUESTION_NUMBER, [QUESTION_TABLE_NUMBER])
+      table_name = QUESTION_TABLE_NUMBER
+
+      metadata = {
+        header_row: TABLE_HEADER,
+        row_labels: PRIOR_LIVING_SITUATION_ROWS.map(&:first),
+        first_column: 'B',
+        last_column: 'B',
+        first_row: 2,
+        last_row: 42,
+      }
+      @report.answer(question: table_name).update(metadata: metadata)
+
+      sum = 0
+      sum_members = []
+      PRIOR_LIVING_SITUATION_ROWS.each_with_index do |(_label, destination), index|
+        answer = @report.answer(question: table_name, cell: 'B' + (index + 2).to_s)
+        case destination
+        when nil # Internal label, leave blank
+          next
+        when :subtotal # Section sums
+          answer.update(summary: sum)
+          sum = 0
+          answer.add_members(sum_members)
+          sum_members = []
+          next
+        when :stayers
+          members = universe.members.where(active_and_enrolled_clients).where(stayers)
+        when :total
+          members = universe.members.where(active_and_enrolled_clients)
+        else
+          query = a_t[:destination].eq(destination)
+          query = query.or(a_t[:destination].eq(nil)) if destination == 99 # Also recognize blank as not collected
+          members = universe.members.where(active_and_enrolled_clients).where(query)
+        end
+        answer.add_members(members)
+        sum_members += members
+        count = members.count
+        sum += count
+        answer.update(summary: count)
+      end
+
+      @report.complete(QUESTION_NUMBER)
+    end
+  end
+end

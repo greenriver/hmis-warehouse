@@ -184,7 +184,7 @@ module ArelHelper
         source = scope.arel
         group_table = scope.arel_table
       else
-        source = source_arel_table.project(source_arel_table[:id])
+        source = table_model(source_arel_table).select(source_arel_table[:id]).arel # Referencing class to bring in Paranoia
         group_table = source_arel_table
       end
 
@@ -202,16 +202,23 @@ module ArelHelper
       joins(join)
     end
 
+    def table_model(arel_table)
+      # FIXME: This is dependent on the implementation of Arel, so could change at any time
+      arel_table.instance_variable_get(:@klass)
+    end
+
     # This will create a correlated exists clause and attach it to the relation it is called in
     # it functions similar to a merge, but can be used when you need two merges with the same key
     # Usage:
     # User.joins(:role).correlated_exists(Role.health)
-    def correlated_exists(scope, quoted_table_name: scope.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: 'id', negated: false)
+    def correlated_exists(scope, quoted_table_name: scope.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: ['id'], negated: false)
       where(exists_sql(scope, quoted_table_name: quoted_table_name, alias_name: alias_name, column_name: column_name, negated: negated))
     end
 
-    def exists_sql(ar_query, quoted_table_name: ar_query.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: 'id', negated: false)
-      sql = ar_query.select(column_name).to_sql.
+    def exists_sql(ar_query, quoted_table_name: ar_query.klass.quoted_table_name, alias_name: "t_#{SecureRandom.alphanumeric}", column_name: ['id'], negated: false)
+      column_names = Array.wrap(column_name)
+
+      sql = ar_query.select('1').to_sql.
         gsub("#{quoted_table_name}.", "\"#{alias_name}\"."). # alias all columns
         gsub(quoted_table_name, "#{quoted_table_name} as \"#{alias_name}\"") # alias table
       exists_type = if negated
@@ -219,7 +226,13 @@ module ArelHelper
       else
         'EXISTS'
       end
-      Arel.sql("#{exists_type} (#{sql} and #{quoted_table_name}.\"#{column_name}\" = \"#{alias_name}\".\"#{column_name}\") ")
+      join_clauses = [].tap do |clauses|
+        column_names.each do |col_name|
+          clauses << "and #{quoted_table_name}.\"#{col_name}\" = \"#{alias_name}\".\"#{col_name}\""
+        end
+      end
+
+      Arel.sql("#{exists_type} (#{sql} #{join_clauses.join(' ')}) ")
     end
 
     # Some shortcuts for arel tables
