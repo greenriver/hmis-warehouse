@@ -88,7 +88,7 @@ module Types
     field :household_size, Integer, null: false
     # Associated records. These automatically require the "can_view_enrollment_details" permission
     # because they use the overridden 'field' class method.
-    assessments_field
+    assessments_field filter_args: { omit: [:project, :project_type], type_name: 'AssessmentsForEnrollment' }
     events_field
     services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForEnrollment' }
     custom_case_notes_field
