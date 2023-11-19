@@ -8,12 +8,12 @@ module GraphqlMutationHelper
 
   # assign meta data info for paper trail versions created with block
   def with_paper_trail_meta(client_id: nil, enrollment_id: nil, project_id: nil, &block)
-    controller_info = {
+    current = PaperTrail.request.controller_info || {}
+    controller_info = current.merge({
       client_id: client_id,
       enrollment_id: enrollment_id,
       project_id: project_id,
-      true_user_id: true_user&.id,
-    }
+    }.compact_blank)
 
     PaperTrail.request(controller_info: controller_info, &block)
   end
