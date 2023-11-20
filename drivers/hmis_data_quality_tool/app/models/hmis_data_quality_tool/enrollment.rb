@@ -14,11 +14,9 @@ module HmisDataQualityTool
     include HudReports::Clients
     acts_as_paranoid
 
-    # These should probably live somewhere else, but for now, they live here
-    # they come from the HUD DQ report Q5
-    HOMELESS_LIVING_SITUATIONS = [16, 1, 18].freeze
-    INSTITUTIONAL_LIVING_SITUATIONS = [15, 6, 7, 25, 4, 5].freeze
-    HOUSED_LIVING_SITUATIONS = [29, 14, 2, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11, 8, 9, 99].freeze
+    HOMELESS_LIVING_SITUATIONS = HudUtility2024::SITUATION_HOMELESS_RANGE.to_a
+    INSTITUTIONAL_LIVING_SITUATIONS = HudUtility2024::SITUATION_INSTITUTIONAL_RANGE.to_a
+    HOUSED_LIVING_SITUATIONS = HudUtility2024::SITUATION_TEMPORARY_RANGE.to_a + HudUtility2024::SITUATION_PERMANENT_RANGE.to_a
 
     attr_accessor :report_end_date, :entry_threshold, :exit_threshold, :project_coc_codes
 
@@ -141,12 +139,11 @@ module HmisDataQualityTool
 
     def self.enrollment_scope(report)
       GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
-        left_outer_joins(:exit, :enrollment_coc_at_entry).
+        left_outer_joins(:exit).
         preload(
           :exit,
           :services,
           :current_living_situations,
-          :enrollment_coc_at_entry,
           :disabilities_at_entry,
           :health_and_dvs_at_entry,
           :income_benefits_at_entry,
@@ -270,8 +267,7 @@ module HmisDataQualityTool
       report_item.times_homeless_past_three_years = enrollment.TimesHomelessPastThreeYears
       report_item.months_homeless_past_three_years = enrollment.MonthsHomelessPastThreeYears
       report_item.days_before_entry = enrollment.EntryDate - enrollment.DateToStreetESSH if enrollment.DateToStreetESSH.present?
-      # Note this differs form coc_code since it is found by ignoring the CoC limit on the enrollment_scope
-      report_item.enrollment_coc = enrollment_cocs(report)[enrollment.id]
+      report_item.enrollment_coc = enrollment.EnrollmentCoC
       report_item.project_coc_codes = enrollment.project&.project_cocs&.map(&:effective_coc_code) || []
       report_item.has_disability = enrollment.disabilities_at_entry&.map(&:indefinite_and_impairs?)&.any?
       report_item.days_between_entry_and_create = (enrollment.DateCreated.to_date - enrollment.EntryDate).to_i
@@ -381,12 +377,6 @@ module HmisDataQualityTool
 
         # TODO: HOPWA requires a disabilities type 8
       end
-    end
-
-    private def enrollment_cocs(report)
-      @enrollment_cocs ||= self.class.enrollment_scope(report).
-        pluck(e_t[:id], ec_t[:CoCCode]).
-        to_h
     end
 
     private def household_type(min_age, max_age)
