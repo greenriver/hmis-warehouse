@@ -183,34 +183,38 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         )
       end
 
-      it 'should ignore annuals that occurred outside the due window (Start of year)' do
-        # Entered in Nov, 2 years ago
-        e1 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: Date.current.beginning_of_year - 2.years - 5.weeks)
+      it 'should exlude enrollments that have annuals during the due period (due period is current)' do
+        travel_to Time.local(2023, 11, 20) do
+          # Entered ~2 years ago
+          e1 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: Date.new(2021, 11, 1))
 
-        # irrelevant annuals that fall outside of anniversary date
-        create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 5, assessment_date: e1.entry_date + 6.months)
-        create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 5, assessment_date: e1.entry_date + 18.months)
+          # valid annual for 2023 (most recent)
+          create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 5, assessment_date: e1.entry_date + 2.years)
+          # irrelevant annuals that fall outside of due period
+          create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 5, assessment_date: e1.entry_date + 6.months)
+          create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 5, assessment_date: e1.entry_date + 18.months)
 
-        response, result = post_graphql(id: p1.id, filters: { "householdTasks": ['ANNUAL_DUE'] }) { query }
-        expect(response.status).to eq(200), result.inspect
-        expect(result.dig('data', 'project', 'enrollments', 'nodes')).to contain_exactly(
-          include('id' => e1.id.to_s),
-        )
+          response, result = post_graphql(id: p1.id, filters: { "householdTasks": ['ANNUAL_DUE'] }) { query }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'project', 'enrollments', 'nodes')).to be_empty
+        end
       end
 
-      it 'should ignore annuals that occurred outside the due window (End of year)' do
-        # Entered in Feb, 2 years ago
-        e1 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: Date.current.beginning_of_year - 2.years + 5.weeks)
+      it 'should exlude enrollments that have annuals during the due period (nearest due period is last year)' do
+        travel_to Time.local(2023, 2, 15) do
+          # Entered less than 2 years ago
+          e1 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: Date.new(2021, 11, 1))
 
-        # irrelevant annuals that fall outside of anniversary date
-        create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 5, assessment_date: e1.entry_date + 6.months)
-        create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 5, assessment_date: e1.entry_date + 18.months)
+          # valid annual for 2022 (most recent)
+          create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 5, assessment_date: e1.entry_date + 1.year)
+          # irrelevant annuals that fall outside of due period
+          create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 5, assessment_date: e1.entry_date + 6.months)
+          create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 5, assessment_date: e1.entry_date + 18.months)
 
-        response, result = post_graphql(id: p1.id, filters: { "householdTasks": ['ANNUAL_DUE'] }) { query }
-        expect(response.status).to eq(200), result.inspect
-        expect(result.dig('data', 'project', 'enrollments', 'nodes')).to contain_exactly(
-          include('id' => e1.id.to_s),
-        )
+          response, result = post_graphql(id: p1.id, filters: { "householdTasks": ['ANNUAL_DUE'] }) { query }
+          expect(response.status).to eq(200), result.inspect
+          expect(result.dig('data', 'project', 'enrollments', 'nodes')).to be_empty
+        end
       end
     end
   end
