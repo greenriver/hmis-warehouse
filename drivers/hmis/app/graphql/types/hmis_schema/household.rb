@@ -14,6 +14,7 @@ module Types
     field :short_id, ID, null: false
     field :household_clients, [HmisSchema::HouseholdClient], null: false
     field :household_size, Int, null: false
+    field :annual_due_periods, [Types::DateRange], null: false
 
     assessments_field filter_args: { omit: [:project, :project_type], type_name: 'AssessmentsForHousehold' }
 
@@ -45,6 +46,20 @@ module Types
 
     def assessments(**args)
       resolve_assessments(**args)
+    end
+
+    def annual_due_periods
+      earliest_entry = object.earliest_entry
+      household_exit_date = object.latest_exit
+      max_year = household_exit_date&.year || Date.current.year
+
+      ((earliest_entry.year + 1)..max_year).map do |year|
+        due_period = Hmis::Reminders::ReminderGenerator.annual_due_period(earliest_entry_date: earliest_entry, year: year)
+        # skip if household exited before the anniversary
+        next if household_exit_date && household_exit_date < due_period.anniversary_date
+
+        OpenStruct.new(start_date: due_period.due_period_start, end_date: due_period.due_period_end)
+      end.compact
     end
   end
 end

@@ -26,6 +26,26 @@ module Hmis
         end
       end
 
+      def self.annual_due_period(earliest_entry_date:, year: Date.current.year)
+        hoh_entered_on = normalize_yoy_date(earliest_entry_date)
+        window = 30.days
+        # not due for an assessment yet
+        return if Date.current < (hoh_entered_on + (1.year - window))
+
+        hoh_anniversary = hoh_entered_on.change(year: year)
+        start_date = hoh_anniversary - window
+        due_date = hoh_anniversary + window
+        OpenStruct.new(
+          anniversary_date: hoh_anniversary,
+          due_period_start: start_date,
+          due_period_end: due_date,
+        )
+      end
+
+      def self.normalize_yoy_date(date)
+        date.leap? && date.month == 2 && date.day == 29 ? date + 1.day : date
+      end
+
       protected
 
       def new_reminder(...)
@@ -39,7 +59,7 @@ module Hmis
       end
 
       def normalize_yoy_date(date)
-        date.leap? && date.month == 2 && date.day == 29 ? date + 1.day : date
+        self.class.normalize_yoy_date(date)
       end
 
       def data_stages(keys)
