@@ -344,6 +344,14 @@ enum AssessmentType {
   VIRTUAL
 }
 
+input AssessmentsForEnrollmentFilterOptions {
+  type: [AssessmentRole!]
+}
+
+input AssessmentsForHouseholdFilterOptions {
+  type: [AssessmentRole!]
+}
+
 type AssessmentsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -2751,7 +2759,7 @@ type Enrollment {
   access: EnrollmentAccess!
   alcoholDrugUseDisorderFam: NoYesMissing
   annualPercentAmi: AnnualPercentAMI
-  assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  assessments(filters: AssessmentsForEnrollmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   ceAssessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): CeAssessmentsPaginated!
   childWelfareMonths: Int
   childWelfareYears: RHYNumberofYears
@@ -4201,10 +4209,8 @@ type HmisParticipationsPaginated {
   pagesCount: Int!
 }
 
-"""
-HUD Household
-"""
 type Household {
+  assessments(filters: AssessmentsForHouseholdFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   householdClients: [HouseholdClient!]!
   householdSize: Int!
   id: ID!
