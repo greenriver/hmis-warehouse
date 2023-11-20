@@ -54,7 +54,7 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
     missing_data_rows(
       GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.joins(:organization).
       includes(:funders).
-      where(computed_project_type: [1, 2, 3, 8, 9, 10, 13]).
+      where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types).
       where(HousingType: nil, housing_type_override: nil).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)), # this is imperfect, but only look at projects with enrollments open during the past three years
     )
@@ -65,7 +65,7 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
       GrdaWarehouse::Hud::ProjectCoc.joins(project: :organization).
       includes(project: :funders).
       distinct.
-      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
       where(Geocode: nil, geocode_override: nil),
     )
@@ -76,7 +76,7 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
       GrdaWarehouse::Hud::ProjectCoc.joins(project: :organization).
       includes(project: :funders).
       distinct.
-      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
       where(GeographyType: nil, geography_type_override: nil),
     )
@@ -87,7 +87,7 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
       GrdaWarehouse::Hud::ProjectCoc.joins(project: :organization).
       includes(project: :funders).
       distinct.
-      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
       where(Zip: nil, zip_override: nil),
     )
@@ -96,8 +96,9 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
   private def operating_start_dates(user)
     missing_data_rows(
       GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.joins(:organization).
+      where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types).
       includes(:funders).
-      where(computed_project_type: [1, 2, 3, 8, 9, 10, 13, 4]).
+      where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types).
       where(OperatingStartDate: nil, operating_start_date_override: nil),
     )
   end
@@ -105,6 +106,7 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
   private def invalid_funders(user)
     missing_data_rows(
       GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.joins(:organization).
+      where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types).
       joins(:funders).
       distinct.
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)).
@@ -117,7 +119,7 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
       GrdaWarehouse::Hud::ProjectCoc.joins(project: :organization).
       includes(project: :funders).
       distinct.
-      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
       where(CoCCode: nil, hud_coc_code: nil),
     )
@@ -127,7 +129,7 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
     missing_data_rows(
       GrdaWarehouse::Hud::Project.coc_funded.
       viewable_by(user, permission: :can_view_assigned_reports).
-      where(computed_project_type: [1, 2, 3, 8, 9, 10, 13]).
+      where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types).
       joins(:project_cocs, :inventories, :organization).
       includes(:funders).
       merge(
@@ -146,7 +148,7 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
       GrdaWarehouse::Hud::Inventory.joins(project: :organization).
       includes(project: :funders).
       distinct.
-      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
       where(InventoryStartDate: nil, inventory_start_date_override: nil),
     )
