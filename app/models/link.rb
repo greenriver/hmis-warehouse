@@ -11,6 +11,10 @@ class Link < ApplicationRecord
     @cache[location] ||= where(location: location)
   end
 
+  def self.invalidate_cache
+    @cache = nil
+  end
+
   def available_locations
     {
       'Footer' => 'footer',
