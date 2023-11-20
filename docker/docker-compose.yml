@@ -47,8 +47,10 @@ services:
       - manual
     command: /bin/bash
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   spec:
     <<: *backend
@@ -57,9 +59,12 @@ services:
     command: /bin/bash
     entrypoint: '/usr/bin/spec.entrypoint.sh'
     depends_on:
-      - db
-      - redis
-      - minio
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
     env_file:
       - .env.local
       - .env.test
@@ -73,19 +78,26 @@ services:
     tty: true
     command: bundle exec rails console
     depends_on:
-      - db
-      - redis
-      - mailhog
-      - minio
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      mailhog:
+        condition: service_started
+      minio:
+        condition: service_started
 
   dj:
     <<: *backend
     command: ./bin/rake jobs:work
     entrypoint: ''
     depends_on:
-      - db
-      - redis
-      - minio
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
 
   web:
     <<: *backend
@@ -108,10 +120,14 @@ services:
       VIRTUAL_HOST: ${FQDN:-hmis-warehouse.dev.test}
       VIRTUAL_PORT: 3000
     depends_on:
-      - db
-      - redis
-      - mailhog
-      - minio
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      mailhog:
+        condition: service_started
+      minio:
+        condition: service_started
 
   # Starts a tunnel *from* an external point to the local web service. This
   # makes your local development environment available on the public internet.
@@ -207,6 +223,7 @@ services:
       - 5432
     expose:
       - 5432
+    stop_grace_period: 30s
 
   redis:
     container_name: hmis-warehouse-redis
