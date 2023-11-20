@@ -33,7 +33,6 @@
     $(document).ready(function() {
       console.log('Returns To Homelessness -----------------')
       var data = #{chart_data.to_json.html_safe}
-      console.log(data)
       var barData = #{all_data.bars.to_json.html_safe}
       var stackedIds = #{stacked_ids.to_json.html_safe}
 

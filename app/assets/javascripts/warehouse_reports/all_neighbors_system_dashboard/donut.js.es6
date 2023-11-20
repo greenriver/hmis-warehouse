@@ -29,7 +29,6 @@ class AllNeighborsSystemDashboardDonut {
   }
 
   getColumns() {
-    // console.log(this)
     return this.series.map((d, i) => {
       return [this.config.keys[i]].concat(
         d.series.filter((n) => {

@@ -1,6 +1,5 @@
 class AllNeighborsSystemDashboardLine {
   constructor(data, initialState, selector, options) {
-    console.log('data', data)
     this.data = data
     this.state = initialState
     this.selector = selector
@@ -35,6 +34,9 @@ class AllNeighborsSystemDashboardLine {
   }
 
   getMonthlyTotals() {
+    if(!this.monthlyCounts || !this.monthlyCounts[0]) {
+      return []
+    }
     return this.monthlyCounts[0].filter((d) => {
       return this.inDateRange(d[0], this.state.dateRange)
     }).map((d) => d[1])
@@ -73,7 +75,10 @@ class AllNeighborsSystemDashboardLine {
     return {
       y: {
         min: 0,
-        padding: 0,
+        padding: {
+          bottom: 0,
+          top: 20,
+        },
       },
       x: {
         type: "timeseries",
@@ -122,17 +127,19 @@ class AllNeighborsSystemDashboardLine {
         contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
           const index = d[0].index
           const monthlyCount = this.getMonthlyTotals()[index]
-          let html = "<table class='bb-tooltip'>"
-          html += "<thead>"
-          html += `<tr><th colspan='2'>${defaultTitleFormat(d[0].x)}</th></tr>`
-          html += "</thead>"
-          html += "<tbody>"
-          html += `<tr><td>New ${this.countLevel.count_level.slice(0, -1)} Placements</td><td>${d3.format(',')(monthlyCount)}</td></tr>`
-          html += `<tr><td>Total ${this.countLevel.count_level} Placed to Date</td><td>${d3.format(',')(d[0].value)}</td></tr>`
-          html += "</tbody>"
-          html += "</table>"
-          return html
-        },
+          if(monthlyCount) {
+            let html = "<table class='bb-tooltip'>"
+            html += "<thead>"
+            html += `<tr><th colspan='2'>${defaultTitleFormat(d[0].x)}</th></tr>`
+            html += "</thead>"
+            html += "<tbody>"
+            html += `<tr><td>New ${this.countLevel.count_level.slice(0, -1)} Placements</td><td>${d3.format(',')(monthlyCount)}</td></tr>`
+            html += `<tr><td>Total ${this.countLevel.count_level} Placed to Date</td><td>${d3.format(',')(d[0].value)}</td></tr>`
+            html += "</tbody>"
+            html += "</table>"
+            return html
+          }
+        },  
       },
       bindto: this.selector
     }
@@ -158,6 +165,18 @@ class AllNeighborsSystemDashboardLine {
 class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine {
   constructor(data, initialState, selector, options) {
     super(data, initialState, selector, options)
+  }
+
+  getProgramNames(id, index) {
+    let name = 'Unknown'
+    const keyIndex = (this.config.keys || []).indexOf(id)
+    if(keyIndex > -1) {
+      const series = this.series[keyIndex] || []
+      if(series.length > 0) {
+        name = series.filter((d) => this.inDateRange(d[0], this.state.dateRange))[index][3] || 'Unknown'
+      }
+    }
+    return name
   }
 
   getColumns() {
@@ -218,6 +237,11 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
       axis: {
         x: {
           min: 0,
+          padding: {
+            left: 20,
+            right: 20,
+            unit: 'px',
+          },
           tick: {
             fit: false
           },
@@ -228,6 +252,10 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
         },
         y: {
           min: 0,
+          padding: {
+            bottom: 0,
+            top: 20,
+          },
           label: {
             text: 'Average Days',
             position: 'outer-middle',
@@ -250,6 +278,20 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
             return shape || 'circle'
           }
         })
+      },
+      tooltip: {
+        contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
+          let html = "<table class='bb-tooltip'>"
+          html += "<thead>"
+          html += `<tr><th colspan='2'>${this.getProgramNames(d[0].id, d[0].index)}</th></tr>`
+          html += "</thead>"
+          html += "<tbody>"
+          html += `<tr><td>Housed Households</td><td>${d[0].x}</td></tr>`
+          html += `<tr><td>Average Days Referral to Housing</td><td>${d[0].value}</td></tr>`
+          html += "</tbody>"
+          html += "</table>"
+          return html
+        },  
       },
       onrendered: function() {
         const selector = this.internal.config.bindto
@@ -323,6 +365,7 @@ class AllNeighborsSystemDashboardLineByQuarter extends AllNeighborsSystemDashboa
   }
 
   getConfig() {
+    const dateToQuarterName = this.xAxisFormat.bind(this)
     const classConfig = this.config
     const config = {
       point: {
@@ -335,6 +378,24 @@ class AllNeighborsSystemDashboardLineByQuarter extends AllNeighborsSystemDashboa
             return shape
           }
         })
+      },
+      tooltip: {
+        contents: function(d, defaultTitleFormat, defaultValueFormat, color) {
+          const idNames = this.data.names()
+          const dataGroup = this.data().map((n) => n.values[d[0].index])
+          let html = "<table class='bb-tooltip'>"
+          html += "<thead>"
+          html += `<tr><th colspan='2'>Average Days</th></tr>`
+          html += "</thead>"
+          html += "<tbody>"
+          html += `<tr><td colspan='2'>${dateToQuarterName(d[0].x)}</td></tr>`
+          dataGroup.forEach((n) => {
+            html += `<tr><td>${idNames[n.id]}</td><td>${n.value}</td></tr>`
+          })
+          html += "</tbody>"
+          html += "</table>"
+          return html
+        },  
       },
     }
     return {...super.getConfig(), ...config}
