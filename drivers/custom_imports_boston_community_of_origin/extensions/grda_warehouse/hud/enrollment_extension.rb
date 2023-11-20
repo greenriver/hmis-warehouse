@@ -24,11 +24,12 @@ module CustomImportsBostonCommunityOfOrigin::GrdaWarehouse::Hud
         # so we are finding zips that we don't already have, but not tracking changes to enrollments
         # afterwards.
 
-        # Add new locations
-        new_enrollment_ids = where.not(
-          id: ClientLocationHistory::Location.where(source_type: 'GrdaWarehouse::Hud::Enrollment').
-            select(:source_id),
-        ).pluck(:id)
+        # Add new locations (limit to those with LastPermanentZIP)
+        new_enrollment_ids = where.not(LastPermanentZIP: nil).
+          where.not(
+            id: ClientLocationHistory::Location.where(source_type: 'GrdaWarehouse::Hud::Enrollment').
+              select(:source_id),
+          ).pluck(:id)
         # :client_location, is included to avoid an N+1 in build_client_location
         where(id: new_enrollment_ids).includes(:client_location, project: :organization, client: :destination_client).find_in_batches do |batch|
           locations = []
@@ -46,6 +47,7 @@ module CustomImportsBostonCommunityOfOrigin::GrdaWarehouse::Hud
               lat: lat,
               lon: lon,
               collected_by: enrollment&.project&.name,
+              enrollment_id: enrollment.id,
             )
           end
         ensure # Always save any locations that we got
