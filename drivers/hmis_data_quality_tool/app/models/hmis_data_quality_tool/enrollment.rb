@@ -14,9 +14,9 @@ module HmisDataQualityTool
     include HudReports::Clients
     acts_as_paranoid
 
-    HOMELESS_LIVING_SITUATIONS = HudUtility2024::SITUATION_HOMELESS_RANGE.to_a
-    INSTITUTIONAL_LIVING_SITUATIONS = HudUtility2024::SITUATION_INSTITUTIONAL_RANGE.to_a
-    HOUSED_LIVING_SITUATIONS = HudUtility2024::SITUATION_TEMPORARY_RANGE.to_a + HudUtility2024::SITUATION_PERMANENT_RANGE.to_a
+    HOMELESS_LIVING_SITUATIONS = HudUtility2024.homeless_situations(as: :prior)
+    INSTITUTIONAL_LIVING_SITUATIONS = HudUtility2024.institutional_situations(as: :prior)
+    HOUSED_LIVING_SITUATIONS = HudUtility2024.temporary_situations(as: :prior) + HudUtility2024.permanent_situations(as: :prior)
 
     attr_accessor :report_end_date, :entry_threshold, :exit_threshold, :project_coc_codes
 
