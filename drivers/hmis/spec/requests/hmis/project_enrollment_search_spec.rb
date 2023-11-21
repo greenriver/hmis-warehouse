@@ -168,12 +168,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           travel_to local_time do
             # Entered 18 months ago (earliest entry in household)
             e1 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: 18.months.ago)
-            # Entered 14 months ago, with an irrelevant annual 8 months ago. (Annual due period is 6 months ago)
+            # Entered 14 months ago, with an irrelevant annual 2 months ago. (Annual due period is 6 months ago)
             e2 = create(:hmis_hud_enrollment, data_source: ds1, household_id: e1.household_id, project: p1, entry_date: 14.months.ago)
-            create(:hmis_custom_assessment, data_source: ds1, enrollment: e2, data_collection_stage: 5, assessment_date: 8.months.ago)
-            # Entered 14 months ago, with an irrelevant annual 4 months ago. (Annual due period is 6 months ago)
+            create(:hmis_custom_assessment, data_source: ds1, enrollment: e2, data_collection_stage: 5, assessment_date: 2.months.ago)
+            # Entered 14 months ago, with an irrelevant annual 8 months ago. (Annual due period is 6 months ago)
             e3 = create(:hmis_hud_enrollment, data_source: ds1, household_id: e1.household_id, project: p1, entry_date: 14.months.ago)
-            create(:hmis_custom_assessment, data_source: ds1, enrollment: e3, data_collection_stage: 5, assessment_date: 4.months.ago)
+            create(:hmis_custom_assessment, data_source: ds1, enrollment: e3, data_collection_stage: 5, assessment_date: 8.months.ago)
             # Entered 1 month ago (not due for annual yet because entered after anniversary)
             _e4 = create(:hmis_hud_enrollment, data_source: ds1, household_id: e1.household_id, project: p1, entry_date: 1.month.ago)
 
