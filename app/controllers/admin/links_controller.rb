@@ -20,6 +20,7 @@ module Admin
 
     def create
       @link = link_scope.create(link_params)
+      link_scope.invalidate_cache
       respond_with(@link, location: admin_links_path)
     end
 
@@ -28,11 +29,13 @@ module Admin
 
     def update
       @link.update(link_params)
+      link_scope.invalidate_cache
       respond_with(@link, location: admin_links_path)
     end
 
     def destroy
       @link.destroy
+      link_scope.invalidate_cache
       respond_with(@link, location: admin_links_path)
     end
 
