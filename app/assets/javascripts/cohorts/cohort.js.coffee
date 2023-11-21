@@ -112,6 +112,7 @@ class App.Cohorts.Cohort
       header = {
         headerName: column.headerName,
         headerTooltip: column.headerTooltip,
+        tooltipShowDelay: 250,
         field: column.field,
         editable: column.editable,
         # tooltip: (params) ->

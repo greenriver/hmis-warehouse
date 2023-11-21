@@ -10,7 +10,7 @@ module HmisStructure::Service
 
   included do
     self.hud_key = :ServicesID
-    acts_as_paranoid(column: :DateDeleted)
+    acts_as_paranoid(column: :DateDeleted) unless included_modules.include?(Paranoia)
   end
 
   module ClassMethods
