@@ -9,7 +9,7 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :youth_rrh_desired
     attribute :translation_key, String, lazy: true, default: 'Interested in Youth RRH'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
-    attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }
+    attribute :description_translation_key, String, lazy: true, default: 'True if the client indicated interest in youth RRH.'
     attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def available_for_rules?

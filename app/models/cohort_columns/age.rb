@@ -9,7 +9,7 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :age
     attribute :translation_key, String, lazy: true, default: 'Age*'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
-    attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }
+    attribute :description_translation_key, String, lazy: true, default: 'Age of the client as of the effective date of the cohort.'
     attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def cast_value(val)
