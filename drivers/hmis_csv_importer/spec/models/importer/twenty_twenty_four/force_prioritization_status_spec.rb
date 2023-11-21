@@ -6,25 +6,47 @@
 
 require 'rails_helper'
 
-RSpec.describe HmisCsvImporter, type: :model do
-  describe 'Force Assessment Prioritization status' do
+RSpec.describe 'Force Assessment Prioritization Status', type: :model do
+  describe 'without cleanup' do
     before(:all) do
-      HmisCsvImporter::Utility.clear!
-      GrdaWarehouse::Utility.clear!
-      @data_source = create(:importer_force_prioritized_placement_status)
-      import_hmis_csv_fixture(
-        'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/forced_prioritization_placement_status',
-        data_source: @data_source,
-        version: 'AutoMigrate',
-        deidentified: true,
-        run_jobs: false,
-      )
+      setup(with_cleanup: false)
     end
 
-    it 'all assessments will have prioritization status set to 1' do
-      GrdaWarehouse::Hud::Assessment.all.each do |assessment|
-        expect(assessment.PrioritizationStatus).to eq(1)
-      end
+    it 'not all assessments will have prioritization status set to 1' do
+      stati = GrdaWarehouse::Hud::Assessment.all.pluck(:PrioritizationStatus)
+      expect(stati.all?(1)).to be false
     end
+  end
+
+  describe 'with cleanup' do
+    before(:all) do
+      setup(with_cleanup: true)
+    end
+
+    it 'there are five assessments imported' do
+      expect(GrdaWarehouse::Hud::Assessment.count).to eq(5)
+    end
+    it 'all assessments will have prioritization status set to 1' do
+      stati = GrdaWarehouse::Hud::Assessment.all.pluck(:PrioritizationStatus)
+      expect(stati.all?(1)).to be true
+    end
+  end
+
+  def setup(with_cleanup:)
+    GrdaWarehouse::Utility.clear!
+    HmisCsvImporter::Utility.clear!
+
+    data_source = if with_cleanup
+      create(:importer_force_prioritized_placement_status)
+    else
+      create(:importer_dont_cleanup_ds)
+    end
+
+    import_hmis_csv_fixture(
+      'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/forced_prioritization_placement_status',
+      data_source: data_source,
+      version: 'AutoMigrate',
+      run_jobs: false,
+    )
   end
 end
