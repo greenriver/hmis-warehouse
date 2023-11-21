@@ -55,6 +55,8 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
     with_filter(scope, :household_tasks) do
       return scope.all unless input.household_tasks&.include?('ANNUAL_DUE')
 
+      # SQL-ized version of the logic here: drivers/hmis/app/models/hmis/reminders/reminder_generator.rb#annual_assessment_reminder
+
       # The SQL statement "interval"((extract(day from "EntryDate")::integer - 1) || ' days') is present to handle leap
       # year dates. That is, if the entry date is 2/29/2020, then just using make_date directly will produce an
       # anniversary date of 2/29/2023, which is invalid. To prevent this, make_date is used to create a date of
@@ -77,10 +79,15 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
       last_start_date = Arel.sql("#{anniversary_date} - interval '30 days' - interval '1 year'")
       last_end_date = Arel.sql("#{anniversary_date} + interval '30 days' - interval '1 year'")
 
-      # SQL-ized version of the logic here: drivers/hmis/app/models/hmis/reminders/reminder_generator.rb#annual_assessment_reminder
-
+      # Clause for checking whether an Assessment falls within the "due period". There are due cases because the due period may be this year or last year.
       this_year_annual_in_range = start_date.lteq(Date.current).and(cas_t[:assessment_date].gteq(start_date).and(cas_t[:assessment_date].lteq(end_date)))
-      last_year_annual_in_range = start_date.gteq(Date.current).and(cas_t[:assessment_date].gteq(last_start_date).and(cas_t[:assessment_date].lteq(last_end_date)))
+      last_year_annual_in_range = start_date.gt(Date.current).and(cas_t[:assessment_date].gteq(last_start_date).and(cas_t[:assessment_date].lteq(last_end_date)))
+      annual_in_range = this_year_annual_in_range.or(last_year_annual_in_range)
+
+      # Clause for checking whether an Enrollment's Entry Date falls before the "anniverary". There are due cases because the anniversary may be this year or last year.
+      this_year_entered_before_anniversary = start_date.lteq(Date.current).and(e_t[:entry_date].lt(Arel.sql(anniversary_date)))
+      last_year_entered_before_anniversary = start_date.gt(Date.current).and(e_t[:entry_date].lt(Arel.sql("#{anniversary_date} - interval '1 year'")))
+      entered_before_anniversary = this_year_entered_before_anniversary.or(last_year_entered_before_anniversary)
 
       scope.
         joins(:household).
@@ -94,16 +101,16 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
             and(cas_t[:data_source_id].eq(e_t[:data_source_id])).
             and(cas_t[:data_collection_stage]).eq(5). # Annual
             and(cas_t[:wip]).eq(false).
-            and(this_year_annual_in_range.or(last_year_annual_in_range)),
+            and(annual_in_range),
           ).join_sources,
         ).
-        # Earliest entry was more than a year ago
+        # Earliest entry in household was more than a year ago
         where(hh_t[:earliest_entry].lteq(Date.today - 11.months)).
-        # Household is not exited
+        # Household is not fully exited
         where(hh_t[:latest_exit].eq(nil)).
-        # Client entered household before this years anniversary
-        where(e_t[:entry_date].lt(Arel.sql(anniversary_date))).
-        # Enrollment does not have Annual Assessment in due period
+        # Client entered household before anniversary date
+        where(entered_before_anniversary).
+        # Enrollment does not have an Annual Assessment in due period
         where(cas_t[:assessment_date].eq(nil)).distinct
     end
   end
