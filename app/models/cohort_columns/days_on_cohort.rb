@@ -9,7 +9,7 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :days_on_cohort
     attribute :translation_key, String, lazy: true, default: 'Days on Cohort'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
-    attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }
+    attribute :description_translation_key, String, lazy: true, default: 'Days between the date the client was added to the cohort and today.'
     attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def available_for_rules?
