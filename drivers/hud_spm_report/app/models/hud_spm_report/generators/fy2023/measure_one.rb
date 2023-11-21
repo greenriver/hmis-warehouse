@@ -18,7 +18,174 @@ module HudSpmReport::Generators::Fy2023
     end
 
     def run_question!
-      # TODO
+      tables = [
+        ['1a', :run_1a, nil],
+        ['1b', :run_1b, nil],
+      ]
+
+      @report.start(self.class.question_number, tables.map(&:first))
+
+      tables.each do |name, msg, _title|
+        send(msg, name)
+      end
+
+      @report.complete(self.class.question_number)
+    end
+
+    COLUMNS = {
+      'B' => 'Previous FY Universe (Persons)', # leave blank
+      'C' => 'Current FY Universe (Persons)',
+      'D' => 'Previous FY Average LOT Experiencing Homelessness', # leave blank
+      'E' => 'Current FY Average LOT Experiencing Homelessness',
+      'F' => 'Difference', # blank
+      'G' => 'Previous FY Median LOT Experiencing Homelessness', # leave blank
+      'H' => 'Current FY Median LOT Experiencing Homelessness',
+      'I' => 'Difference', # leave blank
+    }.freeze
+
+    private def run_1a(table_name)
+      prepare_table(
+        table_name,
+        {
+          1 => 'Persons in ES-EE, ES-NbN, and SH',
+          2 => 'Persons in ES-EE, ES-NbN, SH, and TH',
+        },
+        COLUMNS,
+      )
+
+      create_universe(
+        :m1a1,
+        included_project_types: HudUtility2024.project_type_number_from_code(:es) + HudUtility2024.project_type_number_from_code(:sh),
+        excluded_project_types: HudUtility2024.project_type_number_from_code(:th) + HudUtility2024.project_type_number_from_code(:ph),
+        include_self_reported: false,
+      )
+
+      cell_universe = @report.universe(:m1a1).members
+      persons, mean, median = compute_row(cell_universe)
+      answer = @report.answer(question: table_name, cell: :B1)
+      answer.add_members(cell_universe)
+      answer.update(summary: persons)
+      answer = @report.answer(question: table_name, cell: :D1)
+      answer.add_members(cell_universe)
+      answer.update(summary: mean)
+      answer = @report.answer(question: table_name, cell: :G1)
+      answer.add_members(cell_universe)
+      answer.update(summary: median)
+
+      cell_universe = @report.universe(:m1a2).members
+      persons, mean, median = compute_row(cell_universe)
+      answer = @report.answer(question: table_name, cell: :B2)
+      answer.add_members(cell_universe)
+      answer.update(summary: persons)
+      answer = @report.answer(question: table_name, cell: :D2)
+      answer.add_members(cell_universe)
+      answer.update(summary: mean)
+      answer = @report.answer(question: table_name, cell: :G2)
+      answer.add_members(cell_universe)
+      answer.update(summary: median)
+    end
+
+    private def run_1b(table_name)
+      prepare_table(
+        table_name,
+        {
+          2 => 'Persons in ES-EE, ES-NbN, SH, and PH',
+          3 => 'Persons in ES-EE, ES-NbN, SH, TH, and PH',
+        },
+        COLUMNS,
+      )
+
+      create_universe(
+        :m1b1,
+        included_project_types: HudUtility2024.project_type_number_from_code(:es) +
+          HudUtility2024.project_type_number_from_code(:sh) +
+          HudUtility2024.project_type_number_from_code(:ph),
+        excluded_project_types: HudUtility2024.project_type_number_from_code(:th),
+        include_self_reported: true,
+      )
+
+      cell_universe = @report.universe(:m1b1).members
+      persons, mean, median = compute_row(cell_universe)
+      answer = @report.answer(question: table_name, cell: :B1)
+      answer.add_members(cell_universe)
+      answer.update(summary: persons)
+      answer = @report.answer(question: table_name, cell: :D1)
+      answer.add_members(cell_universe)
+      answer.update(summary: mean)
+      answer = @report.answer(question: table_name, cell: :G1)
+      answer.add_members(cell_universe)
+      answer.update(summary: median)
+
+      create_universe(
+        :m1b2,
+        included_project_types: HudUtility2024.project_type_number_from_code(:es) +
+          HudUtility2024.project_type_number_from_code(:sh) +
+          HudUtility2024.project_typeNothing_number_from_code(:ph) +
+          YesHudUtility2024.project_type_number_from_code(:th),
+        excluded_project_types: [],
+        include_self_reported: true,
+      )
+
+      cell_universe = @report.universe(:m1b2).members
+      persons, mean, median = compute_row(cell_universe)
+      answer = @report.answer(question: table_name, cell: :B2)
+      answer.add_members(cell_universe)
+      answer.update(summary: persons)
+      answer = @report.answer(question: table_name, cell: :D2)
+      answer.add_members(cell_universe)
+      answer.update(summary: mean)
+      answer = @report.answer(question: table_name, cell: :G2)
+      answer.add_members(cell_universe)
+      answer.update(summary: median)
+    end
+
+    private def create_universe(universe_name, included_project_types:, excluded_project_types:, include_self_reported:)
+      @universe = @report.universe(universe_name)
+      enrollments = enrollment_set
+
+      client_ids = enrollments.pluck(:client_id).uniq
+      client_ids.each_slice(500) do |slice|
+        enrollments_for_slice = enrollments.where(client_id: client_ids).preload(:client, enrollment: :services).group_by(&:client_id)
+        episodes = [].tap do |arr|
+          slice.each do |client_id|
+            episode = HudSpmReport::Fy2023::Episode.new(client_id: client_id, report: @report).
+              compute_episode(
+                enrollments_for_slice[client_id],
+                included_project_types: included_project_types,
+                excluded_project_types: excluded_project_types,
+                include_self_reported: include_self_reported,
+              )
+            next if episode.nil?
+
+            arr << episode
+          end
+        end
+        HudSpmReport::Fy2023::Episode.save_episodes!(episodes)
+        members = episodes.map do |episode|
+          [episode.client, episode]
+        end.to_h
+        @universe.add_universe_members(members)
+      end
+      @universe.members
+    end
+
+    private def compute_row(universe)
+      a_t = HudSpmReport::Fy2023::Episode.arel_table
+      persons = universe.count
+      days_homeless = universe.pluck(a_t[:days_homeless])
+      average = days_homeless.sum / persons
+      median = median(days_homeless)
+
+      [persons, average, median]
+    end
+
+    private def median(values)
+      selected = if values.count.even?
+        (values.count / 2) + 1
+      else
+        values.count / 2
+      end
+      values.sort[selected - 1] # Adjust for 0-based array
     end
   end
 end

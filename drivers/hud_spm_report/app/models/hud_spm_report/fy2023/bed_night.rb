@@ -10,7 +10,7 @@ module HudSpmReport::Fy2023
 
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :enrollment
-    belongs_to :episode
+    belongs_to :episode, optional: true
     belongs_to :service, class_name: 'GrdaWarehouse::Hud::Service', optional: true
   end
 end

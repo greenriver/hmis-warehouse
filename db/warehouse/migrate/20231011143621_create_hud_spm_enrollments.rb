@@ -17,7 +17,7 @@ class CreateHudSpmEnrollments < ActiveRecord::Migration[6.1]
       t.boolean :los_under_threshold
       t.boolean :previous_street_essh
       t.integer :destination
-      t.date :age # age at later of entry_date and report_start_date
+      t.integer :age # age at later of entry_date and report_start_date
       t.integer :previous_earned_income
       t.integer :previous_non_employment_income_
       t.integer :previous_total_income

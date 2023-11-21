@@ -13,47 +13,57 @@ module HudSpmReport::Fy2023
     has_many :enrollments, through: :enrollment_links
     has_many :bed_nights
 
+    has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
+
     attr_accessor :report # FIXME?
 
-    def compute_episode(included_project_types:, excluded_project_types:, include_self_reported:)
+    def self.save_episodes!(episodes)
+      import!(episodes)
+      BedNight.import!(episodes.map(&:bed_nights).flatten)
+      EnrollmentLink.import!(episodes.map(&:enrollment_links).flatten)
+    end
+
+    def compute_episode(enrollments, included_project_types:, excluded_project_types:, include_self_reported:)
       raise 'Client undefined' unless client.present?
 
-      enrollments = report.spm_enrollments.where(client_id: client.id)
       calculated_bed_nights = candidate_bed_nights(enrollments, included_project_types, include_self_reported)
       calculated_excluded_dates = excluded_bed_nights(enrollments, excluded_project_types)
       calculated_bed_nights.reject! { |_, _, date| date.in?(calculated_excluded_dates) }
 
       filtered_bed_nights = filter_episode(calculated_bed_nights)
+      return unless filtered_bed_nights.present?
 
-      BedNight.import!(filtered_bed_nights.map do |enrollment, service_id, date|
-        bed_nights.build(
+      filtered_bed_nights.each do |enrollment, service_id, date|
+        bed_nights << bed_nights.build(
           client_id: client.id,
           enrollment_id: enrollment.id,
           service_id: service_id,
           date: date,
         )
-      end)
+      end
 
-      enrollment_ids = bed_nights.map(&:enrollment_id).uniq
-      EnrollmentLink.import!(enrollment_ids.map do |enrollment_id|
-        enrollment_links.build(
+      enrollment_ids = filtered_bed_nights.map { |enrollment, _, _| enrollment.id }.uniq
+      enrollment_ids.each do |enrollment_id|
+        enrollment_links << enrollment_links.build(
           enrollment_id: enrollment_id,
         )
-      end)
+      end
 
       dates = filtered_bed_nights.map(&:last)
       first_date = dates.min
-      update(
+      assign_attributes(
         first_date: first_date,
         last_date: dates.max,
-        days_homeless: calculated_bed_nights.count,
+        days_homeless: filtered_bed_nights.count,
         literally_homeless_at_entry: literally_homeless_at_entry(filtered_bed_nights, first_date),
       )
+
+      self
     end
 
     private def candidate_bed_nights(enrollments, project_types, include_self_reported)
       bed_nights = {} # Hash with date as key so we only get one candidate per overlapping night
-      enrollments = enrollments.where(project_type: project_types).preload(enrollment: :services)
+      enrollments = enrollments.select { |e| e.project_type.in?(project_types) }
       enrollments.each do |enrollment|
         if enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn))
           # NbN only gets service nights in the report range
@@ -92,7 +102,7 @@ module HudSpmReport::Fy2023
 
     private def excluded_bed_nights(enrollments, project_types)
       bed_nights = Set.new
-      enrollments = enrollments.where(project_type: project_types)
+      enrollments = enrollments.select { |e| e.project_type.in?(project_types) }
       enrollments.each do |enrollment|
         if enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:th))
           # TH bed nights are not considered homeless
@@ -113,21 +123,23 @@ module HudSpmReport::Fy2023
     end
 
     # @param bed_nights [[Enrollment, service_id, Date]] Array of candidate bed nights to be processed
-    private def filter_episode(bed_nights)
-      bed_nights = bed_nights.sort_by(&:last)
-      client_end_date = bed_nights.last.last
+    private def filter_episode(calculated_bed_nights)
+      return unless calculated_bed_nights.present?
+
+      calculated_bed_nights = calculated_bed_nights.sort_by(&:last)
+      client_end_date = calculated_bed_nights.last.last
       client_start_date = client_end_date - 365.days
 
       # Include continguous dates before the calculated client start date:
       # First, find as close to the start date as possible in the array
       index = 0
-      index += 1 while bed_nights[index].last < client_start_date
+      index += 1 while calculated_bed_nights[index].last < client_start_date
 
       # Then walk back until there is a break
-      index -= 1 while index > 1 && bed_nights[index - 1].last == bed_nights[index].last - 1.day
+      index -= 1 while index > 1 && calculated_bed_nights[index - 1].last == calculated_bed_nights[index].last - 1.day
 
       # Finally, return the selected dates
-      bed_nights[index ..]
+      calculated_bed_nights[index ..].map
     end
 
     private def literally_homeless_at_entry(bed_nights, first_date)

@@ -24,12 +24,18 @@ module HudSpmReport::Fy2023
     # to an aggregation object that refers to enrollments in this set.
     def self.create_enrollment_set(report_instance)
       filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(report_instance.options)
-      household_info = household(filter)
+      household_infos = household(filter)
       enrollments(filter).find_in_batches do |batch|
         members = []
         batch.each do |enrollment|
           current_income_benefits = current_income_benefits(enrollment, filter.end)
           previous_income_benefits = previous_income_benefits(enrollment, current_income_benefits&.information_date)
+          household_info = household_infos[enrollment.household_id] ||
+            OpenStruct.new(
+              start_of_homelessness: enrollment.date_to_street_essh,
+              entry_date: enrollment.entry_date,
+              move_in_date: enrollment.move_in_date,
+            ) # If there is no HoH, use the enrollment
           members << {
             report_instance_id: report_instance.id,
 
@@ -88,9 +94,9 @@ module HudSpmReport::Fy2023
       # Use the client move in date if they are the HoH
       return enrollment.move_in_date if enrollment.head_of_household?
       # Don't inherit move in date if the client exited before the HoH moved in
-      return enrollment.move_in_date if enrollment.exit.present? && enrollment.exit.exit_date <= household_info.move_in_date
+      return enrollment.move_in_date if enrollment.exit.present? && household_info.move_in_date.present? && enrollment.exit.exit_date <= household_info.move_in_date
       # Use the client's entry date if a client entered the household after the HoH had already moved in
-      return enrollment.entry_date if enrollment.entry_date > household_info.move_in_date
+      return enrollment.entry_date if household_info.move_in_date.present? && enrollment.entry_date > household_info.move_in_date
 
       # Otherwise, inherit move in date from HoH
       household_info.move_in_date
@@ -116,7 +122,7 @@ module HudSpmReport::Fy2023
 
     private_class_method def self.current_income_benefits(enrollment, end_date)
       # Exit assessment for leavers, or most recent annual update within report range for stayers
-      if enrollment.exit.exit_date <= end_date
+      if enrollment.exit.present? && enrollment.exit.exit_date <= end_date
         enrollment.income_benefits_at_exit
       else
         enrollment.
@@ -148,21 +154,22 @@ module HudSpmReport::Fy2023
     end
 
     private_class_method def self.enrollments(filter)
-      scope = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(filter).enrollments
-      scope.preload(:client, :destination_client, :income_benefits, project: :funders)
+      HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(filter).
+        enrollments.
+        preload(:client, :destination_client, :income_benefits, project: :funders)
     end
 
     private_class_method def self.household(filter)
-      {}.tap do |h|
+      @household ||= {}.tap do |h|
         enrollments(filter).find_in_batches do |batch|
           batch.each do |enrollment|
             next unless enrollment.head_of_household?
 
-            h[enrollment.household_id] = {
+            h[enrollment.household_id] = OpenStruct.new(
               start_of_homelessness: enrollment.date_to_street_essh,
               entry_date: enrollment.entry_date,
               move_in_date: enrollment.move_in_date,
-            }.with_indifferent_access
+            )
           end
         end
       end

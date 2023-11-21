@@ -8,6 +8,6 @@ module HudSpmReport::Fy2023
   class EnrollmentLink < GrdaWarehouseBase
     self.table_name = 'hud_report_spm_enrollment_links'
     belongs_to :enrollment
-    belongs_to :episode
+    belongs_to :episode, optional: true
   end
 end
