@@ -1,6 +1,8 @@
 
 #!/bin/bash
 
+# Checkout, build, and run the HMIS frontend locally
+
 # usage
 # BRANCH_NAME=186406279-hmis-system-e2e-tests bin/run_hmis_system_tests.sh
 
@@ -28,7 +30,8 @@ fi
 # Function to cleanup on exit
 cleanup() {
   echo "Removing temporary directory ${TEMP_DIR}"
-  rm -rf "$TEMP_DIR"
+  # comment this out to preserve the directory on exit
+  # rm -rf "$TEMP_DIR"
 }
 
 # Register the cleanup function to be called on the EXIT signal
