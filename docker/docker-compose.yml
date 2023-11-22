@@ -24,6 +24,8 @@ x-app: &app
     CHROMEDRIVER_VERSION: 79.0.3945.36
     GROVER_NO_SANDBOX: 'true'
     BUNDLE_FORCE_RUBY_PLATFORM: 'true'
+    CHROME_URL: http://chrome:3333
+
   env_file:
     - .env.development.local
     - .env.local
@@ -241,6 +243,23 @@ services:
     expose:
       - 8025
       - 1025
+
+  chrome:
+    image: browserless/chrome:1-chrome-stable
+    profiles: ["test"]
+    ports:
+      - "3333:3333"
+    # Mount application source code to support file uploading
+    # (otherwise Chrome won't be able to find files).
+    # NOTE: Make sure you use absolute paths in `#attach_file`.
+    volumes:
+      - .:/app
+    environment:
+      # By default, it uses 3000, which is typically used by Rails.
+      PORT: 3333
+      # Set connection timeout to avoid timeout exception during debugging
+      # https://docs.browserless.io/docs/docker.html#connection-timeout
+      CONNECTION_TIMEOUT: 600000
 
   sftp:
     container_name: hmis-warehouse-sftp
