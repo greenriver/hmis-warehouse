@@ -48,6 +48,8 @@ module Types
       resolve_assessments(**args)
     end
 
+    # List of "Due Periods" for annual assessments for this household,
+    # if they have been enrolled for >11 months.
     def annual_due_periods
       earliest_entry = object.earliest_entry
       household_exit_date = object.latest_exit
@@ -55,6 +57,10 @@ module Types
 
       ((earliest_entry.year + 1)..max_year).map do |year|
         due_period = Hmis::Reminders::ReminderGenerator.annual_due_period(earliest_entry_date: earliest_entry, year: year)
+        # Skip if due period is >10 months in the future. If the due period is that far in the future,
+        # then the "most relevant" due period is the previous one. This affects the prompt when a user begins a new annual assessment.
+        next if Date.current < due_period.anniversary_date - 10.months
+
         # skip if household exited before the anniversary
         next if household_exit_date && household_exit_date < due_period.anniversary_date
 
