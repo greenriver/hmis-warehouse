@@ -24,9 +24,9 @@ class OneTimeMigration20231121
     result['migrated_app_version_id'] = result.delete('id')
     ['object', 'object_changes'].each do |field|
       doc = result.delete(field)
-      result[field] = parse_yaml(doc) if doc.present?
+      result[field] = doc.present? ? parse_yaml(doc) : nil
     end
-    result.compact_blank
+    result
   end
 
   def parse_yaml(doc)
