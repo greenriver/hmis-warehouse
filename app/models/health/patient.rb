@@ -403,7 +403,7 @@ module Health
     end
 
     scope :intake_due, ->(on: Date.current.end_of_month) do
-      intake_required.where(engagement_date: on - 30.days ..)
+      intake_required.where(engagement_date: on - 30.days .. on)
     end
 
     scope :intake_overdue, ->(on: Date.current.end_of_month) do
