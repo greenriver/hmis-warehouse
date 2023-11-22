@@ -21,11 +21,15 @@
             %td
               = column.translation_key
             %td
-              = f.input "#{column.column}", label: false, input_html: { value: column.title } 
+              = f.input "#{column.column}", label: false, input_html: { value: column.title }
             %td
               - value = if column.show_description? then column.description else '' end
-              = f.input "#{column.column}_description", label: false, input_html: { value: value } 
+              = f.input "#{column.column}_description", label: false, as: :text, input_html: { value: value }
             %td
-              = column_type(column)
+              - type = column_type(column)
+              = type
+              - if type == 'Read only'
+                %i.icon-info{ data: { toggle: :tooltip, title: 'Calculation cannot be adjusted.  The description and column name should only be changed to increase clarity of the calculation.'}}
+
   .text-right
     = f.submit value: 'Update Column Names', class: 'btn btn-primary'
