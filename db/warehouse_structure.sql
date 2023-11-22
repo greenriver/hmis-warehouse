@@ -25207,7 +25207,9 @@ CREATE TABLE public.versions (
     created_at timestamp without time zone,
     session_id character varying,
     request_id character varying,
-    user_id bigint
+    user_id bigint,
+    referenced_user_id bigint,
+    referenced_entity_name character varying
 );
 
 
