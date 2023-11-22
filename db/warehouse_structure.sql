@@ -25209,7 +25209,8 @@ CREATE TABLE public.versions (
     request_id character varying,
     user_id bigint,
     referenced_user_id bigint,
-    referenced_entity_name character varying
+    referenced_entity_name character varying,
+    migrated_app_version_id bigint
 );
 
 

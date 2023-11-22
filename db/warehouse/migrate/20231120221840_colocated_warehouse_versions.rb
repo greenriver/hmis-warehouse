@@ -14,6 +14,7 @@ class ColocatedWarehouseVersions < ActiveRecord::Migration[6.1]
       # additional cols tracked for UserViewableEntity
       t.references :referenced_user, index: false
       t.string :referenced_entity_name
+      t.references :migrated_app_version, index: false, comment: 'app database version record'
     end
     add_index :versions, [:item_type, :item_id]
   end
