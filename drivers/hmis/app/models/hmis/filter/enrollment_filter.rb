@@ -64,13 +64,14 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
       # except for 2/29, this shift should result in the same month and day as the entry date, and for 2/29 it should
       # shift it to 3/1, which is a valid date and avoids the leap year issue.
 
-      anniversary_date = "
+      anniversary_date = <<~SQL
         make_date(
           extract(year from current_date)::integer,
-          extract(month from \"earliest_entry\")::integer,
+          extract(month from "earliest_entry")::integer,
           1
-        ) + \"interval\"((extract(day from \"earliest_entry\")::integer - 1) || ' days')
-      "
+        ) + "interval"((extract(day from "earliest_entry")::integer - 1) || ' days')
+      SQL
+
       # Due period for the 60-day window during which this year's Annual should be performed
       start_date = Arel.sql("#{anniversary_date} - interval '30 days'")
       end_date = Arel.sql("#{anniversary_date} + interval '30 days'")
