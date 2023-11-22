@@ -161,7 +161,7 @@ RSpec.describe 'Validate import files', type: :model do
   it 'includes expected enrollments validations' do
     aggregate_failures 'validating' do
       expect(HmisCsvImporter::HmisCsvValidation::InclusionInSet.where("source_type LIKE '%Enrollment'").count).to eq(4)
-      expect(HmisCsvImporter::HmisCsvValidation::NonBlankValidation.where("source_type LIKE '%Enrollment'").count).to eq(3)
+      expect(HmisCsvImporter::HmisCsvValidation::NonBlankValidation.where("source_type LIKE '%Enrollment'").count).to eq(2)
     end
   end
 

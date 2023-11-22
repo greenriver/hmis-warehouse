@@ -10,5 +10,6 @@ namespace :export do
     HmisExternalApis::AcHmis::DataWarehouseUploadJob.perform_later('hmis_csv_export')
     HmisExternalApis::AcHmis::DataWarehouseUploadJob.perform_later('project_crosswalk')
     HmisExternalApis::AcHmis::DataWarehouseUploadJob.perform_later('move_in_addresses')
+    HmisExternalApis::AcHmis::DataWarehouseUploadJob.perform_later('postings')
   end
 end
