@@ -102,6 +102,8 @@ module Hmis
         # a relevant assessment ocurred.
         # FIXME: maybe we don't include assessments that occur after end_date? This might
         # encourage people to back-date assessments.
+        # TODO: should we check for presence in window? This wont show a task if the enrollment has a recent annual,
+        # even if that annual falls outside of the "due period"  which is a data quality issue.
         last_assessed_on = last_assessment_date(enrollment: enrollment, stages: [:annual_assessment], wip: [false])
         return if last_assessed_on && last_assessed_on >= start_date
 
