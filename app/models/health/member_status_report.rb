@@ -115,7 +115,7 @@ module Health
         cp_last_contact_date: 'CP_Last_Contact_Date',
         cp_last_contact_face: 'CP_Last_Contact_Face',
         cp_contact_face: 'CP_Contact_Face',
-        cp_participation_form_date: 'CP_Participation_Form_Date',
+        cp_participation_form_date: 'CP_Participation_Agreed_Date',
         # cp_care_plan_sent_pcp_date: 'CP_Care_Plan_Sent_PCP_Date',
         # cp_care_plan_returned_pcp_date: 'CP_Care_Plan_Returned_PCP_Date',
         key_contact_name_first: 'Key_Contact_Name_First',
