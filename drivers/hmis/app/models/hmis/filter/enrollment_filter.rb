@@ -71,14 +71,25 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
           1
         ) + "interval"((extract(day from "earliest_entry")::integer - 1) || ' days')
       SQL
+      last_year_anniversary_date = <<~SQL
+        #{anniversary_date} - interval '1 year'
+      SQL
 
       # Due period for the 60-day window during which this year's Annual should be performed
-      start_date = Arel.sql("#{anniversary_date} - interval '30 days'")
-      end_date = Arel.sql("#{anniversary_date} + interval '30 days'")
+      start_date = Arel.sql <<~SQL
+        #{anniversary_date} - interval '30 days'
+      SQL
+      end_date = Arel.sql <<~SQL
+        #{anniversary_date} + interval '30 days'
+      SQL
 
       # Due period for the 60-day window during which last year's Annual should have been performed
-      last_start_date = Arel.sql("#{anniversary_date} - interval '30 days' - interval '1 year'")
-      last_end_date = Arel.sql("#{anniversary_date} + interval '30 days' - interval '1 year'")
+      last_start_date = Arel.sql <<~SQL
+        #{last_year_anniversary_date} - interval '30 days'
+      SQL
+      last_end_date = Arel.sql <<~SQL
+        #{last_year_anniversary_date} + interval '30 days'
+      SQL
 
       # Clause for checking whether an Assessment falls within the "due period". There are due cases because the due period may be this year or last year.
       this_year_annual_in_range = start_date.lteq(Date.current).and(cas_t[:assessment_date].gteq(start_date).and(cas_t[:assessment_date].lteq(end_date)))
@@ -87,7 +98,7 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
 
       # Clause for checking whether an Enrollment's Entry Date falls before the "anniverary". There are due cases because the anniversary may be this year or last year.
       this_year_entered_before_anniversary = start_date.lteq(Date.current).and(e_t[:entry_date].lt(Arel.sql(anniversary_date)))
-      last_year_entered_before_anniversary = start_date.gt(Date.current).and(e_t[:entry_date].lt(Arel.sql("#{anniversary_date} - interval '1 year'")))
+      last_year_entered_before_anniversary = start_date.gt(Date.current).and(e_t[:entry_date].lt(Arel.sql(last_year_anniversary_date)))
       entered_before_anniversary = this_year_entered_before_anniversary.or(last_year_entered_before_anniversary)
 
       scope.
