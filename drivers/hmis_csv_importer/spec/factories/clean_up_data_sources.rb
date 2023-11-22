@@ -49,6 +49,17 @@ FactoryBot.define do
     end
   end
 
+  factory :importer_force_prioritized_placement_status, class: 'GrdaWarehouse::DataSource' do
+    name { 'Set Prioritization Status' }
+    short_name { 'Set Prioritization Status' }
+    source_type { :s3 }
+    import_cleanups do
+      {
+        'Assessment': ['HmisCsvImporter::HmisCsvCleanup::ForcePrioritizedPlacementStatus'],
+      }
+    end
+  end
+
   factory :importer_delete_empty_enrollments_ds, class: 'GrdaWarehouse::DataSource' do
     name { 'Delete Empty Enrollments' }
     short_name { 'Empty Enrollments' }
