@@ -463,7 +463,7 @@ module CePerformance
         'Question 9',
         'Question 10',
       ]
-      generator = HudApr::Generators::CeApr::Fy2021::Generator
+      generator = HudApr.current_generator(report: :apr)
       {}.tap do |reports|
         periods.each do |period, processed_filter|
           report = HudReports::ReportInstance.from_filter(

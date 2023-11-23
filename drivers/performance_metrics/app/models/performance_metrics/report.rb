@@ -643,7 +643,7 @@ module PerformanceMetrics
     end
 
     private def caper_generator_class
-      HudApr::Generators::Caper::Fy2021::Generator
+      HudApr.current_generator(report: :caper)
     end
 
     private def run_caper

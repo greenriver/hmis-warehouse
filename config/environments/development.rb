@@ -121,6 +121,9 @@ Rails.application.configure do
     end
   end
 
+  # haml config
+  config.action_view.annotate_rendered_view_with_filenames = true
+
   # In order to fix the problem, the following options must be set.
   routes.default_url_options ||= {}
   routes.default_url_options[:script_name] = ''
