@@ -23,7 +23,7 @@ module GrdaWarehouse
         'All clients with a release on file' => :release_present,
         'Active clients within range' => :active_clients,
         'Clients in project group' => :project_group,
-        'Boston (in a project group, with a release' => :boston,
+        'Boston (in a project group, with a release)' => :boston,
       }
     end
 
