@@ -289,7 +289,7 @@ module BostonProjectScorecard
         'Question 22',
         'Question 23',
       ]
-      generator = HudApr::Generators::Apr::Fy2023::Generator
+      generator = HudApr.current_generator(report: :apr)
       apr = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
       generator.new(apr).run!(email: false, manual: false)
 
