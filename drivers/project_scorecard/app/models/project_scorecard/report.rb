@@ -247,33 +247,34 @@ module ProjectScorecard
             total_households_served: answer(apr, 'Q26a', 'B6'),
 
             total_persons_served: answer(apr, 'Q5a', 'B2'),
-            total_persons_with_positive_exit: answer(apr, 'Q23c', 'B44'),
-            total_persons_exited: answer(apr, 'Q23c', 'B43'),
-            excluded_exits: answer(apr, 'Q23c', 'B45'),
+            total_persons_with_positive_exit: answer(apr, 'Q23c', 'B41'),
+            total_persons_exited: answer(apr, 'Q23c', 'B40'),
+            excluded_exits: answer(apr, 'Q23c', 'B42'),
 
             average_los_leavers: answer(apr, 'Q22b', 'B2'),
 
-            percent_pii_errors: answer(apr, 'Q6a', 'F8').to_f * 100,
+            percent_pii_errors: answer(apr, 'Q6a', 'F7').to_f * 100,
 
-            days_to_lease_up: answer(apr, 'Q22c', 'B11'),
+            days_to_lease_up: answer(apr, 'Q22c', 'B12'),
           },
         )
 
         # Percent increased income calculations
 
-        leavers_or_annual_expected_with_employment_income = answer(apr, 'Q19a1', 'H2') + answer(apr, 'Q19a2', 'H2')
-        increased_employment_income = answer(apr, 'Q19a1', 'I2') + answer(apr, 'Q19a2', 'I2')
+        leavers_or_annual_expected_with_employment_income = answer(apr, 'Q19a1', 'H2').to_i + answer(apr, 'Q19a2', 'H2').to_i
+        increased_employment_income = answer(apr, 'Q19a1', 'I2').to_i + answer(apr, 'Q19a2', 'I2').to_i
         percent_increased_employment_income_at_exit = percentage(increased_employment_income / leavers_or_annual_expected_with_employment_income.to_f)
 
-        leavers_or_annual_expected_with_other_income = answer(apr, 'Q19a1', 'H4') + answer(apr, 'Q19a2', 'H4')
-        increased_other_income = answer(apr, 'Q19a1', 'I4') + answer(apr, 'Q19a2', 'I4')
+        leavers_or_annual_expected_with_other_income = answer(apr, 'Q19a1', 'H4').to_i + answer(apr, 'Q19a2', 'H4').to_i
+        increased_other_income = answer(apr, 'Q19a1', 'I4').to_i + answer(apr, 'Q19a2', 'I4').to_i
         percent_increased_other_cash_income_at_exit = percentage(increased_other_income / leavers_or_annual_expected_with_other_income.to_f)
 
         # Data quality calculations
         total_clients_served = answer(apr, 'Q5a', 'B2')
 
         # need unique count of client_ids not, sum of counts since someone might appear more than once
-        total_ude_errors = (3..7).map { |row| answer_client_ids(apr, 'Q6b', 'B' + row.to_s) }.flatten.uniq.count
+        # Check me: this was 3..7 but q6b rows are 2-6
+        total_ude_errors = (2..6).map { |row| answer_client_ids(apr, 'Q6b', 'B' + row.to_s) }.flatten.uniq.count
         percent_ude_errors = percentage(total_ude_errors / total_clients_served.to_f)
 
         # Include adults, leavers, and all HoHs in denominators
@@ -394,7 +395,7 @@ module ProjectScorecard
     end
 
     private def answer(report, table, cell)
-      report.answer(question: table, cell: cell).summary
+      report.answer(question: table, cell: cell).numeric_value
     end
 
     private def answer_client_ids(report, table, cell)

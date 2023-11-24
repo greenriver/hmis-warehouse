@@ -191,12 +191,12 @@ module BostonProjectScorecard
 
       if apr.present?
         # Project Performance
-        one_a_value = percentage(answer(apr, 'Q23c', 'B46'))
-        one_b_value = percentage((answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B43') + answer(apr, 'Q23c', 'B44')) / (answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B45')).to_f)
+        one_a_value = percentage(answer(apr, 'Q23c', 'B43'))
+        one_b_value = percentage((answer(apr, 'Q5a', 'B2').to_i - answer(apr, 'Q23c', 'B40').to_i + answer(apr, 'Q23c', 'B41').to_i) / (answer(apr, 'Q5a', 'B2').to_i - answer(apr, 'Q23c', 'B42').to_i).to_f)
 
-        adult_count = answer(apr, 'Q19a1', 'H2') + answer(apr, 'Q19a2', 'H2')
-        employment_increased = answer(apr, 'Q19a1', 'I2') + answer(apr, 'Q19a2', 'I2')
-        other_increased = answer(apr, 'Q19a1', 'I4') + answer(apr, 'Q19a2', 'I4')
+        adult_count = answer(apr, 'Q19a1', 'H2').to_i + answer(apr, 'Q19a2', 'H2').to_i
+        employment_increased = answer(apr, 'Q19a1', 'I2').to_i + answer(apr, 'Q19a2', 'I2').to_i
+        other_increased = answer(apr, 'Q19a1', 'I4').to_i + answer(apr, 'Q19a2', 'I4').to_i
         employment_percent = 0
         employment_percent = employment_increased / adult_count.to_f if adult_count.positive?
         other_percent = 0
@@ -213,7 +213,7 @@ module BostonProjectScorecard
             increased_leaver_other_income: percentage(answer(apr, 'Q19a2', 'J4')),
             increased_employment_income: percentage(employment_percent),
             increased_other_income: percentage(other_percent),
-            days_to_lease_up: answer(apr, 'Q22c', 'B11').round,
+            days_to_lease_up: answer(apr, 'Q22c', 'B12').to_f.round,
           },
         )
 
@@ -229,7 +229,7 @@ module BostonProjectScorecard
         percent_income_and_housing_errors = percentage(total_income_and_housing_errors / denominator.to_f)
         assessment_answers.merge!(
           {
-            pii_error_rate: percentage(answer(apr, 'Q6a', 'F8')),
+            pii_error_rate: percentage(answer(apr, 'Q6a', 'F7')),
             ude_error_rate: percent_ude_errors,
             income_and_housing_error_rate: percent_income_and_housing_errors,
           },
@@ -297,7 +297,7 @@ module BostonProjectScorecard
     end
 
     private def answer(report, table, cell)
-      report.answer(question: table, cell: cell).summary
+      report.answer(question: table, cell: cell).numeric_value
     end
 
     private def answer_client_ids(report, table, cell)

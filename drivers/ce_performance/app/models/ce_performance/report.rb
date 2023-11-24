@@ -209,7 +209,7 @@ module CePerformance
     end
 
     private def add_q5a_clients(report_clients, period, ce_apr)
-      ce_apr_clients = answer_clients(ce_apr, 'Q5a', 'B1')
+      ce_apr_clients = answer_clients(ce_apr, 'Q5a', 'B2')
       ce_apr_clients.each do |ce_apr_client|
         report_client = report_clients[ce_apr_client[:client_id]] || Client.new(
           report_id: id,
@@ -463,7 +463,7 @@ module CePerformance
         'Question 9',
         'Question 10',
       ]
-      generator = HudApr.current_generator(report: :apr)
+      generator = HudApr.current_generator(report: :ce_apr)
       {}.tap do |reports|
         periods.each do |period, processed_filter|
           report = HudReports::ReportInstance.from_filter(
