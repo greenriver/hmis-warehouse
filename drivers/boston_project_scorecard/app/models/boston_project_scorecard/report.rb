@@ -192,11 +192,11 @@ module BostonProjectScorecard
       if apr.present?
         # Project Performance
         one_a_value = percentage(answer(apr, 'Q23c', 'B43'))
-        one_b_value = percentage((answer(apr, 'Q5a', 'B2').to_i - answer(apr, 'Q23c', 'B40').to_i + answer(apr, 'Q23c', 'B41').to_i) / (answer(apr, 'Q5a', 'B2').to_i - answer(apr, 'Q23c', 'B42').to_i).to_f)
+        one_b_value = percentage((answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B40') + answer(apr, 'Q23c', 'B41')) / (answer(apr, 'Q5a', 'B2') - answer(apr, 'Q23c', 'B42')).to_f)
 
-        adult_count = answer(apr, 'Q19a1', 'H2').to_i + answer(apr, 'Q19a2', 'H2').to_i
-        employment_increased = answer(apr, 'Q19a1', 'I2').to_i + answer(apr, 'Q19a2', 'I2').to_i
-        other_increased = answer(apr, 'Q19a1', 'I4').to_i + answer(apr, 'Q19a2', 'I4').to_i
+        adult_count = answer(apr, 'Q19a1', 'H2') + answer(apr, 'Q19a2', 'H2')
+        employment_increased = answer(apr, 'Q19a1', 'I2') + answer(apr, 'Q19a2', 'I2')
+        other_increased = answer(apr, 'Q19a1', 'I4') + answer(apr, 'Q19a2', 'I4')
         employment_percent = 0
         employment_percent = employment_increased / adult_count.to_f if adult_count.positive?
         other_percent = 0
@@ -213,7 +213,7 @@ module BostonProjectScorecard
             increased_leaver_other_income: percentage(answer(apr, 'Q19a2', 'J4')),
             increased_employment_income: percentage(employment_percent),
             increased_other_income: percentage(other_percent),
-            days_to_lease_up: answer(apr, 'Q22c', 'B12').to_f.round,
+            days_to_lease_up: answer(apr, 'Q22c', 'B12').round,
           },
         )
 
