@@ -16,7 +16,10 @@
             %th Zipcode
             %th Inventory Start Date
             %th Inventory CoC Code
+            %th Inventory Houshold Type
             %th Funder
+            %th HMIS Participation Start Date
+            %th HMIS Participation Type
         %tbody
           - missing_data[:missing_projects].each do |project|
             %tr
@@ -30,7 +33,10 @@
               %td= yes_no(! missing_data[:missing_zip].include?(project))
               %td= yes_no(! missing_data[:missing_inventory_start_dates].include?(project))
               %td= yes_no(! missing_data[:missing_inventory_coc_codes].include?(project))
+              %td= yes_no(! missing_data[:missing_inventory_household_types].include?(project))
               %td= yes_no(! missing_data[:invalid_funders].include?(project))
+              %td= yes_no(! missing_data[:missing_hmis_participation_start_dates].include?(project))
+              %td= yes_no(! missing_data[:invalid_hmis_participation_types].include?(project))
 %h3 LSA-Specific Data Quality Reports
 .well
   %p The LSA reports on data quality issues, the following report should assist in tracking down the details.

@@ -54,6 +54,12 @@ module HudReports
         else
           state
         end
+      when 'Failed'
+        if error_details.present?
+          "#{state}: #{error_details}"
+        else
+          state
+        end
       else
         'Failed'
       end
