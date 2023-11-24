@@ -93,6 +93,8 @@ module HudReports
     end
 
     def complete_report
+      return if @failed
+
       update(state: 'Completed', completed_at: Time.current)
     end
 
