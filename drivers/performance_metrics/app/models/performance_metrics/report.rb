@@ -648,10 +648,8 @@ module PerformanceMetrics
 
     private def run_caper
       # puts 'Running CAPER'
-      # Run CAPER Q5 to get Q5a B6 (adult leavers) for the denominator
       # Looking for CAPER Q16 D14 to identify leavers who had income at exit (we'll only take those with an increase as the numerator)
       questions = [
-        'Question 5',
         'Question 16',
       ]
       caper_filter = ::Filters::HudFilterBase.new(user_id: filter.user_id).update(filter.to_h)
@@ -661,7 +659,7 @@ module PerformanceMetrics
     end
 
     private def answer(report, table, cell)
-      report.answer(question: table, cell: cell).summary
+      report.answer(question: table, cell: cell).numeric_value
     end
 
     private def answer_clients(report, table, cell)

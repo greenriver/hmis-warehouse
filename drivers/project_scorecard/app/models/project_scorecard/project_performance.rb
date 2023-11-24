@@ -50,7 +50,7 @@ module ProjectScorecard
       end
 
       def los_months
-        average_los_leavers / 30
+        average_los_leavers.to_f / 30
       end
 
       def leavers_los_score
