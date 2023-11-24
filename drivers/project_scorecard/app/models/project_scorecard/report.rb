@@ -261,19 +261,18 @@ module ProjectScorecard
 
         # Percent increased income calculations
 
-        leavers_or_annual_expected_with_employment_income = answer(apr, 'Q19a1', 'H2').to_i + answer(apr, 'Q19a2', 'H2').to_i
-        increased_employment_income = answer(apr, 'Q19a1', 'I2').to_i + answer(apr, 'Q19a2', 'I2').to_i
+        leavers_or_annual_expected_with_employment_income = answer(apr, 'Q19a1', 'H2') + answer(apr, 'Q19a2', 'H2')
+        increased_employment_income = answer(apr, 'Q19a1', 'I2') + answer(apr, 'Q19a2', 'I2')
         percent_increased_employment_income_at_exit = percentage(increased_employment_income / leavers_or_annual_expected_with_employment_income.to_f)
 
-        leavers_or_annual_expected_with_other_income = answer(apr, 'Q19a1', 'H4').to_i + answer(apr, 'Q19a2', 'H4').to_i
-        increased_other_income = answer(apr, 'Q19a1', 'I4').to_i + answer(apr, 'Q19a2', 'I4').to_i
+        leavers_or_annual_expected_with_other_income = answer(apr, 'Q19a1', 'H4') + answer(apr, 'Q19a2', 'H4')
+        increased_other_income = answer(apr, 'Q19a1', 'I4') + answer(apr, 'Q19a2', 'I4')
         percent_increased_other_cash_income_at_exit = percentage(increased_other_income / leavers_or_annual_expected_with_other_income.to_f)
 
         # Data quality calculations
         total_clients_served = answer(apr, 'Q5a', 'B2')
 
         # need unique count of client_ids not, sum of counts since someone might appear more than once
-        # Check me: this was 3..7 but q6b rows are 2-6
         total_ude_errors = (2..6).map { |row| answer_client_ids(apr, 'Q6b', 'B' + row.to_s) }.flatten.uniq.count
         percent_ude_errors = percentage(total_ude_errors / total_clients_served.to_f)
 
