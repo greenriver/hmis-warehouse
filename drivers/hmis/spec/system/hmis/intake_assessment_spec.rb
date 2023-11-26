@@ -44,8 +44,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
       Hmis::Hud::Household.where(household_id: household_id).first!
     end
 
-    def fill_in_assessment
-      sleep 4
+    def complete_individual_assessment
       default_option = 'Client prefers not to answer'
       mui_select default_option, from: 'Prior Living Situation'
       mui_select default_option, from: 'Length of stay in prior living situation'
@@ -54,6 +53,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
       mui_choose default_option, from: 'Covered by Health Insurance'
       mui_select default_option, from: 'Disabling Condition'
       mui_select default_option, from: 'Survivor of Domestic Violence'
+      click_button 'Save Assessment'
     end
 
     context 'with wip household' do
@@ -67,17 +67,17 @@ RSpec.feature 'Enrollment/household management', type: :system do
         assert_text(p1.project_name)
         assert_text(c2.brief_name)
         assert_text(c1.brief_name)
-        click_button 'Save Assessment'
-        fill_in_assessment
+
+        # first assessment
+        complete_individual_assessment
         click_button 'Next'
-        click_button 'Save Assessment'
-        fill_in_assessment
-        click_button 'Complete Intake'
+
+        # second assessment
+        complete_individual_assessment
+        click_button 'Next'
 
         assert_text "Complete Entry to #{p1.project_name}"
 
-        # This checkbox doesn't behave reliably, we shouldn't need sleep()
-        sleep(4)
         with_hidden { check('select all') }
 
         row_numbers = [1, 2]
