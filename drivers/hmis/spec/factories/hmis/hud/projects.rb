@@ -12,7 +12,7 @@ FactoryBot.define do
     sequence(:ProjectID, 200)
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
-    ProjectName { 'Project' }
+    sequence(:ProjectName) { |n| "Project-#{n}" }
     OperatingStartDate { Date.parse('2019-01-01') }
     ContinuumProject { 0 }
     HMISParticipatingProject { 1 }

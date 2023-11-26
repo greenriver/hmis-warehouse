@@ -344,6 +344,14 @@ enum AssessmentType {
   VIRTUAL
 }
 
+input AssessmentsForEnrollmentFilterOptions {
+  type: [AssessmentRole!]
+}
+
+input AssessmentsForHouseholdFilterOptions {
+  type: [AssessmentRole!]
+}
+
 type AssessmentsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -2331,11 +2339,6 @@ enum Destination {
   (302) Transitional housing for homeless persons (including homeless youth)
   """
   TRANSITIONAL_HOUSING_FOR_HOMELESS_PERSONS
-
-  """
-  (37) Worker unable to determine
-  """
-  WORKER_UNABLE_TO_DETERMINE
 }
 
 """
@@ -2751,7 +2754,7 @@ type Enrollment {
   access: EnrollmentAccess!
   alcoholDrugUseDisorderFam: NoYesMissing
   annualPercentAmi: AnnualPercentAMI
-  assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  assessments(filters: AssessmentsForEnrollmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   ceAssessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): CeAssessmentsPaginated!
   childWelfareMonths: Int
   childWelfareYears: RHYNumberofYears
@@ -4201,10 +4204,8 @@ type HmisParticipationsPaginated {
   pagesCount: Int!
 }
 
-"""
-HUD Household
-"""
 type Household {
+  assessments(filters: AssessmentsForHouseholdFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   householdClients: [HouseholdClient!]!
   householdSize: Int!
   id: ID!

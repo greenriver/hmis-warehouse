@@ -1,0 +1,68 @@
+= content_for :page_js do
+  :javascript
+    (function() {
+      var map_id = 'coo-map__top-ten-zips';
+      let observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          //console.log(mutation)
+          if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+            let loaded = [].some.call(mutation.addedNodes, (el) => {
+              if(!el.id == map_id)
+                return
+
+              return $(el).find('#' + map_id).length > 0
+            });
+            if (loaded) {
+              var map = $('#' + map_id);
+
+              var topZipData = map.data('map')
+              //console.log('topZipData', topZipData)
+              var shapeData = map.data('shape')
+              //console.log('shapeData', shapeData)
+              var colors = map.data('colors')
+              var topTenZipsMap = new L.Map(map_id).setView([37.8, -96], 4)
+
+              var geojson = L.geoJSON(
+                shapeData,
+                {
+                  style: function(feature) {
+                    var data = topZipData.find(function(d){
+                      return d.zip_code === feature.properties.name
+                    })
+                    var color = colors.find(function (d, i) {
+                      if(i === 0) {
+                        return data.percent < d.range[0]
+                      } else if(i === colors.length -1) {
+                        return data.percent > d.range[0]
+                      } else if(i === colors.length -2) {
+                        return data.percent >= d.range[0] && data.percent <= d.range[1]
+                      } else {
+                        return data.percent >= d.range[0] && data.percent < d.range[1]
+                      }
+                    })
+                    return {color: color.color, fillOpacity: 0.6}
+                  }
+                }
+              ).addTo(topTenZipsMap)
+              topTenZipsMap.fitBounds(geojson.getBounds())
+
+              var tiles = L.tileLayer(
+                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                {
+                  maxZoom: 19,
+                  attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                }
+              ).addTo(topTenZipsMap);
+            }
+          }
+        });
+      });
+
+      let zip_config = {
+          attributes: false,
+          childList: true,
+          characterData: false
+      };
+
+      observer.observe(document.getElementById('rollupContainer'), zip_config);
+    }).call(this);

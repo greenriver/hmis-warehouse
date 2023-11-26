@@ -22,7 +22,7 @@ module BaseFilters
 
     private def set_filter
       @filter = filter_class.new(user_id: current_user.id)
-      @filter.set_from_params(filter_params[:filters]) if filter_params[:filters].present?
+      @filter.update(filter_params[:filters]) if filter_params[:filters].present?
       @comparison_filter = @filter.to_comparison
     end
 
