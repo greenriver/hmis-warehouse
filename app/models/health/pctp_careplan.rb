@@ -97,5 +97,30 @@ module Health
       where(instrument_id: v1_ids, instrument_type: 'Health::Careplan').
         or(where(instrument_id: v2_ids, instrument_type: 'HealthPctp::Careplan'))
     end
+
+    def expires_on
+      return nil unless instrument.careplan_sent_on.present?
+
+      instrument.careplan_sent_on + 12.months
+    end
+
+    def active?
+      return false unless instrument.careplan_sent_on.present?
+      return false if expired?
+
+      expires_on >= Date.current
+    end
+
+    def expiring?
+      return false unless expires_on.present?
+
+      expires_on > Date.current
+    end
+
+    def expired?
+      return false unless expires_on.present?
+
+      expires_on < Date.current
+    end
   end
 end
