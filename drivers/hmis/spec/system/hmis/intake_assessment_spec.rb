@@ -45,15 +45,15 @@ RSpec.feature 'Enrollment/household management', type: :system do
     end
 
     def fill_in_assessment
-      # FIXME- this almost works
-      # default_option = 'Client prefers not to answer'
-      # mui_select default_option, from: 'Prior Living Situation'
-      # mui_select default_option, from: 'Length of stay in prior living situation'
-      # mui_choose default_option, from: 'Income from Any Source'
-      # mui_choose default_option, from: 'Non-Cash Benefits from Any Source'
-      # mui_choose default_option, from: 'Covered by Health Insurance'
-      # mui_select default_option, from: 'Disabling Condition'
-      # mui_select default_option, from: 'Survivor of Domestic Violence'
+      sleep 4
+      default_option = 'Client prefers not to answer'
+      mui_select default_option, from: 'Prior Living Situation'
+      mui_select default_option, from: 'Length of stay in prior living situation'
+      mui_choose default_option, from: 'Income from Any Source'
+      mui_choose default_option, from: 'Non-Cash Benefits from Any Source'
+      mui_choose default_option, from: 'Covered by Health Insurance'
+      mui_select default_option, from: 'Disabling Condition'
+      mui_select default_option, from: 'Survivor of Domestic Violence'
     end
 
     context 'with wip household' do
@@ -77,9 +77,8 @@ RSpec.feature 'Enrollment/household management', type: :system do
         assert_text "Complete Entry to #{p1.project_name}"
 
         # This checkbox doesn't behave reliably, we shouldn't need sleep()
-        sleep(1)
+        sleep(4)
         with_hidden { check('select all') }
-        sleep(1)
 
         row_numbers = [1, 2]
         row_numbers.each do |row|
