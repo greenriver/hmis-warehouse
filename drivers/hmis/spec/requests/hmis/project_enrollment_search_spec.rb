@@ -161,6 +161,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(result.dig('data', 'project', 'enrollments', 'nodes')).to contain_exactly(include('id' => e4.id.to_s))
       end
 
+      it 'should ignore deleted annuals (regression test)' do
+        en = create(:hmis_hud_enrollment, data_source: ds1, project: p1, entry_date: Date.current - 1.year)
+        create(:hmis_custom_assessment, data_collection_stage: 5, assessment_date: Date.current, date_deleted: Date.current, data_source: ds1, enrollment: en)
+
+        response, result = post_graphql(id: p1.id, filters: { "householdTasks": ['ANNUAL_DUE'] }) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'project', 'enrollments', 'nodes')).to contain_exactly(include('id' => en.id.to_s))
+      end
+
       # Run test for two dates, because they behave differently. The first will test the case where the most recent annual is due last year,
       # and the second will test the case where the most recent annual is due this year.
       [Time.local(2023, 4, 1), Time.local(2023, 11, 1)].each do |local_time|
