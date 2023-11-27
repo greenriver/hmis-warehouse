@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,6 +7,9 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::AutoExitJob, type: :model do
+  # Probably other specs aren't cleaning up:
+  before(:all) { cleanup_test_environment }
+
   let!(:ds1) { create(:hmis_data_source) }
   let!(:u1) { create :hmis_hud_user, data_source: ds1, user_email: 'test@example.com' }
   let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
