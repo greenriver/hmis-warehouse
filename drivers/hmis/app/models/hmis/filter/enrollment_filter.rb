@@ -101,7 +101,7 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
       last_year_entered_before_anniversary = start_date.gt(Date.current).and(e_t[:entry_date].lt(Arel.sql(last_year_anniversary_date)))
       entered_before_anniversary = this_year_entered_before_anniversary.or(last_year_entered_before_anniversary)
 
-      household_tasks_scope = scope.
+      enrollments_with_annual_due = scope.
         joins(:household).
         # Left outer join with non-WIP Annual Assessments that fall within the relevant Due Period
         joins(
