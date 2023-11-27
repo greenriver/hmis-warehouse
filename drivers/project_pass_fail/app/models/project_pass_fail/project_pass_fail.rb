@@ -225,7 +225,7 @@ module ProjectPassFail
       questions = [
         'Question 6',
       ]
-      generator = HudApr::Generators::Apr::Fy2021::Generator
+      generator = HudApr.current_generator(report: :apr)
       apr = HudReports::ReportInstance.from_filter(apr_filter, generator.title, build_for_questions: questions)
       generator.new(apr).run!(email: false, manual: false)
       apr
