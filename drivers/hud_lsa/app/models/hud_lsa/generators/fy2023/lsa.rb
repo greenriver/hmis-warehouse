@@ -45,7 +45,8 @@ module HudLsa::Generators::Fy2023
 
     def run!
       setup_notifier('LSA')
-      return unless preflight_passes?
+      @failed = preflight_passes?
+      return unless @failed
 
       # Disable logging so we don't fill the disk
       # ActiveRecord::Base.logger.silence do
@@ -119,7 +120,7 @@ module HudLsa::Generators::Fy2023
     private def preflight_passes?
       issues = missing_data(user).except(:show_missing_data)
       issue_project_ids = issues.values.flatten.map { |r| r[:id] }.uniq & filter.effective_project_ids
-      return true unless issue_project_ids.any?
+      return true if issue_project_ids.empty?
 
       # Prevent report.complete_report from hiding the error
       @failed = true
