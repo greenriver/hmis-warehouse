@@ -3,13 +3,7 @@
 desc 'One time data migration from app.versions to warehouse.versions'
 # rails driver:hmis:migrate_versions_20231121
 task migrate_versions_20231121: [:environment] do
-  hmis_client_record_types = [
-    'Hmis::Hud::Client',
-    'Hmis::Hud::CustomClientName',
-    'Hmis::Hud::CustomClientAddress',
-    'Hmis::Hud::CustomClientContactPoint',
-  ]
-  import_scope = GrPaperTrail::Version.where(item_type: hmis_client_record_types)
+  import_scope = GrPaperTrail::Version.where("item_type like ?", "Hmis::Hud::%")
   OneTimeMigration20231121.new.perform(import_scope)
 end
 
