@@ -159,9 +159,24 @@ type ApplicationUser {
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
+  email: String
   id: ID!
   name: String!
   recentItems: [OmnisearchResult!]!
+}
+
+input ApplicationUserFilterOptions {
+  searchTerm: String
+}
+
+type ApplicationUsersPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ApplicationUser!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """
@@ -327,6 +342,14 @@ enum AssessmentType {
   (2) Virtual
   """
   VIRTUAL
+}
+
+input AssessmentsForEnrollmentFilterOptions {
+  type: [AssessmentRole!]
+}
+
+input AssessmentsForHouseholdFilterOptions {
+  type: [AssessmentRole!]
 }
 
 type AssessmentsPaginated {
@@ -2316,11 +2339,6 @@ enum Destination {
   (302) Transitional housing for homeless persons (including homeless youth)
   """
   TRANSITIONAL_HOUSING_FOR_HOMELESS_PERSONS
-
-  """
-  (37) Worker unable to determine
-  """
-  WORKER_UNABLE_TO_DETERMINE
 }
 
 """
@@ -2736,7 +2754,7 @@ type Enrollment {
   access: EnrollmentAccess!
   alcoholDrugUseDisorderFam: NoYesMissing
   annualPercentAmi: AnnualPercentAMI
-  assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  assessments(filters: AssessmentsForEnrollmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   ceAssessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): CeAssessmentsPaginated!
   childWelfareMonths: Int
   childWelfareYears: RHYNumberofYears
@@ -2844,6 +2862,13 @@ type EnrollmentAccess {
   canSplitHouseholds: Boolean!
   canViewEnrollmentDetails: Boolean!
   id: ID!
+}
+
+enum EnrollmentFilterOptionHouseholdTask {
+  """
+  Annual Due
+  """
+  ANNUAL_DUE
 }
 
 enum EnrollmentFilterOptionStatus {
@@ -2955,6 +2980,7 @@ type EnrollmentSummary {
 }
 
 input EnrollmentsForClientFilterOptions {
+  householdTasks: [EnrollmentFilterOptionHouseholdTask!]
   openOnDate: ISO8601Date
   projectType: [ProjectType!]
   status: [EnrollmentFilterOptionStatus!]
@@ -2962,6 +2988,7 @@ input EnrollmentsForClientFilterOptions {
 
 input EnrollmentsForProjectFilterOptions {
   bedNightOnDate: ISO8601Date
+  householdTasks: [EnrollmentFilterOptionHouseholdTask!]
   openOnDate: ISO8601Date
   searchTerm: String
   status: [EnrollmentFilterOptionStatus!]
@@ -4177,10 +4204,8 @@ type HmisParticipationsPaginated {
   pagesCount: Int!
 }
 
-"""
-HUD Household
-"""
 type Household {
+  assessments(filters: AssessmentsForHouseholdFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   householdClients: [HouseholdClient!]!
   householdSize: Int!
   id: ID!
@@ -4342,12 +4367,12 @@ enum HousingType {
 """
 An ISO 8601-encoded date
 """
-scalar ISO8601Date
+scalar ISO8601Date @specifiedBy(url: "https://tools.ietf.org/html/rfc3339")
 
 """
 An ISO 8601-encoded datetime
 """
-scalar ISO8601DateTime
+scalar ISO8601DateTime @specifiedBy(url: "https://tools.ietf.org/html/rfc3339")
 
 """
 V7.I
@@ -7721,6 +7746,7 @@ type ProjectsPaginated {
 
 type Query {
   access: QueryAccess!
+  applicationUsers(filters: ApplicationUserFilterOptions, limit: Int, offset: Int): ApplicationUsersPaginated!
 
   """
   Assessment lookup
@@ -7840,6 +7866,7 @@ type QueryAccess {
   canEditOrganization: Boolean!
   canEditProjectDetails: Boolean!
   canEnrollClients: Boolean!
+  canImpersonateUsers: Boolean!
   canManageAnyClientFiles: Boolean!
   canManageDeniedReferrals: Boolean!
   canManageIncomingReferrals: Boolean!

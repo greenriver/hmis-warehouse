@@ -17,5 +17,10 @@ module Mutations
     def hmis_user
       Hmis::Hud::User.from_user(current_user)
     end
+
+    # can't use skip_activity_log due to load order?
+    def activity_log_object_identity
+      nil
+    end
   end
 end

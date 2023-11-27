@@ -8,6 +8,7 @@
 
 module Types
   class Forms::FormItem < Types::BaseObject
+    skip_activity_log
     description 'A question or group of questions'
 
     field :link_id, String, 'Unique identifier for item', null: false

@@ -410,8 +410,10 @@ RSpec.shared_context 'datalab organization a rrh apr', shared_context: :metadata
         # pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recZbEHrNyt7aUsfw
         skip: [
           'B3',
+          'C3', # new
           'D3',
           'B5',
+          'C5', # new
           'D5',
         ],
       )

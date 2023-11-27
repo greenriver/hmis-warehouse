@@ -130,7 +130,7 @@
         {
           "question": "2.02.A",
           "operator": "EQUAL",
-          "answer_code": "RRH_SERVICES_ONLY"
+          "answer_code": "RRH_HOUSING_WITH_OR_WITHOUT_SERVICES"
         }
       ]
     },

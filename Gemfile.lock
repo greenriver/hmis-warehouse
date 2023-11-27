@@ -133,7 +133,7 @@ GEM
       zeitwerk (~> 2.3)
     acts-as-taggable-on (7.0.0)
       activerecord (>= 5.0, < 6.2)
-    addressable (2.8.1)
+    addressable (2.8.5)
       public_suffix (>= 2.0.2, < 6.0)
     airbrussh (1.4.1)
       sshkit (>= 1.6.1, != 1.7.0)
@@ -291,7 +291,7 @@ GEM
     capistrano-rvm (0.1.2)
       capistrano (~> 3.0)
       sshkit (~> 1.2)
-    capybara (3.38.0)
+    capybara (3.39.2)
       addressable
       matrix
       mini_mime (>= 0.1.3)
@@ -340,6 +340,9 @@ GEM
     crass (1.0.6)
     css_parser (1.10.0)
       addressable
+    cuprite (0.14.3)
+      capybara (~> 3.0)
+      ferrum (~> 0.13.0)
     curb (0.9.11)
     daemons (1.4.1)
     date (3.3.3)
@@ -417,6 +420,11 @@ GEM
     faraday-multipart (1.0.4)
       multipart-post (~> 2)
     faraday-net_http (2.1.0)
+    ferrum (0.13)
+      addressable (~> 2.5)
+      concurrent-ruby (~> 1.1)
+      webrick (~> 1.7)
+      websocket-driver (>= 0.6, < 0.8)
     ffi (1.15.5)
     ffi-compiler (1.0.1)
       ffi (>= 1.0.0)
@@ -437,7 +445,8 @@ GEM
     graphiql-rails (1.8.0)
       railties
       sprockets-rails
-    graphql (2.0.16)
+    graphql (2.1.6)
+      racc (~> 1.4)
     grover (1.1.3)
       combine_pdf (~> 1.0)
       nokogiri (~> 1.0)
@@ -514,6 +523,7 @@ GEM
     kiba (4.0.0)
     kiba-common (1.5.0)
       kiba (>= 3.0.0, < 5)
+    language_server-protocol (3.17.0.3)
     linefit (0.3.4)
     list_matcher (1.1.8)
     llhttp-ffi (0.4.0)
@@ -551,8 +561,8 @@ GEM
       rake
     mini_histogram (0.3.1)
     mini_magick (4.11.0)
-    mini_mime (1.1.2)
-    mini_portile2 (2.8.4)
+    mini_mime (1.1.5)
+    mini_portile2 (2.8.5)
     minitest (5.19.0)
     minitest-reporters (1.4.3)
       ansi
@@ -636,6 +646,7 @@ GEM
       htmlentities (>= 4.0.0)
     pretender (0.3.4)
       actionpack (>= 4.2)
+    prism (0.15.1)
     progress_bar (1.3.3)
       highline (>= 1.6, < 3)
       options (~> 2.3.0)
@@ -645,12 +656,12 @@ GEM
       method_source (~> 1.0)
     pry-rails (0.3.9)
       pry (>= 0.10.4)
-    public_suffix (5.0.1)
+    public_suffix (5.0.3)
     puma (6.3.1)
       nio4r (~> 2.0)
     pwned (2.0.2)
-    racc (1.7.1)
-    rack (2.2.7)
+    racc (1.7.2)
+    rack (2.2.8)
     rack-attack (6.5.0)
       rack (>= 1.0, < 3)
     rack-cors (1.1.1)
@@ -712,7 +723,7 @@ GEM
       redis-store (>= 1.2, < 2)
     redis-store (1.9.0)
       redis (>= 4, < 5)
-    regexp_parser (2.6.2)
+    regexp_parser (2.8.2)
     reline (0.3.2)
       io-console (~> 0.5)
     request_store (1.5.1)
@@ -792,6 +803,10 @@ GEM
     ruby-filemagic (0.7.3)
     ruby-graphviz (1.2.5)
       rexml
+    ruby-lsp (0.12.2)
+      language_server-protocol (~> 3.17.0)
+      prism (>= 0.15.1, < 0.16)
+      sorbet-runtime (>= 0.5.5685)
     ruby-mailchecker (4.0.13)
     ruby-next-core (0.15.3)
     ruby-ole (1.2.12.2)
@@ -846,6 +861,7 @@ GEM
     sniffer (0.5.0)
       anyway_config (>= 1.0)
       dry-initializer (~> 3)
+    sorbet-runtime (0.5.11109)
     sorted_set (1.0.3)
       rbtree
       set (~> 1.0)
@@ -914,7 +930,8 @@ GEM
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
-    websocket-driver (0.7.5)
+    webrick (1.8.1)
+    websocket-driver (0.7.6)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
     whenever (1.0.0)
@@ -1024,6 +1041,7 @@ DEPENDENCIES
   coffee-rails
   combine_pdf
   composite_primary_keys (= 13.0.3)
+  cuprite
   curb
   daemons
   db-query-matchers
@@ -1133,6 +1151,7 @@ DEPENDENCIES
   rspec-rails
   rubocop
   ruby-filemagic
+  ruby-lsp
   ruby-mailchecker
   ruby-prof
   rubyXL
