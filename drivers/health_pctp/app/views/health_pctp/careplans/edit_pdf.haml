@@ -38,7 +38,7 @@
           ="#{@careplan.enrollee_overview_label}".html_safe
       %tr
         %td
-          %div{style: 'min-height:155px;'}
+          %div
             = @careplan.overview
 
 - self_ident_rows = [:strengths, :weaknesses, :interests, :choices, :care_goals, :personal_goals, :cultural_considerations]
@@ -54,7 +54,7 @@
           %th{style: 'vertical-align: top;'}
             = row.to_s.titleize
           %td
-            %div{style: 'min-height:155px;'}
+            %div
               = @careplan.send(row)
 
 .pctc-print__table
@@ -79,7 +79,7 @@
       %tr
         %th{style: 'vertical-align: top;'} Comments
         %td
-          %div{style: 'min-height: 85px;'}= @careplan.accessibility_equipment_notes
+          %div= @careplan.accessibility_equipment_notes
       %tr
         %th Start Date
         %td= @careplan.accessibility_equipment_start
@@ -87,7 +87,7 @@
         %th End Date
         %td= @careplan.accessibility_equipment_end
 
--# TODO -- should we leave a few blank ones for any  additional? 
+
 - need_cols = ['Domain', 'Identified Need or Condition', 'Start Date', 'End Date', 'Status']
 .pctc-print__table
   %table.pt-8
@@ -100,8 +100,6 @@
           %th= col
     %tbody
       - needs = @careplan.needs.order(id: :desc)
-      -# provide extra rows for new needs
-      - extra_needs = 5
       - needs.each do |need|
         %tr
           %td= need.translate_domain_response(need.domain)
@@ -109,13 +107,7 @@
           %td= need.start_date
           %td= need.end_date
           %td= need.translate_status_response(need.status)
-      - extra_needs.times do |time|
-        %tr
-          - need_cols.each do |col|
-            %td
-              %div{style: 'height:28px;'}
-.page-break-after
--# TODO -- should we leave a few blank ones for any  additional? 
+
 .pctc-print__table
   %table
     %thead
@@ -127,16 +119,9 @@
           = @careplan.goals_label
       %tr
         %td{colspan: 2}
-          %div{style: 'min-height:250px;'}= @careplan.goals
+          %div= @careplan.goals
 
 - goals = @careplan.care_goal_details.order(id: :desc)
-- extra_goals = 0
-- if goals.count%2 == 0
-  - extra_goals = 1
-- else
-  - extra_goals = 2
-- if goals.count === 0
-  - extra_goals = 3
 
 - goals.each do |goal|
   :ruby
@@ -160,10 +145,6 @@
   .pctc-print__table
     = render 'goal_card_pdf', goal: goal
 
-- extra_goals.times do |time|
-  = render 'goal_card_pdf', goal: HealthPctp::CareGoal.new
-
-.page-break-after
 .pt-8.pctc-print__table
   %table
     %thead
@@ -180,7 +161,7 @@
     %tbody
       %tr
         %td
-          %div{style: 'min-height:250px;'}
+          %div
             = @careplan.contingency_plan
 .pt-8.pctc-print__table
   %table
@@ -201,7 +182,7 @@
     %tbody
       %tr
         %td
-          %div{style: 'min-height:250px;'}
+          %div
             = @careplan.crisis_plan
 .pt-8.pctc-print__table
   %table
@@ -215,7 +196,7 @@
     %tbody
       %tr
         %td
-          %div{style: 'min-height:250px;'}
+          %div
             = @careplan.additional_concerns
 
 .pt-8.pctc-print__table
@@ -260,26 +241,6 @@
             %i.icon-checkbox-unchecked
         %td
           The Engaged Enrollee has been provided choice in services and providers during the treatment planning process
-        
-
--#
-  .pt-8.pctc-print__table
-    %table
-      %thead
-        %tr
-          %th.pctc-print__table-title{colspan: 2}
-            By approving this record, you agree that the above information is true to the best of your knowledge
-      %tbody
-        %tr
-          %th
-            The Person-Centered Treatment Plan was reviewed and approved by the CP clinical care manager
-          %td= @careplan.review_by_ccm_complete ? 'Yes' : ''
-        %tr
-          %th Reviewed by
-          %td= @careplan.reviewed_by_ccm&.name
-        %tr
-          %th Reviewed on
-          %td= @careplan.reviewed_by_ccm_on
           
 
 .pt-8.pctc-print__table
@@ -347,41 +308,3 @@
 - unless @careplan.health_file
   .page-break-after
   = render 'pdf_signature'
-
-
--#
-  .pt-8.pctc-print__table
-    %table
-      %tbody
-        %tr
-          %th
-            The Person-Centered Treatment Plan was reviewed and approved by the CP registered nurse (RN)
-          %td= @careplan.review_by_rn_complete ? 'Yes' : ''
-        %tr
-          %th Reviewed by
-          %td= @careplan.reviewed_by_rn&.name
-        %tr
-          %th Reviewed on
-          %td= @careplan.reviewed_by_rn_on
-
-  .pt-8.pctc-print__table
-    %table
-      %thead
-        %tr
-          %th.pctc-print__table-title{colspan: 2}
-            Document delivery
-      %tbody
-        %tr
-          %th The Enrollee was provided a copy of the plan
-          %td= @careplan.provided_to_patient ? 'Yes' : ''
-        %tr
-          %th The careplan was sent to the PCP
-          %td= @careplan.was_sent_to_pcp ? 'Yes' : ''
-        %tr
-          %th Sent by
-          %td= @careplan.sent_to_pcp_by&.name
-        %tr
-          %th Sent on
-          %td= @careplan.sent_to_pcp_on
-
-

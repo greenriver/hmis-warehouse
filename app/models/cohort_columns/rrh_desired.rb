@@ -7,7 +7,10 @@
 module CohortColumns
   class RrhDesired < ReadOnly
     attribute :column, String, lazy: true, default: :rrh_desired
-    attribute :title, String, lazy: true, default: 'Interested in RRH'
+    attribute :translation_key, String, lazy: true, default: 'Interested in RRH'
+    attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
+    attribute :description_translation_key, String, lazy: true, default: 'True if the client indicated an interest in RRH for CAS'
+    attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def cast_value(val)
       val.to_s == 'true'

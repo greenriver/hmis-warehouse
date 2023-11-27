@@ -932,7 +932,9 @@ CREATE TABLE public."CustomClientAddress" (
     data_source_id integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    "EnrollmentID" character varying,
+    enrollment_address_type character varying
 );
 
 
@@ -5596,7 +5598,8 @@ CREATE TABLE public.clh_locations (
     processed_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    enrollment_id bigint
 );
 
 
@@ -18275,31 +18278,35 @@ ALTER SEQUENCE public.hmis_forms_id_seq OWNED BY public.hmis_forms.id;
 
 
 --
--- Name: project_groups; Type: TABLE; Schema: public; Owner: -
+-- Name: hmis_group_viewable_entities; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.project_groups (
-    id integer NOT NULL,
-    name character varying NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    deleted_at timestamp without time zone,
-    options jsonb DEFAULT '{}'::jsonb
-);
-
-
---
--- Name: project_project_groups; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.project_project_groups (
-    id integer NOT NULL,
-    project_group_id integer,
-    project_id integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+CREATE TABLE public.hmis_group_viewable_entities (
+    id bigint NOT NULL,
+    entity_type character varying NOT NULL,
+    entity_id bigint NOT NULL,
+    collection_id bigint NOT NULL,
     deleted_at timestamp without time zone
 );
+
+
+--
+-- Name: hmis_group_viewable_entities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_group_viewable_entities_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_group_viewable_entities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_group_viewable_entities_id_seq OWNED BY public.hmis_group_viewable_entities.id;
 
 
 --
@@ -18307,37 +18314,28 @@ CREATE TABLE public.project_project_groups (
 --
 
 CREATE VIEW public.hmis_group_viewable_entity_projects AS
- SELECT group_viewable_entities.id AS group_viewable_entity_id,
+ SELECT hmis_group_viewable_entities.id AS group_viewable_entity_id,
     NULL::integer AS organization_id,
-    group_viewable_entities.entity_id AS project_id
-   FROM public.group_viewable_entities
-  WHERE (((group_viewable_entities.entity_type)::text = 'Hmis::Hud::Project'::text) AND (group_viewable_entities.deleted_at IS NULL))
+    hmis_group_viewable_entities.entity_id AS project_id
+   FROM public.hmis_group_viewable_entities
+  WHERE (((hmis_group_viewable_entities.entity_type)::text = 'Hmis::Hud::Project'::text) AND (hmis_group_viewable_entities.deleted_at IS NULL))
 UNION
- SELECT group_viewable_entities.id AS group_viewable_entity_id,
+ SELECT hmis_group_viewable_entities.id AS group_viewable_entity_id,
     "Organization".id AS organization_id,
     "Project".id AS project_id
-   FROM ((public.group_viewable_entities
-     JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND ("Organization".id = group_viewable_entities.entity_id))))
+   FROM ((public.hmis_group_viewable_entities
+     JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND ("Organization".id = hmis_group_viewable_entities.entity_id))))
      JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Organization".data_source_id = "Project".data_source_id) AND (("Organization"."OrganizationID")::text = ("Project"."OrganizationID")::text))))
-  WHERE (((group_viewable_entities.entity_type)::text = 'Hmis::Hud::Organization'::text) AND (group_viewable_entities.deleted_at IS NULL))
+  WHERE (((hmis_group_viewable_entities.entity_type)::text = 'Hmis::Hud::Organization'::text) AND (hmis_group_viewable_entities.deleted_at IS NULL))
 UNION
- SELECT group_viewable_entities.id AS group_viewable_entity_id,
+ SELECT hmis_group_viewable_entities.id AS group_viewable_entity_id,
     "Organization".id AS organization_id,
     "Project".id AS project_id
-   FROM (((public.group_viewable_entities
-     JOIN public.data_sources ON (((data_sources.deleted_at IS NULL) AND (data_sources.id = group_viewable_entities.entity_id))))
+   FROM (((public.hmis_group_viewable_entities
+     JOIN public.data_sources ON (((data_sources.deleted_at IS NULL) AND (data_sources.id = hmis_group_viewable_entities.entity_id))))
      LEFT JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND (data_sources.id = "Project".data_source_id))))
      LEFT JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND (data_sources.id = "Organization".data_source_id))))
-  WHERE (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (group_viewable_entities.deleted_at IS NULL))
-UNION
- SELECT group_viewable_entities.id AS group_viewable_entity_id,
-    NULL::integer AS organization_id,
-    "Project".id AS project_id
-   FROM (((public.group_viewable_entities
-     JOIN public.project_groups ON (((project_groups.deleted_at IS NULL) AND (project_groups.id = group_viewable_entities.entity_id))))
-     JOIN public.project_project_groups ON ((project_project_groups.project_group_id = project_groups.id)))
-     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = project_project_groups.project_id))))
-  WHERE (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::ProjectGroup'::text) AND (group_viewable_entities.deleted_at IS NULL));
+  WHERE (((hmis_group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (hmis_group_viewable_entities.deleted_at IS NULL));
 
 
 --
@@ -18477,7 +18475,7 @@ CREATE VIEW public.hmis_services AS
     "Services"."EnrollmentID",
     "Services"."PersonalID",
     "Services"."DateProvided",
-    ("Services"."UserID")::character varying AS "UserID",
+    "Services"."UserID",
     "Services"."DateCreated",
     "Services"."DateUpdated",
     "Services"."DateDeleted",
@@ -19943,7 +19941,9 @@ CREATE TABLE public.hud_report_path_clients (
     updated_at timestamp without time zone NOT NULL,
     gender_multi character varying,
     destination_client_id integer,
-    personal_id character varying
+    personal_id character varying,
+    race_multi character varying,
+    newly_enrolled_client boolean DEFAULT false
 );
 
 
@@ -21562,7 +21562,9 @@ CREATE TABLE public.places (
     updated_at timestamp(6) without time zone NOT NULL,
     city character varying,
     state character varying,
-    zipcode character varying
+    zipcode character varying,
+    lat double precision,
+    lon double precision
 );
 
 
@@ -21942,6 +21944,20 @@ ALTER SEQUENCE public.project_data_quality_id_seq OWNED BY public.project_data_q
 
 
 --
+-- Name: project_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.project_groups (
+    id integer NOT NULL,
+    name character varying NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    deleted_at timestamp without time zone,
+    options jsonb DEFAULT '{}'::jsonb
+);
+
+
+--
 -- Name: project_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -22121,6 +22137,20 @@ CREATE SEQUENCE public.project_pass_fails_projects_id_seq
 --
 
 ALTER SEQUENCE public.project_pass_fails_projects_id_seq OWNED BY public.project_pass_fails_projects.id;
+
+
+--
+-- Name: project_project_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.project_project_groups (
+    id integer NOT NULL,
+    project_group_id integer,
+    project_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    deleted_at timestamp without time zone
+);
 
 
 --
@@ -28146,6 +28176,13 @@ ALTER TABLE ONLY public.hmis_forms ALTER COLUMN id SET DEFAULT nextval('public.h
 
 
 --
+-- Name: hmis_group_viewable_entities id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_group_viewable_entities ALTER COLUMN id SET DEFAULT nextval('public.hmis_group_viewable_entities_id_seq'::regclass);
+
+
+--
 -- Name: hmis_import_configs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -31972,6 +32009,14 @@ ALTER TABLE ONLY public.hmis_form_processors
 
 ALTER TABLE ONLY public.hmis_forms
     ADD CONSTRAINT hmis_forms_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_group_viewable_entities hmis_group_viewable_entities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_group_viewable_entities
+    ADD CONSTRAINT hmis_group_viewable_entities_pkey PRIMARY KEY (id);
 
 
 --
@@ -49199,6 +49244,13 @@ CREATE INDEX "index_CustomCaseNote_on_UserID" ON public."CustomCaseNote" USING b
 
 
 --
+-- Name: index_CustomClientAddress_on_data_source_id_and_EnrollmentID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX "index_CustomClientAddress_on_data_source_id_and_EnrollmentID" ON public."CustomClientAddress" USING btree (data_source_id, "EnrollmentID") WHERE (((enrollment_address_type)::text = 'move_in'::text) AND ("DateDeleted" IS NULL));
+
+
+--
 -- Name: index_CustomDataElementDefinitions_on_custom_service_type_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50421,6 +50473,13 @@ CREATE INDEX index_chronics_on_date ON public.chronics USING btree (date);
 --
 
 CREATE INDEX index_clh_locations_on_client_id ON public.clh_locations USING btree (client_id);
+
+
+--
+-- Name: index_clh_locations_on_lat_and_lon; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_clh_locations_on_lat_and_lon ON public.clh_locations USING btree (lat, lon);
 
 
 --
@@ -52503,6 +52562,20 @@ CREATE INDEX index_hmis_forms_on_name ON public.hmis_forms USING btree (name);
 
 
 --
+-- Name: index_hmis_group_viewable_entities_on_collection_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_group_viewable_entities_on_collection_id ON public.hmis_group_viewable_entities USING btree (collection_id);
+
+
+--
+-- Name: index_hmis_group_viewable_entities_on_entity; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_group_viewable_entities_on_entity ON public.hmis_group_viewable_entities USING btree (entity_type, entity_id);
+
+
+--
 -- Name: index_hmis_import_configs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -53452,6 +53525,13 @@ CREATE INDEX index_performance_metrics_clients_on_report_id ON public.performanc
 --
 
 CREATE INDEX index_performance_metrics_clients_on_updated_at ON public.performance_metrics_clients USING btree (updated_at);
+
+
+--
+-- Name: index_places_on_lat_and_lon; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_places_on_lat_and_lon ON public.places USING btree (lat, lon);
 
 
 --
@@ -58043,7 +58123,7 @@ CREATE UNIQUE INDEX tx_id_ds_id_ft_idx ON public.financial_transactions USING bt
 -- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL (ARRAY[('ac_hmis_mci'::character varying)::text, ('ac_hmis_mci_unique_id'::character varying)::text]));
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL ((ARRAY['ac_hmis_mci'::character varying, 'ac_hmis_mci_unique_id'::character varying])::text[]));
 
 
 --
@@ -59257,22 +59337,6 @@ CREATE RULE attempt_client_searchable_names_del AS
 
 CREATE RULE attempt_client_searchable_names_up AS
     ON UPDATE TO public.client_searchable_names DO INSTEAD NOTHING;
-
-
---
--- Name: hmis_group_viewable_entity_projects attempt_hmis_group_viewable_entity_projects_del; Type: RULE; Schema: public; Owner: -
---
-
-CREATE RULE attempt_hmis_group_viewable_entity_projects_del AS
-    ON DELETE TO public.hmis_group_viewable_entity_projects DO INSTEAD NOTHING;
-
-
---
--- Name: hmis_group_viewable_entity_projects attempt_hmis_group_viewable_entity_projects_up; Type: RULE; Schema: public; Owner: -
---
-
-CREATE RULE attempt_hmis_group_viewable_entity_projects_up AS
-    ON UPDATE TO public.hmis_group_viewable_entity_projects DO INSTEAD NOTHING;
 
 
 --
@@ -61152,6 +61216,17 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231016190301'),
 ('20231017190301'),
 ('20231020151224'),
-('20231021205059');
+('20231021205059'),
+('20231028140507'),
+('20231028230227'),
+('20231028231546'),
+('20231030140507'),
+('20231103151804'),
+('20231103153556'),
+('20231103154939'),
+('20231107190301'),
+('20231110134113'),
+('20231114235529'),
+('20231115170459');
 
 

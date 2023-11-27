@@ -212,6 +212,13 @@ module Types
       load_ar_association(object, :user)
     end
 
+    def activity_log_field_name(field_name)
+      case field_name
+      when 'ssn', 'dob'
+        field_name
+      end
+    end
+
     def ssn
       if current_permission?(permission: :can_view_full_ssn, entity: object)
         object.ssn

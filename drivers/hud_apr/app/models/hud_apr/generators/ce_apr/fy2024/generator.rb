@@ -21,6 +21,10 @@ module HudApr::Generators::CeApr::Fy2024
       'CE-APR'
     end
 
+    def self.file_prefix
+      "v1.0 #{short_name} #{fiscal_year}"
+    end
+
     def url
       hud_reports_ce_apr_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end

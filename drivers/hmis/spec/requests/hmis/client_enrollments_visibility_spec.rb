@@ -114,6 +114,28 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
+    it 'confidentializes name of limited-access enrollment when appropriate' do
+      p1.update(confidential: true)
+      p2.update(confidential: true)
+      create_access_control(hmis_user, p2, with_permission: :can_view_limited_enrollment_details)
+
+      response, result = post_graphql(id: c1.id) { query }
+      expect(response.status).to eq(200), result.inspect
+
+      aggregate_failures 'checking response' do
+        [e1, e2].map(&:id).map(&:to_s).tap do |expected|
+          expect(expected.size).to eq 2
+          enrollments = result.dig('data', 'client', 'enrollments', 'nodes')
+          expect(enrollments.map { |r| r.fetch('id') }).to contain_exactly(*expected)
+
+          resolved_e1 = enrollments.find { |e| e['id'] == e1.id.to_s }
+          expect(resolved_e1['projectName']).to eq(p1.project_name)
+          resolved_e2 = enrollments.find { |e| e['id'] == e2.id.to_s }
+          expect(resolved_e2['projectName']).to eq(Hmis::Hud::Project::CONFIDENTIAL_PROJECT_NAME)
+        end
+      end
+    end
+
     it 'does not resolve limited enrollments for clients where the user doesn\'t have any detailed enrollments access' do
       create_access_control(hmis_user, p2, with_permission: :can_view_limited_enrollment_details)
       expect(c3.enrollments.where(project_id: p2.project_id).exists?).to eq(true) # ensure setup

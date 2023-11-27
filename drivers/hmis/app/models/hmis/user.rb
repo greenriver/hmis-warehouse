@@ -127,7 +127,7 @@ class Hmis::User < ApplicationRecord
     access_group_ids = access_controls.where(role_id: roles_with_permission).pluck(:access_group_id)
 
     entity_ids = Hmis::GroupViewableEntity.where(
-      access_group_id: access_group_ids,
+      collection_id: access_group_ids,
       entity_type: model.sti_name,
     ).select(:entity_id)
 
@@ -151,10 +151,6 @@ class Hmis::User < ApplicationRecord
     viewable Hmis::Hud::Project
   end
 
-  def viewable_project_access_groups
-    viewable GrdaWarehouse::ProjectAccessGroup
-  end
-
   def viewable_project_ids
     @viewable_project_ids ||= Hmis::Hud::Project.viewable_by(self).pluck(:id)
   end
@@ -176,6 +172,18 @@ class Hmis::User < ApplicationRecord
     )
   end
 
+  scope :viewable_by, ->(user) do
+    data_source_id = user.hmis_data_source_id
+    raise 'user missing data source id' unless data_source_id
+
+    return none unless user.permissions?(:can_impersonate_users)
+
+    # FIXME:
+    # perhaps there's some additional restriction needed here to prevent users
+    # from escalating privileges or jumping data sources within the app?
+    active.not_system.where(id: Hmis::UserGroupMember.pluck(:user_id))
+  end
+
   def editable_data_sources
     editable GrdaWarehouse::DataSource
   end
@@ -186,10 +194,6 @@ class Hmis::User < ApplicationRecord
 
   def editable_projects
     editable Hmis::Hud::Project
-  end
-
-  def editable_project_access_groups
-    editable GrdaWarehouse::ProjectAccessGroup
   end
 
   def editable_project_ids
@@ -204,5 +208,9 @@ class Hmis::User < ApplicationRecord
       phone: phone,
       sessionDuration: Devise.timeout_in.in_seconds,
     }
+  end
+
+  def self.apply_filters(input)
+    Hmis::Filter::ApplicationUserFilter.new(input).filter_scope(self)
   end
 end

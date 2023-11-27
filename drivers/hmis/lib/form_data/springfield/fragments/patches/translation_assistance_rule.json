@@ -1,0 +1,90 @@
+[
+  {
+    "link_id": "C4-group",
+    "rule": {
+      "operator": "ANY",
+      "parts": [
+        {
+          "_comment": "Custom: RHY-BCP",
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 22
+        },
+        {
+          "_comment": "Custom: RHY-MGH",
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 23
+        },
+        {
+          "_comment": "TODO: replace with project group",
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "785"
+        },
+        {
+          "_comment": "TODO: replace with project group",
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "751"
+        },
+        {
+          "_comment": "TODO: replace with project group",
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "825"
+        },
+        {
+          "_comment": "HUD: CoC – Collection required for all components",
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HUD: CoC"
+        },
+        {
+          "_comment": "HUD: ESG – Collection required for all components ",
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HUD: ESG"
+        },
+        {
+          "operator": "ALL",
+          "_comment": "HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach",
+          "parts": [
+            {
+              "variable": "projectFunderComponents",
+              "operator": "INCLUDE",
+              "value": "HUD: ESG RUSH"
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 0
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 1
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 4
+            }
+          ]
+        },
+        {
+          "_comment": "HUD: Unsheltered Special NOFO – Collection required for all components",
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HUD: Unsheltered Special NOFO"
+        },
+        {
+          "_comment": "HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry",
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 55
+        }
+      ]
+    }
+  }
+]

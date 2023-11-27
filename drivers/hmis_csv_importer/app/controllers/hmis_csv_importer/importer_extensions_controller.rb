@@ -41,6 +41,7 @@ class HmisCsvImporter::ImporterExtensionsController < ApplicationController
       HmisCsvImporter::Aggregated::CombineEnrollments,
       HmisCsvImporter::HmisCsvCleanup::DeleteEmptyEnrollments,
       HmisCsvImporter::HmisCsvCleanup::EnforceRelationshipToHoh,
+      HmisCsvImporter::HmisCsvCleanup::ForcePrioritizedPlacementStatus,
     ].sort_by(&:associated_model).
       freeze
   end

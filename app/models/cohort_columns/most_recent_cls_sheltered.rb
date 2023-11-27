@@ -9,6 +9,8 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :most_recent_cls_sheltered
     attribute :translation_key, String, lazy: true, default: 'Most Recent Current Living Situation Sheltered?'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
+    attribute :description_translation_key, String, lazy: true, default: 'Most-recent Current Living Situation for the client was not "Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)" or unknown.'
+    attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def available_for_rules?
       false

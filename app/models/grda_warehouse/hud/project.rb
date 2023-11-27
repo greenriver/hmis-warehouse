@@ -616,6 +616,10 @@ module GrdaWarehouse::Hud
       project_type_to_use.in?(HudUtility2024.performance_reporting[:psh])
     end
 
+    def homeless?
+      project_type_to_use.in?(HudUtility2024.homeless_project_type_numbers)
+    end
+
     def self.related_item_keys
       [:OrganizationID]
     end
@@ -648,6 +652,14 @@ module GrdaWarehouse::Hud
 
     def confidential
       super || GrdaWarehouse::Hud::Organization.confidential_org?(self.OrganizationID, data_source_id)
+    end
+
+    def confidential_for_user?(user)
+      return false unless confidential?
+      # Pre ACLs anyone with can_view_confidential_project_names? can view all confidential projects
+      return false if user.can_view_confidential_project_names? && ! user.using_acls?
+
+      ! user.can_access_project?(self, permission: :can_view_confidential_project_names)
     end
 
     # Get the name for this project, protecting confidential names if appropriate.

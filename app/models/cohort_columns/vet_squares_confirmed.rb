@@ -9,5 +9,7 @@ module CohortColumns
     attribute :column, Boolean, lazy: true, default: :vet_squares_confirmed
     attribute :translation_key, String, lazy: true, default: 'Vet Status Confirmed in Squares'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
+    attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }
+    attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
   end
 end

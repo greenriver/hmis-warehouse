@@ -6,6 +6,7 @@
 
 module Types
   class BasePaginated < BaseObject
+    skip_activity_log
     def self.build(node_class)
       dynamic_name = "#{node_class.graphql_name.pluralize}Paginated"
 

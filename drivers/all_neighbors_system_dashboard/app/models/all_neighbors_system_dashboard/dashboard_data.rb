@@ -36,12 +36,14 @@ module AllNeighborsSystemDashboard
 
     # We don't de-compose numbers in this report, only add them up, so as long as no individual count
     # is less than 11, we don't need to mask it.
-    def mask_small_populations(value, mask: true)
-      # return value
-      return value unless mask
-      return 0 if value.blank? || value < 11
+    def mask_small_populations(value, mask: true) # rubocop:disable Lint/UnusedMethodArgument
+      # Until we are able to confirm all calculations, don't actually mask anything
+      return value
 
-      value
+      # return value unless mask
+      # return 0 if value.blank? || value < 11
+
+      # value
     end
 
     def project_types

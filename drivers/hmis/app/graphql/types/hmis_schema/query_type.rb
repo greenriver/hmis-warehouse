@@ -8,6 +8,8 @@
 
 module Types
   class HmisSchema::QueryType < Types::BaseObject
+    skip_activity_log
+
     # From generated QueryType:
     # Add `node(id: ID!) and `nodes(ids: [ID!]!)`
     include GraphQL::Types::Relay::HasNodeField
@@ -15,6 +17,7 @@ module Types
     include Types::HmisSchema::HasProjects
     include Types::HmisSchema::HasOrganizations
     include Types::HmisSchema::HasClients
+    include Types::HmisSchema::HasApplicationUsers
     include Types::HmisSchema::HasReferralPostings
     include ::Hmis::Concerns::HmisArelHelper
 
@@ -250,6 +253,11 @@ module Types
 
       # Resolve each destination client as a ClientMergeCandidate
       Hmis::Hud::Client.where(id: destination_ids_with_multiple_sources)
+    end
+
+    application_users_field :application_users
+    def application_users(**args)
+      resolve_application_users(Hmis::User.all, **args)
     end
 
     field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false

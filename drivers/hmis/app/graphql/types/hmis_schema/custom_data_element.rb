@@ -41,5 +41,9 @@ module Types
     def value(parent:)
       object.repeats ? nil : all_values(parent: parent)&.first
     end
+
+    def activity_log_object_identity
+      object.id
+    end
   end
 end

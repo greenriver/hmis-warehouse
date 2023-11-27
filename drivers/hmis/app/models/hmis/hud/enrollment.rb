@@ -8,6 +8,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   include ::HmisStructure::Enrollment
   include ::Hmis::Hud::Concerns::Shared
   include ::HudConcerns::Enrollment
+  include ::Hmis::Hud::Concerns::ServiceHistoryQueuer
 
   self.table_name = :Enrollment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
@@ -30,6 +31,13 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :custom_case_notes, **hmis_enrollment_relation('CustomCaseNote'), inverse_of: :enrollment, dependent: :destroy
   # All services (combined view of HUD and Custom services)
   has_many :hmis_services, **hmis_enrollment_relation('HmisService'), inverse_of: :enrollment
+  has_many(
+    :move_in_addresses,
+    -> { where(enrollment_address_type: Hmis::Hud::CustomClientAddress::ENROLLMENT_MOVE_IN_TYPE) },
+    **hmis_relation(:EnrollmentID, 'CustomClientAddress'),
+    inverse_of: :enrollment,
+    dependent: :destroy,
+  )
 
   has_many :events, **hmis_enrollment_relation('Event'), inverse_of: :enrollment, dependent: :destroy
   has_many :income_benefits, **hmis_enrollment_relation('IncomeBenefit'), inverse_of: :enrollment, dependent: :destroy
@@ -65,6 +73,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
+  accepts_nested_attributes_for :move_in_addresses, allow_destroy: true
 
   validates_with Hmis::Hud::Validators::EnrollmentValidator
   validate :client_is_valid, on: :new_client_enrollment_form
@@ -294,8 +303,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   def in_progress?
-    @in_progress = project_id.nil? if @in_progress.nil?
-    @in_progress
+    project_id.nil?
   end
 
   def exit_in_progress?
@@ -378,9 +386,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     return unless warehouse_columns_changed?
 
     invalidate_processing!
-    return if Delayed::Job.queued?(['GrdaWarehouse::Tasks::ServiceHistory::Enrollment', 'batch_process_unprocessed!'])
-
-    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).batch_process_unprocessed!
+    queue_service_history_processing!
   end
 
   private def warehouse_columns_changed?

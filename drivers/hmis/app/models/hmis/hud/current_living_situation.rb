@@ -11,6 +11,7 @@ class Hmis::Hud::CurrentLivingSituation < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
+  include ::Hmis::Hud::Concerns::ServiceHistoryQueuer
 
   belongs_to :enrollment, **hmis_enrollment_relation, optional: true
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
@@ -28,9 +29,7 @@ class Hmis::Hud::CurrentLivingSituation < Hmis::Hud::Base
     # NOTE: we only really need to do this for SO at the moment, but this is future-proofing against
     # pre-processing CLS in other enrollments
     enrollment.invalidate_processing!
-    return if Delayed::Job.queued?(['GrdaWarehouse::Tasks::ServiceHistory::Enrollment', 'batch_process_unprocessed!'])
-
-    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).batch_process_unprocessed!
+    queue_service_history_processing!
   end
 
   private def warehouse_columns_changed?

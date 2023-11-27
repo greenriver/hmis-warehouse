@@ -18,7 +18,7 @@ module Mutations
       return { units: [], errors: [HmisErrors::Error.new(:project_id, :not_allowed)] } unless current_user.permissions_for?(project, :can_manage_inventory)
 
       units = project.units.where(id: unit_ids)
-      units.update_all(name: name, user_id: hmis_user.user_id, updated_at: Time.now)
+      units.update_all(name: name, user_id: current_user.id, updated_at: Time.now)
 
       { units: units, errors: [] }
     end

@@ -10,7 +10,7 @@ module HmisStructure::Exit
 
   included do
     self.hud_key = :ExitID
-    acts_as_paranoid(column: :DateDeleted)
+    acts_as_paranoid(column: :DateDeleted) unless included_modules.include?(Paranoia)
   end
 
   module ClassMethods

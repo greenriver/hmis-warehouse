@@ -113,6 +113,7 @@ module Types
 
       # Build OpenStruct for DisabilityGroup type
       OpenStruct.new(
+        id: object.id, # for logging
         information_date: object.assessment_date,
         data_collection_stage: object.data_collection_stage,
         enrollment: enrollment,

@@ -97,7 +97,7 @@ module HudApr::Generators::Shared::Fy2024
                   ids << member.id
                   households << apr_client.household_id
                 end
-              when :veteran
+              when :veteran # NOTE: actually not-a-veteran
                 if ! households.include?(apr_client.household_id) && all_household_adults_non_veterans?(apr_client)
                   ids << member.id
                   households << apr_client.household_id

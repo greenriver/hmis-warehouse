@@ -9,6 +9,8 @@ module CohortColumns
     attribute :column, Boolean, lazy: true, default: :active
     attribute :translation_key, String, lazy: true, default: 'Active'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
+    attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }
+    attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def display_as_editable?(user, _cohort_client, on_cohort: cohort) # rubocop:disable Lint/UnusedMethodArgument
       user.can_manage_inactive_cohort_clients?

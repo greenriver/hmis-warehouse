@@ -1,0 +1,22 @@
+- title = Translation.translate('Community of Origin')
+- content_for :title, title
+
+- @layout__plain_inner = true
+- @layout__width = 'lg'
+.content-outer-prs1
+  .main-outer-prs1
+    .top-nav-prs1
+      %h1.mb-5= title
+    .main-inner-prs1
+      = render 'header_counts'
+
+      .mb-8{style: 'position: relative;'}= render 'across_the_country'
+      .mb-8{style: 'position: relative;'}= render 'top_zip_codes'
+
+      = render 'across_the_country_js'
+      = render 'top_zip_codes_js'
+
+      .alert.alert-info
+        %p
+          %i.icon-info
+          Percent of clients at state and zip code level are based on the number of clients with valid community of origin data.  Community of origin is determined from the earliest location data from the earliest enrollment overlapping the report universe.

@@ -49,14 +49,12 @@ module HealthPatientDashboard
     end
 
     # @param patients Initial patients scope
-    # @param search_string|nil Search string
     # @param Hash<String>|nil Filters
     # @return patient_scope, search_scope, active_filter
-    def apply_filter(patients, search_string, filter)
-      search = search_setup(scope: :full_text_search)
-      patients = search.distinct if search_string.present?
+    def apply_filter(patients, filter)
+      search = search_setup(search: patients, scope: :full_text_search)
+      patients = search.distinct if @search_string.present?
       active_filter = false
-
       return search, patients, active_filter unless filter.present?
 
       # Status Filter
@@ -88,11 +86,11 @@ module HealthPatientDashboard
       end
       if filter[:manager_review].present?
         needs_filter = true
-        patients_with_needs += current_careplans.select { |_, v| v.reviewed_by_ccm_on.blank? }.values.map(&:patient_id)
+        patients_with_needs += current_careplans.select { |_, v| v.reviewed_by_ccm_on.blank? && v.reviewed_by_rn_on.present? }.values.map(&:patient_id)
       end
       if filter[:sent_to_pcp].present?
         needs_filter = true
-        patients_with_needs += current_careplans.select { |_, v| v.sent_to_pcp_on.blank? }.values.map(&:patient_id)
+        patients_with_needs += current_careplans.select { |_, v| v.sent_to_pcp_on.blank? && v.reviewed_by_ccm_on.present? && v.reviewed_by_rn_on.present? }.values.map(&:patient_id)
       end
 
       if needs_filter

@@ -52,6 +52,7 @@ module Types
       arg :open_on_date, GraphQL::Types::ISO8601Date
       arg :bed_night_on_date, GraphQL::Types::ISO8601Date
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
+      arg :household_tasks, [HmisSchema::Enums::EnrollmentFilterOptionHouseholdTask]
       arg :search_term, String
     end
 
@@ -87,7 +88,7 @@ module Types
     field :household_size, Integer, null: false
     # Associated records. These automatically require the "can_view_enrollment_details" permission
     # because they use the overridden 'field' class method.
-    assessments_field
+    assessments_field filter_args: { omit: [:project, :project_type], type_name: 'AssessmentsForEnrollment' }
     events_field
     services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForEnrollment' }
     custom_case_notes_field
@@ -185,10 +186,17 @@ module Types
     field :open_enrollment_summary, [HmisSchema::EnrollmentSummary], null: false
     field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
 
+    field :move_in_addresses, [HmisSchema::ClientAddress], null: false
+
+    # Summary of ALL open enrollments that this client currently has.
+    # This is different from the "summary_fields" which are governed by a different
+    # permission ('can_view_limited_enrollment_details').
     def open_enrollment_summary
-      return [] unless current_user.can_view_open_enrollment_summary_for?(object)
+      return [] unless current_permission?(permission: :can_view_open_enrollment_summary, entity: object)
 
       client = load_ar_association(object, :client)
+      # There is no "viewable_by" check on the enrollments, because this permission
+      # grants full access regardless of enrollment/project visibility.
       load_ar_association(client, :enrollments).where.not(id: object.id).open_including_wip
     end
 
@@ -216,6 +224,8 @@ module Types
 
     # Needed because limited access viewers cannot resolve the project
     def project_name
+      return Hmis::Hud::Project::CONFIDENTIAL_PROJECT_NAME if project&.confidential && !current_permission?(permission: :can_view_enrollment_details, entity: object)
+
       project&.project_name
     end
 
@@ -314,6 +324,10 @@ module Types
       object.household_members.
         map { |hhm| hhm.current_unit&.id }.
         compact.uniq.size
+    end
+
+    def move_in_addresses
+      load_ar_association(object, :move_in_addresses)
     end
   end
 end

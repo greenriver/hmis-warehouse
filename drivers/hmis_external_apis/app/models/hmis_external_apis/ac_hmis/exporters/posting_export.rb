@@ -1,0 +1,67 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+module HmisExternalApis::AcHmis::Exporters
+  class PostingExport
+    attr_accessor :output
+
+    def initialize(output = StringIO.new)
+      require 'csv'
+      self.output = output
+    end
+
+    def run!
+      Rails.logger.info 'Generating content of posting export'
+
+      write_row(columns)
+      total = postings.count
+
+      Rails.logger.error "There are #{total} postings to export. That doesn't look right" if total < 10
+
+      postings.find_each.with_index do |posting, i|
+        Rails.logger.info "Processed #{i} of #{total}" if (i % 1000).zero?
+
+        enrollment = posting.hoh_enrollment
+
+        if enrollment.nil?
+          Rails.logger.info "Skipping posting #{posting.identifier} because it's missing a HoH Enrollment"
+          next
+        end
+
+        warehouse_id = enrollment.client.warehouse_id
+        next unless warehouse_id.present?
+
+        values = [
+          warehouse_id, # PersonalID matching HMIS CSV export
+          enrollment.id, # EnrollmentID matching HMIS CSV export
+          posting.identifier, # EntityPostingID
+          posting.created_at.strftime('%Y-%m-%d %H:%M:%S'), # AssignedDate
+        ]
+        write_row(values)
+      end
+    end
+
+    private
+
+    def columns
+      ['PersonalID', 'EnrollmentID', 'EntityPostingID', 'AssignedDate']
+    end
+
+    def write_row(row)
+      output << CSV.generate_line(row)
+    end
+
+    def postings
+      HmisExternalApis::AcHmis::ReferralPosting.from_link.
+        where(status: ['accepted_status', 'closed_status']).
+        preload(hoh_enrollment: [client: [:warehouse_client_source]])
+    end
+
+    def data_source
+      @data_source ||= HmisExternalApis::AcHmis.data_source
+    end
+  end
+end
