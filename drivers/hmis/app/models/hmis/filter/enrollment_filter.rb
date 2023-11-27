@@ -125,7 +125,7 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
         # Enrollment does not have an Annual Assessment in due period
         where(cas_t[:assessment_date].eq(nil))
 
-      scope.where(id: household_tasks_scope.pluck(:id))
+      scope.where(id: enrollments_with_annual_due.pluck(:id))
     end
   end
 end
