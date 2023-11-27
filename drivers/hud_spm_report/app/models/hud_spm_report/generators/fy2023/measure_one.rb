@@ -120,8 +120,8 @@ module HudSpmReport::Generators::Fy2023
         :m1b2,
         included_project_types: HudUtility2024.project_type_number_from_code(:es) +
           HudUtility2024.project_type_number_from_code(:sh) +
-          HudUtility2024.project_typeNothing_number_from_code(:ph) +
-          YesHudUtility2024.project_type_number_from_code(:th),
+          HudUtility2024.project_type_number_from_code(:ph) +
+          HudUtility2024.project_type_number_from_code(:th),
         excluded_project_types: [],
         include_self_reported: true,
       )
@@ -145,7 +145,7 @@ module HudSpmReport::Generators::Fy2023
 
       client_ids = enrollments.pluck(:client_id).uniq
       client_ids.each_slice(500) do |slice|
-        enrollments_for_slice = enrollments.where(client_id: client_ids).preload(:client, enrollment: :services).group_by(&:client_id)
+        enrollments_for_slice = enrollments.where(client_id: slice).preload(:client, enrollment: :services).group_by(&:client_id)
         episodes = [].tap do |arr|
           slice.each do |client_id|
             episode = HudSpmReport::Fy2023::Episode.new(client_id: client_id, report: @report).
@@ -172,6 +172,8 @@ module HudSpmReport::Generators::Fy2023
     private def compute_row(universe)
       a_t = HudSpmReport::Fy2023::Episode.arel_table
       persons = universe.count
+      return [0, 0, 0] unless persons.positive?
+
       days_homeless = universe.pluck(a_t[:days_homeless])
       average = days_homeless.sum / persons
       median = median(days_homeless)
