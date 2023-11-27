@@ -11,7 +11,7 @@ module HmisCsvTwentyTwentyFour::Exporter
     end
 
     def each
-      batch_size = if Rails.development? then 1_000 else 10_000 end
+      batch_size = if Rails.env.development? then 1_000 else 10_000 end
       @scope.find_each(batch_size: batch_size) do |row|
         yield(row)
       end
