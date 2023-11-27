@@ -202,7 +202,7 @@ type Assessment {
   incomeBenefit: IncomeBenefit
   lockVersion: Int!
   role: AssessmentRole!
-  user: User
+  user: ApplicationUser
   wipValues: JsonObject
   youthEducationStatus: YouthEducationStatus
 }
@@ -509,7 +509,7 @@ type CeAssessment {
   enrollment: Enrollment!
   id: ID!
   prioritizationStatus: PrioritizationStatus
-  user: User
+  user: ApplicationUser
 }
 
 type CeAssessmentsPaginated {
@@ -535,7 +535,7 @@ type CeParticipation {
   id: ID!
   preventionAssessment: NoYes
   receivesReferrals: NoYes
-  user: User
+  user: ApplicationUser
 }
 
 type CeParticipationsPaginated {
@@ -636,7 +636,7 @@ type Client {
   services(filters: ServiceFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   ssn: String
   ssnDataQuality: SSNDataQuality!
-  user: User
+  user: ApplicationUser
   veteranStatus: NoYesReasonsForMissingData!
   vietnamWar: NoYesReasonsForMissingData
   worldWarIi: NoYesReasonsForMissingData
@@ -679,7 +679,7 @@ type ClientAddress {
   postalCode: String
   state: String
   use: ClientAddressUse
-  user: User
+  user: ApplicationUser
 }
 
 """
@@ -770,7 +770,7 @@ type ClientContactPoint {
   notes: String
   system: ClientContactPointSystem
   use: ClientContactPointUse
-  user: User
+  user: ApplicationUser
   value: String
 }
 
@@ -881,7 +881,7 @@ type ClientName {
   primary: Boolean
   suffix: String
   use: ClientNameUse
-  user: User
+  user: ApplicationUser
 }
 
 """
@@ -1374,7 +1374,7 @@ type CurrentLivingSituation {
   movedTwoOrMore: NoYesReasonsForMissingData
   resourcesToObtain: NoYesReasonsForMissingData
   subsequentResidence: NoYesReasonsForMissingData
-  user: User
+  user: ApplicationUser
   verifiedBy: String
 }
 
@@ -1570,7 +1570,7 @@ type CustomCaseNote {
   dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
   id: ID!
-  user: User
+  user: ApplicationUser
 }
 
 type CustomCaseNotesPaginated {
@@ -1611,7 +1611,7 @@ type CustomDataElementValue {
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
   id: ID!
-  user: User
+  user: ApplicationUser
   valueBoolean: Boolean
   valueDate: ISO8601Date
   valueFloat: Float
@@ -2418,7 +2418,7 @@ type Disability {
   tCellCount: Int
   tCellCountAvailable: NoYesReasonsForMissingData
   tCellSource: TCellSourceViralLoadSource
-  user: User
+  user: ApplicationUser
   viralLoad: Int
   viralLoadAvailable: ViralLoadAvailable
 }
@@ -2456,7 +2456,7 @@ type DisabilityGroup {
   tCellCount: Int
   tCellCountAvailable: NoYesReasonsForMissingData
   tCellSource: TCellSourceViralLoadSource
-  user: User
+  user: ApplicationUser
   viralLoad: Int
   viralLoadAvailable: ViralLoadAvailable
 }
@@ -2624,7 +2624,7 @@ type EmploymentEducation {
   lastGradeCompleted: LastGradeCompleted
   notEmployedReason: NotEmployedReason
   schoolStatus: SchoolStatus
-  user: User
+  user: ApplicationUser
 }
 
 type EmploymentEducationsPaginated {
@@ -2851,7 +2851,7 @@ type Enrollment {
   timesHomelessPastThreeYears: TimesHomelessPastThreeYears
   translationNeeded: NoYesReasonsForMissingData
   unemploymentFam: NoYesMissing
-  user: User
+  user: ApplicationUser
   vamcStation: VamcStationNumber
   youthEducationStatuses(limit: Int, offset: Int): YouthEducationStatusesPaginated!
 }
@@ -3042,7 +3042,7 @@ type Event {
   referralCaseManageAfter: NoYesMissing
   referralResult: ReferralResult
   resultDate: ISO8601DateTime
-  user: User
+  user: ApplicationUser
 }
 
 """
@@ -3231,7 +3231,7 @@ type Exit {
   subsidyInformation: SubsidyInformation
   subsidyInformationA: SubsidyInformationA
   subsidyInformationB: SubsidyInformationB
-  user: User
+  user: ApplicationUser
   workPlaceViolenceThreats: NoYesReasonsForMissingData
   workplacePromiseDifference: NoYesReasonsForMissingData
 }
@@ -3357,7 +3357,7 @@ type File {
   updatedBy: ApplicationUser
   uploadedBy: ApplicationUser
   url: String
-  user: User
+  user: ApplicationUser
 }
 
 """
@@ -3678,7 +3678,7 @@ type Funder {
   id: ID!
   otherFunder: String
   startDate: ISO8601Date
-  user: User
+  user: ApplicationUser
 }
 
 """
@@ -4119,7 +4119,7 @@ type HealthAndDv {
   informationDate: ISO8601Date
   mentalHealthStatus: HealthStatus
   pregnancyStatus: NoYesReasonsForMissingData
-  user: User
+  user: ApplicationUser
   whenOccurred: WhenDVOccurred
 }
 
@@ -4191,7 +4191,7 @@ type HmisParticipation {
   hmisParticipationStatusStartDate: ISO8601Date
   hmisParticipationType: HMISParticipationType
   id: ID!
-  user: User
+  user: ApplicationUser
 }
 
 type HmisParticipationsPaginated {
@@ -4473,7 +4473,7 @@ type IncomeBenefit {
   totalMonthlyIncome: String
   unemployment: NoYesMissing
   unemploymentAmount: Float
-  user: User
+  user: ApplicationUser
   vaDisabilityNonService: NoYesMissing
   vaDisabilityNonServiceAmount: Float
   vaDisabilityService: NoYesMissing
@@ -4569,7 +4569,7 @@ type Inventory {
   inventoryStartDate: ISO8601Date
   otherBedInventory: Int
   unitInventory: Int!
-  user: User
+  user: ApplicationUser
   vetBedInventory: Int
   youthBedInventory: Int
   youthVetBedInventory: Int
@@ -4789,7 +4789,7 @@ type MergeAuditEvent {
   id: ID!
   mergedAt: ISO8601DateTime!
   preMergeState: JsonObject!
-  user: User
+  user: ApplicationUser
 }
 
 type MergeAuditEventsPaginated {
@@ -5487,7 +5487,7 @@ type Organization {
   id: ID!
   organizationName: String!
   projects(filters: ProjectsForEnrollmentFilterOptions, limit: Int, offset: Int, sortOrder: ProjectSortOption): ProjectsPaginated!
-  user: User
+  user: ApplicationUser
   victimServiceProvider: NoYesMissing!
 }
 
@@ -7540,7 +7540,7 @@ type Project {
   targetPopulation: TargetPopulation
   unitTypes: [UnitTypeCapacity!]!
   units(filters: UnitFilterOptions, limit: Int, offset: Int): UnitsPaginated!
-  user: User
+  user: ApplicationUser
 }
 
 type ProjectAccess {
@@ -7573,7 +7573,7 @@ type ProjectCoc {
   geographyType: GeographyType
   id: ID!
   state: String
-  user: User
+  user: ApplicationUser
   zip: String
 }
 
@@ -8846,7 +8846,7 @@ type Service {
   referralOutcome: PATHReferralOutcome
   serviceType: ServiceType!
   subTypeProvided: ServiceSubTypeProvided
-  user: User
+  user: ApplicationUser
 }
 
 enum ServiceDetailType {
@@ -9043,7 +9043,7 @@ type ServiceType {
   hudTypeProvided: ServiceTypeProvided
   id: ID!
   name: String!
-  user: User
+  user: ApplicationUser
 }
 
 """
@@ -9951,7 +9951,7 @@ type Unit {
   project: Project
   unitSize: Int
   unitType: UnitTypeObject
-  user: User
+  user: ApplicationUser
 }
 
 enum UnitFilterOptionStatus {
@@ -10125,17 +10125,6 @@ type UpdateUnitsPayload {
   clientMutationId: String
   errors: [ValidationError!]!
   units: [Unit!]!
-}
-
-"""
-HUD User
-"""
-type User {
-  dateCreated: ISO8601DateTime
-  dateDeleted: ISO8601DateTime
-  dateUpdated: ISO8601DateTime
-  id: ID!
-  name: String!
 }
 
 type ValidationError {
@@ -11076,7 +11065,7 @@ type YouthEducationStatus {
   id: ID!
   informationDate: ISO8601Date
   mostRecentEdStatus: MostRecentEdStatus
-  user: User
+  user: ApplicationUser
 }
 
 type YouthEducationStatusesPaginated {

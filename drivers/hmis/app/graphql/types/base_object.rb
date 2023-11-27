@@ -49,6 +49,18 @@ module Types
       dataloader.with(Sources::ActiveRecordAssociation, association, scope).load(object)
     end
 
+    def load_ar_scope(scope:, id:)
+      dataloader.with(Sources::ActiveRecordScope, scope).load(id)
+    end
+
+    def load_last_user_from_versions(object)
+      versions = load_ar_association(object, :versions)
+      last_user_id = versions.max_by(&:created_at)&.whodunnit
+      return unless last_user_id && last_user_id =~ /\A[0-9]+\z/
+
+      load_ar_scope(scope: Hmis::User.all, id: last_user_id)
+    end
+
     # Infers type and nullability from warehouse configuration
     def self.hud_field(name, type = nil, **kwargs)
       return field name, type, **kwargs unless configuration.present?

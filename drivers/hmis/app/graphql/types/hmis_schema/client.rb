@@ -209,7 +209,7 @@ module Types
     end
 
     def user
-      load_ar_association(object, :user)
+      load_last_user_from_versions(object)
     end
 
     def activity_log_field_name(field_name)

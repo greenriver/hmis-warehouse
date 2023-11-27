@@ -37,6 +37,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           ssn
           dob
           age
+          user {
+            id
+            name
+          }
           names {
             id
             first
@@ -91,6 +95,29 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         }
       }
     GRAPHQL
+  end
+
+  context 'with paper trail' do
+    before(:all) do
+      @paper_trail_was = PaperTrail.enabled?
+      PaperTrail.enabled = true
+    end
+    after(:all) do
+      PaperTrail.enabled = @paper_trail_was
+    end
+    let(:user2) do
+      create(:user).related_hmis_user(ds1)
+    end
+
+    it 'should return the most recent user' do
+      PaperTrail.request(whodunnit: user2.id) do
+        c1.update!(first_name: 'test1')
+        _response, result = post_graphql(id: c1.id) { query }
+        expect(response.status).to eq 200
+        expect(result.dig('data', 'client', 'user', 'id')).to eq user2.id.to_s
+        expect(result.dig('data', 'client', 'user', 'name')).to eq [user2.first_name, user2.last_name].join(' ')
+      end
+    end
   end
 
   it 'should return client if viewable' do
