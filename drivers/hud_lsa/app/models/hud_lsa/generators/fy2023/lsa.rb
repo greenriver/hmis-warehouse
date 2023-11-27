@@ -123,7 +123,9 @@ module HudLsa::Generators::Fy2023
 
       # Prevent report.complete_report from hiding the error
       @failed = true
-      project_names = issues.values.flatten.select { |r| r[:id].in?(issue_project_ids) }.map { |r| r[:project] }.uniq
+      project_names = issues.values.flatten.select { |r| r[:id].in?(issue_project_ids) }.map do |r|
+        "#{r[:project]} (id: #{r[:id]})"
+      end.uniq
       failure = "The following projects are missing data that will cause the LSA to fail: #{project_names.join(', ')}"
       fail_report(failure)
       false
