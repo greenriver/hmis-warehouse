@@ -9,7 +9,7 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :sober
     attribute :translation_key, String, lazy: true, default: 'Appropriate for Sober Supportive Housing'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
-    attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }
+    attribute :description_translation_key, String, lazy: true, default: 'Client was marked appropriate for Sober Supportive Housing in their most recent TC HAT'
     attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def cast_value(val)
