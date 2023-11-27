@@ -211,6 +211,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           end
         end
       end
+
+      it 'should work correctly with other filters applied' do
+        # Entered a year ago, annual is due
+        e4 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, entry_date: Date.today - 1.year)
+        # Entered less than a year ago, annual is not due
+        create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, entry_date: Date.today - 6.months)
+        response, result = post_graphql(id: p1.id, filters: { "householdTasks": ['ANNUAL_DUE'], 'searchTerm': c3.last_name }) { query }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'project', 'enrollments', 'nodes')).to contain_exactly(include('id' => e4.id.to_s))
+      end
     end
   end
 end
