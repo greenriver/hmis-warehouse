@@ -616,6 +616,10 @@ module GrdaWarehouse::Hud
       project_type_to_use.in?(HudUtility2024.performance_reporting[:psh])
     end
 
+    def homeless?
+      project_type_to_use.in?(HudUtility2024.homeless_project_type_numbers)
+    end
+
     def self.related_item_keys
       [:OrganizationID]
     end
