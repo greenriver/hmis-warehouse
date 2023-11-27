@@ -115,6 +115,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     private def days_homeless_plus_prior(client)
       homeless_days = client.days_homeless
       range = Date.yesterday .. Date.current
+      # don't use source_enrollments.ongoing since we've already preloaded source_enrollments
       ongoing_enrollments = client.source_enrollments.select { |en| en.open_during_range?(range) }
       earliest_date_to_street = ongoing_enrollments.map(&:DateToStreetESSH).compact.min
       earliest_homeless_entry_date = ongoing_enrollments.select { |en| en.project.homeless? }&.map(&:EntryDate)&.min
