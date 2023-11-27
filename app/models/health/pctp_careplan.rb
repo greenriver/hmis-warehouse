@@ -98,12 +98,16 @@ module Health
         or(where(instrument_id: v2_ids, instrument_type: 'HealthPctp::Careplan'))
     end
 
+    # A Careplan expires 12 months after it is fully reviewed and sent to the PCP
+    # @return [Date] Careplan expiration date
     def expires_on
       return nil unless instrument.careplan_sent_on.present?
 
       instrument.careplan_sent_on + 12.months
     end
 
+    # A Careplan is active if it was fully reviewed and the expiration date is in the future
+    # @return [Boolean] True if the careplan is active
     def active?
       return false unless instrument.careplan_sent_on.present?
       return false if expired?
@@ -111,12 +115,16 @@ module Health
       expires_on >= Date.current
     end
 
+    # A Careplan is expiring if it is active and will expire in the next month
+    # # @return [Boolean] True if the careplan is expiring
     def expiring?
       return false unless expires_on.present?
 
-      expires_on > Date.current
+      active? && expires_on - 1.month < Date.current
     end
 
+    # A Careplan has expired if the expiration date is in the past
+    # # @return [Boolean] True if the careplan is expired
     def expired?
       return false unless expires_on.present?
 
