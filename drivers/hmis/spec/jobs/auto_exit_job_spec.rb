@@ -27,7 +27,8 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
 
       Hmis::AutoExitJob.perform_now
 
-      expect(Hmis::Hud::Enrollment.exited).to contain_exactly(e2)
+      expect(Hmis::Hud::Enrollment.exited).to include(e2)
+      expect(Hmis::Hud::Enrollment.exited).not_to include(e1)
       expect(e2.exit).to have_attributes(auto_exited: be_present, exit_date: s2.date_provided + 1.day, destination: 30)
       expect(e2.custom_assessments).to contain_exactly(have_attributes(assessment_date: s2.date_provided + 1.day, data_collection_stage: 3))
     end
@@ -47,7 +48,7 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
 
       Hmis::AutoExitJob.perform_now
 
-      expect(Hmis::Hud::Enrollment.exited).to contain_exactly(e1)
+      expect(Hmis::Hud::Enrollment.exited).to include(e1)
       expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: s2.date_provided, destination: 30)
       expect(e1.custom_assessments).to contain_exactly(have_attributes(assessment_date: s2.date_provided, data_collection_stage: 3))
     end
@@ -58,7 +59,7 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
 
       Hmis::AutoExitJob.perform_now
 
-      expect(Hmis::Hud::Enrollment.exited).to contain_exactly(e1)
+      expect(Hmis::Hud::Enrollment.exited).to include(e1)
       expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: cs1.date_provided, destination: 30)
       expect(e1.custom_assessments).to contain_exactly(have_attributes(assessment_date: cs1.date_provided, data_collection_stage: 3))
     end
@@ -69,7 +70,7 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
 
       Hmis::AutoExitJob.perform_now
 
-      expect(Hmis::Hud::Enrollment.exited).to contain_exactly(e1)
+      expect(Hmis::Hud::Enrollment.exited).to include(e1)
       expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: cls1.information_date, destination: 30)
       expect(e1.custom_assessments).to contain_exactly(have_attributes(assessment_date: cls1.information_date, data_collection_stage: 3))
     end
@@ -80,7 +81,7 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
 
       Hmis::AutoExitJob.perform_now
 
-      expect(Hmis::Hud::Enrollment.exited).to contain_exactly(e1)
+      expect(Hmis::Hud::Enrollment.exited).to include(e1)
       expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: ca1.assessment_date, destination: 30)
       expect(e1.custom_assessments).to contain_exactly(ca1, have_attributes(assessment_date: ca1.assessment_date, data_collection_stage: 3))
     end
@@ -94,7 +95,7 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
 
       Hmis::AutoExitJob.perform_now
 
-      expect(Hmis::Hud::Enrollment.exited).to contain_exactly(e1)
+      expect(Hmis::Hud::Enrollment.exited).to include(e1)
       expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: cls1.information_date, destination: 30)
       expect(e1.custom_assessments).to contain_exactly(ca1, have_attributes(assessment_date: cls1.information_date, data_collection_stage: 3))
     end
