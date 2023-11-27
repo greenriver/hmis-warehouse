@@ -113,11 +113,12 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
             and(cas_t[:data_source_id].eq(e_t[:data_source_id])).
             and(cas_t[:data_collection_stage]).eq(5). # Annual
             and(cas_t[:wip]).eq(false).
+            and(cas_t[:DateDeleted]).eq(nil).
             and(annual_in_range),
           ).join_sources,
         ).
         # Earliest entry in household was more than a year ago
-        where(hh_t[:earliest_entry].lteq(Date.today - 11.months)).
+        where(hh_t[:earliest_entry].lteq(Date.current - 11.months)).
         # Household is not fully exited
         where(hh_t[:latest_exit].eq(nil)).
         # Client entered household before anniversary date
