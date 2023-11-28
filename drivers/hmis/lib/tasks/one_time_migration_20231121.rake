@@ -32,7 +32,7 @@ class OneTimeMigration20231121
   def parse_yaml(doc)
     YAML.load(
       doc,
-      permitted_classes: [Time, Date, Symbol],
+      permitted_classes: [Time, Date, Symbol, BigDecimal],
       aliases: true,
     ).except('lock_version')
   end
