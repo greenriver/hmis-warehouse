@@ -185,13 +185,13 @@ class AllNeighborsSystemDashboardHorizontalBar extends AllNeighborsSystemDashboa
     }
   }
 
-  redraw(state) {
-    this.state = state
-    this.init()
-    this.chart.load({
-      columns: this.getColumns(),
-    })
-  }
+  // redraw(state) {
+  //   this.state = state
+  //   this.init()
+  //   this.chart.load({
+  //     columns: this.getColumns(),
+  //   })
+  // }
 
   getDataConfig() {
     const superDataConfig = super.getDataConfig()
@@ -248,6 +248,7 @@ class AllNeighborsSystemDashboardHorizontalBar extends AllNeighborsSystemDashboa
           show: false
         }
       },
+      tooltip: {},
       onrendered: function() {
         const chart = this
         const selector = this.config().bindto
@@ -300,7 +301,6 @@ class AllNeighborsSystemDashboardHorizontalBar extends AllNeighborsSystemDashboa
           
       }
     }
-    console.log('config', {...superConfig, ...config})
     return {...superConfig, ...config}
   }
 

@@ -21,7 +21,12 @@ module AllNeighborsSystemDashboard
                 {
                   count_level: count_level,
                   series: send(type, opts),
-                  monthly_counts: send(type, opts.merge({ range: [0, 300] })),
+                  monthly_counts: send(type, opts.merge({ range: [100, 500] })),
+                }
+              elsif type == :line_data_by_quarter
+                {
+                  count_level: count_level,
+                  program_names: internal_data(type, opts),
                 }
               else
                 {
@@ -33,6 +38,26 @@ module AllNeighborsSystemDashboard
           }
         end,
       }
+    end
+
+    def internal_data(_, opts)
+      program_names.map do |name|
+        {
+          program_name: name,
+          populations: populations.map do |pop|
+            {
+              population: pop,
+              count_types: count_types.map do |count_type|
+                {
+                  count_type: count_type,
+                  series: send(:line, opts),
+                  monthly_counts: send(:line, opts.merge({ range: [100, 500] })),
+                }
+              end,
+            }
+          end,
+        }
+      end
     end
 
     def line_data
@@ -48,9 +73,33 @@ module AllNeighborsSystemDashboard
       )
     end
 
+    def line_data_by_quarter
+      data(
+        'Total Placements',
+        'total_placements',
+        :line_data_by_quarter,
+        options: {
+          types: ['Total Placements'],
+          colors: ['#832C5A'],
+          label_colors: ['#000000'],
+          by_quarter: true,
+        },
+      )
+    end
+
     def line(options)
-      (options[:types] || []).map do |_|
-        super(date_range, options)
+      if options[:by_quarter]
+        project_type = options[:project_type]
+        types = options[:types] || []
+        types = types.select { |t| t == project_type } if options[:by_project_type] && project_type != 'All'
+        types.map.with_index do |_d, i|
+          base = 100
+          super(quarter_range, options.merge(range: [i * base, (i + 1) * base]))
+        end
+      else
+        (options[:types] || []).map do |_|
+          super(date_range, options)
+        end
       end
     end
 

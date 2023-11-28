@@ -343,8 +343,118 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
 
 }
 
-//internal scatter by quarter
-class AllNeighborsSystemDashboardLineByQuarter extends AllNeighborsSystemDashboardLine {
+//internal line + bar -- Housing Placement
+class AllNeighborsSystemDashboardLineBarByQuarter extends AllNeighborsSystemDashboardLine {
+  constructor(data, initialState, selector, options) {
+    super(data, initialState, selector, options)
+  }
+
+  init() {
+    super.init()
+    this.config.names.Placements_per_Quarter = "Placements per Quarter"
+    this.programName = (this.countLevel.program_names || []).filter((d) => d.program_name === this.state.programName)[0] || {}
+    this.population = (this.programName.populations || []).filter((d) => d.population === this.state.population)[0] || {}
+    this.countType = (this.population.count_types || []).filter((d) => d.count_type === this.state.countType)[0] || {}
+
+    this.series = this.countType.series || []
+    this.monthlyCounts = this.countType.monthly_counts || []
+  }
+
+  xAxisFormat(d) {
+    const quarter = this.quarters.find((q) => {
+      const [s, e] = q.range.map((r) => {
+        const [year, month, day] = r.split('-')
+        return new Date(year, month-1, day)
+      })
+      return d >= s && d <= e
+    })
+    return quarter ? quarter.name : d.toLocaleDateString('en-us', {year: 'numeric', month: 'short'})
+  }
+
+  getBarColumns() {
+    let barCol = ['Placements_per_Quarter']
+    this.monthlyCounts[0].forEach((d) => {
+      const inRange = this.inDateRange(d[0], this.state.dateRange)
+      if(inRange) {
+        const [x, y] = d
+        barCol.push(y)
+      }
+    })
+    return barCol
+  }
+
+  getAxisConfig() {
+    const superAxis = super.getAxisConfig()
+    return {
+      ...superAxis,
+      y: {
+        ...superAxis.y, 
+        label: { 
+          text: "Placements per Quarter",
+          position: "outer-middle"
+        }
+      },
+      y2: {
+        ...superAxis.y,
+        show: true,
+        label: {
+          text: "Total Placements",
+          position: "outer-middle"
+        }
+      }
+    }
+  }
+
+  getDataConfig() {
+    const superData = super.getDataConfig()
+    const columns = [...superData.columns].concat([this.getBarColumns()])
+    return {
+      ...superData, 
+      axes: {
+        "Total_Placements": "y2",
+        "Placements_per_Quarter": "y",
+      },
+      columns: columns, 
+      type: null, 
+      types: {
+        "Total_Placements": 'line',
+        "Placements_per_Quarter": 'bar',
+      },
+      grid: {
+        y: {show: true},
+        y2: {show: true},
+      },
+      colors: {...superData.colors, "Placements_per_Quarter": "#97B9BD"},
+      // names: {...superData.names, "Placements_per_Quarter": "Placements per Quarter"}
+    }
+  }
+
+  getConfig() {
+    const superConfig = super.getConfig()
+    const config = {
+      padding: {
+        left: 75,
+        top: 10,
+        right: 75,
+        bottom:0,
+      },
+      // legend: {
+      //   contents: {
+      //     bindto: this.options.legend.selector,
+      //     template: (title, color) => {
+      //       let swatch = `<svg class="mt-1 chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
+      //       return `<div class="d-flex pr-4">${swatch}<div class="chart-legend-item-label-prs1">${this.config.names[title]}</div></div>`;
+      //     },
+      //   },
+      // },
+    }
+    return {...superConfig, ...config}
+  }
+
+}
+
+//internal scatter by quarter -- Time to obtain housing
+class AllNeighborsSystemDashboardStackedLineByQuarter extends AllNeighborsSystemDashboardLine {
   constructor(data, initialState, selector, options) {
     super(data, initialState, selector, options)
   }
