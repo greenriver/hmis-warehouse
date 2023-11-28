@@ -100,6 +100,7 @@ module Types
     youth_education_statuses_field
     employment_educations_field
     current_living_situations_field
+    field :last_current_living_situation, Types::HmisSchema::CurrentLivingSituation, null: true
     custom_data_elements_field
     # 3.16.1
     field :enrollment_coc, String, null: true
@@ -198,6 +199,10 @@ module Types
       # There is no "viewable_by" check on the enrollments, because this permission
       # grants full access regardless of enrollment/project visibility.
       load_ar_association(client, :enrollments).where.not(id: object.id).open_including_wip
+    end
+
+    def last_current_living_situation
+      object.current_living_situations.order(information_date: :desc).first
     end
 
     def reminders
