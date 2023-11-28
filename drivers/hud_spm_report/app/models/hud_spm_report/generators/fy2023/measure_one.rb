@@ -72,6 +72,15 @@ module HudSpmReport::Generators::Fy2023
       answer.add_members(cell_universe)
       answer.update(summary: median)
 
+      create_universe(
+        :m1a2,
+        included_project_types: HudUtility2024.project_type_number_from_code(:es) +
+          HudUtility2024.project_type_number_from_code(:sh) +
+          HudUtility2024.project_type_number_from_code(:th),
+        excluded_project_types: HudUtility2024.project_type_number_from_code(:ph),
+        include_self_reported: false,
+      )
+
       cell_universe = @report.universe(:m1a2).members
       persons, mean, median = compute_row(cell_universe)
       answer = @report.answer(question: table_name, cell: :B2)
@@ -160,6 +169,8 @@ module HudSpmReport::Generators::Fy2023
             arr << episode
           end
         end
+        next unless episodes.present?
+
         HudSpmReport::Fy2023::Episode.save_episodes!(episodes)
         members = episodes.map do |episode|
           [episode.client, episode]
