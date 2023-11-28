@@ -20,6 +20,7 @@ module HmisExternalApis::AcHmis
         when 'hmis_csv_export' then hmis_csv_export
         when 'project_crosswalk' then project_crosswalk
         when 'move_in_addresses' then move_in_address_export
+        when 'postings' then posting_export
         else
           raise "invalid item to upload: #{mode}"
         end
@@ -31,7 +32,7 @@ module HmisExternalApis::AcHmis
     rescue StandardError => e
       puts e.message
       self.state = :failed
-      @notifier.ping('Failure in upload clients job', { exception: e })
+      @notifier.ping('Failure in Data Warehouse uploader job', { exception: e })
       Rails.logger.fatal e.message
     end
 
@@ -98,6 +99,23 @@ module HmisExternalApis::AcHmis
         io_streams: [
           OpenStruct.new(
             name: 'MoveInAddresses.csv',
+            io: export.output,
+          ),
+        ],
+      )
+
+      uploader.run!
+    end
+
+    def posting_export
+      export = HmisExternalApis::AcHmis::Exporters::PostingExport.new
+      export.run!
+
+      uploader = Exporters::DataWarehouseUploader.new(
+        filename_format: '%Y-%m-%d-postings.zip',
+        io_streams: [
+          OpenStruct.new(
+            name: 'Postings.csv',
             io: export.output,
           ),
         ],

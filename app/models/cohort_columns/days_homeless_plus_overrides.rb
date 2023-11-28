@@ -9,7 +9,7 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :days_homeless_plus_overrides
     attribute :translation_key, String, lazy: true, default: 'Days Homeless Plus Overrides*'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
-    attribute :description_translation_key, String, lazy: true, default: 'Days homeless + verified additional days'
+    attribute :description_translation_key, String, lazy: true, default: 'Days homeless from HMIS including any in projects set to add verified additional days'
     attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def cast_value(val)

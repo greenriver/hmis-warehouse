@@ -831,7 +831,6 @@ module Concerns::HudLists2024
         17 => 'Other',
         24 => 'Deceased',
         30 => 'No exit interview completed',
-        37 => 'Worker unable to determine',
         99 => 'Data not collected',
         101 => 'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or Host Home shelter',
         116 => 'Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)',

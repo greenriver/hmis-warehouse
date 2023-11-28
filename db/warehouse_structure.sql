@@ -19861,7 +19861,8 @@ CREATE TABLE public.hud_report_instances (
     failed_at timestamp without time zone,
     percent_complete double precision,
     export_id bigint,
-    type character varying DEFAULT 'HudReports::ReportInstance'::character varying NOT NULL
+    type character varying DEFAULT 'HudReports::ReportInstance'::character varying NOT NULL,
+    error_details text
 );
 
 
@@ -57823,7 +57824,7 @@ CREATE UNIQUE INDEX tx_id_ds_id_ft_idx ON public.financial_transactions USING bt
 -- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL ((ARRAY['ac_hmis_mci'::character varying, 'ac_hmis_mci_unique_id'::character varying])::text[]));
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL (ARRAY[('ac_hmis_mci'::character varying)::text, ('ac_hmis_mci_unique_id'::character varying)::text]));
 
 
 --
@@ -59934,4 +59935,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231110134113'),
 ('20231114235529'),
 ('20231115170459'),
-('20231120221840');
+('20231120221840'),
+('20231124171521');
