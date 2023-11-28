@@ -259,9 +259,12 @@ module MaYyaReport
       end
     end
 
+    # More than one person in the household,
+    # and one household member must be less than 18
     private def custodial_parent_query
-      'jsonb_array_length(household_ages) > 1' +
-        'AND EXISTS(SELECT jsonb_array_elements(household_ages) AS age WHERE age < 18)'
+      query = ' jsonb_array_length(household_ages) > 1 '
+      query += " AND id in ( SELECT id FROM ( SELECT id, translate(household_ages::text, '[]', '{}')::integer [] AS h_ages FROM ma_yya_report_clients) ages WHERE 18 > ANY (h_ages) )"
+      query
     end
 
     private def json_contains(field, contents)
