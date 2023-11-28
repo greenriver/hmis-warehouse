@@ -289,6 +289,7 @@ module GrdaWarehouse::Hud
         id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
           currently_homeless(date: on_date, chronic_types_only: chronic_types_only).
           distinct.
+          with_service.
           select(:client_id),
       )
     end

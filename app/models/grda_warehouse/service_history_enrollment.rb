@@ -294,6 +294,17 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     #   exists)
   end
 
+  scope :with_service, -> do
+    where(
+      GrdaWarehouse::ServiceHistoryService.
+      where(
+        shs_t[:service_history_enrollment_id].eq(she_t[:id]).
+        and(shs_t[:client_id].eq(she_t[:client_id])),
+      ).
+      arel.exists,
+    )
+  end
+
   scope :heads_of_households, -> do
     where(she_t[:head_of_household].eq(true))
   end
