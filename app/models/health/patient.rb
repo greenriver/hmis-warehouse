@@ -398,15 +398,15 @@ module Health
       where(id: without_intake_query).or(where(id: with_intake_query))
     end
 
-    scope :needs_intake, ->(on: Date.current.end_of_month) do
+    scope :needs_intake, ->(on: Date.current) do
       intake_due(on: on).or(intake_overdue(on: on))
     end
 
-    scope :intake_due, ->(on: Date.current.end_of_month) do
-      intake_required.where(engagement_date: on - 30.days .. on)
+    scope :intake_due, ->(on: Date.current) do
+      intake_required.where(engagement_date: on .. on + 30.days)
     end
 
-    scope :intake_overdue, ->(on: Date.current.end_of_month) do
+    scope :intake_overdue, ->(on: Date.current) do
       intake_required.where(engagement_date: ... on)
     end
 
