@@ -266,7 +266,7 @@ module Types
       argument :id, ID, required: true
     end
     def user(id:)
-      raise 'access denied' unless id == current_user.id || current_user.can_audit_users? || current_user.can_impersonate_users?
+      raise 'access denied' unless id == current_user.id.to_s || current_user.can_audit_users? || current_user.can_impersonate_users?
 
       Hmis::User.find_by(id: id)
     end
