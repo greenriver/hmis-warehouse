@@ -41,7 +41,7 @@ module Types
     end
 
     def activity_logs
-      raise 'access denied' unless object.can_audit_users?
+      raise 'access denied' unless current_user.can_audit_users?
 
       object.activity_logs
     end
