@@ -154,13 +154,12 @@ RSpec.describe Health::QualifyingActivity, type: :model do
     it 'adds a PCTP-signed QA on a re-enrollment' do
       enrollment_start_date = @referral.enrollment_start_date
       careplan = create(
-        :careplan,
+        :cp2_careplan,
         patient: @patient,
-        provider_signed_on: enrollment_start_date + 30.days,
-        provider_signature_mode: :in_person,
         patient_signed_on: enrollment_start_date + 30.days,
-        patient_signature_mode: :in_person,
+        careplan_sent_on: enrollment_start_date + 30.days,
       )
+      create(:pctp_careplan, patient_id: @patient.id, instrument: careplan)
       create :qualifying_activity, patient: @patient, activity: :pctp_signed, date_of_activity: enrollment_start_date + 30.days
       @patient.patient_referral.update(disenrollment_date: enrollment_start_date + 59.days)
       new_enrollment_date = careplan.expires_on - 1.month
