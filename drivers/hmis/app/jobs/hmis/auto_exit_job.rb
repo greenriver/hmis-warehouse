@@ -41,6 +41,7 @@ module Hmis
 
     def auto_exit(enrollment, most_recent_contact)
       exit_date = contact_date_for_entity(most_recent_contact)
+      # If most recent contact was a Bed Night service, the Exit Date should be the day after they received service
       exit_date += 1.day if most_recent_contact.is_a?(Hmis::Hud::Service) && most_recent_contact.record_type == 200
       Hmis::Hud::Exit.create!(
         personal_id: enrollment.personal_id,
