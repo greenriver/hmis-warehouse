@@ -246,9 +246,5 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     end.compact
   end
 
-  def paper_trail_info_for_mutation
-    { project_id: id }
-  end
-
   include RailsDrivers::Extensions
 end

@@ -6,7 +6,13 @@
 
 class Hmis::File < GrdaWarehouse::File
   include ClientFileBase
-  has_paper_trail(meta: { enrollment_id: :enrollment_id, client_id: :client_id })
+  has_paper_trail(
+    meta: {
+      enrollment_id: :enrollment_id,
+      client_id: :client_id,
+      project_id: ->(r) { r.enrollment },
+    },
+  )
 
   acts_as_taggable
 
@@ -102,9 +108,5 @@ class Hmis::File < GrdaWarehouse::File
 
       false
     end
-  end
-
-  def paper_trail_info_for_mutation
-    { client_id: client&.id, enrollment_id: enrollment&.id, project_id: enrollment&.project&.id }
   end
 end

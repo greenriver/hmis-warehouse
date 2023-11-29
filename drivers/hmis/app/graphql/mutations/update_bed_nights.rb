@@ -25,7 +25,8 @@ module Mutations
         when 'ADD'
           services = enrollments.map do |enrollment|
             Hmis::Hud::Service.new(
-              **enrollment.slice(:enrollment_id, :personal_id, :data_source_id),
+              **enrollment.slice(:personal_id, :data_source_id),
+              enrollment: enrollment,
               date_provided: bed_night_date,
               record_type: 200, # bed night
               type_provided: 200, # bed night
@@ -33,21 +34,14 @@ module Mutations
             )
           end
           services.each do |service|
-            with_paper_trail_meta(**service.paper_trail_info_for_mutation) do
-              service.save!(context: :bed_nights_mutation)
-            end
+            service.save!(context: :bed_nights_mutation)
           end
         when 'REMOVE'
           services = Hmis::Hud::Service.bed_nights.
-            preload(:enrollment, :client, :project). # preload for paper trail
+            preload(:enrollment). # preload for paper trail
             where(enrollment_id: enrollments.map(&:enrollment_id), data_source_id: current_user.hmis_data_source_id).
             where(date_provided: bed_night_date)
-
-          services.each do |service|
-            with_paper_trail_meta(**service.paper_trail_info_for_mutation) do
-              services.destroy!
-            end
-          end
+          services.each(&:destroy!)
         end
       end
 

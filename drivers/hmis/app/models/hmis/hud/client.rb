@@ -324,10 +324,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     [first_name, middle_name, last_name, name_suffix].compact.join(' ')
   end
 
-  def paper_trail_info_for_mutation
-    { client_id: id }
-  end
-
   # Run if we changed name/DOB/SSN
   private def warehouse_match_existing_clients
     return unless warehouse_columns_changed?

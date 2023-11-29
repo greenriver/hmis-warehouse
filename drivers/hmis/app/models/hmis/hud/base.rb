@@ -9,7 +9,9 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
   include ::Hmis::Concerns::HmisArelHelper
 
   acts_as_paranoid(column: :DateDeleted)
-  has_paper_trail # Track changes made to HUD objects via PaperTrail
+  # because each model needs configuration to track metadata, paper_trail is not included on the base class because
+  # double inclusion causes duplicate versions records to be created
+  # has_paper_trail
 
   attr_writer :skip_validations
   attr_writer :required_fields
@@ -22,10 +24,6 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
     ensure
       self.lock_optimistically = prev
     end
-  end
-
-  def paper_trail_info_for_mutation
-    {}
   end
 
   before_validation :ensure_id

@@ -33,10 +33,6 @@ class Hmis::Hud::Service < Hmis::Hud::Base
 
   after_commit :warehouse_trigger_processing
 
-  def paper_trail_info_for_mutation
-    { client_id: client&.id, enrollment_id: enrollment&.id, project_id: enrollment&.project&.id }
-  end
-
   private def warehouse_trigger_processing
     return unless warehouse_columns_changed?
 

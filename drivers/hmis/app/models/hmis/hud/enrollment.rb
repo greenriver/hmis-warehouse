@@ -13,7 +13,13 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   self.table_name = :Enrollment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
-  has_paper_trail(meta: { enrollment_id: :id })
+  has_paper_trail(
+    meta: {
+      enrollment_id: :id,
+      client_id: ->(r) { r.project&.id },
+      project_id: ->(r) { r.project&.id },
+    },
+  )
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
@@ -374,10 +380,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   def unit_occupied_on(date = Date.current)
     Hmis::UnitOccupancy.active(date).where(enrollment: self).first&.unit
-  end
-
-  def paper_trail_info_for_mutation
-    { client_id: client&.id, enrollment_id: id, project_id: project&.id }
   end
 
   # When submitting a new_client_enrollment form, we validate the client too, with the same validation contexts

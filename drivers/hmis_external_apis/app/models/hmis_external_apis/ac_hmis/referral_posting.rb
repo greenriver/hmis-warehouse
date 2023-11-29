@@ -8,6 +8,7 @@ module HmisExternalApis::AcHmis
   # A proposed fulfillment of a referral request
   class ReferralPosting < ::HmisExternalApis::HmisExternalApisBase
     self.table_name = 'hmis_external_referral_postings'
+
     belongs_to :referral, class_name: 'HmisExternalApis::AcHmis::Referral'
     belongs_to :referral_request, class_name: 'HmisExternalApis::AcHmis::ReferralRequest', optional: true
     belongs_to :project, class_name: 'Hmis::Hud::Project'

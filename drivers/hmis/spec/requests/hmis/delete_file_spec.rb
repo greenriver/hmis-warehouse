@@ -77,7 +77,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       include_context 'with paper trail'
       it 'tracks metadata' do
         # there's also an update that gets logged. Not sure why
-        versions = PaperTrail::Version.where(client_id: c1.id, enrollment_id: e1.id, project_id: p1.id, operation: 'delete')
+        versions = GrdaWarehouse.paper_trail_versions.
+          where(client_id: c1.id, enrollment_id: e1.id, project_id: p1.id, operation: 'delete')
         expect do
           call_mutation(f1.id)
         end.to change(versions, :count).by(2)

@@ -117,7 +117,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   context 'with paper trail enabled' do
     include_context 'with paper trail'
     it 'tracks metadata' do
-      versions = PaperTrail::Version.where(client_id: c1.id)
+      versions = GrdaWarehouse.paper_trail_versions.where(client_id: c1.id)
       expect do
         mutate(input: { id: c1.id })
       end.to change(versions, :count).by(2) # client and enrollment

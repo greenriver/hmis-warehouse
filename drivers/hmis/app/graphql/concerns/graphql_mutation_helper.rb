@@ -40,9 +40,7 @@ module GraphqlMutationHelper
     errors = create_errors(record, input)
 
     if record.valid?
-      with_paper_trail_meta(**record.paper_trail_info_for_mutation) do
-        record.save!
-      end
+      record.save!
     else
       errors = record.errors
       record = nil
@@ -59,10 +57,8 @@ module GraphqlMutationHelper
     raise HmisErrors::ApiError, 'Record not found' unless record.present?
     raise HmisErrors::ApiError, 'Access denied' unless allowed?(record: record, **auth_args)
 
-    with_paper_trail_meta(**record.paper_trail_info_for_mutation) do
-      record.destroy!
-      after_delete&.call
-    end
+    record.destroy!
+    after_delete&.call
 
     {
       field_name => record,
