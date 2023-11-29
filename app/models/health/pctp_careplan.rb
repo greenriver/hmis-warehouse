@@ -40,11 +40,11 @@ module Health
     end
 
     scope :recent, -> do
-      one_for_column(:created_at, source_arel_table: arel_table, group_on: :patient_id)
+      one_for_column([:created_at, :instrument_id], source_arel_table: arel_table, group_on: :patient_id)
     end
 
     scope :sorted, -> do
-      order(created_at: :desc)
+      order(created_at: :desc, instrument_id: :desc)
     end
 
     scope :editable, -> do
