@@ -202,7 +202,7 @@ module Types
     end
 
     def last_current_living_situation
-      object.current_living_situations.order(information_date: :desc).first
+      load_ar_association(object, :current_living_situations).max_by(&:information_date)
     end
 
     def reminders
