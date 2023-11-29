@@ -25211,8 +25211,19 @@ CREATE TABLE public.versions (
     user_id bigint,
     referenced_user_id bigint,
     referenced_entity_name character varying,
-    migrated_app_version_id bigint
+    migrated_app_version_id bigint,
+    true_user_id bigint,
+    client_id bigint,
+    enrollment_id bigint,
+    project_id bigint
 );
+
+
+--
+-- Name: COLUMN versions.migrated_app_version_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.versions.migrated_app_version_id IS 'app database version record';
 
 
 --
@@ -59935,5 +59946,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231110134113'),
 ('20231114235529'),
 ('20231115170459'),
-('20231120221840'),
-('20231124171521');
+('20231117165752'),
+('20231120221840');
+
+
