@@ -9,7 +9,7 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :cas_vash_eligible
     attribute :translation_key, String, lazy: true, default: 'VASH Eligible (from CAS Readiness)'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
-    attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }
+    attribute :description_translation_key, String, lazy: true, default: 'Manually entered VASH eligibility from the CAS Readiness page for the client'
     attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def cast_value(val)

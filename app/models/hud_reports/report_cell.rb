@@ -20,6 +20,18 @@ module HudReports
 
     alias_attribute :value, :summary
 
+    # summary is a json col for some reason
+    def numeric_value
+      case summary
+      when Integer, Float
+        summary
+      when /\A[-+]?[0-9]+\z/
+        summary.to_i
+      when /\A[-+]?[0-9]*\.?[0-9]+\z/
+        summary.to_f
+      end
+    end
+
     scope :universe, -> do
       where(universe: true)
     end
