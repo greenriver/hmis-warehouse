@@ -9,7 +9,7 @@
 module Types
   class Application::ActivityLogRecord < Types::BaseObject
     graphql_name 'ActivityLogRecord'
-    # field :id, ID, null: false
+
     field :record_type, String, null: false
     field :record_id, String, null: false
   end
