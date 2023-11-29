@@ -50,7 +50,7 @@ module Hmis
         user_id: Hmis::Hud::User.system_user(data_source_id: enrollment.data_source_id).user_id,
         exit_date: exit_date,
         destination: 30,
-        auto_exited: DateTime.now,
+        auto_exited: DateTime.current,
       )
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(
         enrollment: enrollment,
