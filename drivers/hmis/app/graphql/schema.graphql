@@ -2836,6 +2836,7 @@ type Enrollment {
   juvenileJusticeMonths: Int
   juvenileJusticeYears: RHYNumberofYears
   lastBedNightDate: ISO8601Date
+  lastCurrentLivingSituation: CurrentLivingSituation
   lengthOfStay: ResidencePriorLengthOfStay
   literalHomelessHistory: LiteralHomelessHistory
   livingSituation: PriorLivingSituation
