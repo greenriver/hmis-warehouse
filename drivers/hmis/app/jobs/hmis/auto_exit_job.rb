@@ -12,7 +12,7 @@ module Hmis
         next unless config.present?
 
         project.enrollments.open_excluding_wip.each do |enrollment|
-          most_recent_contact = if HudUtility2024.residential_project_type_ids.include?(project.project_type)
+          most_recent_contact = if project.project_type == 1 # Night-by-night Emergency Shelter
             enrollment.services.where(record_type: 200).order(:date_provided).last
           else
             [
