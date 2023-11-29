@@ -54,7 +54,9 @@ module Mutations
       posting.current_user = current_user
 
       posting.transaction do
-        referral.save
+        with_paper_trail_meta(**enrollment.paper_trail_info_for_mutation) do
+          referral.save
+        end
         errors.add_ar_errors(posting.errors.errors)
 
         raise ActiveRecord::Rollback if errors.any?

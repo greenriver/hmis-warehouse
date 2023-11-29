@@ -6,7 +6,7 @@
 
 class Hmis::File < GrdaWarehouse::File
   include ClientFileBase
-  has_paper_trail
+  has_paper_trail(meta: { enrollment_id: :enrollment_id, client_id: :client_id })
 
   acts_as_taggable
 

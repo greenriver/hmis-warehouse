@@ -51,8 +51,10 @@ module Mutations
           build_enrollments(posting).each do |enrollment|
             enrollment.household_id = household_id
             if enrollment.valid?
-              enrollment.assign_unit(unit: unit_to_assign, start_date: enrollment.entry_date, user: current_user)
-              enrollment.save_in_progress # this method will unset projectID and calls enrollment.save!
+              with_paper_trail_meta(**enrollment.paper_trail_info_for_mutation) do
+                enrollment.assign_unit(unit: unit_to_assign, start_date: enrollment.entry_date, user: current_user)
+                enrollment.save_in_progress # this method will unset projectID and calls enrollment.save!
+              end
             else
               handle_error('Could not create valid enrollments')
             end

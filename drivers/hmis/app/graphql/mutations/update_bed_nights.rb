@@ -32,12 +32,22 @@ module Mutations
               user_id: hud_user_id,
             )
           end
-          services.map { |s| s.save!(context: :bed_nights_mutation) }
+          services.each do |service|
+            with_paper_trail_meta(**service.paper_trail_info_for_mutation) do
+              service.save!(context: :bed_nights_mutation)
+            end
+          end
         when 'REMOVE'
           services = Hmis::Hud::Service.bed_nights.
+            preload(:enrollment, :client, :project). # preload for paper trail
             where(enrollment_id: enrollments.map(&:enrollment_id), data_source_id: current_user.hmis_data_source_id).
             where(date_provided: bed_night_date)
-          services.destroy_all
+
+          services.each do |service|
+            with_paper_trail_meta(**service.paper_trail_info_for_mutation) do
+              services.destroy!
+            end
+          end
         end
       end
 

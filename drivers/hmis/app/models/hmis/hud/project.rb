@@ -9,6 +9,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::Shared
   include ActiveModel::Dirty
 
+  has_paper_trail(meta: { project_id: :id })
+
   self.table_name = :Project
   self.sequence_name = "public.\"#{table_name}_id_seq\""
   CONFIDENTIAL_PROJECT_NAME = 'Confidential Project'.freeze

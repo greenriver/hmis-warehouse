@@ -73,8 +73,14 @@ module Mutations
         # If HoH change, set old HoH to 99. (Don't use update_all because it won't create papertrail)
         household_enrollments.where(relationship_to_ho_h: 1).each { |en| en.update(relationship_to_ho_h: 99, **update_params) } if is_hoh_change
 
-        enrollment.update(relationship_to_ho_h: relationship_to_ho_h, **update_params)
-        enrollment.touch
+        with_paper_trail_meta(**enrollment.paper_trail_info_for_mutation) do
+          enrollment.assign_attributes(relationship_to_ho_h: relationship_to_ho_h, **update_params)
+          if enrollment.changed?
+            enrollment.update(relationship_to_ho_h: relationship_to_ho_h, **update_params)
+          else
+            enrollment.touch
+          end
+        end
       end
 
       errors = []
