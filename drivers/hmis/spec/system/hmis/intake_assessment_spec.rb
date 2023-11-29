@@ -54,6 +54,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
       mui_select default_option, from: 'Disabling Condition'
       mui_select default_option, from: 'Survivor of Domestic Violence'
       click_button 'Save Assessment'
+      assert_text(/Last saved [0-9] seconds ago/)
     end
 
     context 'with wip household' do

@@ -31,6 +31,7 @@ RSpec.shared_context 'SystemSpecHelper' do
 
   def mui_choose(choice, from:)
     label = find('label', text: from)
+    scroll_to(label, align: :center)
     id = label['id']
     within("[aria-labelledby='#{id}']") do
       choose(choice)
@@ -39,6 +40,7 @@ RSpec.shared_context 'SystemSpecHelper' do
 
   def mui_select(choice, from:)
     label = find('label', text: from)
+    scroll_to(label, align: :center)
     id = label['for']
     # we seem to have invalid ids such as "3.917A.1"
     # find("##{id}").click
