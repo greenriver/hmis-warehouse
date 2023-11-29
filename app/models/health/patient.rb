@@ -398,15 +398,15 @@ module Health
       where(id: without_intake_query).or(where(id: with_intake_query))
     end
 
-    scope :needs_intake, ->(on: Date.current.end_of_month) do
+    scope :needs_intake, ->(on: Date.current) do
       intake_due(on: on).or(intake_overdue(on: on))
     end
 
-    scope :intake_due, ->(on: Date.current.end_of_month) do
-      intake_required.where(engagement_date: on - 30.days .. on)
+    scope :intake_due, ->(on: Date.current) do
+      intake_required.where(engagement_date: on .. on + 30.days)
     end
 
-    scope :intake_overdue, ->(on: Date.current.end_of_month) do
+    scope :intake_overdue, ->(on: Date.current) do
       intake_required.where(engagement_date: ... on)
     end
 
@@ -553,7 +553,7 @@ module Health
 
     def reenroll!(referral)
       # Create a "Care Plan Complete QA" if the patient has an unexpired care plan as of the enrollment start date
-      return unless careplans.fully_signed.where(h_cp_t[:provider_signed_on].gteq(referral.enrollment_start_date - 1.year)).exists?
+      return unless pctp_careplans.completed_within(referral.enrollment_start_date - 1.year ..).exists?
 
       user = User.setup_system_user
       qualifying_activities.create(
@@ -770,26 +770,26 @@ module Health
       elsif missing_careplan?
         'Care plan not completed by required date'
       elsif expiring_careplan?
-        "Care plan expires #{careplans.fully_signed.recent.during_current_enrollment.last.expires_on}"
+        "Care plan expires #{recent_pctp_careplan.expires_on}"
       elsif expired_careplan?
-        "Care plan expired on #{careplans.fully_signed.recent.during_current_enrollment.last.expires_on}"
+        "Care plan expired on #{recent_pctp_careplan.expires_on}"
       end
     end
 
     private def active_careplan?
-      @active_careplan ||= careplans.active.during_current_enrollment.exists?
+      @active_careplan ||= recent_pctp_careplan&.active? || false
     end
 
     private def missing_careplan?
-      @missing_careplan ||= current_days_enrolled > 150 && ! careplans.during_current_enrollment.fully_signed.exists?
+      @missing_careplan ||= current_days_enrolled > 150 && !active_careplan? && !expired_careplan?
     end
 
     private def expiring_careplan?
-      @expiring_careplan ||= careplans.fully_signed.recent.expiring_soon.during_current_enrollment.exists?
+      @expiring_careplan ||= recent_pctp_careplan&.expiring? || false
     end
 
     private def expired_careplan?
-      @expired_careplan ||= careplans.fully_signed.recent.expired.during_current_enrollment.exists?
+      @expired_careplan ||= recent_pctp_careplan&.expired? || false
     end
 
     def pilot_patient?
