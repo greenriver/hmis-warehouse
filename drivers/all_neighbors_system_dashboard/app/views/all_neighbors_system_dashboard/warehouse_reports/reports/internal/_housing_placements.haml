@@ -22,25 +22,33 @@
   %h5.mt-0 Time Period
   %div{id: chart_id(tab[:id], 'quarters')}
   
-.mb-7= render 'filter_labels', tab: tab, labels: ['project_type', 'count_level', 'date_range']
+.mb-7= render 'filter_labels', tab: tab, labels: ['project_type', 'count_level', 'quarter_range']
 
-.border.p-6.mb-7
-  .row.align-items-center.mb-6 
-    .col-sm-12.col-md-4
-      %h3
-        Placements per Quarter & Total Placements To Date
-    .col-sm-12.col-md-8
-      .d-flex.justify-content-end
-        .pr-6= render 'select_filter', tab: tab, name: 'program_name', label: 'Project Name', options: all_data.program_names
-        .pr-6= render 'select_filter', tab: tab, name: 'population', label: 'Population', options: all_data.populations
-        = render 'select_filter', tab: tab, name: 'count_type', label: 'Count Type', options: all_data.count_types
-  %div{id: chart_id(tab[:id], 'total_placements_internal'), style: 'height:400px;'}
-  .w-100.mt-5.d-flex.justify-content-center.flex-nowrap
-    .d-flex.justify-content-center.flex-row-reverse.flex-nowrap{id: "#{chart_id(tab[:id], 'total_placements_internal')}_legend"}
-    %div
-      (
-      %span{class: filter_label_id(tab[:id], 'date_range')}
-      )
+.border.mb-7
+  .py-6.px-5.border-bottom
+    .row.align-items-center.mb-6 
+      .col-sm-12.col-md-4
+        %h3
+          Placements per Quarter & Total Placements To Date
+      .col-sm-12.col-md-8
+        .d-flex.justify-content-end
+          .pr-6= render 'select_filter', tab: tab, name: 'program_name', label: 'Project Name', options: all_data.program_names
+          .pr-6= render 'select_filter', tab: tab, name: 'population', label: 'Population', options: all_data.populations
+          = render 'select_filter', tab: tab, name: 'count_type', label: 'Count Type', options: all_data.count_types
+    %div{id: chart_id(tab[:id], 'total_placements_internal'), style: 'height:400px;'}
+    .w-100.mt-5.d-flex.justify-content-center.flex-nowrap
+      .d-flex.justify-content-center.flex-row-reverse.flex-nowrap{id: "#{chart_id(tab[:id], 'total_placements_internal')}_legend"}
+      %div
+        (
+        %span{class: filter_label_id(tab[:id], 'quarter_range')}
+        )
+  .p-4.border-top
+    - table_id = table_id(tab[:id], 'internal_housing_placements')
+    = link_to "javascript:void(0)", data: {toggle: 'collapse', target: "##{table_id}"}, role: 'button', aria: {expanded: 'false', controls: table_id}, class: "d-flex justify-content-between align-items-center w-100 #{css_namespace('internal', 'table_toggle')}" do
+      %span Insights - Housing Placements
+      %i.icon-angle-down
+  .collapse{id: table_id}
+    .p-4.border-top{id: filter_label_id(tab[:id], 'total_placement_insights')}
 
 = render 'donuts', tab: tab, donut_data: donut_data, filter_label: 'date_range'
 
@@ -127,7 +135,8 @@
           data: totalData,
           selector: '##{chart_id(tab[:id], 'total_placements_internal')}',
           options: {
-            legend: {selector: '##{chart_id(tab[:id], 'total_placements_internal')}_legend'}
+            legend: {selector: '##{chart_id(tab[:id], 'total_placements_internal')}_legend'},
+            insights: {selector: '##{filter_label_id(tab[:id], 'total_placement_insights')}'}
           }
         },
       ]
@@ -168,8 +177,8 @@
 
       var lineLabelConfig = [
         {
-          name: 'dateRange',
-          selector: '.#{filter_label_id(tab[:id], 'date_range')}'
+          name: 'quarterRange',
+          selector: '.#{filter_label_id(tab[:id], 'quarter_range')}'
         },
       ]
 

@@ -156,8 +156,13 @@ class AllNeighborsSystemDashboardLine {
     this.draw()
   }
 
+  drawInsights() {
+    //placeholder some charts won't have this
+  }
+
   draw() {
     this.chart = bb.generate(this.getConfig())
+    this.drawInsights()
   }
 }
 
@@ -341,6 +346,19 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
     return {...super.getConfig(), ...config}
   }
 
+  drawInsights() {
+    //TODO: This will update when the filters/charts update
+    if(this.options.insights) {
+      const insights = $(this.options.insights.selector)
+      let html = '<ul>'
+      html += '<li>TODO insights data for</li>'
+      Object.keys(this.state).forEach((key) => {
+        html += `<li><strong>${key}:</strong> ${this.state[key]}</li>`
+      })
+      insights.html(html)
+    }
+  }
+
 }
 
 //internal line + bar -- Housing Placement
@@ -358,6 +376,16 @@ class AllNeighborsSystemDashboardLineBarByQuarter extends AllNeighborsSystemDash
 
     this.series = this.countType.series || []
     this.monthlyCounts = this.countType.monthly_counts || []
+    this.breakdownCounts = this.countType.breakdown_counts || []
+  }
+
+  getBreakdowns() {
+    if(!this.breakdownCounts || !this.breakdownCounts[0]) {
+      return []
+    }
+    return this.breakdownCounts[0].filter((d) => {
+      return this.inDateRange(d[0], this.state.dateRange)
+    }).map((d) => d[1])
   }
 
   xAxisFormat(d) {
@@ -425,7 +453,6 @@ class AllNeighborsSystemDashboardLineBarByQuarter extends AllNeighborsSystemDash
         y2: {show: true},
       },
       colors: {...superData.colors, "Placements_per_Quarter": "#97B9BD"},
-      // names: {...superData.names, "Placements_per_Quarter": "Placements per Quarter"}
     }
   }
 
@@ -438,17 +465,40 @@ class AllNeighborsSystemDashboardLineBarByQuarter extends AllNeighborsSystemDash
         right: 75,
         bottom:0,
       },
-      // legend: {
-      //   contents: {
-      //     bindto: this.options.legend.selector,
-      //     template: (title, color) => {
-      //       let swatch = `<svg class="mt-1 chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
-      //       return `<div class="d-flex pr-4">${swatch}<div class="chart-legend-item-label-prs1">${this.config.names[title]}</div></div>`;
-      //     },
-      //   },
-      // },
+      tooltip: {
+        contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
+          const index = d[0].index
+          const breakdowns = this.getBreakdowns()[index]
+          if(breakdowns) {
+            let html = "<table class='bb-tooltip'>"
+            html += "<thead>"
+            html += `<tr><th colspan='2'>${defaultTitleFormat(d[0].x)}</th></tr>`
+            html += "</thead>"
+            html += "<tbody>"
+            breakdowns.forEach((d) => {
+              html+= `<tr><td>${d.label}</td><td>${d.value}</td></tr>`
+            })
+            html += "</tbody>"
+            html += "</table>"
+            return html
+          }
+        },  
+      },
     }
     return {...superConfig, ...config}
+  }
+
+  drawInsights() {
+    //TODO: This will update when the filters/charts update
+    if(this.options.insights) {
+      const insights = $(this.options.insights.selector)
+      let html = '<ul>'
+      html += '<li>TODO insights data for</li>'
+      Object.keys(this.state).forEach((key) => {
+        html += `<li><strong>${key}:</strong> ${this.state[key]}</li>`
+      })
+      insights.html(html)
+    }
   }
 
 }
@@ -472,6 +522,23 @@ class AllNeighborsSystemDashboardStackedLineByQuarter extends AllNeighborsSystem
       return d >= s && d <= e
     })
     return quarter ? quarter.name : d.toLocaleDateString('en-us', {year: 'numeric', month: 'short'})
+  }
+
+  getAxisConfig() {
+    const superAxis = super.getAxisConfig()
+    return {
+      ...superAxis,
+      y: {
+        ...superAxis.y, 
+        tick: {
+          stepSize: 50,
+        },
+        label: { 
+          text: "Average Days",
+          position: "outer-middle"
+        }
+      },
+    }
   }
 
   getConfig() {
@@ -509,6 +576,19 @@ class AllNeighborsSystemDashboardStackedLineByQuarter extends AllNeighborsSystem
       },
     }
     return {...super.getConfig(), ...config}
+  }
+
+  drawInsights() {
+    //TODO: This will update when the filters/charts update
+    if(this.options.insights) {
+      const insights = $(this.options.insights.selector)
+      let html = '<ul>'
+      html += '<li>TODO insights data for</li>'
+      Object.keys(this.state).forEach((key) => {
+        html += `<li><strong>${key}:</strong> ${this.state[key]}</li>`
+      })
+      insights.html(html)
+    }
   }
 
 }

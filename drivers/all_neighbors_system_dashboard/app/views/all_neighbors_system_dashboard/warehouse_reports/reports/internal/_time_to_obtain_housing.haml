@@ -24,13 +24,21 @@
   %h5.mt-0 Time Period
   %div{id: chart_id(tab[:id], 'quarters')}
 
-.mb-7= render render_path('filter_labels'), tab: tab, labels: ['project_type', 'household_type', 'demographics', 'date_range']
+.mb-7= render render_path('filter_labels'), tab: tab, labels: ['project_type', 'household_type', 'demographics', 'quarter_range']
 .border.my-7
   .py-6.px-5.border-bottom
     .d-flex.justify-content-between.align-items-center.pb-6
       %h3= line_data[:title]
     %div{id: chart_id(tab[:id], 'id_to_move_in')}
     .d-flex.justify-content-center{id: legend_id(tab[:id], 'id_to_move_in')} 
+  .p-4.border-top
+    - table_id = table_id(tab[:id], 'id_to_move_in')
+    = link_to "javascript:void(0)", data: {toggle: 'collapse', target: "##{table_id}"}, role: 'button', aria: {expanded: 'false', controls: table_id}, class: "d-flex justify-content-between align-items-center w-100 #{css_namespace('internal', 'table_toggle')}" do
+      %span Insights - Household Average Days
+      %i.icon-angle-down
+  .collapse{id: table_id}
+    .p-4.border-top{id: filter_label_id(tab[:id], 'id_to_move_in')}
+
 .border.my-7
   .py-6.px-5.border-bottom
     .d-flex.justify-content-between.align-items-center.pb-6
@@ -40,6 +48,13 @@
         %strong{id: chart_id(tab[:id], 'scatter', 'total-households')}
     %div{id: chart_id(tab[:id], 'scatter')}
     .d-flex.justify-content-center{id: legend_id(tab[:id], 'scatter')} 
+  .p-4.border-top
+    - table_id = table_id(tab[:id], 'scatter')
+    = link_to "javascript:void(0)", data: {toggle: 'collapse', target: "##{table_id}"}, role: 'button', aria: {expanded: 'false', controls: table_id}, class: "d-flex justify-content-between align-items-center w-100 #{css_namespace('internal', 'table_toggle')}" do
+      %span Table - Average Days from Referral to Move-In by Project
+      %i.icon-angle-down
+  .collapse{id: table_id}
+    .p-4.border-top{id: filter_label_id(tab[:id], 'scatter')}
 %h3 
   Household Average Days form Idendification to Housing by 
   %span{class: filter_label_id(tab[:id], 'demographic')} Race
@@ -86,6 +101,7 @@
           selector: lineId,
           options: {
             legend: {selector: '##{legend_id(tab[:id], 'id_to_move_in')}'},
+            insights: {selector: '##{filter_label_id(tab[:id], 'id_to_move_in')}'}
           }
         },
         {
@@ -94,7 +110,8 @@
           selector: '##{chart_id(tab[:id], 'scatter')}',
           options: {
             legend: {selector: '##{legend_id(tab[:id], 'scatter')}'},
-            total: {selector: '##{chart_id(tab[:id], 'scatter', 'total-households')}'}
+            total: {selector: '##{chart_id(tab[:id], 'scatter', 'total-households')}'},
+            insights: {selector: '##{filter_label_id(tab[:id], 'scatter')}'}
           }
         }
       ]
@@ -135,6 +152,10 @@
         {
           name: 'demographics',
           selector: '.#{filter_label_id(tab[:id], 'demographic')}'
+        },
+        {
+          name: 'quarterRange',
+          selector: '.#{filter_label_id(tab[:id], 'quarter_range')}'
         },
       ]
 

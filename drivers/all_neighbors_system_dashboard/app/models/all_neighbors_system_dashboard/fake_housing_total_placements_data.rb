@@ -52,11 +52,25 @@ module AllNeighborsSystemDashboard
                   count_type: count_type,
                   series: send(:line, opts),
                   monthly_counts: send(:line, opts.merge({ range: [100, 500] })),
+                  breakdown_counts: [count_breakdowns],
                 }
               end,
             }
           end,
         }
+      end
+    end
+
+    def count_breakdowns
+      quarter_range.map do |date|
+        breakdown = [
+          { label: 'New General Household Placed', value: 71 },
+          { label: 'New DV Household Placed', value: 1 },
+          { label: 'Total New Households Placed', value: 72 },
+          { label: 'General Population Households Placed to Date', value: 836 },
+          { label: 'DV Population Households Placed to Date', value: 82 },
+        ]
+        [date[:range][0], breakdown]
       end
     end
 
