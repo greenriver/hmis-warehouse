@@ -26,7 +26,7 @@ RSpec.describe Hmis::AutoExitConfig, type: :model do
   it 'should select the proper auto exit config for a project' do
     # Use the most basic config if there's no specific one
     aec1 = create(:hmis_auto_exit_config)
-    expect(Hmis::AutoExitConfig.all_projects_config).to eq(aec1)
+    expect(Hmis::AutoExitConfig.default_config).to eq(aec1)
     expect(Hmis::AutoExitConfig.configs_for_project(p1)).to be_empty
     expect(Hmis::AutoExitConfig.config_for_project(p1)).to eq(aec1)
 

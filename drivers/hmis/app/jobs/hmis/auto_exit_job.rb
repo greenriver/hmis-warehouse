@@ -20,10 +20,9 @@ module Hmis
               enrollment.custom_services.order(:date_provided).last,
               enrollment.current_living_situations.order(:information_date).last,
               enrollment.custom_assessments.order(:assessment_date).last,
+              enrollment,
             ].compact.max_by { |entity| contact_date_for_entity(entity) }
           end
-
-          next unless most_recent_contact.present?
 
           most_recent_contact_date = contact_date_for_entity(most_recent_contact)
           next unless (Date.today - most_recent_contact_date).to_i >= config.length_of_absence_days
@@ -43,21 +42,27 @@ module Hmis
       exit_date = contact_date_for_entity(most_recent_contact)
       # If most recent contact was a Bed Night service, the Exit Date should be the day after they received service
       exit_date += 1.day if most_recent_contact.is_a?(Hmis::Hud::Service) && most_recent_contact.record_type == 200
+      user = Hmis::Hud::User.system_user(data_source_id: enrollment.data_source_id)
+
       Hmis::Hud::Exit.create!(
         personal_id: enrollment.personal_id,
         enrollment_id: enrollment.enrollment_id,
         data_source_id: enrollment.data_source_id,
-        user_id: Hmis::Hud::User.system_user(data_source_id: enrollment.data_source_id).user_id,
+        user_id: user.user_id,
         exit_date: exit_date,
-        destination: 30,
+        destination: HudUtility2024.destination_no_exit_interview_completed,
         auto_exited: DateTime.current,
       )
-      assessment = Hmis::Hud::CustomAssessment.new_with_defaults(
-        enrollment: enrollment,
-        user: Hmis::Hud::User.system_user(data_source_id: enrollment.data_source_id),
+
+      assessment = Hmis::Hud::CustomAssessment.new(
+        user_id: user.user_id,
+        assessment_date: exit_date,
+        data_collection_stage: 3,
+        data_source_id: enrollment.data_source_id,
+        personal_id: enrollment.personal_id,
+        enrollment_id: enrollment.enrollment_id,
       )
-      assessment.data_collection_stage = 3
-      assessment.assessment_date = exit_date
+      assessment.build_form_processor(definition: nil)
       assessment.form_processor.assign_attributes(
         values: {},
         hud_values: {},
@@ -73,6 +78,8 @@ module Hmis
         entity.information_date
       when Hmis::Hud::CustomAssessment
         entity.assessment_date
+      when Hmis::Hud::Enrollment
+        entity.entry_date
       end
     end
   end

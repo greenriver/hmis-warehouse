@@ -30,7 +30,8 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       expect(Hmis::Hud::Enrollment.exited).to include(e2)
       expect(Hmis::Hud::Enrollment.exited).not_to include(e1)
       expect(e2.exit).to have_attributes(auto_exited: be_present, exit_date: s2.date_provided + 1.day, destination: 30)
-      expect(e2.custom_assessments).to contain_exactly(have_attributes(assessment_date: s2.date_provided + 1.day, data_collection_stage: 3))
+      expect(e2.exit_assessment&.assessment_date).to eq(s2.date_provided + 1.day)
+      expect(e2.exit_assessment&.data_collection_stage).to eq(3)
     end
   end
 
