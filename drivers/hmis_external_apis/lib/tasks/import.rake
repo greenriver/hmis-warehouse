@@ -69,7 +69,7 @@ namespace :import do
         next
       end
 
-      enrollment = Hmis::Hud::Enrollment.hmis.find_by(enrollment_id: enrollment_id, project_id: project_id)
+      enrollment = client.enrollments.find_by(enrollment_id: enrollment_id, project_id: project_id)
       unless enrollment
         Rails.logger.info "enrollment not found: #{enrollment_id} (#{row['LEGACY_PROJECT_NAME']})"
         skipped += 1
