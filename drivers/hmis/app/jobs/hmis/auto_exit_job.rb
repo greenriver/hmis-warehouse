@@ -11,7 +11,7 @@ module Hmis
         config = Hmis::AutoExitConfig.config_for_project(project)
         next unless config.present?
 
-        project.enrollments.each do |enrollment|
+        project.enrollments.open_excluding_wip.each do |enrollment|
           most_recent_contact = if HudUtility2024.residential_project_type_ids.include?(project.project_type)
             enrollment.services.where(record_type: 200).order(:date_provided).last
           else
