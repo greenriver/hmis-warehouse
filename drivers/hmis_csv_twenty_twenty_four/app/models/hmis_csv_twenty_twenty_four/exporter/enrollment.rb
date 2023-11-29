@@ -50,7 +50,7 @@ module HmisCsvTwentyTwentyFour::Exporter
       end
       note_involved_user_ids(scope: export_scope, export: export)
 
-      export_scope.distinct.preload(:user, :project, :client)
+      export_scope.distinct.preload(:user, :project, client: :warehouse_client_source)
     end
 
     def self.transforms

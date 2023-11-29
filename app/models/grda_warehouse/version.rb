@@ -5,11 +5,7 @@
 ###
 
 module GrdaWarehouse
-  def self.table_name_prefix
-    ''
-  end
-
-  def self.paper_trail_versions
-    GrdaWarehouse::Version.all
+  class Version < GrdaWarehouseBase
+    include PaperTrail::VersionConcern
   end
 end

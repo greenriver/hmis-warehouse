@@ -28,4 +28,14 @@ module HudLsa::Generators::Fy2023::StatusProgressionConcern
       remaining_questions: [],
     )
   end
+
+  def fail_report(reason = nil)
+    self.update( # rubocop:disable Style/RedundantSelf:
+      percent_complete: 0,
+      failed_at: Time.now,
+      remaining_questions: [],
+      state: 'Failed',
+      error_details: reason,
+    )
+  end
 end

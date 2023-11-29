@@ -53,7 +53,7 @@ module WarehouseReports::Publish
     end
 
     def published_report
-      published&.first
+      published&.last
     end
 
     private def published

@@ -19,6 +19,8 @@ module PerformanceMeasurement
     include PerformanceMeasurement::ResultCalculation
     include PerformanceMeasurement::Details
 
+    include ::WarehouseReports::Publish
+
     acts_as_paranoid
 
     belongs_to :user
@@ -27,6 +29,7 @@ module PerformanceMeasurement
     has_many :projects
     has_many :results
     has_many :client_projects
+    has_many :published_reports, dependent: :destroy, class_name: '::GrdaWarehouse::PublishedReport'
 
     after_initialize :filter
 
@@ -176,6 +179,19 @@ module PerformanceMeasurement
 
     def title
       Translation.translate('CoC Performance Measurement Dashboard')
+    end
+    alias instance_title title
+
+    private def public_s3_directory
+      'performance_measurement'
+    end
+
+    def controller_class
+      PerformanceMeasurement::WarehouseReports::ReportsController
+    end
+
+    def raw_layout
+      'performance_measurement_external'
     end
 
     def multiple_project_types?
@@ -1169,6 +1185,64 @@ module PerformanceMeasurement
           ],
         },
       ]
+    end
+
+    # Publishing
+    def publish_files
+      [
+        {
+          name: 'index.html',
+          content: -> { as_html },
+          type: 'text/html',
+        },
+        {
+          name: 'application.css',
+          content: -> {
+            css = Rails.application.assets['application.css'].to_s
+            # need to replace the paths to the font files
+            [
+              'icons.ttf',
+              'icons.svg',
+              'icons.eot',
+              'icons.woff',
+              'icons.woff2',
+            ].each do |filename|
+              css.gsub!("url(/assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
+            end
+            css
+          },
+          type: 'text/css',
+        },
+        {
+          name: 'icons.ttf',
+          content: -> { Rails.application.assets['icons.ttf'].to_s },
+          type: 'text/css',
+        },
+        {
+          name: 'icons.svg',
+          content: -> { Rails.application.assets['icons.svg'].to_s },
+          type: 'text/css',
+        },
+        {
+          name: 'icons.eot',
+          content: -> { Rails.application.assets['icons.eot'].to_s },
+          type: 'text/css',
+        },
+        {
+          name: 'icons.woff',
+          content: -> { Rails.application.assets['icons.woff'].to_s },
+          type: 'text/css',
+        },
+        {
+          name: 'icons.woff2',
+          content: -> { Rails.application.assets['icons.woff'].to_s },
+          type: 'text/css',
+        },
+      ]
+    end
+
+    private def asset_path(asset)
+      Rails.root.join('app', 'assets', 'javascripts', 'warehouse_reports', 'performance_measurement', asset)
     end
   end
 end

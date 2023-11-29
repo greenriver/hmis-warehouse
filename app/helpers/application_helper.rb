@@ -94,7 +94,7 @@ module ApplicationHelper
     end
   end
 
-  def tagged(boolean, state, icon: 'check', title: nil, label: nil)
+  def tagged(boolean, state, icon: 'check', title: nil, label: nil, style: :svg)
     capture do
       content_tag(:div, class: 'd-flex') do
         content_tag(:div, class: "c-tag c-tag--#{state}") do
@@ -103,7 +103,7 @@ module ApplicationHelper
           inner << content_tag(:div, class: 'c-tag__wrapper') do
             icon_label = []
             icon_label << content_tag(:div, class: 'c-tag__icon-svg') do
-              checkmark_or_x(boolean, size: :xs, symbol_names: { boolean => icon }, wrapper_classes: { boolean => state }, style: :svg)
+              checkmark_or_x(boolean, size: :xs, symbol_names: { boolean => icon }, wrapper_classes: { boolean => state }, style: style)
             end
             icon_label << content_tag(:div, label, class: 'c-tag__content') if label.present?
             icon_label.join.html_safe

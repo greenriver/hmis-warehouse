@@ -763,7 +763,6 @@ module HmisStructure::Enrollment
           EnrollmentCoC: {
             type: :string,
             limit: 6,
-            null: false,
           },
           LivingSituation: {
             type: :integer,
