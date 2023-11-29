@@ -13266,7 +13266,7 @@ CREATE TABLE public.hmis_auto_exit_configs (
     length_of_absence_days integer DEFAULT 30 NOT NULL,
     project_type integer,
     organization_id bigint,
-    project_id integer,
+    project_id_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
 );
@@ -51397,6 +51397,13 @@ CREATE INDEX index_hmis_auto_exit_configs_on_organization_id ON public.hmis_auto
 
 
 --
+-- Name: index_hmis_auto_exit_configs_on_project_id_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_auto_exit_configs_on_project_id_id ON public.hmis_auto_exit_configs USING btree (project_id_id);
+
+
+--
 -- Name: index_hmis_case_notes_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -59089,6 +59096,14 @@ ALTER TABLE ONLY public.service_history_services_2018
 
 ALTER TABLE ONLY public.hmis_project_unit_type_mappings
     ADD CONSTRAINT fk_rails_2df98dd2c6 FOREIGN KEY (unit_type_id) REFERENCES public.hmis_unit_types(id);
+
+
+--
+-- Name: hmis_auto_exit_configs fk_rails_2e83c6423f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_auto_exit_configs
+    ADD CONSTRAINT fk_rails_2e83c6423f FOREIGN KEY (project_id_id) REFERENCES public."Project"(id);
 
 
 --
