@@ -350,7 +350,8 @@ services:
     volumes:
       - ./docker/superset/superset_init_entrypoint.sh:/superset_init_entrypoint.sh
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   superset_init_2:
     <<: *superset

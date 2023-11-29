@@ -15,56 +15,42 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
   # NOTE: disabling all SPM tests for now, they are not compatible with the current test kit source data.
 
   # Only run the tests if the source files are available
-  # if File.exist?('drivers/datalab_testkit/spec/fixtures/inputs/merged/source/Export.csv')
-  #   before(:all) do
-  #     puts "Starting SPM Data Lab TestKit #{Time.current}"
-  #     setup
-  #     puts "Setup Done for SPM Data Lab TestKit #{Time.current}"
-  #     run(default_spm_filter, HudSpmReport::Generators::Fy2020::Generator.questions.keys)
-  #     puts "Finished SPM Run Data Lab TestKit #{Time.current}"
-  #   end
+  if File.exist?('drivers/datalab_testkit/spec/fixtures/inputs/merged/source/Export.csv')
+    before(:all) do
+      puts "Starting SPM Data Lab TestKit #{Time.current}"
+      setup
+      puts "Setup Done for SPM Data Lab TestKit #{Time.current}"
+      run(default_spm_filter, HudSpmReport::Generators::Fy2023::Generator.questions.keys)
+      puts "Finished SPM Run Data Lab TestKit #{Time.current}"
+    end
 
-  #   it 'Measure 1a' do
-  #     compare_results(
-  #       file_path: result_file_prefix + 'spm',
-  #       question: '1a',
-  #       detail_columns: [
-  #         :last_name,
-  #         :first_name,
-  #         :data_lab_public_id,
-  #         :m1a_es_sh_days,
-  #         :m1a_es_sh_th_days,
-  #       ],
-  #       # Pending AAQ "Question Subject: SPM DataLab test kit Measure 1a.1"
-  #       skip: [
-  #         'E2',
-  #         'H2',
-  #         'E3',
-  #         'H3',
-  #       ],
-  #     )
-  #   end
+    it 'Measure 1a' do
+      compare_results(
+        file_path: result_file_prefix + 'spm',
+        question: '1a',
+        detail_columns: [
+          :last_name,
+          :first_name,
+          :data_lab_public_id,
+          :m1a_es_sh_days,
+          :m1a_es_sh_th_days,
+        ],
+      )
+    end
 
-  #   it 'Measure 1b' do
-  #     compare_results(
-  #       file_path: result_file_prefix + 'spm',
-  #       question: '1b',
-  #       detail_columns: [
-  #         :last_name,
-  #         :first_name,
-  #         :data_lab_public_id,
-  #         :m1b_es_sh_ph_days,
-  #         :m1b_es_sh_th_ph_days,
-  #       ],
-  #       # Pending AAQ "Question Subject: SPM DataLab test kit Measure 1a.1"
-  #       skip: [
-  #         'E2',
-  #         'H2',
-  #         'E3',
-  #         'H3',
-  #       ],
-  #     )
-  #   end
+    it 'Measure 1b' do
+      compare_results(
+        file_path: result_file_prefix + 'spm',
+        question: '1b',
+        detail_columns: [
+          :last_name,
+          :first_name,
+          :data_lab_public_id,
+          :m1b_es_sh_ph_days,
+          :m1b_es_sh_th_ph_days,
+        ],
+      )
+    end
 
   #   # Pending AAQ: [SPM] All Projects - Data lab test kit Measures 2 and 5 - historic data missing - submitted 10/4/2022
   #   xit 'Measure 2' do
@@ -180,8 +166,8 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
   #       ],
   #     )
   #   end
-  # else
-  #   xit 'Data Lab Testkit based tests are skipped, files are missing' do
-  #   end
-  # end
+  else
+    xit 'Data Lab Testkit based tests are skipped, files are missing' do
+    end
+  end
 end
