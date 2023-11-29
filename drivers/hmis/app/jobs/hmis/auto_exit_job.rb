@@ -7,7 +7,7 @@
 module Hmis
   class AutoExitJob < BaseJob
     def perform
-      Hmis::Hud::Project.all.each do |project|
+      Hmis::Hud::Project.hmis.each do |project|
         config = Hmis::AutoExitConfig.config_for_project(project)
         next unless config.present?
 
