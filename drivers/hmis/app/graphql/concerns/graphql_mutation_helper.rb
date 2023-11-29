@@ -6,7 +6,8 @@ module GraphqlMutationHelper
     argument name, String, description, validates: { format: { with: /\d{4}-\d{2}-\d{2}/ } }, **kwargs
   end
 
-  # assign meta data info for paper trail versions created with block
+  # Assign meta data info for paper trail versions created with block. We "request-level" attributes rather than using
+  # `has_paper_trail(meta: {})` as that requires additional lookup queries during save
   def with_paper_trail_meta(client_id: nil, enrollment_id: nil, project_id: nil, &block)
     current = PaperTrail.request.controller_info || {}
     controller_info = current.merge({

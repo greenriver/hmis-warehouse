@@ -16,13 +16,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:c1) { create :hmis_hud_client, data_source: ds1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
 
-  before(:all) do
-    @paper_trail_was = PaperTrail.enabled?
-    PaperTrail.enabled = true
-  end
-  after(:all) do
-    PaperTrail.enabled = @paper_trail_was
-  end
+  include_context 'with paper trail'
 
   describe 'client with paper trail enabled' do
     before(:each) do
@@ -59,7 +53,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       aggregate_failures 'checking response' do
         expect(response.status).to eq(200), result.inspect
         records = result.dig('data', 'client', 'auditHistory', 'nodes')
-        expect(records.size).to be <= 1
+        expect(records.size).to eq(2)
       end
     end
   end

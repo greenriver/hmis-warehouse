@@ -98,13 +98,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   context 'with paper trail' do
-    before(:all) do
-      @paper_trail_was = PaperTrail.enabled?
-      PaperTrail.enabled = true
-    end
-    after(:all) do
-      PaperTrail.enabled = @paper_trail_was
-    end
+    include_context 'with paper trail'
     let(:user2) do
       create(:user).related_hmis_user(ds1)
     end
