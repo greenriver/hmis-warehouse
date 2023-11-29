@@ -62,7 +62,6 @@ module Hmis
         values: {},
         hud_values: {},
       )
-      assessment.form_processor.run!(owner: assessment, user: Hmis::User.system_user)
       assessment.save!
     end
 
