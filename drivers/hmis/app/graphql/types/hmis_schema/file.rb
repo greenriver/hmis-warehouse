@@ -27,7 +27,7 @@ module Types
 
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: true
     field :date_created, GraphQL::Types::ISO8601DateTime, null: true
-    hud_field :user, HmisSchema::User, null: true
+    hud_field :user, Application::User, null: true
 
     # Object is a Hmis::File
 
@@ -69,15 +69,11 @@ module Types
       object.updated_at
     end
 
-    # HUD User that most recently touched the record, to match convention on HUD-like types
+    # User that most recently touched the record, to match convention on HUD-like types
     def user
-      unless_redacted do
-        return unless object.user.present?
+      return if redacted?
 
-        user_last_touched = object.updated_by || object.user
-        user_last_touched.hmis_data_source_id = current_user.hmis_data_source_id
-        Hmis::Hud::User.from_user(user_last_touched)
-      end
+      object.updated_by || object.user
     end
 
     # Application user that uploaded the file
