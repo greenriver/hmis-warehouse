@@ -31,4 +31,11 @@ class GrdaWarehouseBase < ApplicationRecord
   def self.partitioned?(table_name)
     Dba::PartitionMaker.new(table_name: table_name).done?
   end
+
+  # default colocated versions table for warehouse records
+  def self.has_paper_trail(options = {}) # rubocop:disable Naming/PredicateName
+    versions = options.fetch(:versions, {}).merge(class_name: 'GrdaWarehouse::Version')
+    skip = options.fetch(:skip, [:lock_version])
+    super(options.merge(versions: versions, skip: skip))
+  end
 end

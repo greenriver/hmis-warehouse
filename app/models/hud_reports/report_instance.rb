@@ -54,6 +54,12 @@ module HudReports
         else
           state
         end
+      when 'Failed'
+        if error_details.present?
+          "#{state}: #{error_details}"
+        else
+          state
+        end
       else
         'Failed'
       end
@@ -87,6 +93,8 @@ module HudReports
     end
 
     def complete_report
+      return if @failed
+
       update(state: 'Completed', completed_at: Time.current)
     end
 

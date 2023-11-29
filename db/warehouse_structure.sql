@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -19861,7 +19861,8 @@ CREATE TABLE public.hud_report_instances (
     failed_at timestamp without time zone,
     percent_complete double precision,
     export_id bigint,
-    type character varying DEFAULT 'HudReports::ReportInstance'::character varying NOT NULL
+    type character varying DEFAULT 'HudReports::ReportInstance'::character varying NOT NULL,
+    error_details text
 );
 
 
@@ -25193,6 +25194,47 @@ ALTER SEQUENCE public.verification_sources_id_seq OWNED BY public.verification_s
 
 
 --
+-- Name: versions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.versions (
+    id bigint NOT NULL,
+    item_type character varying NOT NULL,
+    item_id bigint NOT NULL,
+    event character varying NOT NULL,
+    whodunnit character varying,
+    object jsonb,
+    object_changes jsonb,
+    created_at timestamp without time zone,
+    session_id character varying,
+    request_id character varying,
+    user_id bigint,
+    referenced_user_id bigint,
+    referenced_entity_name character varying,
+    migrated_app_version_id bigint
+);
+
+
+--
+-- Name: versions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.versions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: versions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.versions_id_seq OWNED BY public.versions.id;
+
+
+--
 -- Name: vispdats; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -29190,6 +29232,13 @@ ALTER TABLE ONLY public.verification_sources ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: versions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.versions ALTER COLUMN id SET DEFAULT nextval('public.versions_id_seq'::regclass);
+
+
+--
 -- Name: vispdats id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -32759,6 +32808,14 @@ ALTER TABLE ONLY public.va_check_histories
 
 ALTER TABLE ONLY public.verification_sources
     ADD CONSTRAINT verification_sources_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: versions versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.versions
+    ADD CONSTRAINT versions_pkey PRIMARY KEY (id);
 
 
 --
@@ -57253,6 +57310,13 @@ CREATE INDEX index_va_check_histories_on_user_id ON public.va_check_histories US
 
 
 --
+-- Name: index_versions_on_item_type_and_item_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_versions_on_item_type_and_item_id ON public.versions USING btree (item_type, item_id);
+
+
+--
 -- Name: index_vispdats_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -57760,7 +57824,7 @@ CREATE UNIQUE INDEX tx_id_ds_id_ft_idx ON public.financial_transactions USING bt
 -- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL ((ARRAY['ac_hmis_mci'::character varying, 'ac_hmis_mci_unique_id'::character varying])::text[]));
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL (ARRAY[('ac_hmis_mci'::character varying)::text, ('ac_hmis_mci_unique_id'::character varying)::text]));
 
 
 --
@@ -59870,6 +59934,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231107190301'),
 ('20231110134113'),
 ('20231114235529'),
-('20231115170459');
-
-
+('20231115170459'),
+('20231120221840'),
+('20231124171521');
