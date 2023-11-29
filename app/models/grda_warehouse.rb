@@ -8,4 +8,8 @@ module GrdaWarehouse
   def self.table_name_prefix
     ''
   end
+
+  def self.paper_trail_versions
+    GrdaWarehouse::Version.all
+  end
 end

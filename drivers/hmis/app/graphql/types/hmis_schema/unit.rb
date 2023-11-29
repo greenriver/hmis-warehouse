@@ -29,7 +29,7 @@ module Types
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :occupants, [HmisSchema::Enrollment], null: false
-    field :user, HmisSchema::User, null: true
+    field :user, Application::User, null: true
     field :unit_size, Integer, null: true
 
     def user

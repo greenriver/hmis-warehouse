@@ -29,6 +29,13 @@ module CohortColumns
       true
     end
 
+    def show_default_description?
+      return false if description_translation_key.include?('Description')
+      return false if description_translation_key == title
+
+      true
+    end
+
     def available_for_rules?
       true
     end

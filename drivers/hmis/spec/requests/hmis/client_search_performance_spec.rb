@@ -148,7 +148,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           __typename
         }
 
-        fragment UserFields on User {
+        fragment UserFields on ApplicationUser {
           __typename
           id
           name
