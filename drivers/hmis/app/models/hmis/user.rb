@@ -22,10 +22,16 @@ class Hmis::User < ApplicationRecord
   has_many :access_controls, through: :user_groups
   has_many :access_groups, through: :access_controls
   has_many :roles, through: :access_controls
+  has_many :activity_logs, class_name: 'Hmis::ActivityLog'
 
   has_recent :clients, Hmis::Hud::Client
   has_recent :projects, Hmis::Hud::Project
   attr_accessor :hmis_data_source_id # stores the data_source_id of the currently logged in HMIS
+
+  scope :hmis_users, -> do
+    # Users that are a member of at least 1 HMIS User Group
+    active.not_system.where(id: Hmis::UserGroupMember.pluck(:user_id))
+  end
 
   # The session_limitable extension uses user.hmis_unique_session_id to restrict the current session.
   # Override reader/writer for unique_session_id to track sessions in the hmis separately from the
@@ -170,18 +176,6 @@ class Hmis::User < ApplicationRecord
         entity_type: model.sti_name,
       ).select(:entity_id),
     )
-  end
-
-  scope :viewable_by, ->(user) do
-    data_source_id = user.hmis_data_source_id
-    raise 'user missing data source id' unless data_source_id
-
-    return none unless user.permissions?(:can_impersonate_users)
-
-    # FIXME:
-    # perhaps there's some additional restriction needed here to prevent users
-    # from escalating privileges or jumping data sources within the app?
-    active.not_system.where(id: Hmis::UserGroupMember.pluck(:user_id))
   end
 
   def editable_data_sources
