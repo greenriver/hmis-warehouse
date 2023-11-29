@@ -110,13 +110,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'should return the most recent user' do
-      PaperTrail.request(whodunnit: user2.id) do
-        c1.update!(first_name: 'test1')
-        _response, result = post_graphql(id: c1.id) { query }
-        expect(response.status).to eq 200
-        expect(result.dig('data', 'client', 'user', 'id')).to eq user2.id.to_s
-        expect(result.dig('data', 'client', 'user', 'name')).to eq [user2.first_name, user2.last_name].join(' ')
-      end
+      # build a version history
+      PaperTrail.request(whodunnit: user.id) { c1.update!(first_name: 'test1') }
+      PaperTrail.request(whodunnit: user2.id) { c1.update!(first_name: 'test2') }
+
+      _response, result = post_graphql(id: c1.id) { query }
+      expect(response.status).to eq 200
+      expect(result.dig('data', 'client', 'user', 'id')).to eq user2.id.to_s
+      expect(result.dig('data', 'client', 'user', 'name')).to eq [user2.first_name, user2.last_name].join(' ')
     end
   end
 

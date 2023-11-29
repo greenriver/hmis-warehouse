@@ -12,7 +12,7 @@ module Types
       extend ActiveSupport::Concern
 
       included do
-        # HUD User that most recently touched the record
+        # User that most recently touched the record
         field(:user, Application::User, null: true) {}
 
         # Note: while these are required in the HUD spec, they are not (yet) required

@@ -69,7 +69,7 @@ module Types
       object.updated_at
     end
 
-    # HUD User that most recently touched the record, to match convention on HUD-like types
+    # User that most recently touched the record, to match convention on HUD-like types
     def user
       return if redacted?
 
