@@ -55,7 +55,6 @@ module Hmis
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(
         enrollment: enrollment,
         user: Hmis::Hud::User.system_user(data_source_id: enrollment.data_source_id),
-        form_definition: Hmis::Form::Definition.find_definition_for_role(:EXIT, project: enrollment.project),
       )
       assessment.data_collection_stage = 3
       assessment.assessment_date = exit_date
