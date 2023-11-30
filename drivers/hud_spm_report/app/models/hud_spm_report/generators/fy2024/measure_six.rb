@@ -7,7 +7,7 @@
 # HUD SPM Report Generator: Measure 2a and 2b: The Extent to which Persons Who Exit Homelessness
 # to Permanent Housing Destinations Return to Homelessness within 6, 12,
 # and 24 months.
-module HudSpmReport::Generators::Fy2023
+module HudSpmReport::Generators::Fy2024
   class MeasureSix < MeasureBase
     def self.question_number
       'Measure 6'.freeze

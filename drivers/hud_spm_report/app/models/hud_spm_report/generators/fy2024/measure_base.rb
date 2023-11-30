@@ -4,13 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudSpmReport::Generators::Fy2023
+module HudSpmReport::Generators::Fy2024
   class MeasureBase < ::HudReports::QuestionBase
     private def enrollment_set
       enrollments ||= @report.spm_enrollments
       return enrollments if enrollments.present?
 
-      HudSpmReport::Fy2023::Enrollment.create_enrollment_set(@report)
+      HudSpmReport::Fy2024::Enrollment.create_enrollment_set(@report)
       @report.spm_enrollments
     end
 

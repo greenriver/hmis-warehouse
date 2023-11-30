@@ -17,7 +17,7 @@ Rails.application.config.hud_reports['HudSpmReport::Generators::Fy2020::Generato
   helper: 'hud_reports_spms_path',
 }
 
-Rails.application.config.hud_reports['HudSpmReport::Generators::Fy2023::Generator'] = {
+Rails.application.config.hud_reports['HudSpmReport::Generators::Fy2024::Generator'] = {
   title: 'System Performance Measures',
   helper: 'hud_reports_spms_path',
 }

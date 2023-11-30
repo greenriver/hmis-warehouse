@@ -9,7 +9,7 @@ module HudSpmReport::HudReports
     extend ActiveSupport::Concern
 
     included do
-      has_many :spm_enrollments, class_name: 'HudSpmReport::Fy2023::Enrollment'
+      has_many :spm_enrollments, class_name: 'HudSpmReport::Fy2024::Enrollment'
     end
   end
 end

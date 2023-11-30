@@ -20,7 +20,7 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       puts "Starting SPM Data Lab TestKit #{Time.current}"
       setup
       puts "Setup Done for SPM Data Lab TestKit #{Time.current}"
-      run(default_spm_filter, HudSpmReport::Generators::Fy2023::Generator.questions.keys)
+      run(default_spm_filter, HudSpmReport::Generators::Fy2024::Generator.questions.keys)
       puts "Finished SPM Run Data Lab TestKit #{Time.current}"
     end
 

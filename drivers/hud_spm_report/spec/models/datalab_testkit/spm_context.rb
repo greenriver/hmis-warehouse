@@ -27,7 +27,7 @@ RSpec.shared_context 'datalab spm context', shared_context: :metadata do
   end
 
   def run(filter, question_numbers)
-    klass = HudSpmReport::Generators::Fy2023::Generator
+    klass = HudSpmReport::Generators::Fy2024::Generator
     @generator = klass.new(
       ::HudReports::ReportInstance.from_filter(
         filter,

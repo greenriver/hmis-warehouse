@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 #
-RSpec.shared_context 'FY2023 SPM enrollment context', shared_context: :metadata do
+RSpec.shared_context 'FY2024 SPM enrollment context', shared_context: :metadata do
   def default_filter_definition
     {
       user_id: User.setup_system_user.id,
@@ -39,7 +39,7 @@ RSpec.shared_context 'FY2023 SPM enrollment context', shared_context: :metadata 
       app_fixture.restore
       puts "Fixtures Restored #{Time.current}"
     else
-      export_path = "drivers/hud_spm_report/spec/fixtures/files/fy2023/#{export_directory}"
+      export_path = "drivers/hud_spm_report/spec/fixtures/files/fy2024/#{export_directory}"
       import_hmis_csv_fixture(export_path, run_jobs: false)
       process_imported_fixtures
       warehouse_fixture.store
@@ -52,7 +52,7 @@ RSpec.shared_context 'FY2023 SPM enrollment context', shared_context: :metadata 
   end
 
   def run(filter, question_number)
-    klass = HudSpmReport::Generators::Fy2023::Generator
+    klass = HudSpmReport::Generators::Fy2024::Generator
     @report = HudReports::ReportInstance.from_filter(
       filter,
       klass.title,

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudSpmReport::Fy2023
+module HudSpmReport::Fy2024
   class Return < GrdaWarehouseBase
     self.table_name = 'hud_report_spm_returns'
 

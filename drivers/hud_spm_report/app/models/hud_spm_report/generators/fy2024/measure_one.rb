@@ -5,7 +5,7 @@
 ###
 
 # HUD SPM Report Generator: Length of Time Persons Remain Homeless
-module HudSpmReport::Generators::Fy2023
+module HudSpmReport::Generators::Fy2024
   class MeasureOne < MeasureBase
     def self.question_number
       'Measure 1'.freeze
@@ -157,7 +157,7 @@ module HudSpmReport::Generators::Fy2023
         enrollments_for_slice = enrollments.where(client_id: slice).preload(:client, enrollment: :services).group_by(&:client_id)
         episodes = [].tap do |arr|
           slice.each do |client_id|
-            episode = HudSpmReport::Fy2023::Episode.new(client_id: client_id, report: @report).
+            episode = HudSpmReport::Fy2024::Episode.new(client_id: client_id, report: @report).
               compute_episode(
                 enrollments_for_slice[client_id],
                 included_project_types: included_project_types,
@@ -171,7 +171,7 @@ module HudSpmReport::Generators::Fy2023
         end
         next unless episodes.present?
 
-        HudSpmReport::Fy2023::Episode.save_episodes!(episodes)
+        HudSpmReport::Fy2024::Episode.save_episodes!(episodes)
         members = episodes.map do |episode|
           [episode.client, episode]
         end.to_h
@@ -181,7 +181,7 @@ module HudSpmReport::Generators::Fy2023
     end
 
     private def compute_row(universe)
-      a_t = HudSpmReport::Fy2023::Episode.arel_table
+      a_t = HudSpmReport::Fy2024::Episode.arel_table
       persons = universe.count
       return [0, 0, 0] unless persons.positive?
 
