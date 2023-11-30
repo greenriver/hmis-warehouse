@@ -10,8 +10,6 @@ RSpec.shared_context 'path organization f', shared_context: :metadata do
     before(:all) do
       generator = HudPathReport::Generators::Fy2024::Generator
       project_ids = GrdaWarehouse::Hud::Project.where(ProjectName: ['Organization F - SO']).pluck(:id)
-      # R ['Organization R - SSO', 'Organization R - SO']
-      # Q ['Organization Q - SSO']
       run(generator, project_ids_filter(project_ids))
     end
 
