@@ -12101,7 +12101,7 @@ ALTER SEQUENCE public.hmis_assessments_id_seq OWNED BY public.hmis_assessments.i
 
 CREATE TABLE public.hmis_auto_exit_configs (
     id bigint NOT NULL,
-    length_of_absence_days integer DEFAULT 30 NOT NULL,
+    length_of_absence_days integer NOT NULL,
     project_type integer,
     organization_id bigint,
     project_id bigint,
