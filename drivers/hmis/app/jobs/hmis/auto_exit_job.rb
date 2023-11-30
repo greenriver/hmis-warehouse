@@ -10,6 +10,7 @@ module Hmis
       Hmis::Hud::Project.hmis.each do |project|
         config = Hmis::AutoExitConfig.config_for_project(project)
         next unless config.present?
+        raise "Auto-exit config unusually low: #{config.length_of_absence_days}" if config.length_of_absence_days < 30
 
         project.enrollments.open_excluding_wip.each do |enrollment|
           most_recent_contact = if project.project_type == 1 # Night-by-night Emergency Shelter
@@ -32,10 +33,6 @@ module Hmis
       end
     end
 
-    def configs
-      @configs ||= Hmis::AutoExitConfig.all
-    end
-
     private
 
     def auto_exit(enrollment, most_recent_contact)
@@ -44,7 +41,7 @@ module Hmis
       exit_date += 1.day if most_recent_contact.is_a?(Hmis::Hud::Service) && most_recent_contact.record_type == 200
       user = Hmis::Hud::User.system_user(data_source_id: enrollment.data_source_id)
 
-      Hmis::Hud::Exit.create!(
+      new_exit = Hmis::Hud::Exit.create!(
         personal_id: enrollment.personal_id,
         enrollment_id: enrollment.enrollment_id,
         data_source_id: enrollment.data_source_id,
@@ -61,6 +58,7 @@ module Hmis
         data_source_id: enrollment.data_source_id,
         personal_id: enrollment.personal_id,
         enrollment_id: enrollment.enrollment_id,
+        exit_id: new_exit.id,
       )
       assessment.build_form_processor(definition: nil)
       assessment.form_processor.assign_attributes(
