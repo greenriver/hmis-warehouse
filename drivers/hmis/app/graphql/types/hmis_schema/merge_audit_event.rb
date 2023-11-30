@@ -9,18 +9,14 @@ module Types
     field :id, ID, null: false
     field :merged_at, GraphQL::Types::ISO8601DateTime, null: false
     field :pre_merge_state, Types::JsonObject, null: false
-    field :user, HmisSchema::User, null: true
+    field :user, Application::User, null: true
     field :client_ids_merged, [ID], null: false
     field :client, HmisSchema::Client, null: true
 
     # object is a Hmis::ClientMergeAudit
 
     def user
-      application_user = load_ar_association(object, :actor)
-      return unless application_user
-
-      application_user.hmis_data_source_id = current_user.hmis_data_source_id
-      Hmis::Hud::User.from_user(application_user)
+      load_ar_association(object, :actor)
     end
 
     def client_ids_merged

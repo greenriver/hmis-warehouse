@@ -30,6 +30,36 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
     end
   end
 
+  describe 'with paper trail enabled' do
+    # call the factory outside of expect block to isolate version side effects
+    let!(:client) { create :grda_warehouse_hud_client }
+
+    before(:all) do
+      @paper_trail_was = PaperTrail.enabled?
+      PaperTrail.enabled = true
+    end
+    after(:all) do
+      PaperTrail.enabled = @paper_trail_was
+    end
+
+    it 'tracks versions for committed changes to the correct table' do
+      expect do
+        client.update!(last_name: "test-#{Time.current.to_f}")
+      end.to change(client.versions, :count).by(1).
+        and change(GrdaWarehouse::Version, :count).by(1).
+        and not_change(PaperTrail::Version, :count)
+    end
+
+    it 'rolls back versions within a transaction' do
+      expect do
+        client.transaction do
+          client.update!(last_name: "test-#{Time.current.to_f}")
+          raise ActiveRecord::Rollback
+        end
+      end.to not_change(client.versions, :count)
+    end
+  end
+
   describe 'scopes' do
     describe 'age_group' do
       let(:eighteen_to_24_group) do
