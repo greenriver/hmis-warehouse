@@ -13,7 +13,7 @@ module Hmis
 
         project.enrollments.open_excluding_wip.each do |enrollment|
           most_recent_contact = if project.project_type == 1 # Night-by-night Emergency Shelter
-            enrollment.services.where(record_type: 200).order(:date_provided).last
+            enrollment.services.bed_nights.order(:date_provided).last
           else
             [
               enrollment.services.order(:date_provided).last,
