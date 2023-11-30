@@ -14,18 +14,18 @@ RSpec.describe 'HUD SPM Universe', type: :model do
     before(:all) do
       setup(:enrollment_universe)
       run(default_filter, nil)
-      HudSpmReport::Fy2024::Enrollment.create_enrollment_set(@report_result)
+      HudSpmReport::Fy2024::SpmEnrollment.create_enrollment_set(@report_result)
     end
 
     it 'creates enrollments' do
-      expect(HudSpmReport::Fy2024::Enrollment.count).to eq(6)
+      expect(HudSpmReport::Fy2024::SpmEnrollment.count).to eq(6)
     end
 
     it 'creates an episode' do
       client = GrdaWarehouse::Hud::Client.destination.first
       episode = HudSpmReport::Fy2024::Episode.create(report: @report_result, client: client)
       episode.compute_episode(
-        HudSpmReport::Fy2024::Enrollment.where(client_id: client.id).to_a,
+        HudSpmReport::Fy2024::SpmEnrollment.where(client_id: client.id).to_a,
         included_project_types: [0, 1, 8],
         excluded_project_types: [3, 4],
         include_self_reported: true,
@@ -39,7 +39,7 @@ RSpec.describe 'HUD SPM Universe', type: :model do
     before(:all) do
       setup(:return_universe)
       run(default_filter, nil)
-      HudSpmReport::Fy2024::Enrollment.create_enrollment_set(@report_result)
+      HudSpmReport::Fy2024::SpmEnrollment.create_enrollment_set(@report_result)
     end
 
     it 'computes a return' do

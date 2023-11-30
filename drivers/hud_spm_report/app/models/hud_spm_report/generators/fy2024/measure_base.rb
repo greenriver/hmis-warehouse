@@ -10,7 +10,7 @@ module HudSpmReport::Generators::Fy2024
       enrollments ||= @report.spm_enrollments
       return enrollments if enrollments.present?
 
-      HudSpmReport::Fy2024::Enrollment.create_enrollment_set(@report)
+      HudSpmReport::Fy2024::SpmEnrollment.create_enrollment_set(@report)
       @report.spm_enrollments
     end
 
@@ -25,6 +25,10 @@ module HudSpmReport::Generators::Fy2024
           last_row: rows.keys.last,
         },
       )
+    end
+
+    private def spm_e_t
+      HudSpmReport::Fy2024::SpmEnrollment.arel_table
     end
   end
 end

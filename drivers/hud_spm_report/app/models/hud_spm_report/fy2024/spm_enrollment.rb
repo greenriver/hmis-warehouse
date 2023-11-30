@@ -5,7 +5,7 @@
 ###
 
 module HudSpmReport::Fy2024
-  class Enrollment < GrdaWarehouseBase
+  class SpmEnrollment < GrdaWarehouseBase
     self.table_name = 'hud_report_spm_enrollments'
     include ArelHelper
 
@@ -17,6 +17,24 @@ module HudSpmReport::Fy2024
 
     has_many :enrollment_links
     has_many :episodes, through: :enrollment_links
+
+    has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
+
+    scope :open_during_range, ->(range) do
+      a_t = arel_table
+
+      d_1_start = range.first
+      d_1_end = range.last
+      d_2_start = a_t[:entry_date]
+      d_2_end = a_t[:exit_date]
+
+      where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
+    end
+
+    scope :with_bed_night_in_range, ->(range) do
+      joins(enrollment: :services).
+        merge(GrdaWarehouse::Hud::Service.bed_night.between(start_date: range.begin, end_date: range.end))
+    end
 
     # Unlike, most HUD reports, there is not a single enrollment per report client, so the enrollment set
     # is constructed outside of the question universe, and then to preserve the 1:1 relationship between clients
