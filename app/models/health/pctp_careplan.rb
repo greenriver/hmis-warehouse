@@ -40,11 +40,11 @@ module Health
     end
 
     scope :recent, -> do
-      one_for_column(:created_at, source_arel_table: arel_table, group_on: :patient_id)
+      one_for_column([:created_at, :instrument_id], source_arel_table: arel_table, group_on: :patient_id)
     end
 
     scope :sorted, -> do
-      order(created_at: :desc)
+      order(created_at: :desc, instrument_id: :desc)
     end
 
     scope :editable, -> do
@@ -96,6 +96,39 @@ module Health
       v2_ids = joins(:v2).merge(HealthPctp::Careplan.sent_within(range)).pluck(:instrument_id)
       where(instrument_id: v1_ids, instrument_type: 'Health::Careplan').
         or(where(instrument_id: v2_ids, instrument_type: 'HealthPctp::Careplan'))
+    end
+
+    # A Careplan expires 12 months after it is fully reviewed and sent to the PCP
+    # @return [Date] Careplan expiration date
+    def expires_on
+      return nil unless instrument.careplan_sent_on.present?
+
+      instrument.careplan_sent_on + 12.months
+    end
+
+    # A Careplan is active if it was fully reviewed and the expiration date is in the future
+    # @return [Boolean] True if the careplan is active
+    def active?
+      return false unless instrument.careplan_sent_on.present?
+      return false if expired?
+
+      expires_on >= Date.current
+    end
+
+    # A Careplan is expiring if it is active and will expire in the next month
+    # # @return [Boolean] True if the careplan is expiring
+    def expiring?
+      return false unless expires_on.present?
+
+      active? && expires_on - 1.month < Date.current
+    end
+
+    # A Careplan has expired if the expiration date is in the past
+    # # @return [Boolean] True if the careplan is expired
+    def expired?
+      return false unless expires_on.present?
+
+      expires_on < Date.current
     end
   end
 end
