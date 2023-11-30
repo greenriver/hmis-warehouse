@@ -117,8 +117,6 @@ class GrdaWarehouse::Utility
       tables << CasCeData::Synthetic::Assessment
     end
 
-    tables << Hmis::AutoExitConfig if RailsDrivers.loaded.include?(:hmis)
-
     HmisCsvImporter::Utility.clear! if RailsDrivers.loaded.include?(:hmis_csv_importer)
 
     # Remove reports after associated clients
