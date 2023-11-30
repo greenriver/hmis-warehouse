@@ -94,10 +94,15 @@ services:
     tty: true
     command: bundle exec rails server -b 0.0.0.0
     labels:
-      - "traefik.http.routers.op.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)"
-      - "traefik.http.routers.op.tls=true"
-      - "traefik.http.services.op.loadbalancer.server.port=3000"
-    ports:
+      - traefik.enable=${TRAEFIK_ENABLED:-false}
+      - traefik.http.routers.op.entrypoints=web
+      - traefik.http.routers.op.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
+      - traefik.http.services.op_https.loadbalancer.server.port=3000
+      - traefik.http.routers.op_https.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
+      - traefik.http.routers.op_https.tls=true
+      - traefik.http.routers.op_https.entrypoints=web-secure
+      - traefik.http.middlewares.op_https.redirectscheme.scheme=https
+    ports: 
       - "3000"
       - "9394"
     expose:
@@ -224,6 +229,15 @@ services:
     expose:
       - 8025
       - 1025
+    labels:
+      - traefik.enable=${TRAEFIK_ENABLED:-false}
+      - traefik.http.routers.mailhog.entrypoints=web
+      - traefik.http.routers.mailhog.rule=Host(`mail.${FQDN:-hmis-warehouse.dev.test}`)
+      - traefik.http.services.mailhog_https.loadbalancer.server.port=8025
+      - traefik.http.routers.mailhog_https.rule=Host(`mail.${FQDN:-hmis-warehouse.dev.test}`)
+      - traefik.http.routers.mailhog_https.tls=true
+      - traefik.http.routers.mailhog_https.entrypoints=web-secure
+      - traefik.http.middlewares.mailhog_https.redirectscheme.scheme=https
 
   sftp:
     container_name: hmis-warehouse-sftp
@@ -341,5 +355,5 @@ volumes:
 
 networks:
   default:
-    name: nginx-proxy
+    name: traefik
     external: true
