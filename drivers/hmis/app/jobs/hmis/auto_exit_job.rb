@@ -14,7 +14,7 @@ module Hmis
 
         project.enrollments.open_excluding_wip.each do |enrollment|
           most_recent_contact = if project.project_type == 1 # Night-by-night Emergency Shelter
-            enrollment.services.where(record_type: 200).order(:date_provided).last
+            enrollment.services.bed_nights.order(:date_provided).last
           else
             [
               enrollment.services.order(:date_provided).last,
@@ -26,7 +26,7 @@ module Hmis
           end
 
           most_recent_contact_date = contact_date_for_entity(most_recent_contact)
-          next unless (Date.today - most_recent_contact_date).to_i >= config.length_of_absence_days
+          next unless (Date.current - most_recent_contact_date).to_i >= config.length_of_absence_days
 
           auto_exit(enrollment, most_recent_contact)
         end
