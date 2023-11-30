@@ -27,7 +27,7 @@ module HudPathReport::Generators::Fy2024
 
       metadata = {
         header_row: TABLE_HEADER,
-        row_labels: PRIOR_LIVING_SITUATION_ROWS.map(&:first),
+        row_labels: prior_living_situation_rows.map(&:first),
         first_column: 'B',
         last_column: 'B',
         first_row: 2,
@@ -37,7 +37,7 @@ module HudPathReport::Generators::Fy2024
 
       sum = 0
       sum_members = []
-      PRIOR_LIVING_SITUATION_ROWS.each_with_index do |(_label, destination), index|
+      prior_living_situation_rows.each_with_index do |(_label, destination), index|
         answer = @report.answer(question: table_name, cell: 'B' + (index + 2).to_s)
         case destination
         when nil # Internal label, leave blank
@@ -65,6 +65,17 @@ module HudPathReport::Generators::Fy2024
       end
 
       @report.complete(QUESTION_NUMBER)
+    end
+
+    def prior_living_situation_rows
+      excluded_values = [336, 335].to_set
+      # 204, then 205
+      # no 336, 335
+      PRIOR_LIVING_SITUATION_ROWS.filter do |_, v, q|
+        next if q.present? && q != QUESTION_TABLE_NUMBER
+
+        !v.in?(excluded_values)
+      end
     end
   end
 end
