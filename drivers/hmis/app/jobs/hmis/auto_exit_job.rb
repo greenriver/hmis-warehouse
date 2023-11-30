@@ -58,12 +58,12 @@ module Hmis
         data_source_id: enrollment.data_source_id,
         personal_id: enrollment.personal_id,
         enrollment_id: enrollment.enrollment_id,
-        exit_id: new_exit.id,
       )
       assessment.build_form_processor(definition: nil)
       assessment.form_processor.assign_attributes(
         values: {},
         hud_values: {},
+        exit_id: new_exit.id,
       )
       assessment.save!
     end

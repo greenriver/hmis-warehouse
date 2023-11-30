@@ -190,9 +190,10 @@ module ArelHelper
 
       direction = :desc unless direction.in?([:asc, :desc])
       group_columns = Array.wrap(group_on).map { |c| group_table[c] }
+      order_columns = Array.wrap(column).map { |c| source_arel_table[c].send(direction) }
 
       max_by_group = source.distinct_on(group_columns).
-        order(*group_columns, source_arel_table[column].send(direction))
+        order(*group_columns, *order_columns)
 
       join = source_arel_table.create_join(
         max_by_group.as(most_recent.name),

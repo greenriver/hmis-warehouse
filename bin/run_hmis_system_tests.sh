@@ -31,7 +31,7 @@ fi
 cleanup() {
   echo "Removing temporary directory ${TEMP_DIR}"
   # comment this out to preserve the directory on exit
-  # rm -rf "$TEMP_DIR"
+  rm -rf "$TEMP_DIR"
 }
 
 # Register the cleanup function to be called on the EXIT signal

@@ -22,8 +22,9 @@ module E2eTests
     # The setup to be run prior to the test suite
     def self.perform(
       process_timeout: 30,
-      default_max_wait_time: 10,
+      default_max_wait_time: 20,
       default_normalize_ws: true,
+      automatic_label_click: true,
       enable_aria_label: true
     )
       # where the rails server runs
@@ -37,6 +38,8 @@ module E2eTests
       ::Capybara.default_max_wait_time = default_max_wait_time
 
       ::Capybara.enable_aria_label = enable_aria_label
+
+      ::Capybara.automatic_label_click = automatic_label_click
 
       # Normalizes whitespaces when using `has_text?` and similar matchers
       ::Capybara.default_normalize_ws = default_normalize_ws

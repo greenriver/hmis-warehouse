@@ -7,7 +7,20 @@
 module HmisCsvImporter::HmisCsvCleanup
   class ForcePrioritizedPlacementStatus < Base
     def cleanup!
-      assessment_scope.update_all(PrioritizationStatus: 1)
+      assessment_batch = []
+      assessment_scope.find_each do |assessment|
+        assessment.PrioritizationStatus = 1
+        assessment.set_source_hash
+        assessment_batch << assessment
+      end
+
+      assessment_source.import(
+        assessment_batch,
+        on_duplicate_key_update: {
+          conflict_target: conflict_target(assessment_source),
+          columns: [:PrioritizationStatus, :source_hash],
+        },
+      )
     end
 
     def assessment_scope

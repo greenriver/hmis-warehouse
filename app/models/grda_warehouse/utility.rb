@@ -62,6 +62,7 @@ class GrdaWarehouse::Utility
       Reporting::MonthlyClientIds,
       Reporting::Return,
       GrPaperTrail::Version,
+      GrdaWarehouse::Version,
       ReportResult,
       AccessGroup, # TODO: START_ACL remove after permission transition
       AccessGroupMember, # TODO: START_ACL remove after permission transition
