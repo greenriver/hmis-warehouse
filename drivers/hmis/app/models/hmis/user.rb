@@ -28,9 +28,9 @@ class Hmis::User < ApplicationRecord
   has_recent :projects, Hmis::Hud::Project
   attr_accessor :hmis_data_source_id # stores the data_source_id of the currently logged in HMIS
 
-  scope :hmis_users, -> do
+  scope :with_hmis_access, -> do
     # Users that are a member of at least 1 HMIS User Group
-    active.not_system.where(id: Hmis::UserGroupMember.pluck(:user_id))
+    not_system.where(id: Hmis::UserGroupMember.pluck(:user_id))
   end
 
   # The session_limitable extension uses user.hmis_unique_session_id to restrict the current session.

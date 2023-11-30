@@ -22,7 +22,7 @@ module Types
 
     def resolved_records
       object.resolved_fields.keys.map do |key|
-        record_type, record_id = key.split('/')
+        record_type, record_id = key.split('/', 2)
         next unless record_type && record_id
 
         OpenStruct.new(
