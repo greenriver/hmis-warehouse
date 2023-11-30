@@ -16,11 +16,60 @@ module HudSpmReport::Generators::Fy2023
     def self.table_descriptions
       {
         'Measure 3' => 'Number of Persons Experiencing Homelessness',
+        '3.1' => 'Change in PIT counts of sheltered and unsheltered persons experiencing homelessness',
+        '3.2' => 'Change in annual counts of persons experiencing sheltered homelessness in HMIS',
       }.freeze
     end
 
     def run_question!
-      # TODO
+      tables = [
+        ['3.1', :run_3_1],
+        ['3.2', :run_3_2],
+      ]
+
+      @report.start(self.class.question_number, tables.map(&:first))
+
+      tables.each do |name, msg|
+        send(msg, name)
+      end
+
+      @report.complete(self.class.question_number)
+    end
+
+    private def run_3_1(table_name)
+      prepare_table(
+        table_name,
+        {
+          2 => 'Universe: Total PIT Count of sheltered and unsheltered persons',
+          3 => 'Emergency Shelter Total',
+          4 => 'Safe Haven Total',
+          5 => 'Transitional Housing Total',
+          6 => 'Total Sheltered Count',
+          7 => 'Unsheltered Count',
+        },
+        {
+          'B' => 'Previous FY PIT Count',
+          'C' => 'Current FY PIT Count',
+          'D' => 'Difference',
+        },
+      )
+    end
+
+    private def run_3_2(table_name)
+      prepare_table(
+        table_name,
+        {
+          2 => 'Universe: Unduplicated Total sheltered persons',
+          3 => 'Emergency Shelter Total',
+          4 => 'Safe Haven Total',
+          5 => 'Transitional Housing Total',
+        },
+        {
+          'B' => 'Previous FY',
+          'C' => 'Current FY',
+          'D' => 'Difference',
+        },
+      )
     end
   end
 end

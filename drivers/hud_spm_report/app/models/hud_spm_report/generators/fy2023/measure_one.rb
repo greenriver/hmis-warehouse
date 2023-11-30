@@ -19,13 +19,13 @@ module HudSpmReport::Generators::Fy2023
 
     def run_question!
       tables = [
-        ['1a', :run_1a, nil],
-        ['1b', :run_1b, nil],
+        ['1a', :run_1a],
+        ['1b', :run_1b],
       ]
 
       @report.start(self.class.question_number, tables.map(&:first))
 
-      tables.each do |name, msg, _title|
+      tables.each do |name, msg|
         send(msg, name)
       end
 
