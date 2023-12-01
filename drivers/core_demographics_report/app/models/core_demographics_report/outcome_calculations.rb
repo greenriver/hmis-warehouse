@@ -42,7 +42,8 @@ module
     def outcome_percentage(type, coc_code = base_count_sym)
       return 'N/A' if type.to_s == 'average_los'
 
-      total_count = total_client_count
+      # Denominator is those who exited
+      total_count = outcome_count(:exit_counted)
       return 0 if total_count.zero?
 
       of_type = outcome_count(type, coc_code)
