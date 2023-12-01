@@ -101,4 +101,14 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       expect(e1.custom_assessments).to contain_exactly(ca1, have_attributes(assessment_date: cls1.information_date, data_collection_stage: 3))
     end
   end
+
+  it 'should throw error if length_of_absence_days is less than 30' do
+    p1 = create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 6
+    c1 = create :hmis_hud_client, data_source: ds1, user: u1
+    create :hmis_auto_exit_config, length_of_absence_days: 29
+    e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.today - 2.months
+    create :hmis_custom_service, data_source: ds1, client: c1, enrollment: e1, user: u1, date_provided: Date.today - 31.days
+
+    expect { Hmis::AutoExitJob.perform_now }.to raise_error(RuntimeError, 'Auto-exit config unusually low: 29')
+  end
 end
