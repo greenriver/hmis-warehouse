@@ -37,6 +37,10 @@ module HudReports
     end
 
     def current_status
+      # Sometimes the report attempts to run again and ends up in the Started state, short circuit if we know this
+      # isn't going to run successfully
+      return "Failed: #{error_details}" if error_details.present?
+
       case state
       when 'Waiting'
         'Queued to start'
