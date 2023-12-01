@@ -10,7 +10,7 @@ class Hmis::File < GrdaWarehouse::File
     meta: {
       enrollment_id: :enrollment_id,
       client_id: :client_id,
-      project_id: ->(r) { r.enrollment },
+      project_id: ->(r) { r.enrollment&.project&.id },
     },
   )
 

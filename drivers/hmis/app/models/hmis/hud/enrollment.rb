@@ -16,7 +16,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_paper_trail(
     meta: {
       enrollment_id: :id,
-      client_id: ->(r) { r.project&.id },
+      client_id: ->(r) { r.client&.id },
       project_id: ->(r) { r.project&.id },
     },
   )

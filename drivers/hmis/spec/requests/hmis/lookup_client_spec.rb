@@ -97,17 +97,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  context 'with paper trail' do
-    include_context 'with paper trail'
+  context 'with version history' do
     let(:user2) do
       create(:user).related_hmis_user(ds1)
     end
 
-    it 'should return the most recent user' do
+    before(:each) do
       # build a version history
       PaperTrail.request(whodunnit: user.id) { c1.update!(first_name: 'test1') }
       PaperTrail.request(whodunnit: user2.id) { c1.update!(first_name: 'test2') }
+    end
 
+    it 'should return the most recent user' do
       _response, result = post_graphql(id: c1.id) { query }
       expect(response.status).to eq 200
       expect(result.dig('data', 'client', 'user', 'id')).to eq user2.id.to_s

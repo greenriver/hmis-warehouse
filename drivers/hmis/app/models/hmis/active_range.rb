@@ -7,6 +7,14 @@
 class Hmis::ActiveRange < Hmis::HmisBase
   self.table_name = :hmis_active_ranges
   include ::Hmis::Concerns::HmisArelHelper
+  has_paper_trail(
+    meta: {
+      project_id: ->(r) { r.entity_project_id },
+      enrollment_id: ->(r) { r.entity_enrollment_id },
+      client_id: ->(r) { r.entity_client_id },
+    },
+  )
+
   belongs_to :entity, polymorphic: true, optional: true
   belongs_to :user, class_name: 'Hmis::User'
 
@@ -42,4 +50,27 @@ class Hmis::ActiveRange < Hmis::HmisBase
   def active?
     active_on
   end
+
+  def entity_project_id
+    case entity_type
+    when 'Hmis::Unit'
+      entity&.project_id
+    when 'Hmis::UnitOccupancy'
+      entity&.enrollment&.project&.id
+    end
+  end
+
+  def entity_enrollment_id
+    entity_type == 'Hmis::UnitOccupancy' ? entity&.enrollment&.id : nil
+  end
+
+  def entity_client_id
+    case entity_type
+    when 'Hmis::Hmis::Hud::CustomClientAddress', 'Hmis::Hud::CustomClientContactPoint', 'Hmis::Hud::CustomClientName'
+      entity&.client&.id
+    when 'Hmis::UnitOccupancy'
+      entity&.enrollment&.client&.id
+    end
+  end
+
 end

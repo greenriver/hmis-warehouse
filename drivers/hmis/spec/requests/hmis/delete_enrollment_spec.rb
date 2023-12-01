@@ -72,15 +72,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect_gql_error post_graphql(input: { id: e2.id }) { mutation }
   end
 
-  context 'with paper trail enabled' do
-    include_context 'with paper trail'
-    it 'tracks metadata' do
-      add_permissions(access_control, :can_edit_enrollments)
-      versions = PaperTrail::Version.where(client_id: c2.id, enrollment_id: e2.id, project_id: p1.id)
-      expect do
-        perform_mutation(e2)
-      end.to change(versions, :count).by(2) # enrollment and wip
-    end
+  it 'tracks metadata on versions' do
+    add_permissions(access_control, :can_edit_enrollments)
+    versions = e2.versions.where(client_id: c2.id, enrollment_id: e2.id, project_id: p1.id)
+    expect do
+      perform_mutation(e2)
+    end.to change(versions, :count).by(1)
   end
 end
 

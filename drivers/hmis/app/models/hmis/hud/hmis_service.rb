@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# backed by database view
 class Hmis::Hud::HmisService < Hmis::Hud::Base
   self.table_name = :hmis_services
   self.primary_key = :id

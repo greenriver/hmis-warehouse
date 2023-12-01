@@ -114,17 +114,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(e2.reload.relationship_to_ho_h).to eq(prev_hoh_value)
   end
 
-  context 'with paper trail enabled' do
-    include_context 'with paper trail'
-    it 'tracks metadata' do
-      versions = GrdaWarehouse.paper_trail_versions.where(client_id: c1.id)
-      expect do
-        mutate(input: { id: c1.id })
-      end.to change(versions, :count).by(2) # client and enrollment
-    end
+  it 'tracks metadata on versions' do
+    versions = c1.versions.where(client_id: c1.id)
+    expect do
+      mutate(input: { id: c1.id })
+    end.to change(versions, :count).by(1)
   end
-end
-
-RSpec.configure do |c|
-  c.include GraphqlHelpers
 end

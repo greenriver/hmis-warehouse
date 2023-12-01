@@ -9,9 +9,6 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
   include ::Hmis::Concerns::HmisArelHelper
 
   acts_as_paranoid(column: :DateDeleted)
-  # because each model needs configuration to track metadata, paper_trail is not included on the base class because
-  # double inclusion causes duplicate versions records to be created
-  # has_paper_trail
 
   attr_writer :skip_validations
   attr_writer :required_fields
