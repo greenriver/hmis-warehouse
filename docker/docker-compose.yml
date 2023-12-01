@@ -102,6 +102,7 @@ services:
       - traefik.http.routers.op_https.tls=true
       - traefik.http.routers.op_https.entrypoints=web-secure
       - traefik.http.middlewares.op_https.redirectscheme.scheme=https
+      - traefik.http.routers.op.middlewares=op_https
     ports: 
       - "3000"
       - "9394"
@@ -238,6 +239,7 @@ services:
       - traefik.http.routers.mailhog_https.tls=true
       - traefik.http.routers.mailhog_https.entrypoints=web-secure
       - traefik.http.middlewares.mailhog_https.redirectscheme.scheme=https
+      - traefik.http.routers.mailhog.middlewares=mailhog_https
 
   sftp:
     container_name: hmis-warehouse-sftp
