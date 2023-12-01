@@ -30,5 +30,11 @@ module HudSpmReport::Generators::Fy2024
     private def spm_e_t
       HudSpmReport::Fy2024::SpmEnrollment.arel_table
     end
+
+    private def percent(num, denom)
+      return 0.0 if deom.zero?
+
+      ((num / denom.to_f) * 100).round(2)
+    end
   end
 end
