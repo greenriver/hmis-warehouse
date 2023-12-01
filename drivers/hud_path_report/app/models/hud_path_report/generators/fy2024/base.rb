@@ -17,10 +17,12 @@ module HudPathReport::Generators::Fy2024
       [
         'Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)',
         116,
-      ], [
-        'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, Host Home Shelter',
+      ],
+      [
+        'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, Host Home shelter',
         101,
-      ], [
+      ],
+      [
         'Safe Haven',
         118,
       ],
@@ -29,67 +31,99 @@ module HudPathReport::Generators::Fy2024
       [
         'Foster care home or foster care group home',
         215,
-      ], [
+      ],
+      [
         'Hospital or other residential non-psychiatric medical facility',
         206,
-      ], [
+      ],
+      [
         'Jail, prison, or juvenile detention facility',
         207,
-      ], [
+      ],
+      [
         'Long-term care facility or nursing home',
         225,
-      ], [
-        'Psychiatric hospital or other psychiatric facility',
-        204,
-      ], [
+      ],
+      # NOTE: the order of the next few situations are not consistent in Q25 and Q26
+      [
         'Substance abuse treatment facility or detox center',
         205,
+        'Q26',
+      ],
+      [
+        'Psychiatric hospital or other psychiatric facility',
+        204,
+      ],
+      [
+        'Substance abuse treatment facility or detox center',
+        205,
+        'Q25',
       ],
       ['Subtotal', :subtotal],
       ['Temporary Housing Situations (300-399)', nil],
       [
         'Transitional housing for homeless persons (including homeless youth)',
         302,
-      ], [
+      ],
+      [
         'Residential project or halfway house with no homeless criteria',
         329,
-      ], [
+      ],
+      [
         'Hotel or motel paid for without emergency shelter voucher',
         314,
-      ], [
+      ],
+      [
         'Host Home (non-crisis)',
         332,
-      ], [
+      ],
+      [
         'Staying or living with family, temporary tenure (e.g., room, apartment, or house)',
-        312,
-      ], [
+        312, # ONLY Q25
+      ],
+      [
         'Staying or living with friends, temporary tenure (e.g., room, apartment, or house)',
-        313,
-      ], [
+        313, # ONLY Q25
+      ],
+      [
         'Moved from one HOPWA funded project to HOPWA TH',
-        327,
+        327, # ONLY Q25
+      ],
+      [
+        'Staying or living in a friend’s room, apartment, or house',
+        336, # ONLY Q26
+      ],
+      [
+        'Staying or living in a family member’s room, apartment, or house',
+        335, # ONLY Q26
       ],
       ['Subtotal', :subtotal],
       ['Permanent Housing Situations (400-499)', nil],
       [
         'Staying or living with family, permanent tenure',
         422,
-      ], [
+      ],
+      [
         'Staying or living with friends, permanent tenure',
         423,
-      ], [
+      ],
+      [
         'Moved from one HOPWA funded project to HOPWA PH',
         426,
-      ], [
+      ],
+      [
         'Rental by client, no ongoing housing subsidy',
         410,
-      ], [
+      ],
+      [
         'Rental by client, with ongoing housing subsidy',
         435,
-      ], [
+      ],
+      [
         'Owned by client, with ongoing housing subsidy',
         421,
-      ], [
+      ],
+      [
         'Owned by client, no ongoing housing subsidy',
         411,
       ],
@@ -98,25 +132,30 @@ module HudPathReport::Generators::Fy2024
       [
         'No exit interview completed',
         30,
-      ], [
+      ],
+      [
         'Other',
         17,
-      ], [
+      ],
+      [
         'Deceased',
         24,
-      ], [
+      ],
+      [
         'Client doesn’t know',
         8,
-      ], [
+      ],
+      [
         'Client prefers not to answer',
         9,
-      ], [
+      ],
+      [
         'Data not collected',
         99,
       ],
       ['Subtotal', :subtotal],
       ['PATH-enrolled clients still active as of report end date (stayers)', :stayers],
-      ['Total', :total]
+      ['Total', :total],
     ].freeze
 
     def initialize(generator = nil, report = nil, options: {})

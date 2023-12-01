@@ -118,7 +118,7 @@ module Hmis
     end
 
     def graphql_activity_log(gql_param)
-      TodoOrDie('Update to true_hmis_user after #3672', by: Date.new(2023, 12, 1))
+      TodoOrDie('Update to true_hmis_user after #3672', by: Date.new(2023, 12, 7))
       {
         user_id: current_hmis_user.id, # FIXME: true_user if masquerading
         data_source_id: current_hmis_user.hmis_data_source_id,
