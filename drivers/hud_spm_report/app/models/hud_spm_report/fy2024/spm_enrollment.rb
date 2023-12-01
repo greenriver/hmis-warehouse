@@ -93,6 +93,32 @@ module HudSpmReport::Fy2024
       end
     end
 
+    def self.detail_headers
+      client_columns = ['client_id', 'first_name', 'last_name', 'personal_id', 'data_source_id']
+      hidden_columns = ['id', 'report_instance_id', 'previous_income_benefits_id', 'current_income_benefits_id', 'enrollment_id'] + client_columns
+      columns = client_columns + (column_names - hidden_columns)
+      columns.map do |col|
+        [col, header_label(col)]
+      end.to_h
+    end
+
+    private_class_method def self.header_label(col)
+      case col.to_sym
+      when :client_id
+        'Warehouse Client ID'
+      when :personal_id
+        'HMIS Personal ID'
+      when :data_source_id
+        'Data Source ID'
+      when :los_under_threshold
+        'LOS Under Threshold'
+      when :previous_street_essh
+        'Previous Street ESSH'
+      else
+        col.humanize
+      end
+    end
+
     private_class_method def self.start_of_homelessness(filter, household_info, enrollment)
       age = enrollment.client.age_on([filter.start, enrollment.entry_date].max)
       start_of_homelessness = if age.present? && age <= 17 &&

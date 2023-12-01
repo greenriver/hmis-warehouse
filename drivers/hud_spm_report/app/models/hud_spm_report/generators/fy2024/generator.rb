@@ -47,5 +47,10 @@ module HudSpmReport::Generators::Fy2024
     def self.valid_question_number(question_number)
       questions.keys.detect { |q| q == question_number } || questions.keys.first
     end
+
+    def self.client_class(_question)
+      # FIXME
+      HudSpmReport::Fy2024::SpmEnrollment
+    end
   end
 end
