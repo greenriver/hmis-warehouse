@@ -257,7 +257,18 @@ module Types
 
     application_users_field :application_users
     def application_users(**args)
-      resolve_application_users(Hmis::User.all, **args)
+      raise 'access denied' unless current_user.can_audit_users? || current_user.can_impersonate_users?
+
+      resolve_application_users(Hmis::User.active.with_hmis_access, **args)
+    end
+
+    field :user, Types::Application::User, 'User lookup', null: true do
+      argument :id, ID, required: true
+    end
+    def user(id:)
+      raise 'access denied' unless id == current_user.id.to_s || current_user.can_audit_users? || current_user.can_impersonate_users?
+
+      load_ar_scope(scope: Hmis::User.with_hmis_access, id: id)
     end
 
     field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false

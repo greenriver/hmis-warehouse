@@ -165,6 +165,14 @@ class Hmis::Role < ::ApplicationRecord
           'Users',
         ],
       },
+      can_audit_users: {
+        description: 'Ability to audit users',
+        administrative: true,
+        access: [:viewable],
+        categories: [
+          'Users',
+        ],
+      },
       can_edit_organization: {
         description: 'Grants access to edit organizations',
         administrative: false,
