@@ -78,6 +78,8 @@ module Hmis
         entity.assessment_date
       when Hmis::Hud::Enrollment
         entity.entry_date
+      else
+        raise "Unknown entity '#{entity.class}'"
       end
     end
   end
