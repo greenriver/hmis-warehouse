@@ -110,12 +110,12 @@ module HudPathReport::Generators::Fy2024
     private def age_ranges
       {
         '17 and under' => a_t[:age].between(0..17).and(a_t[:dob_quality].in([1, 2])),
-        '18-24' => a_t[:age].between(18..24).and(a_t[:dob_quality].in([1, 2])),
-        '25-34' => a_t[:age].between(25..34).and(a_t[:dob_quality].in([1, 2])),
-        '35-44' => a_t[:age].between(35..44).and(a_t[:dob_quality].in([1, 2])),
-        '45-54' => a_t[:age].between(45..54).and(a_t[:dob_quality].in([1, 2])),
-        '55-64' => a_t[:age].between(55..64).and(a_t[:dob_quality].in([1, 2])),
-        '65+' => a_t[:age].gteq(65).and(a_t[:dob_quality].in([1, 2])),
+        '18-23' => a_t[:age].between(18..23).and(a_t[:dob_quality].in([1, 2])),
+        '24-30' => a_t[:age].between(24..30).and(a_t[:dob_quality].in([1, 2])),
+        '31-40' => a_t[:age].between(31..40).and(a_t[:dob_quality].in([1, 2])),
+        '41-50' => a_t[:age].between(41..50).and(a_t[:dob_quality].in([1, 2])),
+        '51-61' => a_t[:age].between(51..61).and(a_t[:dob_quality].in([1, 2])),
+        '62+' => a_t[:age].gteq(62).and(a_t[:dob_quality].in([1, 2])),
         "Client doesn't know" => a_t[:dob_quality].eq(8),
         'Client prefers not to answer' => a_t[:dob_quality].eq(9),
         'Data not collected' => a_t[:dob_quality].not_in([8, 9]).and(a_t[:dob_quality].eq(99).or(a_t[:dob_quality].eq(nil)).or(a_t[:age].lt(0)).or(a_t[:age].eq(nil))),
@@ -173,8 +173,12 @@ module HudPathReport::Generators::Fy2024
     end
 
     def prior_living_situation_rows
-      excluded_values = [327, 422, 423, 426, 30, 17, 24, :subtotal, :stayers].to_set
-      PRIOR_LIVING_SITUATION_ROWS.filter do |_, v|
+      excluded_values = [312, 313, 327, 422, 423, 426, 30, 17, 24, :subtotal, :stayers].to_set
+      # 205, then 204
+      # no 312, 313, 327, 422, 423, 426, 30, 17, 24
+      PRIOR_LIVING_SITUATION_ROWS.filter do |_, v, q|
+        next if q.present? && q != QUESTION_TABLE_NUMBER
+
         !v.in?(excluded_values)
       end
     end
