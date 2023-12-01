@@ -203,8 +203,9 @@ module CasClientData
         # current requirement:
         # 1. an ongoing enrollment at a project in the chosen group (if no group, just an ongoing enrollment)
         # 2. a release of some sort on file
-        # 3. Pathways or Transfer assessment on file (currently no date range restriction)
-        project_group_scope.exists? && any_release_on_file? && most_recent_pathways_or_rrh_assessment_for_destination.present?
+        # ~3.~ Pathways or Transfer assessment on file (currently no date range restriction) (Removed by request 11/23/23)
+        # project_group_scope.exists? && any_release_on_file? && most_recent_pathways_or_rrh_assessment_for_destination.present?
+        project_group_scope.exists? && any_release_on_file?
       else
         raise NotImplementedError
       end
