@@ -373,7 +373,9 @@ module Health
       return false unless cp1?
 
       # Only the most recent PCTP needs review
-      patient.pctp_careplans.sorted.first&.instrument&.id == id
+      return false unless patient.recent_pctp_careplan&.instrument == self
+
+      careplan.careplan_sent_on.blank?
     end
 
     def compact_future_issues
