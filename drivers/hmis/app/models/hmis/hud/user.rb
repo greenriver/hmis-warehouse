@@ -9,6 +9,7 @@ class Hmis::Hud::User < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::Shared
   self.table_name = :User
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  has_paper_trail
 
   has_many :affiliations, **hmis_relation(:UserID, 'Affiliation')
   has_many :clients, **hmis_relation(:PersonalID, 'Client')

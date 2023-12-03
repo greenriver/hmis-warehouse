@@ -9,7 +9,9 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   self.table_name = :hmis_services
   self.primary_key = :id
 
-  include ::Hmis::Hud::Concerns::EnrollmentRelated
+  replace_scope :viewable_by, ->(user) do
+    joins(:enrollment).merge(Hmis::Hud::Enrollment.viewable_by(user))
+  end
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
 
   belongs_to :enrollment, **hmis_enrollment_relation, optional: true

@@ -9,7 +9,7 @@ require_relative 'login_and_permissions'
 require_relative '../../support/hmis_base_setup'
 
 RSpec.describe 'Client audit history query', type: :request do
-  subject(:query) {
+  subject(:query) do
     <<~GRAPHQL
       query GetClient($id: ID!) {
         client(id: $id) {
@@ -31,7 +31,7 @@ RSpec.describe 'Client audit history query', type: :request do
         }
       }
     GRAPHQL
-  }
+  end
 
   include_context 'hmis base setup'
   let!(:access_control) do

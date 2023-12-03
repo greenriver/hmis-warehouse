@@ -7,6 +7,7 @@
 class Hmis::Hud::Organization < Hmis::Hud::Base
   self.table_name = :Organization
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  has_paper_trail
   include ::HmisStructure::Organization
   include ::Hmis::Hud::Concerns::Shared
 

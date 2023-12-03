@@ -31,7 +31,7 @@ RSpec.describe 'Create Units Mutation', type: :request do
   end
 
   it 'creates units' do
-    input = { input: { input: {projectId: p1.id.to_s, count: 1, unitTypeId: unit_type.id} } }
+    input = { input: { input: { projectId: p1.id.to_s, count: 1, unitTypeId: unit_type.id } } }
     versions = GrdaWarehouse.paper_trail_versions.where(project_id: p1.id, item_type: 'Hmis::Unit')
     units = Hmis::Unit.where(unit_type: unit_type, project: p1)
     expect do

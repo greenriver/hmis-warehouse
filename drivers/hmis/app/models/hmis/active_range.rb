@@ -9,9 +9,9 @@ class Hmis::ActiveRange < Hmis::HmisBase
   include ::Hmis::Concerns::HmisArelHelper
   has_paper_trail(
     meta: {
-      project_id: ->(r) { r.entity_project_id },
-      enrollment_id: ->(r) { r.entity_enrollment_id },
-      client_id: ->(r) { r.entity_client_id },
+      client_id: ->(r) { r.entity&.paper_trail_meta_value(:client_id) },
+      enrollment_id: ->(r) { r.entity&.paper_trail_meta_value(:enrollment_id) },
+      project_id: ->(r) { r.entity&.paper_trail_meta_value(:project_id) },
     },
   )
 
@@ -50,27 +50,4 @@ class Hmis::ActiveRange < Hmis::HmisBase
   def active?
     active_on
   end
-
-  def entity_project_id
-    case entity_type
-    when 'Hmis::Unit'
-      entity&.project_id
-    when 'Hmis::UnitOccupancy'
-      entity&.enrollment&.project&.id
-    end
-  end
-
-  def entity_enrollment_id
-    entity_type == 'Hmis::UnitOccupancy' ? entity&.enrollment&.id : nil
-  end
-
-  def entity_client_id
-    case entity_type
-    when 'Hmis::Hmis::Hud::CustomClientAddress', 'Hmis::Hud::CustomClientContactPoint', 'Hmis::Hud::CustomClientName'
-      entity&.client&.id
-    when 'Hmis::UnitOccupancy'
-      entity&.enrollment&.client&.id
-    end
-  end
-
 end

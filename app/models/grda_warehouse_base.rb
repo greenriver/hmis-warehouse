@@ -38,4 +38,20 @@ class GrdaWarehouseBase < ApplicationRecord
     skip = options.fetch(:skip, [:lock_version])
     super(options.merge(versions: versions, skip: skip))
   end
+
+  # allows delegation of paper trail metadata
+  # replicate paper_trail model_metadatum (mostly)
+  def paper_trail_meta_value(key)
+    meta = self.class.paper_trail_options&.fetch(:meta)
+    value = meta ? meta[key] : nil
+    return unless value
+
+    if value.respond_to?(:call)
+      value.call(self)
+    elsif value.is_a?(Symbol) && respond_to?(value, true)
+      send(value)
+    else
+      value
+    end
+  end
 end

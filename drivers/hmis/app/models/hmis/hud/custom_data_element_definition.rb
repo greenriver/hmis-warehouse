@@ -7,6 +7,7 @@
 class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
   include Hmis::Hud::Concerns::HasEnums
   self.table_name = :CustomDataElementDefinitions
+  has_paper_trail
 
   FIELD_TYPES = [
     :float,
