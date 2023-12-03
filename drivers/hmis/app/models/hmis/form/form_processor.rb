@@ -9,6 +9,13 @@
 #   If the assessment is non-WIP: The HUD data is stored in records (IncomeBenefit, HealthAndDv, etc) that are referenced by this form_processor directly. (health_and_dv_id etc)
 class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   self.table_name = :hmis_form_processors
+  # has_paper_trail(
+  #   meta: {
+  #     client_id: ->(r) { r.custom_assessment&.paper_trail_meta_value(:client_id) },
+  #     enrollment_id: ->(r) { r.custom_assessment&.paper_trail_meta_value(:enrollment_id) },
+  #     project_id: ->(r) { r.custom_assessment&.paper_trail_meta_value(:project_id) },
+  #   },
+  # )
 
   # The assessment that was processed with this processor.
   # If processor is being used as in-memory processor for records, this will be empty.

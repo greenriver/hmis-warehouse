@@ -42,7 +42,16 @@ module Types
     field :object_changes, Types::JsonObject, null: true, description: 'Format is { field: { fieldName: "GQL field name", displayName: "Human readable name", values: [old, new] } }'
 
     def record_name
-      object.item_type.demodulize.gsub(/^CustomClient/, '').underscore.humanize.titleize
+      case object.item_type
+      when 'Hmis::Hud::CustomAssessment'
+        'Assessment'
+      when 'Hmis::Hud::Assessment'
+        'CE Assessment'
+      when 'Hmis::Hud::Event'
+        'CE Event'
+      else
+        object.item_type.demodulize.gsub(/^CustomClient/, '').underscore.humanize.titleize
+      end
     end
 
     def user
