@@ -39,6 +39,14 @@ module Health
       left_joins(:v1, :v2)
     end
 
+    scope :cp1, -> do
+      joins(:v1)
+    end
+
+    scope :cp2, -> do
+      joins(:v2)
+    end
+
     scope :recent, -> do
       one_for_column([:created_at, :instrument_id], source_arel_table: arel_table, group_on: :patient_id)
     end
@@ -127,8 +135,10 @@ module Health
     # # @return [Boolean] True if the careplan is expired
     def expired?
       return false unless expires_on.present?
+      return false unless expires_on < Date.current
 
-      expires_on < Date.current
+      # When CP1 careplans reach their expiration date, they are archived, not expired
+      !instrument.cp1?
     end
   end
 end

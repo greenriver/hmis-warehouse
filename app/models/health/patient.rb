@@ -113,6 +113,10 @@ module Health
     end, class_name: 'Health::CaAssessment'
 
     has_many :pctp_careplans
+    has_many :cp2_careplans, -> do
+      merge(Health::PctpCareplan.cp2)
+    end, class_name: 'Health::PctpCareplan'
+
     has_one :recent_pctp_careplan, -> do
       merge(Health::PctpCareplan.recent)
     end, class_name: 'Health::PctpCareplan'
@@ -411,22 +415,22 @@ module Health
     end
 
     scope :has_intake, -> do
-      where(id: Health::PctpCareplan.sent.select(:patient_id))
+      where(id: Health::PctpCareplan.cp2.sent.select(:patient_id))
     end
 
     scope :intake_required, -> do
-      where.not(id: Health::PctpCareplan.sent.select(:patient_id)).
-        or(where(id: where.missing(:pctp_careplans).select(:id)))
+      where.not(id: Health::PctpCareplan.cp2.sent.select(:patient_id)).
+        or(where(id: where.missing(:cp2_careplans).select(:id)))
     end
 
     scope :needs_renewal, ->(on: Date.current.end_of_month) do
       joins(:recent_pctp_careplan).
-        merge(Health::PctpCareplan.recent.sent_within(.. on - 335.days)) # 1 year - 30 days
+        merge(Health::PctpCareplan.recent.cp2.sent_within(.. on - 335.days)) # 1 year - 30 days
     end
 
     scope :overdue_for_renewal, ->(on: Date.current.end_of_month) do
       joins(:recent_pctp_careplan).
-        merge(Health::PctpCareplan.recent.sent_within(.. on - 365.days)) # 1 year
+        merge(Health::PctpCareplan.recent.cp2.sent_within(.. on - 365.days)) # 1 year
     end
 
     # For now, all patients are visible to all health users
