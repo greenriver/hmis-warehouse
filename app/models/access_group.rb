@@ -72,7 +72,7 @@ class AccessGroup < ApplicationRecord
   def add(users)
     self.users = (self.users + Array.wrap(users)).uniq
 
-    users.each do |user|
+    Array.wrap(users).each do |user|
       # Queue recomputation of external report access
       user.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
     end
