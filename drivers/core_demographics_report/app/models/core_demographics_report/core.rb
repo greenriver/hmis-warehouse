@@ -37,16 +37,16 @@ module CoreDemographicsReport
 
     def self.available_section_types
       [
-        # 'ages',
-        # 'genders',
-        # 'gender_ages',
-        # 'races',
-        # 'disabilities',
-        # 'relationships',
-        # 'dvs',
-        # 'priors',
+        'ages',
+        'genders',
+        'gender_ages',
+        'races',
+        'disabilities',
+        'relationships',
+        'dvs',
+        'priors',
         'household_types',
-        # 'projects',
+        'projects',
       ]
     end
 
