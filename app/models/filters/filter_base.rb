@@ -543,24 +543,19 @@ module Filters
       @report_scope_source = report_scope_source
       @filter = self
 
-      scope = filter_for_user_access(scope)
-      scope = filter_for_range(scope) if include_date_range
-      scope = if multi_coc_code_filter
-        filter_for_cocs(scope)
-      else
-        filter_for_coc(scope)
-      end
+      scope = apply_project_level_restrictions(scope, all_project_types: all_project_types, multi_coc_code_filter: multi_coc_code_filter, include_date_range: include_date_range)
+      scope = apply_client_level_restrictions(scope, chronic_at_entry: chronic_at_entry)
+      scope
+    end
+
+    def apply_client_level_restrictions(scope, chronic_at_entry: true)
+      @filter = self
       scope = filter_for_household_type(scope)
       scope = filter_for_head_of_household(scope)
       scope = filter_for_age(scope)
       scope = filter_for_gender(scope)
       scope = filter_for_race(scope)
       scope = filter_for_veteran_status(scope)
-      scope = filter_for_project_type(scope, all_project_types: all_project_types)
-      scope = filter_for_projects(scope)
-      scope = filter_for_funders(scope)
-      scope = filter_for_data_sources(scope)
-      scope = filter_for_organizations(scope)
       scope = filter_for_sub_population(scope)
       scope = filter_for_prior_living_situation(scope)
       scope = filter_for_destination(scope)
@@ -581,7 +576,25 @@ module Filters
       scope = filter_for_ce_cls_homeless(scope)
       scope = filter_for_cohorts(scope)
       scope = filter_for_active_roi(scope)
-      filter_for_times_homeless(scope)
+      scope = filter_for_times_homeless(scope)
+      scope
+    end
+
+    def apply_project_level_restrictions(scope, all_project_types: nil, multi_coc_code_filter: true, include_date_range: true)
+      @filter = self
+      scope = filter_for_user_access(scope)
+      scope = filter_for_range(scope) if include_date_range
+      scope = if multi_coc_code_filter
+        filter_for_cocs(scope)
+      else
+        filter_for_coc(scope)
+      end
+      scope = filter_for_project_type(scope, all_project_types: all_project_types)
+      scope = filter_for_projects(scope)
+      scope = filter_for_funders(scope)
+      scope = filter_for_data_sources(scope)
+      scope = filter_for_organizations(scope)
+      scope
     end
 
     def report_scope_source
