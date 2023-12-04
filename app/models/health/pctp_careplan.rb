@@ -132,7 +132,7 @@ module Health
     end
 
     # A Careplan has expired if the expiration date is in the past except for careplans
-    # from prior CP programs, which need to be replaced instead of reviewed.
+    # from prior CP programs, which need to be replaced instead of renewed.
     #
     # @return [Boolean] True if the careplan is expired
     def expired?
