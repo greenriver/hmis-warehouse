@@ -46,11 +46,16 @@ module Types
     end
 
     def user
+      return unless object.whodunnit
       # 'unauthenticated' matches user_for_paper_trail in ApplicationController.
       # This happens when a Job updates records, which we should display as System changes.
       return User.system_user if object.whodunnit == 'unauthenticated'
 
-      Hmis::User.find_by(id: object.whodunnit)
+      # If user was impersonating, return the true user only. If someone performed the action while impersonating, whodunnit stores as '1 as 2' where 1 is the true user.
+      user_id = object.whodunnit.sub(/ as [0-9]+$/, '')
+      return unless user_id.to_i.to_s == user_id
+
+      Hmis::User.find_by(id: user_id)
     end
 
     def object_changes

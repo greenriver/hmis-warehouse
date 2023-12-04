@@ -8,6 +8,7 @@
 
 module Types
   class Forms::FormDefinitionJson < Types::BaseObject
+    skip_activity_log
     field :item, [Types::Forms::FormItem], 'Nested items', null: false
   end
 end

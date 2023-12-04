@@ -10,7 +10,7 @@ module HmisStructure::User
 
   included do
     self.hud_key = :UserID
-    acts_as_paranoid(column: :DateDeleted)
+    acts_as_paranoid(column: :DateDeleted) unless included_modules.include?(Paranoia)
   end
 
   module ClassMethods

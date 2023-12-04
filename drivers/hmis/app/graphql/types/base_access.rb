@@ -8,6 +8,7 @@ module Types
   class BaseAccess < BaseObject
     def self.build(node_class, class_name: nil, &block)
       Class.new(self) do
+        skip_activity_log
         graphql_name(class_name || "#{node_class.graphql_name}Access")
         instance_eval(&block) if block
 

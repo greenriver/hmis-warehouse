@@ -8,6 +8,7 @@
 
 module Types
   class Forms::ValueBound < Types::BaseObject
+    skip_activity_log
     description 'Bound applied to the response value. The bound may or may not be dependent on another questions answer.'
 
     field :id, String, 'Unique identifier for this bound', null: false

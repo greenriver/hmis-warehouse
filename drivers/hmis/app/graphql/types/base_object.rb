@@ -6,6 +6,11 @@
 
 module Types
   class BaseObject < GraphQL::Schema::Object
+    class_attribute :should_skip_activity_log, default: false
+    def self.skip_activity_log
+      self.should_skip_activity_log = true
+    end
+
     include GraphqlPermissionChecker
     edge_type_class(Types::BaseEdge)
     connection_type_class(Types::BaseConnection)
@@ -90,6 +95,30 @@ module Types
     def current_permission?(permission:, entity:)
       # defined in GraphqlPermissionChecker
       current_permission_for_context?(context, permission: permission, entity: entity)
+    end
+
+    # How should we log this field access? Return nil to skip. Override as needed
+    # @param [String] field_name
+    # @return [String, nil]
+    def activity_log_field_name(_field_name)
+      nil
+    end
+
+    # identify the current object
+    def activity_log_object_identity
+      return if self.class.should_skip_activity_log
+
+      case object
+      when ActiveRecord::Base, OpenStruct
+        object.persisted? ? object.id : nil
+      when Hash
+        # relay mutations make a mess of things. Skip hash objects that appear to be "payload" generated types
+        return nil if object.key?(:client_mutation_id)
+
+        raise "Missing #{self.class.graphql_name}::object[:id] in #{object.inspect}" unless object.key?(:id)
+
+        object.fetch[:id]
+      end
     end
   end
 end

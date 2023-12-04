@@ -1,6 +1,7 @@
 {
   "item": [
     {
+      "_comment": "override that does not collect move-in address",
       "link_id": "3.20",
       "type": "DATE",
       "text": "Move-in Date",
@@ -24,25 +25,6 @@
           "type": "MAX",
           "value_local_constant": "$today",
           "offset": 7
-        }
-      ]
-    },
-    {
-      "type": "OBJECT",
-      "component": "ADDRESS",
-      "repeats": false,
-      "required": true,
-      "link_id": "moveInAddresses",
-      "mapping": {
-        "record_type": "ENROLLMENT",
-        "field_name": "moveInAddresses"
-      },
-      "text": "Move in address",
-      "enable_when": [
-        {
-          "question": "3.20",
-          "operator": "EXISTS",
-          "answer_boolean": true
         }
       ]
     }

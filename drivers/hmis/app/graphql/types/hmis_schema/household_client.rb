@@ -19,6 +19,7 @@ module Types
     def id
       "#{enrollment.id}:#{client.id}"
     end
+    alias activity_log_object_identity id
 
     def client
       load_ar_association(enrollment, :client)
