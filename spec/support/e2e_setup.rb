@@ -2,6 +2,7 @@ if ENV['RUN_SYSTEM_TESTS']
   require_relative './e2e_tests'
   E2eTests::Setup.perform
   Capybara.default_driver = E2eTests::DRIVER_NAME
+  Capybara.enable_aria_label = true # enable [aria-label] support for field finders
 end
 
 # test helper methods
@@ -38,10 +39,17 @@ RSpec.shared_context 'SystemSpecHelper' do
     end
   end
 
-  def mui_select(choice, from:)
-    label = find('label', text: from)
-    scroll_to(label, align: :center)
-    id = label['for']
+  def mui_select(choice, from: nil, from_id: nil)
+    raise 'label or id is required' unless from || from_id
+
+    id = if from_id
+      from_id
+    else
+      label = find('label', text: from)
+      scroll_to(label, align: :center)
+      label['for']
+    end
+
     # we seem to have invalid ids such as "3.917A.1"
     # find("##{id}").click
     find("[id='#{id}']").click

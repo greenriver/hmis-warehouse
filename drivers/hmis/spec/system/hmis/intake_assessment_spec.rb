@@ -8,11 +8,11 @@ RSpec.feature 'Enrollment/household management', type: :system do
   let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
   let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Quentin', last_name: 'Coldwater' }
   let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Alice', last_name: 'Quinn' }
-  let!(:unit1) { create :hmis_unit, project: p1, user: user, name: 'unit 1' }
-  let!(:unit2) { create :hmis_unit, project: p1, user: user, name: 'unit 2' }
   let!(:access_control) { create_access_control(hmis_user, p1) }
+
   # need with_coc so enrollment isn't blocked by CoC prompt
-  let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, with_coc: true }
+  # need funders so that PSDEs are asked on the assessment
+  let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 3, with_coc: true, funders: HudUtility2024.funder_components['HUD: ESG'] }
 
   let(:today) { Date.today }
 
@@ -51,10 +51,10 @@ RSpec.feature 'Enrollment/household management', type: :system do
       mui_choose default_option, from: 'Income from Any Source'
       mui_choose default_option, from: 'Non-Cash Benefits from Any Source'
       mui_choose default_option, from: 'Covered by Health Insurance'
-      mui_select default_option, from: 'Disabling Condition'
+      mui_select default_option, from_id: '3.08.inferred' # Disabling Condition
       mui_select default_option, from: 'Survivor of Domestic Violence'
       click_button 'Save Assessment'
-      assert_text(/Last saved [0-9] seconds ago/)
+      assert_text(/Last saved [0-9] seconds? ago/)
     end
 
     context 'with wip household' do
