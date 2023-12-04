@@ -52,6 +52,19 @@ module HudSpmReport::Generators::Fy2024
         },
         COLUMNS,
       )
+
+      report_members = create_universe(:m5_1, [:es, :sh, :th].map { |code| HudUtility2024.project_type_number_from_code(code) }.flatten)
+      answer = @report.answer(question: table_name, cell: 'C2')
+      answer.add_members(report_members)
+      answer.update(summary: report_members.count)
+
+      prior_members = create_priors_universe(:m5_1p, report_members)
+      answer = @report.answer(question: table_name, cell: 'C3')
+      answer.add_members(prior_members)
+      answer.update(summary: prior_members.count)
+
+      answer = @report.answer(question: table_name, cell: 'C4')
+      answer.update(summary: report_members.count - prior_members.count)
     end
 
     private def run_5_2(table_name)
@@ -64,6 +77,56 @@ module HudSpmReport::Generators::Fy2024
         },
         COLUMNS,
       )
+
+      report_members = create_universe(:m5_2, [:es, :sh, :th, :ph].map { |code| HudUtility2024.project_type_number_from_code(code) }.flatten)
+      answer = @report.answer(question: table_name, cell: 'C2')
+      answer.add_members(report_members)
+      answer.update(summary: report_members.count)
+
+      prior_members = create_priors_universe(:m5_2p, report_members)
+      answer = @report.answer(question: table_name, cell: 'C3')
+      answer.add_members(prior_members)
+      answer.update(summary: prior_members.count)
+
+      answer = @report.answer(question: table_name, cell: 'C4')
+      answer.update(summary: report_members.count - prior_members.count)
+    end
+
+    private def create_universe(universe_name, project_types)
+      filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(@report.options)
+      @universe = @report.universe(universe_name)
+      enrollments = enrollment_set.where(entry_date: filter.range, project_type: project_types)
+      earliest_enrollments = HudSpmReport::Fy2024::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, direction: :asc, scope: enrollments)
+
+      members = earliest_enrollments.map do |enrollment|
+        [enrollment.client, enrollment]
+      end.to_h
+      @universe.add_universe_members(members)
+
+      @universe.members
+    end
+
+    private def create_priors_universe(universe_name, report_members)
+      report_enrollments = HudSpmReport::Fy2024::SpmEnrollment.where(id: report_members.select(:universe_membership_id))
+      filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(@report.options)
+      @universe = @report.universe(universe_name)
+      adjusted_range = filter.range.begin - 730.days .. filter.range.end - 730.days
+      project_types = [:es, :sh, :th, :ph].map { |code| HudUtility2024.project_type_number_from_code(code) }.flatten
+      candidate_enrollments = enrollment_set.open_during_range(adjusted_range).where(project_type: project_types)
+      universe_enrollments = [].tap do |collection|
+        report_enrollments.find_each do |enrollment|
+          prior = candidate_enrollments.where(spm_e_t[:client_id].eq(enrollment.client_id).
+            and(spm_e_t[:exit_date].eq(nil).or(spm_e_t[:exit_date].lt(enrollment.entry_date - 730.days))))
+          collection << prior if prior.present?
+        end
+      end
+
+      members = universe_enrollments.map do |enrollment|
+        [enrollment.client, enrollment]
+      end.to_h
+      @universe.add_universe_members(members)
+
+      @universe.members
     end
   end
 end
