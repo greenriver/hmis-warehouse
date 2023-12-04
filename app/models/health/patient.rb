@@ -402,6 +402,17 @@ module Health
       where(id: without_intake_query).or(where(id: with_intake_query))
     end
 
+    # Intake Scopes
+    #
+    # To receive services from the the MH CP program, a patient must complete
+    # the assessment process at the beginning of the program, and then again
+    # annually.
+    #
+    # The first asessment is the "intake", and only assessments for the current
+    # CP program are considered. This means that when a CP1 careplan expires,
+    # the patient is not considered enrolled in CP2, and needs an intake rather
+    # than a renewal.
+
     scope :needs_intake, ->(on: Date.current) do
       intake_due(on: on).or(intake_overdue(on: on))
     end

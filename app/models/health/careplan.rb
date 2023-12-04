@@ -368,13 +368,16 @@ module Health
       ! cp1?
     end
 
+    # For the transition between CP1 and CP2, MH allowed careplans in development
+    # at the time of the transition to be carried forward after a review.
     def needs_rereview?
       # Only CP1 careplans need to be reviewed for CP2
       return false unless cp1?
 
-      # Only the most recent PCTP needs review
+      # Only the most recent PCTP can need review
       return false unless patient.recent_pctp_careplan&.instrument == self
 
+      # Once sent to the PCP, the careplan is completed.
       careplan.careplan_sent_on.blank?
     end
 
