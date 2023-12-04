@@ -33,9 +33,9 @@ It can be very helpful to add the following lines to your `/etc/hosts` file to a
 ```
 
 ## Certificate
-We'll generate a self-signed certificates for traefix to serve our site over ssl. Before you begin this, make sure you have pulled down the Virtual-Machines repo or have a traefik proxy up and running.
+We'll generate a self-signed certificates for traefik to serve our site over ssl. Before you begin this, make sure you have an installation of the [traefik proxy](http://traefik.io) up and running. 
 ```
-cd [virtual-machines repo]/traefik/tools/certs
+cd <path_to_traefik_installation>/tools/certs  
 cat > openssl.cnf <<-EOF
   [req]
   distinguished_name = req_distinguished_name
@@ -70,7 +70,7 @@ open dev.test.crt
 
 When prompted to add the certificate to your Keychain, choose the System keychain.  After verifying that you are an administrator, search for `dev.test` in Keychain Access and double click the certificate.  Open the Trust section and in the top drop-down select Always Trust.
 
-# Traefix proxy
+# Traefik proxy
 
 Update the Virtual-Machine repo's `.tools/traefik/config.yml` file to reference these certificates.
 
@@ -100,4 +100,4 @@ Allow the file changes through direnv
 ```
 direnv allow
 ```
-append the output from `direnv hook bash` to the end of your shell config file (e.g. .zshrc, .bashrc)
+For direnv to work properly it needs to be hooked into the shell. Each shell has its own extension mechanism. Complete the [setup instructions](https://direnv.net/docs/hook.html) for  your shell.
