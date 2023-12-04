@@ -197,7 +197,9 @@ module CePerformance
         report_clients = add_q9b_clients(report_clients, period, ce_apr)
         report_clients = add_q10_clients(report_clients, period, ce_apr)
         Client.import!(
-          report_clients.values,
+          # We're getting weird issues where sometimes we don't have a destination client,
+          # filter out any clients that will cause issues
+          report_clients.values.select { |c| c.destination_client_id.present? },
           batch_size: 5_000,
           on_duplicate_key_update: {
             conflict_target: [:id],
