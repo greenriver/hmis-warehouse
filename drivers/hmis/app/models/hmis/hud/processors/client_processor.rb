@@ -87,17 +87,6 @@ module Hmis::Hud::Processors
       )
     end
 
-    def self.multi_fields_to_input(changes, idx, input_field, enum_map, none_field)
-      none_value = changes.dig(none_field, idx)
-      return { input_field => [none_value] } if none_value.present?
-
-      {
-        input_field => enum_map.base_members.
-          select { |item| changes.dig(item[:key].to_s, idx) == 1 }.
-          map { |item| item[:value] },
-      }
-    end
-
     def self.input_to_multi_fields(input_field, enum_map, not_collected_key, none_field)
       result = {}
       return result if input_field.nil?

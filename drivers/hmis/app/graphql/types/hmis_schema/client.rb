@@ -101,10 +101,19 @@ module Types
 
           result = result.except(*relevant_fields)
 
-          old_value = Hmis::Hud::Processors::ClientProcessor.multi_fields_to_input(changes, 0, input_field, enum_map, none_field)
-          new_value = Hmis::Hud::Processors::ClientProcessor.multi_fields_to_input(changes, 1, input_field, enum_map, none_field)
+          # TODO need to incorporate version.object
+          delta = [0, 1].map do |idx|
+            none_value = changes.dig(none_field, idx)
+            if none_value
+              [non_value]
+            else
+              enum_map.base_members.
+                filter { |item| changes.dig(item[:key].to_s, idx) == 1 }.
+                map { |item| item[:value] }
+            end
+          end
 
-          result = result.merge(input_field => [old_value[input_field], new_value[input_field]])
+          result = result.merge(input_field => delta)
         end
 
         # Drop excluded fields
