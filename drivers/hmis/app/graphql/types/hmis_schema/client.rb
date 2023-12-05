@@ -93,23 +93,16 @@ module Types
       transform_changes: ->(version, changes) do
         result = changes
         [
-          ['race', Hmis::Hud::Client.race_enum_map, :RaceNone],
-          ['gender', Hmis::Hud::Client.gender_enum_map, :GenderNone],
+          ['race', Hmis::Hud::Client.race_enum_map, 'RaceNone'],
+          ['gender', Hmis::Hud::Client.gender_enum_map, 'GenderNone'],
         ].each do |input_field, enum_map, none_field|
           relevant_fields = [*enum_map.base_members.map { |member| member[:key].to_s }, none_field.to_s, input_field]
           next unless changes.slice(*relevant_fields).present?
 
           result = result.except(*relevant_fields)
-          old_client = version.reify
 
-          # Reify the next version to get next values; If no next version, then we're at the latest update and the current object will have the next values
-          new_client =  version.next&.reify || version.item
-
-          old_value = { input_field => nil }
-          new_value = { input_field => nil }
-
-          old_value = Hmis::Hud::Processors::ClientProcessor.multi_fields_to_input(old_client, input_field, enum_map, none_field) if old_client.present?
-          new_value = Hmis::Hud::Processors::ClientProcessor.multi_fields_to_input(new_client, input_field, enum_map, none_field) if new_client.present?
+          old_value = Hmis::Hud::Processors::ClientProcessor.multi_fields_to_input(changes, 0, input_field, enum_map, none_field)
+          new_value = Hmis::Hud::Processors::ClientProcessor.multi_fields_to_input(changes, 1, input_field, enum_map, none_field)
 
           result = result.merge(input_field => [old_value[input_field], new_value[input_field]])
         end
