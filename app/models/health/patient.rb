@@ -444,6 +444,8 @@ module Health
         merge(Health::PctpCareplan.recent.cp2.sent_within(.. on - 365.days)) # 1 year
     end
 
+    # End Intake Scopes
+
     # For now, all patients are visible to all health users
     # BUT, all patients must have a referral
     scope :viewable_by_user, ->(user) do
