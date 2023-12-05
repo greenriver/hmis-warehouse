@@ -74,16 +74,10 @@ module
     end
 
     private def enrollment_ids_in_household_type(key)
-      # Force calculation of Households if necessary
-      households
-
       client_households[key]&.values&.flatten
     end
 
     private def hoh_enrollment_ids_in_household_type(key)
-      # Force calculation of Households if necessary
-      hoh_enrollments
-
       hoh_households[key]&.values&.flatten
     end
 
@@ -95,7 +89,7 @@ module
       @hoh_enrollments ||= {}
       @households ||= {}
 
-      # Ignore client-specific filters so we can calculate household type based on who was there, not who is availalble for reporting
+      # Ignore client-specific filters so we can calculate household type based on who was there, not who is available for reporting
       household_scope = filter.apply_project_level_restrictions(report_scope_source)
       # use she.client (destination client) for DOB/Age, sometimes QA has weird data
       household_scope.joins(enrollment: :client).preload(:client, enrollment: :client).distinct.find_each(batch_size: 1_000) do |enrollment|
@@ -167,6 +161,9 @@ module
     end
 
     private def hoh_households
+      # Force calculation of Households if necessary
+      hoh_enrollments
+
       @hoh_households ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         {}.tap do |clients|
           clients[:all] = convert_enrollments_to_client_id_enrollment_id_pairs(filter_enrollments_for_report_scope(hoh_enrollments.values.flatten, hoh_only: true)).group_by(&:shift)
@@ -180,6 +177,9 @@ module
     end
 
     private def client_households
+      # Force calculation of Households if necessary
+      households
+
       @client_households ||= Rails.cache.fetch(household_types_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
           clients[:all] = convert_enrollments_to_client_id_enrollment_id_pairs(filter_enrollments_for_report_scope(households.values.flatten))&.group_by(&:shift)
@@ -195,7 +195,7 @@ module
     # We need all related household members to calculate the household, but once we know the household type,
     # we only want the enrollments that meet the report filter criteria
     private def filter_enrollments_for_report_scope(enrollments, hoh_only: false)
-      enrollments&.dup&.select do |en|
+      enrollments&.select do |en|
         next false if hoh_only && en['relationship_to_hoh'] != 1
 
         en['enrollment_id'].in?(report_scope_enrollment_ids)

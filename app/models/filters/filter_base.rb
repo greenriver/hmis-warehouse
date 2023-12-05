@@ -109,6 +109,8 @@ module Filters
       require_service = filters.dig(:require_service_during_range)
       self.require_service_during_range = require_service.in?(['1', 'true', true]) unless require_service.nil?
       self.comparison_pattern = clean_comparison_pattern(filters.dig(:comparison_pattern)&.to_sym)
+      # NOTE: If an installation is Multi-CoC and a user has assigned CoC Codes,
+      # there can be odd behavior if the coc_codes key doesn't exist in the filter params
       self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes&.include?(code) }.presence || coc_codes.presence
       self.coc_codes = user.coc_codes.presence || coc_codes.presence if GrdaWarehouse::Config.get(:multi_coc_installation) && ! filters.key?(:coc_codes)
       self.coc_code = filters.dig(:coc_code) if available_coc_codes&.include?(filters.dig(:coc_code))
