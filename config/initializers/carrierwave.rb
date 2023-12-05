@@ -26,8 +26,6 @@ module CarrierWave
       private
 
       def whitelisted_content_type?(content_type)
-
-
         Array(content_type_whitelist).any? { |item| content_type =~ /\A#{item}/ }
       end
     end
