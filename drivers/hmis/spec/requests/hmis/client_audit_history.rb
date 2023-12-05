@@ -13,7 +13,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:access_control) do
     create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_view_dob, :can_view_project, :can_view_enrollment_details])
   end
-  let!(:c1) { create :hmis_hud_client, data_source: ds1, Man: 1, Questioning: 0 }
+  let!(:c1) { create :hmis_hud_client, data_source: ds1, Man: 1, Questioning: 0, RaceNone: nil, HispanicLatinaeo: nil }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
 
   before(:all) do
@@ -55,13 +55,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'resolves audit history' do
       c1.update!(Man: 0, Questioning: 1)
+      c1.update!(HispanicLatinaeo: 1)
       response, result = post_graphql(id: c1.id) { query }
       aggregate_failures 'checking response' do
         expect(response.status).to eq(200), result.inspect
         records = result.dig('data', 'client', 'auditHistory', 'nodes')
-        expect(records.size).to eq(2)
-        expect(records.dig(0, 'objectChanges', 'gender', 'values')).to eq([['MAN'], ['QUESTIONING']])
-        expect(records.dig(1, 'objectChanges', 'gender', 'values')).to eq([nil, ['MAN']])
+        expect(records.size).to eq(3)
+        expect(records.dig(0, 'objectChanges', 'race', 'values')).to eq([nil, ['HISPANIC_LATINAEO']])
+        expect(records.dig(1, 'objectChanges', 'gender', 'values')).to eq([['MAN'], ['QUESTIONING']])
+        expect(records.dig(2, 'objectChanges', 'gender', 'values')).to eq([nil, ['MAN']]) # create
       end
     end
   end

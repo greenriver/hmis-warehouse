@@ -101,15 +101,18 @@ module Types
 
           result = result.except(*relevant_fields)
 
-          # TODO need to incorporate version.object
-          delta = [0, 1].map do |idx|
-            none_value = changes.dig(none_field, idx)
-            if none_value
-              [non_value]
-            else
+          # delta = [[old], [new]]
+          delta = [
+            version.object || {},
+            changes.transform_values(&:last),
+          ].map do |doc|
+            none_value = doc[none_field]
+            if none_value.nil? || none_value.zero?
               enum_map.base_members.
-                filter { |item| changes.dig(item[:key].to_s, idx) == 1 }.
+                filter { |item| doc[item[:key].to_s] == 1 }.
                 map { |item| item[:value] }
+            else
+              [none_value]
             end
           end
 
