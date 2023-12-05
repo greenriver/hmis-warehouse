@@ -19,12 +19,15 @@ CarrierWave.configure do |config|
 end
 
 # FIX for CVE-2023-49090
+raise unless Gem.loaded_specs['carrierwave'].version.to_s == '1.3.4'
 module CarrierWave
   module Uploader
     module ContentTypeWhitelist
       private
 
       def whitelisted_content_type?(content_type)
+
+
         Array(content_type_whitelist).any? { |item| content_type =~ /\A#{item}/ }
       end
     end
