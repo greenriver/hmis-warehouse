@@ -111,7 +111,7 @@ class User < ApplicationRecord
     permission = :can_view_assigned_reports
     ids = GrdaWarehouse::Hud::Project.viewable_by(self, permission: permission).pluck(:id)
     batch = ids.uniq.map do |item_id|
-      GrdaWarehouse::ExternalReportingProjectPermission.new(user_id: id, project_id: item_id, permission: permission)
+      GrdaWarehouse::ExternalReportingProjectPermission.new(user_id: id, email: email, project_id: item_id, permission: permission)
     end
     GrdaWarehouse::ExternalReportingProjectPermission.transaction do
       GrdaWarehouse::ExternalReportingProjectPermission.where(user_id: id).delete_all
@@ -121,7 +121,7 @@ class User < ApplicationRecord
     # Cohorts
     ids = GrdaWarehouse::Cohort.viewable_by(self).pluck(:id)
     batch = ids.uniq.map do |item_id|
-      GrdaWarehouse::ExternalReportingCohortPermission.new(user_id: id, cohort_id: item_id, permission: :can_view_cohorts)
+      GrdaWarehouse::ExternalReportingCohortPermission.new(user_id: id, email: email, cohort_id: item_id, permission: :can_view_cohorts)
     end
     GrdaWarehouse::ExternalReportingCohortPermission.transaction do
       GrdaWarehouse::ExternalReportingCohortPermission.where(user_id: id).delete_all

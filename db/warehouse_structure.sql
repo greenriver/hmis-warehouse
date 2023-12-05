@@ -7589,7 +7589,8 @@ CREATE TABLE public.external_reporting_cohort_permissions (
     cohort_id bigint NOT NULL,
     permission character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    email character varying
 );
 
 
@@ -7622,7 +7623,8 @@ CREATE TABLE public.external_reporting_project_permissions (
     project_id bigint NOT NULL,
     permission character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    email character varying
 );
 
 
@@ -60441,6 +60443,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231115170459'),
 ('20231120221840'),
 ('20231124171521'),
-('20231204134123');
+('20231204134123'),
+('20231205141010');
 
 
