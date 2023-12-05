@@ -5,21 +5,18 @@
 ###
 
 module GrdaWarehouse::Tasks
-
   # for accelerating queries asking for clients who entered homelessness within a particular date range
   class EarliestResidentialService
     include TsqlImport
     include ArelHelper
 
-    def initialize(replace_all=false, dry_run: false)
+    def initialize(replace_all = false, dry_run: false)
       @replace_all = replace_all.present?
       @dry_run = dry_run
     end
 
     def run!
-      if @replace_all
-        Rails.logger.info 'Deprecated, default run now corrects any that are incorrect'
-      end
+      Rails.logger.info 'Deprecated, default run now corrects any that are incorrect' if @replace_all
 
       Rails.logger.info 'Finding records to update'
 
@@ -31,10 +28,8 @@ module GrdaWarehouse::Tasks
       GrdaWarehouse::ServiceHistoryEnrollment.transaction do
         if @dry_run
           Rails.logger.info 'DRY RUN, not deleting records'
-        else
-          if to_remove.any?
-            GrdaWarehouse::ServiceHistoryEnrollment.first_date.where(client_id: to_remove.map(&:first)).delete_all
-          end
+        elsif to_remove.any?
+          GrdaWarehouse::ServiceHistoryEnrollment.first_date.where(client_id: to_remove.map(&:first)).delete_all
         end
 
         new_first_entries = []
