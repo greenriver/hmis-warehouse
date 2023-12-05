@@ -102,11 +102,6 @@ module HmisSqlServer
     end
   end
 
-  class EnrollmentCoc < LsaBase
-    self.table_name = :hmis_EnrollmentCoC
-    include ::HmisStructure::EnrollmentCoc
-  end
-
   class Exit < LsaBase
     self.table_name = :hmis_Exit
     include ::HmisStructure::Exit
