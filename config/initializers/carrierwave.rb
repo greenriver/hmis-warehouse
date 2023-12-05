@@ -18,6 +18,7 @@ CarrierWave.configure do |config|
   end
 end
 
+# FIX for CVE-2023-49090
 module CarrierWave
   module Uploader
     module ContentTypeWhitelist
