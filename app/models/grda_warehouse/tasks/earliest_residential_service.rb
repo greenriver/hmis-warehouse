@@ -41,6 +41,8 @@ module GrdaWarehouse::Tasks
         if to_add.any?
           to_add.each do |client_id, date|
             first_entry = service_history_source.entry.in_project_type(HudUtility2024.residential_project_type_ids).where(client_id: client_id, first_date_in_program: date).first
+            next unless first_entry.present?
+
             first_entry.record_type = 'first'
             first_entry.id = nil
             new_first_entries << first_entry.attributes.except('id')
