@@ -95,6 +95,10 @@ module PerformanceMeasurement::WarehouseReports
       end
     end
 
+    def equity_analysis
+      render :show
+    end
+
     def details_params
       params.permit(
         :key,
