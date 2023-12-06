@@ -40,14 +40,6 @@ RSpec.describe 'Client Audit History Query', type: :request do
   end
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
 
-  before(:all) do
-    @paper_trail_was = PaperTrail.enabled?
-    PaperTrail.enabled = true
-  end
-  after(:all) do
-    PaperTrail.enabled = @paper_trail_was
-  end
-
   before(:each) { hmis_login(user) }
 
   def run_query(id:)
@@ -81,8 +73,4 @@ RSpec.describe 'Client Audit History Query', type: :request do
       end
     end
   end
-end
-
-RSpec.configure do |c|
-  c.include GraphqlHelpers
 end

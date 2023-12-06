@@ -41,6 +41,7 @@ class GrdaWarehouseBase < ApplicationRecord
 
   # allows delegation of paper trail metadata
   # replicate paper_trail model_metadatum (mostly)
+  # @param key [Symbol]
   def paper_trail_meta_value(key)
     meta = self.class.paper_trail_options&.fetch(:meta)
     value = meta ? meta[key] : nil

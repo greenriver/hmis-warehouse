@@ -14,7 +14,7 @@ module Mutations
     field :success, Boolean, null: true
 
     def resolve(project_id:, enrollment_ids:, bed_night_date:, action:)
-      enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).where(id: enrollment_ids)
+      enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).where(id: enrollment_ids).preload(:client, :project)
       raise 'not found' unless enrollments.count == enrollment_ids.uniq.length
       raise 'project mismatch' unless enrollments.with_project([project_id]).size == enrollments.size
 

@@ -13,7 +13,7 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
   include ::Hmis::Hud::Concerns::ServiceHistoryQueuer
 
-  belongs_to :enrollment, **hmis_enrollment_relation, optional: true
+  belongs_to :enrollment, **hmis_enrollment_relation, optional: true, inverse_of: :services
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :services
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'

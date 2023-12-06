@@ -80,7 +80,3 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end.to change(versions, :count).by(1)
   end
 end
-
-RSpec.configure do |c|
-  c.include GraphqlHelpers
-end
