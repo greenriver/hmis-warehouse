@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
+        
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -7577,6 +7577,74 @@ CREATE SEQUENCE public.external_ids_id_seq
 --
 
 ALTER SEQUENCE public.external_ids_id_seq OWNED BY public.external_ids.id;
+
+
+--
+-- Name: external_reporting_cohort_permissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.external_reporting_cohort_permissions (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    cohort_id bigint NOT NULL,
+    permission character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    email character varying
+);
+
+
+--
+-- Name: external_reporting_cohort_permissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.external_reporting_cohort_permissions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: external_reporting_cohort_permissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.external_reporting_cohort_permissions_id_seq OWNED BY public.external_reporting_cohort_permissions.id;
+
+
+--
+-- Name: external_reporting_project_permissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.external_reporting_project_permissions (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    permission character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    email character varying
+);
+
+
+--
+-- Name: external_reporting_project_permissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.external_reporting_project_permissions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: external_reporting_project_permissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.external_reporting_project_permissions_id_seq OWNED BY public.external_reporting_project_permissions.id;
 
 
 --
@@ -17538,7 +17606,8 @@ CREATE TABLE public.hmis_dqt_current_living_situations (
     deleted_at timestamp without time zone,
     project_id integer,
     first_name character varying,
-    last_name character varying
+    last_name character varying,
+    personal_id character varying
 );
 
 
@@ -18475,7 +18544,7 @@ CREATE VIEW public.hmis_services AS
     "Services"."EnrollmentID",
     "Services"."PersonalID",
     "Services"."DateProvided",
-    "Services"."UserID",
+    ("Services"."UserID")::character varying AS "UserID",
     "Services"."DateCreated",
     "Services"."DateUpdated",
     "Services"."DateDeleted",
@@ -20047,6 +20116,39 @@ ALTER SEQUENCE public.hud_report_pit_clients_id_seq OWNED BY public.hud_report_p
 
 
 --
+-- Name: hud_report_spm_bed_nights; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_spm_bed_nights (
+    id bigint NOT NULL,
+    date date,
+    episode_id bigint,
+    service_id bigint,
+    enrollment_id bigint,
+    client_id bigint
+);
+
+
+--
+-- Name: hud_report_spm_bed_nights_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_spm_bed_nights_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_spm_bed_nights_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_spm_bed_nights_id_seq OWNED BY public.hud_report_spm_bed_nights.id;
+
+
+--
 -- Name: hud_report_spm_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -20138,6 +20240,158 @@ CREATE SEQUENCE public.hud_report_spm_clients_id_seq
 --
 
 ALTER SEQUENCE public.hud_report_spm_clients_id_seq OWNED BY public.hud_report_spm_clients.id;
+
+
+--
+-- Name: hud_report_spm_enrollment_links; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_spm_enrollment_links (
+    id bigint NOT NULL,
+    enrollment_id bigint,
+    episode_id bigint
+);
+
+
+--
+-- Name: hud_report_spm_enrollment_links_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_spm_enrollment_links_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_spm_enrollment_links_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_spm_enrollment_links_id_seq OWNED BY public.hud_report_spm_enrollment_links.id;
+
+
+--
+-- Name: hud_report_spm_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_spm_enrollments (
+    id bigint NOT NULL,
+    first_name character varying,
+    last_name character varying,
+    personal_id character varying,
+    data_source_id integer,
+    start_of_homelessness date,
+    entry_date date,
+    exit_date date,
+    move_in_date date,
+    project_type integer,
+    eligible_funding boolean,
+    prior_living_situation integer,
+    length_of_stay integer,
+    los_under_threshold boolean,
+    previous_street_essh boolean,
+    destination integer,
+    age integer,
+    previous_earned_income integer,
+    previous_non_employment_income_ integer,
+    previous_total_income integer,
+    current_earned_income integer,
+    current_non_employment_income integer,
+    current_total_income integer,
+    report_instance_id bigint,
+    client_id bigint,
+    previous_income_benefits_id bigint,
+    current_income_benefits_id bigint,
+    enrollment_id bigint
+);
+
+
+--
+-- Name: hud_report_spm_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_spm_enrollments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_spm_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_spm_enrollments_id_seq OWNED BY public.hud_report_spm_enrollments.id;
+
+
+--
+-- Name: hud_report_spm_episodes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_spm_episodes (
+    id bigint NOT NULL,
+    first_date date,
+    last_date date,
+    days_homeless integer,
+    literally_homeless_at_entry boolean,
+    client_id bigint
+);
+
+
+--
+-- Name: hud_report_spm_episodes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_spm_episodes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_spm_episodes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_spm_episodes_id_seq OWNED BY public.hud_report_spm_episodes.id;
+
+
+--
+-- Name: hud_report_spm_returns; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_spm_returns (
+    id bigint NOT NULL,
+    exit_date date,
+    return_date date,
+    exit_destination integer,
+    exit_enrollment_id bigint,
+    return_enrollment_id bigint,
+    client_id bigint
+);
+
+
+--
+-- Name: hud_report_spm_returns_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_spm_returns_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_spm_returns_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_spm_returns_id_seq OWNED BY public.hud_report_spm_returns.id;
 
 
 --
@@ -25216,6 +25470,13 @@ CREATE TABLE public.versions (
 
 
 --
+-- Name: COLUMN versions.migrated_app_version_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.versions.migrated_app_version_id IS 'app database version record';
+
+
+--
 -- Name: versions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -26660,6 +26921,20 @@ ALTER TABLE ONLY public.exports_ad_hocs ALTER COLUMN id SET DEFAULT nextval('pub
 --
 
 ALTER TABLE ONLY public.external_ids ALTER COLUMN id SET DEFAULT nextval('public.external_ids_id_seq'::regclass);
+
+
+--
+-- Name: external_reporting_cohort_permissions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_reporting_cohort_permissions ALTER COLUMN id SET DEFAULT nextval('public.external_reporting_cohort_permissions_id_seq'::regclass);
+
+
+--
+-- Name: external_reporting_project_permissions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_reporting_project_permissions ALTER COLUMN id SET DEFAULT nextval('public.external_reporting_project_permissions_id_seq'::regclass);
 
 
 --
@@ -28245,10 +28520,45 @@ ALTER TABLE ONLY public.hud_report_pit_clients ALTER COLUMN id SET DEFAULT nextv
 
 
 --
+-- Name: hud_report_spm_bed_nights id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_bed_nights ALTER COLUMN id SET DEFAULT nextval('public.hud_report_spm_bed_nights_id_seq'::regclass);
+
+
+--
 -- Name: hud_report_spm_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hud_report_spm_clients ALTER COLUMN id SET DEFAULT nextval('public.hud_report_spm_clients_id_seq'::regclass);
+
+
+--
+-- Name: hud_report_spm_enrollment_links id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_enrollment_links ALTER COLUMN id SET DEFAULT nextval('public.hud_report_spm_enrollment_links_id_seq'::regclass);
+
+
+--
+-- Name: hud_report_spm_enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_enrollments ALTER COLUMN id SET DEFAULT nextval('public.hud_report_spm_enrollments_id_seq'::regclass);
+
+
+--
+-- Name: hud_report_spm_episodes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_episodes ALTER COLUMN id SET DEFAULT nextval('public.hud_report_spm_episodes_id_seq'::regclass);
+
+
+--
+-- Name: hud_report_spm_returns id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_returns ALTER COLUMN id SET DEFAULT nextval('public.hud_report_spm_returns_id_seq'::regclass);
 
 
 --
@@ -30275,6 +30585,22 @@ ALTER TABLE ONLY public.external_ids
 
 
 --
+-- Name: external_reporting_cohort_permissions external_reporting_cohort_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_reporting_cohort_permissions
+    ADD CONSTRAINT external_reporting_cohort_permissions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: external_reporting_project_permissions external_reporting_project_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_reporting_project_permissions
+    ADD CONSTRAINT external_reporting_project_permissions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: external_request_logs external_request_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -32083,11 +32409,51 @@ ALTER TABLE ONLY public.hud_report_pit_clients
 
 
 --
+-- Name: hud_report_spm_bed_nights hud_report_spm_bed_nights_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_bed_nights
+    ADD CONSTRAINT hud_report_spm_bed_nights_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hud_report_spm_clients hud_report_spm_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hud_report_spm_clients
     ADD CONSTRAINT hud_report_spm_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_report_spm_enrollment_links hud_report_spm_enrollment_links_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_enrollment_links
+    ADD CONSTRAINT hud_report_spm_enrollment_links_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_report_spm_enrollments hud_report_spm_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_enrollments
+    ADD CONSTRAINT hud_report_spm_enrollments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_report_spm_episodes hud_report_spm_episodes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_episodes
+    ADD CONSTRAINT hud_report_spm_episodes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_report_spm_returns hud_report_spm_returns_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_returns
+    ADD CONSTRAINT hud_report_spm_returns_pkey PRIMARY KEY (id);
 
 
 --
@@ -50898,6 +51264,34 @@ CREATE INDEX index_external_ids_on_value ON public.external_ids USING btree (val
 
 
 --
+-- Name: index_external_reporting_cohort_permissions_on_cohort_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_reporting_cohort_permissions_on_cohort_id ON public.external_reporting_cohort_permissions USING btree (cohort_id);
+
+
+--
+-- Name: index_external_reporting_cohort_permissions_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_reporting_cohort_permissions_on_user_id ON public.external_reporting_cohort_permissions USING btree (user_id);
+
+
+--
+-- Name: index_external_reporting_project_permissions_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_reporting_project_permissions_on_project_id ON public.external_reporting_project_permissions USING btree (project_id);
+
+
+--
+-- Name: index_external_reporting_project_permissions_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_reporting_project_permissions_on_user_id ON public.external_reporting_project_permissions USING btree (user_id);
+
+
+--
 -- Name: index_external_request_logs_on_initiator; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -52736,6 +53130,111 @@ CREATE INDEX index_hud_report_pit_clients_on_data_source_id ON public.hud_report
 --
 
 CREATE INDEX index_hud_report_pit_clients_on_report_instance_id ON public.hud_report_pit_clients USING btree (report_instance_id);
+
+
+--
+-- Name: index_hud_report_spm_bed_nights_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_bed_nights_on_client_id ON public.hud_report_spm_bed_nights USING btree (client_id);
+
+
+--
+-- Name: index_hud_report_spm_bed_nights_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_bed_nights_on_enrollment_id ON public.hud_report_spm_bed_nights USING btree (enrollment_id);
+
+
+--
+-- Name: index_hud_report_spm_bed_nights_on_episode_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_bed_nights_on_episode_id ON public.hud_report_spm_bed_nights USING btree (episode_id);
+
+
+--
+-- Name: index_hud_report_spm_bed_nights_on_service_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_bed_nights_on_service_id ON public.hud_report_spm_bed_nights USING btree (service_id);
+
+
+--
+-- Name: index_hud_report_spm_enrollment_links_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_enrollment_links_on_enrollment_id ON public.hud_report_spm_enrollment_links USING btree (enrollment_id);
+
+
+--
+-- Name: index_hud_report_spm_enrollment_links_on_episode_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_enrollment_links_on_episode_id ON public.hud_report_spm_enrollment_links USING btree (episode_id);
+
+
+--
+-- Name: index_hud_report_spm_enrollments_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_enrollments_on_client_id ON public.hud_report_spm_enrollments USING btree (client_id);
+
+
+--
+-- Name: index_hud_report_spm_enrollments_on_current_income_benefits_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_enrollments_on_current_income_benefits_id ON public.hud_report_spm_enrollments USING btree (current_income_benefits_id);
+
+
+--
+-- Name: index_hud_report_spm_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_enrollments_on_enrollment_id ON public.hud_report_spm_enrollments USING btree (enrollment_id);
+
+
+--
+-- Name: index_hud_report_spm_enrollments_on_previous_income_benefits_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_enrollments_on_previous_income_benefits_id ON public.hud_report_spm_enrollments USING btree (previous_income_benefits_id);
+
+
+--
+-- Name: index_hud_report_spm_enrollments_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_enrollments_on_report_instance_id ON public.hud_report_spm_enrollments USING btree (report_instance_id);
+
+
+--
+-- Name: index_hud_report_spm_episodes_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_episodes_on_client_id ON public.hud_report_spm_episodes USING btree (client_id);
+
+
+--
+-- Name: index_hud_report_spm_returns_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_returns_on_client_id ON public.hud_report_spm_returns USING btree (client_id);
+
+
+--
+-- Name: index_hud_report_spm_returns_on_exit_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_returns_on_exit_enrollment_id ON public.hud_report_spm_returns USING btree (exit_enrollment_id);
+
+
+--
+-- Name: index_hud_report_spm_returns_on_return_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_returns_on_return_enrollment_id ON public.hud_report_spm_returns USING btree (return_enrollment_id);
 
 
 --
@@ -57786,6 +58285,13 @@ CREATE UNIQUE INDEX spm_client_conflict_columns ON public.hud_report_spm_clients
 
 
 --
+-- Name: spm_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX spm_p_id_ds_id ON public.hud_report_spm_enrollments USING btree (personal_id, data_source_id);
+
+
+--
 -- Name: taggings_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -59916,6 +60422,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231004203202'),
 ('20231009121430'),
 ('20231009190301'),
+('20231011143621'),
 ('20231012131855'),
 ('20231013190301'),
 ('20231014150301'),
@@ -59936,4 +60443,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231114235529'),
 ('20231115170459'),
 ('20231120221840'),
-('20231124171521');
+('20231124171521'),
+('20231204134123'),
+('20231205141010'),
+('20231206200436');
+
+

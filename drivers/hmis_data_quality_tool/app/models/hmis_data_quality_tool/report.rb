@@ -230,6 +230,8 @@ module HmisDataQualityTool
       @pivot_details ||= OpenStruct.new.tap do |struct|
         struct.groups = result_groups.except('Inventory')
         struct.lookup = (
+          # NOTE: anything added here must have personal_id and data_source_id columns
+          # or some views will break
           Client.sections(self).map { |k, v| [k, v[:title]] } +
             Enrollment.sections(self).map { |k, v| [k, v[:title]] } +
             CurrentLivingSituation.sections(self).map { |k, v| [k, v[:title]] }
