@@ -26,8 +26,6 @@ module GrdaWarehouse
     validates_presence_of :effective_date, on: :requires_expiration_and_effective_dates, message: 'Effective date is required'
     validates_presence_of :expiration_date, on: :requires_expiration_and_effective_dates, message: 'Expiration date is required'
 
-    # validates_presence_of :enrollment_id, if: :confidential?
-
     scope :confidential, -> do
       where(confidential: true)
     end
@@ -48,8 +46,10 @@ module GrdaWarehouse
 
       confidential_no_enrollment_scope = confidential.where(enrollment_id: nil)
       ids = user.viewable_project_ids(permission)
+
       # If have a set (not a nil) and it's empty, this user can't access any projects
-      return confidential_no_enrollment_scope if ids.is_a?(Set) && ids.empty?
+      raise 'Unexpected response from user.viewable_project_ids' unless ids.is_a?(Set)
+      return confidential_no_enrollment_scope if ids.empty?
 
       confidential_with_enrollment_scope = confidential.joins(enrollment: :project).
         merge(GrdaWarehouse::Hud::Project.where(id: ids)).select(:id)
