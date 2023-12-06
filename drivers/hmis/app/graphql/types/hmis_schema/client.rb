@@ -104,7 +104,7 @@ module Types
           # delta = [[old], [new]]
           delta = [
             version.object || {},
-            changes.transform_values(&:last),
+            version.object_with_changes,
           ].map do |doc|
             none_value = doc[none_field]
             if none_value.nil? || none_value.zero?
