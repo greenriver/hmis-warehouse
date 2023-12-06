@@ -766,6 +766,7 @@ enum ClientAddressUse {
 type ClientAuditEvent {
   createdAt: ISO8601DateTime!
   event: AuditEventType!
+  graphqlType: String!
   id: ID!
 
   """
@@ -2896,6 +2897,7 @@ type EnrollmentAccess {
 type EnrollmentAuditEvent {
   createdAt: ISO8601DateTime!
   event: AuditEventType!
+  graphqlType: String!
   id: ID!
 
   """

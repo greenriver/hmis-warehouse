@@ -36,6 +36,7 @@ module Types
     field :id, ID, null: false
     field :record_id, ID, null: false, method: :item_id
     field :record_name, String, null: false
+    field :graphql_type, String, null: false
     field :event, HmisSchema::Enums::AuditEventType, null: false
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :user, Application::User, null: true
@@ -49,8 +50,27 @@ module Types
         'CE Assessment'
       when 'Hmis::Hud::Event'
         'CE Event'
+      when 'Hmis::Hud::CustomClientAddress'
+        values = object.object || {}
+        return 'Move in address' if values['enrollment_address_type'] == Hmis::Hud::CustomClientAddress::ENROLLMENT_MOVE_IN_TYPE
+
+        'Address'
       else
         object.item_type.demodulize.gsub(/^CustomClient/, '').underscore.humanize.titleize
+      end
+    end
+
+    def graphql_type
+      # maybe there's a way to map these from codegen?
+      case object.item_type
+      when 'Hmis::Hud::CustomAssessment'
+        'Assessment'
+      when 'Hmis::Hud::Assessment'
+        'CeAssessment'
+      when 'Hmis::Hud::CeParticipation'
+        'CeParticipation'
+      else
+        object.item_type.demodulize
       end
     end
 
