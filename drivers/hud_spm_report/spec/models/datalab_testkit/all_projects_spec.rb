@@ -24,53 +24,53 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       puts "Finished SPM Run Data Lab TestKit #{Time.current}"
     end
 
-    it 'Measure 1a' do
+    # it 'Measure 1a' do
+    #   compare_results(
+    #     file_path: result_file_prefix + 'spm',
+    #     question: '1a',
+    #     detail_columns: [
+    #       :last_name,
+    #       :first_name,
+    #       :data_lab_public_id,
+    #       :m1a_es_sh_days,
+    #       :m1a_es_sh_th_days,
+    #     ],
+    #   )
+    # end
+
+    # it 'Measure 1b' do
+    #   compare_results(
+    #     file_path: result_file_prefix + 'spm',
+    #     question: '1b',
+    #     detail_columns: [
+    #       :last_name,
+    #       :first_name,
+    #       :data_lab_public_id,
+    #       :m1b_es_sh_ph_days,
+    #       :m1b_es_sh_th_ph_days,
+    #     ],
+    #   )
+    # end
+
+    #   # Pending AAQ: [SPM] All Projects - Data lab test kit Measures 2 and 5 - historic data missing - submitted 10/4/2022
+    #   xit 'Measure 2' do
+    #     compare_results(
+    #       file_path: result_file_prefix + 'spm',
+    #       question: '2',
+    #     )
+    #   end
+
+    it 'Measure 3.2' do
       compare_results(
         file_path: result_file_prefix + 'spm',
-        question: '1a',
-        detail_columns: [
-          :last_name,
-          :first_name,
-          :data_lab_public_id,
-          :m1a_es_sh_days,
-          :m1a_es_sh_th_days,
+        question: '3.2',
+        # Pending AAQ: [SPM] All Projects - Data lab test kit Measure 3 - missing client - submitted 10/4/2022
+        skip: [
+          'C2',
+          'C5',
         ],
       )
     end
-
-    it 'Measure 1b' do
-      compare_results(
-        file_path: result_file_prefix + 'spm',
-        question: '1b',
-        detail_columns: [
-          :last_name,
-          :first_name,
-          :data_lab_public_id,
-          :m1b_es_sh_ph_days,
-          :m1b_es_sh_th_ph_days,
-        ],
-      )
-    end
-
-  #   # Pending AAQ: [SPM] All Projects - Data lab test kit Measures 2 and 5 - historic data missing - submitted 10/4/2022
-  #   xit 'Measure 2' do
-  #     compare_results(
-  #       file_path: result_file_prefix + 'spm',
-  #       question: '2',
-  #     )
-  #   end
-
-  #   it 'Measure 3.2' do
-  #     compare_results(
-  #       file_path: result_file_prefix + 'spm',
-  #       question: '3.2',
-  #       # Pending AAQ: [SPM] All Projects - Data lab test kit Measure 3 - missing client - submitted 10/4/2022
-  #       skip: [
-  #         'C2',
-  #         'C5',
-  #       ],
-  #     )
-  #   end
 
   #   it 'Measure 4.1' do
   #     compare_results(
