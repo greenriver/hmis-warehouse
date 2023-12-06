@@ -16,6 +16,7 @@ module HmisCsvTwentyTwentyFour::Exporter
     def process(row)
       row = assign_export_id(row)
       row = self.class.adjust_keys(row, @options[:export])
+      row = enforce_lengths(row)
 
       row
     end

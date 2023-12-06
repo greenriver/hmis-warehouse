@@ -110,9 +110,9 @@ module HmisCsvTwentyTwentyFour::Exporter::ExportConcern
     end
 
     def process(row)
-      row = enforce_lengths(row)
       row = assign_export_id(row)
       row = self.class.adjust_keys(row)
+      row = enforce_lengths(row)
 
       row
     end
@@ -121,7 +121,7 @@ module HmisCsvTwentyTwentyFour::Exporter::ExportConcern
       length_limited_columns.each do |k, opts|
         next if row[k].blank? || row[k].length <= opts[:limit]
 
-        row[k] = row[k][0..opts[:limit]]
+        row[k] = row[k][0...opts[:limit]]
       end
       row
     end
