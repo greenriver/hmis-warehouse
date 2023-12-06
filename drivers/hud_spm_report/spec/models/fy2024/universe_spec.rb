@@ -44,7 +44,7 @@ RSpec.describe 'HUD SPM Universe', type: :model do
 
     it 'computes a return' do
       client = GrdaWarehouse::Hud::Client.destination.first
-      return_to_homelessness = HudSpmReport::Fy2024::Return.new(report: @report_result, client: client).compute_return
+      return_to_homelessness = HudSpmReport::Fy2024::Return.new(report_instance: @report_result, client: client).compute_return
 
       expect(return_to_homelessness.return_date).to eq '2022-05-01'.to_date
     end
