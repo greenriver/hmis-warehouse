@@ -630,7 +630,7 @@ module HudUtility2024
       },
       161 => {
         list: ::HudUtility2024.path_referral_options,
-        label_method: :path_referral_options,
+        label_method: :path_referral,
       },
       200 => {
         list: ::HudUtility2024.bed_night_options,
