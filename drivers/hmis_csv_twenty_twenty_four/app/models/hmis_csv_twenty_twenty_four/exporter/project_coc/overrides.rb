@@ -33,11 +33,6 @@ module HmisCsvTwentyTwentyFour::Exporter
       ].each do |settings|
         row = simple_override(row, **settings)
       end
-
-      # Technical limit of HMIS spec
-      row.Address1 = row.Address1[0...100] if row.Address1
-      row.Address2 = row.Address2[0...100] if row.Address2
-      row.City = row.City[0...50] if row.City
       row.Zip = row.Zip.to_s.rjust(5, '0')[0...5] if row.Zip
 
       row
