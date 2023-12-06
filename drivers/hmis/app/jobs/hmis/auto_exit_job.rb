@@ -13,7 +13,7 @@ module Hmis
         raise "Auto-exit config unusually low: #{config.length_of_absence_days}" if config.length_of_absence_days < 30
 
         project.enrollments.open_excluding_wip.each do |enrollment|
-          most_recent_contact = if project.project_type == 1 # Night-by-night Emergency Shelter
+          most_recent_contact = if project.es_nbn? # Night-by-night Emergency Shelter
             enrollment.services.bed_nights.order(:date_provided).last
           else
             [
