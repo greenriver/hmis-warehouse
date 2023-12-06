@@ -297,5 +297,12 @@ module Types
         where(custom_service_type: cst, data_source_id: current_user.hmis_data_source_id).
         preload(:project, :client, :organization)
     end
+
+    field :form_rules, Types::Admin::FormRule.page_type, null: false
+    def form_rules
+      raise 'not allowed' unless current_user.can_configure_data_collection?
+
+      Hmis::Form::Instance.all.order(:definition_identifier)
+    end
   end
 end

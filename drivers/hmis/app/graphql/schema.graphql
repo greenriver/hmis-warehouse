@@ -3693,6 +3693,34 @@ enum FormRole {
   UPDATE
 }
 
+type FormRule {
+  active: Boolean!
+  createdAt: ISO8601DateTime!
+  dataCollectedAbout: DataCollectedAbout
+  definition: FormDefinition!
+  definitionIdentifier: String!
+  funder: FundingSource
+  id: ID!
+  organization: Organization
+  otherFunder: String
+  project: Project
+  projectType: ProjectType
+  serviceCategory: ServiceCategory
+  serviceType: ServiceType
+  system: Boolean!
+  updatedAt: ISO8601DateTime!
+}
+
+type FormRulesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [FormRule!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
 type Funder {
   active: Boolean!
   customDataElements: [CustomDataElement!]!
@@ -7813,6 +7841,7 @@ type Query {
   enrollment(id: ID!): Enrollment
   esgFundingReport(clientIds: [ID!]!): [EsgFundingService!]!
   file(id: ID!): File
+  formRules(limit: Int, offset: Int): FormRulesPaginated!
 
   """
   Funder lookup
@@ -7889,6 +7918,7 @@ type QueryAccess {
   canAdministerHmis: Boolean!
   canAuditClients: Boolean!
   canAuditUsers: Boolean!
+  canConfigureDataCollection: Boolean!
   canDeleteAssessments: Boolean!
   canDeleteClients: Boolean!
   canDeleteEnrollments: Boolean!
@@ -8879,6 +8909,15 @@ type Service {
   referralOutcome: PATHReferralOutcome
   serviceType: ServiceType!
   subTypeProvided: ServiceSubTypeProvided
+  user: ApplicationUser
+}
+
+type ServiceCategory {
+  dateCreated: ISO8601DateTime
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime
+  id: ID!
+  name: String!
   user: ApplicationUser
 }
 
