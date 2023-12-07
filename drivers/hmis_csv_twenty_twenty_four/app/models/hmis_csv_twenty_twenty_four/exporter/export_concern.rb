@@ -119,11 +119,12 @@ module HmisCsvTwentyTwentyFour::Exporter::ExportConcern
 
     def enforce_lengths(row)
       length_limited_columns.each do |k, opts|
-        next if row[k].blank? || ! row[k].is_a?(String)
+        next if row[k].blank?
+        next unless row[k].is_a?(String)
 
         # Remove returns, they aren't counted correctly in the length calculation
         row[k] = row[k].gsub("\n", ' ')
-        next unless row[k].length <= opts[:limit]
+        next if row[k].length <= opts[:limit]
 
         row[k] = row[k][0...opts[:limit]]
       end
