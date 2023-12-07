@@ -26,8 +26,6 @@ module GrdaWarehouse
     validates_presence_of :effective_date, on: :requires_expiration_and_effective_dates, message: 'Effective date is required'
     validates_presence_of :expiration_date, on: :requires_expiration_and_effective_dates, message: 'Expiration date is required'
 
-    validates_presence_of :enrollment_id, if: :confidential?
-
     scope :confidential, -> do
       where(confidential: true)
     end
@@ -40,16 +38,24 @@ module GrdaWarehouse
       where(visible_in_window: true)
     end
 
+    # Confidential files are visible by users who have access to confidential files at the associated project,
+    # OR if the file does not have an associated enrollment and the user can view some confidential files
     scope :confidential_visible_by, ->(user) do
       permission = :can_see_confidential_files
       return none unless user&.send("#{permission}?")
 
+      confidential_no_enrollment_scope = confidential.where(enrollment_id: nil)
       ids = user.viewable_project_ids(permission)
-      # If have a set (not a nil) and it's empty, this user can't access any projects
-      return none if ids.is_a?(Set) && ids.empty?
 
-      confidential.joins(enrollment: :project).
-        merge(GrdaWarehouse::Hud::Project.where(id: ids))
+      # If have a set (not a nil) and it's empty, this user can't access any projects
+      raise 'Unexpected response from user.viewable_project_ids' unless ids.is_a?(Set)
+      return confidential_no_enrollment_scope if ids.empty?
+
+      confidential_with_enrollment_scope = confidential.joins(enrollment: :project).
+        merge(GrdaWarehouse::Hud::Project.where(id: ids)).select(:id)
+
+      where(id: confidential_with_enrollment_scope).
+        or(where(id: confidential_no_enrollment_scope.select(:id)))
     end
 
     scope :visible_by?, ->(user) do
