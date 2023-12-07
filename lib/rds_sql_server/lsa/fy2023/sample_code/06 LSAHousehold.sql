@@ -429,10 +429,10 @@ FY2023 Changes
 			 where hhid.Active = 1 and hhid.ActiveHHType = hh.HHType and hhid.HoHID = hh.HoHID
 				and hhid.LSAProjectType in (0,1,2,8)), 0)
 		, ESTFleeingDV = coalesce (
-			(select max(hhid.HHFleeingDV)
+			(select min(hhid.HHFleeingDV)
 			 from tlsa_HHID hhid 
 			 where hhid.Active = 1 and hhid.ActiveHHType = hh.HHType and hhid.HoHID = hh.HoHID
-				and hhid.LSAProjectType in (0,1,2,8)), 0)
+				and hhid.LSAProjectType in (0,1,2,8) and hhid.HHFleeingDV > 0), 0)
 		, ESTParent = coalesce (
 			(select max(hhid.HHParent)
 			 from tlsa_HHID hhid 
@@ -481,10 +481,10 @@ FY2023 Changes
 			 where hhid.Active = 1 and hhid.ActiveHHType = hh.HHType and hhid.HoHID = hh.HoHID
 				and hhid.LSAProjectType = 13), 0)
 		, RRHFleeingDV = coalesce (
-			(select max(hhid.HHFleeingDV)
+			(select min(hhid.HHFleeingDV)
 			 from tlsa_HHID hhid 
 			 where hhid.Active = 1 and hhid.ActiveHHType = hh.HHType and hhid.HoHID = hh.HoHID
-				and hhid.LSAProjectType = 13), 0)
+				and hhid.LSAProjectType = 13 and hhid.HHFleeingDV > 0), 0)
 		, RRHParent = coalesce (
 			(select max(hhid.HHParent)
 			 from tlsa_HHID hhid 
@@ -532,10 +532,10 @@ FY2023 Changes
 			 where hhid.Active = 1 and hhid.ActiveHHType = hh.HHType and hhid.HoHID = hh.HoHID
 				and hhid.LSAProjectType = 3), 0)
 		, PSHFleeingDV = coalesce (
-			(select max(hhid.HHFleeingDV)
+			(select min(hhid.HHFleeingDV)
 			 from tlsa_HHID hhid 
 			 where hhid.Active = 1 and hhid.ActiveHHType = hh.HHType and hhid.HoHID = hh.HoHID
-				and hhid.LSAProjectType = 3), 0)
+				and hhid.LSAProjectType = 3 and hhid.HHFleeingDV > 0), 0)
 		, PSHParent = coalesce (
 			(select max(hhid.HHParent)
 			 from tlsa_HHID hhid 
@@ -804,33 +804,25 @@ FY2023 Changes
 	from tlsa_Household hh
 
 	insert into sys_Time (HoHID, HHType, sysDate, sysStatus, Step)
-	select distinct hh.HoHID, hh.HHType, cal.theDate, 7
+	select distinct other3917.HoHID, other3917.HHType, cal.theDate, 7
 		, '6.14.2'
-	from tlsa_Household hh 
-	inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
-		and hhid.EntryDate > hh.LastInactive 
-	inner join hmis_Enrollment hn on hn.EnrollmentID = hhid.EnrollmentID
-	inner join lsa_Report rpt on rpt.ReportEnd >= hhid.EntryDate
-	inner join ref_Calendar cal on 
-		cal.theDate >= hn.DateToStreetESSH
-		and cal.theDate < hn.EntryDate
-		and cal.theDate > hh.LastInactive
-		and cal.theDate >= rpt.LookbackDate
-	left outer join sys_Time other on other.HoHID = hh.HoHID and other.HHType = hh.HHType
-		and other.sysDate = cal.theDate
-	where other.sysDate is null and hhid.EnrollmentID in 
-			(select top 1 hn.EnrollmentID
-			from tlsa_HHID hhid 
-			inner join hmis_Enrollment hn on hn.EnrollmentID = hhid.EnrollmentID
-			where hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
-				and hhid.EntryDate > hh.LastInactive
-				and hn.DateToStreetESSH <= hh.LastInactive 
-				and (hhid.LSAProjectType in (0,1,8)
-					or hn.LivingSituation between 100 and 199
-					or (hn.LengthOfStay in (10,11) and hn.PreviousStreetESSH = 1)
-					or (hn.LivingSituation between 200 and 299
-						and hn.LengthOfStay in (2,3) and hn.PreviousStreetESSH = 1))
-			order by hn.DateToStreetESSH asc)
+	from ref_Calendar cal
+	inner join (select hh.HoHID, hh.HHType
+			, case when hn.DateToStreetESSH >= hh.LastInactive then hn.DateToStreetESSH else hh.LastInactive end as StartDate
+			, hn.EntryDate as EndDate
+		from tlsa_Household hh 
+		inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
+		inner join hmis_Enrollment hn on hn.EnrollmentID = hhid.EnrollmentID
+		where hhid.EntryDate > hh.LastInactive
+			and (hhid.LSAProjectType in (0,1,8)
+				or hn.LivingSituation between 100 and 199
+				or (hn.LengthOfStay in (10,11) and hn.PreviousStreetESSH = 1)
+				or (hn.LivingSituation between 200 and 299
+					and hn.LengthOfStay in (2,3) and hn.PreviousStreetESSH = 1))
+		) other3917 on other3917.StartDate <= cal.theDate and other3917.EndDate > cal.theDate
+	left outer join sys_Time priorStat on priorStat.HoHID = other3917.HoHID and priorStat.HHType = other3917.HHType
+		and priorStat.sysDate = cal.theDate
+	where priorStat.sysDate is null 
 
 /*
 	6.15 Set System Use Days for LSAHousehold
