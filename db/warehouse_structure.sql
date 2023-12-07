@@ -20303,7 +20303,10 @@ CREATE TABLE public.hud_report_spm_returns (
     exit_destination integer,
     exit_enrollment_id bigint,
     return_enrollment_id bigint,
-    client_id bigint
+    client_id bigint,
+    report_instance_id bigint,
+    days_to_return integer,
+    project_type integer
 );
 
 
@@ -53976,6 +53979,13 @@ CREATE INDEX index_hud_report_spm_returns_on_exit_enrollment_id ON public.hud_re
 
 
 --
+-- Name: index_hud_report_spm_returns_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_returns_on_report_instance_id ON public.hud_report_spm_returns USING btree (report_instance_id);
+
+
+--
 -- Name: index_hud_report_spm_returns_on_return_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -62097,6 +62107,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231115170459'),
 ('20231120221840'),
 ('20231124171521'),
-('20231201154136');
+('20231201154136'),
+('20231206205805'),
+('20231207161830');
 
 

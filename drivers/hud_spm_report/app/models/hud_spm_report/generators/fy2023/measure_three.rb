@@ -7,7 +7,7 @@
 # HUD SPM Report Generator: Measure 2a and 2b: The Extent to which Persons Who Exit Homelessness
 # to Permanent Housing Destinations Return to Homelessness within 6, 12,
 # and 24 months.
-module HudSpmReport::Generators::Fy2024
+module HudSpmReport::Generators::Fy2023
   class MeasureThree < MeasureBase
     include ArelHelper
 
@@ -100,7 +100,7 @@ module HudSpmReport::Generators::Fy2024
       open_enrollments = enrollment_set.open_during_range(filter.range)
       open_ee_enrollments = open_enrollments.where.not(project_type: HudUtility2024.project_type_number_from_code(:es_nbn))
 
-      ee_enrollments = HudSpmReport::Fy2024::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, scope: open_ee_enrollments)
+      ee_enrollments = HudSpmReport::Fy2023::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, scope: open_ee_enrollments)
       members = ee_enrollments.map do |enrollment|
         [enrollment.client, enrollment]
       end.to_h
@@ -110,7 +110,7 @@ module HudSpmReport::Generators::Fy2024
         with_bed_night_in_range(filter.range).
         where(project_type: HudUtility2024.project_type_number_from_code(:es_nbn)).
         where.not(client_id: ee_enrollments.select(:client_id))
-      nbn_enrollments = HudSpmReport::Fy2024::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, scope: open_nbn_enrollments)
+      nbn_enrollments = HudSpmReport::Fy2023::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, scope: open_nbn_enrollments)
 
       members = nbn_enrollments.map do |enrollment|
         [enrollment.client, enrollment]

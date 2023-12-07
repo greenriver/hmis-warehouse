@@ -7,7 +7,7 @@
 # HUD SPM Report Generator: Measure 2a and 2b: The Extent to which Persons Who Exit Homelessness
 # to Permanent Housing Destinations Return to Homelessness within 6, 12,
 # and 24 months.
-module HudSpmReport::Generators::Fy2024
+module HudSpmReport::Generators::Fy2023
   class MeasureSeven < MeasureBase
     def self.question_number
       'Measure 7'.freeze
@@ -171,7 +171,7 @@ module HudSpmReport::Generators::Fy2024
       so_enrollments = enrollment_set.open_during_range(filter.range).where(project_type: HudUtility2024.project_type_number_from_code(:so))
       stayers = so_enrollments.where(spm_e_t[:exit_date].eq(nil).or(spm_e_t[:exit_date].gt(filter.end)))
       leavers = so_enrollments.where.not(id: stayers.select(:id))
-      enrollments = HudSpmReport::Fy2024::SpmEnrollment.one_for_column(:exit_date, source_arel_table: spm_e_t, group_on: :client_id, scope: leavers)
+      enrollments = HudSpmReport::Fy2023::SpmEnrollment.one_for_column(:exit_date, source_arel_table: spm_e_t, group_on: :client_id, scope: leavers)
       enrollments = enrollments.where.not(spm_e_t[:destination].in(M7A_REJECTED))
 
       members = enrollments.map do |enrollment|
@@ -189,7 +189,7 @@ module HudSpmReport::Generators::Fy2024
       open_enrollments = enrollment_set.open_during_range(filter.range).where(project_type: project_types)
       stayers = open_enrollments.where(spm_e_t[:exit_date].eq(nil).or(spm_e_t[:exit_date].gt(filter.end)))
       leavers = open_enrollments.where.not(id: stayers.select(:id))
-      enrollments = HudSpmReport::Fy2024::SpmEnrollment.one_for_column(:exit_date, source_arel_table: spm_e_t, group_on: :client_id, scope: leavers)
+      enrollments = HudSpmReport::Fy2023::SpmEnrollment.one_for_column(:exit_date, source_arel_table: spm_e_t, group_on: :client_id, scope: leavers)
       ph_not_rrh = HudUtility2024.project_type_number_from_code(:ph) - HudUtility2024.project_type_number_from_code(:rrh)
       enrollments = enrollments.where.not(spm_e_t[:project_type].in(ph_not_rrh).
         and(spm_e_t[:move_in_date].not_eq(nil).and(spm_e_t[:move_in_date].lteq(filter.end))))
@@ -209,10 +209,10 @@ module HudSpmReport::Generators::Fy2024
       ph_not_rrh = HudUtility2024.project_type_number_from_code(:ph) - HudUtility2024.project_type_number_from_code(:rrh)
       open_enrollments = enrollment_set.open_during_range(filter.range).where(project_type: ph_not_rrh)
       stayers = open_enrollments.where(spm_e_t[:exit_date].eq(nil).or(spm_e_t[:exit_date].gt(filter.end)))
-      latest_stays = HudSpmReport::Fy2024::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, scope: stayers)
+      latest_stays = HudSpmReport::Fy2023::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, scope: stayers)
       exclude = latest_stays.where(spm_e_t[:move_in_date].not_eq(nil).and(spm_e_t[:move_in_date].lteq(filter.end)))
       leavers = open_enrollments.where.not(client_id: exclude.select(:client_id))
-      enrollments = HudSpmReport::Fy2024::SpmEnrollment.one_for_column(:exit_date, source_arel_table: spm_e_t, group_on: :client_id, scope: leavers)
+      enrollments = HudSpmReport::Fy2023::SpmEnrollment.one_for_column(:exit_date, source_arel_table: spm_e_t, group_on: :client_id, scope: leavers)
       enrollments = enrollments.where.not(spm_e_t[:move_in_date].eq(nil))
       enrollments = enrollments.where.not(spm_e_t[:destination].in(M7B_REJECTED))
 

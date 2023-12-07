@@ -7,7 +7,7 @@
 # HUD SPM Report Generator: Measure 2a and 2b: The Extent to which Persons Who Exit Homelessness
 # to Permanent Housing Destinations Return to Homelessness within 6, 12,
 # and 24 months.
-module HudSpmReport::Generators::Fy2024
+module HudSpmReport::Generators::Fy2023
   class MeasureFive < MeasureBase
     def self.question_number
       'Measure 5'.freeze
@@ -96,7 +96,7 @@ module HudSpmReport::Generators::Fy2024
       filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(@report.options)
       @universe = @report.universe(universe_name)
       enrollments = enrollment_set.where(entry_date: filter.range, project_type: project_types)
-      earliest_enrollments = HudSpmReport::Fy2024::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, direction: :asc, scope: enrollments)
+      earliest_enrollments = HudSpmReport::Fy2023::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, direction: :asc, scope: enrollments)
 
       members = earliest_enrollments.map do |enrollment|
         [enrollment.client, enrollment]
@@ -107,7 +107,7 @@ module HudSpmReport::Generators::Fy2024
     end
 
     private def create_priors_universe(universe_name, report_members)
-      report_enrollments = HudSpmReport::Fy2024::SpmEnrollment.where(id: report_members.select(:universe_membership_id))
+      report_enrollments = HudSpmReport::Fy2023::SpmEnrollment.where(id: report_members.select(:universe_membership_id))
       filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(@report.options)
       @universe = @report.universe(universe_name)
       adjusted_range = filter.range.begin - 730.days .. filter.range.end - 730.days
