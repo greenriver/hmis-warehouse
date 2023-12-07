@@ -27,8 +27,9 @@ module Types
         end
       end
 
-      def resolve_form_rules(scope, filters: nil)
+      def resolve_form_rules(scope, sort_order: nil, filters: nil)
         scope = scope.apply_filters(filters) if filters.present?
+        scope = scope.sort_by_option(sort_order) if sort_order.present?
         scope
       end
     end

@@ -113,7 +113,7 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
     when :form_type
       joins(:definition).order(fd_t[:role])
     when :date_updated
-      order(:updated_at)
+      order(updated_at: :desc)
     else
       raise NotImplementedError
     end
