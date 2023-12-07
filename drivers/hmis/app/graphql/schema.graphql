@@ -3747,7 +3747,6 @@ input FormRuleFilterOptions {
   appliedToProject: ID
   formType: [FormRole!]
   projectType: [ProjectType!]
-  serviceCategory: [ID!]
   systemForm: [SystemStatus!]
 }
 
