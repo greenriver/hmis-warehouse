@@ -27,7 +27,7 @@ module Types
     end
 
     def name
-      user.full_name || "User #{object.id}"
+      object.full_name || "User #{object.id}"
     end
 
     def recent_items
