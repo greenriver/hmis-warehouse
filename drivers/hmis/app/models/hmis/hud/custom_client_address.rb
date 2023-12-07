@@ -11,6 +11,7 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
     meta: {
       client_id: ->(r) { r.client&.id },
       enrollment_id: ->(r) { r.enrollment&.id },
+      project_id: ->(r) { r.enrollment&.project&.id },
     },
   )
 
