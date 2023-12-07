@@ -81,6 +81,10 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
     where(fi_t[:custom_service_type_id].not_eq(nil).or(fi_t[:custom_service_category_id].not_eq(nil)))
   end
 
+  scope :not_for_services, -> do
+    where(fi_t[:custom_service_type_id].eq(nil).and(fi_t[:custom_service_category_id].eq(nil)))
+  end
+
   scope :for_project_through_entities, ->(project) do
     # From most specific => least specific
     ids = Hmis::Form::Instance.for_project(project.id).pluck(:id)
@@ -90,6 +94,27 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
     ids += Hmis::Form::Instance.for_project_by_project_type(project.project_type).pluck(:id)
     ids += defaults.pluck(:id)
     where(id: ids)
+  end
+
+  SORT_OPTIONS = [:form_title, :form_type, :date_updated].freeze
+
+  def self.sort_by_option(option)
+    raise NotImplementedError unless SORT_OPTIONS.include?(option)
+
+    case option
+    when :form_title
+      joins(:definition).order(fd_t[:title])
+    when :form_type
+      joins(:definition).order(fd_t[:role])
+    when :date_updated
+      order(:updated_at)
+    else
+      raise NotImplementedError
+    end
+  end
+
+  def self.apply_filters(input)
+    Hmis::Filter::FormInstanceFilter.new(input).filter_scope(self)
   end
 
   def self.detect_best_instance_scope_for_project(base_scope, project:)

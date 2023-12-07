@@ -1683,12 +1683,39 @@ enum DOBDataQuality {
 }
 
 enum DataCollectedAbout {
+  """
+  All Clients
+  """
   ALL_CLIENTS
+
+  """
+  All Clients Receiving SSVF Financial Assistance
+  """
   ALL_CLIENTS_RECEIVING_SSVF_FINANCIAL_ASSISTANCE
+
+  """
+  All Clients Receiving SSVF Services
+  """
   ALL_CLIENTS_RECEIVING_SSVF_SERVICES
+
+  """
+  All Veterans
+  """
   ALL_VETERANS
+
+  """
+  HoH
+  """
   HOH
+
+  """
+  HoH and Adults
+  """
   HOH_AND_ADULTS
+
+  """
+  Veteran HoH
+  """
   VETERAN_HOH
 }
 
@@ -1706,12 +1733,12 @@ enum DataCollectionFeatureRole {
   CASE_NOTE
 
   """
-  Ce assessment
+  CE assessment
   """
   CE_ASSESSMENT
 
   """
-  Ce event
+  CE event
   """
   CE_EVENT
 
@@ -3578,22 +3605,17 @@ enum FormRole {
   CASE_NOTE
 
   """
-  Ce
-  """
-  CE
-
-  """
-  Ce assessment
+  CE assessment
   """
   CE_ASSESSMENT
 
   """
-  Ce event
+  CE event
   """
   CE_EVENT
 
   """
-  Ce participation
+  CE participation
   """
   CE_PARTICIPATION
 
@@ -3606,11 +3628,6 @@ enum FormRole {
   Current living situation
   """
   CURRENT_LIVING_SITUATION
-
-  """
-  Custom assessment
-  """
-  CUSTOM_ASSESSMENT
 
   """
   Enrollment
@@ -3633,7 +3650,7 @@ enum FormRole {
   FUNDER
 
   """
-  Hmis participation
+  HMIS participation
   """
   HMIS_PARTICIPATION
 
@@ -3697,8 +3714,10 @@ type FormRule {
   active: Boolean!
   createdAt: ISO8601DateTime!
   dataCollectedAbout: DataCollectedAbout
-  definition: FormDefinition!
+  definitionId: ID
   definitionIdentifier: String!
+  definitionRole: FormRole
+  definitionTitle: String
   funder: FundingSource
   id: ID!
   organization: Organization
@@ -3709,6 +3728,33 @@ type FormRule {
   serviceType: ServiceType
   system: Boolean!
   updatedAt: ISO8601DateTime!
+}
+
+input FormRuleFilterOptions {
+  activeStatus: Boolean
+  appliedToProject: ID
+  forServices: Boolean
+  formType: [FormRole!]
+  projectType: [ProjectType!]
+  serviceCategory: [ID!]
+  systemForm: Boolean
+}
+
+enum FormRuleSortOption {
+  """
+  Date Updated
+  """
+  DATE_UPDATED
+
+  """
+  Form Title
+  """
+  FORM_TITLE
+
+  """
+  Form Type
+  """
+  FORM_TYPE
 }
 
 type FormRulesPaginated {
@@ -7841,7 +7887,7 @@ type Query {
   enrollment(id: ID!): Enrollment
   esgFundingReport(clientIds: [ID!]!): [EsgFundingService!]!
   file(id: ID!): File
-  formRules(limit: Int, offset: Int): FormRulesPaginated!
+  formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
 
   """
   Funder lookup

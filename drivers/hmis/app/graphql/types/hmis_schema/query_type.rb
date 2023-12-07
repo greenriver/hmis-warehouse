@@ -19,6 +19,7 @@ module Types
     include Types::HmisSchema::HasClients
     include Types::HmisSchema::HasApplicationUsers
     include Types::HmisSchema::HasReferralPostings
+    include Types::Admin::HasFormRules
     include ::Hmis::Concerns::HmisArelHelper
 
     projects_field :projects
@@ -298,11 +299,12 @@ module Types
         preload(:project, :client, :organization)
     end
 
-    field :form_rules, Types::Admin::FormRule.page_type, null: false
-    def form_rules
+    # field :form_rules, Types::Admin::FormRule.page_type, null: false
+    form_rules_field
+    def form_rules(**args)
       raise 'not allowed' unless current_user.can_configure_data_collection?
 
-      Hmis::Form::Instance.all.order(:definition_identifier)
+      resolve_form_rules(Hmis::Form::Instance.not_for_services, **args)
     end
   end
 end

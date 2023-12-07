@@ -11,9 +11,26 @@ module Types
     # maps to Hmis::Form::Instance
     graphql_name 'FormRule'
 
+    available_filter_options do
+      arg :form_type, [Types::Forms::Enums::FormRole]
+      # arg :for_services, Boolean
+      # FIXME: make these non boolean. define enums
+      arg :active_status, Boolean # active / inactive
+      arg :system_form, Boolean # system rule / custom rule
+      arg :service_category, [ID]
+      arg :project_type, [Types::HmisSchema::Enums::ProjectType]
+      arg :applied_to_project, ID
+      # data collected about
+      # arg :search_term, String
+    end
+
     field :id, ID, null: false
     field :definition_identifier, String, null: false
-    field :definition, Types::Forms::FormDefinition, null: false
+    field :definition_id, ID, null: true
+    field :definition_role, Types::Forms::Enums::FormRole, null: true
+    field :definition_title, String, null: true
+
+    # field :definition, Types::Forms::FormDefinition, null: false
 
     # Applicability fields
     field :project, HmisSchema::Project, null: true
@@ -29,6 +46,18 @@ module Types
     field :active, Boolean, null: false
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :updated_at, GraphQL::Types::ISO8601DateTime, null: false
+
+    def definition_id
+      load_ar_association(object, :definition)&.id
+    end
+
+    def definition_role
+      load_ar_association(object, :definition)&.role
+    end
+
+    def definition_title
+      load_ar_association(object, :definition)&.title
+    end
 
     def project
       return unless object.entity_type == Hmis::Hud::Project.sti_name
