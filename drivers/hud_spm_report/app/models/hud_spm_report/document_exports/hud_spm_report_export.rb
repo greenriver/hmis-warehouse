@@ -20,7 +20,7 @@ module HudSpmReport::DocumentExports
     private def possible_generator_classes
       [
         HudSpmReport::Generators::Fy2020::Generator,
-        HudSpmReport::Generators::Fy2024::Generator,
+        HudSpmReport::Generators::Fy2023::Generator,
       ]
     end
   end

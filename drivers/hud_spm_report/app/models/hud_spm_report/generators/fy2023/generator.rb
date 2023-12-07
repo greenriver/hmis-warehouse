@@ -4,10 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudSpmReport::Generators::Fy2024
+module HudSpmReport::Generators::Fy2023
   class Generator < ::HudReports::GeneratorBase
     def self.fiscal_year
-      'FY 2024'
+      'FY 2023'
     end
 
     def self.generic_title
@@ -28,13 +28,13 @@ module HudSpmReport::Generators::Fy2024
 
     def self.questions
       [
-        HudSpmReport::Generators::Fy2024::MeasureOne,
-        HudSpmReport::Generators::Fy2024::MeasureTwo,
-        HudSpmReport::Generators::Fy2024::MeasureThree,
-        HudSpmReport::Generators::Fy2024::MeasureFour,
-        HudSpmReport::Generators::Fy2024::MeasureFive,
-        HudSpmReport::Generators::Fy2024::MeasureSix,
-        HudSpmReport::Generators::Fy2024::MeasureSeven,
+        HudSpmReport::Generators::Fy2023::MeasureOne,
+        HudSpmReport::Generators::Fy2023::MeasureTwo,
+        HudSpmReport::Generators::Fy2023::MeasureThree,
+        HudSpmReport::Generators::Fy2023::MeasureFour,
+        HudSpmReport::Generators::Fy2023::MeasureFive,
+        HudSpmReport::Generators::Fy2023::MeasureSix,
+        HudSpmReport::Generators::Fy2023::MeasureSeven,
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze
@@ -50,7 +50,7 @@ module HudSpmReport::Generators::Fy2024
 
     def self.client_class(_question)
       # FIXME
-      HudSpmReport::Fy2024::SpmEnrollment
+      HudSpmReport::Fy2023::SpmEnrollment
     end
   end
 end

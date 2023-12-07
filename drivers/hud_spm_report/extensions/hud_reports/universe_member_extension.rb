@@ -22,9 +22,9 @@ module HudSpmReport::HudReports
       belongs_to(
         :enrollment,
         -> do
-          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2024::SpmEnrollment'))
+          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2023::SpmEnrollment'))
         end,
-        class_name: 'HudSpmReport::Fy2024::SpmEnrollment',
+        class_name: 'HudSpmReport::Fy2023::SpmEnrollment',
         foreign_key: :universe_membership_id,
         inverse_of: :hud_reports_universe_members,
         optional: true,

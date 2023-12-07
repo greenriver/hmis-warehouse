@@ -7,7 +7,7 @@
 # HUD SPM Report Generator: Measure 2a and 2b: The Extent to which Persons Who Exit Homelessness
 # to Permanent Housing Destinations Return to Homelessness within 6, 12,
 # and 24 months.
-module HudSpmReport::Generators::Fy2024
+module HudSpmReport::Generators::Fy2023
   class MeasureFour < MeasureBase
     def self.question_number
       'Measure 4'.freeze
@@ -228,7 +228,7 @@ module HudSpmReport::Generators::Fy2024
 
       filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(@report.options)
       staying_enrollments = candidate_stayers(filter)
-      client_enrollments = HudSpmReport::Fy2024::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, scope: staying_enrollments)
+      client_enrollments = HudSpmReport::Fy2023::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, scope: staying_enrollments)
 
       members = client_enrollments.map do |enrollment|
         [enrollment.client, enrollment]
@@ -252,7 +252,7 @@ module HudSpmReport::Generators::Fy2024
         where(spm_e_t[:eligible_funding].eq(true)).
         where(spm_e_t[:exit_date].not_eq(nil).and(spm_e_t[:exit_date].lteq(filter.end))).
         where.not(client_id: stayer_ids)
-      client_enrollments = HudSpmReport::Fy2024::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, scope: leaving_enrollments)
+      client_enrollments = HudSpmReport::Fy2023::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, scope: leaving_enrollments)
 
       members = client_enrollments.map do |enrollment|
         [enrollment.client, enrollment]

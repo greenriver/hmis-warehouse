@@ -4,13 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudSpmReport::Generators::Fy2024
+module HudSpmReport::Generators::Fy2023
   class MeasureBase < ::HudReports::QuestionBase
     private def enrollment_set
       enrollments ||= @report.spm_enrollments
       return enrollments if enrollments.present?
 
-      HudSpmReport::Fy2024::SpmEnrollment.create_enrollment_set(@report)
+      HudSpmReport::Fy2023::SpmEnrollment.create_enrollment_set(@report)
       @report.spm_enrollments
     end
 
@@ -28,7 +28,7 @@ module HudSpmReport::Generators::Fy2024
     end
 
     private def spm_e_t
-      HudSpmReport::Fy2024::SpmEnrollment.arel_table
+      HudSpmReport::Fy2023::SpmEnrollment.arel_table
     end
 
     private def percent(num, denom)

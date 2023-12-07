@@ -4,14 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudSpmReport::Fy2024
+module HudSpmReport::Fy2023
   class Return < GrdaWarehouseBase
     self.table_name = 'hud_report_spm_returns'
 
     belongs_to :report_instance, class_name: 'HudReports::ReportInstance'
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
-    belongs_to :exit_enrollment, class_name: 'HudSpmReport::Fy2024::SpmEnrollment'
-    belongs_to :return_enrollment, class_name: 'HudSpmReport::Fy2024::SpmEnrollment'
+    belongs_to :exit_enrollment, class_name: 'HudSpmReport::Fy2023::SpmEnrollment'
+    belongs_to :return_enrollment, class_name: 'HudSpmReport::Fy2023::SpmEnrollment'
 
     def self.client_ids_with_permanent_exits(report)
       filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(report.options)

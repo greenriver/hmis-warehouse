@@ -7,7 +7,7 @@
 # HUD SPM Report Generator: Measure 2a and 2b: The Extent to which Persons Who Exit Homelessness
 # to Permanent Housing Destinations Return to Homelessness within 6, 12,
 # and 24 months.
-module HudSpmReport::Generators::Fy2024
+module HudSpmReport::Generators::Fy2023
   class MeasureTwo < MeasureBase
     def self.question_number
       'Measure 2'.freeze
@@ -101,7 +101,7 @@ module HudSpmReport::Generators::Fy2024
     end
 
     private def a_t
-      @a_t ||= HudSpmReport::Fy2024::Return.arel_table
+      @a_t ||= HudSpmReport::Fy2023::Return.arel_table
     end
 
     private def report_rows
@@ -125,7 +125,7 @@ module HudSpmReport::Generators::Fy2024
 
     private def create_universe
       @universe = @report.universe(:m2a_and_b)
-      returns = HudSpmReport::Fy2024::Return.compute_returns(@report)
+      returns = HudSpmReport::Fy2023::Return.compute_returns(@report)
 
       members = returns.map do |enrollment|
         [enrollment.client, enrollment]
