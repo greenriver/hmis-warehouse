@@ -1835,7 +1835,8 @@ CREATE TABLE public."Exit" (
     "CMExitReason" integer,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
-    "DestinationSubsidyType" integer
+    "DestinationSubsidyType" integer,
+    auto_exited timestamp without time zone
 );
 
 
@@ -13325,6 +13326,40 @@ ALTER SEQUENCE public.hmis_assessments_id_seq OWNED BY public.hmis_assessments.i
 
 
 --
+-- Name: hmis_auto_exit_configs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_auto_exit_configs (
+    id bigint NOT NULL,
+    length_of_absence_days integer NOT NULL,
+    project_type integer,
+    organization_id bigint,
+    project_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_auto_exit_configs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_auto_exit_configs_id_seq OWNED BY public.hmis_auto_exit_configs.id;
+
+
+--
 -- Name: hmis_case_notes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -17606,7 +17641,8 @@ CREATE TABLE public.hmis_dqt_current_living_situations (
     deleted_at timestamp without time zone,
     project_id integer,
     first_name character varying,
-    last_name character varying
+    last_name character varying,
+    personal_id character varying
 );
 
 
@@ -27637,6 +27673,13 @@ ALTER TABLE ONLY public.hmis_assessments ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: hmis_auto_exit_configs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_auto_exit_configs ALTER COLUMN id SET DEFAULT nextval('public.hmis_auto_exit_configs_id_seq'::regclass);
+
+
+--
 -- Name: hmis_case_notes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -31397,6 +31440,14 @@ ALTER TABLE ONLY public.hmis_assessment_details
 
 ALTER TABLE ONLY public.hmis_assessments
     ADD CONSTRAINT hmis_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_auto_exit_configs hmis_auto_exit_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_auto_exit_configs
+    ADD CONSTRAINT hmis_auto_exit_configs_pkey PRIMARY KEY (id);
 
 
 --
@@ -51935,6 +51986,20 @@ CREATE INDEX index_hmis_assessments_on_site_id ON public.hmis_assessments USING 
 
 
 --
+-- Name: index_hmis_auto_exit_configs_on_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_auto_exit_configs_on_organization_id ON public.hmis_auto_exit_configs USING btree (organization_id);
+
+
+--
+-- Name: index_hmis_auto_exit_configs_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_auto_exit_configs_on_project_id ON public.hmis_auto_exit_configs USING btree (project_id);
+
+
+--
 -- Name: index_hmis_case_notes_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60442,8 +60507,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231114235529'),
 ('20231115170459'),
 ('20231120221840'),
+('20231122185546'),
 ('20231124171521'),
 ('20231204134123'),
-('20231205141010');
+('20231205141010'),
+('20231206200436');
 
 
