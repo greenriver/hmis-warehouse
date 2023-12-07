@@ -14,7 +14,8 @@ module HudSpmReport::Fy2024
     belongs_to :return_enrollment, class_name: 'HudSpmReport::Fy2024::SpmEnrollment'
 
     def self.client_ids_with_permanent_exits(report)
-      report.spm_enrollments.where(exit_date: report_start_date - 730.days .. report_end_date - 730.days).
+      filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(report.options)
+      report.spm_enrollments.where(exit_date: filter.start - 730.days .. filter.end - 730.days).
         where(destination: HudUtility2024.permanent_destinations).
         pluck(:client_id)
     end
@@ -39,10 +40,11 @@ module HudSpmReport::Fy2024
         where(destination: HudUtility2024.permanent_destinations).
         order(exit_date: :asc).
         first
-      return unless exit_enrollment.present?
+      return unless exit_enrollment.present? # If no exit, no return
 
       self.exit_date = exit_enrollment.exit_date
       self.exit_destination = exit_enrollment.destination
+      self.project_type = exit_enrollment.project_type
 
       candidate_returns = report_instance.spm_enrollments.where(entry_date: exit_date..).order(entry_date: :asc)
       self.return_enrollment = candidate_returns.detect do |enrollment|
@@ -52,10 +54,10 @@ module HudSpmReport::Fy2024
             ! other_ph?(enrollment))
       end
 
-      return unless return_enrollment.present?
-
-      self.return_date = return_enrollment.entry_date
-      self.days_to_return = (return_date - exit_date).to_i
+      if return_enrollment.present?
+        self.return_date = return_enrollment.entry_date
+        self.days_to_return = (return_date - exit_date).to_i
+      end
 
       self
     end

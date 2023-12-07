@@ -22,7 +22,7 @@ module HudSpmReport::Generators::Fy2024
 
     def run_question!
       tables = [
-        ['2a and 2b', :run_2a],
+        ['2a and 2b', :run_2a_and_b],
       ]
 
       @report.start(self.class.question_number, tables.map(&:first))
@@ -46,7 +46,7 @@ module HudSpmReport::Generators::Fy2024
       'J' => 'Percentage of Returns in 2 Years',
     }.freeze
 
-    private def run_2a(table_name)
+    private def run_2a_and_b(table_name)
       prepare_table(
         table_name,
         {
@@ -59,6 +59,80 @@ module HudSpmReport::Generators::Fy2024
         },
         COLUMNS,
       )
+
+      members = create_universe
+      totals = {
+        B: 0,
+        C: 0,
+        E: 0,
+        G: 0,
+        I: 0,
+      }
+      report_rows.each do |row_number, project_type|
+        candidates_for_row = members.where(a_t[:project_type].eq(project_type))
+        answer = @report.answer(question: table_name, cell: 'B' + row_number.to_s)
+        answer.add_members(candidates_for_row)
+        row_count = candidates_for_row.count
+        totals[:B] += row_count
+        answer.update(summary: row_count)
+
+        report_columns.each do |count_column, (percent_column, query)|
+          answer = @report.answer(question: table_name, cell: count_column.to_s + row_number.to_s)
+          included = candidates_for_row.where(query)
+          answer.add_members(included)
+          included_count = included.count
+          totals[count_column] += included_count
+          answer.update(summary: included_count)
+
+          answer = @report.answer(question: table_name, cell: percent_column.to_s + row_number.to_s)
+          answer.update(summary: percent(included_count, row_count))
+        end
+      end
+
+      totals.keys.each do |count_column|
+        answer = @report.answer(question: table_name, cell: count_column.to_s + '7')
+        answer.update(summary: totals[count_column])
+
+        next if count_column == :B # B is the denominator, so don't calculate percentage
+
+        answer = @report.answer(question: table_name, cell: count_column.next.to_s + '7')
+        answer.update(summary: percent(totals[count_column], totals[:B]))
+      end
+    end
+
+    private def a_t
+      @a_t ||= HudSpmReport::Fy2024::Return.arel_table
+    end
+
+    private def report_rows
+      {
+        2 => HudUtility2024.project_type_number_from_code(:so),
+        3 => HudUtility2024.project_type_number_from_code(:es),
+        4 => HudUtility2024.project_type_number_from_code(:th),
+        5 => HudUtility2024.project_type_number_from_code(:sh),
+        6 => HudUtility2024.project_type_number_from_code(:ph),
+      }.freeze
+    end
+
+    private def report_columns
+      {
+        C: [:D, a_t[:days_to_return].between(0..180)],
+        E: [:F, a_t[:days_to_return].between(181..365)],
+        G: [:H, a_t[:days_to_return].between(366..730)],
+        I: [:J, a_t[:return_enrollment_id].not_eq(nil)],
+      }.freeze
+    end
+
+    private def create_universe
+      @universe = @report.universe(:m2a_and_b)
+      returns = HudSpmReport::Fy2024::Return.compute_returns(@report)
+
+      members = returns.map do |enrollment|
+        [enrollment.client, enrollment]
+      end.to_h
+      @universe.add_universe_members(members)
+
+      @universe.members
     end
   end
 end

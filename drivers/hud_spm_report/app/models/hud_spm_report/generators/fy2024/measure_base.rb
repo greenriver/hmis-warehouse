@@ -32,9 +32,9 @@ module HudSpmReport::Generators::Fy2024
     end
 
     private def percent(num, denom)
-      return 0.0 if denom.zero?
+      return '0.00' if denom.zero?
 
-      ((num / denom.to_f) * 100).round(2)
+      format('%1.4f', ((num / denom.to_f) * 100).round(2))
     end
   end
 end
