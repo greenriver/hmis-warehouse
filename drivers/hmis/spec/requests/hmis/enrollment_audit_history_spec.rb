@@ -50,18 +50,16 @@ RSpec.describe 'Client Audit History Query', type: :request do
   end
 
   context 'enrollment with history' do
-    context 'changing to one race' do
-      before(:each) do
-        PaperTrail.request(controller_info: { user_id: hmis_user.id }) do
-          e1.update!(entry_date: (today - 2.days))
-        end
+    before(:each) do
+      PaperTrail.request(controller_info: { user_id: hmis_user.id }) do
+        e1.update!(entry_date: (today - 2.days))
       end
-      it 'reports change' do
-        records = run_query(id: e1.id, filters: { audit_event_record_type: ['Hmis::Hud::Enrollment'], user_id: [hmis_user.id.to_s] })
-        expect(records.size).to eq(1)
-        expect(records.dig(0, 'objectChanges', 'entryDate', 'values')).
-          to eq([today, today - 2.days].map { |d| d.to_s(:db) })
-      end
+    end
+    it 'reports change' do
+      records = run_query(id: e1.id, filters: { audit_event_record_type: ['Hmis::Hud::Enrollment'], user_id: [hmis_user.id.to_s] })
+      expect(records.size).to eq(1)
+      expect(records.dig(0, 'objectChanges', 'entryDate', 'values')).
+        to eq([today, today - 2.days].map { |d| d.to_s(:db) })
     end
   end
 end
