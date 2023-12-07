@@ -462,6 +462,11 @@ A base64 encoded string
 """
 scalar Base64
 
+input BaseAuditEventFilterOptions {
+  auditEventRecordType: [ID!]
+  userId: [ID!]
+}
+
 """
 2.07.5
 """
@@ -617,7 +622,7 @@ type Client {
   afghanistanOef: NoYesReasonsForMissingData
   age: Int
   assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
-  auditHistory(limit: Int, offset: Int): ClientAuditEventsPaginated!
+  auditHistory(filters: BaseAuditEventFilterOptions, limit: Int, offset: Int): ClientAuditEventsPaginated!
   contactPoints: [ClientContactPoint!]!
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
   customCaseNotes(limit: Int, offset: Int): CustomCaseNotesPaginated!
@@ -2782,7 +2787,7 @@ type Enrollment {
   alcoholDrugUseDisorderFam: NoYesMissing
   annualPercentAmi: AnnualPercentAMI
   assessments(filters: AssessmentsForEnrollmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
-  auditHistory(limit: Int, offset: Int): EnrollmentAuditEventsPaginated!
+  auditHistory(filters: BaseAuditEventFilterOptions, limit: Int, offset: Int): EnrollmentAuditEventsPaginated!
   ceAssessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): CeAssessmentsPaginated!
   childWelfareMonths: Int
   childWelfareYears: RHYNumberofYears
@@ -5676,6 +5681,7 @@ enum PickListType {
   All unit types.
   """
   ALL_UNIT_TYPES
+  AUDIT_EVENT_RECORD_TYPES
   AVAILABLE_FILE_TYPES
   AVAILABLE_SERVICE_TYPES
 
@@ -5738,6 +5744,11 @@ enum PickListType {
   SUB_TYPE_PROVIDED_3
   SUB_TYPE_PROVIDED_4
   SUB_TYPE_PROVIDED_5
+
+  """
+  User Accounts
+  """
+  USERS
 }
 
 """

@@ -268,7 +268,7 @@ module Types
       !!object.hud_chronic?(scope: enrollments)
     end
 
-    def resolve_audit_history
+    def audit_history(filters: nil)
       address_ids = object.addresses.with_deleted.pluck(:id)
       name_ids = object.names.with_deleted.pluck(:id)
       contact_ids = object.contact_points.with_deleted.pluck(:id)
@@ -278,11 +278,13 @@ module Types
       name_changes = v_t[:item_id].in(name_ids).and(v_t[:item_type].eq('Hmis::Hud::CustomClientName'))
       contact_changes = v_t[:item_id].in(contact_ids).and(v_t[:item_type].eq('Hmis::Hud::CustomClientContactPoint'))
 
-      GrdaWarehouse.paper_trail_versions.
+      scope = GrdaWarehouse.paper_trail_versions.
         where(client_changes.or(address_changes).or(name_changes).or(contact_changes)).
         where.not(object_changes: nil, event: 'update').
         unscope(:order).
         order(created_at: :desc)
+
+      Hmis::Filter::PaperTrailVersionFilter.new(filters).filter_scope(scope)
     end
 
     def merge_audit_history

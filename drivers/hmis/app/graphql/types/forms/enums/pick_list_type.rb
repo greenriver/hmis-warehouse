@@ -35,5 +35,7 @@ module Types
     value 'ENROLLMENTS_FOR_CLIENT', 'Enrollments for the client, including WIP and Exited.'
     value 'OPEN_HOH_ENROLLMENTS_FOR_PROJECT', 'Open HoH enrollments at the project.'
     value 'CE_EVENTS', 'Grouped HUD CE Event types'
+    value 'AUDIT_EVENT_RECORD_TYPES'
+    value 'USERS', 'User Accounts'
   end
 end

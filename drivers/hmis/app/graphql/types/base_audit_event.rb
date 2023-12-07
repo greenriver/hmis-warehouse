@@ -42,6 +42,11 @@ module Types
     field :user, Application::User, null: true
     field :object_changes, Types::JsonObject, null: true, description: 'Format is { field: { fieldName: "GQL field name", displayName: "Human readable name", values: [old, new] } }'
 
+    available_filter_options do
+      arg :audit_event_record_type, [ID]
+      arg :user_id, [ID]
+    end
+
     def record_name
       case object.item_type
       when 'Hmis::Hud::CustomAssessment'

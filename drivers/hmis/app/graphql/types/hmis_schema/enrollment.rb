@@ -199,12 +199,13 @@ module Types
       },
     )
 
-    def resolve_audit_history
-      GrdaWarehouse.paper_trail_versions.
+    def audit_history(filters: nil)
+      scope = GrdaWarehouse.paper_trail_versions.
         where(enrollment_id: object.id).
         where.not(object_changes: nil, event: 'update').
         unscope(:order). # Unscope to remove default order, otherwise it will conflict
         order(created_at: :desc)
+      Hmis::Filter::PaperTrailVersionFilter.new(filters).filter_scope(scope)
     end
 
     # Summary of ALL open enrollments that this client currently has.

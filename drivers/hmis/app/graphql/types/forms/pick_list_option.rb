@@ -106,6 +106,37 @@ module Types
               { code: k, label: v.description.gsub(CODE_PATTERN, ''), group_label: group }
             end
           end.flatten
+      when 'USERS'
+        user_picklist
+      when 'AUDIT_EVENT_RECORD_TYPES'
+        audit_event_record_type_picklist
+      end
+    end
+
+    def self.user_picklist
+      Hmis::User.with_deleted.map do |user|
+        { code: user.id.to_s, label: user.full_name }
+      end
+    end
+
+    def self.audit_event_record_type_picklist
+      [
+        Hmis::Hud::Enrollment,
+        Hmis::Hud::CustomAssessment,
+        Hmis::Hud::CurrentLivingSituation,
+        Hmis::Hud::Service,
+        Hmis::Hud::IncomeBenefit,
+        Hmis::Hud::HealthAndDv,
+        Hmis::Hud::EmploymentEducation,
+        Hmis::Hud::YouthEducationStatus,
+        Hmis::Hud::Disability,
+        Hmis::Hud::Exit,
+        Hmis::Hud::Event,
+        Hmis::Hud::Assessment,
+        Hmis::Hud::CustomDataElement,
+        Hmis::Hud::CustomCaseNote,
+      ].map do |klass|
+        { code: klass.sti_name, label: klass.name.demodulize }
       end
     end
 
