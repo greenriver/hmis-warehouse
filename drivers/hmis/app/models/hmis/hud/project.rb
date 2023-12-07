@@ -140,6 +140,13 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     name: 'Name',
   }.freeze
 
+  HudUtility2024.residential_project_type_numbers_by_code.each do |k, v|
+    scope k, -> { where(project_type: v) }
+    define_method "#{k}?" do
+      v.include? project_type
+    end
+  end
+
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 

@@ -7,5 +7,13 @@
 module GrdaWarehouse
   class Version < GrdaWarehouseBase
     include PaperTrail::VersionConcern
+
+    # overlay object changes onto object
+    def object_with_changes
+      # create events have object_changes and a nil object
+      result = object&.dup || {}
+      result.merge!(object_changes.transform_values(&:last)) if object_changes.present?
+      result
+    end
   end
 end
