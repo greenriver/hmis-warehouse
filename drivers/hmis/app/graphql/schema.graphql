@@ -7959,10 +7959,6 @@ type Query {
   """
   service(id: ID!): Service
   serviceCategories(limit: Int, offset: Int): ServiceCategoriesPaginated!
-
-  """
-  Service category lookup
-  """
   serviceCategory(id: ID!): ServiceCategory
 
   """
