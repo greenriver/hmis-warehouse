@@ -111,9 +111,25 @@ module HmisCsvTwentyTwentyFour::Exporter::ExportConcern
 
     def process(row)
       row = assign_export_id(row)
-      row = self.class.adjust_keys(row)
+      row = self.class.adjust_keys(row, @options[:export])
+      row = enforce_lengths(row)
 
       row
+    end
+
+    def enforce_lengths(row)
+      length_limited_columns.each do |k, opts|
+        next if row[k].blank? || ! row[k].is_a?(String) || row[k].length <= opts[:limit]
+
+        row[k] = row[k][0...opts[:limit]]
+      end
+      row
+    end
+
+    def length_limited_columns
+      @length_limited_columns ||= HmisCsvTwentyTwentyFour::Exporter::Base.hmis_class_for(self.class).hmis_configuration(version: '2024').select do |_, m|
+        m.key?(:limit)
+      end
     end
 
     def assign_export_id(row)

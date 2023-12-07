@@ -18,7 +18,7 @@ def setup_data
   @project_cocs = create_list :hud_project_coc, 5, data_source_id: @data_source.id
   @funders = create_list :hud_funder, 5, data_source_id: @data_source.id
 
-  @enrollments = create_list :hud_enrollment, 5, data_source_id: @data_source.id, EntryDate: 2.weeks.ago
+  @enrollments = create_list :hud_enrollment, 5, data_source_id: @data_source.id, EntryDate: 2.weeks.ago, PreferredLanguageDifferent: 'a' * 200
   @clients = create_list :hud_client, 5, data_source_id: @data_source.id
   @destination_data_source = create :grda_warehouse_data_source
 
