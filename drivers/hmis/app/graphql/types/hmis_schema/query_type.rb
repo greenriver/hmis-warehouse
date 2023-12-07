@@ -163,6 +163,19 @@ module Types
       Hmis::Hud::CustomServiceType.find_by(id: id)
     end
 
+    field :service_category, Types::HmisSchema::ServiceCategory, 'Service category lookup', null: true do
+      argument :id, ID, required: true
+    end
+    def service_category(id:)
+      Hmis::Hud::CustomServiceCategory.find_by(id: id)
+    end
+
+    field :service_categories, Types::HmisSchema::ServiceCategory.page_type, null: false
+    def service_categories
+      # TODO: sort and filter.
+      Hmis::Hud::CustomServiceCategory.all
+    end
+
     field :file, Types::HmisSchema::File, null: true do
       argument :id, ID, required: true
     end
@@ -299,7 +312,6 @@ module Types
         preload(:project, :client, :organization)
     end
 
-    # field :form_rules, Types::Admin::FormRule.page_type, null: false
     form_rules_field
     def form_rules(**args)
       raise 'not allowed' unless current_user.can_configure_data_collection?

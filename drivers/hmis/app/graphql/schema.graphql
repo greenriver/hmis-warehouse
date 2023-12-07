@@ -1,3 +1,15 @@
+enum ActiveStatus {
+  """
+  Active
+  """
+  ACTIVE
+
+  """
+  Inactive
+  """
+  INACTIVE
+}
+
 type ActivityLog {
   createdAt: ISO8601DateTime!
   id: ID!
@@ -3731,13 +3743,12 @@ type FormRule {
 }
 
 input FormRuleFilterOptions {
-  activeStatus: Boolean
+  activeStatus: [ActiveStatus!]
   appliedToProject: ID
-  forServices: Boolean
   formType: [FormRole!]
   projectType: [ProjectType!]
   serviceCategory: [ID!]
-  systemForm: Boolean
+  systemForm: [SystemStatus!]
 }
 
 enum FormRuleSortOption {
@@ -7948,6 +7959,12 @@ type Query {
   Service lookup
   """
   service(id: ID!): Service
+  serviceCategories(limit: Int, offset: Int): ServiceCategoriesPaginated!
+
+  """
+  Service category lookup
+  """
+  serviceCategory(id: ID!): ServiceCategory
 
   """
   Service type lookup
@@ -8958,12 +8975,25 @@ type Service {
   user: ApplicationUser
 }
 
+type ServiceCategoriesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ServiceCategory!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
 type ServiceCategory {
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
+  formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
+  hud: Boolean!
   id: ID!
   name: String!
+  serviceTypes(limit: Int, offset: Int): ServiceTypesPaginated!
   user: ApplicationUser
 }
 
@@ -9157,6 +9187,7 @@ type ServiceType {
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
+  hud: Boolean!
   hudRecordType: RecordType
   hudTypeProvided: ServiceTypeProvided
   id: ID!
@@ -9674,6 +9705,16 @@ enum ServiceTypeProvided {
   SSVF_SERVICE__SHALLOW_SUBSIDY
 }
 
+type ServiceTypesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ServiceType!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
 input ServicesForEnrollmentFilterOptions {
   dateProvided: ISO8601Date
   serviceCategory: [ID!]
@@ -9928,6 +9969,18 @@ enum SubsidyInformationB {
   (11) With on-going subsidy
   """
   WITH_ON_GOING_SUBSIDY
+}
+
+enum SystemStatus {
+  """
+  Non-System
+  """
+  NON_SYSTEM
+
+  """
+  System
+  """
+  SYSTEM
 }
 
 """

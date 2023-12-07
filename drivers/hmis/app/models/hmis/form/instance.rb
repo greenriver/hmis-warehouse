@@ -75,6 +75,12 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   scope :for_service_type, ->(service_type_id) { where(custom_service_type_id: service_type_id) }
   # Find instances that are for a Service Category
   scope :for_service_category, ->(category_id) { where(custom_service_category_id: category_id) }
+  # Find all instances for a given Service Category, including those specified by type
+  scope :for_service_category_by_entities, ->(category_id) do
+    service_type_ids = Hmis::Hud::CustomServiceType.where(custom_service_category_id: category_id).pluck(:id)
+
+    where(fi_t[:custom_service_category_id].in(Array.wrap(category_id)).or(fi_t[:custom_service_type_id].in(service_type_ids)))
+  end
 
   # Find instances that are specified by service type or service category
   scope :for_services, -> do

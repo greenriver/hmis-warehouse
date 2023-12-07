@@ -13,15 +13,11 @@ module Types
 
     available_filter_options do
       arg :form_type, [Types::Forms::Enums::FormRole]
-      # arg :for_services, Boolean
-      # FIXME: make these non boolean. define enums
-      arg :active_status, Boolean # active / inactive
-      arg :system_form, Boolean # system rule / custom rule
+      arg :active_status, [Types::HmisSchema::Enums::ActiveStatus]
+      arg :system_form, [Types::HmisSchema::Enums::SystemStatus]
       arg :service_category, [ID]
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
       arg :applied_to_project, ID
-      # data collected about
-      # arg :search_term, String
     end
 
     field :id, ID, null: false
