@@ -64,8 +64,10 @@ module Types
         return 'Phone Number' if item_attributes['system'] == 'phone'
 
         'Contact Information'
-      when 'Hmis::Hud::CustomDataElement'
-        changed_record&.data_element_definition&.label # can we do this without N+1?
+      # TODO: Add back CDE label more efficiently? The below causes N+1, and doesn't work for CDE destroy actions.
+      # We could look at `item_attributes['data_element_definition_id']` to determine the label, but it would still be N+1.
+      # when 'Hmis::Hud::CustomDataElement'
+      #   changed_record&.data_element_definition&.label
       else
         object.item_type.demodulize.
           gsub(/^CustomClient/, ''). # Address, Contact Point
