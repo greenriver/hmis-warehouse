@@ -55,43 +55,61 @@ module
       high_acuity_clients[key]
     end
 
+    private def hoh_client_ids
+      @hoh_client_ids ||= hoh_scope.pluck(:client_id)
+    end
+
     def available_high_acuity_types
       {
         'Client' => :client,
         'Household' => :household,
+        'Adult only Households' => :without_children,
+        'Adult and Child Households' => :with_children,
+        'Child only Households' => :only_children,
+        'Youth Only' => :unaccompanied_youth,
+        '1 Disability' => :one_disability,
       }
     end
 
     private def high_acuity_clients
       @high_acuity_clients ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         {}.tap do |clients|
+          # Get ids once from other calculations
+          without_children = enrollment_ids_in_household_type(:without_children)
+          with_children = enrollment_ids_in_household_type(:with_children)
+          only_children = enrollment_ids_in_household_type(:only_children)
+          unaccompanied_youth = enrollment_ids_in_household_type(:unaccompanied_youth)
+
+          # Setup sets to hold client ids with no recent homelessness
+          clients[:client] = Set.new
+          clients[:household] = Set.new
+          clients[:without_children] = Set.new
+          clients[:with_children] = Set.new
+          clients[:only_children] = Set.new
+          clients[:unaccompanied_youth] = Set.new
+          clients[:one_disability] = Set.new
+
           report_scope.distinct.
             joins(client: :source_enrollment_disabilities).
             merge(GrdaWarehouse::Hud::Disability.chronically_disabled).
-            pluck(:client_id, d_t[:DisabilityType]).
-            group_by(&:shift).
-            each do |client_id, disabilities|
-              # Don't count anyone with only one disabling condition
-              next unless disabilities.count > 1
+            pluck(:client_id, :id, d_t[:DisabilityType]).
+            group_by { |e| [e.shift, e.shift] }.
+            each do |(client_id, enrollment_id), disabilities|
               # Don't count anyone we've already counted in the chronic counts
               next if chronic_clients[:client].include?(client_id)
 
-              clients[:client] ||= Set.new
-              clients[:client] << client_id
-            end
-          hoh_scope.distinct.
-            joins(client: :source_enrollment_disabilities).
-            merge(GrdaWarehouse::Hud::Disability.chronically_disabled).
-            pluck(:client_id, d_t[:DisabilityType]).
-            group_by(&:shift).
-            each do |client_id, disabilities|
-              # Don't count anyone with only one disabling condition
-              next unless disabilities.count > 1
-              # Don't count anyone we've already counted in the chronic counts
-              next if chronic_clients[:household].include?(client_id)
+              clients[:one_disability] << client_id if disabilities.count == 1
 
-              clients[:household] ||= Set.new
-              clients[:household] << client_id
+              # Don't count anyone with only one disabling conditiondocker
+              next unless disabilities.count > 1
+
+              clients[:client] << client_id
+              clients[:household] << client_id if hoh_client_ids.include?(client_id)
+              # These need to use enrollment.id to capture age correctly, but needs the client for summary counts
+              clients[:without_children] << [enrollment_id, client_id] if without_children.include?(enrollment_id)
+              clients[:with_children] << [enrollment_id, client_id] if with_children.include?(enrollment_id)
+              clients[:only_children] << [enrollment_id, client_id] if only_children.include?(enrollment_id)
+              clients[:unaccompanied_youth] << [enrollment_id, client_id] if unaccompanied_youth.include?(enrollment_id)
             end
         end
       end
