@@ -1602,6 +1602,7 @@ type CustomCaseNote {
   dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
   id: ID!
+  informationDate: ISO8601Date
   user: ApplicationUser
 }
 

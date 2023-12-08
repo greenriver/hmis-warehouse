@@ -5,6 +5,26 @@
       "link_id": "custom-case-note-group",
       "item": [
         {
+          "type": "DATE",
+          "link_id": "information-date",
+          "text": "Information Date",
+          "mapping": {
+            "field_name": "informationDate"
+          },
+          "bounds": [
+            {
+              "id": "min-info-date",
+              "type": "MIN",
+              "value_local_constant": "$entryDate"
+            },
+            {
+              "id": "max-info-date",
+              "type": "MAX",
+              "value_local_constant": "$today"
+            }
+          ]
+        },
+        {
           "type": "TEXT",
           "required": true,
           "link_id": "content",
