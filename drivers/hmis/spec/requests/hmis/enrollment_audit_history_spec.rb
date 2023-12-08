@@ -56,7 +56,7 @@ RSpec.describe 'Client Audit History Query', type: :request do
       end
     end
     it 'reports change' do
-      records = run_query(id: e1.id, filters: { audit_event_record_type: ['Hmis::Hud::Enrollment'], user_id: [hmis_user.id.to_s] })
+      records = run_query(id: e1.id, filters: { audit_event_record_type: ['Hmis::Hud::Enrollment'], user: [hmis_user.id.to_s] })
       expect(records.size).to eq(1)
       expect(records.dig(0, 'objectChanges', 'entryDate', 'values')).
         to eq([today, today - 2.days].map { |d| d.to_s(:db) })
