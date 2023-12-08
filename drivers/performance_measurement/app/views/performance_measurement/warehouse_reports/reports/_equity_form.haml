@@ -1,0 +1,27 @@
+- url = equity_analysis_performance_measurement_warehouse_reports_report_path(@report)
+
+= simple_form_for @analysis_builder, url: url, method: :get, as: :equity_filters do |f|
+  %h5 Required Choices
+  .row
+    .col-xs-12.col-sm-6.col-md-4
+      = f.input :metric, collection: @analysis_builder.metric_options, prompt: 'Select Metric', label: 'Select Metric'
+    .col-xs-12.col-sm-6.col-md-4
+      = f.input :investigate_by, collection: @analysis_builder.investigate_by_options, prompt: 'Select Investigation', label: 'Investigate By'
+  %h5 Additional Options
+  .row
+    .col-xs-12.col-sm-6.col-md-4#data-set-column
+      %label Select Data Set
+      = f.input :race, collection: @analysis_builder.race_options, label: false, include_blank: 'All Races / Ethnicities'
+      = f.input :age, collection: @analysis_builder.age_options, include_blank: 'All Ages', label: false
+      = f.input :gender, collection: @analysis_builder.gender_options, include_blank: 'All Genders', label: false
+      = f.input :household_type, collection: @analysis_builder.household_type_options, include_blank: 'All Household Types', label: false
+    .col-xs-12.col-sm-6.col-md-4
+      = f.input :project, collection: @analysis_builder.project_options, label_method: :first, value_method: :last, prompt: 'All Projects', label: 'Select Project'
+      = f.input :project_type, collection: @analysis_builder.project_type_options, label_method: :first, value_method: :last, prompt: 'All Project Types', label: 'Project Type'
+    .col-xs-12.col-sm-6.col-md-4
+      = f.input :view_data_by, collection: @analysis_builder.view_data_by_options, label_method: :first, value_method: :last, include_blank: false
+  .d-flex
+    .pr-4
+      = f.submit 'Update Report'
+    - if @equity_filters.present?
+      = link_to 'Clear Report', url, class: 'btn btn-secondary'

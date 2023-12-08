@@ -4,90 +4,51 @@
     line-height: 18px;
   }
 
-- fake_data = PerformanceMeasurement::FakeEquityAnalysisData.new
+  #chart line.bb-ygrid {
+    stroke-dasharray: none;
+    stroke: rgba(0,0,0,0.15);
+  }
+
+  #chart .bb-axis .tick line {
+    display: none;
+  }
+
+  #legend {
+    width: 100%;
+    max-width: 700px;
+    margin: 0px auto;
+  }
+
+  #no-data-warning {
+    font-size: 1.2rem;
+    color: #A3A3A3;
+  }
+
+  #data-set-column .form-group {
+    margin-bottom: 15px;
+  }
 
 = render 'chosen_universe'
 = render 'report_tabs'
+.mb-6
+  .card
+    .card-header
+      %h2 Build Report
+    .card-body
+      = render 'equity_form'
+.mb-6
+  .card
+    - if @analysis_builder.valid?
+      .card-header
+        %h2 Equity Analysis Report:
+        %span= @analysis_builder.describe_filters
+    .card-body
+      - if @analysis_builder.valid?
+        = render 'equity_chart', data: @analysis_builder.chart_data
+      - else
+        .py-8.text-center#no-data-warning
+          %h3
+            No report data has been selected to display.
+          %span
+            Make required selections above and click “update report”
 
-#chart{style: "width:100%;height:#{fake_data.household_type_data_height}px;"}
-
-= content_for :page_js do
-  :javascript
-    $(document).ready(function() {
-      console.log('equity analysis')
-      var fakeRaceData = #{fake_data.household_type_data.to_json.html_safe}
-      console.log('fakeRaceData', fakeRaceData)
-
-      var pattern = function(fill) {
-        var pattern = d3.select(document.createElementNS(d3.namespaces.svg, "pattern"))
-            .attr("patternUnits", "userSpaceOnUse")
-            .attr("width", "6")
-            .attr("height", "10")
-            .attr('x', '0')
-            .attr('y', '0')
-        
-        pattern.append('rect')
-          .attr('width', '6')
-          .attr('height', '10')
-          .attr('fill', 'white')
-          .attr('x', '0')
-          .attr('y', '0')
-          
-        pattern.append('rect')
-          .attr('width', '6')
-          .attr('height', '10')
-          .attr('fill', fill)
-          .style('opacity', 0.5)
-          .attr('x', '0')
-          .attr('y', '0')
-
-        pattern.append('line')
-          .attr('x1', 0)
-          .attr('y1', 0)
-          .attr('x2', 0)
-          .attr('y2', 10)
-          .style('stroke', 'white')
-          .style('stroke-width', '3')
-
-        return pattern.node()
-      }
-
-      var chartConfig = {
-        data: {
-          x: 'x',
-          columns: fakeRaceData.columns,
-          type: "bar",
-          color: function(color, d) {
-            var isComparison = d.id.includes('Comparison Period')
-            if(isComparison) {
-              return color
-            }
-            return fakeRaceData.colors[d.id]
-          }
-
-        },
-        color: {
-          tiles: function() {
-            return fakeRaceData.ordered_keys.map(function(key, i) {
-              var fill = fakeRaceData.colors[key]
-              return pattern(fill) 
-            }) 
-          }
-        },
-        bar: {
-          width: {
-            ratio: 0.6,
-            max: 10,
-          },
-          padding: 3,
-        },
-        axis: {
-          rotated: true,
-          x: {
-            type: 'category',
-          },
-        },
-        bindto: "#chart"
-      }
-      var chart = bb.generate(chartConfig)
-    });

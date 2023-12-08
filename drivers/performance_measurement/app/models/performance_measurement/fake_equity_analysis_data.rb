@@ -1,5 +1,19 @@
 module PerformanceMeasurement
   class FakeEquityAnalysisData
+    METRICS = [
+      'Number of Homeless People Seen on Jan 26, 2022',
+      'Number of Homeless People Seen Throughout the Year',
+      'Number of First-Time Homeless People',
+      'Average Bed Utilization Overall',
+      'Length of Time Homeless in ES, SH and TH',
+      'Length of Time Homeless in ES, SH, TH, and PH',
+      'Length of Homeless Stay',
+      'Length of Time to Move-In',
+      'Percentage of People with a Successful Placement or Retention of Housing',
+      'Percentage of People Who Returned to Homelessness Within Two Years',
+      'Number of People with Increased Income',
+    ].freeze
+
     RACES = [
       'American Indian, Alaska Native, or Indigenous',
       'Asian or Asian American',
@@ -75,6 +89,8 @@ module PerformanceMeasurement
     PADDING = 3
     RATIO = 0.6
 
+    MIN_HEIGHT = 200
+
     INVESTIGATE_BY = {
       race: RACES,
       age: AGES,
@@ -82,8 +98,19 @@ module PerformanceMeasurement
       household_type: HOUSEHOLD_TYPES,
     }.freeze
 
-    def data(key)
+    def initialize(params)
+      @params = params
+    end
+
+    def data_groups(key)
       groups = INVESTIGATE_BY[key]
+      # if INVESTIGATE_BY matches one of the filters only show this item in the chart
+      groups = groups.select { |g| g == @params[key] } if @params[key].present?
+      groups
+    end
+
+    def data(key)
+      groups = data_groups(key)
       x = [['x'] + groups]
       {
         columns: x + BARS.map { |bar| [bar] + groups.map { |_| rand(100) } },
@@ -92,43 +119,12 @@ module PerformanceMeasurement
       }
     end
 
-    def data_height(key)
-      groups = INVESTIGATE_BY[key]
+    def chart_height(key)
+      groups = data_groups(key)
       bars = BARS.count * (BAR_HEIGHT + PADDING)
       total = bars / RATIO
-      groups.count * total
-    end
-
-    def race_data_height
-      data_height(:race)
-    end
-
-    def race_data
-      data(:race)
-    end
-
-    def age_data_height
-      data_height(:age)
-    end
-
-    def age_data
-      data(:age)
-    end
-
-    def gender_data_height
-      data_height(:gender)
-    end
-
-    def gender_data
-      data(:gender)
-    end
-
-    def household_type_data_height
-      data_height(:household_type)
-    end
-
-    def household_type_data
-      data(:household_type)
+      height = groups.count * total
+      height < MIN_HEIGHT ? MIN_HEIGHT : height
     end
   end
 end

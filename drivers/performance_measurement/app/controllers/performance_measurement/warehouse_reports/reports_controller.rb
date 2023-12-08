@@ -96,6 +96,12 @@ module PerformanceMeasurement::WarehouseReports
     end
 
     def equity_analysis
+      @equity_filters = params[:equity_filters]
+      @analysis_builder = PerformanceMeasurement::EquityReportBuilder.new(@equity_filters)
+      if @equity_filters.present?
+        # if there are filters set errors
+        flash[:error] = @analysis_builder.valid? ? '' : 'There was an error building the equity analysis.'
+      end
       render :show
     end
 
