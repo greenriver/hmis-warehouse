@@ -41,6 +41,10 @@ module AcHmis
       conn.get("Reports/PreventionAssessment/#{referral_id}").then { |r| handle_error(r) }
     end
 
+    def consumer_summary_report(umci:, start_date: nil, end_date: nil, report_type: 'GR')
+      conn.post('Reports/ConsumerSummary', { UMCI: umci, StartDate: start_date, EndDate: end_date, ReportType: report_type }).then { |r| handle_error(r) }
+    end
+
     protected
 
     def handle_error(result)

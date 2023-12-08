@@ -18,6 +18,10 @@ BostonHmis::Application.routes.draw do
           to: 'reports#prevention_assessment_report',
           as: 'ac_hmis_prevention_assessment_report',
           defaults: { format: 'pdf' }
+      get 'consumer_summary_report',
+          to: 'reports#consumer_summary_report',
+          as: 'ac_hmis_consumer_summary_report',
+          defaults: { format: 'pdf' }
     end
 
     namespace :hmis, defaults: { format: :json } do
