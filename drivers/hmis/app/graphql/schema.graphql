@@ -1,3 +1,15 @@
+enum ActiveStatus {
+  """
+  Active
+  """
+  ACTIVE
+
+  """
+  Inactive
+  """
+  INACTIVE
+}
+
 type ActivityLog {
   createdAt: ISO8601DateTime!
   id: ID!
@@ -1690,12 +1702,39 @@ enum DOBDataQuality {
 }
 
 enum DataCollectedAbout {
+  """
+  All Clients
+  """
   ALL_CLIENTS
+
+  """
+  All Clients Receiving SSVF Financial Assistance
+  """
   ALL_CLIENTS_RECEIVING_SSVF_FINANCIAL_ASSISTANCE
+
+  """
+  All Clients Receiving SSVF Services
+  """
   ALL_CLIENTS_RECEIVING_SSVF_SERVICES
+
+  """
+  All Veterans
+  """
   ALL_VETERANS
+
+  """
+  HoH
+  """
   HOH
+
+  """
+  HoH and Adults
+  """
   HOH_AND_ADULTS
+
+  """
+  Veteran HoH
+  """
   VETERAN_HOH
 }
 
@@ -1713,12 +1752,12 @@ enum DataCollectionFeatureRole {
   CASE_NOTE
 
   """
-  Ce assessment
+  CE assessment
   """
   CE_ASSESSMENT
 
   """
-  Ce event
+  CE event
   """
   CE_EVENT
 
@@ -3612,22 +3651,17 @@ enum FormRole {
   CASE_NOTE
 
   """
-  Ce
-  """
-  CE
-
-  """
-  Ce assessment
+  CE assessment
   """
   CE_ASSESSMENT
 
   """
-  Ce event
+  CE event
   """
   CE_EVENT
 
   """
-  Ce participation
+  CE participation
   """
   CE_PARTICIPATION
 
@@ -3640,11 +3674,6 @@ enum FormRole {
   Current living situation
   """
   CURRENT_LIVING_SITUATION
-
-  """
-  Custom assessment
-  """
-  CUSTOM_ASSESSMENT
 
   """
   Enrollment
@@ -3667,7 +3696,7 @@ enum FormRole {
   FUNDER
 
   """
-  Hmis participation
+  HMIS participation
   """
   HMIS_PARTICIPATION
 
@@ -3725,6 +3754,61 @@ enum FormRole {
   Update
   """
   UPDATE
+}
+
+type FormRule {
+  active: Boolean!
+  createdAt: ISO8601DateTime!
+  dataCollectedAbout: DataCollectedAbout
+  definitionId: ID
+  definitionIdentifier: String!
+  definitionRole: FormRole
+  definitionTitle: String
+  funder: FundingSource
+  id: ID!
+  organization: Organization
+  otherFunder: String
+  project: Project
+  projectType: ProjectType
+  serviceCategory: ServiceCategory
+  serviceType: ServiceType
+  system: Boolean!
+  updatedAt: ISO8601DateTime!
+}
+
+input FormRuleFilterOptions {
+  activeStatus: [ActiveStatus!]
+  appliedToProject: ID
+  formType: [FormRole!]
+  projectType: [ProjectType!]
+  systemForm: [SystemStatus!]
+}
+
+enum FormRuleSortOption {
+  """
+  Date Updated
+  """
+  DATE_UPDATED
+
+  """
+  Form Title
+  """
+  FORM_TITLE
+
+  """
+  Form Type
+  """
+  FORM_TYPE
+}
+
+type FormRulesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [FormRule!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 type Funder {
@@ -7853,6 +7937,7 @@ type Query {
   enrollment(id: ID!): Enrollment
   esgFundingReport(clientIds: [ID!]!): [EsgFundingService!]!
   file(id: ID!): File
+  formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
 
   """
   Funder lookup
@@ -7913,6 +7998,8 @@ type Query {
   Service lookup
   """
   service(id: ID!): Service
+  serviceCategories(limit: Int, offset: Int): ServiceCategoriesPaginated!
+  serviceCategory(id: ID!): ServiceCategory
 
   """
   Service type lookup
@@ -7930,6 +8017,7 @@ type QueryAccess {
   canAuditClients: Boolean!
   canAuditEnrollments: Boolean!
   canAuditUsers: Boolean!
+  canConfigureDataCollection: Boolean!
   canDeleteAssessments: Boolean!
   canDeleteClients: Boolean!
   canDeleteEnrollments: Boolean!
@@ -8923,6 +9011,28 @@ type Service {
   user: ApplicationUser
 }
 
+type ServiceCategoriesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ServiceCategory!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+type ServiceCategory {
+  dateCreated: ISO8601DateTime
+  dateDeleted: ISO8601DateTime
+  dateUpdated: ISO8601DateTime
+  formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
+  hud: Boolean!
+  id: ID!
+  name: String!
+  serviceTypes(limit: Int, offset: Int): ServiceTypesPaginated!
+  user: ApplicationUser
+}
+
 enum ServiceDetailType {
   BULK
   CLIENT
@@ -9113,6 +9223,7 @@ type ServiceType {
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
+  hud: Boolean!
   hudRecordType: RecordType
   hudTypeProvided: ServiceTypeProvided
   id: ID!
@@ -9630,6 +9741,16 @@ enum ServiceTypeProvided {
   SSVF_SERVICE__SHALLOW_SUBSIDY
 }
 
+type ServiceTypesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ServiceType!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
 input ServicesForEnrollmentFilterOptions {
   dateProvided: ISO8601Date
   serviceCategory: [ID!]
@@ -9884,6 +10005,18 @@ enum SubsidyInformationB {
   (11) With on-going subsidy
   """
   WITH_ON_GOING_SUBSIDY
+}
+
+enum SystemStatus {
+  """
+  Non-System
+  """
+  NON_SYSTEM
+
+  """
+  System
+  """
+  SYSTEM
 }
 
 """
