@@ -55,14 +55,6 @@ module BaseApplicationControllerBehavior
       payload[:request_start] = request.headers['HTTP_X_REQUEST_START'].try(:gsub, /\At=/, '')
     end
 
-    def info_for_paper_trail
-      {
-        user_id: warden&.user&.id,
-        session_id: request.env['rack.session.record']&.session_id,
-        request_id: request.uuid,
-      }
-    end
-
     def configure_permitted_parameters
       devise_parameter_sanitizer.permit(:sign_in, keys: [:otp_attempt, :remember_device, :device_name])
     end

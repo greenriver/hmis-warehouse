@@ -115,7 +115,7 @@ FY2023 Changes
 		and part.HMISParticipationType = 1
 		and part.HMISParticipationStatusStartDate <= n.EntryDate
 		and (part.HMISParticipationStatusEndDate is null
-			or part.HMISParticipationStatusEndDate >= n.ExitDate)
+			or part.HMISParticipationStatusEndDate >= coalesce(n.ExitDate, rpt.ReportEnd))
 	where n.Active = 1 and part.ProjectID is null
 	group by n.ProjectID, rpt.ReportID
 /*

@@ -80,3 +80,8 @@ Name:  00 Totally Optional HMIS Table Indexes.sql
 	begin
 		create nonclustered index ix_hmis_Enrollment_ProjectID_RelationshipToHoH_DateDeleted_EntryDate on hmis_Enrollment (ProjectID, RelationshipToHoH, DateDeleted,EntryDate) include (HouseholdID, EnrollmentCoC)
 	end
+
+	if not exists (select * from sys.indexes where name = 'ix_hmis_HealthAndDV_InformationDate_DateDeleted')
+	begin
+		create nonclustered index ix_hmis_HealthAndDV_InformationDate_DateDeleted on hmis_HealthAndDV (InformationDate, DateDeleted) include ([EnrollmentID], [DomesticViolenceSurvivor], [CurrentlyFleeing])
+	end

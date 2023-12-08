@@ -12,13 +12,6 @@ module HmisCsvTwentyTwentyFour::Exporter
       @options = options
     end
 
-    def process(row)
-      row = assign_export_id(row)
-      row = self.class.adjust_keys(row, @options[:export])
-
-      row
-    end
-
     def self.adjust_keys(row, export)
       row.UserID = row.user&.id || 'op-system'
 

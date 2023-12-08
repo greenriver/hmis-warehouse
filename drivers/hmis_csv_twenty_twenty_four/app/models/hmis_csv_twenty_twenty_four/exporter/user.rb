@@ -27,7 +27,7 @@ module HmisCsvTwentyTwentyFour::Exporter
       yield row
     end
 
-    def self.adjust_keys(row)
+    def self.adjust_keys(row, _export)
       row.UserID = row.id
 
       row

@@ -26,7 +26,7 @@ module Mutations
       return { errors: errors } if errors.any?
 
       units = Hmis::Unit.where(id: unit_ids).preload(:unit_type)
-      unit_types = units.map(&:unit_type).uniq
+      unit_types = units.map(&:unit_type).uniq.compact
       Hmis::Unit.transaction do
         units.each(&:destroy!)
         unit_types.each do |unit_type|

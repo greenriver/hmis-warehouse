@@ -27,10 +27,7 @@ module Types
     end
 
     def name
-      names = [object.first_name, object.last_name].compact_blank
-      return "User #{object.id}" unless names.any?
-
-      names.join(' ')
+      object.full_name || "User #{object.id}"
     end
 
     def recent_items

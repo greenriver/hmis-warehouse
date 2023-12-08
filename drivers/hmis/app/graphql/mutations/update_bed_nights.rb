@@ -14,7 +14,7 @@ module Mutations
     field :success, Boolean, null: true
 
     def resolve(project_id:, enrollment_ids:, bed_night_date:, action:)
-      enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).where(id: enrollment_ids)
+      enrollments = Hmis::Hud::Enrollment.viewable_by(current_user).where(id: enrollment_ids).preload(:client, :project)
       raise 'not found' unless enrollments.count == enrollment_ids.uniq.length
       raise 'project mismatch' unless enrollments.with_project([project_id]).size == enrollments.size
 
@@ -25,19 +25,23 @@ module Mutations
         when 'ADD'
           services = enrollments.map do |enrollment|
             Hmis::Hud::Service.new(
-              **enrollment.slice(:enrollment_id, :personal_id, :data_source_id),
+              **enrollment.slice(:personal_id, :data_source_id),
+              enrollment: enrollment,
               date_provided: bed_night_date,
               record_type: 200, # bed night
               type_provided: 200, # bed night
               user_id: hud_user_id,
             )
           end
-          services.map { |s| s.save!(context: :bed_nights_mutation) }
+          services.each do |service|
+            service.save!(context: :bed_nights_mutation)
+          end
         when 'REMOVE'
           services = Hmis::Hud::Service.bed_nights.
+            preload(:enrollment). # preload for paper trail
             where(enrollment_id: enrollments.map(&:enrollment_id), data_source_id: current_user.hmis_data_source_id).
             where(date_provided: bed_night_date)
-          services.destroy_all
+          services.each(&:destroy!)
         end
       end
 

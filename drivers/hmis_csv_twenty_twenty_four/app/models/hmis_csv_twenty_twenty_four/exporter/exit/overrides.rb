@@ -25,7 +25,6 @@ module HmisCsvTwentyTwentyFour::Exporter
 
     def self.apply_overrides(row)
       row = replace_blank(row, hud_field: :Destination, default_value: 99)
-      row.OtherDestination = row.OtherDestination[0..49] if row.OtherDestination.present?
 
       row
     end

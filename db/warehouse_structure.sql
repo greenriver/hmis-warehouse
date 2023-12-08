@@ -16480,7 +16480,8 @@ CREATE TABLE public.hmis_dqt_current_living_situations (
     deleted_at timestamp without time zone,
     project_id integer,
     first_name character varying,
-    last_name character varying
+    last_name character varying,
+    personal_id character varying
 );
 
 
@@ -24298,7 +24299,11 @@ CREATE TABLE public.versions (
     user_id bigint,
     referenced_user_id bigint,
     referenced_entity_name character varying,
-    migrated_app_version_id bigint
+    migrated_app_version_id bigint,
+    true_user_id bigint,
+    client_id bigint,
+    enrollment_id bigint,
+    project_id bigint
 );
 
 
@@ -56371,10 +56376,31 @@ CREATE INDEX index_va_check_histories_on_user_id ON public.va_check_histories US
 
 
 --
+-- Name: index_versions_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_versions_on_client_id ON public.versions USING btree (client_id);
+
+
+--
+-- Name: index_versions_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_versions_on_enrollment_id ON public.versions USING btree (enrollment_id);
+
+
+--
 -- Name: index_versions_on_item_type_and_item_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_versions_on_item_type_and_item_id ON public.versions USING btree (item_type, item_id);
+
+
+--
+-- Name: index_versions_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_versions_on_project_id ON public.versions USING btree (project_id);
 
 
 --
@@ -59978,10 +60004,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231114235529'),
 ('20231115170459'),
 ('20231120221840'),
+('20231121165752'),
 ('20231122185546'),
 ('20231124171521'),
+('20231203221840'),
 ('20231204134123'),
 ('20231205141010'),
+('20231206200436'),
 ('20231207155629');
 
 

@@ -7,6 +7,7 @@
 # exported data from ACHMIS that describes the unit types and capacity for each project (called program)
 class Hmis::ProjectUnitTypeMapping < Hmis::HmisBase
   self.table_name = :hmis_project_unit_type_mappings
+  has_paper_trail(meta: { project_id: :project_id })
 
   belongs_to :project, class_name: 'Hmis::Hud::Project'
   belongs_to :unit_type, class_name: 'Hmis::UnitType'
