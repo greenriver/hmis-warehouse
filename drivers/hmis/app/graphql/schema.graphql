@@ -9005,9 +9005,11 @@ type Service {
   id: ID!
   movingOnOtherType: String
   otherTypeProvided: String
+  recordType: RecordType
   referralOutcome: PATHReferralOutcome
   serviceType: ServiceType!
   subTypeProvided: ServiceSubTypeProvided
+  typeProvided: ServiceTypeProvided
   user: ApplicationUser
 }
 

@@ -47,36 +47,40 @@ module Types
       arg :user, [ID]
     end
 
+    # Record name for display
     def record_name
       case object.item_type
-      when 'Hmis::Hud::CustomAssessment'
-        'Assessment'
       when 'Hmis::Hud::Assessment'
         'CE Assessment'
       when 'Hmis::Hud::Event'
         'CE Event'
       when 'Hmis::Hud::CustomClientAddress'
         values = object.object || {}
-        return 'Move in address' if values['enrollment_address_type'] == Hmis::Hud::CustomClientAddress::ENROLLMENT_MOVE_IN_TYPE
+        return 'Move-in Address' if values['enrollment_address_type'] == Hmis::Hud::CustomClientAddress::ENROLLMENT_MOVE_IN_TYPE
 
         'Address'
+      when 'Hmis::Hud::CustomDataElement'
+        changed_record&.data_element_definition&.label
       else
-        object.item_type.demodulize.gsub(/^CustomClient/, '').underscore.humanize.titleize
+        object.item_type.demodulize.
+          gsub(/^CustomClient/, ''). # Address, Contact Point
+          gsub(/^Custom/, ''). # Service, Assessment
+          underscore.humanize.titleize
       end
     end
 
     def graphql_type
       # maybe there's a way to map these from codegen?
       case object.item_type
-      when 'Hmis::Hud::CustomAssessment'
-        'Assessment'
       when 'Hmis::Hud::Assessment'
         'CeAssessment'
-      when 'Hmis::Hud::CeParticipation'
-        'CeParticipation'
       else
-        object.item_type.demodulize
+        object.item_type.demodulize.gsub(/^Custom/, '')
       end
+    end
+
+    def changed_record
+      load_ar_association(object, :item)
     end
 
     def user
@@ -96,26 +100,27 @@ module Types
       result = object.object_changes
       return unless result.present?
 
-      changed_record = record
       result = transform_changes(object, result).map do |key, value|
-        name = key.camelize(:lower)
-        gql_enum = Hmis::Hud::Processors::Base.graphql_enum(name, schema_type)
+        # Best-effort guess at GQL field name for this attribute
+        field_name = key.underscore.camelize(:lower)
 
         values = value.map do |val|
           next unless val.present?
-          next val unless gql_enum.present?
-          next val.map { |v| v.present? ? gql_enum.key_for(v) : nil } if val.is_a? Array
 
-          gql_enum.key_for(val)
+          if val.is_a?(Array)
+            val.map { |v| safe_enum_for_value(field_name, v) }
+          else
+            safe_enum_for_value(field_name, val)
+          end
         end
 
         # hide certain changes (SSN/DOB) if unauthorized
         values = 'changed' if changed_record && !authorize_field(changed_record, key)
 
         [
-          name,
+          field_name,
           {
-            'fieldName' => name,
+            'fieldName' => field_name,
             'displayName' => key.titleize(keep_id_suffix: true),
             'values' => values,
           },
@@ -125,11 +130,27 @@ module Types
       result
     end
 
-    private def record
-      return object.item if object.item_type.starts_with?('Hmis::')
+    # Based on a possible graphql field name and a raw value, return the GQL Enum value for it
+    # For example: (name: 'tanfTransportation', value: 1) => 'YES'
+    private def safe_enum_for_value(name, value)
+      return nil unless value.present?
 
-      # Attempt to convert GrdaWarehouse record to Hmis record
-      "Hmis::Hud::#{object.item_type.demodulize}".constantize.with_deleted.find_by(id: object.item_id)
+      # Try to find the enum that maps to this field (if any)
+      gql_schema = "Types::HmisSchema::#{graphql_type}".safe_constantize
+      gql_enum = Hmis::Hud::Processors::Base.graphql_enum(name, gql_schema)
+      return value unless gql_enum
+
+      # Special case Service TypeProvided enum which uses a composite value
+      value = [changed_record.record_type, value].join(':') if object.item_type == 'Hmis::Hud::Service' && name == 'typeProvided'
+      Rails.logger.info(">>> value #{name} #{value}")
+
+      # Find enum member that matches this value
+      member = gql_enum.enum_member_for_value(value)
+
+      # If value wasn't valid for the enum, just return the raw value so it's still visible
+      return value unless member.present?
+
+      member.first
     end
   end
 end

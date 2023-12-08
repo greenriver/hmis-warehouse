@@ -192,7 +192,7 @@ module Types
     field :move_in_addresses, [HmisSchema::ClientAddress], null: false
 
     # fields should match our DB casing, consult schema to see determine appropriate casing
-    EXCLUDED_HISTORY_FIELDS = ['id', 'DateCreated', 'DateUpdated', 'DateDeleted'].to_set.freeze
+    EXCLUDED_HISTORY_FIELDS = ['id', 'DateCreated', 'DateUpdated', 'DateDeleted', 'owner_type'].to_set.freeze
     audit_history_field(
       transform_changes: ->(_version, changes) {
         # Drop excluded fields
