@@ -18,7 +18,7 @@
 #   "region"=>nil,
 #   "bucket"=>"API_TEST",
 #   "path"=>"https://alleghenycounty-demo.oktapreview.com/oauth2/TOKEN/v1/token",
-#   "endpoint"=>"https://dhsaz-apim-api-uat.azure-api.net/green-river-api/api",
+#   "endpoint"=>"https://BASE/green-river-api/api",
 #   "created_at"=>Thu, 07 Dec 2023 16:33:49.435762000 EST -05:00,
 #   "updated_at"=>Thu, 07 Dec 2023 16:33:49.435762000 EST -05:00,
 #   "deleted_at"=>nil,
