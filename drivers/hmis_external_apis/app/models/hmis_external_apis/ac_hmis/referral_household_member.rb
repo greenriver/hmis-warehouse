@@ -8,6 +8,7 @@ module HmisExternalApis::AcHmis
   # A member of a household that is referred for services
   class ReferralHouseholdMember < ::HmisExternalApis::HmisExternalApisBase
     self.table_name = 'hmis_external_referral_household_members'
+    has_paper_trail(meta: { client_id: :client_id })
     belongs_to :referral, class_name: 'HmisExternalApis::AcHmis::Referral'
     belongs_to :client, class_name: 'Hmis::Hud::Client'
 

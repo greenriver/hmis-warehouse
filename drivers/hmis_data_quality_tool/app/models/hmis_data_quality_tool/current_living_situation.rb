@@ -87,6 +87,7 @@ module HmisDataQualityTool
         current_living_situation_id: current_living_situation.id,
       )
       report_item.client_id = client.id
+      report_item.personal_id = client.PersonalID
       report_item.situation = current_living_situation.CurrentLivingSituation
       report_item.enrollment_id = current_living_situation.enrollment.id
       report_item.first_name = client.FirstName

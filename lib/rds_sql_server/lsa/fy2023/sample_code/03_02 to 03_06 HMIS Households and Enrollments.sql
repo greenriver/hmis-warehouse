@@ -265,24 +265,20 @@ where hoh.DateDeleted is null
 	inner join tlsa_HHID hhid on hhid.HouseholdID = n.HouseholdID and hhid.LSAProjectType in (3,13,15)
 
 	update n
-	set n.DVStatus = (select min(case when dv.DomesticViolenceSurvivor = 1 and dv.CurrentlyFleeing = 1 then 1
-				when dv.DomesticViolenceSurvivor = 1 and dv.CurrentlyFleeing = 0 then 2 
-				when dv.DomesticViolenceSurvivor = 1 then 3
-				when dv.DomesticViolenceSurvivor = 0 then 10
-				when dv.DomesticViolenceSurvivor in (8,9) then 98
-				else null end) 
-			from lsa_Report rpt 
-			inner join hmis_HealthAndDV dv on dv.EnrollmentID = n.EnrollmentID 
-				 and dv.DateDeleted is null
-				 and dv.InformationDate <= rpt.ReportEnd
-				 and dv.InformationDate >= n.EntryDate
-				 and (dv.InformationDate <= n.ExitDate or n.ExitDate is null))
+	set n.DVStatus = dv.DVStat 
 		, n.Step = '3.4.4'
 	from tlsa_Enrollment n
-
-
-
-
+	left outer join (select dv.EnrollmentID,
+		min(case when dv.DomesticViolenceSurvivor = 1 and dv.CurrentlyFleeing = 1 then 1
+		when dv.DomesticViolenceSurvivor = 1 and dv.CurrentlyFleeing = 0 then 2
+		when dv.DomesticViolenceSurvivor = 1 then 3
+		when dv.DomesticViolenceSurvivor = 0 then 10
+		else 98 end) as DVStat
+		from hmis_HealthAndDV dv
+		inner join lsa_Report rpt on rpt.ReportEnd >=  dv.InformationDate
+		inner join tlsa_Enrollment n on n.EnrollmentID = dv.EnrollmentID and dv.InformationDate >= n.EntryDate 
+			and (n.ExitDate is null or dv.InformationDate <= n.ExitDate)
+		group by dv.EnrollmentID) dv on n.EnrollmentID = dv.EnrollmentID
 
 /*
 	3.5 Enrollment Ages - Active and Exit

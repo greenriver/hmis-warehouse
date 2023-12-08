@@ -474,6 +474,11 @@ A base64 encoded string
 """
 scalar Base64
 
+input BaseAuditEventFilterOptions {
+  auditEventRecordType: [ID!]
+  user: [ID!]
+}
+
 """
 2.07.5
 """
@@ -629,7 +634,7 @@ type Client {
   afghanistanOef: NoYesReasonsForMissingData
   age: Int
   assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
-  auditHistory(limit: Int, offset: Int): ClientAuditEventsPaginated!
+  auditHistory(filters: BaseAuditEventFilterOptions, limit: Int, offset: Int): ClientAuditEventsPaginated!
   contactPoints: [ClientContactPoint!]!
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
   customCaseNotes(limit: Int, offset: Int): CustomCaseNotesPaginated!
@@ -778,6 +783,7 @@ enum ClientAddressUse {
 type ClientAuditEvent {
   createdAt: ISO8601DateTime!
   event: AuditEventType!
+  graphqlType: String!
   id: ID!
 
   """
@@ -1608,6 +1614,7 @@ type CustomCaseNote {
   dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
   id: ID!
+  informationDate: ISO8601Date
   user: ApplicationUser
 }
 
@@ -2820,6 +2827,7 @@ type Enrollment {
   alcoholDrugUseDisorderFam: NoYesMissing
   annualPercentAmi: AnnualPercentAMI
   assessments(filters: AssessmentsForEnrollmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  auditHistory(filters: BaseAuditEventFilterOptions, limit: Int, offset: Int): EnrollmentAuditEventsPaginated!
   ceAssessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): CeAssessmentsPaginated!
   childWelfareMonths: Int
   childWelfareYears: RHYNumberofYears
@@ -2923,11 +2931,37 @@ type Enrollment {
 }
 
 type EnrollmentAccess {
+  canAuditEnrollments: Boolean!
   canDeleteEnrollments: Boolean!
   canEditEnrollments: Boolean!
   canSplitHouseholds: Boolean!
   canViewEnrollmentDetails: Boolean!
   id: ID!
+}
+
+type EnrollmentAuditEvent {
+  createdAt: ISO8601DateTime!
+  event: AuditEventType!
+  graphqlType: String!
+  id: ID!
+
+  """
+  Format is { field: { fieldName: "GQL field name", displayName: "Human readable name", values: [old, new] } }
+  """
+  objectChanges: JsonObject
+  recordId: ID!
+  recordName: String!
+  user: ApplicationUser
+}
+
+type EnrollmentAuditEventsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [EnrollmentAuditEvent!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 enum EnrollmentFilterOptionHouseholdTask {
@@ -5762,6 +5796,7 @@ enum PickListType {
   Enrollments for the client, including WIP and Exited.
   """
   ENROLLMENTS_FOR_CLIENT
+  ENROLLMENT_AUDIT_EVENT_RECORD_TYPES
   GEOCODE
 
   """
@@ -5794,6 +5829,11 @@ enum PickListType {
   SUB_TYPE_PROVIDED_3
   SUB_TYPE_PROVIDED_4
   SUB_TYPE_PROVIDED_5
+
+  """
+  User Accounts
+  """
+  USERS
 }
 
 """
@@ -7975,6 +8015,7 @@ type Query {
 type QueryAccess {
   canAdministerHmis: Boolean!
   canAuditClients: Boolean!
+  canAuditEnrollments: Boolean!
   canAuditUsers: Boolean!
   canConfigureDataCollection: Boolean!
   canDeleteAssessments: Boolean!

@@ -293,6 +293,14 @@ class Hmis::Role < ::ApplicationRecord
           'Enrollments',
         ],
       },
+      can_audit_enrollments: {
+        description: 'Access to see who has changed an enrollment record.',
+        administrative: true,
+        access: [:viewable],
+        categories: [
+          'Audit History',
+        ],
+      },
       can_delete_assessments: {
         description: 'Ability to delete assessments that have been submitted',
         administrative: false,

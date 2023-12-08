@@ -36,13 +36,47 @@ module Types
     field :id, ID, null: false
     field :record_id, ID, null: false, method: :item_id
     field :record_name, String, null: false
+    field :graphql_type, String, null: false
     field :event, HmisSchema::Enums::AuditEventType, null: false
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :user, Application::User, null: true
     field :object_changes, Types::JsonObject, null: true, description: 'Format is { field: { fieldName: "GQL field name", displayName: "Human readable name", values: [old, new] } }'
 
+    available_filter_options do
+      arg :audit_event_record_type, [ID]
+      arg :user, [ID]
+    end
+
     def record_name
-      object.item_type.demodulize.gsub(/^CustomClient/, '').underscore.humanize.titleize
+      case object.item_type
+      when 'Hmis::Hud::CustomAssessment'
+        'Assessment'
+      when 'Hmis::Hud::Assessment'
+        'CE Assessment'
+      when 'Hmis::Hud::Event'
+        'CE Event'
+      when 'Hmis::Hud::CustomClientAddress'
+        values = object.object || {}
+        return 'Move in address' if values['enrollment_address_type'] == Hmis::Hud::CustomClientAddress::ENROLLMENT_MOVE_IN_TYPE
+
+        'Address'
+      else
+        object.item_type.demodulize.gsub(/^CustomClient/, '').underscore.humanize.titleize
+      end
+    end
+
+    def graphql_type
+      # maybe there's a way to map these from codegen?
+      case object.item_type
+      when 'Hmis::Hud::CustomAssessment'
+        'Assessment'
+      when 'Hmis::Hud::Assessment'
+        'CeAssessment'
+      when 'Hmis::Hud::CeParticipation'
+        'CeParticipation'
+      else
+        object.item_type.demodulize
+      end
     end
 
     def user

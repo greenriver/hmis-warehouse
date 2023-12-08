@@ -56,6 +56,7 @@ module Hmis
         variables: prepare_variables(gql_param[:variables]),
         context: {
           current_user: current_hmis_user,
+          true_user: true_hmis_user,
           activity_logger: Hmis::GraphqlFieldLogger.new,
         },
       }
