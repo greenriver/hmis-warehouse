@@ -230,7 +230,7 @@ RSpec.shared_context 'datalab organization a rrh apr', shared_context: :metadata
     end
 
     # pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recU9uhV7OK67j9G6
-    xit 'Q19a2' do
+    it 'Q19a2' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19a2',

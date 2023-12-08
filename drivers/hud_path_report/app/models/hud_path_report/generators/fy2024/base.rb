@@ -287,6 +287,7 @@ module HudPathReport::Generators::Fy2024
       return true if enrollment.DateOfEngagement&.between?(@report.start_date, @report.end_date)
       return true if enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus&.between?(@report.start_date, @report.end_date)
       return true if enrollment.services.path_service.between(start_date: @report.start_date, end_date: @report.end_date).exists?
+      return true if enrollment.exit_date.between?(@report.start_date, @report.end_date)
 
       false
     end

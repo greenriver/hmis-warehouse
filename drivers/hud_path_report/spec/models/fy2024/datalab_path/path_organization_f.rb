@@ -18,12 +18,11 @@ RSpec.shared_context 'path organization f', shared_context: :metadata do
         file_path: result_file_prefix + results_dir,
         question: 'Q8-Q16',
         # TODO the following don't currently match, but do produce data
+        # Prior https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec4ABXImQDXgWZCe (appears the test kit includes Exit Date in the active calculation.) Guidance provided, exit date should always be included (B2, B11)
         skip: [
-          'B2', # PENDING https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec4ABXImQDXgWZCe (appears the test kit includes Exit Date in the active calculation.)
           'B3',
           'B5',
           'B7',
-          'B11',
         ],
       )
     end
