@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# This model is backed by a DB view
 class Hmis::Hud::Household < Hmis::Hud::Base
   include ::Hmis::Concerns::HmisArelHelper
 

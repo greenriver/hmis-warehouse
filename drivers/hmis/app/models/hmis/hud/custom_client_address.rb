@@ -7,6 +7,13 @@
 class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
   self.table_name = :CustomClientAddress
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  has_paper_trail(
+    meta: {
+      client_id: ->(r) { r.client&.id },
+      enrollment_id: ->(r) { r.enrollment&.id },
+      project_id: ->(r) { r.enrollment&.project&.id },
+    },
+  )
 
   USE_VALUES = [
     :home,
