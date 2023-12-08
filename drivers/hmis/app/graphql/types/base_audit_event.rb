@@ -41,13 +41,14 @@ module Types
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :user, Application::User, null: true
     field :object_changes, Types::JsonObject, null: true, description: 'Format is { field: { fieldName: "GQL field name", displayName: "Human readable name", values: [old, new] } }'
+    # TODO: add impersonation user / true user, and display it in the interface
 
     available_filter_options do
       arg :audit_event_record_type, [ID]
       arg :user, [ID]
     end
 
-    # Record name for display
+    # User-friendly display name for item_type
     def record_name
       case object.item_type
       when 'Hmis::Hud::Assessment'
@@ -55,12 +56,16 @@ module Types
       when 'Hmis::Hud::Event'
         'CE Event'
       when 'Hmis::Hud::CustomClientAddress'
-        values = object.object || {}
-        return 'Move-in Address' if values['enrollment_address_type'] == Hmis::Hud::CustomClientAddress::ENROLLMENT_MOVE_IN_TYPE
+        return 'Move-in Address' if item_attributes['enrollment_address_type'] == Hmis::Hud::CustomClientAddress::ENROLLMENT_MOVE_IN_TYPE
 
         'Address'
+      when 'Hmis::Hud::CustomClientContactPoint'
+        return 'Email Address' if item_attributes['system'] == 'email'
+        return 'Phone Number' if item_attributes['system'] == 'phone'
+
+        'Contact Information'
       when 'Hmis::Hud::CustomDataElement'
-        changed_record&.data_element_definition&.label
+        changed_record&.data_element_definition&.label # can we do this without N+1?
       else
         object.item_type.demodulize.
           gsub(/^CustomClient/, ''). # Address, Contact Point
@@ -79,8 +84,15 @@ module Types
       end
     end
 
-    def changed_record
+    # NOTE: will be nil if this is a 'destroy' event
+    private def changed_record
       load_ar_association(object, :item)
+    end
+
+    # Attributes from the object or the current value
+    # NOTE: Should ONLY be used to look at fields that don't change. It does not represent the state at any particular time.
+    private def item_attributes
+      object.object || changed_record&.attributes || {}
     end
 
     def user
@@ -140,9 +152,8 @@ module Types
       gql_enum = Hmis::Hud::Processors::Base.graphql_enum(name, gql_schema)
       return value unless gql_enum
 
-      # Special case Service TypeProvided enum which uses a composite value
-      value = [changed_record.record_type, value].join(':') if object.item_type == 'Hmis::Hud::Service' && name == 'typeProvided'
-      Rails.logger.info(">>> value #{name} #{value}")
+      # Special case Service TypeProvided enum, which uses a composite value.
+      value = [item_attributes['RecordType'], value].join(':') if object.item_type == 'Hmis::Hud::Service' && name == 'typeProvided'
 
       # Find enum member that matches this value
       member = gql_enum.enum_member_for_value(value)
