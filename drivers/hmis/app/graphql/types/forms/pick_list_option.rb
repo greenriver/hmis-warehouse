@@ -21,7 +21,7 @@ module Types
     CODE_PATTERN = /^\(([0-9]*)\) /
 
     def self.options_for_type(pick_list_type, user:, project_id: nil, client_id: nil, household_id: nil)
-      result = static_options_for_type(pick_list_type)
+      result = static_options_for_type(pick_list_type, user: user)
       return result if result.present?
 
       project = Hmis::Hud::Project.viewable_by(user).find_by(id: project_id) if project_id.present?
@@ -69,7 +69,7 @@ module Types
     end
 
     # "Static" pick list options that do not depend on any other data
-    def self.static_options_for_type(pick_list_type)
+    def self.static_options_for_type(pick_list_type, user:)
       case pick_list_type
       when 'STATE'
         state_picklist
@@ -106,7 +106,42 @@ module Types
               { code: k, label: v.description.gsub(CODE_PATTERN, ''), group_label: group }
             end
           end.flatten
+      when 'USERS'
+        user_picklist(user)
+      when 'ENROLLMENT_AUDIT_EVENT_RECORD_TYPES'
+        audit_event_record_type_picklist
       end
+    end
+
+    def self.user_picklist(current_user)
+      return [] unless current_user
+      # currently picklist is only needed when filtering audit events
+      return [] unless current_user.can_audit_enrollments? || current_user.can_audit_clients?
+
+      Hmis::User.with_deleted.order(:last_name, :first_name, :id).map do |user|
+        { code: user.id.to_s, label: user.full_name }
+      end
+    end
+
+    def self.audit_event_record_type_picklist
+      [
+        [Hmis::Hud::Enrollment],
+        [Hmis::Hud::CustomAssessment],
+        [Hmis::Hud::CurrentLivingSituation],
+        [Hmis::Hud::Service],
+        [Hmis::Hud::IncomeBenefit],
+        [Hmis::Hud::HealthAndDv],
+        [Hmis::Hud::EmploymentEducation],
+        [Hmis::Hud::YouthEducationStatus],
+        [Hmis::Hud::Disability],
+        [Hmis::Hud::Exit],
+        [Hmis::Hud::Event, 'CE Event'],
+        [Hmis::Hud::Assessment, 'CE Assessment'],
+        [Hmis::Hud::CustomDataElement],
+        [Hmis::Hud::CustomCaseNote],
+      ].map do |klass, name|
+        { code: klass.sti_name, label: name || klass.name.demodulize }
+      end.sort_by { |h| h[:label] }
     end
 
     def self.available_unit_types_for_project(project)

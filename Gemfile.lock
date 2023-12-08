@@ -392,6 +392,7 @@ GEM
       actionmailer (>= 5.0)
       devise (>= 4.6)
     diff-lcs (1.5.0)
+    docile (1.4.0)
     domain_name (0.5.20190701)
       unf (>= 0.0.5, < 1.0.0)
     doorkeeper (5.6.6)
@@ -630,8 +631,8 @@ GEM
       iniparse (~> 1.4)
       rexml (~> 3.2)
     pagy (5.1.2)
-    paper_trail (14.0.0)
-      activerecord (>= 6.0)
+    paper_trail (15.1.0)
+      activerecord (>= 6.1)
       request_store (~> 1.4)
     parallel (1.22.1)
     paranoia (2.4.3)
@@ -852,6 +853,12 @@ GEM
     simple_form (5.1.0)
       actionpack (>= 5.2)
       activemodel (>= 5.2)
+    simplecov (0.22.0)
+      docile (~> 1.1)
+      simplecov-html (~> 0.11)
+      simplecov_json_formatter (~> 0.1)
+    simplecov-html (0.12.3)
+    simplecov_json_formatter (0.1.4)
     simpleidn (0.2.1)
       unf (~> 0.1.4)
     slack-notifier (2.4.0)
@@ -1162,6 +1169,7 @@ DEPENDENCIES
   sentry-rails (~> 5.5)
   shoulda
   simple_form
+  simplecov
   slack-notifier
   soundex
   spring
