@@ -376,6 +376,14 @@ class Hmis::Role < ::ApplicationRecord
           'Enrollments',
         ],
       },
+      can_configure_data_collection: {
+        description: 'Grants access to configuration tool for forms, services, and assessments',
+        administrative: true,
+        access: [:editable],
+        categories: [
+          'Administrative',
+        ],
+      },
     }
   end
 end
