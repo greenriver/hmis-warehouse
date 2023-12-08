@@ -29,6 +29,16 @@ module HudSpmReport::HudReports
         inverse_of: :hud_reports_universe_members,
         optional: true,
       )
+      belongs_to(
+        :return,
+        -> do
+          where(HudReports::UniverseMember.arel_table[:universe_membership_type].eq('HudSpmReport::Fy2023::Return'))
+        end,
+        class_name: 'HudSpmReport::Fy2023::Return',
+        foreign_key: :universe_membership_id,
+        inverse_of: :hud_reports_universe_members,
+        optional: true,
+      )
     end
   end
 end

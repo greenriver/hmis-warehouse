@@ -116,7 +116,9 @@ module HudSpmReport::Generators::Fy2023
       universe_enrollments = [].tap do |collection|
         report_enrollments.find_each do |enrollment|
           prior = candidate_enrollments.where(spm_e_t[:client_id].eq(enrollment.client_id).
-            and(spm_e_t[:exit_date].eq(nil).or(spm_e_t[:exit_date].lt(enrollment.entry_date - 730.days))))
+            and(spm_e_t[:exit_date].eq(nil).or(spm_e_t[:exit_date].lt(enrollment.entry_date - 730.days)))).
+            order(spm_e_t[:exit_date].desc).
+            first
           collection << prior if prior.present?
         end
       end
