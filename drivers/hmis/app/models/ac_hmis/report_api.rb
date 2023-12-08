@@ -7,7 +7,7 @@
 # To connect to the API, you need a remote credential for this endpoint. Replace
 # the empty strings below with values from the documentation.
 #
-# creds = GrdaWarehouse::RemoteCredentials::Oauth.where(slug: 'ac_hmis_link').first_or_initialize
+# creds = GrdaWarehouse::RemoteCredentials::Oauth.where(slug: 'ac_reports').first_or_initialize
 # creds.attributes = {
 #   "id"=>6,
 #   "type"=>"GrdaWarehouse::RemoteCredentials::Oauth",
