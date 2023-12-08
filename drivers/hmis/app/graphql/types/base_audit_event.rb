@@ -64,6 +64,8 @@ module Types
         return 'Phone Number' if item_attributes['system'] == 'phone'
 
         'Contact Information'
+      when 'Hmis::Hud::Disability'
+        HudUtility2024.disability_type(item_attributes['DisabilityType']) || 'Disability'
       # TODO: Add back CDE label more efficiently? The below causes N+1, and doesn't work for CDE destroy actions.
       # We could look at `item_attributes['data_element_definition_id']` to determine the label, but it would still be N+1.
       # when 'Hmis::Hud::CustomDataElement'
