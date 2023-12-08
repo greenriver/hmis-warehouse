@@ -464,7 +464,7 @@ scalar Base64
 
 input BaseAuditEventFilterOptions {
   auditEventRecordType: [ID!]
-  userId: [ID!]
+  user: [ID!]
 }
 
 """
@@ -5681,7 +5681,6 @@ enum PickListType {
   All unit types.
   """
   ALL_UNIT_TYPES
-  AUDIT_EVENT_RECORD_TYPES
   AVAILABLE_FILE_TYPES
   AVAILABLE_SERVICE_TYPES
 
@@ -5712,6 +5711,7 @@ enum PickListType {
   Enrollments for the client, including WIP and Exited.
   """
   ENROLLMENTS_FOR_CLIENT
+  ENROLLMENT_AUDIT_EVENT_RECORD_TYPES
   GEOCODE
 
   """

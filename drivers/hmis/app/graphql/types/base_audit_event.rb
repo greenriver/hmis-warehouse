@@ -44,7 +44,7 @@ module Types
 
     available_filter_options do
       arg :audit_event_record_type, [ID]
-      arg :user_id, [ID]
+      arg :user, [ID]
     end
 
     def record_name

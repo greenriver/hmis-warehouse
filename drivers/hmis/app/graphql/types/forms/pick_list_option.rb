@@ -108,7 +108,7 @@ module Types
           end.flatten
       when 'USERS'
         user_picklist(user)
-      when 'AUDIT_EVENT_RECORD_TYPES'
+      when 'ENROLLMENT_AUDIT_EVENT_RECORD_TYPES'
         audit_event_record_type_picklist
       end
     end
