@@ -905,7 +905,7 @@ GEM
     timeout (0.4.0)
     tins (1.32.1)
       sync
-    tiny_tds (2.1.5)
+    tiny_tds (2.1.6)
     todo_or_die (0.0.4)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
