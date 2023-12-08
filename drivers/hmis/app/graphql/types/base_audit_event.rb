@@ -69,9 +69,7 @@ module Types
       # when 'Hmis::Hud::CustomDataElement'
       #   changed_record&.data_element_definition&.label
       else
-        object.item_type.demodulize.
-          gsub(/^CustomClient/, ''). # Address, Contact Point
-          gsub(/^Custom/, ''). # Service, Assessment
+        object.item_type.demodulize.gsub(/^Custom(Client)?/, '').
           underscore.humanize.titleize
       end
     end
