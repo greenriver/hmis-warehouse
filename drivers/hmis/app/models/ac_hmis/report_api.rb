@@ -17,7 +17,7 @@
 #   "encrypted_password_iv"=>nil,
 #   "region"=>nil,
 #   "bucket"=>"API_TEST",
-#   "path"=>"https://alleghenycounty-demo.oktapreview.com/oauth2/TOKEN/v1/token",
+#   "path"=>"https://BASE.oktapreview.com/oauth2/TOKEN/v1/token",
 #   "endpoint"=>"https://BASE/green-river-api/api",
 #   "created_at"=>Thu, 07 Dec 2023 16:33:49.435762000 EST -05:00,
 #   "updated_at"=>Thu, 07 Dec 2023 16:33:49.435762000 EST -05:00,
