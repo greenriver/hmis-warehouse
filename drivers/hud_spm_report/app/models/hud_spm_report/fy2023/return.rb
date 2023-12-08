@@ -13,6 +13,8 @@ module HudSpmReport::Fy2023
     belongs_to :exit_enrollment, class_name: 'HudSpmReport::Fy2023::SpmEnrollment'
     belongs_to :return_enrollment, class_name: 'HudSpmReport::Fy2023::SpmEnrollment'
 
+    has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
+
     def self.client_ids_with_permanent_exits(report)
       filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(report.options)
       report.spm_enrollments.where(exit_date: filter.start - 730.days .. filter.end - 730.days).
