@@ -71,7 +71,8 @@ There is a simple script to setup a development environment in `bin/setup`. To m
 * A running Ruby 2.3+ environment with bundler 1.11+ installed.
 * A local install of postgresql 9.5+ allowing your user to create new databases.
 * A local install of redis for caching. redis-server should be running on the default port
-* libmagic
+* libmagic (`brew install libmagic`)
+* freetds (`brew install freetds`)
 
 Once these are in place, `bin/setup` should:
 
