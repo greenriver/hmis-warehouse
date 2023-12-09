@@ -187,6 +187,8 @@ module HudPathReport::Generators::Fy2024
             map(&:InformationDate).max
           health_and_dv_latest = enrollment.health_and_dvs.detect { |d| d.InformationDate == max_health_and_dv_date }
 
+          new_client = enrollment.EntryDate >= @report.start_date && no_earlier_active_enrollments?(client, enrollment)
+
           pending_associations[client] = report_client_universe.new(
             client_id: source_client.id,
             destination_client_id: client.id,
@@ -208,7 +210,7 @@ module HudPathReport::Generators::Fy2024
             chronically_homeless: enrollment.chronically_homeless_at_start,
             domestic_violence: health_and_dv_latest&.DomesticViolenceVictim,
             active_client: active_in_path(enrollment),
-            new_client: enrollment.EntryDate >= @report.start_date,
+            new_client: new_client,
             enrolled_client: enrolled_in_path(enrollment),
             newly_enrolled_client: newly_enrolled_in_path(enrollment),
             date_of_determination: enrollment.DateOfPATHStatus,
@@ -265,7 +267,7 @@ module HudPathReport::Generators::Fy2024
         open_during_range(@report.start_date..@report.end_date).
         merge(::GrdaWarehouse::Hud::Funder.funding_source(funder_code: PATH_FUNDER_CODE)). # PATH projects are PATH funded
         distinct. # sometimes projects have multiple funding sources all PATH, only include the project once
-        order(EntryDate: :desc)
+        order(EntryDate: :desc, DateUpdated: :desc)
       scope = scope.with_project_type(@filter.project_type_ids) if @filter.project_type_ids.present?
       scope = scope.in_project(@report.project_ids) if @report.project_ids.present? # for consistency with client_scope
       scope
@@ -273,6 +275,19 @@ module HudPathReport::Generators::Fy2024
 
     private def last_enrollment(client)
       enrollments(client).first
+    end
+
+    # Part of the definition of New & Active is:
+    # And (client does not have any enrollment identified as “active” as defined above with a [project start date] < [report start date])
+    #
+    # so we'll find any enrollments that overlap the reporting range that started before the report start
+    # that aren't the "last" enrollment, and we'll look to see if any are active
+    private def no_earlier_active_enrollments?(client, enrollment)
+      enrollments(client).
+        where(e_t[:EntryDate].lt(@report.start_date)).
+        where.not(id: enrollment.id).
+        map { |e| active_in_path(e) }.
+        none?
     end
 
     private def last_income_in_period(income_benefits)
@@ -294,14 +309,19 @@ module HudPathReport::Generators::Fy2024
 
     private def enrolled_in_path(enrollment)
       return false unless enrollment.ClientEnrolledInPATH == 1
-      return false unless enrollment.DateOfPATHStatus&.between?(enrollment.EntryDate, @report.end_date)
+      return false unless enrollment.DateOfPATHStatus.present?
+      return false unless enrollment.DateOfPATHStatus <= @report.end_date
+      return false unless enrollment.DateOfPATHStatus >= enrollment.EntryDate
 
       enrollment.exit&.ExitDate.nil? || enrollment.DateOfPATHStatus <= enrollment.exit.ExitDate
     end
 
     private def newly_enrolled_in_path(enrollment)
       return false unless enrollment.ClientEnrolledInPATH == 1
-      return false unless enrollment.DateOfPATHStatus&.between?([enrollment.EntryDate, @report.start_date].min, @report.end_date)
+      return false unless enrollment.DateOfPATHStatus.present?
+      return false unless enrollment.DateOfPATHStatus <= @report.end_date
+      return false unless enrollment.DateOfPATHStatus >= @report.start_date
+      return false unless enrollment.DateOfPATHStatus >= enrollment.EntryDate
 
       enrollment.exit&.ExitDate.nil? || enrollment.DateOfPATHStatus <= enrollment.exit.ExitDate
     end
