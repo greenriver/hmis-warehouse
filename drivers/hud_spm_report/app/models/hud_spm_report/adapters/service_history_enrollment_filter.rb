@@ -26,7 +26,7 @@ module HudSpmReport::Adapters
       scope = filter_for_race(scope)
       scope = filter_for_sub_population(scope)
 
-      GrdaWarehouse::Hud::Enrollment.where(id: scope.select(:id))
+      GrdaWarehouse::Hud::Enrollment.where(id: scope.joins(:enrollment).select('"Enrollment".id'))
     end
   end
 end

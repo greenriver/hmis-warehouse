@@ -72,7 +72,7 @@ module HudReports
     #
     # @param members [Hash<Client, ReportClientBase] the members to be associated with this cell
     def add_universe_members(members)
-      UniverseMember.import(
+      UniverseMember.import!(
         members.map { |client, universe_client| new_member(warehouse_client: client, universe_client: universe_client) },
         validate: false,
         on_duplicate_key_ignore: true,

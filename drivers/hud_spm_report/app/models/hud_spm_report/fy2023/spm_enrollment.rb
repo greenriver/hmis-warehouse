@@ -202,7 +202,7 @@ module HudSpmReport::Fy2023
     private_class_method def self.enrollments(filter)
       HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(filter).
         enrollments.
-        preload(:client, :destination_client, :income_benefits, project: :funders)
+        preload(:client, :destination_client, :exit, :income_benefits, project: :funders)
     end
 
     private_class_method def self.household(filter)

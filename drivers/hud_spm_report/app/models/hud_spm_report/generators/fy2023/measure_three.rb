@@ -81,7 +81,7 @@ module HudSpmReport::Generators::Fy2023
         answer = @report.answer(question: table_name, cell: cell_name)
 
         answer.add_members(included)
-        answer.update(summary: included.count)
+        answer.update(summary: included.distinct.count(:client_id))
       end
     end
 
@@ -100,16 +100,15 @@ module HudSpmReport::Generators::Fy2023
       open_enrollments = enrollment_set.open_during_range(filter.range)
       open_ee_enrollments = open_enrollments.where.not(project_type: HudUtility2024.project_type_number_from_code(:es_nbn))
 
-      ee_enrollments = HudSpmReport::Fy2023::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, scope: open_ee_enrollments)
+      ee_enrollments = HudSpmReport::Fy2023::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: [:client_id, :project_type], scope: open_ee_enrollments)
       members = ee_enrollments.map do |enrollment|
         [enrollment.client, enrollment]
-      end.to_h
+      end
       @universe.add_universe_members(members)
 
       open_nbn_enrollments = open_enrollments.
         with_bed_night_in_range(filter.range).
-        where(project_type: HudUtility2024.project_type_number_from_code(:es_nbn)).
-        where.not(client_id: ee_enrollments.select(:client_id))
+        where(project_type: HudUtility2024.project_type_number_from_code(:es_nbn))
       nbn_enrollments = HudSpmReport::Fy2023::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, scope: open_nbn_enrollments)
 
       members = nbn_enrollments.map do |enrollment|
