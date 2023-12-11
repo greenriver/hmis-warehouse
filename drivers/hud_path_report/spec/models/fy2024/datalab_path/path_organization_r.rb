@@ -13,7 +13,6 @@ RSpec.shared_context 'path organization r', shared_context: :metadata do
       run(generator, project_ids_filter(project_ids))
     end
 
-    # TODO
     xit 'Q8-Q16' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -35,7 +34,8 @@ RSpec.shared_context 'path organization r', shared_context: :metadata do
       )
     end
 
-    # TODO
+    # Pending: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recibeszBDplTEBFJ
+    # 596228 - missing? DataLab is using the earlier enrollment, why? - later is active, but not enrolled
     xit 'Q19-Q24' do
       compare_results(
         file_path: result_file_prefix + results_dir,

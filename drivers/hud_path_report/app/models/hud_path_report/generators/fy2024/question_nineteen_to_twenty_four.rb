@@ -184,6 +184,26 @@ module HudPathReport::Generators::Fy2024
     end
 
     def receiving_ssi_or_ssdi(column)
+      # SSI
+      # 514246
+      # 531235
+      # 531721
+      # 554022
+      # 596228 - missing? DataLab is using the earlier enrollment, why? (https://hmis-warehouse.dev.test/clients/75693) - later is active, but not enrolled
+      # 600040
+      # 642130
+      # 665101
+      # 671290
+      # 677798
+      # SSDI
+      # 531235
+      # 554022
+      # 564805 #
+      # 662511 #
+      # 664190 #
+      # 668063 #
+      # 672053 #
+      # 677798
       jsonb_test(column, 'SSI', 1) + ' OR ' + jsonb_test(column, 'SSDI', 1)
     end
 
@@ -202,13 +222,13 @@ module HudPathReport::Generators::Fy2024
     def receiving_other_health_insurance(column)
       [
         'SCHIP',
-        'VHAServices', # 678684
-        'EmployerProvided', # 700146
+        'VHAServices',
+        'EmployerProvided',
         'COBRA',
         'PrivatePay',
-        'StateHealthIns', # 528231 621500 696884
+        'StateHealthIns',
         'IndianHealthServices',
-        'OtherInsurance', # 700500
+        'OtherInsurance',
       ].map { |type| jsonb_test(column, type, 1) }.join(' OR ')
     end
 
