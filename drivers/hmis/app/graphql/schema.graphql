@@ -45,6 +45,18 @@ input AddRecentItemInput {
   itemType: RecentItemType!
 }
 
+enum AdminFormRole {
+  """
+  Auto exit config
+  """
+  AUTO_EXIT_CONFIG
+
+  """
+  Form rule
+  """
+  FORM_RULE
+}
+
 enum AftercareMethod {
   """
   In person: one-on-one
@@ -3646,6 +3658,11 @@ enum FormRole {
   ANNUAL
 
   """
+  Auto exit config
+  """
+  AUTO_EXIT_CONFIG
+
+  """
   Case note
   """
   CASE_NOTE
@@ -3689,6 +3706,11 @@ enum FormRole {
   File
   """
   FILE
+
+  """
+  Form rule
+  """
+  FORM_RULE
 
   """
   Funder
@@ -7897,6 +7919,7 @@ type ProjectsPaginated {
 
 type Query {
   access: QueryAccess!
+  adminFormDefinition(role: AdminFormRole!): FormDefinition!
   applicationUsers(filters: ApplicationUserFilterOptions, limit: Int, offset: Int): ApplicationUsersPaginated!
 
   """

@@ -200,6 +200,14 @@ module Types
       Hmis::Form::Definition.find_definition_for_service_type(service_type, project: project)
     end
 
+    field :admin_form_definition, Types::Forms::FormDefinition, null: false do
+      argument :role, Types::Forms::Enums::AdminFormRole, required: true
+    end
+    def admin_form_definition(role:)
+      # Direct lookup for admin form by role. Admin forms don't require instances to enable them, since they are always present and non-configurable.
+      Hmis::Form::Definition.with_role(role).first!
+    end
+
     field :pick_list, [Types::Forms::PickListOption], 'Get list of options for pick list', null: false do
       argument :pick_list_type, Types::Forms::Enums::PickListType, required: true
       argument :project_id, ID, required: false
