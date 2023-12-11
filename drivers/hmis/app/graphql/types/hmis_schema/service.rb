@@ -42,6 +42,9 @@ module Types
     hud_field :sub_type_provided, HmisSchema::Enums::ServiceSubTypeProvided
     hud_field :referral_outcome, HmisSchema::Enums::Hud::PATHReferralOutcome
 
+    field :record_type, HmisSchema::Enums::Hud::RecordType, null: true
+    field :type_provided, HmisSchema::Enums::ServiceTypeProvided, null: true
+
     def type_provided
       [object.record_type, object.type_provided].join(':')
     end

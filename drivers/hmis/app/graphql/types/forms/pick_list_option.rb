@@ -140,7 +140,7 @@ module Types
         [Hmis::Hud::CustomDataElement],
         [Hmis::Hud::CustomCaseNote],
       ].map do |klass, name|
-        { code: klass.sti_name, label: name || klass.name.demodulize }
+        { code: klass.sti_name, label: name || klass.name.demodulize.gsub(/^Custom(Client)?/, '').titleize }
       end.sort_by { |h| h[:label] }
     end
 
