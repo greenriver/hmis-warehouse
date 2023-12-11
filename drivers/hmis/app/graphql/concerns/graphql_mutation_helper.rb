@@ -12,15 +12,21 @@ module GraphqlMutationHelper
   end
 
   # Default CRUD Create functionality
-  def default_create_record(cls, field_name:, id_field_name:, input:, **auth_args)
+  def default_create_record(cls, field_name:, id_field_name: nil, input:, exclude_default_fields: false, **auth_args)
     return { errors: [HmisErrors::Error.new(field_name, :not_allowed)] } unless allowed?(**auth_args)
 
-    record = cls.new(
-      **input.to_params,
-      id_field_name => Hmis::Hud::Base.generate_uuid,
-      data_source_id: hmis_user.data_source_id,
-      user_id: hmis_user.user_id,
-    )
+    params = input.to_params
+
+    unless exclude_default_fields
+      params = params.merge(
+        data_source_id: hmis_user.data_source_id,
+        user_id: hmis_user.user_id,
+      )
+    end
+
+    params[id_field_name] = Hmis::Hud::Base.generate_uuid if id_field_name.present?
+
+    record = cls.new(params)
 
     # check permissions_for here
 

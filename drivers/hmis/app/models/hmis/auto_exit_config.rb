@@ -7,6 +7,9 @@
 class Hmis::AutoExitConfig < Hmis::HmisBase
   self.table_name = 'hmis_auto_exit_configs'
 
+  belongs_to :project, optional: true, class_name: 'Hmis::Hud::Project'
+  belongs_to :organization, optional: true, class_name: 'Hmis::Hud::Organization'
+
   def self.default_config
     find_by(project_type: nil, organization_id: nil, project_id: nil)
   end
