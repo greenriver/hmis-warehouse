@@ -59,6 +59,7 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
       left_outer_joins(:funders).
       where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types).
       where(HousingType: nil, housing_type_override: nil).
+      housing_type_required.
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)), # this is imperfect, but only look at projects with enrollments open during the past three years
     )
   end
