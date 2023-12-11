@@ -40,7 +40,7 @@ RSpec.shared_context 'path organization q', shared_context: :metadata do
     end
 
     # TODO
-    xit 'Q19-Q24' do
+    it 'Q19-Q24' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19-Q24',
