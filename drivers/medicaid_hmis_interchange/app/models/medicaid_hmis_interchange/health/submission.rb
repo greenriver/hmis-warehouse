@@ -59,6 +59,7 @@ module MedicaidHmisInterchange::Health
     # 2. they have at least one service in the enrollment
     # 3. they are NOT enrolled in PH with a move-in date in the past, on the day the process is run.
     # 4. they have at least one entry date in some project in the past 12 months
+    # 5. they have never been exited to a deceased destination
     private def generate_submission
       file_path = File.join(@file_path, submission_filename)
       count = 0
@@ -84,6 +85,9 @@ module MedicaidHmisInterchange::Health
           client_batch(medicaid_ids).find_each do |client|
             medicaid_id = medicaid_ids[client.id].identifier
             next if seen_medicaid_ids.include?(medicaid_id)
+
+            # Don't process anyone who has been marked deceased
+            next if client.deceased?
 
             # If a client has more than one enrollment, use the longest duration
             client_homeless_days = 0
@@ -128,7 +132,7 @@ module MedicaidHmisInterchange::Health
         with_service
       GrdaWarehouse::Hud::Client.where(id: medicaid_ids.keys). # X-DB join
         joins(service_history_enrollments: :enrollment).
-        preload(service_history_enrollments: [:service_history_services, enrollment: :current_living_situations]).
+        preload(:source_exits, service_history_enrollments: [:service_history_services, enrollment: :current_living_situations]).
         merge(homeless_enrollments_with_service)
     end
 
