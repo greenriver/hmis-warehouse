@@ -18,7 +18,7 @@
   .row.align-items-center
     .col-xs-12.col-md-8
       .d-flex
-        .pr-6= render 'select_filter', tab: tab, name: 'project_type', label: 'Project Type', options: all_data.project_types
+        .pr-6= render 'select_filter', tab: tab, name: 'project_type', label: 'Project Type', options: all_data.project_types_with_data
         = render 'select_filter', tab: tab, name: 'count_level', label: 'Count Level', options: all_data.count_levels
 
     .col-xs-12.col-md-4
