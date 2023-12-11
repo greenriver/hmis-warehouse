@@ -203,8 +203,8 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
-    # pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recU9uhV7OK67j9G6
-    xit 'Q16' do
+    # previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recU9uhV7OK67j9G6
+    it 'Q16' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q16',
@@ -232,13 +232,14 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
-    # pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recU9uhV7OK67j9G6
-    xit 'Q19a2' do
+    # previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recU9uhV7OK67j9G6
+    it 'Q19a2' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19a2',
         skip: [
           'F7', # rounding difference, not significant
+          'J2', # rounding difference, not significant
         ],
       )
     end
@@ -250,19 +251,24 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
-    # pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recLnlLoLpQ2Dh1SI
-    xit 'Q20a' do
+    # previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recLnlLoLpQ2Dh1SI
+    it 'Q20a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q20a',
       )
     end
 
-    # pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recZnCM2MofvBQIo5
-    xit 'Q20b' do
+    # previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recZnCM2MofvBQIo5
+    it 'Q20b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q20b',
+        # pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recLuAql3MuuusByb
+        skip: [
+          'D2',
+          'D6',
+        ],
       )
     end
 
