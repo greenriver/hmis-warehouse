@@ -13,6 +13,7 @@ RSpec.shared_context 'path organization r', shared_context: :metadata do
       run(generator, project_ids_filter(project_ids))
     end
 
+    # TODO: this has an off-by-one
     xit 'Q8-Q16' do
       compare_results(
         file_path: result_file_prefix + results_dir,
