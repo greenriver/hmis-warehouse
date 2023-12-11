@@ -258,6 +258,24 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(result.dig('data', 'submitAssessment', 'assessment', 'exit', 'exitDate')).to eq(new_exit_date)
   end
 
+  it 'tracks metadata on versions' do
+    versions = GrdaWarehouse.paper_trail_versions.where(
+      client_id: exited_enrollment.client.id,
+      project_id: exited_enrollment.project.id,
+      enrollment_id: exited_enrollment.id,
+    )
+    expect do
+      definition = Hmis::Form::Definition.find_by(role: :EXIT)
+      new_exit_date = Date.yesterday.strftime('%Y-%m-%d')
+      input = {
+        enrollment_id: exited_enrollment.id,
+        form_definition_id: definition.id,
+        **build_minimum_values(definition, assessment_date: new_exit_date),
+      }
+      post_graphql(input: { input: input }) { submit_assessment_mutation }
+    end.to change(versions, :count).by(2)
+  end
+
   describe 'Submitting an Exit assessment in a household with several open enrollments:' do
     let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
     let!(:c3) { create :hmis_hud_client, data_source: ds1, user: u1 }

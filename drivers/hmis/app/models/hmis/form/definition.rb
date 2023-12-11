@@ -144,7 +144,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     POST_EXIT: 6,
   }.freeze
 
-  use_enum_with_same_key :form_role_enum_map, FORM_ROLES
+  use_enum_with_same_key :form_role_enum_map, FORM_ROLES.excluding(:CUSTOM_ASSESSMENT, :CE)
   # may add back CE as HUD Assessment Role when we implement CE assessments. Same for implementing customs. Unsure at this point, so leaving them out.
   use_enum_with_same_key :assessment_type_enum_map, HUD_ASSESSMENT_FORM_ROLES.excluding(:CUSTOM_ASSESSMENT, :CE)
   use_enum_with_same_key :data_collection_feature_role_enum_map, DATA_COLLECTION_FEATURE_ROLES

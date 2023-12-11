@@ -17,6 +17,9 @@
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 ENV['RAILS_ENV'] = 'test'
+
+require 'simplecov' if ENV['COVERAGE']
+
 RSpec.configure do |config|
   ENV['NO_LSA_RDS'] = 'true'
 

@@ -89,7 +89,9 @@ module Hmis
         # not due for an assessment yet
         return if today < (hoh_entered_on + (1.year - window))
 
-        hoh_anniversary = hoh_entered_on.change(year: today.year)
+        # Find the closest HOH entry anniversary
+        hoh_anniversary = hoh_entered_on + ((today - hoh_entered_on) / Time.days_in_year).round.years
+
         start_date = hoh_anniversary - window
         due_date = hoh_anniversary + window
 

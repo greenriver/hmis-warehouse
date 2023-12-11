@@ -27,7 +27,6 @@ module HmisCsvTwentyTwentyFour::Exporter
     def self.apply_overrides(row, export:)
       # Don't actually do this, identify duplicates and client cleanup should handle this, just use the destination client
       # row = pick_best_source_client_data(row)
-      row = apply_length_limits(row)
       row = apply_hash_status(row, export)
       row = enforce_gender_none(row)
       row = enforce_race_none(row)
@@ -49,15 +48,6 @@ module HmisCsvTwentyTwentyFour::Exporter
         digested_ssn = Digest::SHA256.hexdigest(padded_ssn)
         row.SSN = "#{last_four}#{digested_ssn}"
       end
-      row
-    end
-
-    def self.apply_length_limits(row)
-      row.FirstName = row.FirstName[0...50] if row.FirstName
-      row.MiddleName = row.MiddleName[0...50] if row.MiddleName
-      row.LastName = row.LastName[0...50] if row.LastName
-      row.NameSuffix = row.NameSuffix[0...50] if row.NameSuffix
-
       row
     end
 

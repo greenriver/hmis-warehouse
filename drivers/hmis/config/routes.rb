@@ -13,6 +13,13 @@ BostonHmis::Application.routes.draw do
 
   # Routes for the HMIS API
   if ENV['ENABLE_HMIS_API'] == 'true'
+    namespace :ac_hmis do
+      get 'prevention_assessment_report/:referral_id',
+          to: 'reports#prevention_assessment_report',
+          as: 'ac_hmis_prevention_assessment_report',
+          defaults: { format: 'pdf' }
+    end
+
     namespace :hmis, defaults: { format: :json } do
       devise_for :users, class_name: 'Hmis::User',
                          skip: [:registrations, :invitations, :passwords, :confirmations, :unlocks, :password_expired],
@@ -42,6 +49,7 @@ BostonHmis::Application.routes.draw do
       # Note: in a development environment, this ends up redirecting to the warehouse.
       get '*other', to: redirect { |_, req| req.origin || '404' }
     end
+
     namespace :hmis_admin do
       resources :roles
       resources :groups

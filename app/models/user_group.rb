@@ -42,6 +42,8 @@ class UserGroup < ApplicationRecord
     # Force individual queries for paper_trail
     Array.wrap(users).uniq.each do |user|
       user_group_members.where(user_id: user.id).first_or_create!
+      # Queue recomputation of external report access
+      user.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
     end
   end
 
@@ -49,6 +51,8 @@ class UserGroup < ApplicationRecord
     # Force individual queries for paper_trail
     Array.wrap(users).uniq.each do |user|
       user_group_members.find_by(user_id: user.id)&.destroy
+      # Queue recomputation of external report access
+      user.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
     end
   end
 

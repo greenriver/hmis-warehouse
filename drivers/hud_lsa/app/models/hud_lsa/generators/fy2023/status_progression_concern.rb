@@ -26,6 +26,7 @@ module HudLsa::Generators::Fy2023::StatusProgressionConcern
       percent_complete: 100,
       completed_at: Time.now,
       remaining_questions: [],
+      state: 'Completed',
     )
   end
 

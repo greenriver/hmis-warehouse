@@ -12,7 +12,7 @@ module Types
       extend ActiveSupport::Concern
 
       class_methods do
-        def audit_history_field(name = :audit_history, description = nil, association_name: :versions, field_permissions: {}, transform_changes: nil, **override_options, &block)
+        def audit_history_field(name = :audit_history, description = nil, association_name: :versions, field_permissions: {}, transform_changes: nil, filter_args: {}, **override_options, &block)
           default_field_options = {
             type: audit_event_type(field_permissions: field_permissions, transform_changes: transform_changes).page_type,
             null: false,
@@ -20,6 +20,7 @@ module Types
           }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
+            filters_argument BaseAuditEvent, **filter_args
             instance_eval(&block) if block_given?
           end
 

@@ -31,4 +31,28 @@ class GrdaWarehouseBase < ApplicationRecord
   def self.partitioned?(table_name)
     Dba::PartitionMaker.new(table_name: table_name).done?
   end
+
+  # default colocated versions table for warehouse records
+  def self.has_paper_trail(options = {}) # rubocop:disable Naming/PredicateName
+    versions = options.fetch(:versions, {}).merge(class_name: 'GrdaWarehouse::Version')
+    skip = options.fetch(:skip, [:lock_version])
+    super(options.merge(versions: versions, skip: skip))
+  end
+
+  # allows delegation of paper trail metadata
+  # replicate paper_trail model_metadatum (mostly)
+  # @param key [Symbol]
+  def paper_trail_meta_value(key)
+    meta = self.class.paper_trail_options&.fetch(:meta)
+    value = meta ? meta[key] : nil
+    return unless value
+
+    if value.respond_to?(:call)
+      value.call(self)
+    elsif value.is_a?(Symbol) && respond_to?(value, true)
+      send(value)
+    else
+      value
+    end
+  end
 end

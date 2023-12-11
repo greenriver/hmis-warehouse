@@ -363,8 +363,9 @@ module GrdaWarehouse::Hud
           enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.ongoing.in_project(project_ids)
           scope = scope.where(id: enrollment_scope.select(:client_id))
         end
-        # with a Pathways assessment
-        scope.where(id: joins(source_clients: :most_recent_pathways_or_rrh_assessment).select(:id))
+        # with a Pathways assessment (removed by request 11/23/23)
+        # scope.where(id: joins(source_clients: :most_recent_pathways_or_rrh_assessment).select(:id))
+        scope
       else
         raise NotImplementedError
       end

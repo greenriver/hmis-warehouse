@@ -21,6 +21,7 @@
               - status = result[:passed] ? 'success' : 'danger'
               - icon = result[:passed] ? 'check' : 'cross'
               - label = result[:passed] ? 'Passed' : 'Failed'
+              - style = @external ? :font : :svg
               %tr
                 %td.j-summary-row{data: { target: "##{key}"}}
                   .row
@@ -47,5 +48,5 @@
                         = data.number_for_goal
                         = data.goal_unit
                     .col-md-3.d-flex
-                      .ml-auto.mr-4= tagged(result[:passed], status, icon: icon, label: label)
+                      .ml-auto.mr-4= tagged(result[:passed], status, icon: icon, label: label, style: style)
               - row = @report.detail_hash[key]

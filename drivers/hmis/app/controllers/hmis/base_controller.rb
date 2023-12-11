@@ -52,6 +52,15 @@ class Hmis::BaseController < ActionController::Base
     "#{true_hmis_user.id} as #{current_hmis_user.id}"
   end
 
+  def info_for_paper_trail
+    {
+      user_id: current_hmis_user&.id,
+      true_user_id: true_hmis_user&.id,
+      session_id: request.env['rack.session.record']&.session_id,
+      request_id: request.uuid,
+    }
+  end
+
   def set_app_user_header
     response.headers['X-app-user-id'] = current_hmis_user&.id
   end
