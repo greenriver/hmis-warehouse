@@ -31,13 +31,15 @@ module AcHmis
   class ReportApi
     SYSTEM_ID = 'ac_reports'.freeze
     CONNECTION_TIMEOUT_SECONDS = 60
-    Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to LINK Reports')
+    Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to LINK')
 
     def self.enabled?
       GrdaWarehouse::RemoteCredentials::Oauth.active.where(slug: SYSTEM_ID).exists?
     end
 
     def prevention_assessment_report(referral_id:)
+      raise(Error, 'Report API credentials are missing') unless self.class.enabled?
+
       conn.get("Reports/PreventionAssessment/#{referral_id}").then { |r| handle_error(r) }
     end
 
@@ -52,7 +54,7 @@ module AcHmis
     end
 
     def creds
-      @creds = GrdaWarehouse::RemoteCredentials::Oauth.find_by(slug: SYSTEM_ID)
+      @creds = GrdaWarehouse::RemoteCredentials::Oauth.active.find_by(slug: SYSTEM_ID)
     end
 
     def conn
