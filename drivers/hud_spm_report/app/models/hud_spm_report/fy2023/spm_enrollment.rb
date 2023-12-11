@@ -43,7 +43,8 @@ module HudSpmReport::Fy2023
     def self.create_enrollment_set(report_instance)
       filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(report_instance.options)
       household_infos = household(filter)
-      enrollments(filter).find_in_batches do |batch|
+      project_ids = GrdaWarehouse::Hud::Project.where(id: report_instance.project_ids).pluck(:project_id)
+      enrollments(filter).where(project_id: project_ids).find_in_batches do |batch|
         members = []
         batch.each do |enrollment|
           current_income_benefits = current_income_benefits(enrollment, filter.end)
@@ -85,7 +86,7 @@ module HudSpmReport::Fy2023
 
             previous_income_benefits_id: previous_income_benefits&.id,
             previous_earned_income: earned_income(previous_income_benefits),
-            previous_non_employment_income_: non_employment_income(previous_income_benefits),
+            previous_non_employment_income: non_employment_income(previous_income_benefits),
             previous_total_income: total_income(previous_income_benefits),
 
             days_enrolled: ([enrollment&.exit&.exit_date, filter.end].compact.min - enrollment.entry_date).to_i,
@@ -150,7 +151,7 @@ module HudSpmReport::Fy2023
 
     private_class_method def self.eligible_funding?(enrollment, start_date, end_date)
       enrollment.project.funders.open_between(start_date: start_date, end_date: end_date).any? do |funder|
-        funder.funder.in?([2, 3, 4, 5, 43, 44, 54, 55])
+        funder.funder.in?([2, 3, 4, 5, 43, 44, 54, 55].map(&:to_s))
       end
     end
 

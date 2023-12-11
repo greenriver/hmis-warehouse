@@ -20226,7 +20226,7 @@ CREATE TABLE public.hud_report_spm_enrollments (
     destination integer,
     age integer,
     previous_earned_income integer,
-    previous_non_employment_income_ integer,
+    previous_non_employment_income integer,
     previous_total_income integer,
     current_earned_income integer,
     current_non_employment_income integer,

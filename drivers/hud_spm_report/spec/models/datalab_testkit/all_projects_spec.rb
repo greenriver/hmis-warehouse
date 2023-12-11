@@ -20,7 +20,9 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       puts "Starting SPM Data Lab TestKit #{Time.current}"
       setup
       puts "Setup Done for SPM Data Lab TestKit #{Time.current}"
-      run(default_spm_filter, HudSpmReport::Generators::Fy2023::Generator.questions.keys)
+      question_numbers = ['Measure 3', 'Measure 4', 'Measure 5']
+      # run(default_spm_filter, HudSpmReport::Generators::Fy2023::Generator.questions.keys)
+      run(default_spm_filter, question_numbers)
       puts "Finished SPM Run Data Lab TestKit #{Time.current}"
     end
 
@@ -65,74 +67,71 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
         file_path: result_file_prefix + 'spm',
         question: '3.2',
         # Pending AAQ: [SPM] All Projects - Data lab test kit Measure 3 - missing client - submitted 10/4/2022
+        # skip: [ 'C2', 'C5', ],
+      )
+    end
+
+    it 'Measure 4.1' do
+      compare_results(
+        file_path: result_file_prefix + 'spm',
+        question: '4.1',
+      )
+    end
+
+    it 'Measure 4.2' do
+      compare_results(
+        file_path: result_file_prefix + 'spm',
+        question: '4.2',
+      )
+    end
+    it 'Measure 4.3' do
+      compare_results(
+        file_path: result_file_prefix + 'spm',
+        question: '4.3',
+      )
+    end
+    it 'Measure 4.4' do
+      compare_results(
+        file_path: result_file_prefix + 'spm',
+        question: '4.4',
+      )
+    end
+    it 'Measure 4.5' do
+      compare_results(
+        file_path: result_file_prefix + 'spm',
+        question: '4.5',
+      )
+    end
+    it 'Measure 4.6' do
+      compare_results(
+        file_path: result_file_prefix + 'spm',
+        question: '4.6',
+      )
+    end
+
+    it 'Measure 5.1' do
+      compare_results(
+        file_path: result_file_prefix + 'spm',
+        question: '5.1',
+        # Pending AAQ: [SPM] All Projects - Data lab test kit Measures 2 and 5 - historic data missing - submitted 10/4/2022
         skip: [
-          'C2',
-          'C5',
+          'C3',
+          'C4',
         ],
       )
     end
 
-  #   it 'Measure 4.1' do
-  #     compare_results(
-  #       file_path: result_file_prefix + 'spm',
-  #       question: '4.1',
-  #     )
-  #   end
-
-  #   it 'Measure 4.2' do
-  #     compare_results(
-  #       file_path: result_file_prefix + 'spm',
-  #       question: '4.2',
-  #     )
-  #   end
-  #   it 'Measure 4.3' do
-  #     compare_results(
-  #       file_path: result_file_prefix + 'spm',
-  #       question: '4.3',
-  #     )
-  #   end
-  #   it 'Measure 4.4' do
-  #     compare_results(
-  #       file_path: result_file_prefix + 'spm',
-  #       question: '4.4',
-  #     )
-  #   end
-  #   it 'Measure 4.5' do
-  #     compare_results(
-  #       file_path: result_file_prefix + 'spm',
-  #       question: '4.5',
-  #     )
-  #   end
-  #   it 'Measure 4.6' do
-  #     compare_results(
-  #       file_path: result_file_prefix + 'spm',
-  #       question: '4.6',
-  #     )
-  #   end
-
-  #   it 'Measure 5.1' do
-  #     compare_results(
-  #       file_path: result_file_prefix + 'spm',
-  #       question: '5.1',
-  #       # Pending AAQ: [SPM] All Projects - Data lab test kit Measures 2 and 5 - historic data missing - submitted 10/4/2022
-  #       skip: [
-  #         'C3',
-  #         'C4',
-  #       ],
-  #     )
-  #   end
-
-  #   it 'Measure 5.2' do
-  #     compare_results(
-  #       file_path: result_file_prefix + 'spm',
-  #       question: '5.2',
-  #       # Pending AAQ: [SPM] All Projects - Data lab test kit Measures 2 and 5 - historic data missing - submitted 10/4/2022
-  #       skip: [
-  #         'C3',
-  #         'C4',
-  #       ],
-  #     )
-  #   end
+    it 'Measure 5.2' do
+      compare_results(
+        file_path: result_file_prefix + 'spm',
+        question: '5.2',
+        # Pending AAQ: [SPM] All Projects - Data lab test kit Measures 2 and 5 - historic data missing - submitted 10/4/2022
+        skip: [
+          'C3',
+          'C4',
+        ],
+      )
+    end
 
   #   it 'Measure 7a.1' do
   #     compare_results(
