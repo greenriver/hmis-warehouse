@@ -127,7 +127,7 @@ module AllNeighborsSystemDashboard
     end
 
     # Example format of options: {:types=>["Diversion", "Permanent Supportive Housing", "Rapid Rehousing"], :colors=>["#E6B70F", "#B2803F", "#1865AB"], :project_type=>"All", :count_level=>"Individuals"}
-    def donut(options)
+    def donut(options, **)
       project_type = options[:project_type] || options[:homelessness_status]
       options[:types].map do |type|
         {
@@ -194,7 +194,7 @@ module AllNeighborsSystemDashboard
       ]
     end
 
-    def stack(options)
+    def stack(options, **)
       project_type = options[:project_type]
       homelessness_status = options[:homelessness_status]
       bars = project_type.present? ? [project_type] + options[:bars] : options[:bars]
