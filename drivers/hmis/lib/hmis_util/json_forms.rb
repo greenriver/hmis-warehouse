@@ -342,10 +342,10 @@ module HmisUtil
       # puts "Saved definitions with identifiers: #{identifiers.join(', ')}"
     end
 
-    public def seed_admin_forms
-      Hmis::Form::Definition::ADMIN_FORM_ROLES.each do |role|
+    public def seed_static_forms
+      Hmis::Form::Definition::STATIC_FORM_ROLES.each do |role|
         filename = "#{role.to_s.downcase}.json"
-        file = File.read("#{DATA_DIR}/admin/#{filename}")
+        file = File.read("#{DATA_DIR}/static/#{filename}")
         form_definition = JSON.parse(file)
         load_definition(
           form_definition: form_definition,

@@ -204,7 +204,7 @@ module Types
       argument :role, Types::Forms::Enums::StaticFormRole, required: true
     end
     def static_form_definition(role:)
-      # Direct lookup for admin form by role. Admin forms don't require instances to enable them, since they are always present and non-configurable.
+      # Direct lookup for static form by role. Static forms don't require instances to enable them, since they are always present and non-configurable.
       Hmis::Form::Definition.with_role(role).first!
     end
 
@@ -335,15 +335,6 @@ module Types
 
       # Only resolve non-service rules. Service rules are resolved on the service category.
       resolve_form_rules(Hmis::Form::Instance.not_for_services, **args)
-    end
-
-    field :form_rule, Types::Admin::FormRule, null: true do
-      argument :id, ID, required: true
-    end
-    def form_rule(id:)
-      raise 'not allowed' unless current_user.can_configure_data_collection?
-
-      Hmis::Form::Instance.find_by(id: id)
     end
   end
 end
