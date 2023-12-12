@@ -14,6 +14,7 @@ class AllNeighborsSystemDashboardLine {
     this.householdType = (this.projectType.household_types || []).filter((d) => d.household_type === this.state.householdType)[0] || {}
     this.demographic = (this.householdType.demographics || []).filter((d) => d.demographic === this.state.demographics)[0] || {}
     this.series = this.countLevel.series || this.demographic.series || []
+    this.uniqueCounts = this.countLevel.unique_counts
     this.monthlyCounts = this.countLevel.monthly_counts
     this.config = this.projectType.config || {}
     this.quarters = this.data.quarters || []
@@ -36,6 +37,12 @@ class AllNeighborsSystemDashboardLine {
 
   getMonthlyTotals() {
     return this.monthlyCounts[0].filter((d) => {
+      return this.inDateRange(d[0], this.state.dateRange)
+    }).map((d) => d[1])
+  }
+
+  getUniqueCounts() {
+    return this.uniqueCounts[0].filter((d) => {
       return this.inDateRange(d[0], this.state.dateRange)
     }).map((d) => d[1])
   }
@@ -122,6 +129,7 @@ class AllNeighborsSystemDashboardLine {
         contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
           const index = d[0].index
           const monthlyCount = this.getMonthlyTotals()[index]
+          const uniqueCount = this.getUniqueCounts()[index]
           let html = "<table class='bb-tooltip'>"
           html += "<thead>"
           html += `<tr><th colspan='2'>${defaultTitleFormat(d[0].x)}</th></tr>`
@@ -129,6 +137,7 @@ class AllNeighborsSystemDashboardLine {
           html += "<tbody>"
           html += `<tr><td>New ${this.countLevel.count_level.slice(0, -1)} Placements</td><td>${d3.format(',')(monthlyCount)}</td></tr>`
           html += `<tr><td>Total ${this.countLevel.count_level} Placed to Date</td><td>${d3.format(',')(d[0].value)}</td></tr>`
+          html += `<tr><td>Unique  ${this.countLevel.count_level} Housed to Date</td><td>${d3.format(',')(uniqueCount)}</td></tr>`
           html += "</tbody>"
           html += "</table>"
           return html

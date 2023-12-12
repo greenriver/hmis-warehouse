@@ -34,12 +34,13 @@ module AllNeighborsSystemDashboard
             },
             count_levels: count_levels.map do |count_level|
               monthly_counts = send(type, options.merge(project_type: project_type, count_level: count_level))
-
+              unique_counts = send(type, options.merge(project_type: project_type, count_level: count_level), fixed_start_date: @report.filter.start_date)
               if type == :line
                 summary_counts = aggregate(monthly_counts)
                 {
                   count_level: count_level,
                   series: [summary_counts],
+                  unique_counts: [unique_counts],
                   monthly_counts: [monthly_counts],
                 }
               else
@@ -71,7 +72,7 @@ module AllNeighborsSystemDashboard
       end
     end
 
-    def line(options)
+    def line(options, fixed_start_date: nil)
       date_range.map do |date|
         scope = report_enrollments_enrollment_scope.
           housed_in_range(@report.filter.range).
@@ -79,7 +80,11 @@ module AllNeighborsSystemDashboard
           select(:destination_client_id)
         scope = filter_for_type(scope, options[:project_type])
         scope = filter_for_count_level(scope, options[:count_level])
-        scope = filter_for_date(scope, date)
+        scope = if fixed_start_date.present?
+          filter_for_date(scope, date, start_date: fixed_start_date)
+        else
+          filter_for_date(scope, date)
+        end
         count = mask_small_populations(scope.count, mask: @report.mask_small_populations?)
         # binding.pry if options[:project_type] == 'Diversion'
         [
@@ -102,8 +107,8 @@ module AllNeighborsSystemDashboard
       )
     end
 
-    private def filter_for_date(scope, date)
-      range = date.beginning_of_month .. date.end_of_month
+    private def filter_for_date(scope, date, start_date: date.beginning_of_month)
+      range = start_date .. date.end_of_month
       where_clause = date_query(range)
       scope.where(where_clause)
     end
