@@ -342,10 +342,10 @@ module HmisUtil
       # puts "Saved definitions with identifiers: #{identifiers.join(', ')}"
     end
 
-    public def seed_admin_forms
-      Hmis::Form::Definition::ADMIN_FORM_ROLES.each do |role|
+    public def seed_static_forms
+      Hmis::Form::Definition::STATIC_FORM_ROLES.each do |role|
         filename = "#{role.to_s.downcase}.json"
-        file = File.read("#{DATA_DIR}/admin/#{filename}")
+        file = File.read("#{DATA_DIR}/static/#{filename}")
         form_definition = JSON.parse(file)
         load_definition(
           form_definition: form_definition,
@@ -391,6 +391,7 @@ module HmisUtil
         elsif type.to_s&.ends_with?('Paginated') && !type.to_s.include?('AuditEvent') && !type.to_s.include?('ApplicationUser')
           base_type = type.to_s.gsub('Paginated', '').singularize
           namespace = 'HmisSchema'
+          namespace = 'Admin' if base_type == 'FormRule'
           node_type = "Types::#{namespace}::#{base_type}".constantize
           seen_node_type = traversed_types.include?(node_type)
           traversed_types << node_type
