@@ -13,6 +13,8 @@ module Mutations
     def resolve # (input:)
       raise 'not allowed' unless current_user.can_configure_data_collection?
 
+      # TODO: finish
+
       {}
     end
   end

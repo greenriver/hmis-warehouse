@@ -204,7 +204,7 @@ module Types
       argument :role, Types::Forms::Enums::StaticFormRole, required: true
     end
     def static_form_definition(role:)
-      # Direct lookup for admin form by role. Admin forms don't require instances to enable them, since they are always present and non-configurable.
+      # Direct lookup for static form by role. Static forms don't require instances to enable them, since they are always present and non-configurable.
       Hmis::Form::Definition.with_role(role).first!
     end
 
