@@ -116,7 +116,7 @@ module Health::Soap
 
     # Parse the response. Generally, MassHealth responds with a multipart, so we use the Mail parser to decode the message
     private def parse_result(result)
-      body = result.body_str
+      body = result.body_str.lstrip # Remove any leading whitespace in the body
       if body[0..1] == '--'
         header = "Content-Type: multipart/alternative; boundary=\"#{body.lines.first.strip[2..]}\"\r\n\r\n"
       else
