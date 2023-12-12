@@ -12,7 +12,7 @@ module Types
     graphql_name 'FormRule'
 
     available_filter_options do
-      arg :form_type, [Types::Forms::Enums::FormRole]
+      arg :form_type, [Types::Forms::Enums::FormRole] # FIXME: static roles should be excluded
       arg :active_status, [Types::HmisSchema::Enums::ActiveStatus]
       arg :system_form, [Types::HmisSchema::Enums::SystemStatus]
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
