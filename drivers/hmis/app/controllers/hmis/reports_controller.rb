@@ -3,8 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
-
-module AcHmis
+module Hmis
   class ReportsController < Hmis::BaseController
     def prevention_assessment_report
       referral_id = params[:referral_id]
