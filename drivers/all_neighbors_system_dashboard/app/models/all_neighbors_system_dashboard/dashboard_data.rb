@@ -52,7 +52,7 @@ module AllNeighborsSystemDashboard
         'Diversion',
         'Permanent Supportive Housing',
         'Rapid Rehousing',
-        'R.E.A.L. Time Initiative',
+        # 'R.E.A.L. Time Initiative', # removed in favor of running the report with a limited data set
       ]
     end
 
@@ -209,16 +209,17 @@ module AllNeighborsSystemDashboard
       case type
       when 'All', 'Overall'
         scope
-      when 'R.E.A.L. Time Initiative'
-        pilot_scope = Enrollment.
-          where(date_query(pilot_date_range)).
-          where(project_id: @report.filter.effective_project_ids_from_secondary_project_groups).
-          select(:id)
-        implementation_scope = Enrollment.
-          where(date_query(implementation_date_range)).
-          where(project_id: @report.filter.effective_project_ids).
-          select(:id)
-        scope.where(id: pilot_scope).or(scope.where(id: implementation_scope))
+      # Removed in favor of running the report for a sub-set of data (leaving the code for now)
+      # when 'R.E.A.L. Time Initiative'
+      #   pilot_scope = Enrollment.
+      #     where(date_query(pilot_date_range)).
+      #     where(project_id: @report.filter.effective_project_ids_from_secondary_project_groups).
+      #     select(:id)
+      #   implementation_scope = Enrollment.
+      #     where(date_query(implementation_date_range)).
+      #     where(project_id: @report.filter.effective_project_ids).
+      #     select(:id)
+      #   scope.where(id: pilot_scope).or(scope.where(id: implementation_scope))
       when 'Permanent Supportive Housing'
         scope.where(project_type: HudUtility2024.project_type('PH - Permanent Supportive Housing', true))
       when 'Rapid Rehousing'
