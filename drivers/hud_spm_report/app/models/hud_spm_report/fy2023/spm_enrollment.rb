@@ -36,21 +36,28 @@ module HudSpmReport::Fy2023
         merge(GrdaWarehouse::Hud::Service.bed_night.between(start_date: range.begin, end_date: range.end))
     end
 
+    HomelessnessInfo = Struct.new(:start_of_homelessness, :entry_date, :move_in_date, keyword_init: true)
+
     # Unlike, most HUD reports, there is not a single enrollment per report client, so the enrollment set
     # is constructed outside of the question universe, and then to preserve the 1:1 relationship between clients
     # and question universe members, the question universes either refer directly to an enrollment in this set, or
     # to an aggregation object that refers to enrollments in this set.
     def self.create_enrollment_set(report_instance)
       filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(report_instance.options)
-      household_infos = household(filter)
+
       project_ids = GrdaWarehouse::Hud::Project.where(id: report_instance.project_ids).pluck(:project_id)
-      enrollments(filter).where(project_id: project_ids).find_in_batches do |batch|
+      enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(filter).
+        enrollments.where(project_id: project_ids)
+
+      household_infos = household(enrollments)
+      enrollments.preload(:client, :destination_client, :exit, :income_benefits, project: :funders).find_in_batches do |batch|
+        puts "enrolment set batch #{Time.to_i}"
         members = []
         batch.each do |enrollment|
           current_income_benefits = current_income_benefits(enrollment, filter.end)
           previous_income_benefits = previous_income_benefits(enrollment, current_income_benefits&.information_date)
           household_info = household_infos[enrollment.household_id] ||
-            OpenStruct.new(
+            HomelessnessInfo.new(
               start_of_homelessness: enrollment.date_to_street_essh,
               entry_date: enrollment.entry_date,
               move_in_date: enrollment.move_in_date,
@@ -200,26 +207,19 @@ module HudSpmReport::Fy2023
         "DATE_PART('day', #{ib_t[:information_date].to_sql}) <= #{update_window.last.day}"
     end
 
-    private_class_method def self.enrollments(filter)
-      HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(filter).
-        enrollments.
-        preload(:client, :destination_client, :exit, :income_benefits, project: :funders)
-    end
-
-    private_class_method def self.household(filter)
-      @household ||= {}.tap do |h|
-        enrollments(filter).find_in_batches do |batch|
-          batch.each do |enrollment|
-            next unless enrollment.head_of_household?
-
-            h[enrollment.household_id] = OpenStruct.new(
-              start_of_homelessness: enrollment.date_to_street_essh,
-              entry_date: enrollment.entry_date,
-              move_in_date: enrollment.move_in_date,
-            )
-          end
+    private_class_method def self.household(enrollments)
+      result = {}
+      scope = enrollments.heads_of_households
+      scope.find_in_batches do |batch|
+        batch.each do |enrollment|
+          result[enrollment.household_id] = HomelessnessInfo.new(
+            start_of_homelessness: enrollment.date_to_street_essh,
+            entry_date: enrollment.entry_date,
+            move_in_date: enrollment.move_in_date,
+          )
         end
       end
+      result
     end
   end
 end

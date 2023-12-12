@@ -74,49 +74,81 @@ module HudSpmReport::Generators::Fy2023
         },
       )
 
-      members = create_universe(:m3_2)
+      build_m3_2_cell(
+        cell: 'C2',
+        ee_project_type_codes: [:es_entry_exit, :sh, :th],
+        nbn_project_type_codes: [:es_nbn],
+        table_name: table_name,
+      )
+      # byebug
+      build_m3_2_cell(
+        cell: 'C3',
+        ee_project_type_codes: [:es_entry_exit],
+        nbn_project_type_codes: [:es_nbn],
+        table_name: table_name,
+      )
+      build_m3_2_cell(
+        cell: 'C4',
+        ee_project_type_codes: [:sh],
+        table_name: table_name,
+      )
+      build_m3_2_cell(
+        cell: 'C5',
+        ee_project_type_codes: [:th],
+        table_name: table_name,
+      )
+    end
 
-      annual_counts.each do |cell_name, type_numbers|
-        included = members.where(spm_e_t[:project_type].in(type_numbers))
-        answer = @report.answer(question: table_name, cell: cell_name)
-
-        answer.add_members(included)
-        answer.update(summary: included.distinct.count(:client_id))
+    def project_type_numbers(project_type_codes)
+      project_type_codes.flat_map do |code|
+        HudUtility2024.project_type_number_from_code(code)
       end
     end
 
-    def annual_counts
-      {
-        'C2' => [:es, :sh, :th].map { |code| HudUtility2024.project_type_number_from_code(code) }.flatten,
-        'C3' => HudUtility2024.project_type_number_from_code(:es),
-        'C4' => HudUtility2024.project_type_number_from_code(:sh),
-        'C5' => HudUtility2024.project_type_number_from_code(:th),
-      }
-    end
-
-    private def create_universe(universe_name)
-      filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(@report.options)
-      @universe = @report.universe(universe_name)
+    def build_m3_2_cell(cell:, ee_project_type_codes:, table_name:, nbn_project_type_codes: nil)
       open_enrollments = enrollment_set.open_during_range(filter.range)
-      open_ee_enrollments = open_enrollments.where.not(project_type: HudUtility2024.project_type_number_from_code(:es_nbn))
+      answer = @report.answer(question: table_name, cell: cell)
 
-      ee_enrollments = HudSpmReport::Fy2023::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: [:client_id, :project_type], scope: open_ee_enrollments)
-      members = ee_enrollments.map do |enrollment|
-        [enrollment.client, enrollment]
+      # byebug
+      ee_enrollments = open_enrollments.where(project_type: project_type_numbers(ee_project_type_codes))
+
+      nbn_enrollments = []
+      if nbn_project_type_codes.present?
+        nbn_enrollments = open_enrollments.
+          with_bed_night_in_range(filter.range).
+          where(project_type: open_enrollments.where(project_type: project_type_numbers(nbn_project_type_codes))).
+          where.not(client_id: ee_enrollments.select(:client_id))
       end
-      @universe.add_universe_members(members)
 
-      open_nbn_enrollments = open_enrollments.
-        with_bed_night_in_range(filter.range).
-        where(project_type: HudUtility2024.project_type_number_from_code(:es_nbn))
-      nbn_enrollments = HudSpmReport::Fy2023::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, scope: open_nbn_enrollments)
+      # per-cell universe
+      universe = @report.universe(:"m3_2_#{cell.downcase}")
+      # add enrollments to universe
+      [
+        ee_enrollments,
+        nbn_enrollments,
+      ].each do |spm_enrollments|
+        next if spm_enrollments.blank?
 
-      members = nbn_enrollments.map do |enrollment|
-        [enrollment.client, enrollment]
-      end.to_h
-      @universe.add_universe_members(members)
+        uniq_members = HudSpmReport::Fy2023::SpmEnrollment.one_for_column(
+          :entry_date,
+          source_arel_table: spm_e_t,
+          group_on: :client_id,
+          scope: spm_enrollments,
+        )
+        members = uniq_members.preload(:client).map do |enrollment|
+          [enrollment.client, enrollment]
+        end
+        universe.add_universe_members(members.to_h)
+      end
 
-      @universe.members
+      # add universe to cell
+      answer.add_members(universe.members)
+      answer.update(summary: universe.members.count)
+      answer
+    end
+
+    def filter
+      ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(@report.options)
     end
   end
 end
