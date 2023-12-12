@@ -381,11 +381,13 @@ module GrdaWarehouse
         end
     end
 
-    def data_sources_for_confidential_files(user, destination_client)
-      enrollment_ids = enrollments_for_confidential_files(user, destination_client).map(&:last)
-      return [] if enrollment_ids.blank?
+    # Any data sources where this user can see confidential filees
+    def data_sources_for_confidential_files(user)
+      permission = :can_see_confidential_files
+      project_ids = user.viewable_project_ids(permission)
+      return [] if project_ids.blank?
 
-      GrdaWarehouse::DataSource.where(id: GrdaWarehouse::Hud::Enrollment.where(id: enrollment_ids).select(:data_source_id)).
+      GrdaWarehouse::DataSource.where(id: GrdaWarehouse::Hud::Project.where(id: project_ids).select(:data_source_id)).
         map do |ds|
           [
             ds.name,
