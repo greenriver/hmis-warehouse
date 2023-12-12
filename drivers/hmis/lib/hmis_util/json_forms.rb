@@ -391,7 +391,6 @@ module HmisUtil
         elsif type.to_s&.ends_with?('Paginated') && !type.to_s.include?('AuditEvent') && !type.to_s.include?('ApplicationUser')
           base_type = type.to_s.gsub('Paginated', '').singularize
           namespace = 'HmisSchema'
-          namespace = 'Admin' if base_type == 'FormRule'
           node_type = "Types::#{namespace}::#{base_type}".constantize
           seen_node_type = traversed_types.include?(node_type)
           traversed_types << node_type

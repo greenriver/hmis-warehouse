@@ -9,14 +9,12 @@
 module Types
   class HmisSchema::ServiceCategory < Types::BaseObject
     include Types::HmisSchema::HasHudMetadata
-    include Types::Admin::HasFormRules
 
     graphql_name 'ServiceCategory'
     field :id, ID, null: false
     field :name, String, null: false
     field :hud, Boolean, null: false
     field :service_types, HmisSchema::ServiceType.page_type, null: false
-    form_rules_field
 
     # object is a Hmis::Hud::CustomServiceCategory
 
@@ -26,13 +24,6 @@ module Types
 
     def hud
       service_types.all?(&:hud_service?)
-    end
-
-    def form_rules(**args)
-      raise 'not allowed' unless current_user.can_configure_data_collection?
-
-      scope = Hmis::Form::Instance.for_service_category_by_entities(object.id)
-      resolve_form_rules(scope, **args)
     end
   end
 end
