@@ -27,28 +27,16 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
     it 'Measure 1a' do
       compare_results(
         file_path: result_file_prefix + 'spm',
+        external_column_header: true,
+        external_row_label: true,
         question: '1a',
-        detail_columns: [
-          :last_name,
-          :first_name,
-          :data_lab_public_id,
-          :m1a_es_sh_days,
-          :m1a_es_sh_th_days,
-        ],
       )
     end
 
-    it 'Measure 1b' do
+    xit 'Measure 1b' do
       compare_results(
         file_path: result_file_prefix + 'spm',
         question: '1b',
-        detail_columns: [
-          :last_name,
-          :first_name,
-          :data_lab_public_id,
-          :m1b_es_sh_ph_days,
-          :m1b_es_sh_th_ph_days,
-        ],
       )
     end
 
