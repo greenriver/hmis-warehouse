@@ -8048,6 +8048,7 @@ type Query {
   Service type lookup
   """
   serviceType(id: ID!): ServiceType
+  staticFormDefinition(role: StaticFormRole!): FormDefinition!
 
   """
   User lookup
@@ -9871,6 +9872,18 @@ enum SexualOrientation {
   (5) Questioning / unsure
   """
   QUESTIONING_UNSURE
+}
+
+enum StaticFormRole {
+  """
+  Auto exit config
+  """
+  AUTO_EXIT_CONFIG
+
+  """
+  Form rule
+  """
+  FORM_RULE
 }
 
 """

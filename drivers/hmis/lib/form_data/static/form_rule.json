@@ -1,0 +1,47 @@
+{
+  "item": [
+    {
+      "link_id": "form-rule-project-type",
+      "type": "CHOICE",
+      "text": "Project Type",
+      "pick_list_reference": "ProjectType",
+      "mapping": {
+        "field_name": "projectType"
+      }
+    },
+    {
+      "link_id": "form-rule-funder",
+      "type": "CHOICE",
+      "text": "Funding Source",
+      "pick_list_reference": "FundingSource",
+      "mapping": {
+        "field_name": "funder"
+      }
+    },
+    {
+      "link_id": "form-rule-other-funder",
+      "type": "STRING",
+      "text": "Other Funder",
+      "mapping": {
+        "field_name": "otherFunder"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "form-rule-funder",
+          "operator": "EQUAL",
+          "answer_code": "LOCAL_OR_OTHER_FUNDING_SOURCE"
+        }
+      ]
+    },
+    {
+      "link_id": "form-rule-data-collected-about",
+      "type": "CHOICE",
+      "text": "Data Collected About",
+      "pick_list_reference": "DataCollectedAbout",
+      "mapping": {
+        "field_name": "dataCollectedAbout"
+      }
+    }
+  ]
+}
