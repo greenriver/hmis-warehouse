@@ -7,6 +7,7 @@
 module HudSpmReport::Adapters
   class ServiceHistoryEnrollmentFilter
     include ::Filter::FilterScopes
+    include ArelHelper
 
     def initialize(filter)
       @filter = filter
@@ -17,16 +18,16 @@ module HudSpmReport::Adapters
       report_end_date = @filter.end
       lookback_start_date = report_start_date - 7.years
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
-        open_between(start_date: lookback_start_date, end_date: report_end_date)
+        open_between(start_date: lookback_start_date, end_date: report_end_date).
+        where(project_id: @filter.effective_project_ids)
 
-      scope = filter_for_cocs(scope)
       scope = filter_for_head_of_household(scope)
       scope = filter_for_age(scope)
       scope = filter_for_gender(scope)
       scope = filter_for_race(scope)
       scope = filter_for_sub_population(scope)
 
-      GrdaWarehouse::Hud::Enrollment.where(id: scope.select(:id))
+      GrdaWarehouse::Hud::Enrollment.where(id: scope.joins(:enrollment).select(e_t[:id]))
     end
   end
 end
