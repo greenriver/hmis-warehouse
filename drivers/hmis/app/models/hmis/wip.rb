@@ -5,6 +5,14 @@
 ###
 
 class Hmis::Wip < Hmis::HmisBase
+  has_paper_trail(
+    meta: {
+      project_id: ->(r) { r.project&.id },
+      enrollment_id: ->(r) { r.enrollment&.id },
+      client_id: ->(r) { r.client&.id },
+    },
+  )
+
   belongs_to :source, polymorphic: true
   belongs_to :client, class_name: '::Hmis::Hud::Client'
   belongs_to :enrollment, class_name: '::Hmis::Hud::Enrollment', optional: true

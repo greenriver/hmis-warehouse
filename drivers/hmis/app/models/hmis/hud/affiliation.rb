@@ -8,6 +8,7 @@ class Hmis::Hud::Affiliation < Hmis::Hud::Base
   include ::HmisStructure::Affiliation
   include ::Hmis::Hud::Concerns::Shared
   self.table_name = :Affiliation
+  has_paper_trail(meta: { project_id: ->(r) { r.project&.id } })
   self.sequence_name = "public.\"#{table_name}_id_seq\""
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'

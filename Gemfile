@@ -299,7 +299,7 @@ group :test do
   gem 'rspec-instafail'
   gem 'rspec-benchmark'
   gem 'db-query-matchers'
-  # gem 'simplecov'
+  gem 'simplecov', require: false
   # gem 'simplecov-console'
 end
 
