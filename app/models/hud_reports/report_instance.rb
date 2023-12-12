@@ -37,6 +37,10 @@ module HudReports
     end
 
     def current_status
+      # Sometimes the report attempts to run again and ends up in the Started state, short circuit if we know this
+      # isn't going to run successfully
+      return "Failed: #{error_details}" if error_details.present?
+
       case state
       when 'Waiting'
         'Queued to start'
@@ -51,6 +55,12 @@ module HudReports
       when 'Completed'
         if started_at.present? && completed_at.present?
           "#{state} in #{distance_of_time_in_words(started_at, completed_at)} <br/> #{completed_at} ".html_safe
+        else
+          state
+        end
+      when 'Failed'
+        if error_details.present?
+          "#{state}: #{error_details}"
         else
           state
         end
@@ -87,6 +97,8 @@ module HudReports
     end
 
     def complete_report
+      return if @failed
+
       update(state: 'Completed', completed_at: Time.current)
     end
 

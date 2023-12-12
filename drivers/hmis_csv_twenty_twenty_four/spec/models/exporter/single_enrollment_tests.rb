@@ -25,6 +25,18 @@ RSpec.shared_context '2024 single-enrollment tests', shared_context: :metadata d
       csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
       expect(csv.first['PersonalID']).to_not be_empty
     end
+
+    it 'Correctly limits the length of PreferredLanguageDifferent to 100 characters' do
+      expect(@exporter.enrollment_scope.first.PreferredLanguageDifferent.length).to eq(200)
+      csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
+      expect(csv.first['PreferredLanguageDifferent'].length).to eq(100)
+    end
+
+    it 'Correctly limits the length of FirstName to 32 characters' do
+      expect(@exporter.client_scope.first.FirstName.length).to be > 50
+      csv = CSV.read(csv_file_path(@client_class), headers: true)
+      expect(csv.first['FirstName'].length).to eq(50)
+    end
   end
   describe 'when exporting clients' do
     it 'client scope should find one client' do

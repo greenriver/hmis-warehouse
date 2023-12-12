@@ -119,6 +119,12 @@ module GrdaWarehouse::Hud
       where(project_type_column => project_types)
     end
 
+    # Housing type is required for ProjectTypes 0, 1, 2, 3, 8, 9, 10; and 13 only when RRHSubType 2
+    scope :housing_type_required, -> do
+      with_hud_project_type([0, 1, 2, 3, 8, 9, 10]).
+        or(with_hud_project_type(13).where(RRHSubType: 2))
+    end
+
     # hide previous declaration of :in_coc, we'll use this one,
     # but we don't need to be told there are two every time
     # we load the class
@@ -614,6 +620,10 @@ module GrdaWarehouse::Hud
 
     def psh?
       project_type_to_use.in?(HudUtility2024.performance_reporting[:psh])
+    end
+
+    def homeless?
+      project_type_to_use.in?(HudUtility2024.homeless_project_type_numbers)
     end
 
     def self.related_item_keys

@@ -28,7 +28,7 @@ FY2023 Changes
 				and (n.RelationshipToHoH = 1 or n.ActiveAge between 18 and 65)
 			inner join tlsa_HHID hh on hh.HouseholdID = n.HouseholdID
 			where n.HouseholdID = hhid.HouseholdID), 0)
-		, hhid.HHVet = (select max(
+		, hhid.HHVet = coalesce((select max(
 					case when lp.VetStatus = 1 
 						and n.ActiveAge between 18 and 65 
 						and hh.ActiveHHType <> 3 then 1
@@ -36,14 +36,14 @@ FY2023 Changes
 			from tlsa_Person lp
 			inner join tlsa_Enrollment n on n.PersonalID = lp.PersonalID and n.Active = 1
 			inner join tlsa_HHID hh on hh.HouseholdID = n.HouseholdID
-			where n.HouseholdID = hhid.HouseholdID)
-		, hhid.HHDisability = (select max(
+			where n.HouseholdID = hhid.HouseholdID), 0)
+		, hhid.HHDisability = coalesce((select max(
 				case when lp.DisabilityStatus = 1 
 					and (n.ActiveAge between 18 and 65 or n.RelationshipToHoH = 1) then 1
 				else 0 end)
 			from tlsa_Person lp
 			inner join tlsa_Enrollment n on n.PersonalID = lp.PersonalID and n.Active = 1
-			where n.HouseholdID = hhid.HouseholdID)
+			where n.HouseholdID = hhid.HouseholdID), 0)
 		, hhid.HHFleeingDV = coalesce((select min(
 				case when lp.DVStatus = 1 
 						and (n.ActiveAge between 18 and 65 or n.RelationshipToHoH = 1) then 1
@@ -83,11 +83,11 @@ FY2023 Changes
 	where hhid.Active = 1
 
 	update hhid
-	set hhid.HHParent = (select max(
+	set hhid.HHParent = coalesce((select max(
 			case when n.RelationshipToHoH = 2 then 1
 				else 0 end)
 		from tlsa_Enrollment n 
-		where n.Active = 1 and n.HouseholdID = hhid.HouseholdID)
+		where n.Active = 1 and n.HouseholdID = hhid.HouseholdID), 0)
 		, hhid.Step = '5.12.2'
 	from tlsa_HHID hhid
 	where hhid.Active = 1

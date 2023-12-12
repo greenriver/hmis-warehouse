@@ -35,6 +35,7 @@ module WarehouseReports
     def set_exports
       @exports = export_scope.ordered.
         for_list.
+        preload(:recurring_hmis_export).
         limit(50)
     end
 
