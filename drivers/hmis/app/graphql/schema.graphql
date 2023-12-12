@@ -3669,6 +3669,11 @@ enum FormRole {
   ANNUAL
 
   """
+  Auto exit config
+  """
+  AUTO_EXIT_CONFIG
+
+  """
   Case note
   """
   CASE_NOTE
@@ -3712,6 +3717,11 @@ enum FormRole {
   File
   """
   FILE
+
+  """
+  Form rule
+  """
+  FORM_RULE
 
   """
   Funder
