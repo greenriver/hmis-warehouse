@@ -19,6 +19,7 @@ module Types
     include Types::HmisSchema::HasClients
     include Types::HmisSchema::HasApplicationUsers
     include Types::HmisSchema::HasReferralPostings
+    include Types::Admin::HasFormRules
     include ::Hmis::Concerns::HmisArelHelper
 
     projects_field :projects
@@ -235,12 +236,17 @@ module Types
     end
 
     def referral_posting(id:)
-      HmisExternalApis::AcHmis::ReferralPosting.viewable_by(current_user).find_by(id: id)
+      posting = HmisExternalApis::AcHmis::ReferralPosting.viewable_by(current_user).find_by(id: id)
+
+      # User must have access to manage incoming referrals at the project where this posting is referred to
+      return unless posting && current_user.can_manage_incoming_referrals_for?(posting.project)
+
+      posting
     end
 
     referral_postings_field :denied_pending_referral_postings
     def denied_pending_referral_postings(**args)
-      return [] unless current_user.can_manage_denied_referrals?
+      raise 'Access denied' unless current_user.can_manage_denied_referrals?
 
       postings = HmisExternalApis::AcHmis::ReferralPosting.denied_pending_status
 
@@ -249,7 +255,7 @@ module Types
 
     field :merge_candidates, Types::HmisSchema::ClientMergeCandidate.page_type, null: false
     def merge_candidates
-      raise 'not allowed' unless current_user.can_merge_clients?
+      raise 'Access denied' unless current_user.can_merge_clients?
 
       # Find all destination clients that have more than 1 source client in the HMIS
       destination_ids_with_multiple_sources = GrdaWarehouse::WarehouseClient.
@@ -265,7 +271,7 @@ module Types
 
     application_users_field :application_users
     def application_users(**args)
-      raise 'access denied' unless current_user.can_audit_users? || current_user.can_impersonate_users?
+      raise 'Access denied' unless current_user.can_audit_users? || current_user.can_impersonate_users?
 
       resolve_application_users(Hmis::User.active.with_hmis_access, **args)
     end
@@ -274,14 +280,14 @@ module Types
       argument :id, ID, required: true
     end
     def user(id:)
-      raise 'access denied' unless id == current_user.id.to_s || current_user.can_audit_users? || current_user.can_impersonate_users?
+      raise 'Access denied' unless id == current_user.id.to_s || current_user.can_audit_users? || current_user.can_impersonate_users?
 
       load_ar_scope(scope: Hmis::User.with_hmis_access, id: id)
     end
 
     field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false
     def merge_audit_history
-      raise 'not allowed' unless current_user.can_merge_clients?
+      raise 'Access denied' unless current_user.can_merge_clients?
 
       Hmis::ClientMergeAudit.all.order(merged_at: :desc)
     end
@@ -310,17 +316,25 @@ module Types
       argument :id, ID, required: true
     end
     def service_category(id:)
-      raise 'not allowed' unless current_user.can_configure_data_collection?
+      raise 'Access denied' unless current_user.can_configure_data_collection?
 
       Hmis::Hud::CustomServiceCategory.find_by(id: id)
     end
 
     field :service_categories, Types::HmisSchema::ServiceCategory.page_type, null: false
     def service_categories
-      raise 'not allowed' unless current_user.can_configure_data_collection?
+      raise 'Access denied' unless current_user.can_configure_data_collection?
 
       # TODO: add sort and filter capabilities
       Hmis::Hud::CustomServiceCategory.all
+    end
+
+    form_rules_field
+    def form_rules(**args)
+      raise 'Access denied' unless current_user.can_configure_data_collection?
+
+      # Only resolve non-service rules. Service rules are resolved on the service category.
+      resolve_form_rules(Hmis::Form::Instance.not_for_services, **args)
     end
   end
 end

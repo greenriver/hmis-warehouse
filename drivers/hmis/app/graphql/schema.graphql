@@ -1,3 +1,15 @@
+enum ActiveStatus {
+  """
+  Active
+  """
+  ACTIVE
+
+  """
+  Inactive
+  """
+  INACTIVE
+}
+
 type ActivityLog {
   createdAt: ISO8601DateTime!
   id: ID!
@@ -3742,6 +3754,61 @@ enum FormRole {
   Update
   """
   UPDATE
+}
+
+type FormRule {
+  active: Boolean!
+  createdAt: ISO8601DateTime!
+  dataCollectedAbout: DataCollectedAbout
+  definitionId: ID
+  definitionIdentifier: String!
+  definitionRole: FormRole
+  definitionTitle: String
+  funder: FundingSource
+  id: ID!
+  organization: Organization
+  otherFunder: String
+  project: Project
+  projectType: ProjectType
+  serviceCategory: ServiceCategory
+  serviceType: ServiceType
+  system: Boolean!
+  updatedAt: ISO8601DateTime!
+}
+
+input FormRuleFilterOptions {
+  activeStatus: [ActiveStatus!]
+  appliedToProject: ID
+  formType: [FormRole!]
+  projectType: [ProjectType!]
+  systemForm: [SystemStatus!]
+}
+
+enum FormRuleSortOption {
+  """
+  Date Updated
+  """
+  DATE_UPDATED
+
+  """
+  Form Title
+  """
+  FORM_TITLE
+
+  """
+  Form Type
+  """
+  FORM_TYPE
+}
+
+type FormRulesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [FormRule!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 type Funder {
@@ -7870,6 +7937,7 @@ type Query {
   enrollment(id: ID!): Enrollment
   esgFundingReport(clientIds: [ID!]!): [EsgFundingService!]!
   file(id: ID!): File
+  formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
 
   """
   Funder lookup
@@ -9951,6 +10019,18 @@ enum SubsidyInformationB {
   (11) With on-going subsidy
   """
   WITH_ON_GOING_SUBSIDY
+}
+
+enum SystemStatus {
+  """
+  Non-System
+  """
+  NON_SYSTEM
+
+  """
+  System
+  """
+  SYSTEM
 }
 
 """
