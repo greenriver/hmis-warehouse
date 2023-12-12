@@ -10,6 +10,8 @@ class Hmis::AutoExitConfig < Hmis::HmisBase
   belongs_to :project, optional: true, class_name: 'Hmis::Hud::Project'
   belongs_to :organization, optional: true, class_name: 'Hmis::Hud::Organization'
 
+  validates :length_of_absence_days, numericality: { greater_than_or_equal_to: 30 }
+
   def self.default_config
     find_by(project_type: nil, organization_id: nil, project_id: nil)
   end
