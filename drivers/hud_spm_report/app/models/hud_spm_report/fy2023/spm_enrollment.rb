@@ -42,8 +42,8 @@ module HudSpmReport::Fy2023
     # to an aggregation object that refers to enrollments in this set.
     def self.create_enrollment_set(report_instance)
       filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(report_instance.options)
-      household_infos = household(filter)
-      enrollments(filter).find_in_batches do |batch|
+      household_infos = household(report_instance)
+      enrollments(report_instance).find_in_batches do |batch|
         members = []
         batch.each do |enrollment|
           current_income_benefits = current_income_benefits(enrollment, filter.end)
@@ -199,15 +199,15 @@ module HudSpmReport::Fy2023
         "DATE_PART('day', #{ib_t[:information_date].to_sql}) <= #{update_window.last.day}"
     end
 
-    private_class_method def self.enrollments(filter)
-      HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(filter).
+    private_class_method def self.enrollments(report_instance)
+      HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).
         enrollments.
         preload(:client, :destination_client, :income_benefits, project: :funders)
     end
 
-    private_class_method def self.household(filter)
+    private_class_method def self.household(report_instance)
       @household ||= {}.tap do |h|
-        enrollments(filter).find_in_batches do |batch|
+        enrollments(report_instance).find_in_batches do |batch|
           batch.each do |enrollment|
             next unless enrollment.head_of_household?
 

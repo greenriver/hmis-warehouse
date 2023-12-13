@@ -9,8 +9,9 @@ module HudSpmReport::Adapters
     include ::Filter::FilterScopes
     include ArelHelper
 
-    def initialize(filter)
-      @filter = filter
+    def initialize(report_instance)
+      @filter = Filters::HudFilterBase.new(user_id: User.system_user.id).update(report_instance.options)
+      @project_ids = GrdaWarehouse::Hud::Project.where(id: report_instance.project_ids).pluck(:project_id)
     end
 
     def enrollments
@@ -19,13 +20,7 @@ module HudSpmReport::Adapters
       lookback_start_date = report_start_date - 7.years
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         open_between(start_date: lookback_start_date, end_date: report_end_date).
-        where(project_id: @filter.effective_project_ids)
-
-      scope = filter_for_head_of_household(scope)
-      scope = filter_for_age(scope)
-      scope = filter_for_gender(scope)
-      scope = filter_for_race(scope)
-      scope = filter_for_sub_population(scope)
+        where(project_id: @project_ids)
 
       GrdaWarehouse::Hud::Enrollment.where(id: scope.joins(:enrollment).select(e_t[:id]))
     end

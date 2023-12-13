@@ -837,7 +837,10 @@ CREATE TABLE public.hmis_roles (
     can_split_households boolean DEFAULT false,
     can_transfer_enrollments boolean DEFAULT false,
     can_view_limited_enrollment_details boolean DEFAULT false,
-    can_impersonate_users boolean DEFAULT false
+    can_impersonate_users boolean DEFAULT false,
+    can_audit_users boolean DEFAULT false,
+    can_audit_enrollments boolean DEFAULT false,
+    can_configure_data_collection boolean DEFAULT false
 );
 
 
@@ -4170,6 +4173,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231023000619'),
 ('20231030184613'),
 ('20231103165752'),
-('20231116185857');
+('20231116185857'),
+('20231129173326'),
+('20231201173326'),
+('20231206162323');
 
 
