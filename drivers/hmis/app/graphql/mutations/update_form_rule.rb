@@ -20,10 +20,13 @@ module Mutations
 
       instance.assign_attributes(input.to_attributes)
 
-      # TODO: validation errors?
-      raise 'invalid' unless instance.valid?
-
-      { form_rule: instance }
+      if instance.valid?
+        { form_rule: instance }
+      else
+        errors = HmisErrors::Errors.new
+        errors.add_ar_errors(instance.errors)
+        { errors: errors }
+      end
     end
   end
 end

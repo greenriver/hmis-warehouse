@@ -5,6 +5,7 @@
       "type": "CHOICE",
       "text": "Project Type",
       "pick_list_reference": "ProjectType",
+      "helper_text": "Which project type should this form be enabled for? (Optional)",
       "mapping": {
         "field_name": "projectType"
       }
@@ -14,6 +15,7 @@
       "type": "CHOICE",
       "text": "Funding Source",
       "pick_list_reference": "FundingSource",
+      "helper_text": "Which funding source should this form be enabled for? (Optional)",
       "mapping": {
         "field_name": "funder"
       }
@@ -25,6 +27,7 @@
       "mapping": {
         "field_name": "otherFunder"
       },
+      "helper_text": "Text must be an match match for an 'Other Funder' value on one of the Funder records.",
       "enable_behavior": "ALL",
       "enable_when": [
         {
@@ -39,6 +42,7 @@
       "type": "CHOICE",
       "text": "Data Collected About",
       "pick_list_reference": "DataCollectedAbout",
+      "helper_text": "For which client group should this data be collected? (Optional)",
       "mapping": {
         "field_name": "dataCollectedAbout"
       }

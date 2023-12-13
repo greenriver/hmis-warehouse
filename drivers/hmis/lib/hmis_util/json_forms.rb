@@ -392,7 +392,9 @@ module HmisUtil
           base_type = type.to_s.gsub('Paginated', '').singularize
           namespace = 'HmisSchema'
           namespace = 'Admin' if base_type == 'FormRule'
-          node_type = "Types::#{namespace}::#{base_type}".constantize
+          node_type = "Types::#{namespace}::#{base_type}".safe_constantize
+          next unless node_type
+
           seen_node_type = traversed_types.include?(node_type)
           traversed_types << node_type
           enums << all_enums_in_schema(node_type, traversed_types: traversed_types) unless seen_node_type

@@ -15,15 +15,15 @@ module Types
 
     def to_attributes
       attrs = {
-        project_type: input.project_type,
-        funder: input.funder,
-        other_funder: input.other_funder,
-        data_collected_about: input.data_collected_about,
+        project_type: project_type,
+        funder: funder,
+        other_funder: other_funder,
+        data_collected_about: data_collected_about,
       }
-      if input.project_id
-        attrs[:entity] = Hmis::Hud::Project.viewable_by(current_user).find(input.project_id)
-      elsif input.organization_id
-        attrs[:entity] = Hmis::Hud::Organization.viewable_by(current_user).find(input.organization_id)
+      if project_id
+        attrs[:entity] = Hmis::Hud::Project.viewable_by(current_user).find(project_id)
+      elsif organization_id
+        attrs[:entity] = Hmis::Hud::Organization.viewable_by(current_user).find(organization_id)
       end
       attrs
     end
