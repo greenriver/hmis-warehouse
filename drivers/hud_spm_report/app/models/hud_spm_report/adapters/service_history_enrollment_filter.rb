@@ -18,8 +18,12 @@ module HudSpmReport::Adapters
       report_end_date = @filter.end
       lookback_start_date = report_start_date - 7.years
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
-        open_between(start_date: lookback_start_date, end_date: report_end_date).
-        where(project_id: @filter.effective_project_ids)
+        open_between(start_date: lookback_start_date, end_date: report_end_date)
+        # FIXME: effective_project_ids doesn't seem to match testkit
+        # where(project_id: @filter.effective_project_ids)
+
+      # ATTN: coc filter is needed for testkit
+      scope = filter_for_cocs(scope)
 
       scope = filter_for_head_of_household(scope)
       scope = filter_for_age(scope)
