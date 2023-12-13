@@ -44,9 +44,10 @@ module HealthPctp
 
       @careplan.save
 
-      @patient.current_qa_factory.complete_careplan(@careplan) if @careplan.completed?
-      @patient.current_qa_factory.review_careplan(@careplan) if @careplan.reviewed?
-      @patient.current_qa_factory.approve_careplan(@careplan) if @careplan.approved?
+      qa_factory = @patient.current_qa_factory
+      qa_factory.complete_careplan(@careplan) if @careplan.completed?
+      qa_factory.review_careplan(@careplan) if @careplan.reviewed?
+      qa_factory.approve_careplan(@careplan) if @careplan.approved?
     ensure
       respond_with @careplan, location: client_health_careplans_path(@client)
     end
