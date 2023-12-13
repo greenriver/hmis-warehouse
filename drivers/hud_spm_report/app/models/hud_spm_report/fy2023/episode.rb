@@ -72,7 +72,8 @@ module HudSpmReport::Fy2023
               services.merge(GrdaWarehouse::Hud::Service.bed_night.between(start_date: report_start_date, end_date: report_end_date)).
               pluck(s_t[:id], s_t[:date_provided]).map do |service_id, date|
                 [enrollment, service_id, date]
-              end.group_by(&:last), # Unique by date
+              end.group_by(&:last).
+              transform_values { |v| Array.wrap(v).last }, # Unique by date
           )
         else
           start_date = if include_self_reported

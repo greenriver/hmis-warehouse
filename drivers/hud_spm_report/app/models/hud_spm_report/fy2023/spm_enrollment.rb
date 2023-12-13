@@ -58,11 +58,7 @@ module HudSpmReport::Fy2023
     # to an aggregation object that refers to enrollments in this set.
     def self.create_enrollment_set(report_instance)
       filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(report_instance.options)
-
-      project_ids = GrdaWarehouse::Hud::Project.where(id: report_instance.project_ids).pluck(:project_id)
-      enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(filter).
-        enrollments.where(project_id: project_ids)
-
+      enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(filter).enrollments
       household_infos = household(enrollments)
       enrollments.preload(:client, :destination_client, :exit, :income_benefits, project: :funders).find_in_batches do |batch|
         puts "enrolment set batch #{Time.current.to_i}"
