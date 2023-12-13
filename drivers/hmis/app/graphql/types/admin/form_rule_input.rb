@@ -12,5 +12,20 @@ module Types
     argument :organization_id, ID, required: false
     argument :project_id, ID, required: false
     argument :data_collected_about, Types::Forms::Enums::DataCollectedAbout, required: false
+
+    def to_attributes
+      attrs = {
+        project_type: input.project_type,
+        funder: input.funder,
+        other_funder: input.other_funder,
+        data_collected_about: input.data_collected_about,
+      }
+      if input.project_id
+        attrs[:entity] = Hmis::Hud::Project.viewable_by(current_user).find(input.project_id)
+      elsif input.organization_id
+        attrs[:entity] = Hmis::Hud::Organization.viewable_by(current_user).find(input.organization_id)
+      end
+      attrs
+    end
   end
 end

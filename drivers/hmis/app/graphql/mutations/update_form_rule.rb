@@ -18,13 +18,10 @@ module Mutations
       raise 'not found' unless instance
       raise 'cannot modify system rule' if instance.system
 
-      instance.project_type = input.project_type
-      instance.funder = input.funder
-      instance.other_funder = input.other_funder
-      instance.data_collected_about = input.data_collected_about
-      raise 'invalid' unless instance.valid?
+      instance.assign_attributes(input.to_attributes)
 
-      # instance.entity = input.project
+      # TODO: validation errors?
+      raise 'invalid' unless instance.valid?
 
       { form_rule: instance }
     end

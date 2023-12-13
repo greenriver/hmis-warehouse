@@ -6,16 +6,27 @@
 
 module Mutations
   class CreateFormRule < BaseMutation
+    argument :definition_id, ID, required: true
     argument :input, Types::Admin::FormRuleInput, required: true
 
     field :form_rule, Types::Admin::FormRule, null: false
 
-    def resolve # (input:)
+    def resolve(definition_id:, input:)
       raise 'not allowed' unless current_user.can_configure_data_collection?
 
-      # TODO: finish
+      definition = Hmis::Form::Definition.find(definition_id)
 
-      {}
+      instance = Hmis::Form::Instance.new(
+        definition_identifier: definition.identifier,
+        active: false,
+        system: false,
+      )
+      instance.assign_attributes(input.to_attributes)
+
+      # TODO: validation errors?
+      raise 'invalid' unless instance.valid?
+
+      { form_rule: instance }
     end
   end
 end

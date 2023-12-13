@@ -1302,6 +1302,7 @@ input CreateFormRuleInput {
   A unique identifier for the client performing the mutation.
   """
   clientMutationId: String
+  definitionId: ID!
   input: FormRuleInput!
 }
 
@@ -3507,6 +3508,7 @@ FormDefinition
 type FormDefinition {
   cacheKey: ID!
   definition: FormDefinitionJson!
+  formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
   id: ID!
   role: FormRole!
   title: String!
@@ -3517,6 +3519,16 @@ type FormDefinitionJson {
   Nested items
   """
   item: [FormItem!]!
+}
+
+type FormDefinitionsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [FormDefinition!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 input FormInput {
@@ -3812,6 +3824,7 @@ type FormRule {
 input FormRuleFilterOptions {
   activeStatus: [ActiveStatus!]
   appliedToProject: ID
+  definition: ID
   formType: [FormRole!]
   projectType: [ProjectType!]
   systemForm: [SystemStatus!]
@@ -7991,6 +8004,8 @@ type Query {
   enrollment(id: ID!): Enrollment
   esgFundingReport(clientIds: [ID!]!): [EsgFundingService!]!
   file(id: ID!): File
+  formDefinition(id: ID!): FormDefinition
+  formDefinitions(limit: Int, offset: Int): FormDefinitionsPaginated!
   formRule(id: ID!): FormRule
   formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
 

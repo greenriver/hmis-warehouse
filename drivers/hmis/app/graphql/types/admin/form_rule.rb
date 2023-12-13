@@ -17,6 +17,7 @@ module Types
       arg :system_form, [Types::HmisSchema::Enums::SystemStatus]
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
       arg :applied_to_project, ID
+      arg :definition, ID
     end
 
     field :id, ID, null: false
