@@ -205,7 +205,8 @@ module Types
     end
     def static_form_definition(role:)
       # Direct lookup for static form by role. Static forms don't require instances to enable them, since they are always present and non-configurable.
-      Hmis::Form::Definition.with_role(role).first!
+      # Assume that this is exactly 1 definition per static role
+      Hmis::Form::Definition.order(:id).with_role(role).first!
     end
 
     field :pick_list, [Types::Forms::PickListOption], 'Get list of options for pick list', null: false do
