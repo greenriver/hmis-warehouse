@@ -80,7 +80,6 @@ module HudSpmReport::Generators::Fy2023
         nbn_project_type_codes: [:es_nbn],
         table_name: table_name,
       )
-      # byebug
       build_m3_2_cell(
         cell: 'C3',
         ee_project_type_codes: [:es_entry_exit],
@@ -106,21 +105,20 @@ module HudSpmReport::Generators::Fy2023
     end
 
     def build_m3_2_cell(cell:, ee_project_type_codes:, table_name:, nbn_project_type_codes: nil)
-      open_enrollments = enrollment_set.open_during_range(filter.range)
       answer = @report.answer(question: table_name, cell: cell)
 
-      # byebug
-      ee_enrollments = open_enrollments.where(project_type: project_type_numbers(ee_project_type_codes))
+      ee_enrollments = enrollment_set.open_during_range(filter.range).
+        where(project_type: project_type_numbers(ee_project_type_codes))
 
       nbn_enrollments = []
       if nbn_project_type_codes.present?
-        nbn_enrollments = open_enrollments.
-          with_bed_night_in_range(filter.range).
-          where(project_type: open_enrollments.where(project_type: project_type_numbers(nbn_project_type_codes))).
+        nbn_enrollments = enrollment_set.
+          with_active_method_2_in_range(filter.range).
+          where(project_type: project_type_numbers(nbn_project_type_codes)).
           where.not(client_id: ee_enrollments.select(:client_id))
       end
 
-      # per-cell universe
+      # construct per-cell universe
       universe = @report.universe(:"m3_2_#{cell.downcase}")
       # add enrollments to universe
       [

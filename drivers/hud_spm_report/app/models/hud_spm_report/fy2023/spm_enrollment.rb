@@ -31,9 +31,23 @@ module HudSpmReport::Fy2023
       where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
     end
 
-    scope :with_bed_night_in_range, ->(range) do
-      joins(enrollment: :services).
-        merge(GrdaWarehouse::Hud::Service.bed_night.between(start_date: range.begin, end_date: range.end))
+    # HMIS Standard Reporting Terminology Glossary 2024 active client method 2
+    scope :with_active_method_2_in_range, ->(range) do
+      services_cond = GrdaWarehouse::Hud::Service.arel_table.then do |table|
+        [
+          table[:record_type].eq(HudUtility2024.record_type('Bed Night', true)),
+          table[:date_provided].between(range),
+        ].inject(&:and)
+      end
+
+      ee_cond = HudSpmReport::Fy2023::SpmEnrollment.arel_table.then do |table|
+        [
+          table[:exit_date].gteq(range.begin),
+          table[:entry_date].lteq(range.end),
+        ].inject(&:and)
+      end
+
+      left_outer_joins(enrollment: :services).where(services_cond.or(ee_cond))
     end
 
     HomelessnessInfo = Struct.new(:start_of_homelessness, :entry_date, :move_in_date, keyword_init: true)
@@ -51,7 +65,7 @@ module HudSpmReport::Fy2023
 
       household_infos = household(enrollments)
       enrollments.preload(:client, :destination_client, :exit, :income_benefits, project: :funders).find_in_batches do |batch|
-        puts "enrolment set batch #{Time.to_i}"
+        puts "enrolment set batch #{Time.current.to_i}"
         members = []
         batch.each do |enrollment|
           current_income_benefits = current_income_benefits(enrollment, filter.end)
@@ -211,6 +225,7 @@ module HudSpmReport::Fy2023
       result = {}
       scope = enrollments.heads_of_households
       scope.find_in_batches do |batch|
+        puts "household set batch #{Time.current.to_i}"
         batch.each do |enrollment|
           result[enrollment.household_id] = HomelessnessInfo.new(
             start_of_homelessness: enrollment.date_to_street_essh,
