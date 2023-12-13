@@ -200,6 +200,15 @@ module Types
       Hmis::Form::Definition.find_definition_for_service_type(service_type, project: project)
     end
 
+    field :static_form_definition, Types::Forms::FormDefinition, null: false do
+      argument :role, Types::Forms::Enums::StaticFormRole, required: true
+    end
+    def static_form_definition(role:)
+      # Direct lookup for static form by role. Static forms don't require instances to enable them, since they are always present and non-configurable.
+      # Assume that this is exactly 1 definition per static role
+      Hmis::Form::Definition.order(:id).with_role(role).first!
+    end
+
     field :pick_list, [Types::Forms::PickListOption], 'Get list of options for pick list', null: false do
       argument :pick_list_type, Types::Forms::Enums::PickListType, required: true
       argument :project_id, ID, required: false

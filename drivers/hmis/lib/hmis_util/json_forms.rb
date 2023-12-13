@@ -342,6 +342,20 @@ module HmisUtil
       # puts "Saved definitions with identifiers: #{identifiers.join(', ')}"
     end
 
+    public def seed_static_forms
+      Hmis::Form::Definition::STATIC_FORM_ROLES.each do |role|
+        filename = "#{role.to_s.downcase}.json"
+        file = File.read("#{DATA_DIR}/static/#{filename}")
+        form_definition = JSON.parse(file)
+        load_definition(
+          form_definition: form_definition,
+          identifier: role.to_s.downcase,
+          role: role,
+          title: role.to_s.titlecase,
+        )
+      end
+    end
+
     def validate_definition(json, role)
       Hmis::Form::Definition.validate_json(json, valid_pick_lists: valid_pick_lists)
       schema_errors = Hmis::Form::Definition.validate_schema(json)
