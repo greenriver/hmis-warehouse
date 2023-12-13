@@ -261,7 +261,7 @@ module AllNeighborsSystemDashboard
         else
           housed_exit_date + 14.days
         end
-        re_entry_window = (re_entry_window_start .. re_entry_window_start + 1.years)
+        re_entry_window = (re_entry_window_start .. housed_exit_date + 1.years)
         enrollment.entry_date.in?(re_entry_window)
       end
     end

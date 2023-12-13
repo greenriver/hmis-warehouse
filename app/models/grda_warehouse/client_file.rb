@@ -18,6 +18,7 @@ module GrdaWarehouse
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :vispdat, class_name: 'GrdaWarehouse::Vispdat::Base', optional: true
     belongs_to :enrollment, class_name: 'GrdaWarehouse::Hud::Enrollment', optional: true
+    belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', optional: true
     validates_inclusion_of :visible_in_window, in: [true, false]
     validates_presence_of :expiration_date, on: :requires_expiration_date, message: 'Expiration date is required'
     validates_presence_of :effective_date, on: :requires_effective_date, message: 'Effective date is required'
@@ -26,7 +27,8 @@ module GrdaWarehouse
     validates_presence_of :effective_date, on: :requires_expiration_and_effective_dates, message: 'Effective date is required'
     validates_presence_of :expiration_date, on: :requires_expiration_and_effective_dates, message: 'Expiration date is required'
 
-    validates_presence_of :enrollment_id, if: :confidential?
+    validates :data_source, presence: true, if: ->(o) { o.confidential? && o.enrollment_id.blank? }
+    validates :enrollment, presence: true, if: ->(o) { o.confidential? && o.data_source_id.blank? }
 
     scope :confidential, -> do
       where(confidential: true)
@@ -40,16 +42,27 @@ module GrdaWarehouse
       where(visible_in_window: true)
     end
 
+    # Confidential files are visible by users who have access to confidential files at the associated project,
+    # OR if the file does not have an associated enrollment and the user can view some confidential files
     scope :confidential_visible_by, ->(user) do
       permission = :can_see_confidential_files
       return none unless user&.send("#{permission}?")
 
-      ids = user.viewable_project_ids(permission)
+      project_ids = user.viewable_project_ids(permission)
+      return none unless project_ids.present?
       # If have a set (not a nil) and it's empty, this user can't access any projects
-      return none if ids.is_a?(Set) && ids.empty?
+      raise 'Unexpected response from user.viewable_project_ids' unless project_ids.is_a?(Set)
 
-      confidential.joins(enrollment: :project).
-        merge(GrdaWarehouse::Hud::Project.where(id: ids))
+      data_source_ids = GrdaWarehouse::Hud::Project.where(id: project_ids).distinct.pluck(:data_source_id)
+      confidential_data_source_scope = confidential.where(data_source_id: data_source_ids)
+
+      return confidential_data_source_scope if project_ids.empty?
+
+      confidential_with_enrollment_scope = confidential.joins(enrollment: :project).
+        merge(GrdaWarehouse::Hud::Project.where(id: project_ids)).select(:id)
+
+      where(id: confidential_with_enrollment_scope).
+        or(where(id: confidential_data_source_scope.select(:id)))
     end
 
     scope :visible_by?, ->(user) do
@@ -364,6 +377,21 @@ module GrdaWarehouse
           [
             "#{en.entry_date} - #{en.project.name(user, include_project_type: true)}",
             en.id,
+          ]
+        end
+    end
+
+    # Any data sources where this user can see confidential filees
+    def data_sources_for_confidential_files(user)
+      permission = :can_see_confidential_files
+      project_ids = user.viewable_project_ids(permission)
+      return [] if project_ids.blank?
+
+      GrdaWarehouse::DataSource.where(id: GrdaWarehouse::Hud::Project.where(id: project_ids).select(:data_source_id)).
+        map do |ds|
+          [
+            ds.name,
+            ds.id,
           ]
         end
     end

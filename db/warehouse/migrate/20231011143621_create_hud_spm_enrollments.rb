@@ -19,7 +19,7 @@ class CreateHudSpmEnrollments < ActiveRecord::Migration[6.1]
       t.integer :destination
       t.integer :age # age at later of entry_date and report_start_date
       t.integer :previous_earned_income
-      t.integer :previous_non_employment_income_
+      t.integer :previous_non_employment_income
       t.integer :previous_total_income
       t.integer :current_earned_income
       t.integer :current_non_employment_income

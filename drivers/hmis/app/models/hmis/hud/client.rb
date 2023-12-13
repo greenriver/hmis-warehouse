@@ -12,6 +12,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   include ::HudChronicDefinition
   include ClientSearch
 
+  has_paper_trail(meta: { client_id: :id })
+
   attr_accessor :gender, :race
 
   self.table_name = :Client

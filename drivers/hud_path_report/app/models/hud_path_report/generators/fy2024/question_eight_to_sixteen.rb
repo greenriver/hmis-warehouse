@@ -72,7 +72,7 @@ module HudPathReport::Generators::Fy2024
 
       # Contacts before date of determination
       answer = @report.answer(question: table_name, cell: 'B6')
-      members = universe.members.where(active_and_newly_enrolled_clients).where(a_t[:date_of_determination].gt(any(a_t[:contacts])))
+      members = universe.members.where(active_and_newly_enrolled_clients).where(a_t[:date_of_determination].gteq(any(a_t[:contacts])))
       count = 0
       members.each do |member|
         date_of_determination = member.universe_membership.date_of_determination

@@ -85,7 +85,7 @@ module HudSpmReport::Fy2023
 
             previous_income_benefits_id: previous_income_benefits&.id,
             previous_earned_income: earned_income(previous_income_benefits),
-            previous_non_employment_income_: non_employment_income(previous_income_benefits),
+            previous_non_employment_income: non_employment_income(previous_income_benefits),
             previous_total_income: total_income(previous_income_benefits),
 
             days_enrolled: ([enrollment&.exit&.exit_date, filter.end].compact.min - enrollment.entry_date).to_i,

@@ -13,6 +13,7 @@ module Types
     graphql_name 'ServiceType'
     field :id, ID, null: false
     field :name, String, null: false
+    field :hud, Boolean, null: false, method: :hud_service?
     field :hud_record_type, HmisSchema::Enums::Hud::RecordType, null: true
     field :hud_type_provided, HmisSchema::Enums::ServiceTypeProvided, null: true
     field :category, String, null: false
@@ -24,7 +25,7 @@ module Types
     end
 
     def hud_type_provided
-      return unless object.hud_record_type.present? && object.hud_type_provided.present?
+      return unless object.hud_service?
 
       [object.hud_record_type, object.hud_type_provided].join(':')
     end

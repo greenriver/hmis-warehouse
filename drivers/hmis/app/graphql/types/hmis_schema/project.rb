@@ -137,7 +137,7 @@ module Types
       capacity = project_units.group(:unit_type_id).count
       unoccupied = project_units.unoccupied_on.group(:unit_type_id).count
 
-      object.units.map(&:unit_type).uniq.map do |unit_type|
+      object.units.map(&:unit_type).uniq.compact.map do |unit_type|
         OpenStruct.new(
           id: unit_type.id,
           unit_type: unit_type.description,
