@@ -25,12 +25,12 @@ module
       @race_buckets ||= ::HudUtility2024.races.merge('MultiRacial' => 'Multi-racial', "Don't Know" => "Don't know", 'Prefers not to answer' => 'Prefers not to answer', 'Not Collected' => 'Data not collected').except('RaceNone')
     end
 
-    def race_count(type)
-      mask_small_population(race_breakdowns[type]&.count&.presence || 0)
+    def race_count(type, coc = base_count_sym)
+      mask_small_population(race_breakdowns(coc)[type]&.count&.presence || 0)
     end
 
-    def race_percentage(type)
-      total_count = mask_small_population(client_races.count)
+    def race_percentage(type, coc = base_count_sym)
+      total_count = mask_small_population(client_races[coc].count)
       return 0 if total_count.zero?
 
       of_type = race_count(type)
@@ -43,6 +43,9 @@ module
       rows['_Race Break'] ||= []
       rows['*Race'] ||= []
       rows['*Race'] += ['Race', nil, 'Count', 'Percentage', nil]
+      available_coc_codes.each do |coc|
+        rows['*Race'] += [coc]
+      end
       race_buckets.each do |id, title|
         rows["_Race_data_#{title}"] ||= []
         rows["_Race_data_#{title}"] += [
@@ -50,29 +53,44 @@ module
           nil,
           race_count(id),
           race_percentage(id) / 100,
+          nil,
         ]
+        available_coc_codes.each do |coc|
+          rows["_Race_data_#{title}"] += [race_count(id, coc.to_sym)]
+        end
       end
       rows
     end
 
-    private def race_breakdowns
-      @race_breakdowns ||= client_races.group_by do |_, v|
+    private def race_breakdowns(coc = base_count_sym)
+      client_races[coc].group_by do |_, v|
         v
       end
     end
 
-    private def client_ids_in_race(key)
-      race_breakdowns[key]&.map(&:first)
+    private def client_ids_in_race(key, coc = base_count_sym)
+      race_breakdowns(coc)[key]&.map(&:first)
     end
 
     private def client_races
       @client_races ||= Rails.cache.fetch(races_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
+          clients[base_count_sym] ||= {}
+          available_coc_codes.each do |id, _|
+            clients[id.to_sym] = {}
+          end
           # find any clients who fell within the scope
           client_scope = GrdaWarehouse::Hud::Client.where(id: distinct_client_ids)
           cache_client = GrdaWarehouse::Hud::Client.new
           distinct_client_ids.pluck(:client_id).each do |client_id|
-            clients[client_id] = cache_client.race_string(scope_limit: client_scope, include_none_reason: true, destination_id: client_id)
+            clients[base_count_sym][client_id] = cache_client.race_string(scope_limit: client_scope, include_none_reason: true, destination_id: client_id)
+          end
+          available_coc_codes.each do |coc_code|
+            client_coc_scope = GrdaWarehouse::Hud::Client.in_coc(coc_code: coc_code).where(id: distinct_client_ids)
+            cache_coc_client = GrdaWarehouse::Hud::Client.new
+            distinct_client_ids.in_coc(coc_code: coc_code).pluck(:client_id).each do |client_id|
+              clients[coc_code.to_sym][client_id] = cache_coc_client.race_string(scope_limit: client_coc_scope, include_none_reason: true, destination_id: client_id)
+            end
           end
         end
       end

@@ -21,10 +21,10 @@ module
       end
     end
 
-    def outcome_count(type)
+    def outcome_count(type, coc_code = base_count_sym)
       # Return average days
       if type.to_s == 'average_los'
-        values = outcome_clients[type.to_sym].map(&:last)
+        values = outcome_clients[type.to_sym][coc_code].map(&:last)
         return 0 unless values.count.positive?
 
         return (values.sum.to_f / values.count).round
@@ -36,16 +36,16 @@ module
           count
       end
 
-      mask_small_population(outcome_clients[type]&.count&.presence || 0)
+      mask_small_population(outcome_clients[type][coc_code]&.count&.presence || 0)
     end
 
-    def outcome_percentage(type)
+    def outcome_percentage(type, coc_code = base_count_sym)
       return 'N/A' if type.to_s == 'average_los'
 
       total_count = total_client_count
       return 0 if total_count.zero?
 
-      of_type = outcome_count(type)
+      of_type = outcome_count(type, coc_code)
       return 0 if of_type.zero?
 
       ((of_type.to_f / total_count) * 100)
@@ -55,6 +55,10 @@ module
       rows['_Outcome Type'] ||= []
       rows['*Outcome Type'] ||= []
       rows['*Outcome Type'] += ['Outcome Type', nil, 'Count', 'Percentage', nil]
+      available_coc_codes.each do |coc|
+        rows['*Outcome Type'] += [coc]
+      end
+      rows['*Outcome Type'] += [nil]
       available_outcome_types.invert.each do |id, title|
         rows["_Outcome Type_data_#{title}"] ||= []
         outcome_percentage = outcome_percentage(id)
@@ -64,15 +68,19 @@ module
           nil,
           outcome_count(id),
           outcome_percentage,
+          nil,
         ]
+        available_coc_codes.each do |coc|
+          rows["_Outcome Type_data_#{title}"] += [outcome_count(id, coc.to_sym)]
+        end
       end
       rows
     end
 
-    private def outcome_client_ids(type)
-      return outcome_clients[type].map(&:first) if type.to_s == 'average_los'
+    private def outcome_client_ids(type, coc_code = base_count_sym)
+      return outcome_clients[type][coc_code].map(&:first) if type.to_s == 'average_los'
 
-      outcome_clients[type]
+      outcome_clients[type][coc_code]
     end
 
     def available_outcome_types
@@ -144,54 +152,98 @@ module
       @homeless_project_type_codes ||= HudUtility2024.homeless_project_type_numbers & filter.project_type_ids
     end
 
+    private def initialize_outcome_client_counts(clients, coc_code = base_count_sym)
+      # Exit destinations
+      available_outcome_types.invert.each do |key, _|
+        clients[key][coc_code] = Set.new
+      end
+      # Exits
+      clients[:exit_counted][coc_code] = Set.new
+      # Returns
+      clients[:return_counted][coc_code] = Set.new
+      clients[:returns_1_years][coc_code] = Set.new
+      clients[:returns_1_2_years][coc_code] = Set.new
+    end
+
+    private def set_outcome_exit_client_counts(clients, client_id, destination, coc_code = base_count_sym)
+      clients[:exit_counted][coc_code] << client_id
+      clients[:exit_homeless][coc_code] << client_id if HudUtility2024.homeless_destinations.include?(destination)
+      clients[:exit_institutional][coc_code] << client_id if HudUtility2024.institutional_destinations.include?(destination)
+      clients[:exit_temporary][coc_code] << client_id if HudUtility2024.temporary_destinations.include?(destination)
+      clients[:exit_permanent][coc_code] << client_id if HudUtility2024.permanent_destinations.include?(destination)
+      clients[:exit_other][coc_code] << client_id if HudUtility2024.other_destinations.include?(destination)
+    end
+
+    private def set_outcome_return_client_counts(clients, client_id, coc_code = base_count_sym)
+      clients[:return_counted][coc_code] << client_id
+      if client_ids_with_homeless_activity_1_12_months.include?(client_id) && ! client_ids_with_homeless_activity_1_months.include?(client_id)
+        # Client is in the current report range, but had no homeless service within the month prior, but had homeless service in the year prior
+        clients[:returns_1_years][coc_code] << client_id
+      elsif client_ids_with_homeless_activity_12_24_months.include?(client_id) && ! client_ids_with_homeless_activity_0_12_months.include?(client_id)
+        # Client is in the current report range, but had no homeless service within the year prior, but had homeless service in the 2 years prior
+        clients[:returns_1_2_years][coc_code] << client_id
+      end
+    end
+
     private def outcome_clients
       @outcome_clients ||= Rails.cache.fetch(outcome_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
-          # TODO: Average LOS - Unique days in homeless projects in the report scope
-          clients[:average_los] = report_scope.distinct.in_project_type(homeless_project_type_codes).joins(:service_history_services).group(:client_id).count(shs_t[:date]).to_set
+          available_outcome_types.invert.each do |key, _|
+            clients[key] = {}
+          end
+          clients[:return_counted] = {}
+          clients[:exit_counted] = {}
 
-          # Exit destinations
-          clients[:exit_counted] = Set.new
-          clients[:exit_homeless] = Set.new
-          clients[:exit_institutional] = Set.new
-          clients[:exit_temporary] = Set.new
-          clients[:exit_permanent] = Set.new
-          clients[:exit_other] = Set.new
+          initialize_outcome_client_counts(clients)
+
+          # TODO: Average LOS - Unique days in homeless projects in the report scope
+          clients[:average_los][base_count_sym] = report_scope.distinct.in_project_type(homeless_project_type_codes).joins(:service_history_services).group(:client_id).count(shs_t[:date]).to_set
+
           report_scope.distinct.
             exit_within_date_range(start_date: filter.start_date, end_date: filter.end_date).
             order(first_date_in_program: :desc).
             pluck(:client_id, :destination, :first_date_in_program).
             each do |client_id, destination, _|
-              next if clients[:exit_counted].include?(client_id)
+              next if clients[:exit_counted][base_count_sym].include?(client_id)
 
-              clients[:exit_counted] << client_id
-              clients[:exit_homeless] << client_id if HudUtility2024.homeless_destinations.include?(destination)
-              clients[:exit_institutional] << client_id if HudUtility2024.institutional_destinations.include?(destination)
-              clients[:exit_temporary] << client_id if HudUtility2024.temporary_destinations.include?(destination)
-              clients[:exit_permanent] << client_id if HudUtility2024.permanent_destinations.include?(destination)
-              clients[:exit_other] << client_id if HudUtility2024.other_destinations.include?(destination)
+              set_outcome_exit_client_counts(clients, client_id, destination)
             end
 
-          # Returns
-          clients[:return_counted] = Set.new
-          clients[:returns_1_years] = Set.new
-          clients[:returns_1_2_years] = Set.new
           report_scope.distinct.
             entry_within_date_range(start_date: filter.start_date, end_date: filter.end_date).
             order(first_date_in_program: :desc).
             pluck(:client_id, :first_date_in_program).
             each do |client_id, _|
-              next if clients[:return_counted].include?(client_id)
+              next if clients[:return_counted][base_count_sym].include?(client_id)
 
-              if client_ids_with_homeless_activity_1_12_months.include?(client_id) && ! client_ids_with_homeless_activity_1_months.include?(client_id)
-                # Client is in the current report range, but had no homeless service within the month prior, but had homeless service in the year prior
-                clients[:returns_1_years] << client_id
-
-              elsif client_ids_with_homeless_activity_12_24_months.include?(client_id) && ! client_ids_with_homeless_activity_0_12_months.include?(client_id)
-                # Client is in the current report range, but had no homeless service within the year prior, but had homeless service in the 2 years prior
-                clients[:returns_1_2_years] << client_id
-              end
+              set_outcome_return_client_counts(clients, client_id)
             end
+
+          available_coc_codes.each do |coc_code|
+            initialize_outcome_client_counts(clients, coc_code.to_sym)
+
+            clients[:average_los][coc_code.to_sym] = report_scope.distinct.in_coc(coc_code: coc_code).in_project_type(homeless_project_type_codes).joins(:service_history_services).group(:client_id).count(shs_t[:date]).to_set
+
+            report_scope.distinct.in_coc(coc_code: coc_code).
+              exit_within_date_range(start_date: filter.start_date, end_date: filter.end_date).
+              order(first_date_in_program: :desc).
+              pluck(:client_id, :destination, :first_date_in_program).
+              each do |client_id, destination, _|
+                next if clients[:exit_counted][coc_code.to_sym].include?(client_id)
+
+                set_outcome_exit_client_counts(clients, client_id, destination, coc_code.to_sym)
+              end
+
+            report_scope.distinct.in_coc(coc_code: coc_code).
+              entry_within_date_range(start_date: filter.start_date, end_date: filter.end_date).
+              order(first_date_in_program: :desc).
+              pluck(:client_id, :first_date_in_program).
+              each do |client_id, _|
+                next if clients[:return_counted][coc_code.to_sym].include?(client_id)
+
+                set_outcome_return_client_counts(clients, client_id, coc_code.to_sym)
+              end
+          end
         end
       end
     end

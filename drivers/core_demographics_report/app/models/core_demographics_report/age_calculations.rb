@@ -121,20 +121,42 @@ module
       end
     end
 
-    def age_count(type)
-      mask_small_population(clients_in_age_range(type)&.count&.presence || 0)
+    def age_coc_count(age_category, coc_code)
+      age_category_clause = "#{age_category}_clause"
+      mask_small_population(
+        report_scope.
+          in_coc(coc_code: coc_code).
+          joins(:client).
+          where(send(age_category_clause)).
+          select(:client_id).distinct.count,
+      )
     end
 
-    def clients_in_age_range(type)
-      client_ages.select { |_, age| age.in?(type) }
+    def age_gender_coc_count(age_category, gender_col, coc_code)
+      age_category_clause = "#{age_category}_clause"
+      mask_small_population(
+        report_scope.
+          in_coc(coc_code: coc_code).
+          joins(:client).
+          where(send(age_category_clause).and(gender_clause(gender_col))).
+          select(:client_id).distinct.count,
+      )
+    end
+
+    def age_count(type, coc = base_count_sym)
+      mask_small_population(clients_in_age_range(type, coc)&.count&.presence || 0)
+    end
+
+    def clients_in_age_range(type, coc = base_count_sym)
+      client_ages[coc].select { |_, age| age.in?(type) }
     end
 
     def client_ids_in_age_range(type)
       clients_in_age_range(type).keys
     end
 
-    def age_percentage(type)
-      total_count = mask_small_population(client_ages.count)
+    def age_percentage(type, coc = base_count_sym)
+      total_count = mask_small_population(client_ages[coc].count)
       return 0 if total_count.zero?
 
       of_type = age_count(type)
@@ -152,17 +174,30 @@ module
         rows["_#{age_category_title} Break"] ||= []
         rows["*#{age_category_title}"] ||= []
         rows["*#{age_category_title}"] += ['Gender', nil, 'Count', 'Average Age', nil]
+        available_coc_codes.each do |coc|
+          rows["*#{age_category_title}"] += [coc]
+        end
+        rows["*#{age_category_title}"] += [nil]
         rows["_#{age_category_title} - All"] ||= []
         rows["_#{age_category_title} - All"] += ['All', nil, send("#{age_category}_count"), send("average_#{age_category}_age"), nil]
+        available_coc_codes.each do |coc_code|
+          rows["_#{age_category_title} - All"] += [age_coc_count(age_category, coc_code)]
+        end
         genders.each do |gender_col, gender_label|
           rows["_#{age_category_title} - #{gender_label}"] ||= []
           rows["_#{age_category_title} - #{gender_label}"] += [gender_label, nil, send("#{age_category}_#{gender_col}_count"), send("average_#{age_category}_#{gender_col}_age"), nil]
+          available_coc_codes.each do |coc_code|
+            rows["_#{age_category_title} - #{gender_label}"] += [age_gender_coc_count(age_category, gender_col, coc_code)]
+          end
         end
       end
 
       rows['_Age Breakdowns Break'] ||= []
       rows['*Age Breakdowns'] ||= []
-      rows['*Age Breakdowns'] += ['Age Range', nil, 'Count', 'Percentage']
+      rows['*Age Breakdowns'] += ['Age Range', nil, 'Count', 'Percentage', nil]
+      available_coc_codes.each do |coc|
+        rows['*Age Breakdowns'] += [coc]
+      end
       age_categories.each do |age_range, age_title|
         rows["_Age Breakdowns_data_#{age_title}"] ||= []
         rows["_Age Breakdowns_data_#{age_title}"] += [
@@ -170,7 +205,11 @@ module
           nil,
           age_count(age_range),
           age_percentage(age_range) / 100,
+          nil,
         ]
+        available_coc_codes.each do |coc|
+          rows["_Age Breakdowns_data_#{age_title}"] += [age_count(age_range, coc.to_sym)]
+        end
       end
       rows
     end
@@ -182,8 +221,18 @@ module
             distinct.
             pluck(:client_id, age_calculation, :first_date_in_program).
             each do |client_id, age, _|
-              clients[client_id] ||= age
+              clients[base_count_sym] ||= {}
+              clients[base_count_sym][client_id] ||= age
             end
+          available_coc_codes.each do |coc_code|
+            clients[coc_code.to_sym] ||= {}
+            report_scope.joins(:client).order(first_date_in_program: :desc).
+              distinct.in_coc(coc_code: coc_code.to_sym).
+              pluck(:client_id, age_calculation, :first_date_in_program).
+              each do |client_id, age, _|
+                clients[coc_code.to_sym][client_id] ||= age
+              end
+          end
         end
       end
     end
