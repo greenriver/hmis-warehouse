@@ -1,7 +1,6 @@
 class AddDataSourceToFiles < ActiveRecord::Migration[6.1]
+  disable_ddl_transaction!
   def change
-    safety_assured do
-      add_reference :files, :data_source, null: true, index: {algorithm: :concurrently}
-    end
+    add_reference :files, :data_source, null: true, index: {algorithm: :concurrently}
   end
 end
