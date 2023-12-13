@@ -13,7 +13,10 @@ module Types
     graphql_name 'ApplicationUser'
     field :id, ID, null: false
     field :name, String, null: false
-    field :email, String, null: true
+    field :email, String, null: false
+    field :first_name, String, null: true
+    field :last_name, String, null: true
+    field :activity_logs, Types::Application::ActivityLog.page_type, null: false
     field :recent_items, [Types::HmisSchema::OmnisearchResult], null: false
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
@@ -24,10 +27,7 @@ module Types
     end
 
     def name
-      names = [object.first_name, object.last_name].compact_blank
-      return "User #{object.id}" unless names.any?
-
-      names.join(' ')
+      object.full_name || "User #{object.id}"
     end
 
     def recent_items
@@ -35,6 +35,12 @@ module Types
       return [] unless current_user == object
 
       current_user.recent_items
+    end
+
+    def activity_logs
+      raise 'access denied' unless current_user.can_audit_users?
+
+      object.activity_logs
     end
   end
 end

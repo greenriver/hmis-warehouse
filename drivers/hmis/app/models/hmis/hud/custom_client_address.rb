@@ -7,6 +7,13 @@
 class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
   self.table_name = :CustomClientAddress
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  has_paper_trail(
+    meta: {
+      client_id: ->(r) { r.client&.id },
+      enrollment_id: ->(r) { r.enrollment&.id },
+      project_id: ->(r) { r.enrollment&.project&.id },
+    },
+  )
 
   USE_VALUES = [
     :home,
@@ -35,7 +42,7 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
   belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment'), optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_one :active_range, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
-  alias_to_underscore [:NameDataQuality, :AddressID, :PersonalID, :UserID, :EnrollmentID]
+  alias_to_underscore [:AddressID, :PersonalID, :UserID, :EnrollmentID]
 
   validates_presence_of :EnrollmentID, if: :enrollment_address_type
 

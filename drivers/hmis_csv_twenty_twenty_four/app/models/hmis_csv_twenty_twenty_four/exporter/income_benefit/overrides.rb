@@ -25,9 +25,6 @@ module HmisCsvTwentyTwentyFour::Exporter
 
     def self.apply_overrides(row)
       row = replace_blank(row, hud_field: :DataCollectionStage, default_value: 99)
-      row.OtherInsuranceIdentify = row.OtherInsuranceIdentify[0...50] if row.OtherInsuranceIdentify
-      row.OtherIncomeSourceIdentify = row.OtherIncomeSourceIdentify[0...50] if row.OtherIncomeSourceIdentify
-      row.OtherBenefitsSourceIdentify = row.OtherBenefitsSourceIdentify[0...50] if row.OtherBenefitsSourceIdentify
 
       row
     end

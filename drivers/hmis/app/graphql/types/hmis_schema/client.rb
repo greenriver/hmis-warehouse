@@ -93,25 +93,30 @@ module Types
       transform_changes: ->(version, changes) do
         result = changes
         [
-          ['race', Hmis::Hud::Client.race_enum_map, :RaceNone],
-          ['gender', Hmis::Hud::Client.gender_enum_map, :GenderNone],
+          ['race', Hmis::Hud::Client.race_enum_map, 'RaceNone'],
+          ['gender', Hmis::Hud::Client.gender_enum_map, 'GenderNone'],
         ].each do |input_field, enum_map, none_field|
           relevant_fields = [*enum_map.base_members.map { |member| member[:key].to_s }, none_field.to_s, input_field]
           next unless changes.slice(*relevant_fields).present?
 
           result = result.except(*relevant_fields)
-          old_client = version.reify
 
-          # Reify the next version to get next values; If no next version, then we're at the latest update and the current object will have the next values
-          new_client =  version.next&.reify || version.item
+          # delta = [[old], [new]]
+          delta = [
+            version.object || {},
+            version.object_with_changes,
+          ].map do |doc|
+            none_value = doc[none_field]
+            if none_value.nil? || none_value.zero?
+              enum_map.base_members.
+                filter { |item| doc[item[:key].to_s] == 1 }.
+                map { |item| item[:value] }
+            else
+              [none_value]
+            end
+          end
 
-          old_value = { input_field => nil }
-          new_value = { input_field => nil }
-
-          old_value = Hmis::Hud::Processors::ClientProcessor.multi_fields_to_input(old_client, input_field, enum_map, none_field) if old_client.present?
-          new_value = Hmis::Hud::Processors::ClientProcessor.multi_fields_to_input(new_client, input_field, enum_map, none_field) if new_client.present?
-
-          result = result.merge(input_field => [old_value[input_field], new_value[input_field]])
+          result = result.merge(input_field => delta)
         end
 
         # Drop excluded fields
@@ -209,7 +214,7 @@ module Types
     end
 
     def user
-      load_ar_association(object, :user)
+      load_last_user_from_versions(object)
     end
 
     def activity_log_field_name(field_name)
@@ -263,7 +268,7 @@ module Types
       !!object.hud_chronic?(scope: enrollments)
     end
 
-    def resolve_audit_history
+    def audit_history(filters: nil)
       address_ids = object.addresses.with_deleted.pluck(:id)
       name_ids = object.names.with_deleted.pluck(:id)
       contact_ids = object.contact_points.with_deleted.pluck(:id)
@@ -273,11 +278,13 @@ module Types
       name_changes = v_t[:item_id].in(name_ids).and(v_t[:item_type].eq('Hmis::Hud::CustomClientName'))
       contact_changes = v_t[:item_id].in(contact_ids).and(v_t[:item_type].eq('Hmis::Hud::CustomClientContactPoint'))
 
-      GrdaWarehouse.paper_trail_versions.
+      scope = GrdaWarehouse.paper_trail_versions.
         where(client_changes.or(address_changes).or(name_changes).or(contact_changes)).
         where.not(object_changes: nil, event: 'update').
         unscope(:order).
         order(created_at: :desc)
+
+      Hmis::Filter::PaperTrailVersionFilter.new(filters).filter_scope(scope)
     end
 
     def merge_audit_history

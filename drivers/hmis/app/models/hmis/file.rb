@@ -6,6 +6,13 @@
 
 class Hmis::File < GrdaWarehouse::File
   include ClientFileBase
+  has_paper_trail(
+    meta: {
+      enrollment_id: :enrollment_id,
+      client_id: :client_id,
+      project_id: ->(r) { r.enrollment&.project&.id },
+    },
+  )
 
   acts_as_taggable
 
@@ -39,22 +46,22 @@ class Hmis::File < GrdaWarehouse::File
     # doesn't have permission to read the file. Users can see the existence of confidential
     # files but they can't read them. Reference:
     # https://www.pivotaltracker.com/n/projects/2591838/stories/185293913
-    client_scope = Hmis::Hud::Client
-      .viewable_by(user)
-      .with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
-    enrollment_scope = Hmis::Hud::Enrollment
-      .viewable_by(user)
-      .with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
+    client_scope = Hmis::Hud::Client.
+      viewable_by(user).
+      with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
+    enrollment_scope = Hmis::Hud::Enrollment.
+      viewable_by(user).
+      with_access(user, :can_view_any_nonconfidential_client_files, :can_view_any_confidential_client_files)
 
-    case_statement = Arel::Nodes::Case.new
-      .when(arel_table[:enrollment_id].not_eq(nil))
-      .then(arel_table[:enrollment_id].in(enrollment_scope.select(:id).arel))
-      .else(arel_table[:client_id].in(client_scope.select(:id).arel))
+    case_statement = Arel::Nodes::Case.new.
+      when(arel_table[:enrollment_id].not_eq(nil)).
+      then(arel_table[:enrollment_id].in(enrollment_scope.select(:id).arel)).
+      else(arel_table[:client_id].in(client_scope.select(:id).arel))
 
-    viewable_scope = Hmis::File
-      .left_outer_joins(:client)
-      .left_outer_joins(:enrollment)
-      .where(case_statement)
+    viewable_scope = Hmis::File.
+      left_outer_joins(:client).
+      left_outer_joins(:enrollment).
+      where(case_statement)
 
     viewable_scope = viewable_scope.or(Hmis::File.where(user_id: user.id)) if user.can_manage_own_client_files?
 

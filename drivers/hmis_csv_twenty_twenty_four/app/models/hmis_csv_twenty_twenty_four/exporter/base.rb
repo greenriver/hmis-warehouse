@@ -148,102 +148,118 @@ module HmisCsvTwentyTwentyFour::Exporter
       exportable_files[klass][:hmis_class]
     end
 
-    def exportable_files
+    def self.hmis_class_for(klass)
+      class_mappings[klass][:hmis_class]
+    end
+
+    def self.class_mappings
       {
         HmisCsvTwentyTwentyFour::Exporter::Organization => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::Organization),
-          project_scope: project_scope,
+          hmis_class: GrdaWarehouse::Hud::Organization,
+          scope: :project_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::Project => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::Project),
-          project_scope: project_scope,
+          hmis_class: GrdaWarehouse::Hud::Project,
+          scope: :project_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::Inventory => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::Inventory),
-          project_scope: project_scope,
+          hmis_class: GrdaWarehouse::Hud::Inventory,
+          scope: :project_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::ProjectCoc => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::ProjectCoc),
-          project_scope: project_scope,
+          hmis_class: GrdaWarehouse::Hud::ProjectCoc,
+          scope: :project_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::Affiliation => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::Affiliation),
-          project_scope: project_scope,
+          hmis_class: GrdaWarehouse::Hud::Affiliation,
+          scope: :project_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::Funder => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::Funder),
-          project_scope: project_scope,
+          hmis_class: GrdaWarehouse::Hud::Funder,
+          scope: :project_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::Enrollment => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::Enrollment),
-          enrollment_scope: enrollment_scope,
+          hmis_class: GrdaWarehouse::Hud::Enrollment,
+          scope: :enrollment_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::Client => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::Client),
-          client_scope: client_scope,
+          hmis_class: GrdaWarehouse::Hud::Client,
+          scope: :client_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::Exit => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::Exit),
-          enrollment_scope: enrollment_scope,
+          hmis_class: GrdaWarehouse::Hud::Exit,
+          scope: :enrollment_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::Disability => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::Disability),
-          enrollment_scope: enrollment_scope,
+          hmis_class: GrdaWarehouse::Hud::Disability,
+          scope: :enrollment_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::EmploymentEducation => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::EmploymentEducation),
-          enrollment_scope: enrollment_scope,
+          hmis_class: GrdaWarehouse::Hud::EmploymentEducation,
+          scope: :enrollment_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::IncomeBenefit => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::IncomeBenefit),
-          enrollment_scope: enrollment_scope,
+          hmis_class: GrdaWarehouse::Hud::IncomeBenefit,
+          scope: :enrollment_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::HealthAndDv => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::HealthAndDv),
-          enrollment_scope: enrollment_scope,
+          hmis_class: GrdaWarehouse::Hud::HealthAndDv,
+          scope: :enrollment_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::CurrentLivingSituation => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::CurrentLivingSituation),
-          enrollment_scope: enrollment_scope,
+          hmis_class: GrdaWarehouse::Hud::CurrentLivingSituation,
+          scope: :enrollment_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::Service => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::Service),
-          enrollment_scope: enrollment_scope,
+          hmis_class: GrdaWarehouse::Hud::Service,
+          scope: :enrollment_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::Assessment => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::Assessment),
-          enrollment_scope: enrollment_scope,
+          hmis_class: GrdaWarehouse::Hud::Assessment,
+          scope: :enrollment_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::AssessmentQuestion => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::AssessmentQuestion),
-          enrollment_scope: enrollment_scope,
+          hmis_class: GrdaWarehouse::Hud::AssessmentQuestion,
+          scope: :enrollment_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::AssessmentResult => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::AssessmentResult),
-          enrollment_scope: enrollment_scope,
+          hmis_class: GrdaWarehouse::Hud::AssessmentResult,
+          scope: :enrollment_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::Event => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::Event),
-          enrollment_scope: enrollment_scope,
+          hmis_class: GrdaWarehouse::Hud::Event,
+          scope: :enrollment_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::YouthEducationStatus => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::YouthEducationStatus),
-          enrollment_scope: enrollment_scope,
+          hmis_class: GrdaWarehouse::Hud::YouthEducationStatus,
+          scope: :enrollment_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::HmisParticipation => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::HmisParticipation),
-          project_scope: project_scope,
+          hmis_class: GrdaWarehouse::Hud::HmisParticipation,
+          scope: :project_scope,
         },
         HmisCsvTwentyTwentyFour::Exporter::CeParticipation => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::CeParticipation),
-          project_scope: project_scope,
+          hmis_class: GrdaWarehouse::Hud::CeParticipation,
+          scope: :project_scope,
         },
         # NOTE: User must be last since we collect user_ids from the other files
         HmisCsvTwentyTwentyFour::Exporter::User => {
-          hmis_class: hmis_class(GrdaWarehouse::Hud::User),
-          project_scope: project_scope,
+          hmis_class: GrdaWarehouse::Hud::User,
+          scope: :project_scope,
         },
-      }.freeze
+      }
+    end
+
+    def exportable_files
+      self.class.class_mappings.map do |export_class, details|
+        [
+          export_class,
+          {
+            hmis_class: hmis_class(details[:hmis_class]),
+            details[:scope] => send(details[:scope]),
+          },
+        ]
+      end.to_h.freeze
     end
 
     def hmis_class(klass)

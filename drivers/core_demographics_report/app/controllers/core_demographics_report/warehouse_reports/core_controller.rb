@@ -79,7 +79,10 @@ module CoreDemographicsReport::WarehouseReports
     end
 
     def filter_params
-      params.permit(filters: @filter.known_params)
+      f_params = params.permit(filters: @filter.known_params)
+      f_params[:filters][:coc_codes] = [] if f_params[:filters].present? && ! f_params[:filters].key?(:coc_codes)
+
+      f_params
     end
     helper_method :filter_params
 

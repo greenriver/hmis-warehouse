@@ -49,6 +49,22 @@ module Types
       dataloader.with(Sources::ActiveRecordAssociation, association, scope).load(object)
     end
 
+    def load_ar_scope(scope:, id:)
+      dataloader.with(Sources::ActiveRecordScope, scope).load(id)
+    end
+
+    def load_last_user_from_versions(object)
+      refinement = GrdaWarehouse.paper_trail_versions.
+        where.not(whodunnit: nil). # note, filter is okay here since it is constant with respect to object
+        order(:created_at, :id).
+        select(:id, :whodunnit, :item_id, :item_type) # select only fields we need for performance
+      versions = load_ar_association(object, :versions, scope: refinement)
+      last_user_id = versions.last&.whodunnit # db-ordered so we choose the last record
+      return unless last_user_id && last_user_id =~ /\A[0-9]+\z/
+
+      load_ar_scope(scope: Hmis::User.with_deleted, id: last_user_id)
+    end
+
     # Infers type and nullability from warehouse configuration
     def self.hud_field(name, type = nil, **kwargs)
       return field name, type, **kwargs unless configuration.present?

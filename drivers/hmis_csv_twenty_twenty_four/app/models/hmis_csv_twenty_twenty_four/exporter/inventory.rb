@@ -12,7 +12,7 @@ module HmisCsvTwentyTwentyFour::Exporter
       @options = options
     end
 
-    def self.adjust_keys(row)
+    def self.adjust_keys(row, _export)
       row.UserID = row.user&.id || 'op-system'
       row.ProjectID = row.project&.id || 'Unknown'
       row.InventoryID = row.id

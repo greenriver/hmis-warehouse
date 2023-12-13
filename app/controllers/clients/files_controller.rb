@@ -232,6 +232,7 @@ module Clients
           :consent_revoked_at,
           :confidential,
           :enrollment_id,
+          :data_source_id,
           coc_codes: [],
           tag_list: [],
         )

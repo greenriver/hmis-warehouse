@@ -29,6 +29,11 @@ BostonHmis::Application.routes.draw do
         end
       end
 
+      get 'ac/prevention_assessment_report/:referral_id',
+          to: 'reports#prevention_assessment_report',
+          as: 'ac_prevention_assessment_report',
+          defaults: { format: 'pdf' }
+
       get 'theme', to: 'theme#index', defaults: { format: :json }
       get 'themes', to: 'theme#list', defaults: { format: :json }
       resource 'app_settings', only: [:show], defaults: { format: :json }
@@ -42,6 +47,7 @@ BostonHmis::Application.routes.draw do
       # Note: in a development environment, this ends up redirecting to the warehouse.
       get '*other', to: redirect { |_, req| req.origin || '404' }
     end
+
     namespace :hmis_admin do
       resources :roles
       resources :groups

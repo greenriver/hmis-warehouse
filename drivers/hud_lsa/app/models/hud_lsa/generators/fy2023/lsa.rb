@@ -128,6 +128,7 @@ module HudLsa::Generators::Fy2023
         "#{r[:project]} (id: #{r[:id]})"
       end.uniq
       failure = "The following projects are missing data that will cause the LSA to fail: #{project_names.join(', ')}"
+      log_and_ping("LSA failed: #{failure}")
       fail_report(failure)
       false
     end

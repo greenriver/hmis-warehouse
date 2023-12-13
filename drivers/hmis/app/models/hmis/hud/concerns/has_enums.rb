@@ -42,7 +42,7 @@ module Hmis::Hud::Concerns::HasEnums
         {
           key: key.to_s,
           value: key.to_s,
-          desc: desc || key.to_s.humanize,
+          desc: desc || key.to_s.humanize.gsub(/\bCe\b/, 'CE').gsub(/\bHmis\b/, 'HMIS'),
         }
       end
 

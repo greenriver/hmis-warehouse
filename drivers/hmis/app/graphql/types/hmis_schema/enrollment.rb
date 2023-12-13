@@ -22,6 +22,7 @@ module Types
     include Types::HmisSchema::HasCurrentLivingSituations
     include Types::HmisSchema::HasCustomDataElements
     include Types::HmisSchema::HasHudMetadata
+    include Types::HmisSchema::HasAuditHistory
 
     def self.configuration
       Hmis::Hud::Enrollment.hmis_configuration(version: '2024')
@@ -77,6 +78,7 @@ module Types
       can :edit_enrollments
       can :delete_enrollments
       can :split_households
+      can :audit_enrollments
     end
 
     # FULL ACCESS FIELDS. All fields below this line require `can_view_enrollment_details` perm, because they use the overridden 'field' class method.
@@ -100,6 +102,7 @@ module Types
     youth_education_statuses_field
     employment_educations_field
     current_living_situations_field
+    field :last_current_living_situation, Types::HmisSchema::CurrentLivingSituation, null: true
     custom_data_elements_field
     # 3.16.1
     field :enrollment_coc, String, null: true
@@ -188,6 +191,24 @@ module Types
 
     field :move_in_addresses, [HmisSchema::ClientAddress], null: false
 
+    # fields should match our DB casing, consult schema to see determine appropriate casing
+    EXCLUDED_HISTORY_FIELDS = ['id', 'DateCreated', 'DateUpdated', 'DateDeleted', 'owner_type', 'enrollment_address_type'].to_set.freeze
+    audit_history_field(
+      transform_changes: ->(_version, changes) {
+        # Drop excluded fields
+        changes.reject! { |k| k.underscore.end_with?('_id') || EXCLUDED_HISTORY_FIELDS.include?(k) }
+      },
+    )
+
+    def audit_history(filters: nil)
+      scope = GrdaWarehouse.paper_trail_versions.
+        where(enrollment_id: object.id).
+        where.not(object_changes: nil, event: 'update').
+        unscope(:order). # Unscope to remove default order, otherwise it will conflict
+        order(created_at: :desc)
+      Hmis::Filter::PaperTrailVersionFilter.new(filters).filter_scope(scope)
+    end
+
     # Summary of ALL open enrollments that this client currently has.
     # This is different from the "summary_fields" which are governed by a different
     # permission ('can_view_limited_enrollment_details').
@@ -198,6 +219,10 @@ module Types
       # There is no "viewable_by" check on the enrollments, because this permission
       # grants full access regardless of enrollment/project visibility.
       load_ar_association(client, :enrollments).where.not(id: object.id).open_including_wip
+    end
+
+    def last_current_living_situation
+      load_ar_association(object, :current_living_situations).max_by(&:information_date)
     end
 
     def reminders

@@ -30,8 +30,6 @@ module HmisCsvTwentyTwentyFour::Exporter
       row = assign_move_in_date(row)
       row = assign_missing_coc(row)
 
-      row.PreferredLanguageDifferent = row.PreferredLanguageDifferent[0...100] if row.PreferredLanguageDifferent
-
       row
     end
 
