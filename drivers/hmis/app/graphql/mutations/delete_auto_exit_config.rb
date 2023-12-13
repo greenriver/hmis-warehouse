@@ -13,7 +13,7 @@ module Mutations
 
     def resolve(id:)
       record = Hmis::AutoExitConfig.find(id)
-      return { errors: [HmisErrors::Error.new(:auto_exit_config, :not_allowed)] } unless allowed?(permissions: [:can_configure_data_collection])
+      raise 'Access denied' unless allowed?(permissions: [:can_configure_data_collection])
 
       record.destroy!
 
