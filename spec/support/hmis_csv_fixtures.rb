@@ -59,7 +59,7 @@ module HmisCsvFixtures
 
   def process_imported_fixtures(user: User.setup_system_user, skip_location_cleanup: false)
     # puts "Start post processing: #{Time.now}"
-    GrdaWarehouse::Tasks::ProjectCleanup.new(skip_location_cleanup: true).run!
+    GrdaWarehouse::Tasks::ProjectCleanup.new(skip_location_cleanup: skip_location_cleanup).run!
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
     AccessGroup.maintain_system_groups
     AccessGroup.where(name: 'All Data Sources').first.add(user)
