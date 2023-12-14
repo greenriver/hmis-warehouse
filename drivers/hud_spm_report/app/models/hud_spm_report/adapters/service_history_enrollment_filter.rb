@@ -23,13 +23,7 @@ module HudSpmReport::Adapters
         where(project_id: @project_ids)
 
       # ATTN: coc filter is needed for testkit
-      # scope = filter_for_cocs(scope)
-
-      # scope = filter_for_head_of_household(scope)
-      # scope = filter_for_age(scope)
-      # scope = filter_for_gender(scope)
-      # scope = filter_for_race(scope)
-      # scope = filter_for_sub_population(scope)
+      scope = filter_for_cocs(scope)
 
       GrdaWarehouse::Hud::Enrollment.where(id: scope.joins(:enrollment).select(e_t[:id]))
     end
