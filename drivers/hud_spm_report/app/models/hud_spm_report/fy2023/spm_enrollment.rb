@@ -209,12 +209,20 @@ module HudSpmReport::Fy2023
     end
 
     private_class_method def self.annual_update_window_sql(enrollment)
-      update_window = (enrollment.entry_date - 30.days .. enrollment.entry_date + 30.days)
-
-      "DATE_PART('month', #{ib_t[:information_date].to_sql}) >= #{update_window.first.month} AND " +
-        "DATE_PART('day', #{ib_t[:information_date].to_sql}) >= #{update_window.first.day} AND " +
-        "DATE_PART('month', #{ib_t[:information_date].to_sql}) <= #{update_window.last.month} AND " +
-        "DATE_PART('day', #{ib_t[:information_date].to_sql}) <= #{update_window.last.day}"
+      # 30 days of anniversary of entry date
+      report_date = ib_t[:information_date].to_sql
+      entry_date = enrollment.entry_date.to_s(:db)
+      interval = '30 days'
+      <<~SQL
+        (EXTRACT(MONTH FROM #{report_date}), EXTRACT(DAY FROM #{report_date})) IN (
+          SELECT EXTRACT(MONTH FROM gs), EXTRACT(DAY FROM gs)
+          FROM generate_series(
+              '#{entry_date}'::date - INTERVAL '#{interval}',
+              '#{entry_date}'::date + INTERVAL '#{interval}',
+              '1 day'
+          ) AS gs
+        )
+      SQL
     end
 
     private_class_method def self.household(enrollments)
