@@ -377,22 +377,25 @@ module HmisUtil
 
     # Traverse schema to find ALL enums used
     def all_enums_in_schema(schema, traversed_types: [])
+      namespaces = ['HmisSchema', 'Admin', 'Forms']
       enums = []
+
       schema.fields.each do |_, field|
         type = field.type
         (type = type&.of_type) while type.non_null? || type.list?
         seen = traversed_types.include?(type)
         traversed_types << type
-        if type.respond_to?(:fields) && type.to_s.include?('::HmisSchema::') && !seen
+        if type.respond_to?(:fields) && /::(#{namespaces.join('|')})::/.match?(type.to_s) && !seen
           enums << all_enums_in_schema(type, traversed_types: traversed_types)
         elsif type.to_s.include?('::Enums::')
           enums << type.graphql_name
         # Hacky way to traverse into paginated node, because its an anonymous class
         elsif type.to_s&.ends_with?('Paginated') && !type.to_s.include?('AuditEvent') && !type.to_s.include?('ApplicationUser')
           base_type = type.to_s.gsub('Paginated', '').singularize
-          namespace = 'HmisSchema'
-          namespace = 'Admin' if base_type == 'FormRule'
-          node_type = "Types::#{namespace}::#{base_type}".constantize
+
+          node_type = namespaces.map { |namespace| "Types::#{namespace}::#{base_type}".safe_constantize }.compact.first
+          next unless node_type
+
           seen_node_type = traversed_types.include?(node_type)
           traversed_types << node_type
           enums << all_enums_in_schema(node_type, traversed_types: traversed_types) unless seen_node_type
