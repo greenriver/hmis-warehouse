@@ -7,10 +7,11 @@
 module HudSpmReport::Generators::Fy2023
   class MeasureBase < ::HudReports::QuestionBase
     private def enrollment_set
-      @enrollment_set ||= begin
-        HudSpmReport::Fy2023::SpmEnrollment.create_enrollment_set(@report)
-        @report.spm_enrollments
-      end
+      enrollments = @report.spm_enrollments
+      return enrollments if enrollments.exists?
+
+      HudSpmReport::Fy2023::SpmEnrollment.create_enrollment_set(@report)
+      @report.spm_enrollments
     end
 
     private def prepare_table(table_name, rows, cols)

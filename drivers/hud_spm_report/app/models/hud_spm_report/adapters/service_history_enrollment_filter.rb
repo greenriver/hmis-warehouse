@@ -22,6 +22,9 @@ module HudSpmReport::Adapters
         open_between(start_date: lookback_start_date, end_date: report_end_date).
         where(project_id: @project_ids)
 
+      # ATTN: coc filter is needed for testkit
+      scope = filter_for_cocs(scope)
+
       GrdaWarehouse::Hud::Enrollment.where(id: scope.joins(:enrollment).select(e_t[:id]))
     end
   end

@@ -31,10 +31,26 @@ module HudSpmReport::Fy2023
       where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
     end
 
-    scope :with_bed_night_in_range, ->(range) do
-      joins(enrollment: :services).
-        merge(GrdaWarehouse::Hud::Service.bed_night.between(start_date: range.begin, end_date: range.end))
+    # HMIS Standard Reporting Terminology Glossary 2024 active client method 2
+    scope :with_active_method_2_in_range, ->(range) do
+      services_cond = GrdaWarehouse::Hud::Service.arel_table.then do |table|
+        [
+          table[:record_type].eq(HudUtility2024.record_type('Bed Night', true)),
+          table[:date_provided].between(range),
+        ].inject(&:and)
+      end
+
+      ee_cond = HudSpmReport::Fy2023::SpmEnrollment.arel_table.then do |table|
+        [
+          table[:exit_date].gteq(range.begin),
+          table[:entry_date].lteq(range.end),
+        ].inject(&:and)
+      end
+
+      left_outer_joins(enrollment: :services).where(services_cond.or(ee_cond))
     end
+
+    HomelessnessInfo = Struct.new(:start_of_homelessness, :entry_date, :move_in_date, keyword_init: true)
 
     # Unlike, most HUD reports, there is not a single enrollment per report client, so the enrollment set
     # is constructed outside of the question universe, and then to preserve the 1:1 relationship between clients
@@ -42,14 +58,16 @@ module HudSpmReport::Fy2023
     # to an aggregation object that refers to enrollments in this set.
     def self.create_enrollment_set(report_instance)
       filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(report_instance.options)
-      household_infos = household(report_instance)
-      enrollments(report_instance).find_in_batches do |batch|
+      enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).enrollments
+      household_infos = household(enrollments)
+      enrollments.preload(:client, :destination_client, :exit, :income_benefits, project: :funders).find_in_batches do |batch|
+        puts "enrolment set batch #{Time.current.to_i}"
         members = []
         batch.each do |enrollment|
           current_income_benefits = current_income_benefits(enrollment, filter.end)
           previous_income_benefits = previous_income_benefits(enrollment, current_income_benefits&.information_date)
           household_info = household_infos[enrollment.household_id] ||
-            OpenStruct.new(
+            HomelessnessInfo.new(
               start_of_homelessness: enrollment.date_to_street_essh,
               entry_date: enrollment.entry_date,
               move_in_date: enrollment.move_in_date,
@@ -150,7 +168,7 @@ module HudSpmReport::Fy2023
 
     private_class_method def self.eligible_funding?(enrollment, start_date, end_date)
       enrollment.project.funders.open_between(start_date: start_date, end_date: end_date).any? do |funder|
-        funder.funder.in?([2, 3, 4, 5, 43, 44, 54, 55])
+        funder.funder.in?([2, 3, 4, 5, 43, 44, 54, 55].map(&:to_s))
       end
     end
 
@@ -191,34 +209,36 @@ module HudSpmReport::Fy2023
     end
 
     private_class_method def self.annual_update_window_sql(enrollment)
-      update_window = (enrollment.entry_date - 30.days .. enrollment.entry_date + 30.days)
-
-      "DATE_PART('month', #{ib_t[:information_date].to_sql}) >= #{update_window.first.month} AND " +
-        "DATE_PART('day', #{ib_t[:information_date].to_sql}) >= #{update_window.first.day} AND " +
-        "DATE_PART('month', #{ib_t[:information_date].to_sql}) <= #{update_window.last.month} AND " +
-        "DATE_PART('day', #{ib_t[:information_date].to_sql}) <= #{update_window.last.day}"
+      # 30 days of anniversary of entry date
+      report_date = ib_t[:information_date].to_sql
+      entry_date = enrollment.entry_date.to_s(:db)
+      interval = '30 days'
+      <<~SQL
+        (EXTRACT(MONTH FROM #{report_date}), EXTRACT(DAY FROM #{report_date})) IN (
+          SELECT EXTRACT(MONTH FROM gs), EXTRACT(DAY FROM gs)
+          FROM generate_series(
+              '#{entry_date}'::date - INTERVAL '#{interval}',
+              '#{entry_date}'::date + INTERVAL '#{interval}',
+              '1 day'
+          ) AS gs
+        )
+      SQL
     end
 
-    private_class_method def self.enrollments(report_instance)
-      HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).
-        enrollments.
-        preload(:client, :destination_client, :income_benefits, project: :funders)
-    end
-
-    private_class_method def self.household(report_instance)
-      @household ||= {}.tap do |h|
-        enrollments(report_instance).find_in_batches do |batch|
-          batch.each do |enrollment|
-            next unless enrollment.head_of_household?
-
-            h[enrollment.household_id] = OpenStruct.new(
-              start_of_homelessness: enrollment.date_to_street_essh,
-              entry_date: enrollment.entry_date,
-              move_in_date: enrollment.move_in_date,
-            )
-          end
+    private_class_method def self.household(enrollments)
+      result = {}
+      scope = enrollments.heads_of_households
+      scope.find_in_batches do |batch|
+        puts "household set batch #{Time.current.to_i}"
+        batch.each do |enrollment|
+          result[enrollment.household_id] = HomelessnessInfo.new(
+            start_of_homelessness: enrollment.date_to_street_essh,
+            entry_date: enrollment.entry_date,
+            move_in_date: enrollment.move_in_date,
+          )
         end
       end
+      result
     end
   end
 end
