@@ -34,8 +34,8 @@
     {
       "type": "DISPLAY",
       "link_id": "3.917A.instruction",
-      "text": "Where did the client spend last night? Select the category that most closely matches the client's response.",
-      "readonly_text": "Where the client spent the last night."
+      "text": "Where did the client spend the night before project entry? Select the category that most closely matches the client's response.",
+      "readonly_text": "Where the client spent the night before project entry."
     },
     {
       "type": "CHOICE",

@@ -21,6 +21,7 @@ module Mutations
       instance.assign_attributes(input.to_attributes)
 
       if instance.valid?
+        instance.save!
         { form_rule: instance }
       else
         errors = HmisErrors::Errors.new

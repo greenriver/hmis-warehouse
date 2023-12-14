@@ -12,6 +12,7 @@ module Types
     argument :organization_id, ID, required: false
     argument :project_id, ID, required: false
     argument :data_collected_about, Types::Forms::Enums::DataCollectedAbout, required: false
+    argument :active_status, Types::HmisSchema::Enums::ActiveStatus, required: false
 
     def to_attributes
       attrs = {
@@ -19,11 +20,12 @@ module Types
         funder: funder,
         other_funder: other_funder,
         data_collected_about: data_collected_about,
+        active: active_status == 'ACTIVE',
       }
-      if project_id
-        attrs[:entity] = Hmis::Hud::Project.viewable_by(current_user).find(project_id)
+      attrs[:entity] = if project_id
+        Hmis::Hud::Project.viewable_by(current_user).find(project_id)
       elsif organization_id
-        attrs[:entity] = Hmis::Hud::Organization.viewable_by(current_user).find(organization_id)
+        Hmis::Hud::Organization.viewable_by(current_user).find(organization_id)
       end
       attrs
     end

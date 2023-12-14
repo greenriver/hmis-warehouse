@@ -1,11 +1,16 @@
 {
   "item": [
     {
+      "link_id": "form-rule-instruction",
+      "type": "DISPLAY",
+      "text": "Enter one or more applicability condition for this rule. Conditions will be AND-ed. For example, selecting Project Type 'Street Outreach' and Funder 'HHS Path' means that the rule should match projects that match both conditions."
+    },
+    {
       "link_id": "form-rule-project-type",
       "type": "CHOICE",
       "text": "Project Type",
       "pick_list_reference": "ProjectType",
-      "helper_text": "Which project type should this form be enabled for? (Optional)",
+      "helper_text": "(Optional) Which project type should this form be enabled for?",
       "mapping": {
         "field_name": "projectType"
       }
@@ -15,7 +20,7 @@
       "type": "CHOICE",
       "text": "Funding Source",
       "pick_list_reference": "FundingSource",
-      "helper_text": "Which funding source should this form be enabled for? (Optional)",
+      "helper_text": "(Optional) Which funding source should this form be enabled for?",
       "mapping": {
         "field_name": "funder"
       }
@@ -27,7 +32,6 @@
       "mapping": {
         "field_name": "otherFunder"
       },
-      "helper_text": "Text must be an match match for an 'Other Funder' value on one of the Funder records.",
       "enable_behavior": "ALL",
       "enable_when": [
         {
@@ -38,13 +42,42 @@
       ]
     },
     {
+      "link_id": "form-rule-organization",
+      "type": "CHOICE",
+      "text": "Organization",
+      "pick_list_reference": "ORGANIZATION",
+      "helper_text": "(Optional) Which specific Organization should this form be enabled for?",
+      "mapping": {
+        "field_name": "organizationId"
+      }
+    },
+    {
+      "link_id": "form-rule-project",
+      "type": "CHOICE",
+      "text": "Project",
+      "pick_list_reference": "PROJECT",
+      "helper_text": "(Optional) Which specific Project should this form be enabled for?",
+      "mapping": {
+        "field_name": "projectId"
+      }
+    },
+    {
       "link_id": "form-rule-data-collected-about",
       "type": "CHOICE",
       "text": "Data Collected About",
       "pick_list_reference": "DataCollectedAbout",
-      "helper_text": "For which client group should this data be collected? (Optional)",
+      "helper_text": "(Optional) Which client group should this data be collected for?",
       "mapping": {
         "field_name": "dataCollectedAbout"
+      }
+    },
+    {
+      "link_id": "form-rule-active-status",
+      "type": "CHOICE",
+      "text": "Active Status",
+      "pick_list_reference": "ActiveStatus",
+      "mapping": {
+        "field_name": "activeStatus"
       }
     }
   ]

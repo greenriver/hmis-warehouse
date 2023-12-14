@@ -16,6 +16,8 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   belongs_to :custom_service_type, optional: true, class_name: 'Hmis::Hud::CustomServiceType'
 
   validates :data_collected_about, inclusion: { in: Types::Forms::Enums::DataCollectedAbout.values.keys }, allow_blank: true
+  validates :funder, inclusion: { in: HudUtility2024.funding_sources.keys }, allow_blank: true
+  validates :project_type, inclusion: { in: HudUtility2024.project_types.keys }, allow_blank: true
 
   # 'system' instances can't be deleted
   scope :system, -> { where(system: true) }

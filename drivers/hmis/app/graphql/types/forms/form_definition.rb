@@ -18,6 +18,7 @@ module Types
     field :role, Types::Forms::Enums::FormRole, null: false
     field :title, String, null: false
     field :definition, Forms::FormDefinitionJson, null: false
+    field :system, Boolean, null: false
     form_rules_field :form_rules, method: :instances
 
     # Filtering is implemented within this resolver rather than a separate concern. This
@@ -30,6 +31,10 @@ module Types
 
     def cache_key
       [object.id, project&.id, active_date].join('|')
+    end
+
+    def system
+      load_ar_association(object, :instances).any?(&:system)
     end
 
     protected

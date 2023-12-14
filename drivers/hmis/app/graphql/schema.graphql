@@ -1773,16 +1773,6 @@ enum DataCollectedAbout {
   ALL_CLIENTS
 
   """
-  All Clients Receiving SSVF Financial Assistance
-  """
-  ALL_CLIENTS_RECEIVING_SSVF_FINANCIAL_ASSISTANCE
-
-  """
-  All Clients Receiving SSVF Services
-  """
-  ALL_CLIENTS_RECEIVING_SSVF_SERVICES
-
-  """
   All Veterans
   """
   ALL_VETERANS
@@ -3560,6 +3550,7 @@ type FormDefinition {
   formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
   id: ID!
   role: FormRole!
+  system: Boolean!
   title: String!
 }
 
@@ -3852,6 +3843,7 @@ enum FormRole {
 
 type FormRule {
   active: Boolean!
+  activeStatus: ActiveStatus!
   createdAt: ISO8601DateTime!
   dataCollectedAbout: DataCollectedAbout
   definitionId: ID
@@ -3861,8 +3853,10 @@ type FormRule {
   funder: FundingSource
   id: ID!
   organization: Organization
+  organizationId: ID
   otherFunder: String
   project: Project
+  projectId: ID
   projectType: ProjectType
   serviceCategory: ServiceCategory
   serviceType: ServiceType
@@ -3880,6 +3874,7 @@ input FormRuleFilterOptions {
 }
 
 input FormRuleInput {
+  activeStatus: ActiveStatus
   dataCollectedAbout: DataCollectedAbout
   funder: FundingSource
   organizationId: ID

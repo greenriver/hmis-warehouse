@@ -16,11 +16,7 @@ module Mutations
 
       definition = Hmis::Form::Definition.find(definition_id)
 
-      instance = Hmis::Form::Instance.new(
-        definition_identifier: definition.identifier,
-        active: false,
-        system: false,
-      )
+      instance = Hmis::Form::Instance.new(definition_identifier: definition.identifier)
       instance.assign_attributes(input.to_attributes)
 
       if instance.valid?

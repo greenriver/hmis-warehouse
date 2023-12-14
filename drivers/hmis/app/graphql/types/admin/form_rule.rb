@@ -30,13 +30,16 @@ module Types
     field :project_type, Types::HmisSchema::Enums::ProjectType, null: true
     field :funder, Types::HmisSchema::Enums::Hud::FundingSource, null: true
     field :other_funder, String, null: true
+    field :organization_id, ID, null: true
     field :organization, HmisSchema::Organization, null: true
+    field :project_id, ID, null: true
     field :project, HmisSchema::Project, null: true
     field :service_category, HmisSchema::ServiceCategory, null: true, method: :custom_service_category
     field :service_type, HmisSchema::ServiceType, null: true, method: :custom_service_type
     field :data_collected_about, Types::Forms::Enums::DataCollectedAbout, null: true
     # Status and metadata
     field :active, Boolean, null: false
+    field :active_status, Types::HmisSchema::Enums::ActiveStatus, null: false
     field :system, Boolean, null: false
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :updated_at, GraphQL::Types::ISO8601DateTime, null: false
@@ -55,16 +58,32 @@ module Types
       load_ar_association(object, :definition)&.title
     end
 
+    def project_id
+      return unless object.entity_type == Hmis::Hud::Project.sti_name
+
+      object.entity_id
+    end
+
     def project
       return unless object.entity_type == Hmis::Hud::Project.sti_name
 
       object.entity
     end
 
+    def organization_id
+      return unless object.entity_type == Hmis::Hud::Organization.sti_name
+
+      object.entity_id
+    end
+
     def organization
       return unless object.entity_type == Hmis::Hud::Organization.sti_name
 
       object.entity
+    end
+
+    def active_status
+      object.active ? 'ACTIVE' : 'INACTIVE'
     end
   end
 end
