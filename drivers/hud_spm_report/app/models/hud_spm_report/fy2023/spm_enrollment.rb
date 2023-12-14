@@ -65,7 +65,7 @@ module HudSpmReport::Fy2023
         members = []
         batch.each do |enrollment|
           current_income_benefits = current_income_benefits(enrollment, filter.end)
-          previous_income_benefits = previous_income_benefits(enrollment, current_income_benefits&.information_date)
+          previous_income_benefits = previous_income_benefits(enrollment, current_income_benefits&.information_date, filter.end)
           household_info = household_infos[enrollment.household_id] ||
             HomelessnessInfo.new(
               start_of_homelessness: enrollment.date_to_street_essh,
@@ -173,7 +173,7 @@ module HudSpmReport::Fy2023
     end
 
     private_class_method def self.total_income(income_benefit)
-      (income_benefit&.total_monthly_income || 0).clamp(0..)
+      income_benefit&.hud_total_monthly_income&.clamp(0..) || 0
     end
 
     private_class_method def self.earned_income(income_benefit)
@@ -198,7 +198,9 @@ module HudSpmReport::Fy2023
       end
     end
 
-    private_class_method def self.previous_income_benefits(enrollment, annual_date)
+    private_class_method def self.previous_income_benefits(enrollment, annual_date, end_date)
+      return enrollment.income_benefits_at_entry if enrollment.exit.present? && enrollment.exit.exit_date <= end_date
+
       # Most recent annual update on or before the renewal date, or the entry assessment
       enrollment.
         income_benefits_annual_update.

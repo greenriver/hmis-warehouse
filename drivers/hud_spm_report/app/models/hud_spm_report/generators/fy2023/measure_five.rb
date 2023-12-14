@@ -78,7 +78,7 @@ module HudSpmReport::Generators::Fy2023
         COLUMNS,
       )
 
-      report_members = create_universe(:m5_2, [:es, :sh, :th, :ph].map { |code| HudUtility2024.project_type_number_from_code(code) }.flatten)
+      report_members = create_universe(:m5_2, [:es, :sh, :th, :ph].flat_map { |code| HudUtility2024.project_type_number_from_code(code) })
       answer = @report.answer(question: table_name, cell: 'C2')
       answer.add_members(report_members)
       answer.update(summary: report_members.count)
@@ -92,43 +92,50 @@ module HudSpmReport::Generators::Fy2023
       answer.update(summary: report_members.count - prior_members.count)
     end
 
-    private def create_universe(universe_name, project_types)
+    def create_universe(universe_name, project_types)
       filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(@report.options)
-      @universe = @report.universe(universe_name)
+      universe = @report.universe(universe_name)
       enrollments = enrollment_set.where(entry_date: filter.range, project_type: project_types)
       earliest_enrollments = HudSpmReport::Fy2023::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, direction: :asc, scope: enrollments)
 
       members = earliest_enrollments.map do |enrollment|
         [enrollment.client, enrollment]
       end.to_h
-      @universe.add_universe_members(members)
+      universe.add_universe_members(members)
 
-      @universe.members
+      universe.members
     end
 
-    private def create_priors_universe(universe_name, report_members)
+    def create_priors_universe(universe_name, report_members)
       report_enrollments = HudSpmReport::Fy2023::SpmEnrollment.where(id: report_members.select(:universe_membership_id))
       filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(@report.options)
-      @universe = @report.universe(universe_name)
-      adjusted_range = filter.range.begin - 730.days .. filter.range.end - 730.days
-      project_types = [:es, :sh, :th, :ph].map { |code| HudUtility2024.project_type_number_from_code(code) }.flatten
+      universe = @report.universe(universe_name)
+      adjusted_range = filter.range.begin - 730.days .. filter.range.end
+      project_types = [:es, :sh, :th, :ph].flat_map { |code| HudUtility2024.project_type_number_from_code(code) }
       candidate_enrollments = enrollment_set.open_during_range(adjusted_range).where(project_type: project_types)
-      universe_enrollments = [].tap do |collection|
-        report_enrollments.find_each do |enrollment|
-          prior = candidate_enrollments.where(spm_e_t[:client_id].eq(enrollment.client_id).
-            and(spm_e_t[:exit_date].eq(nil).or(spm_e_t[:exit_date].lt(enrollment.entry_date - 730.days)))).
-            order(spm_e_t[:exit_date].desc).
-            first
-          collection << prior if prior.present?
+
+      universe_enrollments = []
+      report_enrollments.find_in_batches do |batch|
+        batch_candidates = candidate_enrollments.
+          where(spm_e_t[:client_id].in(batch.map(&:client_id))).
+          order(spm_e_t[:exit_date].desc).order(:id).
+          group_by(&:client_id)
+
+        batch.each do |enrollment|
+          found = batch_candidates[enrollment.client_id]&.detect do |candidate|
+            candidate.entry_date < enrollment.entry_date &&
+              (candidate.exit_date.nil? || candidate.exit_date >= enrollment.entry_date - 730.days)
+          end
+          universe_enrollments << found if found
         end
       end
 
       members = universe_enrollments.map do |enrollment|
         [enrollment.client, enrollment]
       end.to_h
-      @universe.add_universe_members(members)
+      universe.add_universe_members(members)
 
-      @universe.members
+      universe.members
     end
   end
 end
