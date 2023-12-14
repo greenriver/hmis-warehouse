@@ -340,13 +340,10 @@ module Types
     end
 
     field :form_definitions, Types::Forms::FormDefinition.page_type, null: false
-    # argument :sort_order, Types::Forms::FormDefinitionSortOption, required: false
-    # filters_argument Types::Forms::FormDefinition, **filter_args
     def form_definitions
       raise 'Access denied' unless current_user.can_configure_data_collection?
 
-      # scope = scope.apply_filters(filters) if filters.present?
-      # scope = scope.sort_by_option(sort_order) if sort_order.present?
+      # TODO: add ability to sort and filter definitions
       Hmis::Form::Definition.all
     end
 
