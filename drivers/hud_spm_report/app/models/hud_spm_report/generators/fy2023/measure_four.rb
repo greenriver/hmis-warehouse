@@ -216,7 +216,6 @@ module HudSpmReport::Generators::Fy2023
       enrollment_set.open_during_range(filter.range).
         where(spm_e_t[:age].gteq(18)).
         where(spm_e_t[:eligible_funding].eq(true)).
-        where(spm_e_t[:days_enrolled].gteq(365)).
         where(spm_e_t[:exit_date].eq(nil).or(spm_e_t[:exit_date].gt(filter.end)))
     end
 
@@ -227,7 +226,7 @@ module HudSpmReport::Generators::Fy2023
       @stayers_computed = true
 
       filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(@report.options)
-      staying_enrollments = candidate_stayers(filter)
+      staying_enrollments = candidate_stayers(filter).where(spm_e_t[:days_enrolled].gteq(365))
       client_enrollments = HudSpmReport::Fy2023::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, scope: staying_enrollments)
 
       members = client_enrollments.map do |enrollment|
