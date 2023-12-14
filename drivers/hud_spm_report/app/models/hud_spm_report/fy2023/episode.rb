@@ -17,10 +17,26 @@ module HudSpmReport::Fy2023
 
     attr_accessor :report # FIXME?
 
-    def self.save_episodes!(episodes)
-      import!(episodes)
-      BedNight.import!(episodes.map(&:bed_nights).flatten)
-      EnrollmentLink.import!(episodes.map(&:enrollment_links).flatten)
+    # The associations seem to make imports run one at a time, so, they are passed separately in parallel arrays
+    def self.save_episodes!(episodes, bed_nights, enrollment_links)
+      # Import the episodes
+      results = import!(episodes)
+      # Attach the associations to their episode
+      results.ids.each_with_index do |id, index|
+        bn_for_episode = bed_nights[index]
+        bed_nights[index] = bn_for_episode.map do |bn|
+          bn.episode_id = id
+          bn
+        end
+        el_for_episode = enrollment_links[index]
+        enrollment_links[index] = el_for_episode.map do |el|
+          el.episode_id = id
+          el
+        end
+      end
+      # Import the associations
+      BedNight.import!(bed_nights.flatten)
+      EnrollmentLink.import!(enrollment_links.flatten)
     end
 
     def compute_episode(enrollments, included_project_types:, excluded_project_types:, include_self_reported:)
@@ -33,8 +49,10 @@ module HudSpmReport::Fy2023
       filtered_bed_nights = filter_episode(calculated_bed_nights)
       return unless filtered_bed_nights.present?
 
+      bed_nights_array = []
+      enrollment_links_array = []
       filtered_bed_nights.each do |enrollment, service_id, date|
-        bed_nights << bed_nights.build(
+        bed_nights_array << BedNight.new(
           client_id: client.id,
           enrollment_id: enrollment.id,
           service_id: service_id,
@@ -44,7 +62,7 @@ module HudSpmReport::Fy2023
 
       enrollment_ids = filtered_bed_nights.map { |enrollment, _, _| enrollment.id }.uniq
       enrollment_ids.each do |enrollment_id|
-        enrollment_links << enrollment_links.build(
+        enrollment_links_array << EnrollmentLink.new(
           enrollment_id: enrollment_id,
         )
       end
@@ -58,7 +76,7 @@ module HudSpmReport::Fy2023
         literally_homeless_at_entry: literally_homeless_at_entry(filtered_bed_nights, first_date),
       )
 
-      self
+      [self, bed_nights_array, enrollment_links_array]
     end
 
     private def candidate_bed_nights(enrollments, project_types, include_self_reported)
