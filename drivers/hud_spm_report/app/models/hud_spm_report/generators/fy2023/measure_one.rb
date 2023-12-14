@@ -150,7 +150,8 @@ module HudSpmReport::Generators::Fy2023
 
     private def create_universe(universe_name, included_project_types:, excluded_project_types:, include_self_reported:)
       @universe = @report.universe(universe_name)
-      enrollments = enrollment_set
+      candidate_client_ids = enrollment_set.open_during_range(filter.range).pluck(:client_id).uniq
+      enrollments = enrollment_set.where(client_id: candidate_client_ids)
 
       client_ids = enrollments.pluck(:client_id).uniq
       client_ids.each_slice(500) do |slice|

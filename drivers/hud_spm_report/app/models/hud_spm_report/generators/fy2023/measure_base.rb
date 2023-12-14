@@ -36,5 +36,9 @@ module HudSpmReport::Generators::Fy2023
 
       format('%1.4f', ((num / denom.to_f) * 100).round(2))
     end
+
+    private def filter
+      @filter ||= ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(@report.options)
+    end
   end
 end
