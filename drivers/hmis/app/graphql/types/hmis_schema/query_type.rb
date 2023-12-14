@@ -337,5 +337,12 @@ module Types
       # Only resolve non-service rules. Service rules are resolved on the service category.
       resolve_form_rules(Hmis::Form::Instance.not_for_services, **args)
     end
+
+    field :auto_exit_configs, Types::HmisSchema::AutoExitConfig.page_type, null: false
+    def auto_exit_configs
+      raise 'not allowed' unless current_user.can_configure_data_collection?
+
+      Hmis::AutoExitConfig.all
+    end
   end
 end
