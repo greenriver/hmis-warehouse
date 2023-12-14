@@ -155,23 +155,26 @@ module HudSpmReport::Generators::Fy2023
       client_ids = enrollments.pluck(:client_id).uniq
       client_ids.each_slice(500) do |slice|
         enrollments_for_slice = enrollments.where(client_id: slice).preload(:client, enrollment: :services).group_by(&:client_id)
-        episodes = [].tap do |arr|
-          slice.each do |client_id|
-            episode = HudSpmReport::Fy2023::Episode.new(client_id: client_id, report: @report).
-              compute_episode(
-                enrollments_for_slice[client_id],
-                included_project_types: included_project_types,
-                excluded_project_types: excluded_project_types,
-                include_self_reported: include_self_reported,
-              )
-            next if episode.nil?
+        episodes = []
+        bed_nights_per_episode = []
+        enrollment_links_per_episode = []
+        slice.each do |client_id|
+          episode, bed_nights, enrollment_links = HudSpmReport::Fy2023::Episode.new(client_id: client_id, report: @report).
+            compute_episode(
+              enrollments_for_slice[client_id],
+              included_project_types: included_project_types,
+              excluded_project_types: excluded_project_types,
+              include_self_reported: include_self_reported,
+            )
+          next if episode.nil?
 
-            arr << episode
-          end
+          episodes << episode
+          bed_nights_per_episode << bed_nights
+          enrollment_links_per_episode << enrollment_links
         end
         next unless episodes.present?
 
-        HudSpmReport::Fy2023::Episode.save_episodes!(episodes)
+        HudSpmReport::Fy2023::Episode.save_episodes!(episodes, bed_nights_per_episode, enrollment_links_per_episode)
         members = episodes.map do |episode|
           [episode.client, episode]
         end.to_h
@@ -186,10 +189,14 @@ module HudSpmReport::Generators::Fy2023
       return [0, 0, 0] unless persons.positive?
 
       days_homeless = universe.pluck(a_t[:days_homeless])
-      average = days_homeless.sum / persons
+      average = mean(days_homeless.sum, persons)
       median = median(days_homeless)
 
       [persons, average, median]
+    end
+
+    private def mean(num, denom)
+      format('%1.2f', (num / denom.to_f).round(2))
     end
 
     private def median(values)
