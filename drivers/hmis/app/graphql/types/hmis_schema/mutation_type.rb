@@ -56,5 +56,9 @@ module Types
 
     field :create_form_rule, mutation: Mutations::CreateFormRule
     field :update_form_rule, mutation: Mutations::UpdateFormRule
+
+    field :create_auto_exit_config, mutation: Mutations::CreateAutoExitConfig
+    field :update_auto_exit_config, mutation: Mutations::UpdateAutoExitConfig
+    field :delete_auto_exit_config, mutation: Mutations::DeleteAutoExitConfig
   end
 end
