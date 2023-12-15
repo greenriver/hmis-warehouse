@@ -98,8 +98,8 @@ module HudSpmReport::Generators::Fy2023
       prepare_table(
         table_name,
         {
-          2 => 'Persons in ES-EE, ES-NbN, SH, and PH',
-          3 => 'Persons in ES-EE, ES-NbN, SH, TH, and PH',
+          1 => 'Persons in ES-EE, ES-NbN, SH, and PH',
+          2 => 'Persons in ES-EE, ES-NbN, SH, TH, and PH',
         },
         COLUMNS,
       )
