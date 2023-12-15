@@ -55,8 +55,8 @@ module
       rows['_Gender Break'] ||= []
       rows['*Gender Breakdowns'] ||= []
       rows['*Gender Breakdowns'] += ['Gender', nil, 'Count', 'Percentage', nil]
-      available_coc_codes.each do |coc|
-        rows['*Gender Breakdowns'] += [coc]
+      available_coc_codes.each do |coc_code|
+        rows['*Gender Breakdowns'] += [coc_code]
       end
       genders.each do |id, title|
         rows["_Gender Breakdowns_data_#{title}"] ||= []
@@ -67,15 +67,15 @@ module
           gender_percentage(id) / 100,
           nil,
         ]
-        available_coc_codes.each do |coc|
-          rows["_Gender Breakdowns_data_#{title}"] += [gender_count(id, coc.to_sym)]
+        available_coc_codes.each do |coc_code|
+          rows["_Gender Breakdowns_data_#{title}"] += [gender_count(id, coc_code.to_sym)]
         end
       end
       rows['_Gender/Age Breakdowns Break'] ||= []
       rows['*Gender/Age Breakdowns'] ||= []
       rows['*Gender/Age Breakdowns'] += ['Gender', 'Age Range', 'Count', 'Percentage', nil]
-      available_coc_codes.each do |coc|
-        rows['*Gender/Age Breakdowns'] += [coc]
+      available_coc_codes.each do |coc_code|
+        rows['*Gender/Age Breakdowns'] += [coc_code]
       end
       genders.each do |gender, gender_title|
         age_categories.each do |age_range, age_title|
@@ -87,8 +87,8 @@ module
             gender_age_percentage(gender: gender, age_range: age_range) / 100,
             nil,
           ]
-          available_coc_codes.each do |coc|
-            rows["_Gender/Age_data_#{gender_title} #{age_title}"] += [gender_age_count(gender: gender, age_range: age_range, coc_code: coc.to_sym)]
+          available_coc_codes.each do |coc_code|
+            rows["_Gender/Age_data_#{gender_title} #{age_title}"] += [gender_age_count(gender: gender, age_range: age_range, coc_code: coc_code.to_sym)]
           end
         end
       end

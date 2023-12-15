@@ -39,8 +39,8 @@ module
       rows['_High Acuity Type'] ||= []
       rows['*High Acuity Type'] ||= []
       rows['*High Acuity Type'] += ['High Acuity Type', nil, 'Count', 'Percentage', nil]
-      available_coc_codes.each do |coc|
-        rows['*High Acuity Type'] += [coc]
+      available_coc_codes.each do |coc_code|
+        rows['*High Acuity Type'] += [coc_code]
       end
       rows['*High Acuity Type'] += [nil]
       available_high_acuity_types.invert.each do |id, title|
@@ -52,15 +52,15 @@ module
           high_acuity_percentage(id) / 100,
           nil,
         ]
-        available_coc_codes.each do |coc|
-          rows["_High Acuity Type_data_#{title}"] += [high_acuity_count(id, coc.to_sym)]
+        available_coc_codes.each do |coc_code|
+          rows["_High Acuity Type_data_#{title}"] += [high_acuity_count(id, coc_code.to_sym)]
         end
       end
       rows
     end
 
-    private def high_acuity_client_ids(key, coc = base_count_sym)
-      high_acuity_clients[key][coc]
+    private def high_acuity_client_ids(key, coc_code = base_count_sym)
+      high_acuity_clients[key][coc_code]
     end
 
     private def hoh_client_ids

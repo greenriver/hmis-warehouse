@@ -21,8 +21,8 @@ module
       end
     end
 
-    def chronic_count(type, coc = base_count_sym)
-      mask_small_population(chronic_clients[type][coc]&.count&.presence || 0)
+    def chronic_count(type, coc_code = base_count_sym)
+      mask_small_population(chronic_clients[type][coc_code]&.count&.presence || 0)
     end
 
     def chronic_percentage(type)
@@ -39,8 +39,8 @@ module
       rows['_Chronic Type'] ||= []
       rows['*Chronic Type'] ||= []
       rows['*Chronic Type'] += ['Chronic Type', nil, 'Count', 'Percentage', nil]
-      available_coc_codes.each do |coc|
-        rows['*Chronic Type'] += [coc]
+      available_coc_codes.each do |coc_code|
+        rows['*Chronic Type'] += [coc_code]
       end
       rows['*Chronic Type'] += [nil]
       available_chronic_types.invert.each do |id, title|
@@ -52,15 +52,15 @@ module
           chronic_percentage(id) / 100,
           nil,
         ]
-        available_coc_codes.each do |coc|
-          rows["_Chronic Type_data_#{title}"] += [chronic_count(id, coc.to_sym)]
+        available_coc_codes.each do |coc_code|
+          rows["_Chronic Type_data_#{title}"] += [chronic_count(id, coc_code.to_sym)]
         end
       end
       rows
     end
 
-    private def chronic_client_ids(key, coc = base_count_sym)
-      chronic_clients[key][coc]
+    private def chronic_client_ids(key, coc_code = base_count_sym)
+      chronic_clients[key][coc_code]
     end
 
     private def hoh_client_ids
@@ -132,7 +132,7 @@ module
           available_coc_codes.each do |coc_code|
             initialize_chronic_client_counts(clients, coc_code.to_sym)
 
-            report_scope.distinct.in_coc(coc_code: coc_code.to_str).
+            report_scope.distinct.in_coc(coc_code: coc_code).
               joins(enrollment: :ch_enrollment).
               merge(GrdaWarehouse::ChEnrollment.chronically_homeless).
               order(first_date_in_program: :asc). # NOTE: this differs from other calculations, we might want to go back to desc

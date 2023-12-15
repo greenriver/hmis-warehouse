@@ -28,11 +28,11 @@ module
       end
     end
 
-    def no_recent_homelessness_count(type, coc = base_count_sym)
+    def no_recent_homelessness_count(type, coc_code = base_count_sym)
       if type.in?([:adult_and_child, :hoh_adult_and_child, :unaccompanied_youth])
-        mask_small_population(no_recent_homelessness_clients[type][coc]&.map(&:last)&.uniq&.count&.presence || 0)
+        mask_small_population(no_recent_homelessness_clients[type][coc_code]&.map(&:last)&.uniq&.count&.presence || 0)
       else
-        mask_small_population(no_recent_homelessness_clients[type][coc]&.count&.presence || 0)
+        mask_small_population(no_recent_homelessness_clients[type][coc_code]&.count&.presence || 0)
       end
     end
 
@@ -50,8 +50,8 @@ module
       rows['_No Recent Homelessness Type'] ||= []
       rows['*No Recent Homelessness Type'] ||= []
       rows['*No Recent Homelessness Type'] += ['No Recent Homelessness Type', nil, 'Count', 'Percentage', nil]
-      available_coc_codes.each do |coc|
-        rows['*No Recent Homelessness Type'] += [coc]
+      available_coc_codes.each do |coc_code|
+        rows['*No Recent Homelessness Type'] += [coc_code]
       end
       rows['*No Recent Homelessness Type'] += [nil]
       available_no_recent_homelessness_types.invert.each do |id, title|
@@ -63,15 +63,15 @@ module
           no_recent_homelessness_percentage(id) / 100,
           nil,
         ]
-        available_coc_codes.each do |coc|
-          rows["_No Recent Homelessness Type_data_#{title}"] += [no_recent_homelessness_count(id, coc.to_sym)]
+        available_coc_codes.each do |coc_code|
+          rows["_No Recent Homelessness Type_data_#{title}"] += [no_recent_homelessness_count(id, coc_code.to_sym)]
         end
       end
       rows
     end
 
-    private def no_recent_homelessness_client_ids(key, coc = base_count_sym)
-      no_recent_homelessness_clients[key][coc]
+    private def no_recent_homelessness_client_ids(key, coc_code = base_count_sym)
+      no_recent_homelessness_clients[key][coc_code]
     end
 
     def available_no_recent_homelessness_types
@@ -181,7 +181,7 @@ module
           available_coc_codes.each do |coc_code|
             initialize_recently_homeless_client_counts(clients, coc_code.to_sym)
 
-            report_scope.distinct.in_coc(coc_code: coc_code.to_str).
+            report_scope.distinct.in_coc(coc_code: coc_code).
               entry_within_date_range(start_date: filter.start_date, end_date: filter.end_date).
               order(first_date_in_program: :desc).
               pluck(:client_id, :id, :first_date_in_program).
