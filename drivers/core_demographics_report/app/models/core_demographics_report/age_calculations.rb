@@ -198,6 +198,7 @@ module
       available_coc_codes.each do |coc_code|
         rows['*Age Breakdowns'] += [coc_code]
       end
+      rows['*Age Breakdowns'] += [nil]
       age_categories.each do |age_range, age_title|
         rows["_Age Breakdowns_data_#{age_title}"] ||= []
         rows["_Age Breakdowns_data_#{age_title}"] += [

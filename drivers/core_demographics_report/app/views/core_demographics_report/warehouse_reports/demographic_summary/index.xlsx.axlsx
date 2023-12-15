@@ -79,7 +79,7 @@ wb.add_worksheet(name: 'Data') do |sheet|
       end
       if title.starts_with?('*')
         title = title.sub('*', '')
-        style = Array.new(12, th_style)
+        style = Array.new(50, th_style)
       elsif title.starts_with?('_')
         if title.include?('_data_')
           key = title[0..title.index('_data_')].gsub('_', '')

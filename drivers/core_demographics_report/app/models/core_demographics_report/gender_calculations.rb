@@ -58,6 +58,7 @@ module
       available_coc_codes.each do |coc_code|
         rows['*Gender Breakdowns'] += [coc_code]
       end
+      rows['*Gender Breakdowns'] += [nil]
       genders.each do |id, title|
         rows["_Gender Breakdowns_data_#{title}"] ||= []
         rows["_Gender Breakdowns_data_#{title}"] += [
@@ -77,6 +78,7 @@ module
       available_coc_codes.each do |coc_code|
         rows['*Gender/Age Breakdowns'] += [coc_code]
       end
+      rows['*Gender/Age Breakdowns'] += [nil]
       genders.each do |gender, gender_title|
         age_categories.each do |age_range, age_title|
           rows["_Gender/Age_data_#{gender_title} #{age_title}"] ||= []

@@ -46,6 +46,7 @@ module
       available_coc_codes.each do |coc_code|
         rows['*Race'] += [coc_code]
       end
+      rows['*Race'] += [nil]
       race_buckets.each do |id, title|
         rows["_Race_data_#{title}"] ||= []
         rows["_Race_data_#{title}"] += [
