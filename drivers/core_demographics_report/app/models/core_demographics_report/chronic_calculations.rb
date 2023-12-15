@@ -21,8 +21,8 @@ module
       end
     end
 
-    def chronic_count(type)
-      mask_small_population(chronic_clients[type]&.count&.presence || 0)
+    def chronic_count(type, coc = base_count_sym)
+      mask_small_population(chronic_clients[type][coc]&.count&.presence || 0)
     end
 
     def chronic_percentage(type)
@@ -39,6 +39,10 @@ module
       rows['_Chronic Type'] ||= []
       rows['*Chronic Type'] ||= []
       rows['*Chronic Type'] += ['Chronic Type', nil, 'Count', 'Percentage', nil]
+      available_coc_codes.each do |coc|
+        rows['*Chronic Type'] += [coc]
+      end
+      rows['*Chronic Type'] += [nil]
       available_chronic_types.invert.each do |id, title|
         rows["_Chronic Type_data_#{title}"] ||= []
         rows["_Chronic Type_data_#{title}"] += [
@@ -46,43 +50,97 @@ module
           nil,
           chronic_count(id),
           chronic_percentage(id) / 100,
+          nil,
         ]
+        available_coc_codes.each do |coc|
+          rows["_Chronic Type_data_#{title}"] += [chronic_count(id, coc.to_sym)]
+        end
       end
       rows
     end
 
-    private def chronic_client_ids(key)
-      chronic_clients[key]
+    private def chronic_client_ids(key, coc = base_count_sym)
+      chronic_clients[key][coc]
+    end
+
+    private def hoh_client_ids
+      @hoh_client_ids ||= hoh_scope.pluck(:client_id)
     end
 
     def available_chronic_types
       {
         'Client' => :client,
         'Household' => :household,
+        'Adult only Households' => :without_children,
+        'Adult and Child Households' => :with_children,
+        'Child only Households' => :only_children,
+        'Youth Only' => :unaccompanied_youth,
       }
+    end
+
+    private def without_children
+      @without_children ||= enrollment_ids_in_household_type(:without_children)
+    end
+
+    private def with_children
+      @with_children  ||= enrollment_ids_in_household_type(:with_children)
+    end
+
+    private def only_children
+      @only_children  ||= enrollment_ids_in_household_type(:only_children)
+    end
+
+    private def unaccompanied_youth
+      @unaccompanied_youth ||= enrollment_ids_in_household_type(:unaccompanied_youth)
+    end
+
+    private def initialize_chronic_client_counts(clients, coc_code = base_count_sym)
+      available_chronic_types.invert.each do |key, _|
+        clients[key][coc_code] = Set.new
+      end
+    end
+
+    private def set_chronic_client_counts(clients, client_id, enrollment_id, coc_code = base_count_sym)
+      clients[:client][coc_code] << client_id
+      clients[:household][coc_code] << client_id if hoh_client_ids.include?(client_id)
+      # These need to use enrollment.id to capture age correctly, but needs the client for summary counts
+      clients[:without_children][coc_code] << [enrollment_id, client_id] if without_children.include?(enrollment_id)
+      clients[:with_children][coc_code] << [enrollment_id, client_id] if with_children.include?(enrollment_id)
+      clients[:only_children][coc_code] << [enrollment_id, client_id] if only_children.include?(enrollment_id)
+      clients[:unaccompanied_youth][coc_code] << [enrollment_id, client_id] if unaccompanied_youth.include?(enrollment_id)
     end
 
     private def chronic_clients
       @chronic_clients ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         {}.tap do |clients|
-          clients[:client] = Set.new
-          clients[:household] = Set.new
+          # Setup sets to hold client ids with no recent homelessness
+          available_chronic_types.invert.each do |id, _|
+            clients[id] = {}
+          end
+
+          initialize_chronic_client_counts(clients)
+
           report_scope.distinct.
             joins(enrollment: :ch_enrollment).
             merge(GrdaWarehouse::ChEnrollment.chronically_homeless).
             order(first_date_in_program: :asc). # NOTE: this differs from other calculations, we might want to go back to desc
-            pluck(:client_id, :first_date_in_program).
-            each do |client_id, _|
-              clients[:client] << client_id
+            pluck(:client_id, :id, :first_date_in_program).
+            each do |client_id, enrollment_id, _|
+              set_chronic_client_counts(clients, client_id, enrollment_id)
             end
-          hoh_scope.distinct.
-            joins(enrollment: :ch_enrollment).
-            merge(GrdaWarehouse::ChEnrollment.chronically_homeless).
-            order(first_date_in_program: :asc). # NOTE: this differs from other calculations, we might want to go back to desc
-            pluck(:client_id, :first_date_in_program).
-            each do |client_id, _|
-              clients[:household] << client_id
-            end
+
+          available_coc_codes.each do |coc_code|
+            initialize_chronic_client_counts(clients, coc_code.to_sym)
+
+            report_scope.distinct.in_coc(coc_code: coc_code.to_str).
+              joins(enrollment: :ch_enrollment).
+              merge(GrdaWarehouse::ChEnrollment.chronically_homeless).
+              order(first_date_in_program: :asc). # NOTE: this differs from other calculations, we might want to go back to desc
+              pluck(:client_id, :id, :first_date_in_program).
+              each do |client_id, enrollment_id, _|
+                set_chronic_client_counts(clients, client_id, enrollment_id, coc_code.to_sym)
+              end
+          end
         end
       end
     end

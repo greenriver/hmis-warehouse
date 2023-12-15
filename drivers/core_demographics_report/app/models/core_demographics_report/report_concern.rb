@@ -10,6 +10,8 @@ module
 
   include ApplicationHelper
   included do
+    def base_count_sym = :count
+
     def self.viewable_by(user)
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).
         viewable_by(user).exists?
@@ -118,6 +120,10 @@ module
       average_age = nf('AVG', [age_calculation])
       scope = report_scope.joins(:client).where(clause)
       scope.joins(:client).pluck(average_age)&.first&.to_i
+    end
+
+    private def available_coc_codes
+      @available_coc_codes ||= filter.chosen_coc_codes.present? ? filter.chosen_coc_codes : filter.available_coc_codes
     end
 
     private def cache_slug
