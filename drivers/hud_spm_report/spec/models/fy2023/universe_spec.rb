@@ -13,7 +13,8 @@ RSpec.describe 'HUD SPM Universe', type: :model do
   describe 'simple universe' do
     before(:all) do
       setup(:enrollment_universe)
-      run(default_filter, nil)
+      filter = default_filter.update(project_ids: GrdaWarehouse::Hud::Project.pluck(:id))
+      run(filter, nil)
       HudSpmReport::Fy2023::SpmEnrollment.create_enrollment_set(@report_result)
     end
 
@@ -38,13 +39,15 @@ RSpec.describe 'HUD SPM Universe', type: :model do
   describe 'return universe' do
     before(:all) do
       setup(:return_universe)
-      run(default_filter, nil)
+      filter = default_filter.update(project_ids: GrdaWarehouse::Hud::Project.pluck(:id))
+      run(filter, nil)
       HudSpmReport::Fy2023::SpmEnrollment.create_enrollment_set(@report_result)
     end
 
     it 'computes a return' do
       client = GrdaWarehouse::Hud::Client.destination.first
-      return_to_homelessness = HudSpmReport::Fy2023::Return.new(report_instance: @report_result, client: client).compute_return
+      enrollments = HudSpmReport::Fy2023::SpmEnrollment.all
+      return_to_homelessness = HudSpmReport::Fy2023::Return.new(report_instance: @report_result, client: client).compute_return(enrollments)
 
       expect(return_to_homelessness.return_date).to eq '2022-05-01'.to_date
     end
