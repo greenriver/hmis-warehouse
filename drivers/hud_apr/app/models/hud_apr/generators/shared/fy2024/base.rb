@@ -64,7 +64,7 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def add_apr_clients # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/AbcSize
-      @generator.client_scope.find_in_batches(batch_size: 100) do |batch|
+      @generator.client_scope.find_in_batches(batch_size: batch_size) do |batch|
         enrollments_by_client_id = clients_with_enrollments(batch)
 
         # Pre-calculate some values
