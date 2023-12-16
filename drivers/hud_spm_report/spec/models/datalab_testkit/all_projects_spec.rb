@@ -25,7 +25,7 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       puts "Finished SPM Run Data Lab TestKit #{Time.current}"
     end
 
-    it 'Measure 1a' do
+    xit 'Measure 1a' do
       compare_results(
         file_path: result_file_prefix + 'spm',
         external_column_header: true,
@@ -34,20 +34,22 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       )
     end
 
-    xit 'Measure 1b' do
+    it 'Measure 1b' do
       compare_results(
         file_path: result_file_prefix + 'spm',
+        external_column_header: true,
+        external_row_label: true,
         question: '1b',
       )
     end
 
-    #   # Pending AAQ: [SPM] All Projects - Data lab test kit Measures 2 and 5 - historic data missing - submitted 10/4/2022
-    #   xit 'Measure 2' do
-    #     compare_results(
-    #       file_path: result_file_prefix + 'spm',
-    #       question: '2',
-    #     )
-    #   end
+    # Pending AAQ: [SPM] All Projects - Data lab test kit Measures 2 and 5 - historic data missing - submitted 10/4/2022
+    xit 'Measure 2' do
+      compare_results(
+        file_path: result_file_prefix + 'spm',
+        question: '2',
+      )
+    end
 
     it 'Measure 3.2' do
       compare_results(

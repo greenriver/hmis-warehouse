@@ -22,7 +22,7 @@ module HudSpmReport::Generators::Fy2023
 
     def run_question!
       tables = [
-        ['2a and 2b', :run_2a_and_b],
+        ['2', :run_2a_and_b],
       ]
 
       @report.start(self.class.question_number, tables.map(&:first))
@@ -60,7 +60,7 @@ module HudSpmReport::Generators::Fy2023
         COLUMNS,
       )
 
-      members = create_universe
+      members = create_universe(table_name)
       totals = {
         B: 0,
         C: 0,
@@ -69,7 +69,7 @@ module HudSpmReport::Generators::Fy2023
         I: 0,
       }
       report_rows.each do |row_number, project_type|
-        candidates_for_row = members.where(a_t[:project_type].eq(project_type))
+        candidates_for_row = members.where(a_t[:project_type].in(project_type))
         answer = @report.answer(question: table_name, cell: 'B' + row_number.to_s)
         answer.add_members(candidates_for_row)
         row_count = candidates_for_row.count
@@ -123,9 +123,9 @@ module HudSpmReport::Generators::Fy2023
       }.freeze
     end
 
-    private def create_universe
-      @universe = @report.universe(:m2a_and_b)
-      returns = HudSpmReport::Fy2023::Return.compute_returns(@report)
+    private def create_universe(table_name)
+      @universe = @report.universe(table_name)
+      returns = HudSpmReport::Fy2023::Return.compute_returns(@report, enrollment_set)
 
       members = returns.map do |enrollment|
         [enrollment.client, enrollment]

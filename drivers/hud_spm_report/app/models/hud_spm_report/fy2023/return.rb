@@ -11,22 +11,23 @@ module HudSpmReport::Fy2023
     belongs_to :report_instance, class_name: 'HudReports::ReportInstance'
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     belongs_to :exit_enrollment, class_name: 'HudSpmReport::Fy2023::SpmEnrollment'
-    belongs_to :return_enrollment, class_name: 'HudSpmReport::Fy2023::SpmEnrollment'
+    belongs_to :return_enrollment, class_name: 'HudSpmReport::Fy2023::SpmEnrollment', optional: true
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
 
-    def self.client_ids_with_permanent_exits(report)
+    def self.client_ids_with_permanent_exits(report, enrollments)
       filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(report.options)
-      report.spm_enrollments.where(exit_date: filter.start - 730.days .. filter.end - 730.days).
+      enrollments.where(exit_date: filter.start - 730.days .. filter.end - 730.days).
         where(destination: HudUtility2024.permanent_destinations).
-        pluck(:client_id)
+        pluck(:client_id).
+        uniq
     end
 
-    def self.compute_returns(report)
-      client_ids_with_permanent_exits(report).each_slice(500) do |slice|
+    def self.compute_returns(report, enrollments)
+      client_ids_with_permanent_exits(report, enrollments).each_slice(500) do |slice|
         returns = [].tap do |a|
           slice.each do |client_id|
-            computed_return = new(report_instance_id: report.id, client_id: client_id).compute_return
+            computed_return = new(report_instance_id: report.id, client_id: client_id).compute_return(enrollments)
             a << computed_return if computed_return.present?
           end
         end
@@ -36,9 +37,9 @@ module HudSpmReport::Fy2023
       where(report_instance_id: report.id)
     end
 
-    def compute_return
-      self.exit_enrollment = report_instance.spm_enrollments.where(exit_date: report_start_date - 730.days .. report_end_date - 730.days).
-        where(client_id: client_id).
+    def compute_return(enrollments)
+      client_enrollments = enrollments.where(client_id: client_id)
+      self.exit_enrollment = client_enrollments.where(exit_date: report_start_date - 730.days .. report_end_date - 730.days).
         where(destination: HudUtility2024.permanent_destinations).
         order(exit_date: :asc).
         first
@@ -48,12 +49,12 @@ module HudSpmReport::Fy2023
       self.exit_destination = exit_enrollment.destination
       self.project_type = exit_enrollment.project_type
 
-      candidate_returns = report_instance.spm_enrollments.where(entry_date: exit_date..).order(entry_date: :asc)
+      candidate_returns = client_enrollments.where(entry_date: exit_date..).order(entry_date: :asc)
       self.return_enrollment = candidate_returns.detect do |enrollment|
         enrollment.project_type.in?(HudUtility2024.homeless_project_type_numbers) ||
           (enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:ph)) &&
             enrollment.entry_date > exit_date + 14.days &&
-            ! other_ph?(enrollment))
+            ! other_ph?(enrollment, candidate_returns))
       end
 
       if return_enrollment.present?
@@ -64,8 +65,8 @@ module HudSpmReport::Fy2023
       self
     end
 
-    private def other_ph?(ph_enrollment)
-      report_instance.spm_enrollments.map do |enrollment|
+    private def other_ph?(ph_enrollment, other_enrollments)
+      other_enrollments.map do |enrollment|
         next if enrollment == ph_enrollment # Don't compare to ourselves
 
         end_date = if enrollment.exit_date.present?
