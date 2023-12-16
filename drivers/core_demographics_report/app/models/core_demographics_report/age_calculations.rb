@@ -196,7 +196,8 @@ module
       rows['*Age Breakdowns'] ||= []
       rows['*Age Breakdowns'] += ['Age Range', nil, 'Count', 'Percentage', nil]
       available_coc_codes.each do |coc_code|
-        rows['*Age Breakdowns'] += [coc_code]
+        rows['*Age Breakdowns'] += ["#{coc_code} Client"]
+        rows['*Age Breakdowns'] += ["#{coc_code} Percentage"]
       end
       rows['*Age Breakdowns'] += [nil]
       age_categories.each do |age_range, age_title|
@@ -209,7 +210,10 @@ module
           nil,
         ]
         available_coc_codes.each do |coc_code|
-          rows["_Age Breakdowns_data_#{age_title}"] += [age_count(age_range, coc_code.to_sym)]
+          rows["_Age Breakdowns_data_#{age_title}"] += [
+            age_count(age_range, coc_code.to_sym),
+            age_percentage(age_range, coc_code.to_sym) / 100,
+          ]
         end
       end
       rows

@@ -57,7 +57,8 @@ module
       rows['*Outcome Type'] ||= []
       rows['*Outcome Type'] += ['Outcome Type', nil, 'Count', 'Percentage', nil]
       available_coc_codes.each do |coc_code|
-        rows['*Outcome Type'] += [coc_code]
+        rows['*Outcome Type'] += ["#{coc_code} Client"]
+        rows['*Outcome Type'] += ["#{coc_code} Percentage"]
       end
       rows['*Outcome Type'] += [nil]
       available_outcome_types.invert.each do |id, title|
@@ -72,7 +73,12 @@ module
           nil,
         ]
         available_coc_codes.each do |coc_code|
-          rows["_Outcome Type_data_#{title}"] += [outcome_count(id, coc_code.to_sym)]
+          outcome_percentage_coc = outcome_percentage(id, coc_code.to_sym)
+          outcome_percentage_coc /= 100 unless id.to_s == 'average_los'
+          rows["_Outcome Type_data_#{title}"] += [
+            outcome_count(id, coc_code.to_sym),
+            outcome_percentage_coc,
+          ]
         end
       end
       rows

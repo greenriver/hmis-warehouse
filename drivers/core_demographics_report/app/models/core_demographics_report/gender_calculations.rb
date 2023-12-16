@@ -45,7 +45,7 @@ module
       total_count = mask_small_population(client_genders_and_ages[coc_code].count)
       return 0 if total_count.zero?
 
-      of_type = gender_age_count(gender: gender, age_range: age_range)
+      of_type = gender_age_count(gender: gender, age_range: age_range, coc_code: coc_code)
       return 0 if of_type.zero?
 
       ((of_type.to_f / total_count) * 100)
@@ -56,7 +56,8 @@ module
       rows['*Gender Breakdowns'] ||= []
       rows['*Gender Breakdowns'] += ['Gender', nil, 'Count', 'Percentage', nil]
       available_coc_codes.each do |coc_code|
-        rows['*Gender Breakdowns'] += [coc_code]
+        rows['*Gender Breakdowns'] += ["#{coc_code} Client"]
+        rows['*Gender Breakdowns'] += ["#{coc_code} Percentage"]
       end
       rows['*Gender Breakdowns'] += [nil]
       genders.each do |id, title|
@@ -69,14 +70,18 @@ module
           nil,
         ]
         available_coc_codes.each do |coc_code|
-          rows["_Gender Breakdowns_data_#{title}"] += [gender_count(id, coc_code.to_sym)]
+          rows["_Gender Breakdowns_data_#{title}"] += [
+            gender_count(id, coc_code.to_sym),
+            gender_percentage(id, coc_code.to_sym) / 100,
+          ]
         end
       end
       rows['_Gender/Age Breakdowns Break'] ||= []
       rows['*Gender/Age Breakdowns'] ||= []
       rows['*Gender/Age Breakdowns'] += ['Gender', 'Age Range', 'Count', 'Percentage', nil]
       available_coc_codes.each do |coc_code|
-        rows['*Gender/Age Breakdowns'] += [coc_code]
+        rows['*Gender/Age Breakdowns'] += ["#{coc_code} Client"]
+        rows['*Gender/Age Breakdowns'] += ["#{coc_code} Percentage"]
       end
       rows['*Gender/Age Breakdowns'] += [nil]
       genders.each do |gender, gender_title|
@@ -90,7 +95,10 @@ module
             nil,
           ]
           available_coc_codes.each do |coc_code|
-            rows["_Gender/Age_data_#{gender_title} #{age_title}"] += [gender_age_count(gender: gender, age_range: age_range, coc_code: coc_code.to_sym)]
+            rows["_Gender/Age_data_#{gender_title} #{age_title}"] += [
+              gender_age_count(gender: gender, age_range: age_range, coc_code: coc_code.to_sym),
+              gender_age_percentage(gender: gender, age_range: age_range, coc_code: coc_code.to_sym) / 100,
+            ]
           end
         end
       end

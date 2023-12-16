@@ -25,11 +25,11 @@ module
       mask_small_population(high_acuity_clients[type][coc]&.count&.presence || 0)
     end
 
-    def high_acuity_percentage(type)
+    def high_acuity_percentage(type, coc_code = base_count_sym)
       total_count = total_client_count
       return 0 if total_count.zero?
 
-      of_type = high_acuity_count(type)
+      of_type = high_acuity_count(type, coc_code)
       return 0 if of_type.zero?
 
       ((of_type.to_f / total_count) * 100)
@@ -40,7 +40,8 @@ module
       rows['*High Acuity Type'] ||= []
       rows['*High Acuity Type'] += ['High Acuity Type', nil, 'Count', 'Percentage', nil]
       available_coc_codes.each do |coc_code|
-        rows['*High Acuity Type'] += [coc_code]
+        rows['*High Acuity Type'] += ["#{coc_code} Client"]
+        rows['*High Acuity Type'] += ["#{coc_code} Percentage"]
       end
       rows['*High Acuity Type'] += [nil]
       available_high_acuity_types.invert.each do |id, title|
@@ -53,7 +54,10 @@ module
           nil,
         ]
         available_coc_codes.each do |coc_code|
-          rows["_High Acuity Type_data_#{title}"] += [high_acuity_count(id, coc_code.to_sym)]
+          rows["_High Acuity Type_data_#{title}"] += [
+            high_acuity_count(id, coc_code.to_sym),
+            high_acuity_percentage(id, coc_code.to_sym) / 100,
+          ]
         end
       end
       rows
@@ -125,15 +129,17 @@ module
           report_scope.distinct.
             joins(client: :source_enrollment_disabilities).
             merge(GrdaWarehouse::Hud::Disability.chronically_disabled).
-            pluck(:client_id, :id, d_t[:DisabilityType]).
-            group_by { |e| [e.shift, e.shift] }.
-            each do |(client_id, enrollment_id), disabilities|
+            pluck(:client_id, :id, e_t[:TimesHomelessPastThreeYears], d_t[:DisabilityType]).
+            group_by { |e| [e.shift, e.shift, e.shift] }.
+            each do |(client_id, enrollment_id, times_homeless), disabilities|
+              # Exclude 8, 9, & 99 responses. Assume this enrollment consitutes 1 episode
+              next if times_homeless.nil? || times_homeless > 4
               # Don't count anyone we've already counted in the chronic counts
               next if chronic_clients[:client].include?(client_id)
 
               clients[:one_disability][base_count_sym] << client_id if disabilities.count == 1
 
-              # Don't count anyone with only one disabling conditiondocker
+              # Don't count anyone with only one disabling condition
               next unless disabilities.count > 1
 
               set_high_acuity_client_counts(clients, client_id, enrollment_id)
@@ -145,15 +151,17 @@ module
             report_scope.distinct.in_coc(coc_code: coc_code).
               joins(client: :source_enrollment_disabilities).
               merge(GrdaWarehouse::Hud::Disability.chronically_disabled).
-              pluck(:client_id, :id, d_t[:DisabilityType]).
-              group_by { |e| [e.shift, e.shift] }.
-              each do |(client_id, enrollment_id), disabilities|
+              pluck(:client_id, :id, e_t[:TimesHomelessPastThreeYears], d_t[:DisabilityType]).
+              group_by { |e| [e.shift, e.shift, e.shift] }.
+              each do |(client_id, enrollment_id, times_homeless), disabilities|
+                # Exclude 8, 9, & 99 responses. Assume this enrollment consitutes 1 episode
+                next if times_homeless.nil? || times_homeless > 4
                 # Don't count anyone we've already counted in the chronic counts
                 next if chronic_clients[:client][base_count_sym].include?(client_id)
 
                 clients[:one_disability][coc_code.to_sym] << client_id if disabilities.count == 1
 
-                # Don't count anyone with only one disabling conditiondocker
+                # Don't count anyone with only one disabling condition
                 next unless disabilities.count > 1
 
                 set_high_acuity_client_counts(clients, client_id, enrollment_id, coc_code.to_sym)

@@ -25,11 +25,11 @@ module
       mask_small_population(unsheltered_clients[type][coc_code]&.count&.presence || 0)
     end
 
-    def unsheltered_percentage(type)
+    def unsheltered_percentage(type, coc_code = base_count_sym)
       total_count = total_client_count
       return 0 if total_count.zero?
 
-      of_type = unsheltered_count(type)
+      of_type = unsheltered_count(type, coc_code)
       return 0 if of_type.zero?
 
       ((of_type.to_f / total_count) * 100)
@@ -40,7 +40,8 @@ module
       rows['*Unsheltered'] ||= []
       rows['*Unsheltered'] += ['Unsheltered', nil, 'Count', 'Percentage', nil]
       available_coc_codes.each do |coc_code|
-        rows['*Unsheltered'] += [coc_code]
+        rows['*Unsheltered'] += ["#{coc_code} Client"]
+        rows['*Unsheltered'] += ["#{coc_code} Percentage"]
       end
       rows['*Unsheltered'] += [nil]
       available_unsheltered_types.invert.each do |id, title|
@@ -53,7 +54,10 @@ module
           nil,
         ]
         available_coc_codes.each do |coc_code|
-          rows["_Unsheltered_data_#{title}"] += [unsheltered_count(id, coc_code.to_sym)]
+          rows["_Unsheltered_data_#{title}"] += [
+            unsheltered_count(id, coc_code.to_sym),
+            unsheltered_percentage(id, coc_code.to_sym) / 100,
+          ]
         end
       end
       rows

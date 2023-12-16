@@ -122,8 +122,8 @@ module
       scope.joins(:client).pluck(average_age)&.first&.to_i
     end
 
-    private def available_coc_codes
-      @available_coc_codes ||= filter.chosen_coc_codes.present? ? filter.chosen_coc_codes : filter.available_coc_codes
+    def available_coc_codes
+      @available_coc_codes ||= filter.chosen_coc_codes.present? ? filter.chosen_coc_codes : []
     end
 
     private def cache_slug

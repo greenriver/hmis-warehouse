@@ -36,11 +36,11 @@ module
       end
     end
 
-    def no_recent_homelessness_percentage(type)
+    def no_recent_homelessness_percentage(type, coc_code = base_count_sym)
       total_count = total_client_count
       return 0 if total_count.zero?
 
-      of_type = no_recent_homelessness_count(type)
+      of_type = no_recent_homelessness_count(type, coc_code)
       return 0 if of_type.zero?
 
       ((of_type.to_f / total_count) * 100)
@@ -51,7 +51,8 @@ module
       rows['*No Recent Homelessness Type'] ||= []
       rows['*No Recent Homelessness Type'] += ['No Recent Homelessness Type', nil, 'Count', 'Percentage', nil]
       available_coc_codes.each do |coc_code|
-        rows['*No Recent Homelessness Type'] += [coc_code]
+        rows['*No Recent Homelessness Type'] += ["#{coc_code} Client"]
+        rows['*No Recent Homelessness Type'] += ["#{coc_code} Client"]
       end
       rows['*No Recent Homelessness Type'] += [nil]
       available_no_recent_homelessness_types.invert.each do |id, title|
@@ -64,7 +65,10 @@ module
           nil,
         ]
         available_coc_codes.each do |coc_code|
-          rows["_No Recent Homelessness Type_data_#{title}"] += [no_recent_homelessness_count(id, coc_code.to_sym)]
+          rows["_No Recent Homelessness Type_data_#{title}"] += [
+            no_recent_homelessness_count(id, coc_code.to_sym),
+            no_recent_homelessness_percentage(id, coc_code.to_sym) / 100,
+          ]
         end
       end
       rows

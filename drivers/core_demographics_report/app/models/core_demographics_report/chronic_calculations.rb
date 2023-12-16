@@ -25,11 +25,11 @@ module
       mask_small_population(chronic_clients[type][coc_code]&.count&.presence || 0)
     end
 
-    def chronic_percentage(type)
+    def chronic_percentage(type, coc_code = base_count_sym)
       total_count = total_client_count
       return 0 if total_count.zero?
 
-      of_type = chronic_count(type)
+      of_type = chronic_count(type, coc_code)
       return 0 if of_type.zero?
 
       ((of_type.to_f / total_count) * 100)
@@ -40,7 +40,8 @@ module
       rows['*Chronic Type'] ||= []
       rows['*Chronic Type'] += ['Chronic Type', nil, 'Count', 'Percentage', nil]
       available_coc_codes.each do |coc_code|
-        rows['*Chronic Type'] += [coc_code]
+        rows['*Chronic Type'] += ["#{coc_code} Client"]
+        rows['*Chronic Type'] += ["#{coc_code} Percentage"]
       end
       rows['*Chronic Type'] += [nil]
       available_chronic_types.invert.each do |id, title|
@@ -53,7 +54,10 @@ module
           nil,
         ]
         available_coc_codes.each do |coc_code|
-          rows["_Chronic Type_data_#{title}"] += [chronic_count(id, coc_code.to_sym)]
+          rows["_Chronic Type_data_#{title}"] += [
+            chronic_count(id, coc_code.to_sym),
+            chronic_percentage(id, coc_code.to_sym) / 100,
+          ]
         end
       end
       rows

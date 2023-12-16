@@ -60,9 +60,11 @@ module
     def household_type_data_for_export(rows)
       rows['_Household Types'] ||= []
       rows['*Household Types'] ||= []
-      rows['*Household Types'] += ['Household Type', nil, 'Count', 'Percentage', nil]
+      rows['*Household Types'] += ['Household Type', nil, 'Client Count', 'Household Count', 'Percentage of Household', nil]
       available_coc_codes.each do |coc_code|
-        rows['*Household Types'] += [coc_code]
+        rows['*Household Types'] += ["#{coc_code} Client"]
+        rows['*Household Types'] += ["#{coc_code} Household"]
+        rows['*Household Types'] += ["#{coc_code} Percentage"]
       end
       rows['*Household Types'] += [nil]
       available_household_types.invert.each do |id, title|
@@ -70,12 +72,17 @@ module
         rows["_Household Types_data_#{title}"] += [
           title,
           nil,
+          household_type_client_count(id),
           household_type_hoh_count(id),
           household_type_hoh_percentage(id) / 100,
           nil,
         ]
         available_coc_codes.each do |coc_code|
-          rows["_Household Types_data_#{title}"] += [household_type_hoh_count(id, coc_code.to_sym)]
+          rows["_Household Types_data_#{title}"] += [
+            household_type_hoh_count(id, coc_code.to_sym),
+            household_type_hoh_count(id, coc_code.to_sym),
+            household_type_hoh_percentage(id, coc_code.to_sym) / 100,
+          ]
         end
       end
       rows

@@ -44,7 +44,8 @@ module
       rows['*Race'] ||= []
       rows['*Race'] += ['Race', nil, 'Count', 'Percentage', nil]
       available_coc_codes.each do |coc_code|
-        rows['*Race'] += [coc_code]
+        rows['*Race'] += ["#{coc_code} Client"]
+        rows['*Race'] += ["#{coc_code} Percentage"]
       end
       rows['*Race'] += [nil]
       race_buckets.each do |id, title|
@@ -57,7 +58,10 @@ module
           nil,
         ]
         available_coc_codes.each do |coc_code|
-          rows["_Race_data_#{title}"] += [race_count(id, coc_code.to_sym)]
+          rows["_Race_data_#{title}"] += [
+            race_count(id, coc_code.to_sym),
+            race_percentage(id, coc_code.to_sym) / 100,
+          ]
         end
       end
       rows
