@@ -116,18 +116,18 @@ module HudSpmReport::Generators::Fy2023
       answer.add_members(members)
       answer.update(summary: members.count)
 
-      permanent = members.where(
+      stayers_and_leavers = members.where(
         [
-          spm_e_t[:exit_date].lteq(filter.end).and(spm_e_t[:destination].in(PERMANENT_DESTINATIONS)),
-          spm_e_t[:exit_date].eq(nil).or(spm_e_t[:exit_date].gt(filter.end)),
+          spm_e_t[:exit_date].lteq(filter.end).and(spm_e_t[:destination].in(PERMANENT_DESTINATIONS)), # leavers
+          spm_e_t[:exit_date].eq(nil).or(spm_e_t[:exit_date].gt(filter.end)), # stayers
         ].inject(&:or),
       )
       answer = @report.answer(question: table_name, cell: 'C3')
-      answer.add_members(permanent)
-      answer.update(summary: permanent.count)
+      answer.add_members(stayers_and_leavers)
+      answer.update(summary: stayers_and_leavers.count)
 
       answer = @report.answer(question: table_name, cell: 'C4')
-      answer.update(summary: percent(permanent.count, members.count))
+      answer.update(summary: percent(stayers_and_leavers.count, members.count))
     end
 
     M7A_REJECTED = [

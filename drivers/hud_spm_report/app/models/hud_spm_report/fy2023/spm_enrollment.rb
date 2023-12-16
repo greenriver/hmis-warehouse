@@ -61,7 +61,6 @@ module HudSpmReport::Fy2023
       enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).enrollments
       household_infos = household(enrollments)
       enrollments.preload(:client, :destination_client, :exit, :income_benefits, project: :funders).find_in_batches do |batch|
-        puts "enrolment set batch #{Time.current.to_i}"
         members = []
         batch.each do |enrollment|
           current_income_benefits = current_income_benefits(enrollment, filter.end)
@@ -156,9 +155,9 @@ module HudSpmReport::Fy2023
 
     private_class_method def self.move_in_date(household_info, enrollment)
       # Use the client move in date if they are the HoH
-      return enrollment.move_in_date if enrollment.head_of_household?
+      return enrollment_own_move_in_date(enrollment) if enrollment.head_of_household?
       # Don't inherit move in date if the client exited before the HoH moved in
-      return enrollment.move_in_date if enrollment.exit.present? && household_info.move_in_date.present? && enrollment.exit.exit_date <= household_info.move_in_date
+      return enrollment_own_move_in_date(enrollment) if enrollment.exit.present? && household_info.move_in_date.present? && enrollment.exit.exit_date <= household_info.move_in_date
       # Use the client's entry date if a client entered the household after the HoH had already moved in
       return enrollment.entry_date if household_info.move_in_date.present? && enrollment.entry_date > household_info.move_in_date
 
@@ -227,16 +226,21 @@ module HudSpmReport::Fy2023
       SQL
     end
 
+    def self.enrollment_own_move_in_date(enrollment)
+      return nil unless enrollment.move_in_date
+
+      enrollment.move_in_date >= enrollment.entry_date ? enrollment.move_in_date : nil
+    end
+
     private_class_method def self.household(enrollments)
       result = {}
       scope = enrollments.heads_of_households
       scope.find_in_batches do |batch|
-        puts "household set batch #{Time.current.to_i}"
         batch.each do |enrollment|
           result[enrollment.household_id] = HomelessnessInfo.new(
             start_of_homelessness: enrollment.date_to_street_essh,
             entry_date: enrollment.entry_date,
-            move_in_date: enrollment.move_in_date,
+            move_in_date: enrollment_own_move_in_date(enrollment),
           )
         end
       end

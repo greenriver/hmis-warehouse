@@ -134,8 +134,6 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       compare_results(
         file_path: result_file_prefix + 'spm',
         question: '7b.2',
-        # off by 30
-        skip: ['C2', 'C3', 'C4'],
       )
     end
   else
