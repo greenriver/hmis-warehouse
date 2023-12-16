@@ -24,12 +24,13 @@
     color: #A3A3A3;
   }
 
-  #data-set-column .form-group {
-    margin-bottom: 15px;
+  .condensed-form-groups .form-group {
+    margin-bottom: 8px;
   }
 
 = render 'chosen_universe'
 = render 'report_tabs'
+
 .mb-6
   .card
     .card-header
@@ -41,7 +42,7 @@
     - if @analysis_builder.valid?
       .card-header
         %h2 Equity Analysis Report:
-        %span= @analysis_builder.describe_filters
+        %div= @analysis_builder.describe_filters.html_safe
     .card-body
       - if @analysis_builder.valid?
         = render 'equity_chart', data: @analysis_builder.chart_data

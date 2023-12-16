@@ -118,6 +118,7 @@ module PerformanceMeasurement
     def filter
       @filter ||= begin
         f = ::Filters::HudFilterBase.new(user_id: filter_user_id, comparison_pattern: :prior_fiscal_year)
+        f.default_project_type_codes = self.class.default_project_type_codes
         f.update((options || {}).with_indifferent_access)
         f.update(start: f.end - 1.years + 1.days)
         f
