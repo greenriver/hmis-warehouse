@@ -2,13 +2,13 @@ class AdjustHudSpmEnrollments < ActiveRecord::Migration[6.1]
   TABLE = :hud_report_spm_enrollments
 
   INCOME_FIELDS = [
-     :previous_earned_income,
-     :previous_non_employment_income,
-     :previous_total_income,
-     :current_earned_income,
-     :current_non_employment_income,
-     :current_total_income,
-  ]
+    :previous_earned_income,
+    :previous_non_employment_income,
+    :previous_total_income,
+    :current_earned_income,
+    :current_non_employment_income,
+    :current_total_income,
+  ].freeze
 
   def up
     safety_assured do
