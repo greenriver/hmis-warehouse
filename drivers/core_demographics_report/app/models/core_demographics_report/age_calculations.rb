@@ -148,7 +148,7 @@ module
     end
 
     def clients_in_age_range(type, coc_code = base_count_sym)
-      client_ages[coc_code].select { |_, age| age.in?(type) }
+      client_ages[coc_code]&.select { |_, age| age.in?(type) }
     end
 
     def client_ids_in_age_range(type)

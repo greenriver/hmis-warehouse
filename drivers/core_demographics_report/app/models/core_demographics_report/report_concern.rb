@@ -10,6 +10,8 @@ module
 
   include ApplicationHelper
   included do
+    attr_accessor :should_calculate_coc_breakdowns
+
     def base_count_sym = :count
 
     def self.viewable_by(user)
@@ -123,7 +125,13 @@ module
     end
 
     def available_coc_codes
-      @available_coc_codes ||= filter.chosen_coc_codes.present? ? filter.chosen_coc_codes : []
+      # Don't pass any CoC codes if we don't show the CoC breakdowns in this context
+      return [] unless calculate_coc_breakdowns?
+      # Don't bother calculating the CoC breakdowns if we didn't ask for any specific CoCs,
+      # or if we only asked for one specific CoC since the total and the CoC will be identical
+      return [] if filter.chosen_coc_codes.count < 2
+
+      filter.chosen_coc_codes
     end
 
     private def cache_slug
