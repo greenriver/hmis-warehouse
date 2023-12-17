@@ -550,7 +550,7 @@ module HomelessSummaryReport
         'Measure 7',
       ]
       options = filter.to_h
-      generator = HudSpmReport::Generators::Fy2020::Generator
+      generator = HudSpmReport.current_generator
       variants.each do |_, spec|
         base_variant = spec[:base_variant]
         extra_filters = base_variant[:extra_filters] || {}
@@ -602,10 +602,10 @@ module HomelessSummaryReport
     private def destination_buckets
       {
         'Client Count' => [],
-        'Homeless Destinations' => [16, 1, 18], # HudUtility2024.homeless_destinations,
+        'Homeless Destinations' => ::HudUtility2024.homeless_destinations,
         'Permanent Destinations' => HudUtility2024.permanent_destinations,
-        'Temporary Destinations' => [2, 12, 13, 14, 27, 29, 32], # NOTE: this should probably be HudUtility2024.temporary_destinations, but HUD doesn't define homeless destinations, and some temporary destinations are also institutional, so we'll place them here.
-        'Institutional Destinations' => [4, 5, 6, 7, 15, 25], # HudUtility2024.institutional_destinations,
+        'Temporary Destinations' => HudUtility2024.temporary_destinations,
+        'Institutional Destinations' => HudUtility2024.institutional_destinations,
         'Unknown, doesn\'t know, refused, or not collected' => HudUtility2024.other_destinations,
         'Remained housed' => [0], # include those who remained housed for 7b2
       }.freeze
@@ -657,22 +657,22 @@ module HomelessSummaryReport
     def spm_fields
       {
         m1a_es_sh_days: {
-          cells: [['1a', 'C2']],
+          cells: [['1a', 'B1']],
           title: 'with ES or SH stays',
           calculations: [:count, :average, :median],
         },
         m1a_es_sh_th_days: {
-          cells: [['1a', 'C3']],
+          cells: [['1a', 'B2']],
           title: 'with ES, SH, or TH stays',
           calculations: [:count, :average, :median],
         },
         m1b_es_sh_ph_days: {
-          cells: [['1b', 'C2']],
+          cells: [['1b', 'B1']],
           title: 'with ES, SH, or PH stays',
           calculations: [:count, :average, :median],
         },
         m1b_es_sh_th_ph_days: {
-          cells: [['1b', 'C3']],
+          cells: [['1b', 'B2']],
           title: 'with ES, SH, TH, or PH stays',
           calculations: [:count, :average, :median],
         },

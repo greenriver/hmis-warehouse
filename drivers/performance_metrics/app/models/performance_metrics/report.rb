@@ -676,12 +676,7 @@ module PerformanceMetrics
 
     private def run_spm
       # puts 'Running SPM'
-      # Looking for SPM Measure 1A E3
-      # Looking for SPM Measure 2 J7 (total returns to homelessness within 2 years)
-      questions = [
-        'Measure 1',
-        'Measure 2',
-      ]
+      questions = ['Measure 2']
       # NOTE: we need to include all homeless projects visible to this user, plus the chosen scope,
       # so that the returns calculation will work.
       options = filter.to_h
@@ -689,7 +684,7 @@ module PerformanceMetrics
       options[:project_type_codes] += [:es, :so, :sh, :th]
       options.delete(:comparison_pattern)
       spm_filter = ::Filters::HudFilterBase.new(user_id: filter.user_id).update(options)
-      generator = HudSpmReport::Generators::Fy2020::Generator
+      generator = HudSpmReport.current_generator
       spm_report = HudReports::ReportInstance.from_filter(spm_filter, generator.title, build_for_questions: questions)
       generator.new(spm_report).run!(email: false, manual: false)
       spm_report

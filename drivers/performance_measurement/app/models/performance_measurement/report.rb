@@ -714,6 +714,13 @@ module PerformanceMeasurement
       extras
     end
 
+    PERMANENT_DESTINATIONS = HudSpmReport::Generators::Fy2023::MeasureSeven::PERMANENT_DESTINATIONS
+    PERMANENT_DESTINATIONS_OR_STAYER = (PERMANENT_DESTINATIONS + [0]).freeze
+    PERMANENT_TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS = (
+      PERMANENT_DESTINATIONS +
+      HudSpmReport::Generators::Fy2023::MeasureSeven::TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS
+    ).freeze
+
     private def summary_calculations
       [
         {
@@ -726,9 +733,9 @@ module PerformanceMeasurement
         {
           key: :retention_or_positive_destination,
           value_calculation: ->(client, variant_name) {
-            return true if HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS.include?(client.send("#{variant_name}_so_destination"))
-            return true if HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS.include?(client.send("#{variant_name}_es_sh_th_rrh_destination"))
-            return true if HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS_OR_STAYER.include?(client.send("#{variant_name}_moved_in_destination"))
+            return true if PERMANENT_DESTINATIONS.include?(client.send("#{variant_name}_so_destination"))
+            return true if PERMANENT_DESTINATIONS.include?(client.send("#{variant_name}_es_sh_th_rrh_destination"))
+            return true if PERMANENT_DESTINATIONS_OR_STAYER.include?(client.send("#{variant_name}_moved_in_destination"))
 
             false
           },
@@ -757,7 +764,7 @@ module PerformanceMeasurement
       #     spec[:report] = HudReports::ReportInstance.automated.complete.order(id: :desc).first(2)[i]
       #   end
       # else
-      generator = HudSpmReport::Generators::Fy2020::Generator
+      generator = HudSpmReport.current_generator
       variants.each do |_, spec|
         processed_filter = ::Filters::HudFilterBase.new(user_id: options[:user_id])
         processed_filter.update(options.deep_merge(spec[:options]))
@@ -820,7 +827,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['1a', 'C3']],
+          cells: [['1a', 'B2']],
           title: 'Length of Time Homeless in ES, SH, TH',
           measure: :m1,
           history_source: :m1_history,
@@ -832,7 +839,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['1b', 'C3']],
+          cells: [['1b', 'B2']],
           title: 'Length of Time Homeless in ES, SH, TH, PH',
           measure: :m1,
           history_source: :m1_history,
@@ -870,7 +877,7 @@ module PerformanceMeasurement
             ->(spm_client, project_id, variant_name) {
               # list from drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2020/measure_seven.rb
               # represents institutional and permanent destinations for 7a.1 C3 and C4
-              return unless spm_client[:m7a1_destination].present? && spm_client[:m7a1_destination].in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS + [1, 15, 14, 27, 4, 18, 12, 13, 5, 2, 25, 32])
+              return unless spm_client[:m7a1_destination].present? && spm_client[:m7a1_destination].in?(PERMANENT_TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS)
 
               {
                 report_id: id,
@@ -907,7 +914,7 @@ module PerformanceMeasurement
               }
             },
             ->(spm_client, project_id, variant_name) {
-              return unless spm_client[:m7b1_destination].present? && spm_client[:m7b1_destination].in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS)
+              return unless spm_client[:m7b1_destination].present? && spm_client[:m7b1_destination].in?(Base::PERMANENT_DESTINATIONS)
 
               {
                 report_id: id,
@@ -944,7 +951,7 @@ module PerformanceMeasurement
               }
             },
             ->(spm_client, project_id, variant_name) {
-              return unless spm_client[:m7b2_destination].present? && spm_client[:m7b2_destination].in?(HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS_OR_STAYER)
+              return unless spm_client[:m7b2_destination].present? && spm_client[:m7b2_destination].in?(PERMANENT_DESTINATIONS_OR_STAYER)
 
               {
                 report_id: id,
@@ -1008,7 +1015,7 @@ module PerformanceMeasurement
               }
             },
             ->(spm_client, project_id, variant_name) {
-              return unless spm_client[:m2_exit_to_destination].present? && HudSpmReport::Generators::Fy2020::Base::PERMANENT_DESTINATIONS.include?(spm_client[:m2_exit_to_destination])
+              return unless spm_client[:m2_exit_to_destination].present? && PERMANENT_DESTINATIONS.include?(spm_client[:m2_exit_to_destination])
 
               {
                 report_id: id,
