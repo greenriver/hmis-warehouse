@@ -82,22 +82,6 @@ module
       }
     end
 
-    private def without_children
-      @without_children ||= enrollment_ids_in_household_type(:without_children)
-    end
-
-    private def with_children
-      @with_children  ||= enrollment_ids_in_household_type(:with_children)
-    end
-
-    private def only_children
-      @only_children  ||= enrollment_ids_in_household_type(:only_children)
-    end
-
-    private def unaccompanied_youth
-      @unaccompanied_youth ||= enrollment_ids_in_household_type(:unaccompanied_youth)
-    end
-
     private def initialize_chronic_client_counts(clients, coc_code = base_count_sym)
       available_chronic_types.invert.each do |key, _|
         clients[key][coc_code] = Set.new
