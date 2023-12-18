@@ -356,7 +356,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   # A tool to batch reset all source hashes for a particular data source
-  def self.reset_source_hashes(data_source_id)
+  def self.reset_source_hashes!(data_source_id)
     where(data_source_id: data_source_id).find_in_batches do |batch|
       original_hashes = batch.map(&:source_hash)
       batch.each(&:set_source_hash)
