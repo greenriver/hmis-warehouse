@@ -151,9 +151,7 @@ module
     end
 
     private def cache_slug
-      slug = @filter.attributes
-      slug[:calculate_coc_breakdowns] = calculate_coc_breakdowns?
-      return slug
+      @filter.attributes.merge(calculate_coc_breakdowns: calculate_coc_breakdowns?)
     end
 
     private def expiration_length
