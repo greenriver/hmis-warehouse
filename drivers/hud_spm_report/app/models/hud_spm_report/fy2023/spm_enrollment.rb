@@ -50,6 +50,28 @@ module HudSpmReport::Fy2023
       left_outer_joins(enrollment: :services).where(services_cond.or(ee_cond))
     end
 
+    # HMIS Standard Reporting Terminology Glossary 2024 active client method 5
+    scope :with_active_method_5_in_range, ->(range) do
+      bed_night_cond = GrdaWarehouse::Hud::Service.arel_table.then do |table|
+        [
+          table[:record_type].eq(HudUtility2024.record_type('Bed Night', true)),
+          table[:date_provided].between(range),
+        ].inject(&:and)
+      end
+
+      nbn_cond = arel_table[:project_type].in(HudUtility2024.project_type_number_from_code(:es_nbn)).and(bed_night_cond)
+
+      ee_cond = HudSpmReport::Fy2023::SpmEnrollment.arel_table.then do |table|
+        [
+          table[:project_type].in([:es_entry_exit, :th, :ph, :sh].flat_map { |pt| HudUtility2024.project_type_number_from_code(pt) }),
+          table[:exit_date].gteq(range.begin),
+          table[:entry_date].lteq(range.end),
+        ].inject(&:and)
+      end
+
+      left_outer_joins(enrollment: :services).where(nbn_cond.or(ee_cond))
+    end
+
     HomelessnessInfo = Struct.new(:start_of_homelessness, :entry_date, :move_in_date, keyword_init: true)
 
     # Unlike, most HUD reports, there is not a single enrollment per report client, so the enrollment set
@@ -60,7 +82,7 @@ module HudSpmReport::Fy2023
       filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(report_instance.options)
       enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).enrollments
       household_infos = household(enrollments)
-      enrollments.preload(:client, :destination_client, :exit, :income_benefits, project: :funders).find_in_batches do |batch|
+      enrollments.preload(:client, :destination_client, :exit, :income_benefits, :income_benefits_at_entry, :income_benefits_at_exit, project: :funders).find_in_batches do |batch|
         puts "enrolment set batch #{Time.current.to_i}"
         members = []
         batch.each do |enrollment|
