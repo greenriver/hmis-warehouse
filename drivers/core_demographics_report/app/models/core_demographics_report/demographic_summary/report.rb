@@ -32,6 +32,14 @@ module CoreDemographicsReport::DemographicSummary
       @comparison_pattern = filter.comparison_pattern
     end
 
+    # The CoC breakdowns aren't relevant for the web view, only Excel right now.
+    # We set this to true in the controller where relevant
+    def calculate_coc_breakdowns?
+      return true if should_calculate_coc_breakdowns
+
+      false
+    end
+
     def self.url
       'core_demographics_report/warehouse_reports/demographic_summary'
     end

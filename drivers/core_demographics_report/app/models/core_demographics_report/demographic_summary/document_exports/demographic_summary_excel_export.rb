@@ -18,7 +18,8 @@ module CoreDemographicsReport::DemographicSummary::DocumentExports
     protected def view_assigns
       comparison_filter = filter.to_comparison
       comparison_report = report_class.new(comparison_filter) if report.include_comparison?
-
+      # Only allow breakdowns of CoC codes for download since it isn't displayed otherwise
+      report.should_calculate_coc_breakdowns = true
       {
         report: report,
         filter: filter,
