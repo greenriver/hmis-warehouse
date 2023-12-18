@@ -82,12 +82,11 @@ module HudSpmReport::Fy2023
       filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(report_instance.options)
       enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).enrollments
       household_infos = household(enrollments)
-      enrollments.preload(:client, :destination_client, :exit, :income_benefits, :income_benefits_at_entry, :income_benefits_at_exit, project: :funders).find_in_batches do |batch|
-        puts "enrolment set batch #{Time.current.to_i}"
+      enrollments.preload(:client, :destination_client, :exit, :income_benefits, project: :funders).find_in_batches do |batch|
         members = []
         batch.each do |enrollment|
           current_income_benefits = current_income_benefits(enrollment, filter.end)
-          previous_income_benefits = previous_income_benefits(enrollment, current_income_benefits&.information_date)
+          previous_income_benefits = previous_income_benefits(enrollment, current_income_benefits&.information_date, filter.end)
           household_info = household_infos[enrollment.household_id] ||
             HomelessnessInfo.new(
               start_of_homelessness: enrollment.date_to_street_essh,
@@ -178,9 +177,9 @@ module HudSpmReport::Fy2023
 
     private_class_method def self.move_in_date(household_info, enrollment)
       # Use the client move in date if they are the HoH
-      return enrollment.move_in_date if enrollment.head_of_household?
+      return enrollment_own_move_in_date(enrollment) if enrollment.head_of_household?
       # Don't inherit move in date if the client exited before the HoH moved in
-      return enrollment.move_in_date if enrollment.exit.present? && household_info.move_in_date.present? && enrollment.exit.exit_date <= household_info.move_in_date
+      return enrollment_own_move_in_date(enrollment) if enrollment.exit.present? && household_info.move_in_date.present? && enrollment.exit.exit_date <= household_info.move_in_date
       # Use the client's entry date if a client entered the household after the HoH had already moved in
       return enrollment.entry_date if household_info.move_in_date.present? && enrollment.entry_date > household_info.move_in_date
 
@@ -195,7 +194,7 @@ module HudSpmReport::Fy2023
     end
 
     private_class_method def self.total_income(income_benefit)
-      (income_benefit&.total_monthly_income || 0).clamp(0..)
+      income_benefit&.hud_total_monthly_income&.clamp(0..) || 0
     end
 
     private_class_method def self.earned_income(income_benefit)
@@ -220,7 +219,9 @@ module HudSpmReport::Fy2023
       end
     end
 
-    private_class_method def self.previous_income_benefits(enrollment, annual_date)
+    private_class_method def self.previous_income_benefits(enrollment, annual_date, end_date)
+      return enrollment.income_benefits_at_entry if enrollment.exit.present? && enrollment.exit.exit_date <= end_date
+
       # Most recent annual update on or before the renewal date, or the entry assessment
       enrollment.
         income_benefits_annual_update.
@@ -247,16 +248,21 @@ module HudSpmReport::Fy2023
       SQL
     end
 
+    def self.enrollment_own_move_in_date(enrollment)
+      return nil unless enrollment.move_in_date
+
+      enrollment.move_in_date >= enrollment.entry_date ? enrollment.move_in_date : nil
+    end
+
     private_class_method def self.household(enrollments)
       result = {}
       scope = enrollments.heads_of_households
       scope.find_in_batches do |batch|
-        puts "household set batch #{Time.current.to_i}"
         batch.each do |enrollment|
           result[enrollment.household_id] = HomelessnessInfo.new(
             start_of_homelessness: enrollment.date_to_street_essh,
             entry_date: enrollment.entry_date,
-            move_in_date: enrollment.move_in_date,
+            move_in_date: enrollment_own_move_in_date(enrollment),
           )
         end
       end
