@@ -16,10 +16,11 @@ GIT
 
 GIT
   remote: https://github.com/greenriver/hellosign-ruby-sdk.git
-  revision: 112d2219341806566ae4a8f6f8d51a367e76366a
+  revision: 5718c3f96c37153fb18c02c9ade0e4112a8c7926
+  branch: 186685876-faraday-upgrade
   specs:
     hellosign-ruby-sdk (3.7.10)
-      faraday (~> 2.2.0)
+      faraday (~> 2.2)
       faraday-multipart (~> 1.0.0)
       mime-types
       multi_json
@@ -242,6 +243,7 @@ GEM
     babel-transpiler (0.7.0)
       babel-source (>= 4.0, < 6)
       execjs (~> 2.0)
+    base64 (0.2.0)
     bcrypt (3.1.18)
     bcrypt_pbkdf (1.1.0)
     benchmark-ips (2.10.0)
@@ -415,8 +417,9 @@ GEM
       railties (>= 5.0.0)
     faker (2.19.0)
       i18n (>= 1.6, < 2)
-    faraday (2.2.0)
-      faraday-net_http (~> 2.0)
+    faraday (2.7.12)
+      base64
+      faraday-net_http (>= 2.0, < 3.1)
       ruby2_keywords (>= 0.0.4)
     faraday-multipart (1.0.4)
       multipart-post (~> 2)
@@ -1069,7 +1072,7 @@ DEPENDENCIES
   execjs
   factory_bot_rails
   faker (>= 1.7.2)
-  faraday (~> 2.2.0)
+  faraday (~> 2.2)
   ffi
   ffi-geos
   flamegraph

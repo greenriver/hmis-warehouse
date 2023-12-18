@@ -73,7 +73,7 @@ gem 'mimemagic'
 # it should be tested manually
 gem 'acts-as-taggable-on', '~> 7.0'
 # gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
-gem 'hellosign-ruby-sdk', git: 'https://github.com/greenriver/hellosign-ruby-sdk.git'
+gem 'hellosign-ruby-sdk', git: 'https://github.com/greenriver/hellosign-ruby-sdk.git', branch: '186685876-faraday-upgrade'
 
 gem 'devise', '~> 4'
 gem 'devise_invitable', '~> 2.0'
@@ -86,7 +86,7 @@ gem 'doorkeeper'
 gem 'omniauth', '~> 2.1'
 gem 'omniauth-oauth2', '~> 1.7.3'
 gem 'omniauth-rails_csrf_protection', '~> 1.0.1'
-gem 'faraday', '~> 2.2.0'
+gem 'faraday', '~> 2.2'
 gem 'oauth2'
 
 gem 'pretender'
