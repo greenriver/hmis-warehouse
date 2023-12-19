@@ -151,7 +151,7 @@ module
     end
 
     private def cache_slug
-      @filter.attributes
+      @filter.attributes.merge(calculate_coc_breakdowns: calculate_coc_breakdowns?)
     end
 
     private def expiration_length

@@ -730,7 +730,9 @@ type ClientAccess {
   canEditEnrollments: Boolean!
   canManageAnyClientFiles: Boolean!
   canManageOwnClientFiles: Boolean!
+  canUploadClientFiles: Boolean!
   canViewAnyConfidentialClientFiles: Boolean!
+  canViewAnyFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
@@ -825,6 +827,7 @@ type ClientAuditEvent {
   objectChanges: JsonObject
   recordId: ID!
   recordName: String!
+  trueUser: ApplicationUser
   user: ApplicationUser
 }
 
@@ -3014,6 +3017,7 @@ type EnrollmentAuditEvent {
   objectChanges: JsonObject
   recordId: ID!
   recordName: String!
+  trueUser: ApplicationUser
   user: ApplicationUser
 }
 

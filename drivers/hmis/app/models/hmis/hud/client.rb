@@ -83,6 +83,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   attr_accessor :image_blob_id
   after_create :warehouse_identify_duplicate_clients
   after_update :warehouse_match_existing_clients
+  before_save :set_source_hash
   after_save do
     current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
     self.image_blob_id = nil
@@ -344,4 +345,31 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   include RailsDrivers::Extensions
+
+  # The warehouse uses the source hash to determine if the record has changed and to maintain the
+  # associated warehouse record for reporting.
+  # This gets called during a pre-commit hook
+  def set_source_hash
+    hmis_keys = self.class.hmis_configuration(version: '2024').keys
+    hmis_data = slice(*hmis_keys)
+    self.source_hash = Digest::SHA256.hexdigest(hmis_data.except(:ExportID).to_s)
+  end
+
+  # A tool to batch reset all source hashes for a particular data source
+  def self.reset_source_hashes!(data_source_id)
+    where(data_source_id: data_source_id).find_in_batches do |batch|
+      original_hashes = batch.map(&:source_hash)
+      batch.each(&:set_source_hash)
+      batch.reject!.with_index { |c, i| c.source_hash == original_hashes[i] }
+      puts "Updating #{batch.size} client source hashes"
+      next unless batch.size.positive?
+
+      import!(
+        batch,
+        validate: false,
+        timestamps: false,
+        on_duplicate_key_update: { conflict_target: [:id], columns: [:source_hash] },
+      )
+    end
+  end
 end
