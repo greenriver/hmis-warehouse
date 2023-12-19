@@ -268,36 +268,33 @@ module PerformanceMeasurement
         spm_fields.each do |parts|
           cells = parts[:cells]
           cells.each do |cell|
-            spm_clients = answer_clients(spec[:report], *cell)
-            spm_clients.each do |spm_client|
-              report_client = report_clients[spm_client[:client_id]] || Client.new(report_id: id, client_id: spm_client[:client_id])
-              report_client[:dob] = spm_client[:dob]
-              report_client[:veteran] = spm_client[:veteran]
-              report_client[:source_client_personal_ids] ||= spm_client[:source_client_personal_ids]
-              # Age may vary based on which SPM questions the client is included in, just pick the first one.
-              report_client["#{variant_name}_age"] ||= spm_client["#{parts[:measure]}_reporting_age"]
+            spm_enrollments(spec[:report], *cell).each do |spm_enrollment|
+              report_client = report_clients[spm_enrollment.client_id] || Client.new(report_id: id, client_id: spm_enrollment.client_id)
+              report_client[:dob] = spm_enrollment.dob
+              report_client[:veteran] = spm_enrollment.veteran
+              report_client[:source_client_personal_ids] ||= spm_enrollment.source_client_personal_ids
+              report_client["#{variant_name}_age"] ||= spm_enrollment.age
               # HoH status may vary, just note if they were ever an HoH
-              report_client["#{variant_name}_hoh"] ||= spm_client["#{parts[:measure]}_head_of_household"] || false
-              project_id = spm_client[parts[:project_source]]
+              report_client["#{variant_name}_hoh"] ||= spm_enrollment.head_of_household
               involved_projects << project_id
               parts[:questions].each do |question|
-                report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(spm_client)
+                report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(spm_enrollment)
                 project_clients << {
                   report_id: id,
-                  client_id: spm_client[:client_id],
-                  project_id: project_id,
+                  client_id: spm_enrollment.client_id,
+                  project_id: spm_enrollment.project_id,
                   for_question: question[:name], # allows limiting for a specific response
                   period: variant_name,
                 }
               end
               if parts.key?(:client_project_rows)
                 parts[:client_project_rows].each do |cpr|
-                  project_clients << cpr.call(spm_client, project_id, variant_name)
+                  project_clients << cpr.call(spm_enrollment, project_id, variant_name)
                 end
               end
 
               report_client["#{variant_name}_spm_id"] = spec[:report].id
-              report_clients[spm_client[:client_id]] = report_client
+              report_clients[spm_enrollment.client_id] = report_client
             end
           end
         end
@@ -365,7 +362,7 @@ module PerformanceMeasurement
       report.answer(question: table, cell: cell).summary
     end
 
-    private def answer_clients(report, table, cell)
+    private def spm_enrollments(report, table, cell)
       report.answer(question: table, cell: cell).universe_members.preload(:universe_membership).map(&:universe_membership)
     end
 
@@ -809,7 +806,7 @@ module PerformanceMeasurement
           questions: [
             {
               name: :served_on_pit_date_sheltered, # Poorly named, this is actually a yearly count
-              value_calculation: ->(spm_client) { spm_client[:m3_active_project_types].present? },
+              value_calculation: ->(spm_client) { spm_client.present? },
             },
           ],
         },
