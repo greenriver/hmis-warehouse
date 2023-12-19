@@ -5,6 +5,8 @@
 ###
 
 RSpec.shared_context 'hmis base setup', shared_context: :metadata do
+  include_context 'with paper trail'
+
   let!(:ds1) { create :hmis_data_source }
   let!(:user) { create(:user) }
   let(:hmis_user) { user.related_hmis_user(ds1) }
@@ -62,6 +64,16 @@ RSpec.shared_context 'hmis base setup', shared_context: :metadata do
         }
       }
     GRAPHQL
+  end
+end
+
+RSpec.shared_context 'with paper trail', shared_context: :metadata do
+  before(:all) do
+    @paper_trail_was = PaperTrail.enabled?
+    PaperTrail.enabled = true
+  end
+  after(:all) do
+    PaperTrail.enabled = @paper_trail_was
   end
 end
 

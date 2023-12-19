@@ -24,7 +24,14 @@ module Types
         field(:date_deleted, GraphQL::Types::ISO8601DateTime, null: true) {}
 
         define_method(:user) do
-          load_last_user_from_versions(object)
+          version_holder = case object
+          when Hmis::Hud::HmisService
+            # service is a database view; it doesn't have its own versions
+            load_ar_association(object, :owner)
+          else
+            object
+          end
+          load_last_user_from_versions(version_holder)
         end
       end
     end
