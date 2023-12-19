@@ -104,26 +104,13 @@ module Types
       # This happens when a Job updates records, which we should display as System changes.
       return User.system_user if object.whodunnit == 'unauthenticated'
 
-      user_id = [
-        # User user_id if available
-        object.user_id,
-        # Otherwise use whodunnit
-        object.whodunnit&.match?(/^\d+$/) ? object.whodunnit : nil,
-        object.whodunnit&.match?(whodunnit_impersonator_pattern) ? object.whodunnit.sub(whodunnit_impersonator_pattern, '\2') : nil,
-      ].find(&:present?)
-
-      Hmis::User.find_by(id: user_id)
+      Hmis::User.find_by(id: object.clean_user_id)
     end
 
     def true_user
-      user_id = [
-        # Don't return if not impersonating (i.e. user == true_user), use true_user_id if available
-        object.user_id != object.true_user_id ? object.true_user_id : nil,
-        # Use whodunnit if not
-        object.whodunnit&.match?(whodunnit_impersonator_pattern) ? object.whodunnit.sub(whodunnit_impersonator_pattern, '\1') : nil,
-      ].find(&:present?)
+      return unless object.whodunnit
 
-      Hmis::User.find_by(id: user_id)
+      Hmis::User.find_by(id: object.clean_true_user_id)
     end
 
     def object_changes
@@ -180,10 +167,6 @@ module Types
       return value unless member.present?
 
       member.first
-    end
-
-    private def whodunnit_impersonator_pattern
-      /^(\d+) as (\d+)$/
     end
   end
 end
