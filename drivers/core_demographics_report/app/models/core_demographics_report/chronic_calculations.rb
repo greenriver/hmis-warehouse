@@ -36,17 +36,17 @@ module
     end
 
     def chronic_data_for_export(rows)
-      rows['_Chronic Type'] ||= []
-      rows['*Chronic Type'] ||= []
-      rows['*Chronic Type'] += ['Chronic Type', nil, 'Count', 'Percentage', nil]
+      rows['_Chronic at Entry'] ||= []
+      rows['*Chronic at Entry'] ||= []
+      rows['*Chronic at Entry'] += ['Chronic at Entry', nil, 'Count', 'Percentage', nil]
       available_coc_codes.each do |coc_code|
-        rows['*Chronic Type'] += ["#{coc_code} Client"]
-        rows['*Chronic Type'] += ["#{coc_code} Percentage"]
+        rows['*Chronic at Entry'] += ["#{coc_code} Client"]
+        rows['*Chronic at Entry'] += ["#{coc_code} Percentage"]
       end
-      rows['*Chronic Type'] += [nil]
+      rows['*Chronic at Entry'] += [nil]
       available_chronic_types.invert.each do |id, title|
-        rows["_Chronic Type_data_#{title}"] ||= []
-        rows["_Chronic Type_data_#{title}"] += [
+        rows["_Chronic at Entry_data_#{title}"] ||= []
+        rows["_Chronic at Entry_data_#{title}"] += [
           title,
           nil,
           chronic_count(id),
@@ -54,7 +54,7 @@ module
           nil,
         ]
         available_coc_codes.each do |coc_code|
-          rows["_Chronic Type_data_#{title}"] += [
+          rows["_Chronic at Entry_data_#{title}"] += [
             chronic_count(id, coc_code.to_sym),
             chronic_percentage(id, coc_code.to_sym) / 100,
           ]
@@ -89,6 +89,10 @@ module
     end
 
     private def set_chronic_client_counts(clients, client_id, enrollment_id, coc_code = base_count_sym)
+      @counted_chronic_clients ||= { base_count_sym => Set.new, specific_coc: Set.new }
+      counting_context = if coc_code == base_count_sym then base_count_sym else :specific_coc end
+      return if client_id.in?(@counted_chronic_clients[counting_context])
+
       clients[:client][coc_code] << client_id
       clients[:household][coc_code] << client_id if hoh_client_ids.include?(client_id)
       # These need to use enrollment.id to capture age correctly, but needs the client for summary counts
@@ -96,6 +100,9 @@ module
       clients[:with_children][coc_code] << [enrollment_id, client_id] if with_children.include?(enrollment_id)
       clients[:only_children][coc_code] << [enrollment_id, client_id] if only_children.include?(enrollment_id)
       clients[:unaccompanied_youth][coc_code] << [enrollment_id, client_id] if unaccompanied_youth.include?(enrollment_id)
+
+      # Note we've seen this client so we only include their earliest enrollment
+      @counted_chronic_clients[counting_context] << client_id
     end
 
     private def chronic_clients

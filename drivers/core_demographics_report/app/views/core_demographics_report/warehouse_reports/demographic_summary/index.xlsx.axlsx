@@ -56,7 +56,6 @@ data_styles = {
   'Household Types' => [th_style, nil, nil, nil, nil, percentage_format, nil] + [nil, nil, percentage_format] * coc_count,
   'Clients in Projects' => [th_style, nil, nil, nil, nil],
   'Chronic at Entry' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
-  'Chronic Type' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
   'High Acuity Type' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
   'Unsheltered' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
   'No Recent Homelessness Type' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
