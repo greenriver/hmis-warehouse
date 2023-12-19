@@ -118,7 +118,9 @@ module Types
       return User.system_user if object.whodunnit == 'unauthenticated'
 
       user_id = [
+        # User user_id if available
         object.user_id,
+        # Otherwise use whodunnit
         object.whodunnit&.match?(/^\d+$/) ? object.whodunnit : nil,
         object.whodunnit&.match?(whodunnit_impersonator_pattern) ? object.whodunnit.sub(whodunnit_impersonator_pattern, '\2') : nil,
       ].find(&:present?)
@@ -128,7 +130,9 @@ module Types
 
     def true_user
       user_id = [
+        # Don't return if not impersonating (i.e. user == true_user), use true_user_id if available
         object.user_id != object.true_user_id ? object.true_user_id : nil,
+        # Use whodunnit if not
         object.whodunnit&.match?(whodunnit_impersonator_pattern) ? object.whodunnit.sub(whodunnit_impersonator_pattern, '\1') : nil,
       ].find(&:present?)
 
