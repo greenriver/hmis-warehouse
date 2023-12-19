@@ -15,31 +15,24 @@ module PerformanceMeasurement
 
     def bar_data(universe: nil, investigate_by: nil)
       race_scope = race_value_to_scope(investigate_by)
+      period = universe_period(universe)
       scope = case universe
       when 'Current Period - Report Universe'
-        # FIXME: should there be different values (reporting/comparison) for these
-        metric_scope.send(race_scope)
+        metric_scope(period).send(race_scope)
       when 'Comparison Period - Report Universe'
-        # FIXME: should there be different values (reporting/comparison) for these
-        metric_scope.send(race_scope)
+        metric_scope(period).send(race_scope)
       when 'Current Period - Current Filters'
-        # FIXME: should there be different values (reporting/comparison) for these
         apply_params(
-          metric_scope.send(race_scope),
-          'reporting',
+          metric_scope(period).send(race_scope),
+          period,
         )
       when 'Comparison Period - Current Filters'
-        # FIXME: should there be different values (reporting/comparison) for these
         apply_params(
-          metric_scope.send(race_scope),
-          'comparison',
+          metric_scope(period).send(race_scope),
+          period,
         )
       end
       scope.count
-    end
-
-    def chart_height
-      calculate_height(data_groups)
     end
   end
 end

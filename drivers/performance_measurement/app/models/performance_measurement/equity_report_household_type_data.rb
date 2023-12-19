@@ -21,9 +21,5 @@ module PerformanceMeasurement
       # FIXME
       rand(100)
     end
-
-    def chart_height
-      calculate_height(data_groups)
-    end
   end
 end

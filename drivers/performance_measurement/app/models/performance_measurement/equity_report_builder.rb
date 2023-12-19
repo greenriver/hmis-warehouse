@@ -15,7 +15,8 @@ module PerformanceMeasurement
       household_type: PerformanceMeasurement::EquityReportHouseholdTypeData,
     }.freeze
 
-    def initialize(params, report)
+    def initialize(params, report, user)
+      @user = user
       @report = report
       @params = params || { view_data_by: 'percentage' }
       @chart_data = chart_data_class.new(self)
@@ -31,24 +32,13 @@ module PerformanceMeasurement
     end
 
     def describe_filters
-      # FIXME
-      rslt = "<span>#{metric} by #{investigate_by}</span></br>"
-      param_rslt = []
-      PerformanceMeasurement::EquityReportData::INVESTIGATE_BY.keys do |key|
-        meth = "describe_#{key}".to_sym
-        param_rslt.push(send(meth))
+      rslt = "<span>#{describe_metric} by #{investigate_by}</span></br>"
+      param_rslt = PerformanceMeasurement::EquityReportData::INVESTIGATE_BY.keys.map do |key|
+        send("describe_#{key}".to_sym)
       end
-      rslt += param_rslt.reject(&:blank?).join(', ')
-      # if @params[:project].present?
-      #   # FIXME: needs real data
-      #   project_name = project_options.select { |p| p.last.to_s == @params[:project] }.first.first
-      #   rslt = "#{rslt}, Project #{project_name}"
-      # end
-      # if @params[:project_type].present?
-      #   # FIXME: needs real data
-      #   project_type = project_type_options.select { |p| p.last.to_s == @params[:project_type] }.first.first
-      #   rslt = "#{rslt}, Project Type #{project_type}"
-      # end
+      param_rslt.push(describe_projects)
+      param_rslt.push(describe_project_type)
+      rslt = "#{rslt} <span>#{param_rslt.reject(&:blank?).join(', ')}</span>"
       rslt
     end
 
@@ -60,7 +50,11 @@ module PerformanceMeasurement
     end
 
     def metric
-      @params[:metric]
+      @params[:metric]&.to_sym
+    end
+
+    def describe_metric
+      metric_options.select { |_, sym| sym == metric }.first.first
     end
 
     def investigate_by
@@ -107,11 +101,26 @@ module PerformanceMeasurement
     end
 
     def project
-      @params[:project]
+      @params[:project]&.reject(&:blank?) || []
+    end
+
+    def describe_projects
+      # FIXME this is probably broken
+      names = project.map do |d|
+        project_options.select { |o| o.last == d.to_i }.first.first
+      end.reject(&:blank?).join(', ')
+      project.any? ? "Project: #{names}" : ''
     end
 
     def project_type
-      @params[:project_type]
+      @params[:project_type]&.reject(&:blank?) || []
+    end
+
+    def describe_project_type
+      names = project_type.map do |d|
+        project_type_options.to_h.select { |_, v| v == d.to_i }.keys.first
+      end.reject(&:blank?).join(', ')
+      project_type.any? ? "Project Type: #{names}" : ''
     end
 
     def view_data_by
@@ -119,11 +128,13 @@ module PerformanceMeasurement
     end
 
     def metric_options
-      @report.display_order.map do |sub_sections|
-        sub_sections.map do |keys|
-          keys.keys.map { |key| @report.detail_title_for(key) }
+      opts = []
+      @report.display_order.each do |sub_sections|
+        sub_sections.each do |keys|
+          keys.keys.each { |key| opts.push([@report.detail_title_for(key), key]) }
         end
-      end.flatten
+      end
+      opts
     end
 
     def investigate_by_options
@@ -152,28 +163,20 @@ module PerformanceMeasurement
     end
 
     def project_options
-      # FIXME real data
-      [
-        ['Project 1', 1],
-        ['Project 2', 2],
-        ['Project 3', 3],
-        ['Project 4', 4],
-        ['Project 5', 5],
-        ['Project 6', 5],
-      ]
+      # FIXME when broken includes metric there is a ActiveRecord undefined column error?
+      # FIXME with my data I always get "No results". Not sure if this is right?
+      broken = [:first_time_homeless_clients, :length_of_homeless_stay_average]
+      if metric.present? && !broken.include?(metric)
+        @report.my_projects(@user, metric).map do |project_id, result|
+          result.hud_project.present? ? [result.hud_project.name(current_user, include_project_type: true), project_id] : nil
+        end.reject(&:blank?)
+      else
+        []
+      end
     end
 
     def project_type_options
-      # # FIXME real data
-      # [
-      #   ['Project Type 1', 1],
-      #   ['Project Type 2', 2],
-      #   ['Project Type 3', 3],
-      #   ['Project Type 4', 4],
-      #   ['Project Type 5', 5],
-      #   ['Project Type 6', 5],
-      # ]
-      @report.filter.project_type_code_options_for_select
+      @report.filter.project_type_options_for_select
     end
 
     def view_data_by_options

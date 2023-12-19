@@ -1,5 +1,7 @@
 module PerformanceMeasurement
   class EquityReportData
+    include Arel
+
     BARS = [
       'Current Period - Report Universe',
       'Comparison Period - Report Universe',
@@ -7,20 +9,6 @@ module PerformanceMeasurement
       'Comparison Period - Current Filters',
       # 'Current Period - Census',
       # 'Comparison Period - Census',
-    ].freeze
-
-    METRICS = [
-      'Number of Homeless People Seen on Jan 26, 2022',
-      'Number of Homeless People Seen Throughout the Year',
-      'Number of First-Time Homeless People',
-      'Average Bed Utilization Overall',
-      'Length of Time Homeless in ES, SH and TH',
-      'Length of Time Homeless in ES, SH, TH, and PH',
-      'Length of Homeless Stay',
-      'Length of Time to Move-In',
-      'Percentage of People with a Successful Placement or Retention of Housing',
-      'Percentage of People Who Returned to Homelessness Within Two Years',
-      'Number of People with Increased Income',
     ].freeze
 
     RACES = HudUtility2024.races
@@ -81,6 +69,10 @@ module PerformanceMeasurement
       @report = builder.report
     end
 
+    def metric_params
+      @builder.metric
+    end
+
     def age_params
       (@builder.age || []).map(&:to_sym)
     end
@@ -106,6 +98,14 @@ module PerformanceMeasurement
       @builder.household_type || []
     end
 
+    def project_type_params
+      @builder.project_type.map(&:to_i)
+    end
+
+    def project_params
+      @builder.project.map(&:to_i)
+    end
+
     def data_groups
       # implement in subclass
       []
@@ -116,9 +116,13 @@ module PerformanceMeasurement
       0
     end
 
-    def metric_scope
-      # TODO apply selected metric to the initial scope
-      @report.clients
+    def universe_period(universe)
+      universe.include?('Current Period') ? 'reporting' : 'comparison'
+    end
+
+    def metric_scope(period)
+      # FIXME: we may need too hide other parts of the form until metric is selected? Other things depend on this (project).
+      metric_params.present? ? @report.clients_for_question(metric_params, period.to_sym) : @report.clients
     end
 
     def data
@@ -136,10 +140,12 @@ module PerformanceMeasurement
         age_ranges = age_params.map { |d| Filters::FilterBase.age_range(d) }
         scope = scope.where("#{period}_age" => age_ranges)
       end
-      # FIXME: should there be different values (reporting/comparison) for these
+      # FIXME: double check the stuff below
       scope = gender_params[1..].inject(scope.send(gender_params[0])) { |query, scope_name| query.or(scope.send(scope_name)) } if gender_params.any?
-      # FIXME: should there be different values (reporting/comparison) for these
       scope = race_params[1..].inject(scope.send(race_params[0])) { |query, scope_name| query.or(scope.send(scope_name)) } if race_params.any?
+      # FIXME: p_t undefined
+      # scope = scope.joins(client_projects: {project: :hud_project}).where(p_t[GrdaWarehouse::Hud::Project.project_type_column].in(project_type_params)) if project_type_params.any?
+      scope = scope.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(project_id: project_params)) if project_params.any?
       scope
     end
 

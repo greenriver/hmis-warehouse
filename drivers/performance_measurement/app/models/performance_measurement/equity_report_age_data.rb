@@ -15,27 +15,24 @@ module PerformanceMeasurement
 
     def bar_data(universe: nil, investigate_by: nil)
       age_range = Filters::FilterBase.age_range(investigate_by.to_sym)
+      period = universe_period(universe)
       scope = case universe
       when 'Current Period - Report Universe'
-        metric_scope.where(reporting_age: age_range)
+        metric_scope(period).where(reporting_age: age_range)
       when 'Comparison Period - Report Universe'
-        metric_scope.where(comparison_age: age_range)
+        metric_scope(period).where(comparison_age: age_range)
       when 'Current Period - Current Filters'
         apply_params(
-          metric_scope.where(reporting_age: age_range),
-          'reporting',
+          metric_scope(period).where(reporting_age: age_range),
+          period,
         )
       when 'Comparison Period - Current Filters'
         apply_params(
-          metric_scope.where(comparison_age: age_range),
-          'comparison',
+          metric_scope(period).where(comparison_age: age_range),
+          period,
         )
       end
       scope.count
-    end
-
-    def chart_height
-      calculate_height(data_groups)
     end
   end
 end

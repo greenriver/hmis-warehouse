@@ -16,10 +16,13 @@
       -# FIXME: fake data
       = f.input :household_type, collection: @analysis_builder.household_type_options, include_blank: 'All Household Types', label: 'Household Types (fake data)', input_html: {multiple: true, placeholder: 'All Household Types'}, as: :select_two
     .col-xs-12.col-sm-6.col-md-4
-      = f.input :project, collection: @analysis_builder.project_options, label_method: :first, value_method: :last, prompt: 'All Projects', label: 'Select Project'
-      = f.input :project_type, collection: @analysis_builder.project_type_options, label_method: :first, value_method: :last, prompt: 'All Project Types', label: 'Project Type'
+      -# FIXME: option query broken???
+      = f.input :project, collection: @analysis_builder.project_options, label_method: :first, value_method: :last, prompt: 'All Projects', label: 'Project (FIXME)', input_html: {multiple: true, placeholder: 'All Projects'}, as: :select_two
+      -# FIXME: filter query broken
+      = f.input :project_type, collection: @analysis_builder.project_type_options, label_method: :first, value_method: :last, prompt: 'All Project Types', label: 'Project Type (FIXME)', input_html: {multiple: true, placeholder: 'All Project Types'}, as: :select_two
     .col-xs-12.col-sm-6.col-md-4
-      = f.input :view_data_by, collection: @analysis_builder.view_data_by_options, label_method: :first, value_method: :last, include_blank: false
+      -# FIXME
+      = f.input :view_data_by, collection: @analysis_builder.view_data_by_options, label_method: :first, value_method: :last, include_blank: false, label: 'View data by (TODO)'
   .d-flex.mt-4
     .pr-4
       = f.submit 'Update Report'
