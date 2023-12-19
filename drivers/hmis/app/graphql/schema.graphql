@@ -730,7 +730,9 @@ type ClientAccess {
   canEditEnrollments: Boolean!
   canManageAnyClientFiles: Boolean!
   canManageOwnClientFiles: Boolean!
+  canUploadClientFiles: Boolean!
   canViewAnyConfidentialClientFiles: Boolean!
+  canViewAnyFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
