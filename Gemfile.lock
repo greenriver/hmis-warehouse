@@ -17,7 +17,6 @@ GIT
 GIT
   remote: https://github.com/greenriver/hellosign-ruby-sdk.git
   revision: 5718c3f96c37153fb18c02c9ade0e4112a8c7926
-  branch: 186685876-faraday-upgrade
   specs:
     hellosign-ruby-sdk (3.7.10)
       faraday (~> 2.2)

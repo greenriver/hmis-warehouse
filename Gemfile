@@ -73,7 +73,9 @@ gem 'mimemagic'
 # it should be tested manually
 gem 'acts-as-taggable-on', '~> 7.0'
 # gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
-gem 'hellosign-ruby-sdk', git: 'https://github.com/greenriver/hellosign-ruby-sdk.git', branch: '186685876-faraday-upgrade'
+#
+# FIXME: the hellosign gem is no longer a requirement. This dependency can be dropped pending code pruning
+gem 'hellosign-ruby-sdk', git: 'https://github.com/greenriver/hellosign-ruby-sdk.git'
 
 gem 'devise', '~> 4'
 gem 'devise_invitable', '~> 2.0'
