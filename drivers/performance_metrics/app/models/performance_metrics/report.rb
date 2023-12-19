@@ -607,6 +607,10 @@ module PerformanceMetrics
         spm_returners = answer_clients(spm_report, '2', 'I7')
         # M2 I7 is Total Number of Persons who Exited to a Permanent Housing Destination (2 Years Prior)
         spm_leavers = answer_clients(spm_report, '2', 'B7')
+
+        # FIXME, the leavers/returners (universe_members) are SpmEnrollments in 2024; they used to be SpmClients.
+        # We probably need to to unpack enrollment.episodes to get equiv of m1a_es_sh_th_days and m2_reentry_days.
+
         spm_leavers.each do |client_id, spm_client|
           days_in_es = nil
           days_to_return = nil
@@ -614,6 +618,7 @@ module PerformanceMetrics
           spm_returner = spm_returners[client_id]
           spm_leaver = spm_leavers.keys.include?(client_id)
           if spm_returner
+            # this probably crashes
             days_in_es = spm_returner.m1a_es_sh_th_days
             days_to_return = spm_returner.m2_reentry_days
           end
@@ -664,6 +669,7 @@ module PerformanceMetrics
 
     private def answer_clients(report, table, cell)
       report.answer(question: table, cell: cell).universe_members.
+        preload(:universe_membership).
         map(&:universe_membership).
         index_by(&destination_client_column(report))
     end
