@@ -37,15 +37,12 @@ module Mutations
 
     def resolve(enrollment_id:, enrollment_lock_version: nil, relationship_to_ho_h:, confirmed: false)
       enrollment = Hmis::Hud::Enrollment.viewable_by(current_user).find_by(id: enrollment_id)
+      raise 'Not found' unless enrollment.present?
+      raise 'Access denied' unless current_user.permissions_for?(enrollment, :can_edit_enrollments)
+
       enrollment.lock_version = enrollment_lock_version if enrollment_lock_version
 
       errors = HmisErrors::Errors.new
-      errors.add :enrollment, :not_found unless enrollment.present?
-      return { errors: errors } if errors.any?
-
-      errors.add :enrollment, :not_allowed unless current_user.permissions_for?(enrollment, :can_edit_enrollments)
-      return { errors: errors } if errors.any?
-
       is_hoh_change = relationship_to_ho_h == 1
       if is_hoh_change
         household_enrollments = enrollment.household_members.preload(:client)
@@ -68,25 +65,34 @@ module Mutations
       errors.drop_warnings! if confirmed
       return { errors: errors } if errors.any?
 
-      update_params = { user_id: hmis_user.user_id }
-      Hmis::Hud::Enrollment.transaction do
-        # If HoH change, set old HoH to 99. (Don't use update_all because it won't create papertrail)
-        household_enrollments.where(relationship_to_ho_h: 1).each { |en| en.update(relationship_to_ho_h: 99, **update_params) } if is_hoh_change
+      # Set new relationship value
+      enrollment.relationship_to_ho_h = relationship_to_ho_h
+      # Set user HUD that most recently touched the record
+      enrollment.user_id = hmis_user.user_id
 
-        enrollment.update(relationship_to_ho_h: relationship_to_ho_h, **update_params)
-        enrollment.touch
-      end
-
-      errors = []
+      # Return if there are any AR errors (not expected)
       unless enrollment.valid?
-        errors << enrollment.errors.errors
-        enrollment = nil
+        errors.add_ar_errors(enrollment.errors&.errors)
+        return { errors: errors }
       end
 
-      {
-        enrollment: enrollment,
-        errors: errors,
-      }
+      # Save changes in a transaction.
+      # If this is a HoH change, give old HoH(s) a 99 relationship value.
+      Hmis::Hud::Enrollment.transaction do
+        if is_hoh_change
+          household_enrollments.filter(&:head_of_household?).each do |old_hoh_enrollment|
+            next if old_hoh_enrollment.id == enrollment.id
+
+            old_hoh_enrollment.relationship_to_ho_h = 99
+            old_hoh_enrollment.user_id = hmis_user.user_id
+            old_hoh_enrollment.save!
+          end
+        end
+
+        enrollment.save!
+      end
+
+      { enrollment: enrollment }
     end
   end
 end
