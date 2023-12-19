@@ -40,6 +40,7 @@ module Types
     field :event, HmisSchema::Enums::AuditEventType, null: false
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :user, Application::User, null: true
+    field :true_user, Application::User, null: true
     field :object_changes, Types::JsonObject, null: true, description: 'Format is { field: { fieldName: "GQL field name", displayName: "Human readable name", values: [old, new] } }'
     # TODO: add impersonation user / true user, and display it in the interface
 
@@ -97,15 +98,39 @@ module Types
       object.object || changed_record&.attributes || {}
     end
 
+    # def user
+    #   return unless object.whodunnit
+    #   # 'unauthenticated' matches user_for_paper_trail in ApplicationController.
+    #   # This happens when a Job updates records, which we should display as System changes.
+    #   return User.system_user if object.whodunnit == 'unauthenticated'
+
+    #   # If user was impersonating, return the true user only. If someone performed the action while impersonating, whodunnit stores as '1 as 2' where 1 is the true user.
+    #   user_id = object.whodunnit.sub(/ as [0-9]+$/, '')
+    #   return unless user_id.to_i.to_s == user_id
+
+    #   Hmis::User.find_by(id: user_id)
+    # end
+
     def user
       return unless object.whodunnit
       # 'unauthenticated' matches user_for_paper_trail in ApplicationController.
       # This happens when a Job updates records, which we should display as System changes.
       return User.system_user if object.whodunnit == 'unauthenticated'
 
-      # If user was impersonating, return the true user only. If someone performed the action while impersonating, whodunnit stores as '1 as 2' where 1 is the true user.
-      user_id = object.whodunnit.sub(/ as [0-9]+$/, '')
-      return unless user_id.to_i.to_s == user_id
+      user_id = [
+        object.user_id,
+        object.whodunnit&.match?(/^\d+$/) ? object.whodunnit : nil,
+        object.whodunnit&.match?(whodunnit_impersonator_pattern) ? object.whodunnit.sub(whodunnit_impersonator_pattern, '\2') : nil,
+      ].find(&:present?)
+
+      Hmis::User.find_by(id: user_id)
+    end
+
+    def true_user
+      user_id = [
+        object.user_id != object.true_user_id ? object.true_user_id : nil,
+        object.whodunnit&.match?(whodunnit_impersonator_pattern) ? object.whodunnit.sub(whodunnit_impersonator_pattern, '\1') : nil,
+      ].find(&:present?)
 
       Hmis::User.find_by(id: user_id)
     end
@@ -164,6 +189,10 @@ module Types
       return value unless member.present?
 
       member.first
+    end
+
+    private def whodunnit_impersonator_pattern
+      /^(\d+) as (\d+)$/
     end
   end
 end
