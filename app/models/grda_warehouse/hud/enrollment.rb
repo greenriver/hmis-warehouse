@@ -309,11 +309,19 @@ module GrdaWarehouse::Hud
     # end
 
     def exit_date
+      ActiveSupport::Deprecation.warn('GrdaWarehouse::Hud::Enrollment#exit_date is deprecated. Use real_exit_date instead')
       @exit_date ||= if exit.present?
         exit.ExitDate
       else
+        raise 'Enrollment.exit_date would return Date.current. This behavior is deprecated' if Rails.env.development? || Rails.env.test?
+
         Date.current
       end
+    end
+
+    # awkward name to distinguish it from the deprecated "Enrollment.exit_date"
+    def real_exit_date
+      exit&.ExitDate
     end
 
     # If we haven't been in a literally homeless project type (ES, SH, SO) in the last 30 days, this is a new episode

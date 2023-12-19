@@ -193,8 +193,6 @@
         "data_collected_about": {
           "enum": [
             "ALL_CLIENTS",
-            "ALL_CLIENTS_RECEIVING_SSVF_FINANCIAL_ASSISTANCE",
-            "ALL_CLIENTS_RECEIVING_SSVF_SERVICES",
             "ALL_VETERANS",
             "HOH",
             "HOH_AND_ADULTS",
