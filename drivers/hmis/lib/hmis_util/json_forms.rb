@@ -10,6 +10,13 @@ module HmisUtil
 
     protected
 
+    def env_key
+      return ENV['CLIENT'] if ENV['CLIENT'].present?
+
+      # default to QA environment in development to get forms with all possible questions enabled
+      'qa_hmis' if Rails.env.development?
+    end
+
     def fragment_map
       @fragment_map ||= begin
         fragments = {}
@@ -20,10 +27,10 @@ module HmisUtil
         end
 
         # If we're in a client env, override any fragments
-        if ENV['CLIENT'].present?
-          Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/fragments/*.json") do |file_path|
+        if env_key
+          Dir.glob("#{DATA_DIR}/#{env_key}/fragments/*.json") do |file_path|
             identifier = File.basename(file_path, '.json')
-            puts "Loading #{ENV['CLIENT']} override for #{identifier} fragment"
+            puts "Loading #{env_key} override for #{identifier} fragment"
             file = File.read(file_path)
             fragments[identifier] = JSON.parse(file)
           end
@@ -41,10 +48,10 @@ module HmisUtil
           forms[identifier] = JSON.parse(file)
         end
 
-        if ENV['CLIENT'].present?
-          Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/records/*.json") do |file_path|
+        if env_key
+          Dir.glob("#{DATA_DIR}/#{env_key}/records/*.json") do |file_path|
             identifier = File.basename(file_path, '.json')
-            # puts "Applying #{ENV['CLIENT']} override for #{identifier} form"
+            # puts "Applying #{env_key} override for #{identifier} form"
             file = File.read(file_path)
             forms[identifier] = JSON.parse(file)
           end
@@ -54,9 +61,9 @@ module HmisUtil
     end
 
     def client_override(file_path)
-      return file_path unless ENV['CLIENT'].present?
+      return file_path unless env_key
 
-      client_override_fpath = file_path.gsub('/default/', "/#{ENV['CLIENT']}/")
+      client_override_fpath = file_path.gsub('/default/', "/#{env_key}/")
       if File.exist?(client_override_fpath)
         client_override_fpath
       else
@@ -95,10 +102,10 @@ module HmisUtil
             file = File.read(file_path)
             forms[role][identifier] = JSON.parse(file)
           end
-          next unless ENV['CLIENT'].present?
+          next unless env_key.present?
 
           # Load client-specific
-          Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/#{dirname}/*.json") do |file_path|
+          Dir.glob("#{DATA_DIR}/#{env_key}/#{dirname}/*.json") do |file_path|
             identifier = File.basename(file_path, '.json')
             file_path = client_override(file_path)
             # puts "Loading #{identifier} from #{file_path}"
@@ -126,7 +133,7 @@ module HmisUtil
         applied_patches << id
         children, patch_to_apply = patch.partition { |k, _| ['append_items', 'prepend_items'].include?(k) }.map(&:to_h)
         # Could also be deep merge. This is probably more intuitive though
-        node.merge!(patch_to_apply)
+        node.merge!(patch_to_apply).compact!
 
         # Prepend or append any child items
         raise 'Cannot append/prepend to item with no children' if children.any? && node['item'].nil?
@@ -139,7 +146,7 @@ module HmisUtil
 
     def apply_all_patches!(definition, identifier:)
       applied_patches = []
-      Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/fragments/patches/*.json") do |file_path|
+      Dir.glob("#{DATA_DIR}/#{env_key}/fragments/patches/*.json") do |file_path|
         # patch_name = File.basename(file_path, '.json')
         file = File.read(file_path)
         definition['item'].each do |item|
@@ -316,7 +323,7 @@ module HmisUtil
       roles.each do |role|
         filename = "base_#{role.to_s.downcase}.json"
         begin
-          file = File.read("#{DATA_DIR}/#{ENV['CLIENT']}/assessments/#{filename}")
+          file = File.read("#{DATA_DIR}/#{env_key}/assessments/#{filename}")
         rescue Errno::ENOENT
           nil # no client override, which is fine
         end
