@@ -373,7 +373,7 @@ module Health
       return false unless cp1?
 
       # Only the most recent PCTP needs review
-      returns false unless patient.pctp_careplans.sorted.first&.instrument&.id == id
+      return false unless patient.pctp_careplans.sorted.first&.instrument&.id == id
 
       # Inactive CP1 careplans need to be replaced, not re-reviewed
       active?
