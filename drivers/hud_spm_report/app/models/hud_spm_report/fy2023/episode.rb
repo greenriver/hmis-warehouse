@@ -94,7 +94,7 @@ module HudSpmReport::Fy2023
               transform_values { |v| Array.wrap(v).last }, # Unique by date
           )
         else
-          start_date = if include_self_reported
+          start_date = if include_self_reported && enrollment_literally_homeless_at_entry(enrollment)
             # Include self-reported dates, if any, otherwise later of project start and lookback date
             enrollment.start_of_homelessness || [enrollment.entry_date, lookback_date].max
           else
@@ -162,7 +162,10 @@ module HudSpmReport::Fy2023
     end
 
     private def literally_homeless_at_entry(bed_nights, first_date)
-      enrollment = bed_nights.detect { |_, _, date| date == first_date }.first
+      enrollment_literally_homeless_at_entry(bed_nights.detect { |_, _, date| date == first_date }.first)
+    end
+
+    private def enrollment_literally_homeless_at_entry(enrollment)
       return true if enrollment.project_type.in?([0, 1, 4, 8])
 
       enrollment.project_type.in?([2, 3, 9, 10, 13]) &&
