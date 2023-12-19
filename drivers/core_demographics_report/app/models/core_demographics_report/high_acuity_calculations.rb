@@ -90,7 +90,10 @@ module
     end
 
     private def set_high_acuity_client_counts(clients, client_id, enrollment_id, coc_code = base_count_sym)
-      # Always add them to the clients category
+      @counted_high_acuity_clients ||= { base_count_sym => Set.new, specific_coc: Set.new }
+      counting_context = if coc_code == base_count_sym then base_count_sym else :specific_coc end
+      return if client_id.in?(@counted_high_acuity_clients[counting_context])
+
       clients[:client][coc_code] << client_id
       clients[:household][coc_code] << client_id if hoh_client_ids.include?(client_id)
       # These need to use enrollment.id to capture age correctly, but needs the client for summary counts
@@ -98,6 +101,9 @@ module
       clients[:with_children][coc_code] << [enrollment_id, client_id] if with_children.include?(enrollment_id)
       clients[:only_children][coc_code] << [enrollment_id, client_id] if only_children.include?(enrollment_id)
       clients[:unaccompanied_youth][coc_code] << [enrollment_id, client_id] if unaccompanied_youth.include?(enrollment_id)
+
+      # Note we've seen this client so we only include their earliest enrollment
+      @counted_high_acuity_clients[counting_context] << client_id
     end
 
     private def high_acuity_clients
