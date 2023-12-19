@@ -72,6 +72,14 @@ module HudSpmReport::Fy2023
       left_outer_joins(enrollment: :services).where(nbn_cond.or(ee_cond))
     end
 
+    scope :literally_homeless_at_entry_in_range, ->(range) do
+      where(arel_table[:exit_date].gteq(range.begin).and(arel_table[:entry_date].lteq(range.end))).
+        where(project_type: [0, 1, 4, 8]).
+        or(where(project_type: [2, 3, 9, 10, 13], prior_living_situation: 100..199)).
+        or(where(previous_street_essh: true, project_type: [2, 3, 9, 10, 13], prior_living_situation: 200..299, length_of_stay: [2, 3])).
+        or(where(previous_street_essh: true, project_type: [2, 3, 9, 10, 13], prior_living_situation: 300..499, los_under_threshold: true))
+    end
+
     HomelessnessInfo = Struct.new(:start_of_homelessness, :entry_date, :move_in_date, keyword_init: true)
 
     # Unlike, most HUD reports, there is not a single enrollment per report client, so the enrollment set

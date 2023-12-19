@@ -105,7 +105,12 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
   it 'should throw error if length_of_absence_days is less than 30' do
     p1 = create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 6
     c1 = create :hmis_hud_client, data_source: ds1, user: u1
-    create :hmis_auto_exit_config, length_of_absence_days: 29
+
+    # We want to set the length_of_absence_days to 29 to test logic in the job, but there is an AR validation on this too, so set it without validating
+    aec = create :hmis_auto_exit_config, length_of_absence_days: 30
+    aec.length_of_absence_days = 29
+    aec.save!(validate: false)
+
     e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.today - 2.months
     create :hmis_custom_service, data_source: ds1, client: c1, enrollment: e1, user: u1, date_provided: Date.today - 31.days
 

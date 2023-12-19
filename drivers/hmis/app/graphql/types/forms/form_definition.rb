@@ -10,11 +10,16 @@ module Types
   class Forms::FormDefinition < Types::BaseObject
     skip_activity_log
     description 'FormDefinition'
+
+    include Types::Admin::HasFormRules
+
     field :id, ID, null: false
     field :cache_key, ID, null: false
     field :role, Types::Forms::Enums::FormRole, null: false
     field :title, String, null: false
     field :definition, Forms::FormDefinitionJson, null: false
+    field :system, Boolean, null: false
+    form_rules_field :form_rules, method: :instances
 
     # Filtering is implemented within this resolver rather than a separate concern. This
     # gives us convenient to access the lazy batch loader for records (funder, orgs) that
@@ -26,6 +31,10 @@ module Types
 
     def cache_key
       [object.id, project&.id, active_date].join('|')
+    end
+
+    def system
+      load_ar_association(object, :instances).any?(&:system)
     end
 
     protected
