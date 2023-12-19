@@ -7,6 +7,13 @@
 class Hmis::UnitOccupancy < Hmis::HmisBase
   include ::Hmis::Concerns::HmisArelHelper
   self.table_name = :hmis_unit_occupancy
+  has_paper_trail(
+    meta: {
+      project_id: ->(r) { r.enrollment&.project&.id },
+      enrollment_id: ->(r) { r.enrollment&.id },
+      client_id: ->(r) { r.client&.id },
+    },
+  )
 
   # Unit that is occupied
   belongs_to :unit, class_name: 'Hmis::Unit'

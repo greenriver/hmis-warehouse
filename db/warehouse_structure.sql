@@ -887,7 +887,8 @@ CREATE TABLE public."CustomCaseNote" (
     "UserID" character varying,
     "DateCreated" timestamp without time zone,
     "DateUpdated" timestamp without time zone,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    information_date date
 );
 
 
@@ -7877,7 +7878,8 @@ CREATE TABLE public.files (
     coc_codes jsonb DEFAULT '[]'::jsonb,
     enrollment_id bigint,
     confidential boolean DEFAULT false NOT NULL,
-    updated_by_id bigint
+    updated_by_id bigint,
+    data_source_id bigint
 );
 
 
@@ -25500,7 +25502,11 @@ CREATE TABLE public.versions (
     user_id bigint,
     referenced_user_id bigint,
     referenced_entity_name character varying,
-    migrated_app_version_id bigint
+    migrated_app_version_id bigint,
+    true_user_id bigint,
+    client_id bigint,
+    enrollment_id bigint,
+    project_id bigint
 );
 
 
@@ -51398,6 +51404,13 @@ CREATE INDEX index_favorites_on_user_id ON public.favorites USING btree (user_id
 
 
 --
+-- Name: index_files_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_files_on_data_source_id ON public.files USING btree (data_source_id);
+
+
+--
 -- Name: index_files_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -57873,10 +57886,31 @@ CREATE INDEX index_va_check_histories_on_user_id ON public.va_check_histories US
 
 
 --
+-- Name: index_versions_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_versions_on_client_id ON public.versions USING btree (client_id);
+
+
+--
+-- Name: index_versions_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_versions_on_enrollment_id ON public.versions USING btree (enrollment_id);
+
+
+--
 -- Name: index_versions_on_item_type_and_item_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_versions_on_item_type_and_item_id ON public.versions USING btree (item_type, item_id);
+
+
+--
+-- Name: index_versions_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_versions_on_project_id ON public.versions USING btree (project_id);
 
 
 --
@@ -60507,10 +60541,14 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231114235529'),
 ('20231115170459'),
 ('20231120221840'),
+('20231121165752'),
 ('20231122185546'),
 ('20231124171521'),
+('20231203221840'),
 ('20231204134123'),
 ('20231205141010'),
-('20231206200436');
+('20231206200436'),
+('20231207155629'),
+('20231212212354');
 
 

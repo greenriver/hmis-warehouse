@@ -10,6 +10,10 @@ module
 
   include ApplicationHelper
   included do
+    attr_accessor :should_calculate_coc_breakdowns
+
+    def base_count_sym = :count
+
     def self.viewable_by(user)
       GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).
         viewable_by(user).exists?
@@ -120,8 +124,34 @@ module
       scope.joins(:client).pluck(average_age)&.first&.to_i
     end
 
+    private def without_children
+      @without_children ||= enrollment_ids_in_household_type(:without_children)
+    end
+
+    private def with_children
+      @with_children  ||= enrollment_ids_in_household_type(:with_children)
+    end
+
+    private def only_children
+      @only_children  ||= enrollment_ids_in_household_type(:only_children)
+    end
+
+    private def unaccompanied_youth
+      @unaccompanied_youth ||= enrollment_ids_in_household_type(:unaccompanied_youth)
+    end
+
+    def available_coc_codes
+      # Don't pass any CoC codes if we don't show the CoC breakdowns in this context
+      return [] unless calculate_coc_breakdowns?
+      # Don't bother calculating the CoC breakdowns if we didn't ask for any specific CoCs,
+      # or if we only asked for one specific CoC since the total and the CoC will be identical
+      return [] if filter.chosen_coc_codes.count < 2
+
+      filter.chosen_coc_codes
+    end
+
     private def cache_slug
-      @filter.attributes
+      @filter.attributes.merge(calculate_coc_breakdowns: calculate_coc_breakdowns?)
     end
 
     private def expiration_length

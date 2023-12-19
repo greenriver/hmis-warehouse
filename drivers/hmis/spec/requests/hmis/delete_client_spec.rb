@@ -40,6 +40,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(response.status).to eq 200
       client = result.dig('data', 'deleteClient', 'client')
       errors = result.dig('data', 'deleteClient', 'errors')
+      next unless block_given?
+
       yield client, errors
     end
   end
@@ -111,8 +113,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     # Should NOT modify HoH of other enrollments if client is not deleted
     expect(e2.reload.relationship_to_ho_h).to eq(prev_hoh_value)
   end
-end
 
-RSpec.configure do |c|
-  c.include GraphqlHelpers
+  it 'tracks metadata on versions' do
+    versions = c1.versions.where(client_id: c1.id)
+    expect do
+      mutate(input: { id: c1.id })
+    end.to change(versions, :count).by(1)
+  end
 end

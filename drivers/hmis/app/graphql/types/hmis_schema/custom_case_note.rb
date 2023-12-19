@@ -15,6 +15,7 @@ module Types
     field :enrollment, HmisSchema::Enrollment, null: false
     field :client, HmisSchema::Client, null: false
     field :content, String, null: false
+    field :information_date, GraphQL::Types::ISO8601Date, null: true
 
     def enrollment
       load_ar_association(object, :enrollment)

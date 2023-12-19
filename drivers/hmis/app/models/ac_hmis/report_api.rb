@@ -7,7 +7,7 @@
 # To connect to the API, you need a remote credential for this endpoint. Replace
 # the empty strings below with values from the documentation.
 #
-# creds = GrdaWarehouse::RemoteCredentials::Oauth.where(slug: 'ac_hmis_link').first_or_initialize
+# creds = GrdaWarehouse::RemoteCredentials::Oauth.where(slug: 'ac_reports').first_or_initialize
 # creds.attributes = {
 #   "id"=>6,
 #   "type"=>"GrdaWarehouse::RemoteCredentials::Oauth",
@@ -17,8 +17,8 @@
 #   "encrypted_password_iv"=>nil,
 #   "region"=>nil,
 #   "bucket"=>"API_TEST",
-#   "path"=>"https://alleghenycounty-demo.oktapreview.com/oauth2/TOKEN/v1/token",
-#   "endpoint"=>"https://dhsaz-apim-api-uat.azure-api.net/green-river-api/api",
+#   "path"=>"https://BASE.oktapreview.com/oauth2/TOKEN/v1/token",
+#   "endpoint"=>"https://BASE/green-river-api/api",
 #   "created_at"=>Thu, 07 Dec 2023 16:33:49.435762000 EST -05:00,
 #   "updated_at"=>Thu, 07 Dec 2023 16:33:49.435762000 EST -05:00,
 #   "deleted_at"=>nil,
@@ -31,17 +31,21 @@ module AcHmis
   class ReportApi
     SYSTEM_ID = 'ac_reports'.freeze
     CONNECTION_TIMEOUT_SECONDS = 60
-    Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to LINK Reports')
+    Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to LINK')
 
     def self.enabled?
       GrdaWarehouse::RemoteCredentials::Oauth.active.where(slug: SYSTEM_ID).exists?
     end
 
     def prevention_assessment_report(referral_id:)
+      raise(Error, 'Report API credentials are missing') unless self.class.enabled?
+
       conn.get("Reports/PreventionAssessment/#{referral_id}").then { |r| handle_error(r) }
     end
 
     def consumer_summary_report(umci:, start_date: nil, end_date: nil, report_type: 'GR')
+      raise(Error, 'Report API credentials are missing') unless self.class.enabled?
+
       conn.post('Reports/ConsumerSummary', { UMCI: umci, StartDate: start_date, EndDate: end_date, ReportType: report_type }).then { |r| handle_error(r) }
     end
 
@@ -56,7 +60,7 @@ module AcHmis
     end
 
     def creds
-      @creds = GrdaWarehouse::RemoteCredentials::Oauth.find_by(slug: SYSTEM_ID)
+      @creds = GrdaWarehouse::RemoteCredentials::Oauth.active.find_by(slug: SYSTEM_ID)
     end
 
     def conn

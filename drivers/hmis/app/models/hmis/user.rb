@@ -161,6 +161,10 @@ class Hmis::User < ApplicationRecord
     @viewable_project_ids ||= Hmis::Hud::Project.viewable_by(self).pluck(:id)
   end
 
+  def full_name
+    [first_name, last_name].compact_blank.join(' ').presence
+  end
+
   private def cached_viewable_project_ids(force_calculation: false)
     key = [self.class.name, __method__, id]
     Rails.cache.delete(key) if force_calculation
