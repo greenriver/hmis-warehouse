@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe HelloSignController, type: :request do
   before(:all) do
-    TodoOrDie("Remove HelloSign", by: "2024-12-01")
+    TodoOrDie('Remove HelloSign', by: '2024-12-01')
   end
   let!(:provider) { create :provider }
   let!(:patient) { create :patient }
