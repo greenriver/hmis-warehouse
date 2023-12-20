@@ -6,6 +6,10 @@
 
 module Hmis
   class AutoExitJob < BaseJob
+    def self.enabled?
+      Hmis::AutoExitConfig.exists?
+    end
+
     def perform
       Hmis::Hud::Project.hmis.each do |project|
         config = Hmis::AutoExitConfig.config_for_project(project)
@@ -41,7 +45,7 @@ module Hmis
       exit_date += 1.day if most_recent_contact.is_a?(Hmis::Hud::Service) && most_recent_contact.record_type == 200
       user = Hmis::Hud::User.system_user(data_source_id: enrollment.data_source_id)
 
-      new_exit = Hmis::Hud::Exit.create!(
+      exit_record = Hmis::Hud::Exit.new(
         personal_id: enrollment.personal_id,
         enrollment_id: enrollment.enrollment_id,
         data_source_id: enrollment.data_source_id,
@@ -59,12 +63,7 @@ module Hmis
         personal_id: enrollment.personal_id,
         enrollment_id: enrollment.enrollment_id,
       )
-      assessment.build_form_processor(definition: nil)
-      assessment.form_processor.assign_attributes(
-        values: {},
-        hud_values: {},
-        exit_id: new_exit.id,
-      )
+      assessment.build_form_processor(exit: exit_record)
       assessment.save!
     end
 
