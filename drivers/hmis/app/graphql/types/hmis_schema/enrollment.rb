@@ -191,14 +191,8 @@ module Types
 
     field :move_in_addresses, [HmisSchema::ClientAddress], null: false
 
-    # fields should match our DB casing, consult schema to see determine appropriate casing
-    EXCLUDED_HISTORY_FIELDS = ['id', 'DateCreated', 'DateUpdated', 'DateDeleted', 'owner_type', 'enrollment_address_type'].to_set.freeze
-    audit_history_field(
-      transform_changes: ->(_version, changes) {
-        # Drop excluded fields
-        changes.reject! { |k| k.underscore.end_with?('_id') || EXCLUDED_HISTORY_FIELDS.include?(k) }
-      },
-    )
+    # fields should match our DB casing, consult schema to determine appropriate casing
+    audit_history_field excluded_keys: ['owner_type', 'enrollment_address_type', 'wip']
 
     def audit_history(filters: nil)
       scope = GrdaWarehouse.paper_trail_versions.

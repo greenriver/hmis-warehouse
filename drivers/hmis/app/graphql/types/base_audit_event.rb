@@ -6,13 +6,17 @@
 
 module Types
   class BaseAuditEvent < BaseObject
-    def self.build(node_class, field_permissions: nil, transform_changes: nil)
+    def self.build(node_class, field_permissions: nil, excluded_keys: nil, transform_changes: nil)
       dynamic_name = "#{node_class.graphql_name}AuditEvent"
       klass = Class.new(self) do
         graphql_name(dynamic_name)
 
         define_method(:schema_type) do
           node_class
+        end
+
+        define_method(:excluded_keys) do
+          excluded_keys
         end
 
         define_method(:transform_changes) do |object, changes|
@@ -113,9 +117,22 @@ module Types
       Hmis::User.find_by(id: object.clean_true_user_id)
     end
 
+    # Fields that are always excluded.
+    # Fields keys should match our DB casing, consult schema to determine appropriate casing.
+    EXCLUDED_KEYS = [
+      'id',
+      'DateCreated',
+      'DateUpdated',
+      'DateDeleted',
+      'source_hash',
+    ].freeze
+
     def object_changes
       result = object.object_changes
       return unless result.present?
+
+      result = result.reject! { |key| key.underscore.end_with?('_id') || EXCLUDED_KEYS.include?(key) || excluded_keys&.include?(key) }
+      return unless result.any?
 
       result = transform_changes(object, result).map do |key, value|
         # Best-effort guess at GQL field name for this attribute
@@ -131,6 +148,9 @@ module Types
           end
         end
 
+        # Skip if changes are empty, or if the change is `nil=>99` or `99=>nil`. This is not meaningful to show in the UI.
+        next if values.map { |v| v == 99 ? nil : v }.compact.empty?
+
         # hide certain changes (SSN/DOB) if unauthorized
         values = 'changed' if changed_record && !authorize_field(changed_record, key)
 
@@ -142,7 +162,8 @@ module Types
             'values' => values,
           },
         ]
-      end.to_h
+      end.compact.to_h
+      return unless result.any?
 
       result
     end
