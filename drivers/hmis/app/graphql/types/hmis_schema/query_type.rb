@@ -209,6 +209,13 @@ module Types
       Hmis::Form::Definition.order(:id).with_role(role).first!
     end
 
+    field :form_definition_for_json, Types::Forms::FormDefinitionJson, null: true do
+      argument :input, String, required: true
+    end
+    def form_definition_for_json(input:)
+      JSON.parse(input)
+    end
+
     field :pick_list, [Types::Forms::PickListOption], 'Get list of options for pick list', null: false do
       argument :pick_list_type, Types::Forms::Enums::PickListType, required: true
       argument :project_id, ID, required: false
