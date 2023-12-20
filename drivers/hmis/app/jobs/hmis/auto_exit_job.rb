@@ -6,11 +6,21 @@
 
 module Hmis
   class AutoExitJob < BaseJob
+    include NotifierConfig
+
+    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
+
     def self.enabled?
       Hmis::AutoExitConfig.exists?
     end
 
     def perform
+      return unless self.class.enabled?
+
+      setup_notifier('HMIS Auto-Exit')
+      auto_exit_projects = Set.new
+      auto_exit_count = 0
+
       Hmis::Hud::Project.hmis.each do |project|
         config = Hmis::AutoExitConfig.config_for_project(project)
         next unless config.present?
@@ -32,9 +42,13 @@ module Hmis
           most_recent_contact_date = contact_date_for_entity(most_recent_contact)
           next unless (Date.current - most_recent_contact_date).to_i >= config.length_of_absence_days
 
+          auto_exit_count += 1
+          auto_exit_projects.add(project.id)
           auto_exit(enrollment, most_recent_contact)
         end
       end
+
+      @notifier&.ping("Auto-exited #{auto_exit_count} Enrollments in #{auto_exit_projects.size} Projects")
     end
 
     private
