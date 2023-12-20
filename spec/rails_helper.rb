@@ -93,6 +93,7 @@ RSpec.configure do |config|
       ::HmisUtil::JsonForms.new.tap do |builder|
         builder.seed_record_form_definitions
         builder.seed_assessment_form_definitions
+        builder.seed_static_forms
       end
     end
   end
