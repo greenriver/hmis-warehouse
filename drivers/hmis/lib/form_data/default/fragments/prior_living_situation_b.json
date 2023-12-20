@@ -229,7 +229,7 @@
         "record_type": "ENROLLMENT",
         "field_name": "previousStreetEssh"
       },
-      "text": "On the night before project entry, did the client stay on the streets, ES or SH?",
+      "text": "On the night before, did the client stay on the streets, ES or SH?",
       "brief_text": "Homeless on previous night",
       "enable_behavior": "ALL",
       "enable_when": [
