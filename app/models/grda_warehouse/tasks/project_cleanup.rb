@@ -166,10 +166,15 @@ module GrdaWarehouse::Tasks
     # If the project has more than one, clear out any EnrollmentCoC where isn't covered
     def fix_client_locations(project)
       # debug_log("Setting client locations for #{project.ProjectName}")
-      coc_codes = project.project_cocs.map(&:effective_coc_code).uniq
-      project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: coc_codes.first) if coc_codes.count == 1
+      coc_codes = project.project_cocs.map(&:effective_coc_code).uniq.
+        # Ensure the CoC codes are valid
+        select { |code| HudUtility2024.valid_coc?(code) }
+      # Don't do anything if we don't know what CoC the project operates in
+      return unless coc_codes.present?
 
-      project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: nil)
+      project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: coc_codes.first, source_hash: nil) if coc_codes.count == 1
+
+      project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: nil, source_hash: nil)
     end
 
     def project_source
