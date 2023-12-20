@@ -59,8 +59,8 @@ module Types
         order(:created_at, :id).
         select(:id, :whodunnit, :item_id, :item_type) # select only fields we need for performance
       versions = load_ar_association(object, :versions, scope: refinement)
-      last_user_id = versions.last&.whodunnit # db-ordered so we choose the last record
-      return unless last_user_id && last_user_id =~ /\A[0-9]+\z/
+      last_user_id = versions.last&.clean_user_id # db-ordered so we choose the last record
+      return unless last_user_id
 
       load_ar_scope(scope: Hmis::User.with_deleted, id: last_user_id)
     end
