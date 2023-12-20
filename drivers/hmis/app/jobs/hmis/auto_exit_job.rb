@@ -49,6 +49,10 @@ module Hmis
       end
 
       @notifier&.ping("Auto-exited #{auto_exit_count} Enrollments in #{auto_exit_projects.size} Projects")
+    rescue StandardError => e
+      puts e.message
+      @notifier.ping('Failure in auto-exit job', { exception: e })
+      Rails.logger.fatal e.message
     end
 
     private
