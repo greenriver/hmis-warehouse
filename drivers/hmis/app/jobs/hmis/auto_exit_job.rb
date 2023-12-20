@@ -8,8 +8,6 @@ module Hmis
   class AutoExitJob < BaseJob
     include NotifierConfig
 
-    queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
-
     def self.enabled?
       Hmis::AutoExitConfig.exists?
     end
