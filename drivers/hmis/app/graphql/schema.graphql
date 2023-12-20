@@ -3557,6 +3557,11 @@ type FormDefinition {
   title: String!
 }
 
+type FormDefinitionForJsonResult {
+  definition: FormDefinitionJson
+  errors: [String!]!
+}
+
 type FormDefinitionJson {
   """
   Nested items
@@ -8056,7 +8061,7 @@ type Query {
   esgFundingReport(clientIds: [ID!]!): [EsgFundingService!]!
   file(id: ID!): File
   formDefinition(id: ID!): FormDefinition
-  formDefinitionForJson(input: String!): FormDefinitionJson
+  formDefinitionForJson(input: String!): FormDefinitionForJsonResult
   formDefinitions(limit: Int, offset: Int): FormDefinitionsPaginated!
   formRule(id: ID!): FormRule
   formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!

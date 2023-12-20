@@ -209,11 +209,19 @@ module Types
       Hmis::Form::Definition.order(:id).with_role(role).first!
     end
 
-    field :form_definition_for_json, Types::Forms::FormDefinitionJson, null: true do
+    field :form_definition_for_json, Types::Forms::FormDefinitionForJsonResult, null: true do
       argument :input, String, required: true
     end
     def form_definition_for_json(input:)
-      JSON.parse(input)
+      json = JSON.parse(input)
+      errors = []
+      ::HmisUtil::JsonForms.new.tap do |builder|
+        builder.validate_definition(json, on_error: ->(err) { errors << err })
+      end
+
+      return { errors: errors, definition: nil } if errors.present?
+
+      return { errors: [], definition: json }
     end
 
     field :pick_list, [Types::Forms::PickListOption], 'Get list of options for pick list', null: false do
