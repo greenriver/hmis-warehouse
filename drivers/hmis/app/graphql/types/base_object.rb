@@ -62,7 +62,7 @@ module Types
       latest_version = versions.last # db-ordered so we choose the last record
       return unless latest_version
 
-      last_user_id = latest_version.true_user_id || latest_version.clean_user_id
+      last_user_id = latest_version.clean_true_user_id || latest_version.clean_user_id
       return unless last_user_id
 
       load_ar_scope(scope: Hmis::User.with_deleted, id: last_user_id)
