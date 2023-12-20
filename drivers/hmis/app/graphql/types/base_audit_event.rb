@@ -99,7 +99,9 @@ module Types
     # Attributes from the object or the current value
     # NOTE: Should ONLY be used to look at fields that don't change. It does not represent the state at any particular time.
     private def item_attributes
-      object.object || changed_record&.attributes || {}
+      return object.object_changes&.transform_values(&:last) if object.event == 'create'
+
+      object.object || changed_record&.attributes
     end
 
     def user
@@ -119,7 +121,7 @@ module Types
 
     # Fields that are always excluded.
     # Fields keys should match our DB casing, consult schema to determine appropriate casing.
-    EXCLUDED_KEYS = [
+    ALWAYS_EXCLUDED_KEYS = [
       'id',
       'DateCreated',
       'DateUpdated',
@@ -131,7 +133,9 @@ module Types
       result = object.object_changes
       return unless result.present?
 
-      result = result.reject! { |key| key.underscore.end_with?('_id') || EXCLUDED_KEYS.include?(key) || excluded_keys&.include?(key) }
+      result = result.reject do |key|
+        key.underscore.end_with?('_id') || ALWAYS_EXCLUDED_KEYS.include?(key) || excluded_keys&.include?(key)
+      end
       return unless result.any?
 
       result = transform_changes(object, result).map do |key, value|
@@ -190,9 +194,12 @@ module Types
       member.first
     end
 
-    # Mapping { ID => Label } for all custom data element definitions. There are not many of them.
+    # Mapping { ID => Label } for all custom data element definitions in the data source
     def custom_data_element_labels_by_id
-      @custom_data_element_labels_by_id = Hmis::Hud::CustomDataElementDefinition.pluck(:id, :label).to_h
+      data_source = load_ar_scope(scope: GrdaWarehouse::DataSource.hmis, id: current_user.hmis_data_source_id)
+      definitions = load_ar_association(data_source, :custom_data_element_definitions)
+
+      definitions.map { |cded| [cded.id, cded.label] }.to_h
     end
   end
 end
