@@ -65,8 +65,9 @@ module HudApr::Generators::Shared::Fy2024
 
     private def add_apr_clients # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/AbcSize
       @generator.client_scope.find_in_batches(batch_size: batch_size) do |batch|
+        @start_time = Time.current
         enrollments_by_client_id = clients_with_enrollments(batch)
-
+        puts "fetching batch completed in #{elapsed_time(Time.current - @start_time)}"
         # Pre-calculate some values
         household_types = {}
         household_assessment_required = {}
