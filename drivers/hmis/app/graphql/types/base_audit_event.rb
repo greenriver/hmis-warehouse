@@ -71,10 +71,10 @@ module Types
         'Contact Information'
       when 'Hmis::Hud::Disability'
         HudUtility2024.disability_type(item_attributes['DisabilityType']) || 'Disability'
-      # TODO: Add back CDE label more efficiently? The below causes N+1, and doesn't work for CDE destroy actions.
-      # We could look at `item_attributes['data_element_definition_id']` to determine the label, but it would still be N+1.
-      # when 'Hmis::Hud::CustomDataElement'
-      #   changed_record&.data_element_definition&.label
+      when 'Hmis::Hud::CustomDataElement'
+        # Try to label Custom Data Elements based on their definition label
+        definition_id = item_attributes['data_element_definition_id']
+        custom_data_element_labels_by_id[definition_id] || 'Custom Data Element'
       else
         object.item_type.demodulize.gsub(/^Custom(Client)?/, '').
           underscore.humanize.titleize
@@ -188,6 +188,11 @@ module Types
       return value unless member.present?
 
       member.first
+    end
+
+    # Mapping { ID => Label } for all custom data element definitions. There are not many of them.
+    def custom_data_element_labels_by_id
+      @custom_data_element_labels_by_id = Hmis::Hud::CustomDataElementDefinition.pluck(:id, :label).to_h
     end
   end
 end
