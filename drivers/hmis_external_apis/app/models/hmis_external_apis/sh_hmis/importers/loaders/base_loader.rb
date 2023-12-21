@@ -31,15 +31,31 @@ module HmisExternalApis::ShHmis::Importers::Loaders
 
     # 'YYYY/MM/DD HH24:MM:SS'
     DATE_TIME_FMT = '%Y/%m/%d %H:%M:%S'.freeze
+    DATE_FMT = '%Y/%m/%d'.freeze
+    DATE_FMT2 = '%m/%d/%Y'.freeze
+    DATE_FMT3 = '%Y-%m-%d'.freeze
+
     def valid_date?(str)
       str =~ /\A\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}\z/
     end
 
     def parse_date(str)
       return unless str
-      raise ArgumentError, "Invalid date-time format. Expected 'YYYY-MM-DD HH24:MM:SS' but got '#{str}'" unless valid_date?(str)
 
-      DateTime.strptime(str, DATE_TIME_FMT)
+      date = [
+        DATE_TIME_FMT,
+        DATE_FMT,
+        DATE_FMT2,
+        DATE_FMT3,
+      ].map do |fmt|
+        DateTime.strptime(str, fmt)
+      rescue ArgumentError => _e
+        nil
+      end.compact.first
+
+      raise ArgumentError, "Date didn't match any formats: '#{str}'" unless date
+
+      date
     end
 
     def cde_definition(owner_type:, key:)
