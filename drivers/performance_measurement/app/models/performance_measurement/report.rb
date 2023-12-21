@@ -259,6 +259,19 @@ module PerformanceMeasurement
       end
     end
 
+    private def spm_enrollments_from_answer_member(member)
+      case member
+      when HudSpmReport::Fy2023::SpmEnrollment
+        [member]
+      when HudSpmReport::Fy2023::Episode
+        member.enrollments
+      when HudSpmReport::Fy2023::Return
+        [member.return_enrollment, member.exit_enrollment]
+      else
+        raise "unknown type #{member.class.name}"
+      end
+    end
+
     private def add_clients(report_clients)
       # Run CoC-wide SPMs for year prior to selected date and period 2 years prior
       # add records for each client to indicate which projects they were enrolled in within the report window
@@ -269,35 +282,25 @@ module PerformanceMeasurement
           cells = parts[:cells]
           cells.each do |cell|
             cell_members(spec[:report], *cell).each do |member|
-              # discussed with Elliot, 12/19. Felt that it was appropriate to use HUD models directly since values are
-              # copied to report_client for reference
               hud_client = member.client
-              hud_projects = case member
-              when HudSpmReport::Fy2023::SpmEnrollment
-                [member.enrollment.project]
-              when HudSpmReport::Fy2023::Episode
-                member.enrollments.map(&:project).uniq
-              when HudSpmReport::Fy2023::Return
-                [member.return_enrollment.project.id, member.exit_enrollment.project]
-              else
-                raise "unknown type #{member.class.name}"
-              end
-
+              spm_enrollments = spm_enrollments_from_answer_member(member)
               report_client = report_clients[hud_client.id] || Client.new(report_id: id, client_id: hud_client.id)
               report_client[:dob] = hud_client.dob
               report_client[:veteran] = hud_client.veteran?
-              report_client[:source_client_personal_ids] ||= hud_client.source_clients.map(&:PersonalID).uniq.join('; ')
-              report_client["#{variant_name}_age"] ||= member.age
+              # SpmEnrollment.client_id seems to be the destination client
+              report_client[:source_client_personal_ids] ||= spm_enrollments.map(&:client_id).sort.uniq.join('; ')
+              report_client["#{variant_name}_age"] ||= spm_enrollments.max(&:age)
               # HoH status may vary, just note if they were ever an HoH
-              report_client["#{variant_name}_hoh"] ||= member.head_of_household
-              involved_projects << hud_project.id
+              report_client["#{variant_name}_hoh"] ||= spm_enrollments.any? { |e| e.enrollment.head_of_household? }
+              hud_project_ids = spm_enrollments.map { |e| e.enrollment.project.id }.uniq
+              involved_projects += hud_project_ids
               parts[:questions].each do |question|
                 report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(member)
-                hud_projects.each do |project|
+                hud_project_ids.each do |project_id|
                   project_clients << {
                     report_id: id,
                     client_id: hud_client.id,
-                    project_id: project.id,
+                    project_id: project_id,
                     for_question: question[:name], # allows limiting for a specific response
                     period: variant_name,
                   }
@@ -307,7 +310,7 @@ module PerformanceMeasurement
                 project_client_attrs = cpr.call(member)
                 next unless project_client_attrs
 
-                project_clients.push << project_client_attrs.reverse_merge(
+                project_clients << project_client_attrs.reverse_merge(
                   report_id: id,
                   client_id: hud_client.id,
                   period: variant_name,
@@ -385,26 +388,20 @@ module PerformanceMeasurement
 
     # @return [SpmEnrollment, Episode, Return] Cells have different member entity types
     private def cell_members(report, table, cell)
-      case table
+      scope = report.answer(question: table, cell: cell).universe_members.preload(universe_membership: :client)
+      preloaded_scope = case table
       when '1a', '1b'
-        klass = HudSpmReport::Fy2023::Episode
-        scope = report.answer(question: table, cell: cell).universe_members.where(universe_membership_type: klass.sti_name)
-        klass.where(id: scope.select(:universe_membership_type_id)).
-          preload(:client).
-          preload(enrollments: :project)
+        # Episode
+        # universe membership has spm_enrollments which have hud enrollments
+        scope.preload(universe_membership: { enrollments: { enrollment: :project } })
       when '2'
-        klass = HudSpmReport::Fy2023::Return
-        scope = report.answer(question: table, cell: cell).universe_members.where(universe_membership_type: klass.sti_name)
-        klass.where(id: scope.select(:universe_membership_type_id)).
-          preload(:client).
-          preload(exit_enrollment: :project)
+        # Return
+        scope.preload(universe_membership: { exit_enrollment: { enrollment: :project } })
       else
-        klass = HudSpmReport::Fy2023::SpmEnrollment
-        scope = report.answer(question: table, cell: cell).universe_members.where(universe_membership_type: klass.sti_name)
-        klass.where(id: scope.select(:universe_membership_type_id)).
-          preload(:client).
-          preload(enrollment: :project)
+        # SpmEnrollment
+        scope.preload(universe_membership: { enrollment: :project })
       end
+      preloaded_scope.map(&:universe_membership)
     end
 
     private def source_client_personal_ids(filter)
@@ -915,7 +912,7 @@ module PerformanceMeasurement
           ],
           client_project_rows: [
             ->(spm_enrollment) {
-              return unless destination_calculation(spm_enrollment)
+              return unless destination_calculation.call(spm_enrollment)
 
               {
                 project_id: spm_enrollment.enrollment.project.id,
@@ -925,7 +922,7 @@ module PerformanceMeasurement
             ->(spm_enrollment) {
               # list from drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2020/measure_seven.rb
               # represents institutional and permanent destinations for 7a.1 C3 and C4
-              return unless destination_calculation(spm_enrollment).in?(PERMANENT_TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS)
+              return unless destination_calculation.call(spm_enrollment).in?(PERMANENT_TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS)
 
               {
                 project_id: spm_enrollment.enrollment.project.id,
@@ -947,7 +944,7 @@ module PerformanceMeasurement
           ],
           client_project_rows: [
             ->(spm_enrollment) {
-              return unless destination_calculation(spm_enrollment)
+              return unless destination_calculation.call(spm_enrollment)
 
               {
                 project_id: spm_enrollment.enrollment.project.id,
@@ -955,7 +952,7 @@ module PerformanceMeasurement
               }
             },
             ->(spm_enrollment) {
-              return unless destination_calculation(spm_enrollment).in?(Base::PERMANENT_DESTINATIONS)
+              return unless destination_calculation.call(spm_enrollment).in?(Base::PERMANENT_DESTINATIONS)
 
               {
                 project_id: spm_enrollment.enrollment.project.id,
@@ -977,7 +974,7 @@ module PerformanceMeasurement
           ],
           client_project_rows: [
             ->(spm_enrollment) {
-              return unless destination_calculation(spm_enrollment)
+              return unless destination_calculation.call(spm_enrollment)
 
               {
                 project_id: spm_enrollment.enrollment.project.id,
@@ -985,7 +982,7 @@ module PerformanceMeasurement
               }
             },
             ->(spm_enrollment) {
-              return unless destination_calculation(spm_enrollment).in?(PERMANENT_DESTINATIONS_OR_STAYER)
+              return unless destination_calculation.call(spm_enrollment).in?(PERMANENT_DESTINATIONS_OR_STAYER)
 
               {
                 project_id: spm_enrollment.enrollment.project.id,
@@ -1015,7 +1012,7 @@ module PerformanceMeasurement
               return unless days_to_return_calculation.call(spm_return)&.between?(1, 180)
 
               {
-                project_id: spm_return.exit_enrollment.project.id,
+                project_id: spm_return.exit_enrollment.enrollment.project.id,
                 for_question: :returned_in_six_months,
               }
             },
@@ -1023,7 +1020,7 @@ module PerformanceMeasurement
               return unless days_to_return_calculation.call(spm_return)&.between?(1, 365)
 
               {
-                project_id: spm_return.exit_enrollment.project.id,
+                project_id: spm_return.exit_enrollment.enrollment.project.id,
                 for_question: :returned_in_one_year,
               }
             },
@@ -1031,7 +1028,7 @@ module PerformanceMeasurement
               return unless days_to_return_calculation.call(spm_return)&.between?(1, 730)
 
               {
-                project_id: spm_return.exit_enrollment.project.id,
+                project_id: spm_return.exit_enrollment.enrollment.project.id,
                 for_question: :returned_in_two_years,
               }
             },
@@ -1039,7 +1036,7 @@ module PerformanceMeasurement
               return unless exit_destination_calculation.call(spm_return).in?(PERMANENT_DESTINATIONS)
 
               {
-                project_id: spm_return.exit_enrollment.project.id,
+                project_id: spm_return.exit_enrollment.enrollment.project.id,
                 for_question: :exited_to_permanent_destination,
               }
             },

@@ -67,7 +67,7 @@ module HudSpmReport::Generators::Fy2023
       first_time_members = report_members.
         where.not(client_id: prior_members.preload(:universe_membership).map { |u| u.universe_membership.client_id })
       answer = @report.answer(question: table_name, cell: 'C4')
-      answer.update(summary: summary)
+      answer.update(summary: first_time_members.count)
       answer.add_members(first_time_members)
     end
 

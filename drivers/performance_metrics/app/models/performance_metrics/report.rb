@@ -667,11 +667,18 @@ module PerformanceMetrics
 
     # @return [SpmEnrollment, Episode, Return]
     private def answer_members(report, table, cell)
-      # FIXME: based on table, preload appropriate reationships
-      report.answer(question: table, cell: cell).universe_members.
-        preload(:universe_membership).
-        map(&:universe_membership).
-        index_by(&destination_client_column(report))
+      scope = report.answer(question: table, cell: cell).universe_members.
+        preload(:universe_membership)
+
+      preloaded_scope = case table
+      when '1a', '1b'
+        # Episode
+        scope.preload(universe_membership: :bed_nights)
+      else
+        # Return
+        scope
+      end
+      preloaded_scope.map(&:universe_membership).index_by(&destination_client_column(report))
     end
 
     private def destination_client_column(report)

@@ -457,7 +457,7 @@ module HomelessSummaryReport
               report_client[:first_name] = hud_client.first_name
               report_client[:last_name] = hud_client.last_name
               report_client[:report_id] = id
-              report_client["spm_#{spm_field}"] = parts.fetch(:value_accessor).call(spm_client)
+              report_client["spm_#{spm_field}"] = parts.fetch(:value_accessor).call(spm_member)
               # FIXME: document what this is
               report_client[field_name(cell)] = true if field_measure(spm_field) == 7
               report_client[detail_variant_name] = report[:report].id # SPM ID for future reference
@@ -541,8 +541,15 @@ module HomelessSummaryReport
 
     # @return [SpmEnrollment, Episode, Return] Cells have different member entity types
     private def answer_members(report, table, cell)
-      # FIXME- needs appropriate preload
-      report.answer(question: table, cell: cell).universe_members.map(&:universe_membership)
+      scope = report.answer(question: table, cell: cell).universe_members
+      case table
+      when '1a', '1b'
+        # Episode
+        scope.preload(universe_membership: [:client, :bed_nights]).map(&:universe_membership)
+      else
+        # Return, SpmEnrollment
+        scope.preload(universe_membership: [:client]).map(&:universe_membership)
+      end
     end
 
     private def run_spm
