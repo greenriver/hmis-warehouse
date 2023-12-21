@@ -268,33 +268,54 @@ module PerformanceMeasurement
         spm_fields.each do |parts|
           cells = parts[:cells]
           cells.each do |cell|
-            spm_enrollments(spec[:report], *cell).each do |spm_enrollment|
-              report_client = report_clients[spm_enrollment.client_id] || Client.new(report_id: id, client_id: spm_enrollment.client_id)
-              report_client[:dob] = spm_enrollment.dob
-              report_client[:veteran] = spm_enrollment.veteran
-              report_client[:source_client_personal_ids] ||= spm_enrollment.source_client_personal_ids
-              report_client["#{variant_name}_age"] ||= spm_enrollment.age
-              # HoH status may vary, just note if they were ever an HoH
-              report_client["#{variant_name}_hoh"] ||= spm_enrollment.head_of_household
-              involved_projects << project_id
-              parts[:questions].each do |question|
-                report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(spm_enrollment)
-                project_clients << {
-                  report_id: id,
-                  client_id: spm_enrollment.client_id,
-                  project_id: spm_enrollment.project_id,
-                  for_question: question[:name], # allows limiting for a specific response
-                  period: variant_name,
-                }
+            cell_members(spec[:report], *cell).each do |member|
+              # discussed with Elliot, 12/19. Felt that it was appropriate to use HUD models directly since values are
+              # copied to report_client for reference
+              hud_client = member.client
+              hud_projects = case member
+              when HudSpmReport::Fy2023::SpmEnrollment
+                [member.enrollment.project]
+              when HudSpmReport::Fy2023::Episode
+                member.enrollments.map(&:project).uniq
+              when HudSpmReport::Fy2023::Return
+                [member.return_enrollment.project.id, member.exit_enrollment.project]
+              else
+                raise "unknown type #{member.class.name}"
               end
-              if parts.key?(:client_project_rows)
-                parts[:client_project_rows].each do |cpr|
-                  project_clients << cpr.call(spm_enrollment, project_id, variant_name)
+
+              report_client = report_clients[hud_client.id] || Client.new(report_id: id, client_id: hud_client.id)
+              report_client[:dob] = hud_client.dob
+              report_client[:veteran] = hud_client.veteran?
+              report_client[:source_client_personal_ids] ||= hud_client.source_clients.map(&:PersonalID).uniq.join('; ')
+              report_client["#{variant_name}_age"] ||= member.age
+              # HoH status may vary, just note if they were ever an HoH
+              report_client["#{variant_name}_hoh"] ||= member.head_of_household
+              involved_projects << hud_project.id
+              parts[:questions].each do |question|
+                report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(member)
+                hud_projects.each do |project|
+                  project_clients << {
+                    report_id: id,
+                    client_id: hud_client.id,
+                    project_id: project.id,
+                    for_question: question[:name], # allows limiting for a specific response
+                    period: variant_name,
+                  }
                 end
+              end
+              parts[:client_project_rows]&.each do |cpr|
+                project_client_attrs = cpr.call(member)
+                next unless project_client_attrs
+
+                project_clients.push << project_client_attrs.reverse_merge(
+                  report_id: id,
+                  client_id: hud_client.id,
+                  period: variant_name,
+                )
               end
 
               report_client["#{variant_name}_spm_id"] = spec[:report].id
-              report_clients[spm_enrollment.client_id] = report_client
+              report_clients[member.client_id] = report_client
             end
           end
         end
@@ -362,8 +383,28 @@ module PerformanceMeasurement
       report.answer(question: table, cell: cell).summary
     end
 
-    private def spm_enrollments(report, table, cell)
-      report.answer(question: table, cell: cell).universe_members.preload(:universe_membership).map(&:universe_membership)
+    # @return [SpmEnrollment, Episode, Return] Cells have different member entity types
+    private def cell_members(report, table, cell)
+      case table
+      when '1a', '1b'
+        klass = HudSpmReport::Fy2023::Episode
+        scope = report.answer(question: table, cell: cell).universe_members.where(universe_membership_type: klass.sti_name)
+        klass.where(id: scope.select(:universe_membership_type_id)).
+          preload(:client).
+          preload(enrollments: :project)
+      when '2'
+        klass = HudSpmReport::Fy2023::Return
+        scope = report.answer(question: table, cell: cell).universe_members.where(universe_membership_type: klass.sti_name)
+        klass.where(id: scope.select(:universe_membership_type_id)).
+          preload(:client).
+          preload(exit_enrollment: :project)
+      else
+        klass = HudSpmReport::Fy2023::SpmEnrollment
+        scope = report.answer(question: table, cell: cell).universe_members.where(universe_membership_type: klass.sti_name)
+        klass.where(id: scope.select(:universe_membership_type_id)).
+          preload(:client).
+          preload(enrollment: :project)
+      end
     end
 
     private def source_client_personal_ids(filter)
@@ -795,18 +836,33 @@ module PerformanceMeasurement
       }
     end
 
-    def spm_fields # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+    def spm_fields
+      default_calculation = ->(spm_enrollment) { spm_enrollment.present? }
+      days_homeless_calculation = ->(spm_episode) { spm_episode.days_homeless }
+      destination_calculation = ->(spm_enrollment) { spm_enrollment.destination }
+      days_to_return_calculation = ->(spm_return) { spm_return.days_to_return }
+      exit_destination_calculation = ->(spm_return) { spm_return.exit_destination }
+      increased_non_employment_income_calculation = ->(spm_enrollment) {
+        spm_enrollment.current_non_employment_income.to_f > spm_enrollment.previous_non_employment_income.to_f
+      }
+      increased_total_income_calculation = ->(spm_enrollment) {
+        spm_enrollment.current_total_income.to_f > spm_enrollment.previous_total_income.to_f
+      }
+      increased_earned_income_calculation = ->(spm_enrollment) {
+        spm_enrollment.current_earned_income.to_f > spm_enrollment.previous_earned_income.to_f
+      }
+
       [
         {
           cells: [['3.2', 'C2']],
           title: 'Sheltered Clients',
           measure: :m3,
           history_source: :m3_history,
-          project_source: :m3_project_id,
           questions: [
             {
               name: :served_on_pit_date_sheltered, # Poorly named, this is actually a yearly count
-              value_calculation: ->(spm_client) { spm_client.present? },
+              # value_calculation: ->(spm_client) { spm_client[:m3_active_project_types].present? },
+              value_calculation: default_calculation,
             },
           ],
         },
@@ -815,11 +871,10 @@ module PerformanceMeasurement
           title: 'First Time',
           measure: :m5,
           history_source: :m5_history,
-          project_source: :m5_project_id,
           questions: [
             {
               name: :first_time,
-              value_calculation: ->(spm_client) { spm_client[:m5_active_project_types].present? && spm_client[:m5_recent_project_types].blank? },
+              value_calculation: default_calculation,
             },
           ],
         },
@@ -831,7 +886,7 @@ module PerformanceMeasurement
           questions: [
             {
               name: :days_homeless_es_sh_th,
-              value_calculation: ->(spm_client) { spm_client[:m1a_es_sh_th_days] },
+              value_calculation: days_homeless_calculation,
             },
           ],
         },
@@ -843,7 +898,7 @@ module PerformanceMeasurement
           questions: [
             {
               name: :days_homeless_es_sh_th_ph,
-              value_calculation: ->(spm_client) { spm_client[:m1b_es_sh_th_ph_days] },
+              value_calculation: days_homeless_calculation,
             },
           ],
         },
@@ -852,36 +907,29 @@ module PerformanceMeasurement
           title: 'Exits from SO',
           measure: :m7,
           history_source: :m7_history,
-          project_source: :m7a1_project_id,
           questions: [
             {
               name: :so_destination,
-              value_calculation: ->(spm_client) { spm_client[:m7a1_destination] },
+              value_calculation: destination_calculation,
             },
           ],
           client_project_rows: [
-            ->(spm_client, project_id, variant_name) {
-              return unless spm_client[:m7a1_destination].present?
+            ->(spm_enrollment) {
+              return unless destination_calculation(spm_enrollment)
 
               {
-                report_id: id,
-                client_id: spm_client[:client_id],
-                project_id: project_id,
+                project_id: spm_enrollment.enrollment.project.id,
                 for_question: :so_destination,
-                period: variant_name,
               }
             },
-            ->(spm_client, project_id, variant_name) {
+            ->(spm_enrollment) {
               # list from drivers/hud_spm_report/app/models/hud_spm_report/generators/fy2020/measure_seven.rb
               # represents institutional and permanent destinations for 7a.1 C3 and C4
-              return unless spm_client[:m7a1_destination].present? && spm_client[:m7a1_destination].in?(PERMANENT_TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS)
+              return unless destination_calculation(spm_enrollment).in?(PERMANENT_TEMPORARY_AND_INSTITUTIONAL_DESTINATIONS)
 
               {
-                report_id: id,
-                client_id: spm_client[:client_id],
-                project_id: project_id,
+                project_id: spm_enrollment.enrollment.project.id,
                 for_question: :so_destination_positive,
-                period: variant_name,
               }
             },
           ],
@@ -891,34 +939,27 @@ module PerformanceMeasurement
           title: 'Exits from ES, SH, TH, RRH, PH with No Move-in',
           measure: :m7,
           history_source: :m7b_history,
-          project_source: :m7b_project_id,
           questions: [
             {
               name: :es_sh_th_rrh_destination,
-              value_calculation: ->(spm_client) { spm_client[:m7b1_destination] },
+              value_calculation: destination_calculation,
             },
           ],
           client_project_rows: [
-            ->(spm_client, project_id, variant_name) {
-              return unless spm_client[:m7b1_destination].present?
+            ->(spm_enrollment) {
+              return unless destination_calculation(spm_enrollment)
 
               {
-                report_id: id,
-                client_id: spm_client[:client_id],
-                project_id: project_id,
+                project_id: spm_enrollment.enrollment.project.id,
                 for_question: :es_sh_th_rrh_destination,
-                period: variant_name,
               }
             },
-            ->(spm_client, project_id, variant_name) {
-              return unless spm_client[:m7b1_destination].present? && spm_client[:m7b1_destination].in?(Base::PERMANENT_DESTINATIONS)
+            ->(spm_enrollment) {
+              return unless destination_calculation(spm_enrollment).in?(Base::PERMANENT_DESTINATIONS)
 
               {
-                report_id: id,
-                client_id: spm_client[:client_id],
-                project_id: project_id,
+                project_id: spm_enrollment.enrollment.project.id,
                 for_question: :es_sh_th_rrh_destination_positive,
-                period: variant_name,
               }
             },
           ],
@@ -928,34 +969,27 @@ module PerformanceMeasurement
           title: 'RRH, PH with Move-in or Permanent Exit',
           measure: :m7,
           history_source: :m7b_history,
-          project_source: :m7b_project_id,
           questions: [
             {
               name: :moved_in_destination, # NOTE: destination 0 == stayer in the SPM
-              value_calculation: ->(spm_client) { spm_client[:m7b2_destination] },
+              value_calculation: destination_calculation,
             },
           ],
           client_project_rows: [
-            ->(spm_client, project_id, variant_name) {
-              return unless spm_client[:m7b2_destination].present?
+            ->(spm_enrollment) {
+              return unless destination_calculation(spm_enrollment)
 
               {
-                report_id: id,
-                client_id: spm_client[:client_id],
-                project_id: project_id,
+                project_id: spm_enrollment.enrollment.project.id,
                 for_question: :moved_in_destination,
-                period: variant_name,
               }
             },
-            ->(spm_client, project_id, variant_name) {
-              return unless spm_client[:m7b2_destination].present? && spm_client[:m7b2_destination].in?(PERMANENT_DESTINATIONS_OR_STAYER)
+            ->(spm_enrollment) {
+              return unless destination_calculation(spm_enrollment).in?(PERMANENT_DESTINATIONS_OR_STAYER)
 
               {
-                report_id: id,
-                client_id: spm_client[:client_id],
-                project_id: project_id,
+                project_id: spm_enrollment.enrollment.project.id,
                 for_question: :moved_in_destination_positive,
-                period: variant_name,
               }
             },
           ],
@@ -965,61 +999,48 @@ module PerformanceMeasurement
           title: 'Returned to Homelessness Within 6 months',
           measure: :m2,
           history_source: :m2_history,
-          project_source: :m2_project_id,
           questions: [
             {
               name: :days_to_return,
-              value_calculation: ->(spm_client) { spm_client[:m2_reentry_days] },
+              value_calculation: days_to_return_calculation,
             },
             {
               name: :prior_destination,
-              value_calculation: ->(spm_client) { spm_client[:m2_exit_to_destination] },
+              value_calculation: exit_destination_calculation,
             },
           ],
           # This needs to introspect on the number of days to re-entry and save off extra client_project records
           client_project_rows: [
-            ->(spm_client, project_id, variant_name) {
-              return unless spm_client[:m2_reentry_days].present? && spm_client[:m2_reentry_days].between?(1, 180)
+            ->(spm_return) {
+              return unless days_to_return_calculation.call(spm_return)&.between?(1, 180)
 
               {
-                report_id: id,
-                client_id: spm_client[:client_id],
-                project_id: project_id,
+                project_id: spm_return.exit_enrollment.project.id,
                 for_question: :returned_in_six_months,
-                period: variant_name,
               }
             },
-            ->(spm_client, project_id, variant_name) {
-              return unless spm_client[:m2_reentry_days].present? && spm_client[:m2_reentry_days].between?(1, 365)
+            ->(spm_return) {
+              return unless days_to_return_calculation.call(spm_return)&.between?(1, 365)
 
               {
-                report_id: id,
-                client_id: spm_client[:client_id],
-                project_id: project_id,
+                project_id: spm_return.exit_enrollment.project.id,
                 for_question: :returned_in_one_year,
-                period: variant_name,
               }
             },
-            ->(spm_client, project_id, variant_name) {
-              return unless spm_client[:m2_reentry_days].present? && spm_client[:m2_reentry_days].between?(1, 730)
+            ->(spm_return) {
+              return unless days_to_return_calculation.call(spm_return)&.between?(1, 730)
 
               {
-                report_id: id,
-                client_id: spm_client[:client_id],
-                project_id: project_id,
+                project_id: spm_return.exit_enrollment.project.id,
                 for_question: :returned_in_two_years,
-                period: variant_name,
               }
             },
-            ->(spm_client, project_id, variant_name) {
-              return unless spm_client[:m2_exit_to_destination].present? && PERMANENT_DESTINATIONS.include?(spm_client[:m2_exit_to_destination])
+            ->(spm_return) {
+              return unless exit_destination_calculation.call(spm_return).in?(PERMANENT_DESTINATIONS)
 
               {
-                report_id: id,
-                client_id: spm_client[:client_id],
-                project_id: project_id,
+                project_id: spm_return.exit_enrollment.project.id,
                 for_question: :exited_to_permanent_destination,
-                period: variant_name,
               }
             },
           ],
@@ -1029,27 +1050,23 @@ module PerformanceMeasurement
           title: 'Stayers with Increased Income',
           measure: :m4,
           history_source: :m4_history,
-          project_source: :m4_project_id,
           questions: [
             {
               name: :income_stayer,
-              value_calculation: ->(spm_client) { spm_client[:m4_stayer] },
+              value_calculation: default_calculation,
             },
             {
               name: :increased_income,
-              value_calculation: ->(spm_client) { (spm_client[:m4_latest_income].presence || 0) > (spm_client[:m4_earliest_income].presence || 0) },
+              value_calculation: increased_total_income_calculation,
             },
           ],
           client_project_rows: [
-            ->(spm_client, project_id, variant_name) {
-              return unless spm_client[:m4_stayer] && (spm_client[:m4_latest_income].presence || 0) > (spm_client[:m4_earliest_income].presence || 0)
+            ->(spm_enrollment) {
+              return unless increased_total_income_calculation.call(spm_enrollment)
 
               {
-                report_id: id,
-                client_id: spm_client[:client_id],
-                project_id: project_id,
+                project_id: spm_enrollment.enrollment.project.id,
                 for_question: :increased_income__income_stayer,
-                period: variant_name,
               }
             },
           ],
@@ -1059,23 +1076,19 @@ module PerformanceMeasurement
           title: 'Stayers with Increased Earned Income',
           measure: :m4,
           history_source: :m4_history,
-          project_source: :m4_project_id,
           questions: [
             {
               name: :earned_income_stayer,
-              value_calculation: ->(spm_client) { (spm_client[:m4_latest_earned_income].presence || 0) > (spm_client[:m4_earliest_earned_income].presence || 0) },
+              value_calculation: increased_earned_income_calculation,
             },
           ],
           client_project_rows: [
-            ->(spm_client, project_id, variant_name) {
-              return unless spm_client[:m4_stayer] && (spm_client[:m4_latest_earned_income].presence || 0) > (spm_client[:m4_earliest_earned_income].presence || 0)
+            ->(spm_enrollment) {
+              return unless increased_earned_income_calculation.call(spm_enrollment)
 
               {
-                report_id: id,
-                client_id: spm_client[:client_id],
-                project_id: project_id,
+                project_id: spm_enrollment.enrollment.project.id,
                 for_question: :increased_income__earned_income_stayer,
-                period: variant_name,
               }
             },
           ],
@@ -1085,23 +1098,19 @@ module PerformanceMeasurement
           title: 'Stayers with Increased Non-Cash Income',
           measure: :m4,
           history_source: :m4_history,
-          project_source: :m4_project_id,
           questions: [
             {
               name: :non_employment_income_stayer,
-              value_calculation: ->(spm_client) { (spm_client[:m4_latest_non_earned_income].presence || 0) > (spm_client[:m4_earliest_non_earned_income].presence || 0) },
+              value_calculation: increased_non_employment_income_calculation,
             },
           ],
           client_project_rows: [
-            ->(spm_client, project_id, variant_name) {
-              return unless spm_client[:m4_stayer] && (spm_client[:m4_latest_non_earned_income].presence || 0) > (spm_client[:m4_earliest_non_earned_income].presence || 0)
+            ->(spm_enrollment) {
+              return unless increased_non_employment_income_calculation.call(spm_enrollment)
 
               {
-                report_id: id,
-                client_id: spm_client[:client_id],
-                project_id: project_id,
+                project_id: spm_enrollment.enrollment.project.id,
                 for_question: :increased_income__non_earned_income_stayer,
-                period: variant_name,
               }
             },
           ],
@@ -1111,27 +1120,23 @@ module PerformanceMeasurement
           title: 'Leavers with Increased Income',
           measure: :m4,
           history_source: :m4_history,
-          project_source: :m4_project_id,
           questions: [
             {
               name: :income_leaver,
-              value_calculation: ->(spm_client) { spm_client[:m4_stayer] == false },
+              value_calculation: default_calculation,
             },
             {
               name: :increased_income,
-              value_calculation: ->(spm_client) { (spm_client[:m4_latest_income].presence || 0) > (spm_client[:m4_earliest_income].presence || 0) },
+              value_calculation: increased_total_income_calculation,
             },
           ],
           client_project_rows: [
-            ->(spm_client, project_id, variant_name) {
-              return unless ! spm_client[:m4_stayer] && (spm_client[:m4_latest_income].presence || 0) > (spm_client[:m4_earliest_income].presence || 0)
+            ->(spm_enrollment) {
+              return unless increased_total_income_calculation.call(spm_enrollment)
 
               {
-                report_id: id,
-                client_id: spm_client[:client_id],
-                project_id: project_id,
+                project_id: spm_enrollment.enrollment.project.id,
                 for_question: :increased_income__income_leaver,
-                period: variant_name,
               }
             },
           ],
@@ -1141,23 +1146,19 @@ module PerformanceMeasurement
           title: 'Leavers with Increased Earned Income',
           measure: :m4,
           history_source: :m4_history,
-          project_source: :m4_project_id,
           questions: [
             {
               name: :earned_income_leaver,
-              value_calculation: ->(spm_client) { (spm_client[:m4_latest_earned_income].presence || 0) > (spm_client[:m4_earliest_earned_income].presence || 0) },
+              value_calculation: increased_earned_income_calculation,
             },
           ],
           client_project_rows: [
-            ->(spm_client, project_id, variant_name) {
-              return unless ! spm_client[:m4_stayer] && (spm_client[:m4_latest_earned_income].presence || 0) > (spm_client[:m4_earliest_earned_income].presence || 0)
+            ->(spm_enrollment) {
+              return unless increased_earned_income_calculation.call(spm_enrollment)
 
               {
-                report_id: id,
-                client_id: spm_client[:client_id],
-                project_id: project_id,
+                project_id: spm_enrollment.enrollment.project.id,
                 for_question: :increased_income__earned_income_leaver,
-                period: variant_name,
               }
             },
           ],
@@ -1167,23 +1168,19 @@ module PerformanceMeasurement
           title: 'Leavers with Increased Non-Cash Income',
           measure: :m4,
           history_source: :m4_history,
-          project_source: :m4_project_id,
           questions: [
             {
               name: :non_employment_income_leaver,
-              value_calculation: ->(spm_client) { (spm_client[:m4_latest_non_earned_income].presence || 0) > (spm_client[:m4_earliest_non_earned_income].presence || 0) },
+              value_calculation: increased_non_employment_income_calculation,
             },
           ],
           client_project_rows: [
-            ->(spm_client, project_id, variant_name) {
-              return unless ! spm_client[:m4_stayer] && (spm_client[:m4_latest_non_earned_income].presence || 0) > (spm_client[:m4_earliest_non_earned_income].presence || 0)
+            ->(spm_enrollment) {
+              return unless increased_non_employment_income_calculation.call(spm_enrollment)
 
               {
-                report_id: id,
-                client_id: spm_client[:client_id],
-                project_id: project_id,
+                project_id: spm_enrollment.enrollment.project.id,
                 for_question: :increased_income__non_earned_income_leaver,
-                period: variant_name,
               }
             },
           ],

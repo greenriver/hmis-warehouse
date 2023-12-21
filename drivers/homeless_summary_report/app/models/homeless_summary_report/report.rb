@@ -445,19 +445,25 @@ module HomelessSummaryReport
           demographic_variant_clients[detail_variant_name] = client_ids_for_demographic_category(spec, sub_spec)
         end
 
+        # m1a_es_sh_days: {
+        #   cells: [['1a', 'B1']],
+        #   title: 'with ES or SH stays',
+        #   calculations: [:count, :average, :median],
+        # },
         spm_fields.each do |spm_field, parts|
-          cells = parts[:cells]
-          cells.each do |cell|
-            spm_clients = answer_clients(report[:report], *cell)
-            spm_clients.each do |spm_client|
+          parts.fetch(:cells).each do |cell|
+            spm_members = answer_members(report[:report], *cell)
+            spm_members.each do |spm_member|
+              hud_client = spm_member.client
               detail_variant_name = "spm_#{household_category}__all"
-              client_id = spm_client[:client_id]
+              client_id = hud_client.id
               report_client = report_clients[client_id] || Client.new_with_default_values
               report_client[:client_id] = client_id
-              report_client[:first_name] = spm_client[:first_name]
-              report_client[:last_name] = spm_client[:last_name]
+              report_client[:first_name] = hud_client.first_name
+              report_client[:last_name] = hud_client.last_name
               report_client[:report_id] = id
-              report_client["spm_#{spm_field}"] = spm_client[spm_field]
+              report_client["spm_#{spm_field}"] = parts.fetch(:value_accessor).call(spm_client)
+              # FIXME: document what this is
               report_client[field_name(cell)] = true if field_measure(spm_field) == 7
               report_client[detail_variant_name] = report[:report].id # SPM ID for future reference
               report_clients[client_id] = report_client
@@ -538,7 +544,7 @@ module HomelessSummaryReport
       report.answer(question: table, cell: cell).summary
     end
 
-    private def answer_clients(report, table, cell)
+    private def answer_members(report, table, cell)
       report.answer(question: table, cell: cell).universe_members.map(&:universe_membership)
     end
 
@@ -658,26 +664,31 @@ module HomelessSummaryReport
       {
         m1a_es_sh_days: {
           cells: [['1a', 'B1']],
+          value_accessor: ->(spm_episode) { spm_episode.bed_nights.size },
           title: 'with ES or SH stays',
           calculations: [:count, :average, :median],
         },
         m1a_es_sh_th_days: {
           cells: [['1a', 'B2']],
+          value_accessor: ->(spm_episode) { spm_episode.bed_nights.size },
           title: 'with ES, SH, or TH stays',
           calculations: [:count, :average, :median],
         },
         m1b_es_sh_ph_days: {
           cells: [['1b', 'B1']],
+          value_accessor: ->(spm_episode) { spm_episode.bed_nights.size },
           title: 'with ES, SH, or PH stays',
           calculations: [:count, :average, :median],
         },
         m1b_es_sh_th_ph_days: {
           cells: [['1b', 'B2']],
+          value_accessor: ->(spm_episode) { spm_episode.bed_nights.size },
           title: 'with ES, SH, TH, or PH stays',
           calculations: [:count, :average, :median],
         },
         m2_reentry_days: {
           cells: [['2', 'B7']],
+          value_accessor: ->(_spm_return) { spm_episode.days_to_return },
           title: 'Re-Entering Homelessness',
         },
         m7a1_destination: {
@@ -686,6 +697,7 @@ module HomelessSummaryReport
             ['7a.1', 'C3'],
             ['7a.1', 'C4'],
           ],
+          value_accessor: ->(spm_enrollment) { spm_enrollment.destination },
           title: 'who exit Street Outreach',
           calculations: [:count, :count_destinations],
         },
@@ -694,6 +706,7 @@ module HomelessSummaryReport
             ['7b.1', 'C2'],
             ['7b.1', 'C3'],
           ],
+          value_accessor: ->(spm_enrollment) { spm_enrollment.destination },
           title: 'in ES, SH, TH, and PH-RRH who exited, plus persons in other PH projects who exited without moving into housing',
           calculations: [:count, :count_destinations],
         },
@@ -702,6 +715,7 @@ module HomelessSummaryReport
             ['7b.2', 'C2'],
             ['7b.2', 'C3'],
           ],
+          value_accessor: ->(spm_enrollment) { spm_enrollment.destination },
           title: 'in all PH projects except PH-RRH who exited after moving into housing, or who moved into housing and remained in the PH project',
           calculations: [:count, :count_destinations],
         },

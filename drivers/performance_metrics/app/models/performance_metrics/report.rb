@@ -502,7 +502,7 @@ module PerformanceMetrics
     private def add_clients(report_clients, period:)
       caper_report = run_caper
       # Q16 D14 is Total Adults - Income at Exit for Leavers
-      caper_clients = answer_clients(caper_report, 'Q16', 'D14')
+      caper_clients = answer_members(caper_report, 'Q16', 'D14')
 
       rrh_clients = run_rrh.support_for(
         :time_in_stabilization,
@@ -604,12 +604,11 @@ module PerformanceMetrics
         # NOTE: SPM has a 2 year look-back so they may not be in the enrolled clients
         spm_report = run_spm
         # M2 B7 is TOTAL Returns to Homeless - Number of Returns in 2 Years
-        spm_returners = answer_clients(spm_report, '2', 'I7')
+        spm_returners = answer_members(spm_report, '2', 'I7') # HudSpmReport::Fy2023::Return
         # M2 I7 is Total Number of Persons who Exited to a Permanent Housing Destination (2 Years Prior)
-        spm_leavers = answer_clients(spm_report, '2', 'B7')
-
-        # FIXME, the leavers/returners (universe_members) are SpmEnrollments in 2024; they used to be SpmClients.
-        # We probably need to to unpack enrollment.episodes to get equiv of m1a_es_sh_th_days and m2_reentry_days.
+        spm_leavers = answer_members(spm_report, '2', 'B7') # HudSpmReport::Fy2023::Return
+        # 1A B2 is Total Number of Persons in ES, SH, and TH
+        spm_episodes = answer_members(spm_report, '1a', 'B2') # HudSpmReport::Fy2023::Episode
 
         spm_leavers.each do |client_id, spm_client|
           days_in_es = nil
@@ -618,9 +617,8 @@ module PerformanceMetrics
           spm_returner = spm_returners[client_id]
           spm_leaver = spm_leavers.keys.include?(client_id)
           if spm_returner
-            # this probably crashes
-            days_in_es = spm_returner.m1a_es_sh_th_days
-            days_to_return = spm_returner.m2_reentry_days
+            days_in_es = spm_episodes[client_id].bed_nights.size
+            days_to_return = spm_returner.days_to_return
           end
           report_client = report_clients[client_id] || Client.new
           report_client.assign_attributes(
@@ -667,7 +665,9 @@ module PerformanceMetrics
       report.answer(question: table, cell: cell).numeric_value
     end
 
-    private def answer_clients(report, table, cell)
+    # @return [SpmEnrollment, Episode, Return]
+    private def answer_members(report, table, cell)
+      # FIXME: based on table, preload appropriate reationships
       report.answer(question: table, cell: cell).universe_members.
         preload(:universe_membership).
         map(&:universe_membership).
@@ -682,7 +682,7 @@ module PerformanceMetrics
 
     private def run_spm
       # puts 'Running SPM'
-      questions = ['Measure 2']
+      questions = ['Measure 1', 'Measure 2']
       # NOTE: we need to include all homeless projects visible to this user, plus the chosen scope,
       # so that the returns calculation will work.
       options = filter.to_h
