@@ -115,4 +115,115 @@ namespace :import do
       raise "Failed to import #{result.failed_instances} records" if result.failed_instances.present?
     end
   end
+
+  # Usage: rails driver:hmis_external_apis:import:ac_import_move_in_addresses_20231128[var/SampleMoveInAddr.csv,true]
+  desc 'One-off import Services Provided'
+  task :sh_import_services_provided_20231019, [:file, :dry_run] => [:environment] do |_task, args|
+    raise 'file not valid' unless args.file && File.exist?(args.file)
+
+    dry_run = args.dry_run == 'true'
+
+    Rails.logger.info "Dry run? #{dry_run}"
+
+    require 'csv'
+
+    csv = CSV.read(args.file, headers: true)
+
+    data_source = GrdaWarehouse::DataSource.hmis.first
+    system_hud_user = Hmis::Hud::User.system_user(data_source_id: data_source.id)
+    skipped = 0
+    expected = 0
+    records = []
+
+    # { Unique ID => CustomCaseNote record }
+    records_by_id = {}
+    enrollment_id_to_personal_id = Hmis::Hud::Enrollment.hmis.pluck(:enrollment_id, :personal_id).to_h
+
+    DATE_TIME_FMT = '%Y/%m/%d %H:%M:%S'.freeze
+
+    def parse_date(str)
+      return unless str
+
+      DateTime.strptime(str, DATE_TIME_FMT)
+    end
+    hud_user_ids = Hmis::Hud::User.hmis.pluck(:user_id).to_set
+    csv.each do |row|
+      personal_id = row['Participant Enterprise Identifier']&.gsub(/-/, '')
+      enrollment_id = row['Unique Enrollment Identifier'].gsub(/{|}|-/, '')
+      unique_note_id = row['Question Unique Identifier']
+      next unless enrollment_id
+      next unless personal_id
+
+      expected += 1 unless records_by_id.key?(unique_note_id)
+
+      # its ok if the personal id doesnt match because they may have been merged. go off enrollment id only.
+      real_personal_id = enrollment_id_to_personal_id[enrollment_id]
+      # enrollment ID not found, skip
+      next unless real_personal_id
+
+      date_taken = parse_date(row['Date Taken'])&.to_date
+      date_last_updated = parse_date(row['Date Last Updated'])
+      staff_id = row['Staff ID']
+      user_id = hud_user_ids.include?(staff_id) ? staff_id : system_hud_user.user_id
+      records_by_id[unique_note_id] ||= {
+        EnrollmentID: enrollment_id,
+        PersonalID: real_personal_id,
+        CustomServiceID: Hmis::Hud::Base.generate_uuid,
+        data_source_id: data_source.id,
+        information_date: date_taken,
+        UserID: user_id,
+        DateCreated: date_taken,
+        DateUpdated: date_last_updated,
+      }
+
+      records_by_id[unique_note_id][:DateCreated] = [records_by_id[unique_note_id][:DateCreated], date_taken].min
+      records_by_id[unique_note_id][:DateUpdated] = [records_by_id[unique_note_id][:DateUpdated], date_last_updated].max
+
+      question = row['Question']
+      next unless row['Answer']&.present?
+
+      case question
+      when 'Date of Contact'
+        info_date = parse_date(row['Answer'])&.to_date
+        records_by_id[unique_note_id][:information_date] = info_date if info_date
+      when 'Contact Location / Method'
+        records_by_id[unique_note_id][:location] = "Location: #{row['Answer']}"
+      when 'Date of Next Contact'
+        records_by_id[unique_note_id][:next_contact] = "Date of Next Contact: #{row['Answer']}" # format
+      when 'HUD Services Provided'
+        services = row['Answer']&.split('|')&.compact_blank&.join(', ')
+        records_by_id[unique_note_id][:services_provided] = "Services Provided: #{services}"
+      when 'Time Spent'
+        records_by_id[unique_note_id][:time_spent] = "Time Spent: #{row['Answer']}"
+      when 'Notes'
+        records_by_id[unique_note_id][:notes] = "Notes: #{row['Answer']}"
+      end
+    end
+
+    records = []
+    records_by_id.each do |id, hash|
+      note_keyset = [:location, :next_contact, :services_provided, :time_spent, :notes]
+      left, right = hash.partition { |k, _v| note_keyset.include?(k) }.map(&:to_h)
+
+      right.compact_blank!
+      content = []
+      content << right[:services_provided]
+      content << right[:notes]
+      content << right[:location]
+      content << right[:time_spent]
+      content << right[:next_contact]
+      left[:content] = content.join("\n\n")
+      records << left
+    end
+
+    Rails.logger.info "Skipped #{skipped}. #{records.size} to create."
+    Rails.logger.info "Dry run? #{dry_run}"
+    next if dry_run
+
+    Rails.logger.info 'Importing records'
+    # Hmis::Hud::CustomCaseNote.transaction do
+    #   result = Hmis::Hud::CustomCaseNote.import(records)
+    #   raise "Failed to import #{result.failed_instances} records" if result.failed_instances.any?
+    # end
+  end
 end
