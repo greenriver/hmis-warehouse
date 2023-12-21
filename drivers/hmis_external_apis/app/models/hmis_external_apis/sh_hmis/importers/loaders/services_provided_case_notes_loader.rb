@@ -4,7 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# reload!; reader = HmisExternalApis::ShHmis::Importers::Loaders::CsvReader.new('var'); HmisExternalApis::ShHmis::Importers::Loaders::ServicesProvidedCaseNotesLoader.new(clobber: false, reader: reader).perform
+# require 'csv'
+# ENV['SH_HMIS_IMPORT_LOG_FILE'] = "var/#{Date.current.strftime('%Y-%m-%d')}-migration-log.txt"
+# reader = HmisExternalApis::ShHmis::Importers::Loaders::CsvReader.new('var')
+# HmisExternalApis::ShHmis::Importers::Loaders::ServicesProvidedCaseNotesLoader.new(clobber: false, reader: reader).perform
+
+# before = Hmis::Hud::CustomCaseNote.all.size
 module HmisExternalApis::ShHmis::Importers::Loaders
   class ServicesProvidedCaseNotesLoader < SingleFileLoader
     def perform
@@ -27,7 +32,7 @@ module HmisExternalApis::ShHmis::Importers::Loaders
       # { Unique ID => CustomCaseNote hash }
       records_by_id = {}
       expected = 0
-      rows.first(500).each do |row|
+      rows.each do |row|
         # row_personal_id = row_value(row, field: 'Participant Enterprise Identifier', required: false)
         enrollment_id = row_value(row, field: 'Unique Enrollment Identifier', required: false)
         unique_note_id = row_value(row, field: 'Response Unique Identifier')
