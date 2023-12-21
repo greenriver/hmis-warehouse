@@ -33,14 +33,14 @@ module HudSpmReport::Generators::Fy2023
     end
 
     COLUMNS = {
-      'B' => 'Previous FY Universe (Persons)', # leave blank
-      'C' => 'Current FY Universe (Persons)',
-      'D' => 'Previous FY Average LOT Experiencing Homelessness', # leave blank
-      'E' => 'Current FY Average LOT Experiencing Homelessness',
-      'F' => 'Difference', # blank
-      'G' => 'Previous FY Median LOT Experiencing Homelessness', # leave blank
-      'H' => 'Current FY Median LOT Experiencing Homelessness',
-      'I' => 'Difference', # leave blank
+      'A' => 'Previous FY Universe (Persons)', # leave blank
+      'B' => 'Current FY Universe (Persons)',
+      'C' => 'Previous FY Average LOT Experiencing Homelessness', # leave blank
+      'D' => 'Current FY Average LOT Experiencing Homelessness',
+      'E' => 'Difference', # blank
+      'F' => 'Previous FY Median LOT Experiencing Homelessness', # leave blank
+      'G' => 'Current FY Median LOT Experiencing Homelessness',
+      'H' => 'Difference', # leave blank
     }.freeze
 
     private def run_1a(table_name)
@@ -51,6 +51,8 @@ module HudSpmReport::Generators::Fy2023
           2 => 'Persons in ES-EE, ES-NbN, SH, and TH',
         },
         COLUMNS,
+        external_column_header: true,
+        external_row_label: true,
       )
 
       create_universe(
@@ -102,6 +104,8 @@ module HudSpmReport::Generators::Fy2023
           2 => 'Persons in ES-EE, ES-NbN, SH, TH, and PH',
         },
         COLUMNS,
+        external_column_header: true,
+        external_row_label: true,
       )
 
       create_universe(

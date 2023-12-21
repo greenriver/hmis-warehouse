@@ -14,7 +14,7 @@ module HudSpmReport::Generators::Fy2023
       @report.spm_enrollments
     end
 
-    private def prepare_table(table_name, rows, cols)
+    private def prepare_table(table_name, rows, cols, external_column_header: false, external_row_label: false)
       @report.answer(question: table_name).update(
         metadata: {
           header_row: [''] + cols.values,
@@ -23,6 +23,8 @@ module HudSpmReport::Generators::Fy2023
           last_column: cols.keys.last,
           first_row: rows.keys.first,
           last_row: rows.keys.last,
+          external_column_header: external_column_header,
+          external_row_label: external_row_label,
         },
       )
     end
