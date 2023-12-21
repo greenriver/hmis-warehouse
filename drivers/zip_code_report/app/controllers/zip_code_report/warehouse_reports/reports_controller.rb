@@ -17,7 +17,7 @@ module ZipCodeReport::WarehouseReports
       @excel_export = ::ZipCodeReport::DocumentExports::ReportExcelExport.new
       respond_to do |format|
         format.html do
-          @pagy, @zip_codes = pagy(@report.zip_codes.order(:"ProjectCoC.Zip"))
+          @pagy, @zip_codes = pagy(@report.zip_codes.order(pc_t[:Zip]))
         end
         format.xlsx do
           filename = "Zip Code Report - #{Time.current.to_s(:db)}.xlsx"
@@ -27,7 +27,6 @@ module ZipCodeReport::WarehouseReports
     end
 
     private def set_report
-      @filter.update(enforce_one_year_range: false)
       @report = report_class.new(@filter)
     end
 

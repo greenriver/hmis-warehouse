@@ -46,7 +46,7 @@ module ZipCodeReport
     def zip_codes
       @zip_codes ||= enrollments.distinct.
         joins(project: :project_cocs).
-        select('ProjectCoC.Zip')
+        select(pc_t[:Zip])
     end
 
     def total_client_count
@@ -54,20 +54,18 @@ module ZipCodeReport
     end
 
     def zip_code_data
-      @zip_code_data ||= Rails.cache.fetch([self.class.name, @filter.attributes, __method__], expires_in: 5.minutes) do
-        {}.tap do |data|
-          enrollments.distinct.
-            joins(project: :project_cocs).
-            pluck(:client_id, 'ProjectCoC.Zip').
-            each do |client_id, zip|
-              data[zip] ||= {}
-              data[zip][:client] ||= Set.new
-              data[zip][:household] ||= Set.new
+      @zip_code_data ||= {}.tap do |data|
+        enrollments.distinct.
+          joins(project: :project_cocs).
+          pluck(:client_id, :head_of_household, pc_t[:Zip]).
+          each do |client_id, head_of_household, zip|
+            data[zip] ||= {}
+            data[zip][:client] ||= Set.new
+            data[zip][:household] ||= Set.new
 
-              data[zip][:client] << client_id
-              data[zip][:household] << client_id if hoh_client_ids.include?(client_id)
-            end
-        end
+            data[zip][:client] << client_id
+            data[zip][:household] << client_id if head_of_household
+          end
       end
     end
 
@@ -85,14 +83,6 @@ module ZipCodeReport
 
     def report_scope_base
       GrdaWarehouse::ServiceHistoryEnrollment.entry
-    end
-
-    private def hoh_scope
-      enrollments.where(she_t[:head_of_household].eq(true))
-    end
-
-    private def hoh_client_ids
-      @hoh_client_ids ||= hoh_scope.pluck(:client_id)
     end
 
     def multiple_project_types?
