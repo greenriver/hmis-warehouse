@@ -809,9 +809,9 @@ FY2023 Changes
 	from ref_Calendar cal
 	inner join (select hh.HoHID, hh.HHType
 			, case when hn.DateToStreetESSH >= hh.LastInactive then hn.DateToStreetESSH else hh.LastInactive end as StartDate
-			, hn.EntryDate as EndDate
+			, hhid.EntryDate as EndDate
 		from tlsa_Household hh 
-		inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID and hhid.ActiveHHType = hh.HHType
+		inner join tlsa_HHID hhid on hhid.HoHID = hh.HoHID and hhid.EntryHHType = hh.HHType
 		inner join hmis_Enrollment hn on hn.EnrollmentID = hhid.EnrollmentID
 		where hhid.EntryDate > hh.LastInactive
 			and (hhid.LSAProjectType in (0,1,8)

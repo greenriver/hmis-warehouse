@@ -387,8 +387,8 @@ module SystemPathways
             returned_project_type: returned_enrollment&.computed_project_type_group_es,
             returned_project_name: returned_enrollment&.project&.name,
             returned_project_entry_date: returned_enrollment&.entry_date,
-            returned_project_enrollment_id: returned_enrollment&.enrollment&.enrollment_id,
-            returned_project_project_id: returned_enrollment&.project_id,
+            returned_project_enrollment_id: returned_enrollment&.enrollment&.id,
+            returned_project_project_id: returned_enrollment&.project&.id,
             days_to_return: days_to_return,
           )
           report_clients[client] = report_client
@@ -408,8 +408,8 @@ module SystemPathways
               client_id: client.id,
               report_id: id,
               from_project_type: from_project_type,
-              project_id: en.project_id,
-              enrollment_id: en.enrollment&.enrollment_id,
+              project_id: en.project&.id,
+              enrollment_id: en.enrollment&.id,
               project_type: en.computed_project_type_group_es,
               destination: en.destination || 99,
               project_name: en.project.name,
