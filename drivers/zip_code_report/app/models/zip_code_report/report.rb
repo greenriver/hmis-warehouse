@@ -88,7 +88,7 @@ module ZipCodeReport
     end
 
     private def hoh_scope
-      report_scope_base.where(she_t[:head_of_household].eq(true))
+      enrollments.where(she_t[:head_of_household].eq(true))
     end
 
     private def hoh_client_ids
