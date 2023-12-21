@@ -211,4 +211,12 @@ class Hmis::User < ApplicationRecord
   def self.apply_filters(input)
     Hmis::Filter::ApplicationUserFilter.new(input).filter_scope(self)
   end
+
+  def client_access_summaries
+    Hmis::ClientAccessSummary.where(user_id: id)
+  end
+
+  def enrollment_access_summaries
+    Hmis::EnrollmentAccessSummary.where(user_id: id)
+  end
 end

@@ -721,7 +721,8 @@ CREATE TABLE public.hmis_activity_logs (
     header_client_id bigint,
     header_enrollment_id bigint,
     header_project_id bigint,
-    created_at timestamp without time zone NOT NULL
+    created_at timestamp without time zone NOT NULL,
+    processed_at date
 );
 
 
@@ -775,6 +776,26 @@ COMMENT ON COLUMN public.hmis_activity_logs.header_project_id IS 'user-provided'
 
 
 --
+-- Name: hmis_activity_logs_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_activity_logs_clients (
+    activity_log_id bigint NOT NULL,
+    client_id bigint NOT NULL
+);
+
+
+--
+-- Name: hmis_activity_logs_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_activity_logs_enrollments (
+    activity_log_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL
+);
+
+
+--
 -- Name: hmis_activity_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -791,6 +812,16 @@ CREATE SEQUENCE public.hmis_activity_logs_id_seq
 --
 
 ALTER SEQUENCE public.hmis_activity_logs_id_seq OWNED BY public.hmis_activity_logs.id;
+
+
+--
+-- Name: hmis_activity_logs_projects; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_activity_logs_projects (
+    activity_log_id bigint NOT NULL,
+    project_id bigint NOT NULL
+);
 
 
 --
@@ -836,11 +867,11 @@ CREATE TABLE public.hmis_roles (
     can_merge_clients boolean DEFAULT false,
     can_split_households boolean DEFAULT false,
     can_transfer_enrollments boolean DEFAULT false,
-    can_view_limited_enrollment_details boolean DEFAULT false,
     can_impersonate_users boolean DEFAULT false,
+    can_view_limited_enrollment_details boolean DEFAULT false,
     can_audit_users boolean DEFAULT false,
-    can_configure_data_collection boolean DEFAULT false,
-    can_audit_enrollments boolean DEFAULT false
+    can_audit_enrollments boolean DEFAULT false,
+    can_configure_data_collection boolean DEFAULT false
 );
 
 
@@ -894,6 +925,34 @@ CREATE SEQUENCE public.hmis_user_access_controls_id_seq
 --
 
 ALTER SEQUENCE public.hmis_user_access_controls_id_seq OWNED BY public.hmis_user_access_controls.id;
+
+
+--
+-- Name: hmis_user_client_activity_log_summaries; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.hmis_user_client_activity_log_summaries AS
+ SELECT concat(hmis_activity_logs_clients.client_id, ':', hmis_activity_logs.user_id) AS id,
+    max(hmis_activity_logs.created_at) AS last_accessed_at,
+    hmis_activity_logs_clients.client_id,
+    hmis_activity_logs.user_id
+   FROM (public.hmis_activity_logs
+     JOIN public.hmis_activity_logs_clients ON ((hmis_activity_logs_clients.activity_log_id = hmis_activity_logs.id)))
+  GROUP BY hmis_activity_logs_clients.client_id, hmis_activity_logs.user_id;
+
+
+--
+-- Name: hmis_user_enrollment_activity_log_summaries; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.hmis_user_enrollment_activity_log_summaries AS
+ SELECT concat(hmis_activity_logs_enrollments.enrollment_id, ':', hmis_activity_logs.user_id) AS id,
+    max(hmis_activity_logs.created_at) AS last_accessed_at,
+    hmis_activity_logs_enrollments.enrollment_id,
+    hmis_activity_logs.user_id
+   FROM (public.hmis_activity_logs
+     JOIN public.hmis_activity_logs_enrollments ON ((hmis_activity_logs_enrollments.activity_log_id = hmis_activity_logs.id)))
+  GROUP BY hmis_activity_logs_enrollments.enrollment_id, hmis_activity_logs.user_id;
 
 
 --
@@ -1667,12 +1726,12 @@ CREATE TABLE public.roles (
     can_view_cohort_client_changes_report boolean DEFAULT false,
     can_approve_careplan boolean DEFAULT false,
     can_manage_inbound_api_configurations boolean DEFAULT false,
+    system boolean DEFAULT false NOT NULL,
     can_view_client_enrollments_with_roi boolean DEFAULT false,
     can_search_clients_with_roi boolean DEFAULT false,
-    can_see_confidential_files boolean DEFAULT false,
     can_edit_theme boolean DEFAULT false,
-    system boolean DEFAULT false NOT NULL,
     can_edit_collections boolean DEFAULT false,
+    can_see_confidential_files boolean DEFAULT false,
     can_publish_reports boolean DEFAULT false,
     deleted_at timestamp without time zone
 );
@@ -3400,10 +3459,52 @@ CREATE INDEX index_hmis_access_controls_on_user_group_id ON public.hmis_access_c
 
 
 --
+-- Name: index_hmis_activity_logs_clients_on_activity_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_activity_logs_clients_on_activity_log_id ON public.hmis_activity_logs_clients USING btree (activity_log_id);
+
+
+--
+-- Name: index_hmis_activity_logs_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_activity_logs_clients_on_client_id ON public.hmis_activity_logs_clients USING btree (client_id);
+
+
+--
+-- Name: index_hmis_activity_logs_enrollments_on_activity_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_activity_logs_enrollments_on_activity_log_id ON public.hmis_activity_logs_enrollments USING btree (activity_log_id);
+
+
+--
+-- Name: index_hmis_activity_logs_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_activity_logs_enrollments_on_enrollment_id ON public.hmis_activity_logs_enrollments USING btree (enrollment_id);
+
+
+--
 -- Name: index_hmis_activity_logs_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_activity_logs_on_user_id ON public.hmis_activity_logs USING btree (user_id);
+
+
+--
+-- Name: index_hmis_activity_logs_projects_on_activity_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_activity_logs_projects_on_activity_log_id ON public.hmis_activity_logs_projects USING btree (activity_log_id);
+
+
+--
+-- Name: index_hmis_activity_logs_projects_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_activity_logs_projects_on_project_id ON public.hmis_activity_logs_projects USING btree (project_id);
 
 
 --
@@ -3792,6 +3893,38 @@ CREATE INDEX unduplicated_clients_unduplicated_client_id ON public.clients_undup
 
 
 --
+-- Name: hmis_user_client_activity_log_summaries attempt_hmis_user_client_activity_log_summaries_del; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_hmis_user_client_activity_log_summaries_del AS
+    ON DELETE TO public.hmis_user_client_activity_log_summaries DO INSTEAD NOTHING;
+
+
+--
+-- Name: hmis_user_client_activity_log_summaries attempt_hmis_user_client_activity_log_summaries_up; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_hmis_user_client_activity_log_summaries_up AS
+    ON UPDATE TO public.hmis_user_client_activity_log_summaries DO INSTEAD NOTHING;
+
+
+--
+-- Name: hmis_user_enrollment_activity_log_summaries attempt_hmis_user_enrollment_activity_log_summaries_del; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_hmis_user_enrollment_activity_log_summaries_del AS
+    ON DELETE TO public.hmis_user_enrollment_activity_log_summaries DO INSTEAD NOTHING;
+
+
+--
+-- Name: hmis_user_enrollment_activity_log_summaries attempt_hmis_user_enrollment_activity_log_summaries_up; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_hmis_user_enrollment_activity_log_summaries_up AS
+    ON UPDATE TO public.hmis_user_enrollment_activity_log_summaries DO INSTEAD NOTHING;
+
+
+--
 -- Name: user_roles fk_rails_318345354e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4131,6 +4264,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230322195141'),
 ('20230322204908'),
 ('20230328150855'),
+('20230329102609'),
+('20230329112926'),
+('20230329112954'),
 ('20230330161305'),
 ('20230412142430'),
 ('20230418170053'),
@@ -4145,6 +4281,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230511152438'),
 ('20230512175436'),
 ('20230513203001'),
+('20230514123118'),
 ('20230516131951'),
 ('20230522111726'),
 ('20230525153134'),
@@ -4176,6 +4313,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231116185857'),
 ('20231129173326'),
 ('20231201173326'),
-('20231206162323');
+('20231206162323'),
+('20231221165752'),
+('20231221165753');
 
 

@@ -17,6 +17,8 @@ module Types
     field :first_name, String, null: true
     field :last_name, String, null: true
     field :activity_logs, Types::Application::ActivityLog.page_type, null: false
+    field :client_access_summaries, Types::Application::ClientAccessSummary.page_type, null: false
+    field :enrollment_access_summaries, Types::Application::EnrollmentAccessSummary.page_type, null: false
     field :recent_items, [Types::HmisSchema::OmnisearchResult], null: false
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
@@ -38,9 +40,21 @@ module Types
     end
 
     def activity_logs
-      raise 'access denied' unless current_user.can_audit_users?
+      access_denied! unless current_user.can_audit_users?
 
       object.activity_logs
+    end
+
+    def client_access_summaries
+      access_denied! unless current_user.can_audit_users?
+
+      object.client_access_summaries
+    end
+
+    def enrollment_access_summaries
+      access_denied! unless current_user.can_audit_users?
+
+      object.enrollment_access_summaries
     end
   end
 end

@@ -192,10 +192,12 @@ User account for a user of the system
 """
 type ApplicationUser {
   activityLogs(limit: Int, offset: Int): ActivityLogsPaginated!
+  clientAccessSummaries(limit: Int, offset: Int): ClientAccessSummariesPaginated!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   email: String!
+  enrollmentAccessSummaries(limit: Int, offset: Int): EnrollmentAccessSummariesPaginated!
   firstName: String
   id: ID!
   lastName: String
@@ -739,6 +741,22 @@ type ClientAccess {
   canViewFullSsn: Boolean!
   canViewPartialSsn: Boolean!
   id: ID!
+}
+
+type ClientAccessSummariesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ClientAccessSummary!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+type ClientAccessSummary {
+  client: Client
+  id: ID!
+  lastAccessedAt: ISO8601DateTime!
 }
 
 type ClientAddress {
@@ -3003,6 +3021,22 @@ type EnrollmentAccess {
   canSplitHouseholds: Boolean!
   canViewEnrollmentDetails: Boolean!
   id: ID!
+}
+
+type EnrollmentAccessSummariesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [EnrollmentAccessSummary!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+type EnrollmentAccessSummary {
+  enrollment: Enrollment
+  id: ID!
+  lastAccessedAt: ISO8601DateTime!
 }
 
 type EnrollmentAuditEvent {
