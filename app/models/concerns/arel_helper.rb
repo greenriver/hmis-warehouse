@@ -10,6 +10,14 @@ module ArelHelper
   extend ActiveSupport::Concern
 
   class_methods do
+    def dates_overlaps_arel(range, start_col, end_col)
+      d_1_start = range.first
+      d_1_end = range.last
+      d_2_start = start_col
+      d_2_end = end_col
+      d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end))
+    end
+
     # convert non-node into a node
     def qt(value)
       case value

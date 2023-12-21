@@ -22,32 +22,51 @@ module HudSpmReport::Fy2023
 
     scope :open_during_range, ->(range) do
       a_t = arel_table
-
-      d_1_start = range.first
-      d_1_end = range.last
-      d_2_start = a_t[:entry_date]
-      d_2_end = a_t[:exit_date]
-
-      where(d_2_end.gteq(d_1_start).or(d_2_end.eq(nil)).and(d_2_start.lteq(d_1_end)))
+      dates_overlaps_arel(range, a_t[:entry_date], a_t[:exit_date])
     end
 
     # HMIS Standard Reporting Terminology Glossary 2024 active client method 2
+    #       (
+    #         /* The exit date is in the date range, regardless of any service records attached to that enrollment. */
+    #         [project exit date] >= [report start date] and [project exit date] <= [report end date]
+    #       )
+    #       or (
+    #         /* The client entered before the end of the report range and has not yet exited,
+    # or has exited in the future relative to the report range and there is a service in the report range. */
+    #         [project start date] <= [report end date]
+    #         and
+    #           ( [project exit date] is null or [project exit date] > [report end date] )
+    #         and
+    #           [date of service] >= [report start date]
+    #         and
+    #           [date of service] <= [report end date]
+    #         and
+    #           [date of service] >= [project start date]
     scope :with_active_method_2_in_range, ->(range) do
       services_cond = GrdaWarehouse::Hud::Service.arel_table.then do |table|
         [
-          table[:record_type].eq(HudUtility2024.record_type('Bed Night', true)),
           table[:date_provided].between(range),
+          table[:date_provided].gteq(arel_table[:entry_date]),
         ].inject(&:and)
       end
 
+      cls_cond = GrdaWarehouse::Hud::CurrentLivingSituation.arel_table.then do |table|
+        [
+          table[:information_date].between(range),
+          table[:information_date].gteq(arel_table[:entry_date]),
+        ].inject(&:and)
+      end
+
+      # Projects using Method 2 must include Method 1 as a starting basis
       ee_cond = HudSpmReport::Fy2023::SpmEnrollment.arel_table.then do |table|
         [
-          table[:exit_date].gteq(range.begin),
-          table[:entry_date].lteq(range.end),
+          table[:project_type].not_in([1, 4]), # Not ES-NbN, or SO
+          dates_overlaps_arel(range, table[:entry_date], table[:exit_date]),
         ].inject(&:and)
       end
 
-      left_outer_joins(enrollment: :services).where(services_cond.or(ee_cond))
+      left_outer_joins(enrollment: [:services, :current_living_situations]).
+        where(arel_table[:exit_date].between(range).or(services_cond.or(cls_cond).or(ee_cond)))
     end
 
     # HMIS Standard Reporting Terminology Glossary 2024 active client method 5
@@ -56,16 +75,16 @@ module HudSpmReport::Fy2023
         [
           table[:record_type].eq(HudUtility2024.record_type('Bed Night', true)),
           table[:date_provided].between(range),
+          table[:date_provided].gteq(arel_table[:entry_date]),
         ].inject(&:and)
       end
 
-      nbn_cond = arel_table[:project_type].in(HudUtility2024.project_type_number_from_code(:es_nbn)).and(bed_night_cond)
+      nbn_cond = arel_table[:project_type].eq(1).and(bed_night_cond)
 
       ee_cond = HudSpmReport::Fy2023::SpmEnrollment.arel_table.then do |table|
         [
-          table[:project_type].in([:es_entry_exit, :th, :ph, :sh].flat_map { |pt| HudUtility2024.project_type_number_from_code(pt) }),
-          table[:exit_date].gteq(range.begin),
-          table[:entry_date].lteq(range.end),
+          table[:project_type].in([0, 2, 3, 8, 9, 10, 13]),
+          dates_overlaps_arel(range, table[:entry_date], table[:exit_date]),
         ].inject(&:and)
       end
 
@@ -73,11 +92,16 @@ module HudSpmReport::Fy2023
     end
 
     scope :literally_homeless_at_entry_in_range, ->(range) do
-      where(arel_table[:exit_date].gteq(range.begin).and(arel_table[:entry_date].lteq(range.end))).
-        where(project_type: [0, 1, 4, 8]).
-        or(where(project_type: [2, 3, 9, 10, 13], prior_living_situation: 100..199)).
-        or(where(previous_street_essh: true, project_type: [2, 3, 9, 10, 13], prior_living_situation: 200..299, length_of_stay: [2, 3])).
-        or(where(previous_street_essh: true, project_type: [2, 3, 9, 10, 13], prior_living_situation: 300..499, los_under_threshold: true))
+      where(arel_table[:exit_date].gteq(range.begin).or(arel_table[:exit_date].eq(nil)).and(arel_table[:entry_date].lteq(range.end)).
+        and(arel_table[:project_type].in([0, 1, 4, 8])).
+        or(arel_table[:project_type].in([2, 3, 9, 10, 13]).
+          and(arel_table[:prior_living_situation].between(100..199).
+            or(arel_table[:previous_street_essh].eq(true).
+              and(arel_table[:prior_living_situation].between(200..299)).
+              and(arel_table[:los_under_threshold].eq(true))).
+            or(arel_table[:previous_street_essh].eq(true).
+              and(arel_table[:prior_living_situation].between(300..499)).
+              and(arel_table[:los_under_threshold].eq(true))))))
     end
 
     HomelessnessInfo = Struct.new(:start_of_homelessness, :entry_date, :move_in_date, keyword_init: true)

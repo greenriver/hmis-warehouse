@@ -169,9 +169,8 @@ module HudSpmReport::Fy2023
 
       enrollment.project_type.in?([2, 3, 9, 10, 13]) &&
         (enrollment.prior_living_situation.in?(100..199) ||
-          (enrollment.previous_street_essh? &&
-            (enrollment.prior_living_situation.in?(200..299) && enrollment.length_of_stay.in?([2, 3])) ||
-            (enrollment.prior_living_situation.in?(300..499) && enrollment.los_under_threshold?)))
+          (enrollment.previous_street_essh? && enrollment.prior_living_situation.in?(200..299) && enrollment.los_under_threshold?) ||
+            (enrollment.previous_street_essh? && enrollment.prior_living_situation.in?(300..499) && enrollment.los_under_threshold?))
     end
 
     private def report_start_date
