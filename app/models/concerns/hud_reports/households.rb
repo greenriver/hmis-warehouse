@@ -128,7 +128,6 @@ module HudReports::Households
 
       # NOTE: batch_size must match calculate_households in the class that includes this concern
       @generator.client_scope.find_in_batches(batch_size: batch_size) do |batch|
-        puts "Processing batch in calculate_households #{elapsed_time(Time.current - @start_time)}"
         enrollments_by_client_id = clients_with_enrollments(
           batch,
           scope: enrollment_scope_without_preloads,
