@@ -5,28 +5,25 @@
 ###
 
 module Mutations
-  class UpdateFormDefinition < CleanBaseMutation
-    argument :id, ID, required: true
+  class CreateFormDefinition < CleanBaseMutation
     argument :input, Types::Admin::FormDefinitionInput, required: true
 
     field :form_definition, Types::Forms::FormDefinition, null: true
 
-    def resolve(id:, input:)
+    def resolve(input:)
       raise 'not allowed' unless current_user.can_configure_data_collection?
 
-      definition = Hmis::Form::Definition.find_by(id: id)
-      raise 'not found' unless definition
-
-      definition.assign_attributes(**input.to_attributes)
+      attrs = input.to_attributes
+      attrs[:definition] = attrs[:definition] || { item: [{ link_id: 'name', type: 'STRING' }] }
 
       errors = HmisErrors::Errors.new
       ::HmisUtil::JsonForms.new.tap do |builder|
-        builder.validate_definition(definition.definition, on_error: ->(err) { errors.add(:definition, message: err) })
+        builder.validate_definition(attrs[:definition], on_error: ->(err) { errors.add(:definition, message: err) })
       end
 
       return { errors: errors } if errors.present?
 
-      # definition.assign_attributes(**attrs)
+      definition = Hmis::Form::Definition.create!(version: 0, status: 'draft', **attrs)
 
       if definition.valid?
         definition.save!

@@ -15,6 +15,7 @@ module Types
 
     field :id, ID, null: false
     field :cache_key, ID, null: false
+    field :identifier, String, null: false
     field :role, Types::Forms::Enums::FormRole, null: false
     field :title, String, null: false
     field :definition, Forms::FormDefinitionJson, null: false

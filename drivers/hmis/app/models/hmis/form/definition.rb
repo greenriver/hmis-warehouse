@@ -53,6 +53,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   STATIC_FORM_ROLES = [
     :FORM_RULE,
     :AUTO_EXIT_CONFIG,
+    :FORM_DEFINITION,
   ].freeze
 
   FORM_ROLES = [
@@ -66,6 +67,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   ].freeze
 
   validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }
+  validates :identifier, uniqueness: true
 
   ENROLLMENT_CONFIG = {
     owner_class: Hmis::Hud::Enrollment,
