@@ -54,16 +54,25 @@ module MedicaidHmisInterchange::Health
       @timestamp.strftime(TIMESTAMP_FORMAT)
     end
 
-    # Clients are included in the submission if they are enrolled in a homeless project (ES, SH, SO, TH) and not
-    # enrolled in PH with a move-in date in the past, on the day the process is run.
+    # Clients are included in the submission if:
+    # 1. they are enrolled in a homeless project (ES Entry/Exit, ES NbN, SH, SO, TH)
+    # 2. they have at least one service in the enrollment
+    # 3. they are NOT enrolled in PH with a move-in date in the past, on the day the process is run.
+    # 4. they have at least one entry date in some project in the past 12 months
+    # 5. they have never been exited to a deceased destination
     private def generate_submission
       file_path = File.join(@file_path, submission_filename)
       count = 0
       return send_test_file(file_path) if test_file
 
       seen_medicaid_ids = Set.new
+      clients_with_entries_in_past_year = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        where(entry_date: 1.year.ago.to_date..)
+      # `homeless_on_date` encompasses ongoing homeless enrollment with with service and no overlapping moved-in PH
       GrdaWarehouse::Hud::Client.homeless_on_date.
-        where(id: ExternalId.pluck(:client_id)).
+        # only include clients with a recent-ish enrollment
+        where(id: clients_with_entries_in_past_year.select(:client_id)).
+        where(id: ExternalId.pluck(:client_id)). # X-db join
         pluck_in_batches(:id) do |batch|
         lines = {}.tap do |results|
           medicaid_ids = ExternalId.where(client_id: batch).
@@ -73,13 +82,12 @@ module MedicaidHmisInterchange::Health
           break unless medicaid_ids.present?
 
           external_ids << medicaid_ids.values
-          GrdaWarehouse::Hud::Client.where(id: medicaid_ids.keys). # X-DB join
-            joins(service_history_enrollments: :enrollment).
-            preload(service_history_enrollments: [:service_history_services, enrollment: :current_living_situations]).
-            merge(GrdaWarehouse::ServiceHistoryEnrollment.in_project_type(HudUtility2024.homeless_project_types)).
-            find_each do |client|
+          client_batch(medicaid_ids).find_each do |client|
             medicaid_id = medicaid_ids[client.id].identifier
             next if seen_medicaid_ids.include?(medicaid_id)
+
+            # Don't process anyone who has been marked deceased
+            next if client.deceased?
 
             # If a client has more than one enrollment, use the longest duration
             client_homeless_days = 0
@@ -113,6 +121,19 @@ module MedicaidHmisInterchange::Health
         end
       end
       [file_path, count]
+    end
+
+    # Retreive and preload for enrollments for the clients in question
+    # NOTE: this is not limited by date range, we're looking for any homeless enrollment
+    # for the client that contained at least one service
+    private def client_batch(medicaid_ids)
+      homeless_enrollments_with_service = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+        in_project_type(HudUtility2024.homeless_project_types).
+        with_service
+      GrdaWarehouse::Hud::Client.where(id: medicaid_ids.keys). # X-DB join
+        joins(service_history_enrollments: :enrollment).
+        preload(:source_exits, service_history_enrollments: [:service_history_services, enrollment: :current_living_situations]).
+        merge(homeless_enrollments_with_service)
     end
 
     def send_test_file(file_path)
