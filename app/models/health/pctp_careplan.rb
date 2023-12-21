@@ -123,10 +123,11 @@ module Health
       active? && expires_on - 1.month < Date.current
     end
 
-    # A Careplan has expired if the expiration date is in the past
+    # A Careplan has expired if it is for the current program, and the expiration date is in the past
     # # @return [Boolean] True if the careplan is expired
     def expired?
       return false unless expires_on.present?
+      return false unless instrument.cp2?
 
       expires_on < Date.current
     end

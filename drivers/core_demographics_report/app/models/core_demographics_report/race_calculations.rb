@@ -33,7 +33,7 @@ module
       total_count = mask_small_population(client_races[coc_code].count)
       return 0 if total_count.zero?
 
-      of_type = race_count(type)
+      of_type = race_count(type, coc_code)
       return 0 if of_type.zero?
 
       ((of_type.to_f / total_count) * 100)

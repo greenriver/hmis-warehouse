@@ -19,8 +19,8 @@ module Types
     field :client, HmisSchema::Client, null: false
     field :information_date, GraphQL::Types::ISO8601Date, null: true
     field :disability_type, HmisSchema::Enums::Hud::DisabilityType, null: false, default_value: Types::BaseEnum::INVALID_VALUE
-    hud_field :disability_response, HmisSchema::Enums::Hud::DisabilityResponse
-    hud_field :indefinite_and_impairs
+    field :disability_response, HmisSchema::Enums::Hud::DisabilityResponse, null: false, default_value: 99
+    field :indefinite_and_impairs, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
     field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: false, default_value: Types::BaseEnum::INVALID_VALUE
     hud_field :t_cell_count_available, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
     hud_field :t_cell_count, Integer, null: true

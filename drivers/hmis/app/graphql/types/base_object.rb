@@ -57,10 +57,13 @@ module Types
       refinement = GrdaWarehouse.paper_trail_versions.
         where.not(whodunnit: nil). # note, filter is okay here since it is constant with respect to object
         order(:created_at, :id).
-        select(:id, :whodunnit, :item_id, :item_type) # select only fields we need for performance
+        select(:id, :whodunnit, :item_id, :item_type, :user_id, :true_user_id) # select only fields we need for performance
       versions = load_ar_association(object, :versions, scope: refinement)
-      last_user_id = versions.last&.whodunnit # db-ordered so we choose the last record
-      return unless last_user_id && last_user_id =~ /\A[0-9]+\z/
+      latest_version = versions.last # db-ordered so we choose the last record
+      return unless latest_version
+
+      last_user_id = latest_version.clean_true_user_id || latest_version.clean_user_id
+      return unless last_user_id
 
       load_ar_scope(scope: Hmis::User.with_deleted, id: last_user_id)
     end
