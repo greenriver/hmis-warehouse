@@ -54,6 +54,8 @@ module Types
     field :merge_clients, mutation: Mutations::MergeClients
     field :bulk_merge_clients, mutation: Mutations::BulkMergeClients
 
+    field :update_form_definition, mutation: Mutations::UpdateFormDefinition
+
     field :create_form_rule, mutation: Mutations::CreateFormRule
     field :update_form_rule, mutation: Mutations::UpdateFormRule
 
