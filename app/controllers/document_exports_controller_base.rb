@@ -108,6 +108,7 @@ class DocumentExportsControllerBase < ApplicationController
       'StartDateDq::DocumentExports::StartDateDqExcelExport',
       'ClientDocumentsReport::DocumentExports::ReportExcelExport',
       'InactiveClientReport::DocumentExports::ReportExcelExport',
+      'ZipCodeReport::DocumentExports::ReportExcelExport',
     ]
   end
 end
