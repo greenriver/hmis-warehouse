@@ -56,7 +56,7 @@ module ZipCodeReport
     def zip_code_data
       @zip_code_data ||= Rails.cache.fetch([self.class.name, @filter.attributes, __method__], expires_in: 5.minutes) do
         {}.tap do |data|
-          enrollments.
+          enrollments.distinct.
             joins(project: :project_cocs).
             pluck(:client_id, 'ProjectCoC.Zip').
             each do |client_id, zip|
