@@ -14,9 +14,14 @@
 - if @clients.blank?
   .none-found No records found.
 - else
+  .w-50
+    .input-group
+      %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
+      %span.input-group-append
+        %button.btn.btn-secondary Search
   .card
     .overflow-x-scroll{style: "height: 800px"}
-      %table.table.table-sm.table-bordered.table-fixed
+      %table.table.table-sm.table-bordered.table-fixed.datatable
         %thead.thead-dark
           %tr
             %th
@@ -35,3 +40,12 @@
                       %i.icon-info
                   - else
                     = formatted_cell(client[k])
+  = content_for :page_js do
+    :javascript
+      table = $('.datatable').DataTable({
+        paging: false,
+        "dom": 'lrtip'
+      });
+      $('#table_search').keyup(function(){
+        table.search($(this).val()).draw();
+      });
