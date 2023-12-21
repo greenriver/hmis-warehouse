@@ -607,8 +607,8 @@ module PerformanceMetrics
         spm_returners = answer_members(spm_report, '2', 'I7') # HudSpmReport::Fy2023::Return
         # M2 I7 is Total Number of Persons who Exited to a Permanent Housing Destination (2 Years Prior)
         spm_leavers = answer_members(spm_report, '2', 'B7') # HudSpmReport::Fy2023::Return
-        # 1A B2 is Total Number of Persons in ES, SH, and TH
-        spm_episodes = answer_members(spm_report, '1a', 'B2') # HudSpmReport::Fy2023::Episode
+        # 1A D2 is Average LOT Experiencing Homelessness ES, SH, and TH
+        spm_episodes = answer_members(spm_report, '1a', 'D2') # HudSpmReport::Fy2023::Episode
 
         spm_leavers.each do |client_id, spm_client|
           days_in_es = nil
@@ -682,7 +682,12 @@ module PerformanceMetrics
 
     private def run_spm
       # puts 'Running SPM'
-      questions = ['Measure 1', 'Measure 2']
+      # Looking for SPM Measure 1A E3
+      # Looking for SPM Measure 2 J7 (total returns to homelessness within 2 years)
+      questions = [
+        'Measure 1',
+        'Measure 2',
+      ]
       # NOTE: we need to include all homeless projects visible to this user, plus the chosen scope,
       # so that the returns calculation will work.
       options = filter.to_h

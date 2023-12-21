@@ -445,11 +445,6 @@ module HomelessSummaryReport
           demographic_variant_clients[detail_variant_name] = client_ids_for_demographic_category(spec, sub_spec)
         end
 
-        # m1a_es_sh_days: {
-        #   cells: [['1a', 'B1']],
-        #   title: 'with ES or SH stays',
-        #   calculations: [:count, :average, :median],
-        # },
         spm_fields.each do |spm_field, parts|
           parts.fetch(:cells).each do |cell|
             spm_members = answer_members(report[:report], *cell)
@@ -544,7 +539,9 @@ module HomelessSummaryReport
       report.answer(question: table, cell: cell).summary
     end
 
+    # @return [SpmEnrollment, Episode, Return] Cells have different member entity types
     private def answer_members(report, table, cell)
+      # FIXME- needs appropriate preload
       report.answer(question: table, cell: cell).universe_members.map(&:universe_membership)
     end
 
