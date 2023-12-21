@@ -146,7 +146,7 @@ module HudSpmReport::Generators::Fy2023
     end
 
     def filter
-      ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(@report.options)
+      ::Filters::HudFilterBase.new(user_id: @report.user.id).update(@report.options)
     end
   end
 end

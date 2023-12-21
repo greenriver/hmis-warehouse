@@ -549,6 +549,11 @@ module HudUtility2024
     [21]
   end
 
+  # SPM definition of CoC funded projects
+  def spm_coc_funders
+    [2, 3, 4, 5, 43, 44, 54, 55]
+  end
+
   # "Funder components" that are referenced by the 2024 HUD Data Dictionary.
   # These are used by assessment Form Definition to specify funder applicability rules.
   def funder_components

@@ -68,12 +68,11 @@ module HudSpmReport::Fy2023
       end
 
       dates = filtered_bed_nights.map(&:last)
-      first_date = dates.min
       assign_attributes(
-        first_date: first_date,
-        last_date: dates.max,
+        first_date: dates.first, # dates is sorted in filter_bed_nights, so first/last should be min/max
+        last_date: dates.last,
         days_homeless: filtered_bed_nights.count,
-        literally_homeless_at_entry: literally_homeless_at_entry(filtered_bed_nights, first_date),
+        literally_homeless_at_entry: literally_homeless_at_entry(filtered_bed_nights, dates.first),
       )
 
       [self, bed_nights_array, enrollment_links_array]
@@ -188,7 +187,7 @@ module HudSpmReport::Fy2023
     end
 
     private def filter
-      @filter ||= ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(report.options)
+      @filter ||= ::Filters::HudFilterBase.new(user_id: report.user.id).update(report.options)
     end
   end
 end
