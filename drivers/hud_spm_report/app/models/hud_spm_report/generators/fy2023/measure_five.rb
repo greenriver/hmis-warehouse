@@ -111,33 +111,36 @@ module HudSpmReport::Generators::Fy2023
     end
 
     def create_priors_universe(universe_name, report_members)
-      report_enrollments = HudSpmReport::Fy2023::SpmEnrollment.where(id: report_members.select(:universe_membership_id))
-      filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(@report.options)
       universe = @report.universe(universe_name)
-      adjusted_range = filter.range.begin - 730.days .. filter.range.end
-      project_types = [:es, :sh, :th, :ph].flat_map { |code| HudUtility2024.project_type_number_from_code(code) }
-      candidate_enrollments = enrollment_set.open_during_range(adjusted_range).where(project_type: project_types)
 
-      universe_enrollments = []
-      report_enrollments.find_in_batches do |batch|
-        batch_candidates = candidate_enrollments.
-          where(spm_e_t[:client_id].in(batch.map(&:client_id))).
-          order(spm_e_t[:exit_date].desc).order(:id).
-          group_by(&:client_id)
+      if report_members.count.positive?
+        report_enrollments = HudSpmReport::Fy2023::SpmEnrollment.where(id: report_members.select(:universe_membership_id))
+        filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(@report.options)
+        adjusted_range = filter.range.begin - 730.days .. filter.range.end
+        project_types = [:es, :sh, :th, :ph].flat_map { |code| HudUtility2024.project_type_number_from_code(code) }
+        candidate_enrollments = enrollment_set.open_during_range(adjusted_range).where(project_type: project_types)
 
-        batch.each do |enrollment|
-          found = batch_candidates[enrollment.client_id]&.detect do |candidate|
-            candidate.entry_date < enrollment.entry_date &&
-              (candidate.exit_date.nil? || candidate.exit_date >= enrollment.entry_date - 730.days)
+        universe_enrollments = []
+        report_enrollments.find_in_batches do |batch|
+          batch_candidates = candidate_enrollments.
+            where(spm_e_t[:client_id].in(batch.map(&:client_id))).
+            order(spm_e_t[:exit_date].desc).order(:id).
+            group_by(&:client_id)
+
+          batch.each do |enrollment|
+            found = batch_candidates[enrollment.client_id]&.detect do |candidate|
+              candidate.entry_date < enrollment.entry_date &&
+                (candidate.exit_date.nil? || candidate.exit_date >= enrollment.entry_date - 730.days)
+            end
+            universe_enrollments << found if found
           end
-          universe_enrollments << found if found
         end
-      end
 
-      members = universe_enrollments.map do |enrollment|
-        [enrollment.client, enrollment]
-      end.to_h
-      universe.add_universe_members(members)
+        members = universe_enrollments.map do |enrollment|
+          [enrollment.client, enrollment]
+        end.to_h
+        universe.add_universe_members(members)
+      end
 
       universe.members
     end

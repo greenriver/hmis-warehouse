@@ -150,8 +150,19 @@ module HudSpmReport::Generators::Fy2023
 
     private def create_universe(universe_name, included_project_types:, excluded_project_types:, include_self_reported:)
       @universe = @report.universe(universe_name)
-      candidate_client_ids = enrollment_set.with_active_method_5_in_range(filter.range).pluck(:client_id).uniq
-      enrollments = enrollment_set.where(client_id: candidate_client_ids)
+      candidate_client_ids = enrollment_set.
+        with_active_method_5_in_range(filter.range).
+        where(project_type: included_project_types).
+        pluck(:client_id)
+      if include_self_reported
+        candidate_client_ids += enrollment_set.
+          literally_homeless_at_entry_in_range(filter.range).
+          where(project_type: HudUtility2024.project_type_number_from_code(:ph)).
+          or(where(project_type: HudUtility2024.project_type_number_from_code(:ph).
+            spm_e_t[:mode_in_date].eq(nil).or(spm_e_t[:mode_in_date].between(filter.range)))).
+          pluck(:client_id)
+      end
+      enrollments = enrollment_set.where(client_id: candidate_client_ids.uniq)
 
       client_ids = enrollments.pluck(:client_id).uniq
       client_ids.each_slice(500) do |slice|
