@@ -97,7 +97,7 @@ module HudSpmReport::Generators::Fy2023
     end
 
     def create_universe(universe_name, project_types)
-      filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(@report.options)
+      filter = ::Filters::HudFilterBase.new(user_id: @report.user.id).update(@report.options)
       universe = @report.universe(universe_name)
       enrollments = enrollment_set.where(entry_date: filter.range, project_type: project_types)
       earliest_enrollments = HudSpmReport::Fy2023::SpmEnrollment.one_for_column(:entry_date, source_arel_table: spm_e_t, group_on: :client_id, direction: :asc, scope: enrollments)
@@ -115,7 +115,7 @@ module HudSpmReport::Generators::Fy2023
 
       if report_members.count.positive?
         report_enrollments = HudSpmReport::Fy2023::SpmEnrollment.where(id: report_members.select(:universe_membership_id))
-        filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(@report.options)
+        filter = ::Filters::HudFilterBase.new(user_id: @report.user.id).update(@report.options)
         adjusted_range = filter.range.begin - 730.days .. filter.range.end
         project_types = [:es, :sh, :th, :ph].flat_map { |code| HudUtility2024.project_type_number_from_code(code) }
         candidate_enrollments = enrollment_set.open_during_range(adjusted_range).where(project_type: project_types)

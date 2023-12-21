@@ -16,7 +16,7 @@ module HudSpmReport::Fy2023
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
 
     def self.client_ids_with_permanent_exits(report, enrollments)
-      filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(report.options)
+      filter = ::Filters::HudFilterBase.new(user_id: report.user.id).update(report.options)
       enrollments.where(exit_date: filter.start - 730.days .. filter.end - 730.days).
         where(destination: HudUtility2024.permanent_destinations).
         pluck(:client_id).
@@ -92,7 +92,7 @@ module HudSpmReport::Fy2023
     end
 
     private def filter
-      @filter ||= ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(report_instance.options)
+      @filter ||= ::Filters::HudFilterBase.new(user_id: report_instance.user.id).update(report_instance.options)
     end
   end
 end

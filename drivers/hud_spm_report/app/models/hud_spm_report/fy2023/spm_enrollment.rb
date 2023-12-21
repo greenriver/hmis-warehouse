@@ -87,7 +87,7 @@ module HudSpmReport::Fy2023
     # and question universe members, the question universes either refer directly to an enrollment in this set, or
     # to an aggregation object that refers to enrollments in this set.
     def self.create_enrollment_set(report_instance)
-      filter = ::Filters::HudFilterBase.new(user_id: User.system_user.id).update(report_instance.options)
+      filter = ::Filters::HudFilterBase.new(user_id: report_instance.user.id).update(report_instance.options)
       enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).enrollments
       household_infos = household(enrollments)
       enrollments.preload(:client, :destination_client, :exit, :income_benefits, project: :funders).find_in_batches do |batch|
@@ -197,12 +197,12 @@ module HudSpmReport::Fy2023
 
     private_class_method def self.eligible_funding?(enrollment, start_date, end_date)
       enrollment.project.funders.open_between(start_date: start_date, end_date: end_date).any? do |funder|
-        funder.funder.in?([2, 3, 4, 5, 43, 44, 54, 55].map(&:to_s))
+        funder.funder.in?(HudUtility2024.spm_coc_funders.map(&:to_s))
       end
     end
 
     private_class_method def self.total_income(income_benefit)
-      income_benefit&.hud_total_monthly_income&.clamp(0..) || 0
+      (income_benefit&.hud_total_monthly_income || 0).clamp(0..)
     end
 
     private_class_method def self.earned_income(income_benefit)
@@ -264,7 +264,8 @@ module HudSpmReport::Fy2023
 
     private_class_method def self.household(enrollments)
       result = {}
-      scope = enrollments.heads_of_households
+
+      scope = enrollments.heads_of_households.order(e_t[:household_id], e_t[:move_in_date].asc.nulls_last)
       scope.find_in_batches do |batch|
         batch.each do |enrollment|
           result[enrollment.household_id] = HomelessnessInfo.new(
