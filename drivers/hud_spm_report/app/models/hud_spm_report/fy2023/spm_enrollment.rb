@@ -22,7 +22,11 @@ module HudSpmReport::Fy2023
 
     scope :open_during_range, ->(range) do
       a_t = arel_table
-      where(dates_overlaps_arel(range, a_t[:entry_date], a_t[:exit_date]))
+
+      # SPM only runs on residential projects,
+      # residential projects do not receive service on their exit date,
+      # exclude exit date
+      where(dates_overlaps_arel(range, a_t[:entry_date], a_t[:exit_date]), exit_date_included: false)
     end
 
     # HMIS Standard Reporting Terminology Glossary 2024 active client method 2
@@ -47,6 +51,9 @@ module HudSpmReport::Fy2023
         [
           table[:date_provided].between(range),
           table[:date_provided].gteq(arel_table[:entry_date]),
+          # Bed nights cannot occur on the exit date, but CAN occur on the last day of the report
+          # using, less than but pushing the end date out to include report end
+          table[:date_provided].lt(cl(arel_table[:exit_date], range.last + 1.days)),
         ].inject(&:and)
       end
 
@@ -54,6 +61,8 @@ module HudSpmReport::Fy2023
         [
           table[:information_date].between(range),
           table[:information_date].gteq(arel_table[:entry_date]),
+          # CLS can occur on exit date or report end
+          table[:information_date].ltet(cl(arel_table[:exit_date], range.last)),
         ].inject(&:and)
       end
 
@@ -61,7 +70,7 @@ module HudSpmReport::Fy2023
       ee_cond = HudSpmReport::Fy2023::SpmEnrollment.arel_table.then do |table|
         [
           table[:project_type].not_in([1, 4]), # Not ES-NbN, or SO
-          dates_overlaps_arel(range, table[:entry_date], table[:exit_date]),
+          dates_overlaps_arel(range, table[:entry_date], table[:exit_date], exit_date_included: false),
         ].inject(&:and)
       end
 
@@ -76,6 +85,9 @@ module HudSpmReport::Fy2023
           table[:record_type].eq(HudUtility2024.record_type('Bed Night', true)),
           table[:date_provided].between(range),
           table[:date_provided].gteq(arel_table[:entry_date]),
+          # Bed nights cannot occur on the exit date, but CAN occur on the last day of the report
+          # using, less than but pushing the end date out to include report end
+          table[:date_provided].lt(cl(arel_table[:exit_date], range.last + 1.days)),
         ].inject(&:and)
       end
 
@@ -84,7 +96,7 @@ module HudSpmReport::Fy2023
       ee_cond = HudSpmReport::Fy2023::SpmEnrollment.arel_table.then do |table|
         [
           table[:project_type].in([0, 2, 3, 8, 9, 10, 13]),
-          dates_overlaps_arel(range, table[:entry_date], table[:exit_date]),
+          dates_overlaps_arel(range, table[:entry_date], table[:exit_date], exit_date_included: false),
         ].inject(&:and)
       end
 
@@ -93,7 +105,7 @@ module HudSpmReport::Fy2023
 
     scope :literally_homeless_at_entry_in_range, ->(range) do
       where(
-        arel_table[:entry_date].lteq(range.end).and(arel_table[:exit_date].gteq(range.begin).or(arel_table[:exit_date].eq(nil))).
+        dates_overlaps_arel(range, arel_table[:entry_date], arel_table[:exit_date], exit_date_included: false).
         and(arel_table[:project_type].in([0, 1, 4, 8]).
           or(arel_table[:project_type].in([2, 3, 9, 10, 13]).
             and(arel_table[:prior_living_situation].between(100..199).

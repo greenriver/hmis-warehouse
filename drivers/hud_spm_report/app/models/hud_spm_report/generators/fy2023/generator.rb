@@ -6,6 +6,8 @@
 
 module HudSpmReport::Generators::Fy2023
   class Generator < ::HudReports::GeneratorBase
+    cattr_accessor :write_detail_path
+
     def self.fiscal_year
       'FY 2023'
     end
@@ -51,6 +53,10 @@ module HudSpmReport::Generators::Fy2023
     def self.client_class(_question)
       # FIXME
       HudSpmReport::Fy2023::SpmEnrollment
+    end
+
+    def self.detail_template
+      'hud_spm_report/cells/show'
     end
   end
 end

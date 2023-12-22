@@ -51,6 +51,7 @@ module HudSpmReport::Fy2023
 
       bed_nights_array = []
       enrollment_links_array = []
+      any_bed_nights_in_report_range = false
       filtered_bed_nights.each do |enrollment, service_id, date|
         bed_nights_array << BedNight.new(
           client_id: client.id,
@@ -58,6 +59,7 @@ module HudSpmReport::Fy2023
           service_id: service_id,
           date: date,
         )
+        any_bed_nights_in_report_range = true if date.between?(report_start_date, report_end_date)
       end
 
       enrollment_ids = filtered_bed_nights.map { |enrollment, _, _| enrollment.id }.uniq
@@ -75,7 +77,12 @@ module HudSpmReport::Fy2023
         literally_homeless_at_entry: literally_homeless_at_entry(filtered_bed_nights, dates.first),
       )
 
-      [self, bed_nights_array, enrollment_links_array]
+      {
+        episode: self,
+        bed_nights: bed_nights_array,
+        enrollment_links: enrollment_links_array,
+        any_bed_nights_in_report_range: any_bed_nights_in_report_range,
+      }
     end
 
     private def candidate_bed_nights(enrollments, project_types, include_self_reported)

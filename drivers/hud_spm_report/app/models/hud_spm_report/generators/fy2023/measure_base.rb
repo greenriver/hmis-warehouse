@@ -42,5 +42,17 @@ module HudSpmReport::Generators::Fy2023
     private def filter
       @filter ||= ::Filters::HudFilterBase.new(user_id: @report.user.id).update(@report.options)
     end
+
+    private def generator_klass
+      HudSpmReport::Generators::Fy2023::Generator
+    end
+
+    private def write_detail(answer)
+      answer.write_detail(
+        path: generator_klass.write_detail_path,
+        generator: generator_klass,
+        question_name: self.class.question_number,
+      )
+    end
   end
 end

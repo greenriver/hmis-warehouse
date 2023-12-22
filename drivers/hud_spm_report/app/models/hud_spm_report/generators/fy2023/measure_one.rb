@@ -67,12 +67,15 @@ module HudSpmReport::Generators::Fy2023
       answer = @report.answer(question: table_name, cell: :B1)
       answer.add_members(cell_universe)
       answer.update(summary: persons)
+      write_detail(answer)
       answer = @report.answer(question: table_name, cell: :D1)
       answer.add_members(cell_universe)
       answer.update(summary: mean)
+      write_detail(answer)
       answer = @report.answer(question: table_name, cell: :G1)
       answer.add_members(cell_universe)
       answer.update(summary: median)
+      write_detail(answer)
 
       create_universe(
         :m1a2,
@@ -174,18 +177,23 @@ module HudSpmReport::Generators::Fy2023
         bed_nights_per_episode = []
         enrollment_links_per_episode = []
         slice.each do |client_id|
-          episode, bed_nights, enrollment_links = HudSpmReport::Fy2023::Episode.new(client_id: client_id, report: @report).
+          episode_calculations = HudSpmReport::Fy2023::Episode.new(client_id: client_id, report: @report).
             compute_episode(
               enrollments_for_slice[client_id],
               included_project_types: included_project_types,
               excluded_project_types: excluded_project_types,
               include_self_reported: include_self_reported,
             )
-          next if episode.nil?
+          # Ignore clients with no episode
+          next if episode_calculations.blank?
 
-          episodes << episode
-          bed_nights_per_episode << bed_nights
-          enrollment_links_per_episode << enrollment_links
+          # Ignore clients with no bed nights in report range
+          any_bed_nights_in_report_range = episode_calculations[:any_bed_nights_in_report_range]
+          next unless any_bed_nights_in_report_range
+
+          episodes << episode_calculations[:episode]
+          bed_nights_per_episode << episode_calculations[:bed_nights]
+          enrollment_links_per_episode << episode_calculations[:enrollment_links]
         end
         next unless episodes.present?
 

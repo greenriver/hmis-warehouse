@@ -28,13 +28,14 @@ RSpec.shared_context 'datalab spm context', shared_context: :metadata do
 
   def run(filter, question_numbers)
     klass = HudSpmReport::Generators::Fy2023::Generator
-    @generator = klass.new(
-      ::HudReports::ReportInstance.from_filter(
-        filter,
-        klass.title,
-        build_for_questions: question_numbers,
-      ),
+    report = ::HudReports::ReportInstance.from_filter(
+      filter,
+      klass.title,
+      build_for_questions: question_numbers,
     )
+    # Uncomment to get detail CSVs
+    klass.write_detail_path = 'tmp/spm_'
+    @generator = klass.new(report)
     @generator.run!
 
     @report_result = @generator.report
