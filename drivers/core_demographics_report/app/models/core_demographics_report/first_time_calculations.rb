@@ -155,13 +155,10 @@ module
         clients[:hoh_chronic][coc_code] << client_id if hoh_chronic_ids.include?(client_id)
         clients[:high_acuity][coc_code] << client_id if high_acuity_ids.include?(client_id)
         clients[:hoh_high_acuity][coc_code] << client_id if hoh_high_acuity_ids.include?(client_id)
-        # Only count HoH for household counts
-        if hoh_client_ids.include?(client_id)
-          # These need to use enrollment.id to capture age correctly, but needs the client for summary counts
-          clients[:adult_and_child][coc_code] << [enrollment_id, client_id] if adult_and_child_ids.include?(enrollment_id)
-          clients[:hoh_adult_and_child][coc_code] << [enrollment_id, client_id] if hoh_adult_and_child_ids.include?(enrollment_id)
-          clients[:unaccompanied_youth][coc_code] << [enrollment_id, client_id] if unaccompanied_youth_ids.include?(enrollment_id)
-        end
+        # These need to use enrollment.id to capture age correctly, but needs the client for summary counts
+        clients[:adult_and_child][coc_code] << [enrollment_id, client_id] if adult_and_child_ids.include?(enrollment_id)
+        clients[:hoh_adult_and_child][coc_code] << [enrollment_id, client_id] if hoh_adult_and_child_ids.include?(enrollment_id)
+        clients[:unaccompanied_youth][coc_code] << [enrollment_id, client_id] if unaccompanied_youth_ids.include?(enrollment_id)
       end
       # Always add them to the clients category
       clients[:client][coc_code] << client_id
