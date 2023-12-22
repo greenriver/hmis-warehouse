@@ -155,11 +155,10 @@ module HudSpmReport::Generators::Fy2023
         where(project_type: included_project_types).
         pluck(:client_id)
       if include_self_reported
-        literally_homeless = enrollment_set.literally_homeless_at_entry_in_range(filter.range)
-        candidate_client_ids += literally_homeless.
-          where(project_type: HudUtility2024.project_type_number_from_code(:ph)).
-          or(literally_homeless.where(spm_e_t[:project_type].in(HudUtility2024.project_type_number_from_code(:ph)).
-            and(spm_e_t[:move_in_date].eq(nil).or(spm_e_t[:move_in_date].between(filter.range))))).
+        literally_homeless_in_ph = enrollment_set.literally_homeless_at_entry_in_range(filter.range).where(project_type: HudUtility2024.project_type_number_from_code(:ph))
+        candidate_client_ids += literally_homeless_in_ph.where(spm_e_t[:entry_date].between(filter.range)).
+          or(literally_homeless_in_ph.where(spm_e_t[:move_in_date].between(filter.range))).
+          or(literally_homeless_in_ph.where(spm_e_t[:move_in_date].eq(nil).and(spm_e_t[:exit_date].between(filter.range)))).
           pluck(:client_id)
       end
       enrollments = enrollment_set.where(client_id: candidate_client_ids.uniq)

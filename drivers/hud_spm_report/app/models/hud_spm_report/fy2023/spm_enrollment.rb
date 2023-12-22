@@ -92,16 +92,18 @@ module HudSpmReport::Fy2023
     end
 
     scope :literally_homeless_at_entry_in_range, ->(range) do
-      where(arel_table[:exit_date].gteq(range.begin).or(arel_table[:exit_date].eq(nil)).and(arel_table[:entry_date].lteq(range.end)).
-        and(arel_table[:project_type].in([0, 1, 4, 8])).
-        or(arel_table[:project_type].in([2, 3, 9, 10, 13]).
-          and(arel_table[:prior_living_situation].between(100..199).
-            or(arel_table[:previous_street_essh].eq(true).
-              and(arel_table[:prior_living_situation].between(200..299)).
-              and(arel_table[:los_under_threshold].eq(true))).
-            or(arel_table[:previous_street_essh].eq(true).
-              and(arel_table[:prior_living_situation].between(300..499)).
-              and(arel_table[:los_under_threshold].eq(true))))))
+      where(
+        arel_table[:entry_date].lteq(range.end).and(arel_table[:exit_date].gteq(range.begin).or(arel_table[:exit_date].eq(nil))).
+        and(arel_table[:project_type].in([0, 1, 4, 8]).
+          or(arel_table[:project_type].in([2, 3, 9, 10, 13]).
+            and(arel_table[:prior_living_situation].between(100..199).
+              or(arel_table[:previous_street_essh].eq(true).
+                and(arel_table[:prior_living_situation].between(200..299)).
+                and(arel_table[:los_under_threshold].eq(true))).
+              or(arel_table[:previous_street_essh].eq(true).
+                and(arel_table[:prior_living_situation].between(300..499)).
+                and(arel_table[:los_under_threshold].eq(true)))))),
+      )
     end
 
     HomelessnessInfo = Struct.new(:start_of_homelessness, :entry_date, :move_in_date, keyword_init: true)
