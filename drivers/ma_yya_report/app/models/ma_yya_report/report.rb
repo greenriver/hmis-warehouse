@@ -119,7 +119,7 @@ module MaYyaReport
               )),
         A5d: a_t[:direct_assistance].eq(true).
           and(Arel.sql(
-                json_contains_text(:flex_funds, 'Rent arrears'),
+                json_contains_text(:flex_funds, 'Rent arrears'), # Change casing? Collected as 'Rent Arrears'
               )),
         A5e: a_t[:direct_assistance].eq(true).
           and(Arel.sql(

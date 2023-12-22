@@ -147,16 +147,8 @@ module MaYyaReport
     end
 
     private def race_code
-      # fixme pull from hud utility
-      {
-        'AmIndAKNative' => 1,
-        'Asian' => 2,
-        'BlackAfAmerican' => 3,
-        'NativeHIOtherPacific' => 4,
-        'White' => 5,
-        'HispanicLatinaeo' => 6,
-        'MidEastNAfrican' => 7,
-      }.freeze
+      # NativeHIOtherPacific => NativeHIPacific -- ok?
+      HudUtility2024.race_id_to_field_name.excluding(8, 9, 99).invert
     end
 
     private def disability?(enrollment, disability_type, disability_responses = [1])
@@ -197,22 +189,56 @@ module MaYyaReport
         map(&:CurrentLivingSituation)
     end
 
-    # fixme: most recently updated zip code
+    # Most recent Zip for each source client
     private def zip_codes(client)
-      client.source_hmis_clients.map(&:processed_youth_current_zip).compact.uniq || []
+      hmis_source_clients_for(client).map do |hmis_client|
+        hmis_client.addresses.sort(:DateUpdated).pluck(:postal_code).compact.last
+      end.uniq
     end
 
-    # CustomService by type flex_funds
+    # All flex funds received by all source clients (e.g. ["Transportation", "Child care", "Move-in"])
+    # NOTE: Assumes that there is only 1 HMIS data source
     private def flex_funds(client)
-      client.source_hmis_forms.
-        within_range(@filter.start_date .. @filter.end_date).
-        where(name: 'Flex Funds').
-        map(&:flex_funds).flatten.uniq
+      return [] unless flex_funds_service_type && flex_funds_types_cded
+
+      hmis_personal_ids = hmis_source_clients_for(client).pluck(:personal_id)
+      # IDs for all Flex Fund services rendered to the client(s)
+      flex_funds_service_ids = Hmis::Hud::CustomService.hmis.where(personal_id: hmis_personal_ids, service_type: flex_funds_service_type).pluck(:id)
+      # CustomDataElements tied to these CustomServices indicate which fund types were provided
+      flex_funds_types_cded.values.
+        where(owner_id: flex_funds_service_ids).
+        pluck(:value_string).uniq.
+        # Remove parenthesized text from "Move-in (Including first, last and security)"
+        map { |ff_type| ff_type.gsub(/\([^()]*\)/, '').strip }.uniq
     end
 
-    # most recent translation assistance needed langauge
+    # Valid options are [nil, "English", "Spanish", "Other"]
     private def language(client)
-      client.source_hmis_clients.map(&:primary_language).detect(&:present?)
+      client.source_clients.map do |source_client|
+        # Choose the most recent enrollment that has language information. Sort by entry date since language is collected at entry.
+        enrollment = source_client.enrollments.where.not(translation_needed: nil).order(:entry_date).last
+        next unless latest_enrollment_with_language_info
+
+        if enrollment.translation_needed.zero?
+          'English' # If 'No' to translation needed, infer English as primary language (not quite right, but agreed-upon logic)
+        elsif enrollment.preferred_language == 367 # Spanish
+          'Spanish'
+        elsif enrollment.preferred_language.present?
+          'Other'
+        end
+      end.uniq
+    end
+
+    private def hmis_source_clients_for(client)
+      Hmis::Hud::Client.hmis.where(id: client.source_clients.pluck(:id))
+    end
+
+    private def flex_funds_service_type
+      @flex_funds_service_type ||= Hmis::Hud::CustomServiceType.find_by(name: 'Flex Funds')
+    end
+
+    private def flex_funds_types_cded
+      @flex_funds_types_cded ||= Hmis::Hud::CustomDataElementDefinition.find_by(key: :flex_funds_types)
     end
   end
 end

@@ -5,6 +5,7 @@
 ###
 
 module MaYyaReport::Synthetic
+  # Remove? Likely not used since HMIS transition
   class YouthEducationStatus < ::GrdaWarehouse::Synthetic::YouthEducationStatus
     include ArelHelper
 
