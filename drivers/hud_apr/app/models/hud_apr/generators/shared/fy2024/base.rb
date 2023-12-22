@@ -468,8 +468,8 @@ module HudApr::Generators::Shared::Fy2024
       @report.report_cells.joins(universe_members: :apr_client).exists?
     end
 
-    private def clients_with_enrollments(batch)
-      enrollment_scope.
+    private def clients_with_enrollments(batch, scope: enrollment_scope, **)
+      scope.
         where(client_id: batch.map(&:id)).
         order(first_date_in_program: :asc).
         group_by(&:client_id).
