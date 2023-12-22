@@ -147,6 +147,7 @@ module MaYyaReport
     end
 
     private def race_code
+      # fixme pull from hud utility
       {
         'AmIndAKNative' => 1,
         'Asian' => 2,
@@ -196,10 +197,12 @@ module MaYyaReport
         map(&:CurrentLivingSituation)
     end
 
+    # fixme: most recently updated zip code
     private def zip_codes(client)
       client.source_hmis_clients.map(&:processed_youth_current_zip).compact.uniq || []
     end
 
+    # CustomService by type flex_funds
     private def flex_funds(client)
       client.source_hmis_forms.
         within_range(@filter.start_date .. @filter.end_date).
@@ -207,6 +210,7 @@ module MaYyaReport
         map(&:flex_funds).flatten.uniq
     end
 
+    # most recent translation assistance needed langauge
     private def language(client)
       client.source_hmis_clients.map(&:primary_language).detect(&:present?)
     end
