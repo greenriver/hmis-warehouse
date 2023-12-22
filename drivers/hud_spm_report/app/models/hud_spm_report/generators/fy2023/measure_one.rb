@@ -59,7 +59,6 @@ module HudSpmReport::Generators::Fy2023
         :m1a1,
         included_project_types: HudUtility2024.project_type_number_from_code(:es) + HudUtility2024.project_type_number_from_code(:sh),
         excluded_project_types: HudUtility2024.project_type_number_from_code(:th) + HudUtility2024.project_type_number_from_code(:ph),
-        include_self_reported: false,
       )
 
       cell_universe = @report.universe(:m1a1).members
@@ -83,7 +82,6 @@ module HudSpmReport::Generators::Fy2023
           HudUtility2024.project_type_number_from_code(:sh) +
           HudUtility2024.project_type_number_from_code(:th),
         excluded_project_types: HudUtility2024.project_type_number_from_code(:ph),
-        include_self_reported: false,
       )
 
       cell_universe = @report.universe(:m1a2).members
@@ -114,10 +112,9 @@ module HudSpmReport::Generators::Fy2023
       create_universe(
         :m1b1,
         included_project_types: HudUtility2024.project_type_number_from_code(:es) +
-          HudUtility2024.project_type_number_from_code(:sh) +
-          HudUtility2024.project_type_number_from_code(:ph),
+          HudUtility2024.project_type_number_from_code(:sh),
         excluded_project_types: HudUtility2024.project_type_number_from_code(:th),
-        include_self_reported: true,
+        include_self_reported_and_ph: true,
       )
 
       cell_universe = @report.universe(:m1b1).members
@@ -136,10 +133,9 @@ module HudSpmReport::Generators::Fy2023
         :m1b2,
         included_project_types: HudUtility2024.project_type_number_from_code(:es) +
           HudUtility2024.project_type_number_from_code(:sh) +
-          HudUtility2024.project_type_number_from_code(:ph) +
           HudUtility2024.project_type_number_from_code(:th),
         excluded_project_types: [],
-        include_self_reported: true,
+        include_self_reported_and_ph: true,
       )
 
       cell_universe = @report.universe(:m1b2).members
@@ -155,13 +151,13 @@ module HudSpmReport::Generators::Fy2023
       answer.update(summary: median)
     end
 
-    private def create_universe(universe_name, included_project_types:, excluded_project_types:, include_self_reported:)
+    private def create_universe(universe_name, included_project_types:, excluded_project_types:, include_self_reported_and_ph: false)
       @universe = @report.universe(universe_name)
       candidate_client_ids = enrollment_set.
         with_active_method_5_in_range(filter.range).
         where(project_type: included_project_types).
         pluck(:client_id)
-      if include_self_reported
+      if include_self_reported_and_ph
         literally_homeless_in_ph = enrollment_set.literally_homeless_at_entry_in_range(filter.range).where(project_type: HudUtility2024.project_type_number_from_code(:ph))
         candidate_client_ids += literally_homeless_in_ph.where(spm_e_t[:entry_date].between(filter.range)).
           or(literally_homeless_in_ph.where(spm_e_t[:move_in_date].between(filter.range))).
@@ -182,7 +178,7 @@ module HudSpmReport::Generators::Fy2023
               enrollments_for_slice[client_id],
               included_project_types: included_project_types,
               excluded_project_types: excluded_project_types,
-              include_self_reported: include_self_reported,
+              include_self_reported_and_ph: include_self_reported_and_ph,
             )
           # Ignore clients with no episode
           next if episode_calculations.blank?

@@ -39,10 +39,10 @@ module HudSpmReport::Fy2023
       EnrollmentLink.import!(enrollment_links.flatten)
     end
 
-    def compute_episode(enrollments, included_project_types:, excluded_project_types:, include_self_reported:)
+    def compute_episode(enrollments, included_project_types:, excluded_project_types:, include_self_reported_and_ph:)
       raise 'Client undefined' unless client.present?
 
-      calculated_bed_nights = candidate_bed_nights(enrollments, included_project_types, include_self_reported)
+      calculated_bed_nights = candidate_bed_nights(enrollments, included_project_types, include_self_reported_and_ph)
       calculated_excluded_dates = excluded_bed_nights(enrollments, excluded_project_types)
       calculated_bed_nights.reject! { |_, _, date| date.in?(calculated_excluded_dates) }
 
@@ -85,7 +85,7 @@ module HudSpmReport::Fy2023
       }
     end
 
-    private def candidate_bed_nights(enrollments, project_types, include_self_reported)
+    private def candidate_bed_nights(enrollments, project_types, include_self_reported_and_ph)
       bed_nights = {} # Hash with date as key so we only get one candidate per overlapping night
       enrollments = enrollments.select { |e| e.project_type.in?(project_types) }
       enrollments.each do |enrollment|
@@ -100,7 +100,7 @@ module HudSpmReport::Fy2023
               transform_values { |v| Array.wrap(v).last }, # Unique by date
           )
         else
-          start_date = if include_self_reported && enrollment_literally_homeless_at_entry(enrollment)
+          start_date = if include_self_reported_and_ph && enrollment_literally_homeless_at_entry(enrollment)
             # Include self-reported dates, if any, otherwise later of project start and lookback date
             enrollment.start_of_homelessness || [enrollment.entry_date, lookback_date].max
           else
