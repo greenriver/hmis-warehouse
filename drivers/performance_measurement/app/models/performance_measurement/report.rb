@@ -266,7 +266,7 @@ module PerformanceMeasurement
       when HudSpmReport::Fy2023::Episode
         member.enrollments
       when HudSpmReport::Fy2023::Return
-        [member.return_enrollment, member.exit_enrollment]
+        [member.exit_enrollment]
       else
         raise "unknown type #{member.class.name}"
       end

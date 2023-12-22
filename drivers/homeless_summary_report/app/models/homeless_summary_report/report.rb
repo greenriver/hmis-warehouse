@@ -541,15 +541,9 @@ module HomelessSummaryReport
 
     # @return [SpmEnrollment, Episode, Return] Cells have different member entity types
     private def answer_members(report, table, cell)
-      scope = report.answer(question: table, cell: cell).universe_members
-      case table
-      when '1a', '1b'
-        # Episode
-        scope.preload(universe_membership: [:client, :bed_nights]).map(&:universe_membership)
-      else
-        # Return, SpmEnrollment
-        scope.preload(universe_membership: [:client]).map(&:universe_membership)
-      end
+      report.answer(question: table, cell: cell).universe_members.
+        preload(universe_membership: :client).
+        map(&:universe_membership)
     end
 
     private def run_spm
@@ -668,25 +662,25 @@ module HomelessSummaryReport
       {
         m1a_es_sh_days: {
           cells: [['1a', 'B1']],
-          value_accessor: ->(spm_episode) { spm_episode.bed_nights.size },
+          value_accessor: ->(spm_episode) { spm_episode.days_homeless },
           title: 'with ES or SH stays',
           calculations: [:count, :average, :median],
         },
         m1a_es_sh_th_days: {
           cells: [['1a', 'B2']],
-          value_accessor: ->(spm_episode) { spm_episode.bed_nights.size },
+          value_accessor: ->(spm_episode) { spm_episode.days_homeless },
           title: 'with ES, SH, or TH stays',
           calculations: [:count, :average, :median],
         },
         m1b_es_sh_ph_days: {
           cells: [['1b', 'B1']],
-          value_accessor: ->(spm_episode) { spm_episode.bed_nights.size },
+          value_accessor: ->(spm_episode) { spm_episode.days_homeless },
           title: 'with ES, SH, or PH stays',
           calculations: [:count, :average, :median],
         },
         m1b_es_sh_th_ph_days: {
           cells: [['1b', 'B2']],
-          value_accessor: ->(spm_episode) { spm_episode.bed_nights.size },
+          value_accessor: ->(spm_episode) { spm_episode.days_homeless },
           title: 'with ES, SH, TH, or PH stays',
           calculations: [:count, :average, :median],
         },

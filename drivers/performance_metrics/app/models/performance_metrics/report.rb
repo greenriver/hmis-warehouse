@@ -617,7 +617,7 @@ module PerformanceMetrics
           spm_returner = spm_returners[client_id]
           spm_leaver = spm_leavers.keys.include?(client_id)
           if spm_returner
-            days_in_es = spm_episodes[client_id].bed_nights.size
+            days_in_es = spm_episodes[client_id].days_homeless
             days_to_return = spm_returner.days_to_return
           end
           report_client = report_clients[client_id] || Client.new
@@ -667,18 +667,10 @@ module PerformanceMetrics
 
     # @return [SpmEnrollment, Episode, Return]
     private def answer_members(report, table, cell)
-      scope = report.answer(question: table, cell: cell).universe_members.
-        preload(:universe_membership)
-
-      preloaded_scope = case table
-      when '1a', '1b'
-        # Episode
-        scope.preload(universe_membership: :bed_nights)
-      else
-        # Return
-        scope
-      end
-      preloaded_scope.map(&:universe_membership).index_by(&destination_client_column(report))
+      report.answer(question: table, cell: cell).universe_members.
+        preload(:universe_membership).
+        map(&:universe_membership).
+        index_by(&destination_client_column(report))
     end
 
     private def destination_client_column(report)
