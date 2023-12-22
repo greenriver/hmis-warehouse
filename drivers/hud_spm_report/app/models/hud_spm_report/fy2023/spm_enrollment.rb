@@ -22,7 +22,7 @@ module HudSpmReport::Fy2023
 
     scope :open_during_range, ->(range) do
       a_t = arel_table
-      dates_overlaps_arel(range, a_t[:entry_date], a_t[:exit_date])
+      where(dates_overlaps_arel(range, a_t[:entry_date], a_t[:exit_date]))
     end
 
     # HMIS Standard Reporting Terminology Glossary 2024 active client method 2

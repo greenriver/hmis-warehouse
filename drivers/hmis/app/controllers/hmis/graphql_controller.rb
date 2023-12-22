@@ -15,6 +15,9 @@ module Hmis
       # not sure if this is needed, do we plan to support other schemas?
       raise unless params[:schema] == :hmis
 
+      # Additional tags for grouping errors in Sentry
+      Sentry.set_tags({ 'hmis.route': request.headers['X-Hmis-Path'].presence&.gsub(/\/([0-9]+)(\/|$)/, '/:id/') })
+
       begin
         result = params[:_json] ? query_multiplex : query_single
         render json: result

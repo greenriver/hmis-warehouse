@@ -51,6 +51,8 @@ module HudSpmReport::Generators::Fy2023
           2 => 'Persons in ES-EE, ES-NbN, SH, and TH',
         },
         COLUMNS,
+        external_column_header: true,
+        external_row_label: true,
       )
 
       create_universe(
@@ -102,6 +104,8 @@ module HudSpmReport::Generators::Fy2023
           2 => 'Persons in ES-EE, ES-NbN, SH, TH, and PH',
         },
         COLUMNS,
+        external_column_header: true,
+        external_row_label: true,
       )
 
       create_universe(

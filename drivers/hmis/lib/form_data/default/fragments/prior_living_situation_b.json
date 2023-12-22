@@ -34,8 +34,8 @@
     {
       "type": "DISPLAY",
       "link_id": "3.917B.instruction",
-      "text": "Where did the client spend last night? Select the category that most closely matches the client's response.",
-      "readonly_text": "Where the client spent the last night."
+      "text": "Where did the client spend the night before project entry? Select the category that most closely matches the client's response.",
+      "readonly_text": "Where the client spent the night before project entry."
     },
     {
       "type": "CHOICE",
@@ -229,7 +229,7 @@
         "record_type": "ENROLLMENT",
         "field_name": "previousStreetEssh"
       },
-      "text": "On the night before project entry, did the client stay on the streets, ES or SH?",
+      "text": "On the night before, did the client stay on the streets, ES or SH?",
       "brief_text": "Homeless on previous night",
       "enable_behavior": "ALL",
       "enable_when": [
@@ -375,7 +375,7 @@
         "record_type": "ENROLLMENT",
         "field_name": "timesHomelessPastThreeYears"
       },
-      "text": "Regardless of where they stayed last night, number of times the client has been on the streets, in ES, or SH in the past three years including today",
+      "text": "Regardless of where they stayed the night before project entry, number of times the client has been on the streets, in ES, or SH in the past three years including today",
       "brief_text": "Times Homeless",
       "pick_list_reference": "TimesHomelessPastThreeYears",
       "enable_behavior": "ALL",

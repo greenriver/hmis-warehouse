@@ -513,9 +513,13 @@
           "type": "DISPLAY",
           "link_id": "monthly-total-income",
           "text": "Monthly Total Income",
+          "mapping": {
+            "record_type": "INCOME_BENEFIT",
+            "field_name": "totalMonthlyIncome"
+          },
           "autofill_values": [
             {
-              "autofill_readonly": true,
+              "autofill_readonly": false,
               "autofill_behavior": "ANY",
               "autofill_when": [],
               "sum_questions": [
