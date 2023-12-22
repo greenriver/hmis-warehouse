@@ -62,7 +62,7 @@ module HudSpmReport::Fy2023
           table[:information_date].between(range),
           table[:information_date].gteq(arel_table[:entry_date]),
           # CLS can occur on exit date or report end
-          table[:information_date].ltet(cl(arel_table[:exit_date], range.last)),
+          table[:information_date].lteq(cl(arel_table[:exit_date], range.last)),
         ].inject(&:and)
       end
 
