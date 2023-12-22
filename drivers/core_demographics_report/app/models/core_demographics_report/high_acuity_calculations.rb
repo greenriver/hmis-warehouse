@@ -64,7 +64,13 @@ module
     end
 
     private def high_acuity_client_ids(key, coc_code = base_count_sym)
-      high_acuity_clients[key][coc_code]
+      # These two are stored as client_ids, the remaining are enrollment, client_id pairs
+      if key.in?([:client, :household])
+        high_acuity_clients[key][coc_code]
+      else
+        # fetch client_ids from Set[[enrollment_id, client_id]]
+        high_acuity_clients[key][coc_code].to_a.map(&:last).uniq
+      end
     end
 
     private def hoh_client_ids

@@ -22,7 +22,7 @@ module
     end
 
     def unsheltered_count(type, coc_code = base_count_sym)
-      mask_small_population(unsheltered_clients[type][coc_code]&.count&.presence || 0)
+      mask_small_population(unsheltered_client_ids(type, coc_code)&.count&.presence || 0)
     end
 
     def unsheltered_percentage(type, coc_code = base_count_sym)
@@ -64,7 +64,13 @@ module
     end
 
     private def unsheltered_client_ids(key, coc_code = base_count_sym)
-      unsheltered_clients[key][coc_code]
+      # These two are stored as client_ids, the remaining are enrollment, client_id pairs
+      if key.in?([:client, :household])
+        unsheltered_clients[key][coc_code]
+      else
+        # fetch client_ids from Set[[enrollment_id, client_id]]
+        unsheltered_clients[key][coc_code].to_a.map(&:last).uniq
+      end
     end
 
     private def hoh_client_ids

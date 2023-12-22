@@ -22,7 +22,7 @@ module
     end
 
     def chronic_count(type, coc_code = base_count_sym)
-      mask_small_population(chronic_clients[type][coc_code]&.count&.presence || 0)
+      mask_small_population(chronic_client_ids(type, coc_code)&.count&.presence || 0)
     end
 
     def chronic_percentage(type, coc_code = base_count_sym)
@@ -64,7 +64,13 @@ module
     end
 
     private def chronic_client_ids(key, coc_code = base_count_sym)
-      chronic_clients[key][coc_code]
+      # These two are stored as client_ids, the remaining are enrollment, client_id pairs
+      if key.in?([:client, :household])
+        chronic_clients[key][coc_code]
+      else
+        # fetch client_ids from Set[[enrollment_id, client_id]]
+        chronic_clients[key][coc_code].to_a.map(&:last).uniq
+      end
     end
 
     private def hoh_client_ids
