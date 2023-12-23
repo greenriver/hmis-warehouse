@@ -36,7 +36,7 @@ module
           count
       end
 
-      mask_small_population(outcome_clients[type][coc_code]&.count&.presence || 0)
+      mask_small_population(outcome_client_ids(type, coc_code)&.count&.presence || 0)
     end
 
     def outcome_percentage(type, coc_code = base_count_sym)

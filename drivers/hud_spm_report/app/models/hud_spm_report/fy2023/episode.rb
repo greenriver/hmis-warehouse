@@ -39,10 +39,10 @@ module HudSpmReport::Fy2023
       EnrollmentLink.import!(enrollment_links.flatten)
     end
 
-    def compute_episode(enrollments, included_project_types:, excluded_project_types:, include_self_reported:)
+    def compute_episode(enrollments, included_project_types:, excluded_project_types:, include_self_reported_and_ph:)
       raise 'Client undefined' unless client.present?
 
-      calculated_bed_nights = candidate_bed_nights(enrollments, included_project_types, include_self_reported)
+      calculated_bed_nights = candidate_bed_nights(enrollments, included_project_types, include_self_reported_and_ph)
       calculated_excluded_dates = excluded_bed_nights(enrollments, excluded_project_types)
       calculated_bed_nights.reject! { |_, _, date| date.in?(calculated_excluded_dates) }
 
@@ -51,6 +51,7 @@ module HudSpmReport::Fy2023
 
       bed_nights_array = []
       enrollment_links_array = []
+      any_bed_nights_in_report_range = false
       filtered_bed_nights.each do |enrollment, service_id, date|
         bed_nights_array << BedNight.new(
           client_id: client.id,
@@ -58,6 +59,7 @@ module HudSpmReport::Fy2023
           service_id: service_id,
           date: date,
         )
+        any_bed_nights_in_report_range = true if date.between?(report_start_date, report_end_date)
       end
 
       enrollment_ids = filtered_bed_nights.map { |enrollment, _, _| enrollment.id }.uniq
@@ -75,12 +77,27 @@ module HudSpmReport::Fy2023
         literally_homeless_at_entry: literally_homeless_at_entry(filtered_bed_nights, dates.first),
       )
 
-      [self, bed_nights_array, enrollment_links_array]
+      {
+        episode: self,
+        bed_nights: bed_nights_array,
+        enrollment_links: enrollment_links_array,
+        any_bed_nights_in_report_range: any_bed_nights_in_report_range,
+      }
     end
 
-    private def candidate_bed_nights(enrollments, project_types, include_self_reported)
+    private def candidate_bed_nights(enrollments, project_types, include_self_reported_and_ph)
       bed_nights = {} # Hash with date as key so we only get one candidate per overlapping night
-      enrollments = enrollments.select { |e| e.project_type.in?(project_types) }
+      enrollments = enrollments.select do |e|
+        # For PH projects, only stays meeting the Identifying Clients Experiencing Literal Homelessness at Project Entry criteria are included in time experiencing homelessness.
+        in_project_type = e.project_type.in?(project_types)
+        # Always drop PH that wasn't literally homeless at entry
+        # NOTE: PH is never in the project types, but included because of include_self_reported_and_ph
+        if include_self_reported_and_ph && e.project_type.in?(HudUtility2024.project_type_number_from_code(:ph))
+          enrollment_literally_homeless_at_entry(e)
+        else
+          in_project_type
+        end
+      end
       enrollments.each do |enrollment|
         if enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn))
           # NbN only gets service nights in the report range
@@ -93,7 +110,13 @@ module HudSpmReport::Fy2023
               transform_values { |v| Array.wrap(v).last }, # Unique by date
           )
         else
-          start_date = if include_self_reported && enrollment_literally_homeless_at_entry(enrollment)
+          # There are two output tables required for this measure.  Each of the two tables has two rows – each with a different universe of clients and corresponding universe of data.  Effectively, there is a single row of output which must be produced four different ways, each using a different universe of data, as shown below:
+          #   •	Measure 1a / Metric 1:  Persons in ES-EE, ES-NbN, and SH – do not include data from element 3.917.
+          #   •	Measure 1a / Metric 2:  Persons in ES-EE, ES-NbN, SH, and TH – do not include data from element 3.917.
+          #   •	Measure 1b / Metric 1:  Persons in ES-EE, ES-NbN, SH, and PH – include data from element 3.917 and time between [project start date] and [housing move-in date].
+          # •	Measure 1b / Metric 2:  Persons in ES-EE, ES-NbN, SH, TH, and PH – include data from element 3.917 and time between [project start date] and [housing move-in date].
+
+          start_date = if include_self_reported_and_ph
             # Include self-reported dates, if any, otherwise later of project start and lookback date
             enrollment.start_of_homelessness || [enrollment.entry_date, lookback_date].max
           else
@@ -148,7 +171,7 @@ module HudSpmReport::Fy2023
       client_end_date = calculated_bed_nights.last.last
       client_start_date = client_end_date - 365.days
 
-      # Include continguous dates before the calculated client start date:
+      # Include contiguous dates before the calculated client start date:
       # First, find as close to the start date as possible in the array
       index = 0
       index += 1 while calculated_bed_nights[index].last < client_start_date
@@ -169,9 +192,8 @@ module HudSpmReport::Fy2023
 
       enrollment.project_type.in?([2, 3, 9, 10, 13]) &&
         (enrollment.prior_living_situation.in?(100..199) ||
-          (enrollment.previous_street_essh? &&
-            (enrollment.prior_living_situation.in?(200..299) && enrollment.length_of_stay.in?([2, 3])) ||
-            (enrollment.prior_living_situation.in?(300..499) && enrollment.los_under_threshold?)))
+          (enrollment.previous_street_essh? && enrollment.prior_living_situation.in?(200..299) && enrollment.los_under_threshold?) ||
+            (enrollment.previous_street_essh? && enrollment.prior_living_situation.in?(300..499) && enrollment.los_under_threshold?))
     end
 
     private def report_start_date

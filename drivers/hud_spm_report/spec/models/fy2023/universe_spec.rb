@@ -29,7 +29,7 @@ RSpec.describe 'HUD SPM Universe', type: :model do
         HudSpmReport::Fy2023::SpmEnrollment.where(client_id: client.id).to_a,
         included_project_types: [0, 1, 8],
         excluded_project_types: [3, 4],
-        include_self_reported: true,
+        include_self_reported_and_ph: true,
       )
       expect(episode.first_date).to eq '2021-08-01'.to_date
       expect(episode.last_date).to eq '2022-10-31'.to_date

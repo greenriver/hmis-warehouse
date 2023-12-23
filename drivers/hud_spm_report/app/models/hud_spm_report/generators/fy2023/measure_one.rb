@@ -51,13 +51,14 @@ module HudSpmReport::Generators::Fy2023
           2 => 'Persons in ES-EE, ES-NbN, SH, and TH',
         },
         COLUMNS,
+        external_column_header: true,
+        external_row_label: true,
       )
 
       create_universe(
         :m1a1,
         included_project_types: HudUtility2024.project_type_number_from_code(:es) + HudUtility2024.project_type_number_from_code(:sh),
         excluded_project_types: HudUtility2024.project_type_number_from_code(:th) + HudUtility2024.project_type_number_from_code(:ph),
-        include_self_reported: false,
       )
 
       cell_universe = @report.universe(:m1a1).members
@@ -65,12 +66,17 @@ module HudSpmReport::Generators::Fy2023
       answer = @report.answer(question: table_name, cell: :B1)
       answer.add_members(cell_universe)
       answer.update(summary: persons)
+      # puts 'M1A B1'
+      # puts cell_universe.map(&:universe_membership).map(&:client).map(&:personal_id)
+      # write_detail(answer)
       answer = @report.answer(question: table_name, cell: :D1)
       answer.add_members(cell_universe)
       answer.update(summary: mean)
+      # write_detail(answer)
       answer = @report.answer(question: table_name, cell: :G1)
       answer.add_members(cell_universe)
       answer.update(summary: median)
+      # write_detail(answer)
 
       create_universe(
         :m1a2,
@@ -78,7 +84,6 @@ module HudSpmReport::Generators::Fy2023
           HudUtility2024.project_type_number_from_code(:sh) +
           HudUtility2024.project_type_number_from_code(:th),
         excluded_project_types: HudUtility2024.project_type_number_from_code(:ph),
-        include_self_reported: false,
       )
 
       cell_universe = @report.universe(:m1a2).members
@@ -102,15 +107,16 @@ module HudSpmReport::Generators::Fy2023
           2 => 'Persons in ES-EE, ES-NbN, SH, TH, and PH',
         },
         COLUMNS,
+        external_column_header: true,
+        external_row_label: true,
       )
 
       create_universe(
         :m1b1,
         included_project_types: HudUtility2024.project_type_number_from_code(:es) +
-          HudUtility2024.project_type_number_from_code(:sh) +
-          HudUtility2024.project_type_number_from_code(:ph),
+          HudUtility2024.project_type_number_from_code(:sh),
         excluded_project_types: HudUtility2024.project_type_number_from_code(:th),
-        include_self_reported: true,
+        include_self_reported_and_ph: true,
       )
 
       cell_universe = @report.universe(:m1b1).members
@@ -118,6 +124,9 @@ module HudSpmReport::Generators::Fy2023
       answer = @report.answer(question: table_name, cell: :B1)
       answer.add_members(cell_universe)
       answer.update(summary: persons)
+      # puts 'M1B B1'
+      # puts cell_universe.map(&:universe_membership).map(&:client).map(&:personal_id)
+      # write_detail(answer)
       answer = @report.answer(question: table_name, cell: :D1)
       answer.add_members(cell_universe)
       answer.update(summary: mean)
@@ -129,10 +138,9 @@ module HudSpmReport::Generators::Fy2023
         :m1b2,
         included_project_types: HudUtility2024.project_type_number_from_code(:es) +
           HudUtility2024.project_type_number_from_code(:sh) +
-          HudUtility2024.project_type_number_from_code(:ph) +
           HudUtility2024.project_type_number_from_code(:th),
         excluded_project_types: [],
-        include_self_reported: true,
+        include_self_reported_and_ph: true,
       )
 
       cell_universe = @report.universe(:m1b2).members
@@ -140,6 +148,8 @@ module HudSpmReport::Generators::Fy2023
       answer = @report.answer(question: table_name, cell: :B2)
       answer.add_members(cell_universe)
       answer.update(summary: persons)
+      # puts 'M1B B2'
+      # puts cell_universe.map(&:universe_membership).map(&:client).map(&:personal_id)
       answer = @report.answer(question: table_name, cell: :D2)
       answer.add_members(cell_universe)
       answer.update(summary: mean)
@@ -148,19 +158,21 @@ module HudSpmReport::Generators::Fy2023
       answer.update(summary: median)
     end
 
-    private def create_universe(universe_name, included_project_types:, excluded_project_types:, include_self_reported:)
+    private def create_universe(universe_name, included_project_types:, excluded_project_types:, include_self_reported_and_ph: false)
       @universe = @report.universe(universe_name)
+      # Universe
+      # Measure 1a/Metric 1: Emergency Shelter – Entry Exit (Project Type 0), Emergency Shelter – Night-by-Night (Project Type 1), and Safe Haven (Project Type 8) clients who are active in report date range.
+      # Measure 1a/Metric 2: Emergency Shelter –Entry Exit (Project Type 0), Emergency Shelter – Night-by-Night (Project Type 1), Safe Haven (Project Type 8), and Transitional Housing (Project Type 2) clients who are active in report date range.
+      # Measure 1b/Metric 1: Emergency Shelter – Entry Exit (Project Type 0), Emergency Shelter – Night-by-Night (Project Type 1), Safe Haven (Project Type 8), and Permanent Housing (Project Types 3, 9, 10, 13) clients who are active in report date range. For PH projects, only stays meeting the Identifying Clients Experiencing Literal Homelessness at Project Entry criteria are included in time experiencing homelessness.
+      # Measure 1b/Metric 2: Emergency Shelter – Entry Exit (Project Type 0), Emergency Shelter – Night-by-Night (Project Type 1), Safe Haven (Project Type 8), Transitional Housing (Project Type 2), and Permanent Housing (Project Types 3, 9, 10, 13) clients who are active in report date range.  For PH projects, only stays meeting the Identifying Clients Experiencing Literal Homelessness at Project Entry criteria are included in time experiencing homelessness.
       candidate_client_ids = enrollment_set.
         with_active_method_5_in_range(filter.range).
         where(project_type: included_project_types).
         pluck(:client_id)
-      if include_self_reported
-        literally_homeless = enrollment_set.literally_homeless_at_entry_in_range(filter.range)
-        candidate_client_ids += literally_homeless.
-          where(project_type: HudUtility2024.project_type_number_from_code(:ph)).
-          or(literally_homeless.where(spm_e_t[:project_type].in(HudUtility2024.project_type_number_from_code(:ph)).
-            and(spm_e_t[:move_in_date].eq(nil).or(spm_e_t[:move_in_date].between(filter.range))))).
-          pluck(:client_id)
+      if include_self_reported_and_ph
+        # For PH projects, only stays meeting the Identifying Clients Experiencing Literal Homelessness at Project Entry criteria are included in time experiencing homelessness
+        literally_homeless_in_ph = enrollment_set.literally_homeless_at_entry_in_range(filter.range).where(project_type: HudUtility2024.project_type_number_from_code(:ph))
+        candidate_client_ids += literally_homeless_in_ph.pluck(:client_id)
       end
       enrollments = enrollment_set.where(client_id: candidate_client_ids.uniq)
 
@@ -171,18 +183,23 @@ module HudSpmReport::Generators::Fy2023
         bed_nights_per_episode = []
         enrollment_links_per_episode = []
         slice.each do |client_id|
-          episode, bed_nights, enrollment_links = HudSpmReport::Fy2023::Episode.new(client_id: client_id, report: @report).
+          episode_calculations = HudSpmReport::Fy2023::Episode.new(client_id: client_id, report: @report).
             compute_episode(
               enrollments_for_slice[client_id],
               included_project_types: included_project_types,
               excluded_project_types: excluded_project_types,
-              include_self_reported: include_self_reported,
+              include_self_reported_and_ph: include_self_reported_and_ph,
             )
-          next if episode.nil?
+          # Ignore clients with no episode
+          next if episode_calculations.blank?
 
-          episodes << episode
-          bed_nights_per_episode << bed_nights
-          enrollment_links_per_episode << enrollment_links
+          # Ignore clients with no bed nights in report range
+          any_bed_nights_in_report_range = episode_calculations[:any_bed_nights_in_report_range]
+          next unless any_bed_nights_in_report_range
+
+          episodes << episode_calculations[:episode]
+          bed_nights_per_episode << episode_calculations[:bed_nights]
+          enrollment_links_per_episode << episode_calculations[:enrollment_links]
         end
         next unless episodes.present?
 

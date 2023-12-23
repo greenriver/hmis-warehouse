@@ -10,7 +10,7 @@ module HudSpmReport::Adapters
     include ArelHelper
 
     def initialize(report_instance)
-      @filter = Filters::HudFilterBase.new(user_id: User.system_user.id).update(report_instance.options)
+      @filter = Filters::HudFilterBase.new(user_id: report_instance.user.id).update(report_instance.options)
       @project_ids = GrdaWarehouse::Hud::Project.where(id: report_instance.project_ids).pluck(:project_id)
     end
 

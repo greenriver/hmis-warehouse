@@ -51,7 +51,7 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
     # Entry date: 1/15/2020
     # Expected due period: 12/15/2023-2/14/2024
     [
-      Time.local(2023, 12, 16), # within first half of due period
+      Time.local(2023, 12, 17), # within first half of due period
       Time.local(2024, 1, 20), # within second half of due period
       Time.local(2024, 2, 30), # after due period (should still show up as overdue)
     ].each do |local_time|
@@ -79,6 +79,15 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
           expect(res.size).to eq(1)
           expect(res.first.due_date).to eq(Time.local(2024, 1, 14)), local_time.inspect
         end
+      end
+    end
+
+    it 'does not remind if the next annual is due in the future (a.k.a. last annual period is >6mo ago)' do
+      travel_to Time.local(2023, 12, 20) do
+        enrollment.update(entry_date: Time.local(2022, 6, 10))
+        # next upcoming due date is May 2024. No reminder because it's too far in the future.
+        res = reminders_for(enrollment, topic: 'annual_assessment')
+        expect(res).to be_empty
       end
     end
 
