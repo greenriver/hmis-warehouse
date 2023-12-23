@@ -26,7 +26,7 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
     end
 
     # Almost matches (off by a few)
-    xit 'Measure 1a' do
+    it 'Measure 1a' do
       compare_results(
         file_path: result_file_prefix + 'spm',
         external_column_header: true,
@@ -35,7 +35,7 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       )
     end
 
-    # Disabled until matches testkit
+    # Almost matches (off by a few)
     xit 'Measure 1b' do
       compare_results(
         file_path: result_file_prefix + 'spm',

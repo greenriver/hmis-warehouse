@@ -66,15 +66,17 @@ module HudSpmReport::Generators::Fy2023
       answer = @report.answer(question: table_name, cell: :B1)
       answer.add_members(cell_universe)
       answer.update(summary: persons)
-      write_detail(answer)
+      # puts 'M1A B1'
+      # puts cell_universe.map(&:universe_membership).map(&:client).map(&:personal_id)
+      # write_detail(answer)
       answer = @report.answer(question: table_name, cell: :D1)
       answer.add_members(cell_universe)
       answer.update(summary: mean)
-      write_detail(answer)
+      # write_detail(answer)
       answer = @report.answer(question: table_name, cell: :G1)
       answer.add_members(cell_universe)
       answer.update(summary: median)
-      write_detail(answer)
+      # write_detail(answer)
 
       create_universe(
         :m1a2,
@@ -122,6 +124,9 @@ module HudSpmReport::Generators::Fy2023
       answer = @report.answer(question: table_name, cell: :B1)
       answer.add_members(cell_universe)
       answer.update(summary: persons)
+      # puts 'M1B B1'
+      # puts cell_universe.map(&:universe_membership).map(&:client).map(&:personal_id)
+      # write_detail(answer)
       answer = @report.answer(question: table_name, cell: :D1)
       answer.add_members(cell_universe)
       answer.update(summary: mean)
@@ -143,6 +148,8 @@ module HudSpmReport::Generators::Fy2023
       answer = @report.answer(question: table_name, cell: :B2)
       answer.add_members(cell_universe)
       answer.update(summary: persons)
+      # puts 'M1B B2'
+      # puts cell_universe.map(&:universe_membership).map(&:client).map(&:personal_id)
       answer = @report.answer(question: table_name, cell: :D2)
       answer.add_members(cell_universe)
       answer.update(summary: mean)
@@ -153,16 +160,19 @@ module HudSpmReport::Generators::Fy2023
 
     private def create_universe(universe_name, included_project_types:, excluded_project_types:, include_self_reported_and_ph: false)
       @universe = @report.universe(universe_name)
+      # Universe
+      # Measure 1a/Metric 1: Emergency Shelter – Entry Exit (Project Type 0), Emergency Shelter – Night-by-Night (Project Type 1), and Safe Haven (Project Type 8) clients who are active in report date range.
+      # Measure 1a/Metric 2: Emergency Shelter –Entry Exit (Project Type 0), Emergency Shelter – Night-by-Night (Project Type 1), Safe Haven (Project Type 8), and Transitional Housing (Project Type 2) clients who are active in report date range.
+      # Measure 1b/Metric 1: Emergency Shelter – Entry Exit (Project Type 0), Emergency Shelter – Night-by-Night (Project Type 1), Safe Haven (Project Type 8), and Permanent Housing (Project Types 3, 9, 10, 13) clients who are active in report date range. For PH projects, only stays meeting the Identifying Clients Experiencing Literal Homelessness at Project Entry criteria are included in time experiencing homelessness.
+      # Measure 1b/Metric 2: Emergency Shelter – Entry Exit (Project Type 0), Emergency Shelter – Night-by-Night (Project Type 1), Safe Haven (Project Type 8), Transitional Housing (Project Type 2), and Permanent Housing (Project Types 3, 9, 10, 13) clients who are active in report date range.  For PH projects, only stays meeting the Identifying Clients Experiencing Literal Homelessness at Project Entry criteria are included in time experiencing homelessness.
       candidate_client_ids = enrollment_set.
         with_active_method_5_in_range(filter.range).
         where(project_type: included_project_types).
         pluck(:client_id)
       if include_self_reported_and_ph
+        # For PH projects, only stays meeting the Identifying Clients Experiencing Literal Homelessness at Project Entry criteria are included in time experiencing homelessness
         literally_homeless_in_ph = enrollment_set.literally_homeless_at_entry_in_range(filter.range).where(project_type: HudUtility2024.project_type_number_from_code(:ph))
-        candidate_client_ids += literally_homeless_in_ph.where(spm_e_t[:entry_date].between(filter.range)).
-          or(literally_homeless_in_ph.where(spm_e_t[:move_in_date].between(filter.range))).
-          or(literally_homeless_in_ph.where(spm_e_t[:move_in_date].eq(nil).and(spm_e_t[:exit_date].between(filter.range)))).
-          pluck(:client_id)
+        candidate_client_ids += literally_homeless_in_ph.pluck(:client_id)
       end
       enrollments = enrollment_set.where(client_id: candidate_client_ids.uniq)
 

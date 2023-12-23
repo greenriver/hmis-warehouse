@@ -87,7 +87,17 @@ module HudSpmReport::Fy2023
 
     private def candidate_bed_nights(enrollments, project_types, include_self_reported_and_ph)
       bed_nights = {} # Hash with date as key so we only get one candidate per overlapping night
-      enrollments = enrollments.select { |e| e.project_type.in?(project_types) }
+      enrollments = enrollments.select do |e|
+        # For PH projects, only stays meeting the Identifying Clients Experiencing Literal Homelessness at Project Entry criteria are included in time experiencing homelessness.
+        in_project_type = e.project_type.in?(project_types)
+        # Always drop PH that wasn't literally homeless at entry
+        # NOTE: PH is never in the project types, but included because of include_self_reported_and_ph
+        if include_self_reported_and_ph && e.project_type.in?(HudUtility2024.project_type_number_from_code(:ph))
+          enrollment_literally_homeless_at_entry(e)
+        else
+          in_project_type
+        end
+      end
       enrollments.each do |enrollment|
         if enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn))
           # NbN only gets service nights in the report range
@@ -100,7 +110,13 @@ module HudSpmReport::Fy2023
               transform_values { |v| Array.wrap(v).last }, # Unique by date
           )
         else
-          start_date = if include_self_reported_and_ph && enrollment_literally_homeless_at_entry(enrollment)
+          # There are two output tables required for this measure.  Each of the two tables has two rows – each with a different universe of clients and corresponding universe of data.  Effectively, there is a single row of output which must be produced four different ways, each using a different universe of data, as shown below:
+          #   •	Measure 1a / Metric 1:  Persons in ES-EE, ES-NbN, and SH – do not include data from element 3.917.
+          #   •	Measure 1a / Metric 2:  Persons in ES-EE, ES-NbN, SH, and TH – do not include data from element 3.917.
+          #   •	Measure 1b / Metric 1:  Persons in ES-EE, ES-NbN, SH, and PH – include data from element 3.917 and time between [project start date] and [housing move-in date].
+          # •	Measure 1b / Metric 2:  Persons in ES-EE, ES-NbN, SH, TH, and PH – include data from element 3.917 and time between [project start date] and [housing move-in date].
+
+          start_date = if include_self_reported_and_ph
             # Include self-reported dates, if any, otherwise later of project start and lookback date
             enrollment.start_of_homelessness || [enrollment.entry_date, lookback_date].max
           else
@@ -155,7 +171,7 @@ module HudSpmReport::Fy2023
       client_end_date = calculated_bed_nights.last.last
       client_start_date = client_end_date - 365.days
 
-      # Include continguous dates before the calculated client start date:
+      # Include contiguous dates before the calculated client start date:
       # First, find as close to the start date as possible in the array
       index = 0
       index += 1 while calculated_bed_nights[index].last < client_start_date
