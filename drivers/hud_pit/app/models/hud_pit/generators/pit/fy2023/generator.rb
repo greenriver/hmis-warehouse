@@ -102,7 +102,7 @@ module  HudPit::Generators::Pit::Fy2023
       ].freeze
     end
 
-    def self.client_class
+    def self.client_class(_question)
       HudPit::Fy2022::PitClient
     end
   end

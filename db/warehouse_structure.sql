@@ -20331,17 +20331,18 @@ CREATE TABLE public.hud_report_spm_enrollments (
     previous_street_essh boolean,
     destination integer,
     age integer,
-    previous_earned_income integer,
-    previous_non_employment_income_ integer,
-    previous_total_income integer,
-    current_earned_income integer,
-    current_non_employment_income integer,
-    current_total_income integer,
+    previous_earned_income numeric,
+    previous_non_employment_income numeric,
+    previous_total_income numeric,
+    current_earned_income numeric,
+    current_non_employment_income numeric,
+    current_total_income numeric,
     report_instance_id bigint,
     client_id bigint,
     previous_income_benefits_id bigint,
     current_income_benefits_id bigint,
-    enrollment_id bigint
+    enrollment_id bigint,
+    days_enrolled integer
 );
 
 
@@ -20408,7 +20409,10 @@ CREATE TABLE public.hud_report_spm_returns (
     exit_destination integer,
     exit_enrollment_id bigint,
     return_enrollment_id bigint,
-    client_id bigint
+    client_id bigint,
+    report_instance_id bigint,
+    days_to_return integer,
+    project_type integer
 );
 
 
@@ -53259,24 +53263,10 @@ CREATE INDEX index_hud_report_spm_enrollments_on_client_id ON public.hud_report_
 
 
 --
--- Name: index_hud_report_spm_enrollments_on_current_income_benefits_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hud_report_spm_enrollments_on_current_income_benefits_id ON public.hud_report_spm_enrollments USING btree (current_income_benefits_id);
-
-
---
 -- Name: index_hud_report_spm_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hud_report_spm_enrollments_on_enrollment_id ON public.hud_report_spm_enrollments USING btree (enrollment_id);
-
-
---
--- Name: index_hud_report_spm_enrollments_on_previous_income_benefits_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hud_report_spm_enrollments_on_previous_income_benefits_id ON public.hud_report_spm_enrollments USING btree (previous_income_benefits_id);
 
 
 --
@@ -53305,6 +53295,13 @@ CREATE INDEX index_hud_report_spm_returns_on_client_id ON public.hud_report_spm_
 --
 
 CREATE INDEX index_hud_report_spm_returns_on_exit_enrollment_id ON public.hud_report_spm_returns USING btree (exit_enrollment_id);
+
+
+--
+-- Name: index_hud_report_spm_returns_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_returns_on_report_instance_id ON public.hud_report_spm_returns USING btree (report_instance_id);
 
 
 --
@@ -58418,6 +58415,13 @@ CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "Personal
 
 
 --
+-- Name: tt_hh_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX tt_hh_id ON public.service_history_enrollments USING btree (household_id);
+
+
+--
 -- Name: tx_id_ds_id_ft_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60544,12 +60548,16 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231121165752'),
 ('20231122185546'),
 ('20231124171521'),
+('20231201154136'),
 ('20231203221840'),
 ('20231204134123'),
 ('20231205141010'),
 ('20231206200436'),
+('20231206205805'),
 ('20231207155629'),
+('20231207161830'),
 ('20231212212354'),
+('20231215143621'),
 ('20231220194404'),
 ('20231220203530');
 

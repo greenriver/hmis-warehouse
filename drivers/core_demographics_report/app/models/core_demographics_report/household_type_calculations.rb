@@ -97,7 +97,16 @@ module
     end
 
     def available_household_types
-      @filter.available_household_types.merge('Youth Only' => :unaccompanied_youth, 'Unknown' => :unknown)
+      # We want to enforce order, so we've transitioned to a strict hash here, but this comes from:
+      # @filter.available_household_types.merge('Youth Only' => :unaccompanied_youth, 'Unknown' => :unknown)
+      {
+        all: 'Known household types',
+        unknown: 'Unknown',
+        without_children: 'Adult only Households',
+        with_children: 'Adult and Child Households',
+        only_children: 'Child only Households',
+        unaccompanied_youth: 'Youth Only',
+      }.invert.freeze
     end
 
     private def calculate_households

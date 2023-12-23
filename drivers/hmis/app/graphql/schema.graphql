@@ -2551,7 +2551,7 @@ type Disability {
   disabilityType: DisabilityType!
   enrollment: Enrollment!
   id: ID!
-  indefiniteAndImpairs: Int
+  indefiniteAndImpairs: NoYesReasonsForMissingData
   informationDate: ISO8601Date
   tCellCount: Int
   tCellCountAvailable: NoYesReasonsForMissingData
