@@ -839,8 +839,8 @@ CREATE TABLE public.hmis_roles (
     can_view_limited_enrollment_details boolean DEFAULT false,
     can_impersonate_users boolean DEFAULT false,
     can_audit_users boolean DEFAULT false,
-    can_configure_data_collection boolean DEFAULT false,
-    can_audit_enrollments boolean DEFAULT false
+    can_audit_enrollments boolean DEFAULT false,
+    can_configure_data_collection boolean DEFAULT false
 );
 
 

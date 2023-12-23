@@ -40,7 +40,7 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureThree, type: :model do
 
     ['3.2', 'A1', nil],
     ['3.2', 'C2', 3, 'unduplicated total sheltered homeless persons'],
-    # ['3.2', 'C3', 1, 'emergency shelter'], # DEPRECATED_FY2024 SKIPPING since project type and tracking methods have changed for 2024
+    # ['3.2', 'C3', 1, 'emergency shelter'], # DEPRECATED_FY2023 SKIPPING since project type and tracking methods have changed for 2023
     ['3.2', 'C4', 1, 'safe haven'],
     ['3.2', 'C5', 1, 'transitional housing'],
   ].each do |question, cell, expected_value, label|
@@ -65,7 +65,7 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureThree, type: :model do
     assert client_included(question, cell, personal_id, &condition)
   end
 
-  # DEPRECATED_FY2024 - Disabled after change of ES project types
+  # DEPRECATED_FY2023 - Disabled after change of ES project types
   # it 'counts client 4 in ES' do
   #   assert_client_included(question: '3.2', cell: 'C3', personal_id: '4') do |m, c|
   #     m.client_id == c.id && m.universe_membership.m3_active_project_types.include?(1)

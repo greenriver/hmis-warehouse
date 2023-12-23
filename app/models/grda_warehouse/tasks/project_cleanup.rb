@@ -9,14 +9,17 @@ module GrdaWarehouse::Tasks
     include ArelHelper
     include NotifierConfig
 
+    attr_accessor :skip_location_cleanup
     def initialize(
       _bogus_notifier = false,
       project_ids: GrdaWarehouse::Hud::Project.select(:id),
+      skip_location_cleanup: false,
       debug: false
     )
       setup_notifier('Project Cleaner')
       @project_ids = project_ids
       @debug = debug
+      self.skip_location_cleanup = skip_location_cleanup
     end
 
     def run!
@@ -165,6 +168,8 @@ module GrdaWarehouse::Tasks
     # If the project only has one CoC Code, set all EnrollmentCoC to match
     # If the project has more than one, clear out any EnrollmentCoC where isn't covered
     def fix_client_locations(project)
+      return if skip_location_cleanup
+
       # debug_log("Setting client locations for #{project.ProjectName}")
       coc_codes = project.project_cocs.map(&:effective_coc_code).uniq.
         # Ensure the CoC codes are valid
