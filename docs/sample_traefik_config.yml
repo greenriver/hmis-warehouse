@@ -1,0 +1,7 @@
+# This is a sample config to be used in the traefik network setup when using
+# pre-generated certificates. For additional configuration options, please see 
+# https://doc.traefik.io/traefik/reference/dynamic-configuration/file/
+tls:
+  certificates:
+    - certFile: /tools/certs/cert.crt
+      keyFile: /tools/certs/cert.key

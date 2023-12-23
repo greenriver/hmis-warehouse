@@ -6,6 +6,4 @@
 
 class Hmis::HmisBase < GrdaWarehouseBase
   self.abstract_class = true
-
-  has_paper_trail
 end

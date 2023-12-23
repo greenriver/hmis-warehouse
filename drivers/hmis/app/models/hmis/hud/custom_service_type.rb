@@ -6,6 +6,7 @@
 
 class Hmis::Hud::CustomServiceType < Hmis::Hud::Base
   self.table_name = :CustomServiceTypes
+  has_paper_trail
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :user, **hmis_relation(:UserID, 'User')

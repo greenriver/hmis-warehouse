@@ -71,8 +71,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect_gql_error post_graphql(input: { id: e1.id }) { mutation }
     expect_gql_error post_graphql(input: { id: e2.id }) { mutation }
   end
-end
 
-RSpec.configure do |c|
-  c.include GraphqlHelpers
+  it 'tracks metadata on versions' do
+    add_permissions(access_control, :can_edit_enrollments)
+    versions = e2.versions.where(client_id: c2.id, enrollment_id: e2.id, project_id: p1.id)
+    expect do
+      perform_mutation(e2)
+    end.to change(versions, :count).by(1)
+  end
 end
