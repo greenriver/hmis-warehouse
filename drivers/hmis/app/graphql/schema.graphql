@@ -827,6 +827,7 @@ type ClientAuditEvent {
   objectChanges: JsonObject
   recordId: ID!
   recordName: String!
+  trueUser: ApplicationUser
   user: ApplicationUser
 }
 
@@ -2566,7 +2567,7 @@ type Disability {
   disabilityType: DisabilityType!
   enrollment: Enrollment!
   id: ID!
-  indefiniteAndImpairs: Int
+  indefiniteAndImpairs: NoYesReasonsForMissingData
   informationDate: ISO8601Date
   tCellCount: Int
   tCellCountAvailable: NoYesReasonsForMissingData
@@ -3032,6 +3033,7 @@ type EnrollmentAuditEvent {
   objectChanges: JsonObject
   recordId: ID!
   recordName: String!
+  trueUser: ApplicationUser
   user: ApplicationUser
 }
 

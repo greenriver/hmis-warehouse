@@ -20,14 +20,9 @@ module HudSpmReport
       @table = params.require(:table) # valid_table_name is too strict for the SPM table names
       @name = "#{generator.file_prefix} #{@question} #{@cell}"
 
-      # this is a very wide table. just grab the cols related to this measure
-      q_num = @question[/\d+\z/]
-      cols = ['client_id', 'source_client_personal_ids', 'first_name', 'last_name'] + HudSpmReport::Fy2020::SpmClient.column_names.select { |c| c.starts_with? "m#{q_num}" }
-      @headers = cols.map do |col|
-        [col, HudSpmReport::Fy2020::SpmClient.header_label(col)]
-      end.to_h
+      @headers = generator.column_headings(@question)
 
-      @clients = HudSpmReport::Fy2020::SpmClient.
+      @clients = generator.client_class(@question).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
         merge(::HudReports::ReportInstance.where(id: @report.id))

@@ -29,7 +29,7 @@ module
       total_count = mask_small_population(client_genders_and_ages[coc_code].count)
       return 0 if total_count.zero?
 
-      of_type = gender_count(type)
+      of_type = gender_count(type, coc_code)
       return 0 if of_type.zero?
 
       ((of_type.to_f / total_count) * 100)

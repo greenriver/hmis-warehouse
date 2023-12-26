@@ -7,6 +7,7 @@
 module HudReports
   class QuestionBase
     include NotifierConfig
+    include ElapsedTimeHelper
 
     delegate :report_scope_source, to: :@generator
 

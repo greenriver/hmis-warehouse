@@ -9,14 +9,17 @@ module GrdaWarehouse::Tasks
     include ArelHelper
     include NotifierConfig
 
+    attr_accessor :skip_location_cleanup
     def initialize(
       _bogus_notifier = false,
       project_ids: GrdaWarehouse::Hud::Project.select(:id),
+      skip_location_cleanup: false,
       debug: false
     )
       setup_notifier('Project Cleaner')
       @project_ids = project_ids
       @debug = debug
+      self.skip_location_cleanup = skip_location_cleanup
     end
 
     def run!
@@ -165,11 +168,18 @@ module GrdaWarehouse::Tasks
     # If the project only has one CoC Code, set all EnrollmentCoC to match
     # If the project has more than one, clear out any EnrollmentCoC where isn't covered
     def fix_client_locations(project)
-      # debug_log("Setting client locations for #{project.ProjectName}")
-      coc_codes = project.project_cocs.map(&:effective_coc_code).uniq
-      project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: coc_codes.first) if coc_codes.count == 1
+      return if skip_location_cleanup
 
-      project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: nil)
+      # debug_log("Setting client locations for #{project.ProjectName}")
+      coc_codes = project.project_cocs.map(&:effective_coc_code).uniq.
+        # Ensure the CoC codes are valid
+        select { |code| HudUtility2024.valid_coc?(code) }
+      # Don't do anything if we don't know what CoC the project operates in
+      return unless coc_codes.present?
+
+      project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: coc_codes.first, source_hash: nil) if coc_codes.count == 1
+
+      project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: nil, source_hash: nil)
     end
 
     def project_source
