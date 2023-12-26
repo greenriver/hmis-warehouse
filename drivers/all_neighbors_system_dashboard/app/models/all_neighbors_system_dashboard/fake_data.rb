@@ -202,6 +202,34 @@ module AllNeighborsSystemDashboard
       ]
     end
 
+    def program_names
+      [
+        'All',
+        'ASC - DRTTR CM 200 (RRH CAS)',
+        'Catholic Charities - DRTRR CM (RHH CAS)',
+        'Catholic Charities - DRTRR EHV CM (OPH CAS)',
+        'CitySquare - DRTRR EHV 60 CM (OPH CAS)',
+        'Family Place',
+        'FG - DRTRR EHV 50 (CAS OPH)',
+        'FG - DRTRR RRH (CAS)',
+      ]
+    end
+
+    def populations
+      [
+        'All',
+        'DV',
+        'HMIS',
+      ]
+    end
+
+    def count_types
+      [
+        'Enrollments',
+        'Pacements',
+      ]
+    end
+
     def to_key(name)
       name.gsub(/[^a-zA-Z0-9 -]/, '').gsub(' ', '_')
     end
