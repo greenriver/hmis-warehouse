@@ -42,7 +42,7 @@ RSpec.shared_context 'report context', shared_context: :metadata do
   def setup(file_path)
     HmisCsvImporter::Utility.clear!
     GrdaWarehouse::Utility.clear!
-    import_hmis_csv_fixture(file_path, version: 'AutoMigrate')
+    import_hmis_csv_fixture(file_path, version: 'AutoMigrate', skip_location_cleanup: true)
   end
 
   def cleanup
