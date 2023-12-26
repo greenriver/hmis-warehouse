@@ -286,11 +286,16 @@ module Types
       load_ar_scope(scope: Hmis::User.with_hmis_access, id: id)
     end
 
-    field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false
-    def merge_audit_history
+    field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false do
+      filters_argument Types::HmisSchema::MergeAuditEvent
+    end
+    def merge_audit_history(filters: nil)
       raise 'Access denied' unless current_user.can_merge_clients?
 
-      Hmis::ClientMergeAudit.all.order(merged_at: :desc)
+      scope = Hmis::ClientMergeAudit.all
+      scope = scope.apply_filters(filters)
+
+      scope.order(merged_at: :desc)
     end
 
     # AC HMIS Queries

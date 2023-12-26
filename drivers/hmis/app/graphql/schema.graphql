@@ -5040,6 +5040,10 @@ type MergeAuditEvent {
   user: ApplicationUser
 }
 
+input MergeAuditEventFilterOptions {
+  user: [ID!]
+}
+
 type MergeAuditEventsPaginated {
   hasMoreAfter: Boolean!
   hasMoreBefore: Boolean!
@@ -8090,7 +8094,7 @@ type Query {
   Inventory lookup
   """
   inventory(id: ID!): Inventory
-  mergeAuditHistory(limit: Int, offset: Int): MergeAuditEventsPaginated!
+  mergeAuditHistory(filters: MergeAuditEventFilterOptions, limit: Int, offset: Int): MergeAuditEventsPaginated!
   mergeCandidates(limit: Int, offset: Int): ClientMergeCandidatesPaginated!
 
   """
