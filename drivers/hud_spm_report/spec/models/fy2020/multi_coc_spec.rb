@@ -29,7 +29,7 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureSix, type: :model do
     assert_report_completed
   end
 
-  # DEPRECATED_FY2024 - these are expected to fail until we re-write the report
+  # DEPRECATED_FY2023 - these are expected to fail until we re-write the report
   # [
   #   ['6a.1 and 6b.1', 'A1', nil],
   #
