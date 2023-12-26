@@ -209,14 +209,14 @@ module Types
       Hmis::Form::Definition.order(:id).with_role(role).first!
     end
 
-    field :form_definition_for_json, Types::Forms::FormDefinitionForJsonResult, null: true do
+    field :parsed_form_definition, Types::Forms::FormDefinitionForJsonResult, null: true do
       argument :input, String, required: true
     end
-    def form_definition_for_json(input:)
+    def parsed_form_definition(input:)
       json = JSON.parse(input)
       errors = []
       ::HmisUtil::JsonForms.new.tap do |builder|
-        builder.validate_definition(json, on_error: ->(err) { errors << err })
+        builder.validate_definition(json) { |err| errors << err }
       end
 
       return { errors: errors, definition: nil } if errors.present?

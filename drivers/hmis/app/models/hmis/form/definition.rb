@@ -67,7 +67,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   ].freeze
 
   validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }
-  validates :identifier, uniqueness: true
+  validates :identifier, uniqueness: { scope: :version }
 
   ENROLLMENT_CONFIG = {
     owner_class: Hmis::Hud::Enrollment,
@@ -205,19 +205,19 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   # Validate JSON definition when loading, to ensure no duplicate link IDs
-  def self.validate_json(json, valid_pick_lists: [], on_error: ->(err) { raise err })
+  def self.validate_json(json, valid_pick_lists: [])
     seen_link_ids = Set.new
 
     recur_check = lambda do |item|
       (item['item'] || []).each do |child_item|
         link_id = child_item['link_id']
-        on_error.call "Missing link ID: #{child_item}" unless link_id.present?
-        on_error.call "Duplicate link ID: #{link_id}" if seen_link_ids.include?(link_id)
+        yield "Missing link ID: #{child_item}" unless link_id.present?
+        yield "Duplicate link ID: #{link_id}" if seen_link_ids.include?(link_id)
 
         seen_link_ids.add(link_id)
 
         # Ensure pick list reference is valid
-        on_error.call "Invalid pick list for Link ID #{link_id}: #{child_item['pick_list_reference']}" if child_item['pick_list_reference'] && valid_pick_lists.exclude?(child_item['pick_list_reference'])
+        yield "Invalid pick list for Link ID #{link_id}: #{child_item['pick_list_reference']}" if child_item['pick_list_reference'] && valid_pick_lists.exclude?(child_item['pick_list_reference'])
 
         recur_check.call(child_item)
       end

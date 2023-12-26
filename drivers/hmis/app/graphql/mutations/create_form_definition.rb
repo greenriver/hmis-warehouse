@@ -18,7 +18,7 @@ module Mutations
 
       errors = HmisErrors::Errors.new
       ::HmisUtil::JsonForms.new.tap do |builder|
-        builder.validate_definition(attrs[:definition], on_error: ->(err) { errors.add(:definition, message: err) })
+        builder.validate_definition(attrs[:definition]) { |err| errors.add(:definition, message: err) }
       end
 
       return { errors: errors } if errors.present?

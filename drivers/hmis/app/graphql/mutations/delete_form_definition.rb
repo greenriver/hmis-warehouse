@@ -15,6 +15,7 @@ module Mutations
 
       definition = Hmis::Form::Definition.find_by(id: id)
       raise 'not found' unless definition
+      raise "can't delete definition with active rules" if definition.instances.active.exists?
 
       definition.destroy!
 

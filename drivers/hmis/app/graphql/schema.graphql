@@ -8093,7 +8093,6 @@ type Query {
   esgFundingReport(clientIds: [ID!]!): [EsgFundingService!]!
   file(id: ID!): File
   formDefinition(id: ID!): FormDefinition
-  formDefinitionForJson(input: String!): FormDefinitionForJsonResult
   formDefinitions(limit: Int, offset: Int): FormDefinitionsPaginated!
   formRule(id: ID!): FormRule
   formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
@@ -8135,6 +8134,7 @@ type Query {
   """
   organization(id: ID!): Organization
   organizations(limit: Int, offset: Int, sortOrder: OrganizationSortOption): OrganizationsPaginated!
+  parsedFormDefinition(input: String!): FormDefinitionForJsonResult
 
   """
   Get list of options for pick list
