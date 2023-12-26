@@ -28,6 +28,20 @@ module HudLsa::Generators::Fy2023::RdsConcern
     ::Rds.database = sql_server_database
     ::Rds.timeout = 60_000_000
     @rds = ::Rds.new
+    # Sometimes a previous failed run prevents a subsequent run from completing.
+    # Wait for the previous run to be fully cleaned up, but only a max of 10 minutes
+    max_wait = 10 * 60
+    waited = 0
+    wait = 5
+    begin
+      while @rds&.current_state == 'deleting'
+        sleep(wait)
+        waited += wait
+        break if waited >= max_wait
+      end
+    rescue Aws::RDS::Errors::DBInstanceNotFound => e
+      puts "DB not found, creating. #{e.message}"
+    end
     @rds.create!
   end
 

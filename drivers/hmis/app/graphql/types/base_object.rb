@@ -6,6 +6,11 @@
 
 module Types
   class BaseObject < GraphQL::Schema::Object
+    class_attribute :should_skip_activity_log, default: false
+    def self.skip_activity_log
+      self.should_skip_activity_log = true
+    end
+
     include GraphqlPermissionChecker
     edge_type_class(Types::BaseEdge)
     connection_type_class(Types::BaseConnection)
@@ -42,6 +47,22 @@ module Types
       raise "object must be an ApplicationRecord, got #{object.class.name}" unless object.is_a?(ApplicationRecord)
 
       dataloader.with(Sources::ActiveRecordAssociation, association, scope).load(object)
+    end
+
+    def load_ar_scope(scope:, id:)
+      dataloader.with(Sources::ActiveRecordScope, scope).load(id)
+    end
+
+    def load_last_user_from_versions(object)
+      refinement = GrdaWarehouse.paper_trail_versions.
+        where.not(whodunnit: nil). # note, filter is okay here since it is constant with respect to object
+        order(:created_at, :id).
+        select(:id, :whodunnit, :item_id, :item_type) # select only fields we need for performance
+      versions = load_ar_association(object, :versions, scope: refinement)
+      last_user_id = versions.last&.whodunnit # db-ordered so we choose the last record
+      return unless last_user_id && last_user_id =~ /\A[0-9]+\z/
+
+      load_ar_scope(scope: Hmis::User.with_deleted, id: last_user_id)
     end
 
     # Infers type and nullability from warehouse configuration
@@ -90,6 +111,30 @@ module Types
     def current_permission?(permission:, entity:)
       # defined in GraphqlPermissionChecker
       current_permission_for_context?(context, permission: permission, entity: entity)
+    end
+
+    # How should we log this field access? Return nil to skip. Override as needed
+    # @param [String] field_name
+    # @return [String, nil]
+    def activity_log_field_name(_field_name)
+      nil
+    end
+
+    # identify the current object
+    def activity_log_object_identity
+      return if self.class.should_skip_activity_log
+
+      case object
+      when ActiveRecord::Base, OpenStruct
+        object.persisted? ? object.id : nil
+      when Hash
+        # relay mutations make a mess of things. Skip hash objects that appear to be "payload" generated types
+        return nil if object.key?(:client_mutation_id)
+
+        raise "Missing #{self.class.graphql_name}::object[:id] in #{object.inspect}" unless object.key?(:id)
+
+        object.fetch[:id]
+      end
     end
   end
 end

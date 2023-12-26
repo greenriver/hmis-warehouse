@@ -197,7 +197,9 @@ module CePerformance
         report_clients = add_q9b_clients(report_clients, period, ce_apr)
         report_clients = add_q10_clients(report_clients, period, ce_apr)
         Client.import!(
-          report_clients.values,
+          # We're getting weird issues where sometimes we don't have a destination client,
+          # filter out any clients that will cause issues
+          report_clients.values.select { |c| c.destination_client_id.present? },
           batch_size: 5_000,
           on_duplicate_key_update: {
             conflict_target: [:id],
@@ -209,7 +211,7 @@ module CePerformance
     end
 
     private def add_q5a_clients(report_clients, period, ce_apr)
-      ce_apr_clients = answer_clients(ce_apr, 'Q5a', 'B1')
+      ce_apr_clients = answer_clients(ce_apr, 'Q5a', 'B2')
       ce_apr_clients.each do |ce_apr_client|
         report_client = report_clients[ce_apr_client[:client_id]] || Client.new(
           report_id: id,
@@ -463,7 +465,7 @@ module CePerformance
         'Question 9',
         'Question 10',
       ]
-      generator = HudApr::Generators::CeApr::Fy2021::Generator
+      generator = HudApr.current_generator(report: :ce_apr)
       {}.tap do |reports|
         periods.each do |period, processed_filter|
           report = HudReports::ReportInstance.from_filter(

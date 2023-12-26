@@ -8,6 +8,8 @@
 
 module Types
   class HmisSchema::QueryType < Types::BaseObject
+    skip_activity_log
+
     # From generated QueryType:
     # Add `node(id: ID!) and `nodes(ids: [ID!]!)`
     include GraphQL::Types::Relay::HasNodeField
@@ -15,7 +17,9 @@ module Types
     include Types::HmisSchema::HasProjects
     include Types::HmisSchema::HasOrganizations
     include Types::HmisSchema::HasClients
+    include Types::HmisSchema::HasApplicationUsers
     include Types::HmisSchema::HasReferralPostings
+    include Types::Admin::HasFormRules
     include ::Hmis::Concerns::HmisArelHelper
 
     projects_field :projects
@@ -252,6 +256,22 @@ module Types
       Hmis::Hud::Client.where(id: destination_ids_with_multiple_sources)
     end
 
+    application_users_field :application_users
+    def application_users(**args)
+      raise 'access denied' unless current_user.can_audit_users? || current_user.can_impersonate_users?
+
+      resolve_application_users(Hmis::User.active.with_hmis_access, **args)
+    end
+
+    field :user, Types::Application::User, 'User lookup', null: true do
+      argument :id, ID, required: true
+    end
+    def user(id:)
+      raise 'access denied' unless id == current_user.id.to_s || current_user.can_audit_users? || current_user.can_impersonate_users?
+
+      load_ar_scope(scope: Hmis::User.with_hmis_access, id: id)
+    end
+
     field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false
     def merge_audit_history
       raise 'not allowed' unless current_user.can_merge_clients?
@@ -277,6 +297,31 @@ module Types
         merge(clients).
         where(custom_service_type: cst, data_source_id: current_user.hmis_data_source_id).
         preload(:project, :client, :organization)
+    end
+
+    field :service_category, Types::HmisSchema::ServiceCategory, null: true do
+      argument :id, ID, required: true
+    end
+    def service_category(id:)
+      raise 'not allowed' unless current_user.can_configure_data_collection?
+
+      Hmis::Hud::CustomServiceCategory.find_by(id: id)
+    end
+
+    field :service_categories, Types::HmisSchema::ServiceCategory.page_type, null: false
+    def service_categories
+      raise 'not allowed' unless current_user.can_configure_data_collection?
+
+      # TODO: add sort and filter capabilities
+      Hmis::Hud::CustomServiceCategory.all
+    end
+
+    form_rules_field
+    def form_rules(**args)
+      raise 'not allowed' unless current_user.can_configure_data_collection?
+
+      # Only resolve non-service rules. Service rules are resolved on the service category.
+      resolve_form_rules(Hmis::Form::Instance.not_for_services, **args)
     end
   end
 end

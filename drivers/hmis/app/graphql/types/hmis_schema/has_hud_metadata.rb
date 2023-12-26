@@ -12,8 +12,8 @@ module Types
       extend ActiveSupport::Concern
 
       included do
-        # HUD User that most recently touched the record
-        field(:user, HmisSchema::User, null: true) {}
+        # User that most recently touched the record
+        field(:user, Application::User, null: true) {}
 
         # Note: while these are required in the HUD spec, they are not (yet) required
         # by the database schema. If/when they become required in the db for all hud tables,
@@ -24,7 +24,14 @@ module Types
         field(:date_deleted, GraphQL::Types::ISO8601DateTime, null: true) {}
 
         define_method(:user) do
-          load_ar_association(object, :user)
+          version_holder = case object
+          when Hmis::Hud::HmisService
+            # service is a database view; it doesn't have its own versions
+            load_ar_association(object, :owner)
+          else
+            object
+          end
+          load_last_user_from_versions(version_holder)
         end
       end
     end

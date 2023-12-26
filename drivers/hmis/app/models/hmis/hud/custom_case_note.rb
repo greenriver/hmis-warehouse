@@ -7,6 +7,15 @@
 class Hmis::Hud::CustomCaseNote < Hmis::Hud::Base
   self.table_name = :CustomCaseNote
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  has_paper_trail(
+    meta: {
+      client_id: ->(r) { r.client&.id },
+      enrollment_id: ->(r) { r.enrollment&.id },
+      project_id: ->(r) { r.enrollment&.project&.id },
+    },
+  )
+
+  include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :enrollment, **hmis_enrollment_relation, optional: true

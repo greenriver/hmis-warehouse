@@ -16,9 +16,15 @@ FactoryBot.define do
     line2 { 'Apt 0' }
     city { 'Nowhere' }
     sequence(:state) { |n| ['KS', 'VT'][n % 2] }
+    sequence(:postal_code) { |n| (n + 50000).to_s[0..5] }
 
     after(:build) do |address|
       address.user ||= create(:hmis_hud_user, data_source: address.data_source)
     end
+  end
+
+  factory :hmis_move_in_address, parent: :hmis_hud_custom_client_address do
+    enrollment { association :hmis_hud_enrollment, data_source: data_source }
+    enrollment_address_type { 'move_in' }
   end
 end

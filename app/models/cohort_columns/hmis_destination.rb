@@ -9,7 +9,7 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :hmis_destination
     attribute :translation_key, String, lazy: true, default: 'Exit Destination (HMIS)'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
-    attribute :description_translation_key, String, lazy: true, default: ->(model, _attr) { "#{model.translation_key} Description" }
+    attribute :description_translation_key, String, lazy: true, default: 'Projects, destinations, and dates for any exits within the last 3 months.'
     attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def available_for_rules?

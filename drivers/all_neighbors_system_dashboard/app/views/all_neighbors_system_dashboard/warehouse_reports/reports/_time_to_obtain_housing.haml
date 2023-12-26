@@ -15,7 +15,7 @@
   .row.align-items-center
     .col-xs-12.col-md-8
       .d-flex
-        .pr-6= render 'select_filter', tab: tab, name: 'project_type', label: 'Project Type', options: all_data.project_types
+        .pr-6= render 'select_filter', tab: tab, name: 'project_type', label: 'Project Type', options: all_data.project_types_with_data
         .pr-6= render 'select_filter', tab: tab, name: 'household_type', label: 'Household Type', options: ['All'] + all_data.household_types
         = render 'select_filter', tab: tab, name: 'demographics', label: 'Demographics', options: all_data.demographics
 
@@ -53,7 +53,7 @@
     $(document).ready(function() {
       console.log('Time To Obtain Housing -----------------')
       var data = #{chart_data.to_json.html_safe}
-      
+
       var charts = [
         {
           chart: AllNeighborsSystemDashboardTTOHStack,

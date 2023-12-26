@@ -11,6 +11,8 @@ class CronInstaller
 
   MAX_DESCRIPTION_LENGTH = 512
 
+  AMOUNT_OF_JITTER_IN_MINUTES = 10
+
   def run!
     entry_number = 0
 
@@ -103,16 +105,16 @@ class CronInstaller
     @task_definition_arn = task_definition
   end
 
-  def each_cron_entry
+  def each_cron_entry(add_jitter: true)
     `whenever`.each_line do |line|
       next if line.match?(/^\s*$/)
       next if line.match?(/^\s*#/)
 
-      yield get_cron_expression(line), get_command(line)
+      yield get_cron_expression(line, add_jitter: add_jitter), get_command(line)
     end
   end
 
-  def get_cron_expression(line)
+  def get_cron_expression(line, add_jitter:)
     tokens = line.split(' ')
 
     (minute, hour, day_of_month, month, day_of_week) = tokens[0, 5]
@@ -145,7 +147,34 @@ class CronInstaller
         hour
       end
 
-    "cron(#{minute}, #{utc_hour}, #{day_of_month}, #{month}, #{day_of_week}, #{year})"
+    jitterize =
+      if add_jitter
+        ->(min, amount) do
+          if min.to_i < 60 - amount
+            min.to_i + Random.rand(amount)
+          else
+            min.to_i - Random.rand(amount)
+          end
+        end
+      else
+        ->(min, _amount) { min }
+      end
+
+    minute_with_jitter =
+      case minute
+      when /^\d+$/
+        jitterize.call(minute, AMOUNT_OF_JITTER_IN_MINUTES)
+      when /,/
+        minute.
+          split(',').
+          each_cons(2).
+          map { |val, nextone| jitterize.call(val, nextone.to_i - val.to_i) }.
+          join(',')
+      else
+        raise 'Implement jitter for slash-based cron entries'
+      end
+
+    "cron(#{minute_with_jitter}, #{utc_hour}, #{day_of_month}, #{month}, #{day_of_week}, #{year})"
   end
 
   def get_command(line)
@@ -167,4 +196,4 @@ class CronInstaller
   end
 end
 
-CronInstaller.new.run!
+CronInstaller.new.run! if $PROGRAM_NAME.match?(/cron_installer/)

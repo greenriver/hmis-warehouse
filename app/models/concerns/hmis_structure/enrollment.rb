@@ -12,7 +12,7 @@ module HmisStructure::Enrollment
     self.hud_key = :EnrollmentID
     self.conflict_target = [:data_source_id, connection.quote_column_name(:EnrollmentID), connection.quote_column_name(:PersonalID)]
     self.additional_upsert_columns = [:processed_as]
-    acts_as_paranoid(column: :DateDeleted)
+    acts_as_paranoid(column: :DateDeleted) unless included_modules.include?(Paranoia)
 
     alias_attribute :relationship_to_hoh, :RelationshipToHoH
     alias_attribute :disabled_hoh, :DisabledHoH
@@ -763,7 +763,6 @@ module HmisStructure::Enrollment
           EnrollmentCoC: {
             type: :string,
             limit: 6,
-            null: false,
           },
           LivingSituation: {
             type: :integer,

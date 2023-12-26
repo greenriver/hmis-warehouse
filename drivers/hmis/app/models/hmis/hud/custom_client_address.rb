@@ -7,6 +7,13 @@
 class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
   self.table_name = :CustomClientAddress
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  has_paper_trail(
+    meta: {
+      client_id: ->(r) { r.client&.id },
+      enrollment_id: ->(r) { r.enrollment&.id },
+      project_id: ->(r) { r.enrollment&.project&.id },
+    },
+  )
 
   USE_VALUES = [
     :home,
@@ -32,13 +39,19 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User')
-  belongs_to :enrollment, **hmis_relation(:PersonalID, 'Enrollment'), optional: true
+  belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment'), optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_one :active_range, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
-  alias_to_underscore [:NameDataQuality, :AddressID]
+  alias_to_underscore [:AddressID, :PersonalID, :UserID, :EnrollmentID]
+
+  validates_presence_of :EnrollmentID, if: :enrollment_address_type
 
   scope :active, ->(date = Date.current) do
     left_outer_joins(:active_range).where(Hmis::ActiveRange.arel_active_on(date))
+  end
+
+  scope :move_in, -> do
+    where(enrollment_address_type: ENROLLMENT_MOVE_IN_TYPE).where.not(EnrollmentID: nil)
   end
 
   replace_scope :viewable_by, ->(user) do
@@ -85,7 +98,6 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
     enrollment_move_in_type?
   end
 
-  # maybe there's a list of states somewhere else we can use?
   USA_STATES = ['AK', 'AL', 'AR', 'AS', 'AZ', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'GU', 'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME', 'MI', 'MN', 'MO', 'MP', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NJ', 'NM', 'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'PR', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VA', 'VI', 'VT', 'WA', 'WI', 'WV', 'WY'].freeze
   with_options(if: :validate_required_fields?) do
     validates :line1, presence: true

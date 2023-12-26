@@ -45,6 +45,9 @@ module HudLsa::Generators::Fy2023
 
     def run!
       setup_notifier('LSA')
+      @failed = preflight_passes?
+      return unless @failed
+
       # Disable logging so we don't fill the disk
       # ActiveRecord::Base.logger.silence do
       calculate
@@ -110,6 +113,24 @@ module HudLsa::Generators::Fy2023
         FileUtils.rm_rf(unzip_path)
       end
       finish_report
+    end
+
+    # Confirm the chosen projects are not missing critical data.
+    # Any structural failures that will cause the run to fail should be caught here
+    private def preflight_passes?
+      issues = missing_data(user).except(:show_missing_data)
+      issue_project_ids = issues.values.flatten.map { |r| r[:id] }.uniq & filter.effective_project_ids
+      return true if issue_project_ids.empty?
+
+      # Prevent report.complete_report from hiding the error
+      @failed = true
+      project_names = issues.values.flatten.select { |r| r[:id].in?(issue_project_ids) }.map do |r|
+        "#{r[:project]} (id: #{r[:id]})"
+      end.uniq
+      failure = "The following projects are missing data that will cause the LSA to fail: #{project_names.join(', ')}"
+      log_and_ping("LSA failed: #{failure}")
+      fail_report(failure)
+      false
     end
 
     def run_lsa_queries

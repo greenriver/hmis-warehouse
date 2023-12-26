@@ -104,10 +104,6 @@ public/theme/logo
 # CHA translations
 config/cha_translations.yml
 
-# Ignore docker certificates
-docker/nginx-proxy/certs/*
-!docker/nginx-proxy/certs/.keep
-
 # Large shape files
 shape_files/**/*
 !/shape_files/sync.from.s3
@@ -162,4 +158,5 @@ docker/superset/op/.did.db.init
 
 # Development ENV
 /dev/minio/**
+/dev/db_data/**
 /app/assets/builds/**

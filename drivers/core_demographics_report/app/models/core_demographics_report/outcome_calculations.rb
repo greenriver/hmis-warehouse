@@ -28,6 +28,12 @@ module
         return 0 unless values.count.positive?
 
         return (values.sum.to_f / values.count).round
+      elsif type.to_s == 'exits'
+        report_scope.distinct.
+          exit_within_date_range(start_date: filter.start_date, end_date: filter.end_date).
+          select(:client_id).
+          distinct.
+          count
       end
 
       mask_small_population(outcome_clients[type]&.count&.presence || 0)
@@ -36,7 +42,8 @@ module
     def outcome_percentage(type)
       return 'N/A' if type.to_s == 'average_los'
 
-      total_count = total_client_count
+      # Denominator is those who exited
+      total_count = outcome_count(:exit_counted)
       return 0 if total_count.zero?
 
       of_type = outcome_count(type)

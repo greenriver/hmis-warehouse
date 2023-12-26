@@ -281,10 +281,14 @@ group :development do
   gem 'bumbler', require: false
 
   gem 'graphiql-rails'
+
+  # vscode ruby
+  gem 'ruby-lsp', require: false
 end
 
 group :test do
   gem 'capybara'
+  gem 'cuprite'
   gem 'pg_fixtures', github: 'greenriver/pg_fixtures'
   gem 'minitest-reporters'
   gem 'rspec-mocks'
@@ -295,7 +299,7 @@ group :test do
   gem 'rspec-instafail'
   gem 'rspec-benchmark'
   gem 'db-query-matchers'
-  # gem 'simplecov'
+  gem 'simplecov', require: false
   # gem 'simplecov-console'
 end
 

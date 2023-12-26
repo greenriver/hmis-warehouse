@@ -133,7 +133,7 @@ GEM
       zeitwerk (~> 2.3)
     acts-as-taggable-on (7.0.0)
       activerecord (>= 5.0, < 6.2)
-    addressable (2.8.1)
+    addressable (2.8.5)
       public_suffix (>= 2.0.2, < 6.0)
     airbrussh (1.4.1)
       sshkit (>= 1.6.1, != 1.7.0)
@@ -291,7 +291,7 @@ GEM
     capistrano-rvm (0.1.2)
       capistrano (~> 3.0)
       sshkit (~> 1.2)
-    capybara (3.38.0)
+    capybara (3.39.2)
       addressable
       matrix
       mini_mime (>= 0.1.3)
@@ -300,11 +300,11 @@ GEM
       rack-test (>= 0.6.3)
       regexp_parser (>= 1.5, < 3.0)
       xpath (~> 3.2)
-    carrierwave (1.3.2)
+    carrierwave (1.3.4)
       activemodel (>= 4.0.0)
       activesupport (>= 4.0.0)
       mime-types (>= 1.16)
-      ssrf_filter (~> 1.0)
+      ssrf_filter (~> 1.0, < 1.1.0)
     carrierwave-i18n (0.2.0)
     caxlsx (3.3.0)
       htmlentities (~> 4.3, >= 4.3.4)
@@ -340,6 +340,9 @@ GEM
     crass (1.0.6)
     css_parser (1.10.0)
       addressable
+    cuprite (0.14.3)
+      capybara (~> 3.0)
+      ferrum (~> 0.13.0)
     curb (0.9.11)
     daemons (1.4.1)
     date (3.3.3)
@@ -389,6 +392,7 @@ GEM
       actionmailer (>= 5.0)
       devise (>= 4.6)
     diff-lcs (1.5.0)
+    docile (1.4.0)
     domain_name (0.5.20190701)
       unf (>= 0.0.5, < 1.0.0)
     doorkeeper (5.6.6)
@@ -417,6 +421,11 @@ GEM
     faraday-multipart (1.0.4)
       multipart-post (~> 2)
     faraday-net_http (2.1.0)
+    ferrum (0.13)
+      addressable (~> 2.5)
+      concurrent-ruby (~> 1.1)
+      webrick (~> 1.7)
+      websocket-driver (>= 0.6, < 0.8)
     ffi (1.15.5)
     ffi-compiler (1.0.1)
       ffi (>= 1.0.0)
@@ -437,7 +446,8 @@ GEM
     graphiql-rails (1.8.0)
       railties
       sprockets-rails
-    graphql (2.0.16)
+    graphql (2.1.6)
+      racc (~> 1.4)
     grover (1.1.3)
       combine_pdf (~> 1.0)
       nokogiri (~> 1.0)
@@ -514,6 +524,7 @@ GEM
     kiba (4.0.0)
     kiba-common (1.5.0)
       kiba (>= 3.0.0, < 5)
+    language_server-protocol (3.17.0.3)
     linefit (0.3.4)
     list_matcher (1.1.8)
     llhttp-ffi (0.4.0)
@@ -543,17 +554,17 @@ GEM
       ruby2_keywords (~> 0.0.2)
     memory_profiler (1.0.0)
     method_source (1.0.0)
-    mime-types (3.4.1)
+    mime-types (3.5.1)
       mime-types-data (~> 3.2015)
-    mime-types-data (3.2021.1115)
+    mime-types-data (3.2023.1003)
     mimemagic (0.4.3)
       nokogiri (~> 1)
       rake
     mini_histogram (0.3.1)
     mini_magick (4.11.0)
-    mini_mime (1.1.2)
-    mini_portile2 (2.8.4)
-    minitest (5.19.0)
+    mini_mime (1.1.5)
+    mini_portile2 (2.8.5)
+    minitest (5.20.0)
     minitest-reporters (1.4.3)
       ansi
       builder
@@ -620,8 +631,8 @@ GEM
       iniparse (~> 1.4)
       rexml (~> 3.2)
     pagy (5.1.2)
-    paper_trail (14.0.0)
-      activerecord (>= 6.0)
+    paper_trail (15.1.0)
+      activerecord (>= 6.1)
       request_store (~> 1.4)
     parallel (1.22.1)
     paranoia (2.4.3)
@@ -636,6 +647,7 @@ GEM
       htmlentities (>= 4.0.0)
     pretender (0.3.4)
       actionpack (>= 4.2)
+    prism (0.15.1)
     progress_bar (1.3.3)
       highline (>= 1.6, < 3)
       options (~> 2.3.0)
@@ -645,12 +657,12 @@ GEM
       method_source (~> 1.0)
     pry-rails (0.3.9)
       pry (>= 0.10.4)
-    public_suffix (5.0.1)
+    public_suffix (5.0.3)
     puma (6.3.1)
       nio4r (~> 2.0)
     pwned (2.0.2)
-    racc (1.7.1)
-    rack (2.2.7)
+    racc (1.7.2)
+    rack (2.2.8)
     rack-attack (6.5.0)
       rack (>= 1.0, < 3)
     rack-cors (1.1.1)
@@ -712,7 +724,7 @@ GEM
       redis-store (>= 1.2, < 2)
     redis-store (1.9.0)
       redis (>= 4, < 5)
-    regexp_parser (2.6.2)
+    regexp_parser (2.8.2)
     reline (0.3.2)
       io-console (~> 0.5)
     request_store (1.5.1)
@@ -792,6 +804,10 @@ GEM
     ruby-filemagic (0.7.3)
     ruby-graphviz (1.2.5)
       rexml
+    ruby-lsp (0.12.2)
+      language_server-protocol (~> 3.17.0)
+      prism (>= 0.15.1, < 0.16)
+      sorbet-runtime (>= 0.5.5685)
     ruby-mailchecker (4.0.13)
     ruby-next-core (0.15.3)
     ruby-ole (1.2.12.2)
@@ -837,6 +853,12 @@ GEM
     simple_form (5.1.0)
       actionpack (>= 5.2)
       activemodel (>= 5.2)
+    simplecov (0.22.0)
+      docile (~> 1.1)
+      simplecov-html (~> 0.11)
+      simplecov_json_formatter (~> 0.1)
+    simplecov-html (0.12.3)
+    simplecov_json_formatter (0.1.4)
     simpleidn (0.2.1)
       unf (~> 0.1.4)
     slack-notifier (2.4.0)
@@ -846,6 +868,7 @@ GEM
     sniffer (0.5.0)
       anyway_config (>= 1.0)
       dry-initializer (~> 3)
+    sorbet-runtime (0.5.11109)
     sorted_set (1.0.3)
       rbtree
       set (~> 1.0)
@@ -863,7 +886,7 @@ GEM
     sshkit (1.21.3)
       net-scp (>= 1.1.2)
       net-ssh (>= 2.8.0)
-    ssrf_filter (1.0.7)
+    ssrf_filter (1.0.8)
     stackprof (0.2.17)
     strong_migrations (1.4.4)
       activerecord (>= 5.2)
@@ -882,7 +905,7 @@ GEM
     timeout (0.4.0)
     tins (1.32.1)
       sync
-    tiny_tds (2.1.5)
+    tiny_tds (2.1.6)
     todo_or_die (0.0.4)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
@@ -914,7 +937,8 @@ GEM
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
-    websocket-driver (0.7.5)
+    webrick (1.8.1)
+    websocket-driver (0.7.6)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
     whenever (1.0.0)
@@ -949,7 +973,7 @@ GEM
       anyway_config (>= 1.3, < 3)
       railties
       yabeda (~> 0.8)
-    zeitwerk (2.6.11)
+    zeitwerk (2.6.12)
 
 PLATFORMS
   aarch64-linux
@@ -1024,6 +1048,7 @@ DEPENDENCIES
   coffee-rails
   combine_pdf
   composite_primary_keys (= 13.0.3)
+  cuprite
   curb
   daemons
   db-query-matchers
@@ -1133,6 +1158,7 @@ DEPENDENCIES
   rspec-rails
   rubocop
   ruby-filemagic
+  ruby-lsp
   ruby-mailchecker
   ruby-prof
   rubyXL
@@ -1143,6 +1169,7 @@ DEPENDENCIES
   sentry-rails (~> 5.5)
   shoulda
   simple_form
+  simplecov
   slack-notifier
   soundex
   spring

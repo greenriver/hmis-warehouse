@@ -87,8 +87,8 @@ class AllNeighborsSystemDashboardDonut {
           html += "<tbody>"
 
           html += `<tr><td colspan="2">${swatchLabel}</td></tr>`
-          html += `<tr><td>Percent of ${this.countLevel.count_level ? this.countLevel.count_level : 'Individuals'}</td><td>${d3.format('.0%')(d[0].ratio)}</td></tr>`
-          html += `<tr><td>${this.countLevel.count_level ? this.countLevel.count_level.slice(0, -1) : 'Individual'} count</td><td>${d3.format(',')(d[0].value)}</td></tr>`
+          html += `<tr><td>Percent of Placements</td><td>${d3.format('.0%')(d[0].ratio)}</td></tr>`
+          html += `<tr><td>Placement count</td><td>${d3.format(',')(d[0].value)}</td></tr>`
           html += "</tbody>"
           html += "</table>"
           return html
@@ -116,7 +116,7 @@ class AllNeighborsSystemDashboardDonut {
       const sum = d3.sum(
         this.getColumns().map((col) => d3.sum(col.slice(1)))
       )
-      const label = this.countLevel.count_level || 'Individuals'
+      const label = 'Placements'
       $(selector).text(`${d3.format(',')(sum)} ${label}`)
     }
   }

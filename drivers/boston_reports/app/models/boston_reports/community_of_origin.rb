@@ -23,6 +23,8 @@ module BostonReports
     def self.default_filter_options
       {
         filters: {
+          start: 1.months.ago.to_date,
+          end: 1.days.ago.to_date,
         },
       }
     end
@@ -34,6 +36,17 @@ module BostonReports
 
     def self.url
       report_path_array.join('/')
+    end
+
+    def self.available_section_types
+      [
+        'across_the_country',
+        'top_zip_codes',
+      ]
+    end
+
+    def section_ready?(_)
+      true
     end
 
     def percent(numerator:, denominator:)
@@ -102,7 +115,7 @@ module BostonReports
         scope: GrdaWarehouse::ServiceHistoryEnrollment.entry.open_between(
           start_date: filter.start_date,
           end_date: filter.end_date,
-        ),
+        ).select(:id),
       )
       scope
     end
@@ -116,17 +129,66 @@ module BostonReports
     end
 
     def enrolled_with_community_of_origin
-      enrolled_clients.joins(**state_joins)
+      enrolled_clients.
+        joins(**location_joins).
+        joins(places_distinct_join(places_t).join_sources).
+        correlated_exists(GrdaWarehouse::Place.joins(:shape_state), quoted_table_name: ClientLocationHistory::Location.quoted_table_name, column_name: [:lat, :lon], alias_name: :places)
     end
 
     def enrolled_with_community_of_origin_zip
-      enrolled_clients.joins(**zip_joins)
+      enrolled_clients.
+        joins(**location_joins).
+        joins(places_distinct_join(places_zip_t).join_sources).
+        correlated_exists(GrdaWarehouse::Place.joins(:shape_zip_code), quoted_table_name: ClientLocationHistory::Location.quoted_table_name, column_name: [:lat, :lon], alias_name: :places).
+        one_for_column(
+          :located_on,
+          direction: :asc,
+          source_arel_table: ClientLocationHistory::Location.arel_table,
+          group_on: :enrollment_id,
+        )
     end
 
     # NOTE, at this time we only have CoCs for my_state, so we don't need to specify that
     def enrolled_with_community_of_origin_my_state
-      enrolled_clients.joins(**coc_joins).
-        merge(GrdaWarehouse::Place.with_shape_cocs)
+      enrolled_clients.
+        joins(**location_joins).
+        joins(places_distinct_join(places_coc_t).join_sources).
+        correlated_exists(GrdaWarehouse::Place.with_shape_cocs, quoted_table_name: ClientLocationHistory::Location.quoted_table_name, column_name: [:lat, :lon], alias_name: :places).
+        one_for_column(
+          :located_on,
+          direction: :asc,
+          source_arel_table: ClientLocationHistory::Location.arel_table,
+          group_on: :enrollment_id,
+        )
+    end
+
+    # Resulting SQL is the join to distinct places from below:
+    # SELECT
+    #   "clh_locations"."lat", "clh_locations"."lon", "service_history_enrollments"."client_id", places.state
+    # FROM
+    #   "service_history_enrollments"
+    #   INNER JOIN "Enrollment" ON "Enrollment"."DateDeleted" IS NULL
+    #     AND "Enrollment"."data_source_id" = "service_history_enrollments"."data_source_id"
+    #     AND "Enrollment"."EnrollmentID" = "service_history_enrollments"."enrollment_group_id"
+    #     AND "Enrollment"."ProjectID" = "service_history_enrollments"."project_id"
+    #   INNER JOIN "clh_locations" ON "clh_locations"."enrollment_id" = "Enrollment"."id"
+
+    #   INNER JOIN (select distinct "lat", "lon", "state"
+    #   from
+    #   "places") places on "clh_locations"."lat" = "places"."lat"
+    #         AND "clh_locations"."lon" = "places"."lon"
+
+    # WHERE (EXISTS (
+    #     SELECT
+    #       1
+    #     FROM
+    #       "places"
+    #       INNER JOIN "shape_states" ON "shape_states"."name" = "places"."state"
+    #         AND "clh_locations"."lat" = "places"."lat"
+    #         AND "clh_locations"."lon" = "places"."lon"))
+    private def places_distinct_join(places_query_table)
+      clh_t = ClientLocationHistory::Location.arel_table
+      clh_t.join(places_query_table).on(clh_t[:lat].eq(places_query_table[:lat]).and(clh_t[:lon].eq(places_query_table[:lon])))
     end
 
     def count_enrolled_with_community_of_origin
@@ -138,24 +200,46 @@ module BostonReports
     end
 
     def entering_with_community_of_origin
-      entering_clients.joins(**state_joins)
+      entering_clients.joins(**location_joins)
     end
 
-    private def state_joins
-      { enrollment: [earliest_enrollment_location_history: { place: :shape_state }] }
+    private def location_joins
+      { enrollment: :direct_enrollment_location_histories }
     end
 
-    private def zip_joins
-      { enrollment: [earliest_enrollment_location_history: { place: :shape_zip_code }] }
+    private def pla_t
+      GrdaWarehouse::Place.arel_table
     end
 
-    private def coc_joins
-      { enrollment: { earliest_enrollment_location_history: :place } }
+    private def places_t
+      pla_t.project(:lat, :lon, :state).
+        distinct.as('places')
+    end
+
+    private def places_coc_t
+      coc_t = GrdaWarehouse::Shape::Coc.arel_table
+      pla_t.project(:lat, :lon, :cocnum).
+        # Copied from join in Place
+        join(coc_t).on(Arel.sql('ST_Within(ST_SetSRID(ST_Point(places.lon, places.lat), 4326), shape_cocs.geom)')).
+        distinct.as('places')
+    end
+
+    private def places_zip_t
+      pla_t.project(:lat, :lon, :zipcode).
+        distinct.as('places')
     end
 
     def across_the_country_data
+      # Maybe needs a join to place, but a distinct count of :state?
       @across_the_country_data ||= begin
-        percent_of_clients_data = enrolled_with_community_of_origin.group(:state).count.map do |state, count|
+        earliest_for_scope = enrolled_with_community_of_origin.
+          one_for_column(
+            :located_on,
+            direction: :asc,
+            source_arel_table: ClientLocationHistory::Location.arel_table,
+            group_on: :enrollment_id,
+          )
+        percent_of_clients_data = earliest_for_scope.group(:state).count.map do |state, count|
           percentage = percent(numerator: count, denominator: count_enrolled_with_community_of_origin)
           {
             name: state,
@@ -173,7 +257,7 @@ module BostonReports
     end
 
     def across_my_state_data
-      @across_my_state_data ||= enrolled_with_community_of_origin_my_state.group('shape_cocs.cocnum').count.map do |coc_num, count|
+      @across_my_state_data ||= enrolled_with_community_of_origin_my_state.group(places_coc_t[:cocnum]).count.map do |coc_num, count|
         percentage = percent(numerator: count, denominator: count_enrolled_with_community_of_origin)
         {
           name: HudUtility2024.coc_codes(coc_num),
@@ -190,7 +274,7 @@ module BostonReports
     end
 
     private def zip_code_scope
-      enrolled_with_community_of_origin.group(:zipcode).count.
+      @zip_code_scope ||= enrolled_with_community_of_origin_zip.group(:zipcode).count.
         sort_by(&:last).
         reverse # Ensure descending order
     end

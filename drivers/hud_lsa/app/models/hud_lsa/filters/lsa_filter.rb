@@ -49,6 +49,10 @@ module HudLsa::Filters
 
     # Confirmed with HUD only project types 0, 1, 2, 3, 8, 9, 10, 13 need to be included in hmis_ tables.
     def relevant_project_types
+      self.class.relevant_project_types
+    end
+
+    def self.relevant_project_types
       [0, 1, 2, 3, 8, 9, 10, 13].freeze
     end
   end

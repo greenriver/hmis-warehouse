@@ -8,6 +8,7 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
   self.table_name = :CustomClientName
   self.sequence_name = "public.\"#{table_name}_id_seq\""
   self.ignored_columns += [:search_name_full, :search_name_last]
+  has_paper_trail(meta: { client_id: ->(r) { r.client&.id } })
 
   USE_VALUES = [
     :usual,

@@ -89,10 +89,12 @@ module
       @hoh_enrollments ||= {}
       @households ||= {}
 
+      # Ignore client-specific filters so we can calculate household type based on who was there, not who is available for reporting
+      household_scope = filter.apply_project_level_restrictions(report_scope_source)
       # use she.client (destination client) for DOB/Age, sometimes QA has weird data
-      report_scope.joins(enrollment: :client).preload(:client, enrollment: :client).distinct.find_each(batch_size: 1_000) do |enrollment|
+      household_scope.joins(enrollment: :client).preload(:client, enrollment: :client).distinct.find_each(batch_size: 1_000) do |enrollment|
         date = [enrollment.entry_date, filter.start_date].max
-        age = GrdaWarehouse::Hud::Client.age(date: date, dob: enrollment.client.DOB&.to_date)
+        age = GrdaWarehouse::Hud::Client.age(date: date, dob: enrollment.client&.DOB&.to_date)
         en = {
           'client_id' => enrollment.client_id,
           'enrollment_id' => enrollment.id,
@@ -158,37 +160,56 @@ module
       end
     end
 
-    private def hoh_client_id_en_id_from_enrollments(enrollments)
-      hoh_en = enrollments.detect { |en| en['relationship_to_hoh'] == 1 }
-      return nil unless hoh_en
-
-      [hoh_en['client_id'], hoh_en['enrollment_id']]
-    end
-
     private def hoh_households
+      # Force calculation of Households if necessary
+      hoh_enrollments
+
       @hoh_households ||= Rails.cache.fetch([self.class.name, cache_slug, __method__], expires_in: expiration_length) do
         {}.tap do |clients|
-          clients[:all] = hoh_enrollments.values.map { |en| hoh_client_id_en_id_from_enrollments([en]) }.compact.group_by(&:shift)
-          clients[:without_children] = adult_only_households.values.map { |ens| hoh_client_id_en_id_from_enrollments(ens) }.compact.group_by(&:shift)
-          clients[:with_children] = adult_and_child_households.values.map { |ens| hoh_client_id_en_id_from_enrollments(ens) }.compact.group_by(&:shift)
-          clients[:only_children] = child_only_households.values.map { |ens| hoh_client_id_en_id_from_enrollments(ens) }.compact.group_by(&:shift)
-          clients[:unaccompanied_youth] = unaccompanied_youth_households.values.map { |ens| hoh_client_id_en_id_from_enrollments(ens) }.compact.group_by(&:shift)
-          clients[:unknown] = unknown_households.values.map { |ens| hoh_client_id_en_id_from_enrollments(ens) }.compact.group_by(&:shift)
+          clients[:all] = convert_enrollments_to_client_id_enrollment_id_pairs(filter_enrollments_for_report_scope(hoh_enrollments.values.flatten, hoh_only: true)).group_by(&:shift)
+          clients[:without_children] = convert_enrollments_to_client_id_enrollment_id_pairs(filter_enrollments_for_report_scope(adult_only_households.values.flatten, hoh_only: true)).group_by(&:shift)
+          clients[:with_children] = convert_enrollments_to_client_id_enrollment_id_pairs(filter_enrollments_for_report_scope(adult_and_child_households.values.flatten, hoh_only: true)).group_by(&:shift)
+          clients[:only_children] = convert_enrollments_to_client_id_enrollment_id_pairs(filter_enrollments_for_report_scope(child_only_households.values.flatten, hoh_only: true)).group_by(&:shift)
+          clients[:unaccompanied_youth] = convert_enrollments_to_client_id_enrollment_id_pairs(filter_enrollments_for_report_scope(unaccompanied_youth_households.values.flatten, hoh_only: true)).group_by(&:shift)
+          clients[:unknown] = convert_enrollments_to_client_id_enrollment_id_pairs(filter_enrollments_for_report_scope(unknown_households.values.flatten, hoh_only: true)).group_by(&:shift)
         end
       end
     end
 
     private def client_households
+      # Force calculation of Households if necessary
+      households
+
       @client_households ||= Rails.cache.fetch(household_types_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
-          clients[:all] = households.values.flat_map { |enrollments| enrollments&.map { |en| [en['client_id'], en['enrollment_id']] } }&.group_by(&:shift)
-          clients[:without_children] = adult_only_households.values.flat_map { |enrollments| enrollments&.map { |en| [en['client_id'], en['enrollment_id']] } }&.group_by(&:shift)
-          clients[:with_children] = adult_and_child_households.values.flat_map { |enrollments| enrollments&.map { |en| [en['client_id'], en['enrollment_id']] } }&.group_by(&:shift)
-          clients[:only_children] = child_only_households.values.flat_map { |enrollments| enrollments&.map { |en| [en['client_id'], en['enrollment_id']] } }&.group_by(&:shift)
-          clients[:unaccompanied_youth] = unaccompanied_youth_households.values.flat_map { |enrollments| enrollments&.map { |en| [en['client_id'], en['enrollment_id']] } }&.group_by(&:shift)
-          clients[:unknown] = unknown_households.values.flat_map { |enrollments| enrollments&.map { |en| [en['client_id'], en['enrollment_id']] } }&.group_by(&:shift)
+          clients[:all] = convert_enrollments_to_client_id_enrollment_id_pairs(filter_enrollments_for_report_scope(households.values.flatten))&.group_by(&:shift)
+          clients[:without_children] = convert_enrollments_to_client_id_enrollment_id_pairs(filter_enrollments_for_report_scope(adult_only_households.values.flatten))&.group_by(&:shift)
+          clients[:with_children] = convert_enrollments_to_client_id_enrollment_id_pairs(filter_enrollments_for_report_scope(adult_and_child_households.values.flatten))&.group_by(&:shift)
+          clients[:only_children] = convert_enrollments_to_client_id_enrollment_id_pairs(filter_enrollments_for_report_scope(child_only_households.values.flatten))&.group_by(&:shift)
+          clients[:unaccompanied_youth] = convert_enrollments_to_client_id_enrollment_id_pairs(filter_enrollments_for_report_scope(unaccompanied_youth_households.values.flatten))&.group_by(&:shift)
+          clients[:unknown] = convert_enrollments_to_client_id_enrollment_id_pairs(filter_enrollments_for_report_scope(unknown_households.values.flatten))&.group_by(&:shift)
         end
       end
+    end
+
+    # We need all related household members to calculate the household, but once we know the household type,
+    # we only want the enrollments that meet the report filter criteria
+    private def filter_enrollments_for_report_scope(enrollments, hoh_only: false)
+      enrollments&.select do |en|
+        next false if hoh_only && en['relationship_to_hoh'] != 1
+
+        en['enrollment_id'].in?(report_scope_enrollment_ids)
+      end
+    end
+
+    private def convert_enrollments_to_client_id_enrollment_id_pairs(enrollments)
+      enrollments&.map do |en|
+        [en['client_id'], en['enrollment_id']]
+      end
+    end
+
+    private def report_scope_enrollment_ids
+      @report_scope_enrollment_ids ||= report_scope.pluck(:id).to_set
     end
 
     private def household_types_cache_key

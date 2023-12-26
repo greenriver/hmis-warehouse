@@ -6,7 +6,8 @@
 
 class Hmis::Role < ::ApplicationRecord
   self.table_name = :hmis_roles
-  # Warehouse roles do not have a paper trail, so neither do these
+  acts_as_paranoid
+  has_paper_trail
 
   has_many :access_controls, class_name: '::Hmis::AccessControl', inverse_of: :role
   has_many :users, through: :access_controls
@@ -156,6 +157,22 @@ class Hmis::Role < ::ApplicationRecord
           'Projects',
         ],
       },
+      can_impersonate_users: {
+        description: 'Ability to impersonate other users',
+        administrative: true,
+        access: [:editable],
+        categories: [
+          'Users',
+        ],
+      },
+      can_audit_users: {
+        description: 'Ability to audit users',
+        administrative: true,
+        access: [:viewable],
+        categories: [
+          'Users',
+        ],
+      },
       can_edit_organization: {
         description: 'Grants access to edit organizations',
         administrative: false,
@@ -276,6 +293,14 @@ class Hmis::Role < ::ApplicationRecord
           'Enrollments',
         ],
       },
+      can_audit_enrollments: {
+        description: 'Access to see who has changed an enrollment record.',
+        administrative: true,
+        access: [:viewable],
+        categories: [
+          'Audit History',
+        ],
+      },
       can_delete_assessments: {
         description: 'Ability to delete assessments that have been submitted',
         administrative: false,
@@ -349,6 +374,14 @@ class Hmis::Role < ::ApplicationRecord
         categories: [
           'Administrative',
           'Enrollments',
+        ],
+      },
+      can_configure_data_collection: {
+        description: 'Grants access to configuration tool for forms, services, and assessments',
+        administrative: true,
+        access: [:editable],
+        categories: [
+          'Administrative',
         ],
       },
     }

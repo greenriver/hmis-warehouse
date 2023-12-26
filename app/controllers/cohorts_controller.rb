@@ -78,7 +78,6 @@ class CohortsController < ApplicationController
           header = {
             headerName: col.title,
             headerTooltip: description,
-            tooltipShowDelay: 250,
             field: col.column,
             editable: col.column_editable? && col.display_as_editable?(current_user, nil),
           }

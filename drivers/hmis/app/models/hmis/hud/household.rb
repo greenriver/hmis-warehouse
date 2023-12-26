@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# This model is backed by a DB view
 class Hmis::Hud::Household < Hmis::Hud::Base
   include ::Hmis::Concerns::HmisArelHelper
 
@@ -14,6 +15,7 @@ class Hmis::Hud::Household < Hmis::Hud::Base
   has_many :enrollments, **hmis_relation(:HouseholdID, 'Enrollment')
   has_many :clients, through: :enrollments
   has_many :current_units, through: :enrollments
+  has_many :custom_assessments, through: :enrollments
   alias_attribute :household_id, :HouseholdID
 
   replace_scope :viewable_by, ->(user) do

@@ -26,6 +26,25 @@
           "offset": 7
         }
       ]
+    },
+    {
+      "type": "OBJECT",
+      "component": "ADDRESS",
+      "repeats": false,
+      "required": true,
+      "link_id": "moveInAddresses",
+      "mapping": {
+        "record_type": "ENROLLMENT",
+        "field_name": "moveInAddresses"
+      },
+      "text": "Move in address",
+      "enable_when": [
+        {
+          "question": "3.20",
+          "operator": "EXISTS",
+          "answer_boolean": true
+        }
+      ]
     }
   ]
 }

@@ -20,5 +20,6 @@ module Types
     def id
       [object[:type], object[:identifier]].join(':')
     end
+    alias activity_log_object_identity id
   end
 end

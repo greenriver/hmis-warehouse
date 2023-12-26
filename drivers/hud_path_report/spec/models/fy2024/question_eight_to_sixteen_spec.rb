@@ -20,7 +20,7 @@ RSpec.describe HudPathReport::Generators::Fy2024::QuestionEightToSixteen, type: 
   end
 
   it 'counts active clients' do
-    expect(report_result.answer(question: 'Q8-Q16', cell: 'B2').summary).to eq(6)
+    expect(report_result.answer(question: 'Q8-Q16', cell: 'B2').summary).to eq(7)
   end
 
   it 'counts new SO clients' do
@@ -28,19 +28,19 @@ RSpec.describe HudPathReport::Generators::Fy2024::QuestionEightToSixteen, type: 
   end
 
   it 'counts new services only clients' do
-    expect(report_result.answer(question: 'Q8-Q16', cell: 'B4').summary).to eq(1)
+    expect(report_result.answer(question: 'Q8-Q16', cell: 'B4').summary).to eq(2)
   end
 
   it 'counts total new clients' do
-    expect(report_result.answer(question: 'Q8-Q16', cell: 'B5').summary).to eq(3)
+    expect(report_result.answer(question: 'Q8-Q16', cell: 'B5').summary).to eq(4)
   end
 
   it 'counts contacts before enrollment' do
-    expect(report_result.answer(question: 'Q8-Q16', cell: 'B6').summary).to eq(0)
+    expect(report_result.answer(question: 'Q8-Q16', cell: 'B6').summary).to eq(4)
   end
 
   it 'counts total contacts' do
-    expect(report_result.answer(question: 'Q8-Q16', cell: 'B7').summary).to eq(2)
+    expect(report_result.answer(question: 'Q8-Q16', cell: 'B7').summary).to eq(5)
   end
 
   it 'counts ineligible' do

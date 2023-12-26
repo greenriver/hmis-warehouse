@@ -48,22 +48,22 @@ module Hmis
       end
 
       def earliest_entry_date(enrollment)
-        @earliest_entry_date_by_household_id ||= enrollments
-          .group_by(&:household_id)
-          .map do |household_id, group|
+        @earliest_entry_date_by_household_id ||= enrollments.
+          group_by(&:household_id).
+          map do |household_id, group|
             min_entry = group.map { |e| e.entry_date&.to_date }.compact.min
             [household_id, min_entry]
-          end
-          .to_h
+          end.
+          to_h
         @earliest_entry_date_by_household_id[enrollment.household_id]
       end
 
       def last_assessment_date(enrollment:, stages:, wip:)
         # load all the assessments we might need
-        @all_assessments ||= Hmis::Hud::CustomAssessment
-          .where(enrollment_id: enrollments.map(&:enrollment_id), data_source_id: project.data_source_id)
-          .order(assessment_date: :desc)
-          .group_by(&:enrollment_id)
+        @all_assessments ||= Hmis::Hud::CustomAssessment.
+          where(enrollment_id: enrollments.map(&:enrollment_id), data_source_id: project.data_source_id).
+          order(assessment_date: :desc).
+          group_by(&:enrollment_id)
 
         assessments = @all_assessments[enrollment.enrollment_id]
         return unless assessments
@@ -89,9 +89,14 @@ module Hmis
         # not due for an assessment yet
         return if today < (hoh_entered_on + (1.year - window))
 
-        hoh_anniversary = hoh_entered_on.change(year: today.year)
+        # Find the closest HOH entry anniversary
+        hoh_anniversary = hoh_entered_on + ((today - hoh_entered_on) / Time.days_in_year).round.years
+
         start_date = hoh_anniversary - window
         due_date = hoh_anniversary + window
+
+        # client entered after the HoH anniversary
+        return if enrollment.entry_date > hoh_anniversary
 
         # client exited before the HoH anniversary
         return if enrollment.exit_date && enrollment.exit_date < hoh_anniversary
@@ -99,6 +104,8 @@ module Hmis
         # a relevant assessment ocurred.
         # FIXME: maybe we don't include assessments that occur after end_date? This might
         # encourage people to back-date assessments.
+        # TODO: should we check for presence in window? This wont show a task if the enrollment has a recent annual,
+        # even if that annual falls outside of the "due period"  which is a data quality issue.
         last_assessed_on = last_assessment_date(enrollment: enrollment, stages: [:annual_assessment], wip: [false])
         return if last_assessed_on && last_assessed_on >= start_date
 
@@ -174,10 +181,10 @@ module Hmis
         cadence = project.ProjectType == 14 ? 90 : nil
         return unless cadence
 
-        latest_living_situation_on = enrollment
-          .current_living_situations
-          .max_by(&:InformationDate)
-          &.InformationDate
+        latest_living_situation_on = enrollment.
+          current_living_situations.
+          max_by(&:InformationDate)&.
+          InformationDate
 
         due_date = latest_living_situation_on ? latest_living_situation_on + cadence : enrollment.entry_date
         return if due_date > today

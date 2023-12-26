@@ -25,7 +25,16 @@ module HmisExternalApis
         update_log_record(record, { response: "#{e.class.name}: #{e.message || 'Unknown error'}", http_status: 400 })
         raise
       end
-      update_log_record(record, { content_type: result.content_type, response: result.body, http_status: result.status }) if result
+
+      if result
+        attrs = {
+          content_type: result.content_type,
+          response: result.content_type == 'application/pdf' ? 'pdf' : result.body&.truncate(5000),
+          http_status: result.status,
+        }
+        update_log_record(record, attrs)
+      end
+
       [result, record]
     end
 

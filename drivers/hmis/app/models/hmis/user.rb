@@ -22,10 +22,16 @@ class Hmis::User < ApplicationRecord
   has_many :access_controls, through: :user_groups
   has_many :access_groups, through: :access_controls
   has_many :roles, through: :access_controls
+  has_many :activity_logs, class_name: 'Hmis::ActivityLog'
 
   has_recent :clients, Hmis::Hud::Client
   has_recent :projects, Hmis::Hud::Project
   attr_accessor :hmis_data_source_id # stores the data_source_id of the currently logged in HMIS
+
+  scope :with_hmis_access, -> do
+    # Users that are a member of at least 1 HMIS User Group
+    not_system.where(id: Hmis::UserGroupMember.pluck(:user_id))
+  end
 
   # The session_limitable extension uses user.hmis_unique_session_id to restrict the current session.
   # Override reader/writer for unique_session_id to track sessions in the hmis separately from the
@@ -155,6 +161,10 @@ class Hmis::User < ApplicationRecord
     @viewable_project_ids ||= Hmis::Hud::Project.viewable_by(self).pluck(:id)
   end
 
+  def full_name
+    [first_name, last_name].compact_blank.join(' ').presence
+  end
+
   private def cached_viewable_project_ids(force_calculation: false)
     key = [self.class.name, __method__, id]
     Rails.cache.delete(key) if force_calculation
@@ -196,5 +206,9 @@ class Hmis::User < ApplicationRecord
       phone: phone,
       sessionDuration: Devise.timeout_in.in_seconds,
     }
+  end
+
+  def self.apply_filters(input)
+    Hmis::Filter::ApplicationUserFilter.new(input).filter_scope(self)
   end
 end
