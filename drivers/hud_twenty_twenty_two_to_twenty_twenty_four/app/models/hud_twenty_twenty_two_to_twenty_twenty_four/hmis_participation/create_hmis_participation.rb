@@ -32,9 +32,11 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::HmisParticipation
 
           key = "#{row['OrganizationID']}_ds_#{row['data_source_id']}"
           participation_type = if victim_service_providers[key] == 1
-            2
+            2 # Flag VSPs as CD
+          elsif row['HMISParticipatingProject'] == 1
+            1 # Copy participating from project to new record
           else
-            row['HMISParticipatingProject']
+            0 # 0, nil, or 99 are non-participating
           end
 
           timestamp = row['DateUpdated']
