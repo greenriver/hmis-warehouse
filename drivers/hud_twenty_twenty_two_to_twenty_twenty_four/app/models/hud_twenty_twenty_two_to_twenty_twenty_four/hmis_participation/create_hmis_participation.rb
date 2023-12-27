@@ -20,7 +20,7 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::HmisParticipation
       @victim_service_providers ||= {}.tap do |h|
         reference(:organization) do |row|
           key = "#{row['OrganizationID']}_ds_#{row['data_source_id']}"
-          h[key] = row['VictimServiceProvider']
+          h[key] = row['VictimServiceProvider'].to_i
         end
       end
     end
@@ -29,11 +29,10 @@ module HudTwentyTwentyTwoToTwentyTwentyFour::HmisParticipation
       @parse_projects ||= [].tap do |arr|
         reference(:project) do |row|
           participation_id = "GR-#{row['ProjectID']}"[0..31]
-
           key = "#{row['OrganizationID']}_ds_#{row['data_source_id']}"
           participation_type = if victim_service_providers[key] == 1
             2 # Flag VSPs as CD
-          elsif row['HMISParticipatingProject'] == 1
+          elsif row['HMISParticipatingProject'].to_i == 1
             1 # Copy participating from project to new record
           else
             0 # 0, nil, or 99 are non-participating
