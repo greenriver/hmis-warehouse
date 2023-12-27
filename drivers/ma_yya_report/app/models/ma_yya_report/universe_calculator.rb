@@ -191,7 +191,7 @@ module MaYyaReport
     # Most recent Zip for each source client
     private def zip_codes(client)
       hmis_source_clients_for(client).map do |hmis_client|
-        hmis_client.addresses.sort(:DateUpdated).pluck(:postal_code).compact.last
+        hmis_client.addresses.order(:DateUpdated).pluck(:postal_code).compact.last
       end.uniq
     end
 
@@ -221,7 +221,7 @@ module MaYyaReport
       client.source_clients.map do |source_client|
         # Choose the most recent enrollment that has language information. Sort by entry date since language is collected at entry.
         enrollment = source_client.enrollments.where.not(translation_needed: nil).order(:entry_date).last
-        next unless latest_enrollment_with_language_info
+        next unless enrollment
 
         if enrollment.translation_needed.zero?
           'English' # If 'No' to translation needed, infer English as primary language (not quite right, but agreed-upon logic)

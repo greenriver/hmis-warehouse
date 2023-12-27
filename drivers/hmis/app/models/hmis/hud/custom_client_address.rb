@@ -14,7 +14,6 @@ class Hmis::Hud::CustomClientAddress < Hmis::Hud::Base
       project_id: ->(r) { r.enrollment&.project&.id },
     },
   )
-  include ::Hmis::Hud::Concerns::Shared
 
   USE_VALUES = [
     :home,
