@@ -72,7 +72,10 @@ module Types
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
     field :hud_chronic, Boolean, null: true
-    enrollments_field filter_args: { omit: [:search_term, :bed_night_on_date], type_name: 'EnrollmentsForClient' }
+    enrollments_field filter_args: { omit: [:search_term, :bed_night_on_date], type_name: 'EnrollmentsForClient' } do
+      # Option to include enrollments that the user has "limited" access to
+      argument :include_enrollments_with_limited_access, Boolean, required: false
+    end
     income_benefits_field
     disabilities_field
     health_and_dvs_field
@@ -154,7 +157,11 @@ module Types
       collection.hmis_identifiers + collection.mci_identifiers
     end
 
+    # Resolve enrollments that the current user has ANY access to (limited or detailed access)
     def enrollments(**args)
+      include_limited_access = args.delete(:include_enrollments_with_limited_access)
+      return resolve_enrollments(object.enrollments, **args) unless include_limited_access
+
       # If current user has "detailed" access to any enrollment for this client, then we also resolve
       # "limited access" enrollments (if permitted). The purpose is to show additional enrollment history
       # for "my" clients, but not for other clients in the system that I can see.
