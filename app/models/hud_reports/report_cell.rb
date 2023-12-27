@@ -129,12 +129,18 @@ module HudReports
           last_name: universe_client.last_name,
           universe_membership: universe_client,
         )
-      else
+      elsif warehouse_client.respond_to?(:first_name)
         UniverseMember.new(
           report_cell: self,
           client_id: warehouse_client.id,
           first_name: warehouse_client.first_name,
           last_name: warehouse_client.last_name,
+          universe_membership: universe_client,
+        )
+      else
+        UniverseMember.new(
+          report_cell: self,
+          client_id: warehouse_client.id,
           universe_membership: universe_client,
         )
       end
