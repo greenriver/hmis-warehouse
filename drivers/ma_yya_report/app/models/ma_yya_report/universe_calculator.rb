@@ -147,7 +147,6 @@ module MaYyaReport
     end
 
     private def race_code
-      # NativeHIOtherPacific => NativeHIPacific -- ok?
       HudUtility2024.race_id_to_field_name.excluding(8, 9, 99).invert
     end
 
@@ -202,8 +201,13 @@ module MaYyaReport
       return [] unless flex_funds_service_type && flex_funds_types_cded
 
       hmis_personal_ids = hmis_source_clients_for(client).pluck(:personal_id)
+
       # IDs for all Flex Fund services rendered to the client(s)
-      flex_funds_service_ids = Hmis::Hud::CustomService.hmis.where(personal_id: hmis_personal_ids, service_type: flex_funds_service_type).pluck(:id)
+      flex_funds_service_ids = Hmis::Hud::CustomService.hmis.
+        where(personal_id: hmis_personal_ids, service_type: flex_funds_service_type).
+        where(date_provided: @filter.start_date .. @filter.end_date).
+        select(:id)
+
       # CustomDataElements tied to these CustomServices indicate which fund types were provided
       flex_funds_types_cded.values.
         where(owner_id: flex_funds_service_ids).
