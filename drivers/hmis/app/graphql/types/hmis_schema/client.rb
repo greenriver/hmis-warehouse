@@ -157,7 +157,6 @@ module Types
       collection.hmis_identifiers + collection.mci_identifiers
     end
 
-    # Resolve enrollments that the current user has ANY access to (limited or detailed access)
     def enrollments(**args)
       include_limited_access = args.delete(:include_enrollments_with_limited_access)
       return resolve_enrollments(object.enrollments, **args) unless include_limited_access
