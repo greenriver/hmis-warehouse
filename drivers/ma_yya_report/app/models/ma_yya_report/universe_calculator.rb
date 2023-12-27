@@ -137,8 +137,8 @@ module MaYyaReport
       return 0 if genders == [0]
       return 1 if genders == [1]
       # No guidance on 2 or 3 CulturallySpecific, DifferentIdentity
-      return 4 if genders.include?(4)
-      return 5 if genders.include?(5)
+      return 4 if genders.include?(4) # Non-Binary
+      return 5 if genders.include?(5) # Transgender
       # Group the following
       return 6 if genders.include?(6) # Questioning
       return 6 if genders.include?(8) # Doesn't know
@@ -229,19 +229,21 @@ module MaYyaReport
 
     # Valid options are [nil, "English", "Spanish", "Other"]
     private def language(client)
-      client.source_clients.map do |source_client|
-        # Choose the most recent enrollment that has language information. Sort by entry date since language is collected at entry.
-        enrollment = source_client.enrollments.where.not(translation_needed: nil).order(:entry_date).last
-        next unless enrollment
+      # Choose the most recent enrollment that has any language information.
+      # Sorts by entry date since language is collected at entry.
+      enrollment = client.source_clients.map do |source_client|
+        source_client.enrollments.where.not(translation_needed: nil).order(:entry_date).last
+      end.flatten.max_by(&:entry_date)
 
-        if enrollment.translation_needed.zero?
-          'English' # If 'No' to translation needed, infer English as primary language (not quite right, but agreed-upon logic)
-        elsif enrollment.preferred_language == 367 # Spanish
-          'Spanish'
-        elsif enrollment.preferred_language.present?
-          'Other'
-        end
-      end.uniq
+      return unless enrollment # No enrollment with language info, retun nil
+
+      if enrollment.translation_needed.zero?
+        'English' # If 'No' to translation needed, infer English as primary language (not quite right, but agreed-upon logic)
+      elsif enrollment.preferred_language == 367 # Spanish
+        'Spanish'
+      elsif enrollment.preferred_language.present?
+        'Other'
+      end
     end
 
     private def hmis_source_clients_for(client)
