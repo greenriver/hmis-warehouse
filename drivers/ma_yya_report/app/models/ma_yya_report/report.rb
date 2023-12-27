@@ -119,7 +119,7 @@ module MaYyaReport
               )),
         A5d: a_t[:direct_assistance].eq(true).
           and(Arel.sql(
-                json_contains_text(:flex_funds, 'Rent arrears'), # Change casing? Collected as 'Rent Arrears'
+                json_contains_text(:flex_funds, 'Rent arrears'),
               )),
         A5e: a_t[:direct_assistance].eq(true).
           and(Arel.sql(
@@ -271,8 +271,9 @@ module MaYyaReport
       "(#{contents.map { |val| "#{field} @> '#{val}'" }.join(' OR ')})"
     end
 
+    # Check whether an array of strings contains a given text value (case insensitive)
     private def json_contains_text(field, text)
-      "#{field} ? '#{text}'"
+      "lower(#{field}::text)::jsonb ? '#{text.downcase}'"
     end
 
     private def report_results

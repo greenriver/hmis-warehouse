@@ -116,9 +116,20 @@ module MaYyaReport
     end
 
     private def direct_assistance?(enrollment)
-      enrollment.
+      # Check if enrollment was referred to flex funds assistance (do we still need this?)
+      referred_to_assistance = enrollment.
         events.
-        detect { |event| event.EventDate.between?(@filter.start_date, @filter.end_date) && event.Event == 16 }.present?
+        detect do |event|
+          # 16 = Referral to emergency assistance/flex fund/furniture assistance
+          event.EventDate.between?(@filter.start_date, @filter.end_date) && event.Event == 16
+        end.present?
+      return true if referred_to_assistance
+
+      # Check if enrollment received flex funds assistance
+      Hmis::Hud::CustomService.hmis.
+        where(enrollment_id: enrollment.enrollment_id, personal_id: enrollment.personal_id).
+        where(service_type: flex_funds_service_type).
+        within_range(@filter.start_date .. @filter.end_date).exists?
     end
 
     private def gender(client)
@@ -205,7 +216,7 @@ module MaYyaReport
       # IDs for all Flex Fund services rendered to the client(s)
       flex_funds_service_ids = Hmis::Hud::CustomService.hmis.
         where(personal_id: hmis_personal_ids, service_type: flex_funds_service_type).
-        where(date_provided: @filter.start_date .. @filter.end_date).
+        within_range(@filter.start_date .. @filter.end_date).
         select(:id)
 
       # CustomDataElements tied to these CustomServices indicate which fund types were provided

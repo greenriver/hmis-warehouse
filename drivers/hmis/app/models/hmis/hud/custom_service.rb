@@ -26,6 +26,10 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
   before_validation :set_service_name
   validates_with Hmis::Hud::Validators::CustomServiceValidator
 
+  scope :within_range, ->(range) do
+    where(date_provided: range)
+  end
+
   def self.hud_key
     'CustomServiceID'
   end
