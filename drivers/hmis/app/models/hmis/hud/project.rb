@@ -9,6 +9,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::Shared
   include ActiveModel::Dirty
 
+  has_paper_trail(meta: { project_id: :id })
+
   self.table_name = :Project
   self.sequence_name = "public.\"#{table_name}_id_seq\""
   CONFIDENTIAL_PROJECT_NAME = 'Confidential Project'.freeze
@@ -139,6 +141,13 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     organization_and_name: 'Organization and Name',
     name: 'Name',
   }.freeze
+
+  HudUtility2024.residential_project_type_numbers_by_code.each do |k, v|
+    scope k, -> { where(project_type: v) }
+    define_method "#{k}?" do
+      v.include? project_type
+    end
+  end
 
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)

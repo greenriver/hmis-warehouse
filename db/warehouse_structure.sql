@@ -887,7 +887,8 @@ CREATE TABLE public."CustomCaseNote" (
     "UserID" character varying,
     "DateCreated" timestamp without time zone,
     "DateUpdated" timestamp without time zone,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    information_date date
 );
 
 
@@ -1835,7 +1836,8 @@ CREATE TABLE public."Exit" (
     "CMExitReason" integer,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
-    "DestinationSubsidyType" integer
+    "DestinationSubsidyType" integer,
+    auto_exited timestamp without time zone
 );
 
 
@@ -7876,7 +7878,8 @@ CREATE TABLE public.files (
     coc_codes jsonb DEFAULT '[]'::jsonb,
     enrollment_id bigint,
     confidential boolean DEFAULT false NOT NULL,
-    updated_by_id bigint
+    updated_by_id bigint,
+    data_source_id bigint
 );
 
 
@@ -13322,6 +13325,40 @@ CREATE SEQUENCE public.hmis_assessments_id_seq
 --
 
 ALTER SEQUENCE public.hmis_assessments_id_seq OWNED BY public.hmis_assessments.id;
+
+
+--
+-- Name: hmis_auto_exit_configs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_auto_exit_configs (
+    id bigint NOT NULL,
+    length_of_absence_days integer NOT NULL,
+    project_type integer,
+    organization_id bigint,
+    project_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_auto_exit_configs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_auto_exit_configs_id_seq OWNED BY public.hmis_auto_exit_configs.id;
 
 
 --
@@ -20294,17 +20331,18 @@ CREATE TABLE public.hud_report_spm_enrollments (
     previous_street_essh boolean,
     destination integer,
     age integer,
-    previous_earned_income integer,
-    previous_non_employment_income_ integer,
-    previous_total_income integer,
-    current_earned_income integer,
-    current_non_employment_income integer,
-    current_total_income integer,
+    previous_earned_income numeric,
+    previous_non_employment_income numeric,
+    previous_total_income numeric,
+    current_earned_income numeric,
+    current_non_employment_income numeric,
+    current_total_income numeric,
     report_instance_id bigint,
     client_id bigint,
     previous_income_benefits_id bigint,
     current_income_benefits_id bigint,
-    enrollment_id bigint
+    enrollment_id bigint,
+    days_enrolled integer
 );
 
 
@@ -20371,7 +20409,10 @@ CREATE TABLE public.hud_report_spm_returns (
     exit_destination integer,
     exit_enrollment_id bigint,
     return_enrollment_id bigint,
-    client_id bigint
+    client_id bigint,
+    report_instance_id bigint,
+    days_to_return integer,
+    project_type integer
 );
 
 
@@ -25465,7 +25506,11 @@ CREATE TABLE public.versions (
     user_id bigint,
     referenced_user_id bigint,
     referenced_entity_name character varying,
-    migrated_app_version_id bigint
+    migrated_app_version_id bigint,
+    true_user_id bigint,
+    client_id bigint,
+    enrollment_id bigint,
+    project_id bigint
 );
 
 
@@ -27635,6 +27680,13 @@ ALTER TABLE ONLY public.hmis_assessment_details ALTER COLUMN id SET DEFAULT next
 --
 
 ALTER TABLE ONLY public.hmis_assessments ALTER COLUMN id SET DEFAULT nextval('public.hmis_assessments_id_seq'::regclass);
+
+
+--
+-- Name: hmis_auto_exit_configs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_auto_exit_configs ALTER COLUMN id SET DEFAULT nextval('public.hmis_auto_exit_configs_id_seq'::regclass);
 
 
 --
@@ -31398,6 +31450,14 @@ ALTER TABLE ONLY public.hmis_assessment_details
 
 ALTER TABLE ONLY public.hmis_assessments
     ADD CONSTRAINT hmis_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_auto_exit_configs hmis_auto_exit_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_auto_exit_configs
+    ADD CONSTRAINT hmis_auto_exit_configs_pkey PRIMARY KEY (id);
 
 
 --
@@ -51348,6 +51408,13 @@ CREATE INDEX index_favorites_on_user_id ON public.favorites USING btree (user_id
 
 
 --
+-- Name: index_files_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_files_on_data_source_id ON public.files USING btree (data_source_id);
+
+
+--
 -- Name: index_files_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -51933,6 +52000,20 @@ CREATE INDEX index_hmis_assessments_on_name ON public.hmis_assessments USING btr
 --
 
 CREATE INDEX index_hmis_assessments_on_site_id ON public.hmis_assessments USING btree (site_id);
+
+
+--
+-- Name: index_hmis_auto_exit_configs_on_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_auto_exit_configs_on_organization_id ON public.hmis_auto_exit_configs USING btree (organization_id);
+
+
+--
+-- Name: index_hmis_auto_exit_configs_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_auto_exit_configs_on_project_id ON public.hmis_auto_exit_configs USING btree (project_id);
 
 
 --
@@ -53182,24 +53263,10 @@ CREATE INDEX index_hud_report_spm_enrollments_on_client_id ON public.hud_report_
 
 
 --
--- Name: index_hud_report_spm_enrollments_on_current_income_benefits_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hud_report_spm_enrollments_on_current_income_benefits_id ON public.hud_report_spm_enrollments USING btree (current_income_benefits_id);
-
-
---
 -- Name: index_hud_report_spm_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hud_report_spm_enrollments_on_enrollment_id ON public.hud_report_spm_enrollments USING btree (enrollment_id);
-
-
---
--- Name: index_hud_report_spm_enrollments_on_previous_income_benefits_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hud_report_spm_enrollments_on_previous_income_benefits_id ON public.hud_report_spm_enrollments USING btree (previous_income_benefits_id);
 
 
 --
@@ -53228,6 +53295,13 @@ CREATE INDEX index_hud_report_spm_returns_on_client_id ON public.hud_report_spm_
 --
 
 CREATE INDEX index_hud_report_spm_returns_on_exit_enrollment_id ON public.hud_report_spm_returns USING btree (exit_enrollment_id);
+
+
+--
+-- Name: index_hud_report_spm_returns_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_returns_on_report_instance_id ON public.hud_report_spm_returns USING btree (report_instance_id);
 
 
 --
@@ -57809,10 +57883,31 @@ CREATE INDEX index_va_check_histories_on_user_id ON public.va_check_histories US
 
 
 --
+-- Name: index_versions_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_versions_on_client_id ON public.versions USING btree (client_id);
+
+
+--
+-- Name: index_versions_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_versions_on_enrollment_id ON public.versions USING btree (enrollment_id);
+
+
+--
 -- Name: index_versions_on_item_type_and_item_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_versions_on_item_type_and_item_id ON public.versions USING btree (item_type, item_id);
+
+
+--
+-- Name: index_versions_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_versions_on_project_id ON public.versions USING btree (project_id);
 
 
 --
@@ -58317,6 +58412,13 @@ CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree
 --
 
 CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
+
+
+--
+-- Name: tt_hh_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX tt_hh_id ON public.service_history_enrollments USING btree (household_id);
 
 
 --
@@ -60443,9 +60545,20 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231114235529'),
 ('20231115170459'),
 ('20231120221840'),
+('20231121165752'),
+('20231122185546'),
 ('20231124171521'),
+('20231201154136'),
+('20231203221840'),
 ('20231204134123'),
 ('20231205141010'),
-('20231206200436');
+('20231206200436'),
+('20231206205805'),
+('20231207155629'),
+('20231207161830'),
+('20231212212354'),
+('20231215143621'),
+('20231220194404'),
+('20231220203530');
 
 

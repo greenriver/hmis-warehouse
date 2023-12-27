@@ -15,6 +15,8 @@ class Users::SessionsController < Devise::SessionsController
     super do |resource|
       # User has successfully signed in, so clear any unused reset token
       resource.update(reset_password_token: nil, reset_password_sent_at: nil) if resource.reset_password_token.present?
+      # Note access for external reporting
+      resource.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
     end
   end
 

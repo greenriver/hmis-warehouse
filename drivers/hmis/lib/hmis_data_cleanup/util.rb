@@ -286,6 +286,29 @@ module HmisDataCleanup
       end
     end
 
+    # Sum MonthlyTotalIncome where it is null but there are Income values
+    def self.fix_missing_monthly_total_income!
+      count = Hmis::Hud::IncomeBenefit.hmis.where(IncomeFromAnySource: 1, TotalMonthlyIncome: nil).size
+      Rails.logger.info "#{count} income records to clean"
+
+      amount_fields = [:EarnedAmount, :UnemploymentAmount, :SSIAmount, :SSDIAmount, :VADisabilityServiceAmount, :VADisabilityNonServiceAmount, :PrivateDisabilityAmount, :WorkersCompAmount, :TANFAmount, :GAAmount, :SocSecRetirementAmount, :PensionAmount, :ChildSupportAmount, :AlimonyAmount, :OtherIncomeAmount]
+
+      Hmis::Hud::IncomeBenefit.hmis.where(IncomeFromAnySource: 1, TotalMonthlyIncome: nil).in_batches do |batch|
+        Rails.logger.info('Processing batch...')
+        values = []
+        batch.each do |record|
+          calculated_total = amount_fields.map { |f| record.send(f) }.compact.sum
+          values << [record.id, calculated_total]
+        end
+        without_papertrail_or_timestamps do
+          cols = [:id, :TotalMonthlyIncome]
+          result = Hmis::Hud::IncomeBenefit.import(cols, values, validate: false, on_duplicate_key_update: { conflict_target: [:id], columns: [:TotalMonthlyIncome] })
+          raise "error: #{result.failed_instances.inspect}" if result.failed_instances.any?
+        end
+      end
+      Rails.logger.info 'Done'
+    end
+
     # Cleanup function to run if/when we add a new Custom record type and forget to add it to the Hmis::MergeClientsJob.
     # WARNING: this cleanup task is not the most efficient. If there are a lot of record to clean up, may need further optimization.
     def self.cleanup_dangling_records_from_merge!(klass: Hmis::Hud::CustomCaseNote)

@@ -67,14 +67,17 @@
 
     - if can_see_confidential_files?
       - enrollments = @file.enrollments_for_confidential_files(current_user, @client)
+      - data_sources = @file.data_sources_for_confidential_files(current_user)
       - if enrollments.present?
         %h3 Confidentiality
         .well
           .row
             .col
-              = f.input :confidential, as: :boolean, label: 'Confidential File', hint: 'Access will be restricted through associated enrollment'
+              = f.input :confidential, as: :boolean, label: 'Confidential File', hint: 'Access will be restricted through associated enrollment', input_html: { checked: can_see_confidential_files? }
             .col
-              = f.input :enrollment_id, as: :select_two, label: 'Associated Enrollment', collection: enrollments, label_method: :first, value_method: :last, hint: 'Required if confidential'
+              = f.input :enrollment_id, as: :select_two, label: 'Associated Enrollment', collection: enrollments, label_method: :first, value_method: :last, hint: 'If assigned, only visible to users who have permission to view confidential files at the enrollment\'s project.  If blank, you must choose a data source below.'
+              %p OR
+              = f.input :data_source_id, as: :select_two, label: 'Associated Data Source', collection: data_sources, label_method: :first, value_method: :last, hint: 'If assigned, only visible to users who have permission to view confidential files at the enrollment\'s project.  If blank, you must choose an enrollment above.'
     %h3 Content
     .well
       .row

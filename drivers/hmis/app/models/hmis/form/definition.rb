@@ -22,7 +22,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # Forms that are assessments
   HUD_ASSESSMENT_FORM_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT, :CE, :POST_EXIT, :CUSTOM_ASSESSMENT].freeze
 
-  # System forms (required for basic HMIS functionality)
+  # System forms (forms that are required for basic HMIS functionality, and are configurable)
   SYSTEM_FORM_ROLES = [
     :PROJECT,
     :ORGANIZATION,
@@ -49,10 +49,17 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :REFERRAL_REQUEST,
   ].freeze
 
+  # Static forms are not configurable
+  STATIC_FORM_ROLES = [
+    :FORM_RULE,
+    :AUTO_EXIT_CONFIG,
+  ].freeze
+
   FORM_ROLES = [
     *HUD_ASSESSMENT_FORM_ROLES,
     *SYSTEM_FORM_ROLES,
     *DATA_COLLECTION_FEATURE_ROLES,
+    *STATIC_FORM_ROLES,
     :OCCURRENCE_POINT,
     # Other/misc forms
     :FILE, # should maybe be considered a data collection feature, but different becase its at Client-level (not Project)
@@ -65,6 +72,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     permission: :can_edit_enrollments,
   }.freeze
 
+  # Configuration for SubmitForm
   FORM_ROLE_CONFIG = {
     SERVICE: {
       owner_class: Hmis::Hud::HmisService,
@@ -144,10 +152,11 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     POST_EXIT: 6,
   }.freeze
 
-  use_enum_with_same_key :form_role_enum_map, FORM_ROLES
+  use_enum_with_same_key :form_role_enum_map, FORM_ROLES.excluding(:CUSTOM_ASSESSMENT, :CE)
   # may add back CE as HUD Assessment Role when we implement CE assessments. Same for implementing customs. Unsure at this point, so leaving them out.
   use_enum_with_same_key :assessment_type_enum_map, HUD_ASSESSMENT_FORM_ROLES.excluding(:CUSTOM_ASSESSMENT, :CE)
   use_enum_with_same_key :data_collection_feature_role_enum_map, DATA_COLLECTION_FEATURE_ROLES
+  use_enum_with_same_key :static_form_role_enum_map, STATIC_FORM_ROLES
 
   scope :with_role, ->(role) { where(role: role) }
 

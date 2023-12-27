@@ -84,8 +84,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-      mailhog:
-        condition: service_started
       minio:
         condition: service_started
 
@@ -108,9 +106,15 @@ services:
     tty: true
     command: bundle exec rails server -b 0.0.0.0
     labels:
-      - "traefik.http.routers.op.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)"
-      - "traefik.http.routers.op.tls=true"
-      - "traefik.http.services.op.loadbalancer.server.port=3000"
+      - traefik.enable=${TRAEFIK_ENABLED:-false}
+      - traefik.http.routers.op.entrypoints=web
+      - traefik.http.routers.op.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
+      - traefik.http.services.op_https.loadbalancer.server.port=3000
+      - traefik.http.routers.op_https.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
+      - traefik.http.routers.op_https.tls=true
+      - traefik.http.routers.op_https.entrypoints=web-secure
+      - traefik.http.middlewares.op_https.redirectscheme.scheme=https
+      - traefik.http.routers.op.middlewares=op_https
     ports:
       - "3000"
       - "9394"
@@ -126,8 +130,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-      mailhog:
-        condition: service_started
       minio:
         condition: service_started
 
@@ -142,6 +144,8 @@ services:
   # Note: `docker compose up` works, though there will be no output. Use `docker
   # compose run` to see the output
   ngrok: &ngrok
+    profiles:
+      - manual
     network_mode: host
     tty: true
     stdin_open: true
@@ -235,15 +239,6 @@ services:
     expose:
       - 6379
 
-  mailhog:
-    image: mailhog/mailhog:latest
-    environment:
-      VIRTUAL_HOST: mail.${FQDN:-hmis-warehouse.dev.test}
-      VIRTUAL_PORT: 8025
-    expose:
-      - 8025
-      - 1025
-
   chrome:
     image: browserless/chrome:1-chrome-stable
     profiles: ["test"]
@@ -302,10 +297,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      ngrok:
-        condition: service_started
-      ngrok_public:
-        condition: service_completed_successfully
+      # ngrok:
+      #   condition: service_started
+      # ngrok_public:
+      #   condition: service_completed_successfully
       superset_init:
         condition: service_completed_successfully
       superset_init_2:
@@ -350,7 +345,8 @@ services:
     volumes:
       - ./docker/superset/superset_init_entrypoint.sh:/superset_init_entrypoint.sh
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   superset_init_2:
     <<: *superset
@@ -377,5 +373,5 @@ volumes:
 
 networks:
   default:
-    name: nginx-proxy
+    name: traefik
     external: true

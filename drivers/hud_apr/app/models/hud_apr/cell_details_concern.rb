@@ -8,7 +8,7 @@ module HudApr::CellDetailsConcern
   extend ActiveSupport::Concern
 
   included do
-    def self.client_class
+    def self.client_class(_question)
       HudApr::Fy2020::AprClient
     end
 

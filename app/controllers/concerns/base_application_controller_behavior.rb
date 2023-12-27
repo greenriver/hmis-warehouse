@@ -6,6 +6,7 @@
 
 require 'application_responder'
 
+# ApplicationController that could be shared between WH and HMIS, but is currently only used by HMIS
 module BaseApplicationControllerBehavior
   extend ActiveSupport::Concern
 
@@ -55,14 +56,6 @@ module BaseApplicationControllerBehavior
       payload[:request_start] = request.headers['HTTP_X_REQUEST_START'].try(:gsub, /\At=/, '')
     end
 
-    def info_for_paper_trail
-      {
-        user_id: warden&.user&.id,
-        session_id: request.env['rack.session.record']&.session_id,
-        request_id: request.uuid,
-      }
-    end
-
     def configure_permitted_parameters
       devise_parameter_sanitizer.permit(:sign_in, keys: [:otp_attempt, :remember_device, :device_name])
     end
@@ -109,9 +102,13 @@ module BaseApplicationControllerBehavior
     end
 
     def set_sentry_user
-      return unless ENV['WAREHOUSE_SENTRY_DSN'].present?
+      return unless ENV['WAREHOUSE_SENTRY_DSN'].present? && Sentry.initialized?
+      return unless defined?(current_app_user)
+      return unless current_app_user.is_a?(User) || current_app_user.is_a?(Hmis::User)
 
-      Sentry.configure_scope { |scope| scope.set_user(id: current_app_user.id, email: current_app_user.email) } if Sentry.initialized? && defined?(current_app_user) && current_app_user.is_a?(User)
+      Sentry.configure_scope do |scope|
+        scope.set_user(id: current_app_user.id, email: current_app_user.email)
+      end
     end
 
     def bypass_2fa_enabled?

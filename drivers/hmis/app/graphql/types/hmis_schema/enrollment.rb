@@ -22,6 +22,7 @@ module Types
     include Types::HmisSchema::HasCurrentLivingSituations
     include Types::HmisSchema::HasCustomDataElements
     include Types::HmisSchema::HasHudMetadata
+    include Types::HmisSchema::HasAuditHistory
 
     def self.configuration
       Hmis::Hud::Enrollment.hmis_configuration(version: '2024')
@@ -77,6 +78,7 @@ module Types
       can :edit_enrollments
       can :delete_enrollments
       can :split_households
+      can :audit_enrollments
     end
 
     # FULL ACCESS FIELDS. All fields below this line require `can_view_enrollment_details` perm, because they use the overridden 'field' class method.
@@ -188,6 +190,18 @@ module Types
     field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
 
     field :move_in_addresses, [HmisSchema::ClientAddress], null: false
+
+    # fields should match our DB casing, consult schema to determine appropriate casing
+    audit_history_field excluded_keys: ['owner_type', 'enrollment_address_type', 'wip']
+
+    def audit_history(filters: nil)
+      scope = GrdaWarehouse.paper_trail_versions.
+        where(enrollment_id: object.id).
+        where.not(object_changes: nil, event: 'update').
+        unscope(:order). # Unscope to remove default order, otherwise it will conflict
+        order(created_at: :desc)
+      Hmis::Filter::PaperTrailVersionFilter.new(filters).filter_scope(scope)
+    end
 
     # Summary of ALL open enrollments that this client currently has.
     # This is different from the "summary_fields" which are governed by a different

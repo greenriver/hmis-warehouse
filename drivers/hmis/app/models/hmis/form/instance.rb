@@ -16,6 +16,8 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   belongs_to :custom_service_type, optional: true, class_name: 'Hmis::Hud::CustomServiceType'
 
   validates :data_collected_about, inclusion: { in: Types::Forms::Enums::DataCollectedAbout.values.keys }, allow_blank: true
+  validates :funder, inclusion: { in: HudUtility2024.funding_sources.keys }, allow_blank: true
+  validates :project_type, inclusion: { in: HudUtility2024.project_types.keys }, allow_blank: true
 
   # 'system' instances can't be deleted
   scope :system, -> { where(system: true) }
@@ -75,10 +77,20 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   scope :for_service_type, ->(service_type_id) { where(custom_service_type_id: service_type_id) }
   # Find instances that are for a Service Category
   scope :for_service_category, ->(category_id) { where(custom_service_category_id: category_id) }
+  # Find all instances for a given Service Category, including those specified by type
+  scope :for_service_category_by_entities, ->(category_id) do
+    service_type_ids = Hmis::Hud::CustomServiceType.where(custom_service_category_id: category_id).pluck(:id)
+
+    where(fi_t[:custom_service_category_id].in(Array.wrap(category_id)).or(fi_t[:custom_service_type_id].in(service_type_ids)))
+  end
 
   # Find instances that are specified by service type or service category
   scope :for_services, -> do
     where(fi_t[:custom_service_type_id].not_eq(nil).or(fi_t[:custom_service_category_id].not_eq(nil)))
+  end
+
+  scope :not_for_services, -> do
+    where(fi_t[:custom_service_type_id].eq(nil).and(fi_t[:custom_service_category_id].eq(nil)))
   end
 
   scope :for_project_through_entities, ->(project) do
@@ -90,6 +102,27 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
     ids += Hmis::Form::Instance.for_project_by_project_type(project.project_type).pluck(:id)
     ids += defaults.pluck(:id)
     where(id: ids)
+  end
+
+  SORT_OPTIONS = [:form_title, :form_type, :date_updated].freeze
+
+  def self.sort_by_option(option)
+    raise NotImplementedError unless SORT_OPTIONS.include?(option)
+
+    case option
+    when :form_title
+      joins(:definition).order(fd_t[:title])
+    when :form_type
+      joins(:definition).order(fd_t[:role])
+    when :date_updated
+      order(updated_at: :desc)
+    else
+      raise NotImplementedError
+    end
+  end
+
+  def self.apply_filters(input)
+    Hmis::Filter::FormInstanceFilter.new(input).filter_scope(self)
   end
 
   def self.detect_best_instance_scope_for_project(base_scope, project:)

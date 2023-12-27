@@ -86,10 +86,15 @@ module Hmis
 
         hoh_entered_on = normalize_yoy_date(hoh_entered_on)
         window = 30.days
-        # not due for an assessment yet
+        # not due for an assessment yet (household entered <11 months ago)
         return if today < (hoh_entered_on + (1.year - window))
 
-        hoh_anniversary = hoh_entered_on.change(year: today.year)
+        # Find the closest HOH entry anniversary
+        hoh_anniversary = hoh_entered_on + ((today - hoh_entered_on) / Time.days_in_year).round.years
+
+        # not due for an assessment yet (next due period is in the future)
+        return if today < (hoh_anniversary - window)
+
         start_date = hoh_anniversary - window
         due_date = hoh_anniversary + window
 

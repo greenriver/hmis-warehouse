@@ -71,12 +71,22 @@ class AccessGroup < ApplicationRecord
 
   def add(users)
     self.users = (self.users + Array.wrap(users)).uniq
+
+    Array.wrap(users).each do |user|
+      # Queue recomputation of external report access
+      user.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
+    end
+
+    self.users
   end
 
   def remove(users)
-    Array.wrap(users).each do |u|
+    Array.wrap(users).each do |user|
       # Need to do this individually for paper trail to work
-      self.users.destroy(u)
+      self.users.destroy(user)
+
+      # Queue recomputation of external report access
+      user.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
     end
   end
 

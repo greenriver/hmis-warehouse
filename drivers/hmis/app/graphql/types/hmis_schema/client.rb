@@ -90,6 +90,7 @@ module Types
         'SSN' => :can_view_full_ssn,
         'DOB' => :can_view_dob,
       },
+      # Transform race and gender fields
       transform_changes: ->(version, changes) do
         result = changes
         [
@@ -119,10 +120,6 @@ module Types
           result = result.merge(input_field => delta)
         end
 
-        # Drop excluded fields
-        excluded_fields = ['id', 'DateCreated', 'DateUpdated', 'DateDeleted']
-        result.reject! { |k| k.underscore.end_with?('_id') || excluded_fields.include?(k) }
-
         result
       end,
     )
@@ -143,6 +140,8 @@ module Types
       can :manage_own_client_files
       can :view_any_nonconfidential_client_files
       can :view_any_confidential_client_files
+      composite_perm :can_upload_client_files, permissions: [:manage_any_client_files, :manage_own_client_files], mode: :any
+      composite_perm :can_view_any_files, permissions: [:manage_own_client_files, :view_any_nonconfidential_client_files, :view_any_confidential_client_files], mode: :any
       can :audit_clients
     end
 
@@ -268,7 +267,7 @@ module Types
       !!object.hud_chronic?(scope: enrollments)
     end
 
-    def resolve_audit_history
+    def audit_history(filters: nil)
       address_ids = object.addresses.with_deleted.pluck(:id)
       name_ids = object.names.with_deleted.pluck(:id)
       contact_ids = object.contact_points.with_deleted.pluck(:id)
@@ -278,11 +277,13 @@ module Types
       name_changes = v_t[:item_id].in(name_ids).and(v_t[:item_type].eq('Hmis::Hud::CustomClientName'))
       contact_changes = v_t[:item_id].in(contact_ids).and(v_t[:item_type].eq('Hmis::Hud::CustomClientContactPoint'))
 
-      GrdaWarehouse.paper_trail_versions.
+      scope = GrdaWarehouse.paper_trail_versions.
         where(client_changes.or(address_changes).or(name_changes).or(contact_changes)).
         where.not(object_changes: nil, event: 'update').
         unscope(:order).
         order(created_at: :desc)
+
+      Hmis::Filter::PaperTrailVersionFilter.new(filters).filter_scope(scope)
     end
 
     def merge_audit_history

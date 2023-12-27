@@ -371,6 +371,10 @@ module HudUtility2024
     destinations
   end
 
+  def destination_no_exit_interview_completed
+    30
+  end
+
   # See https://www.hudexchange.info/programs/hmis/hmis-data-standards/standards/HMIS-Data-Standards.htm#Appendix_A_-_Living_Situation_Option_List for details
   # Includes ALL situations (prior/current/destination)
   def available_situations
@@ -516,6 +520,8 @@ module HudUtility2024
       {
         'XX-500' => 'Test CoC',
         'XX-501' => '2nd Test CoC',
+        'XX-502' => '3rd Test CoC', # testkit
+        'XX-518' => '4th Test CoC', # testkit
       },
     ).freeze
   end
@@ -541,6 +547,11 @@ module HudUtility2024
 
   def path_funders
     [21]
+  end
+
+  # SPM definition of CoC funded projects
+  def spm_coc_funders
+    [2, 3, 4, 5, 43, 44, 54, 55]
   end
 
   # "Funder components" that are referenced by the 2024 HUD Data Dictionary.
