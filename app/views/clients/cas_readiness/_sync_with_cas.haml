@@ -2,7 +2,12 @@
   .col-lg-8.col-xl-6
     %h3 Sync with CAS?
     .c-card.c-card--block.c-card--padded.c-card--flush
-      = render GrdaWarehouse::Config.get(:cas_available_method).to_s, f: f
+      - method = GrdaWarehouse::Config.get(:cas_available_method).to_s
+      - # special case because Boston has both a cas_available_method and cas_calculator
+      - if method == 'boston'
+        = render 'release_and_project_group', f: f
+      - else
+        = render method, f: f
 
 .row.mt-8
   .col-sm-6

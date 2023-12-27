@@ -9,6 +9,7 @@ class Hmis::Filter::FormInstanceFilter < Hmis::Filter::BaseFilter
     scope = ensure_scope(scope)
     scope.
       yield_self(&method(:with_form_type)).
+      yield_self(&method(:with_definition)).
       yield_self(&method(:with_project_type)).
       yield_self(&method(:for_project)).
       yield_self(&method(:with_active_status)).
@@ -22,7 +23,14 @@ class Hmis::Filter::FormInstanceFilter < Hmis::Filter::BaseFilter
     with_filter(scope, :form_type) do
       # TODO: filter active status / max version
       identifiers = Hmis::Form::Definition.where(role: input.form_type).pluck(:identifier)
+      scope.where(definition_identifier: identifiers)
+    end
+  end
 
+  def with_definition(scope)
+    with_filter(scope, :definition) do
+      # TODO: filter active status / max version
+      identifiers = Hmis::Form::Definition.where(id: input.definition).pluck(:identifier)
       scope.where(definition_identifier: identifiers)
     end
   end

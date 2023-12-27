@@ -52,6 +52,7 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       expect(Hmis::Hud::Enrollment.exited).to include(e1)
       expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: s2.date_provided, destination: 30)
       expect(e1.custom_assessments).to contain_exactly(have_attributes(assessment_date: s2.date_provided, data_collection_stage: 3))
+      expect(e1.exit_assessment.form_processor.exit).to eq(e1.exit)
     end
 
     it 'should exit correctly for a custom service' do
@@ -105,10 +106,20 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
   it 'should throw error if length_of_absence_days is less than 30' do
     p1 = create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 6
     c1 = create :hmis_hud_client, data_source: ds1, user: u1
-    create :hmis_auto_exit_config, length_of_absence_days: 29
+
+    # We want to set the length_of_absence_days to 29 to test logic in the job, but there is an AR validation on this too, so set it without validating
+    aec = create :hmis_auto_exit_config, length_of_absence_days: 30
+    aec.length_of_absence_days = 29
+    aec.save!(validate: false)
+
     e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.today - 2.months
     create :hmis_custom_service, data_source: ds1, client: c1, enrollment: e1, user: u1, date_provided: Date.today - 31.days
 
-    expect { Hmis::AutoExitJob.perform_now }.to raise_error(RuntimeError, 'Auto-exit config unusually low: 29')
+    allow(Rails.logger).to receive(:fatal).and_return nil
+
+    Hmis::AutoExitJob.perform_now
+
+    expect(e1.exit).to be_nil
+    expect(Rails.logger).to have_received(:fatal).with('Auto-exit config unusually low: 29')
   end
 end

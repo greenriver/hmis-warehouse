@@ -31,6 +31,11 @@ module CoreDemographicsReport
       @comparison_pattern = filter.comparison_pattern
     end
 
+    # The CoC breakdowns aren't relevant to the Core Demographics report right now.
+    def calculate_coc_breakdowns?
+      false
+    end
+
     def self.url
       'core_demographics_report/warehouse_reports/core'
     end

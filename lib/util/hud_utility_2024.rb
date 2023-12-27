@@ -520,6 +520,8 @@ module HudUtility2024
       {
         'XX-500' => 'Test CoC',
         'XX-501' => '2nd Test CoC',
+        'XX-502' => '3rd Test CoC', # testkit
+        'XX-518' => '4th Test CoC', # testkit
       },
     ).freeze
   end
@@ -545,6 +547,11 @@ module HudUtility2024
 
   def path_funders
     [21]
+  end
+
+  # SPM definition of CoC funded projects
+  def spm_coc_funders
+    [2, 3, 4, 5, 43, 44, 54, 55]
   end
 
   # "Funder components" that are referenced by the 2024 HUD Data Dictionary.

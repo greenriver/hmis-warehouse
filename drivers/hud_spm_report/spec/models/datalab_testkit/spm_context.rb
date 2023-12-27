@@ -7,10 +7,10 @@
 RSpec.shared_context 'datalab spm context', shared_context: :metadata do
   def shared_filter_spec
     {
-      start: Date.parse('2020-10-01'),
-      end: Date.parse('2021-09-30'),
+      start: Date.parse('2021-10-01'),
+      end: Date.parse('2022-09-30'),
       user_id: User.setup_system_user.id,
-      coc_codes: ['XX-500'],
+      coc_codes: ['XX-501'],
     }.freeze
   end
 
@@ -27,14 +27,15 @@ RSpec.shared_context 'datalab spm context', shared_context: :metadata do
   end
 
   def run(filter, question_numbers)
-    klass = HudSpmReport::Generators::Fy2020::Generator
-    @generator = klass.new(
-      ::HudReports::ReportInstance.from_filter(
-        filter,
-        klass.title,
-        build_for_questions: question_numbers,
-      ),
+    klass = HudSpmReport::Generators::Fy2023::Generator
+    report = ::HudReports::ReportInstance.from_filter(
+      filter,
+      klass.title,
+      build_for_questions: question_numbers,
     )
+    # Uncomment to get detail CSVs
+    klass.write_detail_path = 'tmp/spm_'
+    @generator = klass.new(report)
     @generator.run!
 
     @report_result = @generator.report

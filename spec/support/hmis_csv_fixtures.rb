@@ -6,6 +6,7 @@ module HmisCsvFixtures
     run_jobs: true,
     user: User.setup_system_user,
     allowed_projects: nil,
+    skip_location_cleanup: false,
     deidentified: nil
   )
     unless data_source
@@ -50,15 +51,15 @@ module HmisCsvFixtures
     # puts "Starting import: #{Time.now}"
     importer.import!
     FileUtils.rm_rf(tmp_path) if tmp_path
-    process_imported_fixtures(user: user) if run_jobs
+    process_imported_fixtures(user: user, skip_location_cleanup: skip_location_cleanup) if run_jobs
 
     Rails.cache.delete([user, 'access_groups']) # These are cached in project.rb etc for one minute, which is too long for tests
     importer
   end
 
-  def process_imported_fixtures(user: User.setup_system_user)
+  def process_imported_fixtures(user: User.setup_system_user, skip_location_cleanup: false)
     # puts "Start post processing: #{Time.now}"
-    GrdaWarehouse::Tasks::ProjectCleanup.new.run!
+    GrdaWarehouse::Tasks::ProjectCleanup.new(skip_location_cleanup: skip_location_cleanup).run!
     GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!
     AccessGroup.maintain_system_groups
     AccessGroup.where(name: 'All Data Sources').first.add(user)

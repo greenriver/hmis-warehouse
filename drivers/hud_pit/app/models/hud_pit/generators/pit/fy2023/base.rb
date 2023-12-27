@@ -45,7 +45,7 @@ module HudPit::Generators::Pit::Fy2023
     end
 
     private def add
-      @generator.client_scope.find_in_batches(batch_size: 1_000) do |batch|
+      @generator.client_scope.find_in_batches(batch_size: batch_size) do |batch|
         enrollments_by_client_id = clients_with_enrollments(batch)
         services_by_client_id = services_on_pit_date(batch)
 

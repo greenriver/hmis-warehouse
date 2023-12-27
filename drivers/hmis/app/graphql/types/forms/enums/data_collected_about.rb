@@ -15,8 +15,6 @@ module Types
       'HOH_AND_ADULTS',
       'HOH',
       'ALL_VETERANS',
-      'ALL_CLIENTS_RECEIVING_SSVF_SERVICES',
-      'ALL_CLIENTS_RECEIVING_SSVF_FINANCIAL_ASSISTANCE',
       'VETERAN_HOH',
     ].each do |val|
       description = val.titleize.

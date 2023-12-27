@@ -13,11 +13,11 @@ module HudApr::Generators::CeApr::Fy2024::QuestionConcern
       associations.reject { |_, row| row[:ce_assessment_date].blank? }
     end
 
-    private def clients_with_enrollments(batch)
+    private def clients_with_enrollments(batch, scope: enrollment_scope, preloads: { enrollment: :disabilities_at_entry })
       client_ids = batch.map(&:id)
-      assessed_clients = enrollment_scope.
+      assessed_clients = scope.
         joins(:project, enrollment: :assessments).
-        preload(enrollment: :disabilities_at_entry).
+        preload(**preloads).
         merge(GrdaWarehouse::Hud::Project.coc_funded).
         where(client_id: client_ids).
         order(as_t[:AssessmentDate].asc).
@@ -28,9 +28,9 @@ module HudApr::Generators::CeApr::Fy2024::QuestionConcern
       other_client_ids = client_ids - assessed_clients.keys
       household_ids = assessed_clients.values.map(&:last).map(&:household_id)
 
-      other_household_members = enrollment_scope.
+      other_household_members = scope.
         joins(:project).
-        preload(enrollment: :disabilities_at_entry).
+        preload(**preloads).
         merge(GrdaWarehouse::Hud::Project.coc_funded).
         where.not(household_id: nil).
         where(client_id: other_client_ids, household_id: household_ids).
@@ -41,9 +41,9 @@ module HudApr::Generators::CeApr::Fy2024::QuestionConcern
 
       non_household_client_ids = other_client_ids - other_household_members.keys
 
-      non_household_members = enrollment_scope.
+      non_household_members = scope.
         joins(:project).
-        preload(enrollment: :disabilities_at_entry).
+        preload(**preloads).
         merge(GrdaWarehouse::Hud::Project.coc_funded).
         where(client_id: non_household_client_ids).
         order(first_date_in_program: :asc).

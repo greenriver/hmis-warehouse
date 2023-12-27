@@ -3,6 +3,16 @@
   exporter = HudReports::CsvExporter.new(report, table)
   columns = exporter.display_column_names
   rows = exporter.as_array
+  metadata = report&.answer(question: table).metadata
+
+  column_letters = ('A'..'ZZ').to_a
+  if metadata.try(:[], 'external_row_label')
+    column_letters = [''] + column_letters
+    columns = [''] + columns.to_a
+  end
+  row_start = 1
+  row_start = 0 if metadata.try(:[], 'external_column_header')
+
 .table-responsive.mb-6
   %table.table.table-sm.table-bordered.mb-0
     %thead.thead-dark
@@ -13,10 +23,11 @@
     %tbody.thead-dark
       - rows.each_with_index do |row, row_index|
         %tr
-          - row_num = row_index + 1
-          %th= row_num
+          - row_num = row_index + row_start
+          - row_num_display = if row_num == 0 then '' else row_num end
+          %th= row_num_display
           - row.each_with_index do |value, col_index|
-            - column_letter = ('A'..'ZZ').to_a[col_index]
+            - column_letter = column_letters[col_index]
             - cell = "#{column_letter}#{row_num}"
             - cell_color = 'table-primary' if value.nil? || value == ''
             - value = '0.0000' if value == 'NaN'

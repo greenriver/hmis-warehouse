@@ -303,7 +303,7 @@ Populates and references:
 	where ex.HHAdultAge = 55 and ex.HHType = 1 
 
 	insert into tlsa_AveragePops (PopID, Cohort, HoHID, HHType, Step)
-	select distinct 46, ex.Cohort, ex.HoHID, ex.HHType, '8.3.58'
+	select distinct 46, ex.Cohort, ex.HoHID, ex.HHType, '8.3.48'
 	from tlsa_Exit ex
 	where ex.HHParent = 1 and ex.HHType = 3
 

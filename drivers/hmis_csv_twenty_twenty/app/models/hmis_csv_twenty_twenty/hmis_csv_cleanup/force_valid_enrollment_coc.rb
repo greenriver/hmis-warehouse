@@ -10,8 +10,10 @@ module HmisCsvTwentyTwenty::HmisCsvCleanup
       enrollment_coc_batch = []
 
       enrollment_coc_scope.find_each do |e_coc|
+        raise 'HmisCsvTwentyTwenty::HmisCsvCleanup::ForceValidEnrollmentCoc is no longer active'
+
         # ignore any valid CoC-codes
-        next if ::HudUtility.valid_coc?(e_coc.CoCCode)
+        next if ::HudUtility.valid_coc?(e_coc.CoCCode) # rubocop:disable Lint/UnreachableCode
 
         # add a dash if we have two characters and 3 numbers
         e_coc.CoCCode = "#{e_coc.CoCCode[0..1]}-#{e_coc.CoCCode[2..4]}" if e_coc.CoCCode.match?(/^[a-z]{2}[0-9]{3}$/i)

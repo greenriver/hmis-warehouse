@@ -163,12 +163,12 @@ module LongitudinalSpm
       {
         'Measure 1' => {
           '1a' => [
-            'E2',
-            'E3',
+            'D1',
+            'D2',
           ],
           '1b' => [
-            'E2',
-            'E3',
+            'D1',
+            'D2',
           ],
         },
         'Measure 2' => {
@@ -226,7 +226,7 @@ module LongitudinalSpm
     end
 
     private def spm_generator
-      HudSpmReport::Generators::Fy2020::Generator
+      HudSpmReport.current_generator
     end
   end
 end
