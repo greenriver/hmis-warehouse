@@ -60,10 +60,6 @@ module PerformanceMeasurement
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_black_af_american)
     end
 
-    # scope :race_native_hi_other_pacific, -> do
-    #   race_native_hi_pacific
-    # end
-
     scope :race_native_hi_pacific, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_native_hi_pacific)
     end
