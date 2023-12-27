@@ -84,7 +84,7 @@ module HudApr::Generators::CeApr::Fy2024
         merge(report_scope_source.open_between(start_date: start_date, end_date: end_date)).
         merge(GrdaWarehouse::Hud::Assessment.within_range(start_date..end_date)).
         merge(GrdaWarehouse::ServiceHistoryEnrollment.heads_of_households).
-        pluck(:household_id)
+        select(:household_id)
 
       client_ids_from_events = client_source.
         distinct.
@@ -92,21 +92,21 @@ module HudApr::Generators::CeApr::Fy2024
         merge(GrdaWarehouse::Hud::Project.coc_funded).
         merge(report_scope_source.open_between(start_date: start_date, end_date: end_date)).
         merge(GrdaWarehouse::Hud::Event.within_range(start_date..end_date)).
-        pluck(:client_id)
+        select(:client_id)
 
       # TODO: an additional set of client_ids from projects with active CE Participation within_range
       ce_participating_projects_ids = GrdaWarehouse::Hud::Project.joins(:ce_participations).
         merge(GrdaWarehouse::Hud::CeParticipation.within_range(start_date..end_date)).
         distinct.
-        pluck(:id)
+        select(:id)
 
       scope = client_source.
         distinct.
         joins(service_history_enrollments: { enrollment: :project }).
         where(
-          she_t[:household_id].in(household_ids).
-          or(she_t[:client_id].in(client_ids_from_events)).
-          or(p_t[:id].in(ce_participating_projects_ids)),
+          she_t[:household_id].in(household_ids.arel).
+          or(she_t[:client_id].in(client_ids_from_events.arel)).
+          or(p_t[:id].in(ce_participating_projects_ids.arel)),
         )
 
       @filter = self.class.filter_class.new(

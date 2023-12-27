@@ -176,6 +176,10 @@ module GrdaWarehouse::Hud
       where(RelationshipToHoH: 1)
     end
 
+    def head_of_household?
+      self.RelationshipToHoH == 1
+    end
+
     ADDRESS_FIELDS = [
       :LastPermanentStreet,
       :LastPermanentCity,

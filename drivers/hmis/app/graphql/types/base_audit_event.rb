@@ -6,13 +6,17 @@
 
 module Types
   class BaseAuditEvent < BaseObject
-    def self.build(node_class, field_permissions: nil, transform_changes: nil)
+    def self.build(node_class, field_permissions: nil, excluded_keys: nil, transform_changes: nil)
       dynamic_name = "#{node_class.graphql_name}AuditEvent"
       klass = Class.new(self) do
         graphql_name(dynamic_name)
 
         define_method(:schema_type) do
           node_class
+        end
+
+        define_method(:excluded_keys) do
+          excluded_keys
         end
 
         define_method(:transform_changes) do |object, changes|
@@ -67,10 +71,10 @@ module Types
         'Contact Information'
       when 'Hmis::Hud::Disability'
         HudUtility2024.disability_type(item_attributes['DisabilityType']) || 'Disability'
-      # TODO: Add back CDE label more efficiently? The below causes N+1, and doesn't work for CDE destroy actions.
-      # We could look at `item_attributes['data_element_definition_id']` to determine the label, but it would still be N+1.
-      # when 'Hmis::Hud::CustomDataElement'
-      #   changed_record&.data_element_definition&.label
+      when 'Hmis::Hud::CustomDataElement'
+        # Try to label Custom Data Elements based on their definition label
+        definition_id = item_attributes['data_element_definition_id']
+        custom_data_element_labels_by_id[definition_id] || 'Custom Data Element'
       else
         object.item_type.demodulize.gsub(/^Custom(Client)?/, '').
           underscore.humanize.titleize
@@ -95,7 +99,9 @@ module Types
     # Attributes from the object or the current value
     # NOTE: Should ONLY be used to look at fields that don't change. It does not represent the state at any particular time.
     private def item_attributes
-      object.object || changed_record&.attributes || {}
+      return object.object_changes&.transform_values(&:last) if object.event == 'create'
+
+      object.object || changed_record&.attributes
     end
 
     def user
@@ -113,9 +119,24 @@ module Types
       Hmis::User.find_by(id: object.clean_true_user_id)
     end
 
+    # Fields that are always excluded.
+    # Fields keys should match our DB casing, consult schema to determine appropriate casing.
+    ALWAYS_EXCLUDED_KEYS = [
+      'id',
+      'DateCreated',
+      'DateUpdated',
+      'DateDeleted',
+      'source_hash',
+    ].freeze
+
     def object_changes
       result = object.object_changes
       return unless result.present?
+
+      result = result.reject do |key|
+        key.underscore.end_with?('_id') || ALWAYS_EXCLUDED_KEYS.include?(key) || excluded_keys&.include?(key)
+      end
+      return unless result.any?
 
       result = transform_changes(object, result).map do |key, value|
         # Best-effort guess at GQL field name for this attribute
@@ -131,6 +152,9 @@ module Types
           end
         end
 
+        # Skip if changes are empty, or if the change is `nil=>99` or `99=>nil`. This is not meaningful to show in the UI.
+        next if values.map { |v| v == 99 ? nil : v }.compact.empty?
+
         # hide certain changes (SSN/DOB) if unauthorized
         values = 'changed' if changed_record && !authorize_field(changed_record, key)
 
@@ -142,7 +166,8 @@ module Types
             'values' => values,
           },
         ]
-      end.to_h
+      end.compact.to_h
+      return unless result.any?
 
       result
     end
@@ -167,6 +192,14 @@ module Types
       return value unless member.present?
 
       member.first
+    end
+
+    # Mapping { ID => Label } for all custom data element definitions in the data source
+    def custom_data_element_labels_by_id
+      data_source = load_ar_scope(scope: GrdaWarehouse::DataSource.hmis, id: current_user.hmis_data_source_id)
+      definitions = load_ar_association(data_source, :custom_data_element_definitions)
+
+      definitions.map { |cded| [cded.id, cded.label] }.to_h
     end
   end
 end

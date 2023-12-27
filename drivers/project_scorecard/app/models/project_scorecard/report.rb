@@ -343,7 +343,7 @@ module ProjectScorecard
         questions = [
           'Measure 2',
         ]
-        generator = HudSpmReport::Generators::Fy2020::Generator
+        generator = HudSpmReport.current_generator
         spm_instance = HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: questions)
         generator.new(spm_instance).run!(email: false, manual: false)
         spm_instance

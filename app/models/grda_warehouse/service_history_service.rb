@@ -4,6 +4,11 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# = GrdaWarehouse::ServiceHistoryService
+#
+# ServiceHistoryService flatten HUD Service and related records to serve reporting needs. These records are generated
+# automatically. ServiceHistoryService records records are a superset of HUD Services, they include "synthetic" services
+# that are implied but not recorded, such as bed-nights at EE projects.
 class GrdaWarehouse::ServiceHistoryService < GrdaWarehouseBase
   include ArelHelper
   include ServiceHistoryServiceConcern
