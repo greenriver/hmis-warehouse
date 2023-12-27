@@ -293,8 +293,7 @@ module Types
       raise 'Access denied' unless current_user.can_merge_clients?
 
       scope = Hmis::ClientMergeAudit.all
-      scope = scope.apply_filters(filters)
-
+      scope = scope.apply_filters(filters) if filters
       scope.order(merged_at: :desc)
     end
 
