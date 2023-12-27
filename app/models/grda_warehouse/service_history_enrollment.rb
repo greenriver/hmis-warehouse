@@ -4,6 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# = GrdaWarehouse::ServiceHistoryEnrollment
+#
+# ServiceHistoryEnrollments flatten Hud Enrollments and related records to serve reporting needs. These records are
+# generated automatically. There is a 1:1 correspondence with Hud Enrollment records
 class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   include RailsDrivers::Extensions
   include ArelHelper
