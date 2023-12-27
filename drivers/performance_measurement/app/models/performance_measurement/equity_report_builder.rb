@@ -15,10 +15,12 @@ module PerformanceMeasurement
       household_type: PerformanceMeasurement::EquityReportHouseholdTypeData,
     }.freeze
 
+    VEIW_BY_DEFAULT = 'percentage'.freeze
+
     def initialize(params, report, user)
       @user = user
       @report = report
-      @params = params || { view_data_by: 'percentage' }
+      @params = params || { view_data_by: VEIW_BY_DEFAULT }
       @chart_data = chart_data_class.new(self)
     end
 
@@ -47,6 +49,10 @@ module PerformanceMeasurement
         chart_height: @chart_data.chart_height,
         data: @chart_data.data,
       }
+    end
+
+    def show_additional_options?
+      metric.present? && investigate_by.present?
     end
 
     def metric
@@ -124,7 +130,7 @@ module PerformanceMeasurement
     end
 
     def view_data_by
-      @params[:view_data_by]
+      @params[:view_data_by] || VEIW_BY_DEFAULT
     end
 
     def metric_options
@@ -166,7 +172,9 @@ module PerformanceMeasurement
       # FIXME when broken includes metric there is a ActiveRecord undefined column error?
       # FIXME with my data I always get "No results". Not sure if this is right?
       broken = [:first_time_homeless_clients, :length_of_homeless_stay_average]
-      if metric.present? && !broken.include?(metric)
+      raise 'FIXME: Broken metric option selected' if broken.include?(metric)
+
+      if metric.present?
         @report.my_projects(@user, metric).map do |project_id, result|
           result.hud_project.present? ? [result.hud_project.name(current_user, include_project_type: true), project_id] : nil
         end.reject(&:blank?)
@@ -183,7 +191,8 @@ module PerformanceMeasurement
       [
         ['Count', 'count'],
         ['Percentage [Rate, Count]', 'percentage'],
-        ['Rate', 'rate'],
+        # TODO
+        # ['Rate', 'rate'],
       ]
     end
   end

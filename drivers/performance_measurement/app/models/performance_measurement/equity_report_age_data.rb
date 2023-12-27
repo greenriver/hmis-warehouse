@@ -6,33 +6,13 @@ module PerformanceMeasurement
 
     def data
       x = [['x'] + data_groups.keys]
-      {
-        columns: x + BARS.map { |bar| [bar] + data_groups.values.map { |group| bar_data(universe: bar, investigate_by: group) } },
-        ordered_keys: BARS,
-        colors: BARS.map.with_index { |bar, i| [bar, COLORS[i]] }.to_h,
-      }
+      columns = x + BARS.map { |bar| [bar] + data_groups.values.map { |group| bar_data(universe: bar, investigate_by: group) } }
+      build_data.merge({ columns: columns })
     end
 
-    def bar_data(universe: nil, investigate_by: nil)
+    def client_scope(period, investigate_by)
       age_range = Filters::FilterBase.age_range(investigate_by.to_sym)
-      period = universe_period(universe)
-      scope = case universe
-      when 'Current Period - Report Universe'
-        metric_scope(period).where(reporting_age: age_range)
-      when 'Comparison Period - Report Universe'
-        metric_scope(period).where(comparison_age: age_range)
-      when 'Current Period - Current Filters'
-        apply_params(
-          metric_scope(period).where(reporting_age: age_range),
-          period,
-        )
-      when 'Comparison Period - Current Filters'
-        apply_params(
-          metric_scope(period).where(comparison_age: age_range),
-          period,
-        )
-      end
-      scope.count
+      period == 'reporting' ? metric_scope(period).where(reporting_age: age_range) : metric_scope(period).where(comparison_age: age_range)
     end
   end
 end

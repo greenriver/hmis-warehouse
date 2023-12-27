@@ -1,6 +1,6 @@
 module PerformanceMeasurement
   class EquityReportData
-    include Arel
+    include ArelHelper
 
     BARS = [
       'Current Period - Report Universe',
@@ -106,14 +106,8 @@ module PerformanceMeasurement
       @builder.project.map(&:to_i)
     end
 
-    def data_groups
-      # implement in subclass
-      []
-    end
-
-    def bar_data(*)
-      # implement in subclass
-      0
+    def view_by_params
+      @builder.view_data_by
     end
 
     def universe_period(universe)
@@ -121,18 +115,74 @@ module PerformanceMeasurement
     end
 
     def metric_scope(period)
-      # FIXME: we may need too hide other parts of the form until metric is selected? Other things depend on this (project).
+      # FIXME: we may need to hide other parts of the form until metric is selected? Other things depend on this (project).
       metric_params.present? ? @report.clients_for_question(metric_params, period.to_sym) : @report.clients
+    end
+
+    def percentage_denominator(period, investigate_by)
+      # FIXME: Not sure if this is correct
+      case period
+      when 'reporting'
+        @report.client_projects.where(period: period).count
+      when 'comparison'
+        # TODO: apply filters to this?
+        # FIXME: I think this is wrong???
+        client_ids = apply_params(client_scope(period, investigate_by), period).map(&:client_id)
+        @report.client_projects.where(period: period).where(client_id: client_ids).count
+      end
+    end
+
+    def client_scope(period, _)
+      # implement in subclass
+      metric_scope(period)
+    end
+
+    def build_data
+      {
+        columns: [],
+        ordered_keys: BARS,
+        colors: BARS.map.with_index { |bar, i| [bar, COLORS[i]] }.to_h,
+        view_by: view_by_params,
+      }
     end
 
     def data
       # implement in subclass
-      x = [['x'] + data_groups]
-      {
-        columns: x + BARS.map { |bar| [bar] + data_groups.map { |group| bar_data(universe: bar, metric: group) } },
-        ordered_keys: BARS,
-        colors: BARS.map.with_index { |bar, i| [bar, COLORS[i]] }.to_h,
-      }
+      build_data
+    end
+
+    def bar_data(universe: nil, investigate_by: nil)
+      period = universe_period(universe)
+      scope = case universe
+      when 'Current Period - Report Universe'
+        client_scope(period, investigate_by)
+      when 'Comparison Period - Report Universe'
+        client_scope(period, investigate_by)
+      when 'Current Period - Current Filters'
+        apply_params(
+          client_scope(period, investigate_by),
+          period,
+        )
+      when 'Comparison Period - Current Filters'
+        apply_params(
+          client_scope(period, investigate_by),
+          period,
+        )
+      end
+      apply_view_by_params(scope.count, period, investigate_by)
+    end
+
+    def apply_view_by_params(count, period, investigate_by)
+      case view_by_params
+      when 'percentage'
+        # FIXME review denominator
+        count.to_f / percentage_denominator(period, investigate_by) * 100
+      when 'count'
+        count
+      when 'rate'
+        # FIXME
+        count
+      end
     end
 
     def apply_params(scope, period)
@@ -143,8 +193,7 @@ module PerformanceMeasurement
       # FIXME: double check the stuff below
       scope = gender_params[1..].inject(scope.send(gender_params[0])) { |query, scope_name| query.or(scope.send(scope_name)) } if gender_params.any?
       scope = race_params[1..].inject(scope.send(race_params[0])) { |query, scope_name| query.or(scope.send(scope_name)) } if race_params.any?
-      # FIXME: p_t undefined
-      # scope = scope.joins(client_projects: {project: :hud_project}).where(p_t[GrdaWarehouse::Hud::Project.project_type_column].in(project_type_params)) if project_type_params.any?
+      scope = scope.joins(client_projects: { project: :hud_project }).where(p_t[GrdaWarehouse::Hud::Project.project_type_column].in(project_type_params)) if project_type_params.any?
       scope = scope.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(project_id: project_params)) if project_params.any?
       scope
     end

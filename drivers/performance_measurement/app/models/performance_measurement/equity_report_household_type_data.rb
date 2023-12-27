@@ -9,17 +9,13 @@ module PerformanceMeasurement
     def data
       # FIXME
       x = [['x'] + data_groups]
-      {
-        columns: x + BARS.map { |bar| [bar] + data_groups.map { |group| bar_data(universe: bar, investigate_by: group) } },
-        ordered_keys: BARS,
-        colors: BARS.map.with_index { |bar, i| [bar, COLORS[i]] }.to_h,
-      }
+      columns = x + BARS.map { |bar| [bar] + data_groups.map { |group| bar_data(universe: bar, investigate_by: group) } }
+      build_data.merge({ columns: columns })
     end
 
-    # def bar_data(universe: nil, investigate_by: nil)
-    def bar_data(*)
+    def client_scope(period, _)
       # FIXME
-      rand(100)
+      metric_scope(period)
     end
   end
 end

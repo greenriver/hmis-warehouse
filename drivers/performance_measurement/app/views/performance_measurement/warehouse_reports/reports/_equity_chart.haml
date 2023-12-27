@@ -4,9 +4,9 @@
 = content_for :page_js do
   :javascript
     $(document).ready(function() {
-      console.log('equity analysis chart')
-      var fakeRaceData = #{data[:data].to_json.html_safe}
-      console.log('fakeRaceData', fakeRaceData)
+      // console.log('equity analysis chart')
+      var data = #{data[:data].to_json.html_safe}
+      // console.log('data', data)
 
       var pattern = function(fill) {
         var pattern = d3.select(document.createElementNS(d3.namespaces.svg, "pattern"))
@@ -45,7 +45,7 @@
       var chartConfig = {
         data: {
           x: 'x',
-          columns: fakeRaceData.columns,
+          columns: data.columns,
           type: "bar",
           color: function(color, d) {
             // sometimes d is data object and sometimes d is data object id ????
@@ -55,15 +55,20 @@
             if(isComparison) {
               return color
             } else {
-              return d.id ? fakeRaceData.colors[d.id] : fakeRaceData.colors[d]
+              return d.id ? data.colors[d.id] : data.colors[d]
             }
-          }
-
+          },
+          stack: {
+            normalize: true,
+          },
+        },
+        padding: {
+          right: 20,
         },
         color: {
           tiles: function() {
-            return fakeRaceData.ordered_keys.map(function(key, i) {
-              var fill = fakeRaceData.colors[key]
+            return data.ordered_keys.map(function(key, i) {
+              var fill = data.colors[key]
               return pattern(fill) 
             }) 
           }
@@ -80,6 +85,16 @@
           x: {
             type: 'category',
           },
+          y: data.view_by === 'percentage' ? {
+            padding: 0,
+            tick: {
+              format: function(d) {
+                return d+'%'
+              },
+            },
+            min: 0,
+            max: 100,
+          } : {}
         },
         grid: {
           y: {
