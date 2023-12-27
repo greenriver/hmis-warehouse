@@ -33,8 +33,19 @@ module AllNeighborsSystemDashboard
               label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
             },
             count_levels: count_levels.map do |count_level|
-              monthly_counts = send(type, options.merge(project_type: project_type, count_level: count_level))
-              unique_counts = send(type, options.merge(project_type: project_type, count_level: count_level), fixed_start_date: @report.filter.start_date)
+              monthly_counts = send(
+                type,
+                options.merge(project_type: project_type, count_level: count_level),
+                # Count clients only once per-day
+                count_item: nf('concat', [Enrollment.arel_table[:destination_client_id], cl(Enrollment.arel_table[:move_in_date], Enrollment.arel_table[:exit_date])]).to_sql,
+              )
+              unique_counts = send(
+                type,
+                options.merge(project_type: project_type, count_level: count_level),
+                fixed_start_date: @report.filter.start_date,
+                # Count each person only once
+                count_item: :destination_client_id,
+              )
               if type == :line
                 summary_counts = aggregate(monthly_counts)
                 {
@@ -72,12 +83,12 @@ module AllNeighborsSystemDashboard
       end
     end
 
-    def line(options, fixed_start_date: nil)
+    def line(options, fixed_start_date: nil, count_item:)
       date_range.map do |date|
         scope = report_enrollments_enrollment_scope.
           housed_in_range(@report.filter.range, filter: @report.filter).
           distinct.
-          select(:destination_client_id)
+          select(count_item)
         scope = filter_for_type(scope, options[:project_type])
         scope = filter_for_count_level(scope, options[:count_level])
         scope = if fixed_start_date.present?
@@ -109,25 +120,25 @@ module AllNeighborsSystemDashboard
 
     private def filter_for_date(scope, date, start_date: date.beginning_of_month)
       range = start_date .. date.end_of_month
-      where_clause = date_query(range)
-      scope.where(where_clause)
+      scope.housed_in_range(range, filter: @report.filter)
     end
 
-    private def filter_for_unhoused_date(scope, date)
-      range = date.beginning_of_month .. date.end_of_month
-      en_t = Enrollment.arel_table
-      clause = en_t[:exit_date].gteq(range.first).or(en_t[:exit_date].eq(nil)).and(en_t[:entry_date].lteq(range.last))
-      scope.where(clause)
-    end
+    # private def filter_for_unhoused_date(scope, date)
+    #   range = date.beginning_of_month .. date.end_of_month
+    #   en_t = Enrollment.arel_table
+    #   clause = en_t[:exit_date].gteq(range.first).or(en_t[:exit_date].eq(nil)).and(en_t[:entry_date].lteq(range.last))
+    #   scope.where(clause)
+    # end
 
-    private def date_query(range)
-      en_t = Enrollment.arel_table
-      en_t[:exit_type].eq('Permanent').and(en_t[:exit_date].between(range)).
-        or(en_t[:move_in_date].between(range))
-    end
+    # private def date_query(range)
+
+    #   en_t = Enrollment.arel_table
+    #   en_t[:exit_type].eq('Permanent').and(en_t[:exit_date].between(range)).
+    #     or(en_t[:move_in_date].between(range))
+    # end
 
     # Example format of options: {:types=>["Diversion", "Permanent Supportive Housing", "Rapid Rehousing"], :colors=>["#E6B70F", "#B2803F", "#1865AB"], :project_type=>"All", :count_level=>"Individuals"}
-    def donut(options, **)
+    def donut(options, count_item:, **)
       project_type = options[:project_type] || options[:homelessness_status]
       options[:types].map do |type|
         {
@@ -136,7 +147,7 @@ module AllNeighborsSystemDashboard
             scope = report_enrollments_enrollment_scope.
               housed.
               distinct.
-              select(:destination_client_id)
+              select(count_item)
             scope = filter_for_type(scope, project_type)
             scope = filter_for_type(scope, type)
             scope = filter_for_count_level(scope, options[:count_level])

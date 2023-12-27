@@ -135,7 +135,7 @@ class AllNeighborsSystemDashboardLine {
           const index = d[0].index
           const monthlyCount = this.getMonthlyTotals()[index]
           const uniqueCount = this.getUniqueCounts()[index]
-          if(monthlyCount) {
+          if (typeof monthlyCount !== 'undefined') {
             let html = "<table class='bb-tooltip'>"
             html += "<thead>"
             html += `<tr><th colspan='3'>${defaultTitleFormat(d[0].x)}</th></tr>`
@@ -148,7 +148,7 @@ class AllNeighborsSystemDashboardLine {
             html += "</table>"
             return html
           }
-        },  
+        },
       },
       bindto: this.selector
     }
@@ -305,7 +305,7 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
           html += "</tbody>"
           html += "</table>"
           return html
-        },  
+        },
       },
       onrendered: function() {
         const selector = this.internal.config.bindto
@@ -425,8 +425,8 @@ class AllNeighborsSystemDashboardLineBarByQuarter extends AllNeighborsSystemDash
     return {
       ...superAxis,
       y: {
-        ...superAxis.y, 
-        label: { 
+        ...superAxis.y,
+        label: {
           text: "Placements per Quarter",
           position: "outer-middle"
         }
@@ -446,13 +446,13 @@ class AllNeighborsSystemDashboardLineBarByQuarter extends AllNeighborsSystemDash
     const superData = super.getDataConfig()
     const columns = [...superData.columns].concat([this.getBarColumns()])
     return {
-      ...superData, 
+      ...superData,
       axes: {
         "Total_Placements": "y2",
         "Placements_per_Quarter": "y",
       },
-      columns: columns, 
-      type: null, 
+      columns: columns,
+      type: null,
       types: {
         "Total_Placements": 'line',
         "Placements_per_Quarter": 'bar',
@@ -491,7 +491,7 @@ class AllNeighborsSystemDashboardLineBarByQuarter extends AllNeighborsSystemDash
             html += "</table>"
             return html
           }
-        },  
+        },
       },
     }
     return {...superConfig, ...config}
@@ -538,11 +538,11 @@ class AllNeighborsSystemDashboardStackedLineByQuarter extends AllNeighborsSystem
     return {
       ...superAxis,
       y: {
-        ...superAxis.y, 
+        ...superAxis.y,
         tick: {
           stepSize: 50,
         },
-        label: { 
+        label: {
           text: "Average Days",
           position: "outer-middle"
         }
@@ -581,7 +581,7 @@ class AllNeighborsSystemDashboardStackedLineByQuarter extends AllNeighborsSystem
           html += "</tbody>"
           html += "</table>"
           return html
-        },  
+        },
       },
     }
     return {...super.getConfig(), ...config}

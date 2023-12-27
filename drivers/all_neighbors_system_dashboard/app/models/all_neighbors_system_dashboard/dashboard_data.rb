@@ -57,11 +57,12 @@ module AllNeighborsSystemDashboard
     end
 
     def project_type_colors
-      [
-        '#E6B70F',
-        '#B2803F',
-        '#1865AB',
-      ]
+      # [
+      #   '#E6B70F',
+      #   '#B2803F',
+      #   '#1865AB',
+      # ]
+      GrdaWarehouse::SystemColor.default_colors['project-type'].values.map { |c| c[:background_color] }
     end
 
     def household_types
@@ -218,7 +219,9 @@ module AllNeighborsSystemDashboard
     private def filter_for_type(scope, type)
       case type
       when 'All', 'Overall'
-        scope
+        # Note, we only report on PH and Diversion at this point.  There may be other data in the
+        # report scope, but we should not count them in placements or subsequent steps
+        scope.where(project_id: @report.filter.effective_project_ids + @report.filter.secondary_project_ids)
       # Removed in favor of running the report for a sub-set of data (leaving the code for now)
       # when 'R.E.A.L. Time Initiative'
       #   pilot_scope = Enrollment.
