@@ -5,7 +5,8 @@
 ###
 
 module MaYyaReport::Synthetic
-  # Remove? Likely not used since HMIS transition
+  # TODO: Remove. Not used since HMIS transition. Records that were in the synthetic table
+  # were moved(imported) into the YouthEducationStatus at migration time.
   class YouthEducationStatus < ::GrdaWarehouse::Synthetic::YouthEducationStatus
     include ArelHelper
 
