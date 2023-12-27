@@ -65,11 +65,19 @@ module AllNeighborsSystemDashboard
     end
 
     def household_types
-      ['Adults Only', 'Adults and Children']
+      [
+        'Adults Only',
+        'Adults and Children',
+        'Unknown Household Type', # NOTE: we're using unknown to capture child only as well
+      ]
     end
 
     def household_type_colors
-      ['#3B528B', '#ABBD2A']
+      [
+        '#3B528B',
+        '#ABBD2A',
+        '#CC6600',
+      ]
     end
 
     def count_levels
@@ -91,8 +99,9 @@ module AllNeighborsSystemDashboard
     # and the 2024 specs have them, so for now we're ignoring them
     private def ignored_races
       [
-        'HispanicLatinaeo',
-        'MidEastNAfrican',
+        # 'HispanicLatinaeo',
+        # 'MidEastNAfrican',
+        'MultiRacial',
         'RaceNone',
       ]
     end
@@ -151,6 +160,7 @@ module AllNeighborsSystemDashboard
       [
         'Adults Only',
         'Adults and Children',
+        'Unknown Household Type',
       ]
     end
 
@@ -230,7 +240,7 @@ module AllNeighborsSystemDashboard
         scope.where(project_type: HudUtility2024.project_type('Street Outreach', true))
       when 'Sheltered'
         scope.where.not(project_type: HudUtility2024.project_type('Street Outreach', true))
-      when 'Adults Only', 'Adults and Children'
+      when *household_types
         scope.where(household_type: type)
       when 'Under 18'
         scope.where(age: 0..17)
@@ -250,8 +260,8 @@ module AllNeighborsSystemDashboard
         scope.where(gender: type)
       when 'Unknown Gender'
         scope.where.not(gender: HudUtility2024.gender_known_values)
-      when *HudUtility2024.races(multi_racial: true).values
-        scope.where(primary_race: type)
+      when *HudUtility2024.races(multi_racial: false).values
+        scope.where(Enrollment.arel_table[:race_list].matches("%#{type}"))
       else
         raise "Unknown type: #{type}"
       end

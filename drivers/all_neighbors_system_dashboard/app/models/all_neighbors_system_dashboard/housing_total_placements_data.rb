@@ -75,7 +75,7 @@ module AllNeighborsSystemDashboard
     def line(options, fixed_start_date: nil)
       date_range.map do |date|
         scope = report_enrollments_enrollment_scope.
-          housed_in_range(@report.filter.range).
+          housed_in_range(@report.filter.range, filter: @report.filter).
           distinct.
           select(:destination_client_id)
         scope = filter_for_type(scope, options[:project_type])
@@ -204,25 +204,25 @@ module AllNeighborsSystemDashboard
           name: bar,
           series: date_range.map do |date|
             counts = options[:types].map do |race_name|
-              race_code = HudUtility2024.race(race_name, true)
+              # race_code = HudUtility2024.race(race_name, true)
               scope = report_enrollments_enrollment_scope.
                 distinct.
                 select(:destination_client_id)
               scope = filter_for_count_level(scope, options[:count_level])
               scope = scope.where(primary_race: race_name)
               case bar
-              when 'Overall Population (Census)'
-                get_us_census_population_by_race(race_code: race_code, year: date.year).to_i
+              # when 'Overall Population (Census)'
+              #   get_us_census_population_by_race(race_code: race_code, year: date.year).to_i
               when 'All'
                 scope = filter_for_date(scope, date)
                 count = mask_small_populations(scope.count, mask: @report.mask_small_populations?)
                 count
-              when 'Unhoused Population'
-                # Unhoused needs a different date criteria since there is no move-in or exit date
-                scope = filter_for_unhoused_date(scope, date)
-                scope = filter_for_type(scope, bar)
-                count = mask_small_populations(scope.count, mask: @report.mask_small_populations?)
-                count
+              # when 'Unhoused Population'
+              #   # Unhoused needs a different date criteria since there is no move-in or exit date
+              #   scope = filter_for_unhoused_date(scope, date)
+              #   scope = filter_for_type(scope, bar)
+              #   count = mask_small_populations(scope.count, mask: @report.mask_small_populations?)
+              #   count
               when 'Diversion', 'Permanent Supportive Housing', 'Rapid Rehousing', 'R.E.A.L. Time Initiative'
                 scope = filter_for_date(scope, date)
                 scope = filter_for_type(scope, bar)
@@ -247,7 +247,7 @@ module AllNeighborsSystemDashboard
         'racial_composition',
         :stack,
         options: {
-          bars: ['Unhoused Population', 'Overall Population (Census)'],
+          bars: [],
           types: demographic_race,
           colors: demographic_race_colors,
           label_colors: demographic_race.map { |_| '#ffffff' },

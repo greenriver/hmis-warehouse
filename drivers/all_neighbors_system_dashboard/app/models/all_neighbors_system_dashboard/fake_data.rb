@@ -60,11 +60,11 @@ module AllNeighborsSystemDashboard
     end
 
     def household_types
-      ['Adults Only', 'Adults and Children']
+      ['Adults Only', 'Adults and Children', 'Unknown Household Type']
     end
 
     def household_type_colors
-      ['#3B528B', '#ABBD2A']
+      ['#3B528B', '#ABBD2A', '#ABBD2A']
     end
 
     def count_levels

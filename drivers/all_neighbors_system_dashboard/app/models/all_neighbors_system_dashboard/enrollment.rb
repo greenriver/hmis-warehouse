@@ -23,13 +23,20 @@ module AllNeighborsSystemDashboard
       # if the project_id is in the diversion projects, then use the other destinations (or maybe on calculation?)
     end
 
-    scope :housed_in_range, ->(range) do
-      where(exit_type: 'Permanent', exit_date: range).
+    # To be considered housed (or "placed") one of the following conditions must be met
+    # 1. Client had an exit within the date range and the Exit was to a permanent destination and from a diversion project (specified at run-time)
+    # 2. Client has a move-in date during range
+    scope :housed_in_range, ->(range, filter:) do
+      permanent_diversion_exit(range, filter: filter).
         or(moved_in_in_range(range))
     end
 
+    scope :permanent_diversion_exit, ->(range, filter:) do
+      where(exit_type: 'Permanent', exit_date: range, project_id: filter.secondary_project_ids)
+    end
+
     scope :moved_in, -> do
-      where.not(move_in_date: nil)
+      where.not(move_in_date: nil, project_type: HudUtility2024.project_types_with_move_in_dates)
     end
 
     scope :moved_in_in_range, ->(range) do

@@ -41,7 +41,7 @@ module AllNeighborsSystemDashboard
 
     def housed_count
       @housed_count ||= report_enrollments_enrollment_scope.
-        housed_in_range(@report.filter.range).
+        housed_in_range(@report.filter.range, filter: @report.filter).
         distinct.
         select(:destination_client_id).
         count
@@ -49,7 +49,7 @@ module AllNeighborsSystemDashboard
 
     def average_days_to_obtain_housing
       en_t = Enrollment.arel_table
-      report_enrollments_enrollment_scope.housed_in_range(@report.filter.range).average(
+      report_enrollments_enrollment_scope.housed_in_range(@report.filter.range, filter: @report.filter).average(
         datediff(
           Enrollment,
           'day',
