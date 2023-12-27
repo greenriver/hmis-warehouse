@@ -120,6 +120,7 @@ module HudReports
       File.binwrite(cell_path, xlsx_data)
     end
 
+    # NOTE: sometimes warehouse_client isn't a client at all, but potentially an inventory record
     private def new_member(warehouse_client:, universe_client:)
       if universe_client.respond_to?(:first_name)
         UniverseMember.new(
