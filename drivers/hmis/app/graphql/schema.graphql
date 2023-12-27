@@ -670,7 +670,7 @@ type Client {
   auditHistory(filters: BaseAuditEventFilterOptions, limit: Int, offset: Int): ClientAuditEventsPaginated!
   contactPoints: [ClientContactPoint!]!
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
-  customCaseNotes(limit: Int, offset: Int): CustomCaseNotesPaginated!
+  customCaseNotes(limit: Int, offset: Int, sortOrder: CustomCaseNoteSortOption): CustomCaseNotesPaginated!
   customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
@@ -1684,6 +1684,26 @@ type CustomCaseNote {
   id: ID!
   informationDate: ISO8601Date
   user: ApplicationUser
+}
+
+"""
+HUD Custom Case Note Sorting Options
+"""
+enum CustomCaseNoteSortOption {
+  """
+  Date Created
+  """
+  DATE_CREATED
+
+  """
+  Date Updated
+  """
+  DATE_UPDATED
+
+  """
+  Information Date
+  """
+  INFORMATION_DATE
 }
 
 type CustomCaseNotesPaginated {
@@ -2906,7 +2926,7 @@ type Enrollment {
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
   currentPregnant: NoYesMissing
   currentUnit: Unit
-  customCaseNotes(limit: Int, offset: Int): CustomCaseNotesPaginated!
+  customCaseNotes(limit: Int, offset: Int, sortOrder: CustomCaseNoteSortOption): CustomCaseNotesPaginated!
   customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
