@@ -49,6 +49,8 @@ module GrdaWarehouse::Hud
     has_many :assessment_results, through: :assessments
     has_many :current_living_situations, **hud_enrollment_belongs('CurrentLivingSituation'), inverse_of: :enrollment
     has_many :youth_education_statuses, **hud_enrollment_belongs('YouthEducationStatus'), inverse_of: :enrollment
+    # fixme: needs a model, or ability to specify that the model is a Hmis::Hud::CustomService?
+    # has_many :custom_services, **hud_enrollment_belongs('CustomService'), inverse_of: :enrollment
 
     has_one :enrollment_coc_at_entry, -> do
       where(DataCollectionStage: 1)

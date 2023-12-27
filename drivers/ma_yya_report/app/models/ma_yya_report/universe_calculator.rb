@@ -63,7 +63,7 @@ module MaYyaReport
             subsequent_current_living_situations: subsequent_current_living_situations(enrollment.enrollment),
             zip_codes: zip_codes(client),
             flex_funds: flex_funds(client),
-            language: language(client),
+            language: language(enrollment.enrollment),
           )
         end
       end
@@ -96,6 +96,7 @@ module MaYyaReport
       enrollment_scope.
         preload(
           :client,
+          # fixme: preload custom_services
           enrollment: [:client, :current_living_situations, :events, :youth_education_statuses, :disabilities, :health_and_dvs, :income_benefits_at_entry],
           household_enrollments: [:client, :exit],
         )
@@ -116,7 +117,7 @@ module MaYyaReport
     end
 
     private def direct_assistance?(enrollment)
-      # Check if enrollment was referred to flex funds assistance (do we still need this?)
+      # Check if enrollment was referred to flex funds assistance
       referred_to_assistance = enrollment.
         events.
         detect do |event|
@@ -126,10 +127,12 @@ module MaYyaReport
       return true if referred_to_assistance
 
       # Check if enrollment received flex funds assistance
-      Hmis::Hud::CustomService.hmis.
-        where(enrollment_id: enrollment.enrollment_id, personal_id: enrollment.personal_id).
-        where(service_type: flex_funds_service_type).
-        within_range(@filter.start_date .. @filter.end_date).exists?
+      # fixme: preload and use same enrollment
+      en = Hmis::Hud::Enrollment.find(enrollment.id)
+      en.custom_services.detect do |service|
+        service.custom_service_type_id == flex_funds_service_type.id &&
+          service.DateProvided.between?(@filter.start_date, @filter.end_date)
+      end.present?
     end
 
     private def gender(client)
@@ -228,16 +231,8 @@ module MaYyaReport
     end
 
     # Valid options are [nil, "English", "Spanish", "Other"]
-    private def language(client)
-      # Choose the most recent enrollment that has any language information.
-      # Sorts by entry date since language is collected at entry.
-      enrollment = client.source_clients.map do |source_client|
-        source_client.enrollments.where.not(translation_needed: nil).order(:entry_date).last
-      end.flatten.max_by(&:entry_date)
-
-      return unless enrollment # No enrollment with language info, retun nil
-
-      if enrollment.translation_needed.zero?
+    private def language(enrollment)
+      if enrollment.translation_needed&.zero?
         'English' # If 'No' to translation needed, infer English as primary language (not quite right, but agreed-upon logic)
       elsif enrollment.preferred_language == 367 # Spanish
         'Spanish'

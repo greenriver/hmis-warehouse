@@ -197,7 +197,6 @@ module MaYyaReport
 
         D4a: a_t[:pregnant].eq(1).and(a_t[:due_date].gt(report_start_date)).
           or(Arel.sql(custodial_parent_query)).and(a_t[:head_of_household].eq(true)),
-        # Why did D4b define LGBTQ differently from G3a? It was including 8/9 gender responses as LGBTQ
         D4b: lgbtq_query.and(a_t[:head_of_household].eq(true)),
         D4c: a_t[:education_status_date].lteq(report_end_date).
           and(a_t[:current_school_attendance].eq(0)).and(a_t[:most_recent_education_status].in([0, 1])).and(a_t[:head_of_household].eq(true)),
@@ -215,10 +214,8 @@ module MaYyaReport
         F1a: a_t[:subsequent_current_living_situations].not_eq([]).and(a_t[:followup_previous_period].eq(false)),
         F1b: a_t[:followup_previous_period].eq(false).
           and(Arel.sql(
-            # Add note explaining why 302 is excluded? (Transitional housing)
-            json_contains(:subsequent_current_living_situations,
-                          HudUtility2024.permanent_situations(as: :current) + HudUtility2024.temporary_situations(as: :current) + HudUtility2024.institutional_situations(as: :current) - [302]),
-          )),
+                json_contains(:subsequent_current_living_situations, HudUtility2024.permanent_situations(as: :current) + HudUtility2024.temporary_situations(as: :current) + HudUtility2024.institutional_situations(as: :current) - [302]),
+              )),
 
         F2a: a_t[:currently_homeless].eq(true).
           and(a_t[:rehoused_on].between(report_start_date..report_end_date)), # "Report Once" should handled because reporting periods don't overlap
@@ -265,7 +262,6 @@ module MaYyaReport
       # Report defines LGBTQ as:
       #   SexualOrientiation = gay(2), lesbian(3), bisexual(4), questioning(5), OR
       #   Gender = transgender(5)
-      # Is it intentional that "other" SOs, and NB gender, are not considered LGBTQ for the report?
       a_t[:sexual_orientation].in([2, 3, 4, 5]).or(a_t[:gender].eq(5))
     end
 
