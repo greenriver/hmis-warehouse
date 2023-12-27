@@ -192,12 +192,12 @@ User account for a user of the system
 """
 type ApplicationUser {
   activityLogs(limit: Int, offset: Int): ActivityLogsPaginated!
-  clientAccessSummaries(limit: Int, offset: Int): ClientAccessSummariesPaginated!
+  clientAccessSummaries(filters: ClientAccessSummaryFilterOptions, limit: Int, offset: Int): ClientAccessSummariesPaginated!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   email: String!
-  enrollmentAccessSummaries(limit: Int, offset: Int): EnrollmentAccessSummariesPaginated!
+  enrollmentAccessSummaries(filters: EnrollmentAccessSummaryFilterOptions, limit: Int, offset: Int): EnrollmentAccessSummariesPaginated!
   firstName: String
   id: ID!
   lastName: String
@@ -754,9 +754,15 @@ type ClientAccessSummariesPaginated {
 }
 
 type ClientAccessSummary {
-  client: Client
+  clientId: ID!
+  clientName: String
   id: ID!
   lastAccessedAt: ISO8601DateTime!
+}
+
+input ClientAccessSummaryFilterOptions {
+  onOrAfter: ISO8601Date
+  searchTerm: String
 }
 
 type ClientAddress {
@@ -3034,9 +3040,18 @@ type EnrollmentAccessSummariesPaginated {
 }
 
 type EnrollmentAccessSummary {
-  enrollment: Enrollment
+  clientId: ID
+  clientName: String
+  enrollmentId: ID!
   id: ID!
   lastAccessedAt: ISO8601DateTime!
+  projectId: ID
+  projectName: String
+}
+
+input EnrollmentAccessSummaryFilterOptions {
+  onOrAfter: ISO8601Date
+  searchTerm: String
 }
 
 type EnrollmentAuditEvent {

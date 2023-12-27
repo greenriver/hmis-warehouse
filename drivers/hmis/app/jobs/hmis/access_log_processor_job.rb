@@ -4,12 +4,20 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# = Hmis AccessLogProcessorJob
+#
 # Link the access logs for graphql object/fields to database ids for root entity types (client, enrollment, project).
 # This linking is done async to avoid overhead of doing it inside a request
+#
+# Must be run with DANGEROUSLY_DISABLE_SOFT_DELETION=1
 
 module Hmis
   class AccessLogProcessorJob < BaseJob
     def perform(force: false)
+      # this job requires extensive preloading of associations. Running with the `paranoia` gem enabled prevents this
+      # job from linking deleted records
+      raise 'Refusing to run with soft-delete enabled' if Hmis::Hud::Client.paranoid?
+
       Hmis::ActivityLog.with_advisory_lock(
         'AccessLogProcessorLock',
         timeout_seconds: 0, # don't wait
@@ -41,14 +49,14 @@ module Hmis
     RESOLVERS = {
       # 'ApplicationUser' => nil,
       'Assessment' => ->(ids) {
-        by_id = Hmis::Hud::CustomAssessment.with_deleted.preload(enrollment: [:client, :project]).where(id: ids).index_by(&:id)
+        by_id = Hmis::Hud::CustomAssessment.preload(enrollment: [:client, :project]).where(id: ids).index_by(&:id)
         ids.map { |id| RESOLVE_ENROLLMENT.call(by_id[id.to_i]&.enrollment) }
       },
       'Client' => ->(ids) {
         ids.map { |id| { client_ids: [id.to_i] } }
       },
       'ClientAddress' => ->(ids) {
-        by_id = Hmis::Hud::CustomClientAddress.with_deleted.preload(:client).where(id: ids).index_by(&:id)
+        by_id = Hmis::Hud::CustomClientAddress.preload(:client).where(id: ids).index_by(&:id)
         ids.map do |id|
           client = by_id[id.to_i].client
           { client_ids: [client.id] } if client
@@ -56,42 +64,42 @@ module Hmis
       },
       # 'ClientAuditEvent' => nil,
       'ClientName' => ->(ids) {
-        by_id = Hmis::Hud::CustomClientName.with_deleted.preload(:client).where(id: ids).index_by(&:id)
+        by_id = Hmis::Hud::CustomClientName.preload(:client).where(id: ids).index_by(&:id)
         ids.map do |id|
           client = by_id[id.to_i].client
           { client_ids: [client.id] } if client
         end
       },
       'CustomDataElement' => ->(ids) {
-        cdes = Hmis::Hud::CustomDataElement.with_deleted.where(id: ids)
+        cdes = Hmis::Hud::CustomDataElement.where(id: ids)
         by_owner_type = cdes.group_by(&:owner_type)
         mapped = {}
         [
           [
-            Hmis::Hud::Project.with_deleted,
+            Hmis::Hud::Project,
             ->(project) { { project_ids: [project.id] } },
           ],
           [
-            Hmis::Hud::Client.with_deleted,
+            Hmis::Hud::Client,
             ->(client) { { client_ids: [client.id] } },
           ],
           [
-            Hmis::Hud::Enrollment.with_deleted.preload(:client, :project),
+            Hmis::Hud::Enrollment.preload(:client, :project),
             RESOLVE_ENROLLMENT,
           ],
           [
-            Hmis::Hud::Exit.preload(enrollment: [:client, :project]).with_deleted,
+            Hmis::Hud::Exit.preload(enrollment: [:client, :project]),
             ->(record) { RESOLVE_ENROLLMENT.call(record.enrollment) },
           ],
           [
-            Hmis::Hud::CurrentLivingSituation.preload(enrollment: [:client, :project]).with_deleted,
+            Hmis::Hud::CurrentLivingSituation.preload(enrollment: [:client, :project]),
             ->(record) { RESOLVE_ENROLLMENT.call(record.enrollment) },
           ],
         ].each do |scope, resolver|
           owner_id_map = by_owner_type[scope.sti_name]&.to_h { |owner| [owner.id, owner.owner_id] }
           next unless owner_id_map
 
-          owners_by_id = scope.with_deleted.where(id: owner_id_map.values).index_by(&:id)
+          owners_by_id = scope.where(id: owner_id_map.values).index_by(&:id)
           owner_id_map.each_pair do |id, owner_id|
             owner = owners_by_id[owner_id]
             mapped[id] = resolver.call(owner) if owner
@@ -102,12 +110,12 @@ module Hmis
       },
       # 'CustomDataElementValue' => nil,
       'Enrollment' => ->(ids) {
-        by_id = Hmis::Hud::Enrollment.with_deleted.preload(:client, :project).where(id: ids).index_by(&:id)
+        by_id = Hmis::Hud::Enrollment.preload(:client, :project).where(id: ids).index_by(&:id)
         ids.map { |id| RESOLVE_ENROLLMENT.call(by_id[id.to_i]) }
       },
       # 'EnrollmentAuditEvent' => nil,
       'Exit' => ->(ids) {
-        by_id = Hmis::Hud::Exit.with_deleted.preload(enrollment: [:client, :project]).where(id: ids).index_by(&:id)
+        by_id = Hmis::Hud::Exit.preload(enrollment: [:client, :project]).where(id: ids).index_by(&:id)
         ids.map { |id| RESOLVE_ENROLLMENT.call(by_id[id.to_i]&.enrollment) }
       },
       'ExternalIdentifier' => ->(ids) {
@@ -121,11 +129,11 @@ module Hmis
         end
       },
       'HealthAndDv' => ->(ids) {
-        by_id = Hmis::Hud::HealthAndDv.with_deleted.preload(enrollment: [:client, :project]).where(id: ids).index_by(&:id)
+        by_id = Hmis::Hud::HealthAndDv.preload(enrollment: [:client, :project]).where(id: ids).index_by(&:id)
         ids.map { |id| RESOLVE_ENROLLMENT.call(by_id[id.to_i]&.enrollment) }
       },
       'Household' => ->(ids) {
-        by_id = Hmis::Hud::Household.with_deleted.preload(enrollments: [:client, :project]).where(id: ids).index_by(&:id)
+        by_id = Hmis::Hud::Household.preload(enrollments: [:client, :project]).where(id: ids).index_by(&:id)
         ids.map do |id|
           household = by_id[id]
           next unless household
@@ -140,11 +148,11 @@ module Hmis
       'HouseholdClient' => ->(ids) {
         # ids are of the form "#{enrollment.id}:#{client.id}"
         ids = ids.map { |id| id.split(':', 2)[0] }
-        by_id = Hmis::Hud::Enrollment.with_deleted.preload(:client, :project).where(id: ids).index_by(&:id)
+        by_id = Hmis::Hud::Enrollment.preload(:client, :project).where(id: ids).index_by(&:id)
         ids.map { |id| RESOLVE_ENROLLMENT.call(by_id[id.to_i]) }
       },
       'IncomeBenefit' => ->(ids) {
-        by_id = Hmis::Hud::IncomeBenefit.with_deleted.preload(enrollment: [:client, :project]).where(id: ids).index_by(&:id)
+        by_id = Hmis::Hud::IncomeBenefit.preload(enrollment: [:client, :project]).where(id: ids).index_by(&:id)
         ids.map { |id| RESOLVE_ENROLLMENT.call(by_id[id.to_i]&.enrollment) }
       },
       'OccurrencePointForm' => ->(ids) {

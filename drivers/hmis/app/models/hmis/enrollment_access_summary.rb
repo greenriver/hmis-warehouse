@@ -7,14 +7,36 @@
 # backed by a db view
 module Hmis
   class EnrollmentAccessSummary < ApplicationRecord
-    self.table_name = 'hmis_user_client_activity_log_summaries'
+    self.table_name = 'hmis_user_enrollment_activity_log_summaries'
     self.primary_key = 'id'
 
     belongs_to :user, class_name: 'Hmis::User'
-    belongs_to :client, class_name: 'Hmis::Hud::Enrollment'
+    belongs_to :enrollment, class_name: 'Hmis::Hud::Enrollment'
 
     def readonly?
       true
+    end
+
+    def self.apply_filter(user:, starts_on: nil, search_term: nil)
+      scope = self
+      if starts_on
+        date_range = (starts_on...)
+        log_scope = Hmis::ActivityLog.where(user_id: user.id).
+          where(created_at: date_range).
+          joins('JOIN hmis_activity_logs_enrollments ON hmis_activity_logs_enrollments.activity_log_id = hmis_activity_logs.id')
+        scope = scope.where(enrollment_id: log_scope.select(:enrollment_id))
+      end
+      if search_term.present?
+        # hand-rolled join to load deleted enrollments
+        enrollment_ids = Hmis::Hud::Client.with_deleted.
+          matching_search_term(search_term).
+          joins('JOIN "Enrollment" ON "Enrollment"."data_source_id" = "Client"."data_source_id" AND "Enrollment"."PersonalID" = "Client"."PersonalID"').
+          limit(50).
+          pluck(e_t[:id])
+        enrollment_ids << search_term.to_i if search_term =~ /\A\d+\z/
+        scope = scope.where(enrollment_id: enrollment_ids)
+      end
+      scope.where(user_id: user.id)
     end
   end
 end

@@ -179,6 +179,7 @@ tasks = [
     frequency: 5.minutes,
     trigger: hmis_trigger,
     interruptable: true,
+    job_type: :rake_short_no_paranoia,
   },
   # {
   #   task: 'glacier:backup:database',
@@ -197,6 +198,7 @@ tasks = [
 ]
 
 job_type :rake_short, 'cd :path && :environment_variable=:environment bundle exec rake :task --silent #capacity_provider:short-term'
+job_type :rake_short_no_paranoia, 'cd :path && :environment_variable=:environment DANGEROUSLY_DISABLE_SOFT_DELETION=1 bundle exec rake :task --silent #capacity_provider:short-term'
 
 tasks.each do |task|
   next if task.key?(:trigger) && ! task[:trigger]
@@ -209,6 +211,11 @@ tasks.each do |task|
       # For the time being, move all cron tasks to the "short-term" capacity provider
       # rake task[:task]
     end
-    rake_short task[:task]
+    case task[:job_type]
+    when :rake_short_no_paranoia
+      rake_short_no_paranoia task[:task]
+    else
+      rake_short task[:task]
+    end
   end
 end

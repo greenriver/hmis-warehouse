@@ -10,10 +10,20 @@ module Types
     graphql_name 'ClientAccessSummary'
     field :id, ID, null: false
     field :last_accessed_at, GraphQL::Types::ISO8601DateTime, null: false
-    field :client, HmisSchema::Client, null: true
+    field :client_id, ID, null: false
+    field :client_name, String, null: true
+
+    def client_name
+      client&.brief_name
+    end
 
     def client
-      load_ar_association(object, :client)
+      load_ar_association(object, :client, scope: Hmis::Hud::Client.with_deleted)
+    end
+
+    available_filter_options do
+      arg :search_term, String
+      arg :on_or_after, GraphQL::Types::ISO8601Date
     end
   end
 end
