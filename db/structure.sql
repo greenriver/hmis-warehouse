@@ -815,16 +815,6 @@ ALTER SEQUENCE public.hmis_activity_logs_id_seq OWNED BY public.hmis_activity_lo
 
 
 --
--- Name: hmis_activity_logs_projects; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_activity_logs_projects (
-    activity_log_id bigint NOT NULL,
-    project_id bigint NOT NULL
-);
-
-
---
 -- Name: hmis_roles; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3491,20 +3481,6 @@ CREATE INDEX index_hmis_activity_logs_enrollments_on_enrollment_id ON public.hmi
 --
 
 CREATE INDEX index_hmis_activity_logs_on_user_id ON public.hmis_activity_logs USING btree (user_id);
-
-
---
--- Name: index_hmis_activity_logs_projects_on_activity_log_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_activity_logs_projects_on_activity_log_id ON public.hmis_activity_logs_projects USING btree (activity_log_id);
-
-
---
--- Name: index_hmis_activity_logs_projects_on_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_activity_logs_projects_on_project_id ON public.hmis_activity_logs_projects USING btree (project_id);
 
 
 --

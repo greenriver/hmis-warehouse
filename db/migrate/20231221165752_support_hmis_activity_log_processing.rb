@@ -4,7 +4,6 @@ class SupportHmisActivityLogProcessing < ActiveRecord::Migration[6.1]
     [
       [:hmis_activity_logs_clients, :client],
       [:hmis_activity_logs_enrollments, :enrollment],
-      [:hmis_activity_logs_projects, :project],
     ].each do |join_table_name, reference|
       create_table join_table_name, id: false do |t|
         t.references :activity_log, null: false
