@@ -9,8 +9,8 @@
 # Link the access logs for graphql object/fields to database ids for root entity types (client, enrollment, project).
 # This linking is done async to avoid overhead of doing it inside a request
 #
-# Must be run with DANGEROUSLY_DISABLE_SOFT_DELETION=1
-
+# Notes:
+#   * Must be run with paranoia disabled (DANGEROUSLY_DISABLE_SOFT_DELETION=1)
 module Hmis
   class AccessLogProcessorJob < BaseJob
     def perform(force: false)
@@ -108,6 +108,7 @@ module Hmis
 
         ids.map { |id| mapped[id.to_i] }
       },
+      # I think we don't need to resolve values since the only way to access them is via CustomDataElement
       # 'CustomDataElementValue' => nil,
       'Enrollment' => ->(ids) {
         by_id = Hmis::Hud::Enrollment.preload(:client, :project).where(id: ids).index_by(&:id)
