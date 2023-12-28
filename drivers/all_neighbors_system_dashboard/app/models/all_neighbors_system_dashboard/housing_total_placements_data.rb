@@ -9,9 +9,23 @@ module AllNeighborsSystemDashboard
       instance.stacked_data
     end
 
+    # Date should be the first of the month, range will extend through the month
+    def clients_for_date(date:, count_level:, project_type:)
+      count_item = count_one_client_per_date_arel
+      scope = housed_total_scope
+      scope = filter_for_type(scope, project_type)
+      scope = filter_for_count_level(scope, count_level)
+      scope = filter_for_date(scope, date)
+      scope.pluck(count_item)
+    end
+
     # Reject any project types where we have NO data
     def project_types_with_data
       @project_types_with_data ||= line_data[:project_types].reject { |m| m[:count_levels].flatten.map { |n| n[:monthly_counts] }.flatten(2).map(&:last).all?(0) }.map { |m| m[:project_type] }
+    end
+
+    private def count_one_client_per_date_arel
+      nf('concat', [Enrollment.arel_table[:destination_client_id], ' ', cl(Enrollment.arel_table[:move_in_date], Enrollment.arel_table[:exit_date])])
     end
 
     def data(title, id, type, options: {})
@@ -37,7 +51,7 @@ module AllNeighborsSystemDashboard
                 type,
                 options.merge(project_type: project_type, count_level: count_level),
                 # Count clients only once per-day
-                count_item: nf('concat', [Enrollment.arel_table[:destination_client_id], cl(Enrollment.arel_table[:move_in_date], Enrollment.arel_table[:exit_date])]).to_sql,
+                count_item: count_one_client_per_date_arel.to_sql,
               )
               unique_counts = send(
                 type,
@@ -85,10 +99,7 @@ module AllNeighborsSystemDashboard
 
     def line(options, fixed_start_date: nil, count_item:)
       date_range.map do |date|
-        scope = report_enrollments_enrollment_scope.
-          housed_in_range(@report.filter.range, filter: @report.filter).
-          distinct.
-          select(count_item)
+        scope = housed_total_scope.select(count_item)
         scope = filter_for_type(scope, options[:project_type])
         scope = filter_for_count_level(scope, options[:count_level])
         scope = if fixed_start_date.present?
@@ -141,13 +152,12 @@ module AllNeighborsSystemDashboard
     def donut(options, count_item:, **)
       project_type = options[:project_type] || options[:homelessness_status]
       options[:types].map do |type|
+        # binding.pry #if type == 'project_type'
+        # raise 'failed'
         {
           name: type,
           series: date_range.map do |date|
-            scope = report_enrollments_enrollment_scope.
-              housed.
-              distinct.
-              select(count_item)
+            scope = housed_total_scope.select(count_item)
             scope = filter_for_type(scope, project_type)
             scope = filter_for_type(scope, type)
             scope = filter_for_count_level(scope, options[:count_level])
@@ -216,9 +226,7 @@ module AllNeighborsSystemDashboard
           series: date_range.map do |date|
             counts = options[:types].map do |race_name|
               # race_code = HudUtility2024.race(race_name, true)
-              scope = report_enrollments_enrollment_scope.
-                distinct.
-                select(:destination_client_id)
+              scope = housed_total_scope.select(:destination_client_id)
               scope = filter_for_count_level(scope, options[:count_level])
               scope = scope.where(primary_race: race_name)
               case bar
@@ -234,7 +242,7 @@ module AllNeighborsSystemDashboard
               #   scope = filter_for_type(scope, bar)
               #   count = mask_small_populations(scope.count, mask: @report.mask_small_populations?)
               #   count
-              when 'Diversion', 'Permanent Supportive Housing', 'Rapid Rehousing', 'R.E.A.L. Time Initiative'
+              when 'Diversion', 'Permanent Supportive Housing', 'Rapid Rehousing', 'Other Permanent Housing'
                 scope = filter_for_date(scope, date)
                 scope = filter_for_type(scope, bar)
                 count = mask_small_populations(scope.count, mask: @report.mask_small_populations?)

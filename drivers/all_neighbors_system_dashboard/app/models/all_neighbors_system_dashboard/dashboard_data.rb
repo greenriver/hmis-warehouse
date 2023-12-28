@@ -14,6 +14,12 @@ module AllNeighborsSystemDashboard
       Enrollment.where(report_id: @report.id)
     end
 
+    private def housed_total_scope
+      report_enrollments_enrollment_scope.
+        housed_in_range(@report.filter.range, filter: @report.filter).
+        distinct
+    end
+
     def years
       (@start_date.year .. @end_date.year).to_a
     end
@@ -52,6 +58,7 @@ module AllNeighborsSystemDashboard
         'Diversion',
         'Permanent Supportive Housing',
         'Rapid Rehousing',
+        'Other Permanent Housing',
         # 'R.E.A.L. Time Initiative', # removed in favor of running the report with a limited data set
       ]
     end
@@ -233,16 +240,22 @@ module AllNeighborsSystemDashboard
       #     where(project_id: @report.filter.effective_project_ids).
       #     select(:id)
       #   scope.where(id: pilot_scope).or(scope.where(id: implementation_scope))
-      when 'Permanent Supportive Housing'
-        scope.where(project_type: HudUtility2024.project_type('PH - Permanent Supportive Housing', true))
-      when 'Rapid Rehousing'
-        scope.where(project_type: HudUtility2024.project_type('PH - Rapid Re-Housing', true))
+
+      # Diversion is a special case, limited to the secondary project ids.
+      # For all others, we'll limit to the effective project ids to prevent double counting
       when 'Diversion'
         scope.where(project_id: @report.filter.secondary_project_ids, destination: @report.class::POSITIVE_DIVERSION_DESTINATIONS)
+      when 'Other Permanent Housing'
+        project_types = [HudUtility2024.project_type('PH - Housing Only', true), HudUtility2024.project_type('PH - Housing with Services (no disability required for entry)', true)]
+        scope.where(project_type: project_types, project_id: @report.filter.effective_project_ids)
+      when 'Permanent Supportive Housing'
+        scope.where(project_type: HudUtility2024.project_type('PH - Permanent Supportive Housing', true), project_id: @report.filter.effective_project_ids)
+      when 'Rapid Rehousing'
+        scope.where(project_type: HudUtility2024.project_type('PH - Rapid Re-Housing', true), project_id: @report.filter.effective_project_ids)
       when 'Unsheltered', 'Unhoused Population'
-        scope.where(project_type: HudUtility2024.project_type('Street Outreach', true))
+        scope.where(project_type: HudUtility2024.project_type('Street Outreach', true), project_id: @report.filter.effective_project_ids)
       when 'Sheltered'
-        scope.where.not(project_type: HudUtility2024.project_type('Street Outreach', true))
+        scope.where.not(project_type: HudUtility2024.project_type('Street Outreach', true), project_id: @report.filter.effective_project_ids)
       when *household_types
         scope.where(household_type: type)
       when 'Under 18'

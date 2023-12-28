@@ -28,7 +28,7 @@ module AllNeighborsSystemDashboard
     # 2. Client has a move-in date during range
     scope :housed_in_range, ->(range, filter:) do
       permanent_diversion_exit(range, filter: filter).
-        or(moved_in_in_range(range))
+        or(moved_in_in_range(range, filter: filter))
     end
 
     scope :permanent_diversion_exit, ->(range, filter:) do
@@ -39,8 +39,8 @@ module AllNeighborsSystemDashboard
       where.not(move_in_date: nil, project_type: HudUtility2024.project_types_with_move_in_dates)
     end
 
-    scope :moved_in_in_range, ->(range) do
-      where(move_in_date: range, project_type: HudUtility2024.project_types_with_move_in_dates)
+    scope :moved_in_in_range, ->(range, filter:) do
+      where(move_in_date: range, project_type: HudUtility2024.project_types_with_move_in_dates, project_id: filter.effective_project_ids)
     end
 
     scope :homeless, -> do

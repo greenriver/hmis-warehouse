@@ -40,11 +40,12 @@ module AllNeighborsSystemDashboard
     end
 
     def housed_count
-      @housed_count ||= report_enrollments_enrollment_scope.
-        housed_in_range(@report.filter.range, filter: @report.filter).
-        distinct.
-        select(:destination_client_id).
-        count
+      @housed_count ||= begin
+        scope = housed_total_scope
+        # Enforce the same project limits as the subsequent charts
+        scope = filter_for_type(scope, 'All')
+        scope.select(:destination_client_id).count
+      end
     end
 
     def average_days_to_obtain_housing

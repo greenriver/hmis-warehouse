@@ -39,6 +39,7 @@ module AllNeighborsSystemDashboard
         'Diversion',
         'Permanent Supportive Housing',
         'Rapid Rehousing',
+        'Other Permanent Housing',
       ]
     end
 

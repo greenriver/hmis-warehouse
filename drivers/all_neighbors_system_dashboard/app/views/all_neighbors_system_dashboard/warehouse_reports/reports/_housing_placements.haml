@@ -11,6 +11,7 @@
 - donut_ids = donut_data.map { |d| chart_id(tab[:id], d[:id]) }
 - donut_filter_label_ids = donut_data.map { |d| filter_label_id(tab[:id], d[:id]) }
 - stacked_data = all_data.stacked_data
+- debug = params[:debug].present? || Rails.env.development?
 
 %h2{class: css_namespace('all', 'tab_name')}= tab[:name]
 .border.my-7.p-4
@@ -34,6 +35,9 @@
       (
       %span{class: filter_label_id(tab[:id], 'date_range')}
       )
+- if debug
+  .well
+    = link_to 'Debug page ->', debug_all_neighbors_system_dashboard_warehouse_reports_report_path(@report, {project_type: 'All', count_level: 'Individuals', group: 'monthly_counts'})
 
 .well
   %p Placements are deduplicated by day, meaning a person may be counted more than once per month.  In the following categories:

@@ -105,7 +105,7 @@ module AllNeighborsSystemDashboard
 
     private def moved_in_scope
       report_enrollments_enrollment_scope.
-        moved_in_in_range(@report.filter.range)
+        moved_in_in_range(@report.filter.range, filter: @report.filter)
     end
 
     private def filter_for_date(scope, date)
