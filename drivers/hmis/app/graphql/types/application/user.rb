@@ -55,14 +55,14 @@ module Types
       access_denied! unless current_user.can_audit_users?
 
       Hmis::ClientAccessSummary.order(last_accessed_at: :desc, client_id: :desc).
-        apply_filter(user: object, starts_on: filters.on_or_after, search_term: filters.search_term)
+        apply_filter(user: object, starts_on: filters&.on_or_after, search_term: filters&.search_term)
     end
 
     def enrollment_access_summaries(filters: nil)
       access_denied! unless current_user.can_audit_users?
 
       Hmis::EnrollmentAccessSummary.order(last_accessed_at: :desc, enrollment_id: :desc).
-        apply_filter(user: object, starts_on: filters.on_or_after, search_term: filters.search_term)
+        apply_filter(user: object, starts_on: filters&.on_or_after, search_term: filters&.search_term)
     end
   end
 end

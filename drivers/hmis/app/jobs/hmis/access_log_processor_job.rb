@@ -69,7 +69,7 @@ module Hmis
                 # joins to enrollments; intentionally includes deleted records
                 [
                   e_t[:EnrollmentID].eq(cas_t[:EnrollmentID]),
-                  e_t[:PersonalID].eq(cas_t[:PersonalID]),
+                  e_t[:PersonalID].eq(cas_t[:PersonalID]), # this seems redundant
                   e_t[:data_source_id].eq(cas_t[:data_source_id]),
                 ].inject(&:and),
               ),
@@ -77,7 +77,7 @@ module Hmis
           ).
           pluck(cas_t[:id], e_t[:id]).to_h
 
-        enrollment_ids = assessment_ids.map { |assessment_id| enrollment_id_map[assessment_id] }
+        enrollment_ids = assessment_ids.map { |assessment_id| enrollment_id_map[assessment_id&.to_i] }
         RESOLVE_ENROLLMENT_IDS.call(enrollment_ids)
       },
       'Client' => ->(ids) {

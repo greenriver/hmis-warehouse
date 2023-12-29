@@ -13,6 +13,7 @@
 class Hmis::ActivityLog < ApplicationRecord
   self.table_name = :hmis_activity_logs
   belongs_to :user, class_name: 'Hmis::User'
+  belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   scope :unprocessed, -> { where(processed_at: nil) }
 end
