@@ -175,7 +175,7 @@ tasks = [
     interruptable: true,
   },
   {
-    task: 'driver:hmis:process_access_logs',
+    task: 'driver:hmis:process_activity_logs',
     frequency: 60.minutes,
     trigger: hmis_trigger,
     interruptable: true,

@@ -29,14 +29,14 @@ RSpec.describe 'User access summary query', type: :request do
 
   let!(:now) { Time.current }
   context 'with activity logs processed' do
-    let!(:log1) {
+    let!(:log1) do
       create :hmis_activity_log, resolved_fields: { "Enrollment/#{e1.id}" => [] }, data_source: ds1, user: other_hmis_user, created_at: now - 2.days
-    }
-    let!(:log2) {
+    end
+    let!(:log2) do
       create :hmis_activity_log, resolved_fields: { "Enrollment/#{e2.id}" => [] }, data_source: ds1, user: other_hmis_user, created_at: now
-    }
+    end
     before(:each) do
-      Hmis::AccessLogProcessorJob.perform_now
+      Hmis::ActivityLogProcessorJob.perform_now
     end
 
     context 'client access summary' do

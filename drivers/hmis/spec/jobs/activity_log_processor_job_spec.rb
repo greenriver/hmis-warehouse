@@ -6,8 +6,8 @@
 
 require 'rails_helper'
 
-RSpec.describe Hmis::AccessLogProcessorJob, type: :model do
-  subject(:job) { Hmis::AccessLogProcessorJob }
+RSpec.describe Hmis::ActivityLogProcessorJob, type: :model do
+  subject(:job) { Hmis::ActivityLogProcessorJob }
 
   let!(:ds1) { create(:hmis_data_source) }
 
@@ -37,7 +37,7 @@ RSpec.describe Hmis::AccessLogProcessorJob, type: :model do
 
         it 'should link to enrollment and client' do
           expect do
-            subject.perform_now
+            job.perform_now
           end.to change(Hmis::EnrollmentAccessSummary.where(enrollment_id: e1.id), :count).by(1).
             and change(Hmis::ClientAccessSummary.where(client_id: c1.id), :count).by(1).
             and change(Hmis::ActivityLog.unprocessed, :count).by(-1)
@@ -55,14 +55,14 @@ RSpec.describe Hmis::AccessLogProcessorJob, type: :model do
 
       it 'should link to client' do
         expect do
-          subject.perform_now
+          job.perform_now
         end.to not_change(Hmis::EnrollmentAccessSummary, :count).
           and change(Hmis::ClientAccessSummary.where(client_id: c1.id), :count).by(1).
           and change(Hmis::ActivityLog.unprocessed, :count).by(-1)
 
         # also check for idempotent behavior
         expect do
-          subject.perform_now
+          job.perform_now
         end.to not_change(Hmis::EnrollmentAccessSummary, :count).
           and not_change(Hmis::ClientAccessSummary, :count).
           and not_change(Hmis::ActivityLog.unprocessed, :count)

@@ -4,13 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# = Hmis AccessLogProcessorJob
+# = Hmis ActivityLogProcessorJob
 #
 # Link the access logs for graphql object/fields to database ids for root entity types (client, enrollment, project).
 # This linking is done async to avoid overhead of doing it inside a request
 #
 module Hmis
-  class AccessLogProcessorJob < BaseJob
+  class ActivityLogProcessorJob < ::BaseJob
     def perform(force: false)
       Hmis::ActivityLog.with_advisory_lock(
         'AccessLogProcessorLock',
