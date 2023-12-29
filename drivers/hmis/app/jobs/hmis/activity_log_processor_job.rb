@@ -136,12 +136,14 @@ module Hmis
     def insert_rows(table_name:, references:, rows:)
       return if rows.empty?
 
-      values = rows.map do |row|
-        "(#{row.map { |c| connection.quote(c) }.join(',')})"
-      end
-      connection.execute <<~SQL
-        INSERT INTO #{table_name} (activity_log_id, #{references}_id) VALUES #{values.join(', ')}
-      SQL
+      table = Arel::Table.new(table_name)
+      manager = Arel::InsertManager.new
+      manager.into(table)
+      manager.columns << table[:activity_log_id]
+      manager.columns << table[:"#{references}_id"]
+      manager.values = manager.create_values_list(rows)
+
+      connection.execute manager.to_sql
     end
 
     def connection

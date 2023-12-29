@@ -144,7 +144,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 313,
+      "line": 307,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_project_access_groups(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -826,28 +826,6 @@
       "note": ""
     },
     {
-      "warning_type": "Dynamic Render Path",
-      "warning_code": 15,
-      "fingerprint": "3e172786fd9cb66095a3f7b1e0f08576926f2ed63d9d79e07df69e40a3e509fb",
-      "check_name": "Render",
-      "message": "Render path contains parameter value",
-      "file": "drivers/boston_reports/app/views/boston_reports/warehouse_reports/community_of_origins/section.haml",
-      "line": 3,
-      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
-      "code": "render(action => \"boston_reports/warehouse_reports/community_of_origins/#{params[:partial]}\", {})",
-      "render_path": null,
-      "location": {
-        "type": "template",
-        "template": "boston_reports/warehouse_reports/community_of_origins/section"
-      },
-      "user_input": "params[:partial]",
-      "confidence": "Medium",
-      "cwe_id": [
-        22
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "3e7e0291a50a229015f6e9674412dd30aaa687e973bc11e005d95406444e97d9",
@@ -890,29 +868,6 @@
       "confidence": "Medium",
       "cwe_id": [
         77
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
-      "fingerprint": "3eb00498ea3da1c4ce846a9a0944f746a97fdcc112ed004f52a3cc5b8b7b1dd3",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "drivers/hmis/app/jobs/hmis/activity_log_processor_job.rb",
-      "line": 143,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "connection.execute(\"INSERT INTO #{table_name} (activity_log_id, #{references}_id) VALUES #{rows.map do\n \"(#{row.map do\n connection.quote(c)\n end.join(\",\")})\"\n end.join(\", \")}\\n\")",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Hmis::ActivityLogProcessorJob",
-        "method": "insert_rows"
-      },
-      "user_input": "table_name",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
       ],
       "note": ""
     },
@@ -1137,7 +1092,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 112,
+      "line": 116,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git rev-parse #{`git rev-parse --abbrev-ref HEAD`.chomp}`",
       "render_path": null,
@@ -1365,7 +1320,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/shape/shared_behaviors.rb",
-      "line": 48,
+      "line": 52,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql(\"simplified_geom = ST_MakeValid(ST_Simplify(geom, #{simplification_distance_in_degrees}))\")",
       "render_path": null,
@@ -1752,7 +1707,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/shape/shared_behaviors.rb",
-      "line": 53,
+      "line": 57,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(:full_geoid => nil).update_all(\"full_geoid = '#{Arel.sql(_full_geoid_prefix)}' || 'US' || #{_geoid_column}\")",
       "render_path": null,
@@ -1992,7 +1947,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 111,
+      "line": 115,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git ls-remote origin | grep refs/heads/#{`git rev-parse --abbrev-ref HEAD`.chomp}$`",
       "render_path": null,
@@ -2038,7 +1993,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 334,
+      "line": 337,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`docker image ls -f 'reference=#{repo_name}' | grep \"#{_ruby_version}-#{_pre_cache_version}--pre-cache\"`",
       "render_path": null,
@@ -2440,7 +2395,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 154,
+      "line": 157,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git rev-parse HEAD > #{_assets_path}/REVISION`",
       "render_path": null,
@@ -3008,7 +2963,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/concerns/hmis_structure/base.rb",
-      "line": 159,
+      "line": 154,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"CREATE INDEX #{((table_name.gsub(/[^0-9a-z ]/i, \"\") + \"_\") + Digest::MD5.hexdigest(columns.join(\"_\"))[0, 4])} ON #{connection.quote_table_name(table_name)} (#{columns.map do\n connection.quote_column_name(c)\n end.join(\", \")}) INCLUDE (#{details[:include].map do\n connection.quote_column_name(c)\n end.join(\", \")})\")",
       "render_path": null,
@@ -3439,6 +3394,6 @@
       "note": ""
     }
   ],
-  "updated": "2023-12-29 06:43:53 +0000",
+  "updated": "2023-10-20 22:48:08 +0000",
   "brakeman_version": "5.4.1"
 }

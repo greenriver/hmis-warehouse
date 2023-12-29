@@ -21,10 +21,8 @@ module Hmis
       scope = self
       if starts_on
         date_range = (starts_on...)
-        log_scope = Hmis::ActivityLog.where(user_id: user.id).
-          where(created_at: date_range).
-          joins('JOIN hmis_activity_logs_enrollments ON hmis_activity_logs_enrollments.activity_log_id = hmis_activity_logs.id')
-        scope = scope.where(enrollment_id: log_scope.select(:enrollment_id))
+        log_scope = Hmis::ActivityLog.where(user_id: user.id).where(created_at: date_range)
+        scope = scope.where(enrollment_id: log_scope.select_enrollment_ids)
       end
       if search_term.present?
         enrollment_ids = Hmis::Hud::Client.with_deleted.
