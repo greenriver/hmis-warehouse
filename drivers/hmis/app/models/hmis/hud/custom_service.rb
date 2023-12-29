@@ -34,6 +34,10 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
     'CustomServiceID'
   end
 
+  def within_range?(range)
+    date_provided.between?(range.begin, range.end)
+  end
+
   private def set_service_name
     return if service_name.present?
 

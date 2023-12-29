@@ -40,7 +40,7 @@ module MaYyaReport
             currently_homeless: currently_homeless?(enrollment_cls),
             at_risk_of_homelessness: at_risk_of_homelessness?(enrollment_cls),
             initial_contact: initial_contact(enrollments_by_client_id[client_id]),
-            direct_assistance: direct_assistance?(enrollment.enrollment),
+            direct_assistance: direct_assistance?(enrollments_by_client_id[client_id]),
             education_status_date: education_status&.InformationDate,
             current_school_attendance: education_status&.CurrentSchoolAttend,
             current_educational_status: education_status&.CurrentEdStatus,
@@ -62,7 +62,7 @@ module MaYyaReport
             rehoused_on: rehoused_on(enrollment.enrollment),
             subsequent_current_living_situations: subsequent_current_living_situations(enrollment.enrollment),
             zip_codes: zip_codes(client),
-            flex_funds: flex_funds(client),
+            flex_funds: flex_funds(enrollments_by_client_id[client_id]),
             language: language(enrollment.enrollment),
           )
         end
@@ -95,9 +95,8 @@ module MaYyaReport
     private def enrollment_scope_with_preloads
       enrollment_scope.
         preload(
-          :client,
-          # fixme: preload custom_services
-          enrollment: [:client, :current_living_situations, :events, :youth_education_statuses, :disabilities, :health_and_dvs, :income_benefits_at_entry],
+          client: [:custom_client_addresses],
+          enrollment: [:client, :current_living_situations, :events, :youth_education_statuses, :disabilities, :health_and_dvs, :income_benefits_at_entry, custom_services: [:custom_data_elements]],
           household_enrollments: [:client, :exit],
         )
     end
@@ -116,23 +115,16 @@ module MaYyaReport
         enrollments[0...-1].detect { |en| en.first_date_in_program >= @filter.start_date - 24.months }.blank?
     end
 
-    private def direct_assistance?(enrollment)
-      # Check if enrollment was referred to flex funds assistance
-      referred_to_assistance = enrollment.
-        events.
-        detect do |event|
-          # 16 = Referral to emergency assistance/flex fund/furniture assistance
+    # True if client was referred to flex funds OR if they received flex funds
+    private def direct_assistance?(enrollments)
+      # CE Event 16 = Referral to emergency assistance/flex fund/furniture assistance
+      referred_to_direct_assistance = enrollments.any? do |enrollment|
+        enrollment.enrollment.events.any? do |event|
           event.EventDate.between?(@filter.start_date, @filter.end_date) && event.Event == 16
-        end.present?
-      return true if referred_to_assistance
+        end
+      end
 
-      # Check if enrollment received flex funds assistance
-      # fixme: preload and use same enrollment
-      en = Hmis::Hud::Enrollment.find(enrollment.id)
-      en.custom_services.detect do |service|
-        service.custom_service_type_id == flex_funds_service_type.id &&
-          service.DateProvided.between?(@filter.start_date, @filter.end_date)
-      end.present?
+      referred_to_direct_assistance || enrollments.any? { |en| flex_funds_services_in_range(en).any? }
     end
 
     private def gender(client)
@@ -204,30 +196,24 @@ module MaYyaReport
 
     # Most recent Zip for each source client
     private def zip_codes(client)
-      hmis_source_clients_for(client).map do |hmis_client|
-        hmis_client.addresses.order(:DateUpdated).pluck(:postal_code).compact.last
-      end.uniq
+      client.source_clients.map do |source_client|
+        source_client.custom_client_addresses.sort_by(&:DateUpdated).map(&:postal_code).compact.last
+      end.compact.uniq
     end
 
     # All flex funds received by all source clients (e.g. ["Transportation", "Child care", "Move-in"])
     # NOTE: Assumes that there is only 1 HMIS data source
-    private def flex_funds(client)
+    private def flex_funds(enrollments)
       return [] unless flex_funds_service_type && flex_funds_types_cded
 
-      hmis_personal_ids = hmis_source_clients_for(client).pluck(:personal_id)
-
-      # IDs for all Flex Fund services rendered to the client(s)
-      flex_funds_service_ids = Hmis::Hud::CustomService.hmis.
-        where(personal_id: hmis_personal_ids, service_type: flex_funds_service_type).
-        within_range(@filter.start_date .. @filter.end_date).
-        select(:id)
-
-      # CustomDataElements tied to these CustomServices indicate which fund types were provided
-      flex_funds_types_cded.values.
-        where(owner_id: flex_funds_service_ids).
-        pluck(:value_string).uniq.
-        # Remove parenthesized text from "Move-in (Including first, last and security)"
-        map { |ff_type| ff_type.gsub(/\([^()]*\)/, '').strip }.uniq
+      enrollments.map do |enrollment|
+        flex_funds_services_in_range(enrollment).map do |service|
+          service.custom_data_elements.
+            filter { |cde| cde.data_element_definition_id == flex_funds_types_cded.id }.
+            map(&:value_string).
+            map { |ff_type| ff_type.gsub(/\([^()]*\)/, '').strip } # Remove parenthesized text from label
+        end
+      end.flatten(2).uniq
     end
 
     # Valid options are [nil, "English", "Spanish", "Other"]
@@ -251,6 +237,13 @@ module MaYyaReport
 
     private def flex_funds_types_cded
       @flex_funds_types_cded ||= Hmis::Hud::CustomDataElementDefinition.find_by(key: :flex_funds_types)
+    end
+
+    private def flex_funds_services_in_range(enrollment)
+      enrollment.enrollment.custom_services.filter do |service|
+        service.custom_service_type_id == flex_funds_service_type.id &&
+          service.within_range?(@filter.start_date..@filter.end_date)
+      end
     end
   end
 end
