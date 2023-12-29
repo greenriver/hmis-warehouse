@@ -74,7 +74,7 @@ module AllNeighborsSystemDashboard
 
     def household_types
       [
-        'Adults Only',
+        'Adult Only',
         'Adults and Children',
         'Unknown Household Type', # NOTE: we're using unknown to capture child only as well
       ]
@@ -166,7 +166,7 @@ module AllNeighborsSystemDashboard
 
     def demographic_household_type
       [
-        'Adults Only',
+        'Adult Only',
         'Adults and Children',
         'Unknown Household Type',
       ]
@@ -271,7 +271,7 @@ module AllNeighborsSystemDashboard
       when 'Over 63'
         scope.where(age: 63..)
       when 'Unknown Age'
-        scope.where(age: nil).or(scope.where(age: ..0))
+        scope.where(age: nil).or(scope.where(age: ...0))
       when *HudUtility2024.gender_known_values
         scope.where(gender: type)
       when 'Unknown Gender'

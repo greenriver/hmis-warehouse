@@ -15,18 +15,18 @@
       .d-flex
         .pr-6= render 'select_filter', tab: tab, name: 'project_type', label: 'Project Type', options: all_data.project_types
         = render 'select_filter', tab: tab, name: 'count_level', label: 'Count Level', options: all_data.count_levels
-         
+
     .col-xs-12.col-md-4
       = render 'quarter_range_filter', tab: tab, name: 'quarter_range', label: 'Date Range', quarters: all_data.quarter_range
 .mb-7
   %h5.mt-0 Time Period
   %div{id: chart_id(tab[:id], 'quarters')}
-  
+
 .mb-7= render 'filter_labels', tab: tab, labels: ['project_type', 'count_level', 'quarter_range']
 
 .border.mb-7
   .py-6.px-5.border-bottom
-    .row.align-items-center.mb-6 
+    .row.align-items-center.mb-6
       .col-sm-12.col-md-4
         %h3
           Placements per Quarter & Total Placements To Date
@@ -52,7 +52,7 @@
 
 = render 'donuts', tab: tab, donut_data: donut_data, filter_label: 'date_range'
 
-= render 'stacked_charts', data: [stacked_data], group: 'Racial Composition', filter_label: 'date_range', filter: false, filter_data: [], show_chart_titles: false, hint: false, tab: tab, legend_padding: '200px'
+= render 'stacked_charts', data: [stacked_data], group: 'Racial Composition', filter_label: 'date_range', filter: false, filter_data: [], show_chart_titles: false, hint: false, tab: tab, legend_padding: '200px', description: false
 
 
 - content_for :page_js do
@@ -184,6 +184,6 @@
 
       var lineFilters = new AllNeighborsSystemDashboardFilters(lineFilterConfig, lineCharts, lineLabelConfig)
       lineFilters.test()
-      
+
 
     })

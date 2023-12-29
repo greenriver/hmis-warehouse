@@ -25,7 +25,7 @@
     .border-top
       = render 'returns_to_homelessness_table', data: all_data.bars, id: table_id
 
-= render 'stacked_charts', data: chart_data, group: 'Racial Composition', filter_label: 'none', filter: 'demographics', filter_data: all_data.demographics, show_chart_titles: true, hint: '* Exited to permanent destinations', tab: tab, legend_padding: '150px'
+= render 'stacked_charts', data: chart_data, group: 'Racial Composition', filter_label: 'none', filter: 'demographics', filter_data: all_data.demographics, show_chart_titles: true, hint: '* Exited to permanent destinations', tab: tab, legend_padding: '150px', description: false
 
 
 - content_for :page_js do

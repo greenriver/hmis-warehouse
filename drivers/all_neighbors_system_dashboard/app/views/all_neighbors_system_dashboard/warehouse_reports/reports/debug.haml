@@ -35,7 +35,7 @@
     %h2 Housing Placements Project Type Donut
     .well
 
-      - data = all_data.donut_data.detect { |m| m[:id].to_s == 'project_type' }[:project_types].detect { |m| m[:project_type] == 'All' }[:count_levels].detect { |m| m[:count_level] == params[:count_level] }[:series]
+      - data = all_data.donut_data.detect { |m| m[:id].to_s == 'age' }[:project_types].detect { |m| m[:project_type] == 'All' }[:count_levels].detect { |m| m[:count_level] == params[:count_level] }[:series]
       - data.each do |p_type|
         Looking at: #{p_type[:name]}
         - p_type[:series].each do |d|
@@ -52,25 +52,14 @@
             = value
   .col
     %h2 Line
-    '2021-9-1' 41
-    '2022-5-1' 29
     = debug grouped_by_date[:line].to_a.sort_by{ |row| row.first.to_date }
+    '2020-6-1': 8
+    '2020-11-1': 44
   .col
     %h2 Donut
-    '2021-9-1' 42
-    '2021-9-1'
-      Diversion: 1
-      Permanent Supportive Housing: 2
-      Rapid Rehousing: 39
-
-    '2022-5-1' 30
-    '2022-5-1'
-      Permanent Supportive Housing: 1
-      Rapid Rehousing: 27
-      Other Permanent Housing: 2
-
-    = debug grouped_by_date[:donut].to_a.sort_by{ |row| row.first.to_date }#.map {|d, counts| [d, counts.sum] }
-
+    = debug grouped_by_date[:donut].to_a.sort_by{ |row| row.first.to_date }#.map {|d, counts| [d, counts.map(&:first).sum] }
+    '2020-6-1': 9
+    '2020-11-1': 46
     -# .well
     -#   = all_data.donut_data.detect { |m| m[:id].to_s == 'project_type' }[:project_types].first.to_json
     -# .well

@@ -61,7 +61,7 @@ module AllNeighborsSystemDashboard
     end
 
     def household_types
-      ['Adults Only', 'Adults and Children', 'Unknown Household Type']
+      ['Adult Only', 'Adults and Children', 'Unknown Household Type']
     end
 
     def household_type_colors
@@ -147,7 +147,7 @@ module AllNeighborsSystemDashboard
 
     def demographic_household_type
       [
-        'Adults Only',
+        'Adult Only',
         'Adults and Children',
       ]
     end
