@@ -39,6 +39,7 @@ module AllNeighborsSystemDashboard
         'Diversion',
         'Permanent Supportive Housing',
         'Rapid Rehousing',
+        'Other Permanent Housing',
       ]
     end
 
@@ -60,11 +61,11 @@ module AllNeighborsSystemDashboard
     end
 
     def household_types
-      ['Adults Only', 'Adults and Children']
+      ['Adult Only', 'Adults and Children', 'Unknown Household Type']
     end
 
     def household_type_colors
-      ['#3B528B', '#ABBD2A']
+      ['#3B528B', '#ABBD2A', '#ABBD2A']
     end
 
     def count_levels
@@ -146,7 +147,7 @@ module AllNeighborsSystemDashboard
 
     def demographic_household_type
       [
-        'Adults Only',
+        'Adult Only',
         'Adults and Children',
       ]
     end
@@ -199,6 +200,34 @@ module AllNeighborsSystemDashboard
       [
         '#E4C1DE',
         '#754F77',
+      ]
+    end
+
+    def program_names
+      [
+        'All',
+        'ASC - DRTTR CM 200 (RRH CAS)',
+        'Catholic Charities - DRTRR CM (RHH CAS)',
+        'Catholic Charities - DRTRR EHV CM (OPH CAS)',
+        'CitySquare - DRTRR EHV 60 CM (OPH CAS)',
+        'Family Place',
+        'FG - DRTRR EHV 50 (CAS OPH)',
+        'FG - DRTRR RRH (CAS)',
+      ]
+    end
+
+    def populations
+      [
+        'All',
+        'DV',
+        'HMIS',
+      ]
+    end
+
+    def count_types
+      [
+        'Enrollments',
+        'Pacements',
       ]
     end
 

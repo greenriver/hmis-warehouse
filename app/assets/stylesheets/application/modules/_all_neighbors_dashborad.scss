@@ -124,7 +124,10 @@ h2.all-neighbors__all__tab_name {
 #all-neighbors__returns_to_homelessness__bar__chart .bb-axis .tick line,
 .all-neighbors__all__stacked .bb-axis-x .domain,
 .all-neighbors__all__stacked .bb-axis-x .tick line,
-#all-neighbors__time_to_obtain_housing__scatter__chart .tick line {
+#all-neighbors__time_to_obtain_housing__scatter__chart .tick line,
+#all-neighbors__time_to_obtain_housing__id_to_move_in__chart .tick line,
+#all-neighbors__time_to_obtain_housing__id_to_move_in__chart .bb-axis-y .domain,
+#all-neighbors__time_to_obtain_housing__id_to_move_in__chart .bb-axis-x .domain {
   display: none;
 }
 
@@ -163,7 +166,9 @@ h2.all-neighbors__all__tab_name {
 }
 
 .all-neighbors__returns_to_homelessness__table_toggle,
-.all-neighbors__returns_to_homelessness__table_toggle:hover {
+.all-neighbors__returns_to_homelessness__table_toggle:hover,
+.all-neighbors__internal__table_toggle,
+.all-neighbors__internal__table_toggle:hover {
   color: rgba(0, 0, 0, 0.87);
   font-size: 1.15rem;
 }
@@ -201,7 +206,9 @@ h2.all-neighbors__all__tab_name {
   font-size: 12px;
 }
 
-#all-neighbors__returns_to_homelessness__housing_retention__chart .bb-axis-y .tick text {
+#all-neighbors__returns_to_homelessness__housing_retention__chart .bb-axis-y .tick text,
+#all-neighbors__time_to_obtain_housing__id_to_move_in__chart .tick text,
+#all-neighbors__time_to_obtain_housing__id_to_move_in__chart .bb-axis-y-label {
   font-size: 12px;
 }
 
@@ -210,7 +217,9 @@ h2.all-neighbors__all__tab_name {
 }
 
 #all-neighbors__returns_to_homelessness__housing_retention__chart .domain,
-#all-neighbors__returns_to_homelessness__housing_retention__chart .bb-ygrids line {
+#all-neighbors__returns_to_homelessness__housing_retention__chart .bb-ygrids line,
+#all-neighbors__time_to_obtain_housing__id_to_move_in__chart .bb-event-rect,
+#all-neighbors__time_to_obtain_housing__id_to_move_in__chart .bb-ygrid {
   stroke: #CCCCCC;
 }
 
