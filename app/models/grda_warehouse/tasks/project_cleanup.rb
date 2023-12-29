@@ -38,6 +38,7 @@ module GrdaWarehouse::Tasks
 
         fix_name(project)
         fix_client_locations(project)
+        remove_unneeded_hmis_participations(project)
       end
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!(max_wait_seconds: 1_800)
 
@@ -180,6 +181,15 @@ module GrdaWarehouse::Tasks
       project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: coc_codes.first, source_hash: nil) if coc_codes.count == 1
 
       project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: nil, source_hash: nil)
+    end
+
+    # If a project has user provided HMIS Participation records, than we don't need the 2022 -> 2024 migration generated
+    # ones, so remove them
+    def remove_unneeded_hmis_participations(project)
+      hmis_p_t = GrdaWarehouse::Hud::HmisParticipation.arel_table
+      return unless project.hmis_participations.where(hmis_p_t[:HMISParticipationID].does_not_match('GR-%', nil, true)).exists?
+
+      project.hmis_participations.where(hmis_p_t[:HMISParticipationID].matches('GR-%', nil, true)).destroy_all
     end
 
     def project_source
