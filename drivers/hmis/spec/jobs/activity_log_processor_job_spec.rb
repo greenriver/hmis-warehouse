@@ -7,6 +7,7 @@
 require 'rails_helper'
 
 RSpec.describe Hmis::ActivityLogProcessorJob, type: :model do
+  before(:all) { cleanup_test_environment }
   subject(:job) { Hmis::ActivityLogProcessorJob }
 
   let!(:ds1) { create(:hmis_data_source) }
