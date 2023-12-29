@@ -49,6 +49,10 @@ module BostonReports
       true
     end
 
+    private def cache_key_for_section(section)
+      [self.class.name, cache_slug, section]
+    end
+
     def percent(numerator:, denominator:)
       return 0 unless numerator&.positive? && denominator&.positive?
 
@@ -230,8 +234,8 @@ module BostonReports
     end
 
     def across_the_country_data
-      # Maybe needs a join to place, but a distinct count of :state?
-      @across_the_country_data ||= begin
+      @across_the_country_data ||= Rails.cache.fetch(cache_key_for_section(:across_the_country), expires_in: expiration_length) do
+        # Maybe needs a join to place, but a distinct count of :state?
         earliest_for_scope = enrolled_with_community_of_origin.
           one_for_column(
             :located_on,
@@ -280,15 +284,17 @@ module BostonReports
     end
 
     def top_zip_codes_data
-      zip_code_scope.first(ZIP_LIMIT).map do |zip, count|
-        percentage = percent(numerator: count, denominator: count_enrolled_with_community_of_origin)
-        {
-          zip_code: zip,
-          count: count,
-          total: count_enrolled_with_community_of_origin,
-          percent: percentage,
-          display_percent: ActiveSupport::NumberHelper.number_to_percentage(percentage, precision: 1, strip_insignificant_zeros: true),
-        }
+      @top_zip_codes_data ||= Rails.cache.fetch(cache_key_for_section(:top_zip_codes), expires_in: expiration_length) do
+        zip_code_scope.first(ZIP_LIMIT).map do |zip, count|
+          percentage = percent(numerator: count, denominator: count_enrolled_with_community_of_origin)
+          {
+            zip_code: zip,
+            count: count,
+            total: count_enrolled_with_community_of_origin,
+            percent: percentage,
+            display_percent: ActiveSupport::NumberHelper.number_to_percentage(percentage, precision: 1, strip_insignificant_zeros: true),
+          }
+        end
       end
     end
 
@@ -346,6 +352,16 @@ module BostonReports
       #     end
       #   },
       # }
+    end
+
+    private def cache_slug
+      @filter.attributes
+    end
+
+    private def expiration_length
+      return 3.minutes if Rails.env.development?
+
+      30.minutes
     end
   end
 end
