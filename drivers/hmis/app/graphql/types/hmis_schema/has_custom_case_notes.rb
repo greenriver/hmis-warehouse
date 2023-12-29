@@ -16,7 +16,7 @@ module Types
           default_field_options = { type: HmisSchema::CustomCaseNote.page_type, null: false, description: description }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
-            # argument :sort_order, Types::HmisSchema::CustomCaseNoteSortOption, required: false
+            argument :sort_order, Types::HmisSchema::CustomCaseNoteSortOption, required: false
             instance_eval(&block) if block_given?
           end
         end
@@ -28,8 +28,10 @@ module Types
 
       private
 
-      def scoped_custom_case_notes(scope)
-        scope.viewable_by(current_user).order(date_created: :desc).order(:id)
+      def scoped_custom_case_notes(scope, sort_order: :date_updated, no_sort: false)
+        scope = scope.viewable_by(current_user)
+        scope = scope.sort_by_option(sort_order) unless no_sort
+        scope.order(:id)
       end
     end
   end

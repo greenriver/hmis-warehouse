@@ -4,6 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter
+#
+# Allow us to use the existing report form to filter SPM reports. Needed since the existing form filters
+# ServiceHistoryEnrollments but the SPM report operates on raw HUD data
 module HudSpmReport::Adapters
   class ServiceHistoryEnrollmentFilter
     include ::Filter::FilterScopes
@@ -24,6 +28,7 @@ module HudSpmReport::Adapters
 
       # ATTN: coc filter is needed for testkit
       scope = filter_for_cocs(scope)
+      scope = @filter.apply_client_level_restrictions(scope)
 
       GrdaWarehouse::Hud::Enrollment.where(id: scope.joins(:enrollment).select(e_t[:id]))
     end
