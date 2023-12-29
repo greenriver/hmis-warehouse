@@ -354,5 +354,72 @@ module HmisDataCleanup
         Rails.logger.info "WARNING: #{remaining_dangling} dangling records remain"
       end
     end
+
+    # Method for restoring enrollments that were deleted in an import.
+    # Probably needs to be called in batches, depending on the size of the enrollment scope.
+    def restore_deleted_enrollments!(enrollments_to_restore, conflict_set: nil, dry_run: false)
+      # Commented-out examples of parameters:
+      # enrollments_to_restore = Hmis::Hud::Enrollment.hmis.only_deleted.where(project_id: 650).where(date_deleted: date)
+      # conflict_set = Hmis::Hud::Enrollment.hmis.where(project_id: 650).pluck(:ProjectID, :PersonalID, :EntryDate).to_set
+
+      valid_personal_ids = Hmis::Hud::Client.hmis.pluck(:personal_id).uniq.to_set
+      personal_ids_from_deleted_records = enrollments_to_restore.pluck(:personal_id).uniq
+
+      # Map { old personal id => new personal id } for clients that have been merged
+      old_to_new_personal_id = Hmis::Hud::Client.hmis.with_deleted.where(personal_id: personal_ids_from_deleted_records).map do |client|
+        [client.personal_id, client.reverse_merge_histories.first&.retained_client&.personal_id]
+      end.to_h
+
+      conflicts = 0 # num skipped due to conflict (PersonalID + Entry Date, meaning the enrollment has been re-created since it was deleted)
+      enrollments_where_personal_id_updated = 0 # num enrollments where PersonalID was updated due to a merge
+      enrollments_skipped_due_to_unrecognized_personal_id = 0 # num enrollments skipped because personal ID not found (dnd not merged)
+      updated = 0
+
+      enrollments_to_restore.each do |enrollment|
+        # Find the new personal ID if this client has been merged.
+        # There is no need to update Personal IDs on associated records, because those should have already been
+        # updated when the merge occurred. This is assuming that those associated records are NOT deleted.
+        new_personal_id = old_to_new_personal_id[enrollment.personal_id]
+
+        if conflict_set&.include?([enrollment.project_id, new_personal_id || enrollment.personal_id, enrollment.entry_date])
+          conflicts += 1
+          next
+        end
+
+        if !valid_personal_ids.include?(new_personal_id || enrollment.personal_id)
+          enrollments_skipped_due_to_unrecognized_personal_id += 1
+          next
+        end
+
+        if new_personal_id
+          enrollment.PersonalID = new_personal_id
+          enrollments_where_personal_id_updated += 1
+        end
+
+        enrollment.DateDeleted = nil
+        without_papertrail_or_timestamps { enrollment.save!(validate: false) } unless dry_run
+        updated += 1
+      end
+
+      total_num = enrollments_to_restore.size
+      Rails.logger.info("#{conflicts}/#{total_num} records skipped due to conflict on ProjectID + PersonalID + EntryDate")
+      Rails.logger.info("#{enrollments_skipped_due_to_unrecognized_personal_id}/#{total_num} records skipped because the PersonalID was not found")
+      Rails.logger.info("#{enrollments_where_personal_id_updated}/#{total_num} records had the PersonalID updated due to a previous HMIS Client Merge")
+      Rails.logger.info("#{updated} records updated")
+
+      # You probably want to run some cleanup:
+      #
+      # HmisDataCleanup::Util.assign_missing_household_ids!
+      # HmisDataCleanup::Util.make_sole_member_hoh!
+
+      # Remember to generate HUD Assessments by running the MigrateAssessmentsJob:
+      #
+      # Hmis::MigrateAssessmentsJob.perform_now(
+      #   data_source_id: GrdaWarehouse::DataSource.hmis.first.id,
+      #   project_ids: [<project ids>],
+      #   clobber: false,
+      #   delete_dangling_records: false,
+      # )
+    end
   end
 end
