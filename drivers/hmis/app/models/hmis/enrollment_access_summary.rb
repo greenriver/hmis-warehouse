@@ -27,10 +27,17 @@ module Hmis
         scope = scope.where(enrollment_id: log_scope.select(:enrollment_id))
       end
       if search_term.present?
-        # hand-rolled join to load deleted enrollments
         enrollment_ids = Hmis::Hud::Client.with_deleted.
           matching_search_term(search_term).
-          joins('JOIN "Enrollment" ON "Enrollment"."data_source_id" = "Client"."data_source_id" AND "Enrollment"."PersonalID" = "Client"."PersonalID"').
+          joins(
+            c_t.create_join(
+              e_t,
+              c_t.create_on(
+                # joins to enrollments; intentionally includes deleted records
+                [e_t[:PersonalID].eq(c_t[:PersonalID]), e_t[:data_source_id].eq(c_t[:data_source_id])].inject(&:and),
+              ),
+            ),
+          ).
           limit(50).
           pluck(e_t[:id])
         enrollment_ids << search_term.to_i if search_term =~ /\A\d+\z/
