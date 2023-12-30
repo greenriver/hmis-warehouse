@@ -14,7 +14,7 @@ class GrdaWarehouse::ModelTableManager
   end
 
   def next_pk_sequence=(value)
-    # puts "setting next pk for #{model.name} to #{value}"
+    # puts "setting next pk for #{table_name} to #{value}"
     execute "ALTER SEQUENCE #{quote_table_name(sequence_name)} RESTART WITH #{quote(value)}"
   end
 

@@ -130,13 +130,18 @@ class GrdaWarehouse::Utility
     tables << HudReports::ReportInstance
     tables << SimpleReports::ReportInstance
 
-    sequence = (0...tables.size).to_a.shuffle(random: Random.new(123))
     tables.each do |model|
       manager = GrdaWarehouse::ModelTableManager.new(model)
       manager.truncate_table(modifier: modifier(model))
+    end
+    # fix_sequences
+
+    # reset pks after truncation due to cascade side-effects
+    tables.each do |model|
       # assign staggered pk sequence values for all tables. Staggered pk values reduce the chances of lock-step ids
       # between tables to better identify bugs related to mis-use of ids
-      manager.next_pk_sequence = (sequence.pop + 100) * 10_000
+      manager = GrdaWarehouse::ModelTableManager.new(model)
+      manager.next_pk_sequence = (Zlib.crc32(model.name) + 100) % 1_000_000
     end
 
     # Clear the materialized view
@@ -145,6 +150,7 @@ class GrdaWarehouse::Utility
     nil
   end
 
+  # FIXME: document what this is for
   def self.fix_sequences
     query = <<~SQL
       SELECT 'SELECT SETVAL(' ||
