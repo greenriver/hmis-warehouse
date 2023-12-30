@@ -47,5 +47,23 @@ module HudSpmReport::Generators::Fy2020
     def self.valid_question_number(question_number)
       questions.keys.detect { |q| q == question_number } || questions.keys.first
     end
+
+    def self.client_class(_question)
+      HudApr::Fy2020::SpmClient
+    end
+
+    def self.question_fields(question)
+      q_num = question[/\d+\z/]
+      column_names.select { |c| c.starts_with? "m#{q_num}" }.map(&:to_sym)
+    end
+
+    def self.common_fields
+      [
+        :client_id,
+        :source_client_personal_ids,
+        :first_name,
+        :last_name,
+      ]
+    end
   end
 end

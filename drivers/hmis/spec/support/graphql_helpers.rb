@@ -11,9 +11,9 @@ module GraphqlHelpers
   HMIS_HOSTNAME = 'hmis.dev.test'
 
   def post_graphql(variables = {})
-    variables = variables.deep_transform_keys { |k| k.is_a?(Symbol) ? k.to_s.camelize(:lower) : k }
-    headers = { 'CONTENT_TYPE' => 'application/json', 'ORIGIN' => HMIS_ORIGIN }
-    post '/hmis/hmis-gql', params: { query: yield, variables: variables }.to_json, headers: headers
+    variables = transform_graphql_variables(variables)
+    params = { query: yield, variables: variables }.compact_blank
+    post '/hmis/hmis-gql', params: params.to_json, headers: graphql_post_headers
     # puts response.body
     if response.code == '200'
       result = JSON.parse(response.body) # , object_class: OpenStruct
@@ -24,6 +24,52 @@ module GraphqlHelpers
       body = JSON.parse(response.body)
       [response, body.to_h]
     end
+  end
+
+  def post_graphql_single(query:, variables: {}, headers: {}, operation_name: nil)
+    variables = transform_graphql_variables(variables)
+    params = { query: query, variables: variables, operationName: operation_name }.compact_blank
+    post '/hmis/hmis-gql', params: params.to_json, headers: graphql_post_headers(headers)
+    # puts response.body
+    if response.code == '200'
+      result = JSON.parse(response.body) # , object_class: OpenStruct
+      raise result.to_h['errors'].first['message'] unless result.to_h['errors'].nil? || result.to_h['errors'].empty?
+
+      [response, result.to_h]
+    else
+      body = JSON.parse(response.body)
+      [response, body.to_h]
+    end
+  end
+
+  def post_graphql_multi(queries:, headers: {})
+    params = queries.map do |query|
+      {
+        variables: transform_graphql_variables(query[:variables]),
+        operationName: query[:operation_name],
+        query: query[:query],
+      }.compact_blank
+    end
+    post '/hmis/hmis-gql', params: { _json: params }.to_json, headers: graphql_post_headers(headers)
+    if response.code == '200'
+      results = JSON.parse(response.body) # , object_class: OpenStruct
+      results.each do |result|
+        raise result.to_h['errors'].first['message'] unless result.to_h['errors'].nil? || result.to_h['errors'].empty?
+      end
+
+      [response, results]
+    else
+      body = JSON.parse(response.body)
+      [response, body.to_h]
+    end
+  end
+
+  def graphql_post_headers(headers = {})
+    headers.merge({ 'CONTENT_TYPE' => 'application/json', 'ORIGIN' => HMIS_ORIGIN })
+  end
+
+  def transform_graphql_variables(variables)
+    variables.deep_transform_keys { |k| k.is_a?(Symbol) ? k.to_s.camelize(:lower) : k }
   end
 
   def scalar_fields(typ)
@@ -68,7 +114,7 @@ module GraphqlHelpers
   def expect_gql_error(arr, message: nil)
     response, result = arr
     error_message = result.dig('errors', 0, 'message')
-    expect(response.status).to eq 500
+    expect(response.status).to eq(500), result.inspect
     expect(error_message).to be_present
     expect(error_message).to eq(message) if message.present?
   end

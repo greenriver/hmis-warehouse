@@ -1,4 +1,5 @@
 reports = [@report]
+coc_count = @report.available_coc_codes.count
 reports << @comparison if @report.include_comparison?
 wb = xlsx_package.workbook
 wb_styles = wb.styles
@@ -22,7 +23,7 @@ wb.add_worksheet(name: 'Report Info') do |sheet|
   sheet.styles.add_style(sz: 12, b: true, alignment: { horizontal: :center })
   sheet.add_row(
     [
-      'Core Demographics Report',
+      'Demographic Summary',
     ],
     style: header_style,
   )
@@ -38,10 +39,10 @@ wb.add_worksheet(name: 'Report Info') do |sheet|
   end
 end
 data_styles = {
-  'Age Breakdowns' => [th_style, nil, nil, nil, percentage_format],
-  'Gender/Age' => [th_style, nil, nil, nil, percentage_format],
-  'Gender Breakdowns' => [th_style, nil, nil, nil, percentage_format],
-  'Race' => [th_style, nil, nil, nil, percentage_format],
+  'Age Breakdowns' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+  'Gender/Age' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+  'Gender Breakdowns' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+  'Race' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
   'Ethnicity' => [th_style, nil, nil, nil, percentage_format],
   'Relationship' => [th_style, nil, nil, nil, percentage_format],
   'Disabilities' => [th_style, nil, nil, nil, percentage_format],
@@ -52,14 +53,14 @@ data_styles = {
   'Number of Times Response' => [th_style, nil, nil, nil, percentage_format],
   'Number of Months' => [th_style, nil, nil, nil, percentage_format],
   'Prior Living Situation' => [th_style, nil, nil, nil, percentage_format],
-  'Household Types' => [th_style, nil, nil, nil, percentage_format],
+  'Household Types' => [th_style, nil, nil, nil, nil, percentage_format, nil] + [nil, nil, percentage_format] * coc_count,
   'Clients in Projects' => [th_style, nil, nil, nil, nil],
-  'Chronic at Entry' => [th_style, nil, nil, nil, percentage_format],
-  'Chronic Type' => [th_style, nil, nil, nil, percentage_format],
-  'High Acuity Type' => [th_style, nil, nil, nil, percentage_format],
-  'Unsheltered' => [th_style, nil, nil, nil, percentage_format],
-  'No Recent Homelessness Type' => [th_style, nil, nil, nil, percentage_format],
-  'Outcome Type' => [th_style, nil, nil, nil, percentage_format],
+  'Chronic at Entry' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+  'Chronic Type' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+  'High Acuity Type' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+  'Unsheltered' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+  'No Recent Homelessness Type' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+  'Outcome Type' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
 }
 wb.add_worksheet(name: 'Data') do |sheet|
   sheet.styles.add_style(sz: 24, b: true, alignment: { horizontal: :center })
@@ -79,7 +80,7 @@ wb.add_worksheet(name: 'Data') do |sheet|
       end
       if title.starts_with?('*')
         title = title.sub('*', '')
-        style = Array.new(12, th_style)
+        style = Array.new(12 + (coc_count * 3), th_style)
       elsif title.starts_with?('_')
         if title.include?('_data_')
           key = title[0..title.index('_data_')].gsub('_', '')

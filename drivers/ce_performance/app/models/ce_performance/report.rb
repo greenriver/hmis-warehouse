@@ -183,11 +183,11 @@ module CePerformance
     end
 
     def clients_title(sub_population_title: nil, vispdat_range: nil, vispdat_type: nil, event_type: nil)
-      return "VI-SPDAT Range: #{vispdat_range}" if vispdat_range.present?
-      return "VI-SPDAT Type: #{vispdat_type}" if vispdat_type.present?
+      return "Housing Needs Assessment Range: #{vispdat_range}" if vispdat_range.present?
+      return "Housing Needs Assessment Type: #{vispdat_type}" if vispdat_type.present?
       return "Event Type: #{::HudUtility2024.event(event_type)}" if event_type.present?
 
-      return sub_population_title
+      sub_population_title
     end
 
     private def populate_universe
@@ -197,7 +197,9 @@ module CePerformance
         report_clients = add_q9b_clients(report_clients, period, ce_apr)
         report_clients = add_q10_clients(report_clients, period, ce_apr)
         Client.import!(
-          report_clients.values,
+          # We're getting weird issues where sometimes we don't have a destination client,
+          # filter out any clients that will cause issues
+          report_clients.values.select { |c| c.destination_client_id.present? },
           batch_size: 5_000,
           on_duplicate_key_update: {
             conflict_target: [:id],
@@ -209,7 +211,7 @@ module CePerformance
     end
 
     private def add_q5a_clients(report_clients, period, ce_apr)
-      ce_apr_clients = answer_clients(ce_apr, 'Q5a', 'B1')
+      ce_apr_clients = answer_clients(ce_apr, 'Q5a', 'B2')
       ce_apr_clients.each do |ce_apr_client|
         report_client = report_clients[ce_apr_client[:client_id]] || Client.new(
           report_id: id,
@@ -463,7 +465,7 @@ module CePerformance
         'Question 9',
         'Question 10',
       ]
-      generator = HudApr::Generators::CeApr::Fy2021::Generator
+      generator = HudApr.current_generator(report: :ce_apr)
       {}.tap do |reports|
         periods.each do |period, processed_filter|
           report = HudReports::ReportInstance.from_filter(
@@ -513,14 +515,14 @@ module CePerformance
           },
         )
         if include_supplemental?
-          headers ['vispdat_type'] = 'VI-SPDAT Type'
-          headers ['vispdat_range'] = 'VI-SPDAT Range'
-          headers ['assessment_score'] = 'VI-SPDAT Score'
-          headers ['prioritization_tool_type'] = 'Prioritization Tool Type'
-          headers ['prioritization_tool_score'] = 'Prioritization Tool Score'
-          headers ['community'] = 'Community'
-          headers ['client_lgbtq'] = 'Client Identifies as LGBTQ'
-          headers ['lgbtq_household_members'] = 'Household Identifies as LGBTQ'
+          headers['vispdat_type'] = 'Housing Needs Assessment Type'
+          headers['vispdat_range'] = 'Housing Needs Assessment Range'
+          headers['assessment_score'] = 'Housing Needs Assessment Score'
+          headers['prioritization_tool_type'] = 'Prioritization Tool Type'
+          headers['prioritization_tool_score'] = 'Prioritization Tool Score'
+          headers['community'] = 'Community'
+          headers['client_lgbtq'] = 'Client Identifies as LGBTQ'
+          headers['lgbtq_household_members'] = 'Household Identifies as LGBTQ'
           headers['dv_survivor'] = 'Survivor of Domestic Violence'
         end
       end.freeze

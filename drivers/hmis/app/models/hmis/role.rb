@@ -6,7 +6,8 @@
 
 class Hmis::Role < ::ApplicationRecord
   self.table_name = :hmis_roles
-  # Warehouse roles do not have a paper trail, so neither do these
+  acts_as_paranoid
+  has_paper_trail
 
   has_many :access_controls, class_name: '::Hmis::AccessControl', inverse_of: :role
   has_many :users, through: :access_controls
@@ -124,7 +125,7 @@ class Hmis::Role < ::ApplicationRecord
           'Projects',
         ],
       },
-      can_manage_inventory: {
+      can_manage_inventory: { # TODO: should be renamed to "can manage units"
         description: 'Ability to manage bed and unit capacity in the project',
         administrative: false,
         access: [:editable],
@@ -154,6 +155,22 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         categories: [
           'Projects',
+        ],
+      },
+      can_impersonate_users: {
+        description: 'Ability to impersonate other users',
+        administrative: true,
+        access: [:editable],
+        categories: [
+          'Users',
+        ],
+      },
+      can_audit_users: {
+        description: 'Ability to audit users',
+        administrative: true,
+        access: [:viewable],
+        categories: [
+          'Users',
         ],
       },
       can_edit_organization: {
@@ -220,8 +237,24 @@ class Hmis::Role < ::ApplicationRecord
           'Client Access',
         ],
       },
+      can_view_hud_chronic_status: {
+        description: "Grants access to see Chronic at PIT. Gives you an idea of someones previous enrollments, even ones you can't otherwise see.",
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Client Access',
+        ],
+      },
       can_view_enrollment_details: {
-        description: 'Grants access to view enrollments',
+        description: 'Grants access to view enrollment details, including related records such as Assessments, Services, Current Living Situations, and more.',
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Enrollments',
+        ],
+      },
+      can_view_limited_enrollment_details: {
+        description: 'Grants access to view limited information about an enrollment, including: entry date, exit date, project name, project type, move-in date, and last bed night date.',
         administrative: false,
         access: [:viewable],
         categories: [
@@ -237,7 +270,7 @@ class Hmis::Role < ::ApplicationRecord
         ],
       },
       can_edit_enrollments: {
-        description: 'Grants access to edit enrollments',
+        description: 'Grants access to edit enrollments, including: adding and removing household members, performing assessments, recording services, and creating and editing any other Enrollment-related records.',
         administrative: false,
         access: [:editable],
         categories: [
@@ -258,6 +291,14 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         categories: [
           'Enrollments',
+        ],
+      },
+      can_audit_enrollments: {
+        description: 'Access to see who has changed an enrollment record.',
+        administrative: true,
+        access: [:viewable],
+        categories: [
+          'Audit History',
         ],
       },
       can_delete_assessments: {
@@ -306,6 +347,41 @@ class Hmis::Role < ::ApplicationRecord
         access: [:viewable],
         categories: [
           'Audit History',
+        ],
+      },
+      can_merge_clients: {
+        description: 'Grants the ability to merge and split client records',
+        administrative: true,
+        access: [:editable],
+        categories: [
+          'Administrative',
+          'Client Access',
+        ],
+      },
+      can_split_households: {
+        description: 'Grants the ability to merge and split households',
+        administrative: true,
+        access: [:editable],
+        categories: [
+          'Administrative',
+          'Enrollments',
+        ],
+      },
+      can_transfer_enrollments: {
+        description: 'Grants the ability to transfer enrollments between projects',
+        administrative: true,
+        access: [:editable],
+        categories: [
+          'Administrative',
+          'Enrollments',
+        ],
+      },
+      can_configure_data_collection: {
+        description: 'Grants access to configuration tool for forms, services, and assessments',
+        administrative: true,
+        access: [:editable],
+        categories: [
+          'Administrative',
         ],
       },
     }

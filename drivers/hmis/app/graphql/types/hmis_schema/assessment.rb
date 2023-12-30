@@ -9,6 +9,7 @@
 module Types
   class HmisSchema::Assessment < Types::BaseObject
     include Types::HmisSchema::HasCustomDataElements
+    include Types::HmisSchema::HasHudMetadata
 
     available_filter_options do
       arg :type, [Types::Forms::Enums::AssessmentRole]
@@ -18,14 +19,10 @@ module Types
 
     description 'Custom Assessment'
     field :id, ID, null: false
+    field :lock_version, Integer, null: false
     field :enrollment, HmisSchema::Enrollment, null: false
     field :assessment_date, GraphQL::Types::ISO8601Date, null: false
     field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: true
-    field :enrollment_coc, String, null: true
-    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
-    field :user, HmisSchema::User, null: true
     field :client, HmisSchema::Client, null: false
     field :in_progress, Boolean, null: false
     access_field do
@@ -116,6 +113,7 @@ module Types
 
       # Build OpenStruct for DisabilityGroup type
       OpenStruct.new(
+        id: object.id, # for logging
         information_date: object.assessment_date,
         data_collection_stage: object.data_collection_stage,
         enrollment: enrollment,
@@ -126,10 +124,6 @@ module Types
 
     def enrollment
       load_ar_association(object, :enrollment)
-    end
-
-    def user
-      load_ar_association(object, :user)
     end
   end
 end

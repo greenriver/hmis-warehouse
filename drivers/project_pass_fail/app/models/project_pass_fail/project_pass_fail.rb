@@ -171,7 +171,7 @@ module ProjectPassFail
     private def populate_clients
       projects.each do |project|
         clients = []
-        project.apr = run_apr(project.project_id)
+        project.apr = run_apr(project)
         project.apr.universe('Question 6').universe_members.preload(:universe_membership).find_each do |member|
           apr_client = member.universe_membership
           client = Client.new(
@@ -209,15 +209,16 @@ module ProjectPassFail
       end
     end
 
-    private def run_apr(p_id)
+    private def run_apr(pf_project)
       return unless RailsDrivers.loaded.include?(:hud_apr)
 
-      coc_codes = filter[:coc_codes].presence || filter[:coc_code]
+      # We need to pass the correct CoC code to the APR, if we've chosen to run for a CoC, just use that always, otherwise, pull the CoC Codes from the project
+      coc_codes = filter[:coc_codes].presence || pf_project.project&.project_cocs&.map(&:effective_coc_code)
       apr_filter = ::Filters::HudFilterBase.new(
         start: filter.start,
         end: filter.end,
         user_id: user_id,
-        project_ids: [p_id],
+        project_ids: [pf_project.project_id],
         coc_codes: coc_codes,
         enforce_one_year_range: false,
       )
@@ -225,7 +226,7 @@ module ProjectPassFail
       questions = [
         'Question 6',
       ]
-      generator = HudApr::Generators::Apr::Fy2021::Generator
+      generator = HudApr.current_generator(report: :apr)
       apr = HudReports::ReportInstance.from_filter(apr_filter, generator.title, build_for_questions: questions)
       generator.new(apr).run!(email: false, manual: false)
       apr

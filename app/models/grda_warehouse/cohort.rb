@@ -106,7 +106,7 @@ module GrdaWarehouse
 
     scope :editable_by, ->(user) do
       return none unless user.present?
-      return none unless ! user.using_acls? && viewable_permissions.map { |perm| user.send("#{perm}?") }.any? # TODO: START_ACL cleanup after permission migration is complete
+      return none if user.using_acls? && viewable_permissions.map { |perm| user.send("#{perm}?") }.none? # TODO: START_ACL cleanup after permission migration is complete
 
       # TODO: START_ACL cleanup after permission migration is complete
       if user.using_acls?
@@ -123,7 +123,7 @@ module GrdaWarehouse
 
         where(id: ids)
       else
-        if user.can_edit_some_cohorts # rubocop:disable Style/IfInsideElse
+        if user.can_edit_some_cohorts? # rubocop:disable Style/IfInsideElse
           if current_scope.present?
             current_scope.merge(user.cohorts)
           else
@@ -159,10 +159,13 @@ module GrdaWarehouse
     end
 
     def search_clients(page: nil, per: nil, population: :active, user:)
-      @client_search_scope = cohort_clients.joins(:client)
-      scope = clients_for_tab(user, population)
+      @client_search_scope = clients_for_tab(user, population)
+      scope = if page.present? && per.present?
+        @client_search_scope.order(id: :asc).page(page).per(per)
+      else
+        @client_search_scope
+      end
 
-      scope = scope.order(id: :asc).page(page).per(per) if page.present? && per.present?
       @client_search_result = scope.preload(
         :cohort_client_changes,
         {

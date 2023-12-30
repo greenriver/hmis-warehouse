@@ -7,12 +7,15 @@
 module Mutations
   class DeleteAssessment < BaseMutation
     argument :id, ID, required: true
+    argument :assessment_lock_version, Integer, required: false
 
     field :assessment_id, ID, null: true
 
-    def resolve(id:)
+    def resolve(id:, assessment_lock_version: nil)
       record = Hmis::Hud::CustomAssessment.viewable_by(current_user).find_by(id: id)
       raise HmisErrors::ApiError, 'Record not found' unless record.present?
+
+      record.lock_version = assessment_lock_version if assessment_lock_version
 
       if record.deletion_would_cause_conflicting_enrollments?
         errors = HmisErrors::Errors.new
@@ -47,7 +50,7 @@ module Mutations
             record.enrollment&.accept_referral!(current_user: current_user) if record.exit? && !is_wip
 
             # Deleting the Intake Assessment deletes the enrollment
-            record.enrollment&.destroy if record.intake?
+            record.enrollment&.destroy! if record.intake? && !record.enrollment&.intake_assessment&.present?
           end,
         )
 

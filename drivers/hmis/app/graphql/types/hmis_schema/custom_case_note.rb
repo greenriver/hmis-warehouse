@@ -8,15 +8,14 @@
 
 module Types
   class HmisSchema::CustomCaseNote < Types::BaseObject
+    include Types::HmisSchema::HasHudMetadata
+
     description 'Case Note'
     field :id, ID, null: false
     field :enrollment, HmisSchema::Enrollment, null: false
     field :client, HmisSchema::Client, null: false
     field :content, String, null: false
-    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
-    field :user, HmisSchema::User, null: true
+    field :information_date, GraphQL::Types::ISO8601Date, null: true
 
     def enrollment
       load_ar_association(object, :enrollment)
@@ -24,10 +23,6 @@ module Types
 
     def client
       load_ar_association(object, :client)
-    end
-
-    def user
-      load_ar_association(object, :user)
     end
   end
 end

@@ -10,8 +10,9 @@
   %table.table.table-striped.w-100
     %thead
       %tr
-        %th Original Name
+        %th.w-20 Original Name
         %th Current Name
+        %th.w-40 Description
         %th Type
     %tbody
       - @columns.each do |column|
@@ -22,6 +23,14 @@
             %td
               = f.input "#{column.column}", label: false, input_html: { value: column.title }
             %td
-              = column_type(column)
+              - value = if column.show_description? then column.description else '' end
+              - default = if column.show_default_description? then "Default: #{column.description_translation_key}" else '' end
+              = f.input "#{column.column}_description", label: false, as: :text, input_html: { value: value }, hint: default
+            %td
+              - type = column_type(column)
+              = type
+              - if type == 'Read only'
+                %i.icon-info{ data: { toggle: :tooltip, title: 'Calculation cannot be adjusted.  The description and column name should only be changed to increase clarity of the calculation.'}}
+
   .text-right
     = f.submit value: 'Update Column Names', class: 'btn btn-primary'

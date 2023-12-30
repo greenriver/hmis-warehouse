@@ -46,9 +46,7 @@ module HmisCsvTwentyTwentyFour::Exporter
         row.ProjectName = GrdaWarehouse::Hud::Project.confidential_project_name
         row.ProjectCommonName = row.ProjectName
       end
-      row.ProjectName = row.ProjectName[0...200] if row.ProjectName.present?
       row.ProjectCommonName = row.ProjectName if row.ProjectCommonName.blank?
-      row.ProjectCommonName = row.ProjectCommonName[0...200] if row.ProjectCommonName.present?
 
       row
     end

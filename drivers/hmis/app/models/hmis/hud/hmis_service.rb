@@ -4,14 +4,17 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# backed by database view
 class Hmis::Hud::HmisService < Hmis::Hud::Base
   self.table_name = :hmis_services
   self.primary_key = :id
 
-  include ::Hmis::Hud::Concerns::EnrollmentRelated
+  replace_scope :viewable_by, ->(user) do
+    joins(:enrollment).merge(Hmis::Hud::Enrollment.viewable_by(user))
+  end
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
 
-  belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
+  belongs_to :enrollment, **hmis_enrollment_relation, optional: true
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :services
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'

@@ -20,6 +20,7 @@ module Types
     include Types::HmisSchema::HasServices
     include Types::HmisSchema::HasHmisParticipations
     include Types::HmisSchema::HasCeParticipations
+    include Types::HmisSchema::HasHudMetadata
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2024')
@@ -64,10 +65,6 @@ module Types
     field :residential_affiliation_project_ids, [ID], null: false
     field :residential_affiliation_projects, [HmisSchema::Project], null: false
     field :affiliated_projects, [HmisSchema::Project], null: false
-    hud_field :date_updated
-    hud_field :date_created
-    hud_field :date_deleted
-    field :user, HmisSchema::User, null: true
     field :active, Boolean, null: false
     enrollments_field filter_args: { omit: [:project_type], type_name: 'EnrollmentsForProject' }
     custom_data_elements_field
@@ -96,17 +93,15 @@ module Types
     field :data_collection_features, [Types::HmisSchema::DataCollectionFeature], null: false, description: 'Occurrence Point data collection features that are enabled for this Project (e.g. Current Living Situations, Events)'
     field :occurrence_point_forms, [Types::HmisSchema::OccurrencePointForm], null: false, method: :occurrence_point_form_instances, description: 'Forms for individual data elements that are collected at occurrence for this Project (e.g. Move-In Date)'
 
-    # TODO: resolve related HMISParticipation records
-    # TODO: resolve related CEParticipation records
-
     def hud_id
       object.project_id
     end
 
     def enrollments(**args)
-      return Hmis::Hud::Enrollment.none unless current_user.can_view_enrollment_details_for?(object)
+      # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
+      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
 
-      resolve_enrollments(object.enrollments_including_wip, **args)
+      resolve_enrollments(object.enrollments_including_wip, dangerous_skip_permission_check: true, **args)
     end
 
     def organization
@@ -118,7 +113,10 @@ module Types
     end
 
     def services(**args)
-      resolve_services(**args)
+      # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
+      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
+
+      resolve_services(**args, dangerous_skip_permission_check: true)
     end
 
     def residential_affiliation_projects
@@ -139,7 +137,7 @@ module Types
       capacity = project_units.group(:unit_type_id).count
       unoccupied = project_units.unoccupied_on.group(:unit_type_id).count
 
-      object.units.map(&:unit_type).uniq.map do |unit_type|
+      object.units.map(&:unit_type).uniq.compact.map do |unit_type|
         OpenStruct.new(
           id: unit_type.id,
           unit_type: unit_type.description,
@@ -159,28 +157,40 @@ module Types
     end
 
     def households(**args)
-      resolve_households(object.households_including_wip, **args)
+      # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
+      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
+
+      resolve_households(object.households_including_wip, **args, dangerous_skip_permission_check: true)
     end
 
     def referral_requests(**args)
+      raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_incoming_referrals)
+
       scoped_referral_requests(object.external_referral_requests, **args)
     end
 
+    # TODO(#186102846) support user-specified sorting/filtering
     def incoming_referral_postings(**args)
-      scoped_referral_postings(object.external_referral_postings.active, **args)
+      raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_incoming_referrals)
+
+      # Only show Active postings on the incoming referral table
+      scoped_referral_postings(object.external_referral_postings.active, sort_order: :oldest_to_newest, **args)
     end
 
     def arel
       Hmis::ArelHelper.instance
     end
 
+    # TODO(#186102846) support user-specified sorting/filtering
     def outgoing_referral_postings(**args)
       raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_outgoing_referrals)
 
-      scope = HmisExternalApis::AcHmis::ReferralPosting.active
-        .joins(referral: :enrollment)
-        .where(arel.e_t[:ProjectID].eq(object.ProjectID))
-      scoped_referral_postings(scope, **args)
+      # Show all postings on the outgoing referral table
+      scope = HmisExternalApis::AcHmis::ReferralPosting.
+        joins(referral: :enrollment).
+        where(arel.e_t[:ProjectID].eq(object.ProjectID))
+
+      scoped_referral_postings(scope, sort_order: :relevent_status, **args)
     end
   end
 end

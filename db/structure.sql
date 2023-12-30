@@ -704,6 +704,96 @@ ALTER SEQUENCE public.hmis_access_groups_id_seq OWNED BY public.hmis_access_grou
 
 
 --
+-- Name: hmis_activity_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_activity_logs (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    data_source_id bigint NOT NULL,
+    resolved_fields jsonb,
+    ip_address character varying NOT NULL,
+    session_hash character varying,
+    variables jsonb,
+    referer character varying,
+    operation_name character varying,
+    header_page_path character varying,
+    header_client_id bigint,
+    header_enrollment_id bigint,
+    header_project_id bigint,
+    created_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: COLUMN hmis_activity_logs.variables; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_activity_logs.variables IS 'GraphQL variables';
+
+
+--
+-- Name: COLUMN hmis_activity_logs.referer; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_activity_logs.referer IS 'user-provided';
+
+
+--
+-- Name: COLUMN hmis_activity_logs.operation_name; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_activity_logs.operation_name IS 'user-provided GraphQL operation name';
+
+
+--
+-- Name: COLUMN hmis_activity_logs.header_page_path; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_activity_logs.header_page_path IS 'user-provided, decrypted path';
+
+
+--
+-- Name: COLUMN hmis_activity_logs.header_client_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_activity_logs.header_client_id IS 'user-provided';
+
+
+--
+-- Name: COLUMN hmis_activity_logs.header_enrollment_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_activity_logs.header_enrollment_id IS 'user-provided';
+
+
+--
+-- Name: COLUMN hmis_activity_logs.header_project_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_activity_logs.header_project_id IS 'user-provided';
+
+
+--
+-- Name: hmis_activity_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_activity_logs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_activity_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_activity_logs_id_seq OWNED BY public.hmis_activity_logs.id;
+
+
+--
 -- Name: hmis_roles; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -741,7 +831,16 @@ CREATE TABLE public.hmis_roles (
     can_manage_denied_referrals boolean DEFAULT false,
     can_enroll_clients boolean DEFAULT false,
     can_view_open_enrollment_summary boolean DEFAULT false,
-    can_view_project boolean DEFAULT false
+    can_view_project boolean DEFAULT false,
+    can_view_hud_chronic_status boolean DEFAULT false,
+    can_merge_clients boolean DEFAULT false,
+    can_split_households boolean DEFAULT false,
+    can_transfer_enrollments boolean DEFAULT false,
+    can_view_limited_enrollment_details boolean DEFAULT false,
+    can_impersonate_users boolean DEFAULT false,
+    can_audit_users boolean DEFAULT false,
+    can_audit_enrollments boolean DEFAULT false,
+    can_configure_data_collection boolean DEFAULT false
 );
 
 
@@ -1573,7 +1672,9 @@ CREATE TABLE public.roles (
     can_see_confidential_files boolean DEFAULT false,
     can_edit_theme boolean DEFAULT false,
     system boolean DEFAULT false NOT NULL,
-    can_edit_collections boolean DEFAULT false
+    can_edit_collections boolean DEFAULT false,
+    can_publish_reports boolean DEFAULT false,
+    deleted_at timestamp without time zone
 );
 
 
@@ -2374,6 +2475,13 @@ ALTER TABLE ONLY public.hmis_access_groups ALTER COLUMN id SET DEFAULT nextval('
 
 
 --
+-- Name: hmis_activity_logs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_activity_logs ALTER COLUMN id SET DEFAULT nextval('public.hmis_activity_logs_id_seq'::regclass);
+
+
+--
 -- Name: hmis_roles id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2774,6 +2882,14 @@ ALTER TABLE ONLY public.hmis_access_controls
 
 ALTER TABLE ONLY public.hmis_access_groups
     ADD CONSTRAINT hmis_access_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_activity_logs hmis_activity_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_activity_logs
+    ADD CONSTRAINT hmis_activity_logs_pkey PRIMARY KEY (id);
 
 
 --
@@ -3281,6 +3397,13 @@ CREATE INDEX index_hmis_access_controls_on_role_id ON public.hmis_access_control
 --
 
 CREATE INDEX index_hmis_access_controls_on_user_group_id ON public.hmis_access_controls USING btree (user_group_id);
+
+
+--
+-- Name: index_hmis_activity_logs_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_activity_logs_on_user_id ON public.hmis_activity_logs USING btree (user_id);
 
 
 --
@@ -4042,6 +4165,17 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230910175333'),
 ('20230910180118'),
 ('20230916124819'),
-('20230918231940');
+('20230918231940'),
+('20230923000619'),
+('20230927131152'),
+('20231009120833'),
+('20231017185729'),
+('20231023000619'),
+('20231030184613'),
+('20231103165752'),
+('20231116185857'),
+('20231129173326'),
+('20231201173326'),
+('20231206162323');
 
 

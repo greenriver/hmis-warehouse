@@ -87,17 +87,6 @@ module Hmis::Hud::Processors
       )
     end
 
-    def self.multi_fields_to_input(client, input_field, enum_map, none_field)
-      none_value = client.send(none_field)
-      return { input_field => [none_value] } if none_value.present?
-
-      {
-        input_field => enum_map.base_members.
-          select { |item| client.send(item[:key]) == 1 }.
-          map { |item| item[:value] },
-      }
-    end
-
     def self.input_to_multi_fields(input_field, enum_map, not_collected_key, none_field)
       result = {}
       return result if input_field.nil?

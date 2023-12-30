@@ -70,6 +70,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         saveAssessment(input: $input) {
           assessment {
             id
+            lockVersion
           }
           #{error_fields}
         }
@@ -83,8 +84,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       @wip_assessment_ids = []
       [e1, e2, e3].each do |e|
         _resp, result = post_graphql(input: { input: { enrollment_id: e.id, **save_input } }) { save_assessment }
-        id = result.dig('data', 'saveAssessment', 'assessment', 'id')
-        @wip_assessment_ids.push(id)
+        @wip_assessment_ids << result.dig('data', 'saveAssessment', 'assessment')
       end
     end
 
@@ -94,7 +94,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(3)
 
       input = {
-        assessment_ids: @wip_assessment_ids,
+        submissions: @wip_assessment_ids,
         confirmed: false,
       }
       response, result = post_graphql(input: input) { mutation }
@@ -118,7 +118,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       Hmis::Hud::CustomAssessment.first.form_processor.update(values: incomplete_values)
 
       input = {
-        assessment_ids: @wip_assessment_ids,
+        submissions: @wip_assessment_ids,
         confirmed: false,
       }
       response, result = post_graphql(input: input) { mutation }
@@ -140,7 +140,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       Hmis::Hud::CustomAssessment.last.form_processor.update(values: incomplete_values)
 
       input = {
-        assessment_ids: @wip_assessment_ids,
+        submissions: @wip_assessment_ids,
         confirmed: true,
       }
       response, result = post_graphql(input: input) { mutation }
@@ -164,8 +164,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       @wip_assessment_ids = []
       [e1, e4].each do |e|
         _resp, result = post_graphql(input: { input: { enrollment_id: e.id, **save_input } }) { save_assessment }
-        id = result.dig('data', 'saveAssessment', 'assessment', 'id')
-        @wip_assessment_ids.push(id)
+        @wip_assessment_ids << result.dig('data', 'saveAssessment', 'assessment')
       end
     end
 
@@ -175,19 +174,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(2)
 
       input = {
-        assessment_ids: @wip_assessment_ids,
+        submissions: @wip_assessment_ids,
         confirmed: true,
       }
-      response, result = post_graphql(input: input) { mutation }
-      assessments = result.dig('data', 'submitHouseholdAssessments', 'assessments')
-      errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
-
-      aggregate_failures 'checking response' do
-        expect(response.status).to eq(200), result&.inspect
-        expect(assessments).to be_nil
-        expect(errors.size).to eq(1)
-        expect(errors).to match([a_hash_including('severity' => 'error', 'fullMessage' => 'Assessments must all belong to the same household.')])
-      end
+      expect_gql_error post_graphql(input: input) { mutation }
     end
   end
 
@@ -201,7 +191,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:definition) { create :hmis_intake_assessment_definition }
     let(:input) do
       {
-        assessment_ids: [a1.id, a2.id, a3.id],
+        submissions: [a1, a2, a3].map { |a| { id: a.id, lockVersion: a.lock_version } },
         confirmed: true,
       }
     end
@@ -257,7 +247,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:definition) { create :hmis_exit_assessment_definition }
     let(:input) do
       {
-        assessment_ids: [a1.id, a2.id, a3.id],
+        submissions: [a1, a2, a3].map { |a| { id: a.id, lockVersion: a.lock_version } },
         confirmed: true,
       }
     end

@@ -1,0 +1,18 @@
+.well
+  = simple_form_for :filter, method: :get do |f|
+    .row
+      .col-3
+        = f.input :user_id, as: :select_two, collection: User.active.not_system.order(:first_name, :last_name), selected: params.dig(:filter, :user_id).to_i, required: false, include_blank: 'Any user'
+    .row
+      .col
+        = f.input :user_group_id, as: :select_two, collection: Hmis::UserGroup.all.order(:name), selected: params.dig(:filter, :user_group_id).to_i, required: false, include_blank: 'Any user group'
+      .col
+        = f.input :role_id, as: :select_two, collection: Hmis::Role.order(:name), selected: params.dig(:filter, :role_id).to_i, required: false, include_blank: 'Any role'
+      .col
+        = f.input :access_group_id, as: :select_two, label: 'Collection', collection: Hmis::AccessGroup.all.order(:name), selected: params.dig(:filter, :access_group_id).to_i, required: false, include_blank: 'Any collection'
+      .col-3.d-flex.align-items-center
+        .ml-4.d-flex
+          = f.button :submit, value: 'Apply Filter'
+          .ml-6.align-self-center
+            = link_to 'Reset', hmis_admin_access_controls_path
+    

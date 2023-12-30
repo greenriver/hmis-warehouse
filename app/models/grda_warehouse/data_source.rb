@@ -31,7 +31,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   accepts_nested_attributes_for :projects
   has_many :exports, class_name: 'GrdaWarehouse::Hud::Export', inverse_of: :data_source
   has_many :group_viewable_entities, -> { where(entity_type: 'GrdaWarehouse::DataSource') }, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
-
+  has_many :custom_data_element_definitions, class_name: 'Hmis::Hud::CustomDataElementDefinition'
   has_many :uploads
   has_many :non_hmis_uploads
 
@@ -554,11 +554,35 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     hmis.present?
   end
 
+  def hmis_url_for(entity)
+    return unless hmis?
+    return unless entity&.data_source_id == id
+
+    base = "https://#{hmis}"
+    url = case entity
+    when GrdaWarehouse::Hud::Project
+      "#{base}/projects/#{entity.id}"
+    when GrdaWarehouse::Hud::Organization
+      "#{base}/organizations/#{entity.id}"
+    when GrdaWarehouse::Hud::Client
+      "#{base}/client/#{entity.id}"
+    when GrdaWarehouse::Hud::Enrollment
+      "#{base}/client/#{entity.client&.id}/enrollments/#{entity.id}"
+    end
+
+    # For any other Enrollment-related record, link to the enrollment page
+    url ||= "#{base}/client/#{entity.client&.id}/enrollments/#{entity.enrollment&.id}" if entity.respond_to?(:enrollment) && entity.respond_to?(:client)
+
+    url
+  end
+
   private def maintain_system_group
     if Rails.env.test?
       AccessGroup.maintain_system_groups(group: :data_sources)
+      Collection.maintain_system_groups(group: :data_sources)
     else
       AccessGroup.delayed_system_group_maintenance(group: :data_sources)
+      Collection.delayed_system_group_maintenance(group: :data_sources)
     end
   end
 

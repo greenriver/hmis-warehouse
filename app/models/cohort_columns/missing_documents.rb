@@ -9,6 +9,8 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :missing_documents
     attribute :translation_key, String, lazy: true, default: 'Missing Documents'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
+    attribute :description_translation_key, String, lazy: true, default: 'List of documents the client does not have attached to their record that are expected in the global "required documents" feature.'
+    attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def available_for_rules?
       false

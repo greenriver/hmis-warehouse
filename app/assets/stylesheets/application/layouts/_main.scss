@@ -30,3 +30,18 @@
   background-color: $brand-danger-d;
   color: white;
 }
+
+.l-main__full-width-banner {
+  padding-top: 60px;
+  position: relative;
+  &:after {
+    content: '';
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    height: 1px;
+    background-color: rgba(0, 0, 0, 0.28);
+    filter: blur(1px);
+  }
+}

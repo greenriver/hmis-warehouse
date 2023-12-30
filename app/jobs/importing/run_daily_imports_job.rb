@@ -160,6 +160,8 @@ module Importing
 
         YouthFollowUpsJob.set(priority: 10).perform_later
         SystemCohortsJob.set(priority: 10).perform_later
+        AccessGroup.delayed_system_group_maintenance
+        Collection.delayed_system_group_maintenance
         GrdaWarehouse::Cohort.delay.maintain_auto_maintained!
         SyncSyntheticDataJob.perform_later if CasBase.db_exists?
 

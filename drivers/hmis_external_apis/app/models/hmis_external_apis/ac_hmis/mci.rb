@@ -50,9 +50,8 @@ module HmisExternalApis::AcHmis
         # "middleNameSearchCriteria": 0,  # FIXME: No documentation for how to use this
         # "lastNameSearchCriteria": 0,    # FIXME: No documentation for how to use this
       }
-      result = conn.post('clients/v1/api/clients/clearance', payload)
-
-      raise(Error, result.error) if result.error
+      result = conn.post('clients/v1/api/clients/clearance', payload).
+        then { |r| handle_error(r) }
 
       Rails.logger.info "Did clearance for client #{client.id}"
       return [] if result.http_status == 204
@@ -84,19 +83,14 @@ module HmisExternalApis::AcHmis
       payload = MciPayload.from_client(client, mci_id: nil)
 
       endpoint = 'clients/v1/api/clients/newclient'
-      result = conn.post(endpoint, payload)
+      result = conn.post(endpoint, payload).then { |r| handle_error(r) }
 
-      if result.error
-        raise(Error, result.error['detail']) if result.error
-      else
-        # Store MCI ID for client
-        # TODO: store MCI Unique ID as well
-        external_id = create_external_id(
-          source: client,
-          value: result.parsed_body,
-          external_request_log: result.request_log,
-        )
-      end
+      # Store MCI ID for clientØ
+      external_id = create_external_id(
+        source: client,
+        value: result.parsed_body,
+        external_request_log: result.request_log,
+      )
 
       Rails.logger.info "Gave client #{client.id} an external ID with primary key of #{external_id.id}"
 
@@ -116,9 +110,7 @@ module HmisExternalApis::AcHmis
 
       payload = MciPayload.from_client(client, mci_id: external_id.value)
 
-      result = conn.post('clients/v1/api/clients/updateclient', payload)
-
-      raise(Error, result.error) if result.error
+      conn.post('clients/v1/api/clients/updateclient', payload).then { |r| handle_error(r) }
 
       Rails.logger.info "Updated MCI information for client #{client.id} with external ID with primary key of #{external_id.id}"
 
@@ -154,9 +146,9 @@ module HmisExternalApis::AcHmis
     # @return [Hmis::Hud::Client, nil]
     def find_client_by_mci(mci_id)
       # If multiple clients with this mci id, choose client with earliest creation date
-      client_scope
-        .order(DateCreated: :asc)
-        .first_by_external_id(namespace: SYSTEM_ID, value: mci_id)
+      client_scope.
+        order(DateCreated: :asc).
+        first_by_external_id(namespace: SYSTEM_ID, value: mci_id)
     end
 
     # @param source [Hmis::Hud::Client]
@@ -180,12 +172,21 @@ module HmisExternalApis::AcHmis
 
     private
 
+    def handle_error(result)
+      Rails.logger.error "MCI Error: #{result.error}" if result.error
+      Sentry.capture_exception(StandardError.new(result.error)) if result.error
+      raise(Error, result.error) if result.error
+
+      result
+    end
+
     def get_external_id(source)
       source.ac_hmis_mci_ids.to_a.min_by(&:id)
     end
 
     def conn
-      @conn ||= HmisExternalApis::OauthClientConnection.new(creds)
+      # connection timeout increased to 10 seconds due to slow clearance endpoint
+      @conn ||= HmisExternalApis::OauthClientConnection.new(creds, connection_timeout: 10)
     end
 
     def client_scope

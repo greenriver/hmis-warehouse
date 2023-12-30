@@ -29,5 +29,14 @@ Rails.application.reloader.to_prepare do
     return if GrdaWarehouse::Hud::HmisParticipation.exists? || GrdaWarehouse::Hud::CeParticipation.exists?
 
     HudTwentyTwentyTwoToTwentyTwentyFour::DbTransformer.up
+
+    # After the migration to FY2024, do some cleanup
+
+    # Any exit record that has a new destination invalidates the cached one on the ServiceHistoryEnrollment record
+    # queue those up for re-processing
+    she_t = GrdaWarehouse::ServiceHistoryEnrollment.arel_table
+    ex_t = GrdaWarehouse::Hud::Exit.arel_table
+    GrdaWarehouse::Hud::Enrollment.joins(:exit, :service_history_enrollment).where(she_t[:destination].not_eq(ex_t[:Destination])).invalidate_processing!
+    GrdaWarehouse::Tasks::ServiceHistory::Enrollment.queue_batch_process_unprocessed!
   end
 end

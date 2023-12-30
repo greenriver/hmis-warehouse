@@ -8,17 +8,26 @@
 
 module Types
   class Application::User < Types::BaseObject
+    # maps to Hmis::User
     description 'User account for a user of the system'
     graphql_name 'ApplicationUser'
     field :id, ID, null: false
     field :name, String, null: false
+    field :email, String, null: false
+    field :first_name, String, null: true
+    field :last_name, String, null: true
+    field :activity_logs, Types::Application::ActivityLog.page_type, null: false
     field :recent_items, [Types::HmisSchema::OmnisearchResult], null: false
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
 
+    available_filter_options do
+      arg :search_term, String
+    end
+
     def name
-      [object.first_name, object.last_name].compact.join(' ')
+      object.full_name || "User #{object.id}"
     end
 
     def recent_items
@@ -26,6 +35,12 @@ module Types
       return [] unless current_user == object
 
       current_user.recent_items
+    end
+
+    def activity_logs
+      raise 'access denied' unless current_user.can_audit_users?
+
+      object.activity_logs
     end
   end
 end

@@ -19,7 +19,6 @@
           %span{data: {toggle: :tooltip, title: @client.demographic_calculation_logic_description(:veteran_status)}} Veteran Status
         %th
         %th
-        %th
     %tbody
       %tr
         %td.destination-data-source-tag{data: {toggle: :tooltip, title: 'Data from this row is used in reporting.', container: 'body'}}
@@ -36,9 +35,9 @@
         %td= @client.gender
         %td= @client.race_description(include_missing_reason: true)
         %td= HudUtility2024.no_yes_reasons_for_missing_data @client.VeteranStatus
-        %td{colspan: 3}
+        %td{colspan: 2}
 
-      - source_clients.joins(:data_source).each do |client|
+      - source_clients.joins(:data_source).preload(:data_source).each do |client|
         = render 'clients/demographic_row', client: client, authoritative_data_source_ids: authoritative_data_source_ids
 
 

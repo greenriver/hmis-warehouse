@@ -5,14 +5,18 @@
 ###
 
 class Hmis::Filter::BaseFilter
+  include ::Hmis::Concerns::HmisArelHelper
+
   attr_accessor :input
   def initialize(input)
     self.input = input
   end
 
-  def filter_scope(scope)
-    scope
-  end
+  # implement in subclass
+  # def filter_scope(scope)
+  #   scope = ensure_scope(scope)
+  #   scope...
+  # end
 
   protected
 
@@ -24,8 +28,17 @@ class Hmis::Filter::BaseFilter
   private
 
   def with_filter(scope, filter)
+    # if scope is a class, convert to scope to avoid clobbering current_scope
+    scope = scope.all unless scope.is_a?(ActiveRecord::Relation)
+    raise 'must be a relation' unless scope.is_a?(ActiveRecord::Relation)
+
     return scope unless input.respond_to?(filter) && input.send(filter)&.present?
 
     yield
+  end
+
+  # IMPORTANT: ensures scope is always a relation. Prevents accidental scope loss if passed a class instead of scope
+  def ensure_scope(scope)
+    scope.current_scope || scope.all
   end
 end

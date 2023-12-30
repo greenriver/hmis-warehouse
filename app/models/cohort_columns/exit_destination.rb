@@ -9,9 +9,7 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :exit_destination
     attribute :translation_key, String, lazy: true, default: 'Exit Destination'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
-
-    def description
-      'Manually entered destination'
-    end
+    attribute :description_translation_key, String, lazy: true, default: 'Manually entered destination'
+    attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
   end
 end

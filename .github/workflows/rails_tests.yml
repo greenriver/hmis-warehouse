@@ -77,13 +77,13 @@ jobs:
     env:
       CLIENT: test
       DATABASE_ADAPTER: postgresql
-      DATABASE_APP_DB_TEST: boston_hmis_test
-      DATABASE_DB_TEST: boston_cas_test
-      DATABASE_APP_DB: boston_db
+      DATABASE_APP_DB_TEST: warehouse_app_test
+      DATABASE_DB_TEST: warehouse_test
+      DATABASE_APP_DB: warehouse_app_test
       DATABASE_HOST: postgres
       DATABASE_PASS: postgres
       DATABASE_USER: postgres
-      DATABASE_WAREHOUSE_DB_TEST: test_hmis_warehouse
+      DATABASE_WAREHOUSE_DB_TEST: warehouse_test
       DEFAULT_FROM: greenriver.testing@mailinator.com
       ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
       FQDN: openpath.host
@@ -99,7 +99,7 @@ jobs:
       PORT: 80
       RAILS_ENV: test
       REPORTING_DATABASE_ADAPTER: postgresql
-      REPORTING_DATABASE_DB_TEST: test_boston_reporting
+      REPORTING_DATABASE_DB_TEST: reporting_test
       REPORTING_DATABASE_HOST: postgres
       REPORTING_DATABASE_PASS: postgres
       REPORTING_DATABASE_USER: postgres
@@ -108,9 +108,9 @@ jobs:
       WAREHOUSE_DATABASE_HOST: postgres
       WAREHOUSE_DATABASE_PASS: postgres
       WAREHOUSE_DATABASE_USER: postgres
-      WAREHOUSE_DATABASE_DB: warehouse_db
-      HEALTH_DATABASE_DB: health_db
-      REPORTING_DATABASE_DB: reporting_db
+      WAREHOUSE_DATABASE_DB: warehouse_test
+      HEALTH_DATABASE_DB: health_test
+      REPORTING_DATABASE_DB: reporting_test
       # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
@@ -172,12 +172,28 @@ jobs:
           bundle exec rake driver:hmis:dump_graphql_schema
 
       # fetch some closed source files
-      - name: 'Fetch source files'
+      - name: 'Fetch testkit source files'
         uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
           command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_4_2023 }}
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_11_2023 }}
           destination: ./drivers/datalab_testkit/spec/fixtures/inputs/
+          aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
+          aws_region: us-east-1
+          flags: --recursive
+      # fetch pre-processed FY2024 data set; note that we need to update this whenever the test kit source
+      # data changes.  To update:
+      # 1. Remove the fixtures from `drivers/datalab_testkit/spec/fixpoints/`
+      # 2. Replace the source and result files in `drivers/datalab_testkit/spec/fixtures` and on S3
+      # 3. Re-run the tests  rspec drivers/hud_apr/spec/models/fy2024/datalab_2_0_spec.rb
+      # 4. Update the fixpoint in S3 from the newly generated file
+      - name: 'Fetch testkit fixpoint files'
+        uses: keithweaver/aws-s3-github-action@v1.0.0
+        with:
+          command: cp
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_11_2023 }}
+          destination: ./drivers/datalab_testkit/spec/fixpoints/
           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
           aws_region: us-east-1
@@ -187,7 +203,7 @@ jobs:
         uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
           command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_4_2023 }}
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_11_2023 }}
           destination: ./drivers/datalab_testkit/spec/fixtures/results/
           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}

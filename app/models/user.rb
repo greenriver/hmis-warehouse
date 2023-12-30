@@ -106,6 +106,29 @@ class User < ApplicationRecord
     "#{USER_PROJECT_ID_PREFIX}_user_#{id}"
   end
 
+  def populate_external_reporting_permissions!
+    # Projects
+    permission = :can_view_assigned_reports
+    ids = GrdaWarehouse::Hud::Project.viewable_by(self, permission: permission).pluck(:id)
+    batch = ids.uniq.map do |item_id|
+      GrdaWarehouse::ExternalReportingProjectPermission.new(user_id: id, email: email, project_id: item_id, permission: permission)
+    end
+    GrdaWarehouse::ExternalReportingProjectPermission.transaction do
+      GrdaWarehouse::ExternalReportingProjectPermission.where(user_id: id).delete_all
+      GrdaWarehouse::ExternalReportingProjectPermission.import(batch)
+    end
+
+    # Cohorts
+    ids = GrdaWarehouse::Cohort.viewable_by(self).pluck(:id)
+    batch = ids.uniq.map do |item_id|
+      GrdaWarehouse::ExternalReportingCohortPermission.new(user_id: id, email: email, cohort_id: item_id, permission: :can_view_cohorts)
+    end
+    GrdaWarehouse::ExternalReportingCohortPermission.transaction do
+      GrdaWarehouse::ExternalReportingCohortPermission.where(user_id: id).delete_all
+      GrdaWarehouse::ExternalReportingCohortPermission.import(batch)
+    end
+  end
+
   def viewable_project_ids(context)
     return GrdaWarehouse::Hud::Project.project_ids_viewable_by(self, permission: context) if Rails.env.test?
 
@@ -137,9 +160,9 @@ class User < ApplicationRecord
   def clear_cached_project_ids
     Rails.cache.delete_matched("#{user_project_id_prefix}*")
   end
-  # To fetch the list of Controlss that grant a user access to a particular set of projects
+  # To fetch the list of Controls that grant a user access to a particular set of projects
   # user.access_group_for?('GrdaWarehouse::Hud::Project', 'can_view_projects')
-  # To fetch the list of Controlss that grant a user access to clients enrolled at as set of projects
+  # To fetch the list of Controls that grant a user access to clients enrolled at as set of projects
   # user.access_group_for?('GrdaWarehouse::Hud::Project', 'can_view_clients')
   # def access_groups_for?(entity_type, perm)
   #   return false unless entity_type.present? && perm.present?

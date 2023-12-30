@@ -1,33 +1,46 @@
 [
   {
-    "link_id": "C3",
+    "link_id": "c3-youth-education-status",
     "rule": {
       "operator": "ANY",
       "parts": [
         {
+          "_comment": "YDHP",
           "variable": "projectFunders",
           "operator": "INCLUDE",
           "value": 43
         },
         {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "67"
+          "_comment": "RHY-BCP",
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 22
+        },
+        {
+          "_comment": "RHY-MGH",
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 23
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "272"
+          "value": "755"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "74"
+          "value": "785"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "3627"
+          "value": "751"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "825"
         }
       ]
     }
@@ -45,7 +58,7 @@
         },
         {
           "operator": "ALL",
-          "_comment": "RHY-funded non-street-outreach",
+          "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
           "parts": [
             {
               "variable": "projectFunderComponents",
@@ -62,17 +75,22 @@
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "272"
+          "value": "785"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "74"
+          "value": "751"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "3627"
+          "value": "825"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "755"
         }
       ]
     }
@@ -103,22 +121,22 @@
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "67"
+          "value": "755"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "272"
+          "value": "785"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "74"
+          "value": "751"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "3627"
+          "value": "825"
         }
       ]
     }
@@ -142,22 +160,22 @@
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "67"
+          "value": "755"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "272"
+          "value": "785"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "74"
+          "value": "751"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "3627"
+          "value": "825"
         }
       ]
     }
@@ -180,22 +198,22 @@
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "67"
+          "value": "755"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "272"
+          "value": "785"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "74"
+          "value": "751"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "3627"
+          "value": "825"
         }
       ]
     }
@@ -218,22 +236,22 @@
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "67"
+          "value": "755"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "272"
+          "value": "785"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "74"
+          "value": "751"
         },
         {
           "variable": "projectId",
           "operator": "EQUAL",
-          "value": "3627"
+          "value": "825"
         }
       ]
     }

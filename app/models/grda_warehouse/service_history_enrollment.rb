@@ -4,6 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# = GrdaWarehouse::ServiceHistoryEnrollment
+#
+# ServiceHistoryEnrollments flatten Hud Enrollments and related records to serve reporting needs. These records are
+# generated automatically. There is a 1:1 correspondence with Hud Enrollment records
 class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   include RailsDrivers::Extensions
   include ArelHelper
@@ -233,11 +237,17 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
 
   # Category 3 is "Homeless only under other federal statuses" and
   # is defined as a housing status of value 5
+  # TODO: updated this for FY2024 to not use cached values,
+  # this appears to only be used in the SPM, so maybe we can just tear it out and use
+  # source data there instead
   scope :category_3, -> do
-    where(
-      arel_table[:housing_status_at_entry].eq(5).
-        or(arel_table[:housing_status_at_exit].eq(5)),
-    )
+    # pre FY2024 logic, remove after we confirm the new version works
+    # where(
+    #   arel_table[:housing_status_at_entry].eq(5).
+    #     or(arel_table[:housing_status_at_exit].eq(5)),
+    # )
+    left_outer_joins(enrollment: :exit).
+      where(e_t[:LivingSituation].eq(205).or(ex_t[:HousingAssessment].eq(5)))
   end
 
   scope :grant_funded_between, ->(start_date:, end_date:) do
@@ -286,6 +296,17 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     #   where(date: start_date..end_date)).
     #   send(service_scope).
     #   exists)
+  end
+
+  scope :with_service, -> do
+    where(
+      GrdaWarehouse::ServiceHistoryService.
+      where(
+        shs_t[:service_history_enrollment_id].eq(she_t[:id]).
+        and(shs_t[:client_id].eq(she_t[:client_id])),
+      ).
+      arel.exists,
+    )
   end
 
   scope :heads_of_households, -> do

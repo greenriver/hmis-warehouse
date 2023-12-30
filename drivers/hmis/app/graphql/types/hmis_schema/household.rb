@@ -8,11 +8,14 @@
 
 module Types
   class HmisSchema::Household < Types::BaseObject
-    description 'HUD Household'
+    include Types::HmisSchema::HasAssessments
+
     field :id, ID, null: false, method: :household_id
     field :short_id, ID, null: false
     field :household_clients, [HmisSchema::HouseholdClient], null: false
     field :household_size, Int, null: false
+
+    assessments_field filter_args: { omit: [:project, :project_type], type_name: 'AssessmentsForHousehold' }
 
     # object is a Hmis::Hud::Household
 
@@ -33,11 +36,15 @@ module Types
     end
 
     def household_size
-      enrollments.size
+      enrollments.map(&:personal_id).uniq.size
     end
 
     def enrollments
       load_ar_association(object, :enrollments)
+    end
+
+    def assessments(**args)
+      resolve_assessments(**args)
     end
   end
 end

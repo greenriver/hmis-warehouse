@@ -8,6 +8,8 @@
 
 module Types
   class HmisSchema::ClientName < Types::BaseObject
+    include Types::HmisSchema::HasHudMetadata
+
     field :id, ID, null: false
     field :first, String
     field :middle, String
@@ -18,11 +20,19 @@ module Types
     field :notes, String
     field :primary, Boolean
     field :client, HmisSchema::Client, null: false
-    field :user, HmisSchema::User, null: true
-    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_created, GraphQL::Types::ISO8601DateTime, null: false
-    field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
 
     # Object is a Hmis::Hud::CustomClientName
+
+    def id
+      return object.id if object.persisted?
+
+      # Placeholder ID for unpersisted primary name based on Client attributes.
+      # Use personal ID so its unique in the cache.
+      "#{object.personal_id}-primary"
+    end
+
+    def client
+      load_ar_association(object, :client)
+    end
   end
 end

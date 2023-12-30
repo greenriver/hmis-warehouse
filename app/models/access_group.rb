@@ -71,18 +71,28 @@ class AccessGroup < ApplicationRecord
 
   def add(users)
     self.users = (self.users + Array.wrap(users)).uniq
+
+    Array.wrap(users).each do |user|
+      # Queue recomputation of external report access
+      user.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
+    end
+
+    self.users
   end
 
   def remove(users)
-    Array.wrap(users).each do |u|
+    Array.wrap(users).each do |user|
       # Need to do this individually for paper trail to work
-      self.users.destroy(u)
+      self.users.destroy(user)
+
+      # Queue recomputation of external report access
+      user.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
     end
   end
 
   def self.delayed_system_group_maintenance(group: nil)
     delay.maintain_system_groups_no_named_arguments(group)
-    Delayed::Worker.new.work_off if Rails.env.test?
+    Delayed::Worker.new.work_off(1_000) if Rails.env.test?
   end
 
   def self.maintain_system_groups_no_named_arguments(group)

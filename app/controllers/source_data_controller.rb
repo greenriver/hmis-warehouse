@@ -33,8 +33,17 @@ class SourceDataController < ApplicationController
     return unless @importers.present?
 
     @importer = @importers.max_by do |importer|
-      [@item.imported_item_type(importer.id), @importer&.created_at]
+      [@item.imported_item_type(importer.id), importer&.created_at]
     end
+
+    # Only show current data for HMIS records
+    if @data_source.hmis
+      @imported = @csv = false
+      @hmis = true
+      @hmis_url = @data_source.hmis_url_for(@item)
+      return
+    end
+
     year = @item.imported_item_type(@importer.id)
     @imported = @item.send("imported_items_#{year}").order(importer_log_id: :desc).first
     @csv = @item.send("loaded_items_#{year}").with_deleted.order(loader_id: :desc).first

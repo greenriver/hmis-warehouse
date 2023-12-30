@@ -22,7 +22,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   SORT_OPTIONS = [:assessment_date, :date_updated].freeze
 
-  belongs_to :enrollment, **hmis_relation(:EnrollmentID, 'Enrollment')
+  belongs_to :enrollment, **hmis_enrollment_relation, optional: true
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
@@ -33,7 +33,6 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   has_one :definition, through: :form_processor
   has_one :health_and_dv, through: :form_processor
   has_one :income_benefit, through: :form_processor
-  has_one :enrollment_coc, through: :form_processor
   has_one :physical_disability, through: :form_processor
   has_one :developmental_disability, through: :form_processor
   has_one :chronic_health_condition, through: :form_processor
@@ -113,6 +112,14 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     data_collection_stage == 3
   end
 
+  def annual?
+    data_collection_stage == 5
+  end
+
+  def update?
+    data_collection_stage == 2
+  end
+
   def save_submitted_assessment!(current_user:, as_wip: false)
     Hmis::Hud::CustomAssessment.transaction do
       # Save FormProcessor to save wip values and/or related records
@@ -163,22 +170,24 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     raise HmisErrors::ApiError, 'Assessment not in household' if source_assessment.present? && !household_enrollments.pluck(:enrollment_id).include?(source_assessment.enrollment_id)
 
     household_assessments = Hmis::Hud::CustomAssessment.with_role(assessment_role.to_sym).
-      where(enrollment_id: household_enrollments.pluck(:enrollment_id))
+      where(enrollment_id: household_enrollments.pluck(:enrollment_id), data_source_id: household_enrollments.pluck(:data_source_id))
+
+    threshold_in_days = threshold.to_i / 86400 # to_i always returns seconds
 
     case assessment_role.to_sym
     when :INTAKE, :EXIT
-      # Ensure we only return 1 assessment per person
-      household_assessments.index_by(&:personal_id).values
+      # Ensure we only return 1 assessment per enrollment
+      household_assessments.index_by(&:enrollment_id).values
     when :ANNUAL
       # If we have a source, find annuals "near" it (within threshold)
       # If we don't have a source, that means this is a new annual. Include any annuals from the past 3 months.
       source_date = source_assessment&.assessment_date || Date.current
-      household_assessments.group_by(&:personal_id).
+      household_assessments.group_by(&:enrollment_id).
         map do |_, assmts|
           nearest_assmt = assmts.min_by { |a| (source_date - a.assessment_date).abs }
-          distance = (source_date - nearest_assmt.assessment_date).abs
+          distance_in_days = (source_date - nearest_assmt.assessment_date).to_i.abs
 
-          nearest_assmt if distance <= threshold
+          nearest_assmt if distance_in_days <= threshold_in_days
         end.compact
     else
       raise HmisErrors::ApiError, "Unable to group #{assessment_role} assessments"
@@ -200,10 +209,10 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   def deletion_would_cause_conflicting_enrollments?
     return false if in_progress?
 
-    exit? && enrollment.client.enrollments
-      .where(data_source: enrollment.data_source, project_id: enrollment.project_id)
-      .where.not(id: enrollment.id)
-      .where(e_t[:entry_date].gteq(enrollment.entry_date))
-      .any?
+    exit? && enrollment.client.enrollments.
+      where(data_source: enrollment.data_source, project_id: enrollment.project_id).
+      where.not(id: enrollment.id).
+      where(e_t[:entry_date].gteq(enrollment.entry_date)).
+      any?
   end
 end

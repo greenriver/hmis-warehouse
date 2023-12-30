@@ -8,9 +8,18 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   include ::HmisStructure::Enrollment
   include ::Hmis::Hud::Concerns::Shared
   include ::HudConcerns::Enrollment
+  include ::Hmis::Hud::Concerns::ServiceHistoryQueuer
 
   self.table_name = :Enrollment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+
+  has_paper_trail(
+    meta: {
+      enrollment_id: :id,
+      client_id: ->(r) { r.client&.id },
+      project_id: ->(r) { r.project&.id },
+    },
+  )
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
@@ -20,31 +29,41 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # CAUTION: enrollment.project accessor is overridden below
   belongs_to :project, **hmis_relation(:ProjectID, 'Project'), optional: true
-  has_one :exit, **hmis_relation(:EnrollmentID, 'Exit'), dependent: :destroy
+  has_one :exit, **hmis_enrollment_relation('Exit'), inverse_of: :enrollment, dependent: :destroy
 
   # HUD services
-  has_many :services, **hmis_relation(:EnrollmentID, 'Service'), dependent: :destroy
-  has_many :bed_nights, -> { bed_nights }, **hmis_relation(:EnrollmentID, 'Service')
+  has_many :services, **hmis_enrollment_relation('Service'), inverse_of: :enrollment, dependent: :destroy
+  has_many :bed_nights, -> { bed_nights }, **hmis_enrollment_relation('Service')
   # Custom services
-  has_many :custom_services, **hmis_relation(:EnrollmentID, 'CustomService'), dependent: :destroy
-  has_many :custom_case_notes, **hmis_relation(:EnrollmentID, 'CustomCaseNote'), inverse_of: :enrollment, dependent: :destroy
+  has_many :custom_services, **hmis_enrollment_relation('CustomService'), inverse_of: :enrollment, dependent: :destroy
+  has_many :custom_case_notes, **hmis_enrollment_relation('CustomCaseNote'), inverse_of: :enrollment, dependent: :destroy
   # All services (combined view of HUD and Custom services)
-  has_many :hmis_services, **hmis_relation(:EnrollmentID, 'HmisService')
+  has_many :hmis_services, **hmis_enrollment_relation('HmisService'), inverse_of: :enrollment
+  has_many(
+    :move_in_addresses,
+    -> { where(enrollment_address_type: Hmis::Hud::CustomClientAddress::ENROLLMENT_MOVE_IN_TYPE) },
+    **hmis_relation(:EnrollmentID, 'CustomClientAddress'),
+    inverse_of: :enrollment,
+    dependent: :destroy,
+  )
 
-  has_many :events, **hmis_relation(:EnrollmentID, 'Event'), dependent: :destroy
-  has_many :income_benefits, **hmis_relation(:EnrollmentID, 'IncomeBenefit'), dependent: :destroy
-  has_many :disabilities, **hmis_relation(:EnrollmentID, 'Disability'), dependent: :destroy
-  has_many :health_and_dvs, **hmis_relation(:EnrollmentID, 'HealthAndDv'), dependent: :destroy
-  has_many :current_living_situations, **hmis_relation(:EnrollmentID, 'CurrentLivingSituation'), inverse_of: :enrollment, dependent: :destroy
-  # TODO: remove
-  has_many :enrollment_cocs, **hmis_relation(:EnrollmentID, 'EnrollmentCoc'), dependent: :destroy
-  has_many :employment_educations, **hmis_relation(:EnrollmentID, 'EmploymentEducation'), dependent: :destroy
-  has_many :youth_education_statuses, **hmis_relation(:EnrollmentID, 'YouthEducationStatus'), dependent: :destroy
+  has_many :events, **hmis_enrollment_relation('Event'), inverse_of: :enrollment, dependent: :destroy
+  has_many :income_benefits, **hmis_enrollment_relation('IncomeBenefit'), inverse_of: :enrollment, dependent: :destroy
+  has_many :disabilities, **hmis_enrollment_relation('Disability'), inverse_of: :enrollment, dependent: :destroy
+  has_many :health_and_dvs, **hmis_enrollment_relation('HealthAndDv'), inverse_of: :enrollment, dependent: :destroy
+  has_many :current_living_situations, **hmis_enrollment_relation('CurrentLivingSituation'), inverse_of: :enrollment, dependent: :destroy
+  has_many :employment_educations, **hmis_enrollment_relation('EmploymentEducation'), inverse_of: :enrollment, dependent: :destroy
+  has_many :youth_education_statuses, **hmis_enrollment_relation('YouthEducationStatus'), inverse_of: :enrollment, dependent: :destroy
 
   # CE Assessments
-  has_many :assessments, **hmis_relation(:EnrollmentID, 'Assessment'), dependent: :destroy
+  has_many :assessments, **hmis_enrollment_relation('Assessment'), inverse_of: :enrollment, dependent: :destroy
   # Custom Assessments
-  has_many :custom_assessments, **hmis_relation(:EnrollmentID, 'CustomAssessment'), dependent: :destroy
+  has_many :custom_assessments, **hmis_enrollment_relation('CustomAssessment'), inverse_of: :enrollment, dependent: :destroy
+  has_one :intake_assessment, -> { intakes }, **hmis_enrollment_relation('CustomAssessment')
+  has_one :exit_assessment, -> { exits }, **hmis_enrollment_relation('CustomAssessment')
+  has_many :update_assessments, -> { updates }, **hmis_enrollment_relation('CustomAssessment')
+  has_many :annual_assessments, -> { annuals }, **hmis_enrollment_relation('CustomAssessment')
+  has_many :post_exit_assessments, -> { post_exits }, **hmis_enrollment_relation('CustomAssessment')
 
   # Files
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :enrollment
@@ -62,11 +81,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
+  accepts_nested_attributes_for :move_in_addresses, allow_destroy: true
 
   validates_with Hmis::Hud::Validators::EnrollmentValidator
   validate :client_is_valid, on: :new_client_enrollment_form
-
-  alias_to_underscore [:EnrollmentCoC]
 
   SORT_OPTIONS = [
     :most_recent,
@@ -103,10 +121,23 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     left_outer_joins(:wip).where(viewable_wip.or(viewable_enrollment))
   end
 
-  # hide previous declaration of :viewable_by, we'll use this one
-  # A user can see any enrollment associated with a project they can view
-  replace_scope :viewable_by, ->(user) do
-    with_access(user, :can_view_enrollment_details, :can_view_project, mode: 'all')
+  # Enrollments that this user has access to. By default, only returns enrollments that the user has full
+  # access to (can_view_enrollment_details).
+  #
+  # Note: use "replace_scope" hide previous declaration of :viewable_by
+  replace_scope :viewable_by, ->(user, include_limited_access_enrollments: false) do
+    return with_access(user, :can_view_enrollment_details, :can_view_project, mode: 'all') unless include_limited_access_enrollments
+    return none unless user.permissions?(:can_view_enrollment_details, :can_view_limited_enrollment_details, mode: 'any')
+
+    # Projects where the user has full enrollment access
+    full_access_project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details, :can_view_project, mode: 'all').pluck(:id, :ProjectID)
+    # Projects where the user has limited enrollment access
+    limited_access_project_ids = Hmis::Hud::Project.with_access(user, :can_view_limited_enrollment_details).pluck(:id, :ProjectID)
+
+    viewable_wip = wip_t[:project_id].in(full_access_project_ids.map(&:first) + limited_access_project_ids.map(&:first))
+    viewable_enrollment = e_t[:ProjectID].in(full_access_project_ids.map(&:second) + limited_access_project_ids.map(&:second))
+
+    left_outer_joins(:wip).where(viewable_wip.or(viewable_enrollment))
   end
 
   # Free-text search for Enrollment
@@ -187,25 +218,28 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     scope = with_project([project.id])
     exit_date = range.end # maybe nil if endless range
     if exit_date
-      scope.left_outer_joins(:exit)
-        .where(
-          e_t[:entry_date].eq(entry_date)
-          .or(
-            e_t[:entry_date].lt(exit_date) # enrollments started before exit date
-            .and(
+      scope.left_outer_joins(:exit).
+        where(
+          e_t[:entry_date].eq(entry_date).
+          or(
+            e_t[:entry_date].lt(exit_date). # enrollments started before exit date
+            and(
               ex_t[:exit_date].gt(entry_date).or(ex_t[:exit_date].eq(nil)),
             ), # enrollments with an exit date after the entry date
           ),
         )
     else
-      scope.left_outer_joins(:exit)
-        .where(
-          ex_t[:exit_date].eq(nil) # we already have an open enrollment
-          .or(ex_t[:exit_date].gt(entry_date))
-          .or(e_t[:entry_date].gteq(entry_date)),
+      scope.left_outer_joins(:exit).
+        where(
+          ex_t[:exit_date].eq(nil). # we already have an open enrollment
+          or(ex_t[:exit_date].gt(entry_date)).
+          or(e_t[:entry_date].gteq(entry_date)),
         )
     end
   end
+
+  after_create :warehouse_trigger_processing
+  after_update :warehouse_trigger_processing
 
   def project
     super || Hmis::Hud::Project.find_by(id: wip.project_id)
@@ -276,17 +310,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     end
   end
 
-  def intake_assessment
-    custom_assessments.intakes.first
-  end
-
-  def exit_assessment
-    custom_assessments.exits.first
-  end
-
   def in_progress?
-    @in_progress = project_id.nil? if @in_progress.nil?
-    @in_progress
+    project_id.nil?
   end
 
   def exit_in_progress?
@@ -363,6 +388,17 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
     client.valid?([:form_submission, :new_client_enrollment_form])
     errors.merge!(client.errors)
+  end
+
+  private def warehouse_trigger_processing
+    return unless warehouse_columns_changed?
+
+    invalidate_processing!
+    queue_service_history_processing!
+  end
+
+  private def warehouse_columns_changed?
+    (saved_changes.keys & ['EntryDate', 'ProjectID', 'DateDeleted']).any?
   end
 
   include RailsDrivers::Extensions

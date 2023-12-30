@@ -8,6 +8,7 @@
 
 module Types
   class HmisSchema::DataCollectionFeature < Types::BaseObject
+    skip_activity_log
     field :id, ID, null: false
     field :role, Types::Forms::Enums::DataCollectionFeatureRole, null: false
     field :data_collected_about, Types::Forms::Enums::DataCollectedAbout, null: false

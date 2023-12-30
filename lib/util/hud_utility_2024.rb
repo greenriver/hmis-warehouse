@@ -256,6 +256,20 @@ module HudUtility2024
     }.freeze
   end
 
+  def gender_known_ids
+    [0, 1, 2, 3, 4, 5, 6].freeze
+  end
+
+  def gender_known_values
+    genders.values_at(*gender_known_ids).freeze
+  end
+
+  def gender_comparison_value(key)
+    return key if key.in?([8, 9, 99])
+
+    1
+  end
+
   def race_fields
     race_id_to_field_name.values.uniq.freeze
   end
@@ -280,10 +294,12 @@ module HudUtility2024
     }.freeze
   end
 
-  def gender_comparison_value(key)
-    return key if key.in?([8, 9, 99])
+  def race_known_ids
+    [1, 2, 3, 4, 5, 6, 7].freeze
+  end
 
-    1
+  def race_known_values
+    races.values_at(*race_known_ids).freeze
   end
 
   def residence_prior_length_of_stay_brief(id, reverse = false)
@@ -353,6 +369,10 @@ module HudUtility2024
 
   def valid_destinations
     destinations
+  end
+
+  def destination_no_exit_interview_completed
+    30
   end
 
   # See https://www.hudexchange.info/programs/hmis/hmis-data-standards/standards/HMIS-Data-Standards.htm#Appendix_A_-_Living_Situation_Option_List for details
@@ -500,6 +520,8 @@ module HudUtility2024
       {
         'XX-500' => 'Test CoC',
         'XX-501' => '2nd Test CoC',
+        'XX-502' => '3rd Test CoC', # testkit
+        'XX-518' => '4th Test CoC', # testkit
       },
     ).freeze
   end
@@ -523,26 +545,38 @@ module HudUtility2024
     keyed
   end
 
-  private def funder_description_to_component(description)
-    return unless description.include?(' - ')
-
-    description.split(' - ')[0]
+  def path_funders
+    [21]
   end
+
+  # SPM definition of CoC funded projects
+  def spm_coc_funders
+    [2, 3, 4, 5, 43, 44, 54, 55]
+  end
+
+  # "Funder components" that are referenced by the 2024 HUD Data Dictionary.
+  # These are used by assessment Form Definition to specify funder applicability rules.
   def funder_components
-    funding_sources.
-      transform_values { |d| funder_description_to_component(d) }.
-      compact.
-      each_with_object({}) { |(k, v), h| (h[v] ||= []) << k }
+    {
+      'HUD: CoC' => [1, 2, 3, 4, 5, 6, 7, 43, 44, 49], # Includes YHDP
+      'HUD: ESG' => [8, 9, 10, 11, 47], # Excludes ESG RUSH
+      'HUD: ESG RUSH' => [53], # Even though it has the same "HUD ESG" prefix, HUD Data Dictionary treats it as a separate component
+      'HUD: HOPWA' => [13, 14, 15, 16, 17, 18, 19, 48],
+      'HHS: PATH' => path_funders,
+      'HHS: RHY' => [22, 23, 24, 25, 26],
+      'VA: GPD' => [37, 38, 39, 40, 41, 42, 45],
+      'VA: SSVF' => [33],
+      'VA: Community Contract Safe Haven' => [30],
+      'VA: CRS Contract Residential Services' => [27],
+      'HUD: Unsheltered Special NOFO' => [54],
+      'HUD: Rural Special NOFO' => [55],
+      'HUD: HUD-VASH' => [20],
+      'HUD: PFS' => [35], # Pay for Success
+    }
   end
 
   def funder_component(funder)
-    funding_sources.
-      transform_values { |d| funder_description_to_component(d) }.
-      compact[funder]
-  end
-
-  def path_funders
-    [21]
+    funder_components.find { |_, funders| funders.include?(funder) }&.first
   end
 
   # field name => ID from Data Dictionary
@@ -603,7 +637,7 @@ module HudUtility2024
       },
       161 => {
         list: ::HudUtility2024.path_referral_options,
-        label_method: :path_referral_options,
+        label_method: :path_referral,
       },
       200 => {
         list: ::HudUtility2024.bed_night_options,

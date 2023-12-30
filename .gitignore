@@ -105,10 +105,6 @@ public/theme/logo
 # CHA translations
 config/cha_translations.yml
 
-# Ignore docker certificates
-docker/nginx-proxy/certs/*
-!docker/nginx-proxy/certs/.keep
-
 # Large shape files
 shape_files/**/*
 !/shape_files/sync.from.s3
@@ -157,9 +153,20 @@ drivers/datalab_testkit/spec/fixtures/results/*
 !/app/assets/builds/.keep
 
 /drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/*
+drivers/hud_lsa/spec/fixtures/files/lsa/fy2023/sample_hmis_export/*.csv
 
 # Superset storage
 docker/superset/op/superset.db
 docker/superset/op/__pycache__/*
 docker/superset/op/__pycache__/**
 docker/superset/op/.did.db.init
+/superset/**
+
+# Development ENV
+/dev/minio/**
+/dev/db_data/**
+/app/assets/builds/**
+/drivers/hud_spm_report/spec/fixpoints/enrollment_universe/warehouse_app_test.sql
+/drivers/hud_spm_report/spec/fixpoints/enrollment_universe/warehouse_test.sql
+/drivers/hud_spm_report/spec/fixpoints/return_universe/warehouse_app_test.sql
+/drivers/hud_spm_report/spec/fixpoints/return_universe/warehouse_test.sql

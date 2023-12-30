@@ -9,7 +9,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   include ::HmisStructure::Client
   include ::Hmis::Hud::Concerns::Shared
   include ::HudConcerns::Client
+  include ::HudChronicDefinition
   include ClientSearch
+
+  has_paper_trail(meta: { client_id: :id })
 
   attr_accessor :gender, :race
 
@@ -20,7 +23,13 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   has_many :names, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client, dependent: :destroy
-  has_many :addresses, **hmis_relation(:PersonalID, 'CustomClientAddress'), inverse_of: :client, dependent: :destroy
+  has_many(
+    :addresses,
+    # Exclude enrollment addresses from client record (per spec). This prevents client addresses from
+    # clobbering enrollment.addresses when saved via accepts_nested_attributes_for
+    -> { where(EnrollmentID: nil) },
+    **hmis_relation(:PersonalID, 'CustomClientAddress'), inverse_of: :client, dependent: :destroy,
+  )
   has_many :contact_points, **hmis_relation(:PersonalID, 'CustomClientContactPoint'), inverse_of: :client, dependent: :destroy
   has_many :custom_case_notes, **hmis_relation(:PersonalID, 'CustomCaseNote'), inverse_of: :client, dependent: :destroy
   has_one :primary_name, -> { where(primary: true) }, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client
@@ -49,17 +58,32 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :client_projects
   has_many :projects_including_wip, through: :client_projects, source: :project
 
+  # History of merges into this client
+  has_many :merge_histories, class_name: 'Hmis::ClientMergeHistory', primary_key: :id, foreign_key: :retained_client_id
+  # History of this client being merged into other clients (only present for deleted clients)
+  has_many :reverse_merge_histories, class_name: 'Hmis::ClientMergeHistory', primary_key: :id, foreign_key: :deleted_client_id
+  # Merge Audits for merges into this client
+  has_many :merge_audits, -> { distinct }, through: :merge_histories, source: :client_merge_audit
+  # Merge Audits for merges from this client into another client
+  has_many :reverse_merge_audits, -> { distinct }, through: :reverse_merge_histories, source: :client_merge_audit
+
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
   accepts_nested_attributes_for :names, allow_destroy: true
   accepts_nested_attributes_for :addresses, allow_destroy: true
   accepts_nested_attributes_for :contact_points, allow_destroy: true
 
-  # NOTE: only used for getting the client's Warehouse ID. Should not be used for anything else. See #184132767
-  has_one :warehouse_client_source, class_name: 'GrdaWarehouse::WarehouseClient', foreign_key: :source_id, inverse_of: :source
+  # NOTE: only used for getting the client's Warehouse ID, or finding potential duplicates.
+  has_one :warehouse_client_source, class_name: 'Hmis::WarehouseClient', foreign_key: :source_id, inverse_of: :source
+  has_one :destination_client, through: :warehouse_client_source, source: :destination, inverse_of: :source_clients
+  has_many :warehouse_client_destination, class_name: 'Hmis::WarehouseClient', foreign_key: :destination_id, inverse_of: :destination
+  has_many :source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
 
   validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 
   attr_accessor :image_blob_id
+  after_create :warehouse_identify_duplicate_clients
+  after_update :warehouse_match_existing_clients
+  before_save :set_source_hash
   after_save do
     current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
     self.image_blob_id = nil
@@ -134,23 +158,19 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     joins(:projects_including_wip).where(p_t[:organization_id].in(hud_org_ids).and(p_t[:data_source_id].eq(ds_ids.first)))
   end
 
-  # DEPRECATED_FY2024 - delete when warehouse moves to 2024. These override methods in HudConcerns::Client.
-  def race_fields
-    HudUtility2024.races.keys.select { |f| send(f).to_i == 1 }
-  end
+  def build_primary_custom_client_name
+    return unless names.empty?
 
-  def gender_fields
-    HudUtility2024.gender_fields.select { |f| send(f).to_i == 1 }
+    names.new(
+      primary: true,
+      first: first_name,
+      last: last_name,
+      middle: middle_name,
+      suffix: name_suffix,
+      user_id: user_id || Hmis::Hud::User.system_user(data_source_id: data_source_id).user_id,
+      **slice(:name_data_quality, :data_source_id, :date_created, :date_updated),
+    )
   end
-
-  def gender_multi
-    @gender_multi ||= [].tap do |gm|
-      HudUtility2024.gender_id_to_field_name.each { |id, field| gm << id if send(field) == 1 }
-      # Per the data standards, only look to GenderNone if we don't have a more specific response
-      gm << self.GenderNone if gm.empty? && self.GenderNone.in?([8, 9, 99])
-    end
-  end
-  # DEPRECATED_FY2024 - delete when warehouse moves to 2024
 
   def enrolled?
     enrollments.any?
@@ -301,5 +321,55 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     [first_name, last_name].compact.join(' ')
   end
 
+  def full_name
+    [first_name, middle_name, last_name, name_suffix].compact.join(' ')
+  end
+
+  # Run if we changed name/DOB/SSN
+  private def warehouse_match_existing_clients
+    return unless warehouse_columns_changed?
+    return if Delayed::Job.queued?(['GrdaWarehouse::Tasks::IdentifyDuplicates', 'match_existing!'])
+
+    GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).match_existing!
+  end
+
+  # Run when we add a new client to the system
+  private def warehouse_identify_duplicate_clients
+    return if Delayed::Job.where(failed_at: nil, locked_at: nil).jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').jobs_for_class('run!').exists?
+
+    GrdaWarehouse::Tasks::IdentifyDuplicates.new.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).run!
+  end
+
+  private def warehouse_columns_changed?
+    (saved_changes.keys & ['FirstName', 'LastName', 'DOB', 'SSN', 'DateDeleted']).any?
+  end
+
   include RailsDrivers::Extensions
+
+  # The warehouse uses the source hash to determine if the record has changed and to maintain the
+  # associated warehouse record for reporting.
+  # This gets called during a pre-commit hook
+  def set_source_hash
+    hmis_keys = self.class.hmis_configuration(version: '2024').keys
+    hmis_data = slice(*hmis_keys)
+    self.source_hash = Digest::SHA256.hexdigest(hmis_data.except(:ExportID).to_s)
+  end
+
+  # A tool to batch reset all source hashes for a particular data source
+  def self.reset_source_hashes!(data_source_id)
+    where(data_source_id: data_source_id).find_in_batches do |batch|
+      original_hashes = batch.map(&:source_hash)
+      batch.each(&:set_source_hash)
+      batch.reject!.with_index { |c, i| c.source_hash == original_hashes[i] }
+      puts "Updating #{batch.size} client source hashes"
+      next unless batch.size.positive?
+
+      import!(
+        batch,
+        validate: false,
+        timestamps: false,
+        on_duplicate_key_update: { conflict_target: [:id], columns: [:source_hash] },
+      )
+    end
+  end
 end

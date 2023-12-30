@@ -7,6 +7,13 @@
 class Hmis::Hud::CustomDataElement < Hmis::Hud::Base
   include Hmis::Concerns::HmisArelHelper
   self.table_name = :CustomDataElements
+  has_paper_trail(
+    meta: {
+      client_id: ->(r) { r.owner&.paper_trail_meta_value(:client_id) },
+      enrollment_id: ->(r) { r.owner&.paper_trail_meta_value(:enrollment_id) },
+      project_id: ->(r) { r.owner&.paper_trail_meta_value(:project_id) },
+    },
+  )
 
   VALUE_COLUMNS = [
     :value_boolean,

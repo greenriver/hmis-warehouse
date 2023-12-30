@@ -289,6 +289,7 @@ module GrdaWarehouse::Hud
         id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
           currently_homeless(date: on_date, chronic_types_only: chronic_types_only).
           distinct.
+          with_service.
           select(:client_id),
       )
     end
@@ -346,13 +347,25 @@ module GrdaWarehouse::Hud
       when :active_clients
         range = GrdaWarehouse::Config.cas_sync_range
         # Homeless or Coordinated Entry
-        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.in_project_type([1, 2, 4, 8, 14]).
+        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.in_project_type([0, 1, 2, 4, 8, 14]).
           with_service_between(start_date: range.first, end_date: range.last)
         where(id: enrollment_scope.select(:client_id))
       when :project_group
         project_ids = GrdaWarehouse::Config.cas_sync_project_group.projects.ids
         enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.ongoing.in_project(project_ids)
         where(id: enrollment_scope.select(:client_id))
+      when :boston
+        # Release on file
+        scope = where(housing_release_status: [full_release_string, partial_release_string])
+        # enrolled in the chosen project group
+        project_ids = GrdaWarehouse::Config.cas_sync_project_group.projects.ids
+        if project_ids.any?
+          enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.ongoing.in_project(project_ids)
+          scope = scope.where(id: enrollment_scope.select(:client_id))
+        end
+        # with a Pathways assessment (removed by request 11/23/23)
+        # scope.where(id: joins(source_clients: :most_recent_pathways_or_rrh_assessment).select(:id))
+        scope
       else
         raise NotImplementedError
       end
@@ -1581,19 +1594,37 @@ module GrdaWarehouse::Hud
       [:case_manager, :assigned_staff, :counselor, :outreach_counselor]
     end
 
-    def self.sort_options
-      [
-        { title: 'Last name A-Z', column: 'LastName', direction: 'asc' },
-        { title: 'Last name Z-A', column: 'LastName', direction: 'desc' },
-        { title: 'First name A-Z', column: 'FirstName', direction: 'asc' },
-        { title: 'First name Z-A', column: 'FirstName', direction: 'desc' },
-        { title: 'Youngest to Oldest', column: 'DOB', direction: 'desc' },
-        { title: 'Oldest to Youngest', column: 'DOB', direction: 'asc' },
-        { title: 'Most served', column: 'days_served', direction: 'desc' },
-        { title: 'Recently added', column: 'first_date_served', direction: 'desc' },
-        { title: 'Longest standing', column: 'first_date_served', direction: 'asc' },
-        { title: 'Most recently served', column: 'last_date_served', direction: 'desc' },
-      ]
+    SORT_OPTIONS = {
+      best_match: 'Most Relevant',
+      last_name_a_to_z: 'Last name A-Z',
+      last_name_z_to_a: 'Last name Z-A',
+      first_name_a_to_z: 'First name A-Z',
+      first_name_z_to_a: 'First name Z-A',
+      age_youngest_to_oldest: 'Youngest to Oldest',
+      age_oldest_to_youngest: 'Oldest to Youngest',
+    }.freeze
+
+    def self.sort_by_option(option)
+      option = option&.to_sym
+
+      case option
+      when :best_match
+        current_scope # no order, use text search rank
+      when :last_name_a_to_z
+        order(arel_table[:LastName].asc.nulls_last)
+      when :last_name_z_to_a
+        order(arel_table[:LastName].desc.nulls_last)
+      when :first_name_a_to_z
+        order(arel_table[:FirstName].asc.nulls_last)
+      when :first_name_z_to_a
+        order(arel_table[:FirstName].desc.nulls_last)
+      when :age_youngest_to_oldest
+        order(arel_table[:DOB].desc.nulls_last)
+      when :age_oldest_to_youngest
+        order(arel_table[:DOB].asc.nulls_last)
+      else
+        raise ArgumentError, "invalid sort option #{option.inspect}"
+      end
     end
 
     def self.housing_release_options
@@ -1795,12 +1826,12 @@ module GrdaWarehouse::Hud
       results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true)
       return relation.none if results.nil?
 
-      grouped = GrdaWarehouse::WarehouseClient
+      grouped = GrdaWarehouse::WarehouseClient.
         # join warehouse client to results subquery
-        .joins(%(JOIN (#{results.to_sql}) src_search_results ON "warehouse_clients"."source_id" = "src_search_results"."client_id"))
+        joins(%(JOIN (#{results.to_sql}) src_search_results ON "warehouse_clients"."source_id" = "src_search_results"."client_id")).
         # group warehouse clients to avoid duplicate results
-        .select(Arel.sql(%("warehouse_clients"."destination_id" AS client_id, MAX(src_search_results.score) AS score)))
-        .group(Arel.sql('1'))
+        select(Arel.sql(%("warehouse_clients"."destination_id" AS client_id, MAX(src_search_results.score) AS score))).
+        group(Arel.sql('1'))
 
       # now join the results, mapped through the WarehouseClient, to the current scope
       mapped = joins(%(JOIN (#{grouped.to_sql}) AS dst_search_results ON dst_search_results.client_id = "Client".id))
@@ -1992,7 +2023,9 @@ module GrdaWarehouse::Hud
         @race_asian.to_a +
         @race_black_af_american.to_a +
         @race_native_hi_other_pacific.to_a +
-        @race_white.to_a
+        @race_white.to_a +
+        @race_hispanic_latinaeo.to_a +
+        @race_mid_east_n_african.to_a
 
         multi.duplicates.to_set
       end

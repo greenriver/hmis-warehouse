@@ -10,7 +10,7 @@ module CePerformance
 
     has_many :simple_reports_universe_members, inverse_of: :universe_membership, class_name: 'SimpleReports::UniverseMember', foreign_key: :universe_membership_id
     belongs_to :report
-    belongs_to :source_client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: :client_id
+    belongs_to :source_client, class_name: 'GrdaWarehouse::Hud::Client', foreign_key: :destination_client_id
 
     scope :in_period, ->(period) do
       where(period: period)

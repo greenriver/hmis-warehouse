@@ -300,6 +300,11 @@ namespace :grda_warehouse do
     end
     TaskQueue.queue_unprocessed!
     GrdaWarehouse::ProjectGroup.maintain_project_lists!
+
+    if DateTime.current.hour == 5 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists?
+      # Run HMIS Auto-Exit daily in the early morning. This is running here instead of the daily tasks because of the daily task is bloated.
+      Hmis::AutoExitJob.perform_now
+    end
   end
 
   desc 'Mark the first residential service history record for clients for whom this has not yet been done; if you set the parameter to *any* value, all clients will be reset'
@@ -346,6 +351,11 @@ namespace :grda_warehouse do
   desc 'Process Recurring HMIS Exports'
   task process_recurring_hmis_exports: [:environment] do
     GrdaWarehouse::Tasks::ProcessRecurringHmisExports.new.run!
+
+    if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && RailsDrivers.loaded.include?(:hmis_external_apis)
+      # Upload HMIS Export and Client MCI mapping to the AC Data Warehouse
+      Rake::Task['driver:hmis_external_apis:export:ac_clients'].invoke
+    end
   end
 
   desc 'Process location data'

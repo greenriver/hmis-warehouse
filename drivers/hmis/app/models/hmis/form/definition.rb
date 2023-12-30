@@ -22,7 +22,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # Forms that are assessments
   HUD_ASSESSMENT_FORM_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT, :CE, :POST_EXIT, :CUSTOM_ASSESSMENT].freeze
 
-  # System forms (required for basic HMIS functionality)
+  # System forms (forms that are required for basic HMIS functionality, and are configurable)
   SYSTEM_FORM_ROLES = [
     :PROJECT,
     :ORGANIZATION,
@@ -32,6 +32,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :CLIENT,
     :NEW_CLIENT_ENROLLMENT,
     :ENROLLMENT,
+    :HMIS_PARTICIPATION,
+    :CE_PARTICIPATION,
   ].freeze
 
   # Forms used for data collection on Enrollments (features that can be "toggled" on and off by specifying Instances)
@@ -47,50 +49,101 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :REFERRAL_REQUEST,
   ].freeze
 
+  # Static forms are not configurable
+  STATIC_FORM_ROLES = [
+    :FORM_RULE,
+    :AUTO_EXIT_CONFIG,
+    :FORM_DEFINITION,
+  ].freeze
+
   FORM_ROLES = [
     *HUD_ASSESSMENT_FORM_ROLES,
     *SYSTEM_FORM_ROLES,
     *DATA_COLLECTION_FEATURE_ROLES,
+    *STATIC_FORM_ROLES,
     :OCCURRENCE_POINT,
     # Other/misc forms
     :FILE, # should maybe be considered a data collection feature, but different becase its at Client-level (not Project)
   ].freeze
 
   validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }
+  validates :identifier, uniqueness: { scope: :version }
 
   ENROLLMENT_CONFIG = {
-    class_name: 'Hmis::Hud::Enrollment',
+    owner_class: Hmis::Hud::Enrollment,
     permission: :can_edit_enrollments,
-    resolve_as: 'Types::HmisSchema::Enrollment',
   }.freeze
 
+  # Configuration for SubmitForm
   FORM_ROLE_CONFIG = {
-    SERVICE: { class_name: 'Hmis::Hud::HmisService', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Service' },
-    PROJECT: { class_name: 'Hmis::Hud::Project', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Project' },
-    ORGANIZATION: { class_name: 'Hmis::Hud::Organization', permission: :can_edit_organization, resolve_as: 'Types::HmisSchema::Organization' },
-    CLIENT: { class_name: 'Hmis::Hud::Client', permission: :can_edit_clients, resolve_as: 'Types::HmisSchema::Client' },
-    FUNDER: { class_name: 'Hmis::Hud::Funder', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Funder' },
-    INVENTORY: { class_name: 'Hmis::Hud::Inventory', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::Inventory' },
-    PROJECT_COC: { class_name: 'Hmis::Hud::ProjectCoc', permission: :can_edit_project_details, resolve_as: 'Types::HmisSchema::ProjectCoc' },
-    CE_ASSESSMENT: { class_name: 'Hmis::Hud::Assessment', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CeAssessment' },
-    CE_EVENT: { class_name: 'Hmis::Hud::Event', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::Event' },
-    CASE_NOTE: { class_name: 'Hmis::Hud::CustomCaseNote', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CustomCaseNote' },
+    SERVICE: {
+      owner_class: Hmis::Hud::HmisService,
+      permission: :can_edit_enrollments,
+    },
+    PROJECT: {
+      owner_class: Hmis::Hud::Project,
+      permission: :can_edit_project_details,
+    },
+    ORGANIZATION: {
+      owner_class: Hmis::Hud::Organization,
+      permission: :can_edit_organization,
+    },
+    CLIENT: {
+      owner_class: Hmis::Hud::Client,
+      permission: :can_edit_clients,
+    },
+    FUNDER: {
+      owner_class: Hmis::Hud::Funder,
+      permission: :can_edit_project_details,
+    },
+    INVENTORY: {
+      owner_class: Hmis::Hud::Inventory,
+      permission: :can_edit_project_details,
+    },
+    PROJECT_COC: {
+      owner_class: Hmis::Hud::ProjectCoc,
+      permission: :can_edit_project_details,
+    },
+    HMIS_PARTICIPATION: {
+      owner_class: Hmis::Hud::HmisParticipation,
+      permission: :can_edit_project_details,
+    },
+    CE_PARTICIPATION: {
+      owner_class: Hmis::Hud::CeParticipation,
+      permission: :can_edit_project_details,
+    },
+    CE_ASSESSMENT: {
+      owner_class: Hmis::Hud::Assessment,
+      permission: :can_edit_enrollments,
+    },
+    CE_EVENT: {
+      owner_class: Hmis::Hud::Event,
+      permission: :can_edit_enrollments,
+    },
+    CASE_NOTE: {
+      owner_class: Hmis::Hud::CustomCaseNote,
+      permission: :can_edit_enrollments,
+    },
     FILE: {
-      class_name: 'Hmis::File',
+      owner_class: Hmis::File,
       permission: [:can_manage_any_client_files, :can_manage_own_client_files],
       authorize: Hmis::File.authorize_proc,
-      resolve_as: 'Types::HmisSchema::File',
     },
     REFERRAL_REQUEST: {
-      class_name: 'HmisExternalApis::AcHmis::ReferralRequest',
+      owner_class: HmisExternalApis::AcHmis::ReferralRequest,
       permission: :can_manage_incoming_referrals,
-      resolve_as: 'Types::HmisSchema::ReferralRequest',
     },
-    CURRENT_LIVING_SITUATION: { class_name: 'Hmis::Hud::CurrentLivingSituation', permission: :can_edit_enrollments, resolve_as: 'Types::HmisSchema::CurrentLivingSituation' },
+    CURRENT_LIVING_SITUATION: {
+      owner_class: Hmis::Hud::CurrentLivingSituation,
+      permission: :can_edit_enrollments,
+    },
     OCCURRENCE_POINT: ENROLLMENT_CONFIG,
     ENROLLMENT: ENROLLMENT_CONFIG,
     # This form creates an enrollment, but it ALSO creates a client, so it requires an additional permission
-    NEW_CLIENT_ENROLLMENT: { **ENROLLMENT_CONFIG, permission: [:can_edit_clients, :can_edit_enrollments] },
+    NEW_CLIENT_ENROLLMENT: {
+      **ENROLLMENT_CONFIG,
+      permission: [:can_edit_clients, :can_edit_enrollments],
+    },
   }.freeze
 
   FORM_DATA_COLLECTION_STAGES = {
@@ -101,9 +154,11 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     POST_EXIT: 6,
   }.freeze
 
-  use_enum_with_same_key :form_role_enum_map, FORM_ROLES
-  use_enum_with_same_key :assessment_type_enum_map, HUD_ASSESSMENT_FORM_ROLES
+  use_enum_with_same_key :form_role_enum_map, FORM_ROLES.excluding(:CUSTOM_ASSESSMENT, :CE)
+  # may add back CE as HUD Assessment Role when we implement CE assessments. Same for implementing customs. Unsure at this point, so leaving them out.
+  use_enum_with_same_key :assessment_type_enum_map, HUD_ASSESSMENT_FORM_ROLES.excluding(:CUSTOM_ASSESSMENT, :CE)
   use_enum_with_same_key :data_collection_feature_role_enum_map, DATA_COLLECTION_FEATURE_ROLES
+  use_enum_with_same_key :static_form_role_enum_map, STATIC_FORM_ROLES
 
   scope :with_role, ->(role) { where(role: role) }
 
@@ -156,13 +211,13 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     recur_check = lambda do |item|
       (item['item'] || []).each do |child_item|
         link_id = child_item['link_id']
-        raise "Missing link ID: #{child_item}" unless link_id.present?
-        raise "Duplicate link ID: #{link_id}" if seen_link_ids.include?(link_id)
+        yield "Missing link ID: #{child_item}" unless link_id.present?
+        yield "Duplicate link ID: #{link_id}" if seen_link_ids.include?(link_id)
 
         seen_link_ids.add(link_id)
 
         # Ensure pick list reference is valid
-        raise "Invalid pick list for Link ID #{link_id}: #{child_item['pick_list_reference']}" if child_item['pick_list_reference'] && valid_pick_lists.exclude?(child_item['pick_list_reference'])
+        yield "Invalid pick list for Link ID #{link_id}: #{child_item['pick_list_reference']}" if child_item['pick_list_reference'] && valid_pick_lists.exclude?(child_item['pick_list_reference'])
 
         recur_check.call(child_item)
       end
@@ -172,8 +227,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def self.validate_schema(json)
-    schema_path = Rails.root
-      .join('drivers/hmis_external_apis/public/schemas/form_definition.json')
+    schema_path = Rails.root.
+      join('drivers/hmis_external_apis/public/schemas/form_definition.json')
     HmisExternalApis::JsonValidator.perform(json, schema_path)
   end
 
@@ -189,10 +244,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     role.to_sym == :EXIT
   end
 
-  def record_class_name
+  def owner_class
     return unless FORM_ROLE_CONFIG[role.to_sym].present?
 
-    FORM_ROLE_CONFIG[role.to_sym][:class_name]
+    FORM_ROLE_CONFIG[role.to_sym][:owner_class]
   end
 
   def record_editing_permissions

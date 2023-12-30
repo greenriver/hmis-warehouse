@@ -9,7 +9,12 @@ module GrdaWarehouse
     include NotifierConfig
 
     belongs_to :shape_zip_code, class_name: 'GrdaWarehouse::Shape::ZipCode', primary_key: 'zcta5ce10', foreign_key: 'zipcode', optional: true
-    belongs_to :shape_state, class_name: 'GrdaWarehouse::Shape::State', primary_key: 'stusps', foreign_key: 'state', optional: true
+    belongs_to :shape_state, class_name: 'GrdaWarehouse::Shape::State', primary_key: 'name', foreign_key: 'state', optional: true
+    belongs_to :cls, class_name: 'ClientLocationHistory::Location', primary_key: [:lat, :lon], foreign_key: [:lat, :lon], optional: true
+
+    scope :with_shape_cocs, -> do
+      joins('inner join shape_cocs on ST_Within(ST_SetSRID(ST_Point(places.lon, places.lat), 4326), shape_cocs.geom)')
+    end
 
     def self.lookup_lat_lon(query: nil, city: nil, state: nil, postalcode: nil, country: 'us')
       place = lookup(query: query, city: city, state: state, postalcode: postalcode, country: country)&.lat_lon
@@ -29,10 +34,14 @@ module GrdaWarehouse
           # we see a ton of missing zeros at the beginning of zipcodes, store what we have, but lookup the correct value
           nr = nominatim_lookup(query, city, state, postalcode&.rjust(5, '0'), country)
           if nr.present?
-            lat_lon = { lat: nr.coordinates.first, lon: nr.coordinates.last, bounds: nr.boundingbox }.with_indifferent_access
+            lat = nr.coordinates.first
+            lon = nr.coordinates.last
+            lat_lon = { lat: lat, lon: lon, bounds: nr.boundingbox }.with_indifferent_access
             Place.create!(
               location: key,
               lat_lon: lat_lon,
+              lat: lat,
+              lon: lon,
               city: nr.town,
               state: nr.state,
               zipcode: nr.postal_code,
@@ -42,7 +51,12 @@ module GrdaWarehouse
       end
       place
     rescue StandardError => e
+      # Sometimes it just dies, that sends Sentry a bunch of errors we can't do anything about, so just eat them
+      return if nr.is_a?(Geocoder::Result::Nominatim) && nr.data.try(:[], 'title') == '500 Internal Server Error'
+
       send_single_notification("Error contacting the OSM Nominatim API.: #{e.message}", 'NominatimWarning')
+      Sentry.capture_exception(e)
+      nil
     end
 
     def self.nominatim_lookup(query, city, state, postalcode, country)

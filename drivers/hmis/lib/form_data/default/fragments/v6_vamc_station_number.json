@@ -5,82 +5,53 @@
   "data_collected_about": "HOH",
   "prefill": true,
   "rule": {
-    "operator": "ALL",
+    "operator": "ANY",
     "parts": [
       {
-        "operator": "ANY",
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "HUD: HUD-VASH"
+      },
+      {
+        "operator": "ALL",
+        "_comment": "VA: SSVF – Collection required for RRH and Homelessness Prevention",
         "parts": [
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 20
-          },
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 27
-          },
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 30
-          },
-          {
-            "variable": "projectFunders",
-            "operator": "INCLUDE",
-            "value": 33
-          },
           {
             "variable": "projectFunderComponents",
             "operator": "INCLUDE",
-            "value": "VA: Grant Per Diem"
+            "value": "VA: SSVF"
+          },
+          {
+            "operator": "ANY",
+            "parts": [
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 12
+              },
+              {
+                "variable": "projectType",
+                "operator": "EQUAL",
+                "value": 13
+              }
+            ]
           }
         ]
       },
       {
-        "operator": "ANY",
-        "parts": [
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 0
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 2
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 3
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 6
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 8
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 9
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 12
-          },
-          {
-            "variable": "projectType",
-            "operator": "EQUAL",
-            "value": 13
-          }
-        ]
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "VA: GPD"
+      },
+      {
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "VA: Community Contract Safe Haven"
+      },
+      {
+        "variable": "projectFunderComponents",
+        "operator": "INCLUDE",
+        "value": "VA: CRS Contract Residential Services"
       }
     ]
   },

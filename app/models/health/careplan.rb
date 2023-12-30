@@ -194,6 +194,10 @@ module Health
 
     scope :reviewed_within, ->(range) { where(rn_approved_on: range) }
 
+    scope :completed_within, ->(range) { where(provider_signed_on: range) }
+
+    scope :sent_within, ->(range) { where(careplan_sent_on: range) }
+
     # End Scope
 
     def edit_path(anchor: nil)
@@ -369,7 +373,10 @@ module Health
       return false unless cp1?
 
       # Only the most recent PCTP needs review
-      patient.careplans.sorted.first == self
+      return false unless patient.pctp_careplans.sorted.first&.instrument&.id == id
+
+      # Inactive CP1 careplans need to be replaced, not re-reviewed
+      active?
     end
 
     def compact_future_issues

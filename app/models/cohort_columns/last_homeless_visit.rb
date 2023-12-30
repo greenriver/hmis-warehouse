@@ -9,13 +9,11 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :last_seen
     attribute :translation_key, String, lazy: true, default: 'Last Seen'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
+    attribute :description_translation_key, String, lazy: true, default: 'Date of last homeless service in ongoing enrollments'
+    attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def available_for_rules?
       false
-    end
-
-    def description
-      'Date of last homeless service in ongoing enrollments'
     end
 
     def display_read_only(user)

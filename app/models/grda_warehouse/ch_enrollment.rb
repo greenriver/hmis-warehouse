@@ -206,7 +206,13 @@ module GrdaWarehouse
     # Line 9  (3.917.1)
     def self.prior_living_sitation_homeless(enrollment)
       value = enrollment.LivingSituation
-      result = HudUtility2024.homeless_situations(as: :prior).include?(value) ? :continue : :skip
+      result = if HudUtility2024.homeless_situations(as: :prior).include?(value)
+        :continue
+      elsif value.present?
+        :skip
+      else
+        :missing
+      end
       display_value = value ? "#{value} (#{::HudUtility2024.living_situation(value)})" : ''
       { result: result, display_value: display_value, line: 9 }
     end
@@ -214,7 +220,13 @@ module GrdaWarehouse
     # Line 14 (3.917.1)
     def self.prior_living_sitation_institutional(enrollment)
       value = enrollment.LivingSituation
-      result = HudUtility2024.institutional_situations(as: :prior).include?(value) ? :continue : :skip
+      result = if HudUtility2024.institutional_situations(as: :prior).include?(value)
+        :continue
+      elsif value.present?
+        :skip
+      else
+        :missing
+      end
       display_value = value ? "#{value} (#{::HudUtility2024.living_situation(value)})" : ''
       { result: result, display_value: display_value, line: 14 }
     end
@@ -301,10 +313,27 @@ module GrdaWarehouse
     # Add steps for lines 15-16 and lines 22-23
     def self.length_of_stay_previous_sufficient(enrollment)
       steps = []
-      steps.push({ result: is_no?(enrollment.LOSUnderThreshold) || :continue, display_value: enrollment.LOSUnderThreshold })
+      value = enrollment.LOSUnderThreshold
+      result = if is_no?(value)
+        :no
+      elsif value.present?
+        :continue
+      else
+        :missing
+      end
+
+      steps.push({ result: result, display_value: enrollment.LOSUnderThreshold })
       return steps if terminating?(steps.last[:result])
 
-      steps.push({ result: is_no?(enrollment.PreviousStreetESSH) || :continue, display_value: enrollment.PreviousStreetESSH })
+      value = enrollment.PreviousStreetESSH
+      result = if is_no?(value)
+        :no
+      elsif value.present?
+        :continue
+      else
+        :missing
+      end
+      steps.push({ result: result, display_value: enrollment.PreviousStreetESSH })
       steps
     end
 

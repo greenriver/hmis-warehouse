@@ -1,0 +1,8 @@
+.form-group.mb-0
+  - id = filter_id(tab[:id], name)
+  - input_class = filter_id(tab[:id], 'datepicker')
+  %label{for: id}= label
+  .input-group.input-daterange.d-flex.align-items-center{id: id}
+    %input.form-control{type: 'text', value: start_date, class: [input_class, 'start-date']}
+    .input-group-addon.px-4 to
+    %input.form-control{type: 'text', value: end_date, class: [input_class, 'end-date']}

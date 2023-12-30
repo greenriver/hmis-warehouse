@@ -86,6 +86,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       new_information_date = (e1.entry_date + 1.week).strftime('%Y-%m-%d')
       input = {
         assessment_id: a1.id,
+        enrollment_id: a1.enrollment.id,
         form_definition_id: fd1.id,
         values: { 'linkid-date' => new_information_date },
         hud_values: { 'informationDate' => new_information_date },
@@ -113,6 +114,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       new_information_date = (e1.entry_date + 1.week).strftime('%Y-%m-%d')
       input = {
         assessment_id: a1_wip.id,
+        enrollment_id: a1_wip.enrollment.id,
         form_definition_id: fd1.id,
         values: { 'linkid-date' => new_information_date },
         hud_values: { 'informationDate' => new_information_date },
@@ -140,6 +142,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       new_information_date = (e1.entry_date + 5.days).strftime('%Y-%m-%d')
       input = {
         assessment_id: a1_wip.id,
+        enrollment_id: a1_wip.enrollment.id,
         form_definition_id: fd1.id,
         values: { 'linkid-date' => new_information_date, 'linkid-choice' => nil },
         hud_values: { 'informationDate' => new_information_date, 'linkid-choice' => nil },
@@ -159,6 +162,28 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(a1_wip.assessment_date).not_to eq(Date.parse(new_information_date))
         expect(a1_wip.form_processor.values).not_to include(**input[:values])
         expect(a1_wip.form_processor.hud_values).not_to include(**input[:hud_values])
+      end
+    end
+  end
+
+  describe 'For exit assessment' do
+    before(:each) do
+      fd1.update!(role: 'EXIT')
+    end
+    describe 'for enrollment with an invalid entry/exit date' do
+      let!(:e1_exit) { create :hmis_hud_exit, data_source: ds1, enrollment: e1, client: e1.client }
+      before(:each) do
+        e1_exit.exit_date = e1.entry_date - 1.day
+        e1_exit.save!(validate: false)
+      end
+
+      it 'Should allow correction' do
+        response, result = post_graphql(input: { input: test_input }) { mutation }
+        errors = result.dig('data', 'submitAssessment', 'errors')
+        aggregate_failures 'checking response' do
+          expect(response.status).to eq 200
+          expect(errors).to be_empty
+        end
       end
     end
   end

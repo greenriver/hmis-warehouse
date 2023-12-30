@@ -133,15 +133,6 @@ module GrdaWarehouse::WarehouseReports::Youth
       @two_b ||= get_client_ids(non_street_outreach_intake_scope.at_risk)
     end
 
-    def two_c
-      @two_c ||= {}.tap do |result|
-        groups = non_street_outreach_intake_scope.pluck(:how_hear, :client_id).group_by(&:first)
-        groups.each do |group, items|
-          result[group] = items.map(&:last)
-        end
-      end
-    end
-
     def three_a
       @three_a ||= get_client_ids(
         new_intake_during_report_range_some_indication_of_at_risk.
@@ -154,13 +145,6 @@ module GrdaWarehouse::WarehouseReports::Youth
       @three_b ||= get_client_ids(at_risk_case_management_during_range) - three_a
     end
 
-    def three_c
-      @three_c ||= get_client_ids(
-        new_intake_during_report_range_some_indication_of_at_risk.
-        not_served,
-      )
-    end
-
     def four_a
       @four_a ||= get_client_ids(
         new_intake_during_report_range_some_indication_of_homeless.
@@ -171,13 +155,6 @@ module GrdaWarehouse::WarehouseReports::Youth
     # Ongoing case management indicating homeless, not newly opened
     def four_b
       @four_b ||= get_client_ids(homeless_case_management_during_range) - four_a
-    end
-
-    def four_c
-      @four_c ||= get_client_ids(
-        new_intake_during_report_range_some_indication_of_homeless.
-        not_served,
-      )
     end
 
     # Non-at-risk, Non-homeless
@@ -272,100 +249,6 @@ module GrdaWarehouse::WarehouseReports::Youth
         between(start_date: @start_date, end_date: @end_date)
     end
 
-    def six_a
-      @six_a ||= get_client_ids(referral_in_range_scope)
-    end
-
-    def six_b
-      @six_b ||= get_client_ids(referral_in_range_scope.
-        where(referred_to: 'Referred for health services'))
-    end
-
-    def six_c
-      @six_c ||= get_client_ids(referral_in_range_scope.
-          where(referred_to: 'Referred for mental health services'))
-    end
-
-    def six_d
-      @six_d ||= get_client_ids(referral_in_range_scope.
-          where(referred_to: 'Referred for substance use services'))
-    end
-
-    def six_e
-      @six_e ||= get_client_ids(referral_in_range_scope.
-          where(referred_to: 'Referred for employment & job training services'))
-    end
-
-    def six_f
-      @six_f ||= get_client_ids(referral_in_range_scope.
-          where(referred_to: 'Referred for education services'))
-    end
-
-    def six_g
-      @six_g ||= get_client_ids(referral_in_range_scope.
-          where(referred_to: 'Referred for parenting services'))
-    end
-
-    def six_h
-      @six_h ||= get_client_ids(referral_in_range_scope.
-          where(referred_to: 'Referred for domestic violence-related services'))
-    end
-
-    def six_i
-      @six_i ||= get_client_ids(referral_in_range_scope.
-          where(referred_to: 'Referred for lifeskills / financial literacy services'))
-    end
-
-    def six_j
-      @six_j ||= get_client_ids(referral_in_range_scope.
-          where(referred_to: 'Referred for legal services'))
-    end
-
-    def six_k
-      @six_k ||= get_client_ids(referral_in_range_scope.
-          where(referred_to: 'Referred for legal services'))
-    end
-
-    def six_l
-      @six_l ||= get_client_ids(referral_in_range_scope.
-          where(referred_to: 'Referred for housing supports (include housing supports provided with no-EOHHS funding including housing search)'))
-    end
-
-    def six_m
-      @six_m ||= get_client_ids(referral_in_range_scope.
-          where(referred_to: 'Referred to Benefits providers (SNAP, SSI, WIC, etc.)'))
-    end
-
-    def six_n
-      @six_n ||= get_client_ids(referral_in_range_scope.
-          where(referred_to: 'Referred to health insurance providers'))
-    end
-
-    def six_o
-      @six_o ||= get_client_ids(referral_in_range_scope.
-          where(referred_to: 'Referred to other state agencies (DMH, DDS, etc.)'))
-    end
-
-    def six_p
-      @six_p ||= get_client_ids(referral_in_range_scope.
-          where(referred_to: 'Referred to cultural / recreational activities'))
-    end
-
-    def six_q
-      @six_q ||= begin
-        result = {}
-        available_types = GrdaWarehouse::Youth::YouthReferral.new.available_referrals -
-            ['Referred to other services / activities not listed above', 'Other']
-        groups = referral_in_range_scope.pluck(:referred_to, :client_id).group_by(&:first)
-        groups.each do |group, items|
-          next if available_types.include?(group)
-
-          result[group] = items.map(&:last)
-        end
-        result
-      end
-    end
-
     def client_ids_for_opened_intakes
       get_client_ids(all_open_intakes.served.opened_after(@start_date))
     end
@@ -395,26 +278,7 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     # Clients with a new intake, or a case note, financial assistance, or referral within the date range
     def total_client_ids_served
-      @total_client_ids_served ||= (client_ids_for_opened_intakes + client_ids_for_case_notes_in_range + five_a + six_a).uniq
-    end
-
-    # C. College Student Services
-    def college_scope
-      all_served
-    end
-
-    def c_one_college_pilot
-      @c_one_college_pilot ||= get_client_ids(college_scope.
-        where(college_pilot: 'Yes'))
-    end
-
-    def c_three_college_non_pilot
-      @c_three_college_non_pilot ||= get_client_ids(college_scope.
-        where(college_pilot: 'No', attending_college: 'Yes'))
-    end
-
-    def total_college
-      @total_college ||= (c_one_college_pilot + c_three_college_non_pilot).uniq
+      @total_client_ids_served ||= (client_ids_for_opened_intakes + client_ids_for_case_notes_in_range + five_a).uniq
     end
 
     # D. Demographics
@@ -426,12 +290,12 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def d_one_b
       @d_one_b ||= get_client_ids(all_served_last_assessment.
-        where(client_gender: 1)) # HudUtility.gender male
+        where(client_gender: 1)) # HudUtility.gender man
     end
 
     def d_one_c
       @d_one_c ||= get_client_ids(all_served_last_assessment.
-          where(client_gender: 0)) # HudUtility.gender female
+          where(client_gender: 0)) # HudUtility.gender woman
     end
 
     def d_one_d
@@ -442,6 +306,16 @@ module GrdaWarehouse::WarehouseReports::Youth
     def d_one_e
       @d_one_e ||= get_client_ids(all_served_last_assessment.
           where(client_gender: 4)) # HudUtility.gender non-binary
+    end
+
+    def d_one_f
+      @d_one_f ||= get_client_ids(all_served_last_assessment.
+          where(client_gender: [6, 8, 9])) # HudUtility.gender questioning, 8, 9
+    end
+
+    def d_one_g
+      @d_one_g ||= get_client_ids(all_served_last_assessment.
+          where(client_gender: 99)) # HudUtility.gender 99
     end
 
     def d_two_a
@@ -471,26 +345,31 @@ module GrdaWarehouse::WarehouseReports::Youth
 
     def d_two_f
       @d_two_f ||= get_client_ids(all_served_last_assessment.
-        where('client_race ?| array[:race] OR jsonb_array_length(client_race) > 1', race: 'RaceNone'))
+        where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'MidEastNAfrican'))
     end
 
     def d_two_g
       @d_two_g ||= get_client_ids(all_served_last_assessment.
-          where(client_ethnicity: 1)) # HudUtility.ethnicity Hispanic/Latino
+        where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'HispanicLatinaeo'))
     end
 
     def d_two_h
       @d_two_h ||= get_client_ids(all_served_last_assessment.
-        where(client_primary_language: 'English'))
+        where('client_race ?| array[:race] OR jsonb_array_length(client_race) > 1', race: 'RaceNone'))
     end
 
     def d_two_i
       @d_two_i ||= get_client_ids(all_served_last_assessment.
-          where(client_primary_language: 'Spanish'))
+        where(client_primary_language: 'English'))
     end
 
     def d_two_j
       @d_two_j ||= get_client_ids(all_served_last_assessment.
+          where(client_primary_language: 'Spanish'))
+    end
+
+    def d_two_k
+      @d_two_k ||= get_client_ids(all_served_last_assessment.
           where.not(client_primary_language: ['English', 'Spanish', 'Unknown']))
     end
 
@@ -542,13 +421,6 @@ module GrdaWarehouse::WarehouseReports::Youth
     def d_four_e
       @d_four_e ||= get_client_ids(all_served_last_assessment.
           where(attending_college: 'Yes'))
-    end
-
-    def d_four_f
-      @d_four_f ||= get_client_ids(
-        all_served_last_assessment.
-        where(Arel.sql("not other_agency_involvements::jsonb ?| array['No', 'Unknown'] and other_agency_involvements::jsonb != '[]'")),
-      )
     end
 
     def d_four_g
@@ -619,13 +491,13 @@ module GrdaWarehouse::WarehouseReports::Youth
     def g_one_b
       @g_one_b ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-        where(client_gender: 1)) # HudUtility.gender male
+        where(client_gender: 1)) # HudUtility.gender man
     end
 
     def g_one_c
       @g_one_c ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where(client_gender: 0)) # HudUtility.gender female
+          where(client_gender: 0)) # HudUtility.gender woman
     end
 
     def g_one_d
@@ -638,6 +510,18 @@ module GrdaWarehouse::WarehouseReports::Youth
       @g_one_e ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
           where(client_gender: 4)) # HudUtility.gender non-binary
+    end
+
+    def g_one_f
+      @g_one_f ||= get_client_ids(all_served_last_assessment.
+        joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
+          where(client_gender: [6, 8, 9])) # HudUtility.gender questioning, 8, 9
+    end
+
+    def g_one_g
+      @g_one_g ||= get_client_ids(all_served_last_assessment.
+        joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
+          where(client_gender: 99)) # HudUtility.gender 99
     end
 
     def g_two_a
@@ -673,14 +557,19 @@ module GrdaWarehouse::WarehouseReports::Youth
     def g_two_f
       @g_two_f ||= get_client_ids(all_served_last_assessment.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where('client_race ?| array[:race] OR jsonb_array_length(client_race) > 1', race: 'RaceNone'))
+          where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'MidEastNAfrican'))
     end
 
     def g_two_g
       @g_two_g ||= get_client_ids(all_served_last_assessment.
-        only_most_recent_by_client.
         joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
-          where(client_ethnicity: 1)) # HudUtility.ethnicity Hispanic/Latino
+          where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'HispanicLatinaeo'))
+    end
+
+    def g_two_h
+      @g_two_h ||= get_client_ids(all_served_last_assessment.
+        joins(:youth_follow_ups).merge(transitioned_to_stabilized_housing_scope).
+          where('client_race ?| array[:race] OR jsonb_array_length(client_race) > 1', race: 'RaceNone'))
     end
 
     def g_three_b
@@ -689,86 +578,6 @@ module GrdaWarehouse::WarehouseReports::Youth
         joins(:youth_follow_ups).
         merge(transitioned_to_stabilized_housing_scope).
         where(client_lgbtq: 1))
-    end
-
-    def h_one_a
-      at = GrdaWarehouse::YouthIntake::Base.arel_table
-      @h_one_a ||= get_client_ids(all_served_last_assessment.
-        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-        where(at[:client_dob].gteq(@start_date - 18.years)))
-    end
-
-    def h_one_b
-      @h_one_b ||= get_client_ids(all_served_last_assessment.
-        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-        where(client_gender: 1)) # HudUtility.gender male
-    end
-
-    def h_one_c
-      @h_one_c ||= get_client_ids(all_served_last_assessment.
-        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where(client_gender: 0)) # HudUtility.gender female
-    end
-
-    def h_one_d
-      @h_one_d ||= get_client_ids(all_served_last_assessment.
-        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where(client_gender: [2, 3])) # HudUtility.gender trans
-    end
-
-    def h_one_e
-      @h_one_e ||= get_client_ids(all_served_last_assessment.
-        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where(client_gender: 4)) # HudUtility.gender non-binary
-    end
-
-    def h_two_a
-      @h_two_a ||= get_client_ids(all_served_last_assessment.
-        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'White'))
-    end
-
-    def h_two_b
-      @h_two_b ||= get_client_ids(all_served_last_assessment.
-        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'BlackAfAmerican'))
-    end
-
-    def h_two_c
-      @h_two_c ||= get_client_ids(all_served_last_assessment.
-        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'Asian'))
-    end
-
-    def h_two_d
-      @h_two_d ||= get_client_ids(all_served_last_assessment.
-        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'AmIndAKNative'))
-    end
-
-    def h_two_e
-      @h_two_e ||= get_client_ids(all_served_last_assessment.
-        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where('client_race ?| array[:race] AND jsonb_array_length(client_race) = 1', race: 'NativeHIPacific'))
-    end
-
-    def h_two_f
-      @h_two_f ||= get_client_ids(all_served_last_assessment.
-        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where('client_race ?| array[:race] OR jsonb_array_length(client_race) > 1', race: 'RaceNone'))
-    end
-
-    def h_two_g
-      @h_two_g ||= get_client_ids(all_served_last_assessment.
-        joins(:youth_follow_ups).merge(follow_up_from_at_risk).
-          where(client_ethnicity: 1)) # HudUtility.ethnicity Hispanic/Latino
-    end
-
-    def h_three_b
-      @h_three_b ||= get_client_ids(all_served_last_assessment.
-        joins(:youth_follow_ups).
-        merge(follow_up_from_at_risk).
-          where(client_lgbtq: 1))
     end
 
     # def follow_up_two_d
@@ -791,14 +600,10 @@ module GrdaWarehouse::WarehouseReports::Youth
         :one_b,
         :two_a,
         :two_b,
-        :two_c,
         :three_a,
         :three_b,
-        :three_c,
         :four_a,
         :four_b,
-        :four_c,
-        :four_d,
         :stably_housed_a,
         :stably_housed_b,
         :five_a,
@@ -816,35 +621,16 @@ module GrdaWarehouse::WarehouseReports::Youth
         :five_m,
         :five_n,
         :five_o,
-        :six_a,
-        :six_b,
-        :six_c,
-        :six_d,
-        :six_e,
-        :six_f,
-        :six_g,
-        :six_h,
-        :six_i,
-        :six_j,
-        :six_k,
-        :six_l,
-        :six_m,
-        :six_n,
-        :six_o,
-        :six_p,
-        :six_q,
         :total_client_ids_served,
         :total_served,
-        :c_one_college_pilot,
-        :c_two_graduating_college_pilot,
-        :c_three_college_non_pilot,
-        :total_college,
         :all_open_intakes,
         :d_one_a,
         :d_one_b,
         :d_one_c,
         :d_one_d,
         :d_one_e,
+        :d_one_f,
+        :d_one_g,
         :d_two_a,
         :d_two_b,
         :d_two_c,
@@ -855,6 +641,7 @@ module GrdaWarehouse::WarehouseReports::Youth
         :d_two_h,
         :d_two_i,
         :d_two_j,
+        :d_two_k,
         :d_three_a,
         :d_three_b,
         :d_three_c,
@@ -863,7 +650,6 @@ module GrdaWarehouse::WarehouseReports::Youth
         :d_four_c,
         :d_four_d,
         :d_four_e,
-        :d_four_f,
         :d_four_g,
         :d_four_h,
         :follow_up_one_a,
@@ -877,6 +663,8 @@ module GrdaWarehouse::WarehouseReports::Youth
         :g_one_c,
         :g_one_d,
         :g_one_e,
+        :g_one_f,
+        :g_one_g,
         :g_two_a,
         :g_two_b,
         :g_two_c,
@@ -884,20 +672,8 @@ module GrdaWarehouse::WarehouseReports::Youth
         :g_two_e,
         :g_two_f,
         :g_two_g,
+        :g_two_h,
         :g_three_b,
-        :h_one_a,
-        :h_one_b,
-        :h_one_c,
-        :h_one_d,
-        :h_one_e,
-        :h_two_a,
-        :h_two_b,
-        :h_two_c,
-        :h_two_d,
-        :h_two_e,
-        :h_two_f,
-        :h_two_g,
-        :h_three_b,
         :client_ids_for_open_intakes,
       ]
     end

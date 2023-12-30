@@ -75,8 +75,8 @@ module HudSpmReport::Generators::Fy2020
       project_id: p_t[:id],
       project_name: :project_name,
       household_id: she_household_column,
-      housing_status_at_entry: :housing_status_at_entry,
-      housing_status_at_exit: :housing_status_at_exit,
+      housing_status_at_entry: :housing_status_at_entry, # NOTE: use Enrollment.LivingSituation in the future
+      housing_status_at_exit: :housing_status_at_exit, # NOTE: use Exit.HousingAssessment in the future
       MoveInDate: :move_in_date,
       head_of_household: :head_of_household,
     }.freeze

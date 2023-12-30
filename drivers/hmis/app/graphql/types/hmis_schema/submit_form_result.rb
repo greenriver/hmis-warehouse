@@ -24,15 +24,47 @@ module Types
       Types::HmisSchema::CeAssessment,
       Types::HmisSchema::CustomCaseNote,
       Types::HmisSchema::Event,
+      Types::HmisSchema::HmisParticipation,
+      Types::HmisSchema::CeParticipation,
     )
 
     def self.resolve_type(object, _context)
-      config = Hmis::Form::Definition::FORM_ROLE_CONFIG.find do |_, value|
-        value[:class_name] == object.class.name
-      end&.last
-      raise "#{object.class.name} is not a valid response type" unless config.present?
-
-      config[:resolve_as].constantize
+      case object
+      when Hmis::Hud::Client
+        Types::HmisSchema::Client
+      when Hmis::Hud::Project
+        Types::HmisSchema::Project
+      when Hmis::Hud::Organization
+        Types::HmisSchema::Organization
+      when Hmis::Hud::ProjectCoc
+        Types::HmisSchema::ProjectCoc
+      when Hmis::Hud::Funder
+        Types::HmisSchema::Funder
+      when Hmis::Hud::Inventory
+        Types::HmisSchema::Inventory
+      when Hmis::Hud::HmisService
+        Types::HmisSchema::Service
+      when Hmis::File
+        Types::HmisSchema::File
+      when HmisExternalApis::AcHmis::ReferralRequest
+        Types::HmisSchema::ReferralRequest
+      when Hmis::Hud::Enrollment
+        Types::HmisSchema::Enrollment
+      when Hmis::Hud::CurrentLivingSituation
+        Types::HmisSchema::CurrentLivingSituation
+      when Hmis::Hud::Assessment
+        Types::HmisSchema::CeAssessment
+      when Hmis::Hud::CustomCaseNote
+        Types::HmisSchema::CustomCaseNote
+      when Hmis::Hud::Event
+        Types::HmisSchema::Event
+      when Hmis::Hud::HmisParticipation
+        Types::HmisSchema::HmisParticipation
+      when Hmis::Hud::CeParticipation
+        Types::HmisSchema::CeParticipation
+      else
+        raise "Invalid type: #{object.class.name}"
+      end
     end
   end
 end

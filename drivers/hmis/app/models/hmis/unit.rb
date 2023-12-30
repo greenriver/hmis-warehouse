@@ -8,6 +8,8 @@ class Hmis::Unit < Hmis::HmisBase
   include ::Hmis::Concerns::HmisArelHelper
   self.table_name = :hmis_units
 
+  has_paper_trail(meta: { project_id: :project_id })
+
   belongs_to :project, class_name: 'Hmis::Hud::Project'
   # Type of this unit
   belongs_to :unit_type, class_name: 'Hmis::UnitType', optional: true

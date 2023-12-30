@@ -102,16 +102,11 @@ module MaYyaReport
     end
 
     private def currently_homeless?(cls)
-      cls.present? && cls.CurrentLivingSituation.in?([1, 2, 16])
+      cls.present? && cls.CurrentLivingSituation.in?([101, 302, 116])
     end
 
     private def at_risk_of_homelessness?(cls)
       ! currently_homeless?(cls)
-      # cls.present? &&
-      #   cls.CurrentLivingSituation.in?(15, 6, 7, 25, 4, 5, 29, 14, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11) &&
-      #   cls.LeaveSituation14Days == 1 &&
-      #   cls.SubsequentResidence.in?([0, 8]) &&
-      #   cls.ResourcesToObtain.in?([0, 8])
     end
 
     private def initial_contact(enrollments)
@@ -130,9 +125,13 @@ module MaYyaReport
       genders = client.gender_multi
       return 0 if genders == [0]
       return 1 if genders == [1]
-      return 6 if genders.include?(6)
-      return 4 if genders.include?(4) || genders == [0, 1] || genders == [0, 1, 5]
-      return 5 if genders == [0, 5] || genders == [1, 5] || genders == [5] # rubocop:disable Style/MultipleComparison
+      # No guidance on 2 or 3 CulturallySpecific, DifferentIdentity
+      return 4 if genders.include?(4)
+      return 5 if genders.include?(5)
+      # Group the following
+      return 6 if genders.include?(6) # Questioning
+      return 6 if genders.include?(8) # Doesn't know
+      return 6 if genders.include?(9) # Prefers not to answer
 
       return client.GenderNone
     end
@@ -142,7 +141,7 @@ module MaYyaReport
 
       race_fields = client.race_fields
       return 99 if race_fields.size.zero?
-      return 6 if race_fields.size > 1
+      return 10 if race_fields.size > 1
 
       return race_code[*race_fields]
     end
@@ -154,6 +153,8 @@ module MaYyaReport
         'BlackAfAmerican' => 3,
         'NativeHIOtherPacific' => 4,
         'White' => 5,
+        'HispanicLatinaeo' => 6,
+        'MidEastNAfrican' => 7,
       }.freeze
     end
 
@@ -181,7 +182,7 @@ module MaYyaReport
     private def rehoused_on(enrollment)
       enrollment.current_living_situations.
         detect do |cls|
-          cls.CurrentLivingSituation.in?([19, 3, 31, 33, 34, 10, 20, 21, 11]) &&
+          cls.CurrentLivingSituation.in?([435, 410, 421, 411]) &&
           cls.InformationDate > enrollment.EntryDate
         end&.InformationDate
     end

@@ -8,12 +8,20 @@
 
 module Types
   class Forms::FormDefinition < Types::BaseObject
+    skip_activity_log
     description 'FormDefinition'
+
+    include Types::Admin::HasFormRules
+
     field :id, ID, null: false
     field :cache_key, ID, null: false
+    field :identifier, String, null: false
     field :role, Types::Forms::Enums::FormRole, null: false
     field :title, String, null: false
     field :definition, Forms::FormDefinitionJson, null: false
+    field :raw_definition, JsonObject, null: false
+    field :system, Boolean, null: false
+    form_rules_field :form_rules, method: :instances
 
     # Filtering is implemented within this resolver rather than a separate concern. This
     # gives us convenient to access the lazy batch loader for records (funder, orgs) that
@@ -23,8 +31,16 @@ module Types
       eval_items([object.definition])[0]
     end
 
+    def raw_definition
+      object.definition
+    end
+
     def cache_key
       [object.id, project&.id, active_date].join('|')
+    end
+
+    def system
+      load_ar_association(object, :instances).any?(&:system)
     end
 
     protected
@@ -58,20 +74,26 @@ module Types
       # if there's no rule, default to true
       return true if rule.nil?
 
+      # If there's no project, default to true.
+      # This let's us have rules on the Client form, for example V1 Veteran Info,
+      # that can be hidden when creating a Client in the context of a non-Veteran program,
+      # but should always be shown when creating/editing a Client outside of a project context.
+      return true if project.nil?
+
       operator = rule.fetch('operator')
       case operator
       when 'EQUAL'
         # { variable: 'projectType', operator: 'EQUAL', value: 1 }
-        eval_var(rule.fetch('variable')) == rule.fetch('value')
+        eval_var(rule.fetch('variable')) == eval_value(rule)
       when 'NOT_EQUAL'
         # { variable: 'projectType', operator: 'NOT_EQUAL', value: 1 }
-        eval_var(rule.fetch('variable')) != rule.fetch('value')
+        eval_var(rule.fetch('variable')) != eval_value(rule)
       when 'INCLUDE'
         # { variable: 'projectFunders', operator: 'INCLUDE', value: 1 }
-        eval_var_multi(rule.fetch('variable')).include?(rule.fetch('value'))
+        eval_var_multi(rule.fetch('variable')).include?(eval_value(rule))
       when 'NOT_INCLUDE'
         # { variable: 'projectFunders', operator: 'NOT_INCLUDE', value: 1 }
-        eval_var_multi(rule.fetch('variable')).exclude?(rule.fetch('value'))
+        eval_var_multi(rule.fetch('variable')).exclude?(eval_value(rule))
       when 'ANY'
         # { operator: 'ANY', parts: [ ... ] },
         rule.fetch('parts').any? { |r| eval_rule(r) }
@@ -105,9 +127,23 @@ module Types
       when 'projectFunderComponents'
         project_funders.map { |f| HudUtility2024.funder_component(f.funder&.to_i) }.compact_blank
       when 'projectOtherFunders'
-        project_funders.map(&:other_funder).compact_blank
+        # ignore case for Funder.OtherFunder value which is a free text field
+        project_funders.map(&:other_funder).compact.map(&:strip).map(&:downcase).compact_blank
       else
         raise "unknown variable for eval_var_multi #{key}"
+      end
+    end
+
+    def eval_value(rule)
+      variable = rule.fetch('variable')
+      value = rule.fetch('value')
+
+      case variable
+      when 'projectOtherFunders'
+        # ignore case for Funder.OtherFunder value which is a free text field
+        value.strip.downcase
+      else
+        value
       end
     end
 

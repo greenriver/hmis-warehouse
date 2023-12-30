@@ -9,6 +9,7 @@
 #   If the assessment is non-WIP: The HUD data is stored in records (IncomeBenefit, HealthAndDv, etc) that are referenced by this form_processor directly. (health_and_dv_id etc)
 class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   self.table_name = :hmis_form_processors
+  has_paper_trail
 
   # The assessment that was processed with this processor.
   # If processor is being used as in-memory processor for records, this will be empty.
@@ -19,8 +20,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   # Related records that were created/updated from this assessment
   belongs_to :health_and_dv, class_name: 'Hmis::Hud::HealthAndDv', optional: true, autosave: true
   belongs_to :income_benefit, class_name: 'Hmis::Hud::IncomeBenefit', optional: true, autosave: true
-  # TODO(2024) remove this column, once data has been migrated
-  belongs_to :enrollment_coc, class_name: 'Hmis::Hud::EnrollmentCoc', optional: true, autosave: true
   belongs_to :physical_disability, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
   belongs_to :developmental_disability, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
   belongs_to :chronic_health_condition, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
@@ -260,6 +259,8 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       Inventory: Hmis::Hud::Processors::InventoryProcessor,
       ProjectCoc: Hmis::Hud::Processors::ProjectCoCProcessor,
       Funder: Hmis::Hud::Processors::FunderProcessor,
+      CeParticipation: Hmis::Hud::Processors::CeParticipationProcessor,
+      HmisParticipation: Hmis::Hud::Processors::HmisParticipationProcessor,
       File: Hmis::Hud::Processors::FileProcessor,
       ReferralRequest: Hmis::Hud::Processors::ReferralRequestProcessor,
       YouthEducationStatus: Hmis::Hud::Processors::YouthEducationStatusProcessor,
@@ -330,9 +331,20 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     related_records.each do |record|
       next if record.errors.none?
 
-      # Skip relation fields, to avoid errors like "Income Benefit is invalid" on the Enrollment
       ar_errors = record.errors.errors.reject do |e|
-        e.attribute.to_s.underscore.ends_with?('_id') || (record.respond_to?(e.attribute) && record.send(e.attribute).is_a?(ActiveRecord::Relation))
+        # Skip validations for ID fields
+        if e.attribute.to_s.underscore.ends_with?('_id')
+          true # reject
+        # Skip validations for relation fields ("Income Benefit is invalid" on the Enrollment)
+        elsif record.respond_to?(e.attribute) && record.send(e.attribute).is_a?(ActiveRecord::Relation)
+          true # reject
+        # Skip validations for Information Date if this is an assessment,
+        # since we validate the assessment date separately using CustomAssessmentValidator
+        elsif custom_assessment.present? && e.attribute.to_s.underscore == 'information_date'
+          true # reject
+        else
+          false
+        end
       end
       errors.add_ar_errors(ar_errors)
     end
