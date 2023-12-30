@@ -150,7 +150,7 @@ class GrdaWarehouse::Utility
     nil
   end
 
-  # FIXME: document what this is for
+  # Tool to reset postgres sequences, which occasionally get out of sync when restoring a database, dependent on restore method.
   def self.fix_sequences
     query = <<~SQL
       SELECT 'SELECT SETVAL(' ||
