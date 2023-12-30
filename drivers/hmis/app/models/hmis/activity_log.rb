@@ -14,6 +14,11 @@ class Hmis::ActivityLog < ApplicationRecord
 
   scope :unprocessed, -> { where(processed_at: nil) }
 
+  # Logically HmisActivityLog is HABTM to clients and enrollments. However due to the database boundary, we do not
+  # define active record associations for those; the joins from such associations would be invalid sql.
+  #
+  # The id accessor methods below are used to compose sub-queries to filter the enrollment/client "summary" db views
+  # that are exposed in the API
   def self.select_client_ids
     jt = Arel::Table.new(:hmis_activity_logs_clients)
     join_clause = arel_table.create_join(jt, arel_table.create_on(jt[:activity_log_id].eq(arel_table[:id])))
