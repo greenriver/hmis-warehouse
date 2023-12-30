@@ -32,7 +32,6 @@ import_prefetch_schedule = (Time.parse(import_schedule) - 4.hours).strftime('%I:
 census_schedule = (Time.parse(import_schedule) - 5.hours).strftime('%I:%M %P')
 # database_backup_time = Time.parse(import_schedule) - 3.hours
 
-hmis_trigger = ENV['ENABLE_HMIS_API'] == 'true'
 health_trigger = ENV['HEALTH_SFTP_HOST'].to_s != '' && ENV['HEALTH_SFTP_HOST'] != 'hostname' && ENV['RAILS_ENV'] == 'production'
 backup_glacier_trigger = ENV['GLACIER_NEEDS_BACKUP'] == 'true'
 # glacier_files_backup_trigger = backup_glacier_trigger && ENV['GLACIER_FILESYSTEM_BACKUP'] == 'true'
@@ -172,12 +171,6 @@ tasks = [
     task: 'dba:dry_run',
     frequency: 1.day,
     at: '11:00am',
-    interruptable: true,
-  },
-  {
-    task: 'driver:hmis:process_activity_logs',
-    frequency: 60.minutes,
-    trigger: hmis_trigger,
     interruptable: true,
   },
   # {

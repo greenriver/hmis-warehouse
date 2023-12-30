@@ -294,6 +294,13 @@ namespace :grda_warehouse do
     rescue StandardError => e
       puts e.message
     end
+    begin
+      Rake::Task['driver:hmis:process_activity_logs'].invoke if ENV['ENABLE_HMIS_API'] == 'true'
+    rescue StandardError => e
+      puts e.message
+      Sentry.capture_exception(e)
+    end
+
     TextMessage::Message.send_pending! if GrdaWarehouse::Config.get(:send_sms_for_covid_reminders) && RailsDrivers.loaded.include?(:text_message)
     GrdaWarehouse::CustomImports::Config.active.each do |config|
       config.delay.import!
