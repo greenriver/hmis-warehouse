@@ -130,10 +130,14 @@ class GrdaWarehouse::Utility
     tables << HudReports::ReportInstance
     tables << SimpleReports::ReportInstance
 
-    tables.each do |klass|
-      klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} RESTART IDENTITY #{modifier(klass)}")
+    sequence = (0...tables.size).to_a.shuffle(random: Random.new(123))
+    tables.each do |model|
+      manager = GrdaWarehouse::ModelTableManager.new(model)
+      manager.truncate_table(modifier: modifier(model))
+      # assign staggered pk sequence values for all tables. Staggered pk values reduce the chances of lock-step ids
+      # between tables to better identify bugs related to mis-use of ids
+      manager.next_pk_sequence = (sequence.pop + 100) * 10_000
     end
-    # fix_sequences
 
     # Clear the materialized view
     GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!
