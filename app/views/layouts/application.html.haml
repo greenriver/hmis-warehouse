@@ -16,9 +16,6 @@
     - Dir.glob('app/assets/stylesheets/theme/styles/*.scss') do |stylesheet|
       - theme_styles = "theme/styles/#{File.basename(stylesheet, '.scss')}"
       = stylesheet_link_tag(theme_styles, media: 'all')
-    - if @per_page_js.present?
-      - @per_page_js.each do |js_file|
-        = javascript_include_tag js_file, defer: true
     - colors = Rails.cache.fetch('system-colors', expires_in: 5.minutes) {GrdaWarehouse::SystemColor.as_css.html_safe }
     - if colors.present?
       %style{ type: 'text/css' }
@@ -90,6 +87,10 @@
     = javascript_include_tag "cable_ready.umd.js", "data-turbo-track": "reload"
     = javascript_include_tag 'application'
     = javascript_include_tag('https://cdnjs.cloudflare.com/ajax/libs/chance/1.0.4/chance.min.js') if Rails.env.development?
+    = javascript_include_tag 'application_esbuild', 'data-turbo-track': 'reload', defer: true
+    - if @per_page_js.present?
+      - @per_page_js.each do |js_file|
+        = javascript_include_tag js_file
 
     = yield :page_js
     - if current_user

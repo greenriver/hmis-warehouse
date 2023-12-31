@@ -127,7 +127,7 @@ class StyleGuidesController < ApplicationController
 
   def js_example
     # You can include javascript files for a single controller action by specifying an array of file paths
-    @per_page_js = ['js_example']
+    @per_page_js = ['style_guide_example']
   end
 
   def system_colors

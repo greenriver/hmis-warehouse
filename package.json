@@ -19,7 +19,6 @@
     "d3-sankey": "^0.12.3",
     "d3-scale-chromatic": "3.0.0",
     "esbuild": "^0.19.11",
-    "glob-expand": "^0.2.1",
     "inputmask": "3.3.8",
     "leaflet": "1.9.4",
     "leaflet.markercluster": "^1.5.3",
@@ -42,7 +41,8 @@
   "scripts": {
     "lint": "eslint app/assets/javascripts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dedup": "yarn-deduplicate -s fewer yarn.lock"
+    "dedup": "yarn-deduplicate -s fewer yarn.lock",
+    "build": "esbuild app/javascript/*.* --bundle --sourcemap --outdir=app/assets/builds --public-path=/assets"
   },
   "repository": {
     "type": "git",
