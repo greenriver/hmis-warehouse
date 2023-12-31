@@ -214,8 +214,6 @@ gem 'json_schemer', '~> 2.0.0', require: false # external API validation
 gem 'oj'
 gem 'amazing_print'
 
-gem 'auto-session-timeout'
-
 gem 'responders'
 
 gem 'rack-attack'
