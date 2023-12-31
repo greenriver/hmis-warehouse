@@ -129,7 +129,6 @@ gem 'virtus'
 
 # Asset related
 gem 'jsbundling-rails', '~> 1.1'
-gem 'turbo-rails'
 gem 'bootstrap', '~> 4.3'
 gem 'jquery-rails'
 gem 'coffee-rails'
@@ -189,8 +188,6 @@ gem 'net-ssh', '~> 7', require: false
 gem 'net-http'
 gem 'addressable' # normalize uris
 gem 'redis-actionpack'
-# Use Redis for Action Cable
-gem 'redis', '~> 4.0'
 
 gem 'ed25519'
 gem 'bcrypt_pbkdf'

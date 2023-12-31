@@ -9,7 +9,6 @@
     "test": "test"
   },
   "dependencies": {
-    "@hotwired/turbo-rails": "^7.3.0",
     "@stimulus/polyfills": "^2.0.0",
     "beautifymarker": "^1.0.9",
     "billboard.js": "^3.6.0",
@@ -19,7 +18,7 @@
     "d3-interpolate": "3.0.1",
     "d3-sankey": "^0.12.3",
     "d3-scale-chromatic": "3.0.0",
-    "esbuild": "^0.17.19",
+    "esbuild": "^0.19.11",
     "glob-expand": "^0.2.1",
     "inputmask": "3.3.8",
     "leaflet": "1.9.4",
