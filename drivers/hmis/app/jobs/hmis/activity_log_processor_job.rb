@@ -27,18 +27,13 @@ module Hmis
     RESOLVE_ENROLLMENT_IDS = ->(enrollment_ids) {
       e_t = Hmis::Hud::Enrollment.arel_table
       c_t = Hmis::Hud::Client.arel_table
-      client_ids_map = Hmis::Hud::Enrollment.with_deleted.
-        where(id: enrollment_ids).
-        joins(
-          e_t.create_join(
-            c_t,
-            e_t.create_on(
-              # joins to clients; intentionally includes deleted records
-              [e_t[:PersonalID].eq(c_t[:PersonalID]), e_t[:data_source_id].eq(c_t[:data_source_id])].inject(&:and),
-            ),
-          ),
-        ).
-        pluck(e_t[:id], c_t[:id]).to_h
+      # unscope client to include deleted records in the join
+      client_ids_map = Hmis::Hud::Client.unscoped do
+        Hmis::Hud::Enrollment.with_deleted.
+          where(id: enrollment_ids).
+          joins(:client).
+          pluck(e_t[:id], c_t[:id]).to_h
+      end
 
       enrollment_ids.map do |enrollment_id|
         {
@@ -60,22 +55,12 @@ module Hmis
       'Assessment' => ->(assessment_ids) {
         e_t = Hmis::Hud::Enrollment.arel_table
         cas_t = Hmis::Hud::CustomAssessment.arel_table
-        enrollment_id_map = Hmis::Hud::CustomAssessment.with_deleted.
-          where(id: assessment_ids).
-          joins(
-            cas_t.create_join(
-              e_t,
-              cas_t.create_on(
-                # joins to enrollments; intentionally includes deleted records
-                [
-                  e_t[:EnrollmentID].eq(cas_t[:EnrollmentID]),
-                  e_t[:PersonalID].eq(cas_t[:PersonalID]), # this seems redundant
-                  e_t[:data_source_id].eq(cas_t[:data_source_id]),
-                ].inject(&:and),
-              ),
-            ),
-          ).
-          pluck(cas_t[:id], e_t[:id]).to_h
+        enrollment_id_map = Hmis::Hud::Enrollment.unscoped do
+          Hmis::Hud::CustomAssessment.with_deleted.
+            where(id: assessment_ids).
+            joins(:enrollment).
+            pluck(cas_t[:id], e_t[:id]).to_h
+        end
 
         enrollment_ids = assessment_ids.map { |assessment_id| enrollment_id_map[assessment_id&.to_i] }
         RESOLVE_ENROLLMENT_IDS.call(enrollment_ids)
