@@ -43,6 +43,7 @@ capybara-*.html
 .rspec
 /public/system
 /public/assets
+/public/dev-assets
 /public/uploads
 /coverage/
 /brakeman/
