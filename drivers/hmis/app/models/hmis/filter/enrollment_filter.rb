@@ -51,6 +51,10 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
     with_filter(scope, :search_term) { scope.matching_search_term(input.search_term) }
   end
 
+  def today
+    @today ||= Date.current
+  end
+
   def with_household_tasks(scope)
     with_filter(scope, :household_tasks) do
       return scope.all unless input.household_tasks&.include?('ANNUAL_DUE')
@@ -66,7 +70,7 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
 
       anniversary_date = <<~SQL
         make_date(
-          extract(year from current_date)::integer,
+          #{scope.connection.quote(today.year)}::integer,
           extract(month from "earliest_entry")::integer,
           1
         ) + "interval"((extract(day from "earliest_entry")::integer - 1) || ' days')
@@ -92,13 +96,13 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
       SQL
 
       # Clause for checking whether an Assessment falls within the "due period". There are due cases because the due period may be this year or last year.
-      this_year_annual_in_range = start_date.lteq(Date.current).and(cas_t[:assessment_date].gteq(start_date).and(cas_t[:assessment_date].lteq(end_date)))
-      last_year_annual_in_range = start_date.gt(Date.current).and(cas_t[:assessment_date].gteq(last_start_date).and(cas_t[:assessment_date].lteq(last_end_date)))
+      this_year_annual_in_range = start_date.lteq(today).and(cas_t[:assessment_date].gteq(start_date).and(cas_t[:assessment_date].lteq(end_date)))
+      last_year_annual_in_range = start_date.gt(today).and(cas_t[:assessment_date].gteq(last_start_date).and(cas_t[:assessment_date].lteq(last_end_date)))
       annual_in_range = this_year_annual_in_range.or(last_year_annual_in_range)
 
       # Clause for checking whether an Enrollment's Entry Date falls before the "anniverary". There are due cases because the anniversary may be this year or last year.
-      this_year_entered_before_anniversary = start_date.lteq(Date.current).and(e_t[:entry_date].lt(Arel.sql(anniversary_date)))
-      last_year_entered_before_anniversary = start_date.gt(Date.current).and(e_t[:entry_date].lt(Arel.sql(last_year_anniversary_date)))
+      this_year_entered_before_anniversary = start_date.lteq(today).and(e_t[:entry_date].lt(Arel.sql(anniversary_date)))
+      last_year_entered_before_anniversary = start_date.gt(today).and(e_t[:entry_date].lt(Arel.sql(last_year_anniversary_date)))
       entered_before_anniversary = this_year_entered_before_anniversary.or(last_year_entered_before_anniversary)
 
       enrollments_with_annual_due = scope.
