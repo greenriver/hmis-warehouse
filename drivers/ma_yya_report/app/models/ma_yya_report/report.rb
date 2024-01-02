@@ -214,7 +214,7 @@ module MaYyaReport
         F1a: a_t[:subsequent_current_living_situations].not_eq([]).and(a_t[:followup_previous_period].eq(false)),
         F1b: a_t[:followup_previous_period].eq(false).
           and(Arel.sql(
-                json_contains(:subsequent_current_living_situations, HudUtility2024.permanent_situations(as: :current) + HudUtility2024.temporary_situations(as: :current) + HudUtility2024.institutional_situations(as: :current) - [302]),
+                json_contains(:subsequent_current_living_situations, HudUtility2024.permanent_situations(as: :current) + HudUtility2024.temporary_situations(as: :current) + HudUtility2024.institutional_situations(as: :current) - [302]), # Excludes 302: Transitional housing for homeless persons (including homeless youth) 
               )),
 
         F2a: a_t[:currently_homeless].eq(true).
