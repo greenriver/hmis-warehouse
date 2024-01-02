@@ -185,8 +185,8 @@ module HmisExternalApis::AcHmis
     end
 
     def conn
-      # connection timeout increased to 10 seconds due to slow clearance endpoint
-      @conn ||= HmisExternalApis::OauthClientConnection.new(creds, connection_timeout: 10)
+      # connection timeout increased to 20 seconds due to slow clearance endpoint
+      @conn ||= HmisExternalApis::OauthClientConnection.new(creds, connection_timeout: 20)
     end
 
     def client_scope
