@@ -95,7 +95,7 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
         #{last_year_anniversary_date} + interval '30 days'
       SQL
 
-      # Clause for checking whether an Assessment falls within the "due period". There are due cases because the due period may be this year or last year.
+      # Clause for checking whether an Assessment falls within the "due period". There are two cases because the due period may be this year or last year.
       this_year_annual_in_range = start_date.lteq(today).and(cas_t[:assessment_date].gteq(start_date).and(cas_t[:assessment_date].lteq(end_date)))
       last_year_annual_in_range = start_date.gt(today).and(cas_t[:assessment_date].gteq(last_start_date).and(cas_t[:assessment_date].lteq(last_end_date)))
       annual_in_range = this_year_annual_in_range.or(last_year_annual_in_range)
