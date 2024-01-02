@@ -1,6 +1,5 @@
 class AllNeighborsSystemDashboardLine {
   constructor(data, initialState, selector, options) {
-    console.log('data', data)
     this.data = data
     this.state = initialState
     this.selector = selector
@@ -14,6 +13,7 @@ class AllNeighborsSystemDashboardLine {
     this.householdType = (this.projectType.household_types || []).filter((d) => d.household_type === this.state.householdType)[0] || {}
     this.demographic = (this.householdType.demographics || []).filter((d) => d.demographic === this.state.demographics)[0] || {}
     this.series = this.countLevel.series || this.demographic.series || []
+    this.uniqueCounts = this.countLevel.unique_counts
     this.monthlyCounts = this.countLevel.monthly_counts
     this.config = this.projectType.config || {}
     this.quarters = this.data.quarters || []
@@ -35,7 +35,16 @@ class AllNeighborsSystemDashboardLine {
   }
 
   getMonthlyTotals() {
+    if(!this.monthlyCounts || !this.monthlyCounts[0]) {
+      return []
+    }
     return this.monthlyCounts[0].filter((d) => {
+      return this.inDateRange(d[0], this.state.dateRange)
+    }).map((d) => d[1])
+  }
+
+  getUniqueCounts() {
+    return this.uniqueCounts[0].filter((d) => {
       return this.inDateRange(d[0], this.state.dateRange)
     }).map((d) => d[1])
   }
@@ -73,7 +82,10 @@ class AllNeighborsSystemDashboardLine {
     return {
       y: {
         min: 0,
-        padding: 0,
+        padding: {
+          bottom: 0,
+          top: 20,
+        },
       },
       x: {
         type: "timeseries",
@@ -122,16 +134,20 @@ class AllNeighborsSystemDashboardLine {
         contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
           const index = d[0].index
           const monthlyCount = this.getMonthlyTotals()[index]
-          let html = "<table class='bb-tooltip'>"
-          html += "<thead>"
-          html += `<tr><th colspan='2'>${defaultTitleFormat(d[0].x)}</th></tr>`
-          html += "</thead>"
-          html += "<tbody>"
-          html += `<tr><td>New ${this.countLevel.count_level.slice(0, -1)} Placements</td><td>${d3.format(',')(monthlyCount)}</td></tr>`
-          html += `<tr><td>Total ${this.countLevel.count_level} Placed to Date</td><td>${d3.format(',')(d[0].value)}</td></tr>`
-          html += "</tbody>"
-          html += "</table>"
-          return html
+          const uniqueCount = this.getUniqueCounts()[index]
+          if (typeof monthlyCount !== 'undefined') {
+            let html = "<table class='bb-tooltip'>"
+            html += "<thead>"
+            html += `<tr><th colspan='3'>${defaultTitleFormat(d[0].x)}</th></tr>`
+            html += "</thead>"
+            html += "<tbody>"
+            html += `<tr><td>New ${this.countLevel.count_level.slice(0, -1)} Placements</td><td>${d3.format(',')(monthlyCount)}</td></tr>`
+            html += `<tr><td>Total ${this.countLevel.count_level} Placed to Date</td><td>${d3.format(',')(d[0].value)}</td></tr>`
+            html += `<tr><td>Unique  ${this.countLevel.count_level} Housed to Date</td><td>${d3.format(',')(uniqueCount)}</td></tr>`
+            html += "</tbody>"
+            html += "</table>"
+            return html
+          }
         },
       },
       bindto: this.selector
@@ -149,8 +165,13 @@ class AllNeighborsSystemDashboardLine {
     this.draw()
   }
 
+  drawInsights() {
+    //placeholder some charts won't have this
+  }
+
   draw() {
     this.chart = bb.generate(this.getConfig())
+    this.drawInsights()
   }
 }
 
@@ -158,6 +179,18 @@ class AllNeighborsSystemDashboardLine {
 class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine {
   constructor(data, initialState, selector, options) {
     super(data, initialState, selector, options)
+  }
+
+  getProgramNames(id, index) {
+    let name = 'Unknown'
+    const keyIndex = (this.config.keys || []).indexOf(id)
+    if(keyIndex > -1) {
+      const series = this.series[keyIndex] || []
+      if(series.length > 0) {
+        name = series.filter((d) => this.inDateRange(d[0], this.state.dateRange))[index][3] || 'Unknown'
+      }
+    }
+    return name
   }
 
   getColumns() {
@@ -218,6 +251,11 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
       axis: {
         x: {
           min: 0,
+          padding: {
+            left: 20,
+            right: 20,
+            unit: 'px',
+          },
           tick: {
             fit: false
           },
@@ -228,6 +266,10 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
         },
         y: {
           min: 0,
+          padding: {
+            bottom: 0,
+            top: 20,
+          },
           label: {
             text: 'Average Days',
             position: 'outer-middle',
@@ -250,6 +292,20 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
             return shape || 'circle'
           }
         })
+      },
+      tooltip: {
+        contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
+          let html = "<table class='bb-tooltip'>"
+          html += "<thead>"
+          html += `<tr><th colspan='2'>${this.getProgramNames(d[0].id, d[0].index)}</th></tr>`
+          html += "</thead>"
+          html += "<tbody>"
+          html += `<tr><td>Housed Households</td><td>${d[0].x}</td></tr>`
+          html += `<tr><td>Average Days Referral to Housing</td><td>${d[0].value}</td></tr>`
+          html += "</tbody>"
+          html += "</table>"
+          return html
+        },
       },
       onrendered: function() {
         const selector = this.internal.config.bindto
@@ -299,10 +355,165 @@ class AllNeighborsSystemDashboardScatter extends AllNeighborsSystemDashboardLine
     return {...super.getConfig(), ...config}
   }
 
+  drawInsights() {
+    //TODO: This will update when the filters/charts update
+    if(this.options.insights) {
+      const insights = $(this.options.insights.selector)
+      let html = '<ul>'
+      html += '<li>TODO insights data for</li>'
+      Object.keys(this.state).forEach((key) => {
+        html += `<li><strong>${key}:</strong> ${this.state[key]}</li>`
+      })
+      insights.html(html)
+    }
+  }
+
 }
 
-//internal scatter by quarter
-class AllNeighborsSystemDashboardLineByQuarter extends AllNeighborsSystemDashboardLine {
+//internal line + bar -- Housing Placement
+class AllNeighborsSystemDashboardLineBarByQuarter extends AllNeighborsSystemDashboardLine {
+  constructor(data, initialState, selector, options) {
+    super(data, initialState, selector, options)
+  }
+
+  init() {
+    super.init()
+    this.config.names.Placements_per_Quarter = "Placements per Quarter"
+    this.programName = (this.countLevel.program_names || []).filter((d) => d.program_name === this.state.programName)[0] || {}
+    this.population = (this.programName.populations || []).filter((d) => d.population === this.state.population)[0] || {}
+    this.countType = (this.population.count_types || []).filter((d) => d.count_type === this.state.countType)[0] || {}
+
+    this.series = this.countType.series || []
+    this.monthlyCounts = this.countType.monthly_counts || []
+    this.breakdownCounts = this.countType.breakdown_counts || []
+  }
+
+  getBreakdowns() {
+    if(!this.breakdownCounts || !this.breakdownCounts[0]) {
+      return []
+    }
+    return this.breakdownCounts[0].filter((d) => {
+      return this.inDateRange(d[0], this.state.dateRange)
+    }).map((d) => d[1])
+  }
+
+  xAxisFormat(d) {
+    const quarter = this.quarters.find((q) => {
+      const [s, e] = q.range.map((r) => {
+        const [year, month, day] = r.split('-')
+        return new Date(year, month-1, day)
+      })
+      return d >= s && d <= e
+    })
+    return quarter ? quarter.name : d.toLocaleDateString('en-us', {year: 'numeric', month: 'short'})
+  }
+
+  getBarColumns() {
+    let barCol = ['Placements_per_Quarter']
+    this.monthlyCounts[0].forEach((d) => {
+      const inRange = this.inDateRange(d[0], this.state.dateRange)
+      if(inRange) {
+        const [x, y] = d
+        barCol.push(y)
+      }
+    })
+    return barCol
+  }
+
+  getAxisConfig() {
+    const superAxis = super.getAxisConfig()
+    return {
+      ...superAxis,
+      y: {
+        ...superAxis.y,
+        label: {
+          text: "Placements per Quarter",
+          position: "outer-middle"
+        }
+      },
+      y2: {
+        ...superAxis.y,
+        show: true,
+        label: {
+          text: "Total Placements",
+          position: "outer-middle"
+        }
+      }
+    }
+  }
+
+  getDataConfig() {
+    const superData = super.getDataConfig()
+    const columns = [...superData.columns].concat([this.getBarColumns()])
+    return {
+      ...superData,
+      axes: {
+        "Total_Placements": "y2",
+        "Placements_per_Quarter": "y",
+      },
+      columns: columns,
+      type: null,
+      types: {
+        "Total_Placements": 'line',
+        "Placements_per_Quarter": 'bar',
+      },
+      grid: {
+        y: {show: true},
+        y2: {show: true},
+      },
+      colors: {...superData.colors, "Placements_per_Quarter": "#97B9BD"},
+    }
+  }
+
+  getConfig() {
+    const superConfig = super.getConfig()
+    const config = {
+      padding: {
+        left: 75,
+        top: 10,
+        right: 75,
+        bottom:0,
+      },
+      tooltip: {
+        contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
+          const index = d[0].index
+          const breakdowns = this.getBreakdowns()[index]
+          if(breakdowns) {
+            let html = "<table class='bb-tooltip'>"
+            html += "<thead>"
+            html += `<tr><th colspan='2'>${defaultTitleFormat(d[0].x)}</th></tr>`
+            html += "</thead>"
+            html += "<tbody>"
+            breakdowns.forEach((d) => {
+              html+= `<tr><td>${d.label}</td><td>${d.value}</td></tr>`
+            })
+            html += "</tbody>"
+            html += "</table>"
+            return html
+          }
+        },
+      },
+    }
+    return {...superConfig, ...config}
+  }
+
+  drawInsights() {
+    //TODO: This will update when the filters/charts update
+    if(this.options.insights) {
+      const insights = $(this.options.insights.selector)
+      let html = '<ul>'
+      html += '<li>TODO insights data for</li>'
+      Object.keys(this.state).forEach((key) => {
+        html += `<li><strong>${key}:</strong> ${this.state[key]}</li>`
+      })
+      insights.html(html)
+    }
+  }
+
+}
+
+//internal scatter by quarter -- Time to obtain housing
+class AllNeighborsSystemDashboardStackedLineByQuarter extends AllNeighborsSystemDashboardLine {
   constructor(data, initialState, selector, options) {
     super(data, initialState, selector, options)
   }
@@ -322,7 +533,25 @@ class AllNeighborsSystemDashboardLineByQuarter extends AllNeighborsSystemDashboa
     return quarter ? quarter.name : d.toLocaleDateString('en-us', {year: 'numeric', month: 'short'})
   }
 
+  getAxisConfig() {
+    const superAxis = super.getAxisConfig()
+    return {
+      ...superAxis,
+      y: {
+        ...superAxis.y,
+        tick: {
+          stepSize: 50,
+        },
+        label: {
+          text: "Average Days",
+          position: "outer-middle"
+        }
+      },
+    }
+  }
+
   getConfig() {
+    const dateToQuarterName = this.xAxisFormat.bind(this)
     const classConfig = this.config
     const config = {
       point: {
@@ -336,8 +565,39 @@ class AllNeighborsSystemDashboardLineByQuarter extends AllNeighborsSystemDashboa
           }
         })
       },
+      tooltip: {
+        contents: function(d, defaultTitleFormat, defaultValueFormat, color) {
+          const idNames = this.data.names()
+          const dataGroup = this.data().map((n) => n.values[d[0].index])
+          let html = "<table class='bb-tooltip'>"
+          html += "<thead>"
+          html += `<tr><th colspan='2'>Average Days</th></tr>`
+          html += "</thead>"
+          html += "<tbody>"
+          html += `<tr><td colspan='2'>${dateToQuarterName(d[0].x)}</td></tr>`
+          dataGroup.forEach((n) => {
+            html += `<tr><td>${idNames[n.id]}</td><td>${n.value}</td></tr>`
+          })
+          html += "</tbody>"
+          html += "</table>"
+          return html
+        },
+      },
     }
     return {...super.getConfig(), ...config}
+  }
+
+  drawInsights() {
+    //TODO: This will update when the filters/charts update
+    if(this.options.insights) {
+      const insights = $(this.options.insights.selector)
+      let html = '<ul>'
+      html += '<li>TODO insights data for</li>'
+      Object.keys(this.state).forEach((key) => {
+        html += `<li><strong>${key}:</strong> ${this.state[key]}</li>`
+      })
+      insights.html(html)
+    }
   }
 
 }

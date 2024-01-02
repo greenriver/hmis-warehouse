@@ -102,6 +102,17 @@ module AllNeighborsSystemDashboard
           # invalidate move_in_date if it's after the report end_date
           move_in_date = nil if move_in_date.present? && move_in_date > filter.end_date
 
+          # Exclude any client who doesn't have all three items:
+          # 1. CE Entry Date
+          # 2. CE Referral Date
+          # 3. Move-in date or Exit from diversion to a permanent destination
+          next unless ce_info.present?
+          next unless max_event.present?
+
+          exit_type = exit_type(filter, enrollment)
+          diversion_enrollment = enrollment.project.id.in?(filter.secondary_project_ids)
+          next if (diversion_enrollment && exit_type != 'Permanent') || move_in_date.blank?
+
           enrollments[enrollment.id] = Enrollment.new(
             report_id: id,
             destination_client_id: enrollment.client_id,
@@ -113,7 +124,7 @@ module AllNeighborsSystemDashboard
             move_in_date: move_in_date,
             exit_date: exit_date(filter, enrollment),
             adjusted_exit_date: adjusted_exit_date(filter, enrollment),
-            exit_type: exit_type(filter, enrollment),
+            exit_type: exit_type,
             destination: enrollment.destination,
             destination_text: HudUtility2024.destination(enrollment.destination),
             relationship: relationship(source_enrollment),
@@ -121,6 +132,7 @@ module AllNeighborsSystemDashboard
             personal_id: source_enrollment.personal_id,
             age: enrollment.age,
             gender: gender(enrollment),
+            # Don't use primary race, we'll remove later
             primary_race: primary_race(enrollment),
             race_list: enrollment.client.race_description(include_missing_reason: true),
             # ethnicity: HudUtility2024.ethnicity(enrollment.client.ethnicity),
@@ -130,7 +142,7 @@ module AllNeighborsSystemDashboard
             return_date: return_dates[enrollment.id],
             project_id: enrollment.project.id,
             project_name: enrollment.project.name, # get from project directly to handle project confidentiality
-            project_type: enrollment.project_type,
+            project_type: enrollment.computed_project_type,
           )
         end
         Enrollment.import!(enrollments.values)
@@ -161,15 +173,18 @@ module AllNeighborsSystemDashboard
       end
     end
 
-    # NOTE: this report has two implementation phases
-    # pre 5/1/2023 it was the DRTRR which is represented by filter.effective_project_ids_from_secondary_project_groups (we'll call this the pilot period)
-    # 5/1/2023 onward is represented by filter.effective_project_ids (we'll call this the implementation period)
     def enrollment_scope
       GrdaWarehouse::ServiceHistoryEnrollment.
         joins(:enrollment, :client).
         entry.
         open_between(start_date: filter.start_date, end_date: filter.end_date).
-        in_project(GrdaWarehouse::Hud::Project.where(id: filter.effective_project_ids + filter.secondary_project_ids))
+        in_project(
+          GrdaWarehouse::Hud::Project.
+            where(
+              # Project is in the report universe OR in a Diversion project (represented by secondary_project_ids)
+              id: filter.effective_project_ids + filter.secondary_project_ids,
+            ),
+        )
     end
 
     def event_scope

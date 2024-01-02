@@ -12,7 +12,6 @@
     = link_to({format: :xlsx}.merge(link_params),{class: 'btn btn-secondary'}) do
       %i.icon.icon-download2
       Download Excel
-
 #detailRollup
   - @report.class.detail_section_types.each do |section|
     = render 'background_render', url: render_detail_section_core_demographics_report_warehouse_reports_demographic_summary_index_path, fetch_params: { filters: @filter.for_params[:filters], key: params[:key] } do
