@@ -26,7 +26,7 @@ class GrdaWarehouse::ModelTableManager
   protected
 
   def sequence_name
-    q_table_name = quote_table_name(table_name) # double quote "'table_name'"
+    q_table_name = quote_table_name(table_name) # use double quoted "'table_name'"
     select_value "SELECT pg_get_serial_sequence(#{quote(q_table_name)}, #{quote(primary_key)})"
   end
 
