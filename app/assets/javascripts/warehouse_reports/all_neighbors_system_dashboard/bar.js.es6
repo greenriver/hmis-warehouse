@@ -62,7 +62,6 @@ class AllNeighborsSystemDashboardBar {
   }
 
   getConfig() {
-    console.log('config', this.config)
     return {
       size: {
         width: $(this.selector).width(),
@@ -116,10 +115,15 @@ class AllNeighborsSystemDashboardBar {
       onrendered: function() {
         const selector = this.internal.config.bindto
         const data = this.data()
-        const percentages = data[0].values.map((d, i) => {
-          const returned = data[1].values[i]
-          return returned.value/d.value
-        })
+        if(data && data[0] && data[0].values) {
+          const percentages = data[0].values.map((d, i) => {
+            const returned = data[1].values[i]
+            return returned.value/d.value
+          })
+        } else {
+          const percentages = []
+        }
+        
         data.forEach((d, i) => {
           const barGroup = d3.select(`${selector} .bb-bars-${d.id}`)
           barGroup.attr('transform', i === 0 ? 'translate(15, 0)' : 'translate(-15, 0)')
@@ -181,13 +185,13 @@ class AllNeighborsSystemDashboardHorizontalBar extends AllNeighborsSystemDashboa
     }
   }
 
-  redraw(state) {
-    this.state = state
-    this.init()
-    this.chart.load({
-      columns: this.getColumns(),
-    })
-  }
+  // redraw(state) {
+  //   this.state = state
+  //   this.init()
+  //   this.chart.load({
+  //     columns: this.getColumns(),
+  //   })
+  // }
 
   getDataConfig() {
     const superDataConfig = super.getDataConfig()
@@ -226,6 +230,7 @@ class AllNeighborsSystemDashboardHorizontalBar extends AllNeighborsSystemDashboa
   getConfig() {
     const superConfig = super.getConfig()
     const classThis = this
+    const axiswidth = 100
     const config = {
       bar: {},
       size: {
@@ -233,7 +238,7 @@ class AllNeighborsSystemDashboardHorizontalBar extends AllNeighborsSystemDashboa
         height: 400,
       },
       padding: {
-        left: 100,
+        left: axiswidth,
         top: 0,
         right: 0,
         bottom: 0
@@ -243,6 +248,7 @@ class AllNeighborsSystemDashboardHorizontalBar extends AllNeighborsSystemDashboa
           show: false
         }
       },
+      tooltip: {},
       onrendered: function() {
         const chart = this
         const selector = this.config().bindto
@@ -256,18 +262,30 @@ class AllNeighborsSystemDashboardHorizontalBar extends AllNeighborsSystemDashboa
           }
         })
         const scale = this.internal.scale
-        const labelDirection = (ele, d) => {
-          const containerBox = d3.select(`${selector} .bb-chart`).node().getBBox()
-          const x = scale.y(d.value)
-          const diff = containerBox.width - x
+        const labelDirection = function(ele, d) {
+          const containerBox = {width: $(`${selector}`).width()-axiswidth}
+          const barBox = d3.select(`${selector} .bb-shapes-${d.id} .bb-shape-${d.index}`).node().getBBox()
           const textBox = d3.select(ele).node().getBBox()
-          return diff < textBox.width+4 ? 'left' : 'right'
+          return barBox.width+textBox.width+4 >= containerBox.width ? 'left' : 'right'
         }
         texts.selectAll('.bb-custom-label')
           .data((d) => d.values)
           .join('text')
           .attr('class', 'bb-custom-label')
           .text((d) => classThis.names[d.id])
+          .style('font-size', '14px')
+          .style('font-weight', 'normal')
+
+        texts.selectAll('.bb-custom-label')
+          .attr('text-anchor', function(d) {
+            return labelDirection(this, d) === 'left' ? 'end' : 'start'
+          })
+          .attr('x', function(d) {
+            const x = scale.y(d.value)
+            const number = d3.select(`${selector} .bb-texts-${d.id} .bb-text-${d.index}`)
+            const padding = number.attr('x')-x
+            return labelDirection(this, d) === 'left' ? x-padding : x+padding
+          })
           .attr('y', function(d) {
             const bar = d3.select(`${selector} .bb-bars-${d.id} .bb-bar-${d.index}`)
             const barBox = bar.node().getBBox()
@@ -276,21 +294,11 @@ class AllNeighborsSystemDashboardHorizontalBar extends AllNeighborsSystemDashboa
             number.attr('y', d.id != 'total' ? scale.x(d.x)+half : scale.x(d.x)-half)
             return d.id != 'total' ? scale.x(d.x)+half : scale.x(d.x)-half
           })
-          .attr('x', function(d) {
-            const x = scale.y(d.value)
-            const number = d3.select(`${selector} .bb-texts-${d.id} .bb-text-${d.index}`)
-            const padding = number.attr('x')-x
-            return labelDirection(this, d) === 'left' ? x-padding : x+padding
-          })
-          .attr('text-anchor', function(d) {
-            return labelDirection(this, d) === 'left' ? 'end' : 'start'
-          })
           .attr('fill', function(d) {
             return labelDirection(this, d) === 'left' ? '#fff' : '#000'
           })
           .attr('transform', 'translate(0, 16)')
-          .style('font-size', '14px')
-          .style('font-weight', 'normal')
+          
       }
     }
     return {...superConfig, ...config}
