@@ -100,7 +100,7 @@ class Hmis::Filter::EnrollmentFilter < Hmis::Filter::BaseFilter
       last_year_annual_in_range = start_date.gt(today).and(cas_t[:assessment_date].gteq(last_start_date).and(cas_t[:assessment_date].lteq(last_end_date)))
       annual_in_range = this_year_annual_in_range.or(last_year_annual_in_range)
 
-      # Clause for checking whether an Enrollment's Entry Date falls before the "anniverary". There are due cases because the anniversary may be this year or last year.
+      # Clause for checking whether an Enrollment's Entry Date falls before the "anniverary". There are two cases because the anniversary may be this year or last year.
       this_year_entered_before_anniversary = start_date.lteq(today).and(e_t[:entry_date].lt(Arel.sql(anniversary_date)))
       last_year_entered_before_anniversary = start_date.gt(today).and(e_t[:entry_date].lt(Arel.sql(last_year_anniversary_date)))
       entered_before_anniversary = this_year_entered_before_anniversary.or(last_year_entered_before_anniversary)
