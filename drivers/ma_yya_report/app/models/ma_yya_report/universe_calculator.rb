@@ -132,8 +132,8 @@ module MaYyaReport
       return 0 if genders == [0]
       return 1 if genders == [1]
       # No guidance on 2 or 3 CulturallySpecific, DifferentIdentity
+      return 5 if genders.include?(5) # Transgender (return first because client gets grouped as LGBTQ if present)
       return 4 if genders.include?(4) # Non-Binary
-      return 5 if genders.include?(5) # Transgender
       # Group the following
       return 6 if genders.include?(6) # Questioning
       return 6 if genders.include?(8) # Doesn't know
@@ -227,14 +227,11 @@ module MaYyaReport
       end
     end
 
-    private def hmis_source_clients_for(client)
-      Hmis::Hud::Client.hmis.where(id: client.source_clients.pluck(:id))
-    end
-
     private def flex_funds_service_type
       @flex_funds_service_type ||= Hmis::Hud::CustomServiceType.find_by(name: 'Flex Funds')
     end
 
+    # Custom data element definition for specifying the type of flex fund received (Eg "rent")
     private def flex_funds_types_cded
       @flex_funds_types_cded ||= Hmis::Hud::CustomDataElementDefinition.find_by(key: :flex_funds_types)
     end
