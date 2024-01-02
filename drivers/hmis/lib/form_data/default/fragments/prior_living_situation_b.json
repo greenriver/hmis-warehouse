@@ -85,27 +85,46 @@
       "mapping": {
         "record_type": "ENROLLMENT",
         "field_name": "lengthOfStay"
-      }
+      },
+      "_comment": "Only enabled for non-Homeless situations. If previous situation was homeless, you only need to ask about the approx date started.",
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "_comment": "PriorLivingSituation has been answered",
+          "question": "3.917B.1",
+          "operator": "EXISTS",
+          "answer_boolean": true
+        },
+        {
+          "_comment": "PriorLivingSituation is a non-Homeless situation",
+          "question": "3.917B.1",
+          "operator": "NOT_EQUAL",
+          "answer_group_code": "HOMELESS"
+        }
+      ]
     },
     {
       "type": "GROUP",
       "component": "INFO_GROUP",
       "link_id": "3.917B.break-group",
+      "_comment": "breaks due to length of stay",
       "item": [
         {
           "type": "DISPLAY",
           "link_id": "3.917B.A",
           "read_only": true,
           "text": "Client stayed 90+ days in an institutional setting. This is considered a \"break\" according to the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
-          "readonly_text": "Client stayed 90+ days in an institutional setting. This is considered a \"break\" according to the HUD definition of chronic homelessness.",
+          "readonly_text": "Client does not meet the HUD definition of chronic at entry.",
           "enable_behavior": "ALL",
           "enable_when": [
             {
+              "_comment": "PriorLivingSituation is an Instituational situation",
               "question": "3.917B.1",
               "operator": "EQUAL",
               "answer_group_code": "INSTITUTIONAL"
             },
             {
+              "_comment": "Client stayed 90+ days",
               "question": "3.917B.2",
               "operator": "IN",
               "answer_codes": [
@@ -119,20 +138,29 @@
           "type": "DISPLAY",
           "link_id": "3.917B.B",
           "text": "Client stayed 7+ days in a Temporary, Permanent, or Other housing situation. This is considered a \"break\" according to the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
-          "readonly_text": "Client stayed 7+ days in a temporary housing situation. This is considered a \"break\" according to the HUD definition of chronic homelessness.",
+          "readonly_text": "Client does not meet the HUD definition of chronic at entry.",
           "enable_behavior": "ALL",
           "enable_when": [
             {
+              "_comment": "PriorLivingSituation has been answered",
               "question": "3.917B.1",
               "operator": "EXISTS",
               "answer_boolean": true
             },
             {
+              "_comment": "PriorLivingSituation is a non-Homeless situation",
               "question": "3.917B.1",
               "operator": "NOT_EQUAL",
               "answer_group_code": "HOMELESS"
             },
             {
+              "_comment": "PriorLivingSituation is a non-Instituational situation",
+              "question": "3.917B.1",
+              "operator": "NOT_EQUAL",
+              "answer_group_code": "INSTITUTIONAL"
+            },
+            {
+              "_comment": "Client stayed 7+ days",
               "question": "3.917B.2",
               "operator": "IN",
               "answer_codes": [
@@ -150,6 +178,7 @@
       "type": "CHOICE",
       "hidden": true,
       "link_id": "3.917B.los-threshold",
+      "_comment": "Hidden question for 'LOSUnderThreshold' which specifies whether the length of stay is under the threshold (for non-homeless prior living situations only)",
       "mapping": {
         "record_type": "ENROLLMENT",
         "field_name": "losUnderThreshold"
@@ -162,11 +191,13 @@
           "autofill_behavior": "ANY",
           "autofill_when": [
             {
+              "_comment": "Institutional Break message is shown",
               "question": "3.917B.A",
               "operator": "ENABLED"
             },
             {
-              "question": "",
+              "_comment": "Temporary/Permanent/Other Break message is shown",
+              "question": "3.917B.B",
               "operator": "ENABLED"
             }
           ]
@@ -177,14 +208,22 @@
           "autofill_behavior": "ALL",
           "autofill_when": [
             {
+              "_comment": "LengthOfStay has been answered",
               "question": "3.917B.2",
               "operator": "EXISTS",
               "answer_boolean": true
             },
             {
+              "_comment": "PriorLivingSituation has been answered",
               "question": "3.917B.1",
               "operator": "EXISTS",
               "answer_boolean": true
+            },
+            {
+              "_comment": "PriorLivingSituation is Instituational, Temporary, Permanent, or Other",
+              "question": "3.917B.1",
+              "operator": "NOT_EQUAL",
+              "answer_group_code": "HOMELESS"
             }
           ]
         },
@@ -269,7 +308,7 @@
           "type": "DISPLAY",
           "link_id": "3.917B.C.message",
           "text": "Client does not meet the HUD definition of chronic homelessness. <br /> Stopping data collection for 3.917 Prior Living Situation.",
-          "readonly_text": "Client does not meet the HUD definition of chronic homelessness.",
+          "readonly_text": "Client does not meet the HUD definition of chronic at entry.",
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -311,24 +350,21 @@
         "record_type": "ENROLLMENT",
         "field_name": "dateToStreetEssh"
       },
+      "_comment": "Note: technically we could 'break' if this date is >365 days before entry date. (Per HMIS Glossary 'CH at Project Start Flowchart')",
       "text": "Approximate date this episode of homelessness started",
-      "enable_behavior": "ALL",
+      "enable_behavior": "ANY",
       "enable_when": [
         {
+          "_comment": "PriorLivingSituation is a Homeless situation",
+          "question": "3.917B.1",
+          "operator": "EQUAL",
+          "answer_group_code": "HOMELESS"
+        },
+        {
+          "_comment": "PriorLivingSituation is not Homeless, but they were homeless on the night before entering the PLS situation",
           "question": "3.917B.C",
           "operator": "EQUAL",
-          "_comment": "homeless on the night before",
           "answer_code": "YES"
-        },
-        {
-          "question": "3.917B.A",
-          "operator": "ENABLED",
-          "answer_boolean": false
-        },
-        {
-          "question": "3.917B.B",
-          "operator": "ENABLED",
-          "answer_boolean": false
         }
       ],
       "bounds": [
@@ -351,23 +387,46 @@
       "text": "Regardless of where they stayed the night before project entry, number of times the client has been on the streets, in ES, or SH in the past three years including today",
       "brief_text": "Times Homeless",
       "pick_list_reference": "TimesHomelessPastThreeYears",
-      "enable_behavior": "ALL",
+      "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "3.917B.A",
-          "operator": "ENABLED",
-          "answer_boolean": false
+          "_comment": "PriorLivingSituation is a Homeless situation",
+          "question": "3.917B.1",
+          "operator": "EQUAL",
+          "answer_group_code": "HOMELESS"
         },
         {
-          "question": "3.917B.B",
-          "operator": "ENABLED",
-          "answer_boolean": false
-        },
-        {
+          "_comment": "PriorLivingSituation is not Homeless, but they were homeless on the night before entering the PLS situation",
           "question": "3.917B.C",
           "operator": "EQUAL",
-          "_comment": "homeless on the night before",
           "answer_code": "YES"
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "component": "INFO_GROUP",
+      "link_id": "3.917B.4.break.group",
+      "_comment": "Show a 'break' message if the number of times homeless is <4 or 8/9/99. (Per HMIS Glossary 'CH at Project Start Flowchart'). It's also a break if its left empty, but that would be confusing to show.",
+      "item": [
+        {
+          "type": "DISPLAY",
+          "link_id": "3.917B.4.break",
+          "text": "Client does not meet the HUD definition of chronic homelessness. <br /> Stopping data collection for 3.917 Prior Living Situation.",
+          "readonly_text": "Client does not meet the HUD definition of chronic at entry.",
+          "enable_behavior": "ALL",
+          "enable_when": [
+            {
+              "question": "3.917B.4",
+              "operator": "NOT_EQUAL",
+              "answer_code": "FOUR_OR_MORE_TIMES"
+            },
+            {
+              "question": "3.917B.4",
+              "operator": "EXISTS",
+              "answer_boolean": true
+            }
+          ]
         }
       ]
     },
@@ -383,23 +442,14 @@
       "text": "Total number of months homeless on the street, in ES, or SH in the past three years",
       "brief_text": "Months Homeless",
       "pick_list_reference": "MonthsHomelessPastThreeYears",
-      "enable_behavior": "ALL",
+      "_comment": "Only need to ask this if times homeless was answered and the number of times is 4+ (Per HMIS Glossary 'CH at Project Start Flowchart')",
+      "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "3.917B.A",
-          "operator": "ENABLED",
-          "answer_boolean": false
-        },
-        {
-          "question": "3.917B.B",
-          "operator": "ENABLED",
-          "answer_boolean": false
-        },
-        {
-          "question": "3.917B.C",
+          "_comment": "Homeless 4 or more times in past 3 years",
+          "question": "3.917B.4",
           "operator": "EQUAL",
-          "_comment": "homeless on the night before",
-          "answer_code": "YES"
+          "answer_code": "FOUR_OR_MORE_TIMES"
         }
       ]
     }
