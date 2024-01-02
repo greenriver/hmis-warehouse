@@ -372,7 +372,7 @@ module HmisDataCleanup
 
       conflicts = 0 # num skipped due to conflict (PersonalID + Entry Date, meaning the enrollment has been re-created since it was deleted)
       enrollments_where_personal_id_updated = 0 # num enrollments where PersonalID was updated due to a merge
-      enrollments_skipped_due_to_unrecognized_personal_id = 0 # num enrollments skipped because personal ID not found (dnd not merged)
+      enrollments_skipped_due_to_unrecognized_personal_id = 0 # num enrollments skipped because personal ID not found (and not merged)
       updated = 0
 
       enrollments_to_restore.each do |enrollment|
