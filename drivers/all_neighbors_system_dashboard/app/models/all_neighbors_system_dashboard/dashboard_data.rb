@@ -20,6 +20,31 @@ module AllNeighborsSystemDashboard
         distinct
     end
 
+    # NOTE: do not apply distinct within this method, averages should not be
+    # calculated against distinct values
+    private def moved_in_scope
+      report_enrollments_enrollment_scope.
+        moved_in_in_range(@report.filter.range, filter: @report.filter)
+    end
+
+    # Count once per client per day per type
+    private def count_one_client_per_date_arel
+      nf(
+        'concat',
+        [
+          Enrollment.arel_table[:destination_client_id],
+          ' ',
+          Enrollment.arel_table[:project_type],
+          ' ',
+          Enrollment.arel_table[:household_type],
+          ' ',
+          cl(Enrollment.arel_table[:age], -1),
+          ' ',
+          cl(Enrollment.arel_table[:move_in_date], Enrollment.arel_table[:exit_date]),
+        ],
+      )
+    end
+
     def years
       (@start_date.year .. @end_date.year).to_a
     end
@@ -245,6 +270,9 @@ module AllNeighborsSystemDashboard
       # For all others, we'll limit to the effective project ids to prevent double counting
       when 'Diversion'
         scope.where(project_id: @report.filter.secondary_project_ids, destination: @report.class::POSITIVE_DIVERSION_DESTINATIONS)
+      when 'PH'
+        project_types = HudUtility2024.project_types_with_move_in_dates
+        scope.where(project_type: project_types, project_id: @report.filter.effective_project_ids)
       when 'Other Permanent Housing'
         project_types = [HudUtility2024.project_type('PH - Housing Only', true), HudUtility2024.project_type('PH - Housing with Services (no disability required for entry)', true)]
         scope.where(project_type: project_types, project_id: @report.filter.effective_project_ids)

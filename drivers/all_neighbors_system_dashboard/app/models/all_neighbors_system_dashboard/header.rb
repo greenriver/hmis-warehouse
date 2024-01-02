@@ -48,14 +48,19 @@ module AllNeighborsSystemDashboard
       end
     end
 
+    # Defined as time between CE referral and move-in date
+    # Currently only valid for PH projects.
+    # Diversion is ignored.
+    # Once included, we'll need to coalesce move-in and exit date (or maybe populate move-in for diversion projects)
     def average_days_to_obtain_housing
       en_t = Enrollment.arel_table
-      report_enrollments_enrollment_scope.housed_in_range(@report.filter.range, filter: @report.filter).average(
+      scope = moved_in_scope
+      scope.average(
         datediff(
           Enrollment,
           'day',
-          cl(en_t[:move_in_date], en_t[:exit_date]),
-          en_t[:entry_date],
+          en_t[:move_in_date],
+          en_t[:ce_referral_date],
         ),
       )
     end

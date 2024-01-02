@@ -206,7 +206,7 @@ class AllNeighborsSystemDashboardStack {
       return {
         text: d3.sum(
           chart.data().map((d) => d3.format('.0f')(d.values[i].value))
-        ), 
+        ),
         value: d3.sum(chart.data().map((d) => d.values[i].value)),
       }
     })
@@ -329,7 +329,9 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
       return col.concat(this.series.map((d) => d.name))
     } else {
       const index = this.config.keys.indexOf(name)
+      // console.log('getColumn', name, index)
       this.series.forEach((d) => {
+        // total is an array of the average number of days for the step times the number of households involved
         const total = d.series.filter((n) => {
           if(this.state.dateRange) {
             return this.inDateRange(n.date, this.state.dateRange)
@@ -342,8 +344,33 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
           }
           return true
         })
-        .map((s) => s.values[index])
-        col.push(d3.mean(total))
+        // s.values[index] is the average number of days for the step
+        .map((s) => s.values[index] * s.households_count)
+
+        const household_counts = d.series.filter((n) => {
+          if (this.state.dateRange) {
+            return this.inDateRange(n.date, this.state.dateRange)
+          }
+          if (this.state.year) {
+            const [year, month, day] = n.date.split('-')
+            const date = new Date(year, month, day)
+            const stateYear = this.state.year
+            return date.getFullYear().toString() === stateYear
+          }
+          return true
+        })
+        .map((s) => s.households_count)
+
+        // To get the average number of days for a given step (in the chosen date range)
+        // divide sum of the (days * households) by overall number of households
+        /// sum(total)/hh_count
+        const hh_count = d3.sum(household_counts)
+        // console.log(total, household_counts, hh_count)
+        let ave_days = 0
+        if (hh_count > 0) {
+          ave_days = d3.sum(total) / hh_count
+        }
+        col.push(ave_days)
       })
       return col
     }
@@ -400,10 +427,9 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
       tooltip: {
         contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
           const index = d[0].index
-          const householdTotal = d3.sum(
-            this.series[index].series.filter((n) => this.inDateRange(n.date, this.state.dateRange)),
-            (n) => n.household_count  
-          )
+          const_households = this.series[index].series.filter((n) => this.inDateRange(n.date, this.state.dateRange))
+            .map((s) => s.households_count)
+          const householdTotal = d3.sum(const_households)
           const barName = this.series[index].name
           const dateString = this.state.dateRange.map((d) => new Date(d).toLocaleDateString('en-us', {year: 'numeric', month: 'short'})).join(' - ')
           const swatches = d.map((n) => {

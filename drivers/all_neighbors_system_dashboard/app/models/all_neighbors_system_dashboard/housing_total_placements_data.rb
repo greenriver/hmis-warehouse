@@ -24,24 +24,6 @@ module AllNeighborsSystemDashboard
       @project_types_with_data ||= line_data[:project_types].reject { |m| m[:count_levels].flatten.map { |n| n[:monthly_counts] }.flatten(2).map(&:last).all?(0) }.map { |m| m[:project_type] }
     end
 
-    # Count once per client per day per type
-    private def count_one_client_per_date_arel
-      nf(
-        'concat',
-        [
-          Enrollment.arel_table[:destination_client_id],
-          ' ',
-          Enrollment.arel_table[:project_type],
-          ' ',
-          Enrollment.arel_table[:household_type],
-          ' ',
-          cl(Enrollment.arel_table[:age], -1),
-          ' ',
-          cl(Enrollment.arel_table[:move_in_date], Enrollment.arel_table[:exit_date]),
-        ],
-      )
-    end
-
     def data(title, id, type, options: {})
       keys = (options[:types] || []).map { |key| to_key(key) }
       identifier = "#{@report.cache_key}/#{cache_key(id, type, options)}/#{__method__}"

@@ -61,7 +61,7 @@ module AllNeighborsSystemDashboard
         'household_average_days',
         :stack,
         options: {
-          types: ['ID to Referral', 'Referral to Move-in*'],
+          types: ['ID to Referral', 'Referral to Move-in'],
           colors: ['#336770', '#E6B70F'],
           label_colors: ['#ffffff', '#000000'],
         },
@@ -72,40 +72,39 @@ module AllNeighborsSystemDashboard
       # ids need to match the types above (except total)
       {
         ident_to_move_in: { name: 'Identification to Move-In', id: to_key('total') },
-        ident_to_referral: { name: 'Identification to Referral', id: to_key('ID to Referral') },
-        referral_to_move_in: { name: 'Referral to Move-In', id: to_key('Referral to Move-in*') },
+        # ident_to_referral: { name: 'Identification to Referral', id: to_key('ID to Referral') },
+        # referral_to_move_in: { name: 'Referral to Move-In', id: to_key('Referral to Move-in') },
       }
     end
 
     private def identification_to_referral(scope = moved_in_scope)
-      scope.average(datediff(Enrollment, 'day', referral_query, identification_query))&.round&.abs || 0
+      scope.average(datediff(Enrollment, 'day', identification_query, referral_query))&.abs || 0
     end
 
     private def identification_to_move_in(scope = moved_in_scope)
-      en_t = Enrollment.arel_table
-      scope.average(datediff(Enrollment, 'day', identification_query, en_t[:move_in_date]))&.round&.abs || 0
+      scope.average(datediff(Enrollment, 'day', move_in_date_query, identification_query))&.abs || 0
     end
 
     private def referral_to_move_in(scope = moved_in_scope)
-      en_t = Enrollment.arel_table
-      scope.average(datediff(Enrollment, 'day', referral_query, en_t[:move_in_date]))&.round&.abs || 0
+      scope.average(datediff(Enrollment, 'day', move_in_date_query, referral_query))&.abs || 0
     end
 
     # Identification occurs at the earlier or CE Entry, CE Referral, or Enrollment Entry Date
     private def identification_query
       en_t = Enrollment.arel_table
-      cl(en_t[:ce_entry_date], en_t[:ce_referral_date], en_t[:entry_date])
+      en_t[:ce_entry_date]
     end
 
     # Referral occurs at the later of CE event, CE entry, or if neither of those, enrollment entry date
     private def referral_query
       en_t = Enrollment.arel_table
-      cl(en_t[:ce_referral_date], en_t[:ce_entry_date], en_t[:entry_date])
+      en_t[:ce_referral_date]
     end
 
-    private def moved_in_scope
-      report_enrollments_enrollment_scope.
-        moved_in_in_range(@report.filter.range, filter: @report.filter)
+    # PH move-in date, eventually this may include diversion exits
+    private def move_in_date_query
+      en_t = Enrollment.arel_table
+      en_t[:move_in_date]
     end
 
     private def filter_for_date(scope, date)
@@ -128,7 +127,7 @@ module AllNeighborsSystemDashboard
         {
           name: bar,
           series: date_range.map do |date|
-            household_scope = moved_in_scope.hoh.select(:destination_client_id).distinct
+            household_scope = moved_in_scope.hoh.select(count_one_client_per_date_arel.to_sql)
             household_scope = filter_for_type(household_scope, bar)
             household_scope = filter_for_date(household_scope, date)
             averages = options[:types].map do |category|
@@ -142,7 +141,7 @@ module AllNeighborsSystemDashboard
               case category
               when 'ID to Referral'
                 identification_to_referral(scope)
-              when 'Referral to Move-in*'
+              when 'Referral to Move-in'
                 referral_to_move_in(scope)
               else
                 raise "Unknown Category #{category}"

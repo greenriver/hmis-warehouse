@@ -136,9 +136,9 @@ module AllNeighborsSystemDashboard
             primary_race: primary_race(enrollment),
             race_list: enrollment.client.race_description(include_missing_reason: true),
             # ethnicity: HudUtility2024.ethnicity(enrollment.client.ethnicity),
-            ce_entry_date: ce_info&.entry_date,
-            ce_referral_date: max_event&.event_date,
-            ce_referral_id: max_event&.event_id,
+            ce_entry_date: ce_info.entry_date,
+            ce_referral_date: max_event.event_date,
+            ce_referral_id: max_event.event_id,
             return_date: return_dates[enrollment.id],
             project_id: enrollment.project.id,
             project_name: enrollment.project.name, # get from project directly to handle project confidentiality
