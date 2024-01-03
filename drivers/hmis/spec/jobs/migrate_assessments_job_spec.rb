@@ -100,6 +100,24 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
         end
       end
 
+      it 'creates assessments only in specified projects' do
+        p2 = create(:hmis_hud_project, data_source: ds1, organization: o1)
+        e2 = create(:hmis_hud_enrollment, data_source: ds1, project: p2, client: c1)
+        create(:hmis_income_benefit, data_source: ds1, enrollment: e2, client: c1, data_collection_stage: 1)
+
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, project_ids: [p2.id])
+
+        expect(e1.custom_assessments).to be_empty # didn't create assessment for p1 enrollment
+        expect(e2.intake_assessment).to be_present
+      end
+
+      it 'creates assessments only in specified projects (no assessments to create)' do
+        p2 = create(:hmis_hud_project, data_source: ds1, organization: o1)
+        num = Hmis::Hud::CustomAssessment.all.size
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, project_ids: [p2.id])
+        expect(Hmis::Hud::CustomAssessment.all.size).to eq(num)
+      end
+
       it 'does nothing if assessment exists' do
         entry_assessment = create(:hmis_custom_assessment, data_collection_stage: 1, assessment_date: 1.month.ago, enrollment: e1, data_source: ds1, client: c1)
         old_form_processor = entry_assessment.form_processor
