@@ -17,11 +17,11 @@
 ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.irregular 'census', 'censuses'
   inflect.irregular 'supplemental_enrollment_data', 'supplemental_enrollment_data'
-  inflect.irregular 'hmis', 'hmis'
 
   # rails_drivers fails to load extensions for "plural" names since classify() will singularize the driver name
   # https://github.com/degica/rails_drivers/blob/9ae472566aab064be43dbc355d4b5bb611c6d360/lib/rails_drivers/extensions.rb#L23
   inflect.uncountable 'hmis_external_apis'
+  inflect.uncountable 'hmis', 'hmis'
 
   inflect.acronym 'SSN'
   inflect.acronym 'DOB'
