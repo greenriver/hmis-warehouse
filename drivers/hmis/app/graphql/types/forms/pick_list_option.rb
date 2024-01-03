@@ -119,7 +119,15 @@ module Types
       return [] unless current_user.can_audit_enrollments? || current_user.can_audit_clients?
 
       Hmis::User.with_deleted.order(:last_name, :first_name, :id).map do |user|
-        { code: user.id.to_s, label: user.full_name }
+        # Add secondary label to differentiate between users with the same name, and identify deleted/inactive accounts.
+        secondary_label = user.id.to_s
+        if user.deleted_at
+          secondary_label += ' (deleted)'
+        elsif user.active == false
+          secondary_label += ' (inactive)'
+        end
+
+        { code: user.id.to_s, label: user.full_name, secondary_label: secondary_label }
       end
     end
 
