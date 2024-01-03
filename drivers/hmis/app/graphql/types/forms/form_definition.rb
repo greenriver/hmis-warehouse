@@ -15,9 +15,11 @@ module Types
 
     field :id, ID, null: false
     field :cache_key, ID, null: false
+    field :identifier, String, null: false
     field :role, Types::Forms::Enums::FormRole, null: false
     field :title, String, null: false
     field :definition, Forms::FormDefinitionJson, null: false
+    field :raw_definition, JsonObject, null: false
     field :system, Boolean, null: false
     form_rules_field :form_rules, method: :instances
 
@@ -27,6 +29,10 @@ module Types
     # class down the road
     def definition
       eval_items([object.definition])[0]
+    end
+
+    def raw_definition
+      object.definition
     end
 
     def cache_key
