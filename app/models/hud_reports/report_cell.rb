@@ -120,6 +120,7 @@ module HudReports
       File.binwrite(cell_path, xlsx_data)
     end
 
+    # NOTE: sometimes warehouse_client isn't a client at all, but potentially an inventory record
     private def new_member(warehouse_client:, universe_client:)
       if universe_client.respond_to?(:first_name)
         UniverseMember.new(
@@ -129,12 +130,18 @@ module HudReports
           last_name: universe_client.last_name,
           universe_membership: universe_client,
         )
-      else
+      elsif warehouse_client.respond_to?(:first_name)
         UniverseMember.new(
           report_cell: self,
           client_id: warehouse_client.id,
           first_name: warehouse_client.first_name,
           last_name: warehouse_client.last_name,
+          universe_membership: universe_client,
+        )
+      else
+        UniverseMember.new(
+          report_cell: self,
+          client_id: warehouse_client.id,
           universe_membership: universe_client,
         )
       end
