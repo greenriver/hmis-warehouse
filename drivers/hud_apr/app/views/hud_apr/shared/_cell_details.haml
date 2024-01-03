@@ -3,7 +3,7 @@
   = link_to path_for_question_result(@question, report: @report) do
     = "« #{report_short_name} #{@question} Results"
 - content_for :title do
-  = "#{report_short_name} #{@question} #{@cell}"
+  = "#{report_short_name} #{@question}: #{@generator.describe_table(@question)} - #{@table} #{@cell}"
 .d-flex.mb-2
   %h1= content_for :title
   .ml-auto

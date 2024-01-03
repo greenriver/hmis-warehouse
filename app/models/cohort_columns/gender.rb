@@ -9,6 +9,8 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :gender
     attribute :translation_key, String, lazy: true, default: 'Gender'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
+    attribute :description_translation_key, String, lazy: true, default: 'Comma delimited list of all of a client\'s genders.'
+    attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def available_for_rules?
       false

@@ -5,6 +5,9 @@
 ###
 
 class Role < ApplicationRecord
+  acts_as_paranoid
+  has_paper_trail
+
   include UserPermissionCache
 
   # Keep for health roles
@@ -739,6 +742,13 @@ class Role < ApplicationRecord
           'Reporting',
         ],
       },
+      can_publish_reports: {
+        description: 'Ability to publish reports to a public facing website (S3)',
+        administrative: false,
+        categories: [
+          'Reporting',
+        ],
+      },
       can_view_all_user_client_assignments: {
         description: 'Administrative permission to see all assignments',
         administrative: true,
@@ -839,7 +849,7 @@ class Role < ApplicationRecord
         ],
       },
       can_view_confidential_project_names: {
-        description: 'Anyone with this permission will see the name of confidential projects when displayed within reports or on client dashboards. To include confidential projects in reports, users must also be able to Report on Confidential Projects.',
+        description: 'Anyone with this permission will see the name of confidential projects when displayed within reports or on client dashboards. To include confidential projects in reports, users must also be able to Report on Confidential Projects. NOTE: for Access Controls, this is limited to associated projects',
         administrative: true,
         categories: [
           'Client Extras',

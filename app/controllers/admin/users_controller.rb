@@ -114,6 +114,8 @@ module Admin
         render :edit
         return
       end
+      # Queue recomputation of external report access
+      @user.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
       respond_with(@user, location: edit_admin_user_path(@user)) unless @redirecting
     end
 
@@ -215,6 +217,7 @@ module Admin
         :expired_at,
         :training_completed,
         :copy_form_id,
+        :permission_context,
         user_group_ids: [],
         # TODO: START_ACL remove when ACL transition complete
         legacy_role_ids: [],

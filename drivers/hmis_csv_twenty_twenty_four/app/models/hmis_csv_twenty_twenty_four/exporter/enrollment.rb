@@ -12,13 +12,6 @@ module HmisCsvTwentyTwentyFour::Exporter
       @options = options
     end
 
-    def process(row)
-      row = assign_export_id(row)
-      row = self.class.adjust_keys(row, @options[:export])
-
-      row
-    end
-
     def self.adjust_keys(row, export)
       row.UserID = row.user&.id || 'op-system'
 
@@ -50,7 +43,7 @@ module HmisCsvTwentyTwentyFour::Exporter
       end
       note_involved_user_ids(scope: export_scope, export: export)
 
-      export_scope.distinct.preload(:user, :project, :client)
+      export_scope.distinct.preload(:user, :project, client: :warehouse_client_source)
     end
 
     def self.transforms

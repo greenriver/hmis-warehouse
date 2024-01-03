@@ -15,6 +15,8 @@ module GrdaWarehouse::CasProjectClientCalculator
         client.source_enrollments.map { |en| en&.ch_enrollment&.chronically_homeless_at_entry }.any?
       when *eccovia_columns
         send(column, client)
+      when :days_homeless
+        days_homeless_plus_prior(client)
       end
       return current_value unless current_value.nil?
 
@@ -108,6 +110,19 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     private def assessor_email(client)
       client.source_eccovia_assessments.max_by(&:assessed_at)&.assessor_email
+    end
+
+    private def days_homeless_plus_prior(client)
+      homeless_days = client.days_homeless
+      range = Date.yesterday .. Date.current
+      # don't use source_enrollments.ongoing since we've already preloaded source_enrollments
+      ongoing_enrollments = client.source_enrollments.select { |en| en.open_during_range?(range) }
+      earliest_date_to_street = ongoing_enrollments.map(&:DateToStreetESSH).compact.min
+      earliest_homeless_entry_date = ongoing_enrollments.select { |en| en.project.homeless? }&.map(&:EntryDate)&.min
+      start_date = [earliest_date_to_street, earliest_homeless_entry_date, Date.current].compact.min
+      end_date = [earliest_homeless_entry_date, Date.current].compact.min
+      prior_days = (end_date - start_date).to_i.clamp(0..)
+      homeless_days + prior_days
     end
   end
 end

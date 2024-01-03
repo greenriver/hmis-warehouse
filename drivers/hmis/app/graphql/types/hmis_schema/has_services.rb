@@ -33,8 +33,8 @@ module Types
 
       private
 
-      def scoped_services(scope, sort_order: :date_provided, filters: nil)
-        scope = scope.viewable_by(current_user)
+      def scoped_services(scope, sort_order: :date_provided, filters: nil, dangerous_skip_permission_check: false)
+        scope = scope.viewable_by(current_user) unless dangerous_skip_permission_check
         scope = scope.apply_filters(filters) if filters.present?
         scope = scope.sort_by_option(sort_order) if sort_order.present?
         scope

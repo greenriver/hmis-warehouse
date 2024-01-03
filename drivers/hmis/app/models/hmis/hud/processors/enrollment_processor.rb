@@ -10,12 +10,18 @@ module Hmis::Hud::Processors
       attribute_name = ar_attribute_name(field)
       enrollment = @processor.send(factory_name)
 
-      if attribute_name == 'current_unit'
-        assign_unit(value)
+      return assign_unit(value) if attribute_name == 'current_unit'
+
+      attributes = case attribute_name
+      when 'move_in_addresses'
+        # delete enrollment.addresses, this might happen if move-in-date is unset
+        tx_value = value == Base::HIDDEN_FIELD_VALUE ? nil : value
+        construct_nested_attributes(field, tx_value, additional_attributes: related_move_in_address_attributes)
       else
         attribute_value = attribute_value_for_enum(graphql_enum(field), value)
-        enrollment.assign_attributes(attribute_name => attribute_value)
+        { attribute_name => attribute_value }
       end
+      enrollment.assign_attributes(attributes)
     end
 
     def factory_name
@@ -77,6 +83,16 @@ module Hmis::Hud::Processors
 
       # Assign to specified unit
       enrollment.assign_unit(unit: unit, start_date: Date.current, user: @processor.current_user)
+    end
+
+    def related_move_in_address_attributes
+      {
+        user: @processor.hud_user,
+        data_source_id: @processor.hud_user.data_source_id,
+        PersonalID: @processor.send(factory_name).client.PersonalID,
+        # currently all enrollment addresses are move-in
+        enrollment_address_type: Hmis::Hud::CustomClientAddress::ENROLLMENT_MOVE_IN_TYPE,
+      }
     end
   end
 end

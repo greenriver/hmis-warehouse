@@ -81,13 +81,15 @@ module MaYyaReport
       report_start_date = filter.start
       report_end_date = filter.end
 
-      g_population = a_t[:reported_previous_period].eq(false).and(
-        a_t[:at_risk_of_homelessness].eq(true).
-          and(Arel.sql(
-                json_contains(:subsequent_current_living_situations,
-                              [15, 6, 7, 25, 4, 5, 29, 14, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11]),
-              )),
-      ).
+      g_population = a_t[:reported_previous_period].eq(false).
+        and(a_t[:head_of_household].eq(true)).
+        and(
+          a_t[:at_risk_of_homelessness].eq(true).
+            and(Arel.sql(
+                  json_contains(:subsequent_current_living_situations,
+                                [215, 206, 207, 225, 204, 205, 329, 314, 332, 336, 335, 435, 410, 421, 411]),
+                )),
+        ).
         or(a_t[:currently_homeless].eq(true).and(a_t[:rehoused_on].between(report_start_date..report_end_date)).
           and(a_t[:subsequent_current_living_situations].not_eq([])))
 
@@ -107,7 +109,6 @@ module MaYyaReport
         # A4c: nil,
 
         A5a: a_t[:direct_assistance].eq(true),
-        # FIXME: Check that the labels match those in ETO
         A5b: a_t[:direct_assistance].eq(true).
           and(Arel.sql(
                 json_contains_text(:flex_funds, 'Move-in'),
@@ -169,43 +170,43 @@ module MaYyaReport
         # TotalCollegeStudentsServed: a_t[:education_status_date].lteq(report_end_date).
         #   and(a_t[:current_school_attendance].in([1, 2])).and(a_t[:current_educational_status].in([1, 2, 3, 4])),
 
-        D1a: a_t[:age].lt(18),
-        D1b: a_t[:gender].eq(1),
-        D1c: a_t[:gender].eq(0),
-        D1d: a_t[:gender].eq(5),
-        D1e: a_t[:gender].eq(4),
-        D1f: a_t[:gender].in([8, 9]),
-        D1g: a_t[:gender].eq(99),
+        D1a: a_t[:age].lt(18).and(a_t[:head_of_household].eq(true)),
+        D1b: a_t[:gender].eq(1).and(a_t[:head_of_household].eq(true)),
+        D1c: a_t[:gender].eq(0).and(a_t[:head_of_household].eq(true)),
+        D1d: a_t[:gender].eq(5).and(a_t[:head_of_household].eq(true)),
+        D1e: a_t[:gender].eq(4).and(a_t[:head_of_household].eq(true)),
+        D1f: a_t[:gender].in([8, 9]).and(a_t[:head_of_household].eq(true)),
+        D1g: a_t[:gender].eq(99).and(a_t[:head_of_household].eq(true)),
 
-        D2a: a_t[:race].eq(5),
-        D2b: a_t[:race].eq(3),
-        D2c: a_t[:race].eq(2),
-        D2d: a_t[:race].eq(1),
-        D2e: a_t[:race].eq(4),
-        D2f: a_t[:race].eq(7),
-        D2g: a_t[:race].eq(6),
-        D2h: a_t[:race].eq(10), # multi-racial
-        D2i: a_t[:language].eq('English'),
-        D2j: a_t[:language].eq('Spanish'),
-        D2k: a_t[:language].not_eq(nil).and(a_t[:language].not_eq('English').and(a_t[:language].not_eq('Spanish'))),
+        D2a: a_t[:race].eq(5).and(a_t[:head_of_household].eq(true)),
+        D2b: a_t[:race].eq(3).and(a_t[:head_of_household].eq(true)),
+        D2c: a_t[:race].eq(2).and(a_t[:head_of_household].eq(true)),
+        D2d: a_t[:race].eq(1).and(a_t[:head_of_household].eq(true)),
+        D2e: a_t[:race].eq(4).and(a_t[:head_of_household].eq(true)),
+        D2f: a_t[:race].eq(7).and(a_t[:head_of_household].eq(true)),
+        D2g: a_t[:race].eq(6).and(a_t[:head_of_household].eq(true)),
+        D2h: a_t[:race].eq(10).and(a_t[:head_of_household].eq(true)), # multi-racial
+        D2i: a_t[:language].eq('English').and(a_t[:head_of_household].eq(true)),
+        D2j: a_t[:language].eq('Spanish').and(a_t[:head_of_household].eq(true)),
+        D2k: a_t[:language].not_eq(nil).and(a_t[:language].not_eq('English').and(a_t[:language].not_eq('Spanish'))).and(a_t[:head_of_household].eq(true)),
 
-        D3a: a_t[:mental_health_disorder].eq(true),
-        D3b: a_t[:substance_use_disorder].eq(true),
-        D3c: a_t[:physical_disability].eq(true),
-        D3d: a_t[:developmental_disability].eq(true),
+        D3a: a_t[:mental_health_disorder].eq(true).and(a_t[:head_of_household].eq(true)),
+        D3b: a_t[:substance_use_disorder].eq(true).and(a_t[:head_of_household].eq(true)),
+        D3c: a_t[:physical_disability].eq(true).and(a_t[:head_of_household].eq(true)),
+        D3d: a_t[:developmental_disability].eq(true).and(a_t[:head_of_household].eq(true)),
 
         D4a: a_t[:pregnant].eq(1).and(a_t[:due_date].gt(report_start_date)).
-          or(a_t[:head_of_household].eq(true).and(Arel.sql(custodial_parent_query))),
-        D4b: a_t[:sexual_orientation].in([2, 3, 4, 5]).or(a_t[:gender].in([5, 6])),
+          or(Arel.sql(custodial_parent_query)).and(a_t[:head_of_household].eq(true)),
+        D4b: lgbtq_query.and(a_t[:head_of_household].eq(true)),
         D4c: a_t[:education_status_date].lteq(report_end_date).
-          and(a_t[:current_school_attendance].eq(0)).and(a_t[:most_recent_education_status].in([0, 1])),
+          and(a_t[:current_school_attendance].eq(0)).and(a_t[:most_recent_education_status].in([0, 1])).and(a_t[:head_of_household].eq(true)),
         D4d: a_t[:education_status_date].lteq(report_end_date).
           and(a_t[:current_school_attendance].in([1, 2])). # Enrolled
-          and(a_t[:current_educational_status].in([1, 2])), # AA or BA
+          and(a_t[:current_educational_status].in([1, 2])).and(a_t[:head_of_household].eq(true)), # AA or BA
         D4e: a_t[:education_status_date].lteq(report_end_date).
           and(a_t[:current_school_attendance].in([1, 2])). # Enrolled
-          and(a_t[:current_educational_status].eq(0)), # HS or GED FIXME: this isn't correct, but HMIS doesn't have other post-secondary
-        D4f: a_t[:health_insurance].eq(true),
+          and(a_t[:current_educational_status].eq(4)).and(a_t[:head_of_household].eq(true)), # other post-secondary
+        D4f: a_t[:health_insurance].eq(true).and(a_t[:head_of_household].eq(true)),
 
         # Ea: nil,
         # Eb: nil,
@@ -213,8 +214,7 @@ module MaYyaReport
         F1a: a_t[:subsequent_current_living_situations].not_eq([]).and(a_t[:followup_previous_period].eq(false)),
         F1b: a_t[:followup_previous_period].eq(false).
           and(Arel.sql(
-                json_contains(:subsequent_current_living_situations,
-                              [15, 6, 7, 25, 4, 5, 29, 14, 32, 36, 35, 28, 19, 3, 31, 33, 34, 10, 20, 21, 11]),
+                json_contains(:subsequent_current_living_situations, HudUtility2024.permanent_situations(as: :current) + HudUtility2024.temporary_situations(as: :current) + HudUtility2024.institutional_situations(as: :current) - [302]), # Excludes 302: Transitional housing for homeless persons (including homeless youth) 
               )),
 
         F2a: a_t[:currently_homeless].eq(true).
@@ -225,7 +225,7 @@ module MaYyaReport
         F2c: a_t[:currently_homeless].eq(true).
           and(a_t[:rehoused_on].not_eq(nil)).
           and(a_t[:followup_previous_period].eq(false)).
-          and(Arel.sql(json_contains(:subsequent_current_living_situations, [19, 3, 31, 33, 34, 10, 20, 21, 11]))),
+          and(Arel.sql(json_contains(:subsequent_current_living_situations, HudUtility2024.permanent_situations(as: :current)))),
         F2d: nil, # Handled as a special case in
 
         G1a: g_population.and(a_t[:age].lt(18)),
@@ -245,7 +245,7 @@ module MaYyaReport
         G2g: g_population.and(a_t[:race].eq(6)),
         G2h: g_population.and(a_t[:race].eq(10)), # multi-racial
 
-        G3a: g_population.and(a_t[:sexual_orientation].in([2, 3, 4, 5]).or(a_t[:gender].eq(5))),
+        G3a: g_population.and(lgbtq_query),
       }.freeze
     end
 
@@ -258,17 +258,28 @@ module MaYyaReport
       end
     end
 
+    private def lgbtq_query
+      # Report defines LGBTQ as:
+      #   SexualOrientiation = gay(2), lesbian(3), bisexual(4), questioning(5), OR
+      #   Gender = transgender(5)
+      a_t[:sexual_orientation].in([2, 3, 4, 5]).or(a_t[:gender].eq(5))
+    end
+
+    # More than one person in the household,
+    # and one household member must be less than 18
     private def custodial_parent_query
-      'jsonb_array_length(household_ages) > 1' +
-        'AND EXISTS(SELECT jsonb_array_elements(household_ages) AS age WHERE age < 18)'
+      query = ' jsonb_array_length(household_ages) > 1 '
+      query += " AND ma_yya_report_clients.id in ( SELECT ages.id FROM ( SELECT id, translate(household_ages::text, '[]', '{}')::integer [] AS h_ages FROM ma_yya_report_clients) ages WHERE 18 > ANY (h_ages) )"
+      query
     end
 
     private def json_contains(field, contents)
       "(#{contents.map { |val| "#{field} @> '#{val}'" }.join(' OR ')})"
     end
 
+    # Check whether an array of strings contains a given text value (case insensitive)
     private def json_contains_text(field, text)
-      "#{field} ? '#{text}'"
+      "lower(#{field}::text)::jsonb ? '#{text.downcase}'"
     end
 
     private def report_results
@@ -367,24 +378,24 @@ module MaYyaReport
         A5n: 'Number of YYA who received assistance with Other costs',
         # C1: 'Number of Pilot Program  students receiving Transitional Housing & Case Management services',
         # C3: 'Number of College students not officially enrolled in the campus pilot program that are receiving services',
-        D1a: 'Number of YYA  served who were Under 18',
-        D1b: 'Number of YYA  served who identified as Man',
-        D1c: 'Number of YYA  served who identified as Woman',
-        D1d: 'Number of YYA  served who identified as Transgender',
-        D1e: 'Number of YYA  served who identified as Non-Binary',
-        D1f: 'Number of YYA  served who  are questioning gender/Client doesn\'t know/Client prefers not to answer.',
+        D1a: 'Number of YYA served who were Under 18',
+        D1b: 'Number of YYA served who identified as Man',
+        D1c: 'Number of YYA served who identified as Woman',
+        D1d: 'Number of YYA served who identified as Transgender',
+        D1e: 'Number of YYA served who identified as Non-Binary',
+        D1f: 'Number of YYA served who  are questioning gender/Client doesn\'t know/Client prefers not to answer.',
         D1g: 'Number of YYA served with no Gender Data collected',
-        D2a: 'Number of YYA  served who identified as White (race)',
-        D2b: 'Number of YYA  served who identified as African American (race)',
-        D2c: 'Number of YYA  served who identified as Asian (race)',
-        D2d: 'Number of YYA  served who identified as American Indian/Alaska Native (race)',
-        D2e: 'Number of YYA  served who identified as Native Hawaiian/Pacific Islander',
-        D2f: 'Number of YYA  served who identified as Middle Eastern or North African',
-        D2g: 'Number of YYA  served who identified as Hispanic/Latina/e/o',
-        D2h: 'Number of YYA  served who identified as Other/Multi-racial (race)',
-        D2i: 'Number of YYA  served whose primary language was English (language)',
-        D2j: 'Number of YYA  served whose primary language was Spanish (language)',
-        D2k: 'Number of YYA  served whose primary language was Other (language)',
+        D2a: 'Number of YYA served who identified as White (race)',
+        D2b: 'Number of YYA served who identified as African American (race)',
+        D2c: 'Number of YYA served who identified as Asian (race)',
+        D2d: 'Number of YYA served who identified as American Indian/Alaska Native (race)',
+        D2e: 'Number of YYA served who identified as Native Hawaiian/Pacific Islander',
+        D2f: 'Number of YYA served who identified as Middle Eastern or North African',
+        D2g: 'Number of YYA served who identified as Hispanic/Latina/e/o',
+        D2h: 'Number of YYA served who identified as Other/Multi-racial (race)',
+        D2i: 'Number of YYA served whose primary language was English (language)',
+        D2j: 'Number of YYA served whose primary language was Spanish (language)',
+        D2k: 'Number of YYA served whose primary language was Other (language)',
         D3a: 'Number of YYA served who reported having a Mental Health Disorder',
         D3b: 'Number of YYA served who reported having a Substance Use Disorder',
         D3c: 'Number of YYA served who reported having a Medical/Physical Disability (disability)',
@@ -403,21 +414,21 @@ module MaYyaReport
         F2b: 'Number of YYA contacted for follow up 3 mos. after receiving rehousing services',
         F2c: 'Number of YYA who are in housing 3 mos. after receiving rehousing services',
         F2d: 'Zip codes of stabilized housing (please list)',
-        G1a: 'Number of YYA  served who were Under 18',
-        G1b: 'Number of YYA  served who identified as Man',
-        G1c: 'Number of YYA  served who identified as Woman',
-        G1d: 'Number of YYA  served who identified as Transgender',
-        G1e: 'Number of YYA  served who identified as Non-Binary',
-        G1f: 'Number of YYA  served who  are questioning gender/Client doesn\'t know/Client prefers not to answer.',
+        G1a: 'Number of YYA served who were Under 18',
+        G1b: 'Number of YYA served who identified as Man',
+        G1c: 'Number of YYA served who identified as Woman',
+        G1d: 'Number of YYA served who identified as Transgender',
+        G1e: 'Number of YYA served who identified as Non-Binary',
+        G1f: 'Number of YYA served who are questioning gender/Client doesn\'t know/Client prefers not to answer.',
         G1g: 'Number of YYA served with no Gender Data collected',
-        G2a: 'Number of YYA  served who identified as White (race)',
-        G2b: 'Number of YYA  served who identified as African American (race)',
-        G2c: 'Number of YYA  served who identified as Asian (race)',
-        G2d: 'Number of YYA  served who identified as American Indian/Alaska Native (race)',
+        G2a: 'Number of YYA served who identified as White (race)',
+        G2b: 'Number of YYA served who identified as African American (race)',
+        G2c: 'Number of YYA served who identified as Asian (race)',
+        G2d: 'Number of YYA served who identified as American Indian/Alaska Native (race)',
         G2e: 'Number of YYA served who identified as Native Hawaiian/Pacific Islander',
-        G2f: 'Number of YYA  served who identified as Middle Eastern or North African',
-        G2g: 'Number of YYA  served who identified as Hispanic/Latina/e/o',
-        G2h: ' Number of YYA  served who identified as Other/ Multi-racial',
+        G2f: 'Number of YYA served who identified as Middle Eastern or North African',
+        G2g: 'Number of YYA served who identified as Hispanic/Latina/e/o',
+        G2h: 'Number of YYA served who identified as Other/ Multi-racial',
         G3a: 'Number of YYA served who were LGBTQ+',
       }
     end

@@ -15,9 +15,8 @@ class Hmis::AccessGroup < ApplicationRecord
   has_many :access_controls, class_name: '::Hmis::AccessControl', inverse_of: :access_group
   has_many :users, through: :access_controls
 
-  has_many :group_viewable_entities, class_name: 'Hmis::GroupViewableEntity'
+  has_many :group_viewable_entities, class_name: 'Hmis::GroupViewableEntity', foreign_key: :collection_id
   has_many :data_sources, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::DataSource'
-  has_many :project_access_groups, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::ProjectAccessGroup'
   has_many :organizations, through: :group_viewable_entities, source: :entity, source_type: 'Hmis::Hud::Organization'
   has_many :projects, through: :group_viewable_entities, source: :entity, source_type: 'Hmis::Hud::Project'
 
@@ -40,26 +39,13 @@ class Hmis::AccessGroup < ApplicationRecord
       id: Hmis::GroupViewableEntity.where(
         entity_type: entity.class.sti_name,
         entity_id: entity.id,
-      ).pluck(:access_group_id),
+      ).pluck(:collection_id),
     )
-  end
-
-  # TODO: Probably remove this, but it's still used below
-  def self.available_scopes
-    {
-      'Viewable' => 'view',
-      'Viewable and Editable' => 'edit',
-    }.freeze
   end
 
   # For compatibility, doesn't actually do anything here
   def coc_codes
     []
-  end
-
-  # TODO: Probably remove this, but it's still referenced in a view
-  def permission_scope
-    self.class.available_scopes.invert[scope]
   end
 
   def set_viewables(viewables) # rubocop:disable Naming/AccessorMethodName
@@ -74,7 +60,7 @@ class Hmis::AccessGroup < ApplicationRecord
       list.each do |type|
         ids = (viewables[type] || []).map(&:to_i)
         scope = Hmis::GroupViewableEntity.where(
-          access_group_id: id,
+          collection_id: id,
           entity_type: viewable_types[type],
         )
         scope.where.not(entity_id: ids).destroy_all
@@ -121,13 +107,6 @@ class Hmis::AccessGroup < ApplicationRecord
           [
             ds.name,
             ds.projects.map(&:ProjectName),
-          ]
-        end
-      when :project_access_group
-        project_access_groups.preload(:projects).map do |pag|
-          [
-            pag.name,
-            pag.projects.map(&:ProjectName),
           ]
         end
       else

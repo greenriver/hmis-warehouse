@@ -166,6 +166,28 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
+  describe 'For exit assessment' do
+    before(:each) do
+      fd1.update!(role: 'EXIT')
+    end
+    describe 'for enrollment with an invalid entry/exit date' do
+      let!(:e1_exit) { create :hmis_hud_exit, data_source: ds1, enrollment: e1, client: e1.client }
+      before(:each) do
+        e1_exit.exit_date = e1.entry_date - 1.day
+        e1_exit.save!(validate: false)
+      end
+
+      it 'Should allow correction' do
+        response, result = post_graphql(input: { input: test_input }) { mutation }
+        errors = result.dig('data', 'submitAssessment', 'errors')
+        aggregate_failures 'checking response' do
+          expect(response.status).to eq 200
+          expect(errors).to be_empty
+        end
+      end
+    end
+  end
+
   describe 'Validity tests' do
     let!(:e1_exit) { create :hmis_hud_exit, data_source: ds1, enrollment: e1, client: e1.client }
     before(:each) { e1_exit.update(exit_date: 3.days.ago) }

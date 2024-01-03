@@ -9,6 +9,8 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :rrh_assessment_contact_info
     attribute :translation_key, String, lazy: true, default: 'RRH Income Maximization Contact'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
+    attribute :description_translation_key, String, lazy: true, default: 'Contact information provided by the client for income maximization services for CAS'
+    attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def available_for_rules?
       false

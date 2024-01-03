@@ -10,10 +10,8 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :ongoing_es
     attribute :translation_key, String, lazy: true, default: 'Ongoing ES Enrollments'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
-
-    def description
-      'Date of last service in ongoing ES enrollments'
-    end
+    attribute :description_translation_key, String, lazy: true, default: 'Date of last service in ongoing ES enrollments'
+    attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def value(cohort_client, user) # rubocop:disable Lint/UnusedMethodArgument
       for_display(:cohorts_ongoing_enrollments_es, user)

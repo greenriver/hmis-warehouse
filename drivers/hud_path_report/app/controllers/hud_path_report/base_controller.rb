@@ -63,12 +63,13 @@ module HudPathReport
     def available_report_versions
       {
         'FY 2020' => { slug: :fy2020, active: false },
-        'FY 2022' => { slug: :fy2021, active: true },
+        'FY 2022' => { slug: :fy2021, active: false },
+        'FY 2024' => { slug: :fy2024, active: true },
       }.freeze
     end
 
     def default_report_version
-      :fy2021
+      :fy2024
     end
 
     private def filter_class
@@ -130,6 +131,7 @@ module HudPathReport
       {
         fy2020: HudPathReport::Generators::Fy2020::Generator,
         fy2021: HudPathReport::Generators::Fy2021::Generator,
+        fy2024: HudPathReport::Generators::Fy2024::Generator,
       }
     end
   end

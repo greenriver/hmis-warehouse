@@ -7,6 +7,14 @@
 class Hmis::ActiveRange < Hmis::HmisBase
   self.table_name = :hmis_active_ranges
   include ::Hmis::Concerns::HmisArelHelper
+  has_paper_trail(
+    meta: {
+      client_id: ->(r) { r.entity&.paper_trail_meta_value(:client_id) },
+      enrollment_id: ->(r) { r.entity&.paper_trail_meta_value(:enrollment_id) },
+      project_id: ->(r) { r.entity&.paper_trail_meta_value(:project_id) },
+    },
+  )
+
   belongs_to :entity, polymorphic: true, optional: true
   belongs_to :user, class_name: 'Hmis::User'
 

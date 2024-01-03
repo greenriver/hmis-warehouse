@@ -23,6 +23,9 @@
         = link_to(warehouse_reports_hmis_export_path(@report.export_id), {class: 'btn btn-secondary'}) do
           %span.icon-download2
           Source HMIS Data
+- if @report.error_details.present?
+  .alert.alert-danger
+    %p= @report.error_details
 - if @report.summary_result
   %h2 Summary Results
   .card
@@ -30,4 +33,4 @@
       - @report.summary_result.summary&.each do |header, value|
         %tr
           %th= header
-          %td= value
+          %td= number_with_delimiter value

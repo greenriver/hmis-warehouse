@@ -23,7 +23,7 @@ class GrdaWarehouse::DocumentExport < GrdaWarehouseBase
     @filter ||= begin
       f = ::Filters::FilterBase.new(user_id: user.id)
       filter_params = params['filters'].presence&.deep_symbolize_keys
-      f.set_from_params(filter_params) if filter_params
+      f.update(filter_params) if filter_params
 
       f
     end

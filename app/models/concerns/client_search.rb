@@ -35,7 +35,16 @@ module ClientSearch
         where = sa[:DOB].eq("#{year}-#{month}-#{day}")
       elsif numeric
         where = sa[:PersonalID].eq(text)
-        where = where.or(sa[:id].eq(text)) if term_is_possibly_pk
+        if term_is_possibly_pk
+          conditions = [where, sa[:id].eq(text)]
+
+          # Match against deleted/merged ids
+          cmh_t = Hmis::ClientMergeHistory.arel_table
+          conditions.push(
+            sa[:id].in(cmh_t.project(:retained_client_id).where(cmh_t[:deleted_client_id].eq(text))),
+          )
+          where = conditions.reduce(:or)
+        end
       else
         # NOTE: per discussion with Gig, only numeric IDs are in use at this time, commenting this out for now
         ## At this point, term could be an alpha-numeric ID or a human name. To avoid having to combine fuzzy name

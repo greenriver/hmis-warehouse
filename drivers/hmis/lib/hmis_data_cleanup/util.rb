@@ -14,6 +14,14 @@ module HmisDataCleanup
   class Util
     include ArelHelper
 
+    # Remove all ExportIDs from HMIS Enrollments.
+    # This should be done after an HMIS migration, otherwise ServiceHistoryService generation will behave incorrectly
+    def self.clear_enrollment_export_ids!
+      without_papertrail_or_timestamps do
+        Hmis::Hud::Enrollment.hmis.update_all(ExportID: nil)
+      end
+    end
+
     # Assign Household ID where missing
     #
     # Note: If this gets to be a large number, an upsert is probably worth doing.
@@ -130,7 +138,7 @@ module HmisDataCleanup
       end
     end
 
-    def self.write_project_unit_summary!(filename: 'hmis_project_summary.csv')
+    def self.write_project_unit_summary(filename: 'hmis_project_summary.csv')
       direct_entry_cded = Hmis::Hud::CustomDataElementDefinition.find_by(key: :direct_entry)
       project_pk_to_walkin_status = direct_entry_cded.values.pluck(:owner_id, :value_boolean).to_h if direct_entry_cded
 
@@ -179,6 +187,94 @@ module HmisDataCleanup
       end
     end
 
+    def self.write_potential_duplicates(filename: 'hmis_client_potential_duplicates.csv', variant: 'all', full_name: true)
+      Rails.logger.info("Finding potential duplicates (variant: #{variant})")
+
+      data_source_id = GrdaWarehouse::DataSource.hmis.first.id
+
+      # Find all Destination clients that have >1 source client in HMIS
+      destination_id_to_source_ids = GrdaWarehouse::WarehouseClient.where(data_source_id: data_source_id).
+        joins(:source). # drop non existent source clients
+        group(:destination_id).
+        having('count(*) > 1').select('"destination_id", array_agg("source_id") as source_ids').
+        map { |r| [r.destination_id, r.source_ids] }.
+        to_h
+
+      # Map source ID => demographic details
+      source_id_to_info = Hmis::Hud::Client.where(id: destination_id_to_source_ids.values.flatten).
+        where(data_source_id: data_source_id).
+        map do |client|
+          name_parts = if full_name
+            [client.first_name, client.middle_name, client.last_name, client.name_suffix]
+          else
+            [client.first_name, client.last_name]
+          end
+
+          comparison_attrs = {
+            name: name_parts.compact_blank.map(&:strip).join(' ').downcase,
+            dob: client.dob&.strftime('%Y-%m-%d'),
+            ssn: client.ssn,
+            genders: client.gender_multi.excluding(8, 9, 99).sort.map { |k| ::HudUtility2024.gender(k) }.join(', ').presence,
+          }
+          [client.id, comparison_attrs]
+        end.to_h
+
+      rows = []
+      destination_id_to_source_ids.each do |dest_id, source_ids|
+        row = {
+          WarehouseID: dest_id,
+        }
+
+        # Expect at most 10 HMIS clients per Warehouse ID (increase if needed)
+        10.times do |idx|
+          client_id = source_ids[idx]
+          row["Client#{idx + 1}_ID"] = client_id
+          info = source_id_to_info.fetch(client_id, nil) || {}
+          row["Client#{idx + 1}_Name"] = info[:name]
+          row["Client#{idx + 1}_DOB"] = info[:dob]
+          row["Client#{idx + 1}_SSN"] = info[:ssn]
+          row["Client#{idx + 1}_Gender"] = info[:genders]
+        end
+
+        client_details = source_ids.map { |id| source_id_to_info[id] }.compact
+        exact_match = [:name, :dob, :ssn, :genders].all? do |field|
+          client_details.map { |r| r[field] }.compact.uniq.size < 2
+        end
+        case variant
+        when 'all'
+          rows << row
+        when 'only_exact_matches'
+          rows << row if exact_match
+        when 'only_non_exact_matches'
+          rows << row unless exact_match
+        else
+          raise 'unsupported variant'
+        end
+      end
+
+      return rows unless filename
+
+      skipped = destination_id_to_source_ids.size - rows.size
+      Rails.logger.info("Skipped #{skipped} potential duplicates; writing #{rows.count} to file")
+
+      # Actually perform all of the merges
+      #
+      # actor_id = User.system_user.id
+      # rows.each do |row|
+      #   client_ids = []
+      #   10.times do |idx|
+      #     client_ids << row["Client#{idx + 1}_ID"]
+      #   end
+      #   Hmis::MergeClientsJob.perform_now(client_ids: client_ids.compact, actor_id: actor_id)
+      # end
+
+      CSV.open(filename, 'wb+', write_headers: true, headers: rows.first.keys) do |writer|
+        rows.each do |row|
+          writer << row.values
+        end
+      end
+    end
+
     def self.without_papertrail_or_timestamps
       ActiveRecord::Base.record_timestamps = false
       begin
@@ -188,6 +284,142 @@ module HmisDataCleanup
       ensure
         ActiveRecord::Base.record_timestamps = true
       end
+    end
+
+    # Sum MonthlyTotalIncome where it is null but there are Income values
+    def self.fix_missing_monthly_total_income!
+      count = Hmis::Hud::IncomeBenefit.hmis.where(IncomeFromAnySource: 1, TotalMonthlyIncome: nil).size
+      Rails.logger.info "#{count} income records to clean"
+
+      amount_fields = [:EarnedAmount, :UnemploymentAmount, :SSIAmount, :SSDIAmount, :VADisabilityServiceAmount, :VADisabilityNonServiceAmount, :PrivateDisabilityAmount, :WorkersCompAmount, :TANFAmount, :GAAmount, :SocSecRetirementAmount, :PensionAmount, :ChildSupportAmount, :AlimonyAmount, :OtherIncomeAmount]
+
+      Hmis::Hud::IncomeBenefit.hmis.where(IncomeFromAnySource: 1, TotalMonthlyIncome: nil).in_batches do |batch|
+        Rails.logger.info('Processing batch...')
+        values = []
+        batch.each do |record|
+          calculated_total = amount_fields.map { |f| record.send(f) }.compact.sum
+          values << [record.id, calculated_total]
+        end
+        without_papertrail_or_timestamps do
+          cols = [:id, :TotalMonthlyIncome]
+          result = Hmis::Hud::IncomeBenefit.import(cols, values, validate: false, on_duplicate_key_update: { conflict_target: [:id], columns: [:TotalMonthlyIncome] })
+          raise "error: #{result.failed_instances.inspect}" if result.failed_instances.any?
+        end
+      end
+      Rails.logger.info 'Done'
+    end
+
+    # Cleanup function to run if/when we add a new Custom record type and forget to add it to the Hmis::MergeClientsJob.
+    # WARNING: this cleanup task is not the most efficient. If there are a lot of record to clean up, may need further optimization.
+    def self.cleanup_dangling_records_from_merge!(klass: Hmis::Hud::CustomCaseNote)
+      dangling_records = klass.left_outer_joins(:enrollment).where(enrollment: { id: nil })
+      Rails.logger.info "Found #{dangling_records.size} dangling records from deleted clients"
+
+      personal_ids = dangling_records.pluck(:personal_id)
+      raise 'Some personal IDs are not deleted' unless Hmis::Hud::Client.hmis.where(personal_id: personal_ids).zero?
+
+      num_deleted_clients = Hmis::Hud::Client.hmis.only_deleted.where(personal_id: personal_ids).size
+      Rails.logger.info "Records are from #{num_deleted_clients.size} deleted clients"
+
+      # Note: Using ClientMergeAudit instead of ClientMergeHistory because it was introduced first
+      merged_personal_ids = Hmis::ClientMergeAudit.all.map { |a| a.pre_merge_state.map { |f| f['PersonalID'] } }
+
+      # Record id => new PersonalID
+      record_to_personal_id = {}
+      dangling_records.each do |record|
+        match = merged_personal_ids.find { |arr| arr.include?(record.personal_id) }
+        new_personal_id = if match.size == 2
+          match.excluding(record.personal_id).first
+        else
+          Hmis::Hud::Client.hmis.where(personal_id: match).first&.personal_id
+        end
+        next unless new_personal_id
+
+        record_to_personal_id[record.id] = new_personal_id
+      end
+
+      dangling_records_by_id = dangling_records.index_by(&:id)
+
+      Rails.logger.info "Updating #{record_to_personal_id.size} records..."
+      without_papertrail_or_timestamps do
+        record_to_personal_id.each do |id, personal_id|
+          dangling_records_by_id[id].update_columns(personal_id: personal_id)
+        end
+      end
+
+      remaining_dangling = dangling_records.reload.size
+      if remaining_dangling.zero?
+        Rails.logger.info 'Success: all dangling records fixed!'
+      else
+        Rails.logger.info "WARNING: #{remaining_dangling} dangling records remain"
+      end
+    end
+
+    # Method for restoring enrollments that were deleted in an import.
+    # Probably needs to be called in batches, depending on the size of the enrollment scope.
+    def restore_deleted_enrollments!(enrollments_to_restore, conflict_set: nil, dry_run: false)
+      # Commented-out examples of parameters:
+      # enrollments_to_restore = Hmis::Hud::Enrollment.hmis.only_deleted.where(project_id: 650).where(date_deleted: date)
+      # conflict_set = Hmis::Hud::Enrollment.hmis.where(project_id: 650).pluck(:ProjectID, :PersonalID, :EntryDate).to_set
+
+      valid_personal_ids = Hmis::Hud::Client.hmis.pluck(:personal_id).uniq.to_set
+      personal_ids_from_deleted_records = enrollments_to_restore.pluck(:personal_id).uniq
+
+      # Map { old personal id => new personal id } for clients that have been merged
+      old_to_new_personal_id = Hmis::Hud::Client.hmis.with_deleted.where(personal_id: personal_ids_from_deleted_records).map do |client|
+        [client.personal_id, client.reverse_merge_histories.first&.retained_client&.personal_id]
+      end.to_h
+
+      conflicts = 0 # num skipped due to conflict (PersonalID + Entry Date, meaning the enrollment has been re-created since it was deleted)
+      enrollments_where_personal_id_updated = 0 # num enrollments where PersonalID was updated due to a merge
+      enrollments_skipped_due_to_unrecognized_personal_id = 0 # num enrollments skipped because personal ID not found (and not merged)
+      updated = 0
+
+      enrollments_to_restore.each do |enrollment|
+        # Find the new personal ID if this client has been merged.
+        # There is no need to update Personal IDs on associated records, because those should have already been
+        # updated when the merge occurred. This is assuming that those associated records are NOT deleted.
+        new_personal_id = old_to_new_personal_id[enrollment.personal_id]
+
+        if conflict_set&.include?([enrollment.project_id, new_personal_id || enrollment.personal_id, enrollment.entry_date])
+          conflicts += 1
+          next
+        end
+
+        if !valid_personal_ids.include?(new_personal_id || enrollment.personal_id)
+          enrollments_skipped_due_to_unrecognized_personal_id += 1
+          next
+        end
+
+        if new_personal_id
+          enrollment.PersonalID = new_personal_id
+          enrollments_where_personal_id_updated += 1
+        end
+
+        enrollment.DateDeleted = nil
+        without_papertrail_or_timestamps { enrollment.save!(validate: false) } unless dry_run
+        updated += 1
+      end
+
+      total_num = enrollments_to_restore.size
+      Rails.logger.info("#{conflicts}/#{total_num} records skipped due to conflict on ProjectID + PersonalID + EntryDate")
+      Rails.logger.info("#{enrollments_skipped_due_to_unrecognized_personal_id}/#{total_num} records skipped because the PersonalID was not found")
+      Rails.logger.info("#{enrollments_where_personal_id_updated}/#{total_num} records had the PersonalID updated due to a previous HMIS Client Merge")
+      Rails.logger.info("#{updated} records updated")
+
+      # You probably want to run some cleanup:
+      #
+      # HmisDataCleanup::Util.assign_missing_household_ids!
+      # HmisDataCleanup::Util.make_sole_member_hoh!
+
+      # Remember to generate HUD Assessments by running the MigrateAssessmentsJob:
+      #
+      # Hmis::MigrateAssessmentsJob.perform_now(
+      #   data_source_id: GrdaWarehouse::DataSource.hmis.first.id,
+      #   project_ids: [<project ids>],
+      #   clobber: false,
+      #   delete_dangling_records: false,
+      # )
     end
   end
 end

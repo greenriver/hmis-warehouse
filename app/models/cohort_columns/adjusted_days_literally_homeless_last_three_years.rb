@@ -9,13 +9,11 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :adjusted_days_literally_homeless_last_three_years
     attribute :translation_key, String, lazy: true, default: 'Static Days Literally Homeless Last 3 Years'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
+    attribute :description_translation_key, String, lazy: true, default: 'Days Literally homeless in past 3 years for the client as calculated when added to the cohort (ES, SH, or SO with no overlapping TH or PH)'
+    attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def default_value?
       true
-    end
-
-    def description
-      'Days Literally homeless in past 3 years for the client as calculated when added to the cohort (ES, SH, or SO with no overlapping TH or PH)'
     end
 
     def default_value(client_id)

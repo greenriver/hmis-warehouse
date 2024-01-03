@@ -358,9 +358,10 @@ module HudApr::Generators::Shared::Fy2023
             # For leavers, report only heads of households who left plus other adult household members who left at the same time as the head of household. Do not include household members who left prior to the head of household even though that person is otherwise considered a “leaver” in other report questions.
             additional_leaver_ids = Set.new
             members.where(leavers_clause).where(a_t[:head_of_household].eq(false)).
-              pluck(a_t[:id], a_t[:head_of_household_id], a_t[:last_date_in_program]).each do |id, hoh_id, exit_date|
-                hoh_exit_date = hoh_exit_dates[hoh_id]
-                additional_leaver_ids << id if exit_date.blank? || hoh_exit_date.blank? || exit_date >= hoh_exit_date
+              pluck(a_t[:id], a_t[:household_id], a_t[:last_date_in_program]).each do |id, household_id, exit_date|
+                # you have to look at household members because sometimes the HoH's enrollment for the report is different
+                hoh_exit_date = hoh_exit_date(household_id)
+                additional_leaver_ids << id if exit_date.present? && hoh_exit_date.present? && exit_date == hoh_exit_date
               end
             members = members.where(leavers_clause).where(hoh_clause.or(a_t[:id].in(additional_leaver_ids)))
           end

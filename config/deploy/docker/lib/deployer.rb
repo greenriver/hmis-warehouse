@@ -39,11 +39,6 @@ class Deployer
 
   attr_accessor :web_options
 
-  # github actions or other CI builds the image, so when true, don't try to
-  # build locally and push (which can be slow).
-  attr_accessor :assume_ci_build
-  attr_accessor :push_allowed
-
   # The fully-qualified domain name of the application
   # We use this so we can get data from the app about the deployment state
   attr_accessor :fqdn
@@ -52,22 +47,23 @@ class Deployer
 
   attr_accessor :service_registry_arns
 
-  def initialize(target_group_name:, assume_ci_build: true, secrets_arn:, execution_role:, task_role:, dj_options: nil, web_options:, registry_id:, repo_name:, fqdn:, service_registry_arns:) # rubocop:disable Metrics/ParameterLists
-    self.service_registry_arns    = service_registry_arns
+  attr_accessor :args
+
+  def initialize(args)
+    self.service_registry_arns    = args.fetch(:service_registry_arns)
     self.cluster                  = _cluster_name
-    self.target_group_name        = target_group_name
-    self.assume_ci_build          = assume_ci_build
-    self.secrets_arn              = secrets_arn
-    self.execution_role           = execution_role
-    self.task_role                = task_role
-    self.dj_options               = dj_options || []
-    self.fqdn                     = fqdn
-    self.push_allowed             = true
-    self.web_options              = web_options
-    self.registry_id              = registry_id
-    self.repo_name                = repo_name
+    self.target_group_name        = args.fetch(:target_group_name)
+    self.secrets_arn              = args.fetch(:secrets_arn)
+    self.execution_role           = args.fetch(:execution_role)
+    self.task_role                = args.fetch(:task_role)
+    self.dj_options               = args.fetch(:dj_options, [])
+    self.fqdn                     = args.fetch(:fqdn)
+    self.web_options              = args.fetch(:web_options)
+    self.registry_id              = args.fetch(:registry_id)
+    self.repo_name                = args.fetch(:repo_name)
     self.variant                  = 'web'
     self.version                  = `git rev-parse --short=9 HEAD`.chomp
+    self.args                     = OpenStruct.new(args)
 
     Dir.chdir(_root)
   end
@@ -143,6 +139,7 @@ class Deployer
         web_options: web_options,
         capacity_providers: _capacity_providers,
         service_registry_arns: service_registry_arns,
+        args: args,
       )
   end
 

@@ -1,13 +1,26 @@
 [
   {
-    "link_id": "C3",
+    "link_id": "c3-youth-education-status",
     "rule": {
       "operator": "ANY",
       "parts": [
         {
+          "_comment": "YDHP",
           "variable": "projectFunders",
           "operator": "INCLUDE",
           "value": 43
+        },
+        {
+          "_comment": "RHY-BCP",
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 22
+        },
+        {
+          "_comment": "RHY-MGH",
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 23
         },
         {
           "variable": "projectId",
@@ -73,6 +86,11 @@
           "variable": "projectId",
           "operator": "EQUAL",
           "value": "825"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "755"
         }
       ]
     }

@@ -1,0 +1,26 @@
+.d-flex.justify-content-between.mb-2
+  %h2 HMIS Participation Records
+.card.mb-4
+  - if hmis_participations.any?
+    %table.table.table-sm.table-striped.mb-0
+      %thead
+        %tr
+          %th
+          %th HMISParticipationID
+          %th Start Date
+          %th End Date
+          %th Participation Type
+
+      %tbody
+        - hmis_participations.each do |hmis_participation|
+          %tr
+            %td
+              - if can_see_raw_hmis_data?
+                = link_to 'HMIS', source_datum_path(hmis_participation.id, type: 'HMISParticipation'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
+            %td= hmis_participation.HMISParticipationID
+            %td= hmis_participation.HMISParticipationStatusStartDate
+            %td= hmis_participation.HMISParticipationStatusEndDate
+            %td= HudUtility2024.hmis_participation_type(hmis_participation.HMISParticipationType)
+
+  - else
+    %h4.text-center No HMIS Participation Records

@@ -25,7 +25,6 @@ module HmisCsvTwentyTwentyFour::Exporter
 
     def self.apply_overrides(row)
       row = replace_blank(row, hud_field: :CurrentLivingSituation, default_value: 99)
-      row.VerifiedBy = row.VerifiedBy[0...100] if row.VerifiedBy
 
       row
     end

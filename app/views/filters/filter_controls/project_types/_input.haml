@@ -8,6 +8,7 @@
   ctl_name = 'display_project_type_ctl'
   homeless_types = HudUtility2024.homeless_project_types
     .map { |s| HudUtility2024.project_type_brief(s) }
+  homless_codes = HudUtility2024.homeless_project_type_codes
 
 .form-group.form-group-valid
   .mb-1.h5-prs1= control.label
@@ -27,8 +28,7 @@
 - content_for :page_js do
   :javascript
     'use strict';
-    var defaultValues = #{homeless_types.map(&:downcase).to_json.html_safe};
-
+    var defaultValues = #{homless_codes.map(&:to_s).to_json.html_safe};
     $('.j-project-type-choice').change(function() {
       var $radio = $(this);
       var isHomeless = $radio.is(':checked') && $radio.val() == 'homeless';

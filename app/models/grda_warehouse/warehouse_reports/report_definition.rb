@@ -873,6 +873,13 @@ module GrdaWarehouse::WarehouseReports
           limitable: false,
           health: false,
         }
+        r_list['Performance'] << {
+          url: 'boston_reports/warehouse_reports/community_of_origins',
+          name: Translation.translate('Community of Origin'),
+          description: 'Summary information and maps covering client communities of origin.',
+          limitable: true,
+          health: false,
+        }
       end
       if RailsDrivers.loaded.include?(:project_scorecard)
         r_list['Performance'] << {
@@ -1337,6 +1344,15 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:zip_code_report)
+        r_list['Operational'] << {
+          url: 'zip_code_report/warehouse_reports/reports',
+          name: 'Zip Code Report',
+          description: 'Identify the number of clients and households within each zip code.',
+          limitable: true,
+          health: false,
+        }
+      end
 
       # Don't enable this report in production yet
       if RailsDrivers.loaded.include?(:superset) && ! Rails.env.production?
@@ -1379,6 +1395,7 @@ module GrdaWarehouse::WarehouseReports
       unless RailsDrivers.loaded.include?(:boston_reports)
         cleanup << 'boston_reports/warehouse_reports/street_to_homes'
         cleanup << 'boston_reports/warehouse_reports/configs'
+        cleanup << 'boston_reports/warehouse_reports/community_of_origins'
       end
 
       unless RailsDrivers.loaded.include?(:claims_reporting)
@@ -1437,6 +1454,7 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'client_documents_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:client_documents_report)
       cleanup << 'inactive_client_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:inactive_client_report)
       cleanup << 'all_neighbors_system_dashboard/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:all_neighbors_system_dashboard)
+      cleanup << 'zip_code_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:zip_code_report)
       cleanup << 'superset/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:superset)
 
       cleanup.each do |url|

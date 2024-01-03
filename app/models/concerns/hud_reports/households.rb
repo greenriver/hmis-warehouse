@@ -22,6 +22,10 @@ module HudReports::Households
   extend ActiveSupport::Concern
 
   included do
+    private def batch_size
+      250
+    end
+
     private def hoh_clause
       a_t[:head_of_household].eq(true)
     end
@@ -43,6 +47,12 @@ module HudReports::Households
       return unless hoh_dob
 
       GrdaWarehouse::Hud::Client.age(date: date, dob: hoh_dob)
+    end
+
+    private def hoh_exit_date(household_id)
+      return unless households[household_id]
+
+      households[household_id].detect { |hm| hm[:relationship_to_hoh] == 1 }&.try(:[], :exit_date)
     end
 
     private def get_hh_id(service_history_enrollment)
@@ -94,12 +104,35 @@ module HudReports::Households
       current_member
     end
 
+    private def calculate_move_in_date(hh_id, she)
+      return nil unless she.move_in_date.present?
+
+      move_in_date = she.move_in_date
+      # If the move-in-date is valid, just use it
+      return move_in_date if move_in_date >= she.first_date_in_program
+
+      # If the client moved in before the entry date, and the HoH was present on the move-in date, use the
+      # entry date as the move-in date.
+      household_members = households[hh_id]
+      hoh = household_members.detect { |hm| hm[:relationship_to_hoh] == 1 }
+      return nil unless hoh.present?
+      return she.first_date_in_program if hoh[:entry_date] <= move_in_date
+
+      # Otherwise this move-in is completely invalid
+      nil
+    end
+
     private def calculate_households
       @hoh_enrollments ||= {}
       @households ||= {}
 
-      @generator.client_scope.find_in_batches(batch_size: 100) do |batch|
-        enrollments_by_client_id = clients_with_enrollments(batch)
+      # NOTE: batch_size must match calculate_households in the class that includes this concern
+      @generator.client_scope.find_in_batches(batch_size: batch_size) do |batch|
+        enrollments_by_client_id = clients_with_enrollments(
+          batch,
+          scope: enrollment_scope_without_preloads,
+          preloads: { enrollment: [:client, :disabilities_at_entry, :project] },
+        )
         enrollments_by_client_id.each do |_, enrollments|
           enrollments.each do |enrollment|
             @hoh_enrollments[enrollment.client_id] = enrollment if enrollment.head_of_household?
@@ -184,8 +217,13 @@ module HudReports::Households
       household_adults(universe_client).map { |member| member['source_client_id'] }
     end
 
+    # Per HUD:
+    # https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recCDGtYIVXlTmAvk
+    # . The glossary does not make reference to the "relationship to head of household" required to include a youth in this category. Q27b ("Parenting Youth") is a bit clearer in the following language: "Report all heads of household plus all adults (age 18 – 24) in the household in column B according to the age of the head of household (age < 18 on line 2, or 18-24 on line 3). Include all adults in the household regardless of [relationship to head of household],"
     private def youth_parent?(universe_client)
-      universe_client.head_of_household && only_youth?(universe_client) && youth_children?(universe_client)
+      age = universe_client.age
+      adult = age.present? && age >= 18
+      (universe_client.head_of_household || adult) && only_youth?(universe_client) && youth_children?(universe_client)
     end
 
     private def household_makeup(household_id, date)

@@ -93,17 +93,15 @@ module Types
     field :data_collection_features, [Types::HmisSchema::DataCollectionFeature], null: false, description: 'Occurrence Point data collection features that are enabled for this Project (e.g. Current Living Situations, Events)'
     field :occurrence_point_forms, [Types::HmisSchema::OccurrencePointForm], null: false, method: :occurrence_point_form_instances, description: 'Forms for individual data elements that are collected at occurrence for this Project (e.g. Move-In Date)'
 
-    # TODO: resolve related HMISParticipation records
-    # TODO: resolve related CEParticipation records
-
     def hud_id
       object.project_id
     end
 
     def enrollments(**args)
-      return Hmis::Hud::Enrollment.none unless current_user.can_view_enrollment_details_for?(object)
+      # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
+      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
 
-      resolve_enrollments(object.enrollments_including_wip, **args)
+      resolve_enrollments(object.enrollments_including_wip, dangerous_skip_permission_check: true, **args)
     end
 
     def organization
@@ -115,7 +113,10 @@ module Types
     end
 
     def services(**args)
-      resolve_services(**args)
+      # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
+      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
+
+      resolve_services(**args, dangerous_skip_permission_check: true)
     end
 
     def residential_affiliation_projects
@@ -136,7 +137,7 @@ module Types
       capacity = project_units.group(:unit_type_id).count
       unoccupied = project_units.unoccupied_on.group(:unit_type_id).count
 
-      object.units.map(&:unit_type).uniq.map do |unit_type|
+      object.units.map(&:unit_type).uniq.compact.map do |unit_type|
         OpenStruct.new(
           id: unit_type.id,
           unit_type: unit_type.description,
@@ -156,7 +157,10 @@ module Types
     end
 
     def households(**args)
-      resolve_households(object.households_including_wip, **args)
+      # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
+      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
+
+      resolve_households(object.households_including_wip, **args, dangerous_skip_permission_check: true)
     end
 
     def referral_requests(**args)

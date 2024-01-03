@@ -8,6 +8,7 @@
 
 module Types
   class HmisSchema::MutationType < Types::BaseObject
+    skip_activity_log
     field :update_client_image, mutation: Mutations::UpdateClientImage
     field :delete_client_image, mutation: Mutations::DeleteClientImage
     field :delete_client_file, mutation: Mutations::DeleteClientFile
@@ -49,5 +50,19 @@ module Types
     field :update_referral_posting, mutation: Mutations::AcHmis::UpdateReferralPosting
     field :create_outgoing_referral_posting, mutation: Mutations::AcHmis::CreateOutgoingReferralPosting
     field :delete_custom_case_note, mutation: Mutations::DeleteCustomCaseNote
+
+    field :merge_clients, mutation: Mutations::MergeClients
+    field :bulk_merge_clients, mutation: Mutations::BulkMergeClients
+
+    field :create_form_definition, mutation: Mutations::CreateFormDefinition
+    field :update_form_definition, mutation: Mutations::UpdateFormDefinition
+    field :delete_form_definition, mutation: Mutations::DeleteFormDefinition
+
+    field :create_form_rule, mutation: Mutations::CreateFormRule
+    field :update_form_rule, mutation: Mutations::UpdateFormRule
+
+    field :create_auto_exit_config, mutation: Mutations::CreateAutoExitConfig
+    field :update_auto_exit_config, mutation: Mutations::UpdateAutoExitConfig
+    field :delete_auto_exit_config, mutation: Mutations::DeleteAutoExitConfig
   end
 end

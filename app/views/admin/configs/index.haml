@@ -34,7 +34,7 @@
           show: '.jCasSyncMonths',
         },
         {
-          value: 'project_group',
+          value: ['project_group', 'boston'],
           show: '.jCasSyncProjectGroup',
         }
       ],
@@ -54,9 +54,9 @@
     for (const conditionClass of Object.keys(conditionalSelectors)) {
       $(conditionClass).on('change', function(e) {
         const selectors = conditionalSelectors[conditionClass]
-        selectors.forEach(({ value, show}) => {
+        selectors.forEach(({ value, show }) => {
           const currentValue = typeof value === 'boolean' ? $(conditionClass).is(":checked") : $(conditionClass).val();
-          if (currentValue == value) {
+          if (currentValue == value || (typeof value.includes === "function" && value.includes(currentValue))) {
             $(show).show();
           } else {
             $(show).hide();

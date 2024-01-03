@@ -461,7 +461,7 @@ module PublicReports
             find_each do |enrollment|
               client = enrollment.client
               race_code = client_cache.race_string(destination_id: client.id)
-              data[races[race_code]] << client.id unless client_ids.include?(client.id)
+              data[races[race_code]] << client.id unless client_ids.include?(client.id) || data[races[race_code]].nil?
               client_ids << client.id
             end
           total_count = data.map { |_, ids| ids.count }.sum

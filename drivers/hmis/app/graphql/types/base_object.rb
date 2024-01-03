@@ -6,6 +6,12 @@
 
 module Types
   class BaseObject < GraphQL::Schema::Object
+    class_attribute :should_skip_activity_log, default: false
+    def self.skip_activity_log
+      self.should_skip_activity_log = true
+    end
+
+    include GraphqlPermissionChecker
     edge_type_class(Types::BaseEdge)
     connection_type_class(Types::BaseConnection)
     field_class Types::BaseField
@@ -41,6 +47,25 @@ module Types
       raise "object must be an ApplicationRecord, got #{object.class.name}" unless object.is_a?(ApplicationRecord)
 
       dataloader.with(Sources::ActiveRecordAssociation, association, scope).load(object)
+    end
+
+    def load_ar_scope(scope:, id:)
+      dataloader.with(Sources::ActiveRecordScope, scope).load(id)
+    end
+
+    def load_last_user_from_versions(object)
+      refinement = GrdaWarehouse.paper_trail_versions.
+        where.not(whodunnit: nil). # note, filter is okay here since it is constant with respect to object
+        order(:created_at, :id).
+        select(:id, :whodunnit, :item_id, :item_type, :user_id, :true_user_id) # select only fields we need for performance
+      versions = load_ar_association(object, :versions, scope: refinement)
+      latest_version = versions.last # db-ordered so we choose the last record
+      return unless latest_version
+
+      last_user_id = latest_version.clean_true_user_id || latest_version.clean_user_id
+      return unless last_user_id
+
+      load_ar_scope(scope: Hmis::User.with_deleted, id: last_user_id)
     end
 
     # Infers type and nullability from warehouse configuration
@@ -83,20 +108,36 @@ module Types
     end
 
     # Does the current user have the given permission on entity?
+    #
     # @param permission [Symbol] :can_do_foo
     # @param entity [#record] Client, project, etc
     def current_permission?(permission:, entity:)
-      return false unless current_user&.present?
+      # defined in GraphqlPermissionChecker
+      current_permission_for_context?(context, permission: permission, entity: entity)
+    end
 
-      # Just return false if we don't have this permission at all for anything
-      return false unless current_user.send("#{permission}?")
+    # How should we log this field access? Return nil to skip. Override as needed
+    # @param [String] field_name
+    # @return [String, nil]
+    def activity_log_field_name(_field_name)
+      nil
+    end
 
-      loader, subject = current_user.entity_access_loader_factory(entity) do |record, association|
-        load_ar_association(record, association)
+    # identify the current object
+    def activity_log_object_identity
+      return if self.class.should_skip_activity_log
+
+      case object
+      when ActiveRecord::Base, OpenStruct
+        object.persisted? ? object.id : nil
+      when Hash
+        # relay mutations make a mess of things. Skip hash objects that appear to be "payload" generated types
+        return nil if object.key?(:client_mutation_id)
+
+        raise "Missing #{self.class.graphql_name}::object[:id] in #{object.inspect}" unless object.key?(:id)
+
+        object.fetch[:id]
       end
-      raise "Missing loader for #{entity.class.name}##{entity.id}" unless loader
-
-      dataloader.with(Sources::UserEntityAccessSource, loader).load([subject, permission])
     end
   end
 end

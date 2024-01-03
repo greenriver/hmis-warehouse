@@ -5,6 +5,10 @@ module GraphqlApplicationHelper
     context[:current_user]
   end
 
+  def true_user
+    context[:true_user]
+  end
+
   def hmis_user
     Hmis::Hud::User.from_user(current_user)
   end

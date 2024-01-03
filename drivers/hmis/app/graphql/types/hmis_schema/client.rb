@@ -72,7 +72,10 @@ module Types
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
     field :hud_chronic, Boolean, null: true
-    enrollments_field filter_args: { omit: [:search_term, :bed_night_on_date], type_name: 'EnrollmentsForClient' }
+    enrollments_field filter_args: { omit: [:search_term, :bed_night_on_date], type_name: 'EnrollmentsForClient' } do
+      # Option to include enrollments that the user has "limited" access to
+      argument :include_enrollments_with_limited_access, Boolean, required: false
+    end
     income_benefits_field
     disabilities_field
     health_and_dvs_field
@@ -84,38 +87,41 @@ module Types
     custom_case_notes_field
     files_field
     custom_data_elements_field
+    field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false
     audit_history_field(
       field_permissions: {
         'SSN' => :can_view_full_ssn,
         'DOB' => :can_view_dob,
       },
+      # Transform race and gender fields
       transform_changes: ->(version, changes) do
         result = changes
         [
-          ['race', Hmis::Hud::Client.race_enum_map, :RaceNone],
-          ['gender', Hmis::Hud::Client.gender_enum_map, :GenderNone],
+          ['race', Hmis::Hud::Client.race_enum_map, 'RaceNone'],
+          ['gender', Hmis::Hud::Client.gender_enum_map, 'GenderNone'],
         ].each do |input_field, enum_map, none_field|
           relevant_fields = [*enum_map.base_members.map { |member| member[:key].to_s }, none_field.to_s, input_field]
           next unless changes.slice(*relevant_fields).present?
 
           result = result.except(*relevant_fields)
-          old_client = version.reify
 
-          # Reify the next version to get next values; If no next version, then we're at the latest update and the current object will have the next values
-          new_client =  version.next&.reify || version.item
+          # delta = [[old], [new]]
+          delta = [
+            version.object || {},
+            version.object_with_changes,
+          ].map do |doc|
+            none_value = doc[none_field]
+            if none_value.nil? || none_value.zero?
+              enum_map.base_members.
+                filter { |item| doc[item[:key].to_s] == 1 }.
+                map { |item| item[:value] }
+            else
+              [none_value]
+            end
+          end
 
-          old_value = { input_field => nil }
-          new_value = { input_field => nil }
-
-          old_value = Hmis::Hud::Processors::ClientProcessor.multi_fields_to_input(old_client, input_field, enum_map, none_field) if old_client.present?
-          new_value = Hmis::Hud::Processors::ClientProcessor.multi_fields_to_input(new_client, input_field, enum_map, none_field) if new_client.present?
-
-          result = result.merge(input_field => [old_value[input_field], new_value[input_field]])
+          result = result.merge(input_field => delta)
         end
-
-        # Drop excluded fields
-        excluded_fields = ['id', 'DateCreated', 'DateUpdated', 'DateDeleted']
-        result.reject! { |k| k.underscore.end_with?('_id') || excluded_fields.include?(k) }
 
         result
       end,
@@ -137,6 +143,9 @@ module Types
       can :manage_own_client_files
       can :view_any_nonconfidential_client_files
       can :view_any_confidential_client_files
+      composite_perm :can_upload_client_files, permissions: [:manage_any_client_files, :manage_own_client_files], mode: :any
+      composite_perm :can_view_any_files, permissions: [:manage_own_client_files, :view_any_nonconfidential_client_files, :view_any_confidential_client_files], mode: :any
+      can :audit_clients
     end
 
     def external_ids
@@ -149,7 +158,16 @@ module Types
     end
 
     def enrollments(**args)
-      resolve_enrollments(**args)
+      include_limited_access = args.delete(:include_enrollments_with_limited_access)
+      return resolve_enrollments(object.enrollments, **args) unless include_limited_access
+
+      # If current user has "detailed" access to any enrollment for this client, then we also resolve
+      # "limited access" enrollments (if permitted). The purpose is to show additional enrollment history
+      # for "my" clients, but not for other clients in the system that I can see.
+      # This would need to change if we wanted to support the ability to see limited enrollment details for all clients.
+      has_some_detailed_access = current_permission?(permission: :can_view_enrollment_details, entity: object)
+      scope = object.enrollments.viewable_by(current_user, include_limited_access_enrollments: has_some_detailed_access)
+      resolve_enrollments(scope, **args, dangerous_skip_permission_check: true)
     end
 
     def income_benefits(**args)
@@ -201,7 +219,14 @@ module Types
     end
 
     def user
-      load_ar_association(object, :user)
+      load_last_user_from_versions(object)
+    end
+
+    def activity_log_field_name(field_name)
+      case field_name
+      when 'ssn', 'dob'
+        field_name
+      end
     end
 
     def ssn
@@ -218,22 +243,10 @@ module Types
 
     def names
       names = load_ar_association(object, :names)
-      if names.empty?
-        # If client has no CustomClientNames, construct one based on the HUD Client name fields
-        return [
-          object.names.new(
-            id: '0',
-            first: object.first_name,
-            last: object.last_name,
-            middle: object.middle_name,
-            suffix: object.name_suffix,
-            primary: true,
-            **object.slice(:name_data_quality, :user_id, :data_source_id, :date_created, :date_updated),
-          ),
-        ]
-      end
+      return names unless names.empty?
 
-      names
+      # If client has no CustomClientNames, construct one based on the HUD Client name fields
+      [object.build_primary_custom_client_name]
     end
 
     def contact_points
@@ -260,21 +273,29 @@ module Types
       !!object.hud_chronic?(scope: enrollments)
     end
 
-    def resolve_audit_history
+    def audit_history(filters: nil)
       address_ids = object.addresses.with_deleted.pluck(:id)
       name_ids = object.names.with_deleted.pluck(:id)
       contact_ids = object.contact_points.with_deleted.pluck(:id)
-
-      v_t = GrPaperTrail::Version.arel_table
-      client_changes = v_t[:item_id].eq(object.id).and(v_t[:item_type].in(['Hmis::Hud::Client', 'GrdaWarehouse::Hud::Client']))
+      v_t = GrdaWarehouse.paper_trail_versions.arel_table
+      client_changes = v_t[:item_id].eq(object.id).and(v_t[:item_type].eq('Hmis::Hud::Client'))
       address_changes = v_t[:item_id].in(address_ids).and(v_t[:item_type].eq('Hmis::Hud::CustomClientAddress'))
       name_changes = v_t[:item_id].in(name_ids).and(v_t[:item_type].eq('Hmis::Hud::CustomClientName'))
       contact_changes = v_t[:item_id].in(contact_ids).and(v_t[:item_type].eq('Hmis::Hud::CustomClientContactPoint'))
 
-      GrPaperTrail::Version.where(client_changes.or(address_changes).or(name_changes).or(contact_changes)).
+      scope = GrdaWarehouse.paper_trail_versions.
+        where(client_changes.or(address_changes).or(name_changes).or(contact_changes)).
         where.not(object_changes: nil, event: 'update').
         unscope(:order).
         order(created_at: :desc)
+
+      Hmis::Filter::PaperTrailVersionFilter.new(filters).filter_scope(scope)
+    end
+
+    def merge_audit_history
+      return unless current_user.can_merge_clients?
+
+      object.merge_audits.order(merged_at: :desc)
     end
   end
 end
