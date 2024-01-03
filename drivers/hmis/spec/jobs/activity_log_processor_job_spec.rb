@@ -14,12 +14,14 @@ RSpec.describe Hmis::ActivityLogProcessorJob, type: :model do
 
   let!(:p1) { create :hmis_hud_project, data_source: ds1 }
   let!(:c1) { create :hmis_hud_client, data_source: ds1 }
-  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
-  let!(:assessment1) { create(:hmis_custom_assessment, data_source: ds1, enrollment: e1) }
 
   record_permutations = [
     ['with non-deleted', nil],
     ['with deleted', ->(record) { record.destroy! }],
+  ]
+  enrollment_types = [
+    ['Enrollment', :hmis_hud_enrollment],
+    ['WIP Enrollment', :hmis_hud_wip_enrollment],
   ]
   [
     { 'Enrollment/%{enrollment_id}' => [] },
@@ -27,21 +29,25 @@ RSpec.describe Hmis::ActivityLogProcessorJob, type: :model do
     { 'Assessment/%{assessment_id}' => [] },
   ].each do |resolved_fields_template|
     record_permutations.each do |label, transformer|
-      describe "#{label} enrollment-related access log #{resolved_fields_template.inspect}}" do
-        before(:each) do
-          resolved_fields = resolved_fields_template.transform_keys do |key|
-            format(key, enrollment_id: e1.id, assessment_id: assessment1.id)
+      enrollment_types.each do |enrollment_label, enrollment_factory|
+        let!(:e1) { create enrollment_factory, data_source: ds1, project: p1, client: c1 }
+        let!(:assessment1) { create(:hmis_custom_assessment, data_source: ds1, enrollment: e1) }
+        describe "#{label} #{enrollment_label} related access log #{resolved_fields_template.inspect}}" do
+          before(:each) do
+            resolved_fields = resolved_fields_template.transform_keys do |key|
+              format(key, enrollment_id: e1.id, assessment_id: assessment1.id)
+            end
+            create :hmis_activity_log, resolved_fields: resolved_fields, data_source: ds1
+            transformer&.call(e1)
           end
-          create :hmis_activity_log, resolved_fields: resolved_fields, data_source: ds1
-          transformer&.call(e1.destroy)
-        end
 
-        it 'should link to enrollment and client' do
-          expect do
-            job.perform_now
-          end.to change(Hmis::EnrollmentAccessSummary.where(enrollment_id: e1.id), :count).by(1).
-            and change(Hmis::ClientAccessSummary.where(client_id: c1.id), :count).by(1).
-            and change(Hmis::ActivityLog.unprocessed, :count).by(-1)
+          it 'should link to enrollment and client' do
+            expect do
+              job.perform_now
+            end.to change(Hmis::EnrollmentAccessSummary.where(enrollment_id: e1.id), :count).by(1).
+              and change(Hmis::ClientAccessSummary.where(client_id: c1.id), :count).by(1).
+              and change(Hmis::ActivityLog.unprocessed, :count).by(-1)
+          end
         end
       end
     end
@@ -51,7 +57,7 @@ RSpec.describe Hmis::ActivityLogProcessorJob, type: :model do
     describe "#{label} client-related access log" do
       before(:each) do
         create :hmis_activity_log, resolved_fields: { "Client/#{c1.id}" => [] }
-        transformer&.call(e1.destroy)
+        transformer&.call(c1)
       end
 
       it 'should link to client' do

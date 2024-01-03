@@ -3087,6 +3087,7 @@ type EnrollmentAccessSummary {
 
 input EnrollmentAccessSummaryFilterOptions {
   onOrAfter: ISO8601Date
+  project: [ID!]
   searchTerm: String
 }
 

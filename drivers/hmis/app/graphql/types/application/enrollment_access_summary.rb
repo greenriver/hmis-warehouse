@@ -39,6 +39,7 @@ module Types
 
     available_filter_options do
       arg :search_term, String
+      arg :project, [ID]
       arg :on_or_after, GraphQL::Types::ISO8601Date
     end
 
