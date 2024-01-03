@@ -183,6 +183,9 @@ class AllNeighborsSystemDashboardFilters {
       } else if(label.name === 'cohortYears') {
         const text = this.state['cohort'].replace('after housing', '').replace('of housing', '')
         $(label.selector).text(text)
+      } else if (label.name === 'quarterRange') {
+        const text = this.state.quarterRange.join(' - ')
+        $(label.selector).text(text)
       } else {
         // FIXME: not changing racial composition label when choosing Homelessness Status
         // console.log(this.state, label.selector, label.name)

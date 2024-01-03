@@ -71,6 +71,9 @@ module Types
     summary_field :client, HmisSchema::Client, null: false
     summary_field :in_progress, Boolean, null: false
     summary_field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false, default_value: 99
+    summary_field :move_in_date, GraphQL::Types::ISO8601Date, null: true
+    summary_field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
+
     # Override permission requirement for the access object. This is necessary so the frontend
     # knows whether its safe to link to the full enrollment dashboard for a given enrollment.
     access_field permissions: nil do
@@ -110,8 +113,6 @@ module Types
     field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true, default_value: 99
     # 3.13.1
     field :date_of_engagement, GraphQL::Types::ISO8601Date, null: true
-    # 3.20.1
-    field :move_in_date, GraphQL::Types::ISO8601Date, null: true
     # 3.917
     field :living_situation, HmisSchema::Enums::Hud::PriorLivingSituation
     field :rental_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
@@ -187,7 +188,6 @@ module Types
     field :num_units_assigned_to_household, Integer, null: false, default_value: 0
     field :reminders, [HmisSchema::Reminder], null: false
     field :open_enrollment_summary, [HmisSchema::EnrollmentSummary], null: false
-    field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
 
     field :move_in_addresses, [HmisSchema::ClientAddress], null: false
 

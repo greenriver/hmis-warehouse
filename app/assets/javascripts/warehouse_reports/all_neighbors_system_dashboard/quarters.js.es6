@@ -66,10 +66,7 @@ class AllNeighborsSystemDashboardQuarters {
           return update
             .transition()
             .style('left', (d) => this.left(d))
-            .style('right', (d) => {
-              console.log('right', this.right(d))
-              return this.right(d)
-            })
+            .style('right', (d) => this.right(d))
         },
         (exit) => exit
       )

@@ -84,12 +84,13 @@ module AllNeighborsSystemDashboard
       ].freeze
 
       def household_type(enrollment)
-        return 'Children Only' if enrollment.children_only?
+        return 'Unknown Household Type' if enrollment.children_only?
         # The enrollment isn't children only, but contains at least one child
         return 'Adults and Children' if enrollment.other_clients_under_18.positive? ||
           (enrollment.age.present? && enrollment.age < 18)
+        return 'Adult Only' if enrollment.other_clients_under_18.zero? && enrollment.age.present? && enrollment.age >= 18
 
-        'Adults Only'
+        'Unknown Household Type'
       end
 
       def prior_living_situation_category(enrollment)
@@ -128,7 +129,7 @@ module AllNeighborsSystemDashboard
       end
 
       def exit_type(filter, enrollment)
-        # Don't admin any exit types, unless we have an exit before report end
+        # Don't admit any exit types, unless we have an exit before report end
         return nil unless exit_date(filter, enrollment).present?
 
         # If this is a "diversion" project, we'll treat exit destination differently

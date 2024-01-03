@@ -1,7 +1,7 @@
 - start_date = (DateTime.current - 3.years).beginning_of_month
 - end_date = DateTime.current.beginning_of_month
 - all_data = AllNeighborsSystemDashboard::FakeHousingTotalPlacementsData.new(start_date, end_date)
-- total_data = all_data.data('Total Placements', 'total_placements', :line)
+- total_data = all_data.line_data_by_quarter
 - donut_data = all_data.donut_data
 - donut_ids = donut_data.map { |d| chart_id(tab[:id], d[:id]) }
 - donut_filter_label_ids = donut_data.map { |d| filter_label_id(tab[:id], d[:id]) }
@@ -15,18 +15,44 @@
       .d-flex
         .pr-6= render 'select_filter', tab: tab, name: 'project_type', label: 'Project Type', options: all_data.project_types
         = render 'select_filter', tab: tab, name: 'count_level', label: 'Count Level', options: all_data.count_levels
-         
+
     .col-xs-12.col-md-4
       = render 'quarter_range_filter', tab: tab, name: 'quarter_range', label: 'Date Range', quarters: all_data.quarter_range
 .mb-7
   %h5.mt-0 Time Period
   %div{id: chart_id(tab[:id], 'quarters')}
-  
-.mb-7= render 'filter_labels', tab: tab, labels: ['project_type', 'count_level', 'date_range']
+
+.mb-7= render 'filter_labels', tab: tab, labels: ['project_type', 'count_level', 'quarter_range']
+
+.border.mb-7
+  .py-6.px-5.border-bottom
+    .row.align-items-center.mb-6
+      .col-sm-12.col-md-4
+        %h3
+          Placements per Quarter & Total Placements To Date
+      .col-sm-12.col-md-8
+        .d-flex.justify-content-end
+          .pr-6= render 'select_filter', tab: tab, name: 'program_name', label: 'Project Name', options: all_data.program_names
+          .pr-6= render 'select_filter', tab: tab, name: 'population', label: 'Population', options: all_data.populations
+          = render 'select_filter', tab: tab, name: 'count_type', label: 'Count Type', options: all_data.count_types
+    %div{id: chart_id(tab[:id], 'total_placements_internal'), style: 'height:400px;'}
+    .w-100.mt-5.d-flex.justify-content-center.flex-nowrap
+      .d-flex.justify-content-center.flex-row-reverse.flex-nowrap{id: "#{chart_id(tab[:id], 'total_placements_internal')}_legend"}
+      %div
+        (
+        %span{class: filter_label_id(tab[:id], 'quarter_range')}
+        )
+  .p-4.border-top
+    - table_id = table_id(tab[:id], 'internal_housing_placements')
+    = link_to "javascript:void(0)", data: {toggle: 'collapse', target: "##{table_id}"}, role: 'button', aria: {expanded: 'false', controls: table_id}, class: "d-flex justify-content-between align-items-center w-100 #{css_namespace('internal', 'table_toggle')}" do
+      %span Insights - Housing Placements
+      %i.icon-angle-down
+  .collapse{id: table_id}
+    .p-4.border-top{id: filter_label_id(tab[:id], 'total_placement_insights')}
 
 = render 'donuts', tab: tab, donut_data: donut_data, filter_label: 'date_range'
 
-= render 'stacked_charts', data: [stacked_data], group: 'Racial Composition', filter_label: 'date_range', filter: false, filter_data: [], show_chart_titles: false, hint: false, tab: tab, legend_padding: '200px'
+= render 'stacked_charts', data: [stacked_data], group: 'Racial Composition', filter_label: 'date_range', filter: false, filter_data: [], show_chart_titles: false, hint: false, tab: tab, legend_padding: '200px', description: false
 
 
 - content_for :page_js do
@@ -98,14 +124,66 @@
           name: 'countLevel',
           selector: '.#{filter_label_id(tab[:id], 'count_level')}'
         },
-        // {
-        //   name: 'dateRange',
-        //   selector: '.#{filter_label_id(tab[:id], 'date_range')}'
-        // },
       ]
 
       var filters = new AllNeighborsSystemDashboardFilters(filterConfig, charts, labelConfig)
       filters.test()
-      
+
+      var lineCharts = [
+        {
+          chart: AllNeighborsSystemDashboardLineBarByQuarter,
+          data: totalData,
+          selector: '##{chart_id(tab[:id], 'total_placements_internal')}',
+          options: {
+            legend: {selector: '##{chart_id(tab[:id], 'total_placements_internal')}_legend'},
+            insights: {selector: '##{filter_label_id(tab[:id], 'total_placement_insights')}'}
+          }
+        },
+      ]
+
+      var lineFilterConfig = [
+        {
+          name: 'projectType',
+          type: 'select',
+          selector: '##{filter_id(tab[:id], 'project_type')}'
+        },
+        {
+          name: 'countLevel',
+          type: 'select',
+          selector: '##{filter_id(tab[:id], 'count_level')}'
+        },
+        {
+          name: 'quarterRange',
+          type: 'quarterRange',
+          selector: '##{filter_id(tab[:id], 'quarter_range')} select',
+          data: quarterData
+        },
+        {
+          name: 'programName',
+          type: 'select',
+          selector: '##{filter_id(tab[:id], 'program_name')}',
+        },
+        {
+          name: 'population',
+          type: 'select',
+          selector: '##{filter_id(tab[:id], 'population')}',
+        },
+        {
+          name: 'countType',
+          type: 'select',
+          selector: '##{filter_id(tab[:id], 'count_type')}',
+        }
+      ]
+
+      var lineLabelConfig = [
+        {
+          name: 'quarterRange',
+          selector: '.#{filter_label_id(tab[:id], 'quarter_range')}'
+        },
+      ]
+
+      var lineFilters = new AllNeighborsSystemDashboardFilters(lineFilterConfig, lineCharts, lineLabelConfig)
+      lineFilters.test()
+
 
     })
