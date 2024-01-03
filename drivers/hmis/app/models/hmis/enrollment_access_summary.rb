@@ -12,6 +12,7 @@ module Hmis
 
     belongs_to :user, class_name: 'Hmis::User'
     belongs_to :enrollment, class_name: 'Hmis::Hud::Enrollment'
+    belongs_to :project, class_name: 'Hmis::Hud::Project'
 
     def readonly?
       true
@@ -38,14 +39,7 @@ module Hmis
         enrollment_ids << search_term.to_i if search_term =~ /\A\d+\z/
         scope = scope.where(enrollment_id: enrollment_ids.uniq)
       end
-      if project_ids.present?
-        enrollment_ids = []
-        Hmis::Hud::Project.unscoped do
-          enrollment_ids += Hmis::Hud::Enrollment.with_deleted.joins(:project).where(project: {id:project_ids}).pluck(e_t[:id]).compact
-        end
-        enrollment_ids += Hmis::Wip.enrollments.where(project_id: project_ids).pluck(:source_id)
-        scope = scope.where(enrollment_id: enrollment_ids.uniq)
-      end
+      scope = scope.where(project_id: project_ids) if project_ids.present?
       scope.where(user_id: user.id)
     end
   end

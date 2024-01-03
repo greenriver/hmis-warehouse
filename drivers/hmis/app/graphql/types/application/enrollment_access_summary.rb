@@ -50,14 +50,7 @@ module Types
     end
 
     def project
-      return unless enrollment
-
-      if enrollment.in_progress?
-        wip = load_ar_association(enrollment, :wip)
-        load_ar_association(wip, :project, scope: Hmis::Hud::Project.with_deleted)
-      else
-        load_ar_association(enrollment, :project, scope: Hmis::Hud::Project.with_deleted)
-      end
+      load_ar_association(object, :project, scope: Hmis::Hud::Project.with_deleted)
     end
 
     def client

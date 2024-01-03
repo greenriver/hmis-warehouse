@@ -27,18 +27,34 @@ module Hmis
     RESOLVE_ENROLLMENT_IDS = ->(enrollment_ids) {
       e_t = Hmis::Hud::Enrollment.arel_table
       c_t = Hmis::Hud::Client.arel_table
+      p_t = Hmis::Hud::Project.arel_table
       # unscope client to include deleted records in the join
-      client_ids_map = Hmis::Hud::Client.unscoped do
+      client_id_map = Hmis::Hud::Client.unscoped do
         Hmis::Hud::Enrollment.with_deleted.
           where(id: enrollment_ids).
           joins(:client).
           pluck(e_t[:id], c_t[:id]).to_h
       end
+      project_id_map = [].yield_self do |pairs|
+        Hmis::Hud::Project.unscoped do
+          pairs += Hmis::Hud::Enrollment.with_deleted.
+            where(id: enrollment_ids).
+            joins(:project).
+            pluck(e_t[:id], p_t[:id])
+        end
+        pairs += Hmis::Wip.enrollments.with_deleted.
+          where(source_id: enrollment_ids).
+          pluck(:source_id, :project_id)
+        pairs.to_h
+      end
 
-      enrollment_ids.map do |enrollment_id|
+      enrollment_ids.map(&:to_i).map do |enrollment_id|
+        project_id = project_id_map[enrollment_id]
+        client_id = client_id_map[enrollment_id]
         {
           enrollment_ids: [enrollment_id],
-          client_ids: [client_ids_map[enrollment_id&.to_i]],
+          project_ids: [project_id],
+          client_ids: [client_id],
         }
       end
     }
@@ -48,7 +64,7 @@ module Hmis
     #     burden. It is assumed that to access PII, a query would have to traverse one of the entities below.
     # graphql_name => ->(unique_id_strings) {
     #   [
-    #     {client_ids: [], enrollment_ids:[] }
+    #     {client_ids: [], enrollment_ids:[], project_ids: [] }
     #   ]
     # }
     RESOLVERS = {
@@ -102,15 +118,19 @@ module Hmis
             next unless resolved
 
             resolved[:client_ids]&.compact&.each { |id| client_rows << [log_record.id, id] }
-            resolved[:enrollment_ids]&.compact&.each { |id| enrollment_rows << [log_record.id, id] }
+
+            # assume enrollment_id/project_id are 1:1
+            (resolved[:project_ids] || []).zip(resolved[:enrollment_ids] || []).each do |project_id, enrollment_id|
+              enrollment_rows << [log_record.id, project_id, enrollment_id]
+            end
           end
         end
 
         # insert the rows and mark log_records as processed
         scope.transaction do
           # populate join tables
-          insert_rows(table_name: 'hmis_activity_logs_clients', references: 'client', rows: client_rows.uniq)
-          insert_rows(table_name: 'hmis_activity_logs_enrollments', references: 'enrollment', rows: enrollment_rows.uniq)
+          insert_rows(table_name: 'hmis_activity_logs_clients', references: ['client'], rows: client_rows.uniq)
+          insert_rows(table_name: 'hmis_activity_logs_enrollments', references: ['project', 'enrollment'], rows: enrollment_rows.uniq)
           scope.where(id: batch.map(&:id)).update_all(processed_at: Time.current)
         end
         total_processed += batch.size
@@ -125,7 +145,9 @@ module Hmis
       manager = Arel::InsertManager.new
       manager.into(table)
       manager.columns << table[:activity_log_id]
-      manager.columns << table[:"#{references}_id"]
+      references.each do |column|
+        manager.columns << table["#{column}_id"]
+      end
       manager.values = manager.create_values_list(rows)
 
       connection.execute manager.to_sql

@@ -791,7 +791,8 @@ CREATE TABLE public.hmis_activity_logs_clients (
 
 CREATE TABLE public.hmis_activity_logs_enrollments (
     activity_log_id bigint NOT NULL,
-    enrollment_id bigint NOT NULL
+    enrollment_id bigint NOT NULL,
+    project_id bigint
 );
 
 
@@ -939,10 +940,11 @@ CREATE VIEW public.hmis_user_enrollment_activity_log_summaries AS
  SELECT concat(hmis_activity_logs_enrollments.enrollment_id, ':', hmis_activity_logs.user_id) AS id,
     max(hmis_activity_logs.created_at) AS last_accessed_at,
     hmis_activity_logs_enrollments.enrollment_id,
+    hmis_activity_logs_enrollments.project_id,
     hmis_activity_logs.user_id
    FROM (public.hmis_activity_logs
      JOIN public.hmis_activity_logs_enrollments ON ((hmis_activity_logs_enrollments.activity_log_id = hmis_activity_logs.id)))
-  GROUP BY hmis_activity_logs_enrollments.enrollment_id, hmis_activity_logs.user_id;
+  GROUP BY hmis_activity_logs_enrollments.enrollment_id, hmis_activity_logs_enrollments.project_id, hmis_activity_logs.user_id;
 
 
 --
@@ -3474,6 +3476,13 @@ CREATE INDEX index_hmis_activity_logs_enrollments_on_activity_log_id ON public.h
 --
 
 CREATE INDEX index_hmis_activity_logs_enrollments_on_enrollment_id ON public.hmis_activity_logs_enrollments USING btree (enrollment_id);
+
+
+--
+-- Name: index_hmis_activity_logs_enrollments_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_activity_logs_enrollments_on_project_id ON public.hmis_activity_logs_enrollments USING btree (project_id);
 
 
 --

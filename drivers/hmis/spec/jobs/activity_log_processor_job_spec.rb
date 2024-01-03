@@ -41,10 +41,11 @@ RSpec.describe Hmis::ActivityLogProcessorJob, type: :model do
             transformer&.call(e1)
           end
 
-          it 'should link to enrollment and client' do
+          it 'should link to enrollment, project, and client' do
             expect do
               job.perform_now
             end.to change(Hmis::EnrollmentAccessSummary.where(enrollment_id: e1.id), :count).by(1).
+              and change(Hmis::EnrollmentAccessSummary.where(project_id: p1.id), :count).by(1).
               and change(Hmis::ClientAccessSummary.where(client_id: c1.id), :count).by(1).
               and change(Hmis::ActivityLog.unprocessed, :count).by(-1)
           end
