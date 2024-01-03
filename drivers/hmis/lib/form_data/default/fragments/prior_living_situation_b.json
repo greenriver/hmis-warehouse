@@ -404,33 +404,6 @@
       ]
     },
     {
-      "type": "GROUP",
-      "component": "INFO_GROUP",
-      "link_id": "3.917B.4.break.group",
-      "_comment": "Show a 'break' message if the number of times homeless is <4 or 8/9/99. (Per HMIS Glossary 'CH at Project Start Flowchart'). It's also a break if its left empty, but that would be confusing to show.",
-      "item": [
-        {
-          "type": "DISPLAY",
-          "link_id": "3.917B.4.break",
-          "text": "Client does not meet the HUD definition of chronic homelessness. <br /> Stopping data collection for 3.917 Prior Living Situation.",
-          "readonly_text": "Client does not meet the HUD definition of chronic at entry.",
-          "enable_behavior": "ALL",
-          "enable_when": [
-            {
-              "question": "3.917B.4",
-              "operator": "NOT_EQUAL",
-              "answer_code": "FOUR_OR_MORE_TIMES"
-            },
-            {
-              "question": "3.917B.4",
-              "operator": "EXISTS",
-              "answer_boolean": true
-            }
-          ]
-        }
-      ]
-    },
-    {
       "type": "CHOICE",
       "link_id": "3.917B.5",
       "required": false,
@@ -442,14 +415,12 @@
       "text": "Total number of months homeless on the street, in ES, or SH in the past three years",
       "brief_text": "Months Homeless",
       "pick_list_reference": "MonthsHomelessPastThreeYears",
-      "_comment": "Only need to ask this if times homeless was answered and the number of times is 4+ (Per HMIS Glossary 'CH at Project Start Flowchart')",
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "_comment": "Homeless 4 or more times in past 3 years",
           "question": "3.917B.4",
-          "operator": "EQUAL",
-          "answer_code": "FOUR_OR_MORE_TIMES"
+          "operator": "ENABLED",
+          "answer_boolean": true
         }
       ]
     }
