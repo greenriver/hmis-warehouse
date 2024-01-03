@@ -12,4 +12,8 @@ class Hmis::ClientMergeAudit < Hmis::HmisBase
 
   has_one :most_recent_merge_history, -> { order(updated_at: :desc) }, class_name: 'Hmis::ClientMergeHistory'
   has_one :retained_client, class_name: 'Hmis::Hud::Client', through: :most_recent_merge_history
+
+  def self.apply_filters(input)
+    Hmis::Filter::ClientMergeAuditFilter.new(input).filter_scope(self)
+  end
 end

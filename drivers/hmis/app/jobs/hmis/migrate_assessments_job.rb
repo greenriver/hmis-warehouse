@@ -48,7 +48,7 @@ module Hmis
       self.soft_delete_datetime = Time.current
       self.delete_dangling_records = delete_dangling_records
       self.preferred_source_hash = preferred_source_hash
-      raise 'Not an HMIS Data source' if GrdaWarehouse::DataSource.find(data_source_id).hmis.nil?
+      raise 'Not an HMIS Data source' if ::GrdaWarehouse::DataSource.find(data_source_id).hmis.nil?
 
       # Deletes the CustomAssessment and FormProcessor, but not the underlying data. It DOES delete Custom Data Elements tied to CustomAssessment.
       Hmis::Hud::CustomAssessment.joins(:project).merge(project_scope).each(&:really_destroy!) if clobber

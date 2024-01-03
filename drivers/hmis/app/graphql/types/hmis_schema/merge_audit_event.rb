@@ -15,6 +15,10 @@ module Types
 
     # object is a Hmis::ClientMergeAudit
 
+    available_filter_options do
+      arg :user, [ID]
+    end
+
     def user
       load_ar_association(object, :actor)
     end
