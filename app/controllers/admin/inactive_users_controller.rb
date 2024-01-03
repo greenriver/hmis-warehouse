@@ -35,6 +35,8 @@ module Admin
         password: pass,
         password_confirmation: pass,
       )
+
+      # FIXME(#186770279): shouldn't send for oauth-linked accounts
       @user.send_reset_password_instructions
       redirect_to({ action: :index }, notice: "User #{@user.name} re-activated")
     end
