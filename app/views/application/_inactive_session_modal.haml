@@ -16,7 +16,7 @@
           %h4.mt-0= title
         .mb-4.alert.alert-warning.w-100{data: {'inactive-session-modal-target': 'alertMessage'}}
         .text-center
-          %a.btn.btn-outline-primary{href: root_path} Continue
+          %a.btn.btn-outline-primary{href: request.path} Continue
 
   .modal.fade{data: {backdrop: "static", 'inactive-session-modal-target': 'modal'}, role: "dialog", tabindex: "-1"}
     .session_expiry__modal.modal-dialog.modal-lg{role: "document"}

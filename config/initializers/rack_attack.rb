@@ -51,6 +51,9 @@ class Rack::Attack
     strip_path = request.path.split('.', 2)[0]
     return false if strip_path.in?(WARDEN_CHECK_EXCLUDE_URLS)
 
+    # If we explicitly added a parameter to avoid updating last_request_at, honor it
+    return false if request.env['QUERY_STRING'].include?('skip_trackable=true')
+
     request.env['warden']&.user.present? || request.env['warden']&.user(:hmis_user).present?
   end
 

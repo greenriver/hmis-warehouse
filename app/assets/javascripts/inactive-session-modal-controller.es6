@@ -167,14 +167,14 @@ App.StimulusApp.register(
     }
 
     /*
-     * remove all elements from the body except this controller's element
+     * remove all elements from the body and header except this controller's element
      */
     clearBody() {
       let node;
       if (!document.body) return;
       for (let i = 0; i < document.body.childNodes.length; i++) {
         node = document.body.childNodes[i];
-        if (node.nodeType == 1 && !node.isEqualNode(this.element)) {
+        if (node.nodeType == 1 && !node.isEqualNode(this.element) && !node.classList.contains('o-header--page')) {
           document.body.removeChild(node);
         }
       }
