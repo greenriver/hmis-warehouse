@@ -223,8 +223,14 @@ class ApplicationController < ActionController::Base
   def require_training!
     return unless current_user
     return unless current_user.training_required?
-    return if current_user.training_completed?
     return if allowed_setup_controllers
+
+    # Verifying with local data before hitting the API. This prevents unneeded API calls
+    # and ensures local data is updated when new trainings have been completed.
+    if current_user.training_completed?
+      lms = Talentlms::Facade.new
+      return unless lms.training_expired?(current_user, false)
+    end
 
     redirect_to user_training_path
   end
