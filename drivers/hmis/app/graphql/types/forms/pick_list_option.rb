@@ -115,20 +115,17 @@ module Types
 
     def self.user_picklist(current_user)
       return [] unless current_user
-      # currently picklist is only needed when filtering audit events
-      return [] unless current_user.can_audit_enrollments? || current_user.can_audit_clients?
+      # currently picklist is only needed when filtering audit events, and when filtering client merge history
+      return [] unless current_user.can_audit_enrollments? || current_user.can_audit_clients? || current_user.can_merge_clients?
 
-      Hmis::User.with_deleted.order(:last_name, :first_name, :id).map do |user|
-        # Add secondary label to differentiate between users with the same name, and identify deleted/inactive accounts.
-        secondary_label = user.id.to_s
-        if user.deleted_at
-          secondary_label += ' (deleted)'
-        elsif user.active == false
-          secondary_label += ' (inactive)'
-        end
-
-        { code: user.id.to_s, label: user.full_name, secondary_label: secondary_label }
-      end
+      Hmis::User.with_deleted.map do |user|
+        {
+          code: user.id.to_s,
+          label: user.full_name,
+          group_code: user.pick_list_group_label, # Group by status (Active/Inactive/Deleted)
+          group_label: user.pick_list_group_label,
+        }
+      end.sort_by { |obj| [obj[:group_label] + obj[:label]].join(' ') }
     end
 
     def self.audit_event_record_type_picklist
