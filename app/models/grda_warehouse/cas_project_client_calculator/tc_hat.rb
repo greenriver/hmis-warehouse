@@ -179,6 +179,9 @@ module GrdaWarehouse::CasProjectClientCalculator
       # Client indicated the household is adult only
       return false unless family || youth
       return true if household_size(client) > 1
+      # If the client failed to count the child, but will have custody at some point,
+      # still consider this a family
+      return true if household_size(client) == 1 && (custody_now || custody_later)
 
       false
     end
