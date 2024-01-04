@@ -125,7 +125,7 @@ module Types
           group_code: user.pick_list_group_label, # Group by status (Active/Inactive/Deleted)
           group_label: user.pick_list_group_label,
         }
-      end.sort_by { |obj| [obj[:group_label] + obj[:label]].join(' ') }
+      end.sort_by { |obj| [obj[:group_label], obj[:label], obj[:code]].join(' ') }
     end
 
     def self.audit_event_record_type_picklist
@@ -347,7 +347,7 @@ module Types
       picklist = file_tags.
         map { |tag| tag_to_option.call(tag) }.
         compact.
-        sort_by { |obj| [obj[:group_label] + obj[:label]].join(' ') }
+        sort_by { |obj| [obj[:group_label], obj[:label]].join(' ') }
 
       # Put 'Other' at the end
       picklist << tag_to_option.call(other.first) if other.any?
