@@ -9,7 +9,7 @@ class GrdaWarehouse::ModelTableManager
   attr_accessor :model
   def initialize(model)
     raise 'not allowed in production' if Rails.env.production?
-    raise 'should not run in a transaction' if model.connection.open_transactions > 0
+    raise 'should not run in a transaction' if model.connection.open_transactions.positive?
 
     self.model = model
   end
