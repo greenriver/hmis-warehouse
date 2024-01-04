@@ -71,6 +71,9 @@ module Types
     summary_field :client, HmisSchema::Client, null: false
     summary_field :in_progress, Boolean, null: false
     summary_field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false, default_value: 99
+    summary_field :move_in_date, GraphQL::Types::ISO8601Date, null: true
+    summary_field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
+
     # Override permission requirement for the access object. This is necessary so the frontend
     # knows whether its safe to link to the full enrollment dashboard for a given enrollment.
     access_field permissions: nil do
@@ -110,8 +113,6 @@ module Types
     field :disabling_condition, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true, default_value: 99
     # 3.13.1
     field :date_of_engagement, GraphQL::Types::ISO8601Date, null: true
-    # 3.20.1
-    field :move_in_date, GraphQL::Types::ISO8601Date, null: true
     # 3.917
     field :living_situation, HmisSchema::Enums::Hud::PriorLivingSituation
     field :rental_subsidy_type, Types::HmisSchema::Enums::Hud::RentalSubsidyType
@@ -187,18 +188,11 @@ module Types
     field :num_units_assigned_to_household, Integer, null: false, default_value: 0
     field :reminders, [HmisSchema::Reminder], null: false
     field :open_enrollment_summary, [HmisSchema::EnrollmentSummary], null: false
-    field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
 
     field :move_in_addresses, [HmisSchema::ClientAddress], null: false
 
-    # fields should match our DB casing, consult schema to see determine appropriate casing
-    EXCLUDED_HISTORY_FIELDS = ['id', 'DateCreated', 'DateUpdated', 'DateDeleted', 'owner_type', 'enrollment_address_type'].to_set.freeze
-    audit_history_field(
-      transform_changes: ->(_version, changes) {
-        # Drop excluded fields
-        changes.reject! { |k| k.underscore.end_with?('_id') || EXCLUDED_HISTORY_FIELDS.include?(k) }
-      },
-    )
+    # fields should match our DB casing, consult schema to determine appropriate casing
+    audit_history_field excluded_keys: ['owner_type', 'enrollment_address_type', 'wip']
 
     def audit_history(filters: nil)
       scope = GrdaWarehouse.paper_trail_versions.

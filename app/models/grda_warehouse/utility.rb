@@ -103,7 +103,14 @@ class GrdaWarehouse::Utility
     end
 
     tables << HudPathReport::Fy2020::PathClient if RailsDrivers.loaded.include?(:hud_path_report)
-    tables << HudSpmReport::Fy2020::SpmClient if RailsDrivers.loaded.include?(:hud_spm_report)
+    if RailsDrivers.loaded.include?(:hud_spm_report)
+      tables << HudSpmReport::Fy2020::SpmClient
+      tables << HudSpmReport::Fy2023::SpmEnrollment
+      tables << HudSpmReport::Fy2023::Episode
+      tables << HudSpmReport::Fy2023::BedNight
+      tables << HudSpmReport::Fy2023::EnrollmentLink
+      tables << HudSpmReport::Fy2023::Return
+    end
 
     if RailsDrivers.loaded.include?(:hud_data_quality_report)
       tables << HudDataQualityReport::Fy2020::DqClient
@@ -123,10 +130,19 @@ class GrdaWarehouse::Utility
     tables << HudReports::ReportInstance
     tables << SimpleReports::ReportInstance
 
-    tables.each do |klass|
-      klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name} RESTART IDENTITY #{modifier(klass)}")
+    tables.each do |model|
+      manager = GrdaWarehouse::ModelTableManager.new(model)
+      manager.truncate_table(modifier: modifier(model))
     end
     # fix_sequences
+
+    # reset pks after truncation due to cascade side-effects
+    tables.each do |model|
+      # assign staggered pk sequence values for all tables. Staggered pk values reduce the chances of lock-step ids
+      # between tables to better identify bugs related to mis-use of ids
+      manager = GrdaWarehouse::ModelTableManager.new(model)
+      manager.next_pk_sequence = (Zlib.crc32(model.name) + 100) % 1_000_000
+    end
 
     # Clear the materialized view
     GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!
@@ -134,6 +150,7 @@ class GrdaWarehouse::Utility
     nil
   end
 
+  # Tool to reset postgres sequences, which occasionally get out of sync when restoring a database, dependent on restore method.
   def self.fix_sequences
     query = <<~SQL
       SELECT 'SELECT SETVAL(' ||

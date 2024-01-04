@@ -209,6 +209,21 @@ module Types
       Hmis::Form::Definition.order(:id).with_role(role).first!
     end
 
+    field :parsed_form_definition, Types::Forms::FormDefinitionForJsonResult, null: true do
+      argument :input, String, required: true
+    end
+    def parsed_form_definition(input:)
+      json = JSON.parse(input)
+      errors = []
+      ::HmisUtil::JsonForms.new.tap do |builder|
+        builder.validate_definition(json) { |err| errors << err }
+      end
+
+      return { errors: errors, definition: nil } if errors.present?
+
+      return { errors: [], definition: json }
+    end
+
     field :pick_list, [Types::Forms::PickListOption], 'Get list of options for pick list', null: false do
       argument :pick_list_type, Types::Forms::Enums::PickListType, required: true
       argument :project_id, ID, required: false
@@ -286,11 +301,15 @@ module Types
       load_ar_scope(scope: Hmis::User.with_hmis_access, id: id)
     end
 
-    field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false
-    def merge_audit_history
+    field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false do
+      filters_argument Types::HmisSchema::MergeAuditEvent
+    end
+    def merge_audit_history(filters: nil)
       raise 'Access denied' unless current_user.can_merge_clients?
 
-      Hmis::ClientMergeAudit.all.order(merged_at: :desc)
+      scope = Hmis::ClientMergeAudit.all
+      scope = scope.apply_filters(filters) if filters
+      scope.order(merged_at: :desc)
     end
 
     # AC HMIS Queries
@@ -330,12 +349,38 @@ module Types
       Hmis::Hud::CustomServiceCategory.all
     end
 
+    field :form_definition, Types::Forms::FormDefinition, null: true do
+      argument :id, ID, required: true
+    end
+    def form_definition(id:)
+      raise 'Access denied' unless current_user.can_configure_data_collection?
+
+      Hmis::Form::Definition.find(id)
+    end
+
+    field :form_definitions, Types::Forms::FormDefinition.page_type, null: false
+    def form_definitions
+      raise 'Access denied' unless current_user.can_configure_data_collection?
+
+      # TODO: add ability to sort and filter definitions
+      Hmis::Form::Definition.all
+    end
+
     form_rules_field
     def form_rules(**args)
       raise 'Access denied' unless current_user.can_configure_data_collection?
 
       # Only resolve non-service rules. Service rules are resolved on the service category.
       resolve_form_rules(Hmis::Form::Instance.not_for_services, **args)
+    end
+
+    field :form_rule, Types::Admin::FormRule, null: true do
+      argument :id, ID, required: true
+    end
+    def form_rule(id:)
+      raise 'not allowed' unless current_user.can_configure_data_collection?
+
+      Hmis::Form::Instance.find_by(id: id)
     end
 
     field :auto_exit_configs, Types::HmisSchema::AutoExitConfig.page_type, null: false

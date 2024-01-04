@@ -42,4 +42,27 @@ class Hmis::Hud::CustomCaseNote < Hmis::Hud::Base
   def self.hud_key
     :CustomCaseNoteID
   end
+
+  SORT_OPTIONS = [:date_updated, :information_date, :date_created].freeze
+
+  SORT_OPTION_DESCRIPTIONS = {
+    date_updated: 'Date Updated',
+    information_date: 'Information Date',
+    date_created: 'Date Created',
+  }.freeze
+
+  def self.sort_by_option(option)
+    raise NotImplementedError unless SORT_OPTIONS.include?(option)
+
+    case option
+    when :date_updated
+      order(arel_table[:date_updated].desc)
+    when :date_created
+      order(arel_table[:date_created].desc)
+    when :information_date
+      order(arel_table[:information_date].desc.nulls_last)
+    else
+      raise NotImplementedError
+    end
+  end
 end
