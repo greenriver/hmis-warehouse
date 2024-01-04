@@ -1165,6 +1165,53 @@ enum CmExitReason {
   VETERAN_TOO_ILL_TO_PARTICIPATE_AT_THIS_TIME
 }
 
+enum CompleteDisabilityResponse {
+  """
+  Alcohol use disorder
+  """
+  ALCOHOL_USE_DISORDER
+
+  """
+  Both alcohol and drug use disorders
+  """
+  BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS
+
+  """
+  Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  Client prefers not to answer
+  """
+  CLIENT_PREFERS_NOT_TO_ANSWER
+
+  """
+  Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  Drug use disorder
+  """
+  DRUG_USE_DISORDER
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  No
+  """
+  NO
+
+  """
+  Yes
+  """
+  YES
+}
+
 enum Component {
   """
   Client Address input
@@ -2583,7 +2630,7 @@ type Disability {
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
-  disabilityResponse: DisabilityResponse!
+  disabilityResponse: CompleteDisabilityResponse!
   disabilityType: DisabilityType!
   enrollment: Enrollment!
   id: ID!
