@@ -44,11 +44,11 @@ module
 
     def no_recent_homelessness_data_for_export(rows)
       rows['_No Recent Homelessness Type'] ||= []
-      rows['*No Recent Homelessness Type'] ||= []
-      rows['*No Recent Homelessness Type'] += ['No Recent Homelessness Type', nil, 'Count', 'Percentage', nil]
+      rows['*Newly Entering Homelessness'] ||= []
+      rows['*Newly Entering Homelessness'] += ['Newly Entering Homelessness', nil, 'Count', 'Percentage', nil]
       available_coc_codes.each do |coc_code|
-        rows['*No Recent Homelessness Type'] += ["#{coc_code} Client"]
-        rows['*No Recent Homelessness Type'] += ["#{coc_code} Client"]
+        rows['*Newly Entering Homelessness'] += ["#{coc_code} Client"]
+        rows['*Newly Entering Homelessness'] += ["#{coc_code} Client"]
       end
       rows['*No Recent Homelessness Type'] += [nil]
       available_no_recent_homelessness_types.invert.each do |id, title|
