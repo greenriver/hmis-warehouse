@@ -37,13 +37,13 @@ module
 
     def unsheltered_data_for_export(rows)
       rows['_Unsheltered'] ||= []
-      rows['*Unsheltered'] ||= []
-      rows['*Unsheltered'] += ['Unsheltered', nil, 'Count', 'Percentage', nil]
+      rows['*Unsheltered and Active in Street Outreach'] ||= []
+      rows['*Unsheltered and Active in Street Outreach'] += ['Unsheltered and Active in Street Outreach', nil, 'Count', 'Percentage', nil]
       available_coc_codes.each do |coc_code|
-        rows['*Unsheltered'] += ["#{coc_code} Client"]
-        rows['*Unsheltered'] += ["#{coc_code} Percentage"]
+        rows['*Unsheltered and Active in Street Outreach'] += ["#{coc_code} Client"]
+        rows['*Unsheltered and Active in Street Outreach'] += ["#{coc_code} Percentage"]
       end
-      rows['*Unsheltered'] += [nil]
+      rows['*Unsheltered and Active in Street Outreach'] += [nil]
       available_unsheltered_types.invert.each do |id, title|
         rows["_Unsheltered_data_#{title}"] ||= []
         rows["_Unsheltered_data_#{title}"] += [

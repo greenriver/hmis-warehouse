@@ -150,6 +150,10 @@ module
       filter.chosen_coc_codes
     end
 
+    private def clean_excel_title(title)
+      CGI.unescapeHTML(ActionView::Base.full_sanitizer.sanitize(title))
+    end
+
     private def cache_slug
       @filter.attributes.merge(calculate_coc_breakdowns: calculate_coc_breakdowns?)
     end
