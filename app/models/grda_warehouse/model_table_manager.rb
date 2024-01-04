@@ -9,6 +9,7 @@ class GrdaWarehouse::ModelTableManager
   attr_accessor :model
   def initialize(model)
     raise 'not allowed in production' if Rails.env.production?
+    raise 'should not run in a transaction' if model.connection.open_transactions > 0
 
     self.model = model
   end
@@ -20,7 +21,7 @@ class GrdaWarehouse::ModelTableManager
 
   def truncate_table(modifier:)
     # puts "truncating table for #{model.name}"
-    execute("TRUNCATE TABLE #{quote_table_name(table_name)} RESTART IDENTITY #{modifier}")
+    execute("TRUNCATE TABLE #{quote_table_name(table_name)} #{modifier}")
   end
 
   protected
