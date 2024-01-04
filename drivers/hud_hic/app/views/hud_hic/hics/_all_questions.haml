@@ -1,10 +1,12 @@
 .well
   %p
-    The Housing Inventory Count includes seven tables of project related data.
+    As of FY2024, the Housing Inventory Count is generated from a one-day
+    = link_to 'LSA.', hud_reports_lsas_path
   %p
+    Older Housing Inventory Counts include seven tables of project related data.
+    The history of all report runs and downloaded zip files
     = link_to history_hud_reports_hics_path do
-      See the history of all report runs and download zip files
+      are available here.
   %p
-    = link_to new_hud_reports_hic_path do
-      Generate New HIC
-= render 'hud_reports/all_questions_table'
+    = link_to new_hic_hud_reports_lsas_path, class: 'btn btn-primary' do
+      Generate New LSA for HIC
