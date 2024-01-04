@@ -115,6 +115,18 @@ RSpec.describe Hmis::SessionsController, type: :request do
     end
   end
 
+  describe 'A locked account' do
+    before(:each) do
+      user.lock_access!
+    end
+    it 'fails authentication and returns an "account locked" error' do
+      hmis_login(user)
+      expect(response.status).to eq(401)
+      message = JSON.parse(response.body)
+      expect(message.dig('error', 'type')).to eq('locked')
+    end
+  end
+
   describe 'Login with 2FA enabled' do
     before(:each) do
       post hmis_user_session_path(hmis_user: { email: user_2fa.email, password: user_2fa.password })
