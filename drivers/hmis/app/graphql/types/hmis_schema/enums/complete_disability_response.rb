@@ -12,7 +12,7 @@ module Types
     # Used for Disability.DisabiltiyResponse field. It is a combination of DisabilityResponse+NoYesMissing enums,
     # with a special fake value for ALCOHOL_USE_DISORDERS which is the only one that overlaps with a different label.
 
-    SUBSTANCE_USE_1_OVERRIDE_VALUE = 10
+    SUBSTANCE_USE_1_OVERRIDE_VALUE = 1000
 
     value 'NO', 'No', value: 0
     value 'YES', 'Yes', value: 1
