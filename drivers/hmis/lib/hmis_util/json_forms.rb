@@ -275,6 +275,21 @@ module HmisUtil
         end
       end
 
+      # Post-Exit Assessment
+      definition_identifier = 'base-post_exit'
+      unless Hmis::Form::Instance.where(definition_identifier: definition_identifier).exists?
+        funders = HudUtility2024.funder_components['HHS: RHY'] - [25] # exclude 25 (SO). TBD: Document reason
+        funders.each do |funder|
+          Hmis::Form::Instance.create!(
+            definition_identifier: definition_identifier,
+            funder: funder,
+            data_collected_about: :HOH_AND_ADULTS,
+            active: true,
+            system: false,
+          )
+        end
+      end
+
       # PATH Status
       return if Hmis::Form::Instance.where(definition_identifier: 'path_status').exists?
 
@@ -295,6 +310,7 @@ module HmisUtil
       'path_status' => 'PATH Status',
       'base-intake' => 'Intake Assessment',
       'base-exit' => 'Exit Assessment',
+      'base-post_exit' => 'Post Exit Assessment',
       'base-update' => 'Update Assessment',
       'base-annual' => 'Annual Assessment',
     }.freeze
@@ -318,7 +334,7 @@ module HmisUtil
 
     # Load form definitions for HUD assessments
     public def seed_assessment_form_definitions
-      roles = [:INTAKE, :EXIT, :UPDATE, :ANNUAL]
+      roles = [:INTAKE, :EXIT, :UPDATE, :ANNUAL, :POST_EXIT]
       identifiers = []
       roles.each do |role|
         filename = "base_#{role.to_s.downcase}.json"

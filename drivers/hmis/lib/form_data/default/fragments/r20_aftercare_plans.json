@@ -2,6 +2,7 @@
   "type": "GROUP",
   "link_id": "R20",
   "data_collected_about": "HOH_AND_ADULTS",
+  "text": "Aftercare",
   "rule": {
     "operator": "ALL",
     "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
