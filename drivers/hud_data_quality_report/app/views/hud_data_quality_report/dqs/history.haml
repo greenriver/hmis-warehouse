@@ -1,1 +1,18 @@
-= render 'hud_reports/history'
+= render 'breadcrumbs'
+- content_for :title, "Pre-2024 HMIS Data Quality Reports"
+
+%header.mb-3.d-flex
+  %h1= content_for :title
+- if @show_recent
+  .well
+    .d-flex
+      %h2= "#{generator.short_name} Report"
+      .ml-auto
+        = link_to({format: :zip},{class: 'btn btn-primary'}) do
+          %span.icon-download2
+          Download Zip File
+
+    = render 'questions'
+
+= render 'hud_reports/year_tabs'
+= render 'hud_reports/reports_wrapper'
