@@ -15,7 +15,7 @@ fi
 # Pull down our client theme files.
 ASSETS_BUCKET_NAME=openpath-ecs-assets UPDATE_ONLY=false ./bin/sync_app_assets.rb > /dev/null 2>&1
 
-tar -cf - --sort=name `# Force sorting` \
+>&2 tar -cf - --sort=name `# Force sorting` \
   --mtime='UTC 2019-01-01' `# Normalize modified time.` \
   --group=0 `# Normalize group owner.` \
   --owner=0 `# Normalize user owner.` \
