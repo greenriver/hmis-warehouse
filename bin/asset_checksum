@@ -5,6 +5,8 @@ rm -rf app/assets/stylesheets/theme/styles
 rm -rf app/assets/images/theme/logo
 rm -rf app/assets/images/theme/icons
 rm -rf app/assets/images/icons
+rm -rf app/assets/builds
+mkdir -p app/assets/builds
 
 if [ "$ASSETS_PREFIX" = "" ]; then
   export ASSETS_PREFIX=qa-warehouse-staging-ecs
@@ -12,6 +14,17 @@ fi
 
 # Pull down our client theme files.
 ASSETS_BUCKET_NAME=openpath-ecs-assets UPDATE_ONLY=false ./bin/sync_app_assets.rb > /dev/null 2>&1
+
+tar -cf - --sort=name `# Force sorting` \
+  --mtime='UTC 2019-01-01' `# Normalize modified time.` \
+  --group=0 `# Normalize group owner.` \
+  --owner=0 `# Normalize user owner.` \
+  --numeric-owner `# Use numeric values for owner so our normalized values always match.` \
+  --absolute-names `# Force absolute paths` \
+  --no-acls `# No ACLs` \
+  --mode="go-rwx,u-rw" `# Normalize permissions` \
+  --exclude=.keep,*.rbc,**.orig,*.swp `# Exclude a few files we know we don't care about` \
+  app/assets app/javascript | tar -tvf - >&2
 
 # Use tar to create a content hash of the assets folder and the client secrets.
 # The below flags are intended to strip or normalize all metadata so that we're only hashing on contents.
@@ -26,4 +39,4 @@ tar -cf - --sort=name `# Force sorting` \
   --no-acls `# No ACLs` \
   --mode="go-rwx,u-rw" `# Normalize permissions` \
   --exclude=.keep,*.rbc,**.orig,*.swp `# Exclude a few files we know we don't care about` \
-  app/assets | md5sum | cut -d ' ' -f 1
+  app/assets app/javascript | md5sum | cut -d ' ' -f 1

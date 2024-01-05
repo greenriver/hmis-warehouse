@@ -285,8 +285,8 @@ App.D3Chart.Sankey = class Sankey {
   }
 
   node_sorter(a, b) {
-    a_weight = this.nodeWeights[a.id] || 0
-    b_weight = this.nodeWeights[b.id] || 0
+    let a_weight = this.nodeWeights[a.id] || 0
+    let b_weight = this.nodeWeights[b.id] || 0
     return a_weight > b_weight
   }
 

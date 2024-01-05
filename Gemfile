@@ -128,6 +128,7 @@ gem 'simple_form'
 gem 'virtus'
 
 # Asset related
+gem 'jsbundling-rails', '~> 1.1'
 gem 'bootstrap', '~> 4.3'
 gem 'jquery-rails'
 gem 'coffee-rails'
