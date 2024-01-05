@@ -12,7 +12,7 @@
       = render "utility"
     .top-nav-prs1
       %h1.mb-5= title
-      #rollupContainer
+      .header-counts-container
         - section = 'header_counts'
         = render 'background_render', url: render_section_boston_reports_warehouse_reports_community_of_origins_path, fetch_params: {partial: section, filters: @filter.for_params[:filters] } do
           .rollup
