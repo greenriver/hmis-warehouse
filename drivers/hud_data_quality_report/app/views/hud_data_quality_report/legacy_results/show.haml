@@ -1,5 +1,5 @@
 = content_for :crumbs do
-  = link_to hud_reports_legacy_dq_path(@report) do
+  = link_to hud_reports_legacy_past_dq_path(@report) do
     = "«" + Translation.translate("Report result for #{@report.name}")
 
 %h1= Translation.translate("Report result for #{@report.name}")

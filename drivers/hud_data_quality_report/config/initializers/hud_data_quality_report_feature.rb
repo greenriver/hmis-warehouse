@@ -14,10 +14,10 @@ RailsDrivers.loaded << :hud_data_quality_report
 
 Rails.application.config.hud_reports['HudDataQualityReport::Generators::Fy2020::Generator'] = {
   title: 'Data Quality Report',
-  helper: 'hud_reports_dqs_path',
+  helper: 'hud_reports_past_dqs_path',
 }
 
 Rails.application.config.hud_reports['HudDataQualityReport::Generators::Fy2022::Generator'] = {
   title: 'Data Quality Report',
-  helper: 'hud_reports_dqs_path',
+  helper: 'hud_reports_past_dqs_path',
 }
