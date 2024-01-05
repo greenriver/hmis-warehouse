@@ -9,7 +9,7 @@ class BackgroundRender::CommunityOfOriginReportJob < BackgroundRenderJob
     current_user = User.find(user_id)
     @filter = ::Filters::FilterBase.new(user_id: user_id).set_from_params(JSON.parse(filters).with_indifferent_access)
     set_report
-    @section = @report.class.available_section_types.detect do |m|
+    @section = @report.class.allowable_section_types.detect do |m|
       m == partial
     end
     @section = 'across_the_country' if @section.blank? && params.require(:partial) == 'across_the_country'

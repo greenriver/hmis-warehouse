@@ -38,6 +38,10 @@ module BostonReports
       report_path_array.join('/')
     end
 
+    def self.allowable_section_types
+      ['header_counts'] + available_section_types
+    end
+
     def self.available_section_types
       [
         'across_the_country',
