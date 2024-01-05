@@ -33,7 +33,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     private def custom_descriptions
       {
         lifetime_sex_offender: 'Life-Time Sex Offender response from the most recent TC-HAT',
-        family_member: 'Household Type response from the most recent TC-HAT',
+        family_member: 'Household Type response from the most recent TC-HAT, with additional calculations',
         vash_eligible: 'Client is marked as VASH Eligible on a cohort',
         health_prioritized: 'Client is marked for Health Prioritization',
         strengths: 'Strengths response from the most recent TC-HAT',
@@ -49,6 +49,8 @@ module GrdaWarehouse::CasProjectClientCalculator
         living_wage: 'Is the client making a living wage response from the most recent TC-HAT',
         can_work_full_time: 'Is the client available to work full-time response from the most recent TC-HAT',
         full_time_employed: 'Does the client have full-time employment response from the most recent TC-HAT',
+        required_number_of_bedrooms: 'Bedrooms required to house household',
+        required_minimum_occupancy: 'Number of household members',
       }.freeze
     end
 
@@ -134,6 +136,8 @@ module GrdaWarehouse::CasProjectClientCalculator
         :va_eligible,
         :vash_eligible,
         :rrh_desired,
+        :required_minimum_occupancy,
+        :required_number_of_bedrooms,
       ]
     end
 
@@ -158,7 +162,64 @@ module GrdaWarehouse::CasProjectClientCalculator
 
       relevant_section = client.most_recent_tc_hat_for_destination.
         section_starts_with(section_title)
-      client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.downcase&.include?('family')
+      family = client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.downcase&.include?('family')
+      youth = client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.downcase&.include?('youth')
+
+      question_title = 'Are you a single parent with a child over the age of 10?'
+      single_parent = client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.downcase&.include?('Yes')
+
+      question_title = 'Do you have legal custody'
+      custody_now = client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.downcase&.include?('Yes')
+
+      question_title = 'If you do not have legal custody'
+      custody_later = client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.downcase&.include?('Yes')
+
+      # There is a child, but the parent doesn't, and won't have custody
+      return false if single_parent && (!custody_now && !custody_later)
+      # Client indicated the household is adult only
+      return false unless family || youth
+      return true if household_size(client) > 1
+      # If the client failed to count the child, but will have custody at some point,
+      # still consider this a family
+      return true if household_size(client) == 1 && (custody_now || custody_later)
+
+      false
+    end
+
+    private def household_size(client)
+      section_title = 'PAGE #1'
+      question_title = 'How many household members'
+      relevant_section = client.most_recent_tc_hat_for_destination.
+        section_starts_with(section_title)
+      client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title).to_i
+    end
+
+    private def required_minimum_occupancy(client)
+      household_size(client)
+    end
+
+    private def required_number_of_bedrooms(client)
+      num = 1
+      num = 2 if tc_hat_single_parent_child_over_ten(client)
+
+      num = case household_size(client)
+      # when 1, 2 # unnecessary, these would result in 1 bedroom
+      when 3, 4
+        2
+      when (5..)
+        3
+      else
+        num
+      end
+      num
+    end
+
+    private def tc_hat_single_parent_child_over_ten(client)
+      section_title = 'PAGE #1'
+      question_title = 'Are you a single parent with'
+      relevant_section = client.most_recent_tc_hat_for_destination.
+        section_starts_with(section_title)
+      client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.downcase&.include?('Yes')
     end
 
     private def neighborhood_ids_for_cas(client)
