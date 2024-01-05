@@ -4,14 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudApr::Apr
+module HudApr::Dq
   class CellsController < HudApr::CellsController
-    include AprConcern
+    include DqConcern
     before_action :set_report
     before_action :set_question
 
     def report_param_name
-      :apr_id
+      :dq_id
     end
   end
 end

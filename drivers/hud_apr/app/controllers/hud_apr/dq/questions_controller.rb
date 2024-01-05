@@ -4,15 +4,15 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HudApr::Apr
+module HudApr::Dq
   class QuestionsController < HudApr::QuestionsController
-    include AprConcern
+    include DqConcern
     before_action :set_report, only: [:show, :destroy, :running, :result]
     before_action :set_question
     before_action :set_reports
 
     private def report_param_name
-      :apr_id
+      :dq_id
     end
   end
 end

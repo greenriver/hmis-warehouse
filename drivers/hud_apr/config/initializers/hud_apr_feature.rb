@@ -71,3 +71,8 @@ Rails.application.config.hud_reports['HudApr::Generators::CeApr::Fy2024::Generat
   title: 'Coordinated Entry Annual Performance Report',
   helper: 'hud_reports_ce_aprs_path',
 }
+
+Rails.application.config.hud_reports['HudApr::Generators::Dq::Fy2024::Generator'] = {
+  title: 'HMIS Data Quality Report',
+  helper: 'hud_reports_dqs_path',
+}
