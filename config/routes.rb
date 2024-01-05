@@ -21,8 +21,7 @@ Rails.application.routes.draw do
   }
 
   devise_scope :user do
-    match 'active' => 'users/sessions#active', via: :get
-    match 'timeout' => 'users/sessions#timeout', via: :get
+    match 'session_keepalive' => 'users/sessions#keepalive', via: :post
     match 'users/invitations/confirm', via: :post
     match 'logout_talentlms' => 'users/sessions#destroy', via: :get
     if ENV['OKTA_DOMAIN'].present?

@@ -16,10 +16,10 @@ GIT
 
 GIT
   remote: https://github.com/greenriver/hellosign-ruby-sdk.git
-  revision: 112d2219341806566ae4a8f6f8d51a367e76366a
+  revision: 5718c3f96c37153fb18c02c9ade0e4112a8c7926
   specs:
     hellosign-ruby-sdk (3.7.10)
-      faraday (~> 2.2.0)
+      faraday (~> 2.2)
       faraday-multipart (~> 1.0.0)
       mime-types
       multi_json
@@ -151,8 +151,6 @@ GEM
       activerecord (>= 5.2)
       railties (>= 5.2)
       warden
-    auto-session-timeout (0.9.9)
-      actionpack (>= 3.2, < 7.1)
     autoprefixer-rails (10.3.3.0)
       execjs (~> 2)
     aws-eventstream (1.2.0)
@@ -242,6 +240,7 @@ GEM
     babel-transpiler (0.7.0)
       babel-source (>= 4.0, < 6)
       execjs (~> 2.0)
+    base64 (0.2.0)
     bcrypt (3.1.18)
     bcrypt_pbkdf (1.1.0)
     benchmark-ips (2.10.0)
@@ -415,8 +414,9 @@ GEM
       railties (>= 5.0.0)
     faker (2.19.0)
       i18n (>= 1.6, < 2)
-    faraday (2.2.0)
-      faraday-net_http (~> 2.0)
+    faraday (2.7.12)
+      base64
+      faraday-net_http (>= 2.0, < 3.1)
       ruby2_keywords (>= 0.0.4)
     faraday-multipart (1.0.4)
       multipart-post (~> 2)
@@ -1000,7 +1000,6 @@ DEPENDENCIES
   attr_encrypted (~> 3.1.0)
   attribute_normalizer
   authtrail
-  auto-session-timeout
   autoprefixer-rails (~> 10.3.3)
   aws-sdk-autoscaling (~> 1)
   aws-sdk-cloudwatch (~> 1)
@@ -1069,7 +1068,7 @@ DEPENDENCIES
   execjs
   factory_bot_rails
   faker (>= 1.7.2)
-  faraday (~> 2.2.0)
+  faraday (~> 2.2)
   ffi
   ffi-geos
   flamegraph

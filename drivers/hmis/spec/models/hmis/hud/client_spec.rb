@@ -17,6 +17,15 @@ RSpec.describe Hmis::Hud::Client, type: :model do
 
   include_context 'hmis base setup'
 
+  describe 'source_hash checks' do
+    let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1, FirstName: 'Jelly', LastName: 'Bean' }
+    it 'should exist when a new record is created, and change when updated' do
+      initial_source_hash = c2.source_hash
+      expect(initial_source_hash).to be_present
+      c2.update!(FirstName: 'Jelly2')
+      expect(initial_source_hash).not_to eq(c2.reload.source_hash)
+    end
+  end
   describe 'matching_search_term scope' do
     let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1, FirstName: 'Jelly', LastName: 'Bean' }
     let!(:c3) { create :hmis_hud_client, data_source: ds1, user: u1, FirstName: 'Zoo', LastName: 'Jelly' }
@@ -88,9 +97,9 @@ RSpec.describe Hmis::Hud::Client, type: :model do
       expect do
         client.destroy!
         client.reload
-      end
-        .to not_change(client, :data_source)
-        .and not_change(client, :user)
+      end.
+        to not_change(client, :data_source).
+        and not_change(client, :user)
     end
 
     it 'destroys dependent data' do
@@ -103,10 +112,10 @@ RSpec.describe Hmis::Hud::Client, type: :model do
       expect do
         client.destroy!
         client.reload
-      end
-        .to change(client, :enrollments).to([])
-        .and change(client, :external_referral_household_members).to([])
-        .and change(HmisExternalApis::AcHmis::Referral, :count).to(0)
+      end.
+        to change(client, :enrollments).to([]).
+        and change(client, :external_referral_household_members).to([]).
+        and change(HmisExternalApis::AcHmis::Referral, :count).to(0)
     end
   end
 end

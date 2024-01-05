@@ -10,6 +10,7 @@ module HudReports
     acts_as_paranoid
     include ActionView::Helpers::DateHelper
     include SafeInspectable
+    include RailsDrivers::Extensions
 
     self.table_name = 'hud_report_instances'
 

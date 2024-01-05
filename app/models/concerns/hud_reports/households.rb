@@ -22,6 +22,10 @@ module HudReports::Households
   extend ActiveSupport::Concern
 
   included do
+    private def batch_size
+      250
+    end
+
     private def hoh_clause
       a_t[:head_of_household].eq(true)
     end
@@ -122,8 +126,13 @@ module HudReports::Households
       @hoh_enrollments ||= {}
       @households ||= {}
 
-      @generator.client_scope.find_in_batches(batch_size: 100) do |batch|
-        enrollments_by_client_id = clients_with_enrollments(batch)
+      # NOTE: batch_size must match calculate_households in the class that includes this concern
+      @generator.client_scope.find_in_batches(batch_size: batch_size) do |batch|
+        enrollments_by_client_id = clients_with_enrollments(
+          batch,
+          scope: enrollment_scope_without_preloads,
+          preloads: { enrollment: [:client, :disabilities_at_entry, :project] },
+        )
         enrollments_by_client_id.each do |_, enrollments|
           enrollments.each do |enrollment|
             @hoh_enrollments[enrollment.client_id] = enrollment if enrollment.head_of_household?

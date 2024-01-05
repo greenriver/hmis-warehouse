@@ -37,11 +37,10 @@ RSpec.describe HomelessSummaryReport::Report, type: :model do
         slug: :spm_all_persons__asian,
         count: 2,
       },
-      # DEPRECATED_FY2024 - actually this can be re-enabled after the 2024 SPM has been added
-      # {
-      #   slug: :spm_all_persons__hispanic_latinaeo,
-      #   count: 2,
-      # },
+      {
+        slug: :spm_all_persons__hispanic_latinaeo,
+        count: 2,
+      },
       {
         slug: :spm_all_persons__black_african_american,
         count: 1,
@@ -63,11 +62,10 @@ RSpec.describe HomelessSummaryReport::Report, type: :model do
         slug: :spm_without_children__all,
         count: 3,
       },
-      # DEPRECATED_FY2024 - actually this can be re-enabled after the 2024 SPM has been added
-      # {
-      #   slug: :spm_without_children__hispanic_latinaeo,
-      #   count: 1,
-      # },
+      {
+        slug: :spm_without_children__hispanic_latinaeo,
+        count: 1,
+      },
       {
         slug: :spm_without_children__race_none,
         count: 2,
@@ -98,11 +96,10 @@ RSpec.describe HomelessSummaryReport::Report, type: :model do
         slug: :spm_only_children__fleeing_dv,
         count: 1,
       },
-      # DEPRECATED_FY2024 - actually this can be re-enabled after the 2024 SPM has been added
-      # {
-      #   slug: :spm_only_children__hispanic_latinaeo,
-      #   count: 1,
-      # },
+      {
+        slug: :spm_only_children__hispanic_latinaeo,
+        count: 1,
+      },
       {
         slug: :spm_only_children__race_none,
         count: 1,
@@ -165,11 +162,10 @@ RSpec.describe HomelessSummaryReport::Report, type: :model do
         slug: :spm_without_children__all,
         count: 1,
       },
-      # DEPRECATED_FY2024 - actually this can be re-enabled after the 2024 SPM has been added
-      # {
-      #   slug: :spm_without_children__hispanic_latinaeo,
-      #   count: 1,
-      # },
+      {
+        slug: :spm_without_children__hispanic_latinaeo,
+        count: 1,
+      },
       {
         slug: :spm_without_children__race_none,
         count: 1,

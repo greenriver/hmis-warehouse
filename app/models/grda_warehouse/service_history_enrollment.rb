@@ -4,6 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# = GrdaWarehouse::ServiceHistoryEnrollment
+#
+# ServiceHistoryEnrollments flatten Hud Enrollments and related records to serve reporting needs. These records are
+# generated automatically. There is a 1:1 correspondence with Hud Enrollment records
 class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   include RailsDrivers::Extensions
   include ArelHelper
@@ -292,6 +296,17 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     #   where(date: start_date..end_date)).
     #   send(service_scope).
     #   exists)
+  end
+
+  scope :with_service, -> do
+    where(
+      GrdaWarehouse::ServiceHistoryService.
+      where(
+        shs_t[:service_history_enrollment_id].eq(she_t[:id]).
+        and(shs_t[:client_id].eq(she_t[:client_id])),
+      ).
+      arel.exists,
+    )
   end
 
   scope :heads_of_households, -> do

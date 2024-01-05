@@ -21,7 +21,6 @@ class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception
 
   before_action :authenticate_user!
-  auto_session_timeout User.timeout_in
 
   before_action :set_sentry_user
 
@@ -293,5 +292,10 @@ class ApplicationController < ActionController::Base
     return unless ENV['WAREHOUSE_SENTRY_DSN'].present?
 
     Sentry.configure_scope { |scope| scope.set_user(id: current_user.id, email: current_user.email) } if Sentry.initialized? && defined?(current_user) && current_user.is_a?(User)
+  end
+
+  before_action :set_app_user_header
+  def set_app_user_header
+    response.headers['X-app-user-id'] = current_user&.id
   end
 end

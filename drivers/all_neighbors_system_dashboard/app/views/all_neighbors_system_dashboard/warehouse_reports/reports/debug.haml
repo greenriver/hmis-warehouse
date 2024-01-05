@@ -1,0 +1,66 @@
+- title = "Support for ..."
+= content_for :modal_title, title
+
+- all_data = AllNeighborsSystemDashboard::HousingTotalPlacementsData.new(@report)
+- grouped_by_date = {donut: {}, line: {}}
+.row
+  .col
+    %h2 Housing Placements Line Chart
+    - dates = all_data.line_data[:project_types].detect { |m| m[:project_type] == params[:project_type] }[:count_levels].detect { |m| m[:count_level] == params[:count_level] }[params[:group]].first
+    %p
+      Final monthly count
+      = dates.map(&:last).last
+      %br
+      Looking for #{params[:count_level]}
+      %br in project type: #{params[:project_type]}
+    - sum = dates.map(&:last).sum
+
+    %p Found #{sum} in total (by adding counts per month)
+    - dates.each do |d, count|
+      - grouped_by_date[:line][d] ||= []
+      - grouped_by_date[:line][d] << count
+      %p
+        In the month of
+        = d
+        %br
+        Clients expected:
+        = count
+      %p
+        - ids = all_data.clients_for_date(date: d.to_date, count_level: params[:count_level], project_type: params[:project_type])
+        Found:
+        = ids.count
+        %br
+        = debug ids
+  .col
+    %h2 Housing Placements Project Type Donut
+    .well
+
+      - data = all_data.donut_data.detect { |m| m[:id].to_s == 'age' }[:project_types].detect { |m| m[:project_type] == 'All' }[:count_levels].detect { |m| m[:count_level] == params[:count_level] }[:series]
+      - data.each do |p_type|
+        Looking at: #{p_type[:name]}
+        - p_type[:series].each do |d|
+          - value = d[:values].first
+          - next if value.zero?
+
+          - grouped_by_date[:donut][d[:date]] ||= []
+          - grouped_by_date[:donut][d[:date]] << [value, p_type[:name]]
+          %p
+            on:
+            = d[:date]
+            %br
+            Counted:
+            = value
+  .col
+    %h2 Line
+    = debug grouped_by_date[:line].to_a.sort_by{ |row| row.first.to_date }
+    '2020-6-1': 8
+    '2020-11-1': 44
+  .col
+    %h2 Donut
+    = debug grouped_by_date[:donut].to_a.sort_by{ |row| row.first.to_date }#.map {|d, counts| [d, counts.map(&:first).sum] }
+    '2020-6-1': 9
+    '2020-11-1': 46
+    -# .well
+    -#   = all_data.donut_data.detect { |m| m[:id].to_s == 'project_type' }[:project_types].first.to_json
+    -# .well
+    -#   = all_data.donut_data.detect { |m| m[:id].to_s == 'project_type' }[:project_types].last.to_json

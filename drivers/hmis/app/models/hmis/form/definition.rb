@@ -22,7 +22,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # Forms that are assessments
   HUD_ASSESSMENT_FORM_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT, :CE, :POST_EXIT, :CUSTOM_ASSESSMENT].freeze
 
-  # System forms (required for basic HMIS functionality)
+  # System forms (forms that are required for basic HMIS functionality, and are configurable)
   SYSTEM_FORM_ROLES = [
     :PROJECT,
     :ORGANIZATION,
@@ -49,22 +49,32 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :REFERRAL_REQUEST,
   ].freeze
 
+  # Static forms are not configurable
+  STATIC_FORM_ROLES = [
+    :FORM_RULE,
+    :AUTO_EXIT_CONFIG,
+    :FORM_DEFINITION,
+  ].freeze
+
   FORM_ROLES = [
     *HUD_ASSESSMENT_FORM_ROLES,
     *SYSTEM_FORM_ROLES,
     *DATA_COLLECTION_FEATURE_ROLES,
+    *STATIC_FORM_ROLES,
     :OCCURRENCE_POINT,
     # Other/misc forms
     :FILE, # should maybe be considered a data collection feature, but different becase its at Client-level (not Project)
   ].freeze
 
   validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }
+  validates :identifier, uniqueness: { scope: :version }
 
   ENROLLMENT_CONFIG = {
     owner_class: Hmis::Hud::Enrollment,
     permission: :can_edit_enrollments,
   }.freeze
 
+  # Configuration for SubmitForm
   FORM_ROLE_CONFIG = {
     SERVICE: {
       owner_class: Hmis::Hud::HmisService,
@@ -148,6 +158,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # may add back CE as HUD Assessment Role when we implement CE assessments. Same for implementing customs. Unsure at this point, so leaving them out.
   use_enum_with_same_key :assessment_type_enum_map, HUD_ASSESSMENT_FORM_ROLES.excluding(:CUSTOM_ASSESSMENT, :CE)
   use_enum_with_same_key :data_collection_feature_role_enum_map, DATA_COLLECTION_FEATURE_ROLES
+  use_enum_with_same_key :static_form_role_enum_map, STATIC_FORM_ROLES
 
   scope :with_role, ->(role) { where(role: role) }
 
@@ -200,13 +211,13 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     recur_check = lambda do |item|
       (item['item'] || []).each do |child_item|
         link_id = child_item['link_id']
-        raise "Missing link ID: #{child_item}" unless link_id.present?
-        raise "Duplicate link ID: #{link_id}" if seen_link_ids.include?(link_id)
+        yield "Missing link ID: #{child_item}" unless link_id.present?
+        yield "Duplicate link ID: #{link_id}" if seen_link_ids.include?(link_id)
 
         seen_link_ids.add(link_id)
 
         # Ensure pick list reference is valid
-        raise "Invalid pick list for Link ID #{link_id}: #{child_item['pick_list_reference']}" if child_item['pick_list_reference'] && valid_pick_lists.exclude?(child_item['pick_list_reference'])
+        yield "Invalid pick list for Link ID #{link_id}: #{child_item['pick_list_reference']}" if child_item['pick_list_reference'] && valid_pick_lists.exclude?(child_item['pick_list_reference'])
 
         recur_check.call(child_item)
       end

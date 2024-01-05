@@ -30,7 +30,7 @@
 
 = render 'donuts', tab: tab, donut_data: all_data.donut_data, filter_label: 'year'
 
-= render 'stacked_charts', data: [all_data.stacked_data], group: 'Racial Composition', filter_label: 'year', filter: false, filter_data: [], show_chart_titles: false, hint: false, tab: tab, legend_padding: '200px'
+= render 'stacked_charts', data: [all_data.stacked_data], group: 'Racial Composition', filter_label: 'year', filter: false, filter_data: [], show_chart_titles: false, hint: false, tab: tab, legend_padding: '200px', description: false
 
 
 - content_for :page_js do
@@ -38,7 +38,7 @@
     $(document).ready(function() {
       console.log('Unhoused Population -----------------')
       var verticalStackData = #{all_data.vertical_stack.to_json.html_safe}
-      
+
       var donutData = #{all_data.donut_data.to_json.html_safe}
       var stackedData = #{all_data.stacked_data.to_json.html_safe}
       var stackedId = '##{chart_id(tab[:id], "stacked_#{all_data.stacked_data[:id]}")}'

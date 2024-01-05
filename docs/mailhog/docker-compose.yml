@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  mailhog:
+    image: jcalonso/mailhog:latest
+    restart: unless-stopped
+    environment:
+      VIRTUAL_HOST: mailhog.dev.test
+      VIRTUAL_PORT: 8025
+    ports:
+      - 1025:1025 # SMTP
+      - 8025:8025 # web
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mailhog.entrypoints=web
+      - traefik.http.routers.mailhog.rule=Host(`mailhog.dev.test`)
+      - traefik.http.services.mailhog_https.loadbalancer.server.port=8025
+      - traefik.http.routers.mailhog_https.rule=Host(`mailhog.dev.test`)
+      - traefik.http.routers.mailhog_https.tls=true
+      - traefik.http.routers.mailhog_https.entrypoints=web-secure
+      - traefik.http.middlewares.mailhog_https.redirectscheme.scheme=https
+      - traefik.http.routers.mailhog.middlewares=mailhog_https
+networks:
+  default:
+    name: traefik
+    external: true

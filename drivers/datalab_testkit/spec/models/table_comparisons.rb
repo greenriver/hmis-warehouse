@@ -6,9 +6,12 @@
 
 COLUMN_LABELS = ('A'..'Z').to_a.freeze
 
-def goals(file_path:, question:)
+def goals(file_path:, question:, external_column_header:)
   csv_file = File.join(file_path, question + '.csv')
-  CSV.read(csv_file)
+  data = CSV.read(csv_file)
+  data = data[1..] if external_column_header # Drop the first line if the header is outside the table in the spec, but included in the goal file
+
+  data
 end
 
 # Compare the contents of columns ignoring row order but preserving the column relationships.
@@ -39,8 +42,8 @@ def compare_columns(goal:, question:, column_names:)
   end
 end
 
-def compare_results(goal: nil, file_path:, question:, skip: [], detail_columns: [])
-  goal ||= goals(file_path: file_path, question: question)
+def compare_results(goal: nil, file_path:, question:, skip: [], external_column_header: false, external_row_label: false, detail_columns: [])
+  goal ||= goals(file_path: file_path, question: question, external_column_header: external_column_header)
 
   aggregate_failures 'comparing cells' do
     results_metadata = report_result.answer(question: question).metadata
@@ -51,6 +54,7 @@ def compare_results(goal: nil, file_path:, question:, skip: [], detail_columns: 
         next if cell_name.in?(skip)
 
         column_index = COLUMN_LABELS.find_index(column_name)
+        column_index += 1 if external_row_label # Shift column index if the label is outside the table, but included in the goals
         raw_expected = goal[row_number - 1].try(:[], column_index)
         expected = normalize(raw_expected)
         raw_actual = report_result.answer(question: question, cell: cell_name).summary

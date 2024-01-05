@@ -28,42 +28,56 @@ module
       end
     end
 
-    def no_recent_homelessness_count(type)
-      if type.in?([:adult_and_child, :hoh_adult_and_child, :unaccompanied_youth])
-        mask_small_population(no_recent_homelessness_clients[type]&.map(&:last)&.uniq&.count&.presence || 0)
-      else
-        mask_small_population(no_recent_homelessness_clients[type]&.count&.presence || 0)
-      end
+    def no_recent_homelessness_count(type, coc_code = base_count_sym)
+      mask_small_population(no_recent_homelessness_client_ids(type, coc_code)&.count&.presence || 0)
     end
 
-    def no_recent_homelessness_percentage(type)
+    def no_recent_homelessness_percentage(type, coc_code = base_count_sym)
       total_count = total_client_count
       return 0 if total_count.zero?
 
-      of_type = no_recent_homelessness_count(type)
+      of_type = no_recent_homelessness_count(type, coc_code)
       return 0 if of_type.zero?
 
       ((of_type.to_f / total_count) * 100)
     end
 
     def no_recent_homelessness_data_for_export(rows)
-      rows['_No Recent Homelessness Type'] ||= []
-      rows['*No Recent Homelessness Type'] ||= []
-      rows['*No Recent Homelessness Type'] += ['No Recent Homelessness Type', nil, 'Count', 'Percentage', nil]
+      rows['_Newly Entering Homelessness'] ||= []
+      rows['*Newly Entering Homelessness'] ||= []
+      rows['*Newly Entering Homelessness'] += ['Newly Entering Homelessness', nil, 'Count', 'Percentage', nil]
+      available_coc_codes.each do |coc_code|
+        rows['*Newly Entering Homelessness'] += ["#{coc_code} Client"]
+        rows['*Newly Entering Homelessness'] += ["#{coc_code} Client"]
+      end
+      rows['*Newly Entering Homelessness'] += [nil]
       available_no_recent_homelessness_types.invert.each do |id, title|
-        rows["_No Recent Homelessness Type_data_#{title}"] ||= []
-        rows["_No Recent Homelessness Type_data_#{title}"] += [
+        rows["_Newly Entering Homelessness_data_#{title}"] ||= []
+        rows["_Newly Entering Homelessness_data_#{title}"] += [
           title,
           nil,
           no_recent_homelessness_count(id),
           no_recent_homelessness_percentage(id) / 100,
+          nil,
         ]
+        available_coc_codes.each do |coc_code|
+          rows["_Newly Entering Homelessness_data_#{title}"] += [
+            no_recent_homelessness_count(id, coc_code.to_sym),
+            no_recent_homelessness_percentage(id, coc_code.to_sym) / 100,
+          ]
+        end
       end
       rows
     end
 
-    private def no_recent_homelessness_client_ids(key)
-      no_recent_homelessness_clients[key]
+    private def no_recent_homelessness_client_ids(key, coc_code = base_count_sym)
+      # These are stored as Set[[enrollment_id, client_id]]
+      if key.in?([:adult_and_child, :hoh_adult_and_child, :unaccompanied_youth])
+        no_recent_homelessness_clients[key][coc_code].to_a.map(&:last).uniq
+      else
+        # fetch client_ids from [client_id]
+        no_recent_homelessness_clients[key][coc_code]
+      end
     end
 
     def available_no_recent_homelessness_types
@@ -100,28 +114,66 @@ module
       @hoh_client_ids ||= hoh_scope.pluck(:client_id)
     end
 
+    private def adult_and_child_ids
+      @adult_and_child_ids ||= enrollment_ids_in_household_type(:with_children)
+    end
+
+    private def hoh_adult_and_child_ids
+      @hoh_adult_and_child_ids ||= hoh_enrollment_ids_in_household_type(:with_children)
+    end
+
+    private def unaccompanied_youth_ids
+      @unaccompanied_youth_ids ||= enrollment_ids_in_household_type(:unaccompanied_youth)
+    end
+
+    private def chronic_ids
+      @chronic_ids ||= chronic_client_ids(:client)
+    end
+
+    private def hoh_chronic_ids
+      @hoh_chronic_ids ||= chronic_client_ids(:household)
+    end
+
+    private def high_acuity_ids
+      @high_acuity_ids ||= high_acuity_client_ids(:client)
+    end
+
+    private def hoh_high_acuity_ids
+      @hoh_high_acuity_ids ||= high_acuity_client_ids(:household)
+    end
+
+    private def initialize_recently_homeless_client_counts(clients, coc_code = base_count_sym)
+      available_no_recent_homelessness_types.invert.each do |id, _|
+        clients[id][coc_code] = Set.new
+      end
+    end
+
+    private def set_recently_homeless_client_counts(clients, client_id, enrollment_id, coc_code = base_count_sym)
+      # Only count them in one category.
+      if !clients[:client][coc_code].include?(client_id)
+        clients[:chronic][coc_code] << client_id if chronic_ids.include?(client_id)
+        clients[:hoh_chronic][coc_code] << client_id if hoh_chronic_ids.include?(client_id)
+        clients[:high_acuity][coc_code] << client_id if high_acuity_ids.include?(client_id)
+        clients[:hoh_high_acuity][coc_code] << client_id if hoh_high_acuity_ids.include?(client_id)
+        # These need to use enrollment.id to capture age correctly, but needs the client for summary counts
+        clients[:adult_and_child][coc_code] << [enrollment_id, client_id] if adult_and_child_ids.include?(enrollment_id)
+        clients[:hoh_adult_and_child][coc_code] << [enrollment_id, client_id] if hoh_adult_and_child_ids.include?(enrollment_id)
+        clients[:unaccompanied_youth][coc_code] << [enrollment_id, client_id] if unaccompanied_youth_ids.include?(enrollment_id)
+      end
+      # Always add them to the clients category
+      clients[:client][coc_code] << client_id
+      clients[:household][coc_code] << client_id if hoh_client_ids.include?(client_id)
+    end
+
     private def no_recent_homelessness_clients
       @no_recent_homelessness_clients ||= Rails.cache.fetch(no_recent_homelessness_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
-          # Get ids once from other calculations
-          adult_and_child_ids = enrollment_ids_in_household_type(:with_children)
-          hoh_adult_and_child_ids = hoh_enrollment_ids_in_household_type(:with_children)
-          unaccompanied_youth_ids = enrollment_ids_in_household_type(:unaccompanied_youth)
-          chronic_ids = chronic_client_ids(:client)
-          hoh_chronic_ids = chronic_client_ids(:household)
-          high_acuity_ids = high_acuity_client_ids(:client)
-          hoh_high_acuity_ids = high_acuity_client_ids(:household)
-
           # Setup sets to hold client ids with no recent homelessness
-          clients[:client] = Set.new
-          clients[:household] = Set.new
-          clients[:adult_and_child] = Set.new
-          clients[:hoh_adult_and_child] = Set.new
-          clients[:unaccompanied_youth] = Set.new
-          clients[:chronic] = Set.new
-          clients[:hoh_chronic] = Set.new
-          clients[:high_acuity] = Set.new
-          clients[:hoh_high_acuity] = Set.new
+          available_no_recent_homelessness_types.invert.each do |id, _|
+            clients[id] = {}
+          end
+
+          initialize_recently_homeless_client_counts(clients)
 
           # Clients with an entry into the chosen universe occuring within the report range
           report_scope.distinct.
@@ -131,19 +183,22 @@ module
             each do |client_id, enrollment_id, _|
               next if client_ids_with_prior_homelessness.include?(client_id)
 
-              # Always add them to the clients category
-              clients[:client] << client_id
-              clients[:household] << client_id if hoh_client_ids.include?(client_id)
-              clients[:chronic] << client_id if chronic_ids.include?(client_id)
-              clients[:hoh_chronic] << client_id if hoh_chronic_ids.include?(client_id)
-              clients[:high_acuity] << client_id if high_acuity_ids.include?(client_id)
-              clients[:hoh_high_acuity] << client_id if hoh_high_acuity_ids.include?(client_id)
-
-              # These need to use enrollment.id to capture age correctly, but needs the client for summary counts
-              clients[:adult_and_child] << [enrollment_id, client_id] if adult_and_child_ids.include?(enrollment_id)
-              clients[:hoh_adult_and_child] << [enrollment_id, client_id] if hoh_adult_and_child_ids.include?(enrollment_id)
-              clients[:unaccompanied_youth] << [enrollment_id, client_id] if unaccompanied_youth_ids.include?(enrollment_id)
+              set_recently_homeless_client_counts(clients, client_id, enrollment_id)
             end
+
+          available_coc_codes.each do |coc_code|
+            initialize_recently_homeless_client_counts(clients, coc_code.to_sym)
+
+            report_scope.distinct.in_coc(coc_code: coc_code).
+              entry_within_date_range(start_date: filter.start_date, end_date: filter.end_date).
+              order(first_date_in_program: :desc).
+              pluck(:client_id, :id, :first_date_in_program).
+              each do |client_id, enrollment_id, _|
+                next if client_ids_with_prior_homelessness.include?(client_id)
+
+                set_recently_homeless_client_counts(clients, client_id, enrollment_id, coc_code.to_sym)
+              end
+          end
         end
       end
     end
