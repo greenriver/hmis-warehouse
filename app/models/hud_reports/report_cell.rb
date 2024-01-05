@@ -72,7 +72,7 @@ module HudReports
     #
     # @param members [Hash<Client, ReportClientBase] the members to be associated with this cell
     def add_universe_members(members)
-      UniverseMember.import(
+      UniverseMember.import!(
         members.map { |client, universe_client| new_member(warehouse_client: client, universe_client: universe_client) },
         validate: false,
         on_duplicate_key_ignore: true,
@@ -90,6 +90,37 @@ module HudReports
       status == 'Completed'
     end
 
+    # Render XLSX download to string, and save to path
+    def write_detail(path:, generator:, question_name:)
+      return unless path.present?
+
+      q = generator.valid_question_number(question_name)
+      name = "#{generator.file_prefix} #{q} #{cell_name}"
+      headers = generator.column_headings(q)
+      clients = generator.client_class(q).
+        joins(hud_reports_universe_members: { report_cell: :report_instance }).
+        merge(::HudReports::ReportCell.for_table(question).for_cell(cell_name)).
+        merge(::HudReports::ReportInstance.where(id: report_instance.id))
+
+      template = generator.detail_template
+      xlsx_data = ApplicationController.render(
+        template: template,
+        formats: [:xlsx],
+        assigns: {
+          report: report_instance,
+          question: q,
+          table: question,
+          cell: cell_name,
+          name: name,
+          headers: headers,
+          clients: clients,
+        },
+      )
+      cell_path = "#{path}#{question}-#{cell_name}.xlsx"
+      File.binwrite(cell_path, xlsx_data)
+    end
+
+    # NOTE: sometimes warehouse_client isn't a client at all, but potentially an inventory record
     private def new_member(warehouse_client:, universe_client:)
       if universe_client.respond_to?(:first_name)
         UniverseMember.new(
@@ -99,9 +130,18 @@ module HudReports
           last_name: universe_client.last_name,
           universe_membership: universe_client,
         )
+      elsif warehouse_client.respond_to?(:first_name)
+        UniverseMember.new(
+          report_cell: self,
+          client_id: warehouse_client.id,
+          first_name: warehouse_client.first_name,
+          last_name: warehouse_client.last_name,
+          universe_membership: universe_client,
+        )
       else
         UniverseMember.new(
           report_cell: self,
+          client_id: warehouse_client.id,
           universe_membership: universe_client,
         )
       end

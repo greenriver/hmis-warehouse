@@ -53,5 +53,12 @@ module Types
 
     field :merge_clients, mutation: Mutations::MergeClients
     field :bulk_merge_clients, mutation: Mutations::BulkMergeClients
+
+    field :create_form_rule, mutation: Mutations::CreateFormRule
+    field :update_form_rule, mutation: Mutations::UpdateFormRule
+
+    field :create_auto_exit_config, mutation: Mutations::CreateAutoExitConfig
+    field :update_auto_exit_config, mutation: Mutations::UpdateAutoExitConfig
+    field :delete_auto_exit_config, mutation: Mutations::DeleteAutoExitConfig
   end
 end

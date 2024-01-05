@@ -51,7 +51,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     response, result = post_graphql(input: test_input) { mutation }
 
     aggregate_failures 'checking response' do
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
       errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
       expect(enrollment).to be_present
@@ -61,6 +61,39 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         have_attributes(personal_id: c2.personal_id, relationship_to_ho_h: 2),
         have_attributes(personal_id: c3.personal_id, relationship_to_ho_h: 1),
       )
+    end
+  end
+
+  it 'should support fixing multiple-HoH household' do
+    # e1 and e3 are both HoH
+    e3.update(relationship_to_hoh: 1)
+    # change HoH to e3
+    response, result = post_graphql(input: test_input) { mutation }
+
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq(200), result.inspect
+      enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
+      errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
+      expect(enrollment).to be_present
+      expect(errors).to be_empty
+      expect(e1.reload.relationship_to_hoh).to eq(99)
+      expect(e3.reload.relationship_to_hoh).to eq(1)
+    end
+  end
+
+  it 'should support fixing no-HoH household' do
+    # no hh members are HoH
+    e1.update(relationship_to_hoh: 2)
+    # change HoH to e3
+    response, result = post_graphql(input: test_input) { mutation }
+
+    aggregate_failures 'checking response' do
+      expect(response.status).to eq(200), result.inspect
+      enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
+      errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
+      expect(enrollment).to be_present
+      expect(errors).to be_empty
+      expect(e3.reload.relationship_to_hoh).to eq(1)
     end
   end
 
@@ -153,51 +186,19 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
-  it 'should throw error if unauthorized' do
+  it 'should error if unauthorized' do
     remove_permissions(access_control, :can_edit_enrollments)
-    response, result = post_graphql(input: test_input) { mutation }
-
-    aggregate_failures 'checking response' do
-      expect(response.status).to eq 200
-      enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
-      errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
-      expect(enrollment).to be_nil
-      expect(errors).to be_present
-      expect(errors).to contain_exactly(include('type' => 'not_allowed'))
-    end
+    expect_gql_error post_graphql(input: test_input) { mutation }, message: 'Access denied'
   end
 
-  describe 'Validity tests' do
-    [
-      [
-        'should emit error if enrollment doesn\'t exist',
-        ->(_enrollment = nil) do
-          {
-            enrollment_id: '0',
-          }
-        end,
-        {
-          severity: :error,
-          type: :not_found,
-          attribute: :enrollment,
-        },
-      ],
-    ].each do |test_name, input_proc, error_attrs|
-      it test_name do
-        input = test_input.merge(input_proc.call(e1))
-        response, result = post_graphql(input: input) { mutation }
+  it 'should error if user does not have access to enrollment' do
+    remove_permissions(access_control, :can_view_enrollment_details)
+    remove_permissions(access_control, :can_edit_enrollments)
+    expect_gql_error post_graphql(input: test_input) { mutation }, message: 'Not found'
+  end
 
-        enrollment = result.dig('data', 'updateRelationshipToHoH', 'enrollment')
-        errors = result.dig('data', 'updateRelationshipToHoH', 'errors')
-        aggregate_failures 'checking response' do
-          expect(response.status).to eq 200
-          expect(enrollment).to be_nil
-          expect(errors).to contain_exactly(
-            include(**error_attrs.transform_keys(&:to_s).transform_values(&:to_s)),
-          )
-        end
-      end
-    end
+  it 'should error if enrollment does not exist' do
+    expect_gql_error post_graphql(input: test_input.merge(enrollment_id: '0')) { mutation }, message: 'Not found'
   end
 end
 

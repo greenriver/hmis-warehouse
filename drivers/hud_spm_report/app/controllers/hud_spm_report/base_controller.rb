@@ -10,13 +10,14 @@ module HudSpmReport
 
     def available_report_versions
       {
-        'FY 2020' => { slug: :fy2020, active: true },
+        'FY 2020' => { slug: :fy2020, active: false },
+        'FY 2023 (current)' => { slug: :fy2023, active: true },
       }.freeze
     end
     helper_method :available_report_versions
 
     def default_report_version
-      :fy2020
+      :fy2023
     end
 
     private def filter_class
@@ -77,6 +78,7 @@ module HudSpmReport
     private def possible_generator_classes
       {
         fy2020: HudSpmReport::Generators::Fy2020::Generator,
+        fy2023: HudSpmReport::Generators::Fy2023::Generator,
       }
     end
   end
