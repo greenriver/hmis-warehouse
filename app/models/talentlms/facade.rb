@@ -95,7 +95,9 @@ module Talentlms
       return false if login.nil?
 
       result = @api.get('getuserstatusincourse', { course_id: course_id, user_id: login.lms_user_id })
-      result['completed_on'] if result['completion_status'] == 'Completed'
+      return result['completed_on'] if result['completion_status'] == 'Completed'
+
+      false
     end
 
     # Checks if the user's training has expired
@@ -116,13 +118,12 @@ module Talentlms
     # Checks if the user requires training
     #
     # @param user [User] the user
-    # @param verify_with_api [Boolean] call the API for the last completed date or use local data
     # @return true if the user requires training
-    def training_required?(user, verify_with_api = true)
+    def training_required?(user)
       return unless user.training_required?
       return true unless user.training_completed?
 
-      training_expired?(user, verify_with_api)
+      training_expired?(user, false)
     end
 
     # Get the URL to send the user to for a course
