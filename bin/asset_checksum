@@ -6,6 +6,7 @@ rm -rf app/assets/images/theme/logo
 rm -rf app/assets/images/theme/icons
 rm -rf app/assets/images/icons
 rm -rf app/assets/builds
+mkdir -p app/assets/builds
 
 if [ "$ASSETS_PREFIX" = "" ]; then
   export ASSETS_PREFIX=qa-warehouse-staging-ecs
@@ -27,4 +28,4 @@ tar -cf - --sort=name `# Force sorting` \
   --no-acls `# No ACLs` \
   --mode="go-rwx,u-rw" `# Normalize permissions` \
   --exclude=.keep,*.rbc,**.orig,*.swp `# Exclude a few files we know we don't care about` \
-  app/assets | md5sum | cut -d ' ' -f 1
+  app/assets app/javascript | md5sum | cut -d ' ' -f 1
