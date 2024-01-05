@@ -82,7 +82,7 @@ module Talentlms
       login = Login.find_by(user: user)
       return nil if login.nil?
 
-      return CompletedTraining.where(login: login, config: @api, course_id: course_id, completion_date: completion_date).first_or_create
+      CompletedTraining.where(login: login, config: @api, course_id: course_id, completion_date: completion_date).first_or_create
     end
 
     # Get course completion status in TalentLMS
@@ -108,9 +108,21 @@ module Talentlms
       return false unless @api.months_to_expiration.present?
 
       completed_on = verify_with_api ? complete?(user, @api.courseid) : user.last_training_completed
-      return false if completed_on.nil?
+      return false if completed_on.blank?
 
-      return (completed_on.to_date + @api.months_to_expiration.months).past?
+      (completed_on.to_date + @api.months_to_expiration.months).past?
+    end
+
+    # Checks if the user requires training
+    #
+    # @param user [User] the user
+    # @param verify_with_api [Boolean] call the API for the last completed date or use local data
+    # @return true if the user requires training
+    def training_required?(user, verify_with_api = true)
+      return unless user.training_required?
+      return true unless user.training_completed?
+
+      training_expired?(user, verify_with_api)
     end
 
     # Get the URL to send the user to for a course
