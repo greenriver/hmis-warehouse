@@ -29,6 +29,8 @@ module
       total_count = total_client_count
       # We want the percentage based on the total high acuity households for the hh breakdowns
       total_count = high_acuity_count(:household, coc_code) unless type.in?([:client, :household])
+      # Clients with one disability should use clients in the category as a denominator
+      total_count = high_acuity_count(:client, coc_code) if type == :one_disability
       return 0 if total_count.zero?
 
       of_type = high_acuity_count(type, coc_code)
@@ -86,8 +88,8 @@ module
         'Adult only Households' => :without_children,
         'Adult and Child Households' => :with_children,
         'Child only Households' => :only_children,
-        'Youth Only' => :unaccompanied_youth,
-        '1 Disability' => :one_disability,
+        'Youth only Households' => :unaccompanied_youth,
+        'Clients with only 1 Disability' => :one_disability,
       }
     end
 

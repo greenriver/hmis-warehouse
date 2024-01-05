@@ -86,7 +86,7 @@ module
         'Adult only Households' => :without_children,
         'Adult and Child Households' => :with_children,
         'Child only Households' => :only_children,
-        'Youth Only' => :unaccompanied_youth,
+        'Youth only Households' => :unaccompanied_youth,
       }
     end
 
