@@ -765,7 +765,6 @@ Style/GuardClause:
     - 'app/models/similarity_metric/experiment/float_formatter.rb'
     - 'app/models/similarity_metric/levenshtein.rb'
     - 'app/models/similarity_metric/multinomial.rb'
-    - 'app/models/talentlms/config.rb'
 
 # Offense count: 6
 # Cop supports --auto-correct.

@@ -42,6 +42,7 @@ module Admin
         :subdomain,
         :api_key,
         :courseid,
+        :months_to_expiration,
       )
     end
   end
