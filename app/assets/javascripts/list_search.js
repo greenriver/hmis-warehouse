@@ -175,7 +175,7 @@ App.StimulusApp.register('list-search', class extends Stimulus.Controller {
       activeCategoryContent.forEach((group, groupIndex) => {
         const searchGroupItems = (groupItems) => {
           return new Promise((finishItemSearch) => {
-            foundItemCount = 0
+            let foundItemCount = 0
             if (groupItems.length == 0) {
               finishItemSearch(foundItemCount)
             }

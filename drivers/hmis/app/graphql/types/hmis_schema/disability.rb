@@ -19,7 +19,7 @@ module Types
     field :client, HmisSchema::Client, null: false
     field :information_date, GraphQL::Types::ISO8601Date, null: true
     field :disability_type, HmisSchema::Enums::Hud::DisabilityType, null: false, default_value: Types::BaseEnum::INVALID_VALUE
-    field :disability_response, HmisSchema::Enums::Hud::DisabilityResponse, null: false, default_value: 99
+    field :disability_response, HmisSchema::Enums::CompleteDisabilityResponse, null: false, default_value: 99
     field :indefinite_and_impairs, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
     field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: false, default_value: Types::BaseEnum::INVALID_VALUE
     hud_field :t_cell_count_available, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
@@ -35,6 +35,15 @@ module Types
 
     def client
       load_ar_association(object, :client)
+    end
+
+    def disability_response
+      # Special case for Substance Use "1" which means Alcohol Use Disorder (as opposed to 'Yes' for others)
+      if object.substance_use_type? && object.disability_response == 1
+        Types::HmisSchema::Enums::CompleteDisabilityResponse::SUBSTANCE_USE_1_OVERRIDE_VALUE
+      else
+        object.disability_response
+      end
     end
   end
 end

@@ -18,6 +18,7 @@
     "d3-interpolate": "3.0.1",
     "d3-sankey": "^0.12.3",
     "d3-scale-chromatic": "3.0.0",
+    "esbuild": "^0.19.11",
     "inputmask": "3.3.8",
     "leaflet": "1.9.4",
     "leaflet.markercluster": "^1.5.3",
@@ -27,7 +28,8 @@
     "puppeteer": "13.4.1",
     "select2": "4.0.13",
     "stimulus": "2.0.0",
-    "topojson-client": "^3.1.0"
+    "topojson-client": "^3.1.0",
+    "yarn-deduplicate": "^6.0.2"
   },
   "devDependencies": {
     "eslint": "^8.44.0",
@@ -38,7 +40,9 @@
   },
   "scripts": {
     "lint": "eslint app/assets/javascripts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dedup": "yarn-deduplicate -s fewer yarn.lock",
+    "build": "esbuild app/javascript/*.* --bundle --sourcemap --outdir=app/assets/builds --public-path=/assets"
   },
   "repository": {
     "type": "git",

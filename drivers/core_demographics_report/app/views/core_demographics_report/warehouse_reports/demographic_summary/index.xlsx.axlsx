@@ -59,7 +59,7 @@ data_styles = {
   'Chronic Type' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
   'High Acuity Type' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
   'Unsheltered' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
-  'No Recent Homelessness Type' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
+  'Newly Entering Homelessness' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
   'Outcome Type' => [th_style, nil, nil, nil, percentage_format, nil] + [nil, percentage_format] * coc_count,
 }
 wb.add_worksheet(name: 'Data') do |sheet|

@@ -10,6 +10,8 @@ module Talentlms
   class Config < GrdaWarehouseBase
     self.table_name = :talentlms_configs
 
+    has_many :completed_trainings, class_name: 'Talentlms::CompletedTraining'
+
     validates :subdomain, presence: true
     validates :api_key, presence: true
     validates :courseid, presence: true
@@ -60,23 +62,22 @@ module Talentlms
     # Validator to check this configuration is valid.
     def check_configuration_is_valid
       error = configuration_error_message
-      if error
-        error = ": #{error}"
-        errors.add(:subdomain, error) if error.include?('server')
-        errors.add(:api_key, error) if error.include?('API Key')
-        errors.add(:courseid, error) if error.include?('course')
-      end
-    end
+      return unless error.present?
 
+      error = ": #{error}"
+      errors.add(:subdomain, error) if error.include?('server')
+      errors.add(:api_key, error) if error.include?('API Key')
+      errors.add(:courseid, error) if error.include?('course')
+    end
 
     # Get configuration error messages from TalentLMS
     #
     # @param course_id [Integer] the id of the course
     # @return [String] validation error if the configuration is invalid
     private def configuration_error_message
-      get('courses', {id: courseid})
+      get('courses', { id: courseid })
       nil
-    rescue JSON::ParserError => e
+    rescue JSON::ParserError
       "Cannot contact server #{subdomain}.talentlms.com"
     rescue RuntimeError => e
       e.message
@@ -92,7 +93,7 @@ module Talentlms
     private def generate_url(action, args)
       url = "https://#{subdomain}.talentlms.com/api/v1/#{action}"
       if args.present?
-        arguments = args.map {|k,v| "#{k}:#{v}"}.join(',')
+        arguments = args.map { |k, v| "#{k}:#{v}" }.join(',')
         url = "#{url}/#{arguments}"
       end
       url
