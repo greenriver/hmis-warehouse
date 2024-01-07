@@ -109,7 +109,9 @@ module Types
       when 'USERS'
         user_picklist(user)
       when 'ENROLLMENT_AUDIT_EVENT_RECORD_TYPES'
-        audit_event_record_type_picklist
+        enrollment_audit_event_record_type_picklist
+      when 'CLIENT_AUDIT_EVENT_RECORD_TYPES'
+        client_audit_event_record_type_picklist
       end
     end
 
@@ -123,7 +125,7 @@ module Types
       end
     end
 
-    def self.audit_event_record_type_picklist
+    def self.enrollment_audit_event_record_type_picklist
       [
         [Hmis::Hud::Enrollment],
         [Hmis::Hud::CustomAssessment],
@@ -139,9 +141,23 @@ module Types
         [Hmis::Hud::Assessment, 'CE Assessment'],
         [Hmis::Hud::CustomDataElement],
         [Hmis::Hud::CustomCaseNote],
-      ].map do |klass, name|
-        { code: klass.sti_name, label: name || klass.name.demodulize.gsub(/^Custom(Client)?/, '').titleize }
+      ].map do |model, name|
+        model_picklist_item(model: model, name: name)
       end.sort_by { |h| h[:label] }
+    end
+
+    def self.client_audit_event_record_type_picklist
+      [
+        [Hmis::Hud::Client],
+        [Hmis::Hud::CustomClientAddress],
+        [Hmis::Hud::CustomClientContactPoint, 'Contact Information'],
+      ].map do |model, name|
+        model_picklist_item(model: model, name: name)
+      end.sort_by { |h| h[:label] }
+    end
+
+    def self.model_picklist_item(model:, name:)
+      { code: model.sti_name, label: name || model.name.demodulize.gsub(/^Custom(Client)?/, '').titleize }
     end
 
     def self.available_unit_types_for_project(project)
