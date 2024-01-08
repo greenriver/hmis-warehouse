@@ -683,6 +683,7 @@ type Client {
   dobDataQuality: DOBDataQuality!
   emailAddresses: [ClientContactPoint!]!
   employmentEducations(limit: Int, offset: Int): EmploymentEducationsPaginated!
+  enabledFeatures: [ClientDashboardFeature!]!
   enrollments(filters: EnrollmentsForClientFilterOptions, includeEnrollmentsWithLimitedAccess: Boolean, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   externalIds: [ExternalIdentifier!]!
   files(limit: Int, offset: Int, sortOrder: FileSortOption): FilesPaginated!
@@ -907,6 +908,11 @@ enum ClientContactPointUse {
   Work
   """
   work
+}
+
+enum ClientDashboardFeature {
+  CASE_NOTE
+  FILE
 }
 
 input ClientFilterOptions {
@@ -8158,11 +8164,6 @@ type Query {
   clientSearch(filters: ClientFilterOptions, input: ClientSearchInput!, limit: Int, offset: Int, sortOrder: ClientSortOption): ClientsPaginated!
   currentUser: ApplicationUser
   deniedPendingReferralPostings(limit: Int, offset: Int): ReferralPostingsPaginated!
-
-  """
-  Data collection features that are enabled for ANY project (e.g. Current Living Situations, Events, Case Notes)
-  """
-  enabledFeatures: [DataCollectionFeatureRole!]!
 
   """
   Enrollment lookup
