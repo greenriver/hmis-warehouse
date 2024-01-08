@@ -24,6 +24,7 @@ module GrdaWarehouse
         'Active clients within range' => :active_clients,
         'Clients in project group' => :project_group,
         'Boston (in a project group, with a release)' => :boston,
+        'Clients with open CE enrollment and assessment' => :ce_with_assessment,
       }
     end
 

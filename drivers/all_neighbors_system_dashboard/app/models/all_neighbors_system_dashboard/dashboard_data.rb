@@ -14,6 +14,12 @@ module AllNeighborsSystemDashboard
       Enrollment.where(report_id: @report.id)
     end
 
+    private def housed_total_scope
+      report_enrollments_enrollment_scope.
+        housed_in_range(@report.filter.range, filter: @report.filter).
+        distinct
+    end
+
     def years
       (@start_date.year .. @end_date.year).to_a
     end
@@ -52,24 +58,34 @@ module AllNeighborsSystemDashboard
         'Diversion',
         'Permanent Supportive Housing',
         'Rapid Rehousing',
-        'R.E.A.L. Time Initiative',
+        'Other Permanent Housing',
+        # 'R.E.A.L. Time Initiative', # removed in favor of running the report with a limited data set
       ]
     end
 
     def project_type_colors
-      [
-        '#E6B70F',
-        '#B2803F',
-        '#1865AB',
-      ]
+      # [
+      #   '#E6B70F',
+      #   '#B2803F',
+      #   '#1865AB',
+      # ]
+      GrdaWarehouse::SystemColor.default_colors['project-type'].values.map { |c| c[:background_color] }
     end
 
     def household_types
-      ['Adults Only', 'Adults and Children']
+      [
+        'Adult Only',
+        'Adults and Children',
+        'Unknown Household Type', # NOTE: we're using unknown to capture child only as well
+      ]
     end
 
     def household_type_colors
-      ['#3B528B', '#ABBD2A']
+      [
+        '#3B528B',
+        '#ABBD2A',
+        '#CC6600',
+      ]
     end
 
     def count_levels
@@ -91,8 +107,9 @@ module AllNeighborsSystemDashboard
     # and the 2024 specs have them, so for now we're ignoring them
     private def ignored_races
       [
-        'HispanicLatinaeo',
-        'MidEastNAfrican',
+        # 'HispanicLatinaeo',
+        # 'MidEastNAfrican',
+        'MultiRacial',
         'RaceNone',
       ]
     end
@@ -149,8 +166,9 @@ module AllNeighborsSystemDashboard
 
     def demographic_household_type
       [
-        'Adults Only',
+        'Adult Only',
         'Adults and Children',
+        'Unknown Household Type',
       ]
     end
 
@@ -208,28 +226,37 @@ module AllNeighborsSystemDashboard
     private def filter_for_type(scope, type)
       case type
       when 'All', 'Overall'
-        scope
-      when 'R.E.A.L. Time Initiative'
-        pilot_scope = Enrollment.
-          where(date_query(pilot_date_range)).
-          where(project_id: @report.filter.effective_project_ids_from_secondary_project_groups).
-          select(:id)
-        implementation_scope = Enrollment.
-          where(date_query(implementation_date_range)).
-          where(project_id: @report.filter.effective_project_ids).
-          select(:id)
-        scope.where(id: pilot_scope).or(scope.where(id: implementation_scope))
-      when 'Permanent Supportive Housing'
-        scope.where(project_type: HudUtility2024.project_type('PH - Permanent Supportive Housing', true))
-      when 'Rapid Rehousing'
-        scope.where(project_type: HudUtility2024.project_type('PH - Rapid Re-Housing', true))
+        # Note, we only report on PH and Diversion at this point.  There may be other data in the
+        # report scope, but we should not count them in placements or subsequent steps
+        scope.where(project_id: @report.filter.effective_project_ids + @report.filter.secondary_project_ids)
+      # Removed in favor of running the report for a sub-set of data (leaving the code for now)
+      # when 'R.E.A.L. Time Initiative'
+      #   pilot_scope = Enrollment.
+      #     where(date_query(pilot_date_range)).
+      #     where(project_id: @report.filter.effective_project_ids_from_secondary_project_groups).
+      #     select(:id)
+      #   implementation_scope = Enrollment.
+      #     where(date_query(implementation_date_range)).
+      #     where(project_id: @report.filter.effective_project_ids).
+      #     select(:id)
+      #   scope.where(id: pilot_scope).or(scope.where(id: implementation_scope))
+
+      # Diversion is a special case, limited to the secondary project ids.
+      # For all others, we'll limit to the effective project ids to prevent double counting
       when 'Diversion'
         scope.where(project_id: @report.filter.secondary_project_ids, destination: @report.class::POSITIVE_DIVERSION_DESTINATIONS)
+      when 'Other Permanent Housing'
+        project_types = [HudUtility2024.project_type('PH - Housing Only', true), HudUtility2024.project_type('PH - Housing with Services (no disability required for entry)', true)]
+        scope.where(project_type: project_types, project_id: @report.filter.effective_project_ids)
+      when 'Permanent Supportive Housing'
+        scope.where(project_type: HudUtility2024.project_type('PH - Permanent Supportive Housing', true), project_id: @report.filter.effective_project_ids)
+      when 'Rapid Rehousing'
+        scope.where(project_type: HudUtility2024.project_type('PH - Rapid Re-Housing', true), project_id: @report.filter.effective_project_ids)
       when 'Unsheltered', 'Unhoused Population'
-        scope.where(project_type: HudUtility2024.project_type('Street Outreach', true))
+        scope.where(project_type: HudUtility2024.project_type('Street Outreach', true), project_id: @report.filter.effective_project_ids)
       when 'Sheltered'
-        scope.where.not(project_type: HudUtility2024.project_type('Street Outreach', true))
-      when 'Adults Only', 'Adults and Children'
+        scope.where.not(project_type: HudUtility2024.project_type('Street Outreach', true), project_id: @report.filter.effective_project_ids)
+      when *household_types
         scope.where(household_type: type)
       when 'Under 18'
         scope.where(age: 0..17)
@@ -244,13 +271,13 @@ module AllNeighborsSystemDashboard
       when 'Over 63'
         scope.where(age: 63..)
       when 'Unknown Age'
-        scope.where(age: nil).or(scope.where(age: ..0))
+        scope.where(age: nil).or(scope.where(age: ...0))
       when *HudUtility2024.gender_known_values
         scope.where(gender: type)
       when 'Unknown Gender'
         scope.where.not(gender: HudUtility2024.gender_known_values)
-      when *HudUtility2024.races(multi_racial: true).values
-        scope.where(primary_race: type)
+      when *HudUtility2024.races(multi_racial: false).values
+        scope.where(Enrollment.arel_table[:race_list].matches("%#{type}"))
       else
         raise "Unknown type: #{type}"
       end

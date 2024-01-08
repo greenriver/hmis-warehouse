@@ -53,6 +53,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   STATIC_FORM_ROLES = [
     :FORM_RULE,
     :AUTO_EXIT_CONFIG,
+    :FORM_DEFINITION,
   ].freeze
 
   FORM_ROLES = [
@@ -66,6 +67,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   ].freeze
 
   validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }
+  validates :identifier, uniqueness: { scope: :version }
 
   ENROLLMENT_CONFIG = {
     owner_class: Hmis::Hud::Enrollment,
@@ -209,13 +211,13 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     recur_check = lambda do |item|
       (item['item'] || []).each do |child_item|
         link_id = child_item['link_id']
-        raise "Missing link ID: #{child_item}" unless link_id.present?
-        raise "Duplicate link ID: #{link_id}" if seen_link_ids.include?(link_id)
+        yield "Missing link ID: #{child_item}" unless link_id.present?
+        yield "Duplicate link ID: #{link_id}" if seen_link_ids.include?(link_id)
 
         seen_link_ids.add(link_id)
 
         # Ensure pick list reference is valid
-        raise "Invalid pick list for Link ID #{link_id}: #{child_item['pick_list_reference']}" if child_item['pick_list_reference'] && valid_pick_lists.exclude?(child_item['pick_list_reference'])
+        yield "Invalid pick list for Link ID #{link_id}: #{child_item['pick_list_reference']}" if child_item['pick_list_reference'] && valid_pick_lists.exclude?(child_item['pick_list_reference'])
 
         recur_check.call(child_item)
       end

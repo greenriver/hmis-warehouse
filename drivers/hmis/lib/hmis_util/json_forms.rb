@@ -363,13 +363,20 @@ module HmisUtil
       end
     end
 
-    def validate_definition(json, role)
-      Hmis::Form::Definition.validate_json(json, valid_pick_lists: valid_pick_lists)
+    # on_error allows customization of error handling incase we want to collect them instead of raising
+    public def validate_definition(json, role = nil)
+      on_error = ->(err) { block_given? ? yield(err) : raise(err) }
+      Hmis::Form::Definition.validate_json(json, valid_pick_lists: valid_pick_lists, &on_error)
       schema_errors = Hmis::Form::Definition.validate_schema(json)
       return unless schema_errors.present?
 
+      schema_errors.each { |err| on_error.call(err) }
       pp schema_errors
-      raise "schema invalid for role: #{role}"
+      if role
+        on_error.call("schema invalid for role: #{role}")
+      else
+        on_error.call('schema invalid')
+      end
     end
 
     def valid_pick_lists

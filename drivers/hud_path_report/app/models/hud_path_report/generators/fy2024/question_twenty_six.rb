@@ -199,7 +199,7 @@ module HudPathReport::Generators::Fy2024
         query = query.or(a_t[:length_of_stay].eq(nil)) if v == 99
         [
           HudUtility2024.length_of_stays[v],
-          a_t[:prior_living_situation].in([1, 16]).and(query),
+          a_t[:prior_living_situation].in([101, 116]).and(query),
         ]
       end.to_h
       h['Total'] = :total

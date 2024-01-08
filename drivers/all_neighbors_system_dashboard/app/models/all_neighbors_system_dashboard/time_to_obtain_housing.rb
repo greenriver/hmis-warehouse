@@ -5,6 +5,11 @@ module AllNeighborsSystemDashboard
       instance.stacked_data
     end
 
+    # Reject any project types where we have NO data
+    def project_types_with_data
+      @project_types_with_data ||= stacked_data[:project_types].reject { |m| m[:household_types].flatten.first[:demographics].first[:series].map { |t| t[:series].map { |r| r[:values] } }.flatten.all?(0) }.map { |m| m[:project_type] }
+    end
+
     def data(title, id, type, options: {})
       keys = (options[:types] || []).map { |key| to_key(key) }
       identifier = "#{@report.cache_key}/#{cache_key(id, type, options)}/#{__method__}"
@@ -100,7 +105,7 @@ module AllNeighborsSystemDashboard
 
     private def moved_in_scope
       report_enrollments_enrollment_scope.
-        moved_in_in_range(@report.filter.range)
+        moved_in_in_range(@report.filter.range, filter: @report.filter)
     end
 
     private def filter_for_date(scope, date)

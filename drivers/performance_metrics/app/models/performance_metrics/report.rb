@@ -502,7 +502,7 @@ module PerformanceMetrics
     private def add_clients(report_clients, period:)
       caper_report = run_caper
       # Q16 D14 is Total Adults - Income at Exit for Leavers
-      caper_clients = answer_clients(caper_report, 'Q16', 'D14')
+      caper_clients = answer_members(caper_report, 'Q16', 'D14')
 
       rrh_clients = run_rrh.support_for(
         :time_in_stabilization,
@@ -604,9 +604,12 @@ module PerformanceMetrics
         # NOTE: SPM has a 2 year look-back so they may not be in the enrolled clients
         spm_report = run_spm
         # M2 B7 is TOTAL Returns to Homeless - Number of Returns in 2 Years
-        spm_returners = answer_clients(spm_report, '2', 'I7')
+        spm_returners = answer_members(spm_report, '2', 'I7') # HudSpmReport::Fy2023::Return
         # M2 I7 is Total Number of Persons who Exited to a Permanent Housing Destination (2 Years Prior)
-        spm_leavers = answer_clients(spm_report, '2', 'B7')
+        spm_leavers = answer_members(spm_report, '2', 'B7') # HudSpmReport::Fy2023::Return
+        # 1A D2 is Average LOT Experiencing Homelessness ES, SH, and TH
+        spm_episodes = answer_members(spm_report, '1a', 'D2') # HudSpmReport::Fy2023::Episode
+
         spm_leavers.each do |client_id, spm_client|
           days_in_es = nil
           days_to_return = nil
@@ -614,8 +617,8 @@ module PerformanceMetrics
           spm_returner = spm_returners[client_id]
           spm_leaver = spm_leavers.keys.include?(client_id)
           if spm_returner
-            days_in_es = spm_returner.m1a_es_sh_th_days
-            days_to_return = spm_returner.m2_reentry_days
+            days_in_es = spm_episodes[client_id].days_homeless
+            days_to_return = spm_returner.days_to_return
           end
           report_client = report_clients[client_id] || Client.new
           report_client.assign_attributes(
@@ -662,8 +665,10 @@ module PerformanceMetrics
       report.answer(question: table, cell: cell).numeric_value
     end
 
-    private def answer_clients(report, table, cell)
+    # @return [SpmEnrollment, Episode, Return]
+    private def answer_members(report, table, cell)
       report.answer(question: table, cell: cell).universe_members.
+        preload(:universe_membership).
         map(&:universe_membership).
         index_by(&destination_client_column(report))
     end
@@ -689,7 +694,7 @@ module PerformanceMetrics
       options[:project_type_codes] += [:es, :so, :sh, :th]
       options.delete(:comparison_pattern)
       spm_filter = ::Filters::HudFilterBase.new(user_id: filter.user_id).update(options)
-      generator = HudSpmReport::Generators::Fy2020::Generator
+      generator = HudSpmReport.current_generator
       spm_report = HudReports::ReportInstance.from_filter(spm_filter, generator.title, build_for_questions: questions)
       generator.new(spm_report).run!(email: false, manual: false)
       spm_report

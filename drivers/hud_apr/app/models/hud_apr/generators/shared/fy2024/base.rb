@@ -64,9 +64,8 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def add_apr_clients # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/AbcSize
-      @generator.client_scope.find_in_batches(batch_size: 100) do |batch|
+      @generator.client_scope.find_in_batches(batch_size: batch_size) do |batch|
         enrollments_by_client_id = clients_with_enrollments(batch)
-
         # Pre-calculate some values
         household_types = {}
         household_assessment_required = {}
@@ -469,8 +468,8 @@ module HudApr::Generators::Shared::Fy2024
       @report.report_cells.joins(universe_members: :apr_client).exists?
     end
 
-    private def clients_with_enrollments(batch)
-      enrollment_scope.
+    private def clients_with_enrollments(batch, scope: enrollment_scope, **)
+      scope.
         where(client_id: batch.map(&:id)).
         order(first_date_in_program: :asc).
         group_by(&:client_id).

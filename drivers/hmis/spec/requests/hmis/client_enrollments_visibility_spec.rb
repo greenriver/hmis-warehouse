@@ -42,10 +42,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'client enrollments query' do
     let(:query) do
       <<~GRAPHQL
-        query TestQuery($id: ID!) {
+        query TestQuery($id: ID!, $includeEnrollmentsWithLimitedAccess: Boolean) {
           client(id: $id) {
             id
-            enrollments(limit: 10, offset: 0) {
+            enrollments(limit: 10, offset: 0, includeEnrollmentsWithLimitedAccess: $includeEnrollmentsWithLimitedAccess) {
               nodes {
                 id
                 entryDate # summary-access
@@ -67,7 +67,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'resolves only services and enrollments at visible projects' do
-      response, result = post_graphql(id: c1.id) { query }
+      response, result = post_graphql(id: c1.id, includeEnrollmentsWithLimitedAccess: true) { query }
       expect(response.status).to eq(200), result.inspect
 
       aggregate_failures 'checking response' do
@@ -84,10 +84,19 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    it 'resolves enrollment where user has limited access (but not services)' do
+    it 'does not resolve limited-access enrollments if they are not requested' do
       create_access_control(hmis_user, p2, with_permission: :can_view_limited_enrollment_details)
 
       response, result = post_graphql(id: c1.id) { query }
+      expect(response.status).to eq(200), result.inspect
+      enrollments = result.dig('data', 'client', 'enrollments', 'nodes')
+      expect(enrollments.map { |r| r.fetch('id') }).to contain_exactly(e1.id.to_s)
+    end
+
+    it 'resolves enrollment where user has limited access (but not services)' do
+      create_access_control(hmis_user, p2, with_permission: :can_view_limited_enrollment_details)
+
+      response, result = post_graphql(id: c1.id, includeEnrollmentsWithLimitedAccess: true) { query }
       expect(response.status).to eq(200), result.inspect
 
       aggregate_failures 'checking response' do
@@ -119,7 +128,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       p2.update(confidential: true)
       create_access_control(hmis_user, p2, with_permission: :can_view_limited_enrollment_details)
 
-      response, result = post_graphql(id: c1.id) { query }
+      response, result = post_graphql(id: c1.id, includeEnrollmentsWithLimitedAccess: true) { query }
       expect(response.status).to eq(200), result.inspect
 
       aggregate_failures 'checking response' do
@@ -153,7 +162,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           query TestQuery($id: ID!) {
             client(id: $id) {
               id
-              enrollments(limit: 10, offset: 0) {
+              enrollments(limit: 10, offset: 0, includeEnrollmentsWithLimitedAccess: true) {
                 nodes {
                   id
                   project { # detail-access non-nullable, will error
@@ -171,7 +180,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           query TestQuery($id: ID!) {
             client(id: $id) {
               id
-              enrollments(limit: 10, offset: 0) {
+              enrollments(limit: 10, offset: 0, includeEnrollmentsWithLimitedAccess: true) {
                 nodes {
                   id
                   assessments { # detail-access non-nullable, will error
