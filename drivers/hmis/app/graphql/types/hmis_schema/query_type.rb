@@ -389,5 +389,17 @@ module Types
 
       Hmis::AutoExitConfig.all
     end
+
+    # This query is used to determine which features to show on the Client Dashboard (for example, the read-only Case Notes tab).
+    # It just checks if there are active Instances for each role type (e.g. Case Note).
+    # It's possible there could be instances that exist but don't apply to any projects, but don't bother checking for that.
+    #
+    # Note: this will need to change if/when we want to support specific rules indicating whether certain "Enrollment-optional records" (File, Case Note)
+    # should be collectable on the Client Dashbord vs on the Enrollment Dashboard.
+    field :enabled_features, [Types::Forms::Enums::DataCollectionFeatureRole], null: false, description: 'Features that are enabled for ANY project in the Data Source'
+    def enabled_features
+      feature_roles = Hmis::Form::Definition::DATA_COLLECTION_FEATURE_ROLES
+      Hmis::Form::Instance.active.joins(:definition).where(fd_t[:role].in(feature_roles)).pluck(:role).uniq
+    end
   end
 end

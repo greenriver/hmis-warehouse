@@ -8160,6 +8160,11 @@ type Query {
   deniedPendingReferralPostings(limit: Int, offset: Int): ReferralPostingsPaginated!
 
   """
+  Data collection features that are enabled for ANY project (e.g. Current Living Situations, Events, Case Notes)
+  """
+  enabledFeatures: [DataCollectionFeatureRole!]!
+
+  """
   Enrollment lookup
   """
   enrollment(id: ID!): Enrollment
