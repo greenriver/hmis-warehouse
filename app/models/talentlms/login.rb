@@ -10,5 +10,6 @@ module Talentlms
 
     attr_encrypted :password, key: ENV['ENCRYPTION_KEY'][0..31]
     belongs_to :user
+    has_many :trainings, class_name: 'Talentlms::CompletedTraining'
   end
 end

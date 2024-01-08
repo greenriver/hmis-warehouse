@@ -450,6 +450,10 @@ module Health
       SECTIONS.keys.map { |key| send("#{key}_score") }.any? { |answer| answer.in?(1..4) }
     end
 
+    def positive_for_homelessness?
+      housing_score&.in?([1, 2])
+    end
+
     def encounter_report_details
       {
         source: 'Warehouse',
