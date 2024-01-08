@@ -721,7 +721,8 @@ CREATE TABLE public.hmis_activity_logs (
     header_client_id bigint,
     header_enrollment_id bigint,
     header_project_id bigint,
-    created_at timestamp without time zone NOT NULL
+    created_at timestamp without time zone NOT NULL,
+    processed_at date
 );
 
 
@@ -772,6 +773,27 @@ COMMENT ON COLUMN public.hmis_activity_logs.header_enrollment_id IS 'user-provid
 --
 
 COMMENT ON COLUMN public.hmis_activity_logs.header_project_id IS 'user-provided';
+
+
+--
+-- Name: hmis_activity_logs_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_activity_logs_clients (
+    activity_log_id bigint NOT NULL,
+    client_id bigint NOT NULL
+);
+
+
+--
+-- Name: hmis_activity_logs_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_activity_logs_enrollments (
+    activity_log_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    project_id bigint
+);
 
 
 --
@@ -894,6 +916,35 @@ CREATE SEQUENCE public.hmis_user_access_controls_id_seq
 --
 
 ALTER SEQUENCE public.hmis_user_access_controls_id_seq OWNED BY public.hmis_user_access_controls.id;
+
+
+--
+-- Name: hmis_user_client_activity_log_summaries; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.hmis_user_client_activity_log_summaries AS
+ SELECT concat(hmis_activity_logs_clients.client_id, ':', hmis_activity_logs.user_id) AS id,
+    max(hmis_activity_logs.created_at) AS last_accessed_at,
+    hmis_activity_logs_clients.client_id,
+    hmis_activity_logs.user_id
+   FROM (public.hmis_activity_logs
+     JOIN public.hmis_activity_logs_clients ON ((hmis_activity_logs_clients.activity_log_id = hmis_activity_logs.id)))
+  GROUP BY hmis_activity_logs_clients.client_id, hmis_activity_logs.user_id;
+
+
+--
+-- Name: hmis_user_enrollment_activity_log_summaries; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.hmis_user_enrollment_activity_log_summaries AS
+ SELECT concat(hmis_activity_logs_enrollments.enrollment_id, ':', hmis_activity_logs.user_id) AS id,
+    max(hmis_activity_logs.created_at) AS last_accessed_at,
+    hmis_activity_logs_enrollments.enrollment_id,
+    hmis_activity_logs_enrollments.project_id,
+    hmis_activity_logs.user_id
+   FROM (public.hmis_activity_logs
+     JOIN public.hmis_activity_logs_enrollments ON ((hmis_activity_logs_enrollments.activity_log_id = hmis_activity_logs.id)))
+  GROUP BY hmis_activity_logs_enrollments.enrollment_id, hmis_activity_logs_enrollments.project_id, hmis_activity_logs.user_id;
 
 
 --
@@ -3400,6 +3451,41 @@ CREATE INDEX index_hmis_access_controls_on_user_group_id ON public.hmis_access_c
 
 
 --
+-- Name: index_hmis_activity_logs_clients_on_activity_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_activity_logs_clients_on_activity_log_id ON public.hmis_activity_logs_clients USING btree (activity_log_id);
+
+
+--
+-- Name: index_hmis_activity_logs_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_activity_logs_clients_on_client_id ON public.hmis_activity_logs_clients USING btree (client_id);
+
+
+--
+-- Name: index_hmis_activity_logs_enrollments_on_activity_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_activity_logs_enrollments_on_activity_log_id ON public.hmis_activity_logs_enrollments USING btree (activity_log_id);
+
+
+--
+-- Name: index_hmis_activity_logs_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_activity_logs_enrollments_on_enrollment_id ON public.hmis_activity_logs_enrollments USING btree (enrollment_id);
+
+
+--
+-- Name: index_hmis_activity_logs_enrollments_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_activity_logs_enrollments_on_project_id ON public.hmis_activity_logs_enrollments USING btree (project_id);
+
+
+--
 -- Name: index_hmis_activity_logs_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3792,6 +3878,38 @@ CREATE INDEX unduplicated_clients_unduplicated_client_id ON public.clients_undup
 
 
 --
+-- Name: hmis_user_client_activity_log_summaries attempt_hmis_user_client_activity_log_summaries_del; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_hmis_user_client_activity_log_summaries_del AS
+    ON DELETE TO public.hmis_user_client_activity_log_summaries DO INSTEAD NOTHING;
+
+
+--
+-- Name: hmis_user_client_activity_log_summaries attempt_hmis_user_client_activity_log_summaries_up; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_hmis_user_client_activity_log_summaries_up AS
+    ON UPDATE TO public.hmis_user_client_activity_log_summaries DO INSTEAD NOTHING;
+
+
+--
+-- Name: hmis_user_enrollment_activity_log_summaries attempt_hmis_user_enrollment_activity_log_summaries_del; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_hmis_user_enrollment_activity_log_summaries_del AS
+    ON DELETE TO public.hmis_user_enrollment_activity_log_summaries DO INSTEAD NOTHING;
+
+
+--
+-- Name: hmis_user_enrollment_activity_log_summaries attempt_hmis_user_enrollment_activity_log_summaries_up; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_hmis_user_enrollment_activity_log_summaries_up AS
+    ON UPDATE TO public.hmis_user_enrollment_activity_log_summaries DO INSTEAD NOTHING;
+
+
+--
 -- Name: user_roles fk_rails_318345354e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4176,6 +4294,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231116185857'),
 ('20231129173326'),
 ('20231201173326'),
-('20231206162323');
+('20231206162323'),
+('20231221165752'),
+('20231221165753');
 
 
