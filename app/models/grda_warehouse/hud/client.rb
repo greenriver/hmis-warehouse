@@ -367,7 +367,7 @@ module GrdaWarehouse::Hud
         # scope.where(id: joins(source_clients: :most_recent_pathways_or_rrh_assessment).select(:id))
         scope
       when :ce_with_assessment
-        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.
+        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
           in_project_type(HudUtility2024.performance_reporting[:ce]).
           ongoing.
           joins(enrollment: :assessments)
