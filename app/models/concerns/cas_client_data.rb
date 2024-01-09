@@ -209,8 +209,8 @@ module CasClientData
       when :ce_with_assessment
         enrollment_scope = service_history_enrollments.
           in_project_type(HudUtility2024.performance_reporting[:ce]).
-          joins(enrollment: :assessments).
-          where(last_date_in_program: nil)
+          ongoing.
+          joins(enrollment: :assessments)
         enrollment_scope.exists?
       else
         raise NotImplementedError

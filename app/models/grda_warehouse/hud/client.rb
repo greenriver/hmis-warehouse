@@ -367,10 +367,10 @@ module GrdaWarehouse::Hud
         # scope.where(id: joins(source_clients: :most_recent_pathways_or_rrh_assessment).select(:id))
         scope
       when :ce_with_assessment
-        enrollment_scope = service_history_enrollments.
+        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.
           in_project_type(HudUtility2024.performance_reporting[:ce]).
-          joins(enrollment: :assessments).
-          where(last_date_in_program: nil)
+          ongoing.
+          joins(enrollment: :assessments)
         where(id: enrollment_scope.select(:client_id))
       else
         raise NotImplementedError
