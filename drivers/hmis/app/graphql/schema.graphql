@@ -192,10 +192,12 @@ User account for a user of the system
 """
 type ApplicationUser {
   activityLogs(limit: Int, offset: Int): ActivityLogsPaginated!
+  clientAccessSummaries(filters: ClientAccessSummaryFilterOptions, limit: Int, offset: Int): ClientAccessSummariesPaginated!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   email: String!
+  enrollmentAccessSummaries(filters: EnrollmentAccessSummaryFilterOptions, limit: Int, offset: Int): EnrollmentAccessSummariesPaginated!
   firstName: String
   id: ID!
   lastName: String
@@ -739,6 +741,28 @@ type ClientAccess {
   canViewFullSsn: Boolean!
   canViewPartialSsn: Boolean!
   id: ID!
+}
+
+type ClientAccessSummariesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ClientAccessSummary!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+type ClientAccessSummary {
+  clientId: ID!
+  clientName: String
+  id: ID!
+  lastAccessedAt: ISO8601DateTime!
+}
+
+input ClientAccessSummaryFilterOptions {
+  onOrAfter: ISO8601Date
+  searchTerm: String
 }
 
 type ClientAddress {
@@ -3086,6 +3110,32 @@ type EnrollmentAccess {
   canSplitHouseholds: Boolean!
   canViewEnrollmentDetails: Boolean!
   id: ID!
+}
+
+type EnrollmentAccessSummariesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [EnrollmentAccessSummary!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+type EnrollmentAccessSummary {
+  clientId: ID
+  clientName: String
+  enrollmentId: ID!
+  id: ID!
+  lastAccessedAt: ISO8601DateTime!
+  projectId: ID
+  projectName: String
+}
+
+input EnrollmentAccessSummaryFilterOptions {
+  onOrAfter: ISO8601Date
+  project: [ID!]
+  searchTerm: String
 }
 
 type EnrollmentAuditEvent {
