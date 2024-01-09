@@ -292,16 +292,6 @@ module HmisUtil
 
       # PATH Status
       return if Hmis::Form::Instance.where(definition_identifier: 'path_status').exists?
-
-      HudUtility2024.path_funders.each do |funder|
-        Hmis::Form::Instance.create!(
-          definition_identifier: 'path_status',
-          funder: funder,
-          data_collected_about: :HOH_AND_ADULTS,
-          active: true,
-          system: false,
-        )
-      end
     end
 
     FORM_TITLES = {

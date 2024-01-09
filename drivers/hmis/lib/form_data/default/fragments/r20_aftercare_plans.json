@@ -45,17 +45,6 @@
       ],
       "item": [
         {
-          "type": "DATE",
-          "link_id": "R20.1",
-          "required": false,
-          "warn_if_empty": true,
-          "text": "Aftercare Information Date",
-          "mapping": {
-            "record_type": "EXIT",
-            "field_name": "aftercareDate"
-          }
-        },
-        {
           "type": "CHOICE",
           "link_id": "R20.1.methods",
           "required": false,

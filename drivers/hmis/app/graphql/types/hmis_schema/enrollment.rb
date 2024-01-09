@@ -188,6 +188,7 @@ module Types
     field :num_units_assigned_to_household, Integer, null: false, default_value: 0
     field :reminders, [HmisSchema::Reminder], null: false
     field :open_enrollment_summary, [HmisSchema::EnrollmentSummary], null: false
+    field :assessment_eligibilities, [HmisSchema::AssessmentEligibility], null: false
 
     field :move_in_addresses, [HmisSchema::ClientAddress], null: false
 
