@@ -13,9 +13,12 @@ module PerformanceMeasurement
       build_data.merge({ columns: columns })
     end
 
-    def client_scope(period, _)
+    def client_scope(period, _investigate_by)
       # FIXME
       metric_scope(period)
+
+      # race_scope = race_value_to_scope(investigate_by)
+      # metric_scope(period).send(race_scope)
     end
   end
 end

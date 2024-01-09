@@ -4,9 +4,9 @@
   %h5 Required Choices
   .row
     .col-xs-12.col-sm-6.col-md-4
-      = f.input :metric, collection: @analysis_builder.metric_options, prompt: 'Select Metric', label: 'Select Metric'
+      = f.input :metric, collection: @analysis_builder.metric_options, as: :select_two, prompt: 'Select Metric', label: 'Select Metric'
     .col-xs-12.col-sm-6.col-md-4
-      = f.input :investigate_by, collection: @analysis_builder.investigate_by_options, prompt: 'Select Investigation', label: 'Investigate By'
+      = f.input :investigate_by, collection: @analysis_builder.investigate_by_options, as: :select_two, prompt: 'Select Investigation', label: 'Investigate By'
   - if @analysis_builder.show_additional_options?
     %h5 Additional Options
     .row.condensed-form-groups
@@ -22,8 +22,7 @@
         -# FIXME: filter query broken
         = f.input :project_type, collection: @analysis_builder.project_type_options, label_method: :first, value_method: :last, prompt: 'All Project Types', label: 'Project Type (FIXME)', input_html: {multiple: true, placeholder: 'All Project Types'}, as: :select_two
       .col-xs-12.col-sm-6.col-md-4
-        -# FIXME
-        = f.input :view_data_by, collection: @analysis_builder.view_data_by_options, label_method: :first, value_method: :last, include_blank: false, label: 'View data by (FIXME)'
+        = f.input :view_data_by, collection: @analysis_builder.view_data_by_options, as: :select_two, label_method: :first, value_method: :last, include_blank: false, label: 'View Data By'
   .d-flex.mt-4
     .pr-4
       = f.submit 'Update Report'

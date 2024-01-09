@@ -190,8 +190,7 @@ module PerformanceMeasurement
     def view_data_by_options
       [
         ['Count', 'count'],
-        ['Percentage [Rate, Count]', 'percentage'],
-        # TODO
+        ['Percentage', 'percentage'],
         # ['Rate', 'rate'],
       ]
     end

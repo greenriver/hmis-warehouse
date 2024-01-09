@@ -840,6 +840,15 @@ module PerformanceMeasurement
       destination_calculation = ->(spm_enrollment) { spm_enrollment.destination }
       days_to_return_calculation = ->(spm_return) { spm_return.days_to_return }
       exit_destination_calculation = ->(spm_return) { spm_return.exit_destination }
+      # TODO: we would need to:
+      # 1. Fetch all client ids that are included anywhere in this report
+      # 2. Reference the SPM Episodes for those clients (in the associated SPM)
+      # 3. Find household IDs for the last enrollment in the episodes
+      #   (note, limited to those in the SPM, some people may be excluded completely,
+      #   thus changing household type from overall enrollment view)
+      # 4. Calculate Household types for each client_id (there may be multiple)
+      # 5. Return the intersection of chosen household types and clients who have that household type
+      # household_calculation = ->(spm_episode) { spm_episode }
       increased_non_employment_income_calculation = ->(spm_enrollment) {
         spm_enrollment.current_non_employment_income.to_f > spm_enrollment.previous_non_employment_income.to_f
       }
@@ -849,7 +858,6 @@ module PerformanceMeasurement
       increased_earned_income_calculation = ->(spm_enrollment) {
         spm_enrollment.current_earned_income.to_f > spm_enrollment.previous_earned_income.to_f
       }
-
       [
         {
           cells: [['3.2', 'C2']],
