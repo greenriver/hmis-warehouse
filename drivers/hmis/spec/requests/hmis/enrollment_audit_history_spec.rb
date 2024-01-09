@@ -13,7 +13,7 @@ RSpec.describe 'Client Audit History Query', type: :request do
 
   subject(:query) do
     <<~GRAPHQL
-      query TestQuery($id: ID!, $filters: BaseAuditEventFilterOptions!) {
+      query TestQuery($id: ID!, $filters: EnrollmentAuditEventFilterOptions!) {
         enrollment(id: $id) {
           id
           auditHistory(limit: 10, offset: 0, filters: $filters) {
@@ -39,7 +39,7 @@ RSpec.describe 'Client Audit History Query', type: :request do
     create_access_control(hmis_user, ds1, with_permission: [:can_view_clients, :can_view_dob, :can_view_project, :can_view_enrollment_details, :can_audit_enrollments])
   end
   let(:today) { Date.current }
-  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, entry_date: today }
+  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, entry_date: today - 2.days }
 
   before(:each) { hmis_login(user) }
 
@@ -49,17 +49,35 @@ RSpec.describe 'Client Audit History Query', type: :request do
     result.dig('data', 'enrollment', 'auditHistory', 'nodes')
   end
 
-  context 'enrollment with history' do
+  context 'enrollment updated by several users' do
+    let!(:user2) { create(:user) }
+    let!(:hmis_user2) { user2.related_hmis_user(ds1) }
+
     before(:each) do
       PaperTrail.request(controller_info: { user_id: hmis_user.id }) do
-        e1.update!(entry_date: (today - 2.days))
+        e1.update!(entry_date: today - 1.day)
+      end
+      PaperTrail.request(controller_info: { user_id: hmis_user2.id }) do
+        e1.update!(entry_date: today)
       end
     end
-    it 'reports change' do
-      records = run_query(id: e1.id, filters: { enrollment_audit_event_record_type: ['Hmis::Hud::Enrollment'], user: [hmis_user.id.to_s] })
+    it 'filters users' do
+      records = run_query(id: e1.id, filters: { user: [hmis_user2.id.to_s] })
       expect(records.size).to eq(1)
       expect(records.dig(0, 'objectChanges', 'entryDate', 'values')).
-        to eq([today, today - 2.days].map { |d| d.to_s(:db) })
+        to eq([today - 1.day, today].map { |d| d.to_s(:db) })
+    end
+  end
+
+  context 'enrollment with entry and exit date change' do
+    before(:each) do
+      e1.update!(entry_date: today - 1.day)
+      create(:hmis_hud_exit, personal_id: c1.personal_id, enrollment: e1, data_source: ds1, exit_date: today)
+    end
+    it 'filters by exit record type' do
+      records = run_query(id: e1.id, filters: { enrollment_record_type: ['Hmis::Hud::Exit'] })
+      expect(records.size).to eq(1)
+      expect(records.dig(0, 'recordName')).to eq('Exit')
     end
   end
 end
