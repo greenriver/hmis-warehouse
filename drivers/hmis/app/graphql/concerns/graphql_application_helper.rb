@@ -13,6 +13,10 @@ module GraphqlApplicationHelper
     Hmis::Hud::User.from_user(current_user)
   end
 
+  def access_denied!(message = 'access denied')
+    raise message
+  end
+
   # This method checks to see if we have the permissions to perform the operation we're doing
   def allowed?(record: nil, permissions: nil, authorize: nil)
     # Default to true because if we didn't provide any permissions to check and no authorize proc, then we assume the action does not require authorization
