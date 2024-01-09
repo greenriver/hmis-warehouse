@@ -22,7 +22,7 @@ class Hmis::SessionsController < Devise::SessionsController
 
   # POST /hmis/login
   def create
-    return failure_response(:locked) if authenticated_into_locked_account?
+    return failure_response(:locked) if locked_account?
 
     self.resource = warden.authenticate!(auth_options)
     sign_in(:hmis_user, resource)
@@ -100,24 +100,12 @@ class Hmis::SessionsController < Devise::SessionsController
     render status: 401, json: { error: { type: type, message: I18n.t("devise.failure.#{type}") } }
   end
 
-  # If the account has been locked and the user would otherwise authenticate, show an appropriate message.
-  # Ideally this would happen after the normal authentication however at that point there doesn't seem to be a way to
-  # differentiate failures for bad credentials vs those due to locked accounts. To see if authentication would have
-  # succeeded, we unlock the account, check auth, and then rollback database changes to prevent side-effects
-  # Note: this works as long as we aren't sending emails as a side-effect of account unlock
-  private def authenticated_into_locked_account?
+  # If the account has been locked, show an appropriate message. We choose to show this message even if the password was
+  # not a match because otherwise an attacker would be able to infer the correct password even after the account locks
+  private def locked_account?
     return false unless sign_in_params['email'] && sign_in_params['password']
 
     user = resource_class.find_for_authentication(email: sign_in_params['email'])
-
-    return false unless user&.access_locked?
-
-    credentials_match = false
-    user.transaction do
-      user.unlock_access!
-      credentials_match = warden.authenticate?(auth_options)
-      raise ActiveRecord::Rollback
-    end
-    credentials_match
+    user&.access_locked?
   end
 end

@@ -118,24 +118,25 @@ RSpec.describe Hmis::SessionsController, type: :request do
   end
 
   describe 'A locked account' do
-    before(:each) do
-      user.lock_access!
-    end
-    it 'fails authentication and returns an "account locked" error if authentication would have succeeded' do
-      hmis_login(user)
-      expect(response.status).to eq(401)
-      message = JSON.parse(response.body)
-      expect(message.dig('error', 'type')).to eq('locked')
-      expect(api_query_response.status).to eq 401
-      expect(user.reload.access_locked?).to be_truthy
-    end
-    it 'fails authentication and returns a generic error if authentication would not have succeeded' do
-      post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' })
-      expect(response.status).to eq(401)
-      message = JSON.parse(response.body)
-      expect(message.dig('error', 'type')).to eq('unauthenticated')
-      expect(api_query_response.status).to eq 401
-      expect(user.reload.access_locked?).to be_truthy
+    before(:each) { user.lock_access! }
+    [
+      [
+        'correct password',
+        ->(user, spec) { spec.hmis_login(user) },
+      ],
+      [
+        'incorrect password',
+        ->(user, spec) { spec.post spec.hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' }) },
+      ],
+    ].each do |label, login_cb|
+      it "fails authentication and indicates the account is locked for login with #{label}" do
+        login_cb.call(user, self)
+        expect(response.status).to eq(401)
+        message = JSON.parse(response.body)
+        expect(message.dig('error', 'type')).to eq('locked')
+        expect(api_query_response.status).to eq 401
+        expect(user.reload.access_locked?).to be_truthy
+      end
     end
   end
 
