@@ -62,8 +62,7 @@ module HudApr::Dq::DqConcern
     def history
       report_version = params[:filter]&.try(:[], :report_version)
 
-      # FIXME: When there is a 2026 DQ, we will need to check if we want this or the prior controller
-      redirect_to history_hud_reports_past_dqs_path(params.permit!) and return if report_version.present?
+      redirect_to history_hud_reports_past_dqs_path(params.permit!) and return if report_version.present? && past_report_versions.include?(report_version.to_sym)
 
       # Fall through to the normal history logic
       super
@@ -81,6 +80,10 @@ module HudApr::Dq::DqConcern
       {
         fy2024: HudApr::Generators::Dq::Fy2024::Generator,
       }
+    end
+
+    private def past_report_versions
+      [:fy2020, :fy2022]
     end
   end
 end
