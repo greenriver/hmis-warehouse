@@ -360,4 +360,33 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       expect(phone_qa.modifiers).to contain_exactly('U1', 'U2', 'U5')
     end
   end
+
+  describe '2024 phone coding changes' do
+    let(:phone_qa) { create :discharge_follow_up_qa, mode_of_contact: :phone_call }
+
+    it 'is a U3 before 2024-01-01' do
+      phone_qa.date_of_activity = '2023-12-31'.to_date
+      expect(phone_qa.modifiers).to include('U3')
+    end
+
+    it 'is a 93 on 2024-01-01' do
+      phone_qa.date_of_activity = '2024-01-01'.to_date
+      expect(phone_qa.modifiers).to include('93')
+    end
+  end
+
+  describe '2024 care team indirect contact changes' do
+    let(:phone_qa) { create :care_team_qa, mode_of_contact: :email }
+
+    it 'is a U3 before 2024-01-01' do
+      phone_qa.date_of_activity = '2023-12-31'.to_date
+      # binding.pry
+      expect(phone_qa.compute_procedure_valid?).to be true
+    end
+
+    it 'is forbidden on 2024-01-01' do
+      phone_qa.date_of_activity = '2024-01-01'.to_date
+      expect(phone_qa.compute_procedure_valid?).to be false
+    end
+  end
 end
