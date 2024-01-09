@@ -147,13 +147,13 @@ module MaYyaReport
 
       race_fields = client.race_fields.excluding(6) # Exclude HispanicLatinaeo from race value
       return 99 if race_fields.size.zero?
-      return 10 if race_fields.size > 1
+      return 10 if race_fields.size > 1 # Multi-racial
 
       return race_code[*race_fields]
     end
 
     private def race_code
-      HudUtility2024.race_id_to_field_name.excluding(8, 9, 99).invert
+      HudUtility2024.race_id_to_field_name.excluding(8, 9, 99).invert.stringify_keys
     end
 
     private def ethnicity(client)
