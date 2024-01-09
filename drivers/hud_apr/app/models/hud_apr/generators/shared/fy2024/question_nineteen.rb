@@ -251,6 +251,8 @@ module HudApr::Generators::Shared::Fy2024
           subsequent: suffix,
         )
         next if income_difference.blank? # if income in either initial or subsequent is blank, skip this client
+        # If we can't determine the overall income, we don't know any details either, skip
+        next if missing_income?(apr_client, suffix)
 
         case column
         when 'B'

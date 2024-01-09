@@ -26,21 +26,8 @@ class Users::SessionsController < Devise::SessionsController
     super
   end
 
-  # configure auto_session_timeout
-  def active
-    respond_to do |format|
-      format.json do
-        render_session_status
-      end
-      format.html do
-        redirect_to(root_path)
-      end
-    end
-  end
-
-  def timeout
-    flash[:notice] = 'Your session expired; you have been logged out.'
-    redirect_to root_path
+  def keepalive
+    head :ok
   end
 
   def find_user

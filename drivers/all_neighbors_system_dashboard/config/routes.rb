@@ -5,6 +5,7 @@ BostonHmis::Application.routes.draw do
         member do
           get :internal
           get :raw
+          get :debug
         end
       end
     end

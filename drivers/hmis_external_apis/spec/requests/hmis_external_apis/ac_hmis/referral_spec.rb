@@ -11,6 +11,13 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
   describe 'send referral' do
     include_context 'hmis base setup'
 
+    before(:all) do
+      cleanup_test_environment
+    end
+    after(:all) do
+      cleanup_test_environment
+    end
+
     def random_id
       @start ||= rand(0...1_000).round
       @start += 1

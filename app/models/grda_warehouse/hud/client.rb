@@ -289,6 +289,7 @@ module GrdaWarehouse::Hud
         id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
           currently_homeless(date: on_date, chronic_types_only: chronic_types_only).
           distinct.
+          with_service.
           select(:client_id),
       )
     end
@@ -365,6 +366,12 @@ module GrdaWarehouse::Hud
         # with a Pathways assessment (removed by request 11/23/23)
         # scope.where(id: joins(source_clients: :most_recent_pathways_or_rrh_assessment).select(:id))
         scope
+      when :ce_with_assessment
+        enrollment_scope = service_history_enrollments.
+          in_project_type(HudUtility2024.performance_reporting[:ce]).
+          joins(enrollment: :assessments).
+          where(last_date_in_program: nil)
+        where(id: enrollment_scope.select(:client_id))
       else
         raise NotImplementedError
       end

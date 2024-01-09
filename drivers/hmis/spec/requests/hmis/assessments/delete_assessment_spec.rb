@@ -103,7 +103,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   # Deleting intakes should delete the enrollment
-  wip_and_submitted.each do |key, name, action|
+  wip_and_submitted.each do |_key, name, action|
     it "should handle deleting a #{name} intake assessment" do
       action.call(a1)
       a1.update(data_collection_stage: 1) # intake
@@ -111,17 +111,32 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       mutate(input: { id: a1.id }) do |assessment_id, errors|
         a1.reload
         e1.reload
-        if key == :wip
-          expect(assessment_id).to be_present
-          expect(errors).to be_empty
-          expect(a1.date_deleted).to be_present
-          expect(e1.date_deleted).to be_present
-        elsif key == :submitted
-          expect(assessment_id).to be_present
-          expect(errors).to be_empty
-          expect(a1.date_deleted).to be_present
-          expect(e1.date_deleted).to be_present
-        end
+        expect(assessment_id).to be_present
+        expect(errors).to be_empty
+        expect(a1.date_deleted).to be_present
+        expect(e1.date_deleted).to be_present
+      end
+    end
+  end
+
+  # Deleting intakes should only delete the enrollment if there are not other intakes
+  wip_and_submitted.each do |_key, name, action|
+    it "should handle deleting a #{name} intake assessment with multiple intakes" do
+      a2 = create :hmis_custom_assessment, data_source: ds1, enrollment: e1, client: c1, data_collection_stage: 5
+      action.call(a1)
+      action.call(a2)
+      a1.update(data_collection_stage: 1) # intake
+      a2.update(data_collection_stage: 1) # intake
+
+      mutate(input: { id: a1.id }) do |assessment_id, errors|
+        a1.reload
+        a2.reload
+        e1.reload
+        expect(assessment_id).to be_present
+        expect(errors).to be_empty
+        expect(a1.date_deleted).to be_present
+        expect(a2.date_deleted).to be_nil
+        expect(e1.date_deleted).to be_nil
       end
     end
   end

@@ -27,6 +27,16 @@ module Types
       end
     end
 
+    def self.root_can_composite(name, permissions:, mode:, **field_attrs)
+      field name, Boolean, null: false, **field_attrs
+
+      raise 'unrecognized permission mode' unless [:any, :all].include?(mode)
+
+      define_method(name) do
+        current_user.permissions?(*permissions, mode: mode)
+      end
+    end
+
     # @param permission [Symbol] permission name, i.e :can_administer_hmis
     # @param field_name [Symbol] graphql field name
     def self.can(permission, field_name: nil, **field_attrs)
@@ -36,6 +46,27 @@ module Types
 
       define_method(field_name) do
         current_permission?(permission: :"can_#{permission}", entity: object)
+      end
+    end
+
+    def self.composite_perm(field_name, permissions:, mode:, **field_attrs)
+      field field_name, Boolean, null: false, **field_attrs
+
+      case mode
+      when :any
+        define_method(field_name) do
+          permissions.any? do |permission|
+            current_permission?(permission: :"can_#{permission}", entity: object)
+          end
+        end
+      when :all
+        define_method(field_name) do
+          permissions.all? do |permission|
+            current_permission?(permission: :"can_#{permission}", entity: object)
+          end
+        end
+      else
+        raise 'unrecognized permission mode'
       end
     end
   end

@@ -10,7 +10,7 @@ module AllNeighborsSystemDashboard
         { name: 'Housing Placements' },
         { name: 'Time To Obtain Housing' },
         { name: 'Returns To Homelessness' },
-        { name: 'Unhoused Population' },
+        # { name: 'Unhoused Population' },
       ].map { |tab| tab.merge({ id: tab[:name].gsub(' ', '').underscore }) }
     end
 
@@ -40,16 +40,17 @@ module AllNeighborsSystemDashboard
     end
 
     def housed_count
-      @housed_count ||= report_enrollments_enrollment_scope.
-        housed_in_range(@report.filter.range).
-        distinct.
-        select(:destination_client_id).
-        count
+      @housed_count ||= begin
+        scope = housed_total_scope
+        # Enforce the same project limits as the subsequent charts
+        scope = filter_for_type(scope, 'All')
+        scope.select(:destination_client_id).count
+      end
     end
 
     def average_days_to_obtain_housing
       en_t = Enrollment.arel_table
-      report_enrollments_enrollment_scope.housed_in_range(@report.filter.range).average(
+      report_enrollments_enrollment_scope.housed_in_range(@report.filter.range, filter: @report.filter).average(
         datediff(
           Enrollment,
           'day',

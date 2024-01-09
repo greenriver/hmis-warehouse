@@ -202,24 +202,26 @@ module HudPathReport::Generators::Fy2024
     def receiving_other_health_insurance(column)
       [
         'SCHIP',
-        'VAMedicalServices',
+        'VHAServices',
         'EmployerProvided',
         'COBRA',
         'PrivatePay',
         'StateHealthIns',
         'IndianHealthServices',
+        'OtherInsurance',
       ].map { |type| jsonb_test(column, type, 1) }.join(' OR ')
     end
 
     def not_receiving_other_health_insurance(column)
       [
         'SCHIP',
-        'VAMedicalServices',
+        'VHAServices',
         'EmployerProvided',
         'COBRA',
         'PrivatePay',
         'StateHealthIns',
         'IndianHealthServices',
+        'OtherInsurance',
       ].map { |type| "NOT(#{jsonb_test(column, type, 1)})" }.join(' AND ')
     end
 

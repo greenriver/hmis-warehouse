@@ -29,7 +29,7 @@ RSpec.describe HudSpmReport::Generators::Fy2020::MeasureTwo, type: :model do
     assert_report_completed
   end
 
-  # DEPRECATED_FY2024 - these are expected to fail until we re-write the report
+  # DEPRECATED_FY2023 - these are expected to fail until we re-write the report
   # [
   #   ['A1', nil],
   #

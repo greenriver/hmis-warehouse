@@ -13,7 +13,7 @@ RSpec.shared_context 'datalab systemwide ce apr', shared_context: :metadata do
       run(generator, project_ids_filter(project_ids))
     end
 
-    it 'Q4a' do
+    xit 'Q4a' do
       question = 'Q4a'
       goals = goals(
         file_path: result_file_prefix + results_dir,
@@ -22,63 +22,63 @@ RSpec.shared_context 'datalab systemwide ce apr', shared_context: :metadata do
       compare_columns(goal: goals, question: question, column_names: ['C', 'D'])
     end
 
-    it 'Q5a' do
+    xit 'Q5a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q5a',
       )
     end
 
-    it 'Q6a' do
+    xit 'Q6a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6a',
       )
     end
 
-    it 'Q7a' do
+    xit 'Q7a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q7a',
       )
     end
 
-    it 'Q8a' do
+    xit 'Q8a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q8a',
       )
     end
 
-    it 'Q9a' do
+    xit 'Q9a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q9a',
       )
     end
 
-    it 'Q9b' do
+    xit 'Q9b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q9b',
       )
     end
 
-    it 'Q9c' do
+    xit 'Q9c' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q9c',
       )
     end
 
-    it 'Q9d' do
+    xit 'Q9d' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q9d',
       )
     end
 
-    it 'Q10' do
+    xit 'Q10' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q10',

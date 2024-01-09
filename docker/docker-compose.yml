@@ -84,8 +84,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-      mailhog:
-        condition: service_started
       minio:
         condition: service_started
 
@@ -106,7 +104,7 @@ services:
     container_name: hmis-warehouse-web
     stdin_open: true
     tty: true
-    command: bundle exec rails server -b 0.0.0.0
+    command: ./bin/dev
     labels:
       - traefik.enable=${TRAEFIK_ENABLED:-false}
       - traefik.http.routers.op.entrypoints=web
@@ -117,7 +115,7 @@ services:
       - traefik.http.routers.op_https.entrypoints=web-secure
       - traefik.http.middlewares.op_https.redirectscheme.scheme=https
       - traefik.http.routers.op.middlewares=op_https
-    ports: 
+    ports:
       - "3000"
       - "9394"
     expose:
@@ -131,8 +129,6 @@ services:
       db:
         condition: service_healthy
       redis:
-        condition: service_started
-      mailhog:
         condition: service_started
       minio:
         condition: service_started
@@ -148,6 +144,8 @@ services:
   # Note: `docker compose up` works, though there will be no output. Use `docker
   # compose run` to see the output
   ngrok: &ngrok
+    profiles:
+      - manual
     network_mode: host
     tty: true
     stdin_open: true
@@ -241,25 +239,6 @@ services:
     expose:
       - 6379
 
-  mailhog:
-    image: mailhog/mailhog:latest
-    environment:
-      VIRTUAL_HOST: mail.${FQDN:-hmis-warehouse.dev.test}
-      VIRTUAL_PORT: 8025
-    expose:
-      - 8025
-      - 1025
-    labels:
-      - traefik.enable=${TRAEFIK_ENABLED:-false}
-      - traefik.http.routers.mailhog.entrypoints=web
-      - traefik.http.routers.mailhog.rule=Host(`mail.${FQDN:-hmis-warehouse.dev.test}`)
-      - traefik.http.services.mailhog_https.loadbalancer.server.port=8025
-      - traefik.http.routers.mailhog_https.rule=Host(`mail.${FQDN:-hmis-warehouse.dev.test}`)
-      - traefik.http.routers.mailhog_https.tls=true
-      - traefik.http.routers.mailhog_https.entrypoints=web-secure
-      - traefik.http.middlewares.mailhog_https.redirectscheme.scheme=https
-      - traefik.http.routers.mailhog.middlewares=mailhog_https
-
   chrome:
     image: browserless/chrome:1-chrome-stable
     profiles: ["test"]
@@ -318,10 +297,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      ngrok:
-        condition: service_started
-      ngrok_public:
-        condition: service_completed_successfully
+      # ngrok:
+      #   condition: service_started
+      # ngrok_public:
+      #   condition: service_completed_successfully
       superset_init:
         condition: service_completed_successfully
       superset_init_2:
@@ -366,7 +345,8 @@ services:
     volumes:
       - ./docker/superset/superset_init_entrypoint.sh:/superset_init_entrypoint.sh
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   superset_init_2:
     <<: *superset

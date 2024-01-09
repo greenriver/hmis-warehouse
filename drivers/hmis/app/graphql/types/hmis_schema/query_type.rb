@@ -200,6 +200,30 @@ module Types
       Hmis::Form::Definition.find_definition_for_service_type(service_type, project: project)
     end
 
+    field :static_form_definition, Types::Forms::FormDefinition, null: false do
+      argument :role, Types::Forms::Enums::StaticFormRole, required: true
+    end
+    def static_form_definition(role:)
+      # Direct lookup for static form by role. Static forms don't require instances to enable them, since they are always present and non-configurable.
+      # Assume that this is exactly 1 definition per static role
+      Hmis::Form::Definition.order(:id).with_role(role).first!
+    end
+
+    field :parsed_form_definition, Types::Forms::FormDefinitionForJsonResult, null: true do
+      argument :input, String, required: true
+    end
+    def parsed_form_definition(input:)
+      json = JSON.parse(input)
+      errors = []
+      ::HmisUtil::JsonForms.new.tap do |builder|
+        builder.validate_definition(json) { |err| errors << err }
+      end
+
+      return { errors: errors, definition: nil } if errors.present?
+
+      return { errors: [], definition: json }
+    end
+
     field :pick_list, [Types::Forms::PickListOption], 'Get list of options for pick list', null: false do
       argument :pick_list_type, Types::Forms::Enums::PickListType, required: true
       argument :project_id, ID, required: false
@@ -228,12 +252,17 @@ module Types
     end
 
     def referral_posting(id:)
-      HmisExternalApis::AcHmis::ReferralPosting.viewable_by(current_user).find_by(id: id)
+      posting = HmisExternalApis::AcHmis::ReferralPosting.viewable_by(current_user).find_by(id: id)
+
+      # User must have access to manage incoming referrals at the project where this posting is referred to
+      return unless posting && current_user.can_manage_incoming_referrals_for?(posting.project)
+
+      posting
     end
 
     referral_postings_field :denied_pending_referral_postings
     def denied_pending_referral_postings(**args)
-      return [] unless current_user.can_manage_denied_referrals?
+      raise 'Access denied' unless current_user.can_manage_denied_referrals?
 
       postings = HmisExternalApis::AcHmis::ReferralPosting.denied_pending_status
 
@@ -242,7 +271,7 @@ module Types
 
     field :merge_candidates, Types::HmisSchema::ClientMergeCandidate.page_type, null: false
     def merge_candidates
-      raise 'not allowed' unless current_user.can_merge_clients?
+      raise 'Access denied' unless current_user.can_merge_clients?
 
       # Find all destination clients that have more than 1 source client in the HMIS
       destination_ids_with_multiple_sources = GrdaWarehouse::WarehouseClient.
@@ -258,7 +287,7 @@ module Types
 
     application_users_field :application_users
     def application_users(**args)
-      raise 'access denied' unless current_user.can_audit_users? || current_user.can_impersonate_users?
+      raise 'Access denied' unless current_user.can_audit_users? || current_user.can_impersonate_users?
 
       resolve_application_users(Hmis::User.active.with_hmis_access, **args)
     end
@@ -267,16 +296,20 @@ module Types
       argument :id, ID, required: true
     end
     def user(id:)
-      raise 'access denied' unless id == current_user.id.to_s || current_user.can_audit_users? || current_user.can_impersonate_users?
+      raise 'Access denied' unless id == current_user.id.to_s || current_user.can_audit_users? || current_user.can_impersonate_users?
 
       load_ar_scope(scope: Hmis::User.with_hmis_access, id: id)
     end
 
-    field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false
-    def merge_audit_history
-      raise 'not allowed' unless current_user.can_merge_clients?
+    field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false do
+      filters_argument Types::HmisSchema::MergeAuditEvent
+    end
+    def merge_audit_history(filters: nil)
+      raise 'Access denied' unless current_user.can_merge_clients?
 
-      Hmis::ClientMergeAudit.all.order(merged_at: :desc)
+      scope = Hmis::ClientMergeAudit.all
+      scope = scope.apply_filters(filters) if filters
+      scope.order(merged_at: :desc)
     end
 
     # AC HMIS Queries
@@ -303,25 +336,58 @@ module Types
       argument :id, ID, required: true
     end
     def service_category(id:)
-      raise 'not allowed' unless current_user.can_configure_data_collection?
+      raise 'Access denied' unless current_user.can_configure_data_collection?
 
       Hmis::Hud::CustomServiceCategory.find_by(id: id)
     end
 
     field :service_categories, Types::HmisSchema::ServiceCategory.page_type, null: false
     def service_categories
-      raise 'not allowed' unless current_user.can_configure_data_collection?
+      raise 'Access denied' unless current_user.can_configure_data_collection?
 
       # TODO: add sort and filter capabilities
       Hmis::Hud::CustomServiceCategory.all
     end
 
+    field :form_definition, Types::Forms::FormDefinition, null: true do
+      argument :id, ID, required: true
+    end
+    def form_definition(id:)
+      raise 'Access denied' unless current_user.can_configure_data_collection?
+
+      Hmis::Form::Definition.find(id)
+    end
+
+    field :form_definitions, Types::Forms::FormDefinition.page_type, null: false
+    def form_definitions
+      raise 'Access denied' unless current_user.can_configure_data_collection?
+
+      # TODO: add ability to sort and filter definitions
+      Hmis::Form::Definition.all
+    end
+
     form_rules_field
     def form_rules(**args)
-      raise 'not allowed' unless current_user.can_configure_data_collection?
+      raise 'Access denied' unless current_user.can_configure_data_collection?
 
       # Only resolve non-service rules. Service rules are resolved on the service category.
       resolve_form_rules(Hmis::Form::Instance.not_for_services, **args)
+    end
+
+    field :form_rule, Types::Admin::FormRule, null: true do
+      argument :id, ID, required: true
+    end
+    def form_rule(id:)
+      raise 'not allowed' unless current_user.can_configure_data_collection?
+
+      Hmis::Form::Instance.find_by(id: id)
+    end
+
+    field :auto_exit_configs, Types::HmisSchema::AutoExitConfig.page_type, null: false
+    def auto_exit_configs
+      raise 'not allowed' unless current_user.can_configure_data_collection?
+
+      Hmis::AutoExitConfig.all
     end
   end
 end
