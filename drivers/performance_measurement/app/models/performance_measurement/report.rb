@@ -289,7 +289,7 @@ module PerformanceMeasurement
               report_client[:veteran] = hud_client.veteran?
               # SpmEnrollment.client_id seems to be the destination client
               report_client[:source_client_personal_ids] ||= spm_enrollments.map(&:client_id).sort.uniq.join('; ')
-              report_client["#{variant_name}_age"] ||= spm_enrollments.max(&:age)
+              report_client["#{variant_name}_age"] ||= spm_enrollments.map(&:age).compact&.max
               # HoH status may vary, just note if they were ever an HoH
               report_client["#{variant_name}_hoh"] ||= spm_enrollments.any? { |e| e.enrollment.head_of_household? }
               hud_project_ids = spm_enrollments.map { |e| e.enrollment.project.id }.uniq
@@ -952,7 +952,7 @@ module PerformanceMeasurement
               }
             },
             ->(spm_enrollment) {
-              return unless destination_calculation.call(spm_enrollment).in?(Base::PERMANENT_DESTINATIONS)
+              return unless destination_calculation.call(spm_enrollment).in?(PERMANENT_DESTINATIONS)
 
               {
                 project_id: spm_enrollment.enrollment.project.id,

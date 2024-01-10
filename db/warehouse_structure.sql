@@ -24989,6 +24989,38 @@ ALTER SEQUENCE public.tags_id_seq OWNED BY public.tags.id;
 
 
 --
+-- Name: talentlms_completed_trainings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.talentlms_completed_trainings (
+    id bigint NOT NULL,
+    login_id bigint NOT NULL,
+    config_id bigint NOT NULL,
+    course_id integer NOT NULL,
+    completion_date date NOT NULL
+);
+
+
+--
+-- Name: talentlms_completed_trainings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.talentlms_completed_trainings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: talentlms_completed_trainings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.talentlms_completed_trainings_id_seq OWNED BY public.talentlms_completed_trainings.id;
+
+
+--
 -- Name: talentlms_configs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -24997,7 +25029,8 @@ CREATE TABLE public.talentlms_configs (
     subdomain character varying,
     encrypted_api_key character varying,
     encrypted_api_key_iv character varying,
-    courseid integer
+    courseid integer,
+    months_to_expiration integer
 );
 
 
@@ -29503,6 +29536,13 @@ ALTER TABLE ONLY public.tags ALTER COLUMN id SET DEFAULT nextval('public.tags_id
 
 
 --
+-- Name: talentlms_completed_trainings id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.talentlms_completed_trainings ALTER COLUMN id SET DEFAULT nextval('public.talentlms_completed_trainings_id_seq'::regclass);
+
+
+--
 -- Name: talentlms_configs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -33130,6 +33170,14 @@ ALTER TABLE ONLY public.taggings
 
 ALTER TABLE ONLY public.tags
     ADD CONSTRAINT tags_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: talentlms_completed_trainings talentlms_completed_trainings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.talentlms_completed_trainings
+    ADD CONSTRAINT talentlms_completed_trainings_pkey PRIMARY KEY (id);
 
 
 --
@@ -57722,6 +57770,20 @@ CREATE UNIQUE INDEX index_tags_on_name ON public.tags USING btree (name);
 
 
 --
+-- Name: index_talentlms_completed_trainings_on_config_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_talentlms_completed_trainings_on_config_id ON public.talentlms_completed_trainings USING btree (config_id);
+
+
+--
+-- Name: index_talentlms_completed_trainings_on_login_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_talentlms_completed_trainings_on_login_id ON public.talentlms_completed_trainings USING btree (login_id);
+
+
+--
 -- Name: index_talentlms_logins_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -58412,13 +58474,6 @@ CREATE UNIQUE INDEX test_shs ON public.service_history_services_2000 USING btree
 --
 
 CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "PersonalID", importer_log_id, data_source_id);
-
-
---
--- Name: tt_hh_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX tt_hh_id ON public.service_history_enrollments USING btree (household_id);
 
 
 --
@@ -60559,6 +60614,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231212212354'),
 ('20231215143621'),
 ('20231220194404'),
-('20231220203530');
+('20231220203530'),
+('20231226194235'),
+('20240102155413'),
+('20240102205532');
 
 

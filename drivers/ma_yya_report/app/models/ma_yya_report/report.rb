@@ -184,7 +184,7 @@ module MaYyaReport
         D2d: a_t[:race].eq(1).and(a_t[:head_of_household].eq(true)),
         D2e: a_t[:race].eq(4).and(a_t[:head_of_household].eq(true)),
         D2f: a_t[:race].eq(7).and(a_t[:head_of_household].eq(true)),
-        D2g: a_t[:race].eq(6).and(a_t[:head_of_household].eq(true)),
+        D2g: a_t[:ethnicity].eq(1).and(a_t[:head_of_household].eq(true)),
         D2h: a_t[:race].eq(10).and(a_t[:head_of_household].eq(true)), # multi-racial
         D2i: a_t[:language].eq('English').and(a_t[:head_of_household].eq(true)),
         D2j: a_t[:language].eq('Spanish').and(a_t[:head_of_household].eq(true)),
@@ -214,7 +214,7 @@ module MaYyaReport
         F1a: a_t[:subsequent_current_living_situations].not_eq([]).and(a_t[:followup_previous_period].eq(false)),
         F1b: a_t[:followup_previous_period].eq(false).
           and(Arel.sql(
-                json_contains(:subsequent_current_living_situations, HudUtility2024.permanent_situations(as: :current) + HudUtility2024.temporary_situations(as: :current) + HudUtility2024.institutional_situations(as: :current) - [302]), # Excludes 302: Transitional housing for homeless persons (including homeless youth) 
+                json_contains(:subsequent_current_living_situations, HudUtility2024.permanent_situations(as: :current) + HudUtility2024.temporary_situations(as: :current) + HudUtility2024.institutional_situations(as: :current) - [302]), # Excludes 302: Transitional housing for homeless persons (including homeless youth)
               )),
 
         F2a: a_t[:currently_homeless].eq(true).

@@ -33,11 +33,11 @@ module HudApr::CeApr::CeAprConcern
     end
 
     private def path_for_running_all_questions
-      running_all_questions_hud_reports_ce_aprs_path(link_params.except('action', 'controller'))
+      running_all_questions_hud_reports_ce_aprs_path({ skip_trackable: true }.merge(link_params.except('action', 'controller')))
     end
 
     private def path_for_running_question
-      running_hud_reports_ce_aprs_path(link_params.except('action', 'controller'))
+      running_hud_reports_ce_aprs_path({ skip_trackable: true }.merge(link_params.except('action', 'controller')))
     end
 
     private def path_for_history(args = nil)

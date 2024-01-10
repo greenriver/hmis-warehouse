@@ -191,8 +191,27 @@ module Types
 
     field :move_in_addresses, [HmisSchema::ClientAddress], null: false
 
-    # fields should match our DB casing, consult schema to determine appropriate casing
-    audit_history_field excluded_keys: ['owner_type', 'enrollment_address_type', 'wip']
+    audit_history_field(
+      # Fields should match our DB casing, consult schema to determine appropriate casing
+      excluded_keys: ['owner_type', 'enrollment_address_type', 'wip'],
+      # Transformation for Disability response type
+      transform_changes: ->(version, changes) do
+        return changes unless version.item_type == Hmis::Hud::Disability.sti_name
+        return changes unless version.object_with_changes['DisabilityType'] == 10 # Substance Use
+
+        # Override 1=>10 for SubstanceUse value, so it shows up as 'Alcohol Use Disorder' instead of 'Yes'
+        # in the audit change summary component.
+        changes['DisabilityResponse'] = changes['DisabilityResponse'].map do |value|
+          if value == 1
+            Types::HmisSchema::Enums::CompleteDisabilityResponse::SUBSTANCE_USE_1_OVERRIDE_VALUE
+          else
+            value
+          end
+        end
+
+        changes
+      end,
+    )
 
     def audit_history(filters: nil)
       scope = GrdaWarehouse.paper_trail_versions.

@@ -30,11 +30,11 @@ echo 'Setting Timezone'
 cp /usr/share/zoneinfo/$TIMEZONE /app/etc-localtime
 echo $TIMEZONE > /etc/timezone
 
-echo 'Syncing the client assets from s3...'
-T1=`date +%s`
-./bin/sync_app_assets.rb
-T2=`date +%s`
-echo "...sync_app_assets 1 took $(expr $T2 - $T1) seconds"
+# echo 'Syncing the client assets from s3...'
+# T1=`date +%s`
+# ./bin/sync_app_assets.rb
+# T2=`date +%s`
+# echo "...sync_app_assets 1 took $(expr $T2 - $T1) seconds"
 
 echo 'Clobbering assets...'
 T1=`date +%s`

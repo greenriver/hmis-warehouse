@@ -93,6 +93,7 @@
 //= require affix
 //= require list_search
 //= require stimulus_select
+//= require inactive-session-modal-controller
 //= require chart_loader
 //= require filter_projects
 //= require TableWithToggleRows
