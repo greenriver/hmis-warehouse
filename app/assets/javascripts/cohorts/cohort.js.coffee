@@ -232,6 +232,7 @@ class App.Cohorts.Cohort
 
   load_page: () =>
     @current_page += 1
+    # Sleep 250ms if not page 1
     url =  "#{@client_path}.json?page=#{@current_page}&per=#{@batch_size}&content=true"
     if @include_inactive
       url += "&inactive=true"
@@ -241,6 +242,7 @@ class App.Cohorts.Cohort
     if @current_page > @pages + 1
       return $.Deferred().resolve().promise()
     # Gather all the data first and then display it
+    # I think the "then" part doesn't run after "done" is complete.
     $.get({url: url}).done(@save_batch).then(@load_page)
 
   save_batch: (data, status) =>
