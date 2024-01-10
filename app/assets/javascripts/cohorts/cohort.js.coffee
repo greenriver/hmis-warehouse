@@ -242,8 +242,11 @@ class App.Cohorts.Cohort
     if @current_page > @pages + 1
       return $.Deferred().resolve().promise()
     # Gather all the data first and then display it
-    # I think the "then" part doesn't run after "done" is complete.
-    $.get({url: url}).done(@save_batch).then(@load_page)
+    # I think the "then" part doesn't run after "done" is complete but just
+    # after the request finishes. "thens" chain I think.
+    # I think the fix for the bug is something like this if it's not exactly
+    # this:
+    $.get({url: url}).then(@save_batch).then(@load_page)
 
   save_batch: (data, status) =>
     $.merge @raw_data, data
