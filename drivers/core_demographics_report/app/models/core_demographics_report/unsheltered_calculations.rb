@@ -27,6 +27,8 @@ module
 
     def unsheltered_percentage(type, coc_code = base_count_sym)
       total_count = total_client_count
+      # We want the percentage based on the total unsheltered households for the hh breakdowns
+      total_count = unsheltered_count(:household, coc_code) unless type.in?([:client, :household])
       return 0 if total_count.zero?
 
       of_type = unsheltered_count(type, coc_code)
@@ -37,13 +39,13 @@ module
 
     def unsheltered_data_for_export(rows)
       rows['_Unsheltered'] ||= []
-      rows['*Unsheltered'] ||= []
-      rows['*Unsheltered'] += ['Unsheltered', nil, 'Count', 'Percentage', nil]
+      rows['*Unsheltered and Active in Street Outreach'] ||= []
+      rows['*Unsheltered and Active in Street Outreach'] += ['Unsheltered and Active in Street Outreach', nil, 'Count', 'Percentage', nil]
       available_coc_codes.each do |coc_code|
-        rows['*Unsheltered'] += ["#{coc_code} Client"]
-        rows['*Unsheltered'] += ["#{coc_code} Percentage"]
+        rows['*Unsheltered and Active in Street Outreach'] += ["#{coc_code} Client"]
+        rows['*Unsheltered and Active in Street Outreach'] += ["#{coc_code} Percentage"]
       end
-      rows['*Unsheltered'] += [nil]
+      rows['*Unsheltered and Active in Street Outreach'] += [nil]
       available_unsheltered_types.invert.each do |id, title|
         rows["_Unsheltered_data_#{title}"] ||= []
         rows["_Unsheltered_data_#{title}"] += [
@@ -84,7 +86,7 @@ module
         'Adult only Households' => :without_children,
         'Adult and Child Households' => :with_children,
         'Child only Households' => :only_children,
-        'Youth Only' => :unaccompanied_youth,
+        'Youth only Households' => :unaccompanied_youth,
       }
     end
 

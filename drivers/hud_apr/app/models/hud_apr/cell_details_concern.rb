@@ -41,7 +41,7 @@ module HudApr::CellDetailsConcern
     end
 
     def self.question_fields(question)
-      (common_fields + (extra_fields[question] || all_extra_fields)).uniq
+      (common_fields + (extra_fields[question] || all_extra_fields(question))).uniq
     end
 
     def self.common_fields
