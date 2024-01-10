@@ -7,14 +7,14 @@
 # ### HIPAA Risk Assessment
 # Stateless, QA data lives in associated model
 module Health
-  class QualifyingActivityV2 < QualifyingActivityBase
+  class QualifyingActivityV3 < QualifyingActivityBase
     FACE_TO_FACE_KEYS = [
       :in_person,
     ].freeze
 
     CONTACTLESS_ACTIVITIES = [:cha_completed, :pctp_signed, :sdoh_positive, :sdoh_negative].freeze
 
-    EFFECTIVE_DATE_RANGE = ('2023-04-01'.to_date .. '2023-12-31'.to_date)
+    EFFECTIVE_DATE_RANGE = ('2024-01-01'.to_date ..)
     ATTRIBUTE_SUFFIX = '_v2'.freeze
 
     def initialize(qa)
@@ -38,7 +38,7 @@ module Health
         },
         phone_call: {
           title: 'Phone call',
-          code: 'U3',
+          code: '93',
           weight: 10,
         },
         email: {
@@ -96,7 +96,7 @@ module Health
           title: 'Outreach for enrollment',
           code: 'G9011',
           weight: 0,
-          allowed: ['U1', 'UK', 'U2', 'U3', '95'],
+          allowed: ['U1', 'UK', 'U2', 'U3', '95', '93'],
           required: [],
           per_day: 3,
         },
@@ -123,7 +123,7 @@ module Health
           code: 'T2024',
           weight: 20,
           hidden: true,
-          allowed: ['U1', 'UK', 'U2', 'U3', '95'],
+          allowed: ['U1', 'UK', 'U2', 'U3', '95', '93'],
           required: [],
           per_day: 3,
         },
@@ -131,7 +131,7 @@ module Health
           title: 'Care coordination',
           code: 'G9005',
           weight: 30,
-          allowed: ['U1', 'UK', 'U2', 'U3', '95'],
+          allowed: ['U1', 'UK', 'U2', 'U3', '95', '93'],
           required: [],
           per_day: 4,
         },
@@ -139,7 +139,7 @@ module Health
           title: 'Meeting with 3+ care team members',
           code: 'G9007',
           weight: 40,
-          allowed: ['U1', 'U2', 'U3', '95'],
+          allowed: ['U1', 'U2', '95', '93'],
           required: [],
           per_day: 1,
         },
@@ -147,7 +147,7 @@ module Health
           title: 'Emergency Department visit (7 days)',
           code: 'T2038',
           weight: 45,
-          allowed: ['U1', 'U2', 'U3', '95'],
+          allowed: ['U1', 'U2', 'U3', '95', '93'],
           required: [],
           per_day: 2,
         },
@@ -172,7 +172,7 @@ module Health
           title: 'Intake/reassessment (completing consent ROI, comprehensive assessment, care plan)',
           code: 'G9005',
           weight: 110,
-          allowed: ['U1', 'UK', 'U2', 'U3', '95'],
+          allowed: ['U1', 'UK', 'U2', 'U3', '95', '93'],
           required: [],
           per_day: 4,
         },
