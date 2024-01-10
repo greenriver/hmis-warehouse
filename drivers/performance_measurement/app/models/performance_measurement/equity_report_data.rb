@@ -30,16 +30,7 @@ module PerformanceMeasurement
       99 => :gender_unknown,
     }.freeze
 
-    # FIXME Fake data
-    HOUSEHOLD_TYPES = [
-      'Adult and Child Households',
-      'Adult and Child Households With HoH 18-24',
-      'Adult and Child Households With HoH 25+',
-      'Adult only Households',
-      'Child only Households',
-      'Non-Veteran',
-      'Veterans',
-    ].freeze
+    HOUSEHOLD_TYPES = HudUtility2024.household_types.merge(nil => 'Unknown household type')
 
     INVESTIGATE_BY = {
       race: RACES,

@@ -21,6 +21,8 @@ module PerformanceMeasurement
 
     include ::WarehouseReports::Publish
 
+    attr_accessor :households
+
     acts_as_paranoid
 
     belongs_to :user
@@ -282,7 +284,10 @@ module PerformanceMeasurement
         spm_fields.each do |parts|
           cells = parts[:cells]
           cells.each do |cell|
-            cell_members(spec[:report], *cell).each do |member|
+            members = cell_members(spec[:report], *cell)
+            # Force household calculation for cell members
+            calculate_households_for(members)
+            members.each do |member|
               hud_client = member.client
               spm_enrollments = spm_enrollments_from_answer_member(member)
               report_client = report_clients[hud_client.id] || Client.new(report_id: id, client_id: hud_client.id)
@@ -304,6 +309,7 @@ module PerformanceMeasurement
                     project_id: project_id,
                     for_question: question[:name], # allows limiting for a specific response
                     period: variant_name,
+                    household_type: household_type_for(member),
                   }
                 end
               end
@@ -379,7 +385,7 @@ module PerformanceMeasurement
         },
       )
       Project.import!([:report_id, :project_id], involved_projects.map { |p_id| [id, p_id] }, batch_size: 5_000)
-      ClientProject.import!(project_clients.to_a.compact, batch_size: 5_000)
+      ClientProject.import!(project_clients.to_a.compact.map { |attr| ClientProject.new(attr) }, batch_size: 5_000)
       universe.add_universe_members(report_clients)
     end
 
@@ -426,14 +432,15 @@ module PerformanceMeasurement
               report_scope.joins(:service_history_services, :project, :client, :enrollment).
                 where(shs_t[:date].eq(filter.pit_date)).
                 homeless.distinct.
-                pluck(:client_id, c_t[:DOB], p_t[:id], e_t[:LivingSituation], :head_of_household).
-                each do |client_id, dob, project_id, housing_status_at_entry, head_of_household|
+                pluck(:client_id, c_t[:DOB], p_t[:id], e_t[:LivingSituation], :head_of_household, e_t[:HouseholdID]).
+                each do |client_id, dob, project_id, housing_status_at_entry, head_of_household, hh_id|
                   project_types_by_client_id[client_id] ||= {
                     value: true,
                     project_ids: Set.new,
                     dob: dob,
                     housing_status_at_entry: housing_status_at_entry,
                     head_of_household: head_of_household,
+                    # household_id: hh_id,
                   }
                   project_types_by_client_id[client_id][:project_ids] << project_id
                 end
@@ -453,14 +460,15 @@ module PerformanceMeasurement
               report_scope.joins(:service_history_services, :project, :client, :enrollment).
                 # where(shs_t[:date].eq(filter.pit_date)). # removed to become yearly to match SPM M3 3.2
                 so.distinct.
-                pluck(:client_id, c_t[:DOB], p_t[:id], e_t[:LivingSituation], :head_of_household).
-                each do |client_id, dob, project_id, housing_status_at_entry, head_of_household|
+                pluck(:client_id, c_t[:DOB], p_t[:id], e_t[:LivingSituation], :head_of_household, e_t[:HouseholdID]).
+                each do |client_id, dob, project_id, housing_status_at_entry, head_of_household, hh_id|
                   project_types_by_client_id[client_id] ||= {
                     value: true,
                     project_ids: Set.new,
                     dob: dob,
                     housing_status_at_entry: housing_status_at_entry,
                     head_of_household: head_of_household,
+                    # household_id: hh_id,
                   }
                   project_types_by_client_id[client_id][:project_ids] << project_id
                 end
@@ -832,6 +840,40 @@ module PerformanceMeasurement
           },
         },
       }
+    end
+
+    private def household_type_for(member)
+      ages = households[hh_id_for(member)]
+      adult = ages.any? { |age| age.present? && age >= 18 }
+      child = ages.any? { |age| age.present? && age.between?(0, 18) }
+      unknown = ages.any?(&:blank?)
+
+      return HudUtility2024.household_type('Households with at least one adult and one child', true) if adult && child
+      return nil if unknown
+      return HudUtility2024.household_type('Households without children', true) if ages.all? { |age| age.present? && age >= 18 }
+      return HudUtility2024.household_type('Households with only children', true) if ages.all? { |age| age.present? && age.between?(0, 18) }
+    end
+
+    # Use the household ID if present, otherwise a made-up one for the enrollment
+    private def hh_id_for(member)
+      spm_enrollment = relevant_spm_enrollment_for(member)
+      spm_enrollment.enrollment.household_id.presence || "en-#{spm_enrollment.enrollment.id}"
+    end
+
+    # members can take a handful of forms, so grab the last associated enrollment
+    private def relevant_spm_enrollment_for(member)
+      spm_enrollments_from_answer_member(member).last
+    end
+
+    # For all SPM enrollments, that are used in calculations, determine the household type
+    private def calculate_households_for(members)
+      @households = {}.tap do |hh|
+        members.each do |member|
+          hh_id = hh_id_for(member)
+          hh[hh_id] ||= []
+          hh[hh_id] << relevant_spm_enrollment_for(member).age
+        end
+      end
     end
 
     def spm_fields
