@@ -252,6 +252,13 @@ type AssessmentAccess {
   id: ID!
 }
 
+type AssessmentEligibility {
+  formDefinitionId: ID!
+  id: ID!
+  role: AssessmentRole!
+  title: String!
+}
+
 input AssessmentFilterOptions {
   project: [ID!]
   projectType: [ProjectType!]
@@ -666,6 +673,7 @@ type Client {
   addresses: [ClientAddress!]!
   afghanistanOef: NoYesReasonsForMissingData
   age: Int
+  assessmentEligibilities(enrollmentId: ID!): [AssessmentEligibility!]!
   assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(filters: BaseAuditEventFilterOptions, limit: Int, offset: Int): ClientAuditEventsPaginated!
   contactPoints: [ClientContactPoint!]!
