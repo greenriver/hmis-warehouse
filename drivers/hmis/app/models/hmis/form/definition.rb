@@ -180,6 +180,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     where(identifier: instance_scope.pluck(:definition_identifier))
   end
 
+  scope :non_static, -> do
+    where.not(role: STATIC_FORM_ROLES)
+  end
+
   scope :active, -> do
     joins(:instance).merge(Hmis::Form::Instance.active)
   end

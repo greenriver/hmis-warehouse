@@ -363,7 +363,7 @@ module Types
       raise 'Access denied' unless current_user.can_configure_data_collection?
 
       # TODO: add ability to sort and filter definitions
-      Hmis::Form::Definition.all
+      Hmis::Form::Definition.non_static.order(updated_at: :desc)
     end
 
     form_rules_field
