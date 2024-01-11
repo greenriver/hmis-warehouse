@@ -187,6 +187,8 @@ App.StimulusApp.register(
       // ignore responses related to message polling. Settings.url is the requested URL for this response
       if (settings && settings.url == '/messages/poll') return;
       if (settings && settings.url.includes('skip_trackable=true')) return;
+      // ignore system errors
+      if (xhr.status >= 500) return;
 
       const userId = xhr.getResponseHeader('X-app-user-id');
       shared.saveValue(UID_KEY, userId);
