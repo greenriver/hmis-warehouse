@@ -232,7 +232,6 @@ class App.Cohorts.Cohort
 
   load_page: () =>
     @current_page += 1
-    # Sleep 250ms if not page 1
     url =  "#{@client_path}.json?page=#{@current_page}&per=#{@batch_size}&content=true"
     if @include_inactive
       url += "&inactive=true"
@@ -242,10 +241,6 @@ class App.Cohorts.Cohort
     if @current_page > @pages + 1
       return $.Deferred().resolve().promise()
     # Gather all the data first and then display it
-    # I think the "then" part doesn't run after "done" is complete but just
-    # after the request finishes. "thens" chain I think.
-    # I think the fix for the bug is something like this if it's not exactly
-    # this:
     $.get({url: url}).then(@save_batch).then(@load_page)
 
   save_batch: (data, status) =>
@@ -314,8 +309,12 @@ class App.Cohorts.Cohort
         @updated_ats = data
 
   reload_client: (cohort_client_id) =>
-    url =  "#{@client_path}.json?page=1&per=10&content=true&inactive=true&cohort_client_id=#{cohort_client_id}"
-    $.get url, (data) =>
-      client = data[0]
-      rowNode = @grid_options.api.getRowNode(client.meta.cohort_client_id)
-      rowNode.setData(client)
+    url =  "#{@client_path}.json?page=1&per=10&content=true&inactive=true&skip_trackable=true&cohort_client_id=#{cohort_client_id}"
+    # Force synchronous loads so we don't fire dozens of queries simultaneously
+    $.ajax
+      async: false,
+      url: url,
+      success: (data) =>
+        client = data[0]
+        rowNode = @grid_options.api.getRowNode(client.meta.cohort_client_id)
+        rowNode.setData(client)
