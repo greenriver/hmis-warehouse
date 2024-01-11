@@ -115,7 +115,7 @@ module PerformanceMeasurement
 
     def describe_projects
       names = project.map do |d|
-        project_options.select { |o| o.last == d.to_i }.first.first
+        project_options.select { |o| o.last == d.to_i }.first&.first
       end.reject(&:blank?).join(', ')
       project.any? ? "Project: #{names}" : ''
     end
