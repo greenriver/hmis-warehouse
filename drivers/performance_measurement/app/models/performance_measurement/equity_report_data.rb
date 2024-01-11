@@ -85,16 +85,19 @@ module PerformanceMeasurement
     end
 
     def household_type_params
-      # FIXME fake data
-      @builder.household_type || []
+      @builder.household_type.map(&:to_i) || []
     end
 
     def project_type_params
-      @builder.project_type.map(&:to_i)
+      @builder.project_type.map(&:to_i) || []
     end
 
     def project_params
-      @builder.project.map(&:to_i)
+      @builder.project.map(&:to_i) || []
+    end
+
+    def available_projects
+      @available_projects ||= @report.projects.joins(:hud_project).map { |project| [project.id, project.pm_project.name] }.to_h
     end
 
     def view_by_params
@@ -181,7 +184,6 @@ module PerformanceMeasurement
         age_ranges = age_params.map { |d| Filters::FilterBase.age_range(d) }
         scope = scope.where("#{period}_age" => age_ranges)
       end
-      # FIXME: double check the stuff below
       scope = gender_params[1..].inject(scope.send(gender_params[0])) { |query, scope_name| query.or(scope.send(scope_name)) } if gender_params.any?
       scope = race_params[1..].inject(scope.send(race_params[0])) { |query, scope_name| query.or(scope.send(scope_name)) } if race_params.any?
       scope = scope.joins(client_projects: { project: :hud_project }).where(p_t[GrdaWarehouse::Hud::Project.project_type_column].in(project_type_params)) if project_type_params.any?

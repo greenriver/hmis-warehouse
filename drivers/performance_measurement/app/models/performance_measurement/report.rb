@@ -451,6 +451,7 @@ module PerformanceMeasurement
       end.group_by(&:shift)
     end
 
+    # TODO: We need household type data for the remaining extra_calculations, currently on for served_on_pit_date
     private def extra_calculations # rubocop:disable Metrics/AbcSize
       extras = [
         {

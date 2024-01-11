@@ -92,7 +92,9 @@ module PerformanceMeasurement
     end
 
     def describe_gender
-      names = gender.map { |id| PerformanceMeasurement::EquityReportData::GENDERS[id.to_i] }.reject(&:blank?).join(', ')
+      names = gender.map do |id|
+        PerformanceMeasurement::EquityReportData::GENDERS[id.to_i]
+      end.reject(&:blank?).join(', ')
       gender.any? ? "Gender: #{names}" : ''
     end
 
@@ -101,8 +103,9 @@ module PerformanceMeasurement
     end
 
     def describe_household_type
-      # FIXME fake data
-      names = household_type.join(', ')
+      names = household_type.map do |id|
+        PerformanceMeasurement::EquityReportData::HOUSEHOLD_TYPES[id.to_i]
+      end.reject(&:blank?).join(', ')
       household_type.any? ? "Household Type: #{names}" : ''
     end
 
@@ -111,7 +114,6 @@ module PerformanceMeasurement
     end
 
     def describe_projects
-      # FIXME this is probably broken
       names = project.map do |d|
         project_options.select { |o| o.last == d.to_i }.first.first
       end.reject(&:blank?).join(', ')
@@ -165,26 +167,25 @@ module PerformanceMeasurement
     end
 
     def household_type_options
-      PerformanceMeasurement::EquityReportData::HOUSEHOLD_TYPES
+      PerformanceMeasurement::EquityReportData::HOUSEHOLD_TYPES.invert
     end
 
     def project_options
-      # FIXME when broken includes metric there is a ActiveRecord undefined column error?
-      # FIXME with my data I always get "No results". Not sure if this is right?
-      broken = [:first_time_homeless_clients, :length_of_homeless_stay_average]
-      raise 'FIXME: Broken metric option selected' if broken.include?(metric)
+      return [] if metric.blank?
 
-      if metric.present?
-        @report.my_projects(@user, metric).map do |project_id, result|
-          result.hud_project.present? ? [result.hud_project.name(current_user, include_project_type: true), project_id] : nil
-        end.reject(&:blank?)
-      else
-        []
-      end
+      result = @report.detail_for(metric)
+      return [] if result[:column] == :system
+
+      @report.my_projects(@user, metric).map do |project_id, project_result|
+        project_result.hud_project.present? ? [project_result.hud_project.name(@user, include_project_type: true), project_id] : nil
+      end.reject(&:blank?)
     end
 
     def project_type_options
-      @report.filter.project_type_options_for_select
+      return [] if metric.blank?
+
+      available_project_type = @report.projects.joins(:hud_project).distinct.pluck(GrdaWarehouse::Hud::Project.project_type_column)
+      @report.filter.project_type_options_for_select(id_limit: available_project_type)
     end
 
     def view_data_by_options

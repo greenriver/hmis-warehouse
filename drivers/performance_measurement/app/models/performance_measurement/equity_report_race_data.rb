@@ -11,8 +11,8 @@ module PerformanceMeasurement
     end
 
     def client_scope(period, investigate_by)
-      race_scope = race_value_to_scope(investigate_by)
-      metric_scope(period).send(race_scope)
+      scope = race_value_to_scope(investigate_by)
+      metric_scope(period).send(scope)
     end
   end
 end
