@@ -26,12 +26,10 @@ module Types
     end
 
     def definition(parent:)
-      raise 'Resolving on something other than project' unless parent.is_a?(Hmis::Hud::Project)
-
       definition = load_ar_association(object, :definition)
       raise "Unable to load definition for instance: #{object.id}" unless definition.present?
 
-      definition.filter_context = { project: parent }
+      definition.filter_context = { project: parent } if parent.is_a?(Hmis::Hud::Project)
       definition
     end
   end

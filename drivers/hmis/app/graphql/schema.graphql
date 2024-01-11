@@ -3908,6 +3908,11 @@ enum FormRole {
   CLIENT
 
   """
+  Client detail
+  """
+  CLIENT_DETAIL
+
+  """
   Current living situation
   """
   CURRENT_LIVING_SITUATION
@@ -8192,6 +8197,11 @@ type Query {
   Client lookup
   """
   client(id: ID!): Client
+
+  """
+  Custom forms for collecting and/or displaying custom details for a Client (outside of the Client demographics form)
+  """
+  clientDetailForms: [OccurrencePointForm!]!
 
   """
   Client omnisearch
