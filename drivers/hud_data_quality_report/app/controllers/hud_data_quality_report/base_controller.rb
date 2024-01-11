@@ -11,7 +11,7 @@ module HudDataQualityReport
     def available_report_versions
       {
         'FY 2020' => { slug: :fy2020, active: false },
-        'FY 2022' => { slug: :fy2022, active: true },
+        'FY 2022' => { slug: :fy2022, active: false },
       }.freeze
     end
     helper_method :available_report_versions
@@ -25,49 +25,49 @@ module HudDataQualityReport
     end
 
     private def path_for_question(question, report: nil, args: {})
-      hud_reports_dq_question_path({ dq_id: report&.id || 0, id: question }.merge(args))
+      hud_reports_past_dq_question_path({ past_dq_id: report&.id || 0, id: question }.merge(args))
     end
 
     private def path_for_questions(question)
-      hud_reports_dq_questions_path(dq_id: 0, question: question)
+      hud_reports_past_dq_questions_path(past_dq_id: 0, question: question)
     end
 
     private def path_for_question_result(question, report: nil)
-      result_hud_reports_dq_question_path(dq_id: report&.id || 0, id: question)
+      result_hud_reports_past_dq_question_path(past_dq_id: report&.id || 0, id: question)
     end
 
     private def path_for_report(report)
-      hud_reports_dq_path(report)
+      hud_reports_past_dq_path(report)
     end
 
     private def path_for_reports
-      hud_reports_dqs_path
+      hud_reports_past_dqs_path
     end
 
     private def path_for_cell(report:, question:, cell_label:, table:)
-      hud_reports_dq_question_cell_path(dq_id: report.id, question_id: question, id: cell_label, table: table)
+      hud_reports_past_dq_question_cell_path(past_dq_id: report.id, question_id: question, id: cell_label, table: table)
     end
 
     private def path_for_running_all_questions
-      running_all_questions_hud_reports_dqs_path({ skip_trackable: true }.merge(link_params.except('action', 'controller')))
+      running_all_questions_hud_reports_past_dqs_path({ skip_trackable: true }.merge(link_params.except('action', 'controller')))
     end
 
     private def path_for_running_question
-      running_hud_reports_dqs_path({ skip_trackable: true }.merge(link_params.except('action', 'controller')))
+      running_hud_reports_past_dqs_path({ skip_trackable: true }.merge(link_params.except('action', 'controller')))
     end
 
     private def path_for_history(args = nil)
-      history_hud_reports_dqs_path(args)
+      history_hud_reports_past_dqs_path(args)
     end
     helper_method :path_for_history
 
     def path_for_report_download(report, args)
-      download_hud_reports_dq_path(report, args)
+      download_hud_reports_past_dq_path(report, args)
     end
     helper_method :path_for_report_download
 
     private def path_for_new
-      new_hud_reports_dq_path
+      new_hud_reports_past_dq_path
     end
     helper_method :path_for_new
 

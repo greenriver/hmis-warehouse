@@ -41,5 +41,17 @@ BostonHmis::Application.routes.draw do
         resources :cells, only: :show, controller: 'ce_apr/cells'
       end
     end
+
+    resources :dqs do
+      get :running, on: :collection
+      get :running_all_questions, on: :collection
+      get :history, on: :collection
+      get :download, on: :member
+      resources :questions, only: [:show, :create], controller: 'dq/questions' do
+        get :result, on: :member
+        get :running, on: :member
+        resources :cells, only: :show, controller: 'dq/cells'
+      end
+    end
   end
 end

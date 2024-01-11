@@ -112,7 +112,8 @@ module Talentlms
       completed_on = verify_with_api ? complete?(user, @api.courseid) : user.last_training_completed
       return false if completed_on.blank?
 
-      (completed_on.to_date + @api.months_to_expiration.months).past?
+      time_distance = if Rails.env.production? then :months else :days end
+      (completed_on.to_date + @api.months_to_expiration.send(time_distance)).past?
     end
 
     # Checks if the user requires training
