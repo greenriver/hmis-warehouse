@@ -117,12 +117,17 @@ module Types
 
     def self.user_picklist(current_user)
       return [] unless current_user
-      # currently picklist is only needed when filtering audit events
-      return [] unless current_user.can_audit_enrollments? || current_user.can_audit_clients?
+      # currently picklist is only needed when filtering audit events, and when filtering client merge history
+      return [] unless current_user.can_audit_enrollments? || current_user.can_audit_clients? || current_user.can_merge_clients?
 
-      Hmis::User.with_deleted.order(:last_name, :first_name, :id).map do |user|
-        { code: user.id.to_s, label: user.full_name }
-      end
+      Hmis::User.with_deleted.map do |user|
+        {
+          code: user.id.to_s,
+          label: user.full_name,
+          group_code: user.pick_list_group_label, # Group by status (Active/Inactive/Deleted)
+          group_label: user.pick_list_group_label,
+        }
+      end.sort_by { |obj| [obj[:group_label], obj[:label], obj[:code]].join(' ') }
     end
 
     def self.enrollment_audit_event_record_type_picklist
@@ -358,7 +363,7 @@ module Types
       picklist = file_tags.
         map { |tag| tag_to_option.call(tag) }.
         compact.
-        sort_by { |obj| [obj[:group_label] + obj[:label]].join(' ') }
+        sort_by { |obj| [obj[:group_label], obj[:label]].join(' ') }
 
       # Put 'Other' at the end
       picklist << tag_to_option.call(other.first) if other.any?
