@@ -36,10 +36,43 @@ RSpec.describe 'Graphql HMIS Assessment Eligibility', type: :request do
     hmis_login(user)
   end
 
-  it 'resolves all HUD assessments by default' do
-    response, result = post_graphql(clientId: c1.id, enrollmentId: e1.id) { query }
+  def run_query(client:, enrollment:)
+    response, result = post_graphql(clientId: client.id, enrollmentId: enrollment.id) { query }
     expect(response.status).to eq(200)
-    records = result.dig('data', 'client', 'assessmentEligibilities').map { |n| n['role'] }
-    expect(records).to eq(['INTAKE', 'EXIT', 'ANNUAL'])
+    result.dig('data', 'client', 'assessmentEligibilities').map { |n| n['role'] }
+  end
+
+  it 'resolves intake, exit, annual' do
+    records = run_query(client: c1, enrollment: e1)
+    expect(records).to contain_exactly('INTAKE', 'EXIT', 'ANNUAL')
+  end
+
+  context 'with project entry' do
+    before(:each) do
+      create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 1)
+    end
+    it 'resolves exit and annual' do
+      records = run_query(client: c1, enrollment: e1)
+      expect(records).to contain_exactly('EXIT', 'ANNUAL')
+    end
+
+    context 'with project exit' do
+      before(:each) do
+        create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 3)
+      end
+      it 'resolves post-exit and annual' do
+        records = run_query(client: c1, enrollment: e1)
+        expect(records).to contain_exactly('POST_EXIT')
+      end
+      context 'with project post-exit' do
+        before(:each) do
+          create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 6)
+        end
+        it 'resolves nothing' do
+          records = run_query(client: c1, enrollment: e1)
+          expect(records).to be_empty
+        end
+      end
+    end
   end
 end

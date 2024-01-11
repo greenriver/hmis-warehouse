@@ -24,6 +24,14 @@ class Hmis::ClientAssessmentEligibilityList
   EXIT_ROLE = 'EXIT'.freeze
   POST_EXIT_ROLE = 'POST_EXIT'.freeze
 
+  DATA_COLLECTION_STAGE_BY_ROLE = {
+    INTAKE_ROLE => 1,
+    UPDATE_ROLE => 2,
+    EXIT_ROLE => 3,
+    ANNUAL_ROLE => 5,
+    POST_EXIT_ROLE => 6,
+  }.freeze
+
   def each
     roles = []
     # Show "intake" item even if the client is entered but does not have an intake
@@ -31,10 +39,7 @@ class Hmis::ClientAssessmentEligibilityList
 
     # Exit/Update/Annual can only be added to open enrollment
     roles += [EXIT_ROLE, UPDATE_ROLE, ANNUAL_ROLE] unless assessed?(EXIT_ROLE)
-    roles << POST_EXIT_ROLE if assessed?(EXIT_ROLE) &&
-      !assessed?(POST_EXIT_ROLE) &&
-      enrollment&.head_of_household? &&
-      rhy_funded?
+    roles << POST_EXIT_ROLE if assessed?(EXIT_ROLE) && !assessed?(POST_EXIT_ROLE) && enrollment&.head_of_household?
 
     # FIXME: this could be one query rather than ~25 queries :(
     roles.each do |role|
@@ -45,16 +50,12 @@ class Hmis::ClientAssessmentEligibilityList
 
   protected
 
-  def rhy_funded?
-    project.funders.where(funder: HudUtility2024.funder_components['HHS: RHY'] - [25]).any?
-  end
-
   def assessed?(role)
-    @assessed_roles ||= client.custom_assessments.
+    data_collection_stage = DATA_COLLECTION_STAGE_BY_ROLE.fetch(role)
+    @assessed_stages ||= client.custom_assessments.
       where(enrollment_id: enrollment.enrollment_id).
-      joins({ form_processor: :definition }).
-      pluck(Hmis::Form::Definition.arel_table[:role]).
+      pluck(Hmis::Hud::CustomAssessment.arel_table[:data_collection_stage]).
       to_set
-    @assessed_roles.include?(role.to_s)
+    @assessed_stages.include?(data_collection_stage)
   end
 end
