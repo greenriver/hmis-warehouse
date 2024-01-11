@@ -47,7 +47,7 @@ module MaYyaReport
             age: age,
             gender: gender(enrollment.client),
             race: race(enrollment.client),
-            ethnicity: enrollment.client.Ethnicity,
+            ethnicity: ethnicity(enrollment.client),
             mental_health_disorder: disability?(enrollment.enrollment, 9),
             substance_use_disorder: disability?(enrollment.enrollment, 10, [1, 2, 3]),
             physical_disability: disability?(enrollment.enrollment, 5) || disability?(enrollment.enrollment, 7),
@@ -145,15 +145,19 @@ module MaYyaReport
     private def race(client)
       return client.RaceNone if client.RaceNone.in?([8, 9, 99])
 
-      race_fields = client.race_fields
+      race_fields = client.race_fields.excluding(6) # Exclude HispanicLatinaeo from race value
       return 99 if race_fields.size.zero?
-      return 10 if race_fields.size > 1
+      return 10 if race_fields.size > 1 # Multi-racial
 
       return race_code[*race_fields]
     end
 
     private def race_code
-      HudUtility2024.race_id_to_field_name.excluding(8, 9, 99).invert
+      HudUtility2024.race_id_to_field_name.excluding(8, 9, 99).invert.stringify_keys
+    end
+
+    private def ethnicity(client)
+      client.HispanicLatinaeo
     end
 
     private def disability?(enrollment, disability_type, disability_responses = [1])

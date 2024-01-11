@@ -1,5 +1,5 @@
 = content_for :crumbs do
-  = link_to hud_reports_legacy_dqs_path do
+  = link_to hud_reports_legacy_past_dqs_path do
     = "« Legacy Data Quality Reports"
 
 %h1= Translation.translate("Report Result: #{@report.name}")
@@ -22,7 +22,7 @@
               - if result.job_status.present?
                 Report Failed
               - else
-                = link_to result.last_run_status, hud_reports_legacy_dq_legacy_result_path(@report, result)
+                = link_to result.last_run_status, hud_reports_legacy_past_dq_legacy_result_path(@report, result)
             %td= result.created_at
             - if @report.has_options?
               %td

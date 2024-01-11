@@ -69,7 +69,7 @@ module
 
     private def high_acuity_client_ids(key, coc_code = base_count_sym)
       # These two are stored as client_ids, the remaining are enrollment, client_id pairs
-      if key.in?([:client, :household])
+      if key.in?([:client, :household, :one_disability])
         high_acuity_clients[key][coc_code]
       else
         # fetch client_ids from Set[[enrollment_id, client_id]]
