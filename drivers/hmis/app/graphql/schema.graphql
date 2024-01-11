@@ -509,11 +509,6 @@ A base64 encoded string
 """
 scalar Base64
 
-input BaseAuditEventFilterOptions {
-  auditEventRecordType: [ID!]
-  user: [ID!]
-}
-
 """
 2.07.5
 """
@@ -669,7 +664,7 @@ type Client {
   afghanistanOef: NoYesReasonsForMissingData
   age: Int
   assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
-  auditHistory(filters: BaseAuditEventFilterOptions, limit: Int, offset: Int): ClientAuditEventsPaginated!
+  auditHistory(filters: ClientAuditEventFilterOptions, limit: Int, offset: Int): ClientAuditEventsPaginated!
   contactPoints: [ClientContactPoint!]!
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
   customCaseNotes(limit: Int, offset: Int, sortOrder: CustomCaseNoteSortOption): CustomCaseNotesPaginated!
@@ -854,6 +849,11 @@ type ClientAuditEvent {
   recordName: String!
   trueUser: ApplicationUser
   user: ApplicationUser
+}
+
+input ClientAuditEventFilterOptions {
+  clientRecordType: [ID!]
+  user: [ID!]
 }
 
 type ClientAuditEventsPaginated {
@@ -3006,7 +3006,7 @@ type Enrollment {
   alcoholDrugUseDisorderFam: NoYesMissing
   annualPercentAmi: AnnualPercentAMI
   assessments(filters: AssessmentsForEnrollmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
-  auditHistory(filters: BaseAuditEventFilterOptions, limit: Int, offset: Int): EnrollmentAuditEventsPaginated!
+  auditHistory(filters: EnrollmentAuditEventFilterOptions, limit: Int, offset: Int): EnrollmentAuditEventsPaginated!
   ceAssessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): CeAssessmentsPaginated!
   childWelfareMonths: Int
   childWelfareYears: RHYNumberofYears
@@ -3158,6 +3158,11 @@ type EnrollmentAuditEvent {
   recordName: String!
   trueUser: ApplicationUser
   user: ApplicationUser
+}
+
+input EnrollmentAuditEventFilterOptions {
+  enrollmentRecordType: [ID!]
+  user: [ID!]
 }
 
 type EnrollmentAuditEventsPaginated {
@@ -3906,6 +3911,11 @@ enum FormRole {
   Client
   """
   CLIENT
+
+  """
+  Client detail
+  """
+  CLIENT_DETAIL
 
   """
   Current living situation
@@ -6066,6 +6076,7 @@ enum PickListType {
   Grouped HUD CE Event types
   """
   CE_EVENTS
+  CLIENT_AUDIT_EVENT_RECORD_TYPES
   COC
   CURRENT_LIVING_SITUATION
   DESTINATION
@@ -8192,6 +8203,11 @@ type Query {
   Client lookup
   """
   client(id: ID!): Client
+
+  """
+  Custom forms for collecting and/or displaying custom details for a Client (outside of the Client demographics form)
+  """
+  clientDetailForms: [OccurrencePointForm!]!
 
   """
   Client omnisearch

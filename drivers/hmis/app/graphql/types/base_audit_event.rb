@@ -49,7 +49,8 @@ module Types
     # TODO: add impersonation user / true user, and display it in the interface
 
     available_filter_options do
-      arg :audit_event_record_type, [ID]
+      arg :enrollment_record_type, [ID]
+      arg :client_record_type, [ID]
       arg :user, [ID]
     end
 

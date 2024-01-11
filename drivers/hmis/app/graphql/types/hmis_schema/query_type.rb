@@ -363,7 +363,7 @@ module Types
       raise 'Access denied' unless current_user.can_configure_data_collection?
 
       # TODO: add ability to sort and filter definitions
-      Hmis::Form::Definition.all
+      Hmis::Form::Definition.non_static.order(updated_at: :desc)
     end
 
     form_rules_field
@@ -388,6 +388,12 @@ module Types
       raise 'not allowed' unless current_user.can_configure_data_collection?
 
       Hmis::AutoExitConfig.all
+    end
+
+    field :client_detail_forms, [Types::HmisSchema::OccurrencePointForm], null: false, description: 'Custom forms for collecting and/or displaying custom details for a Client (outside of the Client demographics form)'
+    def client_detail_forms
+      # No authorization required, this just resolving application configuration
+      Hmis::Form::Instance.active.with_role(:CLIENT_DETAIL)
     end
   end
 end
