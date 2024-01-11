@@ -208,6 +208,16 @@ class Hmis::User < ApplicationRecord
     }
   end
 
+  def pick_list_group_label
+    if deleted?
+      'Deleted Users'
+    elsif inactive?
+      'Inactive Users'
+    else
+      'Active Users'
+    end
+  end
+
   def self.apply_filters(input)
     Hmis::Filter::ApplicationUserFilter.new(input).filter_scope(self)
   end
