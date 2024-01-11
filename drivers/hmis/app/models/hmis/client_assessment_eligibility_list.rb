@@ -18,11 +18,11 @@ class Hmis::ClientAssessmentEligibilityList
     self.enrollment = enrollment
   end
 
-  INTAKE_ROLE = 'INTAKE'
-  UPDATE_ROLE = 'UPDATE '
-  ANNUAL_ROLE = 'ANNUAL'
-  EXIT_ROLE = 'EXIT'
-  POST_EXIT_ROLE = 'POST_EXIT'
+  INTAKE_ROLE = 'INTAKE'.freeze
+  UPDATE_ROLE = 'UPDATE '.freeze
+  ANNUAL_ROLE = 'ANNUAL'.freeze
+  EXIT_ROLE = 'EXIT'.freeze
+  POST_EXIT_ROLE = 'POST_EXIT'.freeze
 
   def each
     roles = []

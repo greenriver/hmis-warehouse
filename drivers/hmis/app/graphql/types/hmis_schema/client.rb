@@ -152,7 +152,7 @@ module Types
     end
 
     def assessment_eligibilities(enrollment_id:)
-      enrollment = object.enrollments.find(enrollment_id)
+      enrollment = object.enrollments.viewable_by(current_user).find(enrollment_id)
       Hmis::ClientAssessmentEligibilityList.new(client: object, project: enrollment.project, enrollment: enrollment)
     end
 
