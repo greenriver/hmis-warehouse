@@ -680,6 +680,7 @@ type Client {
   dobDataQuality: DOBDataQuality!
   emailAddresses: [ClientContactPoint!]!
   employmentEducations(limit: Int, offset: Int): EmploymentEducationsPaginated!
+  enabledFeatures: [ClientDashboardFeature!]!
   enrollments(filters: EnrollmentsForClientFilterOptions, includeEnrollmentsWithLimitedAccess: Boolean, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   externalIds: [ExternalIdentifier!]!
   files(limit: Int, offset: Int, sortOrder: FileSortOption): FilesPaginated!
@@ -931,6 +932,11 @@ enum ClientContactPointUse {
   Work
   """
   work
+}
+
+enum ClientDashboardFeature {
+  CASE_NOTE
+  FILE
 }
 
 input ClientFilterOptions {
@@ -3905,6 +3911,11 @@ enum FormRole {
   Client
   """
   CLIENT
+
+  """
+  Client detail
+  """
+  CLIENT_DETAIL
 
   """
   Current living situation
@@ -8192,6 +8203,11 @@ type Query {
   Client lookup
   """
   client(id: ID!): Client
+
+  """
+  Custom forms for collecting and/or displaying custom details for a Client (outside of the Client demographics form)
+  """
+  clientDetailForms: [OccurrencePointForm!]!
 
   """
   Client omnisearch

@@ -129,7 +129,7 @@ module Types
     )
 
     field :image, HmisSchema::ClientImage, null: true
-
+    field :enabled_features, [Types::Forms::Enums::ClientDashboardFeature], null: false
     access_field do
       can :view_partial_ssn
       can :view_full_ssn
@@ -297,6 +297,22 @@ module Types
       return unless current_user.can_merge_clients?
 
       object.merge_audits.order(merged_at: :desc)
+    end
+
+    # This query is used to determine which features to show on the Client Dashboard (for example, the read-only Case Notes tab).
+    #
+    # This first version is global. In other words it resolves the same thing for every client.
+    # In the future this will probably be client-specific, either based on some configuration, or based on the projects that the client is enrolled at.
+    # Specifically for indicating whether certain "Enrollment-optional records" (File, Case Note) should be collectable on the Client Dashbord vs on the Enrollment Dashboard (in the future).
+    def enabled_features
+      client_dashboard_feature_roles = Types::Forms::Enums::ClientDashboardFeature.values.keys
+
+      # Just checks if there are ANY active Instances for each role.
+      # It's possible there could be instances that exist but don't apply to any projects, but we don't bother checking for that.
+      Hmis::Form::Instance.active.
+        joins(:definition).
+        where(Hmis::Form::Definition.arel_table[:role].in(client_dashboard_feature_roles)).
+        pluck(:role).uniq
     end
   end
 end
