@@ -11,7 +11,7 @@ class UserTrainingController < ApplicationController
 
     # Verifying with local data before hitting the API. This prevents unneeded API calls
     # and ensures local data is updated when new trainings have been completed.
-    if config.nil? || !lms.training_required?(current_user, false)
+    if config.nil? || !lms.training_required?(current_user)
       redirect_to after_sign_in_path_for(current_user)
     else
 
