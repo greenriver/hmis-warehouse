@@ -1,5 +1,5 @@
 class BackfillHmisPostExitAssessments < ActiveRecord::Migration[6.1]
-  # Create what we call 'synthetic' post-exit assessments for exit-assessments that collected r20 attributes
+  # Create what we call 'synthetic' post-exit assessments for exit-assessments with r20 aftercare date
   def up
     post_exit_data_collection_stage = 6
     ::HmisUtil::JsonForms.new.seed_assessment_form_definitions

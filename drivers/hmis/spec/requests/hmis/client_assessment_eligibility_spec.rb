@@ -36,7 +36,7 @@ RSpec.describe 'Graphql HMIS Assessment Eligibility', type: :request do
     hmis_login(user)
   end
 
-  it 'resolves shows all HUD assessments by default' do
+  it 'resolves all HUD assessments by default' do
     response, result = post_graphql(clientId: c1.id, enrollmentId: e1.id) { query }
     expect(response.status).to eq(200)
     records = result.dig('data', 'client', 'assessmentEligibilities').map { |n| n['role'] }
