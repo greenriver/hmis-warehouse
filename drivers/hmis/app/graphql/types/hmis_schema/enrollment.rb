@@ -192,8 +192,10 @@ module Types
     field :move_in_addresses, [HmisSchema::ClientAddress], null: false
 
     audit_history_field(
+      :audit_history,
       # Fields should match our DB casing, consult schema to determine appropriate casing
       excluded_keys: ['owner_type', 'enrollment_address_type', 'wip'],
+      filter_args: { omit: [:client_record_type], type_name: 'EnrollmentAuditEvent' },
       # Transformation for Disability response type
       transform_changes: ->(version, changes) do
         return changes unless version.item_type == Hmis::Hud::Disability.sti_name
@@ -201,11 +203,13 @@ module Types
 
         # Override 1=>10 for SubstanceUse value, so it shows up as 'Alcohol Use Disorder' instead of 'Yes'
         # in the audit change summary component.
-        changes['DisabilityResponse'] = changes['DisabilityResponse'].map do |value|
-          if value == 1
-            Types::HmisSchema::Enums::CompleteDisabilityResponse::SUBSTANCE_USE_1_OVERRIDE_VALUE
-          else
-            value
+        if changes['DisabilityResponse']
+          changes['DisabilityResponse'] = changes['DisabilityResponse'].map do |value|
+            if value == 1
+              Types::HmisSchema::Enums::CompleteDisabilityResponse::SUBSTANCE_USE_1_OVERRIDE_VALUE
+            else
+              value
+            end
           end
         end
 

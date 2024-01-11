@@ -93,6 +93,7 @@ module Types
         'SSN' => :can_view_full_ssn,
         'DOB' => :can_view_dob,
       },
+      filter_args: { omit: [:enrollment_record_type], type_name: 'ClientAuditEvent' },
       # Transform race and gender fields
       transform_changes: ->(version, changes) do
         result = changes
