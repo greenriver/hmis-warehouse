@@ -24,7 +24,7 @@ module Types
     end
 
     def client_ids_merged
-      object.pre_merge_state.map { |attrs| attrs['id'] }
+      (object.pre_merge_state || []).map { |attrs| attrs['id'] }
     end
 
     def client
