@@ -159,7 +159,7 @@ module
       total_count = mask_small_population(client_ages[coc_code].count)
       return 0 if total_count.zero?
 
-      of_type = age_count(type)
+      of_type = age_count(type, coc_code)
       return 0 if of_type.zero?
 
       ((of_type.to_f / total_count) * 100)
@@ -222,11 +222,11 @@ module
     private def client_ages
       @client_ages ||= Rails.cache.fetch(age_cache_key, expires_in: expiration_length) do
         {}.tap do |clients|
+          clients[base_count_sym] ||= {}
           report_scope.joins(:client).order(first_date_in_program: :desc).
             distinct.
             pluck(:client_id, age_calculation, :first_date_in_program).
             each do |client_id, age, _|
-              clients[base_count_sym] ||= {}
               clients[base_count_sym][client_id] ||= age
             end
           available_coc_codes.each do |coc_code|

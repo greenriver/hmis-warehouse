@@ -1344,13 +1344,22 @@ module GrdaWarehouse::WarehouseReports
           health: false,
         }
       end
+      if RailsDrivers.loaded.include?(:zip_code_report)
+        r_list['Operational'] << {
+          url: 'zip_code_report/warehouse_reports/reports',
+          name: 'Zip Code Report',
+          description: 'Identify the number of clients and households within each zip code.',
+          limitable: true,
+          health: false,
+        }
+      end
 
       # Don't enable this report in production yet
-      if RailsDrivers.loaded.include?(:superset) && ! Rails.env.production?
+      if RailsDrivers.loaded.include?(:superset) && Superset.available?
         r_list['Performance'] << {
           url: 'superset/warehouse_reports/reports',
           name: 'Launch Superset',
-          description: 'An integration with the Apache Superset business inteligence tool.',
+          description: 'An integration with the Apache Superset business intelligence tool.',
           limitable: true,
           health: false,
         }
@@ -1445,6 +1454,7 @@ module GrdaWarehouse::WarehouseReports
       cleanup << 'client_documents_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:client_documents_report)
       cleanup << 'inactive_client_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:inactive_client_report)
       cleanup << 'all_neighbors_system_dashboard/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:all_neighbors_system_dashboard)
+      cleanup << 'zip_code_report/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:zip_code_report)
       cleanup << 'superset/warehouse_reports/reports' unless RailsDrivers.loaded.include?(:superset)
 
       cleanup.each do |url|

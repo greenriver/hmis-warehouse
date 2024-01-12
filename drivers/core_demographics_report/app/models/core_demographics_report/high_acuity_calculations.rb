@@ -27,6 +27,10 @@ module
 
     def high_acuity_percentage(type, coc_code = base_count_sym)
       total_count = total_client_count
+      # We want the percentage based on the total high acuity households for the hh breakdowns
+      total_count = high_acuity_count(:household, coc_code) unless type.in?([:client, :household])
+      # Clients with one disability should use clients in the category as a denominator
+      total_count = high_acuity_count(:client, coc_code) if type == :one_disability
       return 0 if total_count.zero?
 
       of_type = high_acuity_count(type, coc_code)
@@ -64,7 +68,13 @@ module
     end
 
     private def high_acuity_client_ids(key, coc_code = base_count_sym)
-      high_acuity_clients[key][coc_code]
+      # These two are stored as client_ids, the remaining are enrollment, client_id pairs
+      if key.in?([:client, :household, :one_disability])
+        high_acuity_clients[key][coc_code]
+      else
+        # fetch client_ids from Set[[enrollment_id, client_id]]
+        high_acuity_clients[key][coc_code].to_a.map(&:last).uniq
+      end
     end
 
     private def hoh_client_ids
@@ -78,8 +88,8 @@ module
         'Adult only Households' => :without_children,
         'Adult and Child Households' => :with_children,
         'Child only Households' => :only_children,
-        'Youth Only' => :unaccompanied_youth,
-        '1 Disability' => :one_disability,
+        'Youth only Households' => :unaccompanied_youth,
+        'Clients with only 1 Disability' => :one_disability,
       }
     end
 
@@ -90,14 +100,17 @@ module
     end
 
     private def set_high_acuity_client_counts(clients, client_id, enrollment_id, coc_code = base_count_sym)
+      # Only count HoH for household counts, and only count them in one category.
+      if !clients[:client][coc_code].include?(client_id) && hoh_client_ids.include?(client_id)
+        # These need to use enrollment.id to capture age correctly, but needs the client for summary counts
+        clients[:without_children][coc_code] << [enrollment_id, client_id] if without_children.include?(enrollment_id)
+        clients[:with_children][coc_code] << [enrollment_id, client_id] if with_children.include?(enrollment_id)
+        clients[:only_children][coc_code] << [enrollment_id, client_id] if only_children.include?(enrollment_id)
+        clients[:unaccompanied_youth][coc_code] << [enrollment_id, client_id] if unaccompanied_youth.include?(enrollment_id)
+      end
       # Always add them to the clients category
       clients[:client][coc_code] << client_id
       clients[:household][coc_code] << client_id if hoh_client_ids.include?(client_id)
-      # These need to use enrollment.id to capture age correctly, but needs the client for summary counts
-      clients[:without_children][coc_code] << [enrollment_id, client_id] if without_children.include?(enrollment_id)
-      clients[:with_children][coc_code] << [enrollment_id, client_id] if with_children.include?(enrollment_id)
-      clients[:only_children][coc_code] << [enrollment_id, client_id] if only_children.include?(enrollment_id)
-      clients[:unaccompanied_youth][coc_code] << [enrollment_id, client_id] if unaccompanied_youth.include?(enrollment_id)
     end
 
     private def high_acuity_clients

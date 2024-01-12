@@ -520,6 +520,8 @@ module HudUtility2024
       {
         'XX-500' => 'Test CoC',
         'XX-501' => '2nd Test CoC',
+        'XX-502' => '3rd Test CoC', # testkit
+        'XX-518' => '4th Test CoC', # testkit
       },
     ).freeze
   end
@@ -545,6 +547,11 @@ module HudUtility2024
 
   def path_funders
     [21]
+  end
+
+  # SPM definition of CoC funded projects
+  def spm_coc_funders
+    [2, 3, 4, 5, 43, 44, 54, 55]
   end
 
   # "Funder components" that are referenced by the 2024 HUD Data Dictionary.
@@ -678,5 +685,15 @@ module HudUtility2024
     return sub_type_provided unless label_method.present?
 
     send(label_method, sub_type_provided)
+  end
+
+  def assessment_name_by_data_collection_stage
+    {
+      1 => 'Intake Assessment',
+      2 => 'Update Assessment',
+      3 => 'Exit Assessment',
+      5 => 'Annual Assessment',
+      6 => 'Post-Exit Assessment',
+    }.freeze
   end
 end

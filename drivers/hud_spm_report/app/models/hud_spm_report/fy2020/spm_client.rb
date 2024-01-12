@@ -11,8 +11,8 @@ module HudSpmReport::Fy2020
 
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
 
-    def self.header_label(col)
-      case col.to_s
+    def self.column_headings(col)
+      case col
       when 'source_client_personal_ids'
         'HMIS Personal IDs'
       else

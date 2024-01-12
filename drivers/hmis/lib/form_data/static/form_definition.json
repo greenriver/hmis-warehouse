@@ -1,0 +1,60 @@
+{
+  "item": [
+    {
+      "type": "BOOLEAN",
+      "link_id": "see-definition",
+      "hidden": true,
+      "initial": [
+        {
+          "initial_behavior": "OVERWRITE",
+          "value_local_constant": "$showDefinition"
+        }
+      ]
+    },
+    {
+      "text": "Form Title",
+      "type": "STRING",
+      "link_id": "title",
+      "mapping": {
+        "field_name": "title"
+      },
+      "required": true
+    },
+    {
+      "text": "Form Identifier",
+      "type": "STRING",
+      "link_id": "identifier",
+      "mapping": {
+        "field_name": "identifier"
+      },
+      "required": true
+    },
+    {
+      "text": "Form Role",
+      "type": "CHOICE",
+      "link_id": "role",
+      "mapping": {
+        "field_name": "role"
+      },
+      "required": true,
+      "pick_list_reference": "FormRole"
+    },
+    {
+      "text": "Form Definition",
+      "type": "TEXT",
+      "link_id": "definition",
+      "mapping": {
+        "field_name": "definition"
+      },
+      "required": false,
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "see-definition",
+          "operator": "EQUAL",
+          "answer_boolean": true
+        }
+      ]
+    }
+  ]
+}

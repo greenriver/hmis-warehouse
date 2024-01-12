@@ -33,7 +33,7 @@ module HudDataQualityReport
     end
 
     private def report_param_name
-      :dq_id
+      :past_dq_id
     end
   end
 end

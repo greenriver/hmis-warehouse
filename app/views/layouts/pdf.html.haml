@@ -68,4 +68,4 @@
 
     = yield :page_js
     - if current_user
-      = auto_session_timeout_js(frequency: 60)
+      = render "inactive_session_modal"

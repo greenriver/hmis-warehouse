@@ -15,12 +15,16 @@ module Types
 
     # object is a Hmis::ClientMergeAudit
 
+    available_filter_options do
+      arg :user, [ID]
+    end
+
     def user
       load_ar_association(object, :actor)
     end
 
     def client_ids_merged
-      object.pre_merge_state.map { |attrs| attrs['id'] }
+      (object.pre_merge_state || []).map { |attrs| attrs['id'] }
     end
 
     def client

@@ -6,7 +6,19 @@
 
 module Hmis
   class AutoExitJob < BaseJob
+    include NotifierConfig
+
+    def self.enabled?
+      Hmis::AutoExitConfig.exists?
+    end
+
     def perform
+      return unless self.class.enabled?
+
+      setup_notifier('HMIS Auto-Exit')
+      auto_exit_projects = Set.new
+      auto_exit_count = 0
+
       Hmis::Hud::Project.hmis.each do |project|
         config = Hmis::AutoExitConfig.config_for_project(project)
         next unless config.present?
@@ -28,9 +40,17 @@ module Hmis
           most_recent_contact_date = contact_date_for_entity(most_recent_contact)
           next unless (Date.current - most_recent_contact_date).to_i >= config.length_of_absence_days
 
+          auto_exit_count += 1
+          auto_exit_projects.add(project.id)
           auto_exit(enrollment, most_recent_contact)
         end
       end
+
+      @notifier&.ping("Auto-exited #{auto_exit_count} Enrollments in #{auto_exit_projects.size} Projects")
+    rescue StandardError => e
+      puts e.message
+      @notifier.ping('Failure in auto-exit job', { exception: e })
+      Rails.logger.fatal e.message
     end
 
     private
@@ -41,7 +61,7 @@ module Hmis
       exit_date += 1.day if most_recent_contact.is_a?(Hmis::Hud::Service) && most_recent_contact.record_type == 200
       user = Hmis::Hud::User.system_user(data_source_id: enrollment.data_source_id)
 
-      new_exit = Hmis::Hud::Exit.create!(
+      exit_record = Hmis::Hud::Exit.new(
         personal_id: enrollment.personal_id,
         enrollment_id: enrollment.enrollment_id,
         data_source_id: enrollment.data_source_id,
@@ -59,12 +79,7 @@ module Hmis
         personal_id: enrollment.personal_id,
         enrollment_id: enrollment.enrollment_id,
       )
-      assessment.build_form_processor(definition: nil)
-      assessment.form_processor.assign_attributes(
-        values: {},
-        hud_values: {},
-        exit_id: new_exit.id,
-      )
+      assessment.build_form_processor(exit: exit_record)
       assessment.save!
     end
 

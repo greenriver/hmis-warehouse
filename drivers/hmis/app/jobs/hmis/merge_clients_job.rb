@@ -87,7 +87,7 @@ module Hmis
     def update_oldest_client_with_merged_attributes
       Rails.logger.info 'Choosing the best attributes from the collection of clients'
 
-      merged_attributes = GrdaWarehouse::Tasks::ClientCleanup.new.choose_attributes_from_sources(client_to_retain.attributes, clients)
+      merged_attributes = ::GrdaWarehouse::Tasks::ClientCleanup.new.choose_attributes_from_sources(client_to_retain.attributes, clients)
 
       Rails.logger.info "Saving merged values to client #{client_to_retain.id}"
 
@@ -182,7 +182,7 @@ module Hmis
 
     def update_client_id_foreign_keys
       candidates = [
-        GrdaWarehouse::ClientFile,
+        ::GrdaWarehouse::ClientFile,
         Hmis::File,
         Hmis::Wip,
         HmisExternalApis::AcHmis::ReferralHouseholdMember,
@@ -199,8 +199,9 @@ module Hmis
 
     def merge_mci_ids
       mci_ids = HmisExternalApis::AcHmis::Mci.external_ids
-      # merge ids
+      current_ids_for_retained_client = mci_ids.where(source: client_to_retain).pluck(:value)
       records_by_value = mci_ids.where(source: clients_needing_reference_updates).
+        where.not(value: current_ids_for_retained_client).
         order(:id).reverse.index_by(&:value) # de-duplicate by value, take first id
 
       mci_ids.where(id: records_by_value.values.map(&:id)).
@@ -210,8 +211,7 @@ module Hmis
     def delete_warehouse_clients
       Rails.logger.info 'Deleting warehouse clients of merged clients'
 
-      # Very unsure I caught the desired behavior correctly here:
-      GrdaWarehouse::WarehouseClient.
+      ::GrdaWarehouse::WarehouseClient.
         where(source_id: clients_needing_reference_updates.map(&:id)).
         find_each(&:destroy!)
     end

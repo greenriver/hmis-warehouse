@@ -52,6 +52,10 @@ module HealthThriveAssessment
         interested_in_education?
     end
 
+    def positive_for_homelessness?
+      homeless?
+    end
+
     enum reporter: {
       patient: 10,
       caregiver: 20,

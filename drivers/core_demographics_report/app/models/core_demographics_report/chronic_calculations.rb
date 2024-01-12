@@ -22,11 +22,13 @@ module
     end
 
     def chronic_count(type, coc_code = base_count_sym)
-      mask_small_population(chronic_clients[type][coc_code]&.count&.presence || 0)
+      mask_small_population(chronic_client_ids(type, coc_code)&.count&.presence || 0)
     end
 
     def chronic_percentage(type, coc_code = base_count_sym)
       total_count = total_client_count
+      # We want the percentage based on the total chronic households for the hh breakdowns
+      total_count = chronic_count(:household, coc_code) unless type.in?([:client, :household])
       return 0 if total_count.zero?
 
       of_type = chronic_count(type, coc_code)
@@ -64,7 +66,13 @@ module
     end
 
     private def chronic_client_ids(key, coc_code = base_count_sym)
-      chronic_clients[key][coc_code]
+      # These two are stored as client_ids, the remaining are enrollment, client_id pairs
+      if key.in?([:client, :household])
+        chronic_clients[key][coc_code]
+      else
+        # fetch client_ids from Set[[enrollment_id, client_id]]
+        chronic_clients[key][coc_code].to_a.map(&:last).uniq
+      end
     end
 
     private def hoh_client_ids
@@ -78,7 +86,7 @@ module
         'Adult only Households' => :without_children,
         'Adult and Child Households' => :with_children,
         'Child only Households' => :only_children,
-        'Youth Only' => :unaccompanied_youth,
+        'Youth only Households' => :unaccompanied_youth,
       }
     end
 
@@ -89,13 +97,16 @@ module
     end
 
     private def set_chronic_client_counts(clients, client_id, enrollment_id, coc_code = base_count_sym)
+      # Only count HoH for household counts, and only count them in one category.
+      if !clients[:client][coc_code].include?(client_id) && hoh_client_ids.include?(client_id)
+        # These need to use enrollment.id to capture age correctly, but needs the client for summary counts
+        clients[:without_children][coc_code] << [enrollment_id, client_id] if without_children.include?(enrollment_id)
+        clients[:with_children][coc_code] << [enrollment_id, client_id] if with_children.include?(enrollment_id)
+        clients[:only_children][coc_code] << [enrollment_id, client_id] if only_children.include?(enrollment_id)
+        clients[:unaccompanied_youth][coc_code] << [enrollment_id, client_id] if unaccompanied_youth.include?(enrollment_id)
+      end
       clients[:client][coc_code] << client_id
       clients[:household][coc_code] << client_id if hoh_client_ids.include?(client_id)
-      # These need to use enrollment.id to capture age correctly, but needs the client for summary counts
-      clients[:without_children][coc_code] << [enrollment_id, client_id] if without_children.include?(enrollment_id)
-      clients[:with_children][coc_code] << [enrollment_id, client_id] if with_children.include?(enrollment_id)
-      clients[:only_children][coc_code] << [enrollment_id, client_id] if only_children.include?(enrollment_id)
-      clients[:unaccompanied_youth][coc_code] << [enrollment_id, client_id] if unaccompanied_youth.include?(enrollment_id)
     end
 
     private def chronic_clients

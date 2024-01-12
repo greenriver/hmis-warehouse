@@ -88,6 +88,7 @@ class DocumentExportsControllerBase < ApplicationController
       'HudApr::DocumentExports::HudAprExport',
       'HudApr::DocumentExports::HudCaperExport',
       'HudApr::DocumentExports::HudCeAprExport',
+      'HudApr::DocumentExports::HudDqExport',
       'HudPathReport::DocumentExports::HudPathReportExport',
       'HudSpmReport::DocumentExports::HudSpmReportExport',
       'HudDataQualityReport::DocumentExports::HudDataQualityReportExport',
@@ -108,6 +109,7 @@ class DocumentExportsControllerBase < ApplicationController
       'StartDateDq::DocumentExports::StartDateDqExcelExport',
       'ClientDocumentsReport::DocumentExports::ReportExcelExport',
       'InactiveClientReport::DocumentExports::ReportExcelExport',
+      'ZipCodeReport::DocumentExports::ReportExcelExport',
     ]
   end
 end

@@ -9,14 +9,17 @@ module GrdaWarehouse::Tasks
     include ArelHelper
     include NotifierConfig
 
+    attr_accessor :skip_location_cleanup
     def initialize(
       _bogus_notifier = false,
       project_ids: GrdaWarehouse::Hud::Project.select(:id),
+      skip_location_cleanup: false,
       debug: false
     )
       setup_notifier('Project Cleaner')
       @project_ids = project_ids
       @debug = debug
+      self.skip_location_cleanup = skip_location_cleanup
     end
 
     def run!
@@ -35,6 +38,7 @@ module GrdaWarehouse::Tasks
 
         fix_name(project)
         fix_client_locations(project)
+        remove_unneeded_hmis_participations(project)
       end
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!(max_wait_seconds: 1_800)
 
@@ -165,11 +169,27 @@ module GrdaWarehouse::Tasks
     # If the project only has one CoC Code, set all EnrollmentCoC to match
     # If the project has more than one, clear out any EnrollmentCoC where isn't covered
     def fix_client_locations(project)
-      # debug_log("Setting client locations for #{project.ProjectName}")
-      coc_codes = project.project_cocs.map(&:effective_coc_code).uniq
-      project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: coc_codes.first) if coc_codes.count == 1
+      return if skip_location_cleanup
 
-      project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: nil)
+      # debug_log("Setting client locations for #{project.ProjectName}")
+      coc_codes = project.project_cocs.map(&:effective_coc_code).uniq.
+        # Ensure the CoC codes are valid
+        select { |code| HudUtility2024.valid_coc?(code) }
+      # Don't do anything if we don't know what CoC the project operates in
+      return unless coc_codes.present?
+
+      project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: coc_codes.first, source_hash: nil) if coc_codes.count == 1
+
+      project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: nil, source_hash: nil)
+    end
+
+    # If a project has user provided HMIS Participation records, than we don't need the 2022 -> 2024 migration generated
+    # ones, so remove them
+    def remove_unneeded_hmis_participations(project)
+      hmis_p_t = GrdaWarehouse::Hud::HmisParticipation.arel_table
+      return unless project.hmis_participations.where(hmis_p_t[:HMISParticipationID].does_not_match('GR-%', nil, true)).exists?
+
+      project.hmis_participations.where(hmis_p_t[:HMISParticipationID].matches('GR-%', nil, true)).destroy_all
     end
 
     def project_source

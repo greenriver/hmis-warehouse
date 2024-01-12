@@ -209,6 +209,21 @@ module Types
       Hmis::Form::Definition.order(:id).with_role(role).first!
     end
 
+    field :parsed_form_definition, Types::Forms::FormDefinitionForJsonResult, null: true do
+      argument :input, String, required: true
+    end
+    def parsed_form_definition(input:)
+      json = JSON.parse(input)
+      errors = []
+      ::HmisUtil::JsonForms.new.tap do |builder|
+        builder.validate_definition(json) { |err| errors << err }
+      end
+
+      return { errors: errors, definition: nil } if errors.present?
+
+      return { errors: [], definition: json }
+    end
+
     field :pick_list, [Types::Forms::PickListOption], 'Get list of options for pick list', null: false do
       argument :pick_list_type, Types::Forms::Enums::PickListType, required: true
       argument :project_id, ID, required: false
@@ -286,11 +301,15 @@ module Types
       load_ar_scope(scope: Hmis::User.with_hmis_access, id: id)
     end
 
-    field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false
-    def merge_audit_history
+    field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false do
+      filters_argument Types::HmisSchema::MergeAuditEvent
+    end
+    def merge_audit_history(filters: nil)
       raise 'Access denied' unless current_user.can_merge_clients?
 
-      Hmis::ClientMergeAudit.all.order(merged_at: :desc)
+      scope = Hmis::ClientMergeAudit.all
+      scope = scope.apply_filters(filters) if filters
+      scope.order(merged_at: :desc)
     end
 
     # AC HMIS Queries
@@ -344,7 +363,7 @@ module Types
       raise 'Access denied' unless current_user.can_configure_data_collection?
 
       # TODO: add ability to sort and filter definitions
-      Hmis::Form::Definition.all
+      Hmis::Form::Definition.non_static.order(updated_at: :desc)
     end
 
     form_rules_field
@@ -369,6 +388,12 @@ module Types
       raise 'not allowed' unless current_user.can_configure_data_collection?
 
       Hmis::AutoExitConfig.all
+    end
+
+    field :client_detail_forms, [Types::HmisSchema::OccurrencePointForm], null: false, description: 'Custom forms for collecting and/or displaying custom details for a Client (outside of the Client demographics form)'
+    def client_detail_forms
+      # No authorization required, this just resolving application configuration
+      Hmis::Form::Instance.active.with_role(:CLIENT_DETAIL)
     end
   end
 end

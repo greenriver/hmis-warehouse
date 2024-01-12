@@ -206,6 +206,12 @@ module CasClientData
         # ~3.~ Pathways or Transfer assessment on file (currently no date range restriction) (Removed by request 11/23/23)
         # project_group_scope.exists? && any_release_on_file? && most_recent_pathways_or_rrh_assessment_for_destination.present?
         project_group_scope.exists? && any_release_on_file?
+      when :ce_with_assessment
+        enrollment_scope = service_history_enrollments.
+          in_project_type(HudUtility2024.performance_reporting[:ce]).
+          ongoing.
+          joins(enrollment: :assessments)
+        enrollment_scope.exists?
       else
         raise NotImplementedError
       end

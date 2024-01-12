@@ -36,7 +36,7 @@ module
           count
       end
 
-      mask_small_population(outcome_clients[type][coc_code]&.count&.presence || 0)
+      mask_small_population(outcome_client_ids(type, coc_code)&.count&.presence || 0)
     end
 
     def outcome_percentage(type, coc_code = base_count_sym)
@@ -62,6 +62,7 @@ module
       end
       rows['*Outcome Type'] += [nil]
       available_outcome_types.invert.each do |id, title|
+        title = clean_excel_title(title)
         rows["_Outcome Type_data_#{title}"] ||= []
         outcome_percentage = outcome_percentage(id)
         outcome_percentage /= 100 unless id.to_s == 'average_los'

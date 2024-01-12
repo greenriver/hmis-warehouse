@@ -89,6 +89,9 @@ module AllNeighborsSystemDashboard::WarehouseReports
       render(layout: 'external')
     end
 
+    def debug
+    end
+
     def filter_params
       filters = params.permit(filters: @filter.known_params)
 

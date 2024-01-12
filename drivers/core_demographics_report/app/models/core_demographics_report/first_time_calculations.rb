@@ -29,11 +29,7 @@ module
     end
 
     def no_recent_homelessness_count(type, coc_code = base_count_sym)
-      if type.in?([:adult_and_child, :hoh_adult_and_child, :unaccompanied_youth])
-        mask_small_population(no_recent_homelessness_clients[type][coc_code]&.map(&:last)&.uniq&.count&.presence || 0)
-      else
-        mask_small_population(no_recent_homelessness_clients[type][coc_code]&.count&.presence || 0)
-      end
+      mask_small_population(no_recent_homelessness_client_ids(type, coc_code)&.count&.presence || 0)
     end
 
     def no_recent_homelessness_percentage(type, coc_code = base_count_sym)
@@ -47,17 +43,17 @@ module
     end
 
     def no_recent_homelessness_data_for_export(rows)
-      rows['_No Recent Homelessness Type'] ||= []
-      rows['*No Recent Homelessness Type'] ||= []
-      rows['*No Recent Homelessness Type'] += ['No Recent Homelessness Type', nil, 'Count', 'Percentage', nil]
+      rows['_Newly Entering Homelessness'] ||= []
+      rows['*Newly Entering Homelessness'] ||= []
+      rows['*Newly Entering Homelessness'] += ['Newly Entering Homelessness', nil, 'Count', 'Percentage', nil]
       available_coc_codes.each do |coc_code|
-        rows['*No Recent Homelessness Type'] += ["#{coc_code} Client"]
-        rows['*No Recent Homelessness Type'] += ["#{coc_code} Client"]
+        rows['*Newly Entering Homelessness'] += ["#{coc_code} Client"]
+        rows['*Newly Entering Homelessness'] += ["#{coc_code} Client"]
       end
-      rows['*No Recent Homelessness Type'] += [nil]
+      rows['*Newly Entering Homelessness'] += [nil]
       available_no_recent_homelessness_types.invert.each do |id, title|
-        rows["_No Recent Homelessness Type_data_#{title}"] ||= []
-        rows["_No Recent Homelessness Type_data_#{title}"] += [
+        rows["_Newly Entering Homelessness_data_#{title}"] ||= []
+        rows["_Newly Entering Homelessness_data_#{title}"] += [
           title,
           nil,
           no_recent_homelessness_count(id),
@@ -65,7 +61,7 @@ module
           nil,
         ]
         available_coc_codes.each do |coc_code|
-          rows["_No Recent Homelessness Type_data_#{title}"] += [
+          rows["_Newly Entering Homelessness_data_#{title}"] += [
             no_recent_homelessness_count(id, coc_code.to_sym),
             no_recent_homelessness_percentage(id, coc_code.to_sym) / 100,
           ]
@@ -75,7 +71,13 @@ module
     end
 
     private def no_recent_homelessness_client_ids(key, coc_code = base_count_sym)
-      no_recent_homelessness_clients[key][coc_code]
+      # These are stored as Set[[enrollment_id, client_id]]
+      if key.in?([:adult_and_child, :hoh_adult_and_child, :unaccompanied_youth])
+        no_recent_homelessness_clients[key][coc_code].to_a.map(&:last).uniq
+      else
+        # fetch client_ids from [client_id]
+        no_recent_homelessness_clients[key][coc_code]
+      end
     end
 
     def available_no_recent_homelessness_types
@@ -147,18 +149,20 @@ module
     end
 
     private def set_recently_homeless_client_counts(clients, client_id, enrollment_id, coc_code = base_count_sym)
+      # Only count them in one category.
+      if !clients[:client][coc_code].include?(client_id)
+        clients[:chronic][coc_code] << client_id if chronic_ids.include?(client_id)
+        clients[:hoh_chronic][coc_code] << client_id if hoh_chronic_ids.include?(client_id)
+        clients[:high_acuity][coc_code] << client_id if high_acuity_ids.include?(client_id)
+        clients[:hoh_high_acuity][coc_code] << client_id if hoh_high_acuity_ids.include?(client_id)
+        # These need to use enrollment.id to capture age correctly, but needs the client for summary counts
+        clients[:adult_and_child][coc_code] << [enrollment_id, client_id] if adult_and_child_ids.include?(enrollment_id)
+        clients[:hoh_adult_and_child][coc_code] << [enrollment_id, client_id] if hoh_adult_and_child_ids.include?(enrollment_id)
+        clients[:unaccompanied_youth][coc_code] << [enrollment_id, client_id] if unaccompanied_youth_ids.include?(enrollment_id)
+      end
       # Always add them to the clients category
       clients[:client][coc_code] << client_id
       clients[:household][coc_code] << client_id if hoh_client_ids.include?(client_id)
-      clients[:chronic][coc_code] << client_id if chronic_ids.include?(client_id)
-      clients[:hoh_chronic][coc_code] << client_id if hoh_chronic_ids.include?(client_id)
-      clients[:high_acuity][coc_code] << client_id if high_acuity_ids.include?(client_id)
-      clients[:hoh_high_acuity][coc_code] << client_id if hoh_high_acuity_ids.include?(client_id)
-
-      # These need to use enrollment.id to capture age correctly, but needs the client for summary counts
-      clients[:adult_and_child][coc_code] << [enrollment_id, client_id] if adult_and_child_ids.include?(enrollment_id)
-      clients[:hoh_adult_and_child][coc_code] << [enrollment_id, client_id] if hoh_adult_and_child_ids.include?(enrollment_id)
-      clients[:unaccompanied_youth][coc_code] << [enrollment_id, client_id] if unaccompanied_youth_ids.include?(enrollment_id)
     end
 
     private def no_recent_homelessness_clients

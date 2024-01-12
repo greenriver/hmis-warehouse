@@ -73,9 +73,9 @@ module AllNeighborsSystemDashboard
       project_type = options[:project_type]
       types = options[:types] || []
       types = types.select { |t| t == project_type } if options[:by_project_type] && project_type != 'All'
-      types.map do |_|
-        date_range.map do |date|
-          [date.strftime('%Y-%-m-%-d'), rand(0..160), rand(40..200)]
+      types.map do |type|
+        date_range.map.with_index do |date, i|
+          [date.strftime('%Y-%-m-%-d'), rand(0..160), rand(40..200), "Project Name: #{type} #{i}"]
         end
       end
     end

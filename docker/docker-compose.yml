@@ -104,7 +104,7 @@ services:
     container_name: hmis-warehouse-web
     stdin_open: true
     tty: true
-    command: bundle exec rails server -b 0.0.0.0
+    command: ./bin/dev
     labels:
       - traefik.enable=${TRAEFIK_ENABLED:-false}
       - traefik.http.routers.op.entrypoints=web
@@ -345,7 +345,8 @@ services:
     volumes:
       - ./docker/superset/superset_init_entrypoint.sh:/superset_init_entrypoint.sh
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   superset_init_2:
     <<: *superset
