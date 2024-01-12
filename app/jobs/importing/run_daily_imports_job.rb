@@ -168,6 +168,8 @@ module Importing
         create_statistical_matches
         generate_logging_info
 
+        # collect_postgres_stats
+
         finish_processing
       end
     end
@@ -250,6 +252,32 @@ module Importing
 
       GrdaWarehouse::Tasks::PushClientsToCas.new.sync!
       @notifier.ping('Pushed Clients to CAS')
+    end
+
+    # UNTESTED partial implementation. This should probably go in a utility class somewhere else
+    def collect_postgres_stats
+      Dir.mktmpdir do |dir|
+        GrdaWarehouse::PostgresInspector.inspect_each do |inspector|
+          [
+            :database_stats,
+            :table_stats,
+            :index_stats,
+          ].each do |stats_method|
+            results = inspector.send(stats_method)
+            filename = Pathname.new(dir).join("#{inspector.name}.#{stats_method}.csv")
+            CSV.open(filename.to_s, 'w') do |csv|
+              headers = results.first.keys
+              csv << headers
+
+              results.each do |result|
+                csv << result.values_at(**headers)
+              end
+            end
+          end
+        end
+        raise 'implementation tbd'
+        # send_directory_to_s3(dir)
+      end
     end
   end
 end

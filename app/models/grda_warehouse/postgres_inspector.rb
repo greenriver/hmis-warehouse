@@ -12,10 +12,23 @@ class GrdaWarehouse::PostgresInspector
   include SafeInspectable
   delegate :select_all, :quote, to: :connection
 
-  attr_accessor :connection
+  attr_accessor :name, :connection
 
-  def initialize(connection)
+  def initialize(name:, connection:)
+    self.name = name
     self.connection = connection
+  end
+
+  def self.inspect_each
+    configs = Rails.configuration.database_configuration[Rails.env]
+
+    configs.each_pair do |name, config|
+      next unless config['adapter'] == 'postgresql'
+
+      connection = ActiveRecord::Base.establish_connection(config).connection
+      yield new(name: name, connection: connection)
+    end
+    nil
   end
 
   def table_stats(schema: 'public')
@@ -52,7 +65,7 @@ class GrdaWarehouse::PostgresInspector
       t.tablename,
       c.reltuples::bigint AS num_rows,
       pg_relation_size(quote_ident(t.tablename)::text) AS table_size,
-      (pg_total_relation_size(quote_ident(t.tablename)::text) - pg_relation_size(quote_ident(t.tablename)::text)) AS total_index_size
+      pg_indexes_size(quote_ident(t.tablename)::text) AS index_size
     FROM
       pg_tables t
     LEFT OUTER JOIN
