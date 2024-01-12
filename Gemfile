@@ -282,9 +282,6 @@ group :development do
   gem 'bumbler', require: false
 
   gem 'graphiql-rails'
-
-  # vscode ruby
-  gem 'ruby-lsp', require: false
 end
 
 group :test do
