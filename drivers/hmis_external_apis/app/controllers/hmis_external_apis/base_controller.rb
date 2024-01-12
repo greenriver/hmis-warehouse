@@ -7,8 +7,11 @@
 module HmisExternalApis
   class BaseController < ApplicationController
     before_action :authorize_request
+    # Not needed for API-key authenticated endpoints
     skip_before_action :verify_authenticity_token
+    # Not needed for API-key authenticated endpoints
     skip_before_action :authenticate_user!
+
     prepend_before_action :skip_timeout
 
     NotAuthorized = Class.new(StandardError)
