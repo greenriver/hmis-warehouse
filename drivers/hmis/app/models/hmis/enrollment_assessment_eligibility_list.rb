@@ -4,17 +4,18 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# ==  Hmis::ClientAssessmentEligibilityList
+# ==  Hmis::EnrollmentAssessmentEligibilityList
 #
-# Given a client, a project, and an optional enrollment, return a collection of assessments
+# return a collection of assessments for the given enrollment
 #
-class Hmis::ClientAssessmentEligibilityList
+class Hmis::EnrollmentAssessmentEligibilityList
   include Enumerable
   attr_accessor :client, :project, :enrollment
 
-  def initialize(client:, project:, enrollment: nil)
-    self.client = client
-    self.project = project
+  # @param enrollment [Hmis::Hud::Enrollment]
+  def initialize(enrollment:)
+    self.client = enrollment.client
+    self.project = enrollment.project
     self.enrollment = enrollment
   end
 
@@ -35,11 +36,12 @@ class Hmis::ClientAssessmentEligibilityList
   def each
     roles = []
     # Show "intake" item even if the client is entered but does not have an intake
-    roles << INTAKE_ROLE unless assessed?(INTAKE_ROLE)
+    roles << INTAKE_ROLE unless assessment_started?(INTAKE_ROLE)
 
     # Exit/Update/Annual can only be added to open enrollment
-    roles += [EXIT_ROLE, UPDATE_ROLE, ANNUAL_ROLE] unless assessed?(EXIT_ROLE)
-    roles << POST_EXIT_ROLE if assessed?(EXIT_ROLE) && !assessed?(POST_EXIT_ROLE) && enrollment&.head_of_household?
+    roles << EXIT_ROLE unless assessment_started?(EXIT_ROLE)
+    roles += [UPDATE_ROLE, ANNUAL_ROLE] unless assessment_submitted?(EXIT_ROLE)
+    roles << POST_EXIT_ROLE if assessment_submitted?(EXIT_ROLE) && !assessment_started?(POST_EXIT_ROLE) && enrollment.head_of_household?
 
     # FIXME: this could be one query rather than ~25 queries :(
     roles.each do |role|
@@ -50,12 +52,22 @@ class Hmis::ClientAssessmentEligibilityList
 
   protected
 
-  def assessed?(role)
-    data_collection_stage = DATA_COLLECTION_STAGE_BY_ROLE.fetch(role)
+  def role_id(role)
+    DATA_COLLECTION_STAGE_BY_ROLE.fetch(role)
+  end
+
+  def assessment_started?(role)
+    assessed_stages.any? { |stage, _| stage == role_id(role) }
+  end
+
+  def assessment_submitted?(role)
+    assessed_stages.any? { |stage, wip| stage == role_id(role) && !wip }
+  end
+
+  def assessed_stages
+    cas_t = Hmis::Hud::CustomAssessment.arel_table
     @assessed_stages ||= client.custom_assessments.
       where(enrollment_id: enrollment.enrollment_id).
-      pluck(Hmis::Hud::CustomAssessment.arel_table[:data_collection_stage]).
-      to_set
-    @assessed_stages.include?(data_collection_stage)
+      pluck(cas_t[:data_collection_stage], cas_t[:wip])
   end
 end

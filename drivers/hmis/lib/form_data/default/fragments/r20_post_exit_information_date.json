@@ -14,7 +14,20 @@
       "mapping": {
         "record_type": "EXIT",
         "field_name": "aftercareDate"
-      }
+      },
+      "bounds": [
+        {
+          "id": "min-date",
+          "type": "MIN",
+          "value_local_constant": "$exitDate"
+        },
+        {
+          "id": "max-future-date",
+          "type": "MAX",
+          "value_local_constant": "$exitDate",
+          "offset": 180
+        }
+      ]
     }
   ]
 }

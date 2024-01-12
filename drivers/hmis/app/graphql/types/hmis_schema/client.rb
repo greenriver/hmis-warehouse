@@ -36,9 +36,6 @@ module Types
     description 'HUD Client'
     field :id, ID, null: false
     field :lock_version, Integer, null: false
-    field :assessment_eligibilities, [HmisSchema::AssessmentEligibility], null: false do
-      argument :enrollment_id, ID, required: true
-    end
     field :external_ids, [Types::HmisSchema::ExternalIdentifier], null: false
     hud_field :personal_id
     hud_field :first_name
@@ -150,11 +147,6 @@ module Types
       composite_perm :can_upload_client_files, permissions: [:manage_any_client_files, :manage_own_client_files], mode: :any
       composite_perm :can_view_any_files, permissions: [:manage_own_client_files, :view_any_nonconfidential_client_files, :view_any_confidential_client_files], mode: :any
       can :audit_clients
-    end
-
-    def assessment_eligibilities(enrollment_id:)
-      enrollment = object.enrollments.viewable_by(current_user).find(enrollment_id)
-      Hmis::ClientAssessmentEligibilityList.new(client: object, project: enrollment.project, enrollment: enrollment)
     end
 
     def external_ids

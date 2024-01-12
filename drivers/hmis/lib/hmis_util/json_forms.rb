@@ -342,6 +342,9 @@ module HmisUtil
           title: FORM_TITLES[identifier],
         )
 
+        # Don't create default instance for post-exit. Those are going to be configured per installation
+        next if role == :POST_EXIT
+
         # Make this form the default instance for this role
         default_instance = Hmis::Form::Instance.defaults.where(definition_identifier: identifier).first_or_create!
         default_instance.update(system: true, active: true)

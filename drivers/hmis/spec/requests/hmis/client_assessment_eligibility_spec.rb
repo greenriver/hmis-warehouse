@@ -13,10 +13,10 @@ RSpec.describe 'Graphql HMIS Assessment Eligibility', type: :request do
 
   subject(:query) do
     <<~GRAPHQL
-      query GetClientAssessmentEligibilities($clientId: ID!, $enrollmentId: ID!) {
-        client(id: $clientId) {
+      query testQuery($enrollmentId: ID!) {
+        enrollment(id: $enrollmentId) {
           id
-          assessmentEligibilities(enrollmentId: $enrollmentId) {
+          assessmentEligibilities {
             id
             title
             formDefinitionId
@@ -36,14 +36,14 @@ RSpec.describe 'Graphql HMIS Assessment Eligibility', type: :request do
     hmis_login(user)
   end
 
-  def run_query(client:, enrollment:)
-    response, result = post_graphql(clientId: client.id, enrollmentId: enrollment.id) { query }
+  def run_query(enrollment:)
+    response, result = post_graphql(enrollmentId: enrollment.id) { query }
     expect(response.status).to eq(200)
-    result.dig('data', 'client', 'assessmentEligibilities').map { |n| n['role'] }
+    result.dig('data', 'enrollment', 'assessmentEligibilities').map { |n| n['role'] }
   end
 
   it 'resolves intake, exit, annual' do
-    records = run_query(client: c1, enrollment: e1)
+    records = run_query(enrollment: e1)
     expect(records).to contain_exactly('INTAKE', 'EXIT', 'ANNUAL')
   end
 
@@ -52,7 +52,7 @@ RSpec.describe 'Graphql HMIS Assessment Eligibility', type: :request do
       create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 1)
     end
     it 'resolves exit and annual' do
-      records = run_query(client: c1, enrollment: e1)
+      records = run_query(enrollment: e1)
       expect(records).to contain_exactly('EXIT', 'ANNUAL')
     end
 
@@ -61,7 +61,7 @@ RSpec.describe 'Graphql HMIS Assessment Eligibility', type: :request do
         create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 3)
       end
       it 'resolves post-exit and annual' do
-        records = run_query(client: c1, enrollment: e1)
+        records = run_query(enrollment: e1)
         expect(records).to contain_exactly('POST_EXIT')
       end
       context 'with project post-exit' do
@@ -69,7 +69,7 @@ RSpec.describe 'Graphql HMIS Assessment Eligibility', type: :request do
           create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 6)
         end
         it 'resolves nothing' do
-          records = run_query(client: c1, enrollment: e1)
+          records = run_query(enrollment: e1)
           expect(records).to be_empty
         end
       end
