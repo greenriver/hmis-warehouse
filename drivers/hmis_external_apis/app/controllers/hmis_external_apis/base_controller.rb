@@ -7,6 +7,7 @@
 module HmisExternalApis
   class BaseController < ApplicationController
     before_action :authorize_request
+    skip_before_action :verify_authenticity_token
     skip_before_action :authenticate_user!
     prepend_before_action :skip_timeout
 
