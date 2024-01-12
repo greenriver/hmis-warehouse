@@ -19,5 +19,19 @@ module Hmis
 
       render body: report.body, status: report.http_status, content_type: 'application/pdf'
     end
+
+    def consumer_summary_report
+      # Consumer Summary Report is generated on the Denial Screen, so make sure the user has that permission.
+      raise HmisErrors::ApiError, 'Access denied' unless current_hmis_user.can_manage_denied_referrals?
+
+      # Find the referral
+      referral_id = params[:referral_id]
+      referral = HmisExternalApis::AcHmis::Referral.find_by(identifier: referral_id)
+      raise HmisErrors::ApiError, "Referral not found (ID: #{referral_id})" unless referral.present?
+
+      report = AcHmis::ReportApi.new.consumer_summary_report(referral_id: referral_id, **params.slice(:start_date, :end_date))
+
+      render body: report.body, status: report.http_status, content_type: 'application/pdf'
+    end
   end
 end

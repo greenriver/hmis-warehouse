@@ -43,10 +43,11 @@ module AcHmis
       conn.get("Reports/PreventionAssessment/#{referral_id}").then { |r| handle_error(r) }
     end
 
-    def consumer_summary_report(umci:, start_date: nil, end_date: nil, report_type: 'GR')
+    def consumer_summary_report(referral_id:, start_date: nil, end_date: nil)
       raise(Error, 'Report API credentials are missing') unless self.class.enabled?
 
-      conn.post('Reports/ConsumerSummary', { UMCI: umci, StartDate: start_date, EndDate: end_date, ReportType: report_type }).then { |r| handle_error(r) }
+      payload = { ReferralId: referral_id, StartDate: start_date, EndDate: end_date }
+      conn.post('Reports/ConsumerSummary', payload).then { |r| handle_error(r) }
     end
 
     protected
