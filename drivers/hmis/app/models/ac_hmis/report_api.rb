@@ -30,7 +30,7 @@
 module AcHmis
   class ReportApi
     SYSTEM_ID = 'ac_reports'.freeze
-    CONNECTION_TIMEOUT_SECONDS = 60
+    CONNECTION_TIMEOUT_SECONDS = 120
     Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to LINK')
 
     def self.enabled?
