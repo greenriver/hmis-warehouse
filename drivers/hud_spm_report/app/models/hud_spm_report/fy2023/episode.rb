@@ -17,28 +17,6 @@ module HudSpmReport::Fy2023
 
     attr_accessor :report # FIXME?
 
-    # The associations seem to make imports run one at a time, so, they are passed separately in parallel arrays
-    def self.save_episodes!(episodes, bed_nights, enrollment_links)
-      # Import the episodes
-      results = import!(episodes)
-      # Attach the associations to their episode
-      results.ids.each_with_index do |id, index|
-        bn_for_episode = bed_nights[index]
-        bed_nights[index] = bn_for_episode.map do |bn|
-          bn.episode_id = id
-          bn
-        end
-        el_for_episode = enrollment_links[index]
-        enrollment_links[index] = el_for_episode.map do |el|
-          el.episode_id = id
-          el
-        end
-      end
-      # Import the associations
-      BedNight.import!(bed_nights.flatten)
-      EnrollmentLink.import!(enrollment_links.flatten)
-    end
-
     def compute_episode(enrollments, included_project_types:, excluded_project_types:, include_self_reported_and_ph:)
       raise 'Client undefined' unless client.present?
 
