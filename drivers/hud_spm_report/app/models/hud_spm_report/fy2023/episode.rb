@@ -16,6 +16,7 @@ module HudSpmReport::Fy2023
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
 
     attr_accessor :report # FIXME?
+    attr_writer :filter
 
     def compute_episode(enrollments, included_project_types:, excluded_project_types:, include_self_reported_and_ph:)
       raise 'Client undefined' unless client.present?
@@ -80,11 +81,17 @@ module HudSpmReport::Fy2023
         if enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn))
           # NbN only gets service nights in the report range
           bed_nights.merge!(
-            enrollment.enrollment.
-              services.merge(GrdaWarehouse::Hud::Service.bed_night.between(start_date: report_start_date, end_date: report_end_date)).
-              pluck(s_t[:id], s_t[:date_provided]).map do |service_id, date|
+            enrollment.enrollment.services. # Preloaded
+              # merge(GrdaWarehouse::Hud::Service.bed_night.between(start_date: report_start_date, end_date: report_end_date)).
+              # pluck(s_t[:id], s_t[:record_type], s_t[:date_provided]).
+              map do |service|
+                service_id = service.id
+                record_type = service.record_type
+                date = service.date_provided
+                next unless record_type == HudUtility2024.record_type('Bed Night', true) && date.between?(report_start_date, report_end_date)
+
                 [enrollment, service_id, date]
-              end.group_by(&:last).
+              end.compact.group_by(&:last).
               transform_values { |v| Array.wrap(v).last }, # Unique by date
           )
         else

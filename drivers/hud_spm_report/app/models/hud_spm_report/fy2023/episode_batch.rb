@@ -12,17 +12,19 @@ module HudSpmReport::Fy2023
       @excluded_project_types = excluded_project_types
       @include_self_reported_and_ph = include_self_reported_and_ph
       @report = report
+      @filter = ::Filters::HudFilterBase.new(user_id: report.user.id).update(report.options) # loading a user does a DB lookup, so avoid it
     end
 
     def calculate_batch(client_ids)
-      enrollments_for_slice = @enrollments.where(client_id: client_ids).preload(:client, enrollment: :services).group_by(&:client_id)
+      enrollments_for_clients = @enrollments.where(client_id: client_ids).preload(:client, enrollment: :services).group_by(&:client_id)
       episodes = []
       bed_nights_per_episode = []
       enrollment_links_per_episode = []
       client_ids.each do |client_id|
-        episode_calculations = HudSpmReport::Fy2023::Episode.new(client_id: client_id, report: @report).
+        client = enrollments_for_clients[client_id].first.client
+        episode_calculations = HudSpmReport::Fy2023::Episode.new(client: client, report: @report, filter: @filter).
           compute_episode(
-            enrollments_for_slice[client_id],
+            enrollments_for_clients[client_id],
             included_project_types: @included_project_types,
             excluded_project_types: @excluded_project_types,
             include_self_reported_and_ph: @include_self_reported_and_ph,

@@ -128,7 +128,7 @@ module HudSpmReport::Fy2023
       filter = ::Filters::HudFilterBase.new(user_id: report_instance.user.id).update(report_instance.options)
       enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).enrollments
       household_infos = household(enrollments)
-      enrollments.preload(:client, :destination_client, :exit, :income_benefits, project: :funders).find_in_batches do |batch|
+      enrollments.preload(:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders).find_in_batches do |batch|
         members = []
         batch.each do |enrollment|
           current_income_benefits = current_income_benefits(enrollment, filter.end)
@@ -234,9 +234,14 @@ module HudSpmReport::Fy2023
     end
 
     private_class_method def self.eligible_funding?(enrollment, start_date, end_date)
-      enrollment.project.funders.open_between(start_date: start_date, end_date: end_date).any? do |funder|
-        funder.funder.in?(HudUtility2024.spm_coc_funders.map(&:to_s))
+      enrollment.project.funders.each do |funder|
+        # Unroll open_between to allow preload
+        if funder.funder.in?(HudUtility2024.spm_coc_funders.map(&:to_s)) &&
+          (funder.end_date.nil? || funder.end_date >= start_date) &&
+          funder.start_date <= end_date
+        end
       end
+      false
     end
 
     private_class_method def self.total_income(income_benefit)
@@ -256,12 +261,17 @@ module HudSpmReport::Fy2023
       if enrollment.exit.present? && enrollment.exit.exit_date <= end_date
         enrollment.income_benefits_at_exit
       else
-        enrollment.
-          income_benefits_annual_update.
-          where(information_date: ..end_date).
-          where(annual_update_window_sql(enrollment)).
-          order(information_date: :desc).
-          first
+        # enrollment.
+        #   income_benefits_annual_update.
+        #   where(information_date: ..end_date).
+        #   where(annual_update_window_sql(enrollment)).
+        #   order(information_date: :desc).
+        #   first
+        enrollment.income_benefits.select do |ib|
+          ib.data_collection_stage == 5 && ## Annual update
+            ib.information_date <= end_date &&
+            date_in_annual_update_window(ib.information_date, enrollment)
+        end.sort_by(&:information_date).reverse.first
       end
     end
 
@@ -269,12 +279,24 @@ module HudSpmReport::Fy2023
       return enrollment.income_benefits_at_entry if enrollment.exit.present? && enrollment.exit.exit_date <= end_date
 
       # Most recent annual update on or before the renewal date, or the entry assessment
-      enrollment.
-        income_benefits_annual_update.
-        where(information_date: ...annual_date).
-        where(annual_update_window_sql(enrollment)).
-        order(information_date: :desc).
-        first || enrollment.income_benefits_at_entry # Default to entry assessment if less than 2 years
+      # enrollment.
+      #   income_benefits_annual_update.
+      #   where(information_date: ...annual_date).
+      #   where(annual_update_window_sql(enrollment)).
+      #   order(information_date: :desc).
+      enrollment.income_benefits.select do |ib|
+        ib.data_collection_stage == 5 && ## Annual update
+          ib.information_date < annual_date &&
+          date_in_annual_update_window(ib.information_date, enrollment)
+      end.sort_by(&:information_date).reverse.first || enrollment.income_benefits_at_entry # Default to entry assessment if less than 2 years
+    end
+
+    private_class_method def self.date_in_annual_update_window(date, enrollment)
+      entry_date = enrollment.entry_date
+      interval = 30.days
+      window_date = Date.new(date.year, entry_date.month, entry_date.day)
+
+      window_date - interval .. window_date + interval
     end
 
     private_class_method def self.annual_update_window_sql(enrollment)
