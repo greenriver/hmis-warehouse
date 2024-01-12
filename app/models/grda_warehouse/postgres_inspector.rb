@@ -23,7 +23,7 @@ class GrdaWarehouse::PostgresInspector
     configs = Rails.configuration.database_configuration[Rails.env]
 
     configs.each_pair do |name, config|
-      next unless config['adapter'] == 'postgresql'
+      next unless config['adapter'] == 'postgresql' || config['adapter'] == 'postgis'
 
       connection = ActiveRecord::Base.establish_connection(config).connection
       yield new(name: name, connection: connection)
