@@ -23,6 +23,7 @@ class AppResourceMonitor::PostgresInspector
     seen = Set.new
     ActiveRecord::Base.descendants.each do |klass|
       next unless klass.connection_db_config.adapter =~ /\A(postgresql|postgis)\z/
+
       connection = klass.connection
       next if connection.current_database.in?(seen)
 

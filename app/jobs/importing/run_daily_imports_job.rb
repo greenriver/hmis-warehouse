@@ -168,8 +168,6 @@ module Importing
         create_statistical_matches
         generate_logging_info
 
-        # collect_postgres_stats
-
         finish_processing
       end
     end

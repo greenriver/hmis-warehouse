@@ -13,10 +13,11 @@ class AppResourceMonitor::AppInspector
     [
       {
         active_users: User.where(active: true).count,
-        hud_clients: GrdaWarehouse::Hud::Client.count,
+        hud_clients: GrdaWarehouse::Hud::Client.source.count,
         hud_enrollments: GrdaWarehouse::Hud::Enrollment.count,
         hud_projects: GrdaWarehouse::Hud::Project.count,
         hud_reports: HudReports::ReportInstance.count,
+        simple_reports: SimpleReports::ReportInstance.count,
       },
     ]
   end
