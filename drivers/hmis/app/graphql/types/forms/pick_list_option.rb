@@ -144,7 +144,7 @@ module Types
         [Hmis::Hud::Exit],
         [Hmis::Hud::Event, 'CE Event'],
         [Hmis::Hud::Assessment, 'CE Assessment'],
-        [Hmis::Hud::CustomDataElement],
+        [Hmis::Hud::CustomDataElement, 'Custom Field'],
         [Hmis::Hud::CustomCaseNote],
       ].map do |model, name|
         model_picklist_item(model: model, name: name)
@@ -152,11 +152,15 @@ module Types
     end
 
     def self.client_audit_event_record_type_picklist
-      [
+      client_audited_models = [
         [Hmis::Hud::Client],
         [Hmis::Hud::CustomClientAddress],
         [Hmis::Hud::CustomClientContactPoint, 'Contact Information'],
-      ].map do |model, name|
+      ]
+      # If installation has any custom client fields, include a general filter option for them
+      has_client_cdes = Hmis::Hud::CustomDataElementDefinition.for_type(Hmis::Hud::Client.sti_name).exists?
+      client_audited_models << [Hmis::Hud::CustomDataElement, 'Custom Field'] if has_client_cdes
+      client_audited_models.map do |model, name|
         model_picklist_item(model: model, name: name)
       end.sort_by { |h| h[:label] }
     end

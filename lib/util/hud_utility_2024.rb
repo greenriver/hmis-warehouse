@@ -686,4 +686,14 @@ module HudUtility2024
 
     send(label_method, sub_type_provided)
   end
+
+  def assessment_name_by_data_collection_stage
+    {
+      1 => 'Intake Assessment',
+      2 => 'Update Assessment',
+      3 => 'Exit Assessment',
+      5 => 'Annual Assessment',
+      6 => 'Post-Exit Assessment',
+    }.freeze
+  end
 end

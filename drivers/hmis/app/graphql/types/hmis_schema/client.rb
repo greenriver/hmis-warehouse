@@ -93,6 +93,7 @@ module Types
         'SSN' => :can_view_full_ssn,
         'DOB' => :can_view_dob,
       },
+      excluded_keys: ['owner_type'],
       filter_args: { omit: [:enrollment_record_type], type_name: 'ClientAuditEvent' },
       # Transform race and gender fields
       transform_changes: ->(version, changes) do
@@ -275,17 +276,24 @@ module Types
     end
 
     def audit_history(filters: nil)
-      address_ids = object.addresses.with_deleted.pluck(:id)
-      name_ids = object.names.with_deleted.pluck(:id)
-      contact_ids = object.contact_points.with_deleted.pluck(:id)
+      audited_record_types = [
+        Hmis::Hud::Client.sti_name,
+        Hmis::Hud::CustomClientName.sti_name,
+        Hmis::Hud::CustomClientAddress.sti_name,
+        Hmis::Hud::CustomClientContactPoint.sti_name,
+      ]
+
+      # Also include CustomDataElements that are linked to clients.
+      # Look up all Client-related CDEs and get their IDs to filter down the versions table.
+      # We need this extra filter step because we DON'T want to include history for any CDEs that
+      # are linked to the Enrollment. (Since those versions will still have client_id col).
       v_t = GrdaWarehouse.paper_trail_versions.arel_table
-      client_changes = v_t[:item_id].eq(object.id).and(v_t[:item_type].eq('Hmis::Hud::Client'))
-      address_changes = v_t[:item_id].in(address_ids).and(v_t[:item_type].eq('Hmis::Hud::CustomClientAddress'))
-      name_changes = v_t[:item_id].in(name_ids).and(v_t[:item_type].eq('Hmis::Hud::CustomClientName'))
-      contact_changes = v_t[:item_id].in(contact_ids).and(v_t[:item_type].eq('Hmis::Hud::CustomClientContactPoint'))
+      custom_data_element_ids = object.custom_data_elements.with_deleted.pluck(:id)
+      is_client_cde = v_t[:item_type].eq(Hmis::Hud::CustomDataElement.sti_name).and(v_t[:item_id].in(custom_data_element_ids))
 
       scope = GrdaWarehouse.paper_trail_versions.
-        where(client_changes.or(address_changes).or(name_changes).or(contact_changes)).
+        where(client_id: object.id).
+        where(v_t[:item_type].in(audited_record_types).or(is_client_cde)).
         where.not(object_changes: nil, event: 'update').
         unscope(:order).
         order(created_at: :desc)
