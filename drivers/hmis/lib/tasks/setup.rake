@@ -1,16 +1,9 @@
 desc 'Seed form definitions'
 task seed_definitions: [:environment, 'log:info_to_stdout'] do
-  ::HmisUtil::JsonForms.new.tap do |builder|
-    # Load ALL the latest record definitions from JSON files.
-    # This also ensures that any system-level instances exist.
-    builder.seed_record_form_definitions
-    # Load ALL the latest assessment definition froms JSON files.
-    builder.seed_assessment_form_definitions
-    # Load admin forms (not configurable)
-    builder.seed_static_forms
-    # In development, create the initial instances for occurrence-point collection.
-    builder.create_default_occurrence_point_instances! if Rails.env.development?
-  end
+  builder = ::HmisUtil::JsonForms.new
+  builder.seed_all
+  # In development, create the initial instances for occurrence-point collection.
+  builder.create_default_occurrence_point_instances! if Rails.env.development?
 end
 
 desc 'Seed service types'

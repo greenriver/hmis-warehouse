@@ -30,6 +30,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   belongs_to :youth_education_status, class_name: 'Hmis::Hud::YouthEducationStatus', optional: true, autosave: true
   belongs_to :employment_education, class_name: 'Hmis::Hud::EmploymentEducation', optional: true, autosave: true
   belongs_to :current_living_situation, class_name: 'Hmis::Hud::CurrentLivingSituation', optional: true, autosave: true
+  # Note: this is NOT the assessment that created this processor, that's CustomAssessment. Rather this is a
+  # Coordinated Entry (CE) Assessment that was created by the processor. The HUD model for CE Assessment is 'Assessment'
+  belongs_to :ce_assessment, class_name: 'Hmis::Hud::Assessment', optional: true, autosave: true
 
   validate :hmis_records_are_valid, on: :form_submission
 

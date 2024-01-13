@@ -18262,7 +18262,8 @@ CREATE TABLE public.hmis_form_processors (
     hud_values jsonb,
     youth_education_status_id integer,
     employment_education_id integer,
-    current_living_situation_id integer
+    current_living_situation_id integer,
+    ce_assessment_id bigint
 );
 
 
@@ -52786,6 +52787,13 @@ CREATE INDEX index_hmis_form_instances_on_entity ON public.hmis_form_instances U
 
 
 --
+-- Name: index_hmis_form_processors_on_ce_assessment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_ce_assessment_id ON public.hmis_form_processors USING btree (ce_assessment_id);
+
+
+--
 -- Name: index_hmis_form_processors_on_chronic_health_condition_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60617,6 +60625,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231220203530'),
 ('20231226194235'),
 ('20240102155413'),
-('20240102205532');
+('20240102205532'),
+('20240113025936');
 
 

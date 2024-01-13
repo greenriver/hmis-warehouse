@@ -324,6 +324,11 @@ enum AssessmentRole {
   ANNUAL
 
   """
+  Custom assessment
+  """
+  CUSTOM_ASSESSMENT
+
+  """
   Exit
   """
   EXIT
@@ -3921,6 +3926,11 @@ enum FormRole {
   Current living situation
   """
   CURRENT_LIVING_SITUATION
+
+  """
+  Custom assessment
+  """
+  CUSTOM_ASSESSMENT
 
   """
   Enrollment
@@ -8944,6 +8954,11 @@ enum ReferralSource {
 Related record type for a group of questions in an assessment
 """
 enum RelatedRecordType {
+  """
+  Assessment
+  """
+  ASSESSMENT
+
   """
   Client
   """
