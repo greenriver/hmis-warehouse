@@ -4,56 +4,57 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# == GrdaWarehouse::PostgresInspector
+# == AppResourceMonitor::PostgresInspector
 #
 # Utility to help monitor health and growth of postgres database
 #
-class GrdaWarehouse::PostgresInspector
+class AppResourceMonitor::PostgresInspector
+  extend Enumerable
   include SafeInspectable
   delegate :select_all, :quote, to: :connection
 
-  attr_accessor :name, :connection
+  attr_accessor :connection
 
-  def initialize(name:, connection:)
-    self.name = name
+  def initialize(connection:)
     self.connection = connection
   end
 
-  def self.inspect_each
-    configs = Rails.configuration.database_configuration[Rails.env]
+  def self.each
+    seen = Set.new
+    ActiveRecord::Base.descendants.each do |klass|
+      next unless klass.connection_db_config.adapter =~ /\A(postgresql|postgis)\z/
+      connection = klass.connection
+      next if connection.current_database.in?(seen)
 
-    configs.each_pair do |name, config|
-      next unless config['adapter'] == 'postgresql' || config['adapter'] == 'postgis'
-
-      connection = ActiveRecord::Base.establish_connection(config).connection
-      yield new(name: name, connection: connection)
+      seen << connection.current_database
+      yield new(connection: connection)
     end
-    nil
   end
 
-  def table_stats(schema: 'public')
-    select_all(format(TABLE_STATS_SQL, schema: quote(schema)))
+  def table_stats
+    select_all(format(TABLE_STATS_SQL, query_variables))
   end
 
-  def index_stats(schema: 'public')
-    select_all(format(INDEX_STATS_SQL, schema: quote(schema)))
+  def index_stats
+    select_all(format(INDEX_STATS_SQL, query_variables))
   end
 
   def database_stats
+    select_all(format(DATABASE_STATS_SQL, query_variables))
+  end
+
+  def query_variables
     db_name = connection.current_database
-    select_all(format(DATABASE_STATS_SQL, db_name: quote(db_name)))
+    {
+      db_name: quote(db_name),
+      schema: quote('public'),
+    }
   end
 
   DATABASE_STATS_SQL = <<~SQL.freeze
     SELECT
-      pg_database_size(%{db_name})::bigint AS total_size,
-      CASE
-        WHEN (blks_hit + blks_read) = 0 THEN 0.0
-        ELSE round((blks_hit / (blks_hit + blks_read)::float)::numeric, 2)::float
-      END AS cache_hit_ratio,
-      temp_bytes,
-      deadlocks,
-      stats_reset
+      %{db_name} AS database,
+      pg_database_size(%{db_name})::bigint AS total_size
     FROM
       pg_stat_database
     WHERE
@@ -62,6 +63,7 @@ class GrdaWarehouse::PostgresInspector
 
   TABLE_STATS_SQL = <<~SQL.freeze
     SELECT
+      %{db_name} AS database,
       t.tablename,
       c.reltuples::bigint AS num_rows,
       pg_relation_size(quote_ident(t.tablename)::text) AS table_size,
@@ -78,6 +80,7 @@ class GrdaWarehouse::PostgresInspector
 
   INDEX_STATS_SQL = <<~SQL.freeze
     SELECT
+      %{db_name} AS database,
       t.tablename,
       ipg.relname AS index_name,
       idx_scan AS number_of_scans,
