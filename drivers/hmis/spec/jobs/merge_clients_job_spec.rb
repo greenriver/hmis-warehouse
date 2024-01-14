@@ -39,11 +39,9 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
   let(:actor) { create(:user) }
 
   let(:mci_cred) { create(:ac_hmis_mci_credential) }
-  let!(:external_id_client_1) { create :mci_external_id, source: client1, remote_credential: mci_cred }
-  let!(:external_id_client_2) { create :mci_external_id, source: client2, remote_credential: mci_cred }
 
   context 'main behaviors' do
-    before { Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id) }
+    before(:each) { Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id) }
 
     it 'saves an audit trail' do
       expect(Hmis::ClientMergeAudit.count).to eq(1)
@@ -145,9 +143,24 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
       expect(Hmis::Hud::Client.with_deleted.count).to eq(2)
       expect(client2.reload.deleted?).to be_truthy
     end
+  end
 
+  context 'with duplicate mci_ids' do
+    let(:mci_id_value) { 'test-123' }
+    let!(:external_id_client_1) { create :mci_external_id, source: client1, remote_credential: mci_cred, value: mci_id_value }
+    let!(:external_id_client_2) { create :mci_external_id, source: client2, remote_credential: mci_cred, value: mci_id_value }
+    it 'merges and deduplicates external ids' do
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+      expect(client1.ac_hmis_mci_ids.pluck(:value)).to contain_exactly(mci_id_value)
+    end
+  end
+
+  context 'with unique mci_ids' do
+    let!(:external_id_client_1) { create :mci_external_id, source: client1, remote_credential: mci_cred }
+    let!(:external_id_client_2) { create :mci_external_id, source: client2, remote_credential: mci_cred }
     it 'merges external ids' do
-      expect(client1.ac_hmis_mci_ids.pluck(:value).sort).to eq([external_id_client_1, external_id_client_2].map(&:value).sort)
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+      expect(client1.ac_hmis_mci_ids.pluck(:value)).to contain_exactly(external_id_client_1.value, external_id_client_2.value)
     end
   end
 

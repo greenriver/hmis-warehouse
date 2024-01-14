@@ -61,17 +61,70 @@ module Talentlms
       raise e unless e.message.include?('already enrolled')
     end
 
+    # Reset progress for a user in a course in TalentLMS
+    #
+    # @param user [User] the user
+    # @param course_id [Integer] the id of the course
+    def reset_user_progress(user, course_id = @api.courseid)
+      login = Login.find_by(user: user)
+      return false if login.nil?
+
+      @api.post('resetuserprogress', { course_id: course_id, user_id: login.lms_user_id })
+    end
+
+    # Log a completed training with the current TalentLMS course
+    #
+    # @param user [User] the user
+    # @param completion_date [Date] the date which the training was completed
+    # @param course_id [Integer] the id of the course
+    # @return [CompletedTraining] the completed training data
+    def log_course_completion(user, completion_date, course_id = @api.courseid)
+      login = Login.find_by(user: user)
+      return nil if login.nil?
+
+      CompletedTraining.where(login: login, config: @api, course_id: course_id, completion_date: completion_date).first_or_create
+    end
+
     # Get course completion status in TalentLMS
     #
     # @param user [User] the user
     # @param course_id [Integer] the id of the course
     # @return [Boolean] complete if the user has completed the course
-    def complete?(user, course_id)
+    def complete?(user, course_id = @api.courseid)
       login = Login.find_by(user: user)
       return false if login.nil?
 
       result = @api.get('getuserstatusincourse', { course_id: course_id, user_id: login.lms_user_id })
-      result['completed_on'] if result['completion_status'] == 'Completed'
+      return result['completed_on'] if result['completion_status'] == 'Completed'
+
+      false
+    end
+
+    # Checks if the user's training has expired
+    #
+    # @param user [User] the user
+    # @param verify_with_api [Boolean] call the API for the last completed date or use local data
+    # @return [Boolean] true if the user's training has expired
+    def training_expired?(user, verify_with_api = true)
+      # Recertification is only required when a value has been set for months_to_expiration
+      return false unless @api.months_to_expiration.present?
+
+      completed_on = verify_with_api ? complete?(user, @api.courseid) : user.last_training_completed
+      return false if completed_on.blank?
+
+      time_distance = if Rails.env.production? then :months else :days end
+      (completed_on.to_date + @api.months_to_expiration.send(time_distance)).past?
+    end
+
+    # Checks if the user requires training
+    #
+    # @param user [User] the user
+    # @return true if the user requires training
+    def training_required?(user)
+      return unless user.training_required?
+      return true unless user.training_completed?
+
+      training_expired?(user, false)
     end
 
     # Get the URL to send the user to for a course
