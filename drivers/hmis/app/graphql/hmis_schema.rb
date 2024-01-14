@@ -44,4 +44,11 @@ class HmisSchema < GraphQL::Schema
     # For example, use Rails' GlobalID library (https://github.com/rails/globalid):
     GlobalID.find(global_id)
   end
+
+  # By default, graphql-ruby returns nil for an unauthorized object. Override that to raise an exception instead
+  #   Note: this only changes the behavior of objects. Unauthorized fields resolve to nil
+  def self.unauthorized_object(error)
+    # Add a top-level error to the response instead of returning nil:
+    raise GraphQL::ExecutionError, "Authorization failure for #{error.type.graphql_name}"
+  end
 end
