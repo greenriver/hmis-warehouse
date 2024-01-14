@@ -33,6 +33,10 @@ BostonHmis::Application.routes.draw do
           to: 'reports#prevention_assessment_report',
           as: 'ac_prevention_assessment_report',
           defaults: { format: 'pdf' }
+      get 'ac/consumer_summary_report',
+          to: 'reports#consumer_summary_report',
+          as: 'ac_consumer_summary_report',
+          defaults: { format: 'pdf' }
 
       get 'theme', to: 'theme#index', defaults: { format: :json }
       get 'themes', to: 'theme#list', defaults: { format: :json }

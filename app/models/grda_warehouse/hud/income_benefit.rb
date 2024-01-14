@@ -125,7 +125,7 @@ module GrdaWarehouse::Hud
       :Medicaid,
       :Medicare,
       :SCHIP,
-      :VAMedicalServices,
+      :VHAServices,
       :EmployerProvided,
       :COBRA,
       :PrivatePay,
