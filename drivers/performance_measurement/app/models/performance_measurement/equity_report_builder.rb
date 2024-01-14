@@ -192,7 +192,7 @@ module PerformanceMeasurement
       [
         ['Count', 'count'],
         ['Percentage', 'percentage'],
-        # ['Rate', 'rate'],
+        ['Rate', 'rate'],
       ]
     end
   end

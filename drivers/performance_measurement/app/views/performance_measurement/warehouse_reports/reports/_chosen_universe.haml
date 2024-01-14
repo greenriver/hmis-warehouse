@@ -6,7 +6,7 @@
           .d-flex
             = @report.describe_filter_as_html
           .ml-auto.nobr
-            = render 'filters/view_filter_details', filter_hash: @report.filter.to_h, selected_keys: @report.known_params, external: @external
+            = render 'filters/view_filter_details', filter_hash: @report.filter.to_h, selected_keys: @report.known_params, external: @include_in_published_version
       - content_for :panel_collapse_heading_universe do
         .d-flex.pt-4
           %h2.mb-4.mr-6 Chosen Universe
@@ -17,7 +17,7 @@
             .j-toggle-text.ml-2.hide Hide Details
       .minimal-collapse
         = render 'common/panel_collapse', id: 'universe', title: 'Chosen Universe', content: '_universe', heading_slug: '_universe', arrow_icon: 'icon-angle'
-    - if !@external && @report.show_spm_link? && @report.reporting_spm_id.present? && @report.comparison_spm_id.present?
+    - if !@include_in_published_version && @report.show_spm_link? && @report.reporting_spm_id.present? && @report.comparison_spm_id.present?
       .col-2
         %h3.mb-4 SPMs
         .mb-2

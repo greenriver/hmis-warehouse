@@ -109,22 +109,11 @@ module PerformanceMeasurement
     end
 
     def metric_scope(period)
-      # FIXME: we may need to hide other parts of the form until metric is selected? Other things depend on this (project).
       metric_params.present? ? @report.clients_for_question(metric_params, period.to_sym) : @report.clients
     end
 
     def percentage_denominator(period, _investigate_by)
       return metric_scope(period).select(:client_id).distinct.count
-      # FIXME: Not sure if this is correct
-      # case period
-      # when 'reporting'
-      #   @report.client_projects.where(period: period).count
-      # when 'comparison'
-      #   # TODO: apply filters to this?
-      #   # FIXME: I think this is wrong???
-      #   client_ids = apply_params(client_scope(period, investigate_by), period).map(&:client_id)
-      #   @report.client_projects.where(period: period).where(client_id: client_ids).count
-      # end
     end
 
     def client_scope(period, _)
@@ -170,11 +159,14 @@ module PerformanceMeasurement
     def apply_view_by_params(count, period, investigate_by)
       case view_by_params
       when 'percentage'
+        return 0 if count.zero? || percentage_denominator(period, investigate_by).zero?
+
         (count.to_f / percentage_denominator(period, investigate_by) * 100).round
       when 'count'
         count
       when 'rate'
-        # FIXME
+        return 0 if count.zero? || percentage_denominator(period, investigate_by).zero?
+
         (count.to_f / percentage_denominator(period, investigate_by) * 10_000).round
       end
     end

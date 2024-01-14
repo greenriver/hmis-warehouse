@@ -1,4 +1,3 @@
-# FIXME FAKE DATA
 module PerformanceMeasurement
   class EquityReportHouseholdTypeData < PerformanceMeasurement::EquityReportData
     def data_groups

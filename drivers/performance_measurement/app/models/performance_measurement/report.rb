@@ -501,21 +501,35 @@ module PerformanceMeasurement
           key: :served_on_pit_date_unsheltered, # note, actually yearly overall count
           data: ->(_) {
             {}.tap do |project_types_by_client_id|
-              report_scope.joins(:service_history_services, :project, :client, :enrollment).
+              cols = {
+                client_id: :client_id,
+                dob: c_t[:DOB],
+                project_id: p_t[:id],
+                housing_status_at_entry: e_t[:LivingSituation],
+                head_of_household: :head_of_household,
+                hh_id: e_t[:HouseholdID],
+                enrollment_id: e_t[:id],
+              }
+              rows = report_scope.joins(:service_history_services, :project, :client, :enrollment).
                 # where(shs_t[:date].eq(filter.pit_date)). # removed to become yearly to match SPM M3 3.2
                 so.distinct.
-                pluck(:client_id, c_t[:DOB], p_t[:id], e_t[:LivingSituation], :head_of_household).
-                each do |client_id, dob, project_id, housing_status_at_entry, head_of_household|
-                  project_types_by_client_id[client_id] ||= {
-                    value: true,
-                    project_ids: {},
-                    dob: dob,
-                    housing_status_at_entry: housing_status_at_entry,
-                    head_of_household: head_of_household,
-                    household_id: nil, # FIXME?
-                  }
-                  project_types_by_client_id[client_id][:project_ids][project_id] = nil
-                end
+                pluck(*cols.values)
+              # NOTE: even though we're pullin for the full year, we're using age on the PIT date for now.
+              calculate_households_for_extra(rows, cols.keys, filter.pit_date)
+              rows.each do |row|
+                row = cols.keys.zip(row).to_h
+                hh_id = hh_id_for_row(row[:hh_id], row[:enrollment_id])
+                ages = households[hh_id].flatten
+                project_types_by_client_id[client_id] ||= {
+                  value: true,
+                  project_ids: {},
+                  dob: row[:dob],
+                  housing_status_at_entry: row[:housing_status_at_entry],
+                  head_of_household: row[:head_of_household],
+                  household_id: hh_id,
+                }
+                project_types_by_client_id[row[:client_id]][:project_ids][row[:project_id]] = household_type_for_extra(ages)
+              end
             end
           },
           value_calculation: ->(calculation, client_id, data) {
@@ -540,7 +554,7 @@ module PerformanceMeasurement
                     value: [],
                     project_ids: {},
                     dob: nil,
-                    household_id: nil, # FIXME?
+                    household_id: nil,
                   }
                   days_by_client_id[client_id][:value] << { project_id => days }
                   days_by_client_id[client_id][:project_ids][project_id] = nil
@@ -570,7 +584,7 @@ module PerformanceMeasurement
                     value: 0,
                     project_ids: {},
                     dob: nil,
-                    household_id: nil, # FIXME?
+                    household_id: nil, # FIXME, needs household calculations
                   }
                   days_by_client_id[client_id][:value] += days
                   days_by_client_id[client_id][:project_ids][project_id] = nil
@@ -627,6 +641,7 @@ module PerformanceMeasurement
                   days_by_client_id[client_id][:value] << { project_id => days }
                   days_by_client_id[client_id][:project_ids][project_id] = nil
                   days_by_client_id[client_id][:dob] = dobs[client_id]
+                  # FIXME: needs household type calculation
                 end
             end
           },
@@ -670,6 +685,7 @@ module PerformanceMeasurement
                   days_by_client_id[client_id][:value] += days
                   days_by_client_id[client_id][:project_ids][project_id] = nil
                   days_by_client_id[client_id][:dob] = dobs[client_id]
+                  # FIXME: needs household type calculation
                 end
             end
           },
@@ -772,6 +788,7 @@ module PerformanceMeasurement
                   days_by_client_id[client_id][:value] += days
                   days_by_client_id[client_id][:project_ids][project_id] = nil
                   days_by_client_id[client_id][:dob] = dobs[client_id]
+                  # FIXME: needs household type
                 end
             end
           },

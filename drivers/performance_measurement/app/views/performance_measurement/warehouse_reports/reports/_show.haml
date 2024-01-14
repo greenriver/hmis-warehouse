@@ -1,5 +1,5 @@
 = render 'chosen_universe'
-= render 'report_tabs'
+= render 'report_tabs' unless @include_in_published_version
 = render 'summary'
 = render 'rows', pdf: false
 

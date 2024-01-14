@@ -18,7 +18,7 @@ module PerformanceMeasurement::WarehouseReports
     before_action :set_report, except: [:index, :create, :details]
     before_action :set_pdf_export, only: [:show]
 
-    @external = false
+    @include_in_published_version = false
 
     def index
       @filter.default_project_type_codes = report_class.default_project_type_codes
