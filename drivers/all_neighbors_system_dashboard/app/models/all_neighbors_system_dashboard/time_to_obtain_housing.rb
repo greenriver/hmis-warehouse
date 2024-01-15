@@ -61,7 +61,7 @@ module AllNeighborsSystemDashboard
         'household_average_days',
         :stack,
         options: {
-          types: ['ID to Referral', 'Referral to Move-in*'],
+          types: ['ID to Referral', 'Referral to Move-in'],
           colors: ['#336770', '#E6B70F'],
           label_colors: ['#ffffff', '#000000'],
         },
@@ -72,8 +72,8 @@ module AllNeighborsSystemDashboard
       # ids need to match the types above (except total)
       {
         ident_to_move_in: { name: 'Identification to Move-In', id: to_key('total') },
-        ident_to_referral: { name: 'Identification to Referral', id: to_key('ID to Referral') },
-        referral_to_move_in: { name: 'Referral to Move-In', id: to_key('Referral to Move-in*') },
+        # ident_to_referral: { name: 'Identification to Referral', id: to_key('ID to Referral') },
+        # referral_to_move_in: { name: 'Referral to Move-In', id: to_key('Referral to Move-in') },
       }
     end
 
@@ -103,8 +103,10 @@ module AllNeighborsSystemDashboard
       cl(en_t[:ce_referral_date], en_t[:ce_entry_date], en_t[:entry_date])
     end
 
+    # For the purposes of time to obtain housing, only clients with a move-in date, CE Entry Date, and CE Referral Date
+    # are included in the calculation
     private def moved_in_scope
-      report_enrollments_enrollment_scope.
+      with_ce_data.
         moved_in_in_range(@report.filter.range, filter: @report.filter)
     end
 
@@ -142,7 +144,7 @@ module AllNeighborsSystemDashboard
               case category
               when 'ID to Referral'
                 identification_to_referral(scope)
-              when 'Referral to Move-in*'
+              when 'Referral to Move-in'
                 referral_to_move_in(scope)
               else
                 raise "Unknown Category #{category}"

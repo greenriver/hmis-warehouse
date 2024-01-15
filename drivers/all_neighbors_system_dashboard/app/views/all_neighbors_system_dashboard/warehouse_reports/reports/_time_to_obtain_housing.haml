@@ -25,13 +25,13 @@
 .mb-7= render 'filter_labels', tab: tab, labels: ['project_type', 'household_type', 'demographics', 'date_range']
 
 .row.align-items-stretch.mb-7
-  .col-xs-12.col-md-3.mb-4
+  .col-xs-12.col-md-6.mb-4
     .h-100.d-flex.align-items-center
       %div
         %h2 Overall Time to Obtain Housing
 
   - all_data.overall_data.each do |key, value|
-    .col-xs-12.col-md-3.mb-4
+    .col-xs-12.col-md-6.mb-4
       .card.h-100.text-center.px-4.py-3{class: css_namespace(tab[:id], 'card')}
         %span{id: chart_id(tab[:id], 'stacked', value[:id])}
         %h3= value[:name]

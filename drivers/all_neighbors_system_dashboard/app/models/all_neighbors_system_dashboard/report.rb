@@ -18,6 +18,8 @@ module AllNeighborsSystemDashboard
 
     include ::WarehouseReports::Publish
 
+    PILOT_END_DATE = '2023-01-05'.to_date.freeze
+
     has_one_attached :result_file
     has_many :datasets, class_name: '::GrdaWarehouse::Dataset', as: :source
     has_many :published_reports, dependent: :destroy, class_name: '::GrdaWarehouse::PublishedReport'
@@ -92,6 +94,8 @@ module AllNeighborsSystemDashboard
         report_enrollments = {}
         ce_infos = ce_infos_for_batch(filter, batch)
         return_dates = return_dates_for_batch(filter, batch)
+        pilot_project_ids = filter.effective_project_ids_from_secondary_project_groups
+
         batch.each do |enrollment|
           source_enrollment = enrollment.enrollment
           hoh_enrollment = enrollment.service_history_enrollment_for_head_of_household&.enrollment || source_enrollment
@@ -104,16 +108,21 @@ module AllNeighborsSystemDashboard
           # invalidate move_in_date if it's after the report end_date
           move_in_date = nil if move_in_date.present? && move_in_date > filter.end_date
 
-          # Exclude any client who doesn't have all three items:
-          # 1. CE Entry Date
-          # 2. CE Referral Date
-          # 3. Move-in date or Exit from diversion to a permanent destination
-          next unless ce_info.present?
-          next unless max_event.present?
-
           exit_type = exit_type(filter, enrollment)
           diversion_enrollment = enrollment.project.id.in?(filter.secondary_project_ids)
+          # Exclude anyone who didn't have a positive diversion exit, or a move-in date
           next if (diversion_enrollment && exit_type != 'Permanent') || move_in_date.blank?
+
+          placed_date = if diversion_enrollment
+            exit_date(filter, enrollment)
+          else
+            move_in_date
+          end
+          # Exclude any client who doesn't have a placement
+          next unless placed_date.present?
+
+          # Only count DRTRR projects for placement dates prior to 5/1/2023
+          next if placed_date < PILOT_END_DATE && !pilot_project_ids.include?(enrollment.project.id)
 
           report_enrollments[enrollment.id] = Enrollment.new(
             report_id: id,
@@ -125,6 +134,7 @@ module AllNeighborsSystemDashboard
             entry_date: enrollment.first_date_in_program,
             move_in_date: move_in_date,
             exit_date: exit_date(filter, enrollment),
+            placed_date: placed_date,
             adjusted_exit_date: adjusted_exit_date(filter, enrollment),
             exit_type: exit_type,
             destination: enrollment.destination,

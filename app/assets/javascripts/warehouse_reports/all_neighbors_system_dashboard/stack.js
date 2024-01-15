@@ -206,7 +206,7 @@ class AllNeighborsSystemDashboardStack {
       return {
         text: d3.sum(
           chart.data().map((d) => d3.format('.0f')(d.values[i].value))
-        ), 
+        ),
         value: d3.sum(chart.data().map((d) => d.values[i].value)),
       }
     })
@@ -329,6 +329,7 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
       return col.concat(this.series.map((d) => d.name))
     } else {
       const index = this.config.keys.indexOf(name)
+      let household_count = 0
       this.series.forEach((d) => {
         const total = d.series.filter((n) => {
           if(this.state.dateRange) {
@@ -342,8 +343,14 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
           }
           return true
         })
-        .map((s) => s.values[index])
-        col.push(d3.mean(total))
+        .map((s) => {
+          // Because these are averages, they need to be multiplied
+          // by the number of households to get the correct value
+          household_count += s.households_count
+          return s.values[index] * s.households_count
+        })
+        // console.log(d3.sum(total), household_count, total)
+        col.push(d3.sum(total) / household_count)
       })
       return col
     }
@@ -400,10 +407,9 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
       tooltip: {
         contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
           const index = d[0].index
-          const householdTotal = d3.sum(
-            this.series[index].series.filter((n) => this.inDateRange(n.date, this.state.dateRange)),
-            (n) => n.household_count  
-          )
+          let household_counts = this.series[index].series.filter((n) => this.inDateRange(n.date, this.state.dateRange))
+            .map((n) => { return n.households_count })
+          const householdTotal = d3.sum(household_counts)
           const barName = this.series[index].name
           const dateString = this.state.dateRange.map((d) => new Date(d).toLocaleDateString('en-us', {year: 'numeric', month: 'short'})).join(' - ')
           const swatches = d.map((n) => {

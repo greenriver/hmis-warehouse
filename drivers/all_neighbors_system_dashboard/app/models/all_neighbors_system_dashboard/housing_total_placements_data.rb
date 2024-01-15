@@ -24,20 +24,16 @@ module AllNeighborsSystemDashboard
       @project_types_with_data ||= line_data[:project_types].reject { |m| m[:count_levels].flatten.map { |n| n[:monthly_counts] }.flatten(2).map(&:last).all?(0) }.map { |m| m[:project_type] }
     end
 
-    # Count once per client per day per type
+    # Count once per client per day
+    # NOTE: the enrollments table will never have more than one enrollment
+    # per client per day
     private def count_one_client_per_date_arel
       nf(
         'concat',
         [
           Enrollment.arel_table[:destination_client_id],
           ' ',
-          Enrollment.arel_table[:project_type],
-          ' ',
-          Enrollment.arel_table[:household_type],
-          ' ',
-          cl(Enrollment.arel_table[:age], -1),
-          ' ',
-          cl(Enrollment.arel_table[:move_in_date], Enrollment.arel_table[:exit_date]),
+          Enrollment.arel_table[:placed_date],
         ],
       )
     end
@@ -145,7 +141,7 @@ module AllNeighborsSystemDashboard
 
     private def filter_for_date(scope, date, start_date: date.beginning_of_month)
       range = start_date .. date.end_of_month
-      scope.housed_in_range(range, filter: @report.filter)
+      scope.placed_in_range(range)
     end
 
     # private def filter_for_unhoused_date(scope, date)

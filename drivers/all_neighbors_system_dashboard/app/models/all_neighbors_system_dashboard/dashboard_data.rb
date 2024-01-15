@@ -14,9 +14,13 @@ module AllNeighborsSystemDashboard
       Enrollment.where(report_id: @report.id)
     end
 
+    def with_ce_data
+      report_enrollments_enrollment_scope.where.not(ce_entry_date: nil, ce_referral_date: nil)
+    end
+
     private def housed_total_scope
       report_enrollments_enrollment_scope.
-        housed_in_range(@report.filter.range, filter: @report.filter).
+        placed_in_range(@report.filter.range).
         distinct
     end
 
