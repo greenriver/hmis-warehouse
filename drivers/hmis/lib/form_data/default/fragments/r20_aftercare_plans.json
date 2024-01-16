@@ -33,38 +33,24 @@
       }
     },
     {
-      "type": "GROUP",
-      "link_id": "R20.2.conditionals",
+      "type": "CHOICE",
+      "link_id": "R20.1.methods",
+      "required": false,
+      "warn_if_empty": true,
+      "repeats": true,
+      "text": "Identify the primary way(s) it was provided",
+      "readonly_text": "Primary way(s) it was provided",
+      "pick_list_reference": "AftercareMethod",
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "aftercareMethods"
+      },
       "enable_behavior": "ANY",
       "enable_when": [
         {
           "question": "R20.2",
-          "operator": "EXISTS",
-          "answer_boolean": true
-        }
-      ],
-      "item": [
-        {
-          "type": "CHOICE",
-          "link_id": "R20.1.methods",
-          "required": false,
-          "warn_if_empty": true,
-          "repeats": true,
-          "text": "Identify the primary way(s) it was provided",
-          "readonly_text": "Primary way(s) it was provided",
-          "pick_list_reference": "AftercareMethod",
-          "mapping": {
-            "record_type": "EXIT",
-            "field_name": "aftercareMethods"
-          },
-          "enable_behavior": "ANY",
-          "enable_when": [
-            {
-              "question": "R20.2",
-              "operator": "EQUAL",
-              "answer_code": "YES"
-            }
-          ]
+          "operator": "EQUAL",
+          "answer_code": "YES"
         }
       ]
     }
