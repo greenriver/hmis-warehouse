@@ -85,12 +85,10 @@ module HudSpmReport::Fy2023
               # merge(GrdaWarehouse::Hud::Service.bed_night.between(start_date: report_start_date, end_date: report_end_date)).
               # pluck(s_t[:id], s_t[:record_type], s_t[:date_provided]).
               map do |service|
-                service_id = service.id
-                record_type = service.record_type
                 date = service.date_provided
-                next unless record_type == HudUtility2024.record_type('Bed Night', true) && date.between?(report_start_date, report_end_date)
+                next unless service.record_type == HudUtility2024.record_type('Bed Night', true) && date.between?(report_start_date, report_end_date)
 
-                [enrollment, service_id, date]
+                [enrollment, service.id, date]
               end.compact.group_by(&:last).
               transform_values { |v| Array.wrap(v).last }, # Unique by date
           )

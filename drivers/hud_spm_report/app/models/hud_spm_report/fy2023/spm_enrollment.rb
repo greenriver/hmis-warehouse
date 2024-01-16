@@ -269,8 +269,8 @@ module HudSpmReport::Fy2023
         enrollment.income_benefits.select do |ib|
           ib.data_collection_stage == 5 && ## Annual update
             ib.information_date <= end_date &&
-            date_in_annual_update_window(ib.information_date, enrollment)
-        end.sort_by(&:information_date).reverse.first
+            date_in_annual_update_window?(ib.information_date, enrollment)
+        end.max_by(&:information_date)
       end
     end
 
@@ -288,11 +288,11 @@ module HudSpmReport::Fy2023
       enrollment.income_benefits.select do |ib|
         ib.data_collection_stage == 5 && ## Annual update
           ib.information_date < annual_date &&
-          date_in_annual_update_window(ib.information_date, enrollment)
-      end.sort_by(&:information_date).reverse.first || enrollment.income_benefits_at_entry # Default to entry assessment if less than 2 years
+          date_in_annual_update_window?(ib.information_date, enrollment)
+      end.max_by(&:information_date) || enrollment.income_benefits_at_entry # Default to entry assessment if less than 2 years
     end
 
-    private_class_method def self.date_in_annual_update_window(date, enrollment)
+    private_class_method def self.date_in_annual_update_window?(date, enrollment)
       entry_date = enrollment.entry_date
       interval = 30.days
       window_date = Date.new(date.year, entry_date.month, entry_date.day)
