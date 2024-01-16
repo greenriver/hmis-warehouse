@@ -57,10 +57,12 @@ module GrdaWarehouse::Tasks
 
       sh_project_types_for_check = sh_project_types(project)
       project_types_match_sh_types = true
+      # If SHE only has one set of project types, that's generally good, just confirm they match the project's types
       if sh_project_types_for_check.count == 1
         (project_type, computed_project_type) = sh_project_types_for_check.first
         project_types_match_sh_types = project.ProjectType == project_type && project.computed_project_type == computed_project_type
       end
+      # If SHE has more than one set of project types, we'll need to rebuild
       project_type_changed_in_source = sh_project_types_for_check.count > 1
       project_type_changed_in_source || project_override_changed || ! project_types_match_sh_types
     end
