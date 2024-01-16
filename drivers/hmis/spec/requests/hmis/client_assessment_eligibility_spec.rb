@@ -58,7 +58,8 @@ RSpec.describe 'Graphql HMIS Assessment Eligibility', type: :request do
 
     context 'with project exit' do
       before(:each) do
-        create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 3)
+        create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, client: c1, data_collection_stage: 3)
+        create(:hmis_form_instance, entity: e1.project, definition_identifier: 'base-post_exit')
       end
       it 'resolves post-exit and annual' do
         records = run_query(enrollment: e1)
