@@ -7,8 +7,16 @@
 module Hmis::Hud::Processors
   class CeAssessmentProcessor < Base
     def factory_name
-      :owner_factory
+      case @processor.owner
+      when Hmis::Hud::Assessment
+        :owner_factory
+      when Hmis::Hud::CustomAssessment
+        :ce_assessment_factory
+      else
+        raise "processor owner #{@processor.owner_type} not hanlded"
+      end
     end
+
 
     def schema
       Types::HmisSchema::CeAssessment

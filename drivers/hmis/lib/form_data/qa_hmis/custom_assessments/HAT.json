@@ -2,6 +2,7 @@
   "item": [
     {
       "type": "GROUP",
+      "text": "Housing Assessment Tool",
       "link_id": "event-group",
       "item": [
         {
@@ -9,6 +10,7 @@
           "required": true,
           "link_id": "4.19.1",
           "text": "Assessment Date",
+          "assessment_date": true,
           "mapping": {
             "record_type": "ASSESSMENT",
             "field_name": "assessmentDate"

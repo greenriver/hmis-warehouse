@@ -383,7 +383,7 @@ module HmisUtil
         load_definition(
           form_definition: parse_json_file(filename),
           identifier: identifier,
-          role: :CUSTOM_ASSESSMENT,
+          role: :UPDATE,
           title: identifier.humanize,
         )
       end
@@ -437,6 +437,7 @@ module HmisUtil
           end
         }
         collect_enums.call(Types::HmisSchema::Enums)
+        collect_enums.call(Types::Forms::Enums)
         enums + Types::Forms::Enums::PickListType.values.keys
       end
     end

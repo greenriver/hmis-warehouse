@@ -150,6 +150,15 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
   end
 
+  def ce_assessment_factory(create: true)
+    return ce_assessment if ce_assessment || !create
+
+    ce_assessment = enrollment_factory.assessments.build(
+      personal_id: enrollment_factory.personal_id,
+      user_id: custom_assessment&.user_id,
+    )
+  end
+
   def health_and_dv_factory(create: true)
     return health_and_dv if health_and_dv.present? || !create
 
@@ -283,6 +292,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       :physical_disability_factory,
       :developmental_disability_factory,
       :chronic_health_condition_factory,
+      :ce_assessment_factory,
       :hiv_aids_factory,
       :mental_health_disorder_factory,
       :substance_use_disorder_factory,

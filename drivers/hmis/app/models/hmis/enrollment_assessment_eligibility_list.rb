@@ -45,8 +45,9 @@ class Hmis::EnrollmentAssessmentEligibilityList
 
     # FIXME: this could be one query rather than ~25 queries :(
     roles.each do |role|
-      definition = Hmis::Form::Definition.for_project(project: project, role: role).first
-      yield(definition) if definition
+      Hmis::Form::Definition.for_project(project: project, role: role).each do |definition|
+        yield(definition)
+      end
     end
   end
 

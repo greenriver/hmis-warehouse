@@ -173,6 +173,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     definition_scope = definition_scope.for_service_type(service_type) if service_type.present?
     base_scope = Hmis::Form::Instance.joins(:definition).merge(definition_scope)
 
+    instance_scope = base_scope.all_possible_for_project(project)
+    return where(identifier: instance_scope.map(&:definition_identifier))
+
     # Choose the first scope that has any records. Prefer more specific instances.
     instance_scope = Hmis::Form::Instance.detect_best_instance_scope_for_project(base_scope, project: project)
     return none unless instance_scope.present?
