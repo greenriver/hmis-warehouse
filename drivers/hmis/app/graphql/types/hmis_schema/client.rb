@@ -30,6 +30,10 @@ module Types
 
     # check for the most minimal permission needed to resolve this object
     def self.authorized?(object, ctx)
+      # if this record was just destroyed in a mutation, our normal auth check won't work. Assume the mutation performed
+      # authorization
+      return super if object.deleted?
+
       permission = :can_view_clients
       super && GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: permission, entity: object)
     end
