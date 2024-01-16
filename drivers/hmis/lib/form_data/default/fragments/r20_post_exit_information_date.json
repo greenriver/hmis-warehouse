@@ -2,7 +2,7 @@
   "type": "GROUP",
   "link_id": "r20.postExitInformationDate",
   "data_collected_about": "HOH_AND_ADULTS",
-  "text": "Post-Exit Details",
+  "text": "Date Collected",
   "item": [
     {
       "type": "DATE",
@@ -22,7 +22,12 @@
           "value_local_constant": "$exitDate"
         },
         {
-          "id": "max-future-date",
+          "id": "max-cannot-be-future",
+          "type": "MAX",
+          "value_local_constant": "$today"
+        },
+        {
+          "id": "max-180-after-exit",
           "type": "MAX",
           "value_local_constant": "$exitDate",
           "offset": 180
