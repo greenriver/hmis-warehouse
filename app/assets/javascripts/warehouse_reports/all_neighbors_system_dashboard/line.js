@@ -20,7 +20,7 @@ class AllNeighborsSystemDashboardLine {
   }
 
   test() {
-    console.log(this)
+    console.debug(this)
   }
 
   inDateRange(dateString, range) {
@@ -143,7 +143,7 @@ class AllNeighborsSystemDashboardLine {
             html += "<tbody>"
             html += `<tr><td>New ${this.countLevel.count_level.slice(0, -1)} Placements</td><td>${d3.format(',')(monthlyCount)}</td></tr>`
             html += `<tr><td>Total ${this.countLevel.count_level} Placed to Date</td><td>${d3.format(',')(d[0].value)}</td></tr>`
-            html += `<tr><td>Unique  ${this.countLevel.count_level} Housed to Date</td><td>${d3.format(',')(uniqueCount)}</td></tr>`
+            // html += `<tr><td>Unique  ${this.countLevel.count_level} Housed to Date</td><td>${d3.format(',')(uniqueCount)}</td></tr>`
             html += "</tbody>"
             html += "</table>"
             return html

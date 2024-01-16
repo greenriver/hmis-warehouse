@@ -31,7 +31,7 @@
 - content_for :page_js do
   :javascript
     $(document).ready(function() {
-      console.log('Returns To Homelessness -----------------')
+      console.debug('Returns To Homelessness -----------------')
       var data = #{chart_data.to_json.html_safe}
       var barData = #{all_data.bars.to_json.html_safe}
       var stackedIds = #{stacked_ids.to_json.html_safe}

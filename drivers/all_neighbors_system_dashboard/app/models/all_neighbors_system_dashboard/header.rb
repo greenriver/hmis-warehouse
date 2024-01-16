@@ -48,7 +48,6 @@ module AllNeighborsSystemDashboard
       end
     end
 
-    # FIXME: this needs to be calculated from the monthly averages
     def average_days_to_obtain_housing
       # DB only method, doesn't quite give the same result
       # en_t = Enrollment.arel_table
@@ -61,20 +60,7 @@ module AllNeighborsSystemDashboard
       #   ),
       # )
 
-      time_data = AllNeighborsSystemDashboard::TimeToObtainHousing.new(@report).stacked_data
-      # There must be a better way to obtain this
-      # We are duplicating the JavaScript logic so this ends up being the same value as the overall chart
-      records = time_data[:project_types].first['household_types'].first['demographics'].first['series'].detect { |s| s['name'] == 'Overall' }['series']
-      # values are [id->referral, referral->move-in]
-      household_count = 0
-      averages = 0
-      records.each do |row|
-        household_count += row['households_count']
-        averages += row['values'].last * row['households_count']
-      end
-      return 0 if averages.zero? || household_count.zero?
-
-      averages / household_count
+      AllNeighborsSystemDashboard::TimeToObtainHousing.new(@report).overall_average_time(:referral_to_move_in)
     end
 
     def returned_percent

@@ -55,6 +55,30 @@ module AllNeighborsSystemDashboard
       data
     end
 
+    def overall_average_time(category = :referral_to_move_in)
+      # There must be a better way to obtain this
+      # We are duplicating the JavaScript logic so this ends up being the same value as the overall chart
+      records = stacked_data[:project_types].first['household_types'].first['demographics'].first['series'].detect { |s| s['name'] == 'Overall' }['series']
+      # values are [id->referral, referral->move-in]
+      household_count = 0
+      averages = 0
+      records.each do |row|
+        household_count += row['households_count']
+        days = case category
+        when :referral_to_move_in
+          row['values'].last
+        when :identification_to_move_in
+          row['values'].sum
+        else
+          raise "Unknown category: #{category}"
+        end
+        averages += days * row['households_count']
+      end
+      return 0 if averages.zero? || household_count.zero?
+
+      averages / household_count
+    end
+
     def stacked_data
       return data(
         'Household Average Days from Identification to Housing by Race',
@@ -105,8 +129,9 @@ module AllNeighborsSystemDashboard
 
     # For the purposes of time to obtain housing, only clients with a move-in date, CE Entry Date, and CE Referral Date
     # are included in the calculation
+    # In addition, we only look at households for time to obtain housing, so always limit to HoH
     private def moved_in_scope
-      with_ce_data.
+      with_ce_data.hoh.
         moved_in_in_range(@report.filter.range, filter: @report.filter)
     end
 
@@ -130,7 +155,7 @@ module AllNeighborsSystemDashboard
         {
           name: bar,
           series: date_range.map do |date|
-            household_scope = moved_in_scope.hoh.select(:destination_client_id).distinct
+            household_scope = moved_in_scope.select(:destination_client_id).distinct
             household_scope = filter_for_type(household_scope, bar)
             household_scope = filter_for_date(household_scope, date)
             averages = options[:types].map do |category|

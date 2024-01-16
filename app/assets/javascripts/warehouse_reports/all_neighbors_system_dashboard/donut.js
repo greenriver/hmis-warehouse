@@ -17,7 +17,7 @@ class AllNeighborsSystemDashboardDonut {
   }
 
   test() {
-    console.log(this)
+    console.debug(this)
   }
 
   inDateRange(dateString, range) {

@@ -25,7 +25,7 @@ class AllNeighborsSystemDashboardStack {
   }
 
   test() {
-    console.log(this)
+    console.debug(this)
   }
 
   inDateRange(dateString, range) {
@@ -442,7 +442,8 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
         fitLabels(this)
         // add values to overall cards
         const overallIndex = series.map((d) => d.name).indexOf('Overall')
-        const overallData = this.data().map((d) => d.values[overallIndex].value)
+        // So that this matches the sum in the chart, we need to round before we sum
+        const overallData = this.data().map((d) => Math.round(d.values[overallIndex].value))
         classConfig.keys.concat(['total']).forEach((d, i) => {
           const labelClass = `${selector}__${d}`
           const label = d3.select(`${selector}__${d}`)

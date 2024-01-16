@@ -28,7 +28,7 @@
   .col-xs-12.col-md-6.mb-4
     .h-100.d-flex.align-items-center
       %div
-        %h2 Overall Time to Obtain Housing
+        %h2 Average Days to Obtain Housing
 
   - all_data.overall_data.each do |key, value|
     .col-xs-12.col-md-6.mb-4
@@ -36,22 +36,22 @@
         %span{id: chart_id(tab[:id], 'stacked', value[:id])}
         %h3= value[:name]
 %h3
-  Household Average Days form Idendification to Housing by
+  Household Average Days form Identification to Housing by
   %span{class: filter_label_id(tab[:id], 'demographic')} Race
 .border.p-4
   .d-flex.justify-content-between.align-items-center
     %small Mouse over chart below for more details
-    .d-flex{id: legend_id(tab[:id], "stacked")}
+    .d-flex{id: legend_id(tab[:id], 'stacked')}
 .d-flex.mt-5
   .pr-8{style: 'flex: 0 0 auto;width: 300px;text-align:right;'}
     %strong{class: filter_label_id(tab[:id], 'demographic')}
-  %strong Average Days From ID to Housing
+  %strong Average Days From Identification to Housing Move-In
 %div{id: chart_id(tab[:id], 'stacked')}
 
 - content_for :page_js do
   :javascript
     $(document).ready(function() {
-      console.log('Time To Obtain Housing -----------------')
+      console.debug('Time To Obtain Housing -----------------')
       var data = #{chart_data.to_json.html_safe}
 
       var charts = [

@@ -36,7 +36,7 @@
 - content_for :page_js do
   :javascript
     $(document).ready(function() {
-      console.log('Unhoused Population -----------------')
+      console.debug('Unhoused Population -----------------')
       var verticalStackData = #{all_data.vertical_stack.to_json.html_safe}
 
       var donutData = #{all_data.donut_data.to_json.html_safe}
