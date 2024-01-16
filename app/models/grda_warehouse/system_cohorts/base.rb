@@ -163,6 +163,7 @@ module GrdaWarehouse::SystemCohorts
         youth_no_child_cohort: GrdaWarehouse::SystemCohorts::YouthNoChild,
         youth_and_child_cohort: GrdaWarehouse::SystemCohorts::YouthAndChild,
         youth_hoh_cohort: GrdaWarehouse::SystemCohorts::YouthHoh,
+        chronic_individual_cohort: GrdaWarehouse::SystemCohorts::ChronicIndividual,
       }.freeze
     end
   end
