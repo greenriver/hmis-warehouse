@@ -234,14 +234,13 @@ module HudSpmReport::Fy2023
     end
 
     private_class_method def self.eligible_funding?(enrollment, start_date, end_date)
-      enrollment.project.funders.each do |funder|
+      enrollment.project.funders.any? do |funder|
         # Unroll open_between to allow preload
-        if funder.funder.in?(HudUtility2024.spm_coc_funders.map(&:to_s)) &&
+        funder.funder.in?(HudUtility2024.spm_coc_funders.map(&:to_s)) &&
+          # Unroll open_between to allow preload
           (funder.end_date.nil? || funder.end_date >= start_date) &&
           funder.start_date <= end_date
-        end
       end
-      false
     end
 
     private_class_method def self.total_income(income_benefit)
@@ -277,6 +276,7 @@ module HudSpmReport::Fy2023
 
     private_class_method def self.previous_income_benefits(enrollment, annual_date, end_date)
       return enrollment.income_benefits_at_entry if enrollment.exit.present? && enrollment.exit.exit_date <= end_date
+      return enrollment.income_benefits_at_entry if annual_date.nil? # Return entry if no annual date
 
       # Most recent annual update on or before the renewal date, or the entry assessment
       # enrollment.
@@ -284,6 +284,7 @@ module HudSpmReport::Fy2023
       #   where(information_date: ...annual_date).
       #   where(annual_update_window_sql(enrollment)).
       #   order(information_date: :desc).
+      #   first
       enrollment.income_benefits.select do |ib|
         ib.data_collection_stage == 5 && ## Annual update
           ib.information_date < annual_date &&
@@ -296,7 +297,7 @@ module HudSpmReport::Fy2023
       interval = 30.days
       window_date = Date.new(date.year, entry_date.month, entry_date.day)
 
-      window_date - interval .. window_date + interval
+      date.between?(window_date - interval, window_date + interval)
     end
 
     private_class_method def self.annual_update_window_sql(enrollment)
