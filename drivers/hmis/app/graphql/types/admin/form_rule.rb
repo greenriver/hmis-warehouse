@@ -31,9 +31,9 @@ module Types
     field :funder, Types::HmisSchema::Enums::Hud::FundingSource, null: true
     field :other_funder, String, null: true
     field :organization_id, ID, null: true
-    field :organization, HmisSchema::Organization, null: true
+    field :organization_name, String, null: true
     field :project_id, ID, null: true
-    field :project, HmisSchema::Project, null: true
+    field :project_name, String, null: true
     field :service_category, HmisSchema::ServiceCategory, null: true, method: :custom_service_category
     field :service_type, HmisSchema::ServiceType, null: true, method: :custom_service_type
     field :data_collected_about, Types::Forms::Enums::DataCollectedAbout, null: true
@@ -59,10 +59,26 @@ module Types
     end
 
     def project_id
-      return unless object.entity_type == Hmis::Hud::Project.sti_name
-
-      object.entity_id
+      project&.id
     end
+
+    def project_name
+      project&.project_name
+    end
+
+    def organization_id
+      organization&.id
+    end
+
+    def organization_name
+      organization&.organization_name
+    end
+
+    def active_status
+      object.active ? 'ACTIVE' : 'INACTIVE'
+    end
+
+    protected
 
     def project
       return unless object.entity_type == Hmis::Hud::Project.sti_name
@@ -70,20 +86,10 @@ module Types
       object.entity
     end
 
-    def organization_id
-      return unless object.entity_type == Hmis::Hud::Organization.sti_name
-
-      object.entity_id
-    end
-
     def organization
       return unless object.entity_type == Hmis::Hud::Organization.sti_name
 
       object.entity
-    end
-
-    def active_status
-      object.active ? 'ACTIVE' : 'INACTIVE'
     end
   end
 end

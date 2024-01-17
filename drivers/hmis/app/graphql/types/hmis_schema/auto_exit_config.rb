@@ -13,9 +13,27 @@ module Types
     field :length_of_absence_days, Int, null: false
     field :project_type, Types::HmisSchema::Enums::ProjectType, null: true
     field :project_id, ID, null: true
-    field :project, HmisSchema::Project, null: true
+    field :project_name, String, null: true
     field :organization_id, ID, null: true
-    field :organization, HmisSchema::Organization, null: true
+    field :organization_name, String, null: true
+
+    def project_id
+      project&.id
+    end
+
+    def project_name
+      project&.project_name
+    end
+
+    def organization_id
+      organization&.id
+    end
+
+    def organization_name
+      organization&.organization_name
+    end
+
+    protected
 
     def project
       load_ar_association(object, :project)

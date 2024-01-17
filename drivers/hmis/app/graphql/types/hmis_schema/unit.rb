@@ -25,7 +25,6 @@ module Types
     # field :start_date, GraphQL::Types::ISO8601Date, null: false
     # field :end_date, GraphQL::Types::ISO8601Date, null: true
     field :unit_type, Types::HmisSchema::UnitTypeObject, null: true
-    field :project, Types::HmisSchema::Project, null: true
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :occupants, [HmisSchema::Enrollment], null: false

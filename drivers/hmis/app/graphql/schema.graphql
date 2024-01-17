@@ -421,10 +421,10 @@ Auto Exit Config
 type AutoExitConfig {
   id: ID!
   lengthOfAbsenceDays: Int!
-  organization: Organization
   organizationId: ID
-  project: Project
+  organizationName: String
   projectId: ID
+  projectName: String
   projectType: ProjectType
 }
 
@@ -4032,11 +4032,11 @@ type FormRule {
   definitionTitle: String
   funder: FundingSource
   id: ID!
-  organization: Organization
   organizationId: ID
+  organizationName: String
   otherFunder: String
-  project: Project
   projectId: ID
+  projectName: String
   projectType: ProjectType
   serviceCategory: ServiceCategory
   serviceType: ServiceType
@@ -5931,8 +5931,8 @@ type Organization {
   description: String
   hudId: ID!
   id: ID!
-  organizationName: String!
-  projects(filters: ProjectsForEnrollmentFilterOptions, limit: Int, offset: Int, sortOrder: ProjectSortOption): ProjectsPaginated!
+  organizationName: String
+  projects(filters: ProjectsForOrganizationFilterOptions, limit: Int, offset: Int, sortOrder: ProjectSortOption): ProjectsPaginated!
   user: ApplicationUser
   victimServiceProvider: NoYesMissing!
 }
@@ -8180,7 +8180,7 @@ enum ProjectType {
   TH
 }
 
-input ProjectsForEnrollmentFilterOptions {
+input ProjectsForOrganizationFilterOptions {
   funder: [FundingSource!]
   projectType: [ProjectType!]
   searchTerm: String
@@ -8669,13 +8669,32 @@ type ReferralPosting {
   hudChronic: Boolean
   id: ID!
   needsWheelchairAccessibleUnit: Boolean
-  organization: Organization
+
+  """
+  ID of Organization that household is being referred to
+  """
+  organizationId: ID
+
+  """
+  Name of Organization that household is being referred to
+  """
+  organizationName: String
   postingIdentifier: ID
 
   """
-  Project that household is being referred to
+  ID of Project that household is being referred to
   """
-  project: Project
+  projectId: ID
+
+  """
+  Name of Project that household is being referred to
+  """
+  projectName: ID
+
+  """
+  Type of Project that household is being referred to
+  """
+  projectType: ID
   referralDate: ISO8601DateTime!
   referralIdentifier: ID
   referralNotes: String
@@ -10487,7 +10506,6 @@ type Unit {
   id: ID!
   name: String!
   occupants: [Enrollment!]!
-  project: Project
   unitSize: Int
   unitType: UnitTypeObject
   user: ApplicationUser
