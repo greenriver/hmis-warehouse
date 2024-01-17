@@ -8,6 +8,8 @@
 
 module Types
   class Admin::FormRule < Types::BaseObject
+    include HmisSchema::HasFlatProjectAndOrganization
+
     # maps to Hmis::Form::Instance
     graphql_name 'FormRule'
 
@@ -30,10 +32,7 @@ module Types
     field :project_type, Types::HmisSchema::Enums::ProjectType, null: true
     field :funder, Types::HmisSchema::Enums::Hud::FundingSource, null: true
     field :other_funder, String, null: true
-    field :organization_id, ID, null: true
-    field :organization_name, String, null: true
-    field :project_id, ID, null: true
-    field :project_name, String, null: true
+    flat_project_and_organization_fields(nullable: true, skip_project_type: true)
     field :service_category, HmisSchema::ServiceCategory, null: true, method: :custom_service_category
     field :service_type, HmisSchema::ServiceType, null: true, method: :custom_service_type
     field :data_collected_about, Types::Forms::Enums::DataCollectedAbout, null: true
@@ -58,22 +57,6 @@ module Types
       load_ar_association(object, :definition)&.title
     end
 
-    def project_id
-      project&.id
-    end
-
-    def project_name
-      project&.project_name
-    end
-
-    def organization_id
-      organization&.id
-    end
-
-    def organization_name
-      organization&.organization_name
-    end
-
     def active_status
       object.active ? 'ACTIVE' : 'INACTIVE'
     end
@@ -83,13 +66,13 @@ module Types
     def project
       return unless object.entity_type == Hmis::Hud::Project.sti_name
 
-      object.entity
+      load_ar_association(object, :entity)
     end
 
     def organization
       return unless object.entity_type == Hmis::Hud::Organization.sti_name
 
-      object.entity
+      load_ar_association(object, :entity)
     end
   end
 end

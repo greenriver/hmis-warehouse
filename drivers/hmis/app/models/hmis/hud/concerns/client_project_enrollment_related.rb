@@ -11,5 +11,6 @@ module Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
   included do
     has_one :client_project, **hmis_relation(:EnrollmentID)
     has_one :project, through: :client_project
+    has_one :organization, through: :project
   end
 end

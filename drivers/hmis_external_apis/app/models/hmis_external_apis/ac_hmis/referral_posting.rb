@@ -11,6 +11,7 @@ module HmisExternalApis::AcHmis
     belongs_to :referral, class_name: 'HmisExternalApis::AcHmis::Referral'
     belongs_to :referral_request, class_name: 'HmisExternalApis::AcHmis::ReferralRequest', optional: true
     belongs_to :project, class_name: 'Hmis::Hud::Project'
+    has_one :organization, through: :project, class_name: 'Hmis::Hud::Project'
     belongs_to :unit_type, class_name: 'Hmis::UnitType'
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 

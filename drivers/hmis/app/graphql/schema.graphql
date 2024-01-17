@@ -3339,9 +3339,9 @@ type EsgFundingService {
   lastName: String
   mciIds: [ExternalIdentifier!]!
   organizationId: ID!
-  organizationName: String!
+  organizationName: String
   projectId: ID!
-  projectName: String!
+  projectName: String
 }
 
 """
@@ -8669,32 +8669,12 @@ type ReferralPosting {
   hudChronic: Boolean
   id: ID!
   needsWheelchairAccessibleUnit: Boolean
-
-  """
-  ID of Organization that household is being referred to
-  """
   organizationId: ID
-
-  """
-  Name of Organization that household is being referred to
-  """
   organizationName: String
   postingIdentifier: ID
-
-  """
-  ID of Project that household is being referred to
-  """
   projectId: ID
-
-  """
-  Name of Project that household is being referred to
-  """
-  projectName: ID
-
-  """
-  Type of Project that household is being referred to
-  """
-  projectType: ID
+  projectName: String
+  projectType: ProjectType
   referralDate: ISO8601DateTime!
   referralIdentifier: ID
   referralNotes: String

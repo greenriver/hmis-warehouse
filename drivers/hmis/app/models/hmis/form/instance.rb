@@ -135,4 +135,12 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
       base_scope.defaults,
     ].detect(&:exists?)
   end
+
+  def project
+    entity if entity_type == Hmis::Hud::Project.sti_name
+  end
+
+  def organization
+    entity if entity_type == Hmis::Hud::Organization.sti_name
+  end
 end

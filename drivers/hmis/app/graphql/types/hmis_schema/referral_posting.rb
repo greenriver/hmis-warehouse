@@ -6,6 +6,7 @@
 
 module Types
   class HmisSchema::ReferralPosting < Types::BaseObject
+    include Types::HmisSchema::HasFlatProjectAndOrganization
     description 'A referral for a household of one or more clients'
 
     field :id, ID, null: false
@@ -43,11 +44,8 @@ module Types
     field :denial_note, String
     field :referred_from, String, null: false, description: 'Name of project or external source that the referral originated from'
     field :unit_type, HmisSchema::UnitTypeObject, null: false
-    field :project_id, ID, null: true, description: 'ID of Project that household is being referred to'
-    field :project_name, ID, null: true, description: 'Name of Project that household is being referred to'
-    field :project_type, ID, null: true, description: 'Type of Project that household is being referred to'
-    field :organization_id, ID, null: true, description: 'ID of Organization that household is being referred to'
-    field :organization_name, String, null: true, description: 'Name of Organization that household is being referred to'
+    # Details about the project that this household is being referred to
+    flat_project_and_organization_fields(nullable: true, skip_project_type: false)
 
     # If this posting has been accepted, this is the enrollment for the HoH at the enrolled household.
     # This enrollment is NOT necessarily the same as the `hoh_name`, because the HoH may have changed after
@@ -108,22 +106,6 @@ module Types
       enrollment_project&.project_name || 'Coordinated Entry'
     end
 
-    def project_id
-      project&.id
-    end
-
-    def project_name
-      project&.project_name
-    end
-
-    def organization_id
-      organization&.id
-    end
-
-    def organization_name
-      organization&.organization_name
-    end
-
     def status
       object.status
     end
@@ -163,16 +145,6 @@ module Types
     # end
 
     protected
-
-    # Note: the User should have access to this project, but we don't need to resolve the whole thing on this type
-    def project
-      load_ar_association(object, :project)
-    end
-
-    # Note: the User should have access to this organization, but we don't need to resolve the whole thing on this type
-    def organization
-      load_ar_association(project, :organization)
-    end
 
     # Note: The User who can view this referral may not have access to view the referring project.
     def protected_source_enrollment
