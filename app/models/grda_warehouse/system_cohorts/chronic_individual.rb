@@ -5,7 +5,7 @@
 ###
 
 module GrdaWarehouse::SystemCohorts
-  class ChronicIndividual < Chronic
+  class ChronicIndividual < CurrentlyHomeless
     include ArelHelper
 
     def cohort_name

@@ -49,12 +49,23 @@ module GrdaWarehouse::SystemCohorts
     end
 
     def self.ensure_system_cohort(klass)
+      # Ensure the cohort exists
       system_cohort = klass.first_or_create! do |cohort|
         cohort.name = cohort.cohort_name
         cohort.system_cohort = true
         cohort.days_of_inactivity = 90
       end
+
+      # Ensure the name is correct
       system_cohort.update(name: system_cohort.cohort_name)
+
+      # Ensure the cohort has tabs
+      if system_cohort.cohort_tabs.blank?
+        GrdaWarehouse::CohortTab.default_rules.each do |rule|
+          system_cohort.cohort_tabs.create(**rule)
+        end
+      end
+
       system_cohort
     end
 
