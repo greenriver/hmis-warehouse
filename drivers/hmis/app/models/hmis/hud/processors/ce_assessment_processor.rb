@@ -13,10 +13,9 @@ module Hmis::Hud::Processors
       when Hmis::Hud::CustomAssessment
         :ce_assessment_factory
       else
-        raise "processor owner #{@processor.owner_type} not hanlded"
+        raise "processor owner #{@processor.owner_type} not handled"
       end
     end
-
 
     def schema
       Types::HmisSchema::CeAssessment

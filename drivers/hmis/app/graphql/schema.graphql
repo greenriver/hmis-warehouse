@@ -241,7 +241,7 @@ type Assessment {
   inProgress: Boolean!
   incomeBenefit: IncomeBenefit
   lockVersion: Int!
-  role: AssessmentRole!
+  role: AssessmentRole
   user: ApplicationUser
   wipValues: JsonObject
   youthEducationStatus: YouthEducationStatus

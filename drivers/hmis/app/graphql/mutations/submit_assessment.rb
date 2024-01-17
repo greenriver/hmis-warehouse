@@ -4,6 +4,29 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# ==  Mutations::SubmitAssessment
+#
+# Overview of assessment submission logic
+# submit assessment(assessment_id, form_definition_id, enrollment_id)
+# 1) mutation calls assessment_input.find_or_create_assessment
+#     * if there's an assessment_id, it find that assessment
+#       * update assessment definition for "reasons"
+#     * otherwise create one from form_definition/enrollment
+#       * a form processor is created and tied to assessment based on form definition
+# 2) updates form_processor with submitted values
+# 3) calls form_processor run! with owner of the
+# 4) form processor run
+#   * each hud_value field saved on processor
+#     * locate the X-Processor class using the "containers" mapping by field name to identify the processor
+#     * call processor.process for (field, value)
+# 5) Within field_processor.process
+#   * call back to the "form_processor" to find what we call a "factory". The factory is actually an active record model. This model might come from the enrollment or it might live on the processor itself. It might also be the CustomAssessment.
+#   * The field_processor assigns the form values to the "factory" model but does not save the values
+# 6) back in the mutation, the assessment is validated, early return if errors
+# 7) the mutation calls save_submitted_assessment
+#   * saves the form processor and related factories and changes made by the field processor
+#   * conditional hard-coded side-effects related integrations (link api etc)
+#
 module Mutations
   class SubmitAssessment < BaseMutation
     description 'Create/Submit assessment, and create/update related HUD records'
@@ -14,6 +37,7 @@ module Mutations
     field :assessment, Types::HmisSchema::Assessment, null: true
 
     def resolve(input:, assessment_lock_version: nil)
+      # assessment is a Hmis::Hud::CustomAssessment
       assessment, errors = input.find_or_create_assessment
       return { errors: errors } if errors.any?
 

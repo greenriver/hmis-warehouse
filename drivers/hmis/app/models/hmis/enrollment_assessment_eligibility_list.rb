@@ -49,6 +49,10 @@ class Hmis::EnrollmentAssessmentEligibilityList
         yield(definition)
       end
     end
+    # FIXME this isn't quite right, should filter by project
+    Hmis::Form::Definition.where(role: 'CUSTOM_ASSESSMENT').each do |definition|
+      yield(definition)
+    end
   end
 
   protected

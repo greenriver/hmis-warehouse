@@ -39,7 +39,7 @@ module Types
     field :employment_education, Types::HmisSchema::EmploymentEducation, null: true
     custom_data_elements_field
 
-    field :role, Types::Forms::Enums::AssessmentRole, null: false
+    field :role, Types::Forms::Enums::AssessmentRole, null: true
     field :definition, Types::Forms::FormDefinition, null: false
     field :wip_values, JsonObject, null: true
 
@@ -50,7 +50,7 @@ module Types
     end
 
     def role
-      Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES.invert[object.data_collection_stage]&.to_s
+      Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES.invert[object.data_collection_stage]&.to_s || 'CUSTOM_ASSESSMENT'
     end
 
     # EXPENSIVE! Do not use in batch

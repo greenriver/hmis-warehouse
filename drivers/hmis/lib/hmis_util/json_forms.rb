@@ -383,7 +383,7 @@ module HmisUtil
         load_definition(
           form_definition: parse_json_file(filename),
           identifier: identifier,
-          role: :UPDATE,
+          role: :CUSTOM_ASSESSMENT,
           title: identifier.humanize,
         )
       end
