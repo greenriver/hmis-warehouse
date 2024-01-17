@@ -20,6 +20,10 @@ module Mutations
       client = Hmis::Hud::Client.viewable_by(current_user).find_by(id: id)
       client.lock_version = client_lock_version if client_lock_version
 
+      # While this is redundant with the viewable_by() scope above, this check caches the authorization result so that
+      # the client object-level authorization check will succeed even after the client has been deleted
+      access_denied! unless current_permission?(permission: :can_view_clients, entity: client)
+
       warnings, resolvable_enrollments = check_enrollments(client, ignore_warnings: confirmed)
 
       return { client: nil, errors: warnings } if warnings.any?
