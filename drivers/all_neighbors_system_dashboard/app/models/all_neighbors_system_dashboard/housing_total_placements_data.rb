@@ -1,7 +1,14 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module AllNeighborsSystemDashboard
   class HousingTotalPlacementsData < DashboardData
     include AllNeighborsSystemDashboard::CensusCalculations
 
+    # FIXME: need to figure out why we are no longer getting the "All" line
     def self.cache_data(report)
       instance = new(report)
       instance.data('Total Placements', 'total_placements', :line)
@@ -21,7 +28,7 @@ module AllNeighborsSystemDashboard
 
     # Reject any project types where we have NO data
     def project_types_with_data
-      @project_types_with_data ||= line_data[:project_types].reject { |m| m[:count_levels].flatten.map { |n| n[:monthly_counts] }.flatten(2).map(&:last).all?(0) }.map { |m| m[:project_type] }
+      @project_types_with_data ||= line_data[:project_types].reject { |m| m[:count_levels].flatten.map { |n| n[:monthly_counts] }.flatten(2).map(&:last)&.all?(0) }.map { |m| m[:project_type] }
     end
 
     # Count once per client per day
@@ -44,49 +51,61 @@ module AllNeighborsSystemDashboard
       existing = @report.datasets.find_by(identifier: identifier)
       return existing.data.with_indifferent_access if existing.present?
 
+      project_type_data = project_types.map do |project_type|
+        count_level_data = count_levels.map do |count_level|
+          case type
+          when :donut
+            monthly_counts = donut(
+              options.merge(project_type: project_type, count_level: count_level),
+              # Count clients only once per-day
+              count_item: count_one_client_per_date_arel.to_sql,
+            )
+          when :stack
+            monthly_counts = stack(
+              options.merge(project_type: project_type, count_level: count_level),
+              # Count clients only once per-day
+              count_item: count_one_client_per_date_arel.to_sql,
+            )
+          when :line
+            monthly_counts = line(
+              options.merge(project_type: project_type, count_level: count_level),
+              # Count clients only once per-day
+              count_item: count_one_client_per_date_arel.to_sql,
+            )
+            summary_counts = aggregate(monthly_counts)
+
+            # Short-circuit for lines and return this shape
+            next {
+              count_level: count_level,
+              series: [summary_counts],
+              # unique_counts: [unique_counts],
+              monthly_counts: [monthly_counts],
+            }
+          else
+            raise "Unknown type: #{type}"
+          end
+          {
+            count_level: count_level,
+            series: monthly_counts,
+          }
+        end
+
+        {
+          project_type: project_type,
+          config: {
+            keys: keys,
+            names: keys.map.with_index { |key, i| [key, (options[:types])[i]] }.to_h,
+            colors: keys.map.with_index { |key, i| [key, options[:colors][i]] }.to_h,
+            label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
+          },
+          count_levels: count_level_data,
+        }
+      end
+
       data = {
         title: title,
         id: id,
-        project_types: project_types.map do |project_type|
-          {
-            project_type: project_type,
-            config: {
-              keys: keys,
-              names: keys.map.with_index { |key, i| [key, (options[:types])[i]] }.to_h,
-              colors: keys.map.with_index { |key, i| [key, options[:colors][i]] }.to_h,
-              label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
-            },
-            count_levels: count_levels.map do |count_level|
-              monthly_counts = send(
-                type,
-                options.merge(project_type: project_type, count_level: count_level),
-                # Count clients only once per-day
-                count_item: count_one_client_per_date_arel.to_sql,
-              )
-              unique_counts = send(
-                type,
-                options.merge(project_type: project_type, count_level: count_level),
-                fixed_start_date: @report.filter.start_date,
-                # Count each person only once
-                count_item: :destination_client_id,
-              )
-              if type == :line
-                summary_counts = aggregate(monthly_counts)
-                {
-                  count_level: count_level,
-                  series: [summary_counts],
-                  unique_counts: [unique_counts],
-                  monthly_counts: [monthly_counts],
-                }
-              else
-                {
-                  count_level: count_level,
-                  series: monthly_counts,
-                }
-              end
-            end,
-          }
-        end,
+        project_types: project_type_data,
       }
 
       @report.datasets.create!(
@@ -185,6 +204,7 @@ module AllNeighborsSystemDashboard
 
     def donut_data
       [
+        # FIXME: this isn't calculating correctly, it looks like we're distincting somewhere
         data(
           'Project Type',
           'project_type',
@@ -252,7 +272,7 @@ module AllNeighborsSystemDashboard
               #   scope = filter_for_type(scope, bar)
               #   count = mask_small_populations(scope.count, mask: @report.mask_small_populations?)
               #   count
-              when 'Diversion', 'Permanent Supportive Housing', 'Rapid Rehousing', 'Other Permanent Housing'
+              when 'Diversion', 'Permanent Supportive Housing', 'Rapid Rehousing'
                 scope = filter_for_date(scope, date)
                 scope = filter_for_type(scope, bar)
                 count = mask_small_populations(scope.count, mask: @report.mask_small_populations?)

@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module AllNeighborsSystemDashboard
   class TimeToObtainHousing < DashboardData
     def self.cache_data(report)
@@ -58,6 +64,8 @@ module AllNeighborsSystemDashboard
     def overall_average_time(category = :referral_to_move_in)
       # There must be a better way to obtain this
       # We are duplicating the JavaScript logic so this ends up being the same value as the overall chart
+      # Force a run of stacked_data to ensure we have the values, something is up with the caching
+      stacked_data
       records = stacked_data[:project_types].first['household_types'].first['demographics'].first['series'].detect { |s| s['name'] == 'Overall' }['series']
       # values are [id->referral, referral->move-in]
       household_count = 0

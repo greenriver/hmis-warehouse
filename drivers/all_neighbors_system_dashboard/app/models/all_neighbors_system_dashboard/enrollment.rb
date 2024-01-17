@@ -60,17 +60,6 @@ module AllNeighborsSystemDashboard
       where(relationship_to_hoh: 1)
     end
 
-    def intervention
-      case project_type
-      when 9
-        'Emergency Housing Voucher'
-      when 13
-        'Rapid Rehousing'
-      else
-        'ERROR'
-      end
-    end
-
     def report_start
       report.filter.start_date
     end

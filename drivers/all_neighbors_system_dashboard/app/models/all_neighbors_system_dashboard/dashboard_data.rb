@@ -1,3 +1,8 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
 module AllNeighborsSystemDashboard
   class DashboardData
     include ArelHelper
@@ -20,8 +25,7 @@ module AllNeighborsSystemDashboard
 
     private def housed_total_scope
       report_enrollments_enrollment_scope.
-        placed_in_range(@report.filter.range).
-        distinct
+        placed_in_range(@report.filter.range)
     end
 
     def years
@@ -62,8 +66,6 @@ module AllNeighborsSystemDashboard
         'Diversion',
         'Permanent Supportive Housing',
         'Rapid Rehousing',
-        'Other Permanent Housing',
-        # 'R.E.A.L. Time Initiative', # removed in favor of running the report with a limited data set
       ]
     end
 
@@ -104,7 +106,8 @@ module AllNeighborsSystemDashboard
     end
 
     def demographic_race
-      HudUtility2024.races(multi_racial: true).except(*ignored_races).values + ["Doesn't know, prefers not to answer, or not collected"]
+      # Sorted alphabetically, with not collected at the end
+      HudUtility2024.races(multi_racial: true).except(*ignored_races).values.sort + [HudUtility2024.races(multi_racial: true)['RaceNone']]
     end
 
     # Note, the census doesn't contain MidEastNAfrican and HispanicLatinaeo is represented as ethnicity
@@ -232,7 +235,10 @@ module AllNeighborsSystemDashboard
       when 'All', 'Overall'
         # Note, we only report on PH and Diversion at this point.  There may be other data in the
         # report scope, but we should not count them in placements or subsequent steps
-        scope.where(project_id: @report.filter.effective_project_ids + @report.filter.secondary_project_ids)
+        # Limit to records with a placed-date so we don't end up catching anything but placements
+        # FIXME: this isn't right either
+        scope.where(project_id: @report.filter.effective_project_ids + @report.filter.secondary_project_ids).
+          where.not(placed_date: @report.filter.range)
       # Removed in favor of running the report for a sub-set of data (leaving the code for now)
       # when 'R.E.A.L. Time Initiative'
       #   pilot_scope = Enrollment.
@@ -249,13 +255,10 @@ module AllNeighborsSystemDashboard
       # For all others, we'll limit to the effective project ids to prevent double counting
       when 'Diversion'
         scope.where(project_id: @report.filter.secondary_project_ids, destination: @report.class::POSITIVE_DIVERSION_DESTINATIONS)
-      when 'Other Permanent Housing'
-        project_types = [HudUtility2024.project_type('PH - Housing Only', true), HudUtility2024.project_type('PH - Housing with Services (no disability required for entry)', true)]
-        scope.where(project_type: project_types, project_id: @report.filter.effective_project_ids)
-      when 'Permanent Supportive Housing'
-        scope.where(project_type: HudUtility2024.project_type('PH - Permanent Supportive Housing', true), project_id: @report.filter.effective_project_ids)
-      when 'Rapid Rehousing'
-        scope.where(project_type: HudUtility2024.project_type('PH - Rapid Re-Housing', true), project_id: @report.filter.effective_project_ids)
+      when 'Permanent Supportive Housing' # NOTE: these project types are specified and do not match HUD
+        scope.where(project_type: [3, 10], project_id: @report.filter.effective_project_ids)
+      when 'Rapid Rehousing' # NOTE: these project types are specified and do not match HUD
+        scope.where(project_type: [9, 13], project_id: @report.filter.effective_project_ids)
       when 'Unsheltered', 'Unhoused Population'
         scope.where(project_type: HudUtility2024.project_type('Street Outreach', true), project_id: @report.filter.effective_project_ids)
       when 'Sheltered'

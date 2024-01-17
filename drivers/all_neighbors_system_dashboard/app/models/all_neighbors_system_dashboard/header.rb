@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module AllNeighborsSystemDashboard
   class Header < DashboardData
     def self.cache_data(report)
@@ -9,7 +15,7 @@ module AllNeighborsSystemDashboard
       [
         { name: 'Housing Placements' },
         { name: 'Time To Obtain Housing' },
-        { name: 'Returns To Homelessness' },
+        # { name: 'Returns To Homelessness' }, # Disabled until further notice 1/16/2024
         # { name: 'Unhoused Population' },
       ].map { |tab| tab.merge({ id: tab[:name].gsub(' ', '').underscore }) }
     end
@@ -30,12 +36,13 @@ module AllNeighborsSystemDashboard
           name: 'Average Number of Days Between Referral and Housing Move-in',
           display_method: :number_with_delimiter,
         },
-        {
-          id: 'no_return',
-          icon: 'icon-clip-board-check',
-          value: returned_percent,
-          name: 'Returned to Homelessness Within 12 Months',
-        },
+        # Disabled until further notice 1/16/2024
+        # {
+        #   id: 'no_return',
+        #   icon: 'icon-clip-board-check',
+        #   value: returned_percent,
+        #   name: 'Returned to Homelessness Within 12 Months',
+        # },
       ]
     end
 

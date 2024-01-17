@@ -79,9 +79,10 @@ module AllNeighborsSystemDashboard
     def cache_calculated_data
       AllNeighborsSystemDashboard::Header.cache_data(self)
       AllNeighborsSystemDashboard::HousingTotalPlacementsData.cache_data(self)
-      AllNeighborsSystemDashboard::ReturnsToHomelessness.cache_data(self)
       AllNeighborsSystemDashboard::TimeToObtainHousing.cache_data(self)
-      AllNeighborsSystemDashboard::UnhousedPopulation.cache_data(self)
+      # Disabled until these tabs come back to speed up report runtime
+      # AllNeighborsSystemDashboard::ReturnsToHomelessness.cache_data(self)
+      # AllNeighborsSystemDashboard::UnhousedPopulation.cache_data(self)
     end
 
     def populate_universe
@@ -120,6 +121,9 @@ module AllNeighborsSystemDashboard
           end
           # Exclude any client who doesn't have a placement
           next unless placed_date.present?
+
+          # Exclude any records where the placement occurred outside of the report range
+          next unless placed_date.in?(filter.range)
 
           # Only count DRTRR projects for placement dates prior to 5/1/2023
           next if placed_date < PILOT_END_DATE && !pilot_project_ids.include?(enrollment.project.id)

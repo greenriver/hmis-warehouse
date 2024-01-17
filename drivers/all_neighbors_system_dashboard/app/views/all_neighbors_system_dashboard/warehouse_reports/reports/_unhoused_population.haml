@@ -1,3 +1,4 @@
+- raise 'DISABLED, check the Report#cache_calculated_data before re-enabling'
 - if params[:fake].present? && Rails.env.development?
   - start_date = (DateTime.current - 3.years).beginning_of_month
   - end_date = DateTime.current.beginning_of_month
