@@ -46,7 +46,9 @@ class Hmis::Hud::Validators::CustomAssessmentValidator < Hmis::Hud::Validators::
     # Error: before entry date
     errors.add :assessment_date, :out_of_range, message: before_entry_message(entry_date), **options if entry_date.present? && entry_date > date && !assessment.intake?
     # Error: after exit date
-    errors.add :assessment_date, :out_of_range, message: after_exit_message(exit_date), **options if exit_date.present? && exit_date < date && !assessment.exit?
+    errors.add(:assessment_date, :out_of_range, message: after_exit_message(exit_date), **options) if
+      exit_date.present? && exit_date < date && (assessment.intake? || assessment.annual? || assessment.update?)
+
     # Warning: >30 days ago
     errors.add :assessment_date, :information, severity: :warning, message: over_thirty_days_ago_message, **options if date < (Date.today - 30.days)
 

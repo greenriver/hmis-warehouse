@@ -1,0 +1,38 @@
+{
+  "type": "GROUP",
+  "link_id": "r20.postExitInformationDate",
+  "data_collected_about": "HOH_AND_ADULTS",
+  "text": "Date Collected",
+  "item": [
+    {
+      "type": "DATE",
+      "link_id": "R20.1",
+      "required": false,
+      "warn_if_empty": true,
+      "text": "Aftercare Information Date",
+      "assessment_date": true,
+      "mapping": {
+        "record_type": "EXIT",
+        "field_name": "aftercareDate"
+      },
+      "bounds": [
+        {
+          "id": "min-date",
+          "type": "MIN",
+          "value_local_constant": "$exitDate"
+        },
+        {
+          "id": "max-cannot-be-future",
+          "type": "MAX",
+          "value_local_constant": "$today"
+        },
+        {
+          "id": "max-180-after-exit",
+          "type": "MAX",
+          "value_local_constant": "$exitDate",
+          "offset": 180
+        }
+      ]
+    }
+  ]
+}
