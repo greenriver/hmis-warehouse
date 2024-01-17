@@ -10,18 +10,21 @@ module HmisExternalApis::AcHmis
     self.table_name = 'hmis_external_referral_postings'
     belongs_to :referral, class_name: 'HmisExternalApis::AcHmis::Referral'
     belongs_to :referral_request, class_name: 'HmisExternalApis::AcHmis::ReferralRequest', optional: true
-    belongs_to :project, class_name: 'Hmis::Hud::Project'
-    has_one :organization, through: :project, class_name: 'Hmis::Hud::Project'
-    belongs_to :unit_type, class_name: 'Hmis::UnitType'
+    belongs_to :project, class_name: 'Hmis::Hud::Project' # project that household is being referred to
+    has_one :organization, through: :project, class_name: 'Hmis::Hud::Organization'
+    belongs_to :unit_type, class_name: 'Hmis::UnitType' # unit type that household is being referred to (at receiving project)
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
     belongs_to :status_updated_by, class_name: 'Hmis::User', optional: true
     belongs_to :status_note_updated_by, class_name: 'Hmis::User', optional: true
 
-    # Enrollment(s) are only present if this referral was accepted
+    # Household Enrollment(s) at receiving project (if this referral was accepted)
     has_many :enrollments, **Hmis::Hud::Base.hmis_relation(:HouseholdID, 'Enrollment')
+    # HoH Enrollment at receiving project (if this referral was accepted)
     has_one :hoh_enrollment, -> { where(relationship_to_hoh: 1) }, **Hmis::Hud::Base.hmis_relation(:HouseholdID, 'Enrollment')
-    # see note about enrollment / household_id on enrollment in the Referral class
+    # Household enrolled at receiving project (if this referral was accepted).
+    # We use HouseholdID because the huosehold membership may change, but it should
+    # remain linked to this posting even if all members rotate out.
     has_one :household, **Hmis::Hud::Base.hmis_relation(:HouseholdID, 'Household')
 
     scope :from_link, -> { where.not(identifier: nil) }
