@@ -50,7 +50,7 @@
 = render 'donuts', tab: tab, donut_data: donut_data, filter_label: 'date_range'
 
 = render 'stacked_charts', data: [stacked_data], group: 'Racial Composition', filter_label: 'date_range', filter: false, filter_data: [], show_chart_titles: false, hint: false, tab: tab, legend_padding: '200px', description: 'People may be counted more than once if they identify in more than one racial group.'
-= debug donut_data.to_json
+
 - content_for :page_js do
   :javascript
     $(document).ready(function() {

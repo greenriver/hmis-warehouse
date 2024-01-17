@@ -121,6 +121,7 @@ services:
     expose:
       - "3000"
       - "9394"
+      - "12345"
     environment:
       <<: *env
       VIRTUAL_HOST: ${FQDN:-hmis-warehouse.dev.test}

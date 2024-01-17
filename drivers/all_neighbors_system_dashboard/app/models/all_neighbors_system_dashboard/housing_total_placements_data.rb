@@ -26,9 +26,11 @@ module AllNeighborsSystemDashboard
       scope.pluck(count_item)
     end
 
-    # Reject any project types where we have NO data
     def project_types_with_data
-      @project_types_with_data ||= line_data[:project_types].reject { |m| m[:count_levels].flatten.map { |n| n[:monthly_counts] }.flatten(2).map(&:last)&.all?(0) }.map { |m| m[:project_type] }
+      @project_types_with_data ||= line_data[:project_types].
+        # Reject any project types where we have NO data
+        reject { |m| m[:count_levels].flatten.map { |n| n[:monthly_counts] }.flatten(2).map(&:last)&.all?(0) }.
+        map { |m| m[:project_type] }
     end
 
     # Count once per client per day
@@ -127,6 +129,7 @@ module AllNeighborsSystemDashboard
     end
 
     def line(options, fixed_start_date: nil, count_item:)
+      # binding.pry if options[:project_type] == 'Diversion'
       date_range.map do |date|
         scope = housed_total_scope.select(count_item)
         scope = filter_for_type(scope, options[:project_type])
@@ -137,7 +140,6 @@ module AllNeighborsSystemDashboard
           filter_for_date(scope, date)
         end
         count = mask_small_populations(scope.count, mask: @report.mask_small_populations?)
-        # binding.pry if options[:project_type] == 'Diversion'
         [
           date.strftime('%Y-%-m-%-d'),
           count,
@@ -181,7 +183,7 @@ module AllNeighborsSystemDashboard
     def donut(options, count_item:, **)
       project_type = options[:project_type] || options[:homelessness_status]
       options[:types].map do |type|
-        # binding.pry #if type == 'project_type'
+        # binding.pry #if project_type == 'Diversion'
         # raise 'failed'
         {
           name: type,

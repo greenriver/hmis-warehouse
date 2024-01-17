@@ -111,12 +111,10 @@ module AllNeighborsSystemDashboard
 
           exit_type = exit_type(filter, enrollment)
           diversion_enrollment = enrollment.project.id.in?(filter.secondary_project_ids)
-          # Exclude anyone who didn't have a positive diversion exit, or a move-in date
-          next if (diversion_enrollment && exit_type != 'Permanent') || move_in_date.blank?
 
-          placed_date = if diversion_enrollment
+          placed_date = if diversion_enrollment && exit_type == 'Permanent'
             exit_date(filter, enrollment)
-          else
+          elsif enrollment.project.ph?
             move_in_date
           end
           # Exclude any client who doesn't have a placement
@@ -166,7 +164,7 @@ module AllNeighborsSystemDashboard
       end
 
       # Attach the CE Events to the first report enrollment (requires at least one enrollment)
-      enrollment = universe.members.first.universe_membership
+      enrollment = universe.members.first&.universe_membership
       return unless enrollment.present?
 
       event_scope.find_in_batches do |batch|

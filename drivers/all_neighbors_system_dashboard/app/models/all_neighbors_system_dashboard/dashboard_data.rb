@@ -3,6 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
 module AllNeighborsSystemDashboard
   class DashboardData
     include ArelHelper
@@ -236,9 +237,10 @@ module AllNeighborsSystemDashboard
         # Note, we only report on PH and Diversion at this point.  There may be other data in the
         # report scope, but we should not count them in placements or subsequent steps
         # Limit to records with a placed-date so we don't end up catching anything but placements
-        # FIXME: this isn't right either
-        scope.where(project_id: @report.filter.effective_project_ids + @report.filter.secondary_project_ids).
-          where.not(placed_date: @report.filter.range)
+        scope.where(
+          project_id: @report.filter.effective_project_ids + @report.filter.secondary_project_ids,
+          placed_date: @report.filter.range,
+        )
       # Removed in favor of running the report for a sub-set of data (leaving the code for now)
       # when 'R.E.A.L. Time Initiative'
       #   pilot_scope = Enrollment.

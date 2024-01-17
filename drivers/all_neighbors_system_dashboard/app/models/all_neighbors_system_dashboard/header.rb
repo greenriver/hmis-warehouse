@@ -26,7 +26,7 @@ module AllNeighborsSystemDashboard
           id: 'individuals_housed',
           icon: 'icon-group-alt',
           value: mask_small_populations(housed_count, mask: @report.mask_small_populations?),
-          name: 'Individuals Housed To-Date',
+          name: 'Housing Placements',
           display_method: :number_with_delimiter,
         },
         {
