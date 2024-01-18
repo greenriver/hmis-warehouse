@@ -254,6 +254,13 @@ type AssessmentAccess {
   id: ID!
 }
 
+type AssessmentEligibility {
+  formDefinitionId: ID!
+  id: ID!
+  role: AssessmentRole!
+  title: String!
+}
+
 input AssessmentFilterOptions {
   project: [ID!]
   projectType: [ProjectType!]
@@ -3005,6 +3012,7 @@ type Enrollment {
   access: EnrollmentAccess!
   alcoholDrugUseDisorderFam: NoYesMissing
   annualPercentAmi: AnnualPercentAMI
+  assessmentEligibilities: [AssessmentEligibility!]!
   assessments(filters: AssessmentsForEnrollmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(filters: EnrollmentAuditEventFilterOptions, limit: Int, offset: Int): EnrollmentAuditEventsPaginated!
   ceAssessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): CeAssessmentsPaginated!
