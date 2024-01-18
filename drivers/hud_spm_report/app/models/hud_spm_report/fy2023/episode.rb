@@ -16,28 +16,7 @@ module HudSpmReport::Fy2023
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
 
     attr_accessor :report # FIXME?
-
-    # The associations seem to make imports run one at a time, so, they are passed separately in parallel arrays
-    def self.save_episodes!(episodes, bed_nights, enrollment_links)
-      # Import the episodes
-      results = import!(episodes)
-      # Attach the associations to their episode
-      results.ids.each_with_index do |id, index|
-        bn_for_episode = bed_nights[index]
-        bed_nights[index] = bn_for_episode.map do |bn|
-          bn.episode_id = id
-          bn
-        end
-        el_for_episode = enrollment_links[index]
-        enrollment_links[index] = el_for_episode.map do |el|
-          el.episode_id = id
-          el
-        end
-      end
-      # Import the associations
-      BedNight.import!(bed_nights.flatten)
-      EnrollmentLink.import!(enrollment_links.flatten)
-    end
+    attr_writer :filter
 
     def compute_episode(enrollments, included_project_types:, excluded_project_types:, include_self_reported_and_ph:)
       raise 'Client undefined' unless client.present?
@@ -102,11 +81,15 @@ module HudSpmReport::Fy2023
         if enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn))
           # NbN only gets service nights in the report range
           bed_nights.merge!(
-            enrollment.enrollment.
-              services.merge(GrdaWarehouse::Hud::Service.bed_night.between(start_date: report_start_date, end_date: report_end_date)).
-              pluck(s_t[:id], s_t[:date_provided]).map do |service_id, date|
-                [enrollment, service_id, date]
-              end.group_by(&:last).
+            enrollment.enrollment.services. # Preloaded
+              # merge(GrdaWarehouse::Hud::Service.bed_night.between(start_date: report_start_date, end_date: report_end_date)).
+              # pluck(s_t[:id], s_t[:record_type], s_t[:date_provided]).
+              map do |service|
+                date = service.date_provided
+                next unless service.record_type == HudUtility2024.record_type('Bed Night', true) && date.between?(report_start_date, report_end_date)
+
+                [enrollment, service.id, date]
+              end.compact.group_by(&:last).
               transform_values { |v| Array.wrap(v).last }, # Unique by date
           )
         else

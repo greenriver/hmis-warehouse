@@ -25,7 +25,7 @@ class AllNeighborsSystemDashboardStack {
   }
 
   test() {
-    console.log(this)
+    console.debug(this)
   }
 
   inDateRange(dateString, range) {
@@ -128,14 +128,16 @@ class AllNeighborsSystemDashboardStack {
         contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
           const index = d[0].index
           const title = this.series[index].name
+          console.debug(d, title)
           const swatches = d.map((n) => {
             const swatch = `<svg class="chart-legend-item-swatch-prs1 mb-2" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color(n.id)}"/></svg>`;
             const swatchLabel = `<div class="d-flex justify-content-start align-items-center"><div style="width:20px;padding-right:10px;">${swatch}</div><div class="pl-2">${n.name}</div></div>`;
-            return `<tr><td>${swatchLabel}</td><td>${d3.format('.1%')(n.ratio)}</td></tr>`
+            return `<tr><td>${swatchLabel}</td><td>${d3.format(',')(n.value)}</dt><td>${d3.format('.1%')(n.ratio)}</td></tr>`
           })
           let html = "<table class='bb-tooltip'>"
           html += "<thead>"
-          html += `<tr><th colspan="2">${title}</th></tr>`
+          html += `<tr><th colspan="3">${title}</th></tr>`
+          html += `<tr><td>Category</td><td>Count</td><td>Percent</td></tr>`
           html += "</thead>"
           html += "<tbody>"
           html += swatches.join('')
@@ -206,7 +208,7 @@ class AllNeighborsSystemDashboardStack {
       return {
         text: d3.sum(
           chart.data().map((d) => d3.format('.0f')(d.values[i].value))
-        ), 
+        ),
         value: d3.sum(chart.data().map((d) => d.values[i].value)),
       }
     })
@@ -311,7 +313,7 @@ class AllNeighborsSystemDashboardUPVerticalStack extends AllNeighborsSystemDashb
 }
 
 
-// Time To Obtain Housing stacked bar
+// Time To Obtain Housing stacked bar (race)
 class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardStack {
   constructor(data, initialState, selector, options) {
     super(data, initialState, selector, options)
@@ -329,6 +331,7 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
       return col.concat(this.series.map((d) => d.name))
     } else {
       const index = this.config.keys.indexOf(name)
+      let householdCount = 0
       this.series.forEach((d) => {
         const total = d.series.filter((n) => {
           if(this.state.dateRange) {
@@ -342,8 +345,14 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
           }
           return true
         })
-        .map((s) => s.values[index])
-        col.push(d3.mean(total))
+        .map((s) => {
+          // Because these are averages, they need to be multiplied
+          // by the number of households to get the correct value
+          householdCount += s.households_count
+          return s.values[index] * s.households_count
+        })
+        // console.log(d3.sum(total), householdCount, total)
+        col.push(d3.sum(total) / householdCount)
       })
       return col
     }
@@ -400,10 +409,9 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
       tooltip: {
         contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
           const index = d[0].index
-          const householdTotal = d3.sum(
-            this.series[index].series.filter((n) => this.inDateRange(n.date, this.state.dateRange)),
-            (n) => n.household_count  
-          )
+          let householdCounts = this.series[index].series.filter((n) => this.inDateRange(n.date, this.state.dateRange))
+            .map((n) => { return n.households_count })
+          const householdTotal = d3.sum(householdCounts)
           const barName = this.series[index].name
           const dateString = this.state.dateRange.map((d) => new Date(d).toLocaleDateString('en-us', {year: 'numeric', month: 'short'})).join(' - ')
           const swatches = d.map((n) => {
@@ -436,7 +444,8 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
         fitLabels(this)
         // add values to overall cards
         const overallIndex = series.map((d) => d.name).indexOf('Overall')
-        const overallData = this.data().map((d) => d.values[overallIndex].value)
+        // So that this matches the sum in the chart, we need to round before we sum
+        const overallData = this.data().map((d) => Math.round(d.values[overallIndex].value))
         classConfig.keys.concat(['total']).forEach((d, i) => {
           const labelClass = `${selector}__${d}`
           const label = d3.select(`${selector}__${d}`)

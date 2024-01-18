@@ -1121,7 +1121,7 @@ DEPENDENCIES
   pretender
   progress_bar
   pry-rails
-  puma (~> 6.3)
+  puma (~> 6.4)
   rack (>= 2.2.6.3)
   rack-attack
   rack-cors
