@@ -29,7 +29,9 @@ module Types
           end
 
           define_method(name) do
-            object.scan_card_codes.order(created_at: :desc)
+            object.scan_card_codes.
+              with_deleted.
+              order(deleted_at: :desc, created_at: :desc)
           end
         end
       end
