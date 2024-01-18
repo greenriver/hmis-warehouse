@@ -306,7 +306,7 @@ module GrdaWarehouse
         :filter_date_span_years,
         :include_pii_in_detail_downloads,
         :self_report_start_date,
-        :chronic_individual_cohort,
+        :chronic_adult_only_cohort,
         client_details: [],
       ]
     end
