@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2023 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module AllNeighborsSystemDashboard
   class TimeToObtainHousing < DashboardData
     def self.cache_data(report)
@@ -55,13 +61,39 @@ module AllNeighborsSystemDashboard
       data
     end
 
+    def overall_average_time(category = :referral_to_move_in)
+      # There must be a better way to obtain this
+      # We are duplicating the JavaScript logic so this ends up being the same value as the overall chart
+      # Force a run of stacked_data to ensure we have the values, something is up with the caching
+      stacked_data
+      records = stacked_data[:project_types].first['household_types'].first['demographics'].first['series'].detect { |s| s['name'] == 'Overall' }['series']
+      # values are [id->referral, referral->move-in]
+      household_count = 0
+      averages = 0
+      records.each do |row|
+        household_count += row['households_count']
+        days = case category
+        when :referral_to_move_in
+          row['values'].last
+        when :identification_to_move_in
+          row['values'].sum
+        else
+          raise "Unknown category: #{category}"
+        end
+        averages += days * row['households_count']
+      end
+      return 0 if averages.zero? || household_count.zero?
+
+      averages / household_count
+    end
+
     def stacked_data
       return data(
         'Household Average Days from Identification to Housing by Race',
         'household_average_days',
         :stack,
         options: {
-          types: ['ID to Referral', 'Referral to Move-in*'],
+          types: ['ID to Referral', 'Referral to Move-in'],
           colors: ['#336770', '#E6B70F'],
           label_colors: ['#ffffff', '#000000'],
         },
@@ -72,8 +104,8 @@ module AllNeighborsSystemDashboard
       # ids need to match the types above (except total)
       {
         ident_to_move_in: { name: 'Identification to Move-In', id: to_key('total') },
-        ident_to_referral: { name: 'Identification to Referral', id: to_key('ID to Referral') },
-        referral_to_move_in: { name: 'Referral to Move-In', id: to_key('Referral to Move-in*') },
+        # ident_to_referral: { name: 'Identification to Referral', id: to_key('ID to Referral') },
+        # referral_to_move_in: { name: 'Referral to Move-In', id: to_key('Referral to Move-in') },
       }
     end
 
@@ -103,8 +135,11 @@ module AllNeighborsSystemDashboard
       cl(en_t[:ce_referral_date], en_t[:ce_entry_date], en_t[:entry_date])
     end
 
+    # For the purposes of time to obtain housing, only clients with a move-in date, CE Entry Date, and CE Referral Date
+    # are included in the calculation
+    # In addition, we only look at households for time to obtain housing, so always limit to HoH
     private def moved_in_scope
-      report_enrollments_enrollment_scope.
+      with_ce_data.hoh.
         moved_in_in_range(@report.filter.range, filter: @report.filter)
     end
 
@@ -128,7 +163,7 @@ module AllNeighborsSystemDashboard
         {
           name: bar,
           series: date_range.map do |date|
-            household_scope = moved_in_scope.hoh.select(:destination_client_id).distinct
+            household_scope = moved_in_scope.select(:destination_client_id).distinct
             household_scope = filter_for_type(household_scope, bar)
             household_scope = filter_for_date(household_scope, date)
             averages = options[:types].map do |category|
@@ -142,7 +177,7 @@ module AllNeighborsSystemDashboard
               case category
               when 'ID to Referral'
                 identification_to_referral(scope)
-              when 'Referral to Move-in*'
+              when 'Referral to Move-in'
                 referral_to_move_in(scope)
               else
                 raise "Unknown Category #{category}"
