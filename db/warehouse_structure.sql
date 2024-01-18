@@ -2860,7 +2860,6 @@ CREATE TABLE public.ansd_enrollments (
     id bigint NOT NULL,
     report_id bigint,
     enrollment_id bigint,
-    project_id character varying,
     project_name character varying,
     project_type integer,
     household_id character varying,
@@ -2888,7 +2887,9 @@ CREATE TABLE public.ansd_enrollments (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     destination_client_id integer,
-    relationship_to_hoh integer
+    relationship_to_hoh integer,
+    placed_date date,
+    project_id bigint
 );
 
 
@@ -62755,6 +62756,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240102205532'),
 ('20240104155138'),
 ('20240105222927'),
-('20240116193554');
+('20240115190843'),
+('20240116193554'),
+('20240117133558');
 
 
