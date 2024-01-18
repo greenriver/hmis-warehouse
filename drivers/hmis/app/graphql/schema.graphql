@@ -714,6 +714,7 @@ type Client {
   phoneNumbers: [ClientContactPoint!]!
   pronouns: [String!]!
   race: [Race!]!
+  scanCardCodes(limit: Int, offset: Int): ScanCardCodesPaginated!
   services(filters: ServiceFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   ssn: String
   ssnDataQuality: SSNDataQuality!
@@ -9239,6 +9240,25 @@ type SaveAssessmentPayload {
   """
   clientMutationId: String
   errors: [ValidationError!]!
+}
+
+type ScanCardCode {
+  code: ID!
+  createdBy: ApplicationUser
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  deletedBy: ApplicationUser
+  id: ID!
+}
+
+type ScanCardCodesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ScanCardCode!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """

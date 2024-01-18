@@ -23,6 +23,7 @@ module Types
     include Types::HmisSchema::HasGender
     include Types::HmisSchema::HasCustomDataElements
     include Types::HmisSchema::HasHudMetadata
+    include Types::HmisSchema::HasScanCardCodes
 
     def self.configuration
       Hmis::Hud::Client.hmis_configuration(version: '2024')
@@ -87,6 +88,7 @@ module Types
     custom_case_notes_field
     files_field
     custom_data_elements_field
+    scan_card_codes_field
     field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false
     audit_history_field(
       field_permissions: {

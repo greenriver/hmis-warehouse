@@ -27,7 +27,9 @@ module ClientSearch
       term_is_possibly_pk = numeric ? text.to_i < max_pk : false
 
       if alpha_numeric && (text.size == 32 || text.size == 36)
-        where = sa[:PersonalID].matches(text.gsub('-', ''))
+        cleaned_term = text.gsub('-', '')
+        where = sa[:PersonalID].matches(cleaned_term)
+        where = scan_card_search(where, cleaned_term) # Also check if its a Scan Card UUID
       elsif social
         where = sa[:SSN].eq(text.gsub('-', ''))
       elsif date
@@ -35,6 +37,7 @@ module ClientSearch
         where = sa[:DOB].eq("#{year}-#{month}-#{day}")
       elsif numeric
         where = sa[:PersonalID].eq(text)
+        where = scan_card_search(where, text) # Also check if its a Scan Card code (could be numeric for imported values)
         if term_is_possibly_pk
           conditions = [where, sa[:id].eq(text)]
 
@@ -98,6 +101,13 @@ module ClientSearch
     def self.metaphone_search(where, field, text)
       alt_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(text).to_s).map(&:name)
       where = where.or(nf('LOWER', [arel_table[field]]).in(alt_names)) if alt_names.present?
+
+      where
+    end
+
+    def self.scan_card_search(where, text)
+      matching_client_ids = Hmis::ScanCardCode.where(code: text).pluck(:client_id)
+      where = where.or(arel_table[:id].in(matching_client_ids))
 
       where
     end
