@@ -39,14 +39,6 @@
   .well
     = link_to 'Debug page ->', debug_all_neighbors_system_dashboard_warehouse_reports_report_path(@report, {project_type: 'All', count_level: 'Individuals', group: 'monthly_counts'})
 
-.well
-  %p Placements are deduplicated by day, project type, and age, meaning a person may be counted more than once per month.
-  %ul
-    %li People who were housed in multiple categories during the selected date range will be counted in each category
-    %li People who belonged to multiple household types will be counted in each category
-    %li Depending on the length of the chosen date range, people may age between age categories and will be counted in each category as appropriate
-    %li People who identify as multiple genders will be counted in each gender, and may inflate the overall count of placements in the gender category
-
 = render 'donuts', tab: tab, donut_data: donut_data, filter_label: 'date_range'
 
 = render 'stacked_charts', data: [stacked_data], group: 'Racial Composition', filter_label: 'date_range', filter: false, filter_data: [], show_chart_titles: false, hint: false, tab: tab, legend_padding: '200px', description: 'People may be counted more than once if they identify in more than one racial group.'
