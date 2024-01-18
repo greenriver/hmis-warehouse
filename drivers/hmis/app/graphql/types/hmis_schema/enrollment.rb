@@ -105,6 +105,7 @@ module Types
     youth_education_statuses_field
     employment_educations_field
     current_living_situations_field
+    field :assessment_eligibilities, [HmisSchema::AssessmentEligibility], null: false
     field :last_current_living_situation, Types::HmisSchema::CurrentLivingSituation, null: true
     custom_data_elements_field
     # 3.16.1
@@ -335,6 +336,10 @@ module Types
 
     def custom_case_notes(...)
       resolve_custom_case_notes(...)
+    end
+
+    def assessment_eligibilities
+      Hmis::EnrollmentAssessmentEligibilityList.new(enrollment: object)
     end
 
     def files(**args)

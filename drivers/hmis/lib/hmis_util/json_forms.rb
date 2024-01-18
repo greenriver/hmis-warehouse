@@ -295,6 +295,7 @@ module HmisUtil
       'path_status' => 'PATH Status',
       'base-intake' => 'Intake Assessment',
       'base-exit' => 'Exit Assessment',
+      'base-post_exit' => 'Post Exit Assessment',
       'base-update' => 'Update Assessment',
       'base-annual' => 'Annual Assessment',
     }.freeze
@@ -318,7 +319,7 @@ module HmisUtil
 
     # Load form definitions for HUD assessments
     public def seed_assessment_form_definitions
-      roles = [:INTAKE, :EXIT, :UPDATE, :ANNUAL]
+      roles = [:INTAKE, :EXIT, :UPDATE, :ANNUAL, :POST_EXIT]
       identifiers = []
       roles.each do |role|
         filename = "base_#{role.to_s.downcase}.json"
@@ -340,6 +341,9 @@ module HmisUtil
           role: role,
           title: FORM_TITLES[identifier],
         )
+
+        # Don't create default instance for post-exit. Those are going to be configured per installation
+        next if role == :POST_EXIT
 
         # Make this form the default instance for this role
         default_instance = Hmis::Form::Instance.defaults.where(definition_identifier: identifier).first_or_create!
