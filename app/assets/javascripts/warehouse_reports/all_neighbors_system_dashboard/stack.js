@@ -331,7 +331,7 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
       return col.concat(this.series.map((d) => d.name))
     } else {
       const index = this.config.keys.indexOf(name)
-      let household_count = 0
+      let householdCount = 0
       this.series.forEach((d) => {
         const total = d.series.filter((n) => {
           if(this.state.dateRange) {
@@ -348,11 +348,11 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
         .map((s) => {
           // Because these are averages, they need to be multiplied
           // by the number of households to get the correct value
-          household_count += s.households_count
+          householdCount += s.households_count
           return s.values[index] * s.households_count
         })
-        // console.log(d3.sum(total), household_count, total)
-        col.push(d3.sum(total) / household_count)
+        // console.log(d3.sum(total), householdCount, total)
+        col.push(d3.sum(total) / householdCount)
       })
       return col
     }
@@ -409,9 +409,9 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
       tooltip: {
         contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
           const index = d[0].index
-          let household_counts = this.series[index].series.filter((n) => this.inDateRange(n.date, this.state.dateRange))
+          let householdCounts = this.series[index].series.filter((n) => this.inDateRange(n.date, this.state.dateRange))
             .map((n) => { return n.households_count })
-          const householdTotal = d3.sum(household_counts)
+          const householdTotal = d3.sum(householdCounts)
           const barName = this.series[index].name
           const dateString = this.state.dateRange.map((d) => new Date(d).toLocaleDateString('en-us', {year: 'numeric', month: 'short'})).join(' - ')
           const swatches = d.map((n) => {
