@@ -151,12 +151,17 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   end
 
   def ce_assessment_factory(create: true)
-    return ce_assessment if ce_assessment || !create
+    return owner if owner.is_a? Hmis::Hud::Assessment
 
-    ce_assessment = enrollment_factory.assessments.build(
-      personal_id: enrollment_factory.personal_id,
-      user_id: custom_assessment&.user_id,
-    )
+    raise "owner not supported #{owner}" unless owner == custom_assessment
+
+    if create
+      self.ce_assessment ||= enrollment_factory.assessments.build(
+        personal_id: enrollment_factory.personal_id,
+        user_id: custom_assessment&.user_id,
+      )
+    end
+    ce_assessment
   end
 
   def health_and_dv_factory(create: true)
