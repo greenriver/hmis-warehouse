@@ -8,7 +8,6 @@ module AllNeighborsSystemDashboard
   class HousingTotalPlacementsData < DashboardData
     include AllNeighborsSystemDashboard::CensusCalculations
 
-    # FIXME: need to figure out why we are no longer getting the "All" line
     def self.cache_data(report)
       instance = new(report)
       instance.data('Total Placements', 'total_placements', :line)
