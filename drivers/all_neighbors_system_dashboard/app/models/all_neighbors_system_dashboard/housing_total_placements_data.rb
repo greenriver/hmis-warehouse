@@ -128,7 +128,6 @@ module AllNeighborsSystemDashboard
     end
 
     def line(options, fixed_start_date: nil, count_item:)
-      # binding.pry if options[:project_type] == 'Diversion'
       date_range.map do |date|
         scope = housed_total_scope.select(count_item)
         scope = filter_for_type(scope, options[:project_type])
@@ -182,8 +181,6 @@ module AllNeighborsSystemDashboard
     def donut(options, count_item:, **)
       project_type = options[:project_type] || options[:homelessness_status]
       options[:types].map do |type|
-        # binding.pry #if project_type == 'Diversion'
-        # raise 'failed'
         {
           name: type,
           series: date_range.map do |date|
@@ -205,7 +202,6 @@ module AllNeighborsSystemDashboard
 
     def donut_data
       [
-        # FIXME: this isn't calculating correctly, it looks like we're distincting somewhere
         data(
           'Project Type',
           'project_type',
