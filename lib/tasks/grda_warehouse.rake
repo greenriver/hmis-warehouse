@@ -314,6 +314,9 @@ namespace :grda_warehouse do
       # Run HMIS Auto-Exit daily in the early morning. This is running here instead of the daily tasks because of the daily task is bloated.
       Hmis::AutoExitJob.perform_now
     end
+
+    stats_collector = AppResourceMonitor::CollectStatsJob.new
+    AppResourceMonitor::CollectStatsJob.perform_later if stats_collector.should_enqueue?
   end
 
   desc 'Mark the first residential service history record for clients for whom this has not yet been done; if you set the parameter to *any* value, all clients will be reset'
