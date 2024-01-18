@@ -26,7 +26,7 @@ module AllNeighborsSystemDashboard
     # To be considered housed (or "placed") one of the following conditions must be met
     # 1. Client had an exit within the date range and the Exit was to a permanent destination and from a diversion project (specified at run-time)
     # 2. Client has a move-in date during range
-    # NOTE: replaced with `placed_in_range` which uses the normalized placment date
+    # NOTE: replaced with `placed_in_range` which uses the normalized placement date
     # scope :housed_in_range, ->(range, filter:) do
     #   permanent_diversion_exit(range, filter: filter).
     #     or(moved_in_in_range(range, filter: filter))
