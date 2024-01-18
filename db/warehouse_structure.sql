@@ -22930,7 +22930,7 @@ CREATE TABLE public.recent_report_enrollments (
     "CoercedToContinueWork" integer,
     "LaborExploitPastThreeMonths" integer,
     "HPScreeningScore" integer,
-    "VAMCStation" integer,
+    "VAMCStation_deleted" integer,
     "DateCreated" timestamp without time zone,
     "DateUpdated" timestamp without time zone,
     "UserID" character varying(100),
@@ -22988,6 +22988,7 @@ CREATE TABLE public.recent_report_enrollments (
     "TranslationNeeded" integer,
     "PreferredLanguage" integer,
     "PreferredLanguageDifferent" character varying,
+    "VAMCStation" character varying,
     demographic_id integer,
     client_id integer
 );
@@ -23013,8 +23014,8 @@ CREATE TABLE public.recent_service_history (
     project_type smallint,
     project_tracking_method integer,
     organization_id integer,
-    housing_status_at_entry integer,
-    housing_status_at_exit integer,
+    "LivingSituation" integer,
+    "HousingAssessment" integer,
     service_type smallint,
     computed_project_type smallint,
     presented_as_individual boolean
@@ -62753,6 +62754,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240102155413'),
 ('20240102205532'),
 ('20240104155138'),
+('20240105222927'),
 ('20240116193554');
 
 
