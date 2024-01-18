@@ -151,5 +151,17 @@ module HealthThriveAssessment
     def edit_path
       client_health_thrive_assessment_assessment_path(patient.client, self)
     end
+
+    def self.encounter_report_details
+      source = if epic_source_id.present?
+        'EPIC'
+      else
+        'Warehouse'
+      end
+
+      {
+        source: source,
+      }
+    end
   end
 end
