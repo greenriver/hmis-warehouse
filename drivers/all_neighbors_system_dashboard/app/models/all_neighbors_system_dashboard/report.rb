@@ -124,7 +124,9 @@ module AllNeighborsSystemDashboard
           next unless placed_date.in?(filter.range)
 
           # Only count DRTRR projects for placement dates prior to 5/1/2023
-          next if placed_date < PILOT_END_DATE && !pilot_project_ids.include?(enrollment.project.id)
+          # For ease of running, we've added the diversion projects to the DRTRR project group, but we'll only include
+          # placements that occurred at PH projects prior to 5/1/2023
+          next if placed_date < PILOT_END_DATE && (!pilot_project_ids.include?(enrollment.project.id) || !enrollment.project.ph?)
 
           report_enrollments[enrollment.id] = Enrollment.new(
             report_id: id,
