@@ -436,6 +436,18 @@ module PerformanceMeasurement
       return HudUtility2024.household_type('Households with only children', true) if ages.all? { |age| age.present? && age.between?(0, 18) }
     end
 
+    private def household_types_for_all_report_scope_project_client_combinations
+      @household_types_for_all_report_scope_project_client_combinations ||= {}.tap do |data|
+        cols = {
+          client_id: :client_id,
+          project_id: p_t[:id],
+          household_id: e_t[:HouseholdID],
+          dob: c_t[:dob],
+        }
+        report_scope.joins(:project, :enrollment, :client).pluck(*cols.values)
+      end
+    end
+
     # Use the household ID if present, otherwise a made-up one for the enrollment
     private def hh_id_for_row(hh_id, enrollment_id)
       hh_id.presence || "en-#{enrollment_id}"
@@ -451,7 +463,6 @@ module PerformanceMeasurement
       end.group_by(&:shift)
     end
 
-    # TODO: We need household type data for the remaining extra_calculations, currently on for served_on_pit_date
     private def extra_calculations # rubocop:disable Metrics/AbcSize
       extras = [
         {
