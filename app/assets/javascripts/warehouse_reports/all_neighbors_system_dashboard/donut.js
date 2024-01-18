@@ -17,7 +17,7 @@ class AllNeighborsSystemDashboardDonut {
   }
 
   test() {
-    console.log(this)
+    console.debug(this)
   }
 
   inDateRange(dateString, range) {
@@ -111,14 +111,16 @@ class AllNeighborsSystemDashboardDonut {
   }
 
   updateLabels() {
-    const selector = this.options.countLevelLabelSelector
-    if(selector) {
-      const sum = d3.sum(
-        this.getColumns().map((col) => d3.sum(col.slice(1)))
-      )
-      const label = 'Placements'
-      $(selector).text(`${d3.format(',')(sum)} ${label}`)
-    }
+    // Removing lables 1/16/2024
+    return ''
+    // const selector = this.options.countLevelLabelSelector
+    // if(selector) {
+    //   const sum = d3.sum(
+    //     this.getColumns().map((col) => d3.sum(col.slice(1)))
+    //   )
+    //   const label = 'Placements'
+    //   $(selector).text(`${d3.format(',')(sum)} ${label}`)
+    // }
   }
 
   redraw(state) {
