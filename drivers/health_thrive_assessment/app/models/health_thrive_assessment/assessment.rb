@@ -15,6 +15,7 @@ module HealthThriveAssessment
 
     belongs_to :patient, class_name: 'Health::Patient', optional: true
     belongs_to :user, optional: true
+    has_one :source, class_name: 'Health::EpicThrive', foreign_key: :epic_source_id
 
     scope :in_progress, -> { where(completed_on: nil) }
     scope :completed_within, ->(range) { where(completed_on: range) }
@@ -152,7 +153,7 @@ module HealthThriveAssessment
       client_health_thrive_assessment_assessment_path(patient.client, self)
     end
 
-    def self.encounter_report_details
+    def encounter_report_details
       source = if epic_source_id.present?
         'EPIC'
       else
