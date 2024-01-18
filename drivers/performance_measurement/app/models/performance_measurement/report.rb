@@ -436,18 +436,6 @@ module PerformanceMeasurement
       return HudUtility2024.household_type('Households with only children', true) if ages.all? { |age| age.present? && age.between?(0, 18) }
     end
 
-    private def household_types_for_all_report_scope_project_client_combinations
-      @household_types_for_all_report_scope_project_client_combinations ||= {}.tap do |data|
-        cols = {
-          client_id: :client_id,
-          project_id: p_t[:id],
-          household_id: e_t[:HouseholdID],
-          dob: c_t[:dob],
-        }
-        report_scope.joins(:project, :enrollment, :client).pluck(*cols.values)
-      end
-    end
-
     # Use the household ID if present, otherwise a made-up one for the enrollment
     private def hh_id_for_row(hh_id, enrollment_id)
       hh_id.presence || "en-#{enrollment_id}"
@@ -461,6 +449,40 @@ module PerformanceMeasurement
           GrdaWarehouse::Hud::Client.age(date: date, dob: row[:dob]),
         ]
       end.group_by(&:shift)
+    end
+
+    # Generate some household data for clients where all we have is a client id and project id
+    private def household_types_for_all_report_scope_project_client_combinations
+      @household_types_for_all_report_scope_project_client_combinations ||= {}.tap do |data|
+        cols = {
+          client_id: :client_id,
+          project_id: p_t[:id],
+          household_id: e_t[:HouseholdID],
+          dob: c_t[:dob],
+        }
+        # only calculate household-type for enrollments with household ids
+        households = {}
+        report_scope.joins(:project, :enrollment, :client).
+          where(e_t[:HouseholdID].not_eq(nil)).
+          pluck(*cols.values).each do |row|
+            row = cols.keys.zip(row).to_h
+            households[row[:household_id]] ||= []
+            households[row[:household_id]] << row
+          end
+        households.each do |_, rows|
+          ages = rows.map do |row|
+            GrdaWarehouse::Hud::Client.age(date: filter.start, dob: row[:dob])
+          end
+          # Since we don't know the enrollment_id later, we're just going to take the first one we find for each member of the household
+          rows.each do |row|
+            data[client_project_hh_key(row[:client_id], row[:project_id])] ||= household_type_for_extra(ages)
+          end
+        end
+      end
+    end
+
+    private def client_project_hh_key(client_id, project_id)
+      ['c--', client_id, 'p--', project_id].join('_')
     end
 
     private def extra_calculations # rubocop:disable Metrics/AbcSize
@@ -531,7 +553,7 @@ module PerformanceMeasurement
                 row = cols.keys.zip(row).to_h
                 hh_id = hh_id_for_row(row[:hh_id], row[:enrollment_id])
                 ages = households[hh_id].flatten
-                project_types_by_client_id[client_id] ||= {
+                project_types_by_client_id[row[:client_id]] ||= {
                   value: true,
                   project_ids: {},
                   dob: row[:dob],
@@ -595,10 +617,10 @@ module PerformanceMeasurement
                     value: 0,
                     project_ids: {},
                     dob: nil,
-                    household_id: nil, # FIXME, needs household calculations
+                    household_id: client_project_hh_key(client_id, project_id),
                   }
                   days_by_client_id[client_id][:value] += days
-                  days_by_client_id[client_id][:project_ids][project_id] = nil
+                  days_by_client_id[client_id][:project_ids][project_id] = household_types_for_all_report_scope_project_client_combinations[client_project_hh_key(client_id, project_id)]
                   days_by_client_id[client_id][:dob] = dobs[client_id]
                 end
             end
@@ -622,9 +644,14 @@ module PerformanceMeasurement
               scope.group(:client_id, p_t[:id]).
                 count(shs_t[:date]).
                 each do |(client_id, project_id), days|
-                  days_by_client_id[client_id] ||= { value: 0, project_ids: {}, dob: nil, household_id: nil }
+                  days_by_client_id[client_id] ||= {
+                    value: 0,
+                    project_ids: {},
+                    dob: nil,
+                    household_id: client_project_hh_key(client_id, project_id),
+                  }
                   days_by_client_id[client_id][:value] += days
-                  days_by_client_id[client_id][:project_ids][project_id] = nil
+                  days_by_client_id[client_id][:project_ids][project_id] = household_types_for_all_report_scope_project_client_combinations[client_project_hh_key(client_id, project_id)]
                   days_by_client_id[client_id][:dob] = dobs[client_id]
                 end
             end
@@ -648,11 +675,15 @@ module PerformanceMeasurement
               scope.group(:client_id, p_t[:id]).
                 count(shs_t[:date]).
                 each do |(client_id, project_id), days|
-                  days_by_client_id[client_id] ||= { value: [], project_ids: {}, dob: nil, household_id: nil }
+                  days_by_client_id[client_id] ||= {
+                    value: [],
+                    project_ids: {},
+                    dob: nil,
+                    household_id: client_project_hh_key(client_id, project_id),
+                  }
                   days_by_client_id[client_id][:value] << { project_id => days }
-                  days_by_client_id[client_id][:project_ids][project_id] = nil
+                  days_by_client_id[client_id][:project_ids][project_id] = household_types_for_all_report_scope_project_client_combinations[client_project_hh_key(client_id, project_id)]
                   days_by_client_id[client_id][:dob] = dobs[client_id]
-                  # FIXME: needs household type calculation
                 end
             end
           },
@@ -692,11 +723,15 @@ module PerformanceMeasurement
                   else
                     (move_in - entry_date).to_i
                   end
-                  days_by_client_id[client_id] ||= { value: 0, project_ids: {}, dob: nil, household_id: nil }
+                  days_by_client_id[client_id] ||= {
+                    value: 0,
+                    project_ids: {},
+                    dob: nil,
+                    household_id: client_project_hh_key(client_id, project_id),
+                  }
                   days_by_client_id[client_id][:value] += days
-                  days_by_client_id[client_id][:project_ids][project_id] = nil
+                  days_by_client_id[client_id][:project_ids][project_id] = household_types_for_all_report_scope_project_client_combinations[client_project_hh_key(client_id, project_id)]
                   days_by_client_id[client_id][:dob] = dobs[client_id]
-                  # FIXME: needs household type calculation
                 end
             end
           },
@@ -717,9 +752,14 @@ module PerformanceMeasurement
               dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
               scope.pluck(:client_id, p_t[:id], :destination).
                 each do |client_id, project_id, destination|
-                  destination_client_id[client_id] ||= { value: nil, project_ids: {}, dob: nil, household_id: nil }
+                  destination_client_id[client_id] ||= {
+                    value: nil,
+                    project_ids: {},
+                    dob: nil,
+                    household_id: client_project_hh_key(client_id, project_id),
+                  }
                   destination_client_id[client_id][:value] = destination
-                  destination_client_id[client_id][:project_ids][project_id] = nil
+                  destination_client_id[client_id][:project_ids][project_id] = household_types_for_all_report_scope_project_client_combinations[client_project_hh_key(client_id, project_id)]
                   destination_client_id[client_id][:dob] = dobs[client_id]
                 end
             end
@@ -744,9 +784,14 @@ module PerformanceMeasurement
               scope.group(:client_id, p_t[:id]).
                 count(shs_t[:date]).
                 each do |(client_id, project_id), days|
-                  days_by_client_id[client_id] ||= { value: [], project_ids: {}, dob: nil, household_id: nil }
+                  days_by_client_id[client_id] ||= {
+                    value: [],
+                    project_ids: {},
+                    dob: nil,
+                    household_id: client_project_hh_key(client_id, project_id),
+                  }
                   days_by_client_id[client_id][:value] << { project_id => days }
-                  days_by_client_id[client_id][:project_ids][project_id] = nil
+                  days_by_client_id[client_id][:project_ids][project_id] = household_types_for_all_report_scope_project_client_combinations[client_project_hh_key(client_id, project_id)]
                   days_by_client_id[client_id][:dob] = dobs[client_id]
                 end
             end
@@ -769,9 +814,14 @@ module PerformanceMeasurement
               scope.group(:client_id, p_t[:id]).
                 count(shs_t[:date]).
                 each do |(client_id, project_id), days|
-                  days_by_client_id[client_id] ||= { value: 0, project_ids: {}, dob: nil, household_id: nil }
+                  days_by_client_id[client_id] ||= {
+                    value: 0,
+                    project_ids: {},
+                    dob: nil,
+                    household_id: client_project_hh_key(client_id, project_id),
+                  }
                   days_by_client_id[client_id][:value] += days
-                  days_by_client_id[client_id][:project_ids][project_id] = nil
+                  days_by_client_id[client_id][:project_ids][project_id] = household_types_for_all_report_scope_project_client_combinations[client_project_hh_key(client_id, project_id)]
                   days_by_client_id[client_id][:dob] = dobs[client_id]
                 end
             end
@@ -795,9 +845,14 @@ module PerformanceMeasurement
               scope.group(:client_id, p_t[:id]).
                 count(shs_t[:date]).
                 each do |(client_id, project_id), days|
-                  days_by_client_id[client_id] ||= { value: 0, project_ids: {}, dob: nil, household_id: nil }
+                  days_by_client_id[client_id] ||= {
+                    value: 0,
+                    project_ids: {},
+                    dob: nil,
+                    household_id: client_project_hh_key(client_id, project_id),
+                  }
                   days_by_client_id[client_id][:value] += days
-                  days_by_client_id[client_id][:project_ids][project_id] = nil
+                  days_by_client_id[client_id][:project_ids][project_id] = household_types_for_all_report_scope_project_client_combinations[client_project_hh_key(client_id, project_id)]
                   days_by_client_id[client_id][:dob] = dobs[client_id]
                   # FIXME: needs household type
                 end
@@ -822,9 +877,14 @@ module PerformanceMeasurement
               scope.group(:client_id, p_t[:id]).
                 count(shs_t[:date]).
                 each do |(client_id, project_id), days|
-                  days_by_client_id[client_id] ||= { value: [], project_ids: {}, dob: nil, household_id: nil }
+                  days_by_client_id[client_id] ||= {
+                    value: [],
+                    project_ids: {},
+                    dob: nil,
+                    household_id: client_project_hh_key(client_id, project_id),
+                  }
                   days_by_client_id[client_id][:value] << { project_id => days }
-                  days_by_client_id[client_id][:project_ids][project_id] = nil
+                  days_by_client_id[client_id][:project_ids][project_id] = household_types_for_all_report_scope_project_client_combinations[client_project_hh_key(client_id, project_id)]
                   days_by_client_id[client_id][:dob] = dobs[client_id]
                 end
             end
