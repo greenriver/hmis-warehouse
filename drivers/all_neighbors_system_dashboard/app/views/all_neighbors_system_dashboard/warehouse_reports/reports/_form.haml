@@ -19,11 +19,14 @@
         %p
           For the Community Dashboard to function correctly, you'll need to choose two items below:
         %ol
-          %li A set of projects that should be used in calculating successful diversion
-        %p These projects should also be a part of the project set chosen above.  Additionally, The full list of projects above should include any project that might generate a CE Event which are used when calculating time between identification, referral, and move-in.
+          %li A set of projects that should be used in calculating successful diversion. These projects should also be a part of the project set chosen above.
+          %li A project group that represents the DRTRR projects pre-5/1/2023.  Only placements from these projects will be included for dates prior to 5/1/2023.
+        %p  Additionally, The full list of projects above should include any project that might generate a CE Event which are used when calculating time between identification, referral, and move-in.
     .row
       .col-sm-6
         = f.input :secondary_project_ids, collection: [], as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Choose Projects', data: { 'filter-projects-target' => 'projects', action: 'change->filter-projects#update', 'collection-path' => api_projects_path(selected_project_ids: @filter.secondary_project_ids, project_types: @filter.default_project_type_codes) } }, label: 'Diversion Projects', hint: 'Include any project that should be used when calculating successful diversion'
+      .col-sm-6
+        = f.input :secondary_project_group_ids, as: :select_two, collection: @filter.project_groups_options_for_select(user: current_user), input_html: { multiple: true, data: {placeholder: 'Any Project Group' }}, include_blank: false, label: 'DRTRR Project Groups'
 
   - content_for :filter_actions do
     = f.submit 'Queue Report', class: ['btn', 'btn-primary'], data: { 'filter-projects-target' => 'submitButton' }

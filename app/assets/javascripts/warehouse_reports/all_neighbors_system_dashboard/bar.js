@@ -123,7 +123,7 @@ class AllNeighborsSystemDashboardBar {
         } else {
           const percentages = []
         }
-        
+
         data.forEach((d, i) => {
           const barGroup = d3.select(`${selector} .bb-bars-${d.id}`)
           barGroup.attr('transform', i === 0 ? 'translate(15, 0)' : 'translate(-15, 0)')
@@ -157,7 +157,7 @@ class AllNeighborsSystemDashboardBar {
   }
 
   test() {
-    console.log(this)
+    console.debug(this)
   }
 
   redraw(state) {
@@ -298,7 +298,7 @@ class AllNeighborsSystemDashboardHorizontalBar extends AllNeighborsSystemDashboa
             return labelDirection(this, d) === 'left' ? '#fff' : '#000'
           })
           .attr('transform', 'translate(0, 16)')
-          
+
       }
     }
     return {...superConfig, ...config}
