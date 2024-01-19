@@ -132,4 +132,17 @@ class AwsS3
       obj.put(body: content, server_side_encryption: 'AES256')
     end
   end
+
+  # Uploads all files from a local directory
+  # @param directory_name [String] path to directory on local file system
+  # @param prefix [String, nil] upload files under this prefix in the s3 bucket
+  def upload_directory(directory_name:, prefix: nil)
+    raise ArgumentError, 'Directory does not exist' unless Dir.exist?(directory_name)
+
+    Dir.glob("#{directory_name}/*").each do |file|
+      raise 'nested directories not supported' if File.directory?(file)
+
+      put(file_name: file, prefix: prefix)
+    end
+  end
 end
