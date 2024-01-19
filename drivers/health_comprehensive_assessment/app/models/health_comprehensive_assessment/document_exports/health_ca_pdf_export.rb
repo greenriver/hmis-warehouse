@@ -116,5 +116,9 @@ module HealthComprehensiveAssessment::DocumentExports
     private def controller_class
       HealthComprehensiveAssessment::AssessmentsController
     end
+
+    protected def report_class
+      HealthComprehensiveAssessment::Assessment
+    end
   end
 end
