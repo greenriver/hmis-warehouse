@@ -11,6 +11,10 @@ module HudSpmReport::Generators::Fy2023
       'Measure 1'.freeze
     end
 
+    def self.client_class
+      HudSpmReport::Fy2023::Episode
+    end
+
     def self.table_descriptions
       {
         'Measure 1' => 'Length of Time Persons Experience Homelessness',

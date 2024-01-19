@@ -1,5 +1,5 @@
-module PerformanceMeasurement
-  class EquityReportBuilder
+module PerformanceMeasurement::EquityAnalysis
+  class Builder
     include ActiveModel::Model
 
     validates :metric, presence: true
@@ -8,11 +8,11 @@ module PerformanceMeasurement
     attr_reader :report, :params
 
     CHART_DATA_KEY_TO_CLASS = {
-      default: PerformanceMeasurement::EquityReportData,
-      race: PerformanceMeasurement::EquityReportRaceData,
-      age: PerformanceMeasurement::EquityReportAgeData,
-      gender: PerformanceMeasurement::EquityReportGenderData,
-      household_type: PerformanceMeasurement::EquityReportHouseholdTypeData,
+      default: PerformanceMeasurement::EquityAnalysis::Data,
+      race: PerformanceMeasurement::EquityAnalysis::RaceData,
+      age: PerformanceMeasurement::EquityAnalysis::AgeData,
+      gender: PerformanceMeasurement::EquityAnalysis::GenderData,
+      household_type: PerformanceMeasurement::EquityAnalysis::HouseholdTypeData,
     }.freeze
 
     VEIW_BY_DEFAULT = 'percentage'.freeze
@@ -35,7 +35,7 @@ module PerformanceMeasurement
 
     def describe_filters
       rslt = "<span>#{describe_metric} by #{investigate_by}</span></br>"
-      param_rslt = PerformanceMeasurement::EquityReportData::INVESTIGATE_BY.keys.map do |key|
+      param_rslt = PerformanceMeasurement::EquityAnalysis::Data::INVESTIGATE_BY.keys.map do |key|
         send("describe_#{key}".to_sym)
       end
       param_rslt.push(describe_projects)
@@ -73,7 +73,7 @@ module PerformanceMeasurement
 
     def describe_race
       names = race.map do |key|
-        PerformanceMeasurement::EquityReportData::RACES[key]
+        PerformanceMeasurement::EquityAnalysis::Data::RACES[key]
       end.reject(&:blank?).join(', ')
       race.any? ? "Race: #{names}" : ''
     end
@@ -83,7 +83,7 @@ module PerformanceMeasurement
     end
 
     def describe_age
-      names = PerformanceMeasurement::EquityReportData::AGES.select { |_, v| age.map(&:to_sym).include?(v) }.keys.join(', ')
+      names = PerformanceMeasurement::EquityAnalysis::Data::AGES.select { |_, v| age.map(&:to_sym).include?(v) }.keys.join(', ')
       age.any? ? "Age: #{names}" : ''
     end
 
@@ -93,7 +93,7 @@ module PerformanceMeasurement
 
     def describe_gender
       names = gender.map do |id|
-        PerformanceMeasurement::EquityReportData::GENDERS[id.to_i]
+        PerformanceMeasurement::EquityAnalysis::Data::GENDERS[id.to_i]
       end.reject(&:blank?).join(', ')
       gender.any? ? "Gender: #{names}" : ''
     end
@@ -104,7 +104,7 @@ module PerformanceMeasurement
 
     def describe_household_type
       names = household_type.map do |id|
-        PerformanceMeasurement::EquityReportData::HOUSEHOLD_TYPES[id.to_i]
+        PerformanceMeasurement::EquityAnalysis::Data::HOUSEHOLD_TYPES[id.to_i]
       end.reject(&:blank?).join(', ')
       household_type.any? ? "Household Type: #{names}" : ''
     end
@@ -139,10 +139,20 @@ module PerformanceMeasurement
       opts = []
       @report.display_order.each do |sub_sections|
         sub_sections.each do |keys|
-          keys.keys.each { |key| opts.push([@report.detail_title_for(key), key]) }
+          keys.keys.each do |key|
+            next if key.in?(ignored_metrics)
+
+            opts.push([@report.detail_title_for(key), key])
+          end
         end
       end
       opts
+    end
+
+    private def ignored_metrics
+      [
+        :overall_average_bed_utilization,
+      ].freeze
     end
 
     def investigate_by_options
@@ -155,19 +165,19 @@ module PerformanceMeasurement
     end
 
     def race_options
-      PerformanceMeasurement::EquityReportData::RACES.to_a
+      PerformanceMeasurement::EquityAnalysis::Data::RACES.to_a
     end
 
     def age_options
-      PerformanceMeasurement::EquityReportData::AGES
+      PerformanceMeasurement::EquityAnalysis::Data::AGES
     end
 
     def gender_options
-      PerformanceMeasurement::EquityReportData::GENDERS.to_a
+      PerformanceMeasurement::EquityAnalysis::Data::GENDERS.to_a
     end
 
     def household_type_options
-      PerformanceMeasurement::EquityReportData::HOUSEHOLD_TYPES.invert
+      PerformanceMeasurement::EquityAnalysis::Data::HOUSEHOLD_TYPES.invert
     end
 
     def project_options

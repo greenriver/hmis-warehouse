@@ -50,9 +50,8 @@ module HudSpmReport::Generators::Fy2023
       questions.keys.detect { |q| q == question_number } || questions.keys.first
     end
 
-    def self.client_class(_question)
-      # FIXME
-      HudSpmReport::Fy2023::SpmEnrollment
+    def self.client_class(question)
+      questions[question].client_class
     end
 
     def self.detail_template

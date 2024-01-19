@@ -1,5 +1,5 @@
-module PerformanceMeasurement
-  class EquityReportGenderData < PerformanceMeasurement::EquityReportData
+module PerformanceMeasurement::EquityAnalysis
+  class GenderData < PerformanceMeasurement::EquityAnalysis::Data
     def data_groups
       gender_params.any? ? GENDERS.select { |k, _| gender_params.include?(gender_value_to_scope(k)) } : GENDERS
     end

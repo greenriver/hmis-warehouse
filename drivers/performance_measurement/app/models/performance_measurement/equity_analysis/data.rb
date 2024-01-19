@@ -1,5 +1,5 @@
-module PerformanceMeasurement
-  class EquityReportData
+module PerformanceMeasurement::EquityAnalysis
+  class Data
     include ArelHelper
 
     BARS = [

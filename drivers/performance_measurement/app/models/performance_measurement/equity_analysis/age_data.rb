@@ -1,5 +1,5 @@
-module PerformanceMeasurement
-  class EquityReportAgeData < PerformanceMeasurement::EquityReportData
+module PerformanceMeasurement::EquityAnalysis
+  class AgeData < PerformanceMeasurement::EquityAnalysis::Data
     def data_groups
       age_params.any? ? AGES.select { |_, v| age_params.include?(v) } : AGES
     end

@@ -36,7 +36,7 @@
     .card-header
       %h2 Build Report
     .card-body
-      = render 'equity_form'
+      = render 'performance_measurement/warehouse_reports/reports/equity_analysis/form'
 .mb-6
   .card
     - if @analysis_builder.valid?
@@ -45,11 +45,10 @@
         %div= @analysis_builder.describe_filters.html_safe
     .card-body
       - if @analysis_builder.valid?
-        = render 'equity_chart', data: @analysis_builder.chart_data
+        = render 'performance_measurement/warehouse_reports/reports/equity_analysis/chart', data: @analysis_builder.chart_data
       - else
         .py-8.text-center#no-data-warning
           %h3
             No report data has been selected to display.
           %span
             Make required selections above and click “update report”
-

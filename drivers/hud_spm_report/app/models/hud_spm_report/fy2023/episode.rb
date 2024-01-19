@@ -18,6 +18,32 @@ module HudSpmReport::Fy2023
     attr_accessor :report # FIXME?
     attr_writer :filter
 
+    def self.detail_headers
+      client_columns = ['client_id']
+      hidden_columns = ['id', 'report_instance_id'] + client_columns
+      columns = client_columns + (column_names - hidden_columns)
+      columns.map do |col|
+        [col, header_label(col)]
+      end.to_h
+    end
+
+    private_class_method def self.header_label(col)
+      case col.to_sym
+      when :client_id
+        'Warehouse Client ID'
+      when :personal_id
+        'HMIS Personal ID'
+      when :data_source_id
+        'Data Source ID'
+      when :los_under_threshold
+        'LOS Under Threshold'
+      when :previous_street_essh
+        'Previous Street ESSH'
+      else
+        col.humanize
+      end
+    end
+
     def compute_episode(enrollments, included_project_types:, excluded_project_types:, include_self_reported_and_ph:)
       raise 'Client undefined' unless client.present?
 

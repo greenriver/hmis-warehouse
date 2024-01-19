@@ -321,6 +321,7 @@ module PerformanceMeasurement
                   report_id: id,
                   client_id: hud_client.id,
                   period: variant_name,
+                  household_type: household_type_for_spm(member),
                 )
               end
 
@@ -587,10 +588,10 @@ module PerformanceMeasurement
                     value: [],
                     project_ids: {},
                     dob: nil,
-                    household_id: nil,
+                    household_id: client_project_hh_key(client_id, project_id),
                   }
                   days_by_client_id[client_id][:value] << { project_id => days }
-                  days_by_client_id[client_id][:project_ids][project_id] = nil
+                  days_by_client_id[client_id][:project_ids][project_id] = household_types_for_all_report_scope_project_client_combinations[client_project_hh_key(client_id, project_id)]
                   days_by_client_id[client_id][:dob] = dobs[client_id]
                 end
             end
