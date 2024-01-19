@@ -584,5 +584,11 @@ module HealthComprehensiveAssessment
         other: 'Other',
       }.with_indifferent_access.invert
     end
+
+    def self.encounter_report_details
+      {
+        source: 'Warehouse',
+      }
+    end
   end
 end
