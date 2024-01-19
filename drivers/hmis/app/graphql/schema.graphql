@@ -225,6 +225,7 @@ Custom Assessment
 type Assessment {
   access: AssessmentAccess!
   assessmentDate: ISO8601Date!
+  ceAssessment: CeAssessment
   client: Client!
   customDataElements: [CustomDataElement!]!
   dataCollectionStage: DataCollectionStage
@@ -8963,7 +8964,7 @@ Related record type for a group of questions in an assessment
 """
 enum RelatedRecordType {
   """
-  Assessment
+  CeAssessment
   """
   ASSESSMENT
 

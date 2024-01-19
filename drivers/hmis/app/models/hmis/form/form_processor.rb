@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# == Hmis::Form::FormProcessor
+#
 # Stores the actual data that was collected during an assessment. 1:1 with CustomAssessments.
 #   If the assessment is WIP: The data is stored exclusively as JSON blobs in the "values”/”hud_values" cols.
 #   If the assessment is non-WIP: The HUD data is stored in records (IncomeBenefit, HealthAndDv, etc) that are referenced by this form_processor directly. (health_and_dv_id etc)
@@ -152,8 +154,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   def ce_assessment_factory(create: true)
     return owner if owner.is_a? Hmis::Hud::Assessment
-
-    raise "owner not supported #{owner}" unless owner == custom_assessment
 
     if create
       self.ce_assessment ||= enrollment_factory.assessments.build(

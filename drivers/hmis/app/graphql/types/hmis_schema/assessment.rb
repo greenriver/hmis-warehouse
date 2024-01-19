@@ -17,6 +17,7 @@ module Types
       arg :project, [ID]
     end
 
+    # object is a Hmis::Hud::CustomAssessment
     description 'Custom Assessment'
     field :id, ID, null: false
     field :lock_version, Integer, null: false
@@ -31,6 +32,7 @@ module Types
       can :delete_assessments
     end
     # Related records that were created by this Assessment, if applicable
+    field :ce_assessment, Types::HmisSchema::CeAssessment, null: true
     field :income_benefit, Types::HmisSchema::IncomeBenefit, null: true
     field :health_and_dv, Types::HmisSchema::HealthAndDv, null: true
     field :exit, Types::HmisSchema::Exit, null: true
@@ -73,6 +75,14 @@ module Types
 
     def in_progress
       object.in_progress?
+    end
+
+    protected def form_processor
+      load_ar_association(object, :form_processor)
+    end
+
+    def ce_assessment
+      form_processor ? load_ar_association(form_processor, :ce_assessment) : nil
     end
 
     def income_benefit
