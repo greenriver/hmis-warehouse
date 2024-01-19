@@ -13,7 +13,7 @@ class Hmis::Hud::Processors::Base
   # DO NOT CHANGE: Frontend code sends this value
   HIDDEN_FIELD_VALUE = '_HIDDEN'.freeze
 
-  # @param @processor [Hmis::Form::FormProcessor] active record model that persists form data and models
+  # @param [Hmis::Form::FormProcessor] processor active record model that persists form data and models
   def initialize(processor)
     @processor = processor
     @hud_values = processor.hud_values

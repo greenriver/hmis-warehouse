@@ -58548,6 +58548,13 @@ CREATE UNIQUE INDEX uidx_hmis_external_unit_availability_syncs ON public.hmis_ex
 
 
 --
+-- Name: uidx_hmis_form_definitions_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX uidx_hmis_form_definitions_identifier ON public.hmis_form_definitions USING btree (identifier, version);
+
+
+--
 -- Name: uidx_hmis_project_unit_type_mappings; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60626,6 +60633,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231226194235'),
 ('20240102155413'),
 ('20240102205532'),
-('20240113025936');
+('20240105222927'),
+('20240113025936'),
+('20240119035058');
 
 
