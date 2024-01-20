@@ -66,20 +66,27 @@ class Hmis::EnrollmentAssessmentEligibilityList
     results = {}
     definitions.group_by do |definition|
       found_matches = definition.instances.map do |instance|
-        case instance.entity_type
-        when Hmis::Hud::Project.sti_name
-          next PROJECT_MATCH if instance.entity_id == project.id
-        when Hmis::Hud::Organization.sti_name
-          next ORGANIZATION_MATCH if instance.entity_id == project.organization.id
+        if instance.entity_type
+          case instance.entity_type
+          when Hmis::Hud::Project.sti_name
+            next PROJECT_MATCH if instance.entity_id == project.id
+          when Hmis::Hud::Organization.sti_name
+            next ORGANIZATION_MATCH if instance.entity_id == project.organization.id
+          else
+            # entity type is specified but doesn't match project
+            next
+          end
         end
 
-        case instance.project_type
-        when project.project_type
-          next PROJECT_TYPE_AND_FUNDER_MATCH if instance.funder.in?(project.funders.map(&:funder))
-          next PROJECT_TYPE_MATCH unless instance.funder
-        when nil
+        if instance.project_type
+          if project.project_type && instance.project_type == project.project_type
+            next PROJECT_TYPE_AND_FUNDER_MATCH if instance.funder.in?(project.funders.map(&:funder))
+            next PROJECT_TYPE_MATCH unless instance.funder
+          end
+        else
           next PROJECT_FUNDER_MATCH if instance.funder.in?(project.funders.map(&:funder))
         end
+
         next DEFAULT_MATCH unless instance.entity_type || instance.project_type || instance.funder || instance.other_funder
       end
       next if found_matches.empty?
