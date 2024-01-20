@@ -176,6 +176,9 @@ module HudPathReport::Generators::Fy2024
           enrollment = last_enrollment(client)
           next unless enrollment.present?
 
+          enrollment_active = active_in_path(enrollment)
+          next unless enrollment_active
+
           source_client = enrollment.client
           next unless source_client
 
@@ -209,7 +212,7 @@ module HudPathReport::Generators::Fy2024
             length_of_stay: enrollment.LengthOfStay,
             chronically_homeless: enrollment.chronically_homeless_at_start,
             domestic_violence: health_and_dv_latest&.DomesticViolenceVictim,
-            active_client: active_in_path(enrollment),
+            active_client: enrollment_active,
             new_client: new_client,
             enrolled_client: enrolled_in_path(enrollment),
             newly_enrolled_client: newly_enrolled_in_path(enrollment),
