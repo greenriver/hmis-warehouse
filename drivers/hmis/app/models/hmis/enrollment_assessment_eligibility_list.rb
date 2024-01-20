@@ -12,7 +12,7 @@ class Hmis::EnrollmentAssessmentEligibilityList
   include Enumerable
   attr_accessor :client, :project, :enrollment
 
-  # @param enrollment [Hmis::Hud::Enrollment]
+  # @param [Hmis::Hud::Enrollment] enrollment
   def initialize(enrollment:)
     self.client = enrollment.client
     self.project = enrollment.project
@@ -24,6 +24,7 @@ class Hmis::EnrollmentAssessmentEligibilityList
   ANNUAL_ROLE = 'ANNUAL'.freeze
   EXIT_ROLE = 'EXIT'.freeze
   POST_EXIT_ROLE = 'POST_EXIT'.freeze
+  CUSTOM_ASSESSMENT = 'CUSTOM_ASSESSMENT'.freeze
 
   DATA_COLLECTION_STAGE_BY_ROLE = {
     INTAKE_ROLE => 1,
@@ -42,20 +43,79 @@ class Hmis::EnrollmentAssessmentEligibilityList
     roles << EXIT_ROLE unless assessment_started?(EXIT_ROLE)
     roles += [UPDATE_ROLE, ANNUAL_ROLE] unless assessment_submitted?(EXIT_ROLE)
     roles << POST_EXIT_ROLE if assessment_submitted?(EXIT_ROLE) && !assessment_started?(POST_EXIT_ROLE) && enrollment.head_of_household?
+    roles << CUSTOM_ASSESSMENT
 
-    # FIXME: this could be one query rather than ~25 queries :(
-    roles.each do |role|
-      Hmis::Form::Definition.for_project(project: project, role: role).each do |definition|
-        yield(definition)
-      end
-    end
-    # FIXME this isn't quite right, should filter by project
-    Hmis::Form::Definition.where(role: 'CUSTOM_ASSESSMENT').each do |definition|
+    filtered_definitions(roles).each do |definition|
       yield(definition)
     end
   end
 
   protected
+
+  PRIORITY_MATCHES = [
+    PROJECT_MATCH = 'project'.freeze,
+    ORGANIZATION_MATCH = 'organization'.freeze,
+    PROJECT_TYPE_AND_FUNDER_MATCH = 'project_type_and_funder'.freeze,
+    PROJECT_TYPE_MATCH = 'project_type'.freeze,
+    PROJECT_FUNDER_MATCH = 'project_funder'.freeze,
+    DEFAULT_MATCH = 'default'.freeze,
+  ].freeze
+
+  # group definitions by match
+  def definitions_by_match(definitions)
+    results = {}
+    definitions.group_by do |definition|
+      found_matches = definition.instances.map do |instance|
+        case instance.entity_type
+        when Hmis::Hud::Project.sti_name
+          next PROJECT_MATCH if instance.entity_id == project.id
+        when Hmis::Hud::Organization.sti_name
+          next ORGANIZATION_MATCH if instance.entity_id == project.organization.id
+        end
+
+        case instance.project_type
+        when project.project_type
+          next PROJECT_TYPE_AND_FUNDER_MATCH if instance.funder.in?(project.funders.map(&:funder))
+          next PROJECT_TYPE_MATCH unless instance.funder
+        when nil
+          next PROJECT_FUNDER_MATCH if instance.funder.in?(project.funders.map(&:funder))
+        end
+        next DEFAULT_MATCH unless instance.entity_type || instance.project_type || instance.funder || instance.other_funder
+      end
+      next if found_matches.empty?
+
+      # the highest priority match
+      best_match = PRIORITY_MATCHES.detect { |match| match.in?(found_matches) }
+      results[best_match] ||= []
+      results[best_match].push(definition)
+    end
+    results
+  end
+
+  def filtered_definitions(roles)
+    definitions = Hmis::Form::Definition.
+      exclude_definition_from_select. # for performance
+      where(role: roles).
+      preload(:instances)
+    # {'project' => [Definition, ...]}
+    matches = definitions_by_match(definitions)
+
+    results = roles.flat_map do |role|
+      case role
+      when CUSTOM_ASSESSMENT
+        # multiple definitions for this role
+        # all definitions with this role
+        matches.values.flatten&.filter { |definition| definition.role == role }
+      else
+        # single definition for this role
+        # find the best match based on match_type for this role
+        PRIORITY_MATCHES.map do |match|
+          matches[match]&.detect { |definition| definition.role == role }
+        end.compact
+      end
+    end
+    results
+  end
 
   def role_id(role)
     DATA_COLLECTION_STAGE_BY_ROLE.fetch(role)

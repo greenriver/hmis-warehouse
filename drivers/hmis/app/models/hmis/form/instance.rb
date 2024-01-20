@@ -125,17 +125,6 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
     Hmis::Filter::FormInstanceFilter.new(input).filter_scope(self)
   end
 
-  def self.all_possible_for_project(project)
-    [
-      for_project(project.id),
-      for_organization(project.organization.id),
-      for_project_by_funder_and_project_type(project),
-      for_project_by_funder(project),
-      for_project_by_project_type(project.project_type),
-      defaults,
-    ].flat_map(&:to_a).uniq
-  end
-
   def self.detect_best_instance_scope_for_project(base_scope, project:)
     [
       base_scope.for_project(project.id),

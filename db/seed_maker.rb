@@ -26,7 +26,7 @@ class SeedMaker
         can_view_full_client_dashboard: true,
         can_view_all_reports: true,
         can_view_assigned_reports: true,
-        can_view_all_hud_reports: true
+        can_view_all_hud_reports: true,
       )
 
       # Add a user.  This should not be added in production
