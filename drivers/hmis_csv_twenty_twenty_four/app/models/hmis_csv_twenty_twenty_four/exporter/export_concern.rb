@@ -133,15 +133,24 @@ module HmisCsvTwentyTwentyFour::Exporter::ExportConcern
 
     def length_limited_columns
       @length_limited_columns ||= HmisCsvTwentyTwentyFour::Exporter::Base.hmis_class_for(self.class).hmis_configuration(version: '2024').select do |col, m|
-        m.key?(:limit) && ! hashed_column(col)
+        m.key?(:limit) && ! hashed_column?(col)
       end
     end
 
     # A few columns get hashed and the hash is longer than the allowed length, that's ok
-    private def hashed_column(col)
+    private def hashed_column?(col)
       return false unless @options[:export].hash_status == 4
 
-      col.in?([:FirstName, :MiddleName, :LastName, :SSN])
+      col.in?(hashed_columns)
+    end
+
+    private def hashed_columns
+      [
+        :FirstName,
+        :MiddleName,
+        :LastName,
+        :SSN,
+      ].freeze
     end
 
     def assign_export_id(row)
