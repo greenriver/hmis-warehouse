@@ -53,10 +53,13 @@ class Hmis::EnrollmentAssessmentEligibilityList
   protected
 
   def filtered_definitions(roles)
+    fi_t = Hmis::Form::Instance.arel_table
     definitions_by_role = Hmis::Form::Definition.
-      exclude_definition_from_select. # for performance
+      # skip definition for performance
+      exclude_definition_from_select.
+      # preload active instances
+      includes(:instances).references(fi_t.name).where(fi_t[:active].eq(true)).
       where(role: roles).
-      preload(:instances).
       order(version: :desc, id: :desc).
       group_by(&:role)
 

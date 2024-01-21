@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# determine if enrollment is a valid match for a form intance
+#
 class Hmis::Form::InstanceEnrollmentMatch
   include Memery
   attr_accessor :enrollment, :instance

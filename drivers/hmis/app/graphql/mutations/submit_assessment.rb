@@ -6,12 +6,12 @@
 
 # ==  Mutations::SubmitAssessment
 #
-# This mutation creates and updates an custom assessment, form processor and related HUD records.
+# This mutation creates or updates a custom assessment, form processor, and related HUD records.
 #
 # Steps:
 # 1) Assessment Identification and Creation:
-#    - If an assessment_id is provided, it finds the corresponding CustomAssessment.
-#    - If no assessment_id is provided, a new assessment is created based on the form_definition and enrollment. A form processor is instantiated and associated with the assessment.
+#    - If an assessment_id is provided, find the corresponding CustomAssessment.
+#    - If no assessment_id is provided, a new CustomAssessment is created based on the form_definition and enrollment. A form processor is instantiated and associated with the assessment.
 #
 # 2) Field Processing:
 #    - Each hud_value field is on the assessment input processed.
@@ -19,15 +19,15 @@
 #    - The Field-Processor.process method is called for each (field, value) pair.
 #
 # 3) Field-Processor Operation:
-#    - Each field-processor calls back to the form_processor to retrieve a "factory," which is an active record model.
-#    - The factory could be associated with the enrollment or just the the form_processor
+#    - Each field-processor calls back to the form_processor to retrieve a "factory" which is an active record model.
+#    - This factory model could be associated with the enrollment or just the the form_processor
 #    - The form values are assigned to the factory model but are not persisted at this point
 #
 # 4) Post field-processing Validation:
 #    - The mutation validates the assessment and returns early if errors are found.
 #
 # 5) Save Submitted Assessment if Valid:
-#    - Persists the form processor and attributes assigned to the related "factories" (models)
+#    - Persists the form processor and attributes assigned to the related factory models
 #    - After save it also handles conditional hard-coded side-effects and related integrations (LINK, etc).
 #
 module Mutations

@@ -18263,8 +18263,7 @@ CREATE TABLE public.hmis_form_processors (
     hud_values jsonb,
     youth_education_status_id integer,
     employment_education_id integer,
-    current_living_situation_id integer,
-    ce_assessment_id bigint
+    current_living_situation_id integer
 );
 
 
@@ -52796,17 +52795,19 @@ CREATE INDEX index_hmis_form_instances_on_entity ON public.hmis_form_instances U
 
 
 --
+-- Name: index_hmis_form_processors_on_chronic_health_condition_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_chronic_health_condition_id ON public.hmis_form_processors USING btree (chronic_health_condition_id);
+
+
+--
 -- Name: index_hmis_form_processors_on_ce_assessment_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_hmis_form_processors_on_ce_assessment_id ON public.hmis_form_processors USING btree (ce_assessment_id);
 
 
---
--- Name: index_hmis_form_processors_on_chronic_health_condition_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_form_processors_on_chronic_health_condition_id ON public.hmis_form_processors USING btree (chronic_health_condition_id);
 
 
 --
@@ -58555,19 +58556,18 @@ CREATE UNIQUE INDEX uidx_hmis_external_referral_requests_identifier ON public.hm
 
 CREATE UNIQUE INDEX uidx_hmis_external_referrals_identifier ON public.hmis_external_referrals USING btree (identifier);
 
+--
+-- Name: uidx_hmis_form_definitions_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX uidx_hmis_form_definitions_identifier ON public.hmis_form_definitions USING btree (identifier, version);
+
 
 --
 -- Name: uidx_hmis_external_unit_availability_syncs; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX uidx_hmis_external_unit_availability_syncs ON public.hmis_external_unit_availability_syncs USING btree (project_id, unit_type_id);
-
-
---
--- Name: uidx_hmis_form_definitions_identifier; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX uidx_hmis_form_definitions_identifier ON public.hmis_form_definitions USING btree (identifier, version);
 
 
 --
@@ -60653,4 +60653,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240110135132'),
 ('20240113025936'),
 ('20240115190843'),
-('20240117133558');
+('20240117133558'),
+('20240119035058');

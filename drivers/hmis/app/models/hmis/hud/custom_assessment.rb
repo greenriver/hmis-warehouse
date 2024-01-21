@@ -136,7 +136,6 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
         save_not_in_progress
       end
 
-      # if !as_wip
       unless as_wip
         # Save the Enrollment (not saved by FormProcessor because they dont have a relationship)
         enrollment.save!

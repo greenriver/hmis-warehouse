@@ -229,7 +229,7 @@ module HmisUtil
     # want to change something about Disability fragment just for Intake,
     # not other assessments.
     def load_definition(form_definition:, identifier:, role:, title: nil)
-      # raise "Invalid role: #{role}" Hmis::Form::Definition::FORM_ROLES.include?(role.to_sym)
+      raise "Invalid role: #{role}" unless Hmis::Form::Definition::FORM_ROLES.include?(role.to_sym)
 
       # Resolve all fragments, so we have a full definition
       resolve_all_fragments!(form_definition)

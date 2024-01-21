@@ -41,7 +41,7 @@ module Types
     field :employment_education, Types::HmisSchema::EmploymentEducation, null: true
     custom_data_elements_field
 
-    field :role, Types::Forms::Enums::AssessmentRole, null: true
+    field :role, Types::Forms::Enums::AssessmentRole, null: false
     field :definition, Types::Forms::FormDefinition, null: false
     field :wip_values, JsonObject, null: true
 

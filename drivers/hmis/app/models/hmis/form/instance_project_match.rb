@@ -4,6 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# determine if project is a valid match for a form instance. The match is ranked so that when there are multiple form
+# definitions that match a project, we can take the definition with the best rank
+#
 class Hmis::Form::InstanceProjectMatch
   include Memery
   attr_accessor :project, :instance
