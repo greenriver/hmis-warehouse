@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -2860,7 +2860,6 @@ CREATE TABLE public.ansd_enrollments (
     id bigint NOT NULL,
     report_id bigint,
     enrollment_id bigint,
-    project_id character varying,
     project_name character varying,
     project_type integer,
     household_id character varying,
@@ -2888,7 +2887,9 @@ CREATE TABLE public.ansd_enrollments (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     destination_client_id integer,
-    relationship_to_hoh integer
+    relationship_to_hoh integer,
+    placed_date date,
+    project_id bigint
 );
 
 
@@ -21712,8 +21713,16 @@ CREATE TABLE public.pm_client_projects (
     deleted_at timestamp without time zone,
     report_id integer,
     for_question character varying,
-    period character varying
+    period character varying,
+    household_type integer
 );
+
+
+--
+-- Name: COLUMN pm_client_projects.household_type; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.pm_client_projects.household_type IS '2.07.4';
 
 
 --
@@ -58485,6 +58494,13 @@ CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "Personal
 
 
 --
+-- Name: tt_hh_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX tt_hh_id ON public.service_history_enrollments USING btree (household_id);
+
+
+--
 -- Name: tx_id_ds_id_ft_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60634,7 +60650,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240102155413'),
 ('20240102205532'),
 ('20240105222927'),
+('20240110135132'),
 ('20240113025936'),
-('20240119035058');
-
-
+('20240115190843'),
+('20240117133558');

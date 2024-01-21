@@ -14,13 +14,13 @@ class AllNeighborsSystemDashboardLine {
     this.demographic = (this.householdType.demographics || []).filter((d) => d.demographic === this.state.demographics)[0] || {}
     this.series = this.countLevel.series || this.demographic.series || []
     this.uniqueCounts = this.countLevel.unique_counts
-    this.monthlyCounts = this.countLevel.monthly_counts
+    this.monthlyCounts = this.countLevel.monthly_counts // array of [date, new placements]
     this.config = this.projectType.config || {}
     this.quarters = this.data.quarters || []
   }
 
   test() {
-    console.log(this)
+    console.debug(this)
   }
 
   inDateRange(dateString, range) {
@@ -43,25 +43,38 @@ class AllNeighborsSystemDashboardLine {
     }).map((d) => d[1])
   }
 
-  getUniqueCounts() {
-    return this.uniqueCounts[0].filter((d) => {
+  // monthly counts, limited to the state of the filter
+  visibleMonths() {
+    return this.monthlyCounts[0].filter((d) => {
       return this.inDateRange(d[0], this.state.dateRange)
-    }).map((d) => d[1])
+    })
   }
+
+  // sum up previous visible months
+  getTotalCounts(index) {
+    return d3.sum(this.visibleMonths().slice(0, index).map((d) => d[1]))
+  }
+
+  // Removed until further notice
+  // getUniqueCounts() {
+  //   return this.uniqueCounts[0].filter((d) => {
+  //     return this.inDateRange(d[0], this.state.dateRange)
+  //   }).map((d) => d[1])
+  // }
 
   getColumns() {
     let xCols = ['x']
     let keyCols = (this.config.keys || []).map((key, i) => {
       let cols = [key]
-      this.series[i].forEach((d) => {
-        const inRange = this.inDateRange(d[0], this.state.dateRange)
-        if(inRange) {
-          const [x, y] = d
-          if(xCols.indexOf(x) === -1) {
-            xCols.push(x)
-          }
-          cols.push(y)
+      let totalCounts = 0
+      this.visibleMonths().forEach((d) => {
+        const [x, y] = d
+        if(xCols.indexOf(x) === -1) {
+          xCols.push(x)
         }
+        // Sum visible new placements
+        totalCounts += y
+        cols.push(totalCounts)
       })
       return cols
     })
@@ -134,16 +147,15 @@ class AllNeighborsSystemDashboardLine {
         contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
           const index = d[0].index
           const monthlyCount = this.getMonthlyTotals()[index]
-          const uniqueCount = this.getUniqueCounts()[index]
           if (typeof monthlyCount !== 'undefined') {
             let html = "<table class='bb-tooltip'>"
             html += "<thead>"
             html += `<tr><th colspan='3'>${defaultTitleFormat(d[0].x)}</th></tr>`
             html += "</thead>"
             html += "<tbody>"
-            html += `<tr><td>New ${this.countLevel.count_level.slice(0, -1)} Placements</td><td>${d3.format(',')(monthlyCount)}</td></tr>`
-            html += `<tr><td>Total ${this.countLevel.count_level} Placed to Date</td><td>${d3.format(',')(d[0].value)}</td></tr>`
-            html += `<tr><td>Unique  ${this.countLevel.count_level} Housed to Date</td><td>${d3.format(',')(uniqueCount)}</td></tr>`
+            html += `<tr><td>New Placements (${this.countLevel.count_level})</td><td>${d3.format(',')(monthlyCount)}</td></tr>`
+            html += `<tr><td>Total Placements (${this.countLevel.count_level})</td><td>${d3.format(',')(d[0].value)}</td></tr>`
+            // html += `<tr><td>Unique  ${this.countLevel.count_level} Housed to Date</td><td>${d3.format(',')(uniqueCount)}</td></tr>`
             html += "</tbody>"
             html += "</table>"
             return html
