@@ -311,6 +311,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     GrdaWarehouse::Hud::Client.age(date: date, dob: self.DOB)
   end
 
+  def veteran?
+    self.VeteranStatus == 1
+  end
+
   def delete_image
     client_files&.client_photos&.newest_first&.first&.destroy!
     @image = nil

@@ -28,6 +28,12 @@ class Hmis::Form::InstanceProjectMatch
     MATCH_RANKS[match]
   end
 
+  def valid?
+    !!match
+  end
+
+  protected
+
   # match to project. Order is significant, should return the best ranked match
   memoize def match
     if instance.entity_type

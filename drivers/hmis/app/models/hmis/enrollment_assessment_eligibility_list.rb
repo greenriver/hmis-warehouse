@@ -66,14 +66,15 @@ class Hmis::EnrollmentAssessmentEligibilityList
       when CUSTOM_ASSESSMENT
         # allow multiple definitions for this role, return all matches
         definitions.filter do |definition|
-          definition.instances.any? { |i| i.project_match(project) }
+          definition.instances.any? { |i| i.project_and_enrollment_match(project: project, enrollment: enrollment) }
         end
       else
         # single definition for this role
         #
         # get the best ranked instance match for this definition
         ranked = definitions.map do |definition|
-          [definition.instance_project_match(project)&.rank, definition]
+          rank = definition.project_and_enrollment_match(project: project, enrollment: enrollment)&.rank
+          [rank, definition]
         end
         # return best ranked definition
         compacted = ranked.filter { |rank, _| rank.present? }

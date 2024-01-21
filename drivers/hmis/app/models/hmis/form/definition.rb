@@ -396,4 +396,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   def instance_project_match(project)
     instances.map { |i| i.project_match(project) }.compact.min_by(&:rank)
   end
+
+  # if the enrollment and project match
+  def project_and_enrollment_match(...)
+    instances.map { |i| i.project_and_enrollment_match(...) }.compact.min_by(&:rank)
+  end
 end

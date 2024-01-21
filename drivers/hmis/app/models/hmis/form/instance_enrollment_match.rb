@@ -5,20 +5,43 @@
 ###
 
 class Hmis::Form::InstanceEnrollmentMatch
+  include Memery
   attr_accessor :enrollment, :instance
+
+  MATCHES = [
+    ALL_MATCH = 'ALL_CLIENTS'.freeze,
+    HOH_AND_ADULTS_MATCH = 'HOH_AND_ADULTS'.freeze,
+    HOH_MATCH = 'HOH'.freeze,
+    ALL_VETERANS_MATCH = 'ALL_VETERANS'.freeze,
+    VETERAN_HOH_MATCH = 'VETERAN_HOH'.freeze,
+  ].freeze
 
   def initialize(instance:, enrollment:)
     self.instance = instance
     self.enrollment = enrollment
   end
 
-  def rank
-    match ? 1 : 0
+  # enrollment match is binary but we may want ranks
+  memoize def valid?
+    case data_collected_about
+    when ALL_MATCH
+      true
+    when HOH_AND_ADULTS_MATCH
+      enrollment.head_of_household? && enrollment.adult?
+    when HOH_MATCH
+      enrollment.head_of_household?
+    when ALL_VETERANS_MATCH
+      enrollment.client.veteran?
+    when VETERAN_HOH_MATCH
+      enrollment.head_of_household? && enrollment.client.veteran?
+    else
+      raise "unknown data_collected about on instance##{instance.id}: #{data_collected_about}"
+    end
   end
 
-  def match
-    return true if instance.enrollment_head_of_household? && enrollment.head_of_household?
-    return true if instance.enrollment_adult? && enrollment.adult?
-    return true if instance.enrollment_child? && enrollment.child?
+  protected
+
+  def data_collected_about
+    instance.data_collected_about || ALL_MATCH
   end
 end

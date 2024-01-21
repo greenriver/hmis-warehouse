@@ -100,6 +100,12 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
 
   def project_match(project)
     match = Hmis::Form::InstanceProjectMatch.new(instance: self, project: project)
-    match.rank ? match : nil
+    match.valid? ? match : nil
+  end
+
+  # if the enrollment and project match
+  def project_and_enrollment_match(project:, enrollment:)
+    enrollment_match = Hmis::Form::InstanceEnrollmentMatch.new(instance: self, enrollment: enrollment)
+    enrollment_match.valid? ? project_match(project) : nil
   end
 end
