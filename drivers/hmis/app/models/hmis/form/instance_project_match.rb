@@ -5,9 +5,11 @@
 ###
 
 class Hmis::Form::InstanceProjectMatch
+  include Memery
   attr_accessor :project, :instance
 
-  RANK_MATCHES = [
+  # match types ordered by rank. Lower rank is better
+  RANKED_MATCHES = [
     PROJECT_MATCH = 'project'.freeze,
     ORGANIZATION_MATCH = 'organization'.freeze,
     PROJECT_TYPE_AND_FUNDER_MATCH = 'project_type_and_funder'.freeze,
@@ -15,6 +17,7 @@ class Hmis::Form::InstanceProjectMatch
     PROJECT_FUNDER_MATCH = 'project_funder'.freeze,
     DEFAULT_MATCH = 'default'.freeze,
   ].freeze
+  MATCH_RANKS = RANKED_MATCHES.each_with_index.to_h.freeze
 
   def initialize(instance:, project:)
     self.instance = instance
@@ -22,10 +25,11 @@ class Hmis::Form::InstanceProjectMatch
   end
 
   def rank
-    @rank ||= RANK_MATCHES.index(match)
+    MATCH_RANKS[match]
   end
 
-  def match
+  # match to project. Order is significant, should return the best ranked match
+  memoize def match
     if instance.entity_type
       case instance.entity_type
       when Hmis::Hud::Project.sti_name
@@ -33,7 +37,7 @@ class Hmis::Form::InstanceProjectMatch
       when Hmis::Hud::Organization.sti_name
         return ORGANIZATION_MATCH if instance.entity_id == project.organization.id
       else
-        # entity type is specified but doesn't match project
+        # entity type is specified but doesn't match
         return
       end
     end
@@ -43,8 +47,8 @@ class Hmis::Form::InstanceProjectMatch
         return PROJECT_TYPE_AND_FUNDER_MATCH if instance.funder.in?(project.funders.map(&:funder))
         return PROJECT_TYPE_MATCH unless instance.funder
       end
-    else
-      return PROJECT_FUNDER_MATCH if instance.funder.in?(project.funders.map(&:funder))
+    elsif instance.funder.in?(project.funders.map(&:funder))
+      return PROJECT_FUNDER_MATCH
     end
 
     return DEFAULT_MATCH unless instance.entity_type || instance.project_type || instance.funder || instance.other_funder

@@ -179,10 +179,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     base_scope = Hmis::Form::Instance.joins(:definition).merge(definition_scope)
 
     # Choose the first scope that has any records. Prefer more specific instances.
-    instance_scope = Hmis::Form::Instance.detect_best_instance_scope_for_project(base_scope, project: project)
-    return none unless instance_scope.present?
-
-    where(identifier: instance_scope.pluck(:definition_identifier))
+    instance = base_scope.detect_best_instance_for_project(project: project)
+    instance ? where(identifier: instance.definition_identifier) : none
   end
 
   scope :non_static, -> do
@@ -393,5 +391,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     else
       raise NotImplementedError
     end
+  end
+
+  def instance_project_match(project)
+    instances.map { |i| i.project_match(project) }.compact.min_by(&:rank)
   end
 end

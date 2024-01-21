@@ -57,9 +57,10 @@ class Hmis::EnrollmentAssessmentEligibilityList
       exclude_definition_from_select. # for performance
       where(role: roles).
       preload(:instances).
+      order(version: :desc, id: :desc).
       group_by(&:role)
 
-    results = roles.flat_map do |role|
+    roles.flat_map do |role|
       definitions = definitions_by_role[role] || []
       case role
       when CUSTOM_ASSESSMENT
@@ -72,11 +73,13 @@ class Hmis::EnrollmentAssessmentEligibilityList
         #
         # get the best ranked instance match for this definition
         ranked = definitions.map do |definition|
-          matches = definition.instances.map { |i| i.project_match(project) }.compact
-          [matches.min_by(&:rank), definition]
+          [definition.instance_project_match(project)&.rank, definition]
         end
         # return best ranked definition
-        ranked.filter { |tup| tup[0].present? }.sort_by(&:first).map(&:last).take(1)
+        compacted = ranked.filter { |rank, _| rank.present? }
+        # with_index for stable sort
+        sorted = compacted.sort_by.with_index { |tuple, idx| [tuple[0], idx] }
+        sorted.map(&:last).take(1)
       end
     end
   end
