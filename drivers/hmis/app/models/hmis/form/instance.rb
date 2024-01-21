@@ -135,4 +135,9 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
       base_scope.defaults,
     ].detect(&:exists?)
   end
+
+  def project_match(project)
+    match = Hmis::Form::InstanceProjectMatch.new(instance: self, project: project)
+    match.rank ? match : nil
+  end
 end

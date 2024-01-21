@@ -52,76 +52,33 @@ class Hmis::EnrollmentAssessmentEligibilityList
 
   protected
 
-  PRIORITY_MATCHES = [
-    PROJECT_MATCH = 'project'.freeze,
-    ORGANIZATION_MATCH = 'organization'.freeze,
-    PROJECT_TYPE_AND_FUNDER_MATCH = 'project_type_and_funder'.freeze,
-    PROJECT_TYPE_MATCH = 'project_type'.freeze,
-    PROJECT_FUNDER_MATCH = 'project_funder'.freeze,
-    DEFAULT_MATCH = 'default'.freeze,
-  ].freeze
-
-  # group definitions by match
-  def definitions_by_match(definitions)
-    results = {}
-    definitions.group_by do |definition|
-      found_matches = definition.instances.map do |instance|
-        if instance.entity_type
-          case instance.entity_type
-          when Hmis::Hud::Project.sti_name
-            next PROJECT_MATCH if instance.entity_id == project.id
-          when Hmis::Hud::Organization.sti_name
-            next ORGANIZATION_MATCH if instance.entity_id == project.organization.id
-          else
-            # entity type is specified but doesn't match project
-            next
-          end
-        end
-
-        if instance.project_type
-          if project.project_type && instance.project_type == project.project_type
-            next PROJECT_TYPE_AND_FUNDER_MATCH if instance.funder.in?(project.funders.map(&:funder))
-            next PROJECT_TYPE_MATCH unless instance.funder
-          end
-        else
-          next PROJECT_FUNDER_MATCH if instance.funder.in?(project.funders.map(&:funder))
-        end
-
-        next DEFAULT_MATCH unless instance.entity_type || instance.project_type || instance.funder || instance.other_funder
-      end
-      next if found_matches.empty?
-
-      # the highest priority match
-      best_match = PRIORITY_MATCHES.detect { |match| match.in?(found_matches) }
-      results[best_match] ||= []
-      results[best_match].push(definition)
-    end
-    results
-  end
-
   def filtered_definitions(roles)
-    definitions = Hmis::Form::Definition.
+    definitions_by_role = Hmis::Form::Definition.
       exclude_definition_from_select. # for performance
       where(role: roles).
-      preload(:instances)
-    # {'project' => [Definition, ...]}
-    matches = definitions_by_match(definitions)
+      preload(:instances).
+      group_by(&:role)
 
     results = roles.flat_map do |role|
+      definitions = definitions_by_role[role] || []
       case role
       when CUSTOM_ASSESSMENT
-        # multiple definitions for this role
-        # all definitions with this role
-        matches.values.flatten&.filter { |definition| definition.role == role }
+        # allow multiple definitions for this role, return all matches
+        definitions.filter do |definition|
+          definition.instances.any? { |i| i.project_match(project) }
+        end
       else
         # single definition for this role
-        # find the best match based on match_type for this role
-        PRIORITY_MATCHES.map do |match|
-          matches[match]&.detect { |definition| definition.role == role }
-        end.compact
+        #
+        # get the best ranked instance match for this definition
+        ranked = definitions.map do |definition|
+          matches = definition.instances.map { |i| i.project_match(project) }.compact
+          [matches.min_by(&:rank), definition]
+        end
+        # return best ranked definition
+        ranked.filter { |tup| tup[0].present? }.sort_by(&:first).map(&:last).take(1)
       end
     end
-    results
   end
 
   def role_id(role)
