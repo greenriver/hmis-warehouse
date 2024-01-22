@@ -34,8 +34,7 @@
         %tbody
           - @project_groups.each do |group|
             %tr
-              %td
-                = f.input_field :group, as: :boolean, checked_value: group.id, unchecked_value: nil, name: input_id
+              %td.jSelect= f.input_field :group, as: :boolean, checked_value: group.id, unchecked_value: nil, name: input_id
               %td
                 = link_to group.name.presence || 'unnamed', edit_project_group_path(group)
                 - if group.used_for_cas_sync?
@@ -50,3 +49,14 @@
   = render 'common/pagination_bottom', item_name: 'project group'
 - else
   .none-found There are no project groups.
+
+= content_for :page_js do
+  :javascript
+    $('.jSelect').on('change', function(e) {
+      anyChecked = $('input[name="selections[group][]"]').toArray().some((e) => e.checked)
+      $('#deleteMultipleButton').prop('disabled', !anyChecked)
+    });
+
+    $(document).ready(function() {
+      $('#deleteMultipleButton').prop('disabled', true)
+    });
