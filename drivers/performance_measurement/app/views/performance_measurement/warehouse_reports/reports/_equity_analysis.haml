@@ -42,7 +42,14 @@
     - if @analysis_builder.valid?
       .card-header
         %h2 Equity Analysis Report:
-        %div= @analysis_builder.describe_filters.html_safe
+        .filter-description
+          %strong= @analysis_builder.describe_filters[:header]
+          - if @analysis_builder.describe_filters[:variables].any?
+            .fitler-variables
+              Limited to:
+              = @analysis_builder.describe_filters[:variables].join(', ')
+
+
     .card-body
       - if @analysis_builder.valid?
         = render 'performance_measurement/warehouse_reports/reports/equity_analysis/chart', data: @analysis_builder.chart_data

@@ -15,12 +15,12 @@ module PerformanceMeasurement::EquityAnalysis
       household_type: PerformanceMeasurement::EquityAnalysis::HouseholdTypeData,
     }.freeze
 
-    VEIW_BY_DEFAULT = 'percentage'.freeze
+    VIEW_BY_DEFAULT = 'percentage'.freeze
 
     def initialize(params, report, user)
       @user = user
       @report = report
-      @params = params || { view_data_by: VEIW_BY_DEFAULT }
+      @params = params || { view_data_by: VIEW_BY_DEFAULT }
       @chart_data = chart_data_class.new(self)
     end
 
@@ -30,18 +30,21 @@ module PerformanceMeasurement::EquityAnalysis
 
     def investigate_by_key
       key = (investigate_by || '').gsub(/[[:space:]]/, '').underscore.to_sym
-      CHART_DATA_KEY_TO_CLASS.keys.select { |k| k == key }.first || :default
+      CHART_DATA_KEY_TO_CLASS.keys.detect { |k| k == key } || :default
     end
 
     def describe_filters
-      rslt = "<span>#{describe_metric} by #{investigate_by}</span></br>"
-      param_rslt = PerformanceMeasurement::EquityAnalysis::Data::INVESTIGATE_BY.keys.map do |key|
-        send("describe_#{key}".to_sym)
+      @describe_filters ||= {}.tap do |df|
+        variables = []
+        variables += PerformanceMeasurement::EquityAnalysis::Data::INVESTIGATE_BY.keys.map do |key|
+          send("describe_#{key}".to_sym)
+        end
+        variables << describe_projects
+        variables << describe_project_type
+        variables = variables.reject(&:blank?)
+        df[:header] = "#{describe_metric} by #{investigate_by}"
+        df[:variables] = variables
       end
-      param_rslt.push(describe_projects)
-      param_rslt.push(describe_project_type)
-      rslt = "#{rslt} <span>#{param_rslt.reject(&:blank?).join(', ')}</span>"
-      rslt
     end
 
     def chart_data
@@ -132,7 +135,7 @@ module PerformanceMeasurement::EquityAnalysis
     end
 
     def view_data_by
-      @params[:view_data_by] || VEIW_BY_DEFAULT
+      @params[:view_data_by] || VIEW_BY_DEFAULT
     end
 
     def metric_options
