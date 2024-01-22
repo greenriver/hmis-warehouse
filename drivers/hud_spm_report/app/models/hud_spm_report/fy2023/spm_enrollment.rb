@@ -295,7 +295,8 @@ module HudSpmReport::Fy2023
     private_class_method def self.date_in_annual_update_window?(date, enrollment)
       entry_date = enrollment.entry_date
       interval = 30.days
-      window_date = Date.new(date.year, entry_date.month, entry_date.day)
+      elapsed_years = date.year - entry_date.year
+      window_date = entry_date + elapsed_years.years
 
       date.between?(window_date - interval, window_date + interval)
     end
