@@ -28,6 +28,19 @@ module Types
       Hmis::Hud::Enrollment.hmis_configuration(version: '2024')
     end
 
+    # check for the most minimal permission needed to resolve this object
+    # (can_view_project AND can_view_enrollment_details) OR can_view_limited_enrollment_details
+    def self.authorized?(object, ctx)
+      return false unless super
+
+      return true if GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_limited_enrollment_details, entity: object)
+
+      return false unless GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_enrollment_details, entity: object)
+
+      project = ctx.dataloader.with(Sources::ActiveRecordAssociation, :project).load(object)
+      GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_project, entity: project)
+    end
+
     # Override the "field" function to perform field-level authorization.
     # If user lacks sufficient access, the field will be resolved as null.
     #

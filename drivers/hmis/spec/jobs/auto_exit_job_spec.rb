@@ -20,10 +20,10 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
     let!(:aec) { create :hmis_auto_exit_config, length_of_absence_days: 30 }
 
     it 'should exit correctly for a bed night' do
-      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.today - 2.months
-      e2 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.today - 2.months
+      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
+      e2 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
       create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, user: u1, record_type: 200
-      s2 = create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e2, user: u1, record_type: 200, date_provided: Date.today - 31.days
+      s2 = create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e2, user: u1, record_type: 200, date_provided: Date.current - 31.days
 
       Hmis::AutoExitJob.perform_now
 
@@ -41,9 +41,9 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
     let!(:aec) { create :hmis_auto_exit_config, length_of_absence_days: 30 }
 
     it 'should exit correctly for a service' do
-      contact_date = Date.today - 31.days
+      contact_date = Date.current - 31.days
 
-      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.today - 2.months
+      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
       create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, user: u1, record_type: 141, type_provided: 1, date_provided: contact_date - 1.day
       s2 = create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, user: u1, record_type: 141, type_provided: 1, date_provided: contact_date
 
@@ -56,8 +56,8 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
     end
 
     it 'should exit correctly for a custom service' do
-      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.today - 2.months
-      cs1 = create :hmis_custom_service, data_source: ds1, client: c1, enrollment: e1, user: u1, date_provided: Date.today - 31.days
+      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
+      cs1 = create :hmis_custom_service, data_source: ds1, client: c1, enrollment: e1, user: u1, date_provided: Date.current - 31.days
 
       Hmis::AutoExitJob.perform_now
 
@@ -67,8 +67,8 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
     end
 
     it 'should exit correctly for a current living situation' do
-      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.today - 2.months
-      cls1 = create :hmis_current_living_situation, data_source: ds1, client: c1, enrollment: e1, user: u1, information_date: Date.today - 31.days
+      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
+      cls1 = create :hmis_current_living_situation, data_source: ds1, client: c1, enrollment: e1, user: u1, information_date: Date.current - 31.days
 
       Hmis::AutoExitJob.perform_now
 
@@ -78,8 +78,8 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
     end
 
     it 'should exit correctly for an assessment' do
-      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.today - 2.months
-      ca1 = create :hmis_custom_assessment, data_source: ds1, client: c1, enrollment: e1, user: u1, assessment_date: Date.today - 31.days
+      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
+      ca1 = create :hmis_custom_assessment, data_source: ds1, client: c1, enrollment: e1, user: u1, assessment_date: Date.current - 31.days
 
       Hmis::AutoExitJob.perform_now
 
@@ -89,11 +89,11 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
     end
 
     it 'should pick the latest exit date for all entities considered as contacts' do
-      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.today - 2.months
-      create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, user: u1, record_type: 141, type_provided: 1, date_provided: Date.today - 33.days
-      create :hmis_custom_service, data_source: ds1, client: c1, enrollment: e1, user: u1, date_provided: Date.today - 32.days
-      cls1 = create :hmis_current_living_situation, data_source: ds1, client: c1, enrollment: e1, user: u1, information_date: Date.today - 31.days
-      ca1 = create :hmis_custom_assessment, data_source: ds1, client: c1, enrollment: e1, user: u1, assessment_date: Date.today - 34.days
+      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
+      create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, user: u1, record_type: 141, type_provided: 1, date_provided: Date.current - 33.days
+      create :hmis_custom_service, data_source: ds1, client: c1, enrollment: e1, user: u1, date_provided: Date.current - 32.days
+      cls1 = create :hmis_current_living_situation, data_source: ds1, client: c1, enrollment: e1, user: u1, information_date: Date.current - 31.days
+      ca1 = create :hmis_custom_assessment, data_source: ds1, client: c1, enrollment: e1, user: u1, assessment_date: Date.current - 34.days
 
       Hmis::AutoExitJob.perform_now
 
@@ -112,8 +112,8 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
     aec.length_of_absence_days = 29
     aec.save!(validate: false)
 
-    e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.today - 2.months
-    create :hmis_custom_service, data_source: ds1, client: c1, enrollment: e1, user: u1, date_provided: Date.today - 31.days
+    e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
+    create :hmis_custom_service, data_source: ds1, client: c1, enrollment: e1, user: u1, date_provided: Date.current - 31.days
 
     allow(Rails.logger).to receive(:fatal).and_return nil
 

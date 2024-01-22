@@ -18,7 +18,7 @@ module AllNeighborsSystemDashboard
 
     include ::WarehouseReports::Publish
 
-    PILOT_END_DATE = '2023-01-05'.to_date.freeze
+    PILOT_END_DATE = '2023-05-01'.to_date.freeze
 
     has_one_attached :result_file
     has_many :datasets, class_name: '::GrdaWarehouse::Dataset', as: :source
