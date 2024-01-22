@@ -7,6 +7,8 @@
 module HudSpmReport::Fy2023
   class Episode < GrdaWarehouseBase
     self.table_name = 'hud_report_spm_episodes'
+    include Detail
+
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
 
     has_many :enrollment_links
@@ -25,23 +27,6 @@ module HudSpmReport::Fy2023
       columns.map do |col|
         [col, header_label(col)]
       end.to_h
-    end
-
-    private_class_method def self.header_label(col)
-      case col.to_sym
-      when :client_id
-        'Warehouse Client ID'
-      when :personal_id
-        'HMIS Personal ID'
-      when :data_source_id
-        'Data Source ID'
-      when :los_under_threshold
-        'LOS Under Threshold'
-      when :previous_street_essh
-        'Previous Street ESSH'
-      else
-        col.humanize
-      end
     end
 
     def compute_episode(enrollments, included_project_types:, excluded_project_types:, include_self_reported_and_ph:)
