@@ -12,8 +12,8 @@ FactoryBot.define do
     end
 
     name { blob&.filename || 'File' }
-    effective_date { Date.today }
-    expiration_date { Date.tomorrow }
+    effective_date { Date.current }
+    expiration_date { Date.current + 1.day }
     confidential { false }
     visible_in_window { false }
     user { association :hmis_user }
