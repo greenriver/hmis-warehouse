@@ -2,19 +2,8 @@ module PerformanceMeasurement::EquityAnalysis
   class Data
     include ArelHelper
 
-    BARS = [
-      'Current Period - Report Universe',
-      'Comparison Period - Report Universe',
-      'Current Period - Current Filters',
-      'Comparison Period - Current Filters',
-      # 'Current Period - Census',
-      # 'Comparison Period - Census',
-    ].freeze
-
     RACES = HudUtility2024.races
-
     AGES = Filters::FilterBase.available_age_ranges
-
     GENDERS = HudUtility2024.genders
 
     GENDER_ID_TO_SCOPE = {
@@ -58,6 +47,17 @@ module PerformanceMeasurement::EquityAnalysis
       @builder = builder
       @params = builder.params
       @report = builder.report
+    end
+
+    def bars
+      [
+        'Current Period - Report Universe',
+        'Comparison Period - Report Universe',
+        'Current Period - Current Filters',
+        'Comparison Period - Current Filters',
+        'Current Period - Census',
+        'Comparison Period - Census',
+      ].freeze
     end
 
     def metric_params
@@ -129,8 +129,8 @@ module PerformanceMeasurement::EquityAnalysis
     def build_data
       {
         columns: [],
-        ordered_keys: BARS,
-        colors: BARS.map.with_index { |bar, i| [bar, COLORS[i]] }.to_h,
+        ordered_keys: bars,
+        colors: bars.map.with_index { |bar, i| [bar, COLORS[i]] }.to_h,
         view_by: view_by_params,
       }
     end
@@ -148,6 +148,9 @@ module PerformanceMeasurement::EquityAnalysis
           client_scope(period, investigate_by),
           period,
         )
+      elsif universe.ends_with?('Census')
+        # FIXME: needs to return the census data directly
+        client_scope(period, investigate_by)
       end
       apply_view_by_params(scope.count, period, investigate_by)
     end
@@ -184,8 +187,8 @@ module PerformanceMeasurement::EquityAnalysis
     end
 
     def calculate_height(groups)
-      bars = BARS.count * (BAR_HEIGHT + PADDING)
-      total = bars / RATIO
+      bar_height = bars.count * (BAR_HEIGHT + PADDING)
+      total = bar_height / RATIO
       height = groups.count * total
       [height, MIN_HEIGHT].max
     end
