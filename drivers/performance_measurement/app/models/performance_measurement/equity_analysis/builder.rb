@@ -218,7 +218,7 @@ module PerformanceMeasurement::EquityAnalysis
         ['Count', 'count'],
         ['Percentage', 'percentage'],
         ['Rate', 'rate'],
-      ]
+      ].freeze
     end
   end
 end
