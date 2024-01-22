@@ -77,37 +77,23 @@ module Types
       object.in_progress?
     end
 
-    protected def form_processor
-      load_ar_association(object, :form_processor)
-    end
-
     def ce_assessment
       form_processor ? load_ar_association(form_processor, :ce_assessment) : nil
     end
 
     def income_benefit
-      form_processor = load_ar_association(object, :form_processor)
-      return unless form_processor.present?
-
-      load_ar_association(form_processor, :income_benefit)
+      form_processor ? load_ar_association(form_processor, :income_benefit) : nil
     end
 
     def health_and_dv
-      form_processor = load_ar_association(object, :form_processor)
-      return unless form_processor.present?
-
-      load_ar_association(form_processor, :health_and_dv)
+      form_processor ? load_ar_association(form_processor, :health_and_dv) : nil
     end
 
     def exit
-      form_processor = load_ar_association(object, :form_processor)
-      return unless form_processor.present?
-
-      load_ar_association(form_processor, :exit)
+      form_processor ? load_ar_association(form_processor, :exit) : nil
     end
 
     def disability_group
-      form_processor = load_ar_association(object, :form_processor)
       return unless form_processor.present?
 
       # Load all the disability records
@@ -134,6 +120,12 @@ module Types
 
     def enrollment
       load_ar_association(object, :enrollment)
+    end
+
+    protected
+
+    def form_processor
+      load_ar_association(object, :form_processor)
     end
   end
 end

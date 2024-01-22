@@ -8,6 +8,21 @@
 #
 # The canonical definitions are in json files under drivers/hmis/lib/form_data. When the json definitions changes, run the following command to freshen these db records
 #   rails driver:hmis:seed_definitions
+#
+# Table: hmis_form_definitions
+#   identifier
+#     stable identifier for this form across version. Is the foreign key for form instances (rules)
+#   version
+#     in combination with identifier, uniquely identify this form
+#   role
+#     the significance of this form within the system (INTAKE, EXIT, etc)
+#   status
+#     NOT IMPLEMENTED: aspirational support for draft status
+#   definition
+#     JSON field defines the inputs, labels, validation, and mapping to HMIS fields. A JSON-schema exists to validate
+#     the format of the definition
+#   title
+#     User-facing title of the form definition
 class Hmis::Form::Definition < ::GrdaWarehouseBase
   self.table_name = :hmis_form_definitions
   include Hmis::Hud::Concerns::HasEnums
@@ -172,9 +187,21 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   scope :with_role, ->(role) { where(role: role) }
 
-  scope :for_project, ->(project:, role:, service_type: nil) do
+  # Finding the appropriate form definition for a project:
+  #  * find the definitions for the required role (i.e. INTAKE)
+  #    ** in the future we might apply status filter here to exclude "draft" definitions
+  #  * choose the form instance with the most specific match that is also associated with any of those definitions
+  #  * of the definitions with that identifier, choose the one with the highest version
+  scope :for_project, ->(project:, role:, service_type: nil, version: nil) do
     # Consider all instances for this role (and service type, if applicable)
     definition_scope = Hmis::Form::Definition.with_role(role)
+    if version
+      # restrict to a specific version
+      definition_scope = definition_scope.where(version: version).order(:id) if version
+    else
+      # order so that detect_best_instance_for_project will use version as a tie-breaker if multiple instances match
+      definition_scope = definition_scope.order(version: :desc, id: :desc)
+    end
     definition_scope = definition_scope.for_service_type(service_type) if service_type.present?
     base_scope = Hmis::Form::Instance.joins(:definition).merge(definition_scope)
 
@@ -204,13 +231,14 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def self.find_definition_for_role(role, project: nil, version: nil)
+    scope = Hmis::Form::Definition.all
     if project.present?
-      scope = Hmis::Form::Definition.for_project(project: project, role: role)
+      scope = scope.for_project(project: project, role: role, version: version)
     else
-      scope = Hmis::Form::Definition.with_role(role)
+      scope = scope.with_role(role)
+      scope = scope.where(version: version) if version.present?
     end
 
-    scope = scope.where(version: version) if version.present?
     scope.order(version: :desc).first
   end
 

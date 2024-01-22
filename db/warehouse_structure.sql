@@ -57901,13 +57901,6 @@ CREATE INDEX index_tx_research_exports_on_user_id ON public.tx_research_exports 
 
 
 --
--- Name: index_unique_identifiers_per_role; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_unique_identifiers_per_role ON public.hmis_form_definitions USING btree (identifier, role, version, status);
-
-
---
 -- Name: index_universe_type_and_id; Type: INDEX; Schema: public; Owner: -
 --
 

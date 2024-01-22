@@ -11,7 +11,7 @@ class Hmis::Form::InstanceProjectMatch
   include Memery
   attr_accessor :project, :instance
 
-  # match types ordered by rank. Lower rank is better
+  # Match types ordered by rank, from most specific to least specific. Lower rank number if more specific.
   RANKED_MATCHES = [
     PROJECT_MATCH = 'project'.freeze,
     ORGANIZATION_MATCH = 'organization'.freeze,
@@ -42,24 +42,51 @@ class Hmis::Form::InstanceProjectMatch
     if instance.entity_type
       case instance.entity_type
       when Hmis::Hud::Project.sti_name
-        return PROJECT_MATCH if instance.entity_id == project.id
+        return instance.entity_id == project.id ? PROJECT_MATCH : nil
       when Hmis::Hud::Organization.sti_name
-        return ORGANIZATION_MATCH if instance.entity_id == project.organization.id
+        return instance.entity_id == project.organization.id ? ORGANIZATION_MATCH : nil
       else
         # entity type is specified but doesn't match
-        return
+        return nil
       end
     end
 
-    if instance.project_type
-      if project.project_type && instance.project_type == project.project_type
-        return PROJECT_TYPE_AND_FUNDER_MATCH if instance.funder.in?(project.funders.map(&:funder))
-        return PROJECT_TYPE_MATCH unless instance.funder
-      end
-    elsif instance.funder.in?(project.funders.map(&:funder))
-      return PROJECT_FUNDER_MATCH
+    # rubocop:disable Style/GuardClause
+    if could_match_project_type? && could_match_funder?
+      return matches_project_type? && matches_project_funder? ? PROJECT_TYPE_AND_FUNDER_MATCH : nil
+    elsif could_match_project_type?
+      return matches_project_type? ? PROJECT_TYPE_MATCH : nil
+    elsif could_match_funder?
+      return matches_project_funder? ? PROJECT_FUNDER_MATCH : nil
     end
+    # rubocop:enable Style/GuardClause
 
-    return DEFAULT_MATCH unless instance.entity_type || instance.project_type || instance.funder || instance.other_funder
+    return matches_default? ? DEFAULT_MATCH : nil
+  end
+
+  def could_match_funder?
+    instance.funder.present? || instance.other_funder.present?
+  end
+
+  def could_match_project_type?
+    instance.project_type.present?
+  end
+
+  def matches_default?
+    [
+      instance.entity_type,
+      instance.project_type,
+      instance.funder,
+      instance.other_funder,
+    ].all?(&:blank?)
+  end
+
+  def matches_project_type?
+    project.project_type && instance.project_type == project.project_type
+  end
+
+  def matches_project_funder?
+    instance.funder.presence&.in?(project.funders.map(&:funder)) ||
+      instance.other_funder.presence&.in?(project.funders.map(&:other_funder))
   end
 end
