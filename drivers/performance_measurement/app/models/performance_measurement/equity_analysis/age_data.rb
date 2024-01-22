@@ -12,7 +12,13 @@ module PerformanceMeasurement::EquityAnalysis
 
     def client_scope(period, investigate_by)
       age_range = Filters::FilterBase.age_range(investigate_by.to_sym)
-      period == 'reporting' ? metric_scope(period).where(reporting_age: age_range) : metric_scope(period).where(comparison_age: age_range)
+      age_column = case period
+      when 'reporting'
+        :reporting_age
+      else
+        :comparison_age
+      end
+      metric_scope(period).where(age_column => age_range)
     end
   end
 end
