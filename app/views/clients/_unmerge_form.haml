@@ -59,11 +59,12 @@
                       Match Details
 
         .form-actions
-          = f.button :submit, "Split selected records from #{@client.FirstName} #{@client.LastName}", data: {confirm: "Are you sure you want to split #{@client.FirstName} #{@client.LastName}? Dependent data will be moved to the selected clients."}
+          = f.button :submit, "Split selected records from #{@client.FirstName} #{@client.LastName}", id: :splitButton, data: {confirm: "Are you sure you want to split #{@client.FirstName} #{@client.LastName}? Dependent data will be moved to the selected clients."}
 
 = content_for :page_js do
   :javascript
-    $('.jSplit').on('change', function(e){
+    $('.jSplit').on('change', function(e) {
+      // Don't let unselected clients be receivers
       var hmis_receiver = $('#grda_warehouse_hud_client_hmis_receiver_' + e.target.value)
       var health_receiver = $('#grda_warehouse_hud_client_health_receiver_' + e.target.value)
       hmis_receiver.prop('disabled', !e.target.checked)
@@ -72,4 +73,12 @@
         hmis_receiver.prop('checked', false)
         health_receiver.prop('checked', false)
       }
+
+      // Require at least one selected client to be split off
+      anyChecked = $('input[name="grda_warehouse_hud_client[unmerge][]"]').toArray().some((e) => e.checked)
+      $('#splitButton').prop('disabled', !anyChecked)
+    });
+
+    $(document).ready(function() {
+      $('#splitButton').prop('disabled', true)
     });
