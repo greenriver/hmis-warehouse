@@ -27,7 +27,10 @@ module Mutations
 
         enrollment.destroy!
       else
-        # Deleting non-WIP Enrollments requires can_delete_enrollments, and can only occur via DeleteAssessment mutation (deleting intake)
+        # WIP Enrollments can be deleted if user has "can_edit_enrollments" access for this project
+        raise HmisErrors::ApiError, 'Access denied' unless current_user.permissions_for?(enrollment, :can_edit_enrollments)
+
+        # Deleting non-WIP Enrollements requires can_delete_enrollments, and can only occur via DeleteAssessment mutation (deleting intake)
         errors << HmisErrors::Error.new(:base, full_message: 'Completed enrollments can not be deleted. Please exit the client instead.')
       end
 
