@@ -27,7 +27,7 @@ class AppResourceMonitor::PostgresInspector
       rescue ActiveRecord::ConnectionNotEstablished
         Rails.logger.info("Skipping #{klass} not connected")
       end
-      next unless  adapter =~ /\A(postgresql|postgis)\z/
+      next unless  adapter.to_s =~ /\A(postgresql|postgis)\z/
 
       connection = klass.connection
       next if connection.current_database.in?(seen)
