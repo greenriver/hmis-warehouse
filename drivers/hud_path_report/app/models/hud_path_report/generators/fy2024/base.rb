@@ -274,6 +274,7 @@ module HudPathReport::Generators::Fy2024
     end
 
     # Per HUD: Per discussions with SAMSHA and as discussed in the last vendor call, we're asking vendors to filter down to only the active enrollments first and then to keep only the most recent enrollment. This is intended to include clients in situations where, for instance, they were active for the first six months before being exited and then returned the day before the report end date and have no services yet.
+    # So we will choose the most-recently started "active" enrollment
     private def last_active_enrollment(client)
       enrollments(client).detect do |en|
         active_in_path(en)
