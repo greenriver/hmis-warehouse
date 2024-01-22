@@ -388,6 +388,7 @@ module PerformanceMeasurement
         },
       )
       Project.import!([:report_id, :project_id], involved_projects.map { |p_id| [id, p_id] }, batch_size: 5_000)
+      # Enforce that the hashes in project_clients have all the necessary columns defined by converting it to an array of ClientProject records
       ClientProject.import!(project_clients.to_a.compact.map { |attr| ClientProject.new(attr) }, batch_size: 5_000)
       universe.add_universe_members(report_clients)
     end
@@ -434,7 +435,8 @@ module PerformanceMeasurement
       return HudUtility2024.household_type('Households with at least one adult and one child', true) if adult && child
       return nil if unknown
       return HudUtility2024.household_type('Households without children', true) if ages.all? { |age| age.present? && age >= 18 }
-      return HudUtility2024.household_type('Households with only children', true) if ages.all? { |age| age.present? && age.between?(0, 18) }
+
+      HudUtility2024.household_type('Households with only children', true) if ages.all? { |age| age.present? && age.between?(0, 18) }
     end
 
     # Use the household ID if present, otherwise a made-up one for the enrollment
@@ -1025,15 +1027,6 @@ module PerformanceMeasurement
       destination_calculation = ->(spm_enrollment) { spm_enrollment.destination }
       days_to_return_calculation = ->(spm_return) { spm_return.days_to_return }
       exit_destination_calculation = ->(spm_return) { spm_return.exit_destination }
-      # TODO: we would need to:
-      # 1. Fetch all client ids that are included anywhere in this report
-      # 2. Reference the SPM Episodes for those clients (in the associated SPM)
-      # 3. Find household IDs for the last enrollment in the episodes
-      #   (note, limited to those in the SPM, some people may be excluded completely,
-      #   thus changing household type from overall enrollment view)
-      # 4. Calculate Household types for each client_id (there may be multiple)
-      # 5. Return the intersection of chosen household types and clients who have that household type
-      # household_calculation = ->(spm_episode) { spm_episode }
       increased_non_employment_income_calculation = ->(spm_enrollment) {
         spm_enrollment.current_non_employment_income.to_f > spm_enrollment.previous_non_employment_income.to_f
       }

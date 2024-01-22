@@ -78,7 +78,9 @@ module PerformanceMeasurement::EquityAnalysis
       names = race.map do |key|
         PerformanceMeasurement::EquityAnalysis::Data::RACES[key]
       end.reject(&:blank?).join(', ')
-      race.any? ? "Race: #{names}" : ''
+      return unless race.any?
+
+      "Race: #{names}"
     end
 
     def age
@@ -87,7 +89,9 @@ module PerformanceMeasurement::EquityAnalysis
 
     def describe_age
       names = PerformanceMeasurement::EquityAnalysis::Data::AGES.select { |_, v| age.map(&:to_sym).include?(v) }.keys.join(', ')
-      age.any? ? "Age: #{names}" : ''
+      return unless age.any?
+
+      "Age: #{names}"
     end
 
     def gender
@@ -98,7 +102,9 @@ module PerformanceMeasurement::EquityAnalysis
       names = gender.map do |id|
         PerformanceMeasurement::EquityAnalysis::Data::GENDERS[id.to_i]
       end.reject(&:blank?).join(', ')
-      gender.any? ? "Gender: #{names}" : ''
+      return unless gender.any?
+
+      "Gender: #{names}"
     end
 
     def household_type
@@ -109,7 +115,9 @@ module PerformanceMeasurement::EquityAnalysis
       names = household_type.map do |id|
         PerformanceMeasurement::EquityAnalysis::Data::HOUSEHOLD_TYPES[id.to_i]
       end.reject(&:blank?).join(', ')
-      household_type.any? ? "Household Type: #{names}" : ''
+      return unless household_type.any?
+
+      "Household Type: #{names}"
     end
 
     def project
@@ -120,7 +128,9 @@ module PerformanceMeasurement::EquityAnalysis
       names = project.map do |d|
         project_options.select { |o| o.last == d.to_i }.first&.first
       end.reject(&:blank?).join(', ')
-      project.any? ? "Project: #{names}" : ''
+      return unless project.any?
+
+      "Project: #{names}"
     end
 
     def project_type
@@ -131,7 +141,9 @@ module PerformanceMeasurement::EquityAnalysis
       names = project_type.map do |d|
         project_type_options.to_h.select { |_, v| v == d.to_i }.keys.first
       end.reject(&:blank?).join(', ')
-      project_type.any? ? "Project Type: #{names}" : ''
+      return unless project_type.any?
+
+      "Project Type: #{names}"
     end
 
     def view_data_by
@@ -145,7 +157,7 @@ module PerformanceMeasurement::EquityAnalysis
           keys.keys.each do |key|
             next if key.in?(ignored_metrics)
 
-            opts.push([@report.detail_title_for(key), key])
+            opts << [@report.detail_title_for(key), key]
           end
         end
       end
@@ -164,7 +176,7 @@ module PerformanceMeasurement::EquityAnalysis
         'Age',
         'Gender',
         'Household Type',
-      ]
+      ].freeze
     end
 
     def race_options
@@ -190,8 +202,8 @@ module PerformanceMeasurement::EquityAnalysis
       return [] if result[:column] == :system
 
       @report.my_projects(@user, metric).map do |project_id, project_result|
-        project_result.hud_project.present? ? [project_result.hud_project.name(@user, include_project_type: true), project_id] : nil
-      end.reject(&:blank?)
+        [project_result.hud_project.name(@user, include_project_type: true), project_id] if project_result.hud_project.present?
+      end.compact
     end
 
     def project_type_options

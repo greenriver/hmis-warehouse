@@ -81,7 +81,9 @@ module PerformanceMeasurement::EquityAnalysis
     end
 
     def race_value_to_scope(value)
-      value.underscore.include?('race') ? value.underscore.to_sym : "race_#{value.underscore}".to_sym
+      return value.underscore.to_sym if value.underscore.starts_with?('race')
+
+      "race_#{value.underscore}".to_sym
     end
 
     def household_type_params
@@ -105,19 +107,22 @@ module PerformanceMeasurement::EquityAnalysis
     end
 
     def universe_period(universe)
-      universe.include?('Current Period') ? 'reporting' : 'comparison'
+      return 'reporting' if universe.include?('Current Period')
+
+      'comparison'
     end
 
     def metric_scope(period)
-      metric_params.present? ? @report.clients_for_question(metric_params, period.to_sym) : @report.clients
+      return @report.clients_for_question(metric_params, period.to_sym) if metric_params.present?
+
+      @report.clients
     end
 
     def percentage_denominator(period, _investigate_by)
-      return metric_scope(period).select(:client_id).distinct.count
+      metric_scope(period).select(:client_id).distinct.count
     end
 
     def client_scope(period, _)
-      # implement in subclass
       metric_scope(period)
     end
 
@@ -131,23 +136,14 @@ module PerformanceMeasurement::EquityAnalysis
     end
 
     def data
-      # implement in subclass
       build_data
     end
 
     def bar_data(universe: nil, investigate_by: nil)
       period = universe_period(universe)
-      scope = case universe
-      when 'Current Period - Report Universe'
+      scope = if universe.ends_with?('Report Universe')
         client_scope(period, investigate_by)
-      when 'Comparison Period - Report Universe'
-        client_scope(period, investigate_by)
-      when 'Current Period - Current Filters'
-        apply_params(
-          client_scope(period, investigate_by),
-          period,
-        )
-      when 'Comparison Period - Current Filters'
+      elsif universe.ends_with?('Current Filters')
         apply_params(
           client_scope(period, investigate_by),
           period,
@@ -191,7 +187,7 @@ module PerformanceMeasurement::EquityAnalysis
       bars = BARS.count * (BAR_HEIGHT + PADDING)
       total = bars / RATIO
       height = groups.count * total
-      height < MIN_HEIGHT ? MIN_HEIGHT : height
+      [height, MIN_HEIGHT].max
     end
   end
 end

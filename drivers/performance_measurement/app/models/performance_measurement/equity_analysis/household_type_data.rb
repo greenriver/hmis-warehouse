@@ -1,7 +1,9 @@
 module PerformanceMeasurement::EquityAnalysis
   class HouseholdTypeData < PerformanceMeasurement::EquityAnalysis::Data
     def data_groups
-      household_type_params.any? ? HOUSEHOLD_TYPES.select { |k, _| household_type_params.include?(k) } : HOUSEHOLD_TYPES
+      return HOUSEHOLD_TYPES unless household_type_params.any?
+
+      HOUSEHOLD_TYPES.select { |k, _| household_type_params.include?(k) }
     end
 
     def data

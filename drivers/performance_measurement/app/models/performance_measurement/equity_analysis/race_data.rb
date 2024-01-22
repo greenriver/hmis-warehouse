@@ -1,7 +1,9 @@
 module PerformanceMeasurement::EquityAnalysis
   class RaceData < PerformanceMeasurement::EquityAnalysis::Data
     def data_groups
-      race_params.any? ? RACES.select { |k, _| race_params.include?(race_value_to_scope(k)) } : RACES
+      return RACES unless race_params.any?
+
+      RACES.select { |k, _| race_params.include?(race_value_to_scope(k)) }
     end
 
     def data
