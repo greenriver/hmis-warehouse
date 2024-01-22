@@ -14,7 +14,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
   # need with_coc so enrollment isn't blocked by CoC prompt
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, with_coc: true }
 
-  let(:today) { Date.today }
+  let(:today) { Date.current }
 
   context 'An active project' do
     before(:each) do
