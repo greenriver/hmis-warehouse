@@ -30,7 +30,7 @@
 module AcHmis
   class ReportApi
     SYSTEM_ID = 'ac_reports'.freeze
-    CONNECTION_TIMEOUT_SECONDS = 60
+    CONNECTION_TIMEOUT_SECONDS = 120
     Error = HmisErrors::ApiError.new(display_message: 'Failed to connect to LINK')
 
     def self.enabled?
@@ -41,6 +41,13 @@ module AcHmis
       raise(Error, 'Report API credentials are missing') unless self.class.enabled?
 
       conn.get("Reports/PreventionAssessment/#{referral_id}").then { |r| handle_error(r) }
+    end
+
+    def consumer_summary_report(referral_id:, start_date: nil, end_date: nil)
+      raise(Error, 'Report API credentials are missing') unless self.class.enabled?
+
+      payload = { ReferralId: referral_id, StartDate: start_date, EndDate: end_date }
+      conn.post('Reports/ConsumerSummary', payload).then { |r| handle_error(r) }
     end
 
     protected

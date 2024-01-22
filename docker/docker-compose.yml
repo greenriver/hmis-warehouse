@@ -99,12 +99,26 @@ services:
       minio:
         condition: service_started
 
+  yarn:
+    <<: *backend
+    container_name: hmis-warehouse-yarn
+    stdin_open: true
+    tty: true
+    command: yarn build --watch
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
+
   web:
     <<: *backend
     container_name: hmis-warehouse-web
     stdin_open: true
     tty: true
-    command: ./bin/dev
+    command: bin/rails server -b 0.0.0.0
     labels:
       - traefik.enable=${TRAEFIK_ENABLED:-false}
       - traefik.http.routers.op.entrypoints=web
@@ -131,6 +145,8 @@ services:
       redis:
         condition: service_started
       minio:
+        condition: service_started
+      yarn:
         condition: service_started
 
   # Starts a tunnel *from* an external point to the local web service. This
@@ -215,6 +231,9 @@ services:
       POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
       PGPASSWORD: postgres
       PGUSER: postgres
+      # You may want to store your db data locally rather than in a docker volume
+      # to do that, set:
+      # DB_DATA_VOLUME=./dev/db_data
       DB_DATA_VOLUME: ${DB_DATA_VOLUME:-dbdata_pg13}
     healthcheck:
       test: ["CMD-SHELL", "sh -c 'pg_isready -d postgres'"]
@@ -223,7 +242,7 @@ services:
       retries: 3
     volumes:
       # Name each new postgres major version explicitly (dbdata_pg14 when we get to that)
-      - ${DB_DATA_VOLUME-dbdata_pg13}:/var/lib/postgresql/data
+      - ${DB_DATA_VOLUME:-dbdata_pg13}:/var/lib/postgresql/data
       - ./tmp/dumps:/tmp/dumps
     ports:
       - 5432

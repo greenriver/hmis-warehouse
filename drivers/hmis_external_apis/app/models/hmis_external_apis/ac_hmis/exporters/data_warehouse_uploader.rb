@@ -10,7 +10,7 @@ module HmisExternalApis::AcHmis::Exporters
 
     attr_accessor :io_streams, :filename, :pre_zipped_data
 
-    def initialize(io_streams: [], pre_zipped_data: nil, date: Date.today, filename_format: 'file.zip')
+    def initialize(io_streams: [], pre_zipped_data: nil, date: Date.current, filename_format: 'file.zip')
       self.io_streams = io_streams
       self.pre_zipped_data = pre_zipped_data
 

@@ -6,7 +6,6 @@
 
 module Types
   class BaseField < GraphQL::Schema::Field
-    include GraphqlPermissionChecker
     argument_class Types::BaseArgument
 
     def initialize(*args, default_value: nil, permissions: nil, **kwargs, &block)
@@ -29,7 +28,7 @@ module Types
       base_authorized = super(object, args, ctx)
       if @permissions.any?
         base_authorized && @permissions.all? do |perm|
-          current_permission_for_context?(ctx, permission: perm, entity: object)
+          GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: perm, entity: object)
         end
       else
         base_authorized

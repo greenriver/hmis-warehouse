@@ -99,5 +99,9 @@ module HealthPctp::DocumentExports
     private def controller_class
       HealthPctp::CareplansController
     end
+
+    protected def report_class
+      HealthPctp::Careplan
+    end
   end
 end

@@ -288,12 +288,21 @@ namespace :grda_warehouse do
       Rake::Task['jobs:check_queue'].invoke
     rescue StandardError => e
       puts e.message
+      Sentry.capture_exception(e)
     end
     begin
       Rake::Task['grda_warehouse:send_health_emergency_notifications'].invoke
     rescue StandardError => e
       puts e.message
+      Sentry.capture_exception(e)
     end
+    begin
+      Rake::Task['driver:hmis:process_activity_logs'].invoke if HmisEnforcement.hmis_enabled?
+    rescue StandardError => e
+      puts e.message
+      Sentry.capture_exception(e)
+    end
+
     TextMessage::Message.send_pending! if GrdaWarehouse::Config.get(:send_sms_for_covid_reminders) && RailsDrivers.loaded.include?(:text_message)
     GrdaWarehouse::CustomImports::Config.active.each do |config|
       config.delay.import!
@@ -305,6 +314,9 @@ namespace :grda_warehouse do
       # Run HMIS Auto-Exit daily in the early morning. This is running here instead of the daily tasks because of the daily task is bloated.
       Hmis::AutoExitJob.perform_now
     end
+
+    stats_collector = AppResourceMonitor::CollectStatsJob.new
+    AppResourceMonitor::CollectStatsJob.perform_later if stats_collector.should_enqueue?
   end
 
   desc 'Mark the first residential service history record for clients for whom this has not yet been done; if you set the parameter to *any* value, all clients will be reset'

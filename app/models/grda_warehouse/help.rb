@@ -173,7 +173,7 @@ class GrdaWarehouse::Help < GrdaWarehouseBase
 
   # Allow drivers to inject their help files
   def self.active_defaults
-    known_defaults + Rails.application.config.help_links
+    (known_defaults + Rails.application.config.help_links).uniq
   end
 
   def self.setup_default_links

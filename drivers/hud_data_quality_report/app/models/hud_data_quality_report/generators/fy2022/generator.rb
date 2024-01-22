@@ -23,7 +23,7 @@ module HudDataQualityReport::Generators::Fy2022
     end
 
     def url
-      hud_reports_dq_url(report, { host: ENV['FQDN'], protocol: 'https' })
+      hud_reports_past_dq_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end
 
     def self.questions

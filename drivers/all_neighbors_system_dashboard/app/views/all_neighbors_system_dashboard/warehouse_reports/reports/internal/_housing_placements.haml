@@ -58,7 +58,7 @@
 - content_for :page_js do
   :javascript
     $(document).ready(function() {
-      console.log('Housing Placement -----------------')
+      console.debug('Housing Placement -----------------')
       var quarterData = #{all_data.quarter_range.to_json.html_safe}
       var totalData = #{total_data.to_json.html_safe}
       var donutData = #{donut_data.to_json.html_safe}

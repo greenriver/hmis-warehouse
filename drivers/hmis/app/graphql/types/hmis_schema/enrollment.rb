@@ -28,6 +28,19 @@ module Types
       Hmis::Hud::Enrollment.hmis_configuration(version: '2024')
     end
 
+    # check for the most minimal permission needed to resolve this object
+    # (can_view_project AND can_view_enrollment_details) OR can_view_limited_enrollment_details
+    def self.authorized?(object, ctx)
+      return false unless super
+
+      return true if GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_limited_enrollment_details, entity: object)
+
+      return false unless GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_enrollment_details, entity: object)
+
+      project = ctx.dataloader.with(Sources::ActiveRecordAssociation, :project).load(object)
+      GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_project, entity: project)
+    end
+
     # Override the "field" function to perform field-level authorization.
     # If user lacks sufficient access, the field will be resolved as null.
     #
@@ -105,6 +118,7 @@ module Types
     youth_education_statuses_field
     employment_educations_field
     current_living_situations_field
+    field :assessment_eligibilities, [HmisSchema::AssessmentEligibility], null: false
     field :last_current_living_situation, Types::HmisSchema::CurrentLivingSituation, null: true
     custom_data_elements_field
     # 3.16.1
@@ -192,8 +206,10 @@ module Types
     field :move_in_addresses, [HmisSchema::ClientAddress], null: false
 
     audit_history_field(
+      :audit_history,
       # Fields should match our DB casing, consult schema to determine appropriate casing
       excluded_keys: ['owner_type', 'enrollment_address_type', 'wip'],
+      filter_args: { omit: [:client_record_type], type_name: 'EnrollmentAuditEvent' },
       # Transformation for Disability response type
       transform_changes: ->(version, changes) do
         return changes unless version.item_type == Hmis::Hud::Disability.sti_name
@@ -201,11 +217,13 @@ module Types
 
         # Override 1=>10 for SubstanceUse value, so it shows up as 'Alcohol Use Disorder' instead of 'Yes'
         # in the audit change summary component.
-        changes['DisabilityResponse'] = changes['DisabilityResponse'].map do |value|
-          if value == 1
-            Types::HmisSchema::Enums::CompleteDisabilityResponse::SUBSTANCE_USE_1_OVERRIDE_VALUE
-          else
-            value
+        if changes['DisabilityResponse']
+          changes['DisabilityResponse'] = changes['DisabilityResponse'].map do |value|
+            if value == 1
+              Types::HmisSchema::Enums::CompleteDisabilityResponse::SUBSTANCE_USE_1_OVERRIDE_VALUE
+            else
+              value
+            end
           end
         end
 
@@ -331,6 +349,10 @@ module Types
 
     def custom_case_notes(...)
       resolve_custom_case_notes(...)
+    end
+
+    def assessment_eligibilities
+      Hmis::EnrollmentAssessmentEligibilityList.new(enrollment: object)
     end
 
     def files(**args)

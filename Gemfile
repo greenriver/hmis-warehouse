@@ -179,7 +179,7 @@ gem 'progress_bar', require: false
 
 gem 'slack-notifier'
 
-gem 'puma', '~> 6.3'
+gem 'puma', '~> 6.4'
 
 gem 'dotenv-rails'
 
@@ -282,9 +282,6 @@ group :development do
   gem 'bumbler', require: false
 
   gem 'graphiql-rails'
-
-  # vscode ruby
-  gem 'ruby-lsp', require: false
 end
 
 group :test do
