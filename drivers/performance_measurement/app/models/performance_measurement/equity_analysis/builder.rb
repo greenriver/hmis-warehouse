@@ -63,7 +63,7 @@ module PerformanceMeasurement::EquityAnalysis
     end
 
     def describe_metric
-      metric_options.select { |_, sym| sym == metric }.first.first
+      metric_options.detect { |_, sym| sym == metric }.first
     end
 
     def investigate_by
