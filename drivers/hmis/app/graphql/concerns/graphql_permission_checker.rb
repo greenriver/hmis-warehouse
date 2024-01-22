@@ -1,11 +1,10 @@
 module GraphqlPermissionChecker
-  extend ActiveSupport::Concern
-
   # Does the current user have the given permission on entity?
   #
+  # @param context [GraphQL::Query::Context] current query context
   # @param permission [Symbol] :can_do_foo
   # @param entity [#record] Client, project, etc
-  private def current_permission_for_context?(context, permission:, entity:)
+  def self.current_permission_for_context?(context, permission:, entity:)
     current_user = context[:current_user]
     return false unless current_user&.present?
 
