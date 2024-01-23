@@ -179,8 +179,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def self.source_for(destination_id:, user:)
-    source_id = GrdaWarehouse::WarehouseClient.find_by(destination_id: destination_id, data_source_id: user.hmis_data_source_id).source_id
-    return nil unless source_id.present?
+    source_id = GrdaWarehouse::WarehouseClient.find_by(destination_id: destination_id, data_source_id: user.hmis_data_source_id)&.source_id
+    return Hmis::Hud::Client.none unless source_id.present?
 
     searchable_to(user).where(id: source_id)
   end

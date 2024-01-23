@@ -164,7 +164,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it "should search by #{desc}" do
         response, result = post_graphql(input: input) { query }
         aggregate_failures 'checking response' do
-          expect(response.status).to eq 200
+          expect(response.status).to eq(200), result.inspect
           clients = result.dig('data', 'clientSearch', 'nodes')
           matcher = include({ 'id' => client.id.to_s })
           match ? expect(clients).to(matcher) : expect(clients).not_to(matcher)
@@ -209,7 +209,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it "should search custom client names by #{desc}" do
         response, result = post_graphql(input: input) { query }
         aggregate_failures 'checking response' do
-          expect(response.status).to eq 200
+          expect(response.status).to eq(200), result.inspect
           clients = result.dig('data', 'clientSearch', 'nodes')
           matcher = include({ 'id' => client.id.to_s })
           match ? expect(clients).to(matcher) : expect(clients).not_to(matcher)
