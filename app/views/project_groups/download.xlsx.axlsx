@@ -1,0 +1,29 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: 'Project Groups') do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  data_cell = sheet.styles.add_style(alignment: { horizontal: :left, vertical: :top, wrap_text: true })
+  columns = [
+    'Name',
+    'Project Count',
+    'Projects',
+    'Project Types',
+    'Organizations',
+    'Data Sources',
+    'Created At',
+    'Updated At',
+  ]
+  sheet.add_row(columns, style: title)
+  @project_groups.each do |group|
+    row = [
+      group.name.presence || 'unnamed',
+      group.projects.count,
+      group.filter.chosen(:project_ids)&.join(', '),
+      group.filter.chosen(:project_type_numbers)&.join(', '),
+      group.filter.chosen(:organization_ids)&.join(', '),
+      group.filter.chosen(:data_source_ids)&.join(', '),
+      group.created_at,
+      group.updated_at,
+    ]
+    sheet.add_row(row, style: data_cell)
+  end
+end
