@@ -13404,6 +13404,42 @@ ALTER SEQUENCE public.hmis_case_notes_id_seq OWNED BY public.hmis_case_notes.id;
 
 
 --
+-- Name: hmis_client_alerts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_client_alerts (
+    id bigint NOT NULL,
+    note text NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    expiration_date date,
+    created_by_id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    severity character varying
+);
+
+
+--
+-- Name: hmis_client_alerts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_client_alerts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_client_alerts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_client_alerts_id_seq OWNED BY public.hmis_client_alerts.id;
+
+
+--
 -- Name: hmis_client_attributes_defined_text; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -27691,6 +27727,13 @@ ALTER TABLE ONLY public.hmis_case_notes ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: hmis_client_alerts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_client_alerts ALTER COLUMN id SET DEFAULT nextval('public.hmis_client_alerts_id_seq'::regclass);
+
+
+--
 -- Name: hmis_client_attributes_defined_text id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -31460,6 +31503,14 @@ ALTER TABLE ONLY public.hmis_auto_exit_configs
 
 ALTER TABLE ONLY public.hmis_case_notes
     ADD CONSTRAINT hmis_case_notes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_client_alerts hmis_client_alerts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_client_alerts
+    ADD CONSTRAINT hmis_client_alerts_pkey PRIMARY KEY (id);
 
 
 --
@@ -52053,6 +52104,20 @@ CREATE INDEX index_hmis_case_notes_on_user_id ON public.hmis_case_notes USING bt
 
 
 --
+-- Name: index_hmis_client_alerts_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_client_alerts_on_client_id ON public.hmis_client_alerts USING btree (client_id);
+
+
+--
+-- Name: index_hmis_client_alerts_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_client_alerts_on_created_by_id ON public.hmis_client_alerts USING btree (created_by_id);
+
+
+--
 -- Name: index_hmis_client_attributes_defined_text_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60533,6 +60598,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240115190843'),
 ('20240116193554'),
 ('20240117133558'),
-('20240123152003');
+('20240123152003'),
+('20240123154914');
 
 
