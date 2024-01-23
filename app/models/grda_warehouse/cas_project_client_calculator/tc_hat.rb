@@ -13,8 +13,8 @@ module GrdaWarehouse::CasProjectClientCalculator
     # To use this efficiently, you'll probably want to preload a handful of data, see push_clients_to_cas.rb
     def value_for_cas_project_client(client:, column:)
       current_value = client.send(column)
-      # override ssvf_eligible even if we don't have a TC HAT
-      current_value = send(column, client) if column == :ssvf_eligible
+      # overrides even if we don't have a TC HAT
+      current_value = send(column, client) if column.in?(local_calculators)
       # Return existing value if we don't have anything in the new format
       return current_value unless client.most_recent_tc_hat_for_destination.present?
 
@@ -28,6 +28,13 @@ module GrdaWarehouse::CasProjectClientCalculator
       end
       # by default, just attempt to fetch the data from the client
       current_value
+    end
+
+    private def local_calculators
+      [
+        :ssvf_eligible,
+        :child_in_household,
+      ].freeze
     end
 
     private def custom_descriptions
@@ -51,6 +58,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         full_time_employed: 'Does the client have full-time employment response from the most recent TC-HAT',
         required_number_of_bedrooms: 'Bedrooms required to house household',
         required_minimum_occupancy: 'Number of household members',
+        child_in_household: 'Is the client a member of a household with at least one minor child',
       }.freeze
     end
 
@@ -327,6 +335,13 @@ module GrdaWarehouse::CasProjectClientCalculator
       # ssvf_eligible only _looks_ like a boolean
       client.active_cohort_clients.map(&:ssvf_eligible).
         any?('true')
+    end
+
+    private def child_in_household(client)
+      # Any open enrollment in SO, ES, SH, TH or PH, with a child under age 18
+      project_types = [:so, :es, :sh, :th, :ph].map { |code| HudUtility2024.residential_project_type_numbers_by_code[code] }.flatten
+      client.service_history_enrollments.ongoing.in_project_type(project_types).
+        where(she_t[:age].lt(18).or(she_t[:other_clients_under_18].eq(true))).exists?
     end
   end
 end
