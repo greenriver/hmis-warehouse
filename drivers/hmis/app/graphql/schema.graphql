@@ -736,6 +736,8 @@ type ClientAccess {
   canEditEnrollments: Boolean!
   canManageAnyClientFiles: Boolean!
   canManageOwnClientFiles: Boolean!
+  canManageScanCards: Boolean!
+  canMergeClients: Boolean!
   canUploadClientFiles: Boolean!
   canViewAnyConfidentialClientFiles: Boolean!
   canViewAnyFiles: Boolean!
@@ -8368,6 +8370,7 @@ type QueryAccess {
   canManageInventory: Boolean!
   canManageOutgoingReferrals: Boolean!
   canManageOwnClientFiles: Boolean!
+  canManageScanCards: Boolean!
   canMergeClients: Boolean!
   canSplitHouseholds: Boolean!
   canTransferEnrollments: Boolean!

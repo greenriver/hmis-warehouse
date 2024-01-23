@@ -12,4 +12,14 @@ class Hmis::ScanCardCode < Hmis::HmisBase
   belongs_to :client, optional: false, class_name: 'Hmis::Hud::Client'
   belongs_to :created_by, class_name: 'Hmis::User', optional: true
   belongs_to :deleted_by, class_name: 'Hmis::User', optional: true
+
+  def self.generate_code
+    'S' + SecureRandom.hex(5).upcase
+  end
+
+  def assign_code
+    return if code.present?
+
+    assign_attributes(code: generate_code)
+  end
 end

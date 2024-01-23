@@ -164,6 +164,17 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
     end
   end
 
+  context 'with scan card codes' do
+    let!(:code1) { create :hmis_scan_card_code, client: client1 }
+    let!(:code2) { create :hmis_scan_card_code, client: client2 }
+    let!(:code3) { create :hmis_scan_card_code, client: client2, deleted_at: Time.current }
+
+    it 'moves all scan cards to retained client' do
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+      expect(client1.scan_card_codes.with_deleted.pluck(:code)).to contain_exactly(code1.code, code2.code, code3.code)
+    end
+  end
+
   context 'client names' do
     let!(:c1_without_custom_name) { create(:hmis_hud_client_complete, date_created: Time.current - 3.days, data_source: data_source) }
     let!(:c2_without_custom_name) { create(:hmis_hud_client_complete, date_created: Time.current, data_source: data_source) }

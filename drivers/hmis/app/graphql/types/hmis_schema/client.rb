@@ -150,6 +150,8 @@ module Types
       composite_perm :can_upload_client_files, permissions: [:manage_any_client_files, :manage_own_client_files], mode: :any
       composite_perm :can_view_any_files, permissions: [:manage_own_client_files, :view_any_nonconfidential_client_files, :view_any_confidential_client_files], mode: :any
       can :audit_clients
+      can :manage_scan_cards
+      root_can :can_merge_clients # "Root" permission, resolved on Client for convenience
     end
 
     def external_ids

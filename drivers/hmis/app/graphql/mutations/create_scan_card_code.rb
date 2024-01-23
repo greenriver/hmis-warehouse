@@ -14,11 +14,9 @@ module Mutations
       # TODO: check perm
       client = Hmis::Hud::Client.viewable_by(current_user).find(client_id)
 
-      scan_card_code = Hmis::ScanCardCode.create!(
-        client: client,
-        created_by: current_user,
-        code: Hmis::Hud::Base.generate_uuid,
-      )
+      scan_card_code = Hmis::ScanCardCode.new(client: client, created_by: current_user)
+      scan_card_code.assign_code
+      scan_card_code.save!
 
       { scan_card_code: scan_card_code }
     end
