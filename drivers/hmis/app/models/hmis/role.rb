@@ -387,7 +387,7 @@ class Hmis::Role < ::ApplicationRecord
       can_view_client_alerts: {
         description: 'Grants the ability to view Client Alerts',
         administrative: true,
-        access: [:editable],
+        access: [:viewable],
         categories: [
           'Client Details',
         ],
