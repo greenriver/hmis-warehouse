@@ -107,12 +107,5 @@ module ClientSearch
 
       where
     end
-
-    def self.scan_card_search(where, text)
-      matching_client_ids = Hmis::ScanCardCode.where(code: text).pluck(:client_id)
-      where = where.or(arel_table[:id].in(matching_client_ids))
-
-      where
-    end
   end
 end
