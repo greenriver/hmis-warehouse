@@ -119,8 +119,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       create(:hmis_hud_base_client, id: 5555)
       create(:hmis_warehouse_client, destination_id: 5555, data_source: client.data_source, source: client)
     end
-    # Create a Scan Card so we can search for it
+
     let!(:scan_code) { create(:hmis_scan_card_code, client: client, code: 'P1234') }
+    let!(:deactivated_scan_code) { create(:hmis_scan_card_code, client: client, code: 'P5678', deleted_at: Time.current) }
+    let!(:other_scan_code) { create(:hmis_scan_card_code, code: 'P9999') }
 
     [
       # TEXT SEARCHES
@@ -139,6 +141,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         ['text: wrong dob and not match', '12/01/2000', false],
         ['text: warehouse id', '5555', true],
         ['text: scan card code', 'P1234', true],
+        ['text: deactivated scan card code', 'P5678', false],
+        ['text: scan card code for another client', 'P9999', false],
       ].map { |desc, text, match| [desc, { text_search: text }, match] },
       # OTHER FILTERS
       ['personal id', { personal_id: 'db422f5fff0b8f1c9a4b81f01b00fdb4' }, true],
