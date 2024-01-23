@@ -28,7 +28,7 @@ RSpec.describe 'Manage Scan Card Mutations', type: :request do
               nodesCount
               nodes {
                 id
-                code
+                value
               }
             }
           }
@@ -42,8 +42,8 @@ RSpec.describe 'Manage Scan Card Mutations', type: :request do
     it 'resolves codes' do
       response, result = post_graphql(id: client.id) { query }
       expect(response.status).to eq(200), result.inspect
-      codes = result.dig('data', 'client', 'scanCardCodes', 'nodes').map { |n| n['code'] }
-      expect(codes).to contain_exactly(code1.code, code2.code)
+      codes = result.dig('data', 'client', 'scanCardCodes', 'nodes').map { |n| n['value'] }
+      expect(codes).to contain_exactly(code1.value, code2.value)
     end
   end
 
@@ -54,7 +54,7 @@ RSpec.describe 'Manage Scan Card Mutations', type: :request do
           createScanCardCode(clientId: $id) {
             scanCardCode {
               id
-              code
+              value
             }
           }
         }
@@ -67,7 +67,7 @@ RSpec.describe 'Manage Scan Card Mutations', type: :request do
           deleteScanCardCode(id: $id) {
             scanCardCode {
               id
-              code
+              value
             }
           }
         }
@@ -80,7 +80,7 @@ RSpec.describe 'Manage Scan Card Mutations', type: :request do
           restoreScanCardCode(id: $id) {
             scanCardCode {
               id
-              code
+              value
             }
           }
         }

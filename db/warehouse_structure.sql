@@ -13409,19 +13409,14 @@ ALTER SEQUENCE public.hmis_case_notes_id_seq OWNED BY public.hmis_case_notes.id;
 
 CREATE TABLE public.hmis_client_alerts (
     id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    organization_id bigint,
-    project_id bigint,
-    coc_code character varying,
-    source_type character varying,
-    source_id bigint,
-    information_date date NOT NULL,
-    severity character varying NOT NULL,
-    note text,
+    note text NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    expiration_date date,
+    created_by_id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    severity character varying
 );
 
 
@@ -18578,13 +18573,34 @@ ALTER SEQUENCE public.hmis_project_unit_type_mappings_id_seq OWNED BY public.hmi
 CREATE TABLE public.hmis_scan_card_codes (
     id bigint NOT NULL,
     client_id bigint NOT NULL,
-    code character varying NOT NULL,
+    value character varying NOT NULL,
     created_by_id bigint,
     deleted_by_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone
 );
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.value; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.value IS 'code to embed in scan card';
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.created_by_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.created_by_id IS 'user that generated code';
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.deleted_by_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.deleted_by_id IS 'user that deleted code';
 
 
 --
@@ -52166,31 +52182,10 @@ CREATE INDEX index_hmis_client_alerts_on_client_id ON public.hmis_client_alerts 
 
 
 --
--- Name: index_hmis_client_alerts_on_organization_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_hmis_client_alerts_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_hmis_client_alerts_on_organization_id ON public.hmis_client_alerts USING btree (organization_id);
-
-
---
--- Name: index_hmis_client_alerts_on_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_client_alerts_on_project_id ON public.hmis_client_alerts USING btree (project_id);
-
-
---
--- Name: index_hmis_client_alerts_on_source; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_client_alerts_on_source ON public.hmis_client_alerts USING btree (source_type, source_id);
-
-
---
--- Name: index_hmis_client_alerts_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_client_alerts_on_user_id ON public.hmis_client_alerts USING btree (user_id);
+CREATE INDEX index_hmis_client_alerts_on_created_by_id ON public.hmis_client_alerts USING btree (created_by_id);
 
 
 --
@@ -52978,13 +52973,6 @@ CREATE INDEX index_hmis_scan_card_codes_on_client_id ON public.hmis_scan_card_co
 
 
 --
--- Name: index_hmis_scan_card_codes_on_code; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_scan_card_codes_on_code ON public.hmis_scan_card_codes USING btree (code);
-
-
---
 -- Name: index_hmis_scan_card_codes_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -52996,6 +52984,13 @@ CREATE INDEX index_hmis_scan_card_codes_on_created_by_id ON public.hmis_scan_car
 --
 
 CREATE INDEX index_hmis_scan_card_codes_on_deleted_by_id ON public.hmis_scan_card_codes USING btree (deleted_by_id);
+
+
+--
+-- Name: index_hmis_scan_card_codes_on_value; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hmis_scan_card_codes_on_value ON public.hmis_scan_card_codes USING btree (value);
 
 
 --
@@ -60702,6 +60697,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240115190843'),
 ('20240116193554'),
 ('20240117133558'),
-('20240118203430');
+('20240118203430'),
+('20240123152003'),
+('20240123154914');
 
 

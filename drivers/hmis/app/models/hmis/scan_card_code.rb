@@ -18,8 +18,8 @@ class Hmis::ScanCardCode < Hmis::HmisBase
   end
 
   def assign_code
-    return if code.present?
+    return if value.present?
 
-    assign_attributes(code: self.class.generate_code)
+    self.value ||= self.class.generate_code
   end
 end

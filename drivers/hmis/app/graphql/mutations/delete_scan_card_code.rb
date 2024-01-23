@@ -14,8 +14,6 @@ module Mutations
       code = Hmis::ScanCardCode.find(id)
       raise 'unauthorized' unless current_permission?(permission: :can_manage_scan_cards, entity: code.client)
 
-      return code if code.deleted_at.present?
-
       code.deleted_at = Time.current
       code.deleted_by = current_user
       code.save!

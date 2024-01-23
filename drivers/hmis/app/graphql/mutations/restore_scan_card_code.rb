@@ -11,10 +11,8 @@ module Mutations
     field :scan_card_code, Types::HmisSchema::ScanCardCode, null: true
 
     def resolve(id:)
-      code = Hmis::ScanCardCode.with_deleted.find(id)
+      code = Hmis::ScanCardCode.only_deleted.find(id)
       raise 'unauthorized' unless current_permission?(permission: :can_manage_scan_cards, entity: code.client)
-
-      return code unless code.deleted_at.present?
 
       code.deleted_at = nil
       code.deleted_by = nil
