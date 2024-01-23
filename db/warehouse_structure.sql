@@ -6478,7 +6478,8 @@ CREATE TABLE public.configs (
     chronic_tab_roi boolean,
     filter_date_span_years integer DEFAULT 1 NOT NULL,
     include_pii_in_detail_downloads boolean DEFAULT true,
-    self_report_start_date date
+    self_report_start_date date,
+    chronic_adult_only_cohort boolean DEFAULT false
 );
 
 
@@ -60647,5 +60648,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240110135132'),
 ('20240113025936'),
 ('20240115190843'),
+('20240116193554'),
 ('20240117133558'),
 ('20240119035058');
