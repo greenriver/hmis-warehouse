@@ -98,8 +98,8 @@ RSpec.describe 'Manage Scan Card Mutations', type: :request do
       remove_permissions(access_control, :can_manage_scan_cards)
 
       expect_gql_error post_graphql(id: client.id) { create_code }
-      expect_gql_error post_graphql(id: code.id) { delete_code }
-      expect_gql_error post_graphql(id: code.id) { restore_code }
+      expect_gql_error post_graphql(id: code1.id) { delete_code }
+      expect_gql_error post_graphql(id: code1.id) { restore_code }
     end
 
     it 'creates codes' do
