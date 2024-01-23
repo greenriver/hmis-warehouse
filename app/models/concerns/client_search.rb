@@ -26,6 +26,12 @@ module ClientSearch
       max_pk = 2_147_483_648 # PK is a 4 byte signed INT (2 ** ((4 * 8) - 1))
       term_is_possibly_pk = numeric ? text.to_i < max_pk : false
 
+      # If alphanumeric search term matches a Scan Card code, return immediately
+      if alpha_numeric && HmisEnforcement.hmis_enabled?
+        matching_client_ids = Hmis::ScanCardCode.where(value: text).pluck(:client_id)
+        return where(id: matching_client_ids) if matching_client_ids.any?
+      end
+
       if alpha_numeric && (text.size == 32 || text.size == 36)
         where = sa[:PersonalID].matches(text.gsub('-', ''))
       elsif social
@@ -46,15 +52,13 @@ module ClientSearch
           where = conditions.reduce(:or)
         end
       else
-        # At this point, term could be an alpha-numeric non-UUID ID, or a human name. To avoid having to combine fuzzy name
-        # search with these other conditions, first check if the term matches a Scan Card Code. If no match is
-        # found, we do an early return with name-search results.
-        #
-        # NOTE: commented-out code below also checks if it matches an External ID. This is not needed now
-        # because only *numeric* External IDs are in user at this time.
+        # NOTE: per discussion with Gig, only numeric IDs are in use at this time, commenting this out for now
+        ## At this point, term could be an alpha-numeric ID or a human name. To avoid having to combine fuzzy name
+        ## search with these other conditions, first check if the term matches external ids. If no matches are
+        ## found, we do an early return with name-search results.
         # matches_external_ids = where(search_by_external_id(never_cond, text)).any? if ENV['ALPHANUMERIC_HMIS_EXTERNAL_IDS'] && alpha_numeric && respond_to?(:search_by_external_id) && RailsDrivers.loaded.include?(:hmis_external_apis)
-        matches_scan_card_code = alpha_numeric && where(scan_card_search(never_cond, text)).any?
-        unless matches_scan_card_code
+        matches_external_ids = false
+        unless matches_external_ids
           # short circuit the rest of search. Since no external IDS are found, this seems to be free text and we can just return
           # name search results
           return ClientSearchUtil::NameSearch.perform_as_joinable_query(term: text, clients: self) if resolve_for_join_query
@@ -66,7 +70,6 @@ module ClientSearch
       # dummy condition to start the OR chain. This method needs refactoring
       where ||= never_cond
       where = search_by_external_id(where, text) if alpha_numeric && respond_to?(:search_by_external_id) && RailsDrivers.loaded.include?(:hmis_external_apis) && HmisExternalApis::AcHmis::Mci.enabled?
-      where = scan_card_search(where, text) if alpha_numeric
 
       results = nil
       if numeric && term_is_possibly_pk
