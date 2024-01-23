@@ -120,9 +120,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       create(:hmis_warehouse_client, destination_id: 5555, data_source: client.data_source, source: client)
     end
 
-    let!(:scan_code) { create(:hmis_scan_card_code, client: client, code: 'P1234') }
-    let!(:deactivated_scan_code) { create(:hmis_scan_card_code, client: client, code: 'P5678', deleted_at: Time.current) }
-    let!(:other_scan_code) { create(:hmis_scan_card_code, code: 'P9999') }
+    let!(:scan_code) { create(:hmis_scan_card_code, client: client, value: 'P1234') }
+    let!(:deactivated_scan_code) { create(:hmis_scan_card_code, client: client, value: 'P5678', deleted_at: Time.current) }
+    let!(:other_scan_code) { create(:hmis_scan_card_code, value: 'P9999') }
 
     [
       # TEXT SEARCHES
