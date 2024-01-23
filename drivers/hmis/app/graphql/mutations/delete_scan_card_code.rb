@@ -11,9 +11,9 @@ module Mutations
     field :scan_card_code, Types::HmisSchema::ScanCardCode, null: true
 
     def resolve(id:)
-      # TODO: check perm
-
       code = Hmis::ScanCardCode.find(id)
+      not_authorized! unless current_permission?(permission: :can_manage_scan_cards, entity: code.client)
+
       return code if code.deleted_at.present?
 
       code.deleted_at = Time.current

@@ -11,8 +11,8 @@ module Mutations
     field :scan_card_code, Types::HmisSchema::ScanCardCode, null: true
 
     def resolve(client_id:)
-      # TODO: check perm
       client = Hmis::Hud::Client.viewable_by(current_user).find(client_id)
+      not_authorized! unless current_permission?(permission: :can_manage_scan_cards, entity: client)
 
       scan_card_code = Hmis::ScanCardCode.new(client: client, created_by: current_user)
       scan_card_code.assign_code
