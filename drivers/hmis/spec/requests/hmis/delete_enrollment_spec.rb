@@ -65,7 +65,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should allow deleting non-WIP enrollments if no intake assessment exists' do
-    add_permissions(access_control, :can_delete_enrollments)
+    add_permissions(access_control, :can_edit_enrollments, :can_delete_enrollments)
     enrollment, errors = perform_mutation(e3)
     expect(enrollment).to be_present
     expect(errors).to be_empty
