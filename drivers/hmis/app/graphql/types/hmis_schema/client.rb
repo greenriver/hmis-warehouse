@@ -29,6 +29,12 @@ module Types
       Hmis::Hud::Client.hmis_configuration(version: '2024')
     end
 
+    # check for the most minimal permission needed to resolve this object
+    def self.authorized?(object, ctx)
+      permission = :can_view_clients
+      super && GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: permission, entity: object)
+    end
+
     available_filter_options do
       arg :project, [ID]
       arg :organization, [ID]
