@@ -389,7 +389,7 @@ class Hmis::Role < ::ApplicationRecord
         administrative: true,
         access: [:editable],
         categories: [
-          'Administrative',
+          'Client Details',
         ],
       },
       can_manage_client_alerts: {
@@ -397,7 +397,7 @@ class Hmis::Role < ::ApplicationRecord
         administrative: true,
         access: [:editable],
         categories: [
-          'Administrative',
+          'Client Details',
         ],
       },
     }
