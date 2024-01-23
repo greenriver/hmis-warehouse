@@ -384,6 +384,22 @@ class Hmis::Role < ::ApplicationRecord
           'Administrative',
         ],
       },
+      can_view_client_alerts: {
+        description: 'Grants the ability to view Client Alerts',
+        administrative: true,
+        access: [:editable],
+        categories: [
+          'Administrative',
+        ],
+      },
+      can_manage_client_alerts: {
+        description: 'Grants the ability to manage Client Alerts',
+        administrative: true,
+        access: [:editable],
+        categories: [
+          'Administrative',
+        ],
+      },
     }
   end
 end

@@ -862,7 +862,9 @@ CREATE TABLE public.hmis_roles (
     can_impersonate_users boolean DEFAULT false,
     can_audit_users boolean DEFAULT false,
     can_audit_enrollments boolean DEFAULT false,
-    can_configure_data_collection boolean DEFAULT false
+    can_configure_data_collection boolean DEFAULT false,
+    can_view_client_alerts boolean DEFAULT false,
+    can_manage_client_alerts boolean DEFAULT false
 );
 
 
@@ -4296,6 +4298,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231201173326'),
 ('20231206162323'),
 ('20231221165752'),
-('20231221165753');
+('20231221165753'),
+('20240123160215');
 
 
