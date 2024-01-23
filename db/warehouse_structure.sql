@@ -13404,47 +13404,6 @@ ALTER SEQUENCE public.hmis_case_notes_id_seq OWNED BY public.hmis_case_notes.id;
 
 
 --
--- Name: hmis_client_alerts; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_client_alerts (
-    id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    organization_id bigint,
-    project_id bigint,
-    coc_code character varying,
-    source_type character varying,
-    source_id bigint,
-    information_date date NOT NULL,
-    severity character varying NOT NULL,
-    note text,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: hmis_client_alerts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_client_alerts_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_client_alerts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_client_alerts_id_seq OWNED BY public.hmis_client_alerts.id;
-
-
---
 -- Name: hmis_client_attributes_defined_text; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -21713,16 +21672,8 @@ CREATE TABLE public.pm_client_projects (
     deleted_at timestamp without time zone,
     report_id integer,
     for_question character varying,
-    period character varying,
-    household_type integer
+    period character varying
 );
-
-
---
--- Name: COLUMN pm_client_projects.household_type; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.pm_client_projects.household_type IS '2.07.4';
 
 
 --
@@ -27740,13 +27691,6 @@ ALTER TABLE ONLY public.hmis_case_notes ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
--- Name: hmis_client_alerts id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_client_alerts ALTER COLUMN id SET DEFAULT nextval('public.hmis_client_alerts_id_seq'::regclass);
-
-
---
 -- Name: hmis_client_attributes_defined_text id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -31516,14 +31460,6 @@ ALTER TABLE ONLY public.hmis_auto_exit_configs
 
 ALTER TABLE ONLY public.hmis_case_notes
     ADD CONSTRAINT hmis_case_notes_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_client_alerts hmis_client_alerts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_client_alerts
-    ADD CONSTRAINT hmis_client_alerts_pkey PRIMARY KEY (id);
 
 
 --
@@ -52117,41 +52053,6 @@ CREATE INDEX index_hmis_case_notes_on_user_id ON public.hmis_case_notes USING bt
 
 
 --
--- Name: index_hmis_client_alerts_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_client_alerts_on_client_id ON public.hmis_client_alerts USING btree (client_id);
-
-
---
--- Name: index_hmis_client_alerts_on_organization_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_client_alerts_on_organization_id ON public.hmis_client_alerts USING btree (organization_id);
-
-
---
--- Name: index_hmis_client_alerts_on_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_client_alerts_on_project_id ON public.hmis_client_alerts USING btree (project_id);
-
-
---
--- Name: index_hmis_client_alerts_on_source; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_client_alerts_on_source ON public.hmis_client_alerts USING btree (source_type, source_id);
-
-
---
--- Name: index_hmis_client_alerts_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_client_alerts_on_user_id ON public.hmis_client_alerts USING btree (user_id);
-
-
---
 -- Name: index_hmis_client_attributes_defined_text_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -58487,13 +58388,6 @@ CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "Personal
 
 
 --
--- Name: tt_hh_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX tt_hh_id ON public.service_history_enrollments USING btree (household_id);
-
-
---
 -- Name: tx_id_ds_id_ft_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60636,9 +60530,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240102155413'),
 ('20240102205532'),
 ('20240105222927'),
-('20240110135132'),
 ('20240115190843'),
 ('20240116193554'),
-('20240117133558');
+('20240117133558'),
+('20240123152003');
 
 
