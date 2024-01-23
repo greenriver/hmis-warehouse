@@ -28,13 +28,14 @@
         %thead
           %tr
             %th
+              %input#jSelectGroup.jCheckAll{type: :checkbox,}
             %th Name
             %th Project Count
             %th Universe
         %tbody
           - @project_groups.each do |group|
             %tr
-              %td.jSelect= f.input_field :group, as: :boolean, checked_value: group.id, unchecked_value: nil, name: input_id
+              %td.jSelect= f.input_field :group, as: :boolean, checked_value: group.id, unchecked_value: nil, name: input_id, class: 'jSelectGroup'
               %td
                 = link_to group.name.presence || 'unnamed', edit_project_group_path(group)
                 - if group.used_for_cas_sync?
