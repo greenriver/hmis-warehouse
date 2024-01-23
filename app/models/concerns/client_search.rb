@@ -28,8 +28,8 @@ module ClientSearch
 
       # If alphanumeric search term matches a Scan Card code, return immediately
       if alpha_numeric && HmisEnforcement.hmis_enabled?
-        matching_client_ids = Hmis::ScanCardCode.where(value: text).pluck(:client_id)
-        return where(id: matching_client_ids) if matching_client_ids.any?
+        matching_scan_card = Hmis::ScanCardCode.find_by(value: text)
+        return where(sa[:id].eq(matching_scan_card.client_id)) if matching_scan_card
       end
 
       if alpha_numeric && (text.size == 32 || text.size == 36)
