@@ -53,7 +53,7 @@
 
 = content_for :page_js do
   :javascript
-    $('.jSelect').on('change', function(e) {
+    $('.jSelect, .jCheckAll').on('change', function(e) {
       anyChecked = $('input[name="selections[group][]"]').toArray().some((e) => e.checked)
       $('#deleteMultipleButton').prop('disabled', !anyChecked)
     });
