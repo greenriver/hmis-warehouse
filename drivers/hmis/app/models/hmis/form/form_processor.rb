@@ -252,7 +252,15 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   private def container_processor(container)
     container = container.to_sym
-    return unless container.in?(valid_containers.keys)
+    return if container == :CustomAssessment
+
+    if !container.in?(valid_containers.keys)
+      message = "invalid container \"#{container}\" for Hmis::FormProcessor##{id}"
+      raise message if Rails.env.development? || Rails.env.test?
+
+      Sentry.capture_message(message)
+      return
+    end
 
     @container_processors ||= {}
     @container_processors[container] ||= valid_containers[container].new(self)
@@ -281,7 +289,8 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       YouthEducationStatus: Hmis::Hud::Processors::YouthEducationStatusProcessor,
       EmploymentEducation: Hmis::Hud::Processors::EmploymentEducationProcessor,
       CurrentLivingSituation: Hmis::Hud::Processors::CurrentLivingSituationProcessor,
-      Assessment: Hmis::Hud::Processors::CeAssessmentProcessor,
+      Assessment: Hmis::Hud::Processors::CeAssessmentProcessor, # CE Assessment owner
+      CeAssessment: Hmis::Hud::Processors::CeAssessmentProcessor, # Custom Assessment includes CE Assessment
       Event: Hmis::Hud::Processors::CeEventProcessor,
       CustomCaseNote: Hmis::Hud::Processors::CustomCaseNoteProcessor,
     }.freeze
