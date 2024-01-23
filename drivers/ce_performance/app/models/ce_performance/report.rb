@@ -424,6 +424,14 @@ module CePerformance
           CePerformance::Results::VispdatYouth,
         ]
       end
+      types += [
+        CePerformance::Results::Exit,
+        CePerformance::Results::ExitHomeless,
+        CePerformance::Results::ExitInstitutional,
+        CePerformance::Results::ExitTemporary,
+        CePerformance::Results::ExitPermanent,
+        CePerformance::Results::ExitOther,
+      ]
       types
     end
 
