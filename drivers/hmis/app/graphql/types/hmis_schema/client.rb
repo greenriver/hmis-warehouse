@@ -23,6 +23,7 @@ module Types
     include Types::HmisSchema::HasGender
     include Types::HmisSchema::HasCustomDataElements
     include Types::HmisSchema::HasHudMetadata
+    include Types::HmisSchema::HasClientAlerts
 
     def self.configuration
       Hmis::Hud::Client.hmis_configuration(version: '2024')
@@ -74,6 +75,7 @@ module Types
     field :additional_race_ethnicity, String, null: true
     field :names, [HmisSchema::ClientName], null: false
     field :addresses, [HmisSchema::ClientAddress], null: false
+    field :alerts, [HmisSchema::ClientAlert], null: false
     field :contact_points, [HmisSchema::ClientContactPoint], null: false
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
@@ -273,6 +275,10 @@ module Types
 
     def addresses
       load_ar_association(object, :addresses)
+    end
+
+    def alerts
+      load_ar_association(object, :alerts)
     end
 
     def hud_chronic

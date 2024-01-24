@@ -57,6 +57,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :custom_data_elements, as: :owner, dependent: :destroy
   has_many :client_projects
   has_many :projects_including_wip, through: :client_projects, source: :project
+  has_many :alerts, class_name: 'Hmis::ClientAlert'
 
   # History of merges into this client
   has_many :merge_histories, class_name: 'Hmis::ClientMergeHistory', primary_key: :id, foreign_key: :retained_client_id
