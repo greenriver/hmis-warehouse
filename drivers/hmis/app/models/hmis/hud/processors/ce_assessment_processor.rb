@@ -7,7 +7,7 @@
 module Hmis::Hud::Processors
   class CeAssessmentProcessor < Base
     def factory_name
-      :owner_factory
+      :ce_assessment_factory
     end
 
     def schema

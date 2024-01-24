@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -18259,7 +18259,8 @@ CREATE TABLE public.hmis_form_processors (
     hud_values jsonb,
     youth_education_status_id integer,
     employment_education_id integer,
-    current_living_situation_id integer
+    current_living_situation_id integer,
+    ce_assessment_id integer
 );
 
 
@@ -52777,6 +52778,15 @@ CREATE INDEX index_hmis_form_processors_on_chronic_health_condition_id ON public
 
 
 --
+-- Name: index_hmis_form_processors_on_ce_assessment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_ce_assessment_id ON public.hmis_form_processors USING btree (ce_assessment_id);
+
+
+
+
+--
 -- Name: index_hmis_form_processors_on_developmental_disability_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -57866,13 +57876,6 @@ CREATE INDEX index_tx_research_exports_on_user_id ON public.tx_research_exports 
 
 
 --
--- Name: index_unique_identifiers_per_role; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_unique_identifiers_per_role ON public.hmis_form_definitions USING btree (identifier, role, version, status);
-
-
---
 -- Name: index_universe_type_and_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -58521,6 +58524,12 @@ CREATE UNIQUE INDEX uidx_hmis_external_referral_requests_identifier ON public.hm
 --
 
 CREATE UNIQUE INDEX uidx_hmis_external_referrals_identifier ON public.hmis_external_referrals USING btree (identifier);
+
+--
+-- Name: uidx_hmis_form_definitions_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX uidx_hmis_form_definitions_identifier ON public.hmis_form_definitions USING btree (identifier, version);
 
 
 --
@@ -60611,10 +60620,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240102205532'),
 ('20240105222927'),
 ('20240110135132'),
+('20240113025936'),
 ('20240115190843'),
 ('20240116193554'),
 ('20240117133558'),
+('20240119035058'),
 ('20240123152003'),
 ('20240123154914');
-
-

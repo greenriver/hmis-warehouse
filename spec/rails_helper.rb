@@ -89,13 +89,7 @@ RSpec.configure do |config|
     # disable papertrail for test performance
     PaperTrail.enabled = false
 
-    if ENV['ENABLE_HMIS_API'] == 'true'
-      ::HmisUtil::JsonForms.new.tap do |builder|
-        builder.seed_record_form_definitions
-        builder.seed_assessment_form_definitions
-        builder.seed_static_forms
-      end
-    end
+    ::HmisUtil::JsonForms.seed_all if ENV['ENABLE_HMIS_API'] == 'true'
   end
 end
 
