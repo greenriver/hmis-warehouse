@@ -6,6 +6,10 @@
 
 module HudSpmReport::Generators::Fy2023
   class MeasureBase < ::HudReports::QuestionBase
+    def self.client_class
+      HudSpmReport::Fy2023::SpmEnrollment
+    end
+
     private def enrollment_set
       enrollments = @report.spm_enrollments
       return enrollments if enrollments.exists?
