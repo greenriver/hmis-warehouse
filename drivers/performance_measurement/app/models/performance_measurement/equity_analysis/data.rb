@@ -4,7 +4,7 @@ module PerformanceMeasurement::EquityAnalysis
     include GrdaWarehouse::UsCensusApi::Aggregates
 
     RACES = HudUtility2024.races
-    AGES = Filters::FilterBase.available_age_ranges
+    AGES = Filters::FilterBase.available_census_age_ranges
     GENDERS = HudUtility2024.genders
 
     GENDER_ID_TO_SCOPE = {
@@ -215,7 +215,7 @@ module PerformanceMeasurement::EquityAnalysis
         end
       end
 
-      results.map(&:val).sum
+      results.map(&:val).sum.round
     end
 
     private def race_census_code(code)
@@ -244,35 +244,27 @@ module PerformanceMeasurement::EquityAnalysis
       when :zero_to_four
         'AGE_0_4'
       when :five_to_ten
-        nil # Differs from Census
-      when :eleven_to_fourteen
-        nil # Differs from Census
+        'AGE_5_9'
+      when :ten_to_fourteen
+        'AGE_10_14'
       when :fifteen_to_seventeen
         'AGE_15_17'
-      when :under_eighteen
-        nil # Differs from Census
       when :eighteen_to_twenty_four
         'AGE_18_24'
-      when :twenty_five_to_twenty_nine
-        nil # Differs from Census
-      when :thirty_to_thirty_four
-        nil # Differs from Census
-      when :thirty_five_to_thirty_nine
-        nil # Differs from Census
-      when :forty_to_forty_four
-        nil # Differs from Census
-      when :forty_five_to_forty_nine
-        nil # Differs from Census
-      when :fifty_to_fifty_four
-        nil # Differs from Census
-      when :fifty_five_to_fifty_nine
-        nil # Differs from Census
-      when :sixty_to_sixty_one
-        nil # Differs from Census
-      when :sixty_two_to_sixty_four
-        nil # Differs from Census
-      when :over_sixty_four
-        nil # Differs from Census
+      when :twenty_five_to_thirty_four
+        'AGE_25_34'
+      when :thirty_five_to_forty_four
+        'AGE_35_44'
+      when :forty_five_to_fifty_four
+        'AGE_45_54'
+      when :fifty_five_to_sixty_four
+        'AGE_55_64'
+      when :sixty_five_to_seventy_four
+        'AGE_65_74'
+      when :seventy_five_to_eighty_four
+        'AGE_75_84'
+      when :eighty_five_plus
+        'AGE_85_PLUS'
       end
     end
 
@@ -350,7 +342,7 @@ module PerformanceMeasurement::EquityAnalysis
         end
       end
 
-      results.map(&:val).sum
+      results.map(&:val).sum.round
     end
   end
 end

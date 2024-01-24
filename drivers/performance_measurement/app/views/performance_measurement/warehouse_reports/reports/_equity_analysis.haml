@@ -59,3 +59,7 @@
             No report data has been selected to display.
           %span
             Make required selections above and click “update report”
+  - if @analysis_builder.valid?
+    .alert.alert-info.mt-4
+      %i.icon-info.mr-2
+      Census data can only be displayed and limited for race, gender, and age.  Census genders are limited to male and female, and census races do not include all HMIS races.

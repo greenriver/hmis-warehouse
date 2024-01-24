@@ -80,14 +80,14 @@ module PerformanceMeasurement
       update(completed_at: Time.current)
     end
 
-    def describe_filter_as_html(keys = nil, inline: false)
+    def describe_filter_as_html(keys = nil, inline: false, limited: true)
       keys ||= [
         :project_type_codes,
         :project_ids,
         :project_group_ids,
         :data_source_ids,
       ]
-      filter.describe_filter_as_html(keys, inline: inline)
+      filter.describe_filter_as_html(keys, inline: inline, limited: limited)
     end
 
     def known_params
@@ -1393,6 +1393,8 @@ module PerformanceMeasurement
               'icons.woff2',
             ].each do |filename|
               css.gsub!("url(/assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
+              # Also replace development version of assets url
+              css.gsub!("url(/dev-assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
             end
             css
           },
