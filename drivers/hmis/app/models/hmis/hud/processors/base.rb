@@ -4,10 +4,16 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# ==  Hmis::Hud::Processors::Base
+#
+# Base class for field processors. Responsible for processing a single form input
+# * @processor is the Hmis::Form::FormProcessor that called this field processor
+# * factory references the active record instance that we should assign values to, see the x_processor definition
 class Hmis::Hud::Processors::Base
   # DO NOT CHANGE: Frontend code sends this value
   HIDDEN_FIELD_VALUE = '_HIDDEN'.freeze
 
+  # @param [Hmis::Form::FormProcessor] processor active record model that persists form data and models
   def initialize(processor)
     @processor = processor
     @hud_values = processor.hud_values
