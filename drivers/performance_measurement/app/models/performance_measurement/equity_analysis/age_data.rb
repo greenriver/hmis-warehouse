@@ -1,7 +1,9 @@
 module PerformanceMeasurement::EquityAnalysis
   class AgeData < PerformanceMeasurement::EquityAnalysis::Data
     def data_groups
-      age_params.any? ? AGES.select { |_, v| age_params.include?(v) } : AGES
+      return AGES unless age_params.any?
+
+      AGES.select { |_, v| age_params.include?(v) }
     end
 
     def data
