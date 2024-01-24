@@ -1,20 +1,10 @@
 module PerformanceMeasurement::EquityAnalysis
   class Data
     include ArelHelper
-
-    BARS = [
-      'Current Period - Report Universe',
-      'Comparison Period - Report Universe',
-      'Current Period - Current Filters',
-      'Comparison Period - Current Filters',
-      # 'Current Period - Census',
-      # 'Comparison Period - Census',
-    ].freeze
+    include GrdaWarehouse::UsCensusApi::Aggregates
 
     RACES = HudUtility2024.races
-
-    AGES = Filters::FilterBase.available_age_ranges
-
+    AGES = Filters::FilterBase.available_census_age_ranges
     GENDERS = HudUtility2024.genders
 
     GENDER_ID_TO_SCOPE = {
@@ -58,6 +48,17 @@ module PerformanceMeasurement::EquityAnalysis
       @builder = builder
       @params = builder.params
       @report = builder.report
+    end
+
+    def bars
+      [
+        'Current Period - Report Universe',
+        'Comparison Period - Report Universe',
+        'Current Period - Current Filters',
+        'Comparison Period - Current Filters',
+        'Current Period - Census',
+        'Comparison Period - Census',
+      ].freeze
     end
 
     def metric_params
@@ -129,8 +130,8 @@ module PerformanceMeasurement::EquityAnalysis
     def build_data
       {
         columns: [],
-        ordered_keys: BARS,
-        colors: BARS.map.with_index { |bar, i| [bar, COLORS[i]] }.to_h,
+        ordered_keys: bars,
+        colors: bars.map.with_index { |bar, i| [bar, COLORS[i]] }.to_h,
         view_by: view_by_params,
       }
     end
@@ -141,29 +142,39 @@ module PerformanceMeasurement::EquityAnalysis
 
     def bar_data(universe: nil, investigate_by: nil)
       period = universe_period(universe)
-      scope = if universe.ends_with?('Report Universe')
-        client_scope(period, investigate_by)
+
+      count = 0
+      denominator = 0
+      if universe.ends_with?('Report Universe')
+        count = client_scope(period, investigate_by).count
+        denominator = percentage_denominator(period, investigate_by)
       elsif universe.ends_with?('Current Filters')
-        apply_params(
+        count = apply_params(
           client_scope(period, investigate_by),
           period,
-        )
+        ).count
+        denominator = percentage_denominator(period, investigate_by)
+      elsif universe.ends_with?('Census')
+        year = @report.filter.end.year
+        year -= 1 if period == :comparison
+        count = apply_census_params(investigate_by: investigate_by, year: year)
+        denominator = overall_census_count(year: year)
       end
-      apply_view_by_params(scope.count, period, investigate_by)
+      apply_view_by_params(count, denominator)
     end
 
-    def apply_view_by_params(count, period, investigate_by)
+    def apply_view_by_params(count, denominator)
       case view_by_params
       when 'percentage'
-        return 0 if count.zero? || percentage_denominator(period, investigate_by).zero?
+        return 0 if count.zero? || denominator.zero?
 
-        (count.to_f / percentage_denominator(period, investigate_by) * 100).round
+        (count.to_f / denominator * 100).round
       when 'count'
         count
       when 'rate'
-        return 0 if count.zero? || percentage_denominator(period, investigate_by).zero?
+        return 0 if count.zero? || denominator.zero?
 
-        (count.to_f / percentage_denominator(period, investigate_by) * 10_000).round
+        (count.to_f / denominator * 10_000).round
       end
     end
 
@@ -184,10 +195,154 @@ module PerformanceMeasurement::EquityAnalysis
     end
 
     def calculate_height(groups)
-      bars = BARS.count * (BAR_HEIGHT + PADDING)
-      total = bars / RATIO
+      bar_height = bars.count * (BAR_HEIGHT + PADDING)
+      total = bar_height / RATIO
       height = groups.count * total
       [height, MIN_HEIGHT].max
+    end
+
+    private def apply_census_params(investigate_by:, year:)
+      results = geometries.map do |geo|
+        geo.population(internal_names: census_code(investigate_by), year: year)
+      end
+
+      results.each do |result|
+        if result.error
+          Rails.logger.error "population error: #{result.msg}. Sum won't be right!"
+          return nil
+        elsif result.year != year
+          Rails.logger.warn "Using #{result.year} instead of #{year}"
+        end
+      end
+
+      results.map(&:val).sum.round
+    end
+
+    private def race_census_code(code)
+      case code
+      when 'AmIndAKNative' then 'NATIVE_AMERICAN'
+      when 'Asian' then 'ASIAN'
+      when 'BlackAfAmerican' then 'BLACK'
+      when 'NativeHIPacific' then 'PACIFIC_ISLANDER'
+      when 'White' then 'WHITE'
+      when 'RaceNone' then 'OTHER_RACE'
+      when 'MultiRacial' then 'TWO_OR_MORE_RACES'
+      when 'HispanicLatinaeo' then 'HISPANIC'
+      when 'All' then 'ALL_PEOPLE'
+      end
+    end
+
+    private def gender_census_code(code)
+      case code
+      when :gender_man then 'MALE'
+      when :gender_woman then 'FEMALE'
+      end
+    end
+
+    private def age_census_code(code)
+      case code
+      when :zero_to_four
+        'AGE_0_4'
+      when :five_to_nine
+        'AGE_5_9'
+      when :ten_to_fourteen
+        'AGE_10_14'
+      when :fifteen_to_seventeen
+        'AGE_15_17'
+      when :eighteen_to_twenty_four
+        'AGE_18_24'
+      when :twenty_five_to_thirty_four
+        'AGE_25_34'
+      when :thirty_five_to_forty_four
+        'AGE_35_44'
+      when :forty_five_to_fifty_four
+        'AGE_45_54'
+      when :fifty_five_to_sixty_four
+        'AGE_55_64'
+      when :sixty_five_to_seventy_four
+        'AGE_65_74'
+      when :seventy_five_to_eighty_four
+        'AGE_75_84'
+      when :eighty_five_plus
+        'AGE_85_PLUS'
+      end
+    end
+
+    private def census_code(investigate_by)
+      # Determine which category investigate_by falls under, then
+      # ignore those params, and convert investigate_by into a census variable
+      codes = {
+        race: [nil],
+        gender: [nil],
+        age: [nil],
+      }
+      case @builder.investigate_by
+      when 'Race'
+        codes[:race] << race_census_code(investigate_by)
+        gender_params.each do |p|
+          codes[:gender] << gender_census_code(p)
+        end
+        age_params.each do |p|
+          codes[:age] << age_census_code(p)
+        end
+      when 'Gender'
+        codes[:gender] << gender_census_code(investigate_by)
+        race_params.each do |p|
+          codes[:race] << race_census_code(p)
+        end
+        age_params.each do |p|
+          codes[:age] << age_census_code(p)
+        end
+      when 'Age'
+        codes[:age] << age_census_code(investigate_by)
+        gender_params.each do |p|
+          codes[:gender] << gender_census_code(p)
+        end
+        race_params.each do |p|
+          codes[:race] << race_census_code(p)
+        end
+      end
+
+      # aggregates format is race, sex, age
+      census_codes = []
+      codes[:race].each do |r|
+        codes[:gender].each do |g|
+          codes[:age].each do |a|
+            const_name = [r, g, a].compact.join('_')
+            next unless const_name.present?
+
+            census_codes << GrdaWarehouse::UsCensusApi::Aggregates.const_get(const_name)
+          end
+        end
+      end
+      # return [NATIVE_AMERICAN_AGE_15_17]
+      census_codes.uniq
+    end
+
+    # COC CODES
+    private def geometries
+      coc_code = @report.filter.coc_code
+      # CoC code needs to be real, even in development to get census data
+      coc_code = "#{ENV['RELEVANT_COC_STATE']}-500" if coc_code.starts_with?('XX')
+
+      @geometries ||= GrdaWarehouse::Shape::Coc.where(cocnum: coc_code)
+    end
+
+    private def overall_census_count(year:)
+      results = geometries.map do |geo|
+        geo.population(year: year)
+      end
+
+      results.each do |result|
+        if result.error
+          Rails.logger.error "population error: #{result.msg}. Sum won't be right!"
+          return nil
+        elsif result.year != year
+          Rails.logger.warn "Using #{result.year} instead of #{year}"
+        end
+      end
+
+      results.map(&:val).sum.round
     end
   end
 end
