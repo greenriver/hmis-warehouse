@@ -8,6 +8,7 @@ module HudSpmReport::Fy2023
   class SpmEnrollment < GrdaWarehouseBase
     self.table_name = 'hud_report_spm_enrollments'
     include ArelHelper
+    include Detail
 
     belongs_to :report_instance, class_name: 'HudReports::ReportInstance'
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
@@ -187,23 +188,6 @@ module HudSpmReport::Fy2023
       columns.map do |col|
         [col, header_label(col)]
       end.to_h
-    end
-
-    private_class_method def self.header_label(col)
-      case col.to_sym
-      when :client_id
-        'Warehouse Client ID'
-      when :personal_id
-        'HMIS Personal ID'
-      when :data_source_id
-        'Data Source ID'
-      when :los_under_threshold
-        'LOS Under Threshold'
-      when :previous_street_essh
-        'Previous Street ESSH'
-      else
-        col.humanize
-      end
     end
 
     private_class_method def self.start_of_homelessness(filter, household_info, enrollment)
