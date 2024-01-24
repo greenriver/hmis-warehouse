@@ -243,7 +243,7 @@ module PerformanceMeasurement::EquityAnalysis
       case code
       when :zero_to_four
         'AGE_0_4'
-      when :five_to_ten
+      when :five_to_nine
         'AGE_5_9'
       when :ten_to_fourteen
         'AGE_10_14'
