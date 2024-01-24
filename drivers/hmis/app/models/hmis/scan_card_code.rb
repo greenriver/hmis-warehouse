@@ -13,13 +13,27 @@ class Hmis::ScanCardCode < Hmis::HmisBase
   belongs_to :created_by, class_name: 'Hmis::User', optional: true
   belongs_to :deleted_by, class_name: 'Hmis::User', optional: true
 
+  # Generate a code to use for a scan card.
+  # Note that not all scan card code values will match this pattern, because some
+  # scan cards might be migrated in from other systems.
   def self.generate_code
     'S' + SecureRandom.hex(5).upcase
   end
 
+  # Assign a unique scan card code to this record
   def assign_code
     return if value.present?
 
-    self.value ||= self.class.generate_code
+    guard = 0
+    while guard < 10
+      code = self.class.generate_code
+      break unless Hmis::ScanCardCode.with_deleted.where(value: code).exists?
+
+      guard += 1
+    end
+
+    raise 'Failed to generate unique scan code' unless code
+
+    self.value ||= code
   end
 end
