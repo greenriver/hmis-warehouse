@@ -1,0 +1,5 @@
+%ul.nav.nav-tabs
+  %li.nav_item
+    = link_to 'Summary', performance_measurement_warehouse_reports_report_path(@report), class: action_name == 'show' ? 'active nav-link' : 'nav-link'
+  %li.nav_item
+    = link_to 'Equity Analysis', equity_analysis_performance_measurement_warehouse_reports_report_path(@report), class: action_name == 'equity_analysis' ? 'active nav-link' : 'nav-link'

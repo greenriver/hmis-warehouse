@@ -9,4 +9,5 @@
 %p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
 - if can_publish_reports?
   = render 'common/publish'
-= render 'show'
+
+= render action_name
