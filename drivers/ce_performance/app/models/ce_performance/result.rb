@@ -184,7 +184,7 @@ module CePerformance
 
     def data_for_exits(report)
       @data_for_exits ||= {}.tap do |data|
-        self.class.available_exit_destination_ids.each do |event_id|
+        self.class.available_exit_destination_ids.each do |exit_id|
           [
             :reporting,
             :comparison,
@@ -196,11 +196,11 @@ module CePerformance
               'CePerformance::Results::ExitPermanent' => {},
               'CePerformance::Results::ExitOther' => {},
             }
-            data[period]['CePerformance::Results::ExitHomeless'][::HudUtility2024.destination(event_id)] = self.class.client_scope(report, period).in_exit_destination(event_id).count if ::HudUtility2024.homeless_destinations.include?(event_id)
-            data[period]['CePerformance::Results::ExitInstitutional'][::HudUtility2024.destination(event_id)] = self.class.client_scope(report, period).in_exit_destination(event_id).count if ::HudUtility2024.institutional_destinations.include?(event_id)
-            data[period]['CePerformance::Results::ExitTemporary'][::HudUtility2024.destination(event_id)] = self.class.client_scope(report, period).in_exit_destination(event_id).count if ::HudUtility2024.temporary_destinations.include?(event_id)
-            data[period]['CePerformance::Results::ExitPermanent'][::HudUtility2024.destination(event_id)] = self.class.client_scope(report, period).in_exit_destination(event_id).count if ::HudUtility2024.permanent_destinations.include?(event_id)
-            data[period]['CePerformance::Results::ExitOther'][::HudUtility2024.destination(event_id)] = self.class.client_scope(report, period).in_exit_destination(event_id).count if ::HudUtility2024.other_destinations.include?(event_id)
+            data[period]['CePerformance::Results::ExitHomeless'][::HudUtility2024.destination(exit_id)] = self.class.client_scope(report, period).in_exit_destination(exit_id).count if ::HudUtility2024.homeless_destinations.include?(exit_id)
+            data[period]['CePerformance::Results::ExitInstitutional'][::HudUtility2024.destination(exit_id)] = self.class.client_scope(report, period).in_exit_destination(exit_id).count if ::HudUtility2024.institutional_destinations.include?(exit_id)
+            data[period]['CePerformance::Results::ExitTemporary'][::HudUtility2024.destination(exit_id)] = self.class.client_scope(report, period).in_exit_destination(exit_id).count if ::HudUtility2024.temporary_destinations.include?(exit_id)
+            data[period]['CePerformance::Results::ExitPermanent'][::HudUtility2024.destination(exit_id)] = self.class.client_scope(report, period).in_exit_destination(exit_id).count if ::HudUtility2024.permanent_destinations.include?(exit_id)
+            data[period]['CePerformance::Results::ExitOther'][::HudUtility2024.destination(exit_id)] = self.class.client_scope(report, period).in_exit_destination(exit_id).count if ::HudUtility2024.other_destinations.include?(exit_id)
           end
         end
       end

@@ -18,7 +18,7 @@ module CePerformance
     def self.client_scope(report, period)
       report.clients.served_in_period(period).
         where.not(exit_date: nil).
-        valid_exit_destination
+        with_valid_exit_destination
     end
 
     def self.title

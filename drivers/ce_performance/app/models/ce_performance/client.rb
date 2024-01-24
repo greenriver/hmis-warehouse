@@ -166,7 +166,7 @@ module CePerformance
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_different_identity)
     end
 
-    scope :valid_exit_destination, -> do
+    scope :with_valid_exit_destination, -> do
       joins(:source_client).merge(
         GrdaWarehouse::Hud::Client.
         joins(source_enrollments: :exit).
@@ -184,48 +184,23 @@ module CePerformance
     end
 
     scope :homeless_exit_destination, -> do
-      joins(:source_client).merge(
-        GrdaWarehouse::Hud::Client.
-        joins(source_enrollments: :exit).
-        distinct.
-        where(ex_t[:Destination].in(HudUtility2024.homeless_destinations)),
-      )
+      in_exit_destination(HudUtility2024.homeless_destinations)
     end
 
     scope :institutional_exit_destination, -> do
-      joins(:source_client).merge(
-        GrdaWarehouse::Hud::Client.
-        joins(source_enrollments: :exit).
-        distinct.
-        where(ex_t[:Destination].in(HudUtility2024.institutional_destinations)),
-      )
+      in_exit_destination(HudUtility2024.institutional_destinations)
     end
 
     scope :temporary_exit_destination, -> do
-      joins(:source_client).merge(
-        GrdaWarehouse::Hud::Client.
-        joins(source_enrollments: :exit).
-        distinct.
-        where(ex_t[:Destination].in(HudUtility2024.temporary_destinations)),
-      )
+      in_exit_destination(HudUtility2024.temporary_destinations)
     end
 
     scope :permanent_exit_destination, -> do
-      joins(:source_client).merge(
-        GrdaWarehouse::Hud::Client.
-        joins(source_enrollments: :exit).
-        distinct.
-        where(ex_t[:Destination].in(HudUtility2024.permanent_destinations)),
-      )
+      in_exit_destination(HudUtility2024.permanent_destinations)
     end
 
     scope :other_exit_destination, -> do
-      joins(:source_client).merge(
-        GrdaWarehouse::Hud::Client.
-        joins(source_enrollments: :exit).
-        distinct.
-        where(ex_t[:Destination].in(HudUtility2024.other_destinations)),
-      )
+      in_exit_destination(HudUtility2024.other_destinations)
     end
 
     # FIXME eventually.  This would be much better if we could figure out how to query the events column
