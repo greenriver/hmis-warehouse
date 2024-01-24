@@ -132,7 +132,7 @@ module PerformanceMeasurement::Details
 
     def my_projects(user, key)
       project_details(user, key).select do |project_id, _|
-        user.viewable_project_ids(:can_view_assigned_reports).include?(project_id)
+        project_ids_for(user).include?(project_id)
       end
     end
     memoize :my_projects
@@ -149,9 +149,15 @@ module PerformanceMeasurement::Details
       adjusted_result
     end
 
+    private def project_ids_for(user)
+      @project_ids_for ||= GrdaWarehouse::Hud::Project.
+        viewable_by(user, permission: :can_view_assigned_reports).
+        pluck(:id)
+    end
+
     def other_projects(user, key)
       project_details(user, key).select do |project_id, _|
-        user.viewable_project_ids(:can_view_assigned_reports).exclude?(project_id)
+        project_ids_for(user).exclude?(project_id)
       end
     end
     memoize :other_projects

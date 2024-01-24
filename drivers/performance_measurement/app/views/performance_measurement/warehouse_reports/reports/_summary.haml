@@ -21,7 +21,7 @@
               - status = result[:passed] ? 'success' : 'danger'
               - icon = result[:passed] ? 'check' : 'cross'
               - label = result[:passed] ? 'Passed' : 'Failed'
-              - style = @external ? :font : :svg
+              - style = @include_in_published_version ? :font : :svg
               %tr
                 %td.j-summary-row{data: { target: "##{key}"}}
                   .row

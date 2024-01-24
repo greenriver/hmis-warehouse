@@ -13,6 +13,10 @@ module HudSpmReport::Generators::Fy2023
       'Measure 2'.freeze
     end
 
+    def self.client_class
+      HudSpmReport::Fy2023::Return
+    end
+
     def self.table_descriptions
       {
         'Measure 2' => 'The Extent to which Persons Who Exit Homelessness to Permanent Housing Destinations Return to Homelessness within 6, 12, and 24 months',
@@ -68,10 +72,19 @@ module HudSpmReport::Generators::Fy2023
         G: 0,
         I: 0,
       }
+      total_answers = {
+        B: @report.answer(question: table_name, cell: 'B7'),
+        C: @report.answer(question: table_name, cell: 'C7'),
+        E: @report.answer(question: table_name, cell: 'E7'),
+        G: @report.answer(question: table_name, cell: 'G7'),
+        I: @report.answer(question: table_name, cell: 'I7'),
+      }
+
       report_rows.each do |row_number, project_type|
         candidates_for_row = members.where(a_t[:project_type].in(project_type))
         answer = @report.answer(question: table_name, cell: 'B' + row_number.to_s)
         answer.add_members(candidates_for_row)
+        total_answers[:B].add_members(candidates_for_row)
         row_count = candidates_for_row.count
         totals[:B] += row_count
         answer.update(summary: row_count)
@@ -80,6 +93,7 @@ module HudSpmReport::Generators::Fy2023
           answer = @report.answer(question: table_name, cell: count_column.to_s + row_number.to_s)
           included = candidates_for_row.where(query)
           answer.add_members(included)
+          total_answers[count_column].add_members(included)
           included_count = included.count
           totals[count_column] += included_count
           answer.update(summary: included_count)
