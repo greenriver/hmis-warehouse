@@ -24,7 +24,7 @@ RSpec.describe Hmis::ClientAlert, type: :model do
     let!(:c1) { create :hmis_hud_client, data_source: ds1 }
     let!(:a1) { create :hmis_client_alert, created_by: hmis_user }
 
-    it 'should be able to create a client alert' do
+    it 'client alert is saved successfully and connected to the saving user' do
       expect(a1.created_by.class).to eq(Hmis::User)
     end
   end
