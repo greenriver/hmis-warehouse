@@ -96,14 +96,19 @@ module GrdaWarehouse
         'NATIVE_AMERICAN',
       ].freeze
 
+      SEXES = [
+        'MALE',
+        'FEMALE',
+      ].freeze
+
       RACE_ETH.each do |stratum|
-        ['MALE', 'FEMALE'].each do |sex|
+        SEXES.each do |sex|
           const_set("#{stratum}_#{sex}", ["POP::#{stratum}::#{sex}"])
         end
       end
 
       RACE_ETH.each do |stratum|
-        ['MALE', 'FEMALE'].each do |sex|
+        SEXES.each do |sex|
           const_set("#{stratum}_#{sex}_AGE_0_4", ["POP::#{stratum}::#{sex}::UNDER_5_YEARS"])
           const_set("#{stratum}_#{sex}_AGE_5_9", ["POP::#{stratum}::#{sex}::5_TO_9_YEARS"])
           const_set("#{stratum}_#{sex}_AGE_10_14", ["POP::#{stratum}::#{sex}::10_TO_14_YEARS"])
