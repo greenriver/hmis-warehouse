@@ -339,7 +339,7 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     private def child_in_household(client)
       # Any open enrollment in SO, ES, SH, TH or PH, with a child under age 18
-      project_types = [:so, :es, :sh, :th, :ph].map { |code| HudUtility2024.residential_project_type_numbers_by_code[code] }.flatten
+      project_types = HudUtility2024.residential_project_type_numbers_by_codes(:so, :es, :sh, :th, :ph)
       client.service_history_enrollments.ongoing.in_project_type(project_types).
         where(she_t[:age].lt(18).or(she_t[:other_clients_under_18].eq(true))).exists?
     end
