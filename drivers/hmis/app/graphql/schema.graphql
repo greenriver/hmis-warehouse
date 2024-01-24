@@ -676,6 +676,7 @@ type Client {
   addresses: [ClientAddress!]!
   afghanistanOef: NoYesReasonsForMissingData
   age: Int
+  alerts: [ClientAlert!]!
   assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(filters: ClientAuditEventFilterOptions, limit: Int, offset: Int): ClientAuditEventsPaginated!
   contactPoints: [ClientContactPoint!]!
@@ -848,6 +849,15 @@ enum ClientAddressUse {
   Work
   """
   work
+}
+
+"""
+Alert
+"""
+type ClientAlert {
+  client: Client!
+  id: ID!
+  note: String!
 }
 
 type ClientAuditEvent {
