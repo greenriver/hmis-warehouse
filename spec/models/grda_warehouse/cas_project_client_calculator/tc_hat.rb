@@ -21,8 +21,6 @@ RSpec.describe GrdaWarehouse::CasProjectClientCalculator::TcHat, type: :model do
     after(:all) do
       GrdaWarehouse::Utility.clear!
       cleanup_hmis_csv_fixtures
-      Delayed::Job.delete_all
-      GrdaWarehouse::Config.delete_all
     end
     it 'finds the adult and child in the household' do
       clients = GrdaWarehouse::Hud::Client.destination.map do |client|
