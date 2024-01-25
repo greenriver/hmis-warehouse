@@ -15,9 +15,5 @@ module Types
     field :created_by, Types::Application::User, null: true
     field :expiration_date, GraphQL::Types::ISO8601DateTime, null: true
     field :severity, String, null: true
-
-    def client
-      load_ar_association(object, :client)
-    end
   end
 end
