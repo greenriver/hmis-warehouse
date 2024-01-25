@@ -16,7 +16,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'Conditional fields' do
-    let(:form_role) { 'UPDATE' }
+    # FIXME GIG: analogous test for assessment definition lookup
+    let(:form_role) { 'PROJECT' }
     let(:base_items) do
       [
         {
@@ -47,9 +48,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     def assign_rule(rule)
       base_items[0]['rule'] = rule
-      Hmis::Form::Definition
-        .where(role: form_role)
-        .update_all(definition: { 'item' => [{ 'type': 'GROUP', 'link_id': 'group-1', 'item': base_items }] })
+      Hmis::Form::Definition.
+        where(role: form_role).
+        update_all(definition: { 'item' => [{ 'type': 'GROUP', 'link_id': 'group-1', 'item': base_items }] })
     end
 
     describe 'form definition with projectType rule' do
