@@ -1,5 +1,5 @@
 = render 'chosen_universe'
-= render 'report_tabs' unless @include_in_published_version
+= render 'report_tabs' if @default_goal.equity_analysis_visible && ! @include_in_published_version
 = render 'summary'
 = render 'rows', pdf: false
 

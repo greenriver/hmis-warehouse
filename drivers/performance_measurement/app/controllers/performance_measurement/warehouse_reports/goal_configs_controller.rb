@@ -69,6 +69,7 @@ module PerformanceMeasurement::WarehouseReports
         :always_run_for_coc,
         :label,
         :active,
+        :equity_analysis_visible,
       )
       p[:coc_code] = :default if p[:coc_code].blank?
       p
