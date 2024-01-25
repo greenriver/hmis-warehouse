@@ -1982,10 +1982,6 @@ module GrdaWarehouse::Hud
       end.join('-')
     end
 
-    def veteran?
-      self.VeteranStatus == 1
-    end
-
     def ever_veteran?
       va_verified_veteran? || source_clients.map(&:veteran?).include?(true)
     end

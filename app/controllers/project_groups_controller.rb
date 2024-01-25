@@ -84,6 +84,21 @@ class ProjectGroupsController < ApplicationController
     respond_with(@project_group, location: project_groups_path)
   end
 
+  def delete_multiple
+    group_ids = params[:selections]&.try(:[], :group)&.reject(&:empty?)&.map(&:to_i)
+    redirect_to project_groups_path and return unless group_ids
+
+    project_group_source.transaction do
+      group_ids.each do |group|
+        project_group = project_group_scope.find(group)
+        project_group.remove_from_group_viewable_entities!
+        project_group.destroy
+      end
+    end
+    AccessGroup.maintain_system_groups
+    redirect_to project_groups_path
+  end
+
   def maintenance
   end
 

@@ -25,24 +25,44 @@
       Download
 - if @pagy.count.positive?
   = render 'common/pagination_top', item_name: 'project group'
-  .table-responsive
-    %table.table.table-striped
-      %thead
-        %tr
-          %th Name
-          %th Project Count
-          %th Universe
-      %tbody
-        - @project_groups.each do |group|
+
+  - input_id = "selections[group][]"
+  = simple_form_for :selections, url: delete_multiple_project_groups_path do |f|
+    .table-responsive
+      %table.table.table-striped
+        %thead
           %tr
-            %td
-              = link_to group.name.presence || 'unnamed', edit_project_group_path(group)
-              - if group.used_for_cas_sync?
-                %span.badge.badge-success.ml-3{data: {toggle: :tooltip, title: "Used for syncing clients to CAS"}}
-                  CAS
-            %th= group.projects.count
-            %td.reports.report-parameters-all
-              = group.describe_filter_as_html
+            %th
+              %input#jSelectGroup.jCheckAll{type: :checkbox, data: { toggle: :tooltip, title: 'Check All/None'}}
+            %th Name
+            %th Project Count
+            %th Universe
+        %tbody
+          - @project_groups.each do |group|
+            %tr
+              %td.jSelect= f.input_field :group, as: :boolean, checked_value: group.id, unchecked_value: nil, name: input_id, class: 'jSelectGroup'
+              %td
+                = link_to group.name.presence || 'unnamed', edit_project_group_path(group)
+                - if group.used_for_cas_sync?
+                  %span.badge.badge-success.ml-3{data: {toggle: :tooltip, title: "Used for syncing clients to CAS"}}
+                    CAS
+              %th= group.projects.count
+              %td.reports.report-parameters-all
+                = group.describe_filter_as_html
+    .form-actions
+      = f.button :submit, "Delete Selected Groups", id: :deleteMultipleButton, data: {confirm: "Are you sure you want to delete the selected project groups?"}
+
   = render 'common/pagination_bottom', item_name: 'project group'
 - else
   .none-found There are no project groups.
+
+= content_for :page_js do
+  :javascript
+    $('.jSelect, .jCheckAll').on('change', function(e) {
+      anyChecked = $('input[name="selections[group][]"]').toArray().some((e) => e.checked)
+      $('#deleteMultipleButton').prop('disabled', !anyChecked)
+    });
+
+    $(document).ready(function() {
+      $('#deleteMultipleButton').prop('disabled', true)
+    });

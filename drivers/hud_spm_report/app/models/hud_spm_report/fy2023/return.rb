@@ -7,6 +7,7 @@
 module HudSpmReport::Fy2023
   class Return < GrdaWarehouseBase
     self.table_name = 'hud_report_spm_returns'
+    include Detail
 
     belongs_to :report_instance, class_name: 'HudReports::ReportInstance'
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
@@ -35,6 +36,15 @@ module HudSpmReport::Fy2023
       end
 
       where(report_instance_id: report.id)
+    end
+
+    def self.detail_headers
+      client_columns = ['client_id']
+      hidden_columns = ['id', 'report_instance_id'] + client_columns
+      columns = client_columns + (column_names - hidden_columns)
+      columns.map do |col|
+        [col, header_label(col)]
+      end.to_h
     end
 
     def compute_return(enrollments)

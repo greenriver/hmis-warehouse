@@ -636,6 +636,7 @@ Rails.application.routes.draw do
     get :maintenance, on: :collection
     get :download, on: :collection
     post :import, on: :collection
+    post :delete_multiple, on: :collection
     resources :contacts, except: [:show], controller: 'project_groups/contacts'
     resources :data_quality_reports, only: [:index, :show], controller: 'data_quality_reports_project_group' do
       get :support, on: :member

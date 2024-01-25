@@ -10,6 +10,9 @@ BostonHmis::Application.routes.draw do
       resources :reports, only: [:index, :create, :show, :update, :destroy] do
         get 'details/:key', to: 'reports#details', as: :details
         get 'clients/:key/:project_id', to: 'reports#clients', as: :clients
+        member do
+          get 'equity_analysis', to: 'reports#equity_analysis', as: :equity_analysis
+        end
       end
       resources :goal_configs, except: [:show] do
         resources :pit_counts, only: [:new, :create, :destroy]
