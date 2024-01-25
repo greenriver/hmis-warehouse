@@ -64,5 +64,9 @@ module Types
     field :create_auto_exit_config, mutation: Mutations::CreateAutoExitConfig
     field :update_auto_exit_config, mutation: Mutations::UpdateAutoExitConfig
     field :delete_auto_exit_config, mutation: Mutations::DeleteAutoExitConfig
+
+    field :create_scan_card_code, mutation: Mutations::CreateScanCardCode
+    field :delete_scan_card_code, mutation: Mutations::DeleteScanCardCode
+    field :restore_scan_card_code, mutation: Mutations::RestoreScanCardCode
   end
 end
