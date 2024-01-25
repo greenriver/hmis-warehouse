@@ -109,21 +109,28 @@ module Types
       when 'USERS'
         user_picklist(user)
       when 'ENROLLMENT_AUDIT_EVENT_RECORD_TYPES'
-        audit_event_record_type_picklist
+        enrollment_audit_event_record_type_picklist
+      when 'CLIENT_AUDIT_EVENT_RECORD_TYPES'
+        client_audit_event_record_type_picklist
       end
     end
 
     def self.user_picklist(current_user)
       return [] unless current_user
-      # currently picklist is only needed when filtering audit events
-      return [] unless current_user.can_audit_enrollments? || current_user.can_audit_clients?
+      # currently picklist is only needed when filtering audit events, and when filtering client merge history
+      return [] unless current_user.can_audit_enrollments? || current_user.can_audit_clients? || current_user.can_merge_clients?
 
-      Hmis::User.with_deleted.order(:last_name, :first_name, :id).map do |user|
-        { code: user.id.to_s, label: user.full_name }
-      end
+      Hmis::User.with_deleted.map do |user|
+        {
+          code: user.id.to_s,
+          label: user.full_name,
+          group_code: user.pick_list_group_label, # Group by status (Active/Inactive/Deleted)
+          group_label: user.pick_list_group_label,
+        }
+      end.sort_by { |obj| [obj[:group_label], obj[:label], obj[:code]].join(' ') }
     end
 
-    def self.audit_event_record_type_picklist
+    def self.enrollment_audit_event_record_type_picklist
       [
         [Hmis::Hud::Enrollment],
         [Hmis::Hud::CustomAssessment],
@@ -137,11 +144,29 @@ module Types
         [Hmis::Hud::Exit],
         [Hmis::Hud::Event, 'CE Event'],
         [Hmis::Hud::Assessment, 'CE Assessment'],
-        [Hmis::Hud::CustomDataElement],
+        [Hmis::Hud::CustomDataElement, 'Custom Field'],
         [Hmis::Hud::CustomCaseNote],
-      ].map do |klass, name|
-        { code: klass.sti_name, label: name || klass.name.demodulize.gsub(/^Custom(Client)?/, '').titleize }
+      ].map do |model, name|
+        model_picklist_item(model: model, name: name)
       end.sort_by { |h| h[:label] }
+    end
+
+    def self.client_audit_event_record_type_picklist
+      client_audited_models = [
+        [Hmis::Hud::Client],
+        [Hmis::Hud::CustomClientAddress],
+        [Hmis::Hud::CustomClientContactPoint, 'Contact Information'],
+      ]
+      # If installation has any custom client fields, include a general filter option for them
+      has_client_cdes = Hmis::Hud::CustomDataElementDefinition.for_type(Hmis::Hud::Client.sti_name).exists?
+      client_audited_models << [Hmis::Hud::CustomDataElement, 'Custom Field'] if has_client_cdes
+      client_audited_models.map do |model, name|
+        model_picklist_item(model: model, name: name)
+      end.sort_by { |h| h[:label] }
+    end
+
+    def self.model_picklist_item(model:, name:)
+      { code: model.sti_name, label: name || model.name.demodulize.gsub(/^Custom(Client)?/, '').titleize }
     end
 
     def self.available_unit_types_for_project(project)
@@ -342,7 +367,7 @@ module Types
       picklist = file_tags.
         map { |tag| tag_to_option.call(tag) }.
         compact.
-        sort_by { |obj| [obj[:group_label] + obj[:label]].join(' ') }
+        sort_by { |obj| [obj[:group_label], obj[:label]].join(' ') }
 
       # Put 'Other' at the end
       picklist << tag_to_option.call(other.first) if other.any?

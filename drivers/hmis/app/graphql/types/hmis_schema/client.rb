@@ -93,6 +93,8 @@ module Types
         'SSN' => :can_view_full_ssn,
         'DOB' => :can_view_dob,
       },
+      excluded_keys: ['owner_type'],
+      filter_args: { omit: [:enrollment_record_type], type_name: 'ClientAuditEvent' },
       # Transform race and gender fields
       transform_changes: ->(version, changes) do
         result = changes
@@ -128,7 +130,7 @@ module Types
     )
 
     field :image, HmisSchema::ClientImage, null: true
-
+    field :enabled_features, [Types::Forms::Enums::ClientDashboardFeature], null: false
     access_field do
       can :view_partial_ssn
       can :view_full_ssn
@@ -274,17 +276,24 @@ module Types
     end
 
     def audit_history(filters: nil)
-      address_ids = object.addresses.with_deleted.pluck(:id)
-      name_ids = object.names.with_deleted.pluck(:id)
-      contact_ids = object.contact_points.with_deleted.pluck(:id)
+      audited_record_types = [
+        Hmis::Hud::Client.sti_name,
+        Hmis::Hud::CustomClientName.sti_name,
+        Hmis::Hud::CustomClientAddress.sti_name,
+        Hmis::Hud::CustomClientContactPoint.sti_name,
+      ]
+
+      # Also include CustomDataElements that are linked to clients.
+      # Look up all Client-related CDEs and get their IDs to filter down the versions table.
+      # We need this extra filter step because we DON'T want to include history for any CDEs that
+      # are linked to the Enrollment. (Since those versions will still have client_id col).
       v_t = GrdaWarehouse.paper_trail_versions.arel_table
-      client_changes = v_t[:item_id].eq(object.id).and(v_t[:item_type].eq('Hmis::Hud::Client'))
-      address_changes = v_t[:item_id].in(address_ids).and(v_t[:item_type].eq('Hmis::Hud::CustomClientAddress'))
-      name_changes = v_t[:item_id].in(name_ids).and(v_t[:item_type].eq('Hmis::Hud::CustomClientName'))
-      contact_changes = v_t[:item_id].in(contact_ids).and(v_t[:item_type].eq('Hmis::Hud::CustomClientContactPoint'))
+      custom_data_element_ids = object.custom_data_elements.with_deleted.pluck(:id)
+      is_client_cde = v_t[:item_type].eq(Hmis::Hud::CustomDataElement.sti_name).and(v_t[:item_id].in(custom_data_element_ids))
 
       scope = GrdaWarehouse.paper_trail_versions.
-        where(client_changes.or(address_changes).or(name_changes).or(contact_changes)).
+        where(client_id: object.id).
+        where(v_t[:item_type].in(audited_record_types).or(is_client_cde)).
         where.not(object_changes: nil, event: 'update').
         unscope(:order).
         order(created_at: :desc)
@@ -296,6 +305,22 @@ module Types
       return unless current_user.can_merge_clients?
 
       object.merge_audits.order(merged_at: :desc)
+    end
+
+    # This query is used to determine which features to show on the Client Dashboard (for example, the read-only Case Notes tab).
+    #
+    # This first version is global. In other words it resolves the same thing for every client.
+    # In the future this will probably be client-specific, either based on some configuration, or based on the projects that the client is enrolled at.
+    # Specifically for indicating whether certain "Enrollment-optional records" (File, Case Note) should be collectable on the Client Dashbord vs on the Enrollment Dashboard (in the future).
+    def enabled_features
+      client_dashboard_feature_roles = Types::Forms::Enums::ClientDashboardFeature.values.keys
+
+      # Just checks if there are ANY active Instances for each role.
+      # It's possible there could be instances that exist but don't apply to any projects, but we don't bother checking for that.
+      Hmis::Form::Instance.active.
+        joins(:definition).
+        where(Hmis::Form::Definition.arel_table[:role].in(client_dashboard_feature_roles)).
+        pluck(:role).uniq
     end
   end
 end

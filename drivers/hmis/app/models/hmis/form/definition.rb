@@ -62,6 +62,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     *DATA_COLLECTION_FEATURE_ROLES,
     *STATIC_FORM_ROLES,
     :OCCURRENCE_POINT,
+    :CLIENT_DETAIL,
     # Other/misc forms
     :FILE, # should maybe be considered a data collection feature, but different becase its at Client-level (not Project)
   ].freeze
@@ -144,6 +145,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       **ENROLLMENT_CONFIG,
       permission: [:can_edit_clients, :can_edit_enrollments],
     },
+    CLIENT_DETAIL: {
+      owner_class: Hmis::Hud::Client,
+      permission: :can_edit_clients,
+    },
   }.freeze
 
   FORM_DATA_COLLECTION_STAGES = {
@@ -173,6 +178,14 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     return none unless instance_scope.present?
 
     where(identifier: instance_scope.pluck(:definition_identifier))
+  end
+
+  scope :non_static, -> do
+    where.not(role: STATIC_FORM_ROLES)
+  end
+
+  scope :active, -> do
+    joins(:instance).merge(Hmis::Form::Instance.active)
   end
 
   scope :for_service_type, ->(service_type) do

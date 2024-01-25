@@ -5,6 +5,7 @@
 ###
 
 class Hmis::Wip < Hmis::HmisBase
+  acts_as_paranoid
   has_paper_trail(
     meta: {
       project_id: ->(r) { r.project&.id },
