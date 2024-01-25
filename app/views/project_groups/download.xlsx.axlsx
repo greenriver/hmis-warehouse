@@ -9,8 +9,8 @@ wb.add_worksheet(name: 'Project Groups') do |sheet|
     'Project Types',
     'Organizations',
     'Data Sources',
-    'Created At',
-    'Updated At',
+    'Created',
+    'Last Updated',
   ]
   sheet.add_row(columns, style: title)
   @project_groups.each do |group|
