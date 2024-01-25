@@ -61,7 +61,7 @@ module Types
 
       form_processor = load_ar_association(object, :form_processor)
       # If this occurs, it may be an issue with MigrateAssessmentsJob, SaveAssessment, or SubmitAssessment
-      raise "Assessment without form processor: #{id}" unless form_processor.present?
+      raise "Assessment without form processor: #{object.id}" unless form_processor.present?
 
       # If definition is stored on form processor, return that.
       # TODO: check if form is retired? For non-WIP assessments, we should

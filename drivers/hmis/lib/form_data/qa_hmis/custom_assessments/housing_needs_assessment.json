@@ -2,8 +2,8 @@
   "item": [
     {
       "type": "GROUP",
-      "text": "Housing Assessment Tool",
-      "link_id": "event-group",
+      "text": "Housing Needs Assessment",
+      "link_id": "housing-needs-assessment-example-group",
       "item": [
         {
           "type": "DATE",
@@ -14,7 +14,27 @@
           "mapping": {
             "record_type": "ASSESSMENT",
             "field_name": "assessmentDate"
-          }
+          },
+          "bounds": [
+            {
+              "id": "max",
+              "_comment": "cannot be in the future",
+              "type": "MAX",
+              "value_local_constant": "$today"
+            },
+            {
+              "id": "max-exit",
+              "_comment": "cannot be after exit date",
+              "type": "MAX",
+              "value_local_constant": "$exitDate"
+            },
+            {
+              "id": "min",
+              "_comment": "cannot be before entry date",
+              "type": "MIN",
+              "value_local_constant": "$entryDate"
+            }
+          ]
         },
         {
           "type": "TEXT",
@@ -24,7 +44,13 @@
           "mapping": {
             "record_type": "ASSESSMENT",
             "field_name": "assessmentLocation"
-          }
+          },
+          "initial": [
+            {
+              "initial_behavior": "IF_EMPTY",
+              "value_local_constant": "$projectName"
+            }
+          ]
         },
         {
           "type": "CHOICE",
@@ -46,7 +72,14 @@
           "mapping": {
             "record_type": "ASSESSMENT",
             "field_name": "assessmentLevel"
-          }
+          },
+          "hidden": true,
+          "initial": [
+            {
+              "initial_behavior": "OVERWRITE",
+              "value_code": "HOUSING_NEEDS_ASSESSMENT"
+            }
+          ]
         },
         {
           "type": "CHOICE",
