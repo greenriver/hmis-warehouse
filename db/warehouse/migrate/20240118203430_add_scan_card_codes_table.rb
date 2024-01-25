@@ -7,6 +7,7 @@ class AddScanCardCodesTable < ActiveRecord::Migration[6.1]
       t.references :deleted_by, comment: 'user that deleted code'
       t.timestamps
       t.timestamp :deleted_at
+      t.timestamp :expires_at, comment: 'when scan card should expire'
     end
   end
 end

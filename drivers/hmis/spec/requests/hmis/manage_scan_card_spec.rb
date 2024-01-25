@@ -50,8 +50,8 @@ RSpec.describe 'Manage Scan Card Mutations', type: :request do
   describe 'scan code mutations' do
     let(:create_code) do
       <<~GRAPHQL
-        mutation CreateScanCard($id: ID!) {
-          createScanCardCode(clientId: $id) {
+        mutation CreateScanCard($id: ID!, $date: ISO8601Date) {
+          createScanCardCode(clientId: $id, expirationDate: $date) {
             scanCardCode {
               id
               value
@@ -105,9 +105,10 @@ RSpec.describe 'Manage Scan Card Mutations', type: :request do
     it 'creates codes' do
       codes = client.scan_card_codes
       expect do
-        response, result = post_graphql(id: client.id) { create_code }
+        response, result = post_graphql(id: client.id, date: Date.current + 2.months) { create_code }
         expect(response.status).to eq(200), result.inspect
       end.to change(codes, :count).by(1)
+      puts codes.reload.map(&:expires_at)
     end
 
     it 'deletes codes' do

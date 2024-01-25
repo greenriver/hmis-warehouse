@@ -14,5 +14,6 @@ module Types
     field :created_by, Types::Application::User, null: true
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true, method: :deleted_at
     field :deleted_by, Types::Application::User, null: true
+    field :expiration_date, GraphQL::Types::ISO8601DateTime, null: true, method: :expires_at
   end
 end

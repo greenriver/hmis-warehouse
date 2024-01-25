@@ -13,6 +13,10 @@ class Hmis::ScanCardCode < Hmis::HmisBase
   belongs_to :created_by, class_name: 'Hmis::User', optional: true
   belongs_to :deleted_by, class_name: 'Hmis::User', optional: true
 
+  scope :active, -> do
+    where(arel_table[:expires_at].eq(nil).or(arel_table[:expires_at].gt(Time.current)))
+  end
+
   # Generate a code to use for a scan card.
   # Note that not all scan card code values will match this pattern, because some
   # scan cards might be migrated in from other systems.

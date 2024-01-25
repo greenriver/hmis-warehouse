@@ -122,6 +122,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     let!(:scan_code) { create(:hmis_scan_card_code, client: client, value: 'P1234') }
     let!(:deactivated_scan_code) { create(:hmis_scan_card_code, client: client, value: 'P5678', deleted_at: Time.current) }
+    let!(:expired_scan_code) { create(:hmis_scan_card_code, client: client, value: 'P6666', expires_at: Date.yesterday.end_of_day) }
     let!(:other_scan_code) { create(:hmis_scan_card_code, value: 'P9999') }
 
     [
@@ -142,6 +143,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         ['text: warehouse id', '5555', true],
         ['text: scan card code', 'P1234', true],
         ['text: deactivated scan card code', 'P5678', false],
+        ['text: expired scan card code', 'P6666', false],
         ['text: scan card code for another client', 'P9999', false],
       ].map { |desc, text, match| [desc, { text_search: text }, match] },
       # OTHER FILTERS

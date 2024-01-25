@@ -28,7 +28,7 @@ module ClientSearch
 
       # If alphanumeric search term matches a Scan Card code, return immediately
       if alpha_numeric && HmisEnforcement.hmis_enabled?
-        matching_scan_card = Hmis::ScanCardCode.find_by(value: text)
+        matching_scan_card = Hmis::ScanCardCode.active.find_by(value: text)
         return where(sa[:id].eq(matching_scan_card.client_id)) if matching_scan_card
       end
 
