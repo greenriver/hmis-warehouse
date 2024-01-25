@@ -13409,14 +13409,19 @@ ALTER SEQUENCE public.hmis_case_notes_id_seq OWNED BY public.hmis_case_notes.id;
 
 CREATE TABLE public.hmis_client_alerts (
     id bigint NOT NULL,
-    note text NOT NULL,
+    client_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    organization_id bigint,
+    project_id bigint,
+    coc_code character varying,
+    source_type character varying,
+    source_id bigint,
+    information_date date NOT NULL,
+    severity character varying NOT NULL,
+    note text,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    expiration_date date,
-    created_by_id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    severity character varying
+    deleted_at timestamp without time zone
 );
 
 
@@ -18259,7 +18264,8 @@ CREATE TABLE public.hmis_form_processors (
     hud_values jsonb,
     youth_education_status_id integer,
     employment_education_id integer,
-    current_living_situation_id integer
+    current_living_situation_id integer,
+    ce_assessment_id bigint
 );
 
 
@@ -21628,7 +21634,8 @@ CREATE TABLE public.performance_measurement_goals (
     destination_so integer DEFAULT 85 NOT NULL,
     destination_homeless_plus integer DEFAULT 85 NOT NULL,
     destination_permanent integer DEFAULT 85 NOT NULL,
-    time_time_homeless_and_ph integer DEFAULT 90 NOT NULL
+    time_time_homeless_and_ph integer DEFAULT 90 NOT NULL,
+    equity_analysis_visible boolean DEFAULT false NOT NULL
 );
 
 
@@ -52198,10 +52205,31 @@ CREATE INDEX index_hmis_client_alerts_on_client_id ON public.hmis_client_alerts 
 
 
 --
--- Name: index_hmis_client_alerts_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_hmis_client_alerts_on_organization_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_hmis_client_alerts_on_created_by_id ON public.hmis_client_alerts USING btree (created_by_id);
+CREATE INDEX index_hmis_client_alerts_on_organization_id ON public.hmis_client_alerts USING btree (organization_id);
+
+
+--
+-- Name: index_hmis_client_alerts_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_client_alerts_on_project_id ON public.hmis_client_alerts USING btree (project_id);
+
+
+--
+-- Name: index_hmis_client_alerts_on_source; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_client_alerts_on_source ON public.hmis_client_alerts USING btree (source_type, source_id);
+
+
+--
+-- Name: index_hmis_client_alerts_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_client_alerts_on_user_id ON public.hmis_client_alerts USING btree (user_id);
 
 
 --
@@ -52846,6 +52874,13 @@ CREATE INDEX index_hmis_external_unit_availability_syncs_on_user_id ON public.hm
 --
 
 CREATE INDEX index_hmis_form_instances_on_entity ON public.hmis_form_instances USING btree (entity_type, entity_id);
+
+
+--
+-- Name: index_hmis_form_processors_on_ce_assessment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_ce_assessment_id ON public.hmis_form_processors USING btree (ce_assessment_id);
 
 
 --
@@ -57973,13 +58008,6 @@ CREATE INDEX index_tx_research_exports_on_user_id ON public.tx_research_exports 
 
 
 --
--- Name: index_unique_identifiers_per_role; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_unique_identifiers_per_role ON public.hmis_form_definitions USING btree (identifier, role, version, status);
-
-
---
 -- Name: index_universe_type_and_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -58568,6 +58596,13 @@ CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "Personal
 
 
 --
+-- Name: tt_hh_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX tt_hh_id ON public.service_history_enrollments USING btree (household_id);
+
+
+--
 -- Name: tx_id_ds_id_ft_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -58628,6 +58663,13 @@ CREATE UNIQUE INDEX uidx_hmis_external_referrals_identifier ON public.hmis_exter
 --
 
 CREATE UNIQUE INDEX uidx_hmis_external_unit_availability_syncs ON public.hmis_external_unit_availability_syncs USING btree (project_id, unit_type_id);
+
+
+--
+-- Name: uidx_hmis_form_definitions_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX uidx_hmis_form_definitions_identifier ON public.hmis_form_definitions USING btree (identifier, version);
 
 
 --
@@ -60711,11 +60753,12 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240102205532'),
 ('20240105222927'),
 ('20240110135132'),
+('20240113025936'),
 ('20240115190843'),
 ('20240116193554'),
 ('20240117133558'),
 ('20240118203430'),
-('20240123152003'),
-('20240123154914');
+('20240119035058'),
+('20240125143214');
 
 
