@@ -73,8 +73,6 @@ RSpec.shared_context 'path context FY2021', shared_context: :metadata do
     ].each do |klass|
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name}")
     end
-
-    Delayed::Job.delete_all
   end
 end
 
