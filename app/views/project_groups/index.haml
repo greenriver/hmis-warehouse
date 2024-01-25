@@ -28,7 +28,7 @@
         %thead
           %tr
             %th
-              %input#jSelectGroup.jCheckAll{type: :checkbox,}
+              %input#jSelectGroup.jCheckAll{type: :checkbox, data: { toggle: :tooltip, title: 'Check All/None'}}
             %th Name
             %th Project Count
             %th Universe
@@ -44,8 +44,8 @@
               %th= group.projects.count
               %td.reports.report-parameters-all
                 = group.describe_filter_as_html
-      .form-actions
-        = f.button :submit, "Delete Selected Groups", id: :deleteMultipleButton, data: {confirm: "Are you sure you want to delete these project groups?"}
+    .form-actions
+      = f.button :submit, "Delete Selected Groups", id: :deleteMultipleButton, data: {confirm: "Are you sure you want to delete the selected project groups?"}
 
   = render 'common/pagination_bottom', item_name: 'project group'
 - else
