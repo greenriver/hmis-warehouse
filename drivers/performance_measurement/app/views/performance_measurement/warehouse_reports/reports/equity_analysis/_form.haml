@@ -2,7 +2,7 @@
 = simple_form_for @analysis_builder, url: url, method: :get, as: :equity_filters do |f|
   %h5 Required Choices
   .row
-    .col-xs-12.col-sm-6.col-md-4
+    .col-xs-12.col-sm-6.col-md-8
       = f.input :metric, collection: @analysis_builder.metric_options, as: :select_two, prompt: 'Select Metric', label: 'Select Metric'
     .col-xs-12.col-sm-6.col-md-4
       = f.input :investigate_by, collection: @analysis_builder.investigate_by_options, as: :select_two, prompt: 'Select Investigation', label: 'Investigate By'
@@ -15,7 +15,7 @@
         = f.input :gender, collection: @analysis_builder.gender_options, include_blank: 'All Genders', value_method: :first, label_method: :last, as: :select_two, input_html: {multiple: true, placeholder: 'All Genders'}, label: 'Genders'
         = f.input :household_type, collection: @analysis_builder.household_type_options, include_blank: 'All Household Types', label: 'Household Types', input_html: {multiple: true, placeholder: 'All Household Types'}, as: :select_two
       .col-xs-12.col-sm-6.col-md-4
-        = f.input :project, collection: @analysis_builder.project_options, label_method: :first, value_method: :last, prompt: 'All Projects', label: 'Project', input_html: {multiple: true, placeholder: 'All Projects'}, as: :select_two
+        = f.input :project, collection: @analysis_builder.project_options, label_method: :first, value_method: :last, prompt: 'All Projects', label: 'Project', input_html: {multiple: true, placeholder: 'All Projects'}, as: :select_two, hint: 'Note: projects are only available to limit Project Level metrics'
         = f.input :project_type, collection: @analysis_builder.project_type_options, label_method: :first, value_method: :last, prompt: 'All Project Types', label: 'Project Type', input_html: {multiple: true, placeholder: 'All Project Types'}, as: :select_two
       .col-xs-12.col-sm-6.col-md-4
         = f.input :view_data_by, collection: @analysis_builder.view_data_by_options, as: :select_two, label_method: :first, value_method: :last, include_blank: false, label: 'View Data By'

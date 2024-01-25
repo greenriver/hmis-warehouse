@@ -56,8 +56,9 @@ module PerformanceMeasurement::EquityAnalysis
         'Comparison Period - Report Universe',
         'Current Period - Current Filters',
         'Comparison Period - Current Filters',
-        'Current Period - Census',
-        'Comparison Period - Census',
+        # TOOD: these don't quite behave correctly yet
+        # 'Current Period - Census',
+        # 'Comparison Period - Census',
       ].freeze
     end
 
@@ -187,6 +188,7 @@ module PerformanceMeasurement::EquityAnalysis
       scope = race_params[1..].inject(scope.send(race_params[0])) { |query, scope_name| query.or(scope.send(scope_name)) } if race_params.any?
       scope = scope.joins(client_projects: { project: :hud_project }).where(p_t[GrdaWarehouse::Hud::Project.project_type_column].in(project_type_params)) if project_type_params.any?
       scope = scope.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(project_id: project_params)) if project_params.any?
+      scope = scope.joins(:client_projects).merge(PerformanceMeasurement::ClientProject.where(household_type: household_type_params)) if household_type_params.any?
       scope
     end
 
