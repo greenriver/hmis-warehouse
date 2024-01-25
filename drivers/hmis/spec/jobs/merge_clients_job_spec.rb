@@ -171,7 +171,7 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
 
     it 'moves all scan cards to retained client' do
       Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
-      expect(client1.scan_card_codes.with_deleted.pluck(:code)).to contain_exactly(code1.code, code2.code, code3.code)
+      expect(client1.scan_card_codes.with_deleted.pluck(:value)).to contain_exactly(code1.value, code2.value, code3.value)
     end
   end
 
