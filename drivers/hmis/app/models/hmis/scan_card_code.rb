@@ -21,7 +21,7 @@ class Hmis::ScanCardCode < Hmis::HmisBase
   # Note that not all scan card code values will match this pattern, because some
   # scan cards might be migrated in from other systems.
   def self.generate_code
-    'S' + SecureRandom.hex(5).upcase
+    'S1' + SecureRandom.hex(5).upcase
   end
 
   # Assign a unique scan card code to this record
