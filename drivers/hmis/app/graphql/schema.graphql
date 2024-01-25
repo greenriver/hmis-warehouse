@@ -225,6 +225,7 @@ Custom Assessment
 type Assessment {
   access: AssessmentAccess!
   assessmentDate: ISO8601Date!
+  ceAssessment: CeAssessment
   client: Client!
   customDataElements: [CustomDataElement!]!
   dataCollectionStage: DataCollectionStage
@@ -329,6 +330,11 @@ enum AssessmentRole {
   Annual
   """
   ANNUAL
+
+  """
+  Custom assessment
+  """
+  CUSTOM_ASSESSMENT
 
   """
   Exit
@@ -3948,6 +3954,11 @@ enum FormRole {
   Current living situation
   """
   CURRENT_LIVING_SITUATION
+
+  """
+  Custom assessment
+  """
+  CUSTOM_ASSESSMENT
 
   """
   Enrollment
@@ -8975,6 +8986,11 @@ enum ReferralSource {
 Related record type for a group of questions in an assessment
 """
 enum RelatedRecordType {
+  """
+  CeAssessment
+  """
+  ASSESSMENT
+
   """
   Client
   """
