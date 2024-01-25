@@ -57,7 +57,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :custom_data_elements, as: :owner, dependent: :destroy
   has_many :client_projects
   has_many :projects_including_wip, through: :client_projects, source: :project
-  has_many :alerts, class_name: 'Hmis::ClientAlert'
 
   # History of merges into this client
   has_many :merge_histories, class_name: 'Hmis::ClientMergeHistory', primary_key: :id, foreign_key: :retained_client_id
@@ -79,7 +78,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :warehouse_client_destination, class_name: 'Hmis::WarehouseClient', foreign_key: :destination_id, inverse_of: :destination
   has_many :source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
 
-  has_many :client_alerts, class_name: '::Hmis::ClientAlert', dependent: :destroy, inverse_of: :client
+  has_many :alerts, class_name: '::Hmis::ClientAlert', dependent: :destroy, inverse_of: :client
 
   validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 
