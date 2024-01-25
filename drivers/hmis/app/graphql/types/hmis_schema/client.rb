@@ -23,7 +23,6 @@ module Types
     include Types::HmisSchema::HasGender
     include Types::HmisSchema::HasCustomDataElements
     include Types::HmisSchema::HasHudMetadata
-    include Types::HmisSchema::HasClientAlerts
 
     def self.configuration
       Hmis::Hud::Client.hmis_configuration(version: '2024')
@@ -278,7 +277,9 @@ module Types
     end
 
     def alerts
-      load_ar_association(object, :alerts)
+      return [] unless current_permission?(permission: :can_view_client_alerts, entity: object)
+
+      load_ar_association(object, :alerts).sort_by(&:created_at).reverse
     end
 
     def hud_chronic

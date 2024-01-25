@@ -855,9 +855,12 @@ enum ClientAddressUse {
 Alert
 """
 type ClientAlert {
-  client: Client!
+  createdAt: ISO8601DateTime!
+  createdBy: ApplicationUser
+  expirationDate: ISO8601DateTime
   id: ID!
   note: String!
+  severity: String
 }
 
 type ClientAuditEvent {
