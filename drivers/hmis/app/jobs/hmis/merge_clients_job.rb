@@ -45,6 +45,7 @@ module Hmis
         delete_warehouse_clients
         update_personal_id_foreign_keys
         merge_mci_ids
+        merge_scan_cards
 
         client_to_retain.reload
         dedup(client_to_retain.names, keepers: dedup(client_to_retain.names.where(primary: true)))
@@ -206,6 +207,12 @@ module Hmis
 
       mci_ids.where(id: records_by_value.values.map(&:id)).
         update_all(source_id: client_to_retain.id)
+    end
+
+    def merge_scan_cards
+      # Update all Scan Cards for deleted clients to point to the retained client, including deactivated scan cards
+      client_ids = clients_needing_reference_updates.map(&:id)
+      Hmis::ScanCardCode.with_deleted.where(client_id: client_ids).update_all(client_id: client_to_retain.id)
     end
 
     def delete_warehouse_clients

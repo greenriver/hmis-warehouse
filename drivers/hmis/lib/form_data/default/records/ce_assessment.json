@@ -11,14 +11,42 @@
           "text": "Assessment Date",
           "mapping": {
             "field_name": "assessmentDate"
-          }
+          },
+          "bounds": [
+            {
+              "id": "max",
+              "_comment": "cannot be in the future",
+              "type": "MAX",
+              "value_local_constant": "$today"
+            },
+            {
+              "id": "max-exit",
+              "_comment": "cannot be after exit date",
+              "type": "MAX",
+              "value_local_constant": "$exitDate"
+            },
+            {
+              "id": "min",
+              "_comment": "cannot be before entry date",
+              "type": "MIN",
+              "value_local_constant": "$entryDate"
+            }
+          ]
         },
         {
           "type": "TEXT",
           "required": true,
           "link_id": "4.19.2",
           "text": "Assessment Location",
-          "mapping": { "field_name": "assessmentLocation" }
+          "mapping": {
+            "field_name": "assessmentLocation"
+          },
+          "initial": [
+            {
+              "initial_behavior": "IF_EMPTY",
+              "value_local_constant": "$projectName"
+            }
+          ]
         },
         {
           "type": "CHOICE",
@@ -26,7 +54,9 @@
           "text": "Assessment Type",
           "pick_list_reference": "AssessmentType",
           "link_id": "4.19.3",
-          "mapping": { "field_name": "assessmentType" }
+          "mapping": {
+            "field_name": "assessmentType"
+          }
         },
         {
           "type": "CHOICE",
@@ -34,7 +64,9 @@
           "text": "Assessment Level",
           "pick_list_reference": "AssessmentLevel",
           "link_id": "4.19.4",
-          "mapping": { "field_name": "assessmentLevel" }
+          "mapping": {
+            "field_name": "assessmentLevel"
+          }
         },
         {
           "type": "CHOICE",
@@ -42,7 +74,9 @@
           "text": "Prioritization Status",
           "pick_list_reference": "PrioritizationStatus",
           "link_id": "4.19.7",
-          "mapping": { "field_name": "prioritizationStatus" }
+          "mapping": {
+            "field_name": "prioritizationStatus"
+          }
         }
       ]
     }

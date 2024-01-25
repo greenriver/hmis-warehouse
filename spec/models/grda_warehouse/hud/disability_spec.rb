@@ -11,7 +11,6 @@ RSpec.describe model, type: :model do
   after(:all) do
     GrdaWarehouse::Utility.clear!
     cleanup_hmis_csv_fixtures
-    Delayed::Job.delete_all
   end
 
   it 'has 3 destination clients' do
