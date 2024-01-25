@@ -5543,7 +5543,7 @@ type Mutation {
   Create outgoing referral posting
   """
   createOutgoingReferralPosting(input: OutgoingReferralPostingInput): CreateOutgoingReferralPostingPayload
-  createScanCardCode(clientId: ID!): CreateScanCardCodePayload
+  createScanCardCode(clientId: ID!, expirationDate: ISO8601Date): CreateScanCardCodePayload
   createService(
     """
     Parameters for CreateService
@@ -9293,6 +9293,7 @@ type ScanCardCode {
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   deletedBy: ApplicationUser
+  expirationDate: ISO8601DateTime
   id: ID!
   value: ID!
 }
