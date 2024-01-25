@@ -78,6 +78,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :warehouse_client_destination, class_name: 'Hmis::WarehouseClient', foreign_key: :destination_id, inverse_of: :destination
   has_many :source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
 
+  has_many :client_alerts, class_name: '::Hmis::ClientAlert', dependent: :destroy, inverse_of: :client
+
   validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 
   attr_accessor :image_blob_id
