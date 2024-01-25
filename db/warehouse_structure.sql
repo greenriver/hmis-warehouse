@@ -18568,6 +18568,70 @@ ALTER SEQUENCE public.hmis_project_unit_type_mappings_id_seq OWNED BY public.hmi
 
 
 --
+-- Name: hmis_scan_card_codes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_scan_card_codes (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    value character varying NOT NULL,
+    created_by_id bigint,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    expires_at timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.value; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.value IS 'code to embed in scan card';
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.created_by_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.created_by_id IS 'user that generated code';
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.deleted_by_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.deleted_by_id IS 'user that deleted code';
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.expires_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.expires_at IS 'when scan card should expire';
+
+
+--
+-- Name: hmis_scan_card_codes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_scan_card_codes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_scan_card_codes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_scan_card_codes_id_seq OWNED BY public.hmis_scan_card_codes.id;
+
+
+--
 -- Name: hmis_services; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -28422,6 +28486,13 @@ ALTER TABLE ONLY public.hmis_project_unit_type_mappings ALTER COLUMN id SET DEFA
 
 
 --
+-- Name: hmis_scan_card_codes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scan_card_codes ALTER COLUMN id SET DEFAULT nextval('public.hmis_scan_card_codes_id_seq'::regclass);
+
+
+--
 -- Name: hmis_staff id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -32296,6 +32367,14 @@ ALTER TABLE ONLY public.hmis_import_configs
 
 ALTER TABLE ONLY public.hmis_project_unit_type_mappings
     ADD CONSTRAINT hmis_project_unit_type_mappings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_scan_card_codes hmis_scan_card_codes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scan_card_codes
+    ADD CONSTRAINT hmis_scan_card_codes_pkey PRIMARY KEY (id);
 
 
 --
@@ -52911,6 +52990,34 @@ CREATE INDEX index_hmis_project_unit_type_mappings_on_unit_type_id ON public.hmi
 
 
 --
+-- Name: index_hmis_scan_card_codes_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_scan_card_codes_on_client_id ON public.hmis_scan_card_codes USING btree (client_id);
+
+
+--
+-- Name: index_hmis_scan_card_codes_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_scan_card_codes_on_created_by_id ON public.hmis_scan_card_codes USING btree (created_by_id);
+
+
+--
+-- Name: index_hmis_scan_card_codes_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_scan_card_codes_on_deleted_by_id ON public.hmis_scan_card_codes USING btree (deleted_by_id);
+
+
+--
+-- Name: index_hmis_scan_card_codes_on_value; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hmis_scan_card_codes_on_value ON public.hmis_scan_card_codes USING btree (value);
+
+
+--
 -- Name: index_hmis_unit_occupancy_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60616,6 +60723,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240115190843'),
 ('20240116193554'),
 ('20240117133558'),
+('20240118203430'),
 ('20240119035058'),
 ('20240123152003'),
 ('20240123154914');
