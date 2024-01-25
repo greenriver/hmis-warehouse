@@ -9,16 +9,20 @@ module HudSpmReport::Fy2023::Detail
 
   included do
     private_class_method def self.header_label(col)
-      case col.to_sym
-      when :client_id
+      case col.to_s
+      when 'client_id'
         'Warehouse Client ID'
-      when :personal_id
+      when 'personal_id', 'enrollment.personal_id'
         'HMIS Personal ID'
-      when :data_source_id
+      when 'enrollment.first_name'
+        'First Name'
+      when 'enrollment.last_name'
+        'Last Name'
+      when 'data_source_id'
         'Data Source ID'
-      when :los_under_threshold
+      when 'los_under_threshold'
         'LOS Under Threshold'
-      when :previous_street_essh
+      when 'previous_street_essh'
         'Previous Street ESSH'
       else
         col.humanize

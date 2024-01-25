@@ -39,7 +39,7 @@
                     %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(client.client_id), html: 'true' }}
                       %i.icon-info
                   - else
-                    = formatted_cell(client[k])
+                    = formatted_cell(cell_value(client, k))
   = content_for :page_js do
     :javascript
       table = $('.datatable').DataTable({

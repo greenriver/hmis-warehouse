@@ -30,7 +30,7 @@ module HudSpmReport
       respond_to do |format|
         format.html {}
         format.xlsx do
-          @headers.except!('first_name', 'last_name', 'dob', 'ssn') unless GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+          @headers = @headers.transform_keys(&:to_s).except(*generator.pii_columns) unless GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
           headers['Content-Disposition'] = "attachment; filename=#{@name}.xlsx"
         end
       end
