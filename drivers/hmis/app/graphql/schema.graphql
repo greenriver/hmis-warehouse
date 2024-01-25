@@ -8238,6 +8238,31 @@ type Query {
   Assessment lookup
   """
   assessment(id: ID!): Assessment
+
+  """
+  Get the correct Form Definition to use for an assessment, by Role or FormDefinition ID
+  """
+  assessmentFormDefinition(
+    """
+    Date to use for Rule filtering on the definition
+    """
+    assessmentDate: ISO8601Date
+
+    """
+    Form Definition ID, if known
+    """
+    id: ID
+
+    """
+    Project to use for Rule filtering on the definition
+    """
+    projectId: ID!
+
+    """
+    Assessment role, if looking up by role
+    """
+    role: AssessmentRole
+  ): FormDefinition
   autoExitConfigs(limit: Int, offset: Int): AutoExitConfigsPaginated!
 
   """
@@ -8289,9 +8314,9 @@ type Query {
   funder(id: ID!): Funder
 
   """
-  Get most relevant/recent form definition for the specified Role and project (optionally)
+  Get the most relevant Form Definition to use for record viewing/editing
   """
-  getFormDefinition(enrollmentId: ID, projectId: ID, role: FormRole!): FormDefinition
+  getFormDefinition(projectId: ID, role: FormRole!): FormDefinition
 
   """
   Get most relevant form definition for the specified service type

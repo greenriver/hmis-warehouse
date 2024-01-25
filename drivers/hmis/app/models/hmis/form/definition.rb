@@ -35,7 +35,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   has_many :custom_service_types, through: :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
 
   # Forms that are assessments
-  HUD_ASSESSMENT_FORM_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT, :CE, :POST_EXIT, :CUSTOM_ASSESSMENT].freeze
+  HUD_ASSESSMENT_FORM_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT, :POST_EXIT, :CUSTOM_ASSESSMENT].freeze
 
   # System forms (forms that are required for basic HMIS functionality, and are configurable)
   SYSTEM_FORM_ROLES = [

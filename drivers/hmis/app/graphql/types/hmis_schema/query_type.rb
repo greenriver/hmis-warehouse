@@ -171,18 +171,44 @@ module Types
       Hmis::File.viewable_by(current_user).find_by(id: id)
     end
 
-    field :get_form_definition, Types::Forms::FormDefinition, 'Get most relevant/recent form definition for the specified Role and project (optionally)', null: true do
+    field :get_form_definition, Types::Forms::FormDefinition, 'Get the most relevant Form Definition to use for record viewing/editing', null: true do
       argument :role, Types::Forms::Enums::FormRole, required: true
-      argument :enrollment_id, ID, required: false
       argument :project_id, ID, required: false
     end
+    def get_form_definition(role:, project_id: nil)
+      # Guards to ensure correct usage. It would probably be better to make yet another enum just for this query arg
+      raise 'Not supported, use assessmentFormDefinition to look up assessment forms' if Hmis::Form::Definition::HUD_ASSESSMENT_FORM_ROLES.include?(role.to_sym)
+      raise 'Not supported, use staticFormDefinition to look up static forms' if Hmis::Form::Definition::STATIC_FORM_ROLES.include?(role.to_sym)
+      raise 'Not supported, use getServiceFormDefinition to look up service forms' if role == 'SERVICE'
 
-    def get_form_definition(role:, enrollment_id: nil, project_id: nil)
       project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
-      project = Hmis::Hud::Enrollment.find_by(id: enrollment_id)&.project if enrollment_id.present?
-
       record = Hmis::Form::Definition.find_definition_for_role(role, project: project)
-      record.filter_context = { project: project }
+      record.filter_context = { project: project } # Apply project-specific filtering rules. Only relevant for some form types.
+      record
+    end
+
+    field :assessment_form_definition, Types::Forms::FormDefinition, 'Get the correct Form Definition to use for an assessment, by Role or FormDefinition ID', null: true do
+      argument :project_id, ID, required: true, description: 'Project to use for Rule filtering on the definition'
+      argument :id, ID, required: false, description: 'Form Definition ID, if known'
+      argument :role, Types::Forms::Enums::AssessmentRole, required: false, description: 'Assessment role, if looking up by role'
+      argument :assessment_date, GraphQL::Types::ISO8601Date, required: false, description: 'Date to use for Rule filtering on the definition'
+    end
+    def assessment_form_definition(project_id:, id: nil, role: nil, assessment_date: nil)
+      raise 'id or role required' if id.nil? && role.nil?
+
+      project = Hmis::Hud::Project.find(project_id)
+      # Ensure that user can view enrollments for this project. There is no need to expose assessment forms otherwise.
+      not_authorized! unless current_user.can_view_enrollment_details_for?(project)
+
+      if id
+        # If ID is specified, we assume that it's correct for this project.
+        record = Hmis::Form::Definition.find(id)
+      else
+        record = Hmis::Form::Definition.find_definition_for_role(role, project: project)
+      end
+
+      # Set filter context, so that form rules are applied
+      record.filter_context = { project: project, active_date: assessment_date }
       record
     end
 
@@ -353,6 +379,9 @@ module Types
       argument :id, ID, required: true
     end
     def form_definition(id:)
+      # NOTE: this query is only used for form management. It probably should
+      # not be used for the application, because there is no project context passed
+      # to the definition.
       raise 'Access denied' unless current_user.can_configure_data_collection?
 
       Hmis::Form::Definition.find(id)
