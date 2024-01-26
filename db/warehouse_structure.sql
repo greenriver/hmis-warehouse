@@ -21629,7 +21629,8 @@ CREATE TABLE public.performance_measurement_goals (
     destination_so integer DEFAULT 85 NOT NULL,
     destination_homeless_plus integer DEFAULT 85 NOT NULL,
     destination_permanent integer DEFAULT 85 NOT NULL,
-    time_time_homeless_and_ph integer DEFAULT 90 NOT NULL
+    time_time_homeless_and_ph integer DEFAULT 90 NOT NULL,
+    equity_analysis_visible boolean DEFAULT false NOT NULL
 );
 
 
@@ -60726,6 +60727,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240118203430'),
 ('20240119035058'),
 ('20240123152003'),
-('20240123154914');
+('20240123154914'),
+('20240125143214'),
+('20240125163539');
 
 
