@@ -183,7 +183,7 @@ module Types
 
       project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
       record = Hmis::Form::Definition.find_definition_for_role(role, project: project)
-      record.filter_context = { project: project } # Apply project-specific filtering rules. Only relevant for some form types.
+      record&.filter_context = { project: project } # Apply project-specific filtering rules. Only relevant for some form types.
       record
     end
 
@@ -208,7 +208,7 @@ module Types
       end
 
       # Set filter context, so that form rules are applied
-      record.filter_context = { project: project, active_date: assessment_date }
+      record&.filter_context = { project: project, active_date: assessment_date }
       record
     end
 
