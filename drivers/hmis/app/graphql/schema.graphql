@@ -9108,9 +9108,18 @@ enum RelationshipToHoH {
 }
 
 type Reminder {
+  """
+  Relevant existing assessment, if any
+  """
+  assessmentId: ID
   client: Client!
   dueDate: ISO8601Date
   enrollment: Enrollment!
+
+  """
+  Form definition to use, if a new assessment is needed
+  """
+  formDefinitionId: ID
   id: ID!
   overdue: Boolean!
   topic: ReminderTopic!
