@@ -61,5 +61,9 @@ module HudSpmReport::Generators::Fy2023
     def self.detail_template
       'hud_spm_report/cells/show'
     end
+
+    def self.uploadable_version?
+      true
+    end
   end
 end

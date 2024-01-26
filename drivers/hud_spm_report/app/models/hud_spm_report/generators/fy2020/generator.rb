@@ -65,5 +65,9 @@ module HudSpmReport::Generators::Fy2020
         :last_name,
       ]
     end
+
+    def self.uploadable_version?
+      false
+    end
   end
 end

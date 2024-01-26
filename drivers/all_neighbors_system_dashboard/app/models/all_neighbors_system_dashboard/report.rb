@@ -297,6 +297,8 @@ module AllNeighborsSystemDashboard
               'icons.woff2',
             ].each do |filename|
               css.gsub!("url(/assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
+              # Also replace development version of assets url
+              css.gsub!("url(/assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
             end
             css
           },
