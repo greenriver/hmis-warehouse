@@ -36,10 +36,22 @@ module HudSpmReport
       end
     end
 
-    def formatted_cell(cell)
+    def formatted_cell(cell, key)
       return view_context.content_tag(:pre, JSON.pretty_generate(cell)) if cell.is_a?(Array) || cell.is_a?(Hash)
+      return view_context.yes_no(cell) if cell.in?([true, false])
 
-      cell
+      case key.to_s
+      when /project_type$/
+        HudUtility2024.project_type_brief(cell)
+      when /prior_living_situation$/
+        HudUtility2024.living_situation(cell)
+      when /.*destination$/
+        HudUtility2024.destination(cell)
+      when /_days_/
+        number_with_delimiter(cell)
+      else
+        cell
+      end
     end
     helper_method :formatted_cell
   end
