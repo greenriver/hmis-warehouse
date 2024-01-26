@@ -39,11 +39,11 @@ module Hmis
       end
 
       def update_assessment_form_definition_id
-        @update_assessment_form_definition_id ||= Hmis::Form::Definition.find_definition_for_role(:UPDATE, project: project)
+        @update_assessment_form_definition_id ||= Hmis::Form::Definition.find_definition_for_role(:UPDATE, project: project)&.id
       end
 
       def annual_assessment_form_definition_id
-        @annual_assessment_form_definition_id ||= Hmis::Form::Definition.find_definition_for_role(:ANNUAL, project: project)
+        @annual_assessment_form_definition_id ||= Hmis::Form::Definition.find_definition_for_role(:ANNUAL, project: project)&.id
       end
 
       def normalize_yoy_date(date)
