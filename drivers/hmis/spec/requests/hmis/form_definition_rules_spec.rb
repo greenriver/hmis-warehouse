@@ -11,13 +11,14 @@ require_relative '../../support/hmis_base_setup'
 RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis base setup'
 
+  let!(:access_control) { create_access_control(hmis_user, ds1) }
+
   before(:each) do
     hmis_login(user)
   end
 
-  describe 'Conditional fields' do
-    # FIXME GIG: analogous test for assessment definition lookup
-    let(:form_role) { 'PROJECT' }
+  describe 'Form definition rule application (Assessment form)' do
+    let(:form_role) { 'INTAKE' }
     let(:base_items) do
       [
         {
@@ -33,17 +34,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     let(:query) do
       <<~GRAPHQL
-        query GetFormDefinition($projectId: ID, $role: FormRole!) {
-          getFormDefinition(projectId: $projectId, role: $role) {
+        query GetAssessmentFormDefinition($projectId: ID!, $role: AssessmentRole, $assessmentDate: ISO8601Date) {
+          assessmentFormDefinition(projectId: $projectId, role: $role, assessmentDate: $assessmentDate) {
             #{form_definition_fragment}
           }
         }
       GRAPHQL
     end
 
-    def query_form_definition_items
-      _, result = post_graphql({ project_id: p1.id.to_s, role: form_role }) { query }
-      result.dig('data', 'getFormDefinition', 'definition', 'item', 0, 'item')
+    def query_form_definition_items(assessment_date: nil)
+      response, result = post_graphql({ project_id: p1.id.to_s, role: form_role, assessment_date: assessment_date }) { query }
+      expect(response.status).to eq(200), result.inspect
+      result.dig('data', 'assessmentFormDefinition', 'definition', 'item', 0, 'item')
     end
 
     def assign_rule(rule)
@@ -77,6 +79,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         before(:each) { create :hmis_hud_funder, data_source: ds1, project: p1, funder: funder }
         it 'includes all items' do
           expect(query_form_definition_items.size).to eq(base_items.size)
+        end
+      end
+      describe 'with active date specified' do
+        before(:each) { create :hmis_hud_funder, start_date: 2.years.ago, end_date: 1.year.ago, data_source: ds1, project: p1, funder: funder }
+        it 'excludes filtered items if funder is not currently active' do
+          expect(query_form_definition_items.size).to eq(base_items.size - 1)
+        end
+        it 'excludes filtered items if funder was NOT active at specified date' do
+          expect(query_form_definition_items(assessment_date: 6.months.ago).size).to eq(base_items.size - 1)
+        end
+        it 'includes all items if funder WAS active at specified date' do
+          expect(query_form_definition_items(assessment_date: 18.months.ago).size).to eq(base_items.size)
         end
       end
     end
@@ -150,6 +164,112 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         before(:each) { p1.update!(project_type: project_type) }
         it 'includes all items' do
           expect(query_form_definition_items.size).to eq(base_items.size)
+        end
+      end
+    end
+  end
+
+  describe 'Form definition Project rule application (Enrollment form)' do
+    let(:form_role) { 'ENROLLMENT' }
+    let(:items_with_rule) do
+      [
+        {
+          'type': 'STRING',
+          'link_id': 'field-project-type-2',
+          'rule': { variable: 'projectType', operator: 'EQUAL', value: 12 },
+        },
+        {
+          'type': 'STRING',
+          'link_id': 'field-2',
+        },
+      ]
+    end
+
+    def apply_items
+      Hmis::Form::Definition.
+        where(role: form_role).
+        update_all(definition: { 'item' => [{ 'type': 'GROUP', 'link_id': 'group-1', 'item': items_with_rule }] })
+    end
+
+    let(:query) do
+      <<~GRAPHQL
+        query GetFormDefinition($projectId: ID, $role: FormRole!) {
+          getFormDefinition(projectId: $projectId, role: $role) {
+            #{form_definition_fragment}
+          }
+        }
+      GRAPHQL
+    end
+
+    def query_form_definition_items
+      response, result = post_graphql({ project_id: p1.id.to_s, role: form_role }) { query }
+      expect(response.status).to eq(200), result.inspect
+      result.dig('data', 'getFormDefinition', 'definition', 'item', 0, 'item')
+    end
+
+    describe 'applies projectType rule' do
+      before(:each) { apply_items }
+      it 'excludes filtered items' do
+        expect(query_form_definition_items.size).to eq(items_with_rule.size - 1)
+      end
+      describe 'with matches' do
+        before(:each) { p1.update!(project_type: 12) }
+        it 'includes all items' do
+          expect(query_form_definition_items.size).to eq(items_with_rule.size)
+        end
+      end
+    end
+  end
+
+  describe 'Form definition Project rule application (resolved on Assessment lookup)' do
+    let(:items_with_rule) do
+      [
+        {
+          'type': 'STRING',
+          'link_id': 'field-project-type-2',
+          'rule': { variable: 'projectType', operator: 'EQUAL', value: 12 },
+        },
+        {
+          'type': 'STRING',
+          'link_id': 'field-2',
+        },
+      ]
+    end
+
+    let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
+    let!(:assessment) do
+      a1 = create(:hmis_custom_assessment, client: c1, enrollment: e1, data_source: ds1)
+      a1.form_processor.definition.update(definition: { 'item' => [{ 'type': 'GROUP', 'link_id': 'group-1', 'item': items_with_rule }] })
+      a1
+    end
+
+    let(:query) do
+      <<~GRAPHQL
+        query GetAssessment($id: ID!) {
+          assessment(id: $id) {
+            id
+            definition {
+              #{form_definition_fragment}
+            }
+          }
+        }
+      GRAPHQL
+    end
+
+    def query_form_definition_items
+      response, result = post_graphql({ id: assessment.id.to_s }) { query }
+      expect(response.status).to eq(200), result.inspect
+      result.dig('data', 'assessment', 'definition', 'definition', 'item', 0, 'item')
+    end
+
+    describe 'applies projectType rule' do
+      it 'excludes filtered items' do
+        expect(query_form_definition_items.size).to eq(items_with_rule.size - 1)
+      end
+      describe 'with matches' do
+        before(:each) { p1.update!(project_type: 12) }
+        it 'includes all items' do
+          expect(query_form_definition_items.size).to eq(items_with_rule.size)
         end
       end
     end
