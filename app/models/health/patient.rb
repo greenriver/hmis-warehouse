@@ -132,6 +132,23 @@ module Health
     has_many :qualifying_activities
     has_many :status_dates
 
+    has_many :housing_statuses
+    has_one :recent_housing_status, -> do
+      merge(Health::HousingStatus.as_of(date: Date.current))
+    end, class_name: 'Health::HousingStatus'
+
+    # Record the housing status for a client on a date (default to current).
+    # If there is already a housing status on the date, update it, otherwise create a new one
+    def record_housing_status(status, on_date: Date.current)
+      housing_status = recent_housing_status
+      if housing_status&.collected_on == on_date
+        housing_status.update(status: status)
+        housing_status
+      else
+        housing_statuses.create(collected_on: on_date, status: status)
+      end
+    end
+
     scope :pilot, -> { where pilot: true }
     scope :hpc, -> { where pilot: false }
     scope :bh_cp, -> { where pilot: false }
