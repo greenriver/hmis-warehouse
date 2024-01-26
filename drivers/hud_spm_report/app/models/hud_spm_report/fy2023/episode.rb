@@ -21,12 +21,16 @@ module HudSpmReport::Fy2023
     attr_writer :filter
 
     def self.detail_headers
-      client_columns = ['client_id']
+      client_columns = ['client_id', 'enrollment.first_name', 'enrollment.last_name', 'enrollment.personal_id']
       hidden_columns = ['id', 'report_instance_id'] + client_columns
       columns = client_columns + (column_names - hidden_columns)
       columns.map do |col|
         [col, header_label(col)]
       end.to_h
+    end
+
+    def enrollment
+      enrollments.first
     end
 
     def compute_episode(enrollments, included_project_types:, excluded_project_types:, include_self_reported_and_ph:)
