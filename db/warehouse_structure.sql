@@ -13409,19 +13409,14 @@ ALTER SEQUENCE public.hmis_case_notes_id_seq OWNED BY public.hmis_case_notes.id;
 
 CREATE TABLE public.hmis_client_alerts (
     id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    organization_id bigint,
-    project_id bigint,
-    coc_code character varying,
-    source_type character varying,
-    source_id bigint,
-    information_date date NOT NULL,
-    severity character varying NOT NULL,
-    note text,
+    note text NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    expiration_date date,
+    created_by_id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    severity character varying
 );
 
 
@@ -52205,31 +52200,10 @@ CREATE INDEX index_hmis_client_alerts_on_client_id ON public.hmis_client_alerts 
 
 
 --
--- Name: index_hmis_client_alerts_on_organization_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_hmis_client_alerts_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_hmis_client_alerts_on_organization_id ON public.hmis_client_alerts USING btree (organization_id);
-
-
---
--- Name: index_hmis_client_alerts_on_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_client_alerts_on_project_id ON public.hmis_client_alerts USING btree (project_id);
-
-
---
--- Name: index_hmis_client_alerts_on_source; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_client_alerts_on_source ON public.hmis_client_alerts USING btree (source_type, source_id);
-
-
---
--- Name: index_hmis_client_alerts_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_client_alerts_on_user_id ON public.hmis_client_alerts USING btree (user_id);
+CREATE INDEX index_hmis_client_alerts_on_created_by_id ON public.hmis_client_alerts USING btree (created_by_id);
 
 
 --
@@ -58596,13 +58570,6 @@ CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "Personal
 
 
 --
--- Name: tt_hh_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX tt_hh_id ON public.service_history_enrollments USING btree (household_id);
-
-
---
 -- Name: tx_id_ds_id_ft_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60759,6 +60726,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240117133558'),
 ('20240118203430'),
 ('20240119035058'),
-('20240125143214');
+('20240123152003'),
+('20240123154914'),
+('20240125143214'),
+('20240125163539');
 
 
