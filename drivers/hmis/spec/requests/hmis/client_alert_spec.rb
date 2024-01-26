@@ -35,6 +35,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
+  let(:create_alert) do
+    <<~GRAPHQL
+      mutation CreateClientAlert($id: ID!, $note: String!, $expirationDate: ISO8601Date, $priority: ClientAlertPriorityLevel) {
+        createClientAlert(id: $id, note: $note, expirationDate: $expirationDate, priority: $priority) {
+          clientAlert {
+            id
+            note
+            priority
+            expirationDate
+            createdBy { id }
+            createdAt
+          }
+        }
+      }
+    GRAPHQL
+  end
+
   let!(:c1) { create :hmis_hud_client, data_source: ds1 }
   let!(:a1) { create :hmis_client_alert, created_by: hmis_user, client: c1, note: 'bananas' }
   let!(:a2) { create :hmis_client_alert, created_by: hmis_user, client: c1, note: 'pears' }
@@ -50,10 +67,26 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(alerts[0]['note']).to eq('pears'), 'Results should be in descending order by creation time'
       expect(alerts[1]['note']).to eq('bananas')
     end
+
+    it 'should successfully create an alert' do
+      response, result = post_graphql(
+        id: c1.id,
+        note: 'raspberries',
+        priority: 'high',
+        expirationDate: Date.current + 2.months,
+      ) { create_alert }
+      expect(response.status).to eq(200), result.inspect
+      alert = result.dig('data', 'createClientAlert', 'clientAlert')
+      expect(alert).not_to be_nil
+      expect(alert['note']).to eq('raspberries')
+      expect(alert['priority']).to eq('high')
+      expect(Date.parse(alert['expirationDate'])).to eq((Date.current + 2.months))
+      expect(alert.dig('createdBy', 'id')).to eq(hmis_user.id.to_s)
+    end
   end
 
   describe 'when the user does not have permission to view client alerts' do
-    let!(:access_control) { create_access_control(hmis_user, p1, without_permission: :can_view_client_alerts) }
+    let!(:access_control) { create_access_control(hmis_user, p1, without_permission: [:can_view_client_alerts, :can_manage_client_alerts]) }
 
     it 'should return a client, but without any alerts' do
       response, result = post_graphql(id: c1.id) { query }
@@ -61,6 +94,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       alerts = result.dig('data', 'client', 'alerts')
       expect(alerts).not_to be_nil
       expect(alerts).to be_empty
+    end
+
+    it 'should not be able to create alerts either' do
+      expect_gql_error post_graphql(id: c1.id, note: 'strawberries') { create_alert }
+      expect(c1.alerts.size).to eq(2), 'a third alert should not have been created'
     end
   end
 end

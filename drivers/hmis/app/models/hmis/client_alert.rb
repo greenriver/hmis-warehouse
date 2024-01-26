@@ -19,5 +19,5 @@ class Hmis::ClientAlert < Hmis::HmisBase
   validates :priority, inclusion: {
     in: PRIORITY_LEVELS,
     message: '%{value} is not a valid priority level',
-  }
+  }, allow_nil: true # allow nil here because there is a default value of 'low'
 end
