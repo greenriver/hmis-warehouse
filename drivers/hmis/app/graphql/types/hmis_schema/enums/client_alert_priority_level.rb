@@ -7,7 +7,7 @@ module Types
   class HmisSchema::Enums::ClientAlertPriorityLevel < Types::BaseEnum
     graphql_name 'ClientAlertPriorityLevel'
 
-    Hmis::AlertPriority::PRIORITY_LEVELS.each do |topic|
+    Hmis::ClientAlert::PRIORITY_LEVELS.each do |topic|
       value topic
     end
   end
