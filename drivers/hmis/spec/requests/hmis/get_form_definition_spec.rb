@@ -18,6 +18,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   include_context 'hmis base setup'
 
+  let!(:access_control) { create_access_control(hmis_user, ds1) }
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1 }
 
@@ -25,24 +26,48 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     hmis_login(user)
   end
 
-  let(:query) do
-    <<~GRAPHQL
-      query GetFormDefinition($enrollmentId: ID, $role: FormRole!) {
-        getFormDefinition(enrollmentId: $enrollmentId, role: $role) {
-          #{form_definition_fragment}
+  describe 'Form definition lookup for record-editing' do
+    let(:query) do
+      <<~GRAPHQL
+        query GetFormDefinition($projectId: ID, $role: FormRole!) {
+          getFormDefinition(projectId: $projectId, role: $role) {
+            #{form_definition_fragment}
+          }
         }
-      }
-    GRAPHQL
-  end
+      GRAPHQL
+    end
 
-  # FIXME
-  Hmis::Form::Definition::HUD_ASSESSMENT_FORM_ROLES.excluding(:CE, :POST_EXIT, :CUSTOM_ASSESSMENT).each do |role|
     it 'should find default definition by role' do
-      response, result = post_graphql({ enrollment_id: e1.id.to_s, role: role }) { query }
+      role = :PROJECT
+      response, result = post_graphql({ project_id: p1.id.to_s, role: role }) { query }
 
       aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
+        expect(response.status).to eq(200), result.inspect
         form_definition = result.dig('data', 'getFormDefinition')
+        expect(form_definition).to be_present
+        expect(form_definition['role']).to eq(role.to_s)
+      end
+    end
+  end
+
+  describe 'Assessment definition lookup' do
+    let(:query) do
+      <<~GRAPHQL
+        query GetAssessmentFormDefinition($projectId: ID!, $role: AssessmentRole, $assessmentDate: ISO8601Date) {
+          assessmentFormDefinition(projectId: $projectId, role: $role, assessmentDate: $assessmentDate) {
+            #{form_definition_fragment}
+          }
+        }
+      GRAPHQL
+    end
+
+    it 'should find default definition by assessment role' do
+      role = :INTAKE
+      response, result = post_graphql({ project_id: p1.id.to_s, role: role }) { query }
+
+      aggregate_failures 'checking response' do
+        expect(response.status).to eq(200), result.inspect
+        form_definition = result.dig('data', 'assessmentFormDefinition')
         expect(form_definition).to be_present
         expect(form_definition['role']).to eq(role.to_s)
       end
