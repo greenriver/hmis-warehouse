@@ -3,6 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
 require_relative '/app/config/deploy/docker/lib/asset_compiler'
 
 module Admin
