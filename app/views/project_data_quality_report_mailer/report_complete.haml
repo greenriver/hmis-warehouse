@@ -3,7 +3,7 @@
   A data quality report was recently run for
   = "#{@project_name} in the " + Translation.translate('Boston DND HMIS Warehouse') + ".  You can see the results of the report by following this link:"
   %br
-  - if @projects.count == 1
+  - if @projects.count == 1 && @report.project_id.present?
     = link_to notification_project_data_quality_report_url(notification_id: @token.token, project_id: @report.project_id, id: @report.id) do
       = "View Data Quality Report for #{@project_name}."
   - else
