@@ -183,7 +183,7 @@ module PerformanceMeasurement::EquityAnalysis
         'Age',
         'Gender',
         'Household Type',
-      ].freeze
+      ].sort.freeze
     end
 
     def race_options
