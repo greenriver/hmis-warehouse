@@ -158,6 +158,8 @@ module Types
       can :audit_clients
       can :manage_scan_cards
       root_can :can_merge_clients # "Root" permission, resolved on Client for convenience
+      can :view_client_alerts
+      can :manage_client_alerts
     end
 
     def external_ids
