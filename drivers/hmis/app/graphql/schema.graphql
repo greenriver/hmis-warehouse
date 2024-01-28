@@ -741,6 +741,7 @@ type ClientAccess {
   canEditClient: Boolean!
   canEditEnrollments: Boolean!
   canManageAnyClientFiles: Boolean!
+  canManageClientAlerts: Boolean!
   canManageOwnClientFiles: Boolean!
   canManageScanCards: Boolean!
   canMergeClients: Boolean!
@@ -748,6 +749,7 @@ type ClientAccess {
   canViewAnyConfidentialClientFiles: Boolean!
   canViewAnyFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
+  canViewClientAlerts: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
@@ -8376,6 +8378,7 @@ type QueryAccess {
   canEnrollClients: Boolean!
   canImpersonateUsers: Boolean!
   canManageAnyClientFiles: Boolean!
+  canManageClientAlerts: Boolean!
   canManageDeniedReferrals: Boolean!
   canManageIncomingReferrals: Boolean!
   canManageInventory: Boolean!
@@ -8387,6 +8390,7 @@ type QueryAccess {
   canTransferEnrollments: Boolean!
   canViewAnyConfidentialClientFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
+  canViewClientAlerts: Boolean!
   canViewClients: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
