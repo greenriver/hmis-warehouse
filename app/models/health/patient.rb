@@ -140,6 +140,8 @@ module Health
     # Record the housing status for a client on a date (default to current).
     # If there is already a housing status on the date, update it, otherwise create a new one
     def record_housing_status(status, on_date: Date.current)
+      return unless status.present?
+
       housing_status = recent_housing_status
       if housing_status&.collected_on == on_date
         # The housing status string is recorded, for detail, but is mostly treated as a boolean
@@ -1356,10 +1358,8 @@ module Health
       patient_scope.where(where)
     end
 
-    def sdoh_icd10_codes(on_date: Date.current) # rubocop:disable Lint/UnusedMethodArgument
-      homelessness_unspecified = recent_hrsn_screening&.instrument&.positive_for_homelessness?
-      # TODO: After unrolling claims, use QA activity dates instead of last HRSN
-      # homelessness_unspecified = housing_statuses.as_of(on_date).positive_for_homelessness?
+    def sdoh_icd10_codes(on_date: Date.current)
+      homelessness_unspecified = housing_statuses.as_of(date: on_date).first&.positive_for_homelessness?
 
       [].tap do |codes|
         codes << 'Z5900' if homelessness_unspecified

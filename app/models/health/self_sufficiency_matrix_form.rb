@@ -128,6 +128,17 @@ module Health
         )
     end
 
+    after_save :record_housing_status
+
+    def record_housing_status
+      housing_status = if positive_for_homelessness?
+        'Homeless'
+      else
+        'Not Homeless'
+      end
+      patient&.record_housing_status(housing_status, on_date: completed_at.to_date)
+    end
+
     attr_accessor :file
 
     SECTIONS = {
