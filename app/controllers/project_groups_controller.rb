@@ -105,6 +105,8 @@ class ProjectGroupsController < ApplicationController
   def download
     @project_groups = project_group_scope
     @project_groups = @project_groups.text_search(params[:q]) if params[:q].present?
+
+    headers['Content-Disposition'] = "attachment; filename=Project Groups - #{Date.current.strftime('%Y-%m-%d')}.xlsx"
   end
 
   def import

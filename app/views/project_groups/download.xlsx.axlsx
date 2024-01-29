@@ -24,6 +24,6 @@ wb.add_worksheet(name: 'Project Groups') do |sheet|
       group.created_at,
       group.updated_at,
     ]
-    sheet.add_row(row, style: data_cell)
+    sheet.add_row(row, style: [data_cell] * 6) # Don't add style to the date columns
   end
 end

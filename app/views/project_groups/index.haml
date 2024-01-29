@@ -20,7 +20,7 @@
     %li Access to a project group does not imply access to the projects within the group, projects must still be assigned to users to grant access.
 .row.mb-4
   .col-sm-12.text-right
-    = link_to download_project_groups_path(format: :xlsx), class: 'btn btn-secondary ml-2 mb-2' do
+    = link_to download_project_groups_path({format: :xlsx}.merge(link_params)), class: 'btn btn-secondary ml-2 mb-2' do
       %span.icon-download2
       Download
 - if @pagy.count.positive?
