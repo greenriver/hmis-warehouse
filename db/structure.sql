@@ -1144,22 +1144,25 @@ CREATE TABLE public.hmis_roles (
     can_audit_clients boolean DEFAULT false NOT NULL,
     can_delete_clients boolean DEFAULT false NOT NULL,
     can_delete_assessments boolean DEFAULT false,
-    can_view_project boolean DEFAULT false,
     can_manage_inventory boolean DEFAULT false,
     can_manage_incoming_referrals boolean DEFAULT false,
     can_manage_outgoing_referrals boolean DEFAULT false,
     can_manage_denied_referrals boolean DEFAULT false,
-    can_view_hud_chronic_status boolean DEFAULT false,
-    can_view_limited_enrollment_details boolean DEFAULT false,
-    can_view_open_enrollment_summary boolean DEFAULT false,
     can_enroll_clients boolean DEFAULT false,
+    can_view_open_enrollment_summary boolean DEFAULT false,
+    can_view_project boolean DEFAULT false,
+    can_view_hud_chronic_status boolean DEFAULT false,
     can_merge_clients boolean DEFAULT false,
     can_split_households boolean DEFAULT false,
     can_transfer_enrollments boolean DEFAULT false,
+    can_view_limited_enrollment_details boolean DEFAULT false,
     can_impersonate_users boolean DEFAULT false,
     can_audit_users boolean DEFAULT false,
     can_audit_enrollments boolean DEFAULT false,
-    can_configure_data_collection boolean DEFAULT false
+    can_configure_data_collection boolean DEFAULT false,
+    can_manage_scan_cards boolean DEFAULT false,
+    can_view_client_alerts boolean DEFAULT false,
+    can_manage_client_alerts boolean DEFAULT false
 );
 
 
@@ -2407,15 +2410,15 @@ CREATE TABLE public.roles (
     can_manage_inactive_cohort_clients boolean DEFAULT false,
     can_view_deleted_cohort_clients boolean DEFAULT false,
     can_view_cohort_client_changes_report boolean DEFAULT false,
-    system boolean DEFAULT false NOT NULL,
     can_approve_careplan boolean DEFAULT false,
     can_manage_inbound_api_configurations boolean DEFAULT false,
+    system boolean DEFAULT false NOT NULL,
     can_view_client_enrollments_with_roi boolean DEFAULT false,
-    can_edit_collections boolean DEFAULT false,
     can_search_clients_with_roi boolean DEFAULT false,
     can_see_confidential_files boolean DEFAULT false,
-    can_publish_reports boolean DEFAULT false,
     can_edit_theme boolean DEFAULT false,
+    can_edit_collections boolean DEFAULT false,
+    can_publish_reports boolean DEFAULT false,
     deleted_at timestamp without time zone,
     can_edit_own_client_notes boolean DEFAULT false
 );
@@ -2983,39 +2986,6 @@ CREATE SEQUENCE public.uploads_id_seq
 --
 
 ALTER SEQUENCE public.uploads_id_seq OWNED BY public.uploads.id;
-
-
---
--- Name: user_access_controls; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.user_access_controls (
-    id bigint NOT NULL,
-    access_control_id bigint,
-    user_id bigint,
-    deleted_at timestamp without time zone,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: user_access_controls_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.user_access_controls_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: user_access_controls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.user_access_controls_id_seq OWNED BY public.user_access_controls.id;
 
 
 --
@@ -3662,13 +3632,6 @@ ALTER TABLE ONLY public.uploads ALTER COLUMN id SET DEFAULT nextval('public.uplo
 
 
 --
--- Name: user_access_controls id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.user_access_controls ALTER COLUMN id SET DEFAULT nextval('public.user_access_controls_id_seq'::regclass);
-
-
---
 -- Name: user_group_members id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4116,14 +4079,6 @@ ALTER TABLE ONLY public.unique_names
 
 ALTER TABLE ONLY public.uploads
     ADD CONSTRAINT uploads_pkey PRIMARY KEY (id);
-
-
---
--- Name: user_access_controls user_access_controls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.user_access_controls
-    ADD CONSTRAINT user_access_controls_pkey PRIMARY KEY (id);
 
 
 --
@@ -4700,20 +4655,6 @@ CREATE INDEX index_uploads_on_deleted_at ON public.uploads USING btree (deleted_
 
 
 --
--- Name: index_user_access_controls_on_access_control_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_user_access_controls_on_access_control_id ON public.user_access_controls USING btree (access_control_id);
-
-
---
--- Name: index_user_access_controls_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_user_access_controls_on_user_id ON public.user_access_controls USING btree (user_id);
-
-
---
 -- Name: index_user_group_members_on_user_group_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5191,11 +5132,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230322204908'),
 ('20230328150855'),
 ('20230330161305'),
+('20230330182609'),
 ('20230412142430'),
 ('20230418170053'),
 ('20230420195221'),
 ('20230424123118'),
-('20230426170051'),
 ('20230429102609'),
 ('20230429112926'),
 ('20230429112954'),
@@ -5238,6 +5179,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231206162323'),
 ('20231221165752'),
 ('20231221165753'),
+('20240122220024'),
+('20240123160215'),
 ('20240124173020');
 
 

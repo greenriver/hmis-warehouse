@@ -16,8 +16,8 @@ module Types
     field :id, ID, null: false
     field :cache_key, ID, null: false
     field :identifier, String, null: false
-    # "role" describes the function of this form within the application, such as editing a project. While roles are
-    # unique, not every form has a role. For example custom assessments may not all have roles
+    # "role" describes the function of this form within the application, such as editing a project. Roles are unique
+    # except for custom-assessments
     field :role, Types::Forms::Enums::FormRole, null: false
     field :title, String, null: false
     field :definition, Forms::FormDefinitionJson, null: false

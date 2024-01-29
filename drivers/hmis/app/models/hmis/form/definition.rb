@@ -8,6 +8,21 @@
 #
 # The canonical definitions are in json files under drivers/hmis/lib/form_data. When the json definitions changes, run the following command to freshen these db records
 #   rails driver:hmis:seed_definitions
+#
+# Table: hmis_form_definitions
+#   identifier
+#     stable identifier for this form across version. Is the foreign key for form instances (rules)
+#   version
+#     in combination with identifier, uniquely identify this form
+#   role
+#     the significance of this form within the system (INTAKE, EXIT, etc)
+#   status
+#     NOT IMPLEMENTED: aspirational support for draft status
+#   definition
+#     JSON field defines the inputs, labels, validation, and mapping to HMIS fields. A JSON-schema exists to validate
+#     the format of the definition
+#   title
+#     User-facing title of the form definition
 class Hmis::Form::Definition < ::GrdaWarehouseBase
   self.table_name = :hmis_form_definitions
   include Hmis::Hud::Concerns::HasEnums
@@ -159,25 +174,40 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     POST_EXIT: 6,
   }.freeze
 
-  use_enum_with_same_key :form_role_enum_map, FORM_ROLES.excluding(:CUSTOM_ASSESSMENT, :CE)
+  use_enum_with_same_key :form_role_enum_map, FORM_ROLES.excluding(:CE)
   # may add back CE as HUD Assessment Role when we implement CE assessments. Same for implementing customs. Unsure at this point, so leaving them out.
-  use_enum_with_same_key :assessment_type_enum_map, HUD_ASSESSMENT_FORM_ROLES.excluding(:CUSTOM_ASSESSMENT, :CE)
+  use_enum_with_same_key :assessment_type_enum_map, HUD_ASSESSMENT_FORM_ROLES.excluding(:CE)
   use_enum_with_same_key :data_collection_feature_role_enum_map, DATA_COLLECTION_FEATURE_ROLES
   use_enum_with_same_key :static_form_role_enum_map, STATIC_FORM_ROLES
 
+  scope :exclude_definition_from_select, -> {
+    # Get all column names except 'definition'
+    select(column_names - ['definition'])
+  }
+
   scope :with_role, ->(role) { where(role: role) }
 
-  scope :for_project, ->(project:, role:, service_type: nil) do
+  # Finding the appropriate form definition for a project:
+  #  * find the definitions for the required role (i.e. INTAKE)
+  #    ** in the future we might apply status filter here to exclude "draft" definitions
+  #  * choose the form instance with the most specific match that is also associated with any of those definitions
+  #  * of the definitions with that identifier, choose the one with the highest version
+  scope :for_project, ->(project:, role:, service_type: nil, version: nil) do
     # Consider all instances for this role (and service type, if applicable)
     definition_scope = Hmis::Form::Definition.with_role(role)
+    if version
+      # restrict to a specific version
+      definition_scope = definition_scope.where(version: version).order(:id) if version
+    else
+      # order so that detect_best_instance_for_project will use version as a tie-breaker if multiple instances match
+      definition_scope = definition_scope.order(version: :desc, id: :desc)
+    end
     definition_scope = definition_scope.for_service_type(service_type) if service_type.present?
     base_scope = Hmis::Form::Instance.joins(:definition).merge(definition_scope)
 
     # Choose the first scope that has any records. Prefer more specific instances.
-    instance_scope = Hmis::Form::Instance.detect_best_instance_scope_for_project(base_scope, project: project)
-    return none unless instance_scope.present?
-
-    where(identifier: instance_scope.pluck(:definition_identifier))
+    instance = base_scope.detect_best_instance_for_project(project: project)
+    instance ? where(identifier: instance.definition_identifier) : none
   end
 
   scope :non_static, -> do
@@ -201,13 +231,14 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def self.find_definition_for_role(role, project: nil, version: nil)
+    scope = Hmis::Form::Definition.all
     if project.present?
-      scope = Hmis::Form::Definition.for_project(project: project, role: role)
+      scope = scope.for_project(project: project, role: role, version: version)
     else
-      scope = Hmis::Form::Definition.with_role(role)
+      scope = scope.with_role(role)
+      scope = scope.where(version: version) if version.present?
     end
 
-    scope = scope.where(version: version) if version.present?
     scope.order(version: :desc).first
   end
 
@@ -388,5 +419,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     else
       raise NotImplementedError
     end
+  end
+
+  # if the enrollment and project match
+  def project_and_enrollment_match(...)
+    instances.map { |i| i.project_and_enrollment_match(...) }.compact.min_by(&:rank)
   end
 end

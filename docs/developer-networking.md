@@ -86,7 +86,6 @@ If not already set up, install DIRENV. You will need to allow the changes after 
 
 ```
 brew install direnv
-direnv allow
 ```
 
 Append your `.envrc` with the following 
@@ -95,9 +94,8 @@ Append your `.envrc` with the following
 export FQDN=hmis-warehouse.dev.test
 export TRAEFIK_ENABLED=true
 ```
-
+For direnv to work properly it needs to be hooked into the shell. Each shell has its own extension mechanism. Complete the [setup instructions](https://direnv.net/docs/hook.html) for  your shell.
 Allow the file changes through direnv
 ```
 direnv allow
 ```
-For direnv to work properly it needs to be hooked into the shell. Each shell has its own extension mechanism. Complete the [setup instructions](https://direnv.net/docs/hook.html) for  your shell.

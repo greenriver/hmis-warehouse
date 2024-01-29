@@ -19,8 +19,6 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
     after(:all) do
       GrdaWarehouse::Utility.clear!
       cleanup_hmis_csv_fixtures
-      Delayed::Job.delete_all
-      GrdaWarehouse::Config.delete_all
     end
     it 'finds two clients who are active for CAS' do
       travel_to Time.local(2016, 2, 15) do
@@ -52,8 +50,6 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
     after(:all) do
       GrdaWarehouse::Utility.clear!
       cleanup_hmis_csv_fixtures
-      Delayed::Job.delete_all
-      GrdaWarehouse::Config.delete_all
     end
 
     it 'finds one client who is active for CAS' do
@@ -97,8 +93,6 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
       GrdaWarehouse::Utility.clear!
       cleanup_hmis_csv_fixtures
       @cas_project_group.destroy
-      Delayed::Job.delete_all
-      GrdaWarehouse::Config.delete_all
     end
 
     it 'finds no client who is active for CAS' do
@@ -129,8 +123,6 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
     after(:all) do
       GrdaWarehouse::Utility.clear!
       cleanup_hmis_csv_fixtures
-      Delayed::Job.delete_all
-      GrdaWarehouse::Config.delete_all
     end
 
     it 'finds one client who is active for CAS' do
