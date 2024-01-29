@@ -43,7 +43,7 @@
       .card-header
         %h2 Equity Analysis Report:
         .filter-description
-          %strong= @analysis_builder.describe_filters[:header]
+          %strong= @analysis_builder.describe_filters[:header].html_safe
           - if @analysis_builder.describe_filters[:variables].any?
             .fitler-variables
               Limited to:
