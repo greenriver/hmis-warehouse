@@ -283,7 +283,7 @@ module Types
     def alerts
       return [] unless current_permission?(permission: :can_view_client_alerts, entity: object)
 
-      load_ar_association(object, :alerts).sort_by(&:created_at).reverse
+      load_ar_association(object, :alerts, scope: Hmis::ClientAlert.active).sort_by(&:created_at).reverse
     end
 
     def hud_chronic
