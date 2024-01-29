@@ -214,124 +214,38 @@
           "value": 43
         },
         {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "762"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "785"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "660"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "829"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "749"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "747"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "752"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "745"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "746"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "751"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "771"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "688"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "681"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "834"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "782"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "772"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "773"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "227"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "795"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "796"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "843"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "547"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "680"
-        },
-        {
-          "variable": "projectId",
-          "operator": "EQUAL",
-          "value": "825"
+          "_comment": "Local or N/A funder, less some projects. TODO: use a project group",
+          "operator": "ALL",
+          "parts": [
+            {
+              "_comment": "Local or N/A funder",
+              "operator": "ANY",
+              "parts": [
+                {
+                  "variable": "projectFunders",
+                  "operator": "INCLUDE",
+                  "value": 46
+                },
+                {
+                  "variable": "projectFunders",
+                  "operator": "INCLUDE",
+                  "value": 36
+                }
+              ]
+            },
+            {
+              "_comment": "covid program",
+              "variable": "projectId",
+              "operator": "NOT_EQUAL",
+              "value": "794"
+            },
+            {
+              "_comment": "covid program",
+              "variable": "projectId",
+              "operator": "NOT_EQUAL",
+              "value": "793"
+            }
+          ]
         }
       ]
     }
