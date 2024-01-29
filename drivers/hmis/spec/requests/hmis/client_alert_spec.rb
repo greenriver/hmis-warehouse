@@ -91,7 +91,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(alert_id).not_to be_nil
       alert = Hmis::ClientAlert.find(alert_id)
       expect(alert.note).to eq('raspberries')
-      # expect(alert.priority).to eq(ClientAlert::PRIORITY_LEVELS)
+      expect(alert.priority).to eq(Hmis::ClientAlert::HIGH)
       expect(alert.expiration_date).to eq((Date.current + 2.months))
       expect(alert.created_by.id).to eq(hmis_user.id)
     end
