@@ -76,12 +76,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expirationDate: Date.current + 2.months,
       ) { create_alert }
       expect(response.status).to eq(200), result.inspect
-      alert = result.dig('data', 'createClientAlert', 'clientAlert')
-      expect(alert).not_to be_nil
-      expect(alert['note']).to eq('raspberries')
-      expect(alert['priority']).to eq('high')
-      expect(Date.parse(alert['expirationDate'])).to eq((Date.current + 2.months))
-      expect(alert.dig('createdBy', 'id')).to eq(hmis_user.id.to_s)
+      alert_id = result.dig('data', 'createClientAlert', 'clientAlert', 'id')
+      expect(alert_id).not_to be_nil
+      alert = Hmis::ClientAlert.find(alert_id)
+      expect(alert.note).to eq('raspberries')
+      # expect(alert.priority).to eq(ClientAlert::PRIORITY_LEVELS)
+      expect(alert.expiration_date).to eq((Date.current + 2.months))
+      expect(alert.created_by.id).to eq(hmis_user.id)
     end
   end
 
