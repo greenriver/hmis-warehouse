@@ -324,6 +324,14 @@ module Health
       activity == 'outreach'
     end
 
+    def screening?
+      activity == 'sdoh_positive' || activity == 'sdoh_negative'
+    end
+
+    def positive_screen?
+      activity == 'sdoh_positive'
+    end
+
     def modifiers
       qa_version.modifiers
     end
