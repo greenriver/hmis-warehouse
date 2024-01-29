@@ -165,7 +165,7 @@ class HmisUtil::CustomAssessmentFormDefinitionBuilder
 
         @_seen.add(code)
 
-        choice = { code: code, label: label }
+        choice = { code: code, label: label }.compact_blank
 
         self.choices ||= []
         self.choices.push(choice)
