@@ -26,6 +26,12 @@ module ClientSearch
       max_pk = 2_147_483_648 # PK is a 4 byte signed INT (2 ** ((4 * 8) - 1))
       term_is_possibly_pk = numeric ? text.to_i < max_pk : false
 
+      # If alphanumeric search term matches a Scan Card code, return immediately
+      if alpha_numeric && HmisEnforcement.hmis_enabled?
+        matching_scan_card = Hmis::ScanCardCode.active.find_by(value: text)
+        return where(sa[:id].eq(matching_scan_card.client_id)) if matching_scan_card
+      end
+
       if alpha_numeric && (text.size == 32 || text.size == 36)
         where = sa[:PersonalID].matches(text.gsub('-', ''))
       elsif social

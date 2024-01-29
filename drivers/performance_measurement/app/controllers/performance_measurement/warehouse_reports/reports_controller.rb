@@ -36,6 +36,7 @@ module PerformanceMeasurement::WarehouseReports
     def show
       # Used for testing PDF generation
       # render 'show_pdf', layout: 'layouts/performance_report'
+      @default_goal = PerformanceMeasurement::Goal.default_goal
     end
 
     def create

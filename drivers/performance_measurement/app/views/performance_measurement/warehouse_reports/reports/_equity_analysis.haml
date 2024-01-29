@@ -30,7 +30,7 @@
 
 = render 'chosen_universe'
 = render 'report_tabs'
-
+= render 'warehouse_reports/beta_warning'
 .mb-6
   .card{style: "overflow:visible;"}
     .card-header
@@ -43,7 +43,7 @@
       .card-header
         %h2 Equity Analysis Report:
         .filter-description
-          %strong= @analysis_builder.describe_filters[:header]
+          %strong= @analysis_builder.describe_filters[:header].html_safe
           - if @analysis_builder.describe_filters[:variables].any?
             .fitler-variables
               Limited to:
@@ -59,3 +59,7 @@
             No report data has been selected to display.
           %span
             Make required selections above and click “update report”
+  - if false # @analysis_builder.valid? # disabled temporarily until census data can be investigated more completely
+    .alert.alert-info.mt-4
+      %i.icon-info.mr-2
+      Census data can only be displayed and limited for race, gender, and age.  Census genders are limited to male and female, and census races do not include all HMIS races.

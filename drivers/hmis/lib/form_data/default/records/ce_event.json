@@ -11,7 +11,27 @@
           "text": "Event Date",
           "mapping": {
             "field_name": "eventDate"
-          }
+          },
+          "bounds": [
+            {
+              "id": "max",
+              "_comment": "cannot be in the future",
+              "type": "MAX",
+              "value_local_constant": "$today"
+            },
+            {
+              "id": "max-exit",
+              "_comment": "cannot be after exit date",
+              "type": "MAX",
+              "value_local_constant": "$exitDate"
+            },
+            {
+              "id": "min",
+              "_comment": "cannot be before entry date",
+              "type": "MIN",
+              "value_local_constant": "$entryDate"
+            }
+          ]
         },
         {
           "type": "CHOICE",

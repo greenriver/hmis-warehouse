@@ -849,7 +849,6 @@ Style/MultipleComparison:
 Style/MutableConstant:
   Exclude:
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
-    - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
     - 'app/models/grda_warehouse/us_census_api/census_variable.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
@@ -1035,7 +1034,6 @@ Style/StringLiterals:
     - 'app/models/grda_warehouse/report/demographic.rb'
     - 'app/models/grda_warehouse/shape.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
-    - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
     - 'app/models/grda_warehouse/us_census_api/census_variable.rb'
     - 'app/models/grda_warehouse/us_census_api/is_a_database_view.rb'
     - 'app/models/grda_warehouse/us_census_api/relevant_variables.rb'
@@ -1113,7 +1111,6 @@ Style/TrailingCommaInArguments:
 # SupportedStylesForMultiline: comma, consistent_comma, no_comma
 Style/TrailingCommaInArrayLiteral:
   Exclude:
-    - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/grda_warehouse/vispdat/youth.rb'
     - 'app/models/health/claims/view_model.rb'
@@ -1132,7 +1129,6 @@ Style/TrailingCommaInHashLiteral:
     - 'app/models/glacier/utils.rb'
     - 'app/models/grda_warehouse/shape.rb'
     - 'app/models/grda_warehouse/tasks/enrollment_extras_import.rb'
-    - 'app/models/grda_warehouse/us_census_api/aggregates.rb'
     - 'app/models/grda_warehouse/vispdat/family.rb'
     - 'app/models/health/claims/view_model.rb'
     - 'app/models/health/soap/file_list.rb'
