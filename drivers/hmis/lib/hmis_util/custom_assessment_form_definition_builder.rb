@@ -139,7 +139,7 @@ class HmisUtil::CustomAssessmentFormDefinitionBuilder
     end
 
     class AssessmentDateItem < BaseItem
-      attr_accessor :title, :assessment_date, :autofill_values
+      attr_accessor :title, :assessment_date, :autofill_values, :required
       def type
         DATE_TYPE
       end
@@ -152,7 +152,7 @@ class HmisUtil::CustomAssessmentFormDefinitionBuilder
     end
 
     class SelectItem < BaseItem
-      attr_accessor :title, :choices, :component
+      attr_accessor :title, :choices, :component, :required
       def type
         CHOICE_TYPE
       end
@@ -168,10 +168,17 @@ class HmisUtil::CustomAssessmentFormDefinitionBuilder
         self.choices ||= []
         self.choices.push(choice)
       end
+    end
+
+    class PicklistItem < BaseItem
+      attr_accessor :title, :pick_list_reference, :component, :required
+      def type
+        CHOICE_TYPE
+      end
 
       def as_json(...)
         super(...).tap do |result|
-          result['required'] = true
+          result['component'] = component.nil? ? 'RADIO_BUTTONS_VERTICAL' : component
         end
       end
     end
@@ -286,6 +293,12 @@ class HmisUtil::CustomAssessmentFormDefinitionBuilder
 
   def new_score_display(...)
     Items::AutofillSumItem.new(...)
+  end
+
+  def new_yes_no_question(...)
+    Items::PicklistItem.new(...).tap do |item|
+      item.pick_list_reference = 'NoYes'
+    end
   end
 
   def new_list(...)
