@@ -14,7 +14,9 @@ module HudSpmReport::Generators::Fy2023
     end
 
     def self.client_class
-      HudSpmReport::Fy2023::Return
+      HudSpmReport::Fy2023::Return.
+        left_outer_joins(:exit_enrollment, :return_enrollment).
+        preload(exit_enrollment: { enrollment: :project }, return_enrollment: { enrollment: :project })
     end
 
     def self.table_descriptions

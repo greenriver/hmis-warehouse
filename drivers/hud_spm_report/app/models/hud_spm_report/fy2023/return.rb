@@ -39,9 +39,10 @@ module HudSpmReport::Fy2023
     end
 
     def self.detail_headers
-      client_columns = ['client_id']
+      client_columns = ['client_id', 'exit_enrollment.first_name', 'exit_enrollment.last_name', 'exit_enrollment.personal_id']
       hidden_columns = ['id', 'report_instance_id'] + client_columns
-      columns = client_columns + (column_names - hidden_columns)
+      join_columns = ['exit_enrollment.enrollment.project.project_name', 'return_enrollment.enrollment.project.project_name']
+      columns = client_columns + (column_names + join_columns - hidden_columns)
       columns.map do |col|
         [col, header_label(col)]
       end.to_h
