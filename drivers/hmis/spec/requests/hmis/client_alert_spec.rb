@@ -50,6 +50,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(alerts[0]['note']).to eq('pears'), 'Results should be in descending order by creation time'
       expect(alerts[1]['note']).to eq('bananas')
     end
+
+    it 'should not return expired alerts' do
+      a1 = Hmis::ClientAlert.first
+      a1.expiration_date = Date.current - 10.days
+      a1.save!
+      response, result = post_graphql(id: c1.id) { query }
+      expect(response.status).to eq(200), result.inspect
+      alerts = result.dig('data', 'client', 'alerts')
+      expect(alerts.size).to eq 1
+      expect(alerts[0]['note']).to eq('pears')
+    end
   end
 
   describe 'when the user does not have permission to view client alerts' do

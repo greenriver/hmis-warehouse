@@ -19,4 +19,8 @@ class Hmis::ClientAlert < Hmis::HmisBase
     in: PRIORITY_LEVELS,
     message: '%{value} is not a valid priority level',
   }
+
+  scope :active, -> do
+    where(arel_table[:expiration_date].eq(nil).or(arel_table[:expiration_date].gt(Time.current)))
+  end
 end
