@@ -51,7 +51,7 @@ class HmisUtil::CustomAssessmentFormDefinitionBuilder
   module Items
     class BaseItem
       attr_writer :link_id
-      attr_accessor :cded
+      attr_accessor :cded, :extra_attrs
       def initialize(attributes = {})
         attributes.each do |name, value|
           send("#{name}=", value)
@@ -87,6 +87,8 @@ class HmisUtil::CustomAssessmentFormDefinitionBuilder
             'custom_field_key' => cded['key'],
           }
         end
+        extra = result.delete('extra_attrs')
+        result = extra ? result.merge(extra) : result
         result.merge({ 'type' => type, 'link_id' => link_id })
       end
     end
