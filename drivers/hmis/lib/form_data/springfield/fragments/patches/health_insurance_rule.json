@@ -229,7 +229,7 @@
                 {
                   "variable": "projectFunders",
                   "operator": "INCLUDE",
-                  "value": 36
+                  "value": 34
                 }
               ]
             },
