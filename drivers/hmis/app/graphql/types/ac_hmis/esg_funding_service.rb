@@ -9,8 +9,6 @@
 module Types
   class AcHmis::EsgFundingService < Types::BaseObject
     include Types::HmisSchema::HasCustomDataElements
-    include Types::HmisSchema::HasFlatProjectAndOrganization
-
     description 'AC ESG Funding Service'
 
     field :id, ID, null: false
@@ -19,11 +17,14 @@ module Types
     field :mci_ids, [Types::HmisSchema::ExternalIdentifier], null: false
     field :first_name, String, null: true
     field :last_name, String, null: true
+    field :project_id, ID, null: false
+    field :project_name, String, null: false
+    field :organization_id, ID, null: false
+    field :organization_name, String, null: false
     field :date_provided, GraphQL::Types::ISO8601Date, null: false
     field :fa_amount, Float, null: true
     field :fa_start_date, GraphQL::Types::ISO8601Date, null: true
     field :fa_end_date, GraphQL::Types::ISO8601Date, null: true
-    flat_project_and_organization_fields(nullable: false, skip_project_type: true)
 
     custom_data_elements_field
 
@@ -33,6 +34,22 @@ module Types
         for_service_type(object.custom_service_type_id)
 
       resolve_custom_data_elements(object, definition_scope: definition_scope)
+    end
+
+    def project_id
+      object.project.project_id
+    end
+
+    def project_name
+      project.project_name
+    end
+
+    def organization_id
+      organization.organization_id
+    end
+
+    def organization_name
+      organization.organization_name
     end
 
     def client_id

@@ -3366,9 +3366,9 @@ type EsgFundingService {
   lastName: String
   mciIds: [ExternalIdentifier!]!
   organizationId: ID!
-  organizationName: String
+  organizationName: String!
   projectId: ID!
-  projectName: String
+  projectName: String!
 }
 
 """
