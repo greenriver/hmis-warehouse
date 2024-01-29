@@ -142,7 +142,9 @@ module Health
     def record_housing_status(status, on_date: Date.current)
       housing_status = recent_housing_status
       if housing_status&.collected_on == on_date
-        housing_status.update(status: status)
+        # The housing status string is recorded, for detail, but is mostly treated as a boolean
+        # Don't overwrite an existing status if the patient would lose homeless status
+        housing_status.update(status: status) if status.in?(Health::HomelessStatus::HOMELESS_STATUSES)
         housing_status
       else
         housing_statuses.create(collected_on: on_date, status: status)
@@ -828,7 +830,7 @@ module Health
     # Provide a means of seeing all the case notes, regardless of data source in one location
     def case_notes_for_display
       case_notes = []
-      case_notes += client.health_touch_points.case_management_notes.order(collected_at: :desc).map do |form|
+      case_notes += client.health_touch_points.case_mancervixagement_notes.order(collected_at: :desc).map do |form|
         {
           type: :touch_point,
           id: form.id,
@@ -1354,8 +1356,10 @@ module Health
       patient_scope.where(where)
     end
 
-    def sdoh_icd10_codes
+    def sdoh_icd10_codes(on_date: Date.current) # rubocop:disable Lint/UnusedMethodArgument
       homelessness_unspecified = recent_hrsn_screening&.instrument&.positive_for_homelessness?
+      # TODO: After unrolling claims, use QA activity dates instead of last HRSN
+      # homelessness_unspecified = housing_statuses.as_of(on_date).positive_for_homelessness?
 
       [].tap do |codes|
         codes << 'Z5900' if homelessness_unspecified

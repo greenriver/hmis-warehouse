@@ -119,6 +119,12 @@ module Health
       self.housing_placement_date = nil unless housing_status_includes_date?
     end
 
+    after_save :record_housing_status
+
+    def record_housing_status
+      patient&.record_housing_status(housing_status, on_date: date_of_contact)
+    end
+
     def self.last_form
       last_form_created.first
     end

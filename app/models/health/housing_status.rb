@@ -15,4 +15,21 @@ class Health::HousingStatus < HealthBase
       order(collected_on: :desc).
       limit(1)
   end
+
+  HOMELESS_STATUSES = [
+    'Doubling Up',
+    'Shelter',
+    'Street',
+    'Transitional Housing or Residential Treatment Program',
+    'Transitional Housing / Residential Treatment Program', # Case Management Note
+    'Motel',
+    'Supportive Housing',
+    'Assisted Living Facility, Nursing Home, Rest Home',
+    'Assisted Living / Nursing Home / Rest Home', # Case Management Note
+    'Homeless', # From THRIVE
+  ].freeze
+
+  def positive_for_homelessness?
+    status.in?(HOMELESS_STATUSES)
+  end
 end
