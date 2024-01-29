@@ -177,7 +177,7 @@ class HmisUtil::CustomAssessmentFormDefinitionBuilder
     end
 
     class ScoreItem < BaseItem
-      attr_accessor :title, :choices, :component
+      attr_accessor :title, :choices, :component, :required
       def type
         CHOICE_TYPE
       end
@@ -199,22 +199,34 @@ class HmisUtil::CustomAssessmentFormDefinitionBuilder
       def as_json(...)
         super(...).tap do |result|
           result['component'] = 'RADIO_BUTTONS_VERTICAL'
-          result['required'] = true
+          result['required'] = required.nil? ? true : required
         end
       end
     end
 
     class TextItem < BaseItem
-      attr_accessor :title, :component
+      attr_accessor :title, :component, :required
       def type
         TEXT_TYPE
+      end
+
+      def as_json(...)
+        super(...).tap do |result|
+          result['required'] = required.nil? ? true : required
+        end
       end
     end
 
     class IntegerItem < BaseItem
-      attr_accessor :title, :component
+      attr_accessor :title, :component, :required
       def type
         INTEGER_TYPE
+      end
+
+      def as_json(...)
+        super(...).tap do |result|
+          result['required'] = required.nil? ? true : required
+        end
       end
     end
   end
