@@ -173,7 +173,9 @@ class ClientsController < ApplicationController
   # Create new warehouse_clients to link source and destination
   # Queue update to service history
   def unmerge
-    to_unmerge = client_params['unmerge'].reject(&:empty?)
+    to_unmerge = client_params['unmerge']&.reject(&:empty?)
+    redirect_to({ action: :edit }, alert: 'No clients selected.') and return unless to_unmerge
+
     hmis_receiver = client_params['hmis_receiver']
     health_receiver = client_params['health_receiver']
 
@@ -249,6 +251,8 @@ class ClientsController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   private def client_params
+    return {} unless params[:grda_warehouse_hud_client].present?
+
     params.require(:grda_warehouse_hud_client).
       permit(
         :hmis_receiver,

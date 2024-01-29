@@ -10,9 +10,9 @@ class CustomAuthFailure < Devise::FailureApp
     if scope == :hmis_user
       # This is probably an OKTA callback. Redirect back to the front-end.
       # This is the case when OKTA authentication succeeds but the devise account is locked or inactive
-      return redirect_to_hmis if ENV['HMIS_OKTA_CLIENT_ID'].present? && request.get? && request.headers['X-Csrf-Token'].blank?
+      return redirect_to_hmis if request.get? && request.original_fullpath =~ /\A\/hmis\/users\/auth\/okta\/callback/
 
-      # This is probably a GraphQL API request. Return a JSON error for SPA to handle.
+      # This is probably a GraphQL API or current user/settings request. Return a JSON error for SPA to handle.
       # This is the case when the user signs out in another tab or the session becomes invalid for another reason
       return json_error_response if request.content_type == 'application/json' || request.format == :json
     end

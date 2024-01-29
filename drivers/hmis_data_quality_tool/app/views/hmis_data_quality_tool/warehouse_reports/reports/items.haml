@@ -2,54 +2,55 @@
   = link_to hmis_data_quality_tool_warehouse_reports_report_path(@report) do
     &laquo; #{@report.title}
 
-%h1.ml-2 #{@result.category}: #{@result.title}
-.warehouse-reports__completed.mt-2.d-flex
-  = @report.filter.describe_filter_as_html([:start, :end, :comparison_pattern], inline: true)
-.d-flex.mb-4
-  .mr-4
-    .input-group
-      %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
-      %span.input-group-append
-        %button.btn.btn-secondary Search
-  .ml-auto
-    - key = if @result.key.present? then @result.key else @result.title end
-    = link_to items_hmis_data_quality_tool_warehouse_reports_report_path(@report, key: key, format: :xlsx), class: ['btn', 'btn-secondary'] do
-      %i.icon-file-excel
-      Download Excel
-- if @items.blank?
-  .none-found No records found.
-- else
-  - headers = if @result.slug.present? then @result.item_class.constantize.detail_headers_for(@result.slug, @report, export: false) else @result.detail_columns end
-  .card
-    .overflow-x-scroll{style: "height: 800px"}
-      %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
-        %thead.thead-dark
-          %tr
-            %th
-
-            - headers.each_value do |header|
-              %th= header[:title]
-        %tbody.thead-dark
-          - @items.each.with_index do |item, i|
+- if @result
+  %h1.ml-2 #{@result.category}: #{@result.title}
+  .warehouse-reports__completed.mt-2.d-flex
+    = @report.filter.describe_filter_as_html([:start, :end, :comparison_pattern], inline: true)
+  .d-flex.mb-4
+    .mr-4
+      .input-group
+        %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
+        %span.input-group-append
+          %button.btn.btn-secondary Search
+    .ml-auto
+      - key = if @result.key.present? then @result.key else @result.title end
+      = link_to items_hmis_data_quality_tool_warehouse_reports_report_path(@report, key: key, format: :xlsx), class: ['btn', 'btn-secondary'] do
+        %i.icon-file-excel
+        Download Excel
+  - if @items.blank?
+    .none-found No records found.
+  - else
+    - headers = if @result.slug.present? then @result.item_class.constantize.detail_headers_for(@result.slug, @report, export: false) else @result.detail_columns end
+    .card
+      .overflow-x-scroll{style: "height: 800px"}
+        %table.table.table-sm.table-bordered.table-fixed.datatable{ style: 'margin-top: 0 !important;'}
+          %thead.thead-dark
             %tr
-              %th= i + 1
-              - headers.each_key do |k|
-                -# - value = item.public_send(k)
-                - value = item.download_value(k)
-                %td
-                  - if k.to_s == 'destination_client_id'
-                    = link_to appropriate_client_path(item[k]) do
-                      = value
-                    %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(item.client_id), html: 'true' }}
-                      %i.icon-info
-                  - else
-                    = formatted_cell(value)
-  = content_for :page_js do
-    :javascript
-      table = $('.datatable').DataTable({
-        paging: false,
-        "dom": 'lrtip'
-      });
-      $('#table_search').keyup(function(){
-        table.search($(this).val()).draw();
-      });
+              %th
+
+              - headers.each_value do |header|
+                %th= header[:title]
+          %tbody.thead-dark
+            - @items.each.with_index do |item, i|
+              %tr
+                %th= i + 1
+                - headers.each_key do |k|
+                  -# - value = item.public_send(k)
+                  - value = item.download_value(k)
+                  %td
+                    - if k.to_s == 'destination_client_id'
+                      = link_to appropriate_client_path(item[k]) do
+                        = value
+                      %a{href: '#', class: ['btn', 'btn-sm'], data: { toggle: :popover, title: 'Client Information', url: api_client_path(item.client_id), html: 'true' }}
+                        %i.icon-info
+                    - else
+                      = formatted_cell(value)
+    = content_for :page_js do
+      :javascript
+        table = $('.datatable').DataTable({
+          paging: false,
+          "dom": 'lrtip'
+        });
+        $('#table_search').keyup(function(){
+          table.search($(this).val()).draw();
+        });

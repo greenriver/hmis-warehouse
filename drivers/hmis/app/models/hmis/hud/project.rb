@@ -218,12 +218,11 @@ class Hmis::Hud::Project < Hmis::Hud::Base
       # Inactive features need to continue to be "turned on" in order to view and edit legacy data.
       # If/when there is no legacy data, the instance can be fully deleted.
 
-      best_active_instances = Hmis::Form::Instance.detect_best_instance_scope_for_project(base_scope.active, project: self)
-      best_inactive_instances = Hmis::Form::Instance.detect_best_instance_scope_for_project(base_scope.inactive, project: self)
-      best_instances = [best_active_instances, best_inactive_instances].detect(&:present?)
-      next unless best_instances.present?
-
-      best_instance = best_instances.order(updated_at: :desc).first
+      best_instance = [
+        base_scope.active,
+        base_scope.inactive,
+      ].lazy.map { |scope| scope.order(updated_at: :desc).detect_best_instance_for_project(project: self) }.detect(&:present?)
+      next unless best_instance
 
       OpenStruct.new(
         role: role.to_s,
@@ -245,11 +244,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
     # Choose the most specific instance for each definition identifier
     occurrence_point_identifiers.map do |identifier|
-      scope = base_scope.where(definition_identifier: identifier)
-      best_instances = Hmis::Form::Instance.detect_best_instance_scope_for_project(scope, project: self)
-      next unless best_instances.present?
-
-      best_instances.order(updated_at: :desc).first
+      scope = base_scope.where(definition_identifier: identifier).order(updated_at: :desc)
+      scope.detect_best_instance_for_project(project: self)
     end.compact
   end
 

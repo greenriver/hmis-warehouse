@@ -2860,7 +2860,6 @@ CREATE TABLE public.ansd_enrollments (
     id bigint NOT NULL,
     report_id bigint,
     enrollment_id bigint,
-    project_id character varying,
     project_name character varying,
     project_type integer,
     household_id character varying,
@@ -2888,7 +2887,9 @@ CREATE TABLE public.ansd_enrollments (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     destination_client_id integer,
-    relationship_to_hoh integer
+    relationship_to_hoh integer,
+    placed_date date,
+    project_id bigint
 );
 
 
@@ -6477,7 +6478,8 @@ CREATE TABLE public.configs (
     chronic_tab_roi boolean,
     filter_date_span_years integer DEFAULT 1 NOT NULL,
     include_pii_in_detail_downloads boolean DEFAULT true,
-    self_report_start_date date
+    self_report_start_date date,
+    chronic_adult_only_cohort boolean DEFAULT false
 );
 
 
@@ -18262,7 +18264,8 @@ CREATE TABLE public.hmis_form_processors (
     hud_values jsonb,
     youth_education_status_id integer,
     employment_education_id integer,
-    current_living_situation_id integer
+    current_living_situation_id integer,
+    ce_assessment_id bigint
 );
 
 
@@ -18567,6 +18570,70 @@ CREATE SEQUENCE public.hmis_project_unit_type_mappings_id_seq
 --
 
 ALTER SEQUENCE public.hmis_project_unit_type_mappings_id_seq OWNED BY public.hmis_project_unit_type_mappings.id;
+
+
+--
+-- Name: hmis_scan_card_codes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_scan_card_codes (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    value character varying NOT NULL,
+    created_by_id bigint,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    expires_at timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.value; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.value IS 'code to embed in scan card';
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.created_by_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.created_by_id IS 'user that generated code';
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.deleted_by_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.deleted_by_id IS 'user that deleted code';
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.expires_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.expires_at IS 'when scan card should expire';
+
+
+--
+-- Name: hmis_scan_card_codes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_scan_card_codes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_scan_card_codes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_scan_card_codes_id_seq OWNED BY public.hmis_scan_card_codes.id;
 
 
 --
@@ -21567,7 +21634,8 @@ CREATE TABLE public.performance_measurement_goals (
     destination_so integer DEFAULT 85 NOT NULL,
     destination_homeless_plus integer DEFAULT 85 NOT NULL,
     destination_permanent integer DEFAULT 85 NOT NULL,
-    time_time_homeless_and_ph integer DEFAULT 90 NOT NULL
+    time_time_homeless_and_ph integer DEFAULT 90 NOT NULL,
+    equity_analysis_visible boolean DEFAULT false NOT NULL
 );
 
 
@@ -21711,8 +21779,16 @@ CREATE TABLE public.pm_client_projects (
     deleted_at timestamp without time zone,
     report_id integer,
     for_question character varying,
-    period character varying
+    period character varying,
+    household_type integer
 );
+
+
+--
+-- Name: COLUMN pm_client_projects.household_type; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.pm_client_projects.household_type IS '2.07.4';
 
 
 --
@@ -28416,6 +28492,13 @@ ALTER TABLE ONLY public.hmis_project_unit_type_mappings ALTER COLUMN id SET DEFA
 
 
 --
+-- Name: hmis_scan_card_codes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scan_card_codes ALTER COLUMN id SET DEFAULT nextval('public.hmis_scan_card_codes_id_seq'::regclass);
+
+
+--
 -- Name: hmis_staff id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -32290,6 +32373,14 @@ ALTER TABLE ONLY public.hmis_import_configs
 
 ALTER TABLE ONLY public.hmis_project_unit_type_mappings
     ADD CONSTRAINT hmis_project_unit_type_mappings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_scan_card_codes hmis_scan_card_codes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scan_card_codes
+    ADD CONSTRAINT hmis_scan_card_codes_pkey PRIMARY KEY (id);
 
 
 --
@@ -52786,6 +52877,13 @@ CREATE INDEX index_hmis_form_instances_on_entity ON public.hmis_form_instances U
 
 
 --
+-- Name: index_hmis_form_processors_on_ce_assessment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_ce_assessment_id ON public.hmis_form_processors USING btree (ce_assessment_id);
+
+
+--
 -- Name: index_hmis_form_processors_on_chronic_health_condition_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -52916,6 +53014,34 @@ CREATE INDEX index_hmis_project_unit_type_mappings_on_project_id ON public.hmis_
 --
 
 CREATE INDEX index_hmis_project_unit_type_mappings_on_unit_type_id ON public.hmis_project_unit_type_mappings USING btree (unit_type_id);
+
+
+--
+-- Name: index_hmis_scan_card_codes_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_scan_card_codes_on_client_id ON public.hmis_scan_card_codes USING btree (client_id);
+
+
+--
+-- Name: index_hmis_scan_card_codes_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_scan_card_codes_on_created_by_id ON public.hmis_scan_card_codes USING btree (created_by_id);
+
+
+--
+-- Name: index_hmis_scan_card_codes_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_scan_card_codes_on_deleted_by_id ON public.hmis_scan_card_codes USING btree (deleted_by_id);
+
+
+--
+-- Name: index_hmis_scan_card_codes_on_value; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hmis_scan_card_codes_on_value ON public.hmis_scan_card_codes USING btree (value);
 
 
 --
@@ -57882,13 +58008,6 @@ CREATE INDEX index_tx_research_exports_on_user_id ON public.tx_research_exports 
 
 
 --
--- Name: index_unique_identifiers_per_role; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_unique_identifiers_per_role ON public.hmis_form_definitions USING btree (identifier, role, version, status);
-
-
---
 -- Name: index_universe_type_and_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -58477,6 +58596,13 @@ CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "Personal
 
 
 --
+-- Name: tt_hh_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX tt_hh_id ON public.service_history_enrollments USING btree (household_id);
+
+
+--
 -- Name: tx_id_ds_id_ft_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -58537,6 +58663,13 @@ CREATE UNIQUE INDEX uidx_hmis_external_referrals_identifier ON public.hmis_exter
 --
 
 CREATE UNIQUE INDEX uidx_hmis_external_unit_availability_syncs ON public.hmis_external_unit_availability_syncs USING btree (project_id, unit_type_id);
+
+
+--
+-- Name: uidx_hmis_form_definitions_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX uidx_hmis_form_definitions_identifier ON public.hmis_form_definitions USING btree (identifier, version);
 
 
 --
@@ -60618,6 +60751,14 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231226194235'),
 ('20240102155413'),
 ('20240102205532'),
-('20240105222927');
+('20240105222927'),
+('20240110135132'),
+('20240113025936'),
+('20240115190843'),
+('20240116193554'),
+('20240117133558'),
+('20240118203430'),
+('20240119035058'),
+('20240125143214');
 
 

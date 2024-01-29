@@ -64,7 +64,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
     def referral_params(household)
       {
         referral_id: random_id,
-        referral_date: Date.today,
+        referral_date: Date.current,
         service_coordinator: Faker::Name.name,
         posting_id: random_id,
         program_id: project_mper_id, # project == program

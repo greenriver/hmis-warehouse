@@ -18,7 +18,7 @@ module PerformanceMeasurement::WarehouseReports
     before_action :set_report, except: [:index, :create, :details]
     before_action :set_pdf_export, only: [:show]
 
-    @external = false
+    @include_in_published_version = false
 
     def index
       @filter.default_project_type_codes = report_class.default_project_type_codes
@@ -36,6 +36,7 @@ module PerformanceMeasurement::WarehouseReports
     def show
       # Used for testing PDF generation
       # render 'show_pdf', layout: 'layouts/performance_report'
+      @default_goal = PerformanceMeasurement::Goal.default_goal
     end
 
     def create
@@ -93,6 +94,16 @@ module PerformanceMeasurement::WarehouseReports
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
+    end
+
+    def equity_analysis
+      @equity_filters = params[:equity_filters]
+      @analysis_builder = PerformanceMeasurement::EquityAnalysis::Builder.new(@equity_filters, @report, current_user)
+      if @equity_filters.present?
+        # if there are filters set errors
+        flash[:error] = @analysis_builder.valid? ? '' : 'There was an error building the equity analysis.'
+      end
+      render :show
     end
 
     def details_params

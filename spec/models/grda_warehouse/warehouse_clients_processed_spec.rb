@@ -18,7 +18,6 @@ RSpec.describe GrdaWarehouse::WarehouseClientsProcessed, type: :model do
     # Because we are only running the import once, we have to do our own DB and file cleanup
     GrdaWarehouse::Utility.clear!
     cleanup_hmis_csv_fixtures
-    Delayed::Job.delete_all
   end
 
   it 'sets up the harness' do

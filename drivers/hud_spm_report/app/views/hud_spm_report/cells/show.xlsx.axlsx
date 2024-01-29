@@ -5,7 +5,7 @@ wb.add_worksheet(name: @name.slice(0,30).gsub(':', ' ')) do |sheet|
   @clients.each do |client|
     row = []
     @headers.each_key do |k|
-      row << client[k]
+      row << cell_value(client, k)
     end
     sheet.add_row(row)
   end

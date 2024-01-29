@@ -19,7 +19,8 @@ git clone git@github.com:greenriver/hmis-warehouse.git
 
 5. Copy in the sample environment variable
 ```
-cp sample.env .env.local
+cp sample.env .env.local.development
+touch .env.local
 ```
 
 6. Run the setup script

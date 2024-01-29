@@ -319,7 +319,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       input = merge_hud_values(
         test_input.merge(confirmed: false),
-        'operatingEndDate' => Date.today.strftime('%Y-%m-%d'),
+        'operatingEndDate' => Date.current.strftime('%Y-%m-%d'),
       )
 
       response, result = post_graphql(input: { input: input }) { mutation }
@@ -381,7 +381,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       input = merge_hud_values(
         test_input.merge(confirmed: false),
-        'operatingEndDate' => Date.today.strftime('%Y-%m-%d'),
+        'operatingEndDate' => Date.current.strftime('%Y-%m-%d'),
       )
 
       response, result = post_graphql(input: { input: input }) { mutation }
@@ -408,7 +408,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       input = merge_hud_values(
         test_input.merge(confirmed: true),
-        'operatingEndDate' => Date.today.strftime('%Y-%m-%d'),
+        'operatingEndDate' => Date.current.strftime('%Y-%m-%d'),
       )
 
       response, result = post_graphql(input: { input: input }) { mutation }

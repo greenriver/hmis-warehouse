@@ -11,7 +11,6 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
   after(:all) do
     GrdaWarehouse::Utility.clear!
     cleanup_hmis_csv_fixtures
-    Delayed::Job.delete_all
   end
 
   it 'homeless services scope includes all services' do

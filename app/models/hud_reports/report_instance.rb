@@ -188,12 +188,12 @@ module HudReports
 
     # only allow alpha numeric
     def valid_cell_name(cell_name)
-      cell_name.match(/[A-Z0-9]+/i).to_s
+      cell_name&.match(/[A-Z0-9]+/i).to_s
     end
 
     # only allow alpha numeric, and dashes
     def valid_table_name(table)
-      table.match(/[A-Z0-9-]+/i).to_s
+      table&.match(/[A-Z0-9-]+/i).to_s
     end
 
     def as_markdown
