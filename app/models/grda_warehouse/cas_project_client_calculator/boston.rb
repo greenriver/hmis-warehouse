@@ -270,17 +270,19 @@ module GrdaWarehouse::CasProjectClientCalculator
       pre_calculated_days
     end
 
-    private def pathways_days_homeless(assessment, client)
-      unsheltered_days = assessment.question_matching_requirement('c_add_boston_nights_outside_pathways')&.AssessmentAnswer&.to_i || 0
-      sheltered_days = assessment.question_matching_requirement('c_add_boston_nights_sheltered_pathways')&.AssessmentAnswer&.to_i || 0
-      days = (unsheltered_days + sheltered_days).clamp(0, max_extra_homeless_days(client))
+    private def pathways_days_homeless(assessment, _client)
+      assessment.question_matching_requirement('c_new_boston_homeless_nights_total')&.AssessmentAnswer&.to_i || 0
 
-      warehouse_unsheltered_days = assessment.question_matching_requirement('c_boston_homeless_nights_outside_wiw')&.AssessmentAnswer&.to_i || 0
-      warehouse_sheltered_days = assessment.question_matching_requirement('c_boston_homeless_nights_sheltered_wiw')&.AssessmentAnswer&.to_i || 0
+      # unsheltered_days = assessment.question_matching_requirement('c_add_boston_nights_outside_pathways')&.AssessmentAnswer&.to_i || 0
+      # sheltered_days = assessment.question_matching_requirement('c_add_boston_nights_sheltered_pathways')&.AssessmentAnswer&.to_i || 0
+      # days = (unsheltered_days + sheltered_days).clamp(0, max_extra_homeless_days(client))
 
-      days += warehouse_unsheltered_days
-      days += warehouse_sheltered_days
-      days
+      # warehouse_unsheltered_days = assessment.question_matching_requirement('c_boston_homeless_nights_outside_wiw')&.AssessmentAnswer&.to_i || 0
+      # warehouse_sheltered_days = assessment.question_matching_requirement('c_boston_homeless_nights_sheltered_wiw')&.AssessmentAnswer&.to_i || 0
+
+      # days += warehouse_unsheltered_days
+      # days += warehouse_sheltered_days
+      # days
     end
 
     private def max_extra_homeless_days(client)
@@ -298,6 +300,8 @@ module GrdaWarehouse::CasProjectClientCalculator
       client.client_contacts.case_managers.map(&:full_address).join("\n\n")
     end
 
+    # FIXME: this question was removed from 2024 pathways, need it restored, or new
+    # instructions
     private def cas_assessment_name(client)
       # c_housing_assessment_name	1	Pathways
       # c_housing_assessment_name	2	RRH-PSH Transfer
@@ -306,7 +310,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       return 'IdentifiedClientAssessment' unless value.present?
 
       {
-        1 => 'IdentifiedPathwaysVersionThreePathways',
+        1 => 'IdentifiedPathwaysVersionFourPathways',
         2 => 'IdentifiedPathwaysVersionThreeTransfer',
       }[value.to_i] || 'IdentifiedClientAssessment'
     end
@@ -338,7 +342,7 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     private def assessment_score_for_cas(client)
       case cas_assessment_name(client)
-      when 'IdentifiedPathwaysVersionThreePathways'
+      when 'IdentifiedPathwaysVersionFourPathways'
         days_homeless_in_last_three_years_cached(client)
       when 'IdentifiedPathwaysVersionThreeTransfer'
         assessment_score(client)
@@ -347,7 +351,7 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     private def tie_breaker_date(client)
       case cas_assessment_name(client)
-      when 'IdentifiedPathwaysVersionThreePathways'
+      when 'IdentifiedPathwaysVersionFourPathways'
         cas_assessment_collected_at(client)
       when 'IdentifiedPathwaysVersionThreeTransfer'
         financial_assistance_end_date(client)

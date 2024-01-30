@@ -76,5 +76,10 @@ module GrdaWarehouse::Hud
 
       matching_question.AssessmentResult.to_s == answer
     end
+
+    # provide a more specific name when appropriate
+    def name
+      HudUtility2024.assessment_level self.AssessmentLevel
+    end
   end
 end
