@@ -163,13 +163,8 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def child_in_household(client)
-      ages = (1..5).map do |i|
-        most_recent_pathways_or_transfer(client).
-          question_matching_requirement("c_member#{i}_age")&.AssessmentAnswer.presence
-      end.compact
-      return false if ages.blank?
-
-      ages.map(&:to_i).min < 18
+      most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_pathway_pregnant_parentingchild')&.AssessmentAnswer&.to_i&.positive?
     end
 
     private def youth_rrh_desired(client)
@@ -301,7 +296,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     # FIXME: this question was removed from 2024 pathways, need it restored, or new
-    # instructions
+    # instructions.  May also need to accommodate new and old versions.
     private def cas_assessment_name(client)
       # c_housing_assessment_name	1	Pathways
       # c_housing_assessment_name	2	RRH-PSH Transfer
@@ -310,8 +305,9 @@ module GrdaWarehouse::CasProjectClientCalculator
       return 'IdentifiedClientAssessment' unless value.present?
 
       {
-        1 => 'IdentifiedPathwaysVersionFourPathways',
+        1 => 'IdentifiedPathwaysVersionThreePathways',
         2 => 'IdentifiedPathwaysVersionThreeTransfer',
+        3 => 'IdentifiedPathwaysVersionFourPathways',
       }[value.to_i] || 'IdentifiedClientAssessment'
     end
 
@@ -342,7 +338,7 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     private def assessment_score_for_cas(client)
       case cas_assessment_name(client)
-      when 'IdentifiedPathwaysVersionFourPathways'
+      when 'IdentifiedPathwaysVersionThreePathways', 'IdentifiedPathwaysVersionFourPathways'
         days_homeless_in_last_three_years_cached(client)
       when 'IdentifiedPathwaysVersionThreeTransfer'
         assessment_score(client)
@@ -351,7 +347,7 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     private def tie_breaker_date(client)
       case cas_assessment_name(client)
-      when 'IdentifiedPathwaysVersionFourPathways'
+      when 'IdentifiedPathwaysVersionThreePathways', 'IdentifiedPathwaysVersionFourPathways'
         cas_assessment_collected_at(client)
       when 'IdentifiedPathwaysVersionThreeTransfer'
         financial_assistance_end_date(client)
