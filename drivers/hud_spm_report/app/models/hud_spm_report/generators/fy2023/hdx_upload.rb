@@ -161,7 +161,7 @@ module HudSpmReport::Generators::Fy2023
         ROWS,
         COLUMNS,
         hide_column_header: true, # Column headers are part of the table
-        external_column_header: true,
+        external_column_header: false,
         external_row_label: true,
       )
 
