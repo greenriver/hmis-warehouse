@@ -4,8 +4,8 @@
 - ce_assessments = []
 - if RailsDrivers.loaded.include?(:eccovia_data)
   - eccovia_assessments = @client.source_eccovia_assessments
-- if @client.source_assessments.pathways_or_rrh.exists?
-  - ce_assessments = @client.source_assessments.pathways_or_rrh.preload(:assessment_questions).to_a.group_by(&:name)
+- if @client.source_assessments.exists?
+  - ce_assessments = @client.source_assessments.preload(:assessment_questions).to_a.group_by(&:name)
 - if hmis_forms.any? || eccovia_assessments.any? || ce_assessments.any?
   - if hmis_forms.any?
     %table.table
@@ -61,6 +61,7 @@
           %th Collection Date
           %th Prioritization Status
           %th Staff
+          %th
       %tbody
         - ce_assessments.each_with_index do |(name, (assessment, *assessments)), i|
           - any_buttons = assessments.any?

@@ -66,5 +66,10 @@ module GrdaWarehouse::Hud
     def default_response_text(answer)
       DEFAULT_ANSWERS[answer.to_s]
     end
+
+    # FIXME: this is temporary until we have a more permanent solution
+    def pathways?
+      self.AssessmentQuestion.to_s == 'c_pathways_barriers_yn'
+    end
   end
 end
