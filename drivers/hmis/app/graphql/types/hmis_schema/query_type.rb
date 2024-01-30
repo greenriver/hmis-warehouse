@@ -171,15 +171,12 @@ module Types
       Hmis::File.viewable_by(current_user).find_by(id: id)
     end
 
-    field :get_form_definition, Types::Forms::FormDefinition, 'Get the most relevant Form Definition to use for record viewing/editing', null: true do
-      argument :role, Types::Forms::Enums::FormRole, required: true
-      argument :project_id, ID, required: false
+    field :record_form_definition, Types::Forms::FormDefinition, 'Get the most relevant Form Definition to use for record viewing/editing', null: true do
+      argument :role, Types::Forms::Enums::RecordFormRole, required: true
+      argument :project_id, ID, required: false, description: 'Optional Project to apply rule filtering (e.g. show/hide questions based on Project applicability)'
     end
-    def get_form_definition(role:, project_id: nil)
-      # Guards to ensure correct usage. It would probably be better to make yet another enum just for this query arg
-      raise 'Not supported, use assessmentFormDefinition to look up assessment forms' if Hmis::Form::Definition::HUD_ASSESSMENT_FORM_ROLES.include?(role.to_sym)
-      raise 'Not supported, use staticFormDefinition to look up static forms' if Hmis::Form::Definition::STATIC_FORM_ROLES.include?(role.to_sym)
-      raise 'Not supported, use getServiceFormDefinition to look up service forms' if role == 'SERVICE'
+    def record_form_definition(role:, project_id: nil)
+      raise 'Not supported, use serviceFormDefinition to look up service forms' if role == 'SERVICE'
 
       project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
       record = Hmis::Form::Definition.find_definition_for_role(role, project: project)
@@ -213,11 +210,11 @@ module Types
       record
     end
 
-    field :get_service_form_definition, Types::Forms::FormDefinition, 'Get most relevant form definition for the specified service type', null: true do
+    field :service_form_definition, Types::Forms::FormDefinition, 'Get most relevant form definition for the specified service type', null: true do
       argument :service_type_id, ID, required: true
       argument :project_id, ID, required: true
     end
-    def get_service_form_definition(service_type_id:, project_id:)
+    def service_form_definition(service_type_id:, project_id:)
       project = Hmis::Hud::Project.find_by(id: project_id)
       raise HmisErrors::ApiError, 'Project not found' unless project.present?
 
