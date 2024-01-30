@@ -861,11 +861,11 @@ CREATE TABLE public.hmis_roles (
     can_view_limited_enrollment_details boolean DEFAULT false,
     can_impersonate_users boolean DEFAULT false,
     can_audit_users boolean DEFAULT false,
-    can_audit_enrollments boolean DEFAULT false,
     can_configure_data_collection boolean DEFAULT false,
+    can_audit_enrollments boolean DEFAULT false,
+    can_manage_scan_cards boolean DEFAULT false,
     can_view_client_alerts boolean DEFAULT false,
-    can_manage_client_alerts boolean DEFAULT false,
-    can_manage_scan_cards boolean DEFAULT false
+    can_manage_client_alerts boolean DEFAULT false
 );
 
 
@@ -1728,7 +1728,8 @@ CREATE TABLE public.roles (
     system boolean DEFAULT false NOT NULL,
     can_edit_collections boolean DEFAULT false,
     can_publish_reports boolean DEFAULT false,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    can_edit_own_client_notes boolean DEFAULT false
 );
 
 
@@ -4301,6 +4302,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231221165752'),
 ('20231221165753'),
 ('20240122220024'),
-('20240123160215');
+('20240123160215'),
+('20240124173020');
 
 
