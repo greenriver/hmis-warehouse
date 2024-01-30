@@ -13,8 +13,6 @@ module Types
     argument :priority, Types::HmisSchema::Enums::ClientAlertPriorityLevel, required: false
 
     def to_params
-      # TODO @martha pr - is this the correct place to attach created_by?
-      # TODO @martha - need to validate the user has permissions on this particular client
       h = to_h
       h['created_by'] = current_user
       h

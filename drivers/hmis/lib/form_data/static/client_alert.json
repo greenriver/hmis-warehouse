@@ -18,13 +18,21 @@
       }
     },
     {
-      "type": "STRING",
+      "type": "DATE",
       "required": false,
       "link_id": "expirationDate",
       "text": "Alert Duration / Expiration",
       "mapping": {
         "field_name": "expirationDate"
-      }
+      },
+      "bounds": [
+        {
+          "id": "min-expiration",
+          "type": "MIN",
+          "_comment": "entry date cannot be in the past",
+          "value_local_constant": "$today"
+        }
+      ]
     }
   ]
 }
