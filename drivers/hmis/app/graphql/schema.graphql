@@ -679,6 +679,7 @@ type Client {
   addresses: [ClientAddress!]!
   afghanistanOef: NoYesReasonsForMissingData
   age: Int
+  alerts: [ClientAlert!]!
   assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(filters: ClientAuditEventFilterOptions, limit: Int, offset: Int): ClientAuditEventsPaginated!
   contactPoints: [ClientContactPoint!]!
@@ -854,6 +855,24 @@ enum ClientAddressUse {
   Work
   """
   work
+}
+
+"""
+Alert
+"""
+type ClientAlert {
+  createdAt: ISO8601DateTime!
+  createdBy: ApplicationUser
+  expirationDate: ISO8601Date
+  id: ID!
+  note: String!
+  priority: ClientAlertPriorityLevel!
+}
+
+enum ClientAlertPriorityLevel {
+  high
+  low
+  medium
 }
 
 type ClientAuditEvent {
