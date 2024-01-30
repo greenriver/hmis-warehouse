@@ -102,6 +102,13 @@ class ProjectGroupsController < ApplicationController
   def maintenance
   end
 
+  def download
+    @project_groups = project_group_scope
+    @project_groups = @project_groups.text_search(params[:q]) if params[:q].present?
+
+    headers['Content-Disposition'] = "attachment; filename=Project Groups - #{Date.current.strftime('%Y-%m-%d')}.xlsx"
+  end
+
   def import
     file = maintenance_params[:file]
     errors = project_group_source.import_csv(file)
