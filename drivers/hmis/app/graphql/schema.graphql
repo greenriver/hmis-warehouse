@@ -6094,7 +6094,7 @@ type PickListOption {
   label: String
 
   """
-  numeric value, such as a score
+  Numeric value, such as a score
   """
   numericValue: Int
 
