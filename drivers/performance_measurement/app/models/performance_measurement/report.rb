@@ -1373,11 +1373,70 @@ module PerformanceMeasurement
     end
 
     # Publishing
+    def publish_summary?
+      true
+    end
+
     def publish_files
       [
         {
           name: 'index.html',
           content: -> { as_html },
+          type: 'text/html',
+        },
+        {
+          name: 'application.css',
+          content: -> {
+            css = Rails.application.assets['application.css'].to_s
+            # need to replace the paths to the font files
+            [
+              'icons.ttf',
+              'icons.svg',
+              'icons.eot',
+              'icons.woff',
+              'icons.woff2',
+            ].each do |filename|
+              css.gsub!("url(/assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
+              # Also replace development version of assets url
+              css.gsub!("url(/dev-assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
+            end
+            css
+          },
+          type: 'text/css',
+        },
+        {
+          name: 'icons.ttf',
+          content: -> { Rails.application.assets['icons.ttf'].to_s },
+          type: 'text/css',
+        },
+        {
+          name: 'icons.svg',
+          content: -> { Rails.application.assets['icons.svg'].to_s },
+          type: 'text/css',
+        },
+        {
+          name: 'icons.eot',
+          content: -> { Rails.application.assets['icons.eot'].to_s },
+          type: 'text/css',
+        },
+        {
+          name: 'icons.woff',
+          content: -> { Rails.application.assets['icons.woff'].to_s },
+          type: 'text/css',
+        },
+        {
+          name: 'icons.woff2',
+          content: -> { Rails.application.assets['icons.woff'].to_s },
+          type: 'text/css',
+        },
+      ]
+    end
+
+    def publish_summary_files
+      [
+        {
+          name: 'index.html',
+          content: -> { summary_as_html },
           type: 'text/html',
         },
         {
