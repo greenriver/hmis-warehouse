@@ -165,7 +165,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       owner_class: Hmis::Hud::Client,
       permission: :can_edit_clients,
     },
-    # todo @martha - add sth here?
   }.freeze
 
   FORM_DATA_COLLECTION_STAGES = {

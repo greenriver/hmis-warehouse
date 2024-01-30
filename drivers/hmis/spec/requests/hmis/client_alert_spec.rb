@@ -37,8 +37,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:create_alert) do
     <<~GRAPHQL
-      mutation CreateClientAlert($id: ID!, $note: String!, $expirationDate: ISO8601Date, $priority: ClientAlertPriorityLevel) {
-        createClientAlert(id: $id, note: $note, expirationDate: $expirationDate, priority: $priority) {
+      mutation CreateClientAlert($input: ClientAlertInput!) {
+        createClientAlert(input: $input) {
           clientAlert {
             id
             note
@@ -47,6 +47,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             createdBy { id }
             createdAt
           }
+          #{error_fields}
         }
       }
     GRAPHQL
@@ -80,12 +81,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'should successfully create an alert' do
-      response, result = post_graphql(
-        id: c1.id,
-        note: 'raspberries',
-        priority: 'high',
-        expirationDate: Date.current + 2.months,
-      ) { create_alert }
+      mutation_input = { id: c1.id.to_s, note: 'raspberries', priority: 'high', expirationDate: Date.current + 2.months }
+      response, result = post_graphql(input: mutation_input) { create_alert }
       expect(response.status).to eq(200), result.inspect
       alert_id = result.dig('data', 'createClientAlert', 'clientAlert', 'id')
       expect(alert_id).not_to be_nil
@@ -109,7 +106,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'should not be able to create alerts either' do
-      expect_gql_error post_graphql(id: c1.id, note: 'strawberries') { create_alert }
+      mutation_input = { id: c1.id.to_s, note: 'errr' }
+      # expect_gql_error post_graphql(input: mutation_input) { create_alert }
+      response, result = post_graphql(input: mutation_input) { create_alert }
+      expect(response).to eq(200) # TODO @martha pr - this is from default_create_record
+      err = result.dig('data', 'createClientAlert', 'errors')
+      expect(err.size).to eq(1)
+      expect(err[0]['message']).to eq('operation not allowed')
       expect(c1.alerts.size).to eq(2), 'a third alert should not have been created'
     end
   end

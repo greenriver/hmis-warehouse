@@ -866,6 +866,16 @@ type ClientAlert {
   priority: ClientAlertPriorityLevel!
 }
 
+"""
+Client Alert Input
+"""
+input ClientAlertInput {
+  expirationDate: ISO8601Date
+  id: ID!
+  note: String!
+  priority: ClientAlertPriorityLevel
+}
+
 enum ClientAlertPriorityLevel {
   high
   low
@@ -5559,7 +5569,7 @@ type Mutation {
     input: ClearRecentItemsInput!
   ): ApplicationUser
   createAutoExitConfig(input: AutoExitConfigInput!): CreateAutoExitConfigPayload
-  createClientAlert(expirationDate: ISO8601Date, id: ID!, note: String!, priority: ClientAlertPriorityLevel): CreateClientAlertPayload
+  createClientAlert(input: ClientAlertInput!): CreateClientAlertPayload
   createDirectUpload(
     """
     Parameters for CreateDirectUpload

@@ -3,7 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
-# todo @martha - is this needed?
+
 module Types
   class HmisSchema::AutoExitConfigInput < BaseInputObject
     description 'Auto Exit Config Input'
