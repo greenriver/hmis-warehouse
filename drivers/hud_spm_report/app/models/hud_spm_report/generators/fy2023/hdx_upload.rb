@@ -210,8 +210,35 @@ module HudSpmReport::Generators::Fy2023
       @report.answer(question: table_name, cell: cell_name)&.summary || ''
     end
 
-    def dq(section, table, cell_name)
-      # TODO:
+    def dq(section, table_name, cell_name)
+      return unless RailsDrivers.loaded.include?(:hud_apr)
+
+      dq_report = case section
+      when :essh
+        @essh_report ||= generate_dq(HudUtility2024.residential_project_type_numbers_by_codes(:es, :sh))
+      when :th
+        @th_report ||= generate_dq(HudUtility2024.residential_project_type_numbers_by_codes(:th))
+      when :pshoph
+        @psoph_report ||= generate_dq(HudUtility2024.residential_project_type_numbers_by_codes(:psh, :oph))
+      when :rrh
+        @rrh_report ||= generate_dq(HudUtility2024.residential_project_type_numbers_by_codes(:rrh))
+      when :so
+        @so_report ||= generate_dq(HudUtility2024.residential_project_type_numbers_by_codes(:so))
+      end
+
+      dq_report&.answer(question: table_name, cell: cell_name)&.summary || ''
+    end
+
+    private def generate_dq(project_types)
+      dq_filter = filter
+      # Don't include project types if they were excluded from the filter
+      dq_filter.relevant_project_types = project_types & filter.project_type_ids if filter.project_type_ids.any?
+
+      generator = HudApr::Generators::Dq::Fy2024::Generator
+      report = ::HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: ['Question 1', 'Question 4'])
+      generator.new(report).run!(email: false, manual: false)
+
+      report
     end
 
     def filter
