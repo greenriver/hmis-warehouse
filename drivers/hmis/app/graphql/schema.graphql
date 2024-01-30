@@ -870,8 +870,8 @@ type ClientAlert {
 Client Alert Input
 """
 input ClientAlertInput {
+  clientId: ID!
   expirationDate: ISO8601Date
-  id: ID!
   note: String!
   priority: ClientAlertPriorityLevel
 }

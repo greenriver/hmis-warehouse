@@ -81,7 +81,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'should successfully create an alert' do
-      mutation_input = { id: c1.id.to_s, note: 'raspberries', priority: 'high', expirationDate: Date.current + 2.months }
+      mutation_input = { clientId: c1.id.to_s, note: 'raspberries', priority: 'high', expirationDate: Date.current + 2.months }
       response, result = post_graphql(input: mutation_input) { create_alert }
       expect(response.status).to eq(200), result.inspect
       alert_id = result.dig('data', 'createClientAlert', 'clientAlert', 'id')
@@ -106,10 +106,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'should not be able to create alerts either' do
-      mutation_input = { id: c1.id.to_s, note: 'errr' }
+      mutation_input = { clientId: c1.id.to_s, note: 'errr' }
       # expect_gql_error post_graphql(input: mutation_input) { create_alert }
       response, result = post_graphql(input: mutation_input) { create_alert }
-      expect(response).to eq(200) # TODO @martha pr - this is from default_create_record
+      expect(response.status).to eq(200) # TODO @martha pr - this is from default_create_record
       err = result.dig('data', 'createClientAlert', 'errors')
       expect(err.size).to eq(1)
       expect(err[0]['message']).to eq('operation not allowed')

@@ -7,15 +7,15 @@ module Types
   class HmisSchema::ClientAlertInput < BaseInputObject
     description 'Client Alert Input'
 
-    argument :id, ID, required: true
+    argument :client_id, ID, required: true
     argument :note, String, required: true
     argument :expiration_date, GraphQL::Types::ISO8601Date, required: false
     argument :priority, Types::HmisSchema::Enums::ClientAlertPriorityLevel, required: false
 
     def to_params
-      # TODO @martha pr - is this the correct place to attach client and created_by?
+      # TODO @martha pr - is this the correct place to attach created_by?
+      # TODO @martha - need to validate the user has permissions on this particular client
       h = to_h
-      h['client'] = Hmis::Hud::Client.viewable_by(current_user).find(id)
       h['created_by'] = current_user
       h
     end
