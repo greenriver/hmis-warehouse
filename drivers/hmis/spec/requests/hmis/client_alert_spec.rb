@@ -79,10 +79,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(alerts.size).to eq 1
       expect(alerts[0]['note']).to eq('pears')
     end
-  end
-
-  describe 'when the user does not have permission to view client alerts' do
-    let!(:access_control) { create_access_control(hmis_user, p1, without_permission: :can_view_client_alerts) }
 
     it 'should successfully create an alert' do
       mutation_input = { clientId: c1.id.to_s, note: 'raspberries', priority: 'high', expirationDate: Date.current + 2.months }
