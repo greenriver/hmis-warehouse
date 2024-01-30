@@ -83,7 +83,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       # create the initial WIP assessments
       @wip_assessment_ids = []
       [e1, e2, e3].each do |e|
-        _resp, result = post_graphql(input: { input: { enrollment_id: e.id, **save_input } }) { save_assessment }
+        resp, result = post_graphql(input: { input: { enrollment_id: e.id, **save_input } }) { save_assessment }
+        raise if resp.status != 200
+
         @wip_assessment_ids << result.dig('data', 'saveAssessment', 'assessment')
       end
     end
@@ -144,6 +146,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         confirmed: true,
       }
       response, result = post_graphql(input: input) { mutation }
+      # byebug
       assessments = result.dig('data', 'submitHouseholdAssessments', 'assessments')
       errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
 
