@@ -59,7 +59,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     {
       form_definition_id: fd1.id,
       values: { 'linkid-date' => 2.weeks.ago.strftime('%Y-%m-%d') },
-      hud_values: { 'informationDate' => 2.weeks.ago.strftime('%Y-%m-%d') },
+      hud_values: { 'assessmentDate' => 2.weeks.ago.strftime('%Y-%m-%d') },
     }
   end
   let(:incomplete_values) { { **save_input[:values], 'linkid-choice' => nil } }
@@ -146,7 +146,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         confirmed: true,
       }
       response, result = post_graphql(input: input) { mutation }
-      # byebug
       assessments = result.dig('data', 'submitHouseholdAssessments', 'assessments')
       errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
 

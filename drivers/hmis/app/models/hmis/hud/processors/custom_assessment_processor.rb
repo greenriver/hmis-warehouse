@@ -11,7 +11,7 @@ module Hmis::Hud::Processors
     end
 
     def schema
-      Types::HmisSchema::CustomCaseNote
+      Types::HmisSchema::Assessment
     end
 
     def information_date(_)
