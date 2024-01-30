@@ -70,5 +70,6 @@ module Types
     field :restore_scan_card_code, mutation: Mutations::RestoreScanCardCode
 
     field :create_client_alert, mutation: Mutations::CreateClientAlert
+    field :delete_client_alert, mutation: Mutations::DeleteClientAlert
   end
 end
