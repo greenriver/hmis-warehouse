@@ -64,7 +64,7 @@ module Types
       raise "Assessment without form processor: #{object.id}" unless form_processor.present?
 
       # If definition is stored on form processor, return that.
-      # TODO: check if form is retired? For non-WIP assessments, we should
+      # TODO: check if form is retired? For non-WIP non-custom assessments, we should
       # really be choosing the "latest" form, which may not be the one on the FormProcessor.
       definition = load_ar_association(form_processor, :definition)
       # If there was no definition specified, which would occur if this is a migrated assessment, choose an appropriate one.
