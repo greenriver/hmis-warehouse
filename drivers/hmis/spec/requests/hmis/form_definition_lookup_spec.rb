@@ -29,8 +29,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   describe 'Form definition lookup for record-editing' do
     let(:query) do
       <<~GRAPHQL
-        query GetFormDefinition($projectId: ID, $role: FormRole!) {
-          getFormDefinition(projectId: $projectId, role: $role) {
+        query recordFormDefinition($projectId: ID, $role: RecordFormRole!) {
+          recordFormDefinition(projectId: $projectId, role: $role) {
             #{form_definition_fragment}
           }
         }
@@ -43,7 +43,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       aggregate_failures 'checking response' do
         expect(response.status).to eq(200), result.inspect
-        form_definition = result.dig('data', 'getFormDefinition')
+        form_definition = result.dig('data', 'recordFormDefinition')
         expect(form_definition).to be_present
         expect(form_definition['role']).to eq(role.to_s)
       end
@@ -79,7 +79,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let(:service_query) do
       <<~GRAPHQL
         query GetServiceFormDefinition($serviceTypeId: ID!, $projectId: ID!) {
-          getServiceFormDefinition(serviceTypeId: $serviceTypeId, projectId: $projectId) {
+          serviceFormDefinition(serviceTypeId: $serviceTypeId, projectId: $projectId) {
             #{form_definition_fragment}
           }
         }
@@ -93,7 +93,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       response, result = post_graphql({ project_id: p1.id.to_s, service_type_id: cst1.id.to_s }) { service_query }
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
-        form_definition = result.dig('data', 'getServiceFormDefinition')
+        form_definition = result.dig('data', 'serviceFormDefinition')
         expect(form_definition).to be_nil
       end
     end
@@ -111,7 +111,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
-        form_definition = result.dig('data', 'getServiceFormDefinition')
+        form_definition = result.dig('data', 'serviceFormDefinition')
         expect(form_definition).to be_present
         expect(form_definition['id']).to eq(service_form_definition.id.to_s)
       end
@@ -129,7 +129,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
-        form_definition = result.dig('data', 'getServiceFormDefinition')
+        form_definition = result.dig('data', 'serviceFormDefinition')
         expect(form_definition).to be_present
         expect(form_definition['id']).to eq(service_form_definition.id.to_s)
       end

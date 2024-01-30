@@ -325,6 +325,9 @@ enum AssessmentLevel {
   INVALID
 }
 
+"""
+Form Roles that are used for assessments. These types of forms are submitted using SubmitAssessment.
+"""
 enum AssessmentRole {
   """
   Annual
@@ -8314,16 +8317,6 @@ type Query {
   funder(id: ID!): Funder
 
   """
-  Get the most relevant Form Definition to use for record viewing/editing
-  """
-  getFormDefinition(projectId: ID, role: FormRole!): FormDefinition
-
-  """
-  Get most relevant form definition for the specified service type
-  """
-  getServiceFormDefinition(projectId: ID!, serviceTypeId: ID!): FormDefinition
-
-  """
   Household lookup
   """
   household(id: ID!): Household
@@ -8362,6 +8355,17 @@ type Query {
   """
   projectCoc(id: ID!): ProjectCoc
   projects(filters: ProjectFilterOptions, limit: Int, offset: Int, sortOrder: ProjectSortOption): ProjectsPaginated!
+
+  """
+  Get the most relevant Form Definition to use for record viewing/editing
+  """
+  recordFormDefinition(
+    """
+    Optional Project to apply rule filtering (e.g. show/hide questions based on Project applicability)
+    """
+    projectId: ID
+    role: RecordFormRole!
+  ): FormDefinition
   referralPosting(id: ID!): ReferralPosting
 
   """
@@ -8370,6 +8374,11 @@ type Query {
   service(id: ID!): Service
   serviceCategories(limit: Int, offset: Int): ServiceCategoriesPaginated!
   serviceCategory(id: ID!): ServiceCategory
+
+  """
+  Get most relevant form definition for the specified service type
+  """
+  serviceFormDefinition(projectId: ID!, serviceTypeId: ID!): FormDefinition
 
   """
   Service type lookup
@@ -8635,6 +8644,106 @@ Types allowed for recent items
 enum RecentItemType {
   Client
   Project
+}
+
+"""
+Form Roles that are used for record-editing. These types of forms are submitted using SubmitForm.
+"""
+enum RecordFormRole {
+  """
+  Case note
+  """
+  CASE_NOTE
+
+  """
+  CE assessment
+  """
+  CE_ASSESSMENT
+
+  """
+  CE event
+  """
+  CE_EVENT
+
+  """
+  CE participation
+  """
+  CE_PARTICIPATION
+
+  """
+  Client
+  """
+  CLIENT
+
+  """
+  Client detail
+  """
+  CLIENT_DETAIL
+
+  """
+  Current living situation
+  """
+  CURRENT_LIVING_SITUATION
+
+  """
+  Enrollment
+  """
+  ENROLLMENT
+
+  """
+  File
+  """
+  FILE
+
+  """
+  Funder
+  """
+  FUNDER
+
+  """
+  HMIS participation
+  """
+  HMIS_PARTICIPATION
+
+  """
+  Inventory
+  """
+  INVENTORY
+
+  """
+  New client enrollment
+  """
+  NEW_CLIENT_ENROLLMENT
+
+  """
+  Occurrence point
+  """
+  OCCURRENCE_POINT
+
+  """
+  Organization
+  """
+  ORGANIZATION
+
+  """
+  Project
+  """
+  PROJECT
+
+  """
+  Project CoC
+  """
+  PROJECT_COC
+
+  """
+  Referral request
+  """
+  REFERRAL_REQUEST
+
+  """
+  Service
+  """
+  SERVICE
 }
 
 """
@@ -10244,6 +10353,9 @@ enum SexualOrientation {
   QUESTIONING_UNSURE
 }
 
+"""
+Form Roles that are used for non-configurable forms. These types of forms are submitted using custom mutations.
+"""
 enum StaticFormRole {
   """
   Auto exit config

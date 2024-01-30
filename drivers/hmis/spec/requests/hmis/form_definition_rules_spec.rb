@@ -193,8 +193,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     let(:query) do
       <<~GRAPHQL
-        query GetFormDefinition($projectId: ID, $role: FormRole!) {
-          getFormDefinition(projectId: $projectId, role: $role) {
+        query recordFormDefinition($projectId: ID, $role: RecordFormRole!) {
+          recordFormDefinition(projectId: $projectId, role: $role) {
             #{form_definition_fragment}
           }
         }
@@ -204,7 +204,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     def query_form_definition_items
       response, result = post_graphql({ project_id: p1.id.to_s, role: form_role }) { query }
       expect(response.status).to eq(200), result.inspect
-      result.dig('data', 'getFormDefinition', 'definition', 'item', 0, 'item')
+      result.dig('data', 'recordFormDefinition', 'definition', 'item', 0, 'item')
     end
 
     describe 'applies projectType rule' do
