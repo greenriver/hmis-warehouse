@@ -192,6 +192,7 @@ module Types
       argument :id, ID, required: false, description: 'Form Definition ID, if known'
       argument :role, Types::Forms::Enums::AssessmentRole, required: false, description: 'Assessment role, if looking up by role'
       argument :assessment_date, GraphQL::Types::ISO8601Date, required: false, description: 'Date to use for Rule filtering on the definition'
+      validates required: { one_of: [:id, :role] }
     end
     def assessment_form_definition(project_id:, id: nil, role: nil, assessment_date: nil)
       raise 'id or role required' if id.nil? && role.nil?
