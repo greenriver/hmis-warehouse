@@ -103,25 +103,6 @@ module WarehouseReports::S3Toolset
     bucket = s3_bucket
     prefix = public_s3_directory
 
-    if publish_summary?
-      publish_summary_files.each do |file|
-        key = File.join(prefix, path.to_s, 'summary', file[:name])
-        resp = s3_client.put_object(
-          acl: 'public-read',
-          bucket: bucket,
-          key: key,
-          body: file[:content].call,
-          content_disposition: 'inline',
-          content_type: file[:type],
-        )
-        if resp.etag
-          Rails.logger.info "Successfully uploaded summary report file to s3 (#{key})"
-        else
-          Rails.logger.info "Unable to upload summary report file (#{key}})"
-        end
-      end
-    end
-
     publish_files.each do |file|
       key = File.join(prefix, path.to_s, file[:name])
       resp = s3_client.put_object(
@@ -160,21 +141,6 @@ module WarehouseReports::S3Toolset
   private def remove_all_from_s3
     bucket = s3_bucket
     prefix = public_s3_directory
-
-    if publish_summary?
-      publish_summary_files.each do |file|
-        key = File.join(prefix, path.to_s, 'summary', file[:name])
-        resp = s3_client.delete_object(
-          bucket: bucket,
-          key: key,
-        )
-        if resp.delete_marker
-          Rails.logger.info "Successfully removed summary report file from s3 (#{key})"
-        else
-          Rails.logger.info "Unable to remove the summary report file (#{key})"
-        end
-      end
-    end
 
     publish_files.each do |file|
       key = File.join(prefix, path.to_s, file[:name])

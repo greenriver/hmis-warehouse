@@ -1377,6 +1377,34 @@ module PerformanceMeasurement
       true
     end
 
+    def publish_summary_url
+      return unless publish_summary?
+      return unless published_report.present?
+
+      published_report.published_url.gsub('index.html', 'summary.html')
+    end
+
+    def publish_summary_embed_code
+      return unless publish_summary?
+      return unless published_report.present?
+
+      published_report.embed_code.gsub(published_report.published_url, publish_summary_url)
+    end
+
+    def view_summary_template
+      :raw_summary
+    end
+
+    def summary_as_html
+      return controller_class.render(view_summary_template, layout: raw_layout, assigns: { report: self }) unless view_template.is_a?(Array)
+
+      view_template.map do |template|
+        string = html_section_start(template)
+        string << controller_class.render(template, layout: raw_layout, assigns: { report: self })
+        string << html_section_end(template)
+      end.join
+    end
+
     def publish_files
       [
         {
@@ -1385,57 +1413,7 @@ module PerformanceMeasurement
           type: 'text/html',
         },
         {
-          name: 'application.css',
-          content: -> {
-            css = Rails.application.assets['application.css'].to_s
-            # need to replace the paths to the font files
-            [
-              'icons.ttf',
-              'icons.svg',
-              'icons.eot',
-              'icons.woff',
-              'icons.woff2',
-            ].each do |filename|
-              css.gsub!("url(/assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
-              # Also replace development version of assets url
-              css.gsub!("url(/dev-assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
-            end
-            css
-          },
-          type: 'text/css',
-        },
-        {
-          name: 'icons.ttf',
-          content: -> { Rails.application.assets['icons.ttf'].to_s },
-          type: 'text/css',
-        },
-        {
-          name: 'icons.svg',
-          content: -> { Rails.application.assets['icons.svg'].to_s },
-          type: 'text/css',
-        },
-        {
-          name: 'icons.eot',
-          content: -> { Rails.application.assets['icons.eot'].to_s },
-          type: 'text/css',
-        },
-        {
-          name: 'icons.woff',
-          content: -> { Rails.application.assets['icons.woff'].to_s },
-          type: 'text/css',
-        },
-        {
-          name: 'icons.woff2',
-          content: -> { Rails.application.assets['icons.woff'].to_s },
-          type: 'text/css',
-        },
-      ]
-    end
-
-    def publish_summary_files
-      [
-        {
-          name: 'index.html',
+          name: 'summary.html',
           content: -> { summary_as_html },
           type: 'text/html',
         },

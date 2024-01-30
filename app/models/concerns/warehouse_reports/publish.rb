@@ -23,22 +23,6 @@ module WarehouseReports::Publish
       ]
     end
 
-    # Override as necessary
-    def publish_summary?
-      false
-    end
-
-    # Override as necessary
-    def publish_summary_files
-      [
-        {
-          name: 'index.html',
-          content: -> { summary_as_html },
-          type: 'text/html',
-        },
-      ]
-    end
-
     def publish_warning
       previously_published = self.class.published(path)
       return nil if previously_published.blank?
@@ -66,21 +50,6 @@ module WarehouseReports::Publish
       end
       publish_url = "#{publish_url}/#{path}" if path.present?
       "#{publish_url}/index.html"
-    end
-
-    def publish_summary_url
-      return unless publish_summary?
-      return unless published_report.present?
-
-      # Reference the summary folder within the S3 directory for this published report
-      published_report.published_url.split('/').insert(-2, 'summary').join('/')
-    end
-
-    def publish_summary_embed_code
-      return unless publish_summary?
-      return unless published_report.present?
-
-      published_report.embed_code.gsub(published_report.published_url, publish_summary_url)
     end
 
     def published_report
@@ -154,22 +123,8 @@ module WarehouseReports::Publish
       end.join
     end
 
-    def summary_as_html
-      return controller_class.render(view_summary_template, layout: raw_layout, assigns: { report: self }) unless view_template.is_a?(Array)
-
-      view_template.map do |template|
-        string = html_section_start(template)
-        string << controller_class.render(template, layout: raw_layout, assigns: { report: self })
-        string << html_section_end(template)
-      end.join
-    end
-
     def view_template
       :raw
-    end
-
-    def view_summary_template
-      :raw_summary
     end
 
     def html_section_start(section)

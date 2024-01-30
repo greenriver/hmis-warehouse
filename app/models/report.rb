@@ -102,9 +102,6 @@ class Report < ApplicationRecord
   def as_html results
   end
 
-  def summary_as_html results
-  end
-
   def has_options? # rubocop:disable Naming/PredicateName
     false
   end
