@@ -1,0 +1,30 @@
+{
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "priority",
+      "text": "Alert Priority Level",
+      "pick_list_reference": "ClientAlertPriorityLevel",
+      "mapping": {
+        "field_name": "priority"
+      }
+    },
+    {
+      "type": "TEXT",
+      "link_id": "note",
+      "text": "Alert Note",
+      "mapping": {
+        "field_name": "note"
+      }
+    },
+    {
+      "type": "STRING",
+      "required": false,
+      "link_id": "expirationDate",
+      "text": "Alert Duration / Expiration",
+      "mapping": {
+        "field_name": "expirationDate"
+      }
+    }
+  ]
+}

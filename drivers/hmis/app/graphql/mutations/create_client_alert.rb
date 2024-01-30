@@ -6,7 +6,9 @@ module Mutations
     argument :priority, Types::HmisSchema::Enums::ClientAlertPriorityLevel, required: false
 
     field :client_alert, Types::HmisSchema::ClientAlert, null: true
+    field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
+    # todo @martha - expiry in json should be a datepicker - use form playground link from Gig
     def resolve(id:, note:, expiration_date: nil, priority: nil)
       raise 'not allowed' unless current_user.can_manage_client_alerts
 

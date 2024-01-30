@@ -3975,6 +3975,11 @@ enum FormRole {
   CLIENT
 
   """
+  Client alert
+  """
+  CLIENT_ALERT
+
+  """
   Client detail
   """
   CLIENT_DETAIL
@@ -10247,6 +10252,11 @@ enum StaticFormRole {
   Auto exit config
   """
   AUTO_EXIT_CONFIG
+
+  """
+  Client alert
+  """
+  CLIENT_ALERT
 
   """
   Form definition

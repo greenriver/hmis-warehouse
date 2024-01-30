@@ -68,6 +68,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   STATIC_FORM_ROLES = [
     :FORM_RULE,
     :AUTO_EXIT_CONFIG,
+    :CLIENT_ALERT,
     :FORM_DEFINITION,
   ].freeze
 
@@ -164,6 +165,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       owner_class: Hmis::Hud::Client,
       permission: :can_edit_clients,
     },
+    # todo @martha - add sth here?
   }.freeze
 
   FORM_DATA_COLLECTION_STAGES = {
