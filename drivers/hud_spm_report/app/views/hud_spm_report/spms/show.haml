@@ -13,11 +13,10 @@
       .ml-auto
         - if @pdf_export.present?
           = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: path_for_report_download(@report, format: :xlsx)
-        - if generator.uploadable_version?
+        - if generator.uploadable_version? && @report.generated_uploadable_version?
           .mt-4
             = link_to({format: :csv},{class: 'btn btn-primary'}) do
               %span.icon-download2
               Download HDX 2.0 File
 
     = render 'hud_reports/questions'
-
