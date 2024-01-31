@@ -6,8 +6,8 @@
 
 COLUMN_LABELS = ('A'..'Z').to_a.freeze
 
-def goals(file_path:, question:, external_column_header:)
-  csv_file = File.join(file_path, question + '.csv')
+def goals(file_path:, question:, csv_name:, external_column_header:)
+  csv_file = File.join(file_path, csv_name || question + '.csv')
   data = CSV.read(csv_file)
   data = data[1..] if external_column_header # Drop the first line if the header is outside the table in the spec, but included in the goal file
 
@@ -42,8 +42,8 @@ def compare_columns(goal:, question:, column_names:)
   end
 end
 
-def compare_results(goal: nil, file_path:, question:, skip: [], external_column_header: false, external_row_label: false, detail_columns: [])
-  goal ||= goals(file_path: file_path, question: question, external_column_header: external_column_header)
+def compare_results(goal: nil, file_path:, question:, skip: [], external_column_header: false, external_row_label: false, csv_name: nil, detail_columns: [])
+  goal ||= goals(file_path: file_path, question: question, csv_name: csv_name, external_column_header: external_column_header)
 
   aggregate_failures 'comparing cells' do
     results_metadata = report_result.answer(question: question).metadata
