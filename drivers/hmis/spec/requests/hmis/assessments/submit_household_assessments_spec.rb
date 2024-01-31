@@ -26,7 +26,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, user: u1, entry_date: '2022-01-01', household_id: e1.household_id, relationship_to_ho_h: 99 }
   let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, user: u1, entry_date: '2022-01-01', household_id: e1.household_id, relationship_to_ho_h: 99 }
   let!(:e4) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c4, user: u1, entry_date: '2022-01-01', relationship_to_ho_h: 99 }
-  let!(:fd1) { create :hmis_form_definition }
+  let!(:fd1) do
+    ['informationDate', 'fieldOne', 'fieldTwo'].each do |key|
+      create(:hmis_custom_data_element_definition, key: key, owner_type: Hmis::Hud::CustomAssessment.sti_name, data_source: ds1)
+    end
+    create :hmis_form_definition
+  end
   let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1 }
 
   before(:each) do
@@ -59,7 +64,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     {
       form_definition_id: fd1.id,
       values: { 'linkid-date' => 2.weeks.ago.strftime('%Y-%m-%d') },
-      hud_values: { 'assessmentDate' => 2.weeks.ago.strftime('%Y-%m-%d') },
+      hud_values: { 'informationDate' => 2.weeks.ago.strftime('%Y-%m-%d') },
     }
   end
   let(:incomplete_values) { { **save_input[:values], 'linkid-choice' => nil } }
