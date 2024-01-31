@@ -371,7 +371,7 @@ module PerformanceMeasurement
 
             # Use the previously calculated household_type, for now, just get the first for the client
             # that matches one of the prior calculations
-            project_client = project_clients[client_id].detect do |pc|
+            project_client = project_clients[client_id]&.detect do |pc|
               pc[:for_question].in?(parts[:household_type_keys])
             end
 
