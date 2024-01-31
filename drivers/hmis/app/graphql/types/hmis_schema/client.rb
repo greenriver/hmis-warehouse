@@ -75,6 +75,7 @@ module Types
     field :additional_race_ethnicity, String, null: true
     field :names, [HmisSchema::ClientName], null: false
     field :addresses, [HmisSchema::ClientAddress], null: false
+    field :alerts, [HmisSchema::ClientAlert], null: false
     field :contact_points, [HmisSchema::ClientContactPoint], null: false
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
@@ -277,6 +278,12 @@ module Types
 
     def addresses
       load_ar_association(object, :addresses)
+    end
+
+    def alerts
+      return [] unless current_permission?(permission: :can_view_client_alerts, entity: object)
+
+      load_ar_association(object, :alerts, scope: Hmis::ClientAlert.active).sort_by(&:created_at).reverse
     end
 
     def hud_chronic
