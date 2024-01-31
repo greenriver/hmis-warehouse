@@ -278,7 +278,7 @@ module PerformanceMeasurement
     private def add_clients(report_clients)
       # Run CoC-wide SPMs for year prior to selected date and period 2 years prior
       # add records for each client to indicate which projects they were enrolled in within the report window
-      project_clients = Set.new
+      project_clients = {}
       involved_projects = Set.new
       run_spm.each do |variant_name, spec|
         spm_fields.each do |parts|
@@ -303,7 +303,8 @@ module PerformanceMeasurement
               parts[:questions].each do |question|
                 report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(member)
                 hud_project_ids.each do |project_id|
-                  project_clients << {
+                  project_clients[hud_client.id] ||= Set.new
+                  project_clients[hud_client.id] << {
                     report_id: id,
                     client_id: hud_client.id,
                     project_id: project_id,
@@ -317,7 +318,8 @@ module PerformanceMeasurement
                 project_client_attrs = cpr.call(member)
                 next unless project_client_attrs
 
-                project_clients << project_client_attrs.reverse_merge(
+                project_clients[hud_client.id] ||= Set.new
+                project_clients[hud_client.id] << project_client_attrs.reverse_merge(
                   report_id: id,
                   client_id: hud_client.id,
                   period: variant_name,
@@ -346,7 +348,8 @@ module PerformanceMeasurement
 
             parts[:value_calculation].call(:project_ids, client_id, data).each do |project_id, hh_type|
               involved_projects << project_id
-              project_clients << {
+              project_clients[client_id] ||= Set.new
+              project_clients[client_id] << {
                 report_id: id,
                 client_id: client_id,
                 project_id: project_id,
@@ -366,14 +369,21 @@ module PerformanceMeasurement
             client["#{variant_name}_#{parts[:key]}"] = value
             next unless value
 
+            # Use the previously calculated household_type, for now, just get the first for the client
+            # that matches one of the prior calculations
+            project_client = project_clients[client_id].detect do |pc|
+              pc[:for_question].in?(parts[:household_type_keys])
+            end
+
             # These are only system level
-            project_clients << {
+            project_clients[client_id] ||= Set.new
+            project_clients[client_id] << {
               report_id: id,
               client_id: client_id,
               project_id: nil,
               for_question: parts[:key], # allows limiting for a specific response
               period: variant_name,
-              household_type: nil,
+              household_type: project_client[:household_type],
             }
           end
         end
@@ -389,7 +399,7 @@ module PerformanceMeasurement
       )
       Project.import!([:report_id, :project_id], involved_projects.map { |p_id| [id, p_id] }, batch_size: 5_000)
       # Enforce that the hashes in project_clients have all the necessary columns defined by converting it to an array of ClientProject records
-      ClientProject.import!(project_clients.to_a.compact.map { |attr| ClientProject.new(attr) }, batch_size: 5_000)
+      ClientProject.import!(project_clients.values.flat_map(&:to_a).compact.map { |attr| ClientProject.new(attr) }, batch_size: 5_000)
       universe.add_universe_members(report_clients)
     end
 
@@ -918,6 +928,10 @@ module PerformanceMeasurement
             client["#{variant_name}_served_on_pit_date_sheltered"] ||
             client["#{variant_name}_served_on_pit_date_unsheltered"]
           },
+          household_type_keys: [
+            :served_on_pit_date_sheltered,
+            :served_on_pit_date_unsheltered,
+          ],
         },
         {
           key: :retention_or_positive_destination,
@@ -928,6 +942,11 @@ module PerformanceMeasurement
 
             false
           },
+          household_type_keys: [
+            :so_destination,
+            :es_sh_th_rrh_destination,
+            :moved_in_destination,
+          ],
         },
       ]
     end
