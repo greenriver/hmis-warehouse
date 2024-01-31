@@ -880,8 +880,19 @@ input ClientAlertInput {
 }
 
 enum ClientAlertPriorityLevel {
+  """
+  1 - High
+  """
   high
+
+  """
+  3 - Low
+  """
   low
+
+  """
+  2 - Medium
+  """
   medium
 }
 
