@@ -79,13 +79,13 @@ module HmisExternalApis::AcHmis
       no_change_count = 0
       unrecognized_destination_id_count = 0
 
-      # is this dropping multiples source clients?
+      # HMIS Source Clients, keyed by Destination ID
       clients_by_destination_id = clients.group_by(&:warehouse_id).stringify_keys
 
       records_needing_processing.each do |record|
         # Find source clients for this destination id
         clients = clients_by_destination_id[record['clientId']]
-        if clients.nil? || clients.size.zero?
+        if clients.nil?
           unrecognized_destination_id_count += 1
           next
         end
