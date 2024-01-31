@@ -15,7 +15,7 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
   let!(:o1) { create :hmis_hud_organization, data_source: ds1, user: u1 }
 
   describe 'for night-by-night shelter' do
-    let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 0 }
+    let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 1 }
     let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
     let!(:aec) { create :hmis_auto_exit_config, length_of_absence_days: 30 }
 
@@ -24,6 +24,9 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       e2 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
       create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, user: u1, record_type: 200
       s2 = create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e2, user: u1, record_type: 200, date_provided: Date.current - 31.days
+
+      # It should ignore this CLS even though it was recent
+      create :hmis_current_living_situation, data_source: ds1, client: c1, enrollment: e2, user: u1, information_date: Date.current - 5.days
 
       Hmis::AutoExitJob.perform_now
 
@@ -34,14 +37,12 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       expect(e2.exit_assessment&.data_collection_stage).to eq(3)
     end
 
-    it 'should exit based on entry date if client had no bed nights' do
+    it 'should not exit if client had no bed nights' do
       e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
 
       Hmis::AutoExitJob.perform_now
 
-      expect(Hmis::Hud::Enrollment.exited).to include(e1)
-      expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: e1.entry_date, destination: 30)
-      expect(e1.exit_assessment).to be_present
+      expect(e1.reload.exit).to be_nil
     end
   end
 
