@@ -18,12 +18,6 @@ RSpec.shared_context 'path organization f', shared_context: :metadata do
         file_path: result_file_prefix + results_dir,
         question: 'Q8-Q16',
         csv_name: 'Q8_16.csv',
-        # TODO the following don't currently match, but do produce data
-        # Prior https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec4ABXImQDXgWZCe (appears the test kit includes Exit Date in the active calculation.) Guidance provided, exit date should always be included (B2, B11)
-        skip: [
-          # Pending: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recu6GJJUDn94R9j4 and https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recda7O3T90PIwadz
-          'B7', # 677140 May 9, 2022 (2) and 692358 Aug 22, 2022 (2) counted twice on one day
-        ],
       )
     end
 
@@ -49,11 +43,14 @@ RSpec.shared_context 'path organization f', shared_context: :metadata do
       )
     end
 
-    # Pending: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recPVamjYOzWWTx5U
-    xit 'Q25' do
+    it 'Q25' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q25',
+        # skip: [
+        #   'B39',
+        #   'B40',
+        # ]
       )
     end
 

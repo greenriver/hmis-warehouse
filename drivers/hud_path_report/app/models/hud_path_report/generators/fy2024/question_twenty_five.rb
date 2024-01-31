@@ -54,7 +54,8 @@ module HudPathReport::Generators::Fy2024
           members = universe.members.where(active_and_enrolled_clients)
         else
           query = a_t[:destination].eq(destination)
-          query = query.or(a_t[:destination].eq(nil)) if destination == 99 # Also recognize blank as not collected
+          # Also recognize leavers w/ blank destinations as 'not collected'
+          query = query.or(a_t[:last_date_in_program].not_eq(nil).and(a_t[:destination].eq(nil))) if destination == 99
           members = universe.members.where(active_and_enrolled_clients).where(query)
         end
         answer.add_members(members)
