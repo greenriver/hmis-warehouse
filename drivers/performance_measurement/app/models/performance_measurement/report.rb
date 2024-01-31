@@ -383,7 +383,7 @@ module PerformanceMeasurement
               project_id: nil,
               for_question: parts[:key], # allows limiting for a specific response
               period: variant_name,
-              household_type: project_client[:household_type],
+              household_type: project_client.try(:[], :household_type),
             }
           end
         end
