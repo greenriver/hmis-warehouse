@@ -11,7 +11,6 @@ RSpec.describe GrdaWarehouse::WarehouseReports::HudLot, type: :model do
     # Because we are only running the import once, we have to do our own DB and file cleanup
     GrdaWarehouse::Utility.clear!
     cleanup_hmis_csv_fixtures
-    Delayed::Job.delete_all
   end
 
   # NOTE: these tests are by no means exhaustive

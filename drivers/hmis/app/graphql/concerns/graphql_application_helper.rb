@@ -29,4 +29,12 @@ module GraphqlApplicationHelper
 
     allowed
   end
+
+  # Does the current user have the given permission on entity?
+  #
+  # @param permission [Symbol] :can_do_foo
+  # @param entity [#record] Client, project, etc
+  def current_permission?(permission:, entity:)
+    GraphqlPermissionChecker.current_permission_for_context?(context, permission: permission, entity: entity)
+  end
 end

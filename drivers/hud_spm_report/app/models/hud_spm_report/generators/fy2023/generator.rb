@@ -50,13 +50,20 @@ module HudSpmReport::Generators::Fy2023
       questions.keys.detect { |q| q == question_number } || questions.keys.first
     end
 
-    def self.client_class(_question)
-      # FIXME
-      HudSpmReport::Fy2023::SpmEnrollment
+    def self.client_class(question)
+      questions[question].client_class
+    end
+
+    def self.pii_columns
+      ['enrollment.first_name', 'first_name', 'enrollment.last_name', 'last_name', 'dob', 'ssn']
     end
 
     def self.detail_template
       'hud_spm_report/cells/show'
+    end
+
+    def self.uploadable_version?
+      true
     end
   end
 end

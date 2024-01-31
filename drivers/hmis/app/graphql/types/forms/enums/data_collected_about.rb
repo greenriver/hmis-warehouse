@@ -10,13 +10,7 @@ module Types
   class Forms::Enums::DataCollectedAbout < Types::BaseEnum
     graphql_name 'DataCollectedAbout'
 
-    [
-      'ALL_CLIENTS',
-      'HOH_AND_ADULTS',
-      'HOH',
-      'ALL_VETERANS',
-      'VETERAN_HOH',
-    ].each do |val|
+    Hmis::Form::InstanceEnrollmentMatch::MATCHES.each do |val|
       description = val.titleize.
         gsub(/\bHoh\b/, 'HoH').
         gsub(/\bSsvf\b/, 'SSVF').
