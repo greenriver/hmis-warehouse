@@ -303,8 +303,7 @@ module PerformanceMeasurement
               parts[:questions].each do |question|
                 report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(member)
                 hud_project_ids.each do |project_id|
-                  project_clients[hud_client.id] ||= Set.new
-                  project_clients[hud_client.id] << {
+                  pc_data = {
                     report_id: id,
                     client_id: hud_client.id,
                     project_id: project_id,
@@ -312,19 +311,20 @@ module PerformanceMeasurement
                     period: variant_name,
                     household_type: household_type_for_spm(member),
                   }
+                  project_clients = add_to_project_clients(project_clients, hud_client.id, pc_data)
                 end
               end
               parts[:client_project_rows]&.each do |cpr|
                 project_client_attrs = cpr.call(member)
                 next unless project_client_attrs
 
-                project_clients[hud_client.id] ||= Set.new
-                project_clients[hud_client.id] << project_client_attrs.reverse_merge(
+                pc_data = project_client_attrs.reverse_merge(
                   report_id: id,
                   client_id: hud_client.id,
                   period: variant_name,
                   household_type: household_type_for_spm(member),
                 )
+                project_clients = add_to_project_clients(project_clients, hud_client.id, pc_data)
               end
 
               report_client["#{variant_name}_spm_id"] = spec[:report].id
@@ -348,8 +348,7 @@ module PerformanceMeasurement
 
             parts[:value_calculation].call(:project_ids, client_id, data).each do |project_id, hh_type|
               involved_projects << project_id
-              project_clients[client_id] ||= Set.new
-              project_clients[client_id] << {
+              pc_data = {
                 report_id: id,
                 client_id: client_id,
                 project_id: project_id,
@@ -357,6 +356,7 @@ module PerformanceMeasurement
                 period: variant_name,
                 household_type: hh_type,
               }
+              project_clients = add_to_project_clients(project_clients, client_id, pc_data)
             end
             report_clients[client_id] = report_client
           end
@@ -376,8 +376,7 @@ module PerformanceMeasurement
             end
 
             # These are only system level
-            project_clients[client_id] ||= Set.new
-            project_clients[client_id] << {
+            pc_data = {
               report_id: id,
               client_id: client_id,
               project_id: nil,
@@ -385,6 +384,7 @@ module PerformanceMeasurement
               period: variant_name,
               household_type: project_client.try(:[], :household_type),
             }
+            project_clients = add_to_project_clients(project_clients, client_id, pc_data)
           end
         end
       end
@@ -401,6 +401,12 @@ module PerformanceMeasurement
       # Enforce that the hashes in project_clients have all the necessary columns defined by converting it to an array of ClientProject records
       ClientProject.import!(project_clients.values.flat_map(&:to_a).compact.map { |attr| ClientProject.new(attr) }, batch_size: 5_000)
       universe.add_universe_members(report_clients)
+    end
+
+    private def add_to_project_clients(project_clients, client_id, data)
+      project_clients[client_id] ||= Set.new
+      project_clients[client_id] << data
+      project_clients
     end
 
     private def answer(report, table, cell)
