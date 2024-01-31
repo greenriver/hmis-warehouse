@@ -208,7 +208,7 @@ module HudPathReport::Generators::Fy2024
             prior_living_situation: enrollment.LivingSituation,
             length_of_stay: enrollment.LengthOfStay,
             chronically_homeless: enrollment.chronically_homeless_at_start,
-            domestic_violence: health_and_dv_latest&.DomesticViolenceVictim,
+            domestic_violence: health_and_dv_latest&.DomesticViolenceSurvivor,
             active_client: true, # Note, last_active_enrollment only returns active enrollments, so all are active, also, every question in the PATH report requires Active & ... so we really only report on active clients
             new_client: new_client,
             enrolled_client: enrolled_in_path(enrollment),
