@@ -271,6 +271,8 @@ module GrdaWarehouse::Tasks
         assessor_phone: :assessor_phone,
         match_group: :match_group,
         encampment_decomissioned: :encampment_decomissioned,
+        total_homeless_nights_unsheltered: :total_homeless_nights_unsheltered,
+        service_need: :service_need,
       }
     end
 

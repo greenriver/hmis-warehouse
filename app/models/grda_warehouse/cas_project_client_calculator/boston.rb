@@ -76,16 +76,19 @@ module GrdaWarehouse::CasProjectClientCalculator
         income_maximization_assistance_requested: 'Did the client request income maximization services response from the most recent pathways assessment',
         sro_ok: 'Is the client ok with an SRO response from the most recent pathways assessment',
         evicted: 'Has the client ever been evicted response from the most recent pathways assessment',
+        rrh_desired: 'Is the client interested in Rapid Re-Housing',
+        total_homeless_nights_unsheltered: 'Total # of Unsheltered Nights',
+        required_minimum_occupancy: 'What is the total number of people in your household?',
       }.freeze
     end
 
     private def boolean_lookups
       {
         hiv_positive: 'c_housing_HIV',
-        meth_production_conviction: 'c_transfer_barrier_meth',
         income_maximization_assistance_requested: 'c_interest_income_max',
         sro_ok: 'c_singleadult_sro',
         evicted: 'c_pathways_barrier_eviction',
+        rrh_desired: 'c_interested_rrh',
       }.freeze
     end
     memoize :boolean_lookups
@@ -123,6 +126,9 @@ module GrdaWarehouse::CasProjectClientCalculator
         :domestic_violence,
         :currently_fleeing,
         :dv_date, # needed to show up in the UI
+        :cellphone,
+        :required_minimum_occupancy,
+        :service_need,
       ]
     end
     # memoize :pathways_questions
@@ -156,15 +162,48 @@ module GrdaWarehouse::CasProjectClientCalculator
         present?
     end
 
+    private def meth_production_conviction(client)
+      # check pathways and transfer fields
+      conviction = most_recent_pathways_or_transfer(client).question_matching_requirement('c_pathways_barrier_meth', '1').present? ||
+      most_recent_pathways_or_transfer(client).question_matching_requirement('c_transfer_barrier_meth', '1').present?
+      return true if conviction
+
+      # Otherwise, unknown
+      nil
+    end
+
+    private def service_need(client)
+      need = most_recent_pathways_or_transfer(client).question_matching_requirement('c_pathways_service_indicators', '1').present?
+      return true if need
+
+      # Otherwise, unknown
+      nil
+    end
+
     private def family_member(client)
       response = most_recent_pathways_or_transfer(client).
         question_matching_requirement('c_additional_household_members')
+      response = if response.nil?
+        most_recent_pathways_or_transfer(client).
+          question_matching_requirement('c_pathway_pregnant_parentingchild')
+      end
       response&.AssessmentAnswer&.to_i&.positive?
     end
 
     private def child_in_household(client)
       most_recent_pathways_or_transfer(client).
         question_matching_requirement('c_pathway_pregnant_parentingchild')&.AssessmentAnswer&.to_i&.positive?
+    end
+
+    private def required_minimum_occupancy(client)
+      most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_pathways_Household_size')&.AssessmentAnswer&.to_i
+    end
+
+    private def cellphone(client)
+      # TODO: what is this field name?
+      most_recent_pathways_or_transfer(client).
+        question_matching_requirement('FIXME')&.AssessmentAnswer
     end
 
     private def youth_rrh_desired(client)
@@ -278,6 +317,11 @@ module GrdaWarehouse::CasProjectClientCalculator
       # days += warehouse_unsheltered_days
       # days += warehouse_sheltered_days
       # days
+    end
+
+    private def total_homeless_nights_unsheltered(client)
+      most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_pathways_nights_unsheltered_warehouse_added_total')&.AssessmentAnswer&.to_i
     end
 
     private def max_extra_homeless_days(client)
