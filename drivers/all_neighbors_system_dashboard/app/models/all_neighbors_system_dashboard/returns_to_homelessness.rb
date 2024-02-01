@@ -144,7 +144,7 @@ module AllNeighborsSystemDashboard
 
       scope = case demographic
       when 'Race'
-        scope.where(primary_race: label)
+        scope.where(Enrollment.arel_table[:race_list].matches("%#{label}%"))
       when 'Age', 'Gender'
         filter_for_type(scope, label)
       when 'Household Type'
