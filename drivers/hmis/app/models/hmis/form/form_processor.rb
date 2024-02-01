@@ -457,7 +457,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
           field_name: mapping.field_name,
           custom_field_key: mapping.custom_field_key,
         }
-      end
+      end.uniq
 
     found_mapping = @mapped_form_fields.find do |mapping|
       container_matches = mapping[:container_name] == container
@@ -467,6 +467,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       container_matches && (field_matches || custom_field_key_matches)
     end
 
-    raise "Not a submittable field for Form Definition id:#{definiton.id})" unless found_mapping
+    raise "Not a submittable field for Form Definition id #{definition.id} (#{container}.#{field})" unless found_mapping
   end
 end
