@@ -1790,10 +1790,10 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       }
     end
 
-    let!(:existing_file) { create :file, client: c1, enrollment: e1, blob: blob, user_id: hmis_user.id, tags: [tag] }
-    let!(:new_file) { Hmis::File.new(name: blob.filename) }
+    let!(:existing_file) { create(:file, client: c1, enrollment: e1, blob: blob, user: hmis_user, tags: [tag]) }
+    let!(:new_file) { Hmis::File.new(client: c1) }
 
-    it 'should test' do
+    it 'should create and update file' do
       [existing_file, new_file].each do |file|
         process_record(record: file, hud_values: hud_values, user: hmis_user, definition: definition)
 
