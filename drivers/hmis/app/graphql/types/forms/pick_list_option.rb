@@ -17,6 +17,8 @@ module Types
     field :group_code, String, 'Code for group that option belongs to, if grouped', null: true
     field :group_label, String, 'Label for group that option belongs to, if grouped', null: true
     field :initial_selected, Boolean, 'Whether option is selected by default', null: true
+    field :numeric_value, Integer, 'Numeric value, such as a score', null: true
+    field :helper_text, String, 'Helper text/html', null: true
 
     CODE_PATTERN = /^\(([0-9]*)\) /
 
