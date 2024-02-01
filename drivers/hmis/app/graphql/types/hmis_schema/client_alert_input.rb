@@ -8,7 +8,7 @@ module Types
     description 'Client Alert Input'
 
     argument :client_id, ID, required: true
-    argument :note, String, required: true
+    argument :note, String, required: false
     argument :expiration_date, GraphQL::Types::ISO8601Date, required: false
     argument :priority, Types::HmisSchema::Enums::ClientAlertPriorityLevel, required: false
 

@@ -875,7 +875,7 @@ Client Alert Input
 input ClientAlertInput {
   clientId: ID!
   expirationDate: ISO8601Date
-  note: String!
+  note: String
   priority: ClientAlertPriorityLevel
 }
 
