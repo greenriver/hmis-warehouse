@@ -13,7 +13,8 @@ RSpec.shared_context 'path organization r', shared_context: :metadata do
       run(generator, project_ids_filter(project_ids))
     end
 
-    # TODO: this has an off-by-one
+    # Pending: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recgCQFAPQ183oDbJ
+    # Pending: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rechv4vnjzExZMhVg
     xit 'Q8-Q16' do
       compare_results(
         file_path: result_file_prefix + results_dir,
