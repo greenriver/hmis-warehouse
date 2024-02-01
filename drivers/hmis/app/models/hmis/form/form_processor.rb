@@ -459,12 +459,13 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
         }
       end.uniq
 
+    # Find the FormItem Mapping that matches this field.
+    # If it's not found, then this is not a valid submission.
     found_mapping = @mapped_form_fields.find do |mapping|
-      container_matches = mapping[:container_name] == container
-      field_matches = mapping[:field_name] == field
-      custom_field_key_matches = mapping[:custom_field_key] == field
-
-      container_matches && (field_matches || custom_field_key_matches)
+      mapping[:container_name] == container && (
+        mapping[:field_name] == field ||
+        mapping[:custom_field_key] == field
+      )
     end
 
     raise "Not a submittable field for Form Definition id #{definition.id} (#{container}.#{field})" unless found_mapping
