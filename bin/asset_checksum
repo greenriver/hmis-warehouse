@@ -13,7 +13,7 @@ if [ "$ASSETS_PREFIX" = "" ]; then
 fi
 
 # Pull down our client theme files.
-ASSETS_BUCKET_NAME=openpath-ecs-assets UPDATE_ONLY=false ./bin/sync_app_assets.rb > /dev/null 2>&1
+ASSETS_BUCKET_NAME=openpath-ecs-assets UPDATE_ONLY=false bundle exec ./bin/sync_app_assets.rb > asset.checksum.log 2>&1
 
 # NOTE: enabling this will print out a list of files that will be included in the checksum
 # Also NOTE: if you are having trouble getting the checksum to match, you may want to rebuild the pre-cache image
@@ -41,4 +41,11 @@ tar -cf - --sort=name `# Force sorting` \
   --no-acls `# No ACLs` \
   --mode="go-rwx,u-rw" `# Normalize permissions` \
   --exclude=.keep,*.rbc,**.orig,*.swp `# Exclude a few files we know we don't care about` \
-  app/assets app/javascript | md5sum | cut -d ' ' -f 1
+  app/assets app/javascript > assets.tar
+
+echo PWD=$PWD >> asset.checksum.log
+echo ASSETS_BUCKET_NAME=openpath-ecs-assets >> asset.checksum.log
+echo ASSETS_PREFIX=$ASSETS_PREFIX >> asset.checksum.log
+tar --to-command=md5sum -xvf assets.tar >> asset.checksum.log
+
+cat assets.tar | md5sum | cut -d ' ' -f 1

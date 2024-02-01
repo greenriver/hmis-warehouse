@@ -46,17 +46,21 @@ T1=`date +%s`
 ASSET_CHECKSUM=$(ASSETS_PREFIX=${ASSETS_PREFIX} ./bin/asset_checksum) # This should return the same hash as the call in asset_compiler.rb
 T2=`date +%s`
 echo "...checksumming took $(expr $T2 - $T1) seconds"
+
+echo "asset.checksum.log"
+cat asset.checksum.log
+
 echo "Using ASSET_CHECKSUM [${ASSET_CHECKSUM}]"
 
 echo 'Pulling down the compiled assets...' # Using ASSETS_PREFIX from .env and ASSET_CHECKSUM from above.
 cd ./public/assets
 
 if [ "$CONTAINER_VARIANT" == "deploy" ]; then
-  bundle exec /app/bin/wait_for_compiled_assets.rb
+  bundle exec /app/bin/wait_for_compiled_assets.rb || exit 1
 fi
 
 T1=`date +%s`
-ASSETS_PREFIX="${ASSETS_PREFIX}/${ASSET_CHECKSUM}" ASSETS_BUCKET_NAME=openpath-precompiled-assets UPDATE_ONLY=true /app/bin/sync_app_assets.rb
+ASSETS_PREFIX="${ASSETS_PREFIX}/${ASSET_CHECKSUM}" ASSETS_BUCKET_NAME=openpath-precompiled-assets UPDATE_ONLY=true bundle exec /app/bin/sync_app_assets.rb
 T2=`date +%s`
 echo "...pulling compiled assets took $(expr $T2 - $T1) seconds"
 cd ../..
