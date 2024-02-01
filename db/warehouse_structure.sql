@@ -6478,7 +6478,8 @@ CREATE TABLE public.configs (
     chronic_tab_roi boolean,
     filter_date_span_years integer DEFAULT 1 NOT NULL,
     include_pii_in_detail_downloads boolean DEFAULT true,
-    self_report_start_date date
+    self_report_start_date date,
+    chronic_adult_only_cohort boolean DEFAULT false
 );
 
 
@@ -18263,7 +18264,8 @@ CREATE TABLE public.hmis_form_processors (
     hud_values jsonb,
     youth_education_status_id integer,
     employment_education_id integer,
-    current_living_situation_id integer
+    current_living_situation_id integer,
+    ce_assessment_id bigint
 );
 
 
@@ -21568,7 +21570,8 @@ CREATE TABLE public.performance_measurement_goals (
     destination_so integer DEFAULT 85 NOT NULL,
     destination_homeless_plus integer DEFAULT 85 NOT NULL,
     destination_permanent integer DEFAULT 85 NOT NULL,
-    time_time_homeless_and_ph integer DEFAULT 90 NOT NULL
+    time_time_homeless_and_ph integer DEFAULT 90 NOT NULL,
+    equity_analysis_visible boolean DEFAULT false NOT NULL
 );
 
 
@@ -52795,6 +52798,13 @@ CREATE INDEX index_hmis_form_instances_on_entity ON public.hmis_form_instances U
 
 
 --
+-- Name: index_hmis_form_processors_on_ce_assessment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_ce_assessment_id ON public.hmis_form_processors USING btree (ce_assessment_id);
+
+
+--
 -- Name: index_hmis_form_processors_on_chronic_health_condition_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -57891,13 +57901,6 @@ CREATE INDEX index_tx_research_exports_on_user_id ON public.tx_research_exports 
 
 
 --
--- Name: index_unique_identifiers_per_role; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_unique_identifiers_per_role ON public.hmis_form_definitions USING btree (identifier, role, version, status);
-
-
---
 -- Name: index_universe_type_and_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -58553,6 +58556,13 @@ CREATE UNIQUE INDEX uidx_hmis_external_referrals_identifier ON public.hmis_exter
 --
 
 CREATE UNIQUE INDEX uidx_hmis_external_unit_availability_syncs ON public.hmis_external_unit_availability_syncs USING btree (project_id, unit_type_id);
+
+
+--
+-- Name: uidx_hmis_form_definitions_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX uidx_hmis_form_definitions_identifier ON public.hmis_form_definitions USING btree (identifier, version);
 
 
 --
@@ -60634,8 +60644,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231226194235'),
 ('20240102155413'),
 ('20240102205532'),
+('20240105222927'),
 ('20240110135132'),
+('20240113025936'),
 ('20240115190843'),
-('20240117133558');
+('20240116193554'),
+('20240117133558'),
+('20240119035058'),
+('20240125143214');
 
 

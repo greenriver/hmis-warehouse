@@ -108,6 +108,10 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     data_collection_stage == 1
   end
 
+  def post_exit?
+    data_collection_stage == 6
+  end
+
   def exit?
     data_collection_stage == 3
   end
