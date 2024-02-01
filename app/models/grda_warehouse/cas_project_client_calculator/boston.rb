@@ -79,6 +79,9 @@ module GrdaWarehouse::CasProjectClientCalculator
         rrh_desired: 'Is the client interested in Rapid Re-Housing',
         total_homeless_nights_unsheltered: 'Total # of Unsheltered Nights',
         required_minimum_occupancy: 'What is the total number of people in your household?',
+        housing_barrier: 'Do you have any of the following histories and/or barriers?',
+        additional_homeless_nights_sheltered: 'Length of Time Homeless (Sheltered) - Non-HMIS',
+        additional_homeless_nights_unsheltered: 'Length of Time Homeless (Unsheltered) - Non-HMIS',
       }.freeze
     end
 
@@ -89,6 +92,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         sro_ok: 'c_singleadult_sro',
         evicted: 'c_pathways_barrier_eviction',
         rrh_desired: 'c_interested_rrh',
+        housing_barrier: 'c_pathways_barriers_yn',
       }.freeze
     end
     memoize :boolean_lookups
@@ -129,6 +133,8 @@ module GrdaWarehouse::CasProjectClientCalculator
         :cellphone,
         :required_minimum_occupancy,
         :service_need,
+        :additional_homeless_nights_sheltered,
+        :additional_homeless_nights_unsheltered,
       ]
     end
     # memoize :pathways_questions
@@ -210,8 +216,13 @@ module GrdaWarehouse::CasProjectClientCalculator
       # c_youth_choice	1	Youth-specific only: (Youth-specific programs are with agencies who have a focus on young populations; they may be able to offer drop-in spaces for youth, as well as community-building and connections with other youth)
       # c_youth_choice	2	Adult programs only: (Adult programs serve youth who are 18-24, but may not have built in community space or activities to connect with other youth. They can help you find those opportunities. The adult RRH programs typically have more frequent openings)
       # c_youth_choice	3	Both Adult and youth-specific programs
-      most_recent_pathways_or_transfer(client).
+      option_one = most_recent_pathways_or_transfer(client).
         question_matching_requirement('c_youth_choice')&.AssessmentAnswer.to_s.in?(['1', '3'])
+      return option_one if option_one
+      return false unless client.youth_on?
+
+      # If the client is a youth, and interested in RRH, note that
+      for_boolean(client, 'c_interested_rrh')
     end
 
     private def dv_rrh_desired(client)
@@ -329,6 +340,16 @@ module GrdaWarehouse::CasProjectClientCalculator
       return 1096 if start_date.blank? || start_date.future? || ce_self_certification_client_ids.include?(client.id)
 
       548
+    end
+
+    def additional_homeless_nights_sheltered(client)
+      most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_add_boston_nights_sheltered_pathways')&.AssessmentAnswer&.to_i
+    end
+
+    def additional_homeless_nights_unsheltered(client)
+      most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_add_boston_nights_outside_pathways')&.AssessmentAnswer&.to_i
     end
 
     private def default_shelter_agency_contacts(client)

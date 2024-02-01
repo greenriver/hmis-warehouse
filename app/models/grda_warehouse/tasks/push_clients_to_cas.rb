@@ -272,7 +272,10 @@ module GrdaWarehouse::Tasks
         match_group: :match_group,
         encampment_decomissioned: :encampment_decomissioned,
         total_homeless_nights_unsheltered: :total_homeless_nights_unsheltered,
+        additional_homeless_nights_sheltered: :additional_homeless_nights_sheltered,
+        additional_homeless_nights_unsheltered: :additional_homeless_nights_unsheltered,
         service_need: :service_need,
+        housing_barrier: :housing_barrier,
       }
     end
 
