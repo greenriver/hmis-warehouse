@@ -37,12 +37,14 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       expect(e2.exit_assessment&.data_collection_stage).to eq(3)
     end
 
-    it 'should not exit if client had no bed nights' do
+    it 'should exit based on entry date if client had no bed nights' do
       e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
 
       Hmis::AutoExitJob.perform_now
 
-      expect(e1.reload.exit).to be_nil
+      expect(Hmis::Hud::Enrollment.exited).to include(e1)
+      expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: e1.entry_date, destination: 30)
+      expect(e1.exit_assessment).to be_present
     end
   end
 
