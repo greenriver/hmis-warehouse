@@ -6101,6 +6101,11 @@ type PickListOption {
   groupLabel: String
 
   """
+  Helper text/html
+  """
+  helperText: String
+
+  """
   Whether option is selected by default
   """
   initialSelected: Boolean
@@ -6109,6 +6114,11 @@ type PickListOption {
   Label for the option
   """
   label: String
+
+  """
+  Numeric value, such as a score
+  """
+  numericValue: Int
 
   """
   Secondary label, such as project type or CoC code
