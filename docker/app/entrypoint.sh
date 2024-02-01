@@ -47,8 +47,8 @@ ASSET_CHECKSUM=$(ASSETS_PREFIX=${ASSETS_PREFIX} ./bin/asset_checksum) # This sho
 T2=`date +%s`
 echo "...checksumming took $(expr $T2 - $T1) seconds"
 
-echo "asset.checksum.log"
-cat asset.checksum.log
+# echo "asset.checksum.log"
+# cat asset.checksum.log
 
 echo "Using ASSET_CHECKSUM [${ASSET_CHECKSUM}]"
 
