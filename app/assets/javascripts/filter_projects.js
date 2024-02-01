@@ -61,10 +61,13 @@ App.StimulusApp.register('filter-projects', class extends Stimulus.Controller {
     }
 
     $(this.calculatedProjectsTarget).html('<p class="well rollup-container"></p>')
+    // Fetch the asynchronous nature of the query from the HTML, we'll set it to true for Development only
+    const async = $(this.projectsTarget).data('async')
+
     $.ajax({
       // It is not ideal to call this synchronously as it sometimes hangs the browser temporarily,
       // but if these complete out of order, the project list gets funky.
-      async: false,
+      async: async,
       url: '/api/hud_filters',
       type: 'POST',
       data: data,

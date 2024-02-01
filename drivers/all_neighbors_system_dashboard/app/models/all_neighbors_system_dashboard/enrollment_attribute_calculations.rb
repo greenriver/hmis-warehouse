@@ -169,13 +169,6 @@ module AllNeighborsSystemDashboard
         HudUtility2024.gender(enrollment.client.gender_binary)
       end
 
-      # Need to align with the census races (roughly)
-      # so we're going to pick randomly if a client has more than one
-      # race, and we'll convert all RaceNone to Unknown Race
-      def primary_race(enrollment)
-        HudUtility2024.race(enrollment.client.pit_race, multi_racial: true) || "Doesn't know, prefers not to answer, or not collected"
-      end
-
       def race_list(enrollment)
         enrollment.client.race_description
       end
