@@ -37,6 +37,7 @@ module HudSpmReport::Generators::Fy2023
         HudSpmReport::Generators::Fy2023::MeasureFive,
         HudSpmReport::Generators::Fy2023::MeasureSix,
         HudSpmReport::Generators::Fy2023::MeasureSeven,
+        HudSpmReport::Generators::Fy2023::HdxUpload,
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze

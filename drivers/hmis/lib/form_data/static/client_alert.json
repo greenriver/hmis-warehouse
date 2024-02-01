@@ -7,7 +7,10 @@
       "pick_list_reference": "ClientAlertPriorityLevel",
       "mapping": {
         "field_name": "priority"
-      }
+      },
+      "component": "DROPDOWN",
+      "required": true,
+      "brief_text": "Priority Level"
     },
     {
       "type": "TEXT",
@@ -15,7 +18,8 @@
       "text": "Alert Note",
       "mapping": {
         "field_name": "note"
-      }
+      },
+      "required": true
     },
     {
       "type": "DATE",

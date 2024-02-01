@@ -13,9 +13,7 @@ module Types
     argument :priority, Types::HmisSchema::Enums::ClientAlertPriorityLevel, required: false
 
     def to_params
-      h = to_h
-      h['created_by'] = current_user
-      h
+      to_h
     end
   end
 end

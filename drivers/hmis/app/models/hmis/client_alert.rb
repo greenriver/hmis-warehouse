@@ -10,7 +10,7 @@ class Hmis::ClientAlert < Hmis::HmisBase
   HIGH = 'high'.freeze
   MEDIUM = 'medium'.freeze
   LOW = 'low'.freeze
-  PRIORITY_LEVELS = [LOW, MEDIUM, HIGH].freeze
+  PRIORITY_LEVELS = [HIGH, MEDIUM, LOW].freeze
 
   belongs_to :created_by, class_name: 'Hmis::User'
   belongs_to :client, class_name: 'Hmis::Hud::Client'

@@ -6,15 +6,21 @@ module Mutations
     field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(input:)
-      raise 'not allowed' unless current_user.can_manage_client_alerts
+      client = Hmis::Hud::Client.find(input.client_id)
+      raise 'not allowed' unless current_permission?(permission: :can_manage_client_alerts, entity: client)
 
-      default_create_record(
-        Hmis::ClientAlert,
-        field_name: :client_alert,
-        input: input,
-        permissions: [:can_manage_client_alerts],
-        exclude_default_fields: true,
-      )
+      params = input.to_params
+      alert = Hmis::ClientAlert.new(params)
+      alert.created_by = current_user
+
+      if alert.valid?
+        alert.save!
+        { client_alert: alert }
+      else
+        errors = HmisErrors::Errors.new
+        errors.add_ar_errors(alert.errors)
+        { errors: errors }
+      end
     end
   end
 end
