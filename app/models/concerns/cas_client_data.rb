@@ -194,11 +194,13 @@ module CasClientData
           ).exists?
         end
       when :project_group
-        project_ids = GrdaWarehouse::Config.cas_sync_project_group.projects.ids
+        project_ids = GrdaWarehouse::Config.cas_sync_project_group&.projects&.ids
+        return false unless project_ids.present?
+
         service_history_enrollments.ongoing.in_project(project_ids).exists?
       when :boston
         # Enrolled in project in the project group
-        project_ids = GrdaWarehouse::Config.cas_sync_project_group.projects.ids
+        project_ids = GrdaWarehouse::Config.cas_sync_project_group&.projects&.ids
         project_group_scope = service_history_enrollments.ongoing
         project_group_scope = project_group_scope.in_project(project_ids) if project_ids.any?
 

@@ -1,6 +1,6 @@
 module Hmis
   module Reminders
-    Reminder = Struct.new(:topic, :due_date, :overdue, :enrollment, keyword_init: true) do
+    Reminder = Struct.new(:topic, :due_date, :overdue, :enrollment, :form_definition_id, :assessment_id, keyword_init: true) do
       # id is used for sorting on the front end
       def id
         "#{sortable_date}.#{enrollment.id}.#{topic}"
