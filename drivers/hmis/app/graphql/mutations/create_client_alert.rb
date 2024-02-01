@@ -13,6 +13,11 @@ module Mutations
       alert = Hmis::ClientAlert.new(params)
       alert.created_by = current_user
 
+      errors = HmisErrors::Errors.new
+      errors.add :note, :required if input.note.blank?
+      errors.add :priority, :required unless input.priority
+      return { errors: errors } if errors.any?
+
       if alert.valid?
         alert.save!
         { client_alert: alert }
