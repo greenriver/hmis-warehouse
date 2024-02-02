@@ -9,12 +9,12 @@
   %table.table.table-striped
     %thead
       %tr
-        %th
+        %th{ width: '80%' }
           Sub-Population
           - if @result.hoh_only?
             (For Heads of Household Only)
-        %th= comparison_year
-        %th= report_year
+        %th{ width: '20%' }= comparison_year
+        %th{ width: '20%' }= report_year
     %tbody
       - reporting.each do |k, v|
         - sub_pop = sub_pops[k]

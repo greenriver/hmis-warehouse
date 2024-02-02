@@ -11,9 +11,9 @@
         %table.table.table-striped
           %thead
             %tr
-              %th= type.constantize.breakdown_title
-              %th= comparison_year
-              %th= report_year
+              %th{ width: '80%' }= type.constantize.breakdown_title
+              %th{ width: '20%' }= comparison_year
+              %th{ width: '20%' }= report_year
           %tbody
             - destinations.each do |k, v|
               %tr
