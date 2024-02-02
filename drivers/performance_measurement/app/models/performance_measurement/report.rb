@@ -1398,11 +1398,48 @@ module PerformanceMeasurement
     end
 
     # Publishing
+    def publish_summary?
+      true
+    end
+
+    def publish_summary_url
+      return unless publish_summary?
+      return unless published_report.present?
+
+      published_report.published_url.gsub('index.html', 'summary.html')
+    end
+
+    def publish_summary_embed_code
+      return unless publish_summary?
+      return unless published_report.present?
+
+      published_report.embed_code.gsub(published_report.published_url, publish_summary_url)
+    end
+
+    def view_summary_template
+      :raw_summary
+    end
+
+    def summary_as_html
+      return controller_class.render(view_summary_template, layout: raw_layout, assigns: { report: self }) unless view_template.is_a?(Array)
+
+      view_template.map do |template|
+        string = html_section_start(template)
+        string << controller_class.render(template, layout: raw_layout, assigns: { report: self })
+        string << html_section_end(template)
+      end.join
+    end
+
     def publish_files
       [
         {
           name: 'index.html',
           content: -> { as_html },
+          type: 'text/html',
+        },
+        {
+          name: 'summary.html',
+          content: -> { summary_as_html },
           type: 'text/html',
         },
         {
