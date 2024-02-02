@@ -394,7 +394,7 @@ module HmisExternalApis::AcHmis::Importers
 
             # Abort import if we find a malformatted date. Dates like '30-JUN-24' would be incorrectly
             # parsed and lead to unexpected behavior in the HMIS.
-            raise(AbortImportException, "Incorrectly formatted date in #{file}.#{col}: #{r[col]}")
+            raise(AbortImportException, "Incorrectly formatted date in #{file} #{col}: #{r[col]}")
           end
         end
       end
