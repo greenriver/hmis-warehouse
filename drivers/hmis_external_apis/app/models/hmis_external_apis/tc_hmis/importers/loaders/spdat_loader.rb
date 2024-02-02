@@ -5,65 +5,90 @@
 ###
 
 module HmisExternalApis::TcHmis::Importers::Loaders
-  class SpdatLoader < CustomDataElementBaseLoader
+  class SpdatLoader < BaseLoader
     def filename
-      'SPDAT.csv'
+      'SPDAT.xlsx'
     end
 
     def perform
-      clobber_records if clobber
+      rows = reader.rows(filename: filename)
+      clobber_records(rows) if clobber
 
-      assessment_records = build_assessment_records
+      assessment_records = build_assessment_records(rows)
       ar_import(Hmis::Hud::CustomAssessment, assessment_records)
 
+      create_cde_definitions
+
       # relies on custom assessments already built, associated by response_id
-      cde_records = build_cde_records
+      cde_records = build_cde_records(rows)
       ar_import(Hmis::Hud::CustomDataElement, cde_records)
+    end
+
+    def runnable?
+      # filename defined in subclass
+      super && reader.file_present?(filename)
     end
 
     protected
 
-    def clobber_records
-      response_ids = records.each do |row|
+    def clobber_records(rows)
+      assessment_ids = rows.map do |row|
         row_assessment_id(row)
       end
 
       scope = Hmis::Hud::CustomAssessment.
         where(data_source_id: data_source.id).
-        where(custom_data_assessment_id: assessment_ids)
+        where(CustomAssessmentID: assessment_ids)
       scope.preload(:custom_data_elements).find_each do |assessment|
-        assessment.custom_data_elements.delete_all # really destroy hopefully
-        assessment.really_destroy
+        assessment.custom_data_elements.delete_all # delete should really destroy
+        assessment.really_destroy!
+      end
+    end
+
+    def create_cde_definitions
+      CDED_COL_MAP.each_pair do |label, key|
+        field_type = CDED_FIELD_TYPE_MAP[key] || :string
+        cde_helper.find_or_create_cded(
+          owner_type: Hmis::Hud::CustomAssessment.sti_name,
+          label: label,
+          key: key,
+          field_type: field_type
+        )
       end
     end
 
     # use the eto response id to construct the custom assessment id
     def row_assessment_id(row)
-      response_id = row_value(row, field: RESPONSE_ID_COL)
+      response_id = row.field_value(RESPONSE_ID_COL)
       "spdat-eto-#{response_id}"
     end
 
-    def row_assessment_date
-      row_value(row, field: ASSESSMENT_DATE_COL)
+    def row_assessment_date(row)
+      row.field_value(ASSESSMENT_DATE_COL)
     end
 
     ENROLLMENT_ID_COL = "Unique Enrollment Identifier"
     ASSESSMENT_DATE_COL = "Date Taken"
     RESPONSE_ID_COL = "Response ID"
 
+    CDED_FIELD_TYPE_MAP = {
+      "travel_time_minutes" => 'integer',
+      "time_spent_minutes" => 'integer',
+      "total_score" => 'integer',
+      "assessment_absent_days" => 'integer',
+    }
     CDED_COL_MAP = {
       "Program Name" => "program_name",
       "Case Number" => "case_number",
       "Participant Enterprise Identifier" => "participant_enterprise_identifier",
-
       "Which SPDAT is this?" => "assessment_event",
       "Travel Time" => "travel_time_minutes",
       "Time Spent" => "time_spent_minutes",
       "Contact Location / Method" => "client_contact_location_and_method",
       "SPDAT Score" => "total_score",
       "SPDAT Notes" => "score_notes",
-      "Is this assessment being completed for a dismissed client or a client who is no longer in contact?" => 'spdat-assessment_is_for_absent_client' => "assessment_absent_days",
-      "How long has the client been out of contact (in days)?",
+      "Is this assessment being completed for a dismissed client or a client who is no longer in contact?" => 'spdat-assessment_is_for_absent_client',
+      "How long has the client been out of contact (in days)?" => "assessment_absent_days",
       "Mental Health & Wellness & Cognitive Functioning Scoring" => 'mental_health_score',
       "Mental Health & Wellness & Cognitive Functioning Notes:" => 'mental_health_notes',
       "Physical Health & Wellness Scoring" => 'physical_health_score',
@@ -96,7 +121,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       "History of Homelessness Notes:" => 'history_of_homelessness_notes',
     }.transform_values { |v| "spdat-#{v}" }
 
-    def build_assessment_records
+    def build_assessment_records(rows)
       personal_id_by_enrollment_id = Hmis::Hud::Enrollment
         .where(data_source: data_source)
         .pluck(:enrollment_id, :personal_id)
@@ -106,10 +131,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       actual = 0
       records = rows.flat_map do |row|
         expected += 1
-        enrollment_id = row_value(row, field: ENROLLMENT_ID_COL)
+        enrollment_id = row.field_value(ENROLLMENT_ID_COL)
         personal_id = personal_id_by_enrollment_id[enrollment_id]
 
-        unless personal_id && assessment_date
+        if personal_id.nil?
           log_skipped_row(row, field: ENROLLMENT_ID_COL)
           next # early return
         end
@@ -117,11 +142,12 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
         Hmis::Hud::CustomAssessment.new(
           data_source_id: data_source.id,
-          custom_assessment_id: row_assessment_id(row),
-          enrollment: enrollment_id,
-          personal_id: enrollment.personal_id,
+          CustomAssessmentID: row_assessment_id(row),
+          enrollment_id: enrollment_id,
+          personal_id: personal_id,
           user_id: system_hud_user.id,
-          assessment_date: row_assessment_date(row)
+          assessment_date: row_assessment_date(row),
+          DataCollectionStage: 2,
           wip: false,
         )
       end
@@ -129,29 +155,32 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       records
     end
 
-    def build_cde_records
+    def build_cde_records(rows)
       owner_id_by_assessment_id = Hmis::Hud::CustomAssessment
         .where(data_source: data_source)
-        .pluck(:custom_assessment_id, :id)
+        .pluck(:CustomAssessmentID, :id)
         .to_h
 
-      records = rows.flat_map do |row|
+      cdes = []
+      records = rows.each do |row|
         owner_id = owner_id_by_assessment_id[row_assessment_id(row)]
         raise unless owner_id
 
         CDED_COL_MAP.each do |score_col, cded_key|
           value = transform_value(row, score_col)
+          next unless value
+
           cde = new_cde_record(value: value, definition_key: cded_key)
           cde[:owner_id] = owner_id
-          cde
-        end.compact_blank!
-      end.compact
+          cdes.push(cde)
+        end
+      end
       log_processed_result(expected: expected, actual: actual)
       records
     end
 
     def transform_value(row, field)
-      value = row_value(row, field: field)
+      value = row.field_value(field)
       case CDED_COL_MAP[field]
       when 'total_score'
         value.to_i
@@ -166,7 +195,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       end
     end
 
-    def owner_class
+    def model_class
       Hmis::Hud::CustomAssessment
     end
   end

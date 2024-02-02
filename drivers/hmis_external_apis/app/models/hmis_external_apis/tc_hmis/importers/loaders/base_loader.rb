@@ -6,13 +6,14 @@
 
 module HmisExternalApis::TcHmis::Importers::Loaders
   class BaseLoader
+    include SafeInspectable
     attr_reader :reader, :clobber, :tracker, :table_names, :log_file
 
     def self.perform(...)
       new(...).perform
     end
 
-    def initialize(reader:, tracker: nil, clobber:, log_file: ENV['TC_HMIS_IMPORT_LOG_FILE'])
+    def initialize(reader:, tracker: nil, clobber:, log_file: )
       @reader = reader
       @clobber = clobber
       @tracker = tracker
@@ -43,25 +44,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       DateTime.strptime(str, DATE_TIME_FMT)
     end
 
-    def cde_definition(owner_type:, key:)
-      @cache ||= {}
-      @cache[[owner_type, key]] ||= cde_definitions.find_or_create(owner_type: owner_type, key: key)
-    end
-
-    def cde_definitions
-      @cde_definitions ||= CustomDataElementDefinitions.new(data_source_id: data_source.id, system_user_id: system_user_id)
-    end
-
-    # note: it would be cleaner for this method to live in CsvFileRowWrapper
-    def row_value(row, field:, required: true)
-      raise "row is nil. looking for field '#{field}' #{caller.inspect}" if row.nil?
-
-      value = row[field]&.strip&.presence
-      raise "field '#{field}' is missing from row: #{row.to_h.inspect} caller: #{caller.inspect}" if required && !value
-
-      value
-    end
-
     def system_user_id
       system_hud_user.user_id
     end
@@ -79,7 +61,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def data_source
-      @data_source ||= HmisExternalApis::AcHmis.data_source
+      @data_source ||= HmisExternalApis::TcHmis.data_source
     end
 
     def default_attrs
@@ -136,6 +118,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       File.open(log_file, 'a') { |f| f.puts(msg) }
     end
 
+    def cde_helper
+      @cde_helper ||= CustomDataElementHelper.new(data_source: data_source, system_user: system_user)
+    end
+
     def loader_name
       self.class.name
     end
@@ -152,22 +138,13 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       end
     end
 
-    def to_s
-      inspect
-    end
-
-    # reduce clutter in debugging output, avoids logging memoized values
-    def inspect
-      self.class.name.to_s
-    end
-
     def log_skipped_row(row, field:)
-      value = row_value(row, field: field)
+      value = row.field_value(field)
       log_info "#{row.context} could not resolve \"#{field}\":\"#{value}\""
     end
 
     def log_processed_result(name: nil, expected:, actual:)
-      name ||= model_class.name
+      name = model_class.name
       rate = expected.zero? ? 0 : (actual.to_f / expected).round(3)
       log_info("processed #{name}: #{actual} of #{expected} records (#{(1.0 - rate) * 100}% skipped)")
     end
