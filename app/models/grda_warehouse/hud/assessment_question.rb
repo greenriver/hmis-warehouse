@@ -40,7 +40,7 @@ module GrdaWarehouse::Hud
       # where(AssessmentQuestion: :c_housing_assessment_name)
 
       # Temporary solution until we have the c_housing_assessment_name question in the 2024 pathways assessment
-      where(AssessmentQuestion: :c_pathways_barriers_yn)
+      where(AssessmentQuestion: [:c_housing_assessment_name, :c_pathways_barriers_yn])
     end
 
     scope :pathways, -> do
@@ -49,7 +49,7 @@ module GrdaWarehouse::Hud
       #   merge(GrdaWarehouse::AssessmentAnswerLookup.where(response_text: 'Pathways'))
 
       # Temporary solution until we have the c_housing_assessment_name question in the 2024 pathways assessment
-      where(AssessmentQuestion: :c_pathways_barriers_yn)
+      where(AssessmentQuestion: [:c_housing_assessment_name, :c_pathways_barriers_yn])
     end
 
     scope :transfer, -> do
