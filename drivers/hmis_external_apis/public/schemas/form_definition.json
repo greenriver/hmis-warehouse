@@ -32,6 +32,8 @@
         "secondary_label": { "type": "string" },
         "group_code": { "type": "string" },
         "group_label": { "type": "string" },
+        "helper_text": { "type": "string" },
+        "numeric_value": { "type": "integer" },
         "initial_selected": { "type": "string" }
       }
     },

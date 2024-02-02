@@ -679,6 +679,7 @@ type Client {
   addresses: [ClientAddress!]!
   afghanistanOef: NoYesReasonsForMissingData
   age: Int
+  alerts: [ClientAlert!]!
   assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(filters: ClientAuditEventFilterOptions, limit: Int, offset: Int): ClientAuditEventsPaginated!
   contactPoints: [ClientContactPoint!]!
@@ -744,6 +745,7 @@ type ClientAccess {
   canEditClient: Boolean!
   canEditEnrollments: Boolean!
   canManageAnyClientFiles: Boolean!
+  canManageClientAlerts: Boolean!
   canManageOwnClientFiles: Boolean!
   canManageScanCards: Boolean!
   canMergeClients: Boolean!
@@ -751,6 +753,7 @@ type ClientAccess {
   canViewAnyConfidentialClientFiles: Boolean!
   canViewAnyFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
+  canViewClientAlerts: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
@@ -852,6 +855,24 @@ enum ClientAddressUse {
   Work
   """
   work
+}
+
+"""
+Alert
+"""
+type ClientAlert {
+  createdAt: ISO8601DateTime!
+  createdBy: ApplicationUser
+  expirationDate: ISO8601Date
+  id: ID!
+  note: String!
+  priority: ClientAlertPriorityLevel!
+}
+
+enum ClientAlertPriorityLevel {
+  high
+  low
+  medium
 }
 
 type ClientAuditEvent {
@@ -6080,6 +6101,11 @@ type PickListOption {
   groupLabel: String
 
   """
+  Helper text/html
+  """
+  helperText: String
+
+  """
   Whether option is selected by default
   """
   initialSelected: Boolean
@@ -6088,6 +6114,11 @@ type PickListOption {
   Label for the option
   """
   label: String
+
+  """
+  Numeric value, such as a score
+  """
+  numericValue: Int
 
   """
   Secondary label, such as project type or CoC code
@@ -8410,6 +8441,7 @@ type QueryAccess {
   canEnrollClients: Boolean!
   canImpersonateUsers: Boolean!
   canManageAnyClientFiles: Boolean!
+  canManageClientAlerts: Boolean!
   canManageDeniedReferrals: Boolean!
   canManageIncomingReferrals: Boolean!
   canManageInventory: Boolean!
@@ -8421,6 +8453,7 @@ type QueryAccess {
   canTransferEnrollments: Boolean!
   canViewAnyConfidentialClientFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
+  canViewClientAlerts: Boolean!
   canViewClients: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
