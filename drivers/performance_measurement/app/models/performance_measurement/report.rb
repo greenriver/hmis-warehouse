@@ -80,14 +80,14 @@ module PerformanceMeasurement
       update(completed_at: Time.current)
     end
 
-    def describe_filter_as_html(keys = nil, inline: false)
+    def describe_filter_as_html(keys = nil, inline: false, limited: true)
       keys ||= [
         :project_type_codes,
         :project_ids,
         :project_group_ids,
         :data_source_ids,
       ]
-      filter.describe_filter_as_html(keys, inline: inline)
+      filter.describe_filter_as_html(keys, inline: inline, limited: limited)
     end
 
     def known_params
@@ -278,7 +278,7 @@ module PerformanceMeasurement
     private def add_clients(report_clients)
       # Run CoC-wide SPMs for year prior to selected date and period 2 years prior
       # add records for each client to indicate which projects they were enrolled in within the report window
-      project_clients = Set.new
+      project_clients = {}
       involved_projects = Set.new
       run_spm.each do |variant_name, spec|
         spm_fields.each do |parts|
@@ -303,7 +303,7 @@ module PerformanceMeasurement
               parts[:questions].each do |question|
                 report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(member)
                 hud_project_ids.each do |project_id|
-                  project_clients << {
+                  pc_data = {
                     report_id: id,
                     client_id: hud_client.id,
                     project_id: project_id,
@@ -311,18 +311,20 @@ module PerformanceMeasurement
                     period: variant_name,
                     household_type: household_type_for_spm(member),
                   }
+                  project_clients = add_to_project_clients(project_clients, hud_client.id, pc_data)
                 end
               end
               parts[:client_project_rows]&.each do |cpr|
                 project_client_attrs = cpr.call(member)
                 next unless project_client_attrs
 
-                project_clients << project_client_attrs.reverse_merge(
+                pc_data = project_client_attrs.reverse_merge(
                   report_id: id,
                   client_id: hud_client.id,
                   period: variant_name,
                   household_type: household_type_for_spm(member),
                 )
+                project_clients = add_to_project_clients(project_clients, hud_client.id, pc_data)
               end
 
               report_client["#{variant_name}_spm_id"] = spec[:report].id
@@ -346,7 +348,7 @@ module PerformanceMeasurement
 
             parts[:value_calculation].call(:project_ids, client_id, data).each do |project_id, hh_type|
               involved_projects << project_id
-              project_clients << {
+              pc_data = {
                 report_id: id,
                 client_id: client_id,
                 project_id: project_id,
@@ -354,6 +356,7 @@ module PerformanceMeasurement
                 period: variant_name,
                 household_type: hh_type,
               }
+              project_clients = add_to_project_clients(project_clients, client_id, pc_data)
             end
             report_clients[client_id] = report_client
           end
@@ -366,15 +369,22 @@ module PerformanceMeasurement
             client["#{variant_name}_#{parts[:key]}"] = value
             next unless value
 
+            # Use the previously calculated household_type, for now, just get the first for the client
+            # that matches one of the prior calculations
+            project_client = project_clients[client_id]&.detect do |pc|
+              pc[:for_question].in?(parts[:household_type_keys])
+            end
+
             # These are only system level
-            project_clients << {
+            pc_data = {
               report_id: id,
               client_id: client_id,
               project_id: nil,
               for_question: parts[:key], # allows limiting for a specific response
               period: variant_name,
-              household_type: nil,
+              household_type: project_client.try(:[], :household_type),
             }
+            project_clients = add_to_project_clients(project_clients, client_id, pc_data)
           end
         end
       end
@@ -389,8 +399,14 @@ module PerformanceMeasurement
       )
       Project.import!([:report_id, :project_id], involved_projects.map { |p_id| [id, p_id] }, batch_size: 5_000)
       # Enforce that the hashes in project_clients have all the necessary columns defined by converting it to an array of ClientProject records
-      ClientProject.import!(project_clients.to_a.compact.map { |attr| ClientProject.new(attr) }, batch_size: 5_000)
+      ClientProject.import!(project_clients.values.flat_map(&:to_a).compact.map { |attr| ClientProject.new(attr) }, batch_size: 5_000)
       universe.add_universe_members(report_clients)
+    end
+
+    private def add_to_project_clients(project_clients, client_id, data)
+      project_clients[client_id] ||= Set.new
+      project_clients[client_id] << data
+      project_clients
     end
 
     private def answer(report, table, cell)
@@ -918,6 +934,10 @@ module PerformanceMeasurement
             client["#{variant_name}_served_on_pit_date_sheltered"] ||
             client["#{variant_name}_served_on_pit_date_unsheltered"]
           },
+          household_type_keys: [
+            :served_on_pit_date_sheltered,
+            :served_on_pit_date_unsheltered,
+          ],
         },
         {
           key: :retention_or_positive_destination,
@@ -928,6 +948,11 @@ module PerformanceMeasurement
 
             false
           },
+          household_type_keys: [
+            :so_destination,
+            :es_sh_th_rrh_destination,
+            :moved_in_destination,
+          ],
         },
       ]
     end
@@ -1373,11 +1398,48 @@ module PerformanceMeasurement
     end
 
     # Publishing
+    def publish_summary?
+      true
+    end
+
+    def publish_summary_url
+      return unless publish_summary?
+      return unless published_report.present?
+
+      published_report.published_url.gsub('index.html', 'summary.html')
+    end
+
+    def publish_summary_embed_code
+      return unless publish_summary?
+      return unless published_report.present?
+
+      published_report.embed_code.gsub(published_report.published_url, publish_summary_url)
+    end
+
+    def view_summary_template
+      :raw_summary
+    end
+
+    def summary_as_html
+      return controller_class.render(view_summary_template, layout: raw_layout, assigns: { report: self }) unless view_template.is_a?(Array)
+
+      view_template.map do |template|
+        string = html_section_start(template)
+        string << controller_class.render(template, layout: raw_layout, assigns: { report: self })
+        string << html_section_end(template)
+      end.join
+    end
+
     def publish_files
       [
         {
           name: 'index.html',
           content: -> { as_html },
+          type: 'text/html',
+        },
+        {
+          name: 'summary.html',
+          content: -> { summary_as_html },
           type: 'text/html',
         },
         {
@@ -1393,6 +1455,8 @@ module PerformanceMeasurement
               'icons.woff2',
             ].each do |filename|
               css.gsub!("url(/assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
+              # Also replace development version of assets url
+              css.gsub!("url(/dev-assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
             end
             css
           },

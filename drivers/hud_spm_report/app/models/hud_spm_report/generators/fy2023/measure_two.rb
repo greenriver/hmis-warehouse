@@ -14,19 +14,21 @@ module HudSpmReport::Generators::Fy2023
     end
 
     def self.client_class
-      HudSpmReport::Fy2023::Return
+      HudSpmReport::Fy2023::Return.
+        left_outer_joins(:exit_enrollment, :return_enrollment).
+        preload(exit_enrollment: { enrollment: :project }, return_enrollment: { enrollment: :project })
     end
 
     def self.table_descriptions
       {
         'Measure 2' => 'The Extent to which Persons Who Exit Homelessness to Permanent Housing Destinations Return to Homelessness within 6, 12, and 24 months',
-        '2a and 2b' => 'The Extent to which Persons Who Exit Homelessness to Permanent Housing Destinations Return to Homelessness within 6, 12, and 24 months.',
+        # '2a and 2b' => 'The Extent to which Persons Who Exit Homelessness to Permanent Housing Destinations Return to Homelessness within 6, 12, and 24 months.',
       }.freeze
     end
 
     def run_question!
       tables = [
-        ['2', :run_2a_and_b],
+        ['2a and 2b', :run_2a_and_b],
       ]
 
       @report.start(self.class.question_number, tables.map(&:first))

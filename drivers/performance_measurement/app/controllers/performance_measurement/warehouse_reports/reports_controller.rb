@@ -19,6 +19,7 @@ module PerformanceMeasurement::WarehouseReports
     before_action :set_pdf_export, only: [:show]
 
     @include_in_published_version = false
+    @include_in_summary_only_version = false
 
     def index
       @filter.default_project_type_codes = report_class.default_project_type_codes
@@ -36,6 +37,7 @@ module PerformanceMeasurement::WarehouseReports
     def show
       # Used for testing PDF generation
       # render 'show_pdf', layout: 'layouts/performance_report'
+      @default_goal = PerformanceMeasurement::Goal.default_goal
     end
 
     def create

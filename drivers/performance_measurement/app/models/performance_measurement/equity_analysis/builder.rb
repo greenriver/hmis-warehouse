@@ -157,7 +157,8 @@ module PerformanceMeasurement::EquityAnalysis
           keys.keys.each do |key|
             next if key.in?(ignored_metrics)
 
-            opts << [@report.detail_title_for(key), key]
+            title = "#{@report.detail_title_for(key)} &nbsp;•&nbsp; #{@report.detail_words_for(@report.detail_column_for(key))}".html_safe
+            opts << [title, key]
           end
         end
       end
@@ -167,6 +168,12 @@ module PerformanceMeasurement::EquityAnalysis
     private def ignored_metrics
       [
         :overall_average_bed_utilization,
+        # NOTE: the length of time metrics don't make sense to explore because they
+        # count days not people
+        :length_of_homeless_time_homeless_average,
+        :length_of_homeless_time_homeless_es_sh_th_ph_average,
+        :length_of_homeless_stay_average,
+        :time_to_move_in_average,
       ].freeze
     end
 
@@ -176,7 +183,7 @@ module PerformanceMeasurement::EquityAnalysis
         'Age',
         'Gender',
         'Household Type',
-      ].freeze
+      ].sort.freeze
     end
 
     def race_options
