@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# "CustomClientContactPoint" is NOT a HUD record type. Although it uses CamelCase conventions, this model is particular to Open Path
+
 # Represents a way to contact a Client (typically by phone or email)
 # Based on https://build.fhir.org/datatypes.html#ContactPoint
 class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base

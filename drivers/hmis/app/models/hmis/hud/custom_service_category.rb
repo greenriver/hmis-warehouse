@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# "CustomServiceCategory" is NOT a HUD record type. Although it uses CamelCase conventions, this model is particular to Open Path
+
 class Hmis::Hud::CustomServiceCategory < Hmis::Hud::Base
   self.table_name = :CustomServiceCategories
   has_paper_trail

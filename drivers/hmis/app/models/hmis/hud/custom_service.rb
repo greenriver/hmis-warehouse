@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# "CustomService" is NOT a HUD record type. Although it uses CamelCase conventions, this model is particular to Open Path
+
 class Hmis::Hud::CustomService < Hmis::Hud::Base
   self.table_name = :CustomServices
   self.sequence_name = "public.\"#{table_name}_id_seq\""

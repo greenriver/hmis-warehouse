@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# "CustomDataElement" is NOT a HUD record type. Although it uses CamelCase conventions, this model is particular to Open Path
+
 class Hmis::Hud::CustomDataElement < Hmis::Hud::Base
   include Hmis::Concerns::HmisArelHelper
   self.table_name = :CustomDataElements

@@ -4,6 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# "CustomAssessment" is NOT a HUD record type. Although it uses CamelCase conventions, this model is particular to Open Path
+# "CustomAssessment" is not to be confused with "Assessment" which IS a HUD record type
+
 # A CustomAssessment record represents an assessment that has been performed.
 # It may be a HUD assessment (intake, exit, etc) or a fully custom assessment.
 
