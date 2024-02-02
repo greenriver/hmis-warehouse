@@ -82,6 +82,9 @@ module GrdaWarehouse::CasProjectClientCalculator
         housing_barrier: 'Do you have any of the following histories and/or barriers?',
         additional_homeless_nights_sheltered: 'Length of Time Homeless (Sheltered) - Non-HMIS',
         additional_homeless_nights_unsheltered: 'Length of Time Homeless (Unsheltered) - Non-HMIS',
+        calculated_homeless_nights_sheltered: 'Length of Time Homeless (Sheltered) - Warehouse',
+        calculated_homeless_nights_unsheltered: 'Length of Time Homeless (Unsheltered) - Warehouse',
+        total_homeless_nights_sheltered: 'Total # of Sheltered Nights',
       }.freeze
     end
 
@@ -135,6 +138,9 @@ module GrdaWarehouse::CasProjectClientCalculator
         :service_need,
         :additional_homeless_nights_sheltered,
         :additional_homeless_nights_unsheltered,
+        :calculated_homeless_nights_sheltered,
+        :calculated_homeless_nights_unsheltered,
+        :total_homeless_nights_sheltered,
       ]
     end
     # memoize :pathways_questions
@@ -350,6 +356,21 @@ module GrdaWarehouse::CasProjectClientCalculator
     def additional_homeless_nights_unsheltered(client)
       most_recent_pathways_or_transfer(client).
         question_matching_requirement('c_add_boston_nights_outside_pathways')&.AssessmentAnswer&.to_i
+    end
+
+    def calculated_homeless_nights_sheltered(client)
+      most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_boston_homeless_nights_sheltered_wiw')&.AssessmentAnswer&.to_i
+    end
+
+    def calculated_homeless_nights_unsheltered(client)
+      most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_boston_homeless_nights_outside_wiw')&.AssessmentAnswer&.to_i
+    end
+
+    def total_homeless_nights_sheltered(client)
+      most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_pathways_nights_sheltered_warehouse_added_total')&.AssessmentAnswer&.to_i
     end
 
     private def default_shelter_agency_contacts(client)
