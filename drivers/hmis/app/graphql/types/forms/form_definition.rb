@@ -38,7 +38,7 @@ module Types
     end
 
     def cache_key
-      [object.id, project&.id, active_date].join('|')
+      [object.id, project&.id, active_date&.strftime('%Y-%m-%d')].join('|')
     end
 
     def system

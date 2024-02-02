@@ -360,7 +360,7 @@ module GrdaWarehouse
 
     def file_exists_and_not_too_large
       errors.add :client_file, 'No uploaded file found' if (client_file.byte_size || 0) < 100
-      errors.add :client_file, 'File size should be less than 4 MB' if (client_file.byte_size || 0) > 4.megabytes
+      errors.add :client_file, 'File size should be less than 12 MB' if (client_file.byte_size || 0) > 12.megabytes
     end
 
     def note_if_other

@@ -571,6 +571,13 @@ class Role < ApplicationRecord
           'Client Extras',
         ],
       },
+      can_edit_own_client_notes: {
+        description: 'Ability to edit client notes that the user created',
+        administrative: false,
+        categories: [
+          'Client Extras',
+        ],
+      },
       can_edit_window_client_notes: {
         description: 'Ability to edit any client note in the window, used to remove inappropriate notes',
         administrative: true,

@@ -13,11 +13,16 @@
     - if can_import_project_groups?
       = link_to maintenance_project_groups_path, class: 'btn btn-secondary ml-2 mb-2' do
         %span.icon-plus
-        Import Project Groups
+        Import
 .alert.alert-info
   %ul
     %li Project Groups are used in some reporting contexts to run project-based reports against multiple related projects.
     %li Access to a project group does not imply access to the projects within the group, projects must still be assigned to users to grant access.
+.row.mb-4
+  .col-sm-12.text-right
+    = link_to download_project_groups_path({format: :xlsx}.merge(link_params)), class: 'btn btn-secondary ml-2 mb-2' do
+      %span.icon-download2
+      Download
 - if @pagy.count.positive?
   = render 'common/pagination_top', item_name: 'project group'
 

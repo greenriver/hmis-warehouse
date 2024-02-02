@@ -38,6 +38,14 @@ module Hmis
         @today ||= Date.current
       end
 
+      def update_assessment_form_definition_id
+        @update_assessment_form_definition_id ||= Hmis::Form::Definition.find_definition_for_role(:UPDATE, project: project)&.id
+      end
+
+      def annual_assessment_form_definition_id
+        @annual_assessment_form_definition_id ||= Hmis::Form::Definition.find_definition_for_role(:ANNUAL, project: project)&.id
+      end
+
       def normalize_yoy_date(date)
         date.leap? && date.month == 2 && date.day == 29 ? date + 1.day : date
       end
@@ -58,7 +66,7 @@ module Hmis
         @earliest_entry_date_by_household_id[enrollment.household_id]
       end
 
-      def last_assessment_date(enrollment:, stages:, wip:)
+      def last_assessment(enrollment:, stages:, wip:)
         # load all the assessments we might need
         @all_assessments ||= Hmis::Hud::CustomAssessment.
           where(enrollment_id: enrollments.map(&:enrollment_id), data_source_id: project.data_source_id).
@@ -72,7 +80,8 @@ module Hmis
         found = assessments.detect do |r|
           wip.include?(r.wip) && stages.include?(r.data_collection_stage)
         end
-        found&.assessment_date
+
+        found
       end
 
       # Show reminder if ANY client in the household is missing an Annual Assessment within the
@@ -109,13 +118,18 @@ module Hmis
         # encourage people to back-date assessments.
         # TODO: should we check for presence in window? This wont show a task if the enrollment has a recent annual,
         # even if that annual falls outside of the "due period"  which is a data quality issue.
-        last_assessed_on = last_assessment_date(enrollment: enrollment, stages: [:annual_assessment], wip: [false])
+        last_assessed_on = last_assessment(enrollment: enrollment, stages: [:annual_assessment], wip: [false])&.assessment_date
         return if last_assessed_on && last_assessed_on >= start_date
+
+        last_wip_annual = last_assessment(enrollment: enrollment, stages: [:annual_assessment], wip: [true])
+        wip_assessment_id = last_wip_annual.id if last_wip_annual && last_wip_annual.assessment_date >= start_date
 
         new_reminder(
           topic: ANNUAL_ASSESSMENT_TOPIC,
           due_date: due_date,
           enrollment: enrollment,
+          form_definition_id: annual_assessment_form_definition_id,
+          assessment_id: wip_assessment_id,
         )
       end
 
@@ -138,13 +152,18 @@ module Hmis
         return if enrollment.exit_date && enrollment.exit_date <= adulthood_birthday
 
         # client had an assessment after they became and adult
-        last_assessed_on = last_assessment_date(enrollment: enrollment, stages: [:update, :annual_assessment], wip: [false])
+        last_assessed_on, = last_assessment(enrollment: enrollment, stages: [:update, :annual_assessment], wip: [false])&.assessment_date
         return if last_assessed_on && last_assessed_on >= adulthood_birthday
+
+        last_wip_update = last_assessment(enrollment: enrollment, stages: [:update, :annual_assessment], wip: [true])
+        wip_assessment_id = last_wip_update.id if last_wip_update && last_wip_update.assessment_date >= adulthood_birthday
 
         new_reminder(
           topic: AGED_INTO_ADULTHOOD_TOPIC,
           due_date: adulthood_birthday,
           enrollment: enrollment,
+          form_definition_id: update_assessment_form_definition_id,
+          assessment_id: wip_assessment_id,
         )
       end
 
@@ -152,7 +171,7 @@ module Hmis
       # have WIP intake assessments
       def intake_assessment_reminder(enrollment)
         # there is a submitted assessment
-        return if last_assessment_date(enrollment: enrollment, stages: [:project_entry], wip: [false])
+        return if last_assessment(enrollment: enrollment, stages: [:project_entry], wip: [false])
 
         new_reminder(
           topic: INTAKE_INCOMPLETE_TOPIC,
@@ -163,7 +182,7 @@ module Hmis
 
       # Show reminder if: there are any WIP exit assessments for any household members
       def exit_assessment_reminder(enrollment)
-        return unless last_assessment_date(enrollment: enrollment, stages: [:project_exit], wip: [true])
+        return unless last_assessment(enrollment: enrollment, stages: [:project_exit], wip: [true])
 
         new_reminder(
           topic: EXIT_INCOMPLETE_TOPIC,

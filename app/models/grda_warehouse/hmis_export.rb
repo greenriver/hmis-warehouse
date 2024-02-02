@@ -65,6 +65,12 @@ module GrdaWarehouse
       ]
     end
 
+    def self.clean_params(params)
+      # if period type is updated, deleted records are required
+      params[:include_deleted] = true if params[:period_type].to_i == 1
+      params
+    end
+
     def filter
       ::Filters::HmisExport.new(options)
     end

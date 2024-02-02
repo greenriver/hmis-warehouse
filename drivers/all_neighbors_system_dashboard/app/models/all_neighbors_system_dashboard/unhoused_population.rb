@@ -267,7 +267,7 @@ module AllNeighborsSystemDashboard
       else
         scope
       end
-      scope = scope.where(primary_race: label)
+      scope.where(Enrollment.arel_table[:race_list].matches("%#{label}%"))
       count = mask_small_populations(scope.count, mask: @report.mask_small_populations?)
 
       count

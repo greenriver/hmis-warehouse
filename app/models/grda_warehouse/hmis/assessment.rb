@@ -7,6 +7,8 @@
 module GrdaWarehouse::Hmis
   class Assessment < Base
     dub 'assessments'
+    has_paper_trail
+
     include RailsDrivers::Extensions
 
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource', foreign_key: :data_source_id, primary_key: GrdaWarehouse::DataSource.primary_key

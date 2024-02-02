@@ -35,6 +35,11 @@
           "value": "825"
         },
         {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "202dac9edb964811891c9cea77d5db32"
+        },
+        {
           "_comment": "HUD: CoC – Collection required for all components",
           "variable": "projectFunderComponents",
           "operator": "INCLUDE",

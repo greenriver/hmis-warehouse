@@ -26,7 +26,9 @@ module Hmis
 
         project.enrollments.open_excluding_wip.each do |enrollment|
           most_recent_contact = if project.es_nbn? # Night-by-night Emergency Shelter
-            enrollment.services.bed_nights.order(:date_provided).last
+            # For NBN shelters, the most recent contact is the last bed night.
+            # If the client had no bed nights, use the enrollment (entry date) as the last contact.
+            enrollment.services.bed_nights.order(:date_provided).last || enrollment
           else
             [
               enrollment.services.order(:date_provided).last,

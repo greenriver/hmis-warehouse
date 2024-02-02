@@ -13416,7 +13416,7 @@ CREATE TABLE public.hmis_client_alerts (
     expiration_date date,
     created_by_id bigint NOT NULL,
     client_id bigint NOT NULL,
-    severity character varying
+    priority character varying
 );
 
 
@@ -60729,6 +60729,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240123152003'),
 ('20240123154914'),
 ('20240125143214'),
-('20240125163539');
+('20240125163539'),
+('20240126164153');
 
 

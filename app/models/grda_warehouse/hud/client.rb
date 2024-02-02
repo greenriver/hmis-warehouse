@@ -351,15 +351,17 @@ module GrdaWarehouse::Hud
           with_service_between(start_date: range.first, end_date: range.last)
         where(id: enrollment_scope.select(:client_id))
       when :project_group
-        project_ids = GrdaWarehouse::Config.cas_sync_project_group.projects.ids
+        project_ids = GrdaWarehouse::Config.cas_sync_project_group&.projects&.ids
+        return none if project_ids.blank?
+
         enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.ongoing.in_project(project_ids)
         where(id: enrollment_scope.select(:client_id))
       when :boston
         # Release on file
         scope = where(housing_release_status: [full_release_string, partial_release_string])
         # enrolled in the chosen project group
-        project_ids = GrdaWarehouse::Config.cas_sync_project_group.projects.ids
-        if project_ids.any?
+        project_ids = GrdaWarehouse::Config.cas_sync_project_group&.projects&.ids
+        if project_ids.present?
           enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.ongoing.in_project(project_ids)
           scope = scope.where(id: enrollment_scope.select(:client_id))
         end

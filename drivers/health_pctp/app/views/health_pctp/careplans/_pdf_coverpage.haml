@@ -1,0 +1,173 @@
+- title = 'BH COMMUNITY PARTNERS: FINAL STANDARD CARE PLAN 2023'
+- content_for :title, title
+
+.l-print.coverSheet.ca-print__section
+  .l-print__section
+    %h1= title
+
+  %p.muted.l-print__section
+    This document is a
+    %b Person-Centered Treatment Plan
+    prepared by Boston Coordinated Care Hub, a MassHealth Behavioral Health Community Partner (BH CP) that works with ACOs
+    and MCOs to provide care management and coordination to MassHealth members with complex behavioral health conditions.
+    This document summarizes a member's Comprehensive Assessment and conveys important information including the member's
+    preferences, needs, goals, and plans to achieve prioritized goals. If you are the PCP. please respond with any edits
+    or input on this care plan (Fax Number: 857-654-1456).
+
+- ident_cols = {dob: 2, phone: 4, mmis: 3}
+- ident_slices = []
+- ident_slices << @careplan.identifying_information.slice(:mmis, :aco)
+.pctc-print__table
+  .row.border-top
+    .col-4.py-2
+      .pctc-print__table-title Identifying Information
+    .col.py-2.border-left 
+      %strong.pr-2= @careplan.identifying_information[:name].first
+      %span= @careplan.name
+  .row 
+    .col-8.border-top.border-right.py-2
+      %strong= @careplan.identifying_information[:email].first
+      %div= @careplan.email
+    .col-4
+      .row{style: 'min-height:100%;'}
+        .col-12.border-top.border-bottom
+          .d-flex.align-items-center{style: 'height:100%;'}
+            .pr-2 
+              %strong= @careplan.identifying_information[:dob].first
+            %div= @careplan.dob
+        .col-12
+          .d-flex.align-items-center{style: 'height:100%;'}
+            .pr-2
+              %strong= @careplan.identifying_information[:phone].first
+            %div= @careplan.phone
+  - ident_slices.each_with_index do |slice, index|
+    .row
+      - slice.each do |key, (labels, kind, collection, input_html, controlled)|
+        - col_class = ident_cols[key].present? ? "col-#{ident_cols[key]}" : 'col'
+        .border.py-2{class: col_class}
+          .d-flex
+            .pr-2
+              %strong= labels
+            %div= @careplan.send(key.to_sym)
+
+- demo_cols = {sex_at_birth: 5}
+- demo_slices = []
+- demo_slices << @careplan.demographic_information_1.slice(:scribe, :update_reason)
+- demo_slices << @careplan.demographic_information_1.slice(:sex_at_birth, :gender)
+- demo_slices << @careplan.demographic_information_1.slice(:orientation)
+.pctc-print__table
+  .row 
+    .col-4.py-2
+      .pctc-print__table-title Demographic Information
+    .col.border-left.py-2
+      %strong.pr-2= @careplan.demographic_information_1[:scribe].first
+      %span= @careplan.scribe
+  .row 
+    - labels, kind, collection, input_html, controlled = @careplan.demographic_information_1[:gender]
+    - value = @careplan.gender
+    - display_value = collection.present? ? collection.select{|k, v| v == value}.keys.first : value
+    - is_other = collection.present? && collection.values.include?('other') && value == 'other'
+    - col_size = is_other ? 8 : 5
+    .py-2.border{class: "col-#{col_size}"}
+      .d-flex 
+        .pr-2 
+          %strong= labels.first
+        %small= labels.last
+      %div
+        - if is_other
+          = display_value || value
+          %div= @careplan.gender_other
+        - else
+          = display_value || value 
+    .col.py-2.border
+      - labels, kind, collection, input_html, controlled = @careplan.demographic_information_1[:update_reason]
+      - value = @careplan.update_reason
+      - display_value = collection.present? ? collection.select{|k, v| v == value}.keys.first : value
+      %strong= labels
+      %div
+        - if collection.present? && collection.values.include?('other') && value == 'other'
+          = display_value || value
+          %div= @careplan.update_reason_other
+        - else
+          = display_value || value
+  .row
+    .col-5.py-2.border
+      - labels, kind, collection, input_html, controlled = @careplan.demographic_information_1[:sex_at_birth]
+      .d-flex 
+        .pr-2 
+          %strong= labels.first
+        %small= labels.last
+      %div
+        - value = @careplan.sex_at_birth
+        - display_value = collection.present? ? collection.select{|k, v| v == value}.keys.first : value
+        - if collection.present? && collection.values.include?('other') && value == 'other'
+          = display_value || value
+          %div= @careplan.sex_at_birth_other
+        - else
+          = display_value || value 
+    .col-7.border
+      .row{style: 'min-height:100%;'}
+        .col-12.border-bottom
+          .d-flex.align-items-center{style: 'height:100%;'}
+            .pr-2 
+              %strong Race
+            %div= @careplan.race_responses.select{|k, v| @careplan.race&.include?(v)}.keys.join(', ')
+        .col-12
+          - labels, kind, collection, input_html, controlled = @careplan.demographic_information_2[:ethnicity]
+          .d-flex.align-items-center{style: 'height:100%;'}
+            .pr-2
+              %strong= labels
+            - value = @careplan.ethnicity
+            - display_value = collection.present? ? collection.select{|k, v| v == value}.keys.first : value
+            %div= display_value || value
+  .row 
+    .col-5.py-2.border 
+      - labels, kind, collection, input_html, controlled = @careplan.demographic_information_1[:orientation]
+      .d-flex 
+        .pr-2 
+          %strong= labels.first
+        %small= labels.last
+      %div
+        - value = @careplan.orientation
+        - display_value = collection.present? ? collection.select{|k, v| v == value}.keys.first : value
+        - if collection.present? && collection.values.include?('other') && value == 'other'
+          = display_value || value
+          %div= @careplan.orientation_other
+        - else
+          = display_value || value 
+    .col-7.border
+      .row{style: 'min-height:100%;'}
+        .col-12.border-bottom
+          - labels, kind, collection, input_html, controlled = @careplan.demographic_information_2[:language]
+          .d-flex.align-items-center{style: 'height:100%;'}
+            .pr-2
+              %strong= labels
+            - value = @careplan.language
+            - display_value = collection.present? ? collection.select{|k, v| v == value}.keys.first : value
+            %div= display_value || value
+        .col-12.border-bottom
+          - labels, kind, collection, input_html, controlled = @careplan.demographic_information_2[:contact]
+          .d-flex.align-items-center{style: 'height:100%;'}
+            .pr-2
+              %strong= labels
+            - value = @careplan.contact
+            - display_value = collection.present? ? collection.select{|k, v| v == value}.keys.first : value
+            %div= display_value || value
+
+- care_team_cols = [:name, :phone, :email]
+.pctc-print__table
+  %table
+    %thead
+      %tr
+        %th.pctc-print__table-title.pt-8{colspan: care_team_cols.size + 1} Care team
+      %tr.pctc-print__table-header
+        %th{style: 'width:25%;'} Care Team Members
+        %th{style: 'width:25%;'} Name
+        %th{style: 'width:25%;'} Phone Number
+        %th{style: 'width:25%;'} Email
+    %tbody
+      - @careplan.care_team_members.each do |key, label|
+        %tr
+          %th= label
+          - care_team_cols.each do |kind|
+            %td= @careplan.send("#{key}_#{kind}".to_sym)

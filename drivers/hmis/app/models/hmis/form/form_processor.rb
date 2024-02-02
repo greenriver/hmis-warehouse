@@ -252,7 +252,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   private def container_processor(container)
     container = container.to_sym
-    return if container == :CustomAssessment
 
     if !container.in?(valid_containers.keys)
       message = "invalid container \"#{container}\" for Hmis::FormProcessor##{id}"
@@ -283,6 +282,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       ProjectCoc: Hmis::Hud::Processors::ProjectCoCProcessor,
       Funder: Hmis::Hud::Processors::FunderProcessor,
       CeParticipation: Hmis::Hud::Processors::CeParticipationProcessor,
+      CustomAssessment: Hmis::Hud::Processors::CustomAssessmentProcessor,
       HmisParticipation: Hmis::Hud::Processors::HmisParticipationProcessor,
       File: Hmis::Hud::Processors::FileProcessor,
       ReferralRequest: Hmis::Hud::Processors::ReferralRequestProcessor,

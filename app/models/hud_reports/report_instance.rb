@@ -186,6 +186,10 @@ module HudReports
       universe_cells.map(&:question)
     end
 
+    def generated_uploadable_version?
+      question_names.include?('HDX Upload')
+    end
+
     # only allow alpha numeric
     def valid_cell_name(cell_name)
       cell_name&.match(/[A-Z0-9]+/i).to_s

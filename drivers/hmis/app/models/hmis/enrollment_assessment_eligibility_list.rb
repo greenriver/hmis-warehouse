@@ -20,7 +20,7 @@ class Hmis::EnrollmentAssessmentEligibilityList
   end
 
   INTAKE_ROLE = 'INTAKE'.freeze
-  UPDATE_ROLE = 'UPDATE '.freeze
+  UPDATE_ROLE = 'UPDATE'.freeze
   ANNUAL_ROLE = 'ANNUAL'.freeze
   EXIT_ROLE = 'EXIT'.freeze
   POST_EXIT_ROLE = 'POST_EXIT'.freeze

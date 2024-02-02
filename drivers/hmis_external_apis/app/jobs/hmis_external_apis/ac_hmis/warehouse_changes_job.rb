@@ -79,30 +79,36 @@ module HmisExternalApis::AcHmis
       no_change_count = 0
       unrecognized_destination_id_count = 0
 
-      clients_by_destination_id = clients.index_by(&:warehouse_id).stringify_keys
+      # HMIS Source Clients, keyed by Destination ID
+      clients_by_destination_id = clients.group_by(&:warehouse_id).stringify_keys
 
       records_needing_processing.each do |record|
-        client = clients_by_destination_id[record['clientId']]
-        if client.nil?
+        # Find source clients for this destination id
+        clients = clients_by_destination_id[record['clientId']]
+        if clients.nil?
           unrecognized_destination_id_count += 1
           next
         end
 
-        external_id = external_ids[client.id]
+        # Iterate through each source client. If there are multiple source clients, they will
+        # get the same MCI Unique ID and be merged in the merge step.
+        clients.each do |client|
+          external_id = external_ids[client.id] # mci unique id
 
-        if external_id.blank?
-          insert_count += 1
-          HmisExternalApis::ExternalId.create!(
-            value: record['mciUniqId'],
-            source: client,
-            namespace: NAMESPACE,
-            remote_credential: data_warehouse_api.send(:creds),
-          )
-        elsif external_id.value != record['mciUniqId']
-          update_count += 1
-          external_id.update_attribute(:value, record['mciUniqId'])
-        else
-          no_change_count += 1
+          if external_id.blank?
+            insert_count += 1
+            HmisExternalApis::ExternalId.create!(
+              value: record['mciUniqId'],
+              source: client,
+              namespace: NAMESPACE,
+              remote_credential: data_warehouse_api.send(:creds),
+            )
+          elsif external_id.value != record['mciUniqId']
+            update_count += 1
+            external_id.update_attribute(:value, record['mciUniqId'])
+          else
+            no_change_count += 1
+          end
         end
       end
 

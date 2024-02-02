@@ -26,8 +26,10 @@ module PerformanceMeasurement
       where(system_level: true)
     end
 
+    # Always use one year less than the report year, even if, technically that might not be correct
+    # The charts break if the two contain the same value
     def comparison_year
-      report.filter.comparison_as_date_range.end.strftime('%Y')
+      (report_year.to_i - 1).to_s
     end
 
     def report_year

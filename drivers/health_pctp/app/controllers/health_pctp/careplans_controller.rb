@@ -27,6 +27,11 @@ module HealthPctp
     end
 
     def edit
+      # for print dev
+      return unless params[:pdf].present? && Rails.env.development?
+
+      @print_dev = true
+      render :edit_pdf, layout: 'layouts/careplan_pdf'
     end
 
     def update

@@ -634,6 +634,7 @@ Rails.application.routes.draw do
 
   resources :project_groups, except: [:show] do
     get :maintenance, on: :collection
+    get :download, on: :collection
     post :import, on: :collection
     post :delete_multiple, on: :collection
     resources :contacts, except: [:show], controller: 'project_groups/contacts'

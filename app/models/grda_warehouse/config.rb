@@ -187,7 +187,8 @@ module GrdaWarehouse
 
     def self.cas_sync_project_group
       project_group_id = get(:cas_sync_project_group_id)
-      GrdaWarehouse::ProjectGroup.find(project_group_id)
+      # Use find_by to prevent throwing a 404 on the client search page
+      GrdaWarehouse::ProjectGroup.find_by(id: project_group_id)
     end
 
     def invalidate_cache

@@ -20,7 +20,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:access_control) { create_access_control(hmis_user, p1) }
   let(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: 2.weeks.ago }
-  let!(:fd1) { create :hmis_form_definition }
+  let!(:fd1) do
+    ['informationDate', 'fieldOne', 'fieldTwo'].each do |key|
+      create(:hmis_custom_data_element_definition, key: key, owner_type: Hmis::Hud::CustomAssessment.sti_name, data_source: ds1)
+    end
+    create :hmis_form_definition
+  end
   let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1 }
 
   before(:each) do
@@ -145,7 +150,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         enrollment_id: a1_wip.enrollment.id,
         form_definition_id: fd1.id,
         values: { 'linkid-date' => new_information_date, 'linkid-choice' => nil },
-        hud_values: { 'informationDate' => new_information_date, 'linkid-choice' => nil },
+        hud_values: { 'informationDate' => new_information_date, 'fieldTwo' => nil },
       }
       response, result = post_graphql(input: { input: input }) { mutation }
       assessment = result.dig('data', 'submitAssessment', 'assessment')
@@ -201,7 +206,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'should return an error if a required field is missing',
         ->(input) {
           input.merge(
-            hud_values: { **input[:hud_values], 'linkid-required' => nil },
+            hud_values: { **input[:hud_values], 'fieldOne' => nil },
             values: { **input[:values], 'linkid-required' => nil },
           )
         },
@@ -217,7 +222,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         'should return warning for data not collected',
         ->(input) {
           input.merge(
-            hud_values: { **input[:hud_values], 'linkid-choice': 'DATA_NOT_COLLECTED' },
+            hud_values: { **input[:hud_values], 'fieldTwo': 'DATA_NOT_COLLECTED' },
             values: { **input[:values], 'linkid-choice' => nil },
           )
         },
