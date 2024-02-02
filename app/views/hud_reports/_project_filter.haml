@@ -10,7 +10,7 @@
   .col-md-8
     .row
       .col-sm-6
-        = f.input :project_ids, collection: [], as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Choose Projects', data: { 'filter-projects-target' => 'projects', action: 'change->filter-projects#update', 'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids, **api_projects_parameters) } }, label: 'Projects'
+        = f.input :project_ids, collection: [], as: :grouped_select_two, group_method: :last, input_html: { multiple: true, placeholder: 'Choose Projects', data: { 'filter-projects-target' => 'projects', action: 'change->filter-projects#update', 'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids, **api_projects_parameters), async: "#{Rails.env.development?}" } }, label: 'Projects'
       .col-sm-6
         = f.input :data_source_ids, collection: @filter.data_source_options_for_select(user: current_user), as: :select_two, input_html: {multiple: true, placeholder: 'Choose Data Sources', data: { 'filter-projects-target' => 'dataSources', action: 'change->filter-projects#update' }}, label: 'Data Sources'
     .row
