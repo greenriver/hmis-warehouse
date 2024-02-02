@@ -37,6 +37,8 @@ RSpec.shared_context 'path organization r', shared_context: :metadata do
       )
     end
 
+    # TODO: Jan 2024 Testkit not checked beyond this point
+
     # Pending: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recibeszBDplTEBFJ
     # 596228 - missing? DataLab is using the earlier enrollment, why? - later is active, but not enrolled
     # 844241 - entry date 8/17/2022, is active because of DateOfEngagement
