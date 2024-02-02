@@ -8,6 +8,8 @@
 
 module Types
   class Application::User < Types::BaseObject
+    include Types::HmisSchema::HasAuditHistory
+
     # maps to Hmis::User
     description 'User account for a user of the system'
     graphql_name 'ApplicationUser'
@@ -29,6 +31,19 @@ module Types
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
+
+    audit_history_field(
+      filter_args: { type_name: 'UserAuditEvent' },
+    )
+
+    def audit_history(filters: nil)
+      scope = GrdaWarehouse.paper_trail_versions.
+        where(user_id: object.id).
+        where.not(object_changes: nil, event: 'update').
+        unscope(:order). # Unscope to remove default order, otherwise it will conflict
+        order(created_at: :desc)
+      Hmis::Filter::PaperTrailVersionFilter.new(filters).filter_scope(scope)
+    end
 
     available_filter_options do
       arg :search_term, String
