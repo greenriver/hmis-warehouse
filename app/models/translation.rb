@@ -16,7 +16,7 @@ class Translation < ApplicationRecord
       end
       translation.text
     end
-    translated || text
+    translated.presence || text
   end
 
   def self.cache_key(text)
