@@ -322,6 +322,8 @@ namespace :grda_warehouse do
 
     stats_collector = AppResourceMonitor::CollectStatsJob.new
     AppResourceMonitor::CollectStatsJob.perform_later if stats_collector.should_enqueue?
+
+    BuildTranslationCacheJob.perform_later
   end
 
   desc 'Mark the first residential service history record for clients for whom this has not yet been done; if you set the parameter to *any* value, all clients will be reset'
