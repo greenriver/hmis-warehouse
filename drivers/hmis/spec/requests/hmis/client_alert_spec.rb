@@ -70,7 +70,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       }
     GRAPHQL
   end
-
   let!(:c1) { create :hmis_hud_client, data_source: ds1 }
   let!(:a1) { create :hmis_client_alert, created_by: hmis_user, client: c1, note: 'bananas' }
   let!(:a2) { create :hmis_client_alert, created_by: hmis_user, client: c1, note: 'pears' }
@@ -133,7 +132,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'should not be able to create alerts either' do
       mutation_input = { clientId: c1.id.to_s, note: 'errr' }
       expect_gql_error post_graphql(input: mutation_input) { create_alert }
-      c1.reload
       expect(c1.alerts.size).to eq(2), 'a third alert should not have been created'
     end
 
