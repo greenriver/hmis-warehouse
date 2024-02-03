@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,14 +22,14 @@ module HmisExternalApis::AcHmis::Importers
       self.skip_lambda = ->(_s3_object) { false }
       self.found_csvs = []
 
-      creds = GrdaWarehouse::RemoteCredentials::S3.find_by(slug: MPER_SLUG)
+      creds = GrdaWarehouse::RemoteCredentials::S3.active.find_by(slug: MPER_SLUG)
       self.remote_credential = creds
       self.bucket_name = creds&.bucket || bucket_name
       self.prefix = creds&.s3_prefix || ''
     end
 
     def self.run_mper?
-      GrdaWarehouse::RemoteCredentials::S3.where(slug: MPER_SLUG).exists?
+      GrdaWarehouse::RemoteCredentials::S3.active.where(slug: MPER_SLUG).exists?
     end
 
     def self.mper

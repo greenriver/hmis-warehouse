@@ -117,6 +117,7 @@
 
 
   .pctc-print__table {
+    font-size: 17px;
     page-break-inside: avoid;
     table {
       width: 100%;
@@ -124,12 +125,12 @@
     th, td {
       padding: 8px;
       border-bottom: 1px solid rgba(0, 0, 0, 0.15);
-      font-size: 12px;
+      font-size: 17px;
     }
     th {
       font-weight: bold;
       span.hint {
-        font-size: 12px;
+        font-size: 17px;
         font-weight: normal;
       }
     }
@@ -150,12 +151,15 @@
       }
     }
     
-    th.pctc-print__table-title {
-      border-bottom: 2px solid #E7E7E7;
+    .pctc-print__table-title {
       font-weight: bold;
       font-size: 20px;
-      padding: 4px 0px;
       color: #454545;
+    }
+
+    th.pctc-print__table-title {
+      border-bottom: 2px solid #E7E7E7;
+      padding: 4px 0px;
     }
 
     tr.pctc-print__table-header {
