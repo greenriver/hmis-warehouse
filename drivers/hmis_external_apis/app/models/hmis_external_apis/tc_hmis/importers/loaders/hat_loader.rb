@@ -13,7 +13,20 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     CDED_FIELD_TYPE_MAP = {
       'total_vulnerability_score' => 'integer',
       'total_housing_rank' => 'integer',
+      'apartment_rank' => 'integer',
+      'tiny_home_rank' => 'integer',
+      'rv_camper_rank' => 'integer',
+      'house_rank' => 'integer',
+      'mobile_home_rank' => 'integer',
     }.transform_keys { |v| "hat-#{v}" }.freeze
+
+    CDED_REPEATED_TYPE_MAP = {
+      'hat-housing_preference' => true,
+      'hat-strengths' => true,
+      'hat-client_history' => true,
+      'hat-housing_placement_challenges' => true,
+    }
+
     CDED_COL_MAP = {
       'Program Name' => 'program_name',
       'Case Number' => 'case_number',
@@ -52,10 +65,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       'Household Type' => 'household_type',
       '[STAFF RESPONSE]  Does the client need site-based case management? (This is NOT skilled nursing, group home, or assisted living care.)' => 'needs_site_based_case_management',
       'Total Vulnerability Score' => 'total_vulnerability_score',
-      'Apartment' => 'apartment_preference',
-      'Tiny Home' => 'tiny_home_preference',
-      'RV/Camper' => 'rv_camper_preference',
-      'House' => 'house_preference',
+      'Apartment' => 'apartment_rank',
+      'Tiny Home' => 'tiny_home_rank',
+      'RV/Camper' => 'rv_camper_rank',
+      'House' => 'house_rank',
+      'Mobile Home/Manufactured Home' => 'mobile_home_rank',
       'Total Housing Rank' => 'total_housing_rank',
       'Client History (Check all that apply):' => 'client_history',
       'Does the client have a preference for neighborhood?' => 'neighborhood_preference',
@@ -64,7 +78,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       '[CLIENT RESPONSE]  If you can work and are willing to work a full time job, why are you not working right now?' => 'not_working_reason',
       '[STAFF RESPONSE]  I believe the client would, more than likely, successfully exit 12-24 month RRH Program and maintain their housing.' => 'likely_rrh_program_success',
       'Client Note' => 'client_note',
-      'Mobile Home/Manufactured Home' => 'mobile_home_preference',
       'Is the client a Lifetime Sex Offendor?' => 'client_lifetime_sex_offender',
       'Does the client have a State ID/Drivers License?' => 'client_has_state_id_or_license',
       'Does the client have a Birth Certificate?' => 'client_has_birth_certificate',
@@ -143,6 +156,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           label: label,
           key: key,
           field_type: field_type,
+          repeats: CDED_REPEATED_TYPE_MAP[key],
         )
       end
     end
@@ -167,8 +181,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       actual = 0
       records = rows.flat_map do |row|
         expected += 1
-        # enrollment_id = row.field_value(ENROLLMENT_ID_COL)
-        enrollment_id = personal_id_by_enrollment_id.keys.first
+        #enrollment_id = row.field_value(ENROLLMENT_ID_COL)
+         enrollment_id = personal_id_by_enrollment_id.keys.first
         personal_id = personal_id_by_enrollment_id[enrollment_id]
 
         if personal_id.nil?
@@ -203,23 +217,27 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         raise unless owner_id
 
         CDED_COL_MAP.each do |col, cded_key|
-          value = transform_value(row, col)
-          next unless value
-
-          cde = cde_helper.new_cde_record(value: value, definition_key: cded_key, owner_type: model_class.sti_name)
-          cde[:owner_id] = owner_id
-          cdes.push(cde)
+          value = cde_values(row, col).each do |value|
+            cde = cde_helper.new_cde_record(value: value, definition_key: cded_key, owner_type: model_class.sti_name)
+            cde[:owner_id] = owner_id
+            cdes.push(cde)
+          end
         end
       end
       ar_import(Hmis::Hud::CustomDataElement, cdes)
     end
 
-    def transform_value(row, field)
+    def cde_values(row, field)
       value = row.field_value(field, required: false)
-      cded_key = CDED_COL_MAP[field]
-      return value&.to_i if CDED_FIELD_TYPE_MAP[cded_key] == 'integer'
+      return [] unless value
 
-      value
+      cded_key = CDED_COL_MAP[field]
+      return [value&.to_i] if CDED_FIELD_TYPE_MAP[cded_key] == 'integer'
+      if CDED_REPEATED_TYPE_MAP[cded_key]
+        return value&.split('|').map(&:strip).compact_blank
+      end
+
+      [value]
     end
 
     def model_class
