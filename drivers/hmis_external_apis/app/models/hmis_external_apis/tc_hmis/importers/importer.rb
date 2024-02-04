@@ -26,6 +26,7 @@ module HmisExternalApis::TcHmis::Importers
       start
       loaders = [
         Loaders::SpdatLoader,
+        Loaders::HatLoader,
       ]
 
       # disable paper trail to improve importer performance
