@@ -8,6 +8,7 @@ require 'roo'
 
 module HmisExternalApis::TcHmis::Importers::Loaders
   class XlsxFile
+    include SafeInspectable
     include Enumerable
 
     attr_accessor :filename, :sheet_number, :header_row_number
@@ -18,16 +19,14 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def each
-      records.each_with_index do |row|
-        begin
-          yield(FileRow.new(row))
-        rescue StandardError => e
-          # wrap row-level exceptions with file / line number
-          msg = "[#{filename}:#{sheet_number}:#{row[:row_number]}] #{e.class.name} #{e.message}"
-          wrapped = RuntimeError.new(msg)
-          wrapped.set_backtrace(e.backtrace)
-          raise wrapped
-        end
+      records.each do |row|
+        yield(FileRow.new(row))
+      rescue StandardError => e
+        # wrap row-level exceptions with file / line number
+        msg = "[#{filename}:#{sheet_number}:#{row[:row_number]}] #{e.class.name} #{e.message}"
+        wrapped = RuntimeError.new(msg)
+        wrapped.set_backtrace(e.backtrace)
+        raise wrapped
       end
     end
 
@@ -46,11 +45,13 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       col = 'a'
       fields_by_col_number = {}
       50.times do
-        value = xls.cell(header_row_number, col ) rescue nil
-        ident = normalize_from_xls(value)
-        if ident
-          fields_by_col_number[col] = ident
-        end
+        value = begin
+                  xls.cell(header_row_number, col)
+                rescue StandardError
+                  nil
+                end
+        ident = normalize_col(value)
+        fields_by_col_number[col] = ident if ident
         col = col.next
       end
 
@@ -61,9 +62,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       row_number = header_row_number
       (header_row_number + 1).upto(last_row) do |row|
         row_number += 1
-        values = { }
+        values = {}
         fields_by_col_number.each do |in_col, field|
-          value = normalize_from_xls(xls.cell(row, in_col))
+          value = normalize_value(xls.cell(row, in_col))
           values[field] = value
         end
         next unless values.values.any?
@@ -75,8 +76,12 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       return ret
     end
 
-    def normalize_from_xls(value)
-      value.to_s.strip.presence
+    def normalize_value(value)
+      value&.strip.presence
+    end
+
+    def normalize_col(value)
+      value&.gsub(/\s+/, ' ').presence
     end
   end
 end

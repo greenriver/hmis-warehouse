@@ -13,7 +13,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       new(...).perform
     end
 
-    def initialize(reader:, tracker: nil, clobber:, log_file: )
+    def initialize(reader:, tracker: nil, clobber:, log_file:)
       @reader = reader
       @clobber = clobber
       @tracker = tracker
@@ -119,7 +119,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def cde_helper
-      @cde_helper ||= CustomDataElementHelper.new(data_source: data_source, system_user: system_user)
+      @cde_helper ||= CustomDataElementHelper.new(data_source: data_source, system_user: system_user, today: today)
     end
 
     def loader_name
@@ -144,7 +144,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def log_processed_result(name: nil, expected:, actual:)
-      name = model_class.name
+      name ||= model_class.name
       rate = expected.zero? ? 0 : (actual.to_f / expected).round(3)
       log_info("processed #{name}: #{actual} of #{expected} records (#{(1.0 - rate) * 100}% skipped)")
     end

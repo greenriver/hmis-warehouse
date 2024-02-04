@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# HmisExternalApis::TcHmis::Importers::Importer.perform(dir: '/host/tc', clobber: true, log_file: '/app/log/tc.log')
 module HmisExternalApis::TcHmis::Importers
   class Importer
     include NotifierConfig
@@ -25,7 +26,7 @@ module HmisExternalApis::TcHmis::Importers
     def perform
       start
       loaders = [
-        Loaders::SpdatLoader,
+        # Loaders::SpdatLoader,
         Loaders::HatLoader,
       ]
 
