@@ -76,5 +76,16 @@ module GrdaWarehouse::Hud
 
       matching_question.AssessmentResult.to_s == answer
     end
+
+    # provide a more specific name when appropriate
+    def name
+      return 'Pathways' if pathways?
+
+      HudUtility2024.assessment_level self.AssessmentLevel
+    end
+
+    def pathways?
+      assessment_questions.any?(&:pathways?)
+    end
   end
 end
