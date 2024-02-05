@@ -2860,7 +2860,6 @@ CREATE TABLE public.ansd_enrollments (
     id bigint NOT NULL,
     report_id bigint,
     enrollment_id bigint,
-    project_id character varying,
     project_name character varying,
     project_type integer,
     household_id character varying,
@@ -2888,7 +2887,9 @@ CREATE TABLE public.ansd_enrollments (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     destination_client_id integer,
-    relationship_to_hoh integer
+    relationship_to_hoh integer,
+    placed_date date,
+    project_id bigint
 );
 
 
@@ -6477,7 +6478,8 @@ CREATE TABLE public.configs (
     chronic_tab_roi boolean,
     filter_date_span_years integer DEFAULT 1 NOT NULL,
     include_pii_in_detail_downloads boolean DEFAULT true,
-    self_report_start_date date
+    self_report_start_date date,
+    chronic_adult_only_cohort boolean DEFAULT false
 );
 
 
@@ -13407,19 +13409,14 @@ ALTER SEQUENCE public.hmis_case_notes_id_seq OWNED BY public.hmis_case_notes.id;
 
 CREATE TABLE public.hmis_client_alerts (
     id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    organization_id bigint,
-    project_id bigint,
-    coc_code character varying,
-    source_type character varying,
-    source_id bigint,
-    information_date date NOT NULL,
-    severity character varying NOT NULL,
-    note text,
+    note text NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    expiration_date date,
+    created_by_id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    priority character varying
 );
 
 
@@ -18262,7 +18259,8 @@ CREATE TABLE public.hmis_form_processors (
     hud_values jsonb,
     youth_education_status_id integer,
     employment_education_id integer,
-    current_living_situation_id integer
+    current_living_situation_id integer,
+    ce_assessment_id bigint
 );
 
 
@@ -18567,6 +18565,70 @@ CREATE SEQUENCE public.hmis_project_unit_type_mappings_id_seq
 --
 
 ALTER SEQUENCE public.hmis_project_unit_type_mappings_id_seq OWNED BY public.hmis_project_unit_type_mappings.id;
+
+
+--
+-- Name: hmis_scan_card_codes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_scan_card_codes (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    value character varying NOT NULL,
+    created_by_id bigint,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    expires_at timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.value; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.value IS 'code to embed in scan card';
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.created_by_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.created_by_id IS 'user that generated code';
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.deleted_by_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.deleted_by_id IS 'user that deleted code';
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.expires_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.expires_at IS 'when scan card should expire';
+
+
+--
+-- Name: hmis_scan_card_codes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_scan_card_codes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_scan_card_codes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_scan_card_codes_id_seq OWNED BY public.hmis_scan_card_codes.id;
 
 
 --
@@ -20337,7 +20399,7 @@ CREATE TABLE public.hud_report_spm_enrollments (
     destination integer,
     age integer,
     previous_earned_income numeric,
-    previous_non_employment_income_ integer,
+    previous_non_employment_income numeric,
     previous_total_income numeric,
     current_earned_income numeric,
     current_non_employment_income numeric,
@@ -21728,7 +21790,8 @@ CREATE TABLE public.performance_measurement_goals (
     destination_so integer DEFAULT 85 NOT NULL,
     destination_homeless_plus integer DEFAULT 85 NOT NULL,
     destination_permanent integer DEFAULT 85 NOT NULL,
-    time_time_homeless_and_ph integer DEFAULT 90 NOT NULL
+    time_time_homeless_and_ph integer DEFAULT 90 NOT NULL,
+    equity_analysis_visible boolean DEFAULT false NOT NULL
 );
 
 
@@ -21872,8 +21935,16 @@ CREATE TABLE public.pm_client_projects (
     deleted_at timestamp without time zone,
     report_id integer,
     for_question character varying,
-    period character varying
+    period character varying,
+    household_type integer
 );
+
+
+--
+-- Name: COLUMN pm_client_projects.household_type; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.pm_client_projects.household_type IS '2.07.4';
 
 
 --
@@ -22929,7 +23000,7 @@ CREATE TABLE public.recent_report_enrollments (
     "CoercedToContinueWork" integer,
     "LaborExploitPastThreeMonths" integer,
     "HPScreeningScore" integer,
-    "VAMCStation" integer,
+    "VAMCStation_deleted" integer,
     "DateCreated" timestamp without time zone,
     "DateUpdated" timestamp without time zone,
     "UserID" character varying(100),
@@ -22987,6 +23058,7 @@ CREATE TABLE public.recent_report_enrollments (
     "TranslationNeeded" integer,
     "PreferredLanguage" integer,
     "PreferredLanguageDifferent" character varying,
+    "VAMCStation" character varying,
     demographic_id integer,
     client_id integer
 );
@@ -23012,8 +23084,8 @@ CREATE TABLE public.recent_service_history (
     project_type smallint,
     project_tracking_method integer,
     organization_id integer,
-    housing_status_at_entry integer,
-    housing_status_at_exit integer,
+    "LivingSituation" integer,
+    "HousingAssessment" integer,
     service_type smallint,
     computed_project_type smallint,
     presented_as_individual boolean
@@ -25146,6 +25218,38 @@ ALTER SEQUENCE public.tags_id_seq OWNED BY public.tags.id;
 
 
 --
+-- Name: talentlms_completed_trainings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.talentlms_completed_trainings (
+    id bigint NOT NULL,
+    login_id bigint NOT NULL,
+    config_id bigint NOT NULL,
+    course_id integer NOT NULL,
+    completion_date date NOT NULL
+);
+
+
+--
+-- Name: talentlms_completed_trainings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.talentlms_completed_trainings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: talentlms_completed_trainings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.talentlms_completed_trainings_id_seq OWNED BY public.talentlms_completed_trainings.id;
+
+
+--
 -- Name: talentlms_configs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -25154,7 +25258,8 @@ CREATE TABLE public.talentlms_configs (
     subdomain character varying,
     encrypted_api_key character varying,
     encrypted_api_key_iv character varying,
-    courseid integer
+    courseid integer,
+    months_to_expiration integer
 );
 
 
@@ -28540,6 +28645,13 @@ ALTER TABLE ONLY public.hmis_project_unit_type_mappings ALTER COLUMN id SET DEFA
 
 
 --
+-- Name: hmis_scan_card_codes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scan_card_codes ALTER COLUMN id SET DEFAULT nextval('public.hmis_scan_card_codes_id_seq'::regclass);
+
+
+--
 -- Name: hmis_staff id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -29685,6 +29797,13 @@ ALTER TABLE ONLY public.taggings ALTER COLUMN id SET DEFAULT nextval('public.tag
 --
 
 ALTER TABLE ONLY public.tags ALTER COLUMN id SET DEFAULT nextval('public.tags_id_seq'::regclass);
+
+
+--
+-- Name: talentlms_completed_trainings id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.talentlms_completed_trainings ALTER COLUMN id SET DEFAULT nextval('public.talentlms_completed_trainings_id_seq'::regclass);
 
 
 --
@@ -32438,6 +32557,14 @@ ALTER TABLE ONLY public.hmis_project_unit_type_mappings
 
 
 --
+-- Name: hmis_scan_card_codes hmis_scan_card_codes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scan_card_codes
+    ADD CONSTRAINT hmis_scan_card_codes_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_staff hmis_staff_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -33347,6 +33474,14 @@ ALTER TABLE ONLY public.taggings
 
 ALTER TABLE ONLY public.tags
     ADD CONSTRAINT tags_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: talentlms_completed_trainings talentlms_completed_trainings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.talentlms_completed_trainings
+    ADD CONSTRAINT talentlms_completed_trainings_pkey PRIMARY KEY (id);
 
 
 --
@@ -53200,31 +53335,10 @@ CREATE INDEX index_hmis_client_alerts_on_client_id ON public.hmis_client_alerts 
 
 
 --
--- Name: index_hmis_client_alerts_on_organization_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_hmis_client_alerts_on_created_by_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_hmis_client_alerts_on_organization_id ON public.hmis_client_alerts USING btree (organization_id);
-
-
---
--- Name: index_hmis_client_alerts_on_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_client_alerts_on_project_id ON public.hmis_client_alerts USING btree (project_id);
-
-
---
--- Name: index_hmis_client_alerts_on_source; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_client_alerts_on_source ON public.hmis_client_alerts USING btree (source_type, source_id);
-
-
---
--- Name: index_hmis_client_alerts_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_client_alerts_on_user_id ON public.hmis_client_alerts USING btree (user_id);
+CREATE INDEX index_hmis_client_alerts_on_created_by_id ON public.hmis_client_alerts USING btree (created_by_id);
 
 
 --
@@ -53872,6 +53986,13 @@ CREATE INDEX index_hmis_form_instances_on_entity ON public.hmis_form_instances U
 
 
 --
+-- Name: index_hmis_form_processors_on_ce_assessment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_ce_assessment_id ON public.hmis_form_processors USING btree (ce_assessment_id);
+
+
+--
 -- Name: index_hmis_form_processors_on_chronic_health_condition_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -54002,6 +54123,34 @@ CREATE INDEX index_hmis_project_unit_type_mappings_on_project_id ON public.hmis_
 --
 
 CREATE INDEX index_hmis_project_unit_type_mappings_on_unit_type_id ON public.hmis_project_unit_type_mappings USING btree (unit_type_id);
+
+
+--
+-- Name: index_hmis_scan_card_codes_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_scan_card_codes_on_client_id ON public.hmis_scan_card_codes USING btree (client_id);
+
+
+--
+-- Name: index_hmis_scan_card_codes_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_scan_card_codes_on_created_by_id ON public.hmis_scan_card_codes USING btree (created_by_id);
+
+
+--
+-- Name: index_hmis_scan_card_codes_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_scan_card_codes_on_deleted_by_id ON public.hmis_scan_card_codes USING btree (deleted_by_id);
+
+
+--
+-- Name: index_hmis_scan_card_codes_on_value; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hmis_scan_card_codes_on_value ON public.hmis_scan_card_codes USING btree (value);
 
 
 --
@@ -58891,6 +59040,20 @@ CREATE UNIQUE INDEX index_tags_on_name ON public.tags USING btree (name);
 
 
 --
+-- Name: index_talentlms_completed_trainings_on_config_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_talentlms_completed_trainings_on_config_id ON public.talentlms_completed_trainings USING btree (config_id);
+
+
+--
+-- Name: index_talentlms_completed_trainings_on_login_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_talentlms_completed_trainings_on_login_id ON public.talentlms_completed_trainings USING btree (login_id);
+
+
+--
 -- Name: index_talentlms_logins_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -58986,13 +59149,6 @@ CREATE INDEX index_tx_research_exports_on_export_id ON public.tx_research_export
 --
 
 CREATE INDEX index_tx_research_exports_on_user_id ON public.tx_research_exports USING btree (user_id);
-
-
---
--- Name: index_unique_identifiers_per_role; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_unique_identifiers_per_role ON public.hmis_form_definitions USING btree (identifier, role, version, status);
 
 
 --
@@ -59637,6 +59793,13 @@ CREATE UNIQUE INDEX uidx_hmis_external_referrals_identifier ON public.hmis_exter
 --
 
 CREATE UNIQUE INDEX uidx_hmis_external_unit_availability_syncs ON public.hmis_external_unit_availability_syncs USING btree (project_id, unit_type_id);
+
+
+--
+-- Name: uidx_hmis_form_definitions_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX uidx_hmis_form_definitions_identifier ON public.hmis_form_definitions USING btree (identifier, version);
 
 
 --
@@ -62687,6 +62850,21 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231220194404'),
 ('20231220203530'),
 ('20231226194235'),
-('20240104155138');
+('20240102155413'),
+('20240102205532'),
+('20240104155138'),
+('20240105222927'),
+('20240110135132'),
+('20240113025936'),
+('20240115190843'),
+('20240116193554'),
+('20240117133558'),
+('20240118203430'),
+('20240119035058'),
+('20240123152003'),
+('20240123154914'),
+('20240125143214'),
+('20240125163539'),
+('20240126164153');
 
 
