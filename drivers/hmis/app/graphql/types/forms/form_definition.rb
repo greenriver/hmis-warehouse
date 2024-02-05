@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -38,7 +38,7 @@ module Types
     end
 
     def cache_key
-      [object.id, project&.id, active_date].join('|')
+      [object.id, project&.id, active_date&.strftime('%Y-%m-%d')].join('|')
     end
 
     def system

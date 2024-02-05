@@ -13416,7 +13416,7 @@ CREATE TABLE public.hmis_client_alerts (
     expiration_date date,
     created_by_id bigint NOT NULL,
     client_id bigint NOT NULL,
-    severity character varying
+    priority character varying
 );
 
 
@@ -58570,6 +58570,13 @@ CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "Personal
 
 
 --
+-- Name: tt_hh_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX tt_hh_id ON public.service_history_enrollments USING btree (household_id);
+
+
+--
 -- Name: tx_id_ds_id_ft_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60729,6 +60736,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240123152003'),
 ('20240123154914'),
 ('20240125143214'),
-('20240125163539');
+('20240125163539'),
+('20240126164153');
 
 

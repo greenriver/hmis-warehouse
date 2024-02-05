@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -115,54 +115,56 @@ module WarehouseReports
     end
 
     def report_params
-      permitted = params.require(:filter).permit(
-        :version,
-        :start_date,
-        :end_date,
-        :hash_status,
-        :period_type,
-        :include_deleted,
-        :directive,
-        :faked_pii,
-        :confidential,
-        :reporting_range,
-        :reporting_range_days,
-        :reporting_range,
-        :reporting_range_days,
-        project_ids: [],
-        project_group_ids: [],
-        organization_ids: [],
-        data_source_ids: [],
+      export_source.clean_params(
+        params.require(:filter).permit(
+          :version,
+          :start_date,
+          :end_date,
+          :hash_status,
+          :period_type,
+          :include_deleted,
+          :directive,
+          :faked_pii,
+          :confidential,
+          :reporting_range,
+          :reporting_range_days,
+          :reporting_range,
+          :reporting_range_days,
+          project_ids: [],
+          project_group_ids: [],
+          organization_ids: [],
+          data_source_ids: [],
+        ),
       )
-      permitted[:include_deleted] = true if permitted[:period_type].to_i == 1
-      permitted
     end
 
     def recurrence_params
-      params.require(:filter).permit(
-        :version,
-        :start_date,
-        :end_date,
-        :hash_status,
-        :period_type,
-        :include_deleted,
-        :directive,
-        :faked_pii,
-        :confidential,
-        :every_n_days,
-        :reporting_range,
-        :reporting_range_days,
-        :s3_access_key_id,
-        :s3_secret_access_key,
-        :s3_region,
-        :s3_bucket,
-        :s3_prefix,
-        :zip_password,
-        :encryption_type,
-        project_ids: [],
-        project_group_ids: [],
-        organization_ids: [],
-        data_source_ids: [],
+      export_source.clean_params(
+        params.require(:filter).permit(
+          :version,
+          :start_date,
+          :end_date,
+          :hash_status,
+          :period_type,
+          :include_deleted,
+          :directive,
+          :faked_pii,
+          :confidential,
+          :every_n_days,
+          :reporting_range,
+          :reporting_range_days,
+          :s3_access_key_id,
+          :s3_secret_access_key,
+          :s3_region,
+          :s3_bucket,
+          :s3_prefix,
+          :zip_password,
+          :encryption_type,
+          project_ids: [],
+          project_group_ids: [],
+          organization_ids: [],
+          data_source_ids: [],
+        ),
       )
     end
 

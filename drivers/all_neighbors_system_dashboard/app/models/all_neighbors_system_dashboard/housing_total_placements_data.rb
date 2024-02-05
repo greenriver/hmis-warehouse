@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -255,7 +255,7 @@ module AllNeighborsSystemDashboard
               # race_code = HudUtility2024.race(race_name, true)
               scope = housed_total_scope.select(:destination_client_id)
               scope = filter_for_count_level(scope, options[:count_level])
-              scope = scope.where(primary_race: race_name)
+              scope = scope.where(Enrollment.arel_table[:race_list].matches("%#{race_name}%"))
               case bar
               # when 'Overall Population (Census)'
               #   get_us_census_population_by_race(race_code: race_code, year: date.year).to_i

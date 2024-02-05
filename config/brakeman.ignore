@@ -92,13 +92,47 @@
       "note": ""
     },
     {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "038bcd60acffeb30ca826c9b5f82d7628089aec25339d562440efa0b130911ca",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "drivers/health_pctp/app/views/health_pctp/careplans/edit_pdf.haml",
+      "line": 14,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "Health::Patient.viewable_by_user(current_user).find_by(:client_id => params[:client_id].to_i).pctps.find(params[:id]).enrollee_overview_label",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "HealthPctp::CareplansController",
+          "method": "edit",
+          "line": 34,
+          "file": "drivers/health_pctp/app/controllers/health_pctp/careplans_controller.rb",
+          "rendered": {
+            "name": "health_pctp/careplans/edit_pdf",
+            "file": "drivers/health_pctp/app/views/health_pctp/careplans/edit_pdf.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "health_pctp/careplans/edit_pdf"
+      },
+      "user_input": null,
+      "confidence": "High",
+      "cwe_id": [
+        79
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "07ab3a48e4c84f40fe8acb270d962ed39424807b21c01793b91e44b25acfaf9e",
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "app/models/grda_warehouse/shape/installer.rb",
-      "line": 86,
+      "line": 87,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "system(\"./shape_files/#{conf.dir}/make.inserts #{ENV[\"RELEVANT_COC_STATE\"]}\")",
       "render_path": null,
@@ -375,7 +409,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/client_search_util/name_search.rb",
-      "line": 63,
+      "line": 69,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql(\"MAX(#{term_score_sql(variant, :term_weight => ((1.0 or 0.75)))}) AS search_score\")",
       "render_path": null,
@@ -593,7 +627,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/client_search_util/name_search.rb",
-      "line": 125,
+      "line": 131,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "ClientSearchUtil::ClientSearchableName.where(\"#{csn_fn(:last_name)} ILIKE #{q_ln_pfx} AND #{csn_fn(:full_name)} ILIKE #{q_fn_pfx}\")",
       "render_path": null,
@@ -810,7 +844,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/client_search_util/name_search.rb",
-      "line": 132,
+      "line": 138,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "ClientSearchUtil::ClientSearchableName.where(\"#{search_class.connection.quote(term)} <% #{csn_fn(:full_name)}\")",
       "render_path": null,
@@ -1389,7 +1423,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/client_search_util/name_search.rb",
-      "line": 85,
+      "line": 91,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "scope.joins(\"JOIN (\\n  SELECT client_id, MAX(search_score) as search_score FROM (#{([ActiveSupport::Inflector.transliterate(original_term)] + expand_nicknames(original_term).map do\n ActiveSupport::Inflector.transliterate(variant)\n end).map do\n term_weight = if (variant == ActiveSupport::Inflector.transliterate(original_term)) then\n  1.0\nelse\n  0.75\nend\nscore_sql = term_score_sql(variant, :term_weight => ((1.0 or 0.75)))\nsearch_term_scope(variant).group(:client_id).select(:client_id, Arel.sql(\"MAX(#{term_score_sql(variant, :term_weight => ((1.0 or 0.75)))}) AS search_score\"))\n end.compact.map do\n \"(#{query.to_sql})\"\n end.join(\" UNION ALL \")}) names GROUP BY 1\\n) names ON \\\"Client\\\".id = names.client_id\\n\")",
       "render_path": null,
@@ -1999,29 +2033,6 @@
       "note": ""
     },
     {
-      "warning_type": "Command Injection",
-      "warning_code": 14,
-      "fingerprint": "8a29ddebc189081add6710e179967e490ad042f12df9fdfaac8211e87e8d97db",
-      "check_name": "Execute",
-      "message": "Possible command injection",
-      "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 334,
-      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
-      "code": "`docker image ls -f 'reference=#{repo_name}' | grep \"#{_ruby_version}-#{_pre_cache_version}--pre-cache\"`",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Deployer",
-        "method": "_pre_cache_image_exists?"
-      },
-      "user_input": "repo_name",
-      "confidence": "Medium",
-      "cwe_id": [
-        77
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "90ff2d536c66b271d5f9e428f8f430887e06ca4bf3031ede5a3846d9f7c12294",
@@ -2361,7 +2372,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/performance_measurement/app/models/performance_measurement/equity_analysis/data.rb",
-      "line": 184,
+      "line": 185,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "scope.where(\"#{period}_age\" => (age_params.map do\n Filters::FilterBase.age_range(d)\n end))",
       "render_path": null,
@@ -3239,7 +3250,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/client_search_util/name_search.rb",
-      "line": 71,
+      "line": 77,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql(\"MAX(#{term_score_sql(ActiveSupport::Inflector.transliterate(original_term), :term_weight => 10.0)}) AS search_score\")",
       "render_path": null,
@@ -3439,6 +3450,6 @@
       "note": ""
     }
   ],
-  "updated": "2024-01-24 17:06:25 +0000",
+  "updated": "2024-02-03 18:30:11 +0000",
   "brakeman_version": "5.4.1"
 }

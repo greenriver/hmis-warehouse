@@ -18,8 +18,6 @@ RSpec.describe Hmis::ClientAlert, type: :model do
     cleanup_test_environment
   end
 
-  include_context 'hmis base setup'
-
   describe 'basic client alert tests' do
     let!(:c1) { create :hmis_hud_client, data_source: ds1 }
     let!(:a1) { create :hmis_client_alert, created_by: hmis_user }

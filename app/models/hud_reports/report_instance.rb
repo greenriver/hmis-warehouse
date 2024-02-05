@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -184,6 +184,10 @@ module HudReports
 
     def included_questions
       universe_cells.map(&:question)
+    end
+
+    def generated_uploadable_version?
+      question_names.include?('HDX Upload')
     end
 
     # only allow alpha numeric

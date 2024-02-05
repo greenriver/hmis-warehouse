@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -167,13 +167,6 @@ module AllNeighborsSystemDashboard
 
       def gender(enrollment)
         HudUtility2024.gender(enrollment.client.gender_binary)
-      end
-
-      # Need to align with the census races (roughly)
-      # so we're going to pick randomly if a client has more than one
-      # race, and we'll convert all RaceNone to Unknown Race
-      def primary_race(enrollment)
-        HudUtility2024.race(enrollment.client.pit_race, multi_racial: true) || "Doesn't know, prefers not to answer, or not collected"
       end
 
       def race_list(enrollment)

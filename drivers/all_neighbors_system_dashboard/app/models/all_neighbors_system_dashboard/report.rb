@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -148,8 +148,6 @@ module AllNeighborsSystemDashboard
             personal_id: source_enrollment.personal_id,
             age: enrollment.age,
             gender: gender(enrollment),
-            # Don't use primary race, we'll remove later
-            primary_race: primary_race(enrollment),
             race_list: enrollment.client.race_description(include_missing_reason: true),
             # ethnicity: HudUtility2024.ethnicity(enrollment.client.ethnicity),
             ce_entry_date: ce_info&.entry_date,

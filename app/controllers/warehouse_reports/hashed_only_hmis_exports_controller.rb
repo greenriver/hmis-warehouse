@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -28,16 +28,18 @@ module WarehouseReports
     end
 
     def report_params
-      params.require(:filter).permit(
-        :start_date,
-        :end_date,
-        :period_type,
-        :include_deleted,
-        :version,
-        project_ids: [],
-        project_group_ids: [],
-        organization_ids: [],
-        data_source_ids: [],
+      export_source.clean_params(
+        params.require(:filter).permit(
+          :start_date,
+          :end_date,
+          :period_type,
+          :include_deleted,
+          :version,
+          project_ids: [],
+          project_group_ids: [],
+          organization_ids: [],
+          data_source_ids: [],
+        ),
       )
     end
   end

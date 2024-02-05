@@ -1,9 +1,12 @@
 - hmis_forms_columms = (GrdaWarehouse::HmisForm.column_names - ['api_response', 'answers']).map(&:to_sym)
 - hmis_forms = @client.source_hmis_forms.select(*hmis_forms_columms).sort.group_by(&:assessment_type)
 - eccovia_assessments = []
+- ce_assessments = []
 - if RailsDrivers.loaded.include?(:eccovia_data)
   - eccovia_assessments = @client.source_eccovia_assessments
-- if hmis_forms.any? || eccovia_assessments.any?
+- if @client.source_assessments.exists?
+  - ce_assessments = @client.source_assessments.preload(:assessment_questions).to_a.group_by(&:name)
+- if hmis_forms.any? || eccovia_assessments.any? || ce_assessments.any?
   - if hmis_forms.any?
     %table.table
       %thead
@@ -49,6 +52,38 @@
             %td= assessment.score
             %td= assessment.assessed_at&.to_date
             %td= assessment.assessor_name
+  - if ce_assessments.any?
+    %table.table
+      %thead
+        %tr
+          %th Assessment Level
+          %th Assessment Type
+          %th Collection Date
+          %th Prioritization Status
+          %th Staff
+          %th
+      %tbody
+        - ce_assessments.each_with_index do |(name, (assessment, *assessments)), i|
+          - any_buttons = assessments.any?
+          - cz = "assessment_type_#{i}"
+          %tr{ class: ( 'assessment__new-type' if any_buttons )}
+            %td= name
+            %td= HudUtility2024.assessment_type assessment.AssessmentType
+            %td= link_to(assessment.AssessmentDate, client_hud_assessment_path(@client, assessment), data: { loads_in_pjax_modal: true })
+            %td= HudUtility2024.prioritization_status assessment.PrioritizationStatus
+            %td= assessment.user&.name
+            %td.zero-width
+              - if any_buttons
+                %a.btn.btn-secondary.btn-xs.btn-icon-only.jAssessmentTypeToggle{ href: '#', data: { class: cz } }
+                  %span.icon-plus
+          - assessments.each do |assessment|
+            %tr{ class: cz, style: 'display:none;' }
+              %td= name
+              %td= HudUtility2024.assessment_type assessment.AssessmentType
+              %td= link_to(assessment.AssessmentDate, client_hud_assessment_path(@client, assessment), data: { loads_in_pjax_modal: true })
+              %td= HudUtility2024.prioritization_status assessment.PrioritizationStatus
+              %td= assessment.user&.name
+              %td.zero-width
 
 - else
   .no-data

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -75,6 +75,24 @@ RSpec.describe HmisExternalApis::AcHmis::WarehouseChangesJob, type: :job do
 
     other_client = create(:hmis_hud_client, data_source: data_source)
     create(:mci_unique_id_external_id, value: '1000119810', remote_credential: remote_credential, source: other_client)
+
+    allow(Hmis::MergeClientsJob).to receive(:perform_later).with(client_ids: [client.id, other_client.id].sort, actor_id: user.id)
+
+    perform
+
+    expect(job.merge_sets.length).to eq(1)
+  end
+
+  it 'triggers merge of duplicate mci unique IDs for source clients with the same destination id' do
+    stub_api
+
+    # Second Source Client that does not have an MCI Unique ID, but shares the same destination clients
+    other_client = create(:hmis_hud_client_with_warehouse_client, data_source: data_source)
+    other_client.warehouse_client_source.update(destination_id: client.warehouse_id)
+
+    # confirm setup
+    expect(client.destination_client.source_clients.size).to eq(2)
+    expect(client.destination_client.source_clients.pluck(:id)).to contain_exactly(client.id, other_client.id)
 
     allow(Hmis::MergeClientsJob).to receive(:perform_later).with(client_ids: [client.id, other_client.id].sort, actor_id: user.id)
 

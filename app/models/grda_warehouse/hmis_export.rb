@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -63,6 +63,12 @@ module GrdaWarehouse
         :data_source_ids,
         :coc_codes,
       ]
+    end
+
+    def self.clean_params(params)
+      # if period type is updated, deleted records are required
+      params[:include_deleted] = true if params[:period_type].to_i == 1
+      params
     end
 
     def filter

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,7 +16,7 @@ module Admin::Health
     def create
       @team = team_class.create(team_params)
       flash[:error] = @team.errors.full_messages.join('; ') if @team.errors.any?
-      respond_with(@team, location: admin_health_coordination_teams_path)
+      redirect_to(admin_health_coordination_teams_path)
     end
 
     def update

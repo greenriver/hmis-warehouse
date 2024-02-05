@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -26,7 +26,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, user: u1, entry_date: '2022-01-01', household_id: e1.household_id, relationship_to_ho_h: 99 }
   let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, user: u1, entry_date: '2022-01-01', household_id: e1.household_id, relationship_to_ho_h: 99 }
   let!(:e4) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c4, user: u1, entry_date: '2022-01-01', relationship_to_ho_h: 99 }
-  let!(:fd1) { create :hmis_form_definition }
+  let!(:fd1) do
+    ['informationDate', 'fieldOne', 'fieldTwo'].each do |key|
+      create(:hmis_custom_data_element_definition, key: key, owner_type: Hmis::Hud::CustomAssessment.sti_name, data_source: ds1)
+    end
+    create :hmis_form_definition
+  end
   let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1 }
 
   before(:each) do
@@ -83,7 +88,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       # create the initial WIP assessments
       @wip_assessment_ids = []
       [e1, e2, e3].each do |e|
-        _resp, result = post_graphql(input: { input: { enrollment_id: e.id, **save_input } }) { save_assessment }
+        resp, result = post_graphql(input: { input: { enrollment_id: e.id, **save_input } }) { save_assessment }
+        raise if resp.status != 200
+
         @wip_assessment_ids << result.dig('data', 'saveAssessment', 'assessment')
       end
     end

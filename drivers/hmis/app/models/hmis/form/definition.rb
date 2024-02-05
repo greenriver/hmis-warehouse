@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -34,10 +34,12 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   has_many :form_processors
   has_many :custom_service_types, through: :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
 
-  # Forms that are assessments
-  HUD_ASSESSMENT_FORM_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT, :CE, :POST_EXIT, :CUSTOM_ASSESSMENT].freeze
+  # Forms that are used for Assessments. These are submitted using SubmitAssessment mutation.
+  ASSESSMENT_FORM_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT, :POST_EXIT, :CUSTOM_ASSESSMENT].freeze
 
-  # System forms (forms that are required for basic HMIS functionality, and are configurable)
+  # "System" Record-editing Forms
+  # These are forms that are *required* for basic HMIS functionality, and are configurable.
+  # These are submitted using SubmitForm mutation.
   SYSTEM_FORM_ROLES = [
     :PROJECT,
     :ORGANIZATION,
@@ -51,7 +53,13 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :CE_PARTICIPATION,
   ].freeze
 
-  # Forms used for data collection on Enrollments (features that can be "toggled" on and off by specifying Instances)
+  # "Data Collection Feature" Record-editing Forms
+  # These are forms that are *optional* for HMIS functionality, and are configurable. They
+  # are primarily for Enrollment-level data collection.
+  #
+  # Each one is considered a feature that can be "toggled on" for a given project by enabling
+  # a Form Instance for it.
+  # These are submitted using SubmitForm mutation.
   DATA_COLLECTION_FEATURE_ROLES = [
     :CURRENT_LIVING_SITUATION,
     :SERVICE,
@@ -64,22 +72,25 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :REFERRAL_REQUEST,
   ].freeze
 
-  # Static forms are not configurable
+  # Static Forms
+  # Non-configurable forms. These are submitted using custom mutations.
   STATIC_FORM_ROLES = [
     :FORM_RULE,
     :AUTO_EXIT_CONFIG,
+    :CLIENT_ALERT,
     :FORM_DEFINITION,
   ].freeze
 
+  # All form roles
   FORM_ROLES = [
-    *HUD_ASSESSMENT_FORM_ROLES,
+    *ASSESSMENT_FORM_ROLES,
     *SYSTEM_FORM_ROLES,
     *DATA_COLLECTION_FEATURE_ROLES,
     *STATIC_FORM_ROLES,
     :OCCURRENCE_POINT,
     :CLIENT_DETAIL,
     # Other/misc forms
-    :FILE, # should maybe be considered a data collection feature, but different becase its at Client-level (not Project)
+    :FILE, # should maybe be considered a data collection feature, but different because its at Client-level (not Project)
   ].freeze
 
   validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }
@@ -166,6 +177,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     },
   }.freeze
 
+  # HUD-defined numeric representation of Data Collection Stage for each HUD Assessment
   FORM_DATA_COLLECTION_STAGES = {
     INTAKE: 1,
     UPDATE: 2,
@@ -174,10 +186,15 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     POST_EXIT: 6,
   }.freeze
 
+  # All form roles
   use_enum_with_same_key :form_role_enum_map, FORM_ROLES.excluding(:CE)
-  # may add back CE as HUD Assessment Role when we implement CE assessments. Same for implementing customs. Unsure at this point, so leaving them out.
-  use_enum_with_same_key :assessment_type_enum_map, HUD_ASSESSMENT_FORM_ROLES.excluding(:CE)
+  # Form roles that can be used with SubmitForm for editing records
+  use_enum_with_same_key :record_form_role_enum_map, FORM_ROLES.excluding(*ASSESSMENT_FORM_ROLES, *STATIC_FORM_ROLES)
+  # Form roles for Assessments
+  use_enum_with_same_key :assessment_type_enum_map, ASSESSMENT_FORM_ROLES
+  # Form roles that represent optional "features"
   use_enum_with_same_key :data_collection_feature_role_enum_map, DATA_COLLECTION_FEATURE_ROLES
+  # Form roles that are static
   use_enum_with_same_key :static_form_role_enum_map, STATIC_FORM_ROLES
 
   scope :exclude_definition_from_select, -> {
@@ -277,7 +294,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def hud_assessment?
-    HUD_ASSESSMENT_FORM_ROLES.include?(role.to_sym)
+    ASSESSMENT_FORM_ROLES.excluding(:CUSTOM_ASSESSMENT).include?(role.to_sym)
   end
 
   def intake?

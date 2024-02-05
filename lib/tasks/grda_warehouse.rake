@@ -315,8 +315,15 @@ namespace :grda_warehouse do
       Hmis::AutoExitJob.perform_now
     end
 
+    if DateTime.current.hour == 20 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && RailsDrivers.loaded.include?(:hmis_external_apis)
+      # Run AC Data Warehouse exports to SFTP server at 8pm
+      Rake::Task['driver:hmis_external_apis:export:ac_clients'].invoke
+    end
+
     stats_collector = AppResourceMonitor::CollectStatsJob.new
     AppResourceMonitor::CollectStatsJob.perform_later if stats_collector.should_enqueue?
+
+    BuildTranslationCacheJob.perform_later
   end
 
   desc 'Mark the first residential service history record for clients for whom this has not yet been done; if you set the parameter to *any* value, all clients will be reset'
@@ -363,11 +370,6 @@ namespace :grda_warehouse do
   desc 'Process Recurring HMIS Exports'
   task process_recurring_hmis_exports: [:environment] do
     GrdaWarehouse::Tasks::ProcessRecurringHmisExports.new.run!
-
-    if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && RailsDrivers.loaded.include?(:hmis_external_apis)
-      # Upload HMIS Export and Client MCI mapping to the AC Data Warehouse
-      Rake::Task['driver:hmis_external_apis:export:ac_clients'].invoke
-    end
   end
 
   desc 'Process location data'

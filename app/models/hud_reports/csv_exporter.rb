@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,19 +8,26 @@ require 'csv'
 
 module HudReports
   class CsvExporter
-    attr_accessor :report, :table, :metadata, :force_quotes, :quote_empty
+    attr_accessor :report, :table, :metadata, :force_quotes, :quote_empty, :external_row_label
 
-    def initialize(report, table, force_quotes: true, quote_empty: true)
+    def initialize(report, table, force_quotes: true, quote_empty: true, external_row_label: false)
       @report = report
       @table = table
       @metadata = report.answer(question: table).metadata
       @force_quotes = force_quotes
       @quote_empty = quote_empty
+      @external_row_label = external_row_label
     end
 
     def export(file_path)
       file = "#{file_path}/#{csv_name}"
       CSV.open(file, 'wb', force_quotes: @force_quotes, quote_empty: @quote_empty) do |table|
+        as_array.each { |row| table << row }
+      end
+    end
+
+    def export_as_string
+      CSV.generate(force_quotes: true, quote_empty: true) do |table|
         as_array.each { |row| table << row }
       end
     end
@@ -66,7 +73,7 @@ module HudReports
 
     def row_with_label(row_name)
       label = @metadata['row_labels'][row_name.to_i - @metadata['first_row']] # Table rows are 1 based
-      if label.present?
+      if label.present? && !external_row_label
         [label]
       else
         []
