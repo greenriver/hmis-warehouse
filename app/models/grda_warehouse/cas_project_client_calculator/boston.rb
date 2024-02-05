@@ -8,6 +8,7 @@ require 'memery'
 module GrdaWarehouse::CasProjectClientCalculator
   class Boston < Default
     include Memery
+    MAX_ADDITIONAL_DAYS = 548
     # A hook/wrapper to enable easily overriding how we get data for a given project client column
     # To use this efficiently, you'll probably want to preload a handful of data, see push_clients_to_cas.rb
     def value_for_cas_project_client(client:, column:)
@@ -304,7 +305,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       pre_calculated_days = client.processed_service_history&.days_homeless_last_three_years || 0
       return pre_calculated_days unless assessment.present?
 
-      pathways_days = pathways_days_homeless(assessment, client)
+      pathways_days = pathways_days_homeless(client)
       return pathways_days if pathways_days.positive?
 
       pre_calculated_days
@@ -315,7 +316,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       pre_calculated_days = client.processed_service_history&.literally_homeless_last_three_years || 0
       return pre_calculated_days unless assessment.present?
 
-      pathways_days = pathways_days_homeless(assessment, client)
+      pathways_days = pathways_days_homeless(client)
       return pathways_days if pathways_days.positive?
 
       pre_calculated_days
@@ -324,13 +325,13 @@ module GrdaWarehouse::CasProjectClientCalculator
     # If a client has more than 548 self-reported days (combination of sheltered and unsheltered)
     # and does not have a verification uploaded, count unsheltered days first, then count sheltered days UP TO 548.
     # If the self reported days are verified, use the provided amounts.
-    private def pathways_days_homeless(assessment, _client)
-      unsheltered_days = assessment.question_matching_requirement('c_add_boston_nights_outside_pathways')&.AssessmentAnswer&.to_i || 0
-      sheltered_days = assessment.question_matching_requirement('c_add_boston_nights_sheltered_pathways')&.AssessmentAnswer&.to_i || 0
+    private def pathways_days_homeless(client)
+      unsheltered_days = additional_homeless_nights_unsheltered(client)
+      sheltered_days = additional_homeless_nights_unsheltered(client)
       days = (unsheltered_days + sheltered_days).clamp(0, max_extra_homeless_days(client))
 
-      warehouse_unsheltered_days = assessment.question_matching_requirement('c_boston_homeless_nights_outside_wiw')&.AssessmentAnswer&.to_i || 0
-      warehouse_sheltered_days = assessment.question_matching_requirement('c_boston_homeless_nights_sheltered_wiw')&.AssessmentAnswer&.to_i || 0
+      warehouse_unsheltered_days = calculated_homeless_nights_unsheltered(client)
+      warehouse_sheltered_days = calculated_homeless_nights_sheltered(client)
 
       days += warehouse_unsheltered_days
       days += warehouse_sheltered_days
@@ -339,7 +340,7 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     private def total_homeless_nights_unsheltered(client)
       most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_pathways_nights_unsheltered_warehouse_added_total')&.AssessmentAnswer&.to_i
+        question_matching_requirement('c_pathways_nights_unsheltered_warehouse_added_total')&.AssessmentAnswer&.to_i || 0
     end
 
     private def max_extra_homeless_days(client)
@@ -349,29 +350,47 @@ module GrdaWarehouse::CasProjectClientCalculator
       548
     end
 
+    # IF a client has less than 548 self-reported days (combination of sheltered and unsheltered) use the values provided regardless of whether a verification is uploaded
+    # IF a client has more than 548 self-reported days (combination of sheltered and unsheltered) AND has a verification uploaded, use the values provided
+    # IF a client has more than 548 self-reported days (combination of sheltered and unsheltered) AND does NOT have a verification uploaded, COUNT unsheltered days FIRST, THEN COUNT sheltered days UP TO 548.
     def additional_homeless_nights_sheltered(client)
-      most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_add_boston_nights_sheltered_pathways')&.AssessmentAnswer&.to_i
+      sheltered = most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_add_boston_nights_sheltered_pathways')&.AssessmentAnswer&.to_i || 0
+      return sheltered if ce_self_certification_client_ids.include?(client.id)
+
+      unsheltered = additional_homeless_nights_unsheltered(client)
+      # 2. Find the maximum amount of sheltered days to count based on the total unsheltered days.
+      #    The combination of the two cannot exceed 548.
+      available_nights = MAX_ADDITIONAL_DAYS - unsheltered
+      # 3. Cap the sheltered days counted at the calculated max if it exceeds that amount.
+      sheltered.clamp(0, available_nights)
     end
 
+    # IF a client has less than 548 self-reported days (combination of sheltered and unsheltered) use the values provided regardless of whether a verification is uploaded
+    # IF a client has more than 548 self-reported days (combination of sheltered and unsheltered) AND has a verification uploaded, use the values provided
+    # IF a client has more than 548 self-reported days (combination of sheltered and unsheltered) AND does NOT have a verification uploaded, COUNT unsheltered days FIRST, THEN COUNT sheltered days UP TO 548.
     def additional_homeless_nights_unsheltered(client)
-      most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_add_boston_nights_outside_pathways')&.AssessmentAnswer&.to_i
+      unsheltered = most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_add_boston_nights_outside_pathways')&.AssessmentAnswer&.to_i || 0
+      return unsheltered if ce_self_certification_client_ids.include?(client.id)
+
+      # 1. Cap the total unsheltered at 548 days if it is greater than this amount.
+      unsheltered.clamp(0, MAX_ADDITIONAL_DAYS)
     end
 
     def calculated_homeless_nights_sheltered(client)
       most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_boston_homeless_nights_sheltered_wiw')&.AssessmentAnswer&.to_i
+        question_matching_requirement('c_boston_homeless_nights_sheltered_wiw')&.AssessmentAnswer&.to_i || 0
     end
 
     def calculated_homeless_nights_unsheltered(client)
       most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_boston_homeless_nights_outside_wiw')&.AssessmentAnswer&.to_i
+        question_matching_requirement('c_boston_homeless_nights_outside_wiw')&.AssessmentAnswer&.to_i || 0
     end
 
     def total_homeless_nights_sheltered(client)
       most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_pathways_nights_sheltered_warehouse_added_total')&.AssessmentAnswer&.to_i
+        question_matching_requirement('c_pathways_nights_sheltered_warehouse_added_total')&.AssessmentAnswer&.to_i || 0
     end
 
     private def default_shelter_agency_contacts(client)
