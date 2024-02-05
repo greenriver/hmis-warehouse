@@ -18,13 +18,20 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       row.values_at(:filename, :row_number).compact.join(':')
     end
 
-    def field_value(field, required: false)
+    def field_value(field, required: false, index: nil)
       raise "row is nil. looking for field '#{field}' #{caller.inspect}" if row.nil?
 
-      value = row[field]&.strip&.presence
-      raise "field '#{field}' is missing from row: #{context} caller: #{caller.inspect}" if required && !value
+      values = row[field]
+      if values.blank?
+        raise "field '#{field}' is missing from row: #{context} caller: #{caller.inspect}" if required
+        nil
+      elsif index
+        values[index]
+      else
+        raise "field '#{field}' is multi-valued. You must specify index" if values.many?
 
-      value
+        values.first
+      end
     end
   end
 end

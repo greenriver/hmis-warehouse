@@ -36,40 +36,48 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       @records ||= read_records
     end
 
-    def read_records
-      xls = Roo::Spreadsheet.open(filename)
-      sheet = xls.sheets[sheet_number]
-
-      xls.default_sheet = sheet
-
+    # build a list of header names and columns. Multiple columns with the same name ard grouped together
+    # {'Enrollment ID' => ['a'], 'Nickname' => ['d', 'e','f']}
+    def build_cols_by_field(xls)
       col = 'a'
-      fields_by_col_number = {}
-      50.times do
+      result = {}
+      500.times do
         value = begin
                   xls.cell(header_row_number, col)
                 rescue StandardError
                   nil
                 end
-        ident = normalize_col(value)
-        fields_by_col_number[col] = ident if ident
+        field = normalize_col(value)
+        result[field ] ||= []
+        result[field] << col
         col = col.next
       end
+      result
+    end
+
+    def read_records
+      xls = Roo::Spreadsheet.open(filename)
+      sheet = xls.sheets[sheet_number]
+
+      xls.default_sheet = sheet
+      cols_by_field = build_cols_by_field(xls)
 
       ret = []
       last_row = xls.last_row.to_i
-      return ret if last_row < 2
+      return ret if last_row <= header_row_number
 
-      row_number = header_row_number
+      cur_row_number = header_row_number
       (header_row_number + 1).upto(last_row) do |row|
-        row_number += 1
+        cur_row_number += 1
         values = {}
-        fields_by_col_number.each do |in_col, field|
-          value = normalize_value(xls.cell(row, in_col))
-          values[field] = value
+        cols_by_field.each do |field, sheet_cols|
+          values[field] = sheet_cols.map do |sheet_col|
+            normalize_value(xls.cell(row, sheet_col))
+          end
         end
         next unless values.values.any?
 
-        values[:row_number] = row_number
+        values[:row_number] = cur_row_number
         values[:filename] = filename
         ret.push(values)
       end

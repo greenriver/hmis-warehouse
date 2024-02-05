@@ -107,16 +107,27 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       ar_import(Hmis::Hud::CustomDataElement, cdes)
     end
 
-    def cde_values(row, config)
-      field = config[:label] # the label is the row field
-      value = row.field_value(field, required: false)
-      return [] unless value
+    def cde_values(row, config, index: nil, required: false)
+      field = config.fetch(:label) # the label is the row field
+      raw_value = row.field_value(field, index: index, required: required)
+      return [] unless raw_value
 
-      return [value&.to_i] if config.fetch(:field_type) == 'integer'
-
-      return value&.split('|')&.map(&:strip)&.compact_blank if config.fetch(:repeats)
-
-      [value]
+      values = config.fetch(:repeats) ? raw_value.split('|').map(&:strip) : [raw_value]
+      field_type = config.fetch(:field_type)
+      values.compact_blank.map do |value|
+        case field_type
+        when 'string'
+          value
+        when 'integer'
+          value.to_i
+        when 'boolean'
+          yn_boolean(value)
+        when 'date'
+          parse_date(value)
+        else
+          raise "field_type #{field_type} not support on key #{config.fetch(:key)}"
+        end
+      end
     end
 
     def model_class

@@ -31,17 +31,23 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       clobber ? true : supports_upsert?
     end
 
-    # 'YYYY-MM-DD HH24:MM:SS'
-    DATE_TIME_FMT = '%Y-%m-%d %H:%M:%S'.freeze
-    def valid_date?(str)
-      str =~ /\A\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\z/
-    end
+    DATE_FMT = '%Y-%m-%d'
+    DATE_RGX = /\A\d{4}-\d{2}-\d{2}\z/
+
+    # 'YYYY-MM-DDT00:00:00.0000000'
+    DATE_TIME_FMT = '%Y-%m-%dT%H:%M:%S.%N'
+    DATE_TIME_RGX = /\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{7}\z/
 
     def parse_date(str)
       return unless str
-      raise ArgumentError, "Invalid date-time format. Expected 'YYYY-MM-DD HH24:MM:SS' but got '#{str}'" unless valid_date?(str)
-
-      DateTime.strptime(str, DATE_TIME_FMT)
+      case str
+      when DATE_RGX
+        Date.strptime(str, DATE_FMT)
+      when DATE_TIME_RGX
+        DateTime.strptime(str, DATE_TIME_FMT)
+      else
+        raise ArgumentError, "Invalid date or date-time format: '#{str}'"
+      end
     end
 
     def system_user_id
