@@ -7,8 +7,8 @@ module Types
   class HmisSchema::Enums::ClientAlertPriorityLevel < Types::BaseEnum
     graphql_name 'ClientAlertPriorityLevel'
 
-    Hmis::ClientAlert::PRIORITY_LEVELS.each do |topic|
-      value topic
+    Hmis::ClientAlert::PRIORITY_LEVELS.each_with_index do |level, index|
+      value level, description: "#{index + 1} - #{level.titleize}"
     end
   end
 end

@@ -1,5 +1,0 @@
-FROM open-path-warehouse:latest--base
-
-USER root
-RUN apk add aws-cli
-USER app

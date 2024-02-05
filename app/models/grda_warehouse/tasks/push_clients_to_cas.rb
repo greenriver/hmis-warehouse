@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -271,6 +271,14 @@ module GrdaWarehouse::Tasks
         assessor_phone: :assessor_phone,
         match_group: :match_group,
         encampment_decomissioned: :encampment_decomissioned,
+        total_homeless_nights_unsheltered: :total_homeless_nights_unsheltered,
+        additional_homeless_nights_sheltered: :additional_homeless_nights_sheltered,
+        additional_homeless_nights_unsheltered: :additional_homeless_nights_unsheltered,
+        calculated_homeless_nights_sheltered: :calculated_homeless_nights_sheltered,
+        calculated_homeless_nights_unsheltered: :calculated_homeless_nights_unsheltered,
+        total_homeless_nights_sheltered: :total_homeless_nights_sheltered,
+        service_need: :service_need,
+        housing_barrier: :housing_barrier,
       }
     end
 
