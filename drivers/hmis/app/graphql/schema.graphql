@@ -11022,7 +11022,6 @@ type UpdateUnitsPayload {
 input UserAuditEventFilterOptions {
   clientRecordType: [ID!]
   enrollmentRecordType: [ID!]
-  user: [ID!]
 }
 
 type ValidationError {
