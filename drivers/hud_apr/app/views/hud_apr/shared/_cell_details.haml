@@ -47,7 +47,7 @@
                   - elsif k.to_s.starts_with?('hiv_aids') && !can_view_hiv_status?
                     %i.light redacted
                   - else
-                    = formatted_cell(client[k])
+                    = formatted_cell(client[k], k, current_user)
   = content_for :page_js do
     :javascript
       table = $('.datatable').DataTable({
