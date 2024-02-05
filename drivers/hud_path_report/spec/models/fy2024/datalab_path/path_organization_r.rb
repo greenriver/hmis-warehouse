@@ -37,11 +37,7 @@ RSpec.shared_context 'path organization r', shared_context: :metadata do
       )
     end
 
-    # TODO: Jan 2024 Testkit not checked beyond this point
-
-    # Pending: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recibeszBDplTEBFJ
-    # 596228 - missing? DataLab is using the earlier enrollment, why? - later is active, but not enrolled
-    # 844241 - entry date 8/17/2022, is active because of DateOfEngagement
+    # Pending: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rechv4vnjzExZMhVg
     xit 'Q19-Q24' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -50,7 +46,7 @@ RSpec.shared_context 'path organization r', shared_context: :metadata do
       )
     end
 
-    # Pending: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recPVamjYOzWWTx5U
+    # Pending: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rechv4vnjzExZMhVg
     xit 'Q25' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -58,7 +54,7 @@ RSpec.shared_context 'path organization r', shared_context: :metadata do
       )
     end
 
-    # Pending: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recUam4bP8a5eJGSK
+    # Pending: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rechv4vnjzExZMhVg
     xit 'Q26' do
       compare_results(
         file_path: result_file_prefix + results_dir,
