@@ -41,7 +41,7 @@ module Types
     # We use the generic term 'audit' to encompass both types of history (view and edit), but many places in the code,
     # 'audit' just refers to edit history.
     audit_history_field(
-      filter_args: { type_name: 'UserAuditEvent' },
+      filter_args: { type_name: 'UserAuditEvent', omit: [:user] },
     )
 
     def audit_history(filters: nil)
