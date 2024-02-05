@@ -18,11 +18,16 @@ module Types
     field :email, String, null: false
     field :first_name, String, null: true
     field :last_name, String, null: true
+
+    # activity_logs is for auditing entities that this user has accessed/viewed.
+    # It's based on every GraphQL query that was made, but the raw data is not useful to show end users
     field :activity_logs, Types::Application::ActivityLog.page_type, null: false
+
+    # client_access_summaries and enrollment_access_summaries are both downstream from hmis_activity_logs table;
+    # the Hmis::ActivityLogProcessorJob populates these views so that the data is more readable by end users.
     field :client_access_summaries, Types::Application::ClientAccessSummary.page_type, null: false do
       argument(:filters, Types::Application::ClientAccessSummary.filter_options_type, required: false)
     end
-
     field :enrollment_access_summaries, Types::Application::EnrollmentAccessSummary.page_type, null: false do
       argument(:filters, Types::Application::EnrollmentAccessSummary.filter_options_type, required: false)
     end
@@ -32,6 +37,9 @@ module Types
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
 
+    # audit_history returns the changes this user has made (as opposed to activity_logs which is just views, not edits).
+    # We use the generic term 'audit' to encompass both types of history (view and edit), but many places in the code,
+    # 'audit' just refers to edit history.
     audit_history_field(
       filter_args: { type_name: 'UserAuditEvent' },
     )
