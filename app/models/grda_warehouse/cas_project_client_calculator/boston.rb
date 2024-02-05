@@ -321,19 +321,20 @@ module GrdaWarehouse::CasProjectClientCalculator
       pre_calculated_days
     end
 
+    # If a client has more than 548 self-reported days (combination of sheltered and unsheltered)
+    # and does not have a verification uploaded, count unsheltered days first, then count sheltered days UP TO 548.
+    # If the self reported days are verified, use the provided amounts.
     private def pathways_days_homeless(assessment, _client)
-      assessment.question_matching_requirement('c_new_boston_homeless_nights_total')&.AssessmentAnswer&.to_i || 0
+      unsheltered_days = assessment.question_matching_requirement('c_add_boston_nights_outside_pathways')&.AssessmentAnswer&.to_i || 0
+      sheltered_days = assessment.question_matching_requirement('c_add_boston_nights_sheltered_pathways')&.AssessmentAnswer&.to_i || 0
+      days = (unsheltered_days + sheltered_days).clamp(0, max_extra_homeless_days(client))
 
-      # unsheltered_days = assessment.question_matching_requirement('c_add_boston_nights_outside_pathways')&.AssessmentAnswer&.to_i || 0
-      # sheltered_days = assessment.question_matching_requirement('c_add_boston_nights_sheltered_pathways')&.AssessmentAnswer&.to_i || 0
-      # days = (unsheltered_days + sheltered_days).clamp(0, max_extra_homeless_days(client))
+      warehouse_unsheltered_days = assessment.question_matching_requirement('c_boston_homeless_nights_outside_wiw')&.AssessmentAnswer&.to_i || 0
+      warehouse_sheltered_days = assessment.question_matching_requirement('c_boston_homeless_nights_sheltered_wiw')&.AssessmentAnswer&.to_i || 0
 
-      # warehouse_unsheltered_days = assessment.question_matching_requirement('c_boston_homeless_nights_outside_wiw')&.AssessmentAnswer&.to_i || 0
-      # warehouse_sheltered_days = assessment.question_matching_requirement('c_boston_homeless_nights_sheltered_wiw')&.AssessmentAnswer&.to_i || 0
-
-      # days += warehouse_unsheltered_days
-      # days += warehouse_sheltered_days
-      # days
+      days += warehouse_unsheltered_days
+      days += warehouse_sheltered_days
+      days
     end
 
     private def total_homeless_nights_unsheltered(client)
