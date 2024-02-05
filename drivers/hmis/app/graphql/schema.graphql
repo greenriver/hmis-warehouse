@@ -1884,6 +1884,7 @@ type CustomDataElement {
   key: String!
   label: String!
   repeats: Boolean!
+  showInSummary: Boolean!
   value: CustomDataElementValue
   values: [CustomDataElementValue!]
 }

@@ -13,6 +13,7 @@ module Types
     field :field_type, HmisSchema::Enums::CustomDataElementType, null: false
     field :label, String, null: false
     field :repeats, Boolean, null: false
+    field :show_in_summary, Boolean, null: false
     field :value, HmisSchema::CustomDataElementValue, null: true, extras: [:parent]
     field :values, [HmisSchema::CustomDataElementValue], null: true, extras: [:parent]
 
