@@ -5,10 +5,8 @@
 ###
 
 module HmisExternalApis::TcHmis::Importers::Loaders
-  class HatLoader < BaseLoader
-    ENROLLMENT_ID_COL = 'Unique Enrollment Identifier'.freeze
+  class HatLoader < CustomAssessmentLoader
     ASSESSMENT_DATE_COL = 'Date of assessment'.freeze
-    RESPONSE_ID_COL = 'Response ID'.freeze
 
     CDED_FIELD_TYPE_MAP = {
       'total_vulnerability_score' => 'integer',
@@ -18,14 +16,14 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       'rv_camper_rank' => 'integer',
       'house_rank' => 'integer',
       'mobile_home_rank' => 'integer',
-    }.transform_keys { |v| "hat-#{v}" }.freeze
+    }.freeze
 
     CDED_REPEATED_TYPE_MAP = {
-      'hat-housing_preference' => true,
-      'hat-strengths' => true,
-      'hat-client_history' => true,
-      'hat-housing_placement_challenges' => true,
-    }
+      'housing_preference' => true,
+      'strengths' => true,
+      'client_history' => true,
+      'housing_placement_challenges' => true,
+    }.freeze
 
     CDED_COL_MAP = {
       'Program Name' => 'program_name',
@@ -111,137 +109,33 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       'Are you a single parent with a child over the age of 10?' => 'single_parent_with_child_over_10',
       'Do you have legal custody of your children?' => 'has_legal_custody_of_children',
       'If you do not have legal custody of your children, will you gain custody of the children when you are housed?' => 'gaining_custody_upon_housing',
-    }.transform_keys { |k| k.gsub(/\s+/, ' ').strip }.transform_values { |v| v.present? ? "hat-#{v}" : v }
-
-    def perform
-      rows = reader.rows(filename: filename)
-      clobber_records(rows) if clobber
-
-      create_assessment_records(rows)
-
-      create_cde_definitions
-
-      # relies on custom assessments already built, associated by response_id
-      create_cde_records(rows)
+    }.to_a.map do |label, key|
+      {
+        label: label.gsub(/\s+/, ' '), # normalize whitespace
+        key: "hat-#{key}",
+        repeats: !!CDED_REPEATED_TYPE_MAP[key],
+        field_type: CDED_FIELD_TYPE_MAP[key] || 'string',
+      }
     end
 
     def filename
       'HAT.xlsx'
     end
 
-    def runnable?
-      # filename defined in subclass
-      super && reader.file_present?(filename)
-    end
-
     protected
 
-    def clobber_records(rows)
-      assessment_ids = rows.map do |row|
-        row_assessment_id(row)
-      end
-
-      scope = model_class.where(data_source_id: data_source.id).where(CustomAssessmentID: assessment_ids)
-      scope.preload(:custom_data_elements).find_each do |assessment|
-        assessment.custom_data_elements.delete_all # delete should really destroy
-        assessment.really_destroy!
-      end
-    end
-
-    def create_cde_definitions
-      CDED_COL_MAP.each_pair do |label, key|
-        field_type = CDED_FIELD_TYPE_MAP[key] || :string
-        cde_helper.find_or_create_cded(
-          owner_type: model_class.sti_name,
-          label: label,
-          key: key,
-          field_type: field_type,
-          repeats: CDED_REPEATED_TYPE_MAP[key],
-        )
-      end
-    end
-
-    # use the eto response id to construct the custom assessment id
-    def row_assessment_id(row)
-      response_id = row.field_value(RESPONSE_ID_COL)
-      "hat-eto-#{response_id}"
+    def cded_configs
+      CDED_COL_MAP
     end
 
     def row_assessment_date(row)
       row.field_value(ASSESSMENT_DATE_COL)
     end
 
-    def create_assessment_records(rows)
-      personal_id_by_enrollment_id = Hmis::Hud::Enrollment.
-        where(data_source: data_source).
-        pluck(:enrollment_id, :personal_id).
-        to_h
-
-      expected = 0
-      actual = 0
-      records = rows.flat_map do |row|
-        expected += 1
-        #enrollment_id = row.field_value(ENROLLMENT_ID_COL)
-         enrollment_id = personal_id_by_enrollment_id.keys.first
-        personal_id = personal_id_by_enrollment_id[enrollment_id]
-
-        if personal_id.nil?
-          log_skipped_row(row, field: ENROLLMENT_ID_COL)
-          next # early return
-        end
-        actual += 1
-
-        {
-          data_source_id: data_source.id,
-          CustomAssessmentID: row_assessment_id(row),
-          EnrollmentID: enrollment_id,
-          PersonalID: personal_id,
-          UserID: system_hud_user.id,
-          AssessmentDate: row_assessment_date(row),
-          DataCollectionStage: 2,
-          wip: false,
-          DateCreated: today,
-          DateUpdated: today,
-        }
-      end
-      log_processed_result(expected: expected, actual: actual)
-      ar_import(model_class, records)
-    end
-
-    def create_cde_records(rows)
-      owner_id_by_assessment_id = model_class.where(data_source: data_source).pluck(:CustomAssessmentID, :id).to_h
-
-      cdes = []
-      rows.each do |row|
-        owner_id = owner_id_by_assessment_id[row_assessment_id(row)]
-        raise unless owner_id
-
-        CDED_COL_MAP.each do |col, cded_key|
-          value = cde_values(row, col).each do |value|
-            cde = cde_helper.new_cde_record(value: value, definition_key: cded_key, owner_type: model_class.sti_name)
-            cde[:owner_id] = owner_id
-            cdes.push(cde)
-          end
-        end
-      end
-      ar_import(Hmis::Hud::CustomDataElement, cdes)
-    end
-
-    def cde_values(row, field)
-      value = row.field_value(field, required: false)
-      return [] unless value
-
-      cded_key = CDED_COL_MAP[field]
-      return [value&.to_i] if CDED_FIELD_TYPE_MAP[cded_key] == 'integer'
-      if CDED_REPEATED_TYPE_MAP[cded_key]
-        return value&.split('|').map(&:strip).compact_blank
-      end
-
-      [value]
-    end
-
-    def model_class
-      Hmis::Hud::CustomAssessment
+    # use the eto response id to construct the custom assessment id
+    def row_assessment_id(row)
+      response_id = row.field_value(RESPONSE_ID_COL)
+      "hat-eto-#{response_id}"
     end
   end
 end

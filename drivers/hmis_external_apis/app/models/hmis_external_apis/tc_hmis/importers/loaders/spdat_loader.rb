@@ -5,17 +5,15 @@
 ###
 
 module HmisExternalApis::TcHmis::Importers::Loaders
-  class SpdatLoader < BaseLoader
-    ENROLLMENT_ID_COL = 'Unique Enrollment Identifier'.freeze
+  class SpdatLoader < CustomAssessmentLoader
     ASSESSMENT_DATE_COL = 'Date Taken'.freeze
-    RESPONSE_ID_COL = 'Response ID'.freeze
 
     CDED_FIELD_TYPE_MAP = {
       'travel_time_minutes' => 'integer',
       'time_spent_minutes' => 'integer',
       'total_score' => 'integer',
       'assessment_absent_days' => 'integer',
-    }.transform_keys { |v| "spdat-#{v}" }
+    }.freeze
 
     CDED_COL_MAP = {
       'Program Name' => 'program_name',
@@ -27,7 +25,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       'Contact Location / Method' => 'client_contact_location_and_method',
       'SPDAT Score' => 'total_score',
       'SPDAT Notes' => 'score_notes',
-      'Is this assessment being completed for a dismissed client or a client who is no longer in contact?' => 'spdat-assessment_is_for_absent_client',
+      'Is this assessment being completed for a dismissed client or a client who is no longer in contact?' => 'assessment_is_for_absent_client',
       'How long has the client been out of contact (in days)?' => 'assessment_absent_days',
       'Mental Health & Wellness & Cognitive Functioning Scoring' => 'mental_health_score',
       'Mental Health & Wellness & Cognitive Functioning Notes:' => 'mental_health_notes',
@@ -59,53 +57,27 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       'Meaningful Daily Activity Notes:' => 'meaningful_activity_notes',
       'History of Homelessness Scoring' => 'history_of_homelessness_score',
       'History of Homelessness Notes:' => 'history_of_homelessness_notes',
-    }.transform_keys { |k| k.gsub(/\s+/, ' ').strip }.transform_values { |v| "spdat-#{v}" }
-
-    def perform
-      rows = reader.rows(filename: filename)
-      clobber_records(rows) if clobber
-
-      create_assessment_records(rows)
-
-      create_cde_definitions
-
-      # relies on custom assessments already built, associated by response_id
-      create_cde_records(rows)
+    }.to_a.map do |label, key|
+      {
+        label: label.gsub(/\s+/, ' '), # normalize whitespace
+        key: "spdat-#{key}",
+        repeats: false,
+        field_type: CDED_FIELD_TYPE_MAP[key] || 'string',
+      }
     end
 
     def filename
       'SPDAT.xlsx'
     end
 
-    def runnable?
-      # filename defined in subclass
-      super && reader.file_present?(filename)
-    end
-
     protected
 
-    def clobber_records(rows)
-      assessment_ids = rows.map do |row|
-        row_assessment_id(row)
-      end
-
-      scope = model_class.where(data_source_id: data_source.id).where(CustomAssessmentID: assessment_ids)
-      scope.preload(:custom_data_elements).find_each do |assessment|
-        assessment.custom_data_elements.delete_all # delete should really destroy
-        assessment.really_destroy!
-      end
+    def cded_configs
+      CDED_COL_MAP
     end
 
-    def create_cde_definitions
-      CDED_COL_MAP.each_pair do |label, key|
-        field_type = CDED_FIELD_TYPE_MAP[key] || :string
-        cde_helper.find_or_create_cded(
-          owner_type: model_class.sti_name,
-          label: label,
-          key: key,
-          field_type: field_type,
-        )
-      end
+    def row_assessment_date(row)
+      row.field_value(ASSESSMENT_DATE_COL)
     end
 
     # use the eto response id to construct the custom assessment id
@@ -114,86 +86,18 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       "spdat-eto-#{response_id}"
     end
 
-    def row_assessment_date(row)
-      row.field_value(ASSESSMENT_DATE_COL)
-    end
+    def cde_values(row, config)
+      cded_key = config.fetch(:key)
+      values = super(row, config)
+      if cded_key =~ /^(?!spdat-total_score$).*_score$/
+        values.map do |value|
+          # score choice values start with integer which is the score
+          raise "unexpected value #{value} for #{row.inspect}" unless value =~ /^[0-9].*/
 
-    def create_assessment_records(rows)
-      personal_id_by_enrollment_id = Hmis::Hud::Enrollment.
-        where(data_source: data_source).
-        pluck(:enrollment_id, :personal_id).
-        to_h
-
-      expected = 0
-      actual = 0
-      records = rows.flat_map do |row|
-        expected += 1
-        enrollment_id = row.field_value(ENROLLMENT_ID_COL)
-        personal_id = personal_id_by_enrollment_id[enrollment_id]
-
-        if personal_id.nil?
-          log_skipped_row(row, field: ENROLLMENT_ID_COL)
-          next # early return
-        end
-        actual += 1
-
-        {
-          data_source_id: data_source.id,
-          CustomAssessmentID: row_assessment_id(row),
-          EnrollmentID: enrollment_id,
-          PersonalID: personal_id,
-          UserID: system_hud_user.id,
-          AssessmentDate: row_assessment_date(row),
-          DataCollectionStage: 2,
-          wip: false,
-          DateCreated: today,
-          DateUpdated: today,
-        }
-      end
-      log_processed_result(expected: expected, actual: actual)
-      ar_import(model_class, records)
-    end
-
-    def create_cde_records(rows)
-      owner_id_by_assessment_id = model_class.where(data_source: data_source).pluck(:CustomAssessmentID, :id).to_h
-
-      cdes = []
-      rows.each do |row|
-        owner_id = owner_id_by_assessment_id[row_assessment_id(row)]
-        raise unless owner_id
-
-        CDED_COL_MAP.each do |col, cded_key|
-          value = transform_value(row, col)
-          next unless value
-
-          cde = cde_helper.new_cde_record(value: value, definition_key: cded_key, owner_type: model_class.sti_name)
-          cde[:owner_id] = owner_id
-          cdes.push(cde)
+          "#{cded_key}-#{value&.to_i}"
         end
       end
-      ar_import(Hmis::Hud::CustomDataElement, cdes)
-    end
-
-    def transform_value(row, field)
-      value = row.field_value(field, required: false)
-      cded_key = CDED_COL_MAP[field]
-      return value&.to_i if CDED_FIELD_TYPE_MAP[cded_key] == 'integer'
-
-      if cded_key =~ /_score$/
-        return value unless value
-
-        # score choice values start with integer which is the score
-        raise "unexpected value #{value} for #{row.inspect}" unless value =~ /^[0-9].*/
-
-        score = value&.to_i
-        "#{cded_key}-#{score}"
-      else
-        value
-      end
-    end
-
-    def model_class
-      Hmis::Hud::CustomAssessment
+      values
     end
   end
 end

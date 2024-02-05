@@ -26,8 +26,8 @@ module HmisExternalApis::TcHmis::Importers
     def perform
       start
       loaders = [
-        # Loaders::SpdatLoader,
-        Loaders::HatLoader,
+        Loaders::SpdatLoader,
+        # Loaders::HatLoader,
       ]
 
       # disable paper trail to improve importer performance
