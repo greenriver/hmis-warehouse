@@ -37,7 +37,7 @@
   .well
     - @assessment.assessment_questions.sort_by { |q| [q.AssessmentQuestionGroup, q.AssessmentQuestionOrder] }.each do |q|
       %dl
-        %dt= q.AssessmentQuestion
+        %dt= Translation.translate(q.AssessmentQuestion)
         %dd= q.human_readable
 - else
   .none-found No questions provided.
