@@ -1,9 +1,13 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# == Hmis::MigrateAssessmentsJob
+#
+# Intended to be run manually during the setup and migration phase of a new HMIS installation
+#
 module Hmis
   class MigrateAssessmentsJob < BaseJob
     include Hmis::Concerns::HmisArelHelper

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -30,6 +30,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   belongs_to :youth_education_status, class_name: 'Hmis::Hud::YouthEducationStatus', optional: true, autosave: true
   belongs_to :employment_education, class_name: 'Hmis::Hud::EmploymentEducation', optional: true, autosave: true
   belongs_to :current_living_situation, class_name: 'Hmis::Hud::CurrentLivingSituation', optional: true, autosave: true
+  # Note: this is NOT the assessment that created this processor, that's CustomAssessment. Rather this is a
+  # Coordinated Entry (CE) Assessment that was created by the processor. The HUD model for CE Assessment is 'Assessment'
+  belongs_to :ce_assessment, class_name: 'Hmis::Hud::Assessment', optional: true, autosave: true
 
   validate :hmis_records_are_valid, on: :form_submission
 
@@ -147,6 +150,18 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
   end
 
+  def ce_assessment_factory(create: true)
+    return owner if owner.is_a? Hmis::Hud::Assessment
+
+    if create
+      self.ce_assessment ||= enrollment_factory.assessments.build(
+        personal_id: enrollment_factory.personal_id,
+        user_id: custom_assessment&.user_id,
+      )
+    end
+    ce_assessment
+  end
+
   def health_and_dv_factory(create: true)
     return health_and_dv if health_and_dv.present? || !create
 
@@ -237,7 +252,14 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   private def container_processor(container)
     container = container.to_sym
-    return unless container.in?(valid_containers.keys)
+
+    if !container.in?(valid_containers.keys)
+      message = "invalid container \"#{container}\" for Hmis::FormProcessor##{id}"
+      raise message if Rails.env.development? || Rails.env.test?
+
+      Sentry.capture_message(message)
+      return
+    end
 
     @container_processors ||= {}
     @container_processors[container] ||= valid_containers[container].new(self)
@@ -260,13 +282,15 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       ProjectCoc: Hmis::Hud::Processors::ProjectCoCProcessor,
       Funder: Hmis::Hud::Processors::FunderProcessor,
       CeParticipation: Hmis::Hud::Processors::CeParticipationProcessor,
+      CustomAssessment: Hmis::Hud::Processors::CustomAssessmentProcessor,
       HmisParticipation: Hmis::Hud::Processors::HmisParticipationProcessor,
       File: Hmis::Hud::Processors::FileProcessor,
       ReferralRequest: Hmis::Hud::Processors::ReferralRequestProcessor,
       YouthEducationStatus: Hmis::Hud::Processors::YouthEducationStatusProcessor,
       EmploymentEducation: Hmis::Hud::Processors::EmploymentEducationProcessor,
       CurrentLivingSituation: Hmis::Hud::Processors::CurrentLivingSituationProcessor,
-      Assessment: Hmis::Hud::Processors::CeAssessmentProcessor,
+      Assessment: Hmis::Hud::Processors::CeAssessmentProcessor, # CE Assessment owner
+      CeAssessment: Hmis::Hud::Processors::CeAssessmentProcessor, # Custom Assessment includes CE Assessment
       Event: Hmis::Hud::Processors::CeEventProcessor,
       CustomCaseNote: Hmis::Hud::Processors::CustomCaseNoteProcessor,
     }.freeze
@@ -280,6 +304,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       :physical_disability_factory,
       :developmental_disability_factory,
       :chronic_health_condition_factory,
+      :ce_assessment_factory,
       :hiv_aids_factory,
       :mental_health_disorder_factory,
       :substance_use_disorder_factory,

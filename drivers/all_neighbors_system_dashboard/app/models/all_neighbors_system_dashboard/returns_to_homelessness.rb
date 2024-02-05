@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module AllNeighborsSystemDashboard
   class ReturnsToHomelessness < DashboardData
     def self.cache_data(report)
@@ -50,7 +56,7 @@ module AllNeighborsSystemDashboard
 
     def stacked_data
       relevant_years.map do |year|
-        cohort_name = "#{year} Cohort"
+        cohort_name = "Exited #{year}"
 
         data(
           cohort_name,
@@ -138,7 +144,7 @@ module AllNeighborsSystemDashboard
 
       scope = case demographic
       when 'Race'
-        scope.where(primary_race: label)
+        scope.where(Enrollment.arel_table[:race_list].matches("%#{label}%"))
       when 'Age', 'Gender'
         filter_for_type(scope, label)
       when 'Household Type'
@@ -153,7 +159,7 @@ module AllNeighborsSystemDashboard
       existing = @report.datasets.find_by(identifier: identifier)
       return existing.data.with_indifferent_access if existing.present?
 
-      cohort_keys = relevant_years.map { |year| "#{year} Cohort" }
+      cohort_keys = relevant_years.map { |year| "Exited #{year}" }
       scope = enrollment_scope
       # NOTE: there is no picker on this page currently, but this could be updated if necessary
       scope = filter_for_count_level(scope, 'Individuals')

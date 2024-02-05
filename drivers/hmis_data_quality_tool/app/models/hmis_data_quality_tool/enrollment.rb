@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -370,10 +370,11 @@ module HmisDataQualityTool
       [].tap do |missing|
         missing << :income_benefits unless annual_assessment(enrollment, hoh_first_date_in_program, assessment_relation: :income_benefits_annual_update)
 
-        # CoC PSH projects require HealthAndDV
-        if enrollment.project.continuum_project && enrollment.project.project_type_to_use == 3 # PSH
-          missing << :health_and_dvs unless annual_assessment(enrollment, hoh_first_date_in_program, assessment_relation: :health_and_dvs_annual_update)
-        end
+        # # CoC PSH projects require HealthAndDV
+        # Unable to identify source for this requirement
+        # if enrollment.project.continuum_project && enrollment.project.project_type_to_use == 3 # PSH
+        #   missing << :health_and_dvs unless annual_assessment(enrollment, hoh_first_date_in_program, assessment_relation: :health_and_dvs_annual_update)
+        # end
 
         # TODO: HOPWA requires a disabilities type 8
       end

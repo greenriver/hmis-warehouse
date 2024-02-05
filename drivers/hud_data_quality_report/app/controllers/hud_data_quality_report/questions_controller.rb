@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -33,7 +33,7 @@ module HudDataQualityReport
     end
 
     private def report_param_name
-      :dq_id
+      :past_dq_id
     end
   end
 end

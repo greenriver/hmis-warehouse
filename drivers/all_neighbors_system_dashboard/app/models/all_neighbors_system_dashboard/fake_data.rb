@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module AllNeighborsSystemDashboard
   class FakeData
     def initialize(start_date, end_date)
@@ -39,7 +45,6 @@ module AllNeighborsSystemDashboard
         'Diversion',
         'Permanent Supportive Housing',
         'Rapid Rehousing',
-        'Other Permanent Housing',
       ]
     end
 

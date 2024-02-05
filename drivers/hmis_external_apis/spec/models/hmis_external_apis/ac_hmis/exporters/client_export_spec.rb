@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,7 +7,7 @@
 require 'rails_helper'
 
 RSpec.describe HmisExternalApis::AcHmis::Exporters::ClientExport, type: :model do
-  let(:today) { Date.today }
+  let(:today) { Date.current }
   let!(:ds) { create(:hmis_data_source) }
   let!(:client) { create(:hmis_hud_client_with_warehouse_client, data_source: ds, DateCreated: today) }
   let(:subject) { HmisExternalApis::AcHmis::Exporters::ClientExport.new }

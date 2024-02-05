@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -148,6 +148,10 @@ module
       return [] if filter.chosen_coc_codes.count < 2
 
       filter.chosen_coc_codes
+    end
+
+    private def clean_excel_title(title)
+      CGI.unescapeHTML(ActionView::Base.full_sanitizer.sanitize(title))
     end
 
     private def cache_slug

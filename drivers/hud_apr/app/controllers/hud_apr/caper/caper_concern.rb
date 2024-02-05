@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -33,11 +33,11 @@ module HudApr::Caper::CaperConcern
     end
 
     private def path_for_running_all_questions
-      running_all_questions_hud_reports_capers_path(link_params.except('action', 'controller'))
+      running_all_questions_hud_reports_capers_path({ skip_trackable: true }.merge(link_params.except('action', 'controller')))
     end
 
     private def path_for_running_question
-      running_hud_reports_capers_path(link_params.except('action', 'controller'))
+      running_hud_reports_capers_path({ skip_trackable: true }.merge(link_params.except('action', 'controller')))
     end
 
     private def path_for_history(args = nil)

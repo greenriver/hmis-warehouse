@@ -1,15 +1,20 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class CustomAuthFailure < Devise::FailureApp
+  # request is a ActionDispatch::Request
   def respond
     if scope == :hmis_user
-      return json_error_response if request.content_type == 'application/json' || request.format == :json
+      # This is probably an OKTA callback. Redirect back to the front-end.
+      # This is the case when OKTA authentication succeeds but the devise account is locked or inactive
+      return redirect_to_hmis if request.get? && request.original_fullpath =~ /\A\/hmis\/users\/auth\/okta\/callback/
 
-      return redirect_to_hmis if ENV['HMIS_OKTA_CLIENT_ID'].present?
+      # This is probably a GraphQL API or current user/settings request. Return a JSON error for SPA to handle.
+      # This is the case when the user signs out in another tab or the session becomes invalid for another reason
+      return json_error_response if request.content_type == 'application/json' || request.format == :json
     end
     super
   end

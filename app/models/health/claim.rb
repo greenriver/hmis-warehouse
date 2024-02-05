@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -147,11 +147,12 @@ module Health
               b.CLM pr.id, '0', nil, nil, b.composite('11', 'B', '1'), 'Y', 'A', 'Y', 'Y'
               hi_codes = [b.composite('ABK', 'Z139')] # Encounter for screening, unspecified
               hi_codes += patient.sdoh_icd10_codes.map { |code| b.composite('ABF', code) } if qas.any? { |qa| qa.activity == 'sdoh_positive' }
+              diag_ptrs = ('1' .. hi_codes.count.to_s).to_a
               b.HI(*hi_codes)
               qa_batch.each do |qa|
                 @lx += 1
                 b.LX @lx
-                b.SV1 b.composite('HC', *qa.procedure_code.split(component_element_separator), *qa.modifiers), '0', 'UN', '1', nil, nil, b.composite('1')
+                b.SV1 b.composite('HC', *qa.procedure_code.split(component_element_separator), *qa.modifiers), '0', 'UN', '1', nil, nil, b.composite(*diag_ptrs)
                 b.DTP '472', 'D8', qa.date_of_activity.strftime('%Y%m%d')
               end
             end

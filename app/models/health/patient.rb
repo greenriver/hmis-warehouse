@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -1338,8 +1338,7 @@ module Health
     end
 
     def sdoh_icd10_codes
-      # TODO: Replace with THRIVE
-      homelessness_unspecified = recent_ssm_form&.housing_score&.in?([1, 2])
+      homelessness_unspecified = recent_hrsn_screening&.instrument&.positive_for_homelessness?
 
       [].tap do |codes|
         codes << 'Z5900' if homelessness_unspecified

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -32,10 +32,21 @@ RSpec.shared_context '2024 single-enrollment tests', shared_context: :metadata d
       expect(csv.first['PreferredLanguageDifferent'].length).to eq(100)
     end
 
-    it 'Correctly limits the length of FirstName to 32 characters' do
+    it 'Correctly limits the length of FirstName to 50 characters' do
       expect(@exporter.client_scope.first.FirstName.length).to be > 50
       csv = CSV.read(csv_file_path(@client_class), headers: true)
       expect(csv.first['FirstName'].length).to eq(50)
+    end
+    it 'Correctly limits the length of LastName to 50 characters' do
+      expect(@exporter.client_scope.first.LastName.length).to be > 50
+      csv = CSV.read(csv_file_path(@client_class), headers: true)
+      expect(csv.first['LastName'].length).to eq(50)
+    end
+    it 'Does not limit the length of SSN to 9 characters' do
+      expect(@exporter.client_scope.first.SSN.length).to eq 9
+      csv = CSV.read(csv_file_path(@client_class), headers: true)
+      expect(csv.first['SSN'].length).to eq(9)
+      expect(csv.first['SSN']).to eq(@exporter.client_scope.first.SSN)
     end
   end
   describe 'when exporting clients' do

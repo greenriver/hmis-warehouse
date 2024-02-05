@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,7 +7,11 @@
 module HmisExternalApis
   class BaseController < ApplicationController
     before_action :authorize_request
+    # Not needed for API-key authenticated endpoints
+    skip_before_action :verify_authenticity_token
+    # Not needed for API-key authenticated endpoints
     skip_before_action :authenticate_user!
+
     prepend_before_action :skip_timeout
 
     NotAuthorized = Class.new(StandardError)

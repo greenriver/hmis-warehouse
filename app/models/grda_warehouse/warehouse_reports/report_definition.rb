@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -1355,11 +1355,11 @@ module GrdaWarehouse::WarehouseReports
       end
 
       # Don't enable this report in production yet
-      if RailsDrivers.loaded.include?(:superset) && ! Rails.env.production?
+      if RailsDrivers.loaded.include?(:superset) && Superset.available?
         r_list['Performance'] << {
           url: 'superset/warehouse_reports/reports',
           name: 'Launch Superset',
-          description: 'An integration with the Apache Superset business inteligence tool.',
+          description: 'An integration with the Apache Superset business intelligence tool.',
           limitable: true,
           health: false,
         }

@@ -1,9 +1,35 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# ==  Mutations::SubmitAssessment
+#
+# This mutation creates or updates a custom assessment, form processor, and related HUD records.
+#
+# Steps:
+# 1) Assessment Identification and Creation:
+#    - If an assessment_id is provided, find the corresponding CustomAssessment.
+#    - If no assessment_id is provided, a new CustomAssessment is created based on the form_definition and enrollment. A form processor is instantiated and associated with the assessment.
+#
+# 2) Field Processing:
+#    - Each hud_value field is on the assessment input processed.
+#    - A specific Field-Processor class is located for each field using a "containers" mapping.
+#    - The Field-Processor.process method is called for each (field, value) pair.
+#
+# 3) Field-Processor Operation:
+#    - Each field-processor calls back to the form_processor to retrieve a "factory" which is an active record model.
+#    - This factory model could be associated with the enrollment or just the the form_processor
+#    - The form values are assigned to the factory model but are not persisted at this point
+#
+# 4) Post field-processing Validation:
+#    - The mutation validates the assessment and returns early if errors are found.
+#
+# 5) Save Submitted Assessment if Valid:
+#    - Persists the form processor and attributes assigned to the related factory models
+#    - After save it also handles conditional hard-coded side-effects and related integrations (LINK, etc).
+#
 module Mutations
   class SubmitAssessment < BaseMutation
     description 'Create/Submit assessment, and create/update related HUD records'
@@ -14,6 +40,7 @@ module Mutations
     field :assessment, Types::HmisSchema::Assessment, null: true
 
     def resolve(input:, assessment_lock_version: nil)
+      # assessment is a Hmis::Hud::CustomAssessment
       assessment, errors = input.find_or_create_assessment
       return { errors: errors } if errors.any?
 

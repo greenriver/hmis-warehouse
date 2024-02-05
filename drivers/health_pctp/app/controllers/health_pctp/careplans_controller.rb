@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -27,6 +27,11 @@ module HealthPctp
     end
 
     def edit
+      # for print dev
+      return unless params[:pdf].present? && Rails.env.development?
+
+      @print_dev = true
+      render :edit_pdf, layout: 'layouts/careplan_pdf'
     end
 
     def update

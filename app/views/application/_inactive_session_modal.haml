@@ -1,0 +1,33 @@
+:ruby
+  root_data = {
+    controller: "inactive-session-modal",
+    inactive_session_modal: {
+      initial_user_id_value: current_user&.id.to_s,
+      session_lifetime_secs_value: Devise.timeout_in.in_seconds,
+    },
+    reflex_permanent: true
+  }
+#inactive-session-modal{data: root_data}
+  .session_expiry__content.d-none{data: {'inactive-session-modal-target': 'alert'}}
+    .session_expiry__alert-box
+      .p-2
+        - title = Translation.translate('Boston DND Warehouse')
+        - if title.present?
+          %h4.mt-0= title
+        .mb-4.alert.alert-warning.w-100{data: {'inactive-session-modal-target': 'alertMessage'}}
+        .text-center
+          %a.btn.btn-outline-primary{href: request.path} Continue
+
+  .modal.fade{data: {backdrop: "static", 'inactive-session-modal-target': 'modal'}, role: "dialog", tabindex: "-1"}
+    .session_expiry__modal.modal-dialog.modal-lg{role: "document"}
+      .modal-content
+        .modal-header
+          %h2.modal-title Session Inactive
+        .modal-body.clearfix
+          %p.lead
+            Are you still here? You will be signed out automatically in
+            %strong{data: {'inactive-session-modal-target': 'timeRemaining'}}
+          %p.text-right
+            %a.btn.btn-primary{href: session_keepalive_path, data: {action: "inactive-session-modal#handleRenewSession"}} I'm still here
+            = link_to destroy_user_session_path, method: :delete, class: 'btn btn-outline-secondary' do
+              Sign Out

@@ -20,7 +20,7 @@
         %th Cancel
     %tbody.report-listing
       = render 'reports'
-= link_to 'Reports', running_warehouse_reports_hmis_exports_path, class: 'jReportBlock', remote: true
+= link_to 'Reports', running_warehouse_reports_hmis_exports_path(skip_trackable: true), class: 'jReportBlock', remote: true
 
 = content_for :page_js do
   :javascript

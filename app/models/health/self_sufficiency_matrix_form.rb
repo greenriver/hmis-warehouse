@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -448,6 +448,10 @@ module Health
     def positive_sdoh?
       # A positive SDOH indicates that one or more of the questions was answered but in the range of 1..4
       SECTIONS.keys.map { |key| send("#{key}_score") }.any? { |answer| answer.in?(1..4) }
+    end
+
+    def positive_for_homelessness?
+      housing_score&.in?([1, 2])
     end
 
     def encounter_report_details

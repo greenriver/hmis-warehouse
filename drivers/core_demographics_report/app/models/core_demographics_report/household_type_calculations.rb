@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -98,14 +98,14 @@ module
 
     def available_household_types
       # We want to enforce order, so we've transitioned to a strict hash here, but this comes from:
-      # @filter.available_household_types.merge('Youth Only' => :unaccompanied_youth, 'Unknown' => :unknown)
+      # @filter.available_household_types.merge('Youth only Households' => :unaccompanied_youth, 'Unknown' => :unknown)
       {
         all: 'Known household types',
         unknown: 'Unknown',
         without_children: 'Adult only Households',
         with_children: 'Adult and Child Households',
         only_children: 'Child only Households',
-        unaccompanied_youth: 'Youth Only',
+        unaccompanied_youth: 'Youth only Households',
       }.invert.freeze
     end
 

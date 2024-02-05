@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -106,6 +106,10 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   def intake?
     data_collection_stage == 1
+  end
+
+  def post_exit?
+    data_collection_stage == 6
   end
 
   def exit?

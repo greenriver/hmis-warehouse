@@ -1,12 +1,12 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 BostonHmis::Application.routes.draw do
   scope module: :hud_data_quality_report, path: :hud_reports, as: :hud_reports do
-    resources :dqs do
+    resources :past_dqs, controller: 'dqs' do
       get :running, on: :collection
       get :running_all_questions, on: :collection
       get :history, on: :collection

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -36,6 +36,10 @@ module BostonReports
 
     def self.url
       report_path_array.join('/')
+    end
+
+    def self.allowable_section_types
+      ['header_counts'] + available_section_types
     end
 
     def self.available_section_types

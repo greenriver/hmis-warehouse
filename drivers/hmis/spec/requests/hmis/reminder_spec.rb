@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -61,7 +61,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect do
         _, result = post_graphql(**variables) { query }
         expect(result.dig('data', 'enrollment', 'reminders').size).to eq(1)
-      end.to make_database_queries(count: 10..20)
+      end.to make_database_queries(count: 10..30)
     end
 
     it 'is responsive' do

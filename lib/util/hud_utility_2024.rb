@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -115,6 +115,15 @@ module HudUtility2024
     residential_project_type_numbers_by_code[code.to_sym]
   end
 
+  def residential_project_type_numbers_by_codes(*codes)
+    codes = codes.flatten # Take either array, or multiple parameters
+    codes.map { |code| HudUtility2024.residential_project_type_numbers_by_code[code] }.
+      flatten.
+      uniq.
+      sort.
+      freeze
+  end
+
   def homeless_project_type_codes
     [:es, :so, :sh, :th].freeze
   end
@@ -128,12 +137,7 @@ module HudUtility2024
   end
 
   def residential_project_type_ids
-    residential_project_type_numbers_by_code.
-      values.
-      flatten.
-      uniq.
-      sort.
-      freeze
+    residential_project_type_numbers_by_codes(residential_project_type_numbers_by_code.keys)
   end
 
   def chronic_project_types
@@ -685,5 +689,15 @@ module HudUtility2024
     return sub_type_provided unless label_method.present?
 
     send(label_method, sub_type_provided)
+  end
+
+  def assessment_name_by_data_collection_stage
+    {
+      1 => 'Intake Assessment',
+      2 => 'Update Assessment',
+      3 => 'Exit Assessment',
+      5 => 'Annual Assessment',
+      6 => 'Post-Exit Assessment',
+    }.freeze
   end
 end

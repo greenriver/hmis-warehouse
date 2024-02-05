@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -49,7 +49,8 @@ module Types
     # TODO: add impersonation user / true user, and display it in the interface
 
     available_filter_options do
-      arg :audit_event_record_type, [ID]
+      arg :enrollment_record_type, [ID]
+      arg :client_record_type, [ID]
       arg :user, [ID]
     end
 
@@ -75,6 +76,10 @@ module Types
         # Try to label Custom Data Elements based on their definition label
         definition_id = item_attributes['data_element_definition_id']
         custom_data_element_labels_by_id[definition_id] || 'Custom Data Element'
+      when 'Hmis::Hud::CustomAssessment'
+        # Try to label Assessment by name (eg "Exit Assessment")
+        # This would need adjustment to support naming fully custom assessments (eg "SPDAT Assessment")
+        HudUtility2024.assessment_name_by_data_collection_stage[item_attributes['DataCollectionStage']] || 'Assessment'
       else
         object.item_type.demodulize.gsub(/^Custom(Client)?/, '').
           underscore.humanize.titleize

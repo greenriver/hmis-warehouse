@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -38,6 +38,7 @@ module Health
     VERSIONS = [
       Health::QualifyingActivityV1,
       Health::QualifyingActivityV2,
+      Health::QualifyingActivityV3,
     ].freeze
 
     VERSIONED_ATTRIBUTES = [
@@ -339,6 +340,9 @@ module Health
       return false if modifiers.include?('U1') && modifiers.include?('HQ') # Marked as both individual and group (CP1)
       return false if modifiers.include?('U2') && modifiers.include?('95') # Marked as both f2f and telehealth
       return false if modifiers.include?('U3') && modifiers.include?('95') # Marked as both indirect and telehealth
+      return false if modifiers.include?('93') && modifiers.include?('U2') # Marked as both phone and f2f
+      return false if modifiers.include?('93') && modifiers.include?('U3') # Marked as both phone and indirect
+      return false if modifiers.include?('93') && modifiers.include?('95') # Marked as both phone and telehealth
 
       # In-person contacts must reach the client, EXCEPT for outreach
       valid_options = activities[activity_sym]

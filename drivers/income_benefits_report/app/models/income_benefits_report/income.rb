@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,6 +12,8 @@ module IncomeBenefitsReport
     belongs_to :report, class_name: 'IncomeBenefitsReport::Report'
     belongs_to :client, class_name: 'IncomeBenefitsReport::Client'
     belongs_to :income_benefits, class_name: 'GrdaWarehouse::Hud::IncomeBenefit', optional: true
+
+    alias_attribute :VHAServices, :VAMedicalServices
 
     # Provides a means of differentiating report from comparison period
     scope :date_range, ->(range_string) do

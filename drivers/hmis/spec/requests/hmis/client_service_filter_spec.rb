@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,7 +20,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   include_context 'hmis service setup'
   let!(:c1) { create :hmis_hud_client, data_source: ds1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, client: c1, project: p1 }
-  let!(:hud_s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, date_updated: Date.today - 1.week }
+  let!(:hud_s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, date_updated: Date.current - 1.week }
   let(:s1) { Hmis::Hud::HmisService.find_by(owner: hud_s1) }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 

@@ -192,10 +192,12 @@ User account for a user of the system
 """
 type ApplicationUser {
   activityLogs(limit: Int, offset: Int): ActivityLogsPaginated!
+  clientAccessSummaries(filters: ClientAccessSummaryFilterOptions, limit: Int, offset: Int): ClientAccessSummariesPaginated!
   dateCreated: ISO8601DateTime!
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime!
   email: String!
+  enrollmentAccessSummaries(filters: EnrollmentAccessSummaryFilterOptions, limit: Int, offset: Int): EnrollmentAccessSummariesPaginated!
   firstName: String
   id: ID!
   lastName: String
@@ -223,6 +225,7 @@ Custom Assessment
 type Assessment {
   access: AssessmentAccess!
   assessmentDate: ISO8601Date!
+  ceAssessment: CeAssessment
   client: Client!
   customDataElements: [CustomDataElement!]!
   dataCollectionStage: DataCollectionStage
@@ -250,6 +253,13 @@ type AssessmentAccess {
   canDeleteEnrollments: Boolean!
   canEditEnrollments: Boolean!
   id: ID!
+}
+
+type AssessmentEligibility {
+  formDefinitionId: ID!
+  id: ID!
+  role: AssessmentRole!
+  title: String!
 }
 
 input AssessmentFilterOptions {
@@ -315,11 +325,19 @@ enum AssessmentLevel {
   INVALID
 }
 
+"""
+Form Roles that are used for assessments. These types of forms are submitted using SubmitAssessment.
+"""
 enum AssessmentRole {
   """
   Annual
   """
   ANNUAL
+
+  """
+  Custom assessment
+  """
+  CUSTOM_ASSESSMENT
 
   """
   Exit
@@ -507,11 +525,6 @@ A base64 encoded string
 """
 scalar Base64
 
-input BaseAuditEventFilterOptions {
-  auditEventRecordType: [ID!]
-  user: [ID!]
-}
-
 """
 2.07.5
 """
@@ -666,8 +679,9 @@ type Client {
   addresses: [ClientAddress!]!
   afghanistanOef: NoYesReasonsForMissingData
   age: Int
+  alerts: [ClientAlert!]!
   assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
-  auditHistory(filters: BaseAuditEventFilterOptions, limit: Int, offset: Int): ClientAuditEventsPaginated!
+  auditHistory(filters: ClientAuditEventFilterOptions, limit: Int, offset: Int): ClientAuditEventsPaginated!
   contactPoints: [ClientContactPoint!]!
   currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
   customCaseNotes(limit: Int, offset: Int, sortOrder: CustomCaseNoteSortOption): CustomCaseNotesPaginated!
@@ -683,6 +697,7 @@ type Client {
   dobDataQuality: DOBDataQuality!
   emailAddresses: [ClientContactPoint!]!
   employmentEducations(limit: Int, offset: Int): EmploymentEducationsPaginated!
+  enabledFeatures: [ClientDashboardFeature!]!
   enrollments(filters: EnrollmentsForClientFilterOptions, includeEnrollmentsWithLimitedAccess: Boolean, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
   externalIds: [ExternalIdentifier!]!
   files(limit: Int, offset: Int, sortOrder: FileSortOption): FilesPaginated!
@@ -709,6 +724,7 @@ type Client {
   phoneNumbers: [ClientContactPoint!]!
   pronouns: [String!]!
   race: [Race!]!
+  scanCardCodes(limit: Int, offset: Int): ScanCardCodesPaginated!
   services(filters: ServiceFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   ssn: String
   ssnDataQuality: SSNDataQuality!
@@ -729,16 +745,42 @@ type ClientAccess {
   canEditClient: Boolean!
   canEditEnrollments: Boolean!
   canManageAnyClientFiles: Boolean!
+  canManageClientAlerts: Boolean!
   canManageOwnClientFiles: Boolean!
+  canManageScanCards: Boolean!
+  canMergeClients: Boolean!
   canUploadClientFiles: Boolean!
   canViewAnyConfidentialClientFiles: Boolean!
   canViewAnyFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
+  canViewClientAlerts: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
   canViewPartialSsn: Boolean!
   id: ID!
+}
+
+type ClientAccessSummariesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ClientAccessSummary!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+type ClientAccessSummary {
+  clientId: ID!
+  clientName: String
+  id: ID!
+  lastAccessedAt: ISO8601DateTime!
+}
+
+input ClientAccessSummaryFilterOptions {
+  onOrAfter: ISO8601Date
+  searchTerm: String
 }
 
 type ClientAddress {
@@ -815,6 +857,45 @@ enum ClientAddressUse {
   work
 }
 
+"""
+Alert
+"""
+type ClientAlert {
+  createdAt: ISO8601DateTime!
+  createdBy: ApplicationUser
+  expirationDate: ISO8601Date
+  id: ID!
+  note: String!
+  priority: ClientAlertPriorityLevel!
+}
+
+"""
+Client Alert Input
+"""
+input ClientAlertInput {
+  clientId: ID!
+  expirationDate: ISO8601Date
+  note: String
+  priority: ClientAlertPriorityLevel
+}
+
+enum ClientAlertPriorityLevel {
+  """
+  1 - High
+  """
+  high
+
+  """
+  3 - Low
+  """
+  low
+
+  """
+  2 - Medium
+  """
+  medium
+}
+
 type ClientAuditEvent {
   createdAt: ISO8601DateTime!
   event: AuditEventType!
@@ -829,6 +910,11 @@ type ClientAuditEvent {
   recordName: String!
   trueUser: ApplicationUser
   user: ApplicationUser
+}
+
+input ClientAuditEventFilterOptions {
+  clientRecordType: [ID!]
+  user: [ID!]
 }
 
 type ClientAuditEventsPaginated {
@@ -907,6 +993,11 @@ enum ClientContactPointUse {
   Work
   """
   work
+}
+
+enum ClientDashboardFeature {
+  CASE_NOTE
+  FILE
 }
 
 input ClientFilterOptions {
@@ -1165,6 +1256,53 @@ enum CmExitReason {
   VETERAN_TOO_ILL_TO_PARTICIPATE_AT_THIS_TIME
 }
 
+enum CompleteDisabilityResponse {
+  """
+  Alcohol use disorder
+  """
+  ALCOHOL_USE_DISORDER
+
+  """
+  Both alcohol and drug use disorders
+  """
+  BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS
+
+  """
+  Client doesn't know
+  """
+  CLIENT_DOESN_T_KNOW
+
+  """
+  Client prefers not to answer
+  """
+  CLIENT_PREFERS_NOT_TO_ANSWER
+
+  """
+  Data not collected
+  """
+  DATA_NOT_COLLECTED
+
+  """
+  Drug use disorder
+  """
+  DRUG_USE_DISORDER
+
+  """
+  Invalid Value
+  """
+  INVALID
+
+  """
+  No
+  """
+  NO
+
+  """
+  Yes
+  """
+  YES
+}
+
 enum Component {
   """
   Client Address input
@@ -1328,6 +1466,14 @@ type CreateAutoExitConfigPayload {
 }
 
 """
+Autogenerated return type of CreateClientAlert.
+"""
+type CreateClientAlertPayload {
+  clientAlert: ClientAlert
+  errors: [ValidationError!]!
+}
+
+"""
 Autogenerated input type of CreateDirectUpload
 """
 input CreateDirectUploadInput {
@@ -1376,6 +1522,14 @@ Autogenerated return type of CreateOutgoingReferralPosting.
 type CreateOutgoingReferralPostingPayload {
   errors: [ValidationError!]!
   record: ReferralPosting
+}
+
+"""
+Autogenerated return type of CreateScanCardCode.
+"""
+type CreateScanCardCodePayload {
+  errors: [ValidationError!]!
+  scanCardCode: ScanCardCode
 }
 
 """
@@ -2284,6 +2438,14 @@ type DeleteProjectPayload {
 }
 
 """
+Autogenerated return type of DeleteScanCardCode.
+"""
+type DeleteScanCardCodePayload {
+  errors: [ValidationError!]!
+  scanCardCode: ScanCardCode
+}
+
+"""
 Autogenerated input type of DeleteService
 """
 input DeleteServiceInput {
@@ -2583,7 +2745,7 @@ type Disability {
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
-  disabilityResponse: DisabilityResponse!
+  disabilityResponse: CompleteDisabilityResponse!
   disabilityType: DisabilityType!
   enrollment: Enrollment!
   id: ID!
@@ -2928,8 +3090,9 @@ type Enrollment {
   access: EnrollmentAccess!
   alcoholDrugUseDisorderFam: NoYesMissing
   annualPercentAmi: AnnualPercentAMI
+  assessmentEligibilities: [AssessmentEligibility!]!
   assessments(filters: AssessmentsForEnrollmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
-  auditHistory(filters: BaseAuditEventFilterOptions, limit: Int, offset: Int): EnrollmentAuditEventsPaginated!
+  auditHistory(filters: EnrollmentAuditEventFilterOptions, limit: Int, offset: Int): EnrollmentAuditEventsPaginated!
   ceAssessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): CeAssessmentsPaginated!
   childWelfareMonths: Int
   childWelfareYears: RHYNumberofYears
@@ -3041,6 +3204,32 @@ type EnrollmentAccess {
   id: ID!
 }
 
+type EnrollmentAccessSummariesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [EnrollmentAccessSummary!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+type EnrollmentAccessSummary {
+  clientId: ID
+  clientName: String
+  enrollmentId: ID!
+  id: ID!
+  lastAccessedAt: ISO8601DateTime!
+  projectId: ID
+  projectName: String
+}
+
+input EnrollmentAccessSummaryFilterOptions {
+  onOrAfter: ISO8601Date
+  project: [ID!]
+  searchTerm: String
+}
+
 type EnrollmentAuditEvent {
   createdAt: ISO8601DateTime!
   event: AuditEventType!
@@ -3055,6 +3244,11 @@ type EnrollmentAuditEvent {
   recordName: String!
   trueUser: ApplicationUser
   user: ApplicationUser
+}
+
+input EnrollmentAuditEventFilterOptions {
+  enrollmentRecordType: [ID!]
+  user: [ID!]
 }
 
 type EnrollmentAuditEventsPaginated {
@@ -3805,9 +3999,24 @@ enum FormRole {
   CLIENT
 
   """
+  Client alert
+  """
+  CLIENT_ALERT
+
+  """
+  Client detail
+  """
+  CLIENT_DETAIL
+
+  """
   Current living situation
   """
   CURRENT_LIVING_SITUATION
+
+  """
+  Custom assessment
+  """
+  CUSTOM_ASSESSMENT
 
   """
   Enrollment
@@ -5374,6 +5583,7 @@ type Mutation {
     input: ClearRecentItemsInput!
   ): ApplicationUser
   createAutoExitConfig(input: AutoExitConfigInput!): CreateAutoExitConfigPayload
+  createClientAlert(input: ClientAlertInput!): CreateClientAlertPayload
   createDirectUpload(
     """
     Parameters for CreateDirectUpload
@@ -5392,6 +5602,7 @@ type Mutation {
   Create outgoing referral posting
   """
   createOutgoingReferralPosting(input: OutgoingReferralPostingInput): CreateOutgoingReferralPostingPayload
+  createScanCardCode(clientId: ID!, expirationDate: ISO8601Date): CreateScanCardCodePayload
   createService(
     """
     Parameters for CreateService
@@ -5497,6 +5708,7 @@ type Mutation {
     """
     input: DeleteProjectCocInput!
   ): DeleteProjectCocPayload
+  deleteScanCardCode(id: ID!): DeleteScanCardCodePayload
   deleteService(
     """
     Parameters for DeleteService
@@ -5515,6 +5727,7 @@ type Mutation {
     """
     input: MergeClientsInput!
   ): MergeClientsPayload
+  restoreScanCardCode(id: ID!): RestoreScanCardCodePayload
 
   """
   Create/Save assessment as work-in-progress
@@ -5923,6 +6136,11 @@ type PickListOption {
   groupLabel: String
 
   """
+  Helper text/html
+  """
+  helperText: String
+
+  """
   Whether option is selected by default
   """
   initialSelected: Boolean
@@ -5931,6 +6149,11 @@ type PickListOption {
   Label for the option
   """
   label: String
+
+  """
+  Numeric value, such as a score
+  """
+  numericValue: Int
 
   """
   Secondary label, such as project type or CoC code
@@ -5963,6 +6186,7 @@ enum PickListType {
   Grouped HUD CE Event types
   """
   CE_EVENTS
+  CLIENT_AUDIT_EVENT_RECORD_TYPES
   COC
   CURRENT_LIVING_SITUATION
   DESTINATION
@@ -8083,12 +8307,42 @@ type Query {
   Assessment lookup
   """
   assessment(id: ID!): Assessment
+
+  """
+  Get the correct Form Definition to use for an assessment, by Role or FormDefinition ID
+  """
+  assessmentFormDefinition(
+    """
+    Date to use for Rule filtering on the definition
+    """
+    assessmentDate: ISO8601Date
+
+    """
+    Form Definition ID, if known
+    """
+    id: ID
+
+    """
+    Project to use for Rule filtering on the definition
+    """
+    projectId: ID!
+
+    """
+    Assessment role, if looking up by role
+    """
+    role: AssessmentRole
+  ): FormDefinition
   autoExitConfigs(limit: Int, offset: Int): AutoExitConfigsPaginated!
 
   """
   Client lookup
   """
   client(id: ID!): Client
+
+  """
+  Custom forms for collecting and/or displaying custom details for a Client (outside of the Client demographics form)
+  """
+  clientDetailForms: [OccurrencePointForm!]!
 
   """
   Client omnisearch
@@ -8129,16 +8383,6 @@ type Query {
   funder(id: ID!): Funder
 
   """
-  Get most relevant/recent form definition for the specified Role and project (optionally)
-  """
-  getFormDefinition(enrollmentId: ID, projectId: ID, role: FormRole!): FormDefinition
-
-  """
-  Get most relevant form definition for the specified service type
-  """
-  getServiceFormDefinition(projectId: ID!, serviceTypeId: ID!): FormDefinition
-
-  """
   Household lookup
   """
   household(id: ID!): Household
@@ -8177,6 +8421,17 @@ type Query {
   """
   projectCoc(id: ID!): ProjectCoc
   projects(filters: ProjectFilterOptions, limit: Int, offset: Int, sortOrder: ProjectSortOption): ProjectsPaginated!
+
+  """
+  Get the most relevant Form Definition to use for record viewing/editing
+  """
+  recordFormDefinition(
+    """
+    Optional Project to apply rule filtering (e.g. show/hide questions based on Project applicability)
+    """
+    projectId: ID
+    role: RecordFormRole!
+  ): FormDefinition
   referralPosting(id: ID!): ReferralPosting
 
   """
@@ -8185,6 +8440,11 @@ type Query {
   service(id: ID!): Service
   serviceCategories(limit: Int, offset: Int): ServiceCategoriesPaginated!
   serviceCategory(id: ID!): ServiceCategory
+
+  """
+  Get most relevant form definition for the specified service type
+  """
+  serviceFormDefinition(projectId: ID!, serviceTypeId: ID!): FormDefinition
 
   """
   Service type lookup
@@ -8216,16 +8476,19 @@ type QueryAccess {
   canEnrollClients: Boolean!
   canImpersonateUsers: Boolean!
   canManageAnyClientFiles: Boolean!
+  canManageClientAlerts: Boolean!
   canManageDeniedReferrals: Boolean!
   canManageIncomingReferrals: Boolean!
   canManageInventory: Boolean!
   canManageOutgoingReferrals: Boolean!
   canManageOwnClientFiles: Boolean!
+  canManageScanCards: Boolean!
   canMergeClients: Boolean!
   canSplitHouseholds: Boolean!
   canTransferEnrollments: Boolean!
   canViewAnyConfidentialClientFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
+  canViewClientAlerts: Boolean!
   canViewClients: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
@@ -8449,6 +8712,106 @@ Types allowed for recent items
 enum RecentItemType {
   Client
   Project
+}
+
+"""
+Form Roles that are used for record-editing. These types of forms are submitted using SubmitForm.
+"""
+enum RecordFormRole {
+  """
+  Case note
+  """
+  CASE_NOTE
+
+  """
+  CE assessment
+  """
+  CE_ASSESSMENT
+
+  """
+  CE event
+  """
+  CE_EVENT
+
+  """
+  CE participation
+  """
+  CE_PARTICIPATION
+
+  """
+  Client
+  """
+  CLIENT
+
+  """
+  Client detail
+  """
+  CLIENT_DETAIL
+
+  """
+  Current living situation
+  """
+  CURRENT_LIVING_SITUATION
+
+  """
+  Enrollment
+  """
+  ENROLLMENT
+
+  """
+  File
+  """
+  FILE
+
+  """
+  Funder
+  """
+  FUNDER
+
+  """
+  HMIS participation
+  """
+  HMIS_PARTICIPATION
+
+  """
+  Inventory
+  """
+  INVENTORY
+
+  """
+  New client enrollment
+  """
+  NEW_CLIENT_ENROLLMENT
+
+  """
+  Occurrence point
+  """
+  OCCURRENCE_POINT
+
+  """
+  Organization
+  """
+  ORGANIZATION
+
+  """
+  Project
+  """
+  PROJECT
+
+  """
+  Project CoC
+  """
+  PROJECT_COC
+
+  """
+  Referral request
+  """
+  REFERRAL_REQUEST
+
+  """
+  Service
+  """
+  SERVICE
 }
 
 """
@@ -8826,6 +9189,11 @@ Related record type for a group of questions in an assessment
 """
 enum RelatedRecordType {
   """
+  CeAssessment
+  """
+  ASSESSMENT
+
+  """
   Client
   """
   CLIENT
@@ -8917,9 +9285,18 @@ enum RelationshipToHoH {
 }
 
 type Reminder {
+  """
+  Relevant existing assessment, if any
+  """
+  assessmentId: ID
   client: Client!
   dueDate: ISO8601Date
   enrollment: Enrollment!
+
+  """
+  Form definition to use, if a new assessment is needed
+  """
+  formDefinitionId: ID
   id: ID!
   overdue: Boolean!
   topic: ReminderTopic!
@@ -9054,6 +9431,14 @@ enum ResidencePriorLengthOfStay {
 }
 
 """
+Autogenerated return type of RestoreScanCardCode.
+"""
+type RestoreScanCardCodePayload {
+  errors: [ValidationError!]!
+  scanCardCode: ScanCardCode
+}
+
+"""
 3.02.2
 """
 enum SSNDataQuality {
@@ -9112,6 +9497,26 @@ type SaveAssessmentPayload {
   """
   clientMutationId: String
   errors: [ValidationError!]!
+}
+
+type ScanCardCode {
+  createdBy: ApplicationUser
+  dateCreated: ISO8601DateTime!
+  dateDeleted: ISO8601DateTime
+  deletedBy: ApplicationUser
+  expirationDate: ISO8601DateTime
+  id: ID!
+  value: ID!
+}
+
+type ScanCardCodesPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ScanCardCode!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
 }
 
 """
@@ -10016,11 +10421,19 @@ enum SexualOrientation {
   QUESTIONING_UNSURE
 }
 
+"""
+Form Roles that are used for non-configurable forms. These types of forms are submitted using custom mutations.
+"""
 enum StaticFormRole {
   """
   Auto exit config
   """
   AUTO_EXIT_CONFIG
+
+  """
+  Client alert
+  """
+  CLIENT_ALERT
 
   """
   Form definition

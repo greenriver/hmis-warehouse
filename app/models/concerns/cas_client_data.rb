@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -124,6 +124,8 @@ module CasClientData
         :youth_rrh_desired,
         :tc_hat_additional_days_homeless,
         :encampment_decomissioned,
+        :total_homeless_nights_unsheltered,
+        :service_need,
         neighborhood_interests: [],
       ]
     end
@@ -192,11 +194,13 @@ module CasClientData
           ).exists?
         end
       when :project_group
-        project_ids = GrdaWarehouse::Config.cas_sync_project_group.projects.ids
+        project_ids = GrdaWarehouse::Config.cas_sync_project_group&.projects&.ids
+        return false unless project_ids.present?
+
         service_history_enrollments.ongoing.in_project(project_ids).exists?
       when :boston
         # Enrolled in project in the project group
-        project_ids = GrdaWarehouse::Config.cas_sync_project_group.projects.ids
+        project_ids = GrdaWarehouse::Config.cas_sync_project_group&.projects&.ids
         project_group_scope = service_history_enrollments.ongoing
         project_group_scope = project_group_scope.in_project(project_ids) if project_ids.any?
 
@@ -206,6 +210,12 @@ module CasClientData
         # ~3.~ Pathways or Transfer assessment on file (currently no date range restriction) (Removed by request 11/23/23)
         # project_group_scope.exists? && any_release_on_file? && most_recent_pathways_or_rrh_assessment_for_destination.present?
         project_group_scope.exists? && any_release_on_file?
+      when :ce_with_assessment
+        enrollment_scope = service_history_enrollments.
+          in_project_type(HudUtility2024.performance_reporting[:ce]).
+          ongoing.
+          joins(enrollment: :assessments)
+        enrollment_scope.exists?
       else
         raise NotImplementedError
       end
@@ -473,6 +483,45 @@ module CasClientData
     end
 
     # The following do not currently get persisted onto Client, but are calculated live
-    attr_accessor :majority_sheltered, :tie_breaker_date, :financial_assistance_end_date, :strengths, :challenges, :foster_care, :open_case, :housing_for_formerly_homeless, :hivaids_status, :drug_test, :heavy_drug_use, :sober, :willing_case_management, :employed_three_months, :living_wage, :need_daily_assistance, :full_time_employed, :can_work_full_time, :willing_to_work_full_time, :rrh_successful_exit, :th_desired, :drug_test, :employed_three_months, :site_case_management_required, :ongoing_case_management_required, :currently_fleeing, :dv_date, :assessor_first_name, :assessor_last_name, :assessor_email, :assessor_phone, :match_group
+    attr_accessor :majority_sheltered,
+                  :tie_breaker_date,
+                  :financial_assistance_end_date,
+                  :strengths,
+                  :challenges,
+                  :foster_care,
+                  :open_case,
+                  :housing_for_formerly_homeless,
+                  :hivaids_status,
+                  :drug_test,
+                  :heavy_drug_use,
+                  :sober,
+                  :willing_case_management,
+                  :employed_three_months,
+                  :living_wage,
+                  :need_daily_assistance,
+                  :full_time_employed,
+                  :can_work_full_time,
+                  :willing_to_work_full_time,
+                  :rrh_successful_exit,
+                  :th_desired,
+                  :drug_test,
+                  :employed_three_months,
+                  :site_case_management_required,
+                  :ongoing_case_management_required,
+                  :currently_fleeing,
+                  :dv_date,
+                  :assessor_first_name,
+                  :assessor_last_name,
+                  :assessor_email,
+                  :assessor_phone,
+                  :match_group,
+                  :total_homeless_nights_unsheltered,
+                  :service_need,
+                  :housing_barrier,
+                  :additional_homeless_nights_sheltered,
+                  :additional_homeless_nights_unsheltered,
+                  :calculated_homeless_nights_sheltered,
+                  :calculated_homeless_nights_unsheltered,
+                  :total_homeless_nights_sheltered
   end
 end

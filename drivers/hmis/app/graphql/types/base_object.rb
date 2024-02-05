@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,7 +11,6 @@ module Types
       self.should_skip_activity_log = true
     end
 
-    include GraphqlPermissionChecker
     edge_type_class(Types::BaseEdge)
     connection_type_class(Types::BaseConnection)
     field_class Types::BaseField
@@ -112,8 +111,7 @@ module Types
     # @param permission [Symbol] :can_do_foo
     # @param entity [#record] Client, project, etc
     def current_permission?(permission:, entity:)
-      # defined in GraphqlPermissionChecker
-      current_permission_for_context?(context, permission: permission, entity: entity)
+      GraphqlPermissionChecker.current_permission_for_context?(context, permission: permission, entity: entity)
     end
 
     # How should we log this field access? Return nil to skip. Override as needed

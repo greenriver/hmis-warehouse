@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -54,14 +54,13 @@ class StyleGuidesController < ApplicationController
     grid_lines = []
     timeline_date_range.each do |d|
       entries << (rand(1..50) > 45 ? 0.5 : nil)
-      class_name =
-        if d == d.at_beginning_of_month
-          '--start-of-month'
-        elsif d == d.at_beginning_of_week
-          '--start-of-week'
-        else
-          ''
-        end
+      class_name = if d == d.at_beginning_of_month
+        '--start-of-month'
+      elsif d == d.at_beginning_of_week
+        '--start-of-week'
+      else
+        ''
+      end
       grid_lines << { value: d, class: "date-tick #{class_name}" }
     end
     @timeline_config = {
@@ -126,6 +125,11 @@ class StyleGuidesController < ApplicationController
   def modal
   end
 
+  def js_example
+    # You can include javascript files for a single controller action by specifying an array of file paths
+    @per_page_js = ['style_guide_example']
+  end
+
   def system_colors
   end
 
@@ -147,6 +151,7 @@ class StyleGuidesController < ApplicationController
       reports: 'Reports',
       public_reports: 'Reports (Public)',
       tags: 'Tags',
+      js_example: 'JS Example',
       system_colors: 'System Colors',
     }
   end

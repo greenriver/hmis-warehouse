@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -164,6 +164,43 @@ module CePerformance
 
     scope :gender_different_identity, -> do
       joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_different_identity)
+    end
+
+    scope :with_valid_exit_destination, -> do
+      joins(:source_client).merge(
+        GrdaWarehouse::Hud::Client.
+        joins(source_enrollments: :exit).
+        distinct.
+        where(ex_t[:Destination].in(HudUtility2024.valid_destinations.keys)),
+      )
+    end
+    scope :in_exit_destination, ->(destination_id) do
+      joins(:source_client).merge(
+        GrdaWarehouse::Hud::Client.
+        joins(source_enrollments: :exit).
+        distinct.
+        where(ex_t[:Destination].in(destination_id)),
+      )
+    end
+
+    scope :homeless_exit_destination, -> do
+      in_exit_destination(HudUtility2024.homeless_destinations)
+    end
+
+    scope :institutional_exit_destination, -> do
+      in_exit_destination(HudUtility2024.institutional_destinations)
+    end
+
+    scope :temporary_exit_destination, -> do
+      in_exit_destination(HudUtility2024.temporary_destinations)
+    end
+
+    scope :permanent_exit_destination, -> do
+      in_exit_destination(HudUtility2024.permanent_destinations)
+    end
+
+    scope :other_exit_destination, -> do
+      in_exit_destination(HudUtility2024.other_destinations)
     end
 
     # FIXME eventually.  This would be much better if we could figure out how to query the events column

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -24,7 +24,7 @@ module Types
     end
 
     def client_ids_merged
-      object.pre_merge_state.map { |attrs| attrs['id'] }
+      (object.pre_merge_state || []).map { |attrs| attrs['id'] }
     end
 
     def client

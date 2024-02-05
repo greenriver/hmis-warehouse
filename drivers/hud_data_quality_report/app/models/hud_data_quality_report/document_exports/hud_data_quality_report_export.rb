@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,7 +10,7 @@ module HudDataQualityReport::DocumentExports
     include HudReports::HudPdfExportConcern
 
     def generator_url
-      hud_reports_dq_path(report)
+      hud_reports_past_dq_path(report)
     end
 
     private def controller_class

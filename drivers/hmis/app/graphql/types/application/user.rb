@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,6 +17,14 @@ module Types
     field :first_name, String, null: true
     field :last_name, String, null: true
     field :activity_logs, Types::Application::ActivityLog.page_type, null: false
+    field :client_access_summaries, Types::Application::ClientAccessSummary.page_type, null: false do
+      argument(:filters, Types::Application::ClientAccessSummary.filter_options_type, required: false)
+    end
+
+    field :enrollment_access_summaries, Types::Application::EnrollmentAccessSummary.page_type, null: false do
+      argument(:filters, Types::Application::EnrollmentAccessSummary.filter_options_type, required: false)
+    end
+
     field :recent_items, [Types::HmisSchema::OmnisearchResult], null: false
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
@@ -38,9 +46,28 @@ module Types
     end
 
     def activity_logs
-      raise 'access denied' unless current_user.can_audit_users?
+      access_denied! unless current_user.can_audit_users?
 
       object.activity_logs
+    end
+
+    def client_access_summaries(filters: nil)
+      access_denied! unless current_user.can_audit_users?
+
+      Hmis::ClientAccessSummary.order(last_accessed_at: :desc, client_id: :desc).
+        apply_filter(user: object, starts_on: filters&.on_or_after, search_term: filters&.search_term)
+    end
+
+    def enrollment_access_summaries(filters: nil)
+      access_denied! unless current_user.can_audit_users?
+
+      Hmis::EnrollmentAccessSummary.order(last_accessed_at: :desc, enrollment_id: :desc).
+        apply_filter(
+          user: object,
+          starts_on: filters&.on_or_after,
+          search_term: filters&.search_term,
+          project_ids: filters&.project,
+        )
     end
   end
 end

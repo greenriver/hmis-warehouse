@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,8 +10,8 @@ FactoryBot.define do
     sequence :identifier, Zlib.crc32('HmisExternalApis::AcHmis::ReferralRequest')
     association :project, factory: :hmis_hud_project
     association :unit_type, factory: :hmis_unit_type
-    requested_on { Date.today }
-    needed_by { Date.today + 1.week }
+    requested_on { Date.current }
+    needed_by { Date.current + 1.week }
     association :requested_by, factory: :hmis_user
     requestor_name { Faker::Name.name }
     requestor_phone { Faker::PhoneNumber.phone_number }

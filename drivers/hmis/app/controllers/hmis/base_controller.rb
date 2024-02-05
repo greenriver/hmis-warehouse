@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,7 +9,6 @@ class Hmis::BaseController < ActionController::Base
 
   before_action :authenticate_hmis_user!
   impersonates :hmis_user, with: ->(id) { Hmis::User.find_by(id: id) }
-  auto_session_timeout Hmis::User.timeout_in
 
   include Hmis::Concerns::JsonErrors
   respond_to :json

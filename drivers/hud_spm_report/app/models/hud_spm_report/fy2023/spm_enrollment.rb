@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,6 +8,7 @@ module HudSpmReport::Fy2023
   class SpmEnrollment < GrdaWarehouseBase
     self.table_name = 'hud_report_spm_enrollments'
     include ArelHelper
+    include Detail
 
     belongs_to :report_instance, class_name: 'HudReports::ReportInstance'
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
@@ -128,7 +129,7 @@ module HudSpmReport::Fy2023
       filter = ::Filters::HudFilterBase.new(user_id: report_instance.user.id).update(report_instance.options)
       enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).enrollments
       household_infos = household(enrollments)
-      enrollments.preload(:client, :destination_client, :exit, :income_benefits, project: :funders).find_in_batches do |batch|
+      enrollments.preload(:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders).find_in_batches do |batch|
         members = []
         batch.each do |enrollment|
           current_income_benefits = current_income_benefits(enrollment, filter.end)
@@ -189,23 +190,6 @@ module HudSpmReport::Fy2023
       end.to_h
     end
 
-    private_class_method def self.header_label(col)
-      case col.to_sym
-      when :client_id
-        'Warehouse Client ID'
-      when :personal_id
-        'HMIS Personal ID'
-      when :data_source_id
-        'Data Source ID'
-      when :los_under_threshold
-        'LOS Under Threshold'
-      when :previous_street_essh
-        'Previous Street ESSH'
-      else
-        col.humanize
-      end
-    end
-
     private_class_method def self.start_of_homelessness(filter, household_info, enrollment)
       age = enrollment.client.age_on([filter.start, enrollment.entry_date].max)
       start_of_homelessness = if age.present? && age <= 17 &&
@@ -234,8 +218,12 @@ module HudSpmReport::Fy2023
     end
 
     private_class_method def self.eligible_funding?(enrollment, start_date, end_date)
-      enrollment.project.funders.open_between(start_date: start_date, end_date: end_date).any? do |funder|
-        funder.funder.in?(HudUtility2024.spm_coc_funders.map(&:to_s))
+      enrollment.project.funders.any? do |funder|
+        # Unroll open_between to allow preload
+        funder.funder.in?(HudUtility2024.spm_coc_funders.map(&:to_s)) &&
+          # Unroll open_between to allow preload
+          (funder.end_date.nil? || funder.end_date >= start_date) &&
+          funder.start_date <= end_date
       end
     end
 
@@ -256,25 +244,45 @@ module HudSpmReport::Fy2023
       if enrollment.exit.present? && enrollment.exit.exit_date <= end_date
         enrollment.income_benefits_at_exit
       else
-        enrollment.
-          income_benefits_annual_update.
-          where(information_date: ..end_date).
-          where(annual_update_window_sql(enrollment)).
-          order(information_date: :desc).
-          first
+        # enrollment.
+        #   income_benefits_annual_update.
+        #   where(information_date: ..end_date).
+        #   where(annual_update_window_sql(enrollment)).
+        #   order(information_date: :desc).
+        #   first
+        enrollment.income_benefits.select do |ib|
+          ib.data_collection_stage == 5 && ## Annual update
+            ib.information_date <= end_date &&
+            date_in_annual_update_window?(ib.information_date, enrollment)
+        end.max_by(&:information_date)
       end
     end
 
     private_class_method def self.previous_income_benefits(enrollment, annual_date, end_date)
       return enrollment.income_benefits_at_entry if enrollment.exit.present? && enrollment.exit.exit_date <= end_date
+      return enrollment.income_benefits_at_entry if annual_date.nil? # Return entry if no annual date
 
       # Most recent annual update on or before the renewal date, or the entry assessment
-      enrollment.
-        income_benefits_annual_update.
-        where(information_date: ...annual_date).
-        where(annual_update_window_sql(enrollment)).
-        order(information_date: :desc).
-        first || enrollment.income_benefits_at_entry # Default to entry assessment if less than 2 years
+      # enrollment.
+      #   income_benefits_annual_update.
+      #   where(information_date: ...annual_date).
+      #   where(annual_update_window_sql(enrollment)).
+      #   order(information_date: :desc).
+      #   first
+      enrollment.income_benefits.select do |ib|
+        ib.data_collection_stage == 5 && ## Annual update
+          ib.information_date < annual_date &&
+          date_in_annual_update_window?(ib.information_date, enrollment)
+      end.max_by(&:information_date) || enrollment.income_benefits_at_entry # Default to entry assessment if less than 2 years
+    end
+
+    private_class_method def self.date_in_annual_update_window?(date, enrollment)
+      entry_date = enrollment.entry_date
+      interval = 30.days
+      elapsed_years = date.year - entry_date.year
+      window_date = entry_date + elapsed_years.years
+
+      date.between?(window_date - interval, window_date + interval)
     end
 
     private_class_method def self.annual_update_window_sql(enrollment)

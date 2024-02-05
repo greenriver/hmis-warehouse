@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -23,7 +23,7 @@ module HudDataQualityReport::Generators::Fy2022
     end
 
     def url
-      hud_reports_dq_url(report, { host: ENV['FQDN'], protocol: 'https' })
+      hud_reports_past_dq_url(report, { host: ENV['FQDN'], protocol: 'https' })
     end
 
     def self.questions

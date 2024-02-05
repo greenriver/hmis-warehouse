@@ -151,8 +151,6 @@ GEM
       activerecord (>= 5.2)
       railties (>= 5.2)
       warden
-    auto-session-timeout (0.9.9)
-      actionpack (>= 3.2, < 7.1)
     autoprefixer-rails (10.3.3.0)
       execjs (~> 2)
     aws-eventstream (1.2.0)
@@ -505,6 +503,8 @@ GEM
       thor (>= 0.14, < 2.0)
     jquery-ui-rails (6.0.1)
       railties (>= 3.2.16)
+    jsbundling-rails (1.2.1)
+      railties (>= 6.0.0)
     json (2.6.3)
     json_schemer (2.0.0)
       hana (~> 1.3)
@@ -526,7 +526,6 @@ GEM
     kiba (4.0.0)
     kiba-common (1.5.0)
       kiba (>= 3.0.0, < 5)
-    language_server-protocol (3.17.0.3)
     linefit (0.3.4)
     list_matcher (1.1.8)
     llhttp-ffi (0.4.0)
@@ -595,7 +594,7 @@ GEM
       net-protocol
     net-ssh (7.0.1)
     netrc (0.11.0)
-    nio4r (2.5.9)
+    nio4r (2.7.0)
     nokogiri (1.15.4)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
@@ -649,7 +648,6 @@ GEM
       htmlentities (>= 4.0.0)
     pretender (0.3.4)
       actionpack (>= 4.2)
-    prism (0.15.1)
     progress_bar (1.3.3)
       highline (>= 1.6, < 3)
       options (~> 2.3.0)
@@ -660,7 +658,7 @@ GEM
     pry-rails (0.3.9)
       pry (>= 0.10.4)
     public_suffix (5.0.3)
-    puma (6.3.1)
+    puma (6.4.2)
       nio4r (~> 2.0)
     pwned (2.0.2)
     racc (1.7.2)
@@ -806,10 +804,6 @@ GEM
     ruby-filemagic (0.7.3)
     ruby-graphviz (1.2.5)
       rexml
-    ruby-lsp (0.12.2)
-      language_server-protocol (~> 3.17.0)
-      prism (>= 0.15.1, < 0.16)
-      sorbet-runtime (>= 0.5.5685)
     ruby-mailchecker (4.0.13)
     ruby-next-core (0.15.3)
     ruby-ole (1.2.12.2)
@@ -870,7 +864,6 @@ GEM
     sniffer (0.5.0)
       anyway_config (>= 1.0)
       dry-initializer (~> 3)
-    sorbet-runtime (0.5.11109)
     sorted_set (1.0.3)
       rbtree
       set (~> 1.0)
@@ -878,7 +871,7 @@ GEM
     spreadsheet (1.3.0)
       ruby-ole
     spring (3.0.0)
-    sprockets (4.2.0)
+    sprockets (4.2.1)
       concurrent-ruby (~> 1.0)
       rack (>= 2.2.4, < 4)
     sprockets-rails (3.4.2)
@@ -1002,7 +995,6 @@ DEPENDENCIES
   attr_encrypted (~> 3.1.0)
   attribute_normalizer
   authtrail
-  auto-session-timeout
   autoprefixer-rails (~> 10.3.3)
   aws-sdk-autoscaling (~> 1)
   aws-sdk-cloudwatch (~> 1)
@@ -1090,6 +1082,7 @@ DEPENDENCIES
   jquery-minicolors-rails
   jquery-rails
   jquery-ui-rails
+  jsbundling-rails (~> 1.1)
   json
   json_schemer (~> 2.0.0)
   kaminari
@@ -1128,7 +1121,7 @@ DEPENDENCIES
   pretender
   progress_bar
   pry-rails
-  puma (~> 6.3)
+  puma (~> 6.4)
   rack (>= 2.2.6.3)
   rack-attack
   rack-cors
@@ -1160,7 +1153,6 @@ DEPENDENCIES
   rspec-rails
   rubocop
   ruby-filemagic
-  ruby-lsp
   ruby-mailchecker
   ruby-prof
   rubyXL

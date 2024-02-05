@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -18,7 +18,7 @@ module AjaxModalRails::Controller
   HEADER = 'HTTP_X_AJAX_MODAL'.freeze
 
   included do
-    layout ->(c) { ajax_modal_request? ? ajax_modal_layout : nil } # rubocop:disable Lint/UnusedBlockArgument
+    layout -> { ajax_modal_request? ? ajax_modal_layout : nil }
 
     def modal_size
       case @modal_size

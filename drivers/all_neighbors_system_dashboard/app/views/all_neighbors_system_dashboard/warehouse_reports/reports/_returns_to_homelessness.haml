@@ -1,3 +1,4 @@
+- raise 'DISABLED, check the Report#cache_calculated_data before re-enabling'
 - if params[:fake].present? && Rails.env.development?
   - start_date = (DateTime.current - 3.years).beginning_of_month
   - end_date = DateTime.current.beginning_of_month
@@ -12,10 +13,10 @@
 .border.my-7
   .pt-6.px-5.border-bottom
     .d-flex.justify-content-between
-      %h3 Returns to Homelessness
+      %h3 Returns to Homelessness within 12 months
       %small * after exiting to permanent destination
     %div{id: chart_id(tab[:id], 'bar')}
-
+- if false # Disabled
   - table_id = table_id(tab[:id], 'returns_to_homelessness')
   .p-4.border-top
     = link_to "javascript:void(0)", data: {toggle: 'collapse', target: "##{table_id}"}, role: 'button', aria: {expanded: 'false', controls: table_id}, class: "d-flex justify-content-between align-items-center w-100 #{css_namespace(tab[:id], 'table_toggle')}" do
@@ -24,14 +25,14 @@
   .collapse{id: table_id}
     .border-top
       = render 'returns_to_homelessness_table', data: all_data.bars, id: table_id
-
-= render 'stacked_charts', data: chart_data, group: 'Racial Composition', filter_label: 'none', filter: 'demographics', filter_data: all_data.demographics, show_chart_titles: true, hint: '* Exited to permanent destinations', tab: tab, legend_padding: '150px', description: false
+- if false # Removed demographic charts for now
+  = render 'stacked_charts', data: chart_data, group: 'Racial Composition', filter_label: 'none', filter: 'demographics', filter_data: all_data.demographics, show_chart_titles: true, hint: '* Exited to permanent destinations', tab: tab, legend_padding: '150px', description: false
 
 
 - content_for :page_js do
   :javascript
     $(document).ready(function() {
-      console.log('Returns To Homelessness -----------------')
+      console.debug('Returns To Homelessness -----------------')
       var data = #{chart_data.to_json.html_safe}
       var barData = #{all_data.bars.to_json.html_safe}
       var stackedIds = #{stacked_ids.to_json.html_safe}

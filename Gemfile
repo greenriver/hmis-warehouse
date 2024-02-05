@@ -128,6 +128,7 @@ gem 'simple_form'
 gem 'virtus'
 
 # Asset related
+gem 'jsbundling-rails', '~> 1.1'
 gem 'bootstrap', '~> 4.3'
 gem 'jquery-rails'
 gem 'coffee-rails'
@@ -178,7 +179,7 @@ gem 'progress_bar', require: false
 
 gem 'slack-notifier'
 
-gem 'puma', '~> 6.3'
+gem 'puma', '~> 6.4'
 
 gem 'dotenv-rails'
 
@@ -213,8 +214,6 @@ gem 'json'
 gem 'json_schemer', '~> 2.0.0', require: false # external API validation
 gem 'oj'
 gem 'amazing_print'
-
-gem 'auto-session-timeout'
 
 gem 'responders'
 
@@ -283,9 +282,6 @@ group :development do
   gem 'bumbler', require: false
 
   gem 'graphiql-rails'
-
-  # vscode ruby
-  gem 'ruby-lsp', require: false
 end
 
 group :test do

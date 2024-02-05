@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -32,6 +32,10 @@ BostonHmis::Application.routes.draw do
       get 'ac/prevention_assessment_report/:referral_id',
           to: 'reports#prevention_assessment_report',
           as: 'ac_prevention_assessment_report',
+          defaults: { format: 'pdf' }
+      get 'ac/consumer_summary_report',
+          to: 'reports#consumer_summary_report',
+          as: 'ac_consumer_summary_report',
           defaults: { format: 'pdf' }
 
       get 'theme', to: 'theme#index', defaults: { format: :json }

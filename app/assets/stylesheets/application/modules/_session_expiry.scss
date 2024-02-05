@@ -1,0 +1,23 @@
+@import "../helpers";
+
+.session_expiry__content {
+  height: 100vh;
+  background-color: transparent;
+  padding: 0;
+}
+
+.session_expiry__alert-box {
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 90px;
+  width: 365px;
+  max-width: 95vw;
+
+  box-shadow: 0 0 2px 3px rgba(204, 204, 204, 0.5);
+  border-radius: 2px;
+}
+
+.session_expiry__modal {
+  box-shadow: 0px 0px 0px 9000px rgba(0, 0, 0, 0.2);
+}

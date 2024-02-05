@@ -1,10 +1,11 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 class Hmis::Wip < Hmis::HmisBase
+  acts_as_paranoid
   has_paper_trail(
     meta: {
       project_id: ->(r) { r.project&.id },

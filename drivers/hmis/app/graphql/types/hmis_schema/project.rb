@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -24,6 +24,12 @@ module Types
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2024')
+    end
+
+    # check for the most minimal permission needed to resolve this object
+    def self.authorized?(object, ctx)
+      permission = :can_view_project
+      super && GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: permission, entity: object)
     end
 
     available_filter_options do

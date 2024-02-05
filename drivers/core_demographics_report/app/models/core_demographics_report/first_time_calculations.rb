@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -43,17 +43,17 @@ module
     end
 
     def no_recent_homelessness_data_for_export(rows)
-      rows['_No Recent Homelessness Type'] ||= []
-      rows['*No Recent Homelessness Type'] ||= []
-      rows['*No Recent Homelessness Type'] += ['No Recent Homelessness Type', nil, 'Count', 'Percentage', nil]
+      rows['_Newly Entering Homelessness'] ||= []
+      rows['*Newly Entering Homelessness'] ||= []
+      rows['*Newly Entering Homelessness'] += ['Newly Entering Homelessness', nil, 'Count', 'Percentage', nil]
       available_coc_codes.each do |coc_code|
-        rows['*No Recent Homelessness Type'] += ["#{coc_code} Client"]
-        rows['*No Recent Homelessness Type'] += ["#{coc_code} Client"]
+        rows['*Newly Entering Homelessness'] += ["#{coc_code} Client"]
+        rows['*Newly Entering Homelessness'] += ["#{coc_code} Client"]
       end
-      rows['*No Recent Homelessness Type'] += [nil]
+      rows['*Newly Entering Homelessness'] += [nil]
       available_no_recent_homelessness_types.invert.each do |id, title|
-        rows["_No Recent Homelessness Type_data_#{title}"] ||= []
-        rows["_No Recent Homelessness Type_data_#{title}"] += [
+        rows["_Newly Entering Homelessness_data_#{title}"] ||= []
+        rows["_Newly Entering Homelessness_data_#{title}"] += [
           title,
           nil,
           no_recent_homelessness_count(id),
@@ -61,7 +61,7 @@ module
           nil,
         ]
         available_coc_codes.each do |coc_code|
-          rows["_No Recent Homelessness Type_data_#{title}"] += [
+          rows["_Newly Entering Homelessness_data_#{title}"] += [
             no_recent_homelessness_count(id, coc_code.to_sym),
             no_recent_homelessness_percentage(id, coc_code.to_sym) / 100,
           ]

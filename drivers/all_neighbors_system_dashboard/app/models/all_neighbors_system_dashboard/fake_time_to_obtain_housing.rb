@@ -1,3 +1,9 @@
+###
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 module AllNeighborsSystemDashboard
   class FakeTimeToObtainHousing < FakeData
     def data(title, id, type, options: {})
@@ -96,7 +102,7 @@ module AllNeighborsSystemDashboard
         'household_average_days',
         :stack,
         options: {
-          types: ['ID to Referral', 'Referral to Move-in*'],
+          types: ['ID to Referral', 'Referral to Move-in'],
           colors: ['#336770', '#E6B70F'],
           label_colors: ['#ffffff', '#000000'],
         },
@@ -108,7 +114,7 @@ module AllNeighborsSystemDashboard
       {
         ident_to_move_in: { name: 'Identification to Move-In', id: to_key('total') },
         ident_to_referral: { name: 'Identification to Referral', id: to_key('ID to Referral') },
-        referral_to_move_in: { name: 'Referral to Move-In', id: to_key('Referral to Move-in*') },
+        referral_to_move_in: { name: 'Referral to Move-In', id: to_key('Referral to Move-in') },
       }
     end
   end

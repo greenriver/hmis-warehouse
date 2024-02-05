@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -186,14 +186,18 @@ module HudReports
       universe_cells.map(&:question)
     end
 
+    def generated_uploadable_version?
+      question_names.include?('HDX Upload')
+    end
+
     # only allow alpha numeric
     def valid_cell_name(cell_name)
-      cell_name.match(/[A-Z0-9]+/i).to_s
+      cell_name&.match(/[A-Z0-9]+/i).to_s
     end
 
     # only allow alpha numeric, and dashes
     def valid_table_name(table)
-      table.match(/[A-Z0-9-]+/i).to_s
+      table&.match(/[A-Z0-9-]+/i).to_s
     end
 
     def as_markdown

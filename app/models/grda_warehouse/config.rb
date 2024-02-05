@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -24,6 +24,7 @@ module GrdaWarehouse
         'Active clients within range' => :active_clients,
         'Clients in project group' => :project_group,
         'Boston (in a project group, with a release)' => :boston,
+        'Clients with open CE enrollment and assessment' => :ce_with_assessment,
       }
     end
 
@@ -186,7 +187,8 @@ module GrdaWarehouse
 
     def self.cas_sync_project_group
       project_group_id = get(:cas_sync_project_group_id)
-      GrdaWarehouse::ProjectGroup.find(project_group_id)
+      # Use find_by to prevent throwing a 404 on the client search page
+      GrdaWarehouse::ProjectGroup.find_by(id: project_group_id)
     end
 
     def invalidate_cache
@@ -305,6 +307,7 @@ module GrdaWarehouse
         :filter_date_span_years,
         :include_pii_in_detail_downloads,
         :self_report_start_date,
+        :chronic_adult_only_cohort,
         client_details: [],
       ]
     end

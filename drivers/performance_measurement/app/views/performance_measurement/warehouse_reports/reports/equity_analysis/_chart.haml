@@ -1,0 +1,139 @@
+#chart{style: "width:100%;height:#{data[:chart_height]}px;"}
+.row.mt-6#legend
+
+= content_for :page_js do
+  :javascript
+    $(document).ready(function() {
+      // console.log('equity analysis chart')
+      var data = #{data[:data].to_json.html_safe}
+      // console.log('data', data)
+
+      var pattern = function(fill) {
+        var pattern = d3.select(document.createElementNS(d3.namespaces.svg, "pattern"))
+            .attr("patternUnits", "userSpaceOnUse")
+            .attr("width", "6")
+            .attr("height", "10")
+            .attr('x', '0')
+            .attr('y', '0')
+
+        pattern.append('rect')
+          .attr('width', '6')
+          .attr('height', '10')
+          .attr('fill', 'white')
+          .attr('x', '0')
+          .attr('y', '0')
+
+        pattern.append('rect')
+          .attr('width', '6')
+          .attr('height', '10')
+          .attr('fill', fill)
+          .style('opacity', 0.5)
+          .attr('x', '0')
+          .attr('y', '0')
+
+        pattern.append('line')
+          .attr('x1', 0)
+          .attr('y1', 0)
+          .attr('x2', 0)
+          .attr('y2', 10)
+          .style('stroke', 'white')
+          .style('stroke-width', '3')
+
+        return pattern.node()
+      }
+      var y_axis = {
+        tick: {
+          format: function(d) {
+            return d3.format(',')(d)
+          },
+        }
+      };
+      if(data.view_by === 'percentage') {
+        y_axis = {
+          padding: 0,
+          tick: {
+            format: function(d) {
+              return d3.format(',')(d)+'%'
+            },
+          },
+          min: 0,
+          max: 100,
+        }
+      }
+
+      var chartConfig = {
+        data: {
+          x: 'x',
+          columns: data.columns,
+          type: "bar",
+          color: function(color, d) {
+            // sometimes d is data object and sometimes d is data object id ????
+            // I think when this is called to build the custom legend d is just the id string
+            // d is the object when this is called to draw the chart bars
+            var isComparison = d.id ? d.id.includes('Comparison Period') : d.includes('Comparison Period')
+            if(isComparison) {
+              return color
+            } else {
+              return d.id ? data.colors[d.id] : data.colors[d]
+            }
+          },
+          stack: {
+            normalize: true,
+          },
+        },
+        padding: {
+          right: 20,
+        },
+        color: {
+          tiles: function() {
+            return data.ordered_keys.map(function(key, i) {
+              var fill = data.colors[key]
+              return pattern(fill)
+            })
+          }
+        },
+        bar: {
+          width: {
+            ratio: 0.6,
+            max: 10,
+          },
+          padding: 3,
+        },
+        axis: {
+          rotated: true,
+          x: {
+            type: 'category',
+          },
+          y: y_axis,
+        },
+        grid: {
+          y: {
+            show: true,
+          },
+        },
+        tooltip: {
+          format: {
+            value: function(value, ratio, id, index) {
+              if(data.view_by === 'percentage') {
+                return d3.format(',')(value) + ' %'
+              } else if(data.view_by === 'rate') {
+                return d3.format(',')(value) + ' per 10,000'
+              } else {
+                return d3.format(',')(value);
+              }
+            },
+          },
+        },
+        bindto: '#chart',
+        legend: {
+          contents: {
+            bindto: '#legend',
+            template: function(title, color) {
+              var swatch = `<svg class="chart-legend-item-swatch-prs1 " viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
+              return `<div class="col-xs-12 col-md-6 d-flex align-items-center pb-2">${swatch}<div class="chart-legend-item-label-prs1">${title}</div></div>`;
+            }
+          }
+        }
+      }
+      var chart = bb.generate(chartConfig)
+    });

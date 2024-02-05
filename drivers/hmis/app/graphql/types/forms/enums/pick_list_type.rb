@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -36,6 +36,7 @@ module Types
     value 'OPEN_HOH_ENROLLMENTS_FOR_PROJECT', 'Open HoH enrollments at the project.'
     value 'CE_EVENTS', 'Grouped HUD CE Event types'
     value 'ENROLLMENT_AUDIT_EVENT_RECORD_TYPES'
+    value 'CLIENT_AUDIT_EVENT_RECORD_TYPES'
     value 'USERS', 'User Accounts'
   end
 end

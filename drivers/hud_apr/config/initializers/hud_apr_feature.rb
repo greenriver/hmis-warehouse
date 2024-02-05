@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -70,4 +70,9 @@ Rails.application.config.hud_reports['HudApr::Generators::CeApr::Fy2023::Generat
 Rails.application.config.hud_reports['HudApr::Generators::CeApr::Fy2024::Generator'] = {
   title: 'Coordinated Entry Annual Performance Report',
   helper: 'hud_reports_ce_aprs_path',
+}
+
+Rails.application.config.hud_reports['HudApr::Generators::Dq::Fy2024::Generator'] = {
+  title: 'HMIS Data Quality Report',
+  helper: 'hud_reports_dqs_path',
 }

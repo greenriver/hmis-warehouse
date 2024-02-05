@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,6 +9,11 @@ module HudSpmReport::Generators::Fy2023
   class MeasureOne < MeasureBase
     def self.question_number
       'Measure 1'.freeze
+    end
+
+    def self.client_class
+      HudSpmReport::Fy2023::Episode.
+        joins(:enrollments).preload(:enrollments)
     end
 
     def self.table_descriptions
@@ -175,35 +180,13 @@ module HudSpmReport::Generators::Fy2023
         candidate_client_ids += literally_homeless_in_ph.pluck(:client_id)
       end
       enrollments = enrollment_set.where(client_id: candidate_client_ids.uniq)
+      batch_calculator = HudSpmReport::Fy2023::EpisodeBatch.new(enrollments, included_project_types, excluded_project_types, include_self_reported_and_ph, @report)
 
       client_ids = enrollments.pluck(:client_id).uniq
       client_ids.each_slice(500) do |slice|
-        enrollments_for_slice = enrollments.where(client_id: slice).preload(:client, enrollment: :services).group_by(&:client_id)
-        episodes = []
-        bed_nights_per_episode = []
-        enrollment_links_per_episode = []
-        slice.each do |client_id|
-          episode_calculations = HudSpmReport::Fy2023::Episode.new(client_id: client_id, report: @report).
-            compute_episode(
-              enrollments_for_slice[client_id],
-              included_project_types: included_project_types,
-              excluded_project_types: excluded_project_types,
-              include_self_reported_and_ph: include_self_reported_and_ph,
-            )
-          # Ignore clients with no episode
-          next if episode_calculations.blank?
-
-          # Ignore clients with no bed nights in report range
-          any_bed_nights_in_report_range = episode_calculations[:any_bed_nights_in_report_range]
-          next unless any_bed_nights_in_report_range
-
-          episodes << episode_calculations[:episode]
-          bed_nights_per_episode << episode_calculations[:bed_nights]
-          enrollment_links_per_episode << episode_calculations[:enrollment_links]
-        end
+        episodes = batch_calculator.calculate_batch(slice)
         next unless episodes.present?
 
-        HudSpmReport::Fy2023::Episode.save_episodes!(episodes, bed_nights_per_episode, enrollment_links_per_episode)
         members = episodes.map do |episode|
           [episode.client, episode]
         end.to_h

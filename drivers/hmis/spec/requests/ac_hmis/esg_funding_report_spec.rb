@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -27,7 +27,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     e.save_in_progress
     e
   end
-  let!(:c2) { create :hmis_hud_client, dob: Date.today - 1.year, data_source: ds1, user: u1 }
+  let!(:c2) { create :hmis_hud_client, dob: Date.current - 1.year, data_source: ds1, user: u1 }
   let!(:c2_e1) { create :hmis_hud_enrollment, data_source: ds1, project: p2, client: c2, relationship_to_ho_h: 2, household_id: e1.household_id }
 
   let!(:csc) { create(:hmis_custom_service_category, name: 'ESG Funding Assistance', data_source: ds1, user: u1) }

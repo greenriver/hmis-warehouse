@@ -1,11 +1,11 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
 ###
-# Copyright 2016 - 2021 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -73,7 +73,5 @@ RSpec.shared_context 'path context FY2024', shared_context: :metadata do
     ].each do |klass|
       klass.connection.execute("TRUNCATE TABLE #{klass.quoted_table_name}")
     end
-
-    Delayed::Job.delete_all
   end
 end

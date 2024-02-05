@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -27,6 +27,8 @@ module
 
     def chronic_percentage(type, coc_code = base_count_sym)
       total_count = total_client_count
+      # We want the percentage based on the total chronic households for the hh breakdowns
+      total_count = chronic_count(:household, coc_code) unless type.in?([:client, :household])
       return 0 if total_count.zero?
 
       of_type = chronic_count(type, coc_code)
@@ -84,7 +86,7 @@ module
         'Adult only Households' => :without_children,
         'Adult and Child Households' => :with_children,
         'Child only Households' => :only_children,
-        'Youth Only' => :unaccompanied_youth,
+        'Youth only Households' => :unaccompanied_youth,
       }
     end
 

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -173,7 +173,7 @@ class GrdaWarehouse::Help < GrdaWarehouseBase
 
   # Allow drivers to inject their help files
   def self.active_defaults
-    known_defaults + Rails.application.config.help_links
+    (known_defaults + Rails.application.config.help_links).uniq
   end
 
   def self.setup_default_links

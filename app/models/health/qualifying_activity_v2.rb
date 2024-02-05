@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -14,7 +14,7 @@ module Health
 
     CONTACTLESS_ACTIVITIES = [:cha_completed, :pctp_signed, :sdoh_positive, :sdoh_negative].freeze
 
-    EFFECTIVE_DATE_RANGE = ('2023-04-01'.to_date ..)
+    EFFECTIVE_DATE_RANGE = ('2023-04-01'.to_date .. '2023-12-31'.to_date)
     ATTRIBUTE_SUFFIX = '_v2'.freeze
 
     def initialize(qa)

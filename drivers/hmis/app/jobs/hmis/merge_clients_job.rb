@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -45,6 +45,7 @@ module Hmis
         delete_warehouse_clients
         update_personal_id_foreign_keys
         merge_mci_ids
+        merge_scan_cards
 
         client_to_retain.reload
         dedup(client_to_retain.names, keepers: dedup(client_to_retain.names.where(primary: true)))
@@ -199,12 +200,19 @@ module Hmis
 
     def merge_mci_ids
       mci_ids = HmisExternalApis::AcHmis::Mci.external_ids
-      # merge ids
+      current_ids_for_retained_client = mci_ids.where(source: client_to_retain).pluck(:value)
       records_by_value = mci_ids.where(source: clients_needing_reference_updates).
+        where.not(value: current_ids_for_retained_client).
         order(:id).reverse.index_by(&:value) # de-duplicate by value, take first id
 
       mci_ids.where(id: records_by_value.values.map(&:id)).
         update_all(source_id: client_to_retain.id)
+    end
+
+    def merge_scan_cards
+      # Update all Scan Cards for deleted clients to point to the retained client, including deactivated scan cards
+      client_ids = clients_needing_reference_updates.map(&:id)
+      Hmis::ScanCardCode.with_deleted.where(client_id: client_ids).update_all(client_id: client_to_retain.id)
     end
 
     def delete_warehouse_clients

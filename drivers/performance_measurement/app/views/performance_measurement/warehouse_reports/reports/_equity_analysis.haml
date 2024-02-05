@@ -1,0 +1,65 @@
+:css
+  #chart .bb-axis .tick text {
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  #chart line.bb-ygrid {
+    stroke-dasharray: none;
+    stroke: rgba(0,0,0,0.15);
+  }
+
+  #chart .bb-axis .tick line {
+    display: none;
+  }
+
+  #legend {
+    width: 100%;
+    max-width: 700px;
+    margin: 0px auto;
+  }
+
+  #no-data-warning {
+    font-size: 1.2rem;
+    color: #A3A3A3;
+  }
+
+  .condensed-form-groups .form-group {
+    margin-bottom: 8px;
+  }
+
+= render 'chosen_universe'
+= render 'report_tabs'
+= render 'warehouse_reports/beta_warning'
+.mb-6
+  .card{style: "overflow:visible;"}
+    .card-header
+      %h2 Build Report
+    .card-body
+      = render 'performance_measurement/warehouse_reports/reports/equity_analysis/form'
+.mb-6
+  .card
+    - if @analysis_builder.valid?
+      .card-header
+        %h2 Equity Analysis Report:
+        .filter-description
+          %strong= @analysis_builder.describe_filters[:header].html_safe
+          - if @analysis_builder.describe_filters[:variables].any?
+            .fitler-variables
+              Limited to:
+              = @analysis_builder.describe_filters[:variables].join(', ')
+
+
+    .card-body
+      - if @analysis_builder.valid?
+        = render 'performance_measurement/warehouse_reports/reports/equity_analysis/chart', data: @analysis_builder.chart_data
+      - else
+        .py-8.text-center#no-data-warning
+          %h3
+            No report data has been selected to display.
+          %span
+            Make required selections above and click “update report”
+  - if false # @analysis_builder.valid? # disabled temporarily until census data can be investigated more completely
+    .alert.alert-info.mt-4
+      %i.icon-info.mr-2
+      Census data can only be displayed and limited for race, gender, and age.  Census genders are limited to male and female, and census races do not include all HMIS races.

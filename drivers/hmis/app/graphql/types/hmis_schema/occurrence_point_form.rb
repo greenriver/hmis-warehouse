@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -26,12 +26,10 @@ module Types
     end
 
     def definition(parent:)
-      raise 'Resolving on something other than project' unless parent.is_a?(Hmis::Hud::Project)
-
       definition = load_ar_association(object, :definition)
       raise "Unable to load definition for instance: #{object.id}" unless definition.present?
 
-      definition.filter_context = { project: parent }
+      definition.filter_context = { project: parent } if parent.is_a?(Hmis::Hud::Project)
       definition
     end
   end

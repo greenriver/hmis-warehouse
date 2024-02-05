@@ -23,8 +23,6 @@ RSpec.describe GrdaWarehouse::CasProjectClientCalculator::Mdha, type: :model do
     after(:all) do
       GrdaWarehouse::Utility.clear!
       cleanup_hmis_csv_fixtures
-      Delayed::Job.delete_all
-      GrdaWarehouse::Config.delete_all
     end
     it 'does not add additional days if the client is missing Date to Street' do
       travel_to Time.local(2016, 2, 15) do

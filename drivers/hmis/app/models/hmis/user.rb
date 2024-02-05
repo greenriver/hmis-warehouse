@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -206,6 +206,16 @@ class Hmis::User < ApplicationRecord
       phone: phone,
       sessionDuration: Devise.timeout_in.in_seconds,
     }
+  end
+
+  def pick_list_group_label
+    if deleted?
+      'Deleted Users'
+    elsif inactive?
+      'Inactive Users'
+    else
+      'Active Users'
+    end
   end
 
   def self.apply_filters(input)

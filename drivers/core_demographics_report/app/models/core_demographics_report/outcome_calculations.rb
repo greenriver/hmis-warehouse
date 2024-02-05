@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -62,6 +62,7 @@ module
       end
       rows['*Outcome Type'] += [nil]
       available_outcome_types.invert.each do |id, title|
+        title = clean_excel_title(title)
         rows["_Outcome Type_data_#{title}"] ||= []
         outcome_percentage = outcome_percentage(id)
         outcome_percentage /= 100 unless id.to_s == 'average_los'

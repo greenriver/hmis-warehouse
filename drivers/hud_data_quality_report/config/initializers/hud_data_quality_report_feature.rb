@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,13 +11,3 @@
 #
 # use with caution!
 RailsDrivers.loaded << :hud_data_quality_report
-
-Rails.application.config.hud_reports['HudDataQualityReport::Generators::Fy2020::Generator'] = {
-  title: 'Data Quality Report',
-  helper: 'hud_reports_dqs_path',
-}
-
-Rails.application.config.hud_reports['HudDataQualityReport::Generators::Fy2022::Generator'] = {
-  title: 'Data Quality Report',
-  helper: 'hud_reports_dqs_path',
-}

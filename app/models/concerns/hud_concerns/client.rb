@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -32,6 +32,10 @@ module HudConcerns::Client
       return nil unless dob.present?
 
       age(on_date) < 18
+    end
+
+    def veteran?
+      self.VeteranStatus == 1
     end
 
     # This can be used to retrieve numeric representations of the client gender, useful for HUD reporting

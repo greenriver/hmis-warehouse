@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -22,6 +22,8 @@ class Hmis::SessionsController < Devise::SessionsController
 
   # POST /hmis/login
   def create
+    return failure_response(:locked) if locked_account?
+
     self.resource = warden.authenticate!(auth_options)
     sign_in(:hmis_user, resource)
     set_csrf_cookie
@@ -92,5 +94,18 @@ class Hmis::SessionsController < Devise::SessionsController
 
   private def two_factor_resource_name
     :hmis_user
+  end
+
+  private def failure_response(type)
+    render status: 401, json: { error: { type: type, message: I18n.t("devise.failure.#{type}") } }
+  end
+
+  # If the account has been locked, show an appropriate message. We choose to show this message even if the password was
+  # not a match because otherwise an attacker would be able to infer the correct password even after the account locks
+  private def locked_account?
+    return false unless sign_in_params['email'] && sign_in_params['password']
+
+    user = resource_class.find_for_authentication(email: sign_in_params['email'])
+    user&.access_locked?
   end
 end

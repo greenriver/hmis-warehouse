@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -117,7 +117,7 @@ module UserConcern
     end
 
     scope :nurse_care_managers, -> do
-      joins(:roles).merge(Role.nurse_care_manager)
+      joins(:health_roles).merge(Role.nurse_care_manager)
     end
 
     scope :not_system, -> { where.not(first_name: 'System') }

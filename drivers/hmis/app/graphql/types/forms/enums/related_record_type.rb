@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -11,6 +11,7 @@ module Types
     description 'Related record type for a group of questions in an assessment'
     graphql_name 'RelatedRecordType'
 
+    value 'ASSESSMENT', 'CeAssessment'
     value 'CLIENT', 'Client'
     value 'ENROLLMENT', 'Enrollment'
     value 'ENROLLMENT_COC', 'EnrollmentCoc'

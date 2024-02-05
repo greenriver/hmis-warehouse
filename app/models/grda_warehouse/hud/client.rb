@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -351,21 +351,29 @@ module GrdaWarehouse::Hud
           with_service_between(start_date: range.first, end_date: range.last)
         where(id: enrollment_scope.select(:client_id))
       when :project_group
-        project_ids = GrdaWarehouse::Config.cas_sync_project_group.projects.ids
+        project_ids = GrdaWarehouse::Config.cas_sync_project_group&.projects&.ids
+        return none if project_ids.blank?
+
         enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.ongoing.in_project(project_ids)
         where(id: enrollment_scope.select(:client_id))
       when :boston
         # Release on file
         scope = where(housing_release_status: [full_release_string, partial_release_string])
         # enrolled in the chosen project group
-        project_ids = GrdaWarehouse::Config.cas_sync_project_group.projects.ids
-        if project_ids.any?
+        project_ids = GrdaWarehouse::Config.cas_sync_project_group&.projects&.ids
+        if project_ids.present?
           enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.ongoing.in_project(project_ids)
           scope = scope.where(id: enrollment_scope.select(:client_id))
         end
         # with a Pathways assessment (removed by request 11/23/23)
         # scope.where(id: joins(source_clients: :most_recent_pathways_or_rrh_assessment).select(:id))
         scope
+      when :ce_with_assessment
+        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          in_project_type(HudUtility2024.performance_reporting[:ce]).
+          ongoing.
+          joins(enrollment: :assessments)
+        where(id: enrollment_scope.select(:client_id))
       else
         raise NotImplementedError
       end
@@ -1974,10 +1982,6 @@ module GrdaWarehouse::Hud
       personal_id.split(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/).reject do |c|
         c.empty? || c == '__#'
       end.join('-')
-    end
-
-    def veteran?
-      self.VeteranStatus == 1
     end
 
     def ever_veteran?

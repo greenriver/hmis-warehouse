@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -27,6 +27,10 @@ module
 
     def high_acuity_percentage(type, coc_code = base_count_sym)
       total_count = total_client_count
+      # We want the percentage based on the total high acuity households for the hh breakdowns
+      total_count = high_acuity_count(:household, coc_code) unless type.in?([:client, :household])
+      # Clients with one disability should use clients in the category as a denominator
+      total_count = high_acuity_count(:client, coc_code) if type == :one_disability
       return 0 if total_count.zero?
 
       of_type = high_acuity_count(type, coc_code)
@@ -65,7 +69,7 @@ module
 
     private def high_acuity_client_ids(key, coc_code = base_count_sym)
       # These two are stored as client_ids, the remaining are enrollment, client_id pairs
-      if key.in?([:client, :household])
+      if key.in?([:client, :household, :one_disability])
         high_acuity_clients[key][coc_code]
       else
         # fetch client_ids from Set[[enrollment_id, client_id]]
@@ -84,8 +88,8 @@ module
         'Adult only Households' => :without_children,
         'Adult and Child Households' => :with_children,
         'Child only Households' => :only_children,
-        'Youth Only' => :unaccompanied_youth,
-        '1 Disability' => :one_disability,
+        'Youth only Households' => :unaccompanied_youth,
+        'Clients with only 1 Disability' => :one_disability,
       }
     end
 

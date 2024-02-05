@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -26,14 +26,19 @@ module AllNeighborsSystemDashboard
     # To be considered housed (or "placed") one of the following conditions must be met
     # 1. Client had an exit within the date range and the Exit was to a permanent destination and from a diversion project (specified at run-time)
     # 2. Client has a move-in date during range
-    scope :housed_in_range, ->(range, filter:) do
-      permanent_diversion_exit(range, filter: filter).
-        or(moved_in_in_range(range, filter: filter))
+    # NOTE: replaced with `placed_in_range` which uses the normalized placement date
+    # scope :housed_in_range, ->(range, filter:) do
+    #   permanent_diversion_exit(range, filter: filter).
+    #     or(moved_in_in_range(range, filter: filter))
+    # end
+
+    scope :placed_in_range, ->(range) do
+      where(placed_date: range)
     end
 
-    scope :permanent_diversion_exit, ->(range, filter:) do
-      where(exit_type: 'Permanent', exit_date: range, project_id: filter.secondary_project_ids)
-    end
+    # scope :permanent_diversion_exit, ->(range, filter:) do
+    #   where(exit_type: 'Permanent', exit_date: range, project_id: filter.secondary_project_ids)
+    # end
 
     scope :moved_in, -> do
       where.not(move_in_date: nil, project_type: HudUtility2024.project_types_with_move_in_dates)
@@ -53,17 +58,6 @@ module AllNeighborsSystemDashboard
 
     scope :hoh, -> do
       where(relationship_to_hoh: 1)
-    end
-
-    def intervention
-      case project_type
-      when 9
-        'Emergency Housing Voucher'
-      when 13
-        'Rapid Rehousing'
-      else
-        'ERROR'
-      end
     end
 
     def report_start

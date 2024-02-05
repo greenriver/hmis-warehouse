@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -16,6 +16,7 @@ class ProjectsController < ApplicationController
 
   def show
     @clients = @project.service_history_enrollments.entry.
+      joins(:enrollment).
       preload(:client).
       order(she_t[:first_date_in_program].desc, she_t[:last_date_in_program].desc)
     @pagy, @clients = pagy(@clients)
