@@ -43,6 +43,14 @@ module GrdaWarehouse::Hud
       where(synthetic: true)
     end
 
+    scope :crisis_needs, -> do
+      where(AssessmentLevel: 1)
+    end
+
+    scope :housing_needs, -> do
+      where(AssessmentLevel: 2)
+    end
+
     scope :pathways_or_rrh, -> do
       where(AssessmentID: GrdaWarehouse::Hud::AssessmentQuestion.pathways_or_rrh.select(:AssessmentID))
     end
