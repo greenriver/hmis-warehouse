@@ -18409,7 +18409,8 @@ CREATE TABLE public.hud_report_cells (
     summary json,
     status character varying,
     error_messages text,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    any_members boolean DEFAULT false NOT NULL
 );
 
 
@@ -60583,6 +60584,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240125143214'),
 ('20240125163539'),
 ('20240126164153'),
+('20240205174218'),
+('20240205175100'),
 ('20240205230723');
 
 
