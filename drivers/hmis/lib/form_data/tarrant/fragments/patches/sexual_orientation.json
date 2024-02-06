@@ -1,0 +1,27 @@
+[
+  {
+    "link_id": "demographics",
+    "append_items": [
+      {
+        "type": "CHOICE",
+        "link_id": "sexual_orientation",
+        "text": "Sexual Orientation",
+        "mapping": {
+          "custom_field_key": "sexual_orientation"
+        },
+        "component": "DROPDOWN",
+        "pick_list_options": [
+          {
+            "code": "Straight"
+          },
+          {
+            "code": "Gay"
+          },
+          {
+            "code": "Etc."
+          }
+        ]
+      }
+    ]
+  }
+]
