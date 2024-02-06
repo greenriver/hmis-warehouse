@@ -207,7 +207,10 @@ type ApplicationUser {
 }
 
 type ApplicationUserAuditEvent {
+  clientId: String
+  clientName: String
   createdAt: ISO8601DateTime!
+  enrollmentId: String
   event: AuditEventType!
   graphqlType: String!
   id: ID!
@@ -216,6 +219,8 @@ type ApplicationUserAuditEvent {
   Format is { field: { fieldName: "GQL field name", displayName: "Human readable name", values: [old, new] } }
   """
   objectChanges: JsonObject
+  projectId: String
+  projectName: String
   recordId: ID!
   recordName: String!
   trueUser: ApplicationUser
@@ -924,7 +929,10 @@ enum ClientAlertPriorityLevel {
 }
 
 type ClientAuditEvent {
+  clientId: String
+  clientName: String
   createdAt: ISO8601DateTime!
+  enrollmentId: String
   event: AuditEventType!
   graphqlType: String!
   id: ID!
@@ -933,6 +941,8 @@ type ClientAuditEvent {
   Format is { field: { fieldName: "GQL field name", displayName: "Human readable name", values: [old, new] } }
   """
   objectChanges: JsonObject
+  projectId: String
+  projectName: String
   recordId: ID!
   recordName: String!
   trueUser: ApplicationUser
@@ -3258,7 +3268,10 @@ input EnrollmentAccessSummaryFilterOptions {
 }
 
 type EnrollmentAuditEvent {
+  clientId: String
+  clientName: String
   createdAt: ISO8601DateTime!
+  enrollmentId: String
   event: AuditEventType!
   graphqlType: String!
   id: ID!
@@ -3267,6 +3280,8 @@ type EnrollmentAuditEvent {
   Format is { field: { fieldName: "GQL field name", displayName: "Human readable name", values: [old, new] } }
   """
   objectChanges: JsonObject
+  projectId: String
+  projectName: String
   recordId: ID!
   recordName: String!
   trueUser: ApplicationUser

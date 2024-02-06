@@ -208,7 +208,7 @@ module Types
     audit_history_field(
       :audit_history,
       # Fields should match our DB casing, consult schema to determine appropriate casing
-      excluded_keys: ['owner_type', 'enrollment_address_type', 'wip'],
+      excluded_keys: Application::User::EXCLUDED_KEYS,
       filter_args: { omit: [:client_record_type], type_name: 'EnrollmentAuditEvent' },
       # Transformation for Disability response type
       transform_changes: ->(version, changes) do

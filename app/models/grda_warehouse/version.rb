@@ -8,6 +8,9 @@ module GrdaWarehouse
   class Version < GrdaWarehouseBase
     include PaperTrail::VersionConcern
 
+    belongs_to :hmis_client, class_name: 'Hmis::Hud::Client', foreign_key: :client_id
+    belongs_to :hmis_project, class_name: 'Hmis::Hud::Project', foreign_key: :project_id
+
     # overlay object changes onto object
     def object_with_changes
       # create events have object_changes and a nil object
