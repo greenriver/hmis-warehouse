@@ -58,17 +58,5 @@ RSpec.describe 'User Audit History Query', type: :request do
       expect(records[0]['event']).to eq('update')
       expect(records[0]['recordName']).to eq('Client')
     end
-
-    # TODO @MARTHA - get rid of this and add a test for the functionality I'm adding here
-    it 'should be able to reproduce this bad error' do
-      filters = GraphQL::Execution::Interpreter::Arguments.new(argument_values: {}).freeze
-      scope = GrdaWarehouse.paper_trail_versions.
-        where(user_id: hmis_user.id).
-        where.not(object_changes: nil, event: 'update').
-        unscope(:order). # Unscope to remove default order, otherwise it will conflict
-        order(created_at: :desc)
-      result = Hmis::Filter::PaperTrailVersionFilter.new(filters).filter_scope(scope)
-      expect(result).not_to be_nil
-    end
   end
 end
