@@ -1,3 +1,0 @@
-CEParticipationID,ProjectID,AccessPoint,PreventionAssessment,CrisisAssessment,HousingAssessment,DirectServices,ReceivesReferrals,CEParticipationStatusStartDate,CEParticipationStatusEndDate,DateCreated,DateUpdated,UserID,DateDeleted,ExportID
-GR-SO,SO,0,,,,,0,2000-01-01,,2020-10-31 00:00:00,2020-10-31 00:00:00,user,,EXPORT
-GR-SERVICES,SERVICES,0,,,,,0,2000-01-01,,2020-10-31 00:00:00,2020-10-31 00:00:00,user,,EXPORT
