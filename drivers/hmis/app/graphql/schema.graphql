@@ -1884,6 +1884,10 @@ type CustomDataElement {
   key: String!
   label: String!
   repeats: Boolean!
+
+  """
+  Whether the element should be shown in high-level summary views, such as tables
+  """
   showInSummary: Boolean!
   value: CustomDataElementValue
   values: [CustomDataElementValue!]
