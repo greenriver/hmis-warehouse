@@ -75,8 +75,9 @@ module HudPathReport::Generators::Fy2024
       members = universe.members.where(active_and_newly_enrolled_clients).where(a_t[:date_of_determination].gteq(any(a_t[:contacts])))
       count = 0
       members.each do |member|
+        entry_date = member.universe_membership.first_date_in_program
         date_of_determination = member.universe_membership.date_of_determination
-        count += member.universe_membership.contacts.select { |contact| contact <= date_of_determination }.count
+        count += member.universe_membership.contacts.select { |contact| contact.between?(entry_date, date_of_determination) }.count
       end
       answer.add_members(members)
       answer.update(summary: count)

@@ -208,7 +208,7 @@ module HudPathReport::Generators::Fy2024
             prior_living_situation: enrollment.LivingSituation,
             length_of_stay: enrollment.LengthOfStay,
             chronically_homeless: enrollment.chronically_homeless_at_start,
-            domestic_violence: health_and_dv_latest&.DomesticViolenceVictim,
+            domestic_violence: health_and_dv_latest&.DomesticViolenceSurvivor,
             active_client: true, # Note, last_active_enrollment only returns active enrollments, so all are active, also, every question in the PATH report requires Active & ... so we really only report on active clients
             new_client: new_client,
             enrolled_client: enrolled_in_path(enrollment),
@@ -338,7 +338,7 @@ module HudPathReport::Generators::Fy2024
         contacts += enrollment.current_living_situations.between(start_date: @report.start_date, end_date: @report.end_date).pluck(:InformationDate)
         contacts += [enrollment.DateOfEngagement] if enrollment.DateOfEngagement.present? && enrollment.DateOfEngagement.between?(@report.start_date, @report.end_date) && ! contacts.include?(enrollment.DateOfEngagement)
         contacts += [enrollment.DateOfPATHStatus] if enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus.between?(@report.start_date, @report.end_date) && ! contacts.include?(enrollment.DateOfPATHStatus)
-        contacts += enrollment.services.path_service.between(start_date: @report.start_date, end_date: @report.end_date).pluck(:DateProvided).reject { |d| d.in?(contacts) }
+        contacts += enrollment.services.path_service.between(start_date: @report.start_date, end_date: @report.end_date).pluck(:DateProvided).uniq.reject { |d| d.in?(contacts) }
       end
       contacts
     end
