@@ -1880,16 +1880,15 @@ type CustomCaseNotesPaginated {
 }
 
 type CustomDataElement {
+  """
+  Where to display the custom field in the application
+  """
+  displayHooks: [DisplayHook!]!
   fieldType: CustomDataElementType!
   id: ID!
   key: String!
   label: String!
   repeats: Boolean!
-
-  """
-  Whether the element should be shown in high-level summary views, such as tables
-  """
-  showInSummary: Boolean!
   value: CustomDataElementValue
   values: [CustomDataElementValue!]
 }
@@ -2955,6 +2954,16 @@ enum DischargeStatus {
   (6) Under other than honorable conditions (OTH)
   """
   UNDER_OTHER_THAN_HONORABLE_CONDITIONS_OTH
+}
+
+"""
+Application for displaying Custom Data Element values
+"""
+enum DisplayHook {
+  """
+  Display value as a column when viewing a table of records (e.g. Current Living Situations)
+  """
+  TABLE_SUMMARY
 }
 
 """
