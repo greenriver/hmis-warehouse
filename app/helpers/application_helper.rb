@@ -9,6 +9,7 @@ require_relative '../../lib/util/git'
 module ApplicationHelper
   include Pagy::Frontend
   include AssetHelper
+  include Menu
   # permissions
   # See Role.rb for specifics of what permissions are available
   (Role.permissions + User.additional_permissions).each do |permission|
