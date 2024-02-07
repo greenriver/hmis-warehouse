@@ -128,7 +128,7 @@ class Hmis::Hud::Processors::Base
     # If this custom field only allows 1 value and there already is one, update it.
     if !cded.repeats && existing_values.exists?
       cde_attributes = { id: existing_values.first.id }
-      if value.present?
+      if value.present? || value.instance_of?(FalseClass)
         cde_attributes[value_field_name] = value
         cde_attributes.merge!(attrs)
       else

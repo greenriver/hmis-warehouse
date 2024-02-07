@@ -1524,56 +1524,74 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
 
     describe 'with custom data elements' do
-      it 'creates a CustomDataElement' do
-        existing_record = i1
-        new_record = Hmis::Hud::Inventory.new(data_source: ds1, user: u1, project: p1)
+      let!(:cded) { create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory') }
+      [
+        [:string, 'foo'],
+        [:boolean, false],
+        [:boolean, true],
+        [:integer, 0],
+      ].each do |field_type, value|
+        it "creates a CustomDataElement, on a new or existing record (#{field_type}, #{value})" do
+          existing_record = i1
+          new_record = Hmis::Hud::Inventory.new(data_source: ds1, user: u1, project: p1)
+          cded.update(field_type: field_type)
 
-        cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory')
+          [existing_record, new_record].each do |record|
+            hud_values = complete_hud_values.merge(cded.key => value)
+            process_record(record: record, hud_values: hud_values, user: hmis_user)
 
-        [existing_record, new_record].each do |record|
-          hud_values = complete_hud_values.merge(
-            cded.key => 'some value',
-          )
-          process_record(record: record, hud_values: hud_values, user: hmis_user)
-
-          expect(record.custom_data_elements.size).to eq(1)
-          expect(record.custom_data_elements.first.value_string).to eq('some value')
-          expect(record.custom_data_elements.first.data_element_definition).to eq(cded)
+            expect(record.custom_data_elements.size).to eq(1)
+            expect(record.custom_data_elements.first.value).to eq(value)
+            expect(record.custom_data_elements.first.data_element_definition).to eq(cded)
+          end
         end
       end
 
-      it 'updates a CustomDataElement (repeats: false)' do
-        record = i1
-        cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory')
-        cde = create(:hmis_custom_data_element, owner: record, value_string: 'old value', data_element_definition: cded)
-        expect(record.custom_data_elements.first!.value_string).to eq(cde.value_string)
+      [
+        [:string, :value_string, 'foo', 'bar'],
+        [:string, :value_string, 'same', 'same'],
+        [:integer, :value_integer, 10, 0],
+        [:integer, :value_integer, 0, 10],
+        [:integer, :value_integer, 0, 0],
+        [:boolean, :value_boolean, true, false],
+        [:boolean, :value_boolean, true, true],
+        [:boolean, :value_boolean, false, false],
+        [:boolean, :value_boolean, false, true],
+      ].each do |field_type, field_name, old_value, new_value|
+        it "updates a CustomDataElement on an existing record (#{field_type}, #{old_value}=>#{new_value}) (repeats: false)" do
+          record = i1
+          cded.update(field_type: field_type)
+          cde = create(:hmis_custom_data_element, owner: record, **{ field_name => old_value }, data_element_definition: cded)
+          expect(record.custom_data_elements.first.value).to eq(old_value)
 
-        hud_values = complete_hud_values.merge(cded.key => 'new value')
-        process_record(record: record, hud_values: hud_values, user: hmis_user)
+          hud_values = complete_hud_values.merge(cded.key => new_value)
+          process_record(record: record, hud_values: hud_values, user: hmis_user)
 
-        expect(record.custom_data_elements.size).to eq(1)
-        updated_cde = record.custom_data_elements.first
-        expect(updated_cde.value_string).to eq('new value')
-        expect(updated_cde.user).not_to eq(cde.user)
-        expect(updated_cde.date_updated).not_to eq(cde.date_updated)
-        expect(updated_cde.data_element_definition).to eq(cded)
+          expect(record.custom_data_elements.size).to eq(1)
+          updated_cde = record.custom_data_elements.first
+          expect(updated_cde.value).to eq(new_value)
+          expect(updated_cde.id).to eq(cde.id) # It updated the same record
+          expect(updated_cde.user).not_to eq(cde.user)
+          expect(updated_cde.date_updated).not_to eq(cde.date_updated)
+          expect(updated_cde.data_element_definition).to eq(cded)
+        end
       end
 
       [nil, HIDDEN, []].each do |value|
         it "doesnt error when receiving custom data element value #{value} (new record / existing record with no value)" do
           existing_record = i1
           new_record = Hmis::Hud::Inventory.new(data_source: ds1, user: u1, project: p1)
-          cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory')
           [existing_record, new_record].each do |record|
             hud_values = complete_hud_values.merge(cded.key => value)
             process_record(record: record, hud_values: hud_values, user: hmis_user)
+            expect(record.custom_data_elements.size).to eq(0)
           end
         end
       end
 
       it 'updates a CustomDataElement (repeats: true)' do
         record = i1
-        cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory', repeats: true)
+        cded.update(repeats: true)
         common_attrs = { owner: record, data_element_definition: cded }
         old1 = create(:hmis_custom_data_element, value_string: 'old value 1', **common_attrs)
         old2 = create(:hmis_custom_data_element, value_string: 'old value 2', **common_attrs)
@@ -1591,9 +1609,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(record.custom_data_elements.map(&:id)).not_to include(old1.id, old2.id, old3.id)
       end
 
-      it 'does not delete and replace if the values are the same' do
+      it 'does not delete and replace if the values are the same (repeats: true)' do
         record = i1
-        cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory', repeats: true)
+        cded.update(repeats: true)
         old1 = create(:hmis_custom_data_element, owner: record, value_string: 'old value 1', data_element_definition: cded)
         old2 = create(:hmis_custom_data_element, owner: record, value_string: 'old value 2', data_element_definition: cded)
         expect(record.custom_data_elements.size).to eq(2)
@@ -1612,7 +1630,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
       [nil, HIDDEN].each do |value|
         it "clears custom data element when set to #{value} (has 1 value)" do
-          cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory')
           record = i1
           create(:hmis_custom_data_element, owner: record, value_string: 'old value', data_element_definition: cded)
           expect(record.custom_data_elements.size).to eq(1)
@@ -1625,7 +1642,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
       [nil, HIDDEN, []].each do |value|
         it "clears custom data element when set to #{value} (has 2 values)" do
-          cded = create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory', repeats: true)
+          cded.update(repeats: true)
           record = i1
           create(:hmis_custom_data_element, owner: record, value_string: 'old value 1', data_element_definition: cded)
           create(:hmis_custom_data_element, owner: record, value_string: 'old value 2', data_element_definition: cded)
