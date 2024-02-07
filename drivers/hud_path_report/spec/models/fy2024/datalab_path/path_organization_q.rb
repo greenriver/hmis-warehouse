@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,10 +17,13 @@ RSpec.shared_context 'path organization q', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q8-Q16',
+        csv_name: 'Q8_16.csv',
         skip: [
-          'B6', # TODO: track down discrepancy, pending B7
-          # Pending: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recu6GJJUDn94R9j4 and https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recda7O3T90PIwadz
-          'B7', # 677140 May 9, 2022 (2) and 692358 Aug 22, 2022 (2) counted twice on one day
+          'B7', # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recIZVtmaHvrbA59N
+          # Previous: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recu6GJJUDn94R9j4 and
+          # https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recda7O3T90PIwadz
+          # 677140 May 9, 2022 (2) and 692358 Aug 22, 2022 (2) counted twice on one day
+
         ],
       )
     end
@@ -43,22 +46,28 @@ RSpec.shared_context 'path organization q', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19-Q24',
+        csv_name: 'Q19_24.csv',
       )
     end
 
-    # Pending: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recPVamjYOzWWTx5U
-    xit 'Q25' do
+    # Previous: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recPVamjYOzWWTx5U
+    it 'Q25' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q25',
       )
     end
 
-    # Pending: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recUam4bP8a5eJGSK
-    xit 'Q26' do
+    # Previous: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recUam4bP8a5eJGSK
+    it 'Q26' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q26',
+        skip: [
+          'C89', # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/reckiuBz8DwhFmQ8n
+          'C90',
+          'C91', # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recSJ3fb7EBfkrakM
+        ],
       )
     end
   end

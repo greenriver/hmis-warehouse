@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -75,6 +75,17 @@ module GrdaWarehouse::Hud
       return matching_question unless answer.present?
 
       matching_question.AssessmentResult.to_s == answer
+    end
+
+    # provide a more specific name when appropriate
+    def name
+      return 'Pathways' if pathways?
+
+      HudUtility2024.assessment_level self.AssessmentLevel
+    end
+
+    def pathways?
+      assessment_questions.any?(&:pathways?)
     end
   end
 end

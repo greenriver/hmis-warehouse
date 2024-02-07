@@ -1,10 +1,9 @@
 - title = 'HUD Assessment'
-- content_for :title, title
+- content_for :modal_title, title
 = content_for :crumbs do
   = link_to enrollment_details_client_path(@client) do
     &laquo; Enrollment Details
 
-%h1= content_for(:title)
 .well
   .d-flex
     .assessment
@@ -38,7 +37,7 @@
   .well
     - @assessment.assessment_questions.sort_by { |q| [q.AssessmentQuestionGroup, q.AssessmentQuestionOrder] }.each do |q|
       %dl
-        %dt= q.AssessmentQuestion
+        %dt= Translation.translate(q.AssessmentQuestion)
         %dd= q.human_readable
 - else
   .none-found No questions provided.
