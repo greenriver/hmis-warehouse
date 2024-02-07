@@ -69,6 +69,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
 
     owner.enrollment = enrollment_factory if owner.is_a?(Hmis::Hud::CustomAssessment)
+    store_assessment_questions if ce_assessment?
   end
 
   def parse_key(key)
@@ -81,6 +82,14 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
 
     [container, field]
+  end
+
+  def ce_assessment?
+    ce_assessment&.assessment_level.in?([1, 2])
+  end
+
+  def store_assessment_questions
+    ::Hmis::AssessmentQuestionsJob.perform_later(id)
   end
 
   def owner_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
