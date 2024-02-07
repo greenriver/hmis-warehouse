@@ -1340,6 +1340,13 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(project.valid?).to eq(false)
       end
     end
+
+    it 'fails if hud_values contain fields that are not part of the FormDefinition' do
+      hud_values = empty_hud_values.merge('confidential' => false)
+      expect do
+        process_record(record: p1, hud_values: hud_values, user: hmis_user, save: false, definition: definition)
+      end.to raise_error(RuntimeError, /Not a submittable field.*confidential/)
+    end
   end
 
   describe 'Form processing for Organizations' do
