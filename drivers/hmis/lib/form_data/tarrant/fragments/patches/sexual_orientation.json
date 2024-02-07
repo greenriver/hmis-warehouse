@@ -12,13 +12,31 @@
         "component": "DROPDOWN",
         "pick_list_options": [
           {
-            "code": "Straight"
+            "code": "Heterosexual"
           },
           {
             "code": "Gay"
           },
           {
-            "code": "Etc."
+            "code": "Lesbian"
+          },
+          {
+            "code": "Questioning/unsure"
+          },
+          {
+            "code": "Bi-sexual"
+          },
+          {
+            "code": "Pan-sexual"
+          },
+          {
+            "code": "Client Doesn't Know"
+          },
+          {
+            "code": "Client refused"
+          },
+          {
+            "code": "Data not collected"
           }
         ]
       }
