@@ -16,10 +16,10 @@ module GrdaWarehouse::CasProjectClientCalculator
       # overrides even if we don't have a TC HAT
       current_value = send(column, client) if column.in?(local_calculators)
       # Return existing value if we don't have anything in the new format
-      return current_value unless client.most_recent_tc_hat_for_destination.present?
+      return current_value unless most_recent_assessment_for_destination(client).present?
 
       case column
-      when *boolean_lookups.keys
+      when *boolean_lookups
         assessment_value = for_boolean(client, column)
         return assessment_value unless assessment_value.nil?
       when *tc_hat_questions
@@ -169,11 +169,15 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def cas_assessment(client)
-      client.assessments.housing_needs.order(assessment_date: :desc).first
+      client.source_clients.map do |source_client|
+        source_client.assessments.housing_needs.order(assessment_date: :desc).first
+      end.
+        compact.
+        max_by(&:assessment_date)
     end
 
     private def for_string(client, key)
-      cas_assessment(client).assessment_questions.find_by(assessment_question: key)
+      cas_assessment(client).assessment_questions.find_by(assessment_question: assessment_keys[key])&.assessment_answer
     end
 
     private def for_boolean(client, key)
@@ -230,17 +234,17 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def strengths(client)
-      for_string(client, :strengths)&.
-        downcase&.
-        split('|')&.
-        reject(&:blank?)
+      strengths = for_string(client, :strengths)
+      return [] unless strengths.present?
+
+      JSON.parse(strengths).reject(&:blank?)
     end
 
     private def challenges(client)
-      for_string(client, :challenges)&.
-        downcase&.
-        split('|')&.
-        reject(&:blank?)
+      challenges = for_string(client, :challenges)
+      return [] unless challenges.present?
+
+      JSON.parse(challenges).reject(&:blank?)
     end
 
     private def housing_for_formerly_homeless(client)
@@ -253,7 +257,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def cas_assessment_collected_at(client)
-      cas_assesment(client)&.assessment_date.presence&.to_date
+      cas_assessment(client)&.assessment_date.presence&.to_date
     end
 
     private def days_homeless_in_last_three_years_cached(client)

@@ -20,8 +20,19 @@ module Hmis
         assessment.assessment_questions.delete_all
         questions_to_import = [].tap do |questions|
           form_processor.hud_values.each do |key, value|
-            next if key.include?('.') # Field is stored in annother HUD object
+            next if key.include?('.') # Field is stored in another HUD object
             next if value == HIDDEN_FIELD_VALUE
+
+            value = case question_type(key)
+            when 'BOOLEAN'
+              if value
+                'Yes'
+              else
+                'No'
+              end
+            else
+              value
+            end
 
             questions << assessment.assessment_questions.build(
               enrollment_id: assessment.enrollment_id,
@@ -40,6 +51,10 @@ module Hmis
         end
         ::GrdaWarehouse::Hud::AssessmentQuestion.import!(questions_to_import)
       end
+    end
+
+    private def question_type(key)
+      form_definition[key].try(:[], :type)
     end
 
     private def question_group(key)
@@ -61,7 +76,8 @@ module Hmis
     private def parse(definition, group: nil)
       {}.tap do |h|
         definition.each do |item|
-          if item['type'] == 'GROUP'
+          type = item['type']
+          if type == 'GROUP'
             group = item['text']
             nested_definition = item['item']
             h.merge!(parse(nested_definition, group: group))
@@ -72,6 +88,7 @@ module Hmis
             h[key] = {
               group: group,
               order: @order,
+              type: type,
             }
             @order += 1
           end
