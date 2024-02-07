@@ -438,10 +438,14 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     "#{container}.#{field}"
   end
 
-  # Ensure that a given field is valid for this FormDefinition
-  private def ensure_submittable_field!(container, field)
-    @mapped_form_fields ||= definition.link_id_item_hash.values.map(&:mapping).compact.
-      map do |mapping|
+  # @return <Hash{container_name=> Set<fields> }>
+  private def mapped_form_fields
+    @mapped_form_fields ||= {}.tap do |result|
+      definition.link_id_item_hash.each_value do |item|
+        mapping = item.mapping
+        next unless mapping
+        next unless mapping.field_name || mapping.custom_field_key
+
         # convert the record_type to a "container name" that matches the form processor names
         container_name = if mapping.record_type
           enum = Types::Forms::Enums::RelatedRecordType.values[mapping.record_type]
@@ -452,21 +456,17 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
           owner_container_name
         end
 
-        {
-          container_name: container_name,
-          field_name: mapping.field_name,
-          custom_field_key: mapping.custom_field_key,
-        }
-      end.uniq
+        result[container_name] ||= Set.new
+        result[container_name].add(mapping.field_name || mapping.custom_field_key)
+      end
+    end
+  end
 
+  # Ensure that a given field is valid for this FormDefinition
+  private def ensure_submittable_field!(container, field)
     # Find the FormItem Mapping that matches this field.
     # If it's not found, then this is not a valid submission.
-    found_mapping = @mapped_form_fields.find do |mapping|
-      mapping[:container_name] == container && (
-        mapping[:field_name] == field ||
-        mapping[:custom_field_key] == field
-      )
-    end
+    found_mapping = mapped_form_fields[container]&.include?(field)
 
     raise "Not a submittable field for Form Definition id #{definition.id} (#{container}.#{field})" unless found_mapping
   end
