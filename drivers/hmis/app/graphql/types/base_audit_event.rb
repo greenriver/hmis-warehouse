@@ -65,8 +65,7 @@ module Types
     end
 
     def project_name
-      project = load_ar_association(object, :hmis_project)
-      project&.ProjectName
+      load_ar_association(object, :hmis_project)&.project_name
     end
 
     # User-friendly display name for item_type
