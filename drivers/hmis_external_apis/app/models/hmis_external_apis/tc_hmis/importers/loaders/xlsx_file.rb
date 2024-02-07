@@ -6,6 +6,8 @@
 
 require 'roo'
 
+# reads xls from ETO touch points. These files have two headers rows. One row has the optional element id and one row wit hthe label. The element ids are unique, the labels are not.
+
 module HmisExternalApis::TcHmis::Importers::Loaders
   class XlsxFile
     include SafeInspectable
@@ -16,8 +18,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     # @param [String] filename this full path to the file
     # @param [Integer] sheet_number
     # @param [Integer] header_row_number each column has a label
-    # @param [Integer] field_id_row_number each column has an id
-    def initialize(filename:, sheet_number:, header_row_number:, field_id_row_number:)
+    # @param [Integer] field_id_row_number each column may have an id
+    def initialize(filename:, sheet_number:, header_row_number:, field_id_row_number: nil)
       self.filename = filename
       self.sheet_number = sheet_number
       self.header_row_number = header_row_number
@@ -56,16 +58,19 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         label = normalize_col(label)
         next unless label # skip empty labels
 
-        id = begin
-                xls.cell(field_id_row_number, col)
-              rescue StandardError
-                nil
-              end
-        id = normalize_col(id)&.to_i
-        # column id can be missing
+        if field_id_row_number
+          id = begin
+                  xls.cell(field_id_row_number, col)
+                rescue StandardError
+                  nil
+                end
+          id = normalize_col(id)&.to_i
+          # column id can be missing
+        else
+          id = nil
+        end
 
         ret << [label, id, col]
-        col = col.next
       end
       ret
     end
@@ -80,7 +85,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       letter
     end
 
-    DEFAULT_ID = :default
     # [
     #   {['label', 1234] => 'value' }
     # ]
@@ -99,9 +103,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       (header_row_number + 1).upto(last_row) do |row|
         cur_row_number += 1
         values = {}
-        headers.each do |label, id, sheet_col|
+        headers.each do |label, id, col|
           values[label] ||= {}
-          values[label][id || DEFAULT_ID] = normalize_value(xls.cell(row, sheet_col))
+          values[label][id || col] = normalize_value(xls.cell(row, col))
         end
         next unless values.values.any?
 

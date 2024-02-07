@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+#  Abstract class
 module HmisExternalApis::TcHmis::Importers::Loaders
   class BaseLoader
     include SafeInspectable

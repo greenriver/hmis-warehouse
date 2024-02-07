@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+#  Abstract class
 module HmisExternalApis::TcHmis::Importers::Loaders
   class CustomAssessmentLoader < BaseLoader
     ENROLLMENT_ID_COL = 'Unique Enrollment Identifier'.freeze
@@ -108,7 +109,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def cde_values(row, config, required: false)
-      raw_value = row.field_value(config.fetch(:label), id: config[:id], required: required)
+      raw_value = row.field_value(config.fetch(:label), id: config[:element_id], required: required)
       return [] unless raw_value
 
       values = config.fetch(:repeats) ? raw_value.split('|').map(&:strip) : [raw_value]

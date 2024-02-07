@@ -10,6 +10,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
   class FileRow
     attr_accessor :row
     delegate :[], :to_h, to: :row
+
     def initialize(row)
       self.row = row
     end
@@ -21,14 +22,15 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def field_value(label, required: false, id: nil)
       raise "row is nil. looking for field '#{field}' #{caller.inspect}" if row.nil?
 
-      by_id = row[label]
+      label = label.to_s
+      by_id = row[label] || {}
       value = nil
-      if id.nil?
+      if id
+        value = by_id[id]
+      else
         raise "field '#{label}' is has multiple values. You must specify an id" if by_id.many?
 
         value = by_id.values.first
-      else
-        value = by_id[id]
       end
 
       return value if value
