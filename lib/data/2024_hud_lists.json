@@ -2340,10 +2340,6 @@
         "description": "No exit interview completed"
       },
       {
-        "key": 37,
-        "description": "Worker unable to determine"
-      },
-      {
         "key": 99,
         "description": "Data not collected"
       },

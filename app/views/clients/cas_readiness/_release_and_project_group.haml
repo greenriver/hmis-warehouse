@@ -1,0 +1,20 @@
+%p
+  Any client with:
+  %ul
+    %li
+      A
+      %strong confirmed
+      full or partial release (consent form) on file
+    - if GrdaWarehouse::Config.cas_sync_project_group.present?
+      %li An enrollment in a project in the project group '#{GrdaWarehouse::Config.cas_sync_project_group.name}'
+  will sync with CAS
+%p
+  Will
+  %strong= @client.name
+  sync with CAS?
+  %br
+  = yes_no @client.active_in_cas?(include_overridden: false)
+
+%p
+  You can force this client to sync with CAS by checking the following box:
+  = f.input :sync_with_cas, as: :boolean, label: GrdaWarehouse::Hud::Client.cas_columns[:sync_with_cas], hint: 'Force client into CAS'

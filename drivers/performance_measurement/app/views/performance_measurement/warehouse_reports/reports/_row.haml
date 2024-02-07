@@ -2,7 +2,7 @@
 - result = @report.result_for(key)
 - if result
   - column = row[:column]
-  .row.m-0.mb-4.performance-measurement__row.j-click-row
+  .row.m-0.mb-4.performance-measurement__row{:class => (@include_in_published_version ? nil : "j-click-row")}
     .col-12
       .d-flex
         .level-indicator.mb-2
@@ -33,10 +33,11 @@
           - status = result[:passed] ? 'success' : 'danger'
           - icon = result[:passed] ? 'check' : 'cross'
           - label = result[:passed] ? 'Passed' : 'Failed'
-          = tagged(result[:passed], status, icon: icon, label: label)
+          - style = @include_in_published_version ? :font : :svg
+          = tagged(result[:passed], status, icon: icon, label: label, style: style)
       .d-flex
         .font-size-sm.ml-auto
-          = link_to('View more details', performance_measurement_warehouse_reports_report_details_path(@report, key: key), target: :_blank, class: 'j-click-row-source')
+          = link_to('View more details', performance_measurement_warehouse_reports_report_details_path(@report, key: key), target: :_blank, class: 'j-click-row-source') unless @include_in_published_version
 - else
   .row.m-0.mb-4
     .col-12

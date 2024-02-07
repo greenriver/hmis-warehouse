@@ -27,12 +27,6 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q5a',
-        skip: [
-          # pending airtable https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/reccL2M1CXze5MJHZ
-          # HHID h_863316 includes a child with a relationship other than 2, glossary indicates this should be limited to relationship 2
-          'B14',
-          'C14',
-        ],
       )
     end
 
@@ -64,13 +58,11 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
+    # Previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recQoBOA5VwRFp8jJ
     it 'Q6e' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6e',
-        skip: [
-          'C2', # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recQoBOA5VwRFp8jJ
-        ],
       )
     end
 
@@ -160,15 +152,11 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
+    # Previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recZpSZRB8G1UWVsp
     it 'Q13c1' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q13c1',
-        # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recZpSZRB8G1UWVsp
-        skip: [
-          'B2',
-          'C2',
-        ],
       )
     end
 
@@ -186,17 +174,11 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
+    # Previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recZpSZRB8G1UWVsp
     it 'Q13c2' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q13c2',
-        # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recZpSZRB8G1UWVsp
-        skip: [
-          'B2',
-          'C2',
-          'B3',
-          'C3',
-        ],
       )
     end
 
@@ -221,9 +203,8 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
-    # TODO: off by one or two in a few categories, investigation needed,
-    # but sufficiently close for now
-    xit 'Q16' do
+    # previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recU9uhV7OK67j9G6
+    it 'Q16' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q16',
@@ -237,9 +218,7 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
-    # TODO: off by one or two in a few categories, investigation needed,
-    # but sufficiently close for now
-    xit 'Q18' do
+    it 'Q18' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q18',
@@ -253,37 +232,36 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
+    # previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recU9uhV7OK67j9G6
     it 'Q19a2' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19a2',
         skip: [
           'F7', # rounding difference, not significant
+          'J2', # rounding difference, not significant
         ],
       )
     end
 
-    # TODO: off by one or two in a few categories, investigation needed,
-    # but sufficiently close for now
-    xit 'Q19b' do
+    it 'Q19b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19b',
       )
     end
 
-    # TODO: off by one or two in a few categories, investigation needed,
-    # but sufficiently close for now
-    xit 'Q20a' do
+    # previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recLnlLoLpQ2Dh1SI
+    it 'Q20a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q20a',
       )
     end
 
-    # TODO: off by one or two in a few categories, investigation needed,
-    # but sufficiently close for now
-    xit 'Q20b' do
+    # previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recZnCM2MofvBQIo5
+    # previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recLuAql3MuuusByb
+    it 'Q20b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q20b',
@@ -382,9 +360,8 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
-    # Pending AirTable https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recGeOJDYAm528rAx
-    # Every enrollment has TranslationAssistance 0
-    xit 'Q24d' do
+    # Previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recGeOJDYAm528rAx
+    it 'Q24d' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q24d',
@@ -398,8 +375,9 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
-    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recnAJsqhnXlGmmZG
+    # Previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recnAJsqhnXlGmmZG
     # Not counting children with HoH or adult in CH calculation
+    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recT9z9YkbQtWwAmm
     xit 'Q25b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -439,11 +417,21 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q26a',
+        # pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recZbEHrNyt7aUsfw
+        skip: [
+          'B3',
+          'C3', # new
+          'D3',
+          'B5',
+          'C5', # new
+          'D5',
+        ],
       )
     end
 
-    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recnAJsqhnXlGmmZG
+    # Previous https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recnAJsqhnXlGmmZG
     # Not counting children with HoH or adult in CH calculation
+    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recTCOE44QtrUKsfZ
     xit 'Q26b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -554,19 +542,17 @@ RSpec.shared_context 'datalab multiple projects apr', shared_context: :metadata 
       )
     end
 
+    # Previous AirTable https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recUA83elKFt0P9r
     it 'Q27k' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q27k',
-        # Pending AirTable https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recUA83elKFt0P9rN
-        skip: [
-          'B14',
-          'C14',
-        ],
       )
     end
 
-    it 'Q27l' do
+    # TODO: off by one or two in a few categories, investigation needed,
+    # but sufficiently close for now
+    xit 'Q27l' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q27l',

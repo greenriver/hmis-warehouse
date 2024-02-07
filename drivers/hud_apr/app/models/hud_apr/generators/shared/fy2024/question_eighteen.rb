@@ -57,7 +57,8 @@ module HudApr::Generators::Shared::Fy2024
               when :both
                 ids << member.id if both_income_types?(apr_client, suffix)
               when :none
-                ids << member.id if no_income?(apr_client, suffix)
+                # Check missing_income? so we don't double count in both categories
+                ids << member.id if no_income?(apr_client, suffix) && ! missing_income?(apr_client, suffix)
               end
             end
             members = adults.where(id: ids)

@@ -36,7 +36,7 @@ class Hmis::Hud::Validators::CustomAssessmentValidator < Hmis::Hud::Validators::
     # Error: date in the future
     errors.add :assessment_date, :out_of_range, message: future_message, **options if date.future?
     # Error: > 20 yr ago
-    errors.add :assessment_date, :out_of_range, message: over_twenty_years_ago_message, **options if date < (Date.today - 20.years)
+    errors.add :assessment_date, :out_of_range, message: over_twenty_years_ago_message, **options if date < (Date.current - 20.years)
     return errors.errors if errors.any?
 
     enrollment = assessment.enrollment
@@ -46,21 +46,27 @@ class Hmis::Hud::Validators::CustomAssessmentValidator < Hmis::Hud::Validators::
     # Error: before entry date
     errors.add :assessment_date, :out_of_range, message: before_entry_message(entry_date), **options if entry_date.present? && entry_date > date && !assessment.intake?
     # Error: after exit date
-    errors.add :assessment_date, :out_of_range, message: after_exit_message(exit_date), **options if exit_date.present? && exit_date < date && !assessment.exit?
+    errors.add(:assessment_date, :out_of_range, message: after_exit_message(exit_date), **options) if
+      exit_date.present? && exit_date < date && (assessment.intake? || assessment.annual? || assessment.update?)
+
     # Warning: >30 days ago
-    errors.add :assessment_date, :information, severity: :warning, message: over_thirty_days_ago_message, **options if date < (Date.today - 30.days)
+    errors.add :assessment_date, :information, severity: :warning, message: over_thirty_days_ago_message, **options if date < (Date.current - 30.days)
 
     # Add Entry Date validations if this is an intake assessment
     errors.push(*Hmis::Hud::Validators::EnrollmentValidator.validate_entry_date(enrollment, household_members: household_members, options: options)) if assessment.intake?
 
-    # Add Exit Date validations if this is an intake assessment
-    errors.push(*Hmis::Hud::Validators::ExitValidator.validate_exit_date(enrollment.exit, household_members: household_members, options: options)) if assessment.exit?
+    # Add Exit Date validations if this is an exit assessment
+    if assessment.exit?
+      exit = enrollment.exit
+      exit.exit_date = assessment.assessment_date if exit
+      errors.push(*Hmis::Hud::Validators::ExitValidator.validate_exit_date(exit, household_members: household_members, options: options))
+    end
 
     # HUD Annual/Update assessment date validations
     if assessment.annual?
       other_annual_dates = enrollment.annual_assessments.where.not(id: assessment.id).pluck(:assessment_date)
       # Warning: shouldn't have 2 annuals on the same day.
-      # This could probably be an error, but, the user doesnt necessarily have access to delete the dup. Can make it a hard stop later if desired.
+      # This could probably be an error, but, the user doesn't necessarily have access to delete the dup. Can make it a hard stop later if desired.
       errors.add :assessment_date, :invalid, severity: :warning, full_message: already_has_annual_full_message(date), **options if other_annual_dates.include?(date)
       # TODO: warn if annual is close to another annual?
       # TODO: warn about relationship to other annuals dates?

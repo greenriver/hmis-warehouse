@@ -16,9 +16,9 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
 
   def reminders_for(_enrollment, topic:)
     project = p1
-    Hmis::Reminders::ReminderGenerator
-      .perform(project: project, enrollments: project.enrollments_including_wip)
-      .filter { |r| r.topic == topic }
+    Hmis::Reminders::ReminderGenerator.
+      perform(project: project, enrollments: project.enrollments_including_wip).
+      filter { |r| r.topic == topic }
   end
 
   describe 'with an enrollment due for annual assessment' do
@@ -29,6 +29,68 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
     it 'reminds about annual assessment' do
       expect(reminders_for(enrollment, topic: 'annual_assessment').size).to eq(1)
     end
+
+    it 'reminds about annual assessment where period overlaps the new year' do
+      travel_to Time.local(2023, 12, 6) do
+        enrollment.update(entry_date: Time.local(2023, 1, 3))
+        res = reminders_for(enrollment, topic: 'annual_assessment')
+        expect(res.size).to eq(1)
+        expect(res.first.due_date).to eq(Time.local(2024, 2, 2))
+      end
+    end
+
+    it 'reminds about annual assessment where period overlaps the new year (multiple years ago)' do
+      travel_to Time.local(2023, 12, 6) do
+        enrollment.update(entry_date: Time.local(2020, 1, 3))
+        res = reminders_for(enrollment, topic: 'annual_assessment')
+        expect(res.size).to eq(1)
+        expect(res.first.due_date).to eq(Time.local(2024, 2, 2))
+      end
+    end
+
+    # Entry date: 1/15/2020
+    # Expected due period: 12/15/2023-2/14/2024
+    [
+      Time.local(2023, 12, 17), # within first half of due period
+      Time.local(2024, 1, 20), # within second half of due period
+      Time.local(2024, 2, 30), # after due period (should still show up as overdue)
+    ].each do |local_time|
+      it "reminds about annual assessment where household entered in January (current date: #{local_time})" do
+        travel_to local_time do
+          enrollment.update(entry_date: Time.local(2020, 1, 15))
+          res = reminders_for(enrollment, topic: 'annual_assessment')
+          expect(res.size).to eq(1)
+          expect(res.first.due_date).to eq(Time.local(2024, 2, 14)), local_time.inspect
+        end
+      end
+    end
+
+    # Entry date: 12/15/2020
+    # Expected due period: 11/15/2023-1/14/2024
+    [
+      Time.local(2023, 11, 16), # within first half of due period
+      Time.local(2024, 1, 6), # within second half of due period
+      Time.local(2024, 1, 30), # after due period (should still show up as overdue)
+    ].each do |local_time|
+      it "reminds about annual assessment where household entered in December (current date: #{local_time})" do
+        travel_to local_time do
+          enrollment.update(entry_date: Time.local(2020, 12, 15))
+          res = reminders_for(enrollment, topic: 'annual_assessment')
+          expect(res.size).to eq(1)
+          expect(res.first.due_date).to eq(Time.local(2024, 1, 14)), local_time.inspect
+        end
+      end
+    end
+
+    it 'does not remind if the next annual is due in the future (a.k.a. last annual period is >6mo ago)' do
+      travel_to Time.local(2023, 12, 20) do
+        enrollment.update(entry_date: Time.local(2022, 6, 10))
+        # next upcoming due date is May 2024. No reminder because it's too far in the future.
+        res = reminders_for(enrollment, topic: 'annual_assessment')
+        expect(res).to be_empty
+      end
+    end
+
     describe 'with annual assessment completed' do
       before(:each) do
         create(:hmis_custom_assessment, data_collection_stage: 5, assessment_date: today, enrollment: enrollment, data_source: ds1)

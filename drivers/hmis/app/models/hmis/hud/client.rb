@@ -12,6 +12,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   include ::HudChronicDefinition
   include ClientSearch
 
+  has_paper_trail(meta: { client_id: :id })
+
   attr_accessor :gender, :race
 
   self.table_name = :Client
@@ -21,7 +23,13 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   has_many :names, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client, dependent: :destroy
-  has_many :addresses, **hmis_relation(:PersonalID, 'CustomClientAddress'), inverse_of: :client, dependent: :destroy
+  has_many(
+    :addresses,
+    # Exclude enrollment addresses from client record (per spec). This prevents client addresses from
+    # clobbering enrollment.addresses when saved via accepts_nested_attributes_for
+    -> { where(EnrollmentID: nil) },
+    **hmis_relation(:PersonalID, 'CustomClientAddress'), inverse_of: :client, dependent: :destroy,
+  )
   has_many :contact_points, **hmis_relation(:PersonalID, 'CustomClientContactPoint'), inverse_of: :client, dependent: :destroy
   has_many :custom_case_notes, **hmis_relation(:PersonalID, 'CustomCaseNote'), inverse_of: :client, dependent: :destroy
   has_one :primary_name, -> { where(primary: true) }, **hmis_relation(:PersonalID, 'CustomClientName'), inverse_of: :client
@@ -70,11 +78,14 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :warehouse_client_destination, class_name: 'Hmis::WarehouseClient', foreign_key: :destination_id, inverse_of: :destination
   has_many :source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
 
+  has_many :scan_card_codes, class_name: 'Hmis::ScanCardCode', inverse_of: :client
+
   validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 
   attr_accessor :image_blob_id
   after_create :warehouse_identify_duplicate_clients
   after_update :warehouse_match_existing_clients
+  before_save :set_source_hash
   after_save do
     current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
     self.image_blob_id = nil
@@ -124,8 +135,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :older_than, ->(age, or_equal: false) do
-    target_dob = Date.today - (age + 1).years
-    target_dob = Date.today - age.years if or_equal == true
+    target_dob = Date.current - (age + 1).years
+    target_dob = Date.current - age.years if or_equal == true
 
     where(c_t[:dob].lt(target_dob))
   end
@@ -149,13 +160,27 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     joins(:projects_including_wip).where(p_t[:organization_id].in(hud_org_ids).and(p_t[:data_source_id].eq(ds_ids.first)))
   end
 
+  def build_primary_custom_client_name
+    return unless names.empty?
+
+    names.new(
+      primary: true,
+      first: first_name,
+      last: last_name,
+      middle: middle_name,
+      suffix: name_suffix,
+      user_id: user_id || Hmis::Hud::User.system_user(data_source_id: data_source_id).user_id,
+      **slice(:name_data_quality, :data_source_id, :date_created, :date_updated),
+    )
+  end
+
   def enrolled?
     enrollments.any?
   end
 
   def self.source_for(destination_id:, user:)
-    source_id = GrdaWarehouse::WarehouseClient.find_by(destination_id: destination_id, data_source_id: user.hmis_data_source_id).source_id
-    return nil unless source_id.present?
+    source_id = GrdaWarehouse::WarehouseClient.find_by(destination_id: destination_id, data_source_id: user.hmis_data_source_id)&.source_id
+    return Hmis::Hud::Client.none unless source_id.present?
 
     searchable_to(user).where(id: source_id)
   end
@@ -298,6 +323,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     [first_name, last_name].compact.join(' ')
   end
 
+  def full_name
+    [first_name, middle_name, last_name, name_suffix].compact.join(' ')
+  end
+
   # Run if we changed name/DOB/SSN
   private def warehouse_match_existing_clients
     return unless warehouse_columns_changed?
@@ -318,4 +347,31 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   include RailsDrivers::Extensions
+
+  # The warehouse uses the source hash to determine if the record has changed and to maintain the
+  # associated warehouse record for reporting.
+  # This gets called during a pre-commit hook
+  def set_source_hash
+    hmis_keys = self.class.hmis_configuration(version: '2024').keys
+    hmis_data = slice(*hmis_keys)
+    self.source_hash = Digest::SHA256.hexdigest(hmis_data.except(:ExportID).to_s)
+  end
+
+  # A tool to batch reset all source hashes for a particular data source
+  def self.reset_source_hashes!(data_source_id)
+    where(data_source_id: data_source_id).find_in_batches do |batch|
+      original_hashes = batch.map(&:source_hash)
+      batch.each(&:set_source_hash)
+      batch.reject!.with_index { |c, i| c.source_hash == original_hashes[i] }
+      puts "Updating #{batch.size} client source hashes"
+      next unless batch.size.positive?
+
+      import!(
+        batch,
+        validate: false,
+        timestamps: false,
+        on_duplicate_key_update: { conflict_target: [:id], columns: [:source_hash] },
+      )
+    end
+  end
 end

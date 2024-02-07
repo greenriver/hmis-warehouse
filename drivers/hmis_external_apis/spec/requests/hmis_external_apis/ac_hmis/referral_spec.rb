@@ -11,6 +11,13 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
   describe 'send referral' do
     include_context 'hmis base setup'
 
+    before(:all) do
+      cleanup_test_environment
+    end
+    after(:all) do
+      cleanup_test_environment
+    end
+
     def random_id
       @start ||= rand(0...1_000).round
       @start += 1
@@ -57,7 +64,7 @@ RSpec.describe HmisExternalApis::AcHmis::ReferralsController, type: :request do
     def referral_params(household)
       {
         referral_id: random_id,
-        referral_date: Date.today,
+        referral_date: Date.current,
         service_coordinator: Faker::Name.name,
         posting_id: random_id,
         program_id: project_mper_id, # project == program

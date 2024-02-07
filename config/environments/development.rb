@@ -87,6 +87,8 @@ Rails.application.configure do
   # This option may cause significant delays in view rendering with a large
   # number of complex assets.
   config.assets.debug = false
+  # Ensure development server doesn't serve precompiled assets, even if they exist
+  config.assets.prefix = '/dev-assets'
   # config.action_controller.asset_host = ENV['FQDN']
 
   # Suppress logger output for asset requests.
@@ -120,6 +122,9 @@ Rails.application.configure do
       config.console = IRB
     end
   end
+
+  # haml config
+  config.action_view.annotate_rendered_view_with_filenames = true
 
   # In order to fix the problem, the following options must be set.
   routes.default_url_options ||= {}

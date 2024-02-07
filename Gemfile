@@ -73,6 +73,8 @@ gem 'mimemagic'
 # it should be tested manually
 gem 'acts-as-taggable-on', '~> 7.0'
 # gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
+#
+# FIXME: the hellosign gem is no longer a requirement. This dependency can be dropped pending code pruning
 gem 'hellosign-ruby-sdk', git: 'https://github.com/greenriver/hellosign-ruby-sdk.git'
 
 gem 'devise', '~> 4'
@@ -86,7 +88,7 @@ gem 'doorkeeper'
 gem 'omniauth', '~> 2.1'
 gem 'omniauth-oauth2', '~> 1.7.3'
 gem 'omniauth-rails_csrf_protection', '~> 1.0.1'
-gem 'faraday', '~> 2.2.0'
+gem 'faraday', '~> 2.2'
 gem 'oauth2'
 
 gem 'pretender'
@@ -126,6 +128,7 @@ gem 'simple_form'
 gem 'virtus'
 
 # Asset related
+gem 'jsbundling-rails', '~> 1.1'
 gem 'bootstrap', '~> 4.3'
 gem 'jquery-rails'
 gem 'coffee-rails'
@@ -176,7 +179,7 @@ gem 'progress_bar', require: false
 
 gem 'slack-notifier'
 
-gem 'puma', '~> 6.3'
+gem 'puma', '~> 6.4'
 
 gem 'dotenv-rails'
 
@@ -211,8 +214,6 @@ gem 'json'
 gem 'json_schemer', '~> 2.0.0', require: false # external API validation
 gem 'oj'
 gem 'amazing_print'
-
-gem 'auto-session-timeout'
 
 gem 'responders'
 
@@ -285,6 +286,7 @@ end
 
 group :test do
   gem 'capybara'
+  gem 'cuprite'
   gem 'pg_fixtures', github: 'greenriver/pg_fixtures'
   gem 'minitest-reporters'
   gem 'rspec-mocks'
@@ -295,7 +297,7 @@ group :test do
   gem 'rspec-instafail'
   gem 'rspec-benchmark'
   gem 'db-query-matchers'
-  # gem 'simplecov'
+  gem 'simplecov', require: false
   # gem 'simplecov-console'
 end
 

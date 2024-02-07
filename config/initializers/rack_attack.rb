@@ -43,12 +43,16 @@ class Rack::Attack
     request.params['hmis_user'].present? && request.params['hmis_user']['email'].present?
   end
 
+  WARDEN_CHECK_EXCLUDE_URLS = ['/hmis/app_settings', '/hmis/user', '/messages/poll'].to_set.freeze
   def self.warden_user_present?(request)
     # Avoid calling warden for user status endpoints. Calling warden here bumps
     # last_request_at, regardless of skip_trackable in the controller. This means
     # sessions may not expire as expected
     strip_path = request.path.split('.', 2)[0]
-    return false if strip_path == '/hmis/app_settings' || strip_path == '/hmis/user' || strip_path == '/active'
+    return false if strip_path.in?(WARDEN_CHECK_EXCLUDE_URLS)
+
+    # If we explicitly added a parameter to avoid updating last_request_at, honor it
+    return false if request.env['QUERY_STRING'].include?('skip_trackable=true')
 
     request.env['warden']&.user.present? || request.env['warden']&.user(:hmis_user).present?
   end

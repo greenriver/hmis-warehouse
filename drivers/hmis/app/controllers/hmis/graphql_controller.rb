@@ -12,38 +12,58 @@ module Hmis
     before_action :attach_data_source_id
 
     def execute
-      context = {
-        current_user: current_hmis_user,
-      }
-      case params[:schema]
-      when :hmis
-        if params[:_json]
-          # We have a batch of operations
-          queries = params[:_json].map do |param|
-            {
-              query: param[:query],
-              operation_name: param[:operationName],
-              variables: prepare_variables(param[:variables]),
-              context: context,
-            }
-          end
-          result = HmisSchema.multiplex(queries)&.to_json
-        else
-          # We have a single operation
-          result = HmisSchema.execute(
-            query: params[:query],
-            variables: prepare_variables(params[:variables]),
-            context: context,
-            operation_name: params[:operationName],
-          )
-        end
+      # not sure if this is needed, do we plan to support other schemas?
+      raise unless params[:schema] == :hmis
+
+      # Additional tags for grouping errors in Sentry
+      Sentry.set_tags({ 'hmis.route': request.headers['X-Hmis-Path'].presence&.gsub(/\/([0-9]+)(\/|$)/, '/:id/') })
+
+      begin
+        result = params[:_json] ? query_multiplex : query_single
+        render json: result
+      rescue StandardError => e
+        handle_graphql_exception(e)
       end
-      render json: result
-    rescue StandardError => e
-      handle_graphql_exception(e)
     end
 
-    private
+    protected
+
+    def query_multiplex
+      queries = []
+      log_records = []
+      params[:_json].each do |gql_param|
+        queries << query_for_params(gql_param)
+        log_records << graphql_activity_log(gql_param)
+      end
+      result = HmisSchema.multiplex(queries)
+      log_records.zip(queries).each do |log_record, query|
+        log_record[:resolved_fields] = query.dig(:context, :activity_logger).collection
+      end
+      Hmis::ActivityLog.insert_all!(log_records)
+      result
+    end
+
+    def query_single
+      log_record = graphql_activity_log(params)
+      query = query_for_params(params)
+      result = HmisSchema.execute(**query)
+      log_record[:resolved_fields] = query.dig(:context, :activity_logger).collection
+      Hmis::ActivityLog.insert_all!([log_record])
+      result
+    end
+
+    def query_for_params(gql_param)
+      {
+        query: gql_param.fetch(:query),
+        operation_name: gql_param[:operationName],
+        variables: prepare_variables(gql_param[:variables]),
+        context: {
+          current_user: current_hmis_user,
+          true_user: true_hmis_user,
+          activity_logger: Hmis::GraphqlFieldLogger.new,
+        },
+      }
+    end
 
     # Handle variables in form data, JSON body, or a blank value
     def prepare_variables(variables_param)
@@ -98,6 +118,24 @@ module Hmis
           },
         ],
         data: {},
+      }
+    end
+
+    def graphql_activity_log(gql_param)
+      {
+        user_id: true_hmis_user.id,
+        data_source_id: current_hmis_user.hmis_data_source_id,
+        ip_address: request.remote_ip&.to_s,
+        session_hash: session.id&.to_s,
+        variables: gql_param[:variables],
+        # these are pulled from headers so they are not necessarily safe, could be tampered with
+        referer: request.referer,
+        operation_name: gql_param[:operationName],
+        header_page_path: request.headers['X-Hmis-Path'].presence,
+        header_client_id: request.headers['X-Hmis-Client-Id'].presence&.to_i,
+        header_enrollment_id: request.headers['X-Hmis-Enrollment-Id'].presence&.to_i,
+        header_project_id: request.headers['X-Hmis-Project-Id'].presence&.to_i,
+        created_at: DateTime.current,
       }
     end
   end

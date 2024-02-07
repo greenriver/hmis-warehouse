@@ -13,7 +13,9 @@ module Types
     # object is a Hmis::Hud::Client that is a "destination client"
 
     def clients
-      load_ar_association(object, :source_clients)
+      load_ar_association(object, :source_clients).select do |client|
+        client.data_source_id == current_user.hmis_data_source_id
+      end
     end
 
     def warehouse_url

@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# This model is backed by a DB view
 class Hmis::Hud::Household < Hmis::Hud::Base
   include ::Hmis::Concerns::HmisArelHelper
 
@@ -14,17 +15,20 @@ class Hmis::Hud::Household < Hmis::Hud::Base
   has_many :enrollments, **hmis_relation(:HouseholdID, 'Enrollment')
   has_many :clients, through: :enrollments
   has_many :current_units, through: :enrollments
+  has_many :custom_assessments, through: :enrollments
   alias_attribute :household_id, :HouseholdID
 
   replace_scope :viewable_by, ->(user) do
-    viewable_households = joins(:enrollments).
-      merge(Hmis::Hud::Enrollment.viewable_by(user)). # does Data Source filter
-      pluck(:HouseholdID)
-
-    where(HouseholdID: viewable_households)
+    # correlated subquery
+    p_t = Hmis::Hud::Project.arel_table
+    hh_t = Hmis::Hud::Household.arel_table
+    cond = p_t[:ProjectID].eq(hh_t[:ProjectID]).and(p_t[:data_source_id].eq(hh_t[:data_source_id]))
+    projects = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details, :can_view_project, mode: 'all').where(cond)
+    where(projects.arel.exists)
   end
 
   scope :client_matches_search_term, ->(text_search) do
+    # FIXME: the sort order from text search is not preserved
     matching_ids = joins(:clients).
       merge(Hmis::Hud::Client.matching_search_term(text_search.to_s)).
       pluck(:id)

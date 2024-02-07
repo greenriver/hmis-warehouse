@@ -1,0 +1,40 @@
+- title = Translation.translate('Community of Origin')
+- content_for :title, title
+
+- @layout__plain_inner = true
+- @layout__width = 'lg'
+.content-outer-prs1
+  %nav.nav-drawer.prs1
+    = render 'filters/filter_controls/sidebar'
+  .main-outer-prs1
+    .utility-prs1
+      = render '/warehouse_reports/breadcrumbs', tab: 'performance'
+      = render "utility"
+    .top-nav-prs1
+      %h1.mb-5= title
+      .header-counts-container
+        - section = 'header_counts'
+        = render 'background_render', url: render_section_boston_reports_warehouse_reports_community_of_origins_path, fetch_params: {partial: section, filters: @filter.for_params[:filters] } do
+          .rollup
+            .rollup-container.well
+        = render 'common/section_not_loading', path_to_section: section_boston_reports_warehouse_reports_community_of_origins_path(partial: section, filters: @filter.for_params[:filters])
+      -# = render 'header_counts'
+    .main-inner-prs1
+      .text-right.mb-4
+        = render 'report_downloads/report_download', export: @pdf_export, excel_download_path: nil
+
+      #rollupContainer
+        - @report.class.available_section_types.each do |section|
+          = render 'background_render', url: render_section_boston_reports_warehouse_reports_community_of_origins_path, fetch_params: {partial: section, filters: @filter.for_params[:filters] } do
+            .rollup
+              .rollup-container.well
+          = render 'common/section_not_loading', path_to_section: section_boston_reports_warehouse_reports_community_of_origins_path(partial: section, filters: @filter.for_params[:filters])
+      -# .mb-8= render 'across_the_country_card'
+      -# .mb-8= render 'top_zip_codes_card'
+      = render 'across_the_country_js'
+      = render 'top_zip_codes_js'
+
+      .alert.alert-info
+        %p
+          %i.icon-info
+          Percent of clients at state and zip code level are based on the number of clients with valid community of origin data.  Community of origin is determined from the earliest location data from the earliest enrollment overlapping the report universe.

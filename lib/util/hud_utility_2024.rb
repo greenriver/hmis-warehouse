@@ -115,6 +115,15 @@ module HudUtility2024
     residential_project_type_numbers_by_code[code.to_sym]
   end
 
+  def residential_project_type_numbers_by_codes(*codes)
+    codes = codes.flatten # Take either array, or multiple parameters
+    codes.map { |code| HudUtility2024.residential_project_type_numbers_by_code[code] }.
+      flatten.
+      uniq.
+      sort.
+      freeze
+  end
+
   def homeless_project_type_codes
     [:es, :so, :sh, :th].freeze
   end
@@ -128,12 +137,7 @@ module HudUtility2024
   end
 
   def residential_project_type_ids
-    residential_project_type_numbers_by_code.
-      values.
-      flatten.
-      uniq.
-      sort.
-      freeze
+    residential_project_type_numbers_by_codes(residential_project_type_numbers_by_code.keys)
   end
 
   def chronic_project_types
@@ -256,6 +260,20 @@ module HudUtility2024
     }.freeze
   end
 
+  def gender_known_ids
+    [0, 1, 2, 3, 4, 5, 6].freeze
+  end
+
+  def gender_known_values
+    genders.values_at(*gender_known_ids).freeze
+  end
+
+  def gender_comparison_value(key)
+    return key if key.in?([8, 9, 99])
+
+    1
+  end
+
   def race_fields
     race_id_to_field_name.values.uniq.freeze
   end
@@ -280,10 +298,12 @@ module HudUtility2024
     }.freeze
   end
 
-  def gender_comparison_value(key)
-    return key if key.in?([8, 9, 99])
+  def race_known_ids
+    [1, 2, 3, 4, 5, 6, 7].freeze
+  end
 
-    1
+  def race_known_values
+    races.values_at(*race_known_ids).freeze
   end
 
   def residence_prior_length_of_stay_brief(id, reverse = false)
@@ -353,6 +373,10 @@ module HudUtility2024
 
   def valid_destinations
     destinations
+  end
+
+  def destination_no_exit_interview_completed
+    30
   end
 
   # See https://www.hudexchange.info/programs/hmis/hmis-data-standards/standards/HMIS-Data-Standards.htm#Appendix_A_-_Living_Situation_Option_List for details
@@ -500,6 +524,8 @@ module HudUtility2024
       {
         'XX-500' => 'Test CoC',
         'XX-501' => '2nd Test CoC',
+        'XX-502' => '3rd Test CoC', # testkit
+        'XX-518' => '4th Test CoC', # testkit
       },
     ).freeze
   end
@@ -525,6 +551,11 @@ module HudUtility2024
 
   def path_funders
     [21]
+  end
+
+  # SPM definition of CoC funded projects
+  def spm_coc_funders
+    [2, 3, 4, 5, 43, 44, 54, 55]
   end
 
   # "Funder components" that are referenced by the 2024 HUD Data Dictionary.
@@ -610,7 +641,7 @@ module HudUtility2024
       },
       161 => {
         list: ::HudUtility2024.path_referral_options,
-        label_method: :path_referral_options,
+        label_method: :path_referral,
       },
       200 => {
         list: ::HudUtility2024.bed_night_options,
@@ -658,5 +689,15 @@ module HudUtility2024
     return sub_type_provided unless label_method.present?
 
     send(label_method, sub_type_provided)
+  end
+
+  def assessment_name_by_data_collection_stage
+    {
+      1 => 'Intake Assessment',
+      2 => 'Update Assessment',
+      3 => 'Exit Assessment',
+      5 => 'Annual Assessment',
+      6 => 'Post-Exit Assessment',
+    }.freeze
   end
 end

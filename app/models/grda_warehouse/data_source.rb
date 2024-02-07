@@ -31,7 +31,6 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   accepts_nested_attributes_for :projects
   has_many :exports, class_name: 'GrdaWarehouse::Hud::Export', inverse_of: :data_source
   has_many :group_viewable_entities, -> { where(entity_type: 'GrdaWarehouse::DataSource') }, class_name: 'GrdaWarehouse::GroupViewableEntity', foreign_key: :entity_id
-
   has_many :uploads
   has_many :non_hmis_uploads
 
@@ -579,8 +578,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   private def maintain_system_group
     if Rails.env.test?
       AccessGroup.maintain_system_groups(group: :data_sources)
+      Collection.maintain_system_groups(group: :data_sources)
     else
       AccessGroup.delayed_system_group_maintenance(group: :data_sources)
+      Collection.delayed_system_group_maintenance(group: :data_sources)
     end
   end
 
@@ -623,4 +624,6 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     end
     memoize :warehouse_id
   end
+
+  include RailsDrivers::Extensions
 end

@@ -12,6 +12,7 @@ RSpec.describe Hmis::SessionsController, type: :request do
   let(:user) { create :user }
   let(:user_2fa) { create :user_2fa }
   let(:email) { ActionMailer::Base.deliveries.last }
+  let!(:ds1) { create :hmis_data_source }
 
   before(:all) do
     cleanup_test_environment
@@ -31,25 +32,25 @@ RSpec.describe Hmis::SessionsController, type: :request do
     it 'updates session id' do
       expect(user.reload.hmis_unique_session_id).to be_present
     end
-  end
 
-  describe 'Successful logout' do
-    before(:each) do
-      hmis_login(user)
+    it 'allows API access' do
+      expect(api_query_response.status).to eq 200
     end
 
-    it 'has correct response code' do
-      aggregate_failures 'checking response' do
-        expect(response.status).to eq 200
-        delete destroy_hmis_user_session_path
-        expect(response.status).to eq 204
-      end
+    it 'logs out' do
+      delete destroy_hmis_user_session_path
+      expect(response.status).to eq 204
+      expect(api_query_response.status).to eq 401
     end
   end
 
   describe 'Un-successful login' do
     before(:each) do
       post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' })
+    end
+
+    it 'denys API access' do
+      expect(api_query_response.status).to eq 401
     end
 
     # FIXME: we need to double the number of attempts because of a bug in devise 2FA that
@@ -95,6 +96,7 @@ RSpec.describe Hmis::SessionsController, type: :request do
       aggregate_failures 'checking response' do
         expect(response.status).to eq 401
         expect(response.body).to include 'inactive'
+        expect(api_query_response.status).to eq 401
       end
     end
   end
@@ -112,6 +114,29 @@ RSpec.describe Hmis::SessionsController, type: :request do
     it 'after 10, the user should be locked' do
       post hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' })
       expect(user.reload.access_locked?).to be_truthy
+    end
+  end
+
+  describe 'A locked account' do
+    before(:each) { user.lock_access! }
+    [
+      [
+        'correct password',
+        ->(user, spec) { spec.hmis_login(user) },
+      ],
+      [
+        'incorrect password',
+        ->(user, spec) { spec.post spec.hmis_user_session_path(hmis_user: { email: user.email, password: 'incorrect' }) },
+      ],
+    ].each do |label, login_cb|
+      it "fails authentication and indicates the account is locked for login with #{label}" do
+        login_cb.call(user, self)
+        expect(response.status).to eq(401)
+        message = JSON.parse(response.body)
+        expect(message.dig('error', 'type')).to eq('locked')
+        expect(api_query_response.status).to eq 401
+        expect(user.reload.access_locked?).to be_truthy
+      end
     end
   end
 
@@ -244,5 +269,19 @@ RSpec.describe Hmis::SessionsController, type: :request do
         end
       end
     end
+  end
+
+  def api_query_response
+    query = <<~GRAPHQL
+      query ClientSearch($input: ClientSearchInput!) {
+        clientSearch(limit: 100, offset: 0, input: $input) {
+          nodes {
+            id
+          }
+        }
+      }
+    GRAPHQL
+    response, = post_graphql(input: {}) { query }
+    response
   end
 end

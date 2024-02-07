@@ -21,8 +21,7 @@ Rails.application.routes.draw do
   }
 
   devise_scope :user do
-    match 'active' => 'users/sessions#active', via: :get
-    match 'timeout' => 'users/sessions#timeout', via: :get
+    match 'session_keepalive' => 'users/sessions#keepalive', via: :post
     match 'users/invitations/confirm', via: :post
     match 'logout_talentlms' => 'users/sessions#destroy', via: :get
     if ENV['OKTA_DOMAIN'].present?
@@ -635,7 +634,9 @@ Rails.application.routes.draw do
 
   resources :project_groups, except: [:show] do
     get :maintenance, on: :collection
+    get :download, on: :collection
     post :import, on: :collection
+    post :delete_multiple, on: :collection
     resources :contacts, except: [:show], controller: 'project_groups/contacts'
     resources :data_quality_reports, only: [:index, :show], controller: 'data_quality_reports_project_group' do
       get :support, on: :member
@@ -887,6 +888,7 @@ Rails.application.routes.draw do
       get :reports
       get :stimulus_select
       get :tags
+      get :js_example
       get :system_colors
     end
   end

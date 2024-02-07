@@ -13,5 +13,10 @@ module Mutations
     object_class Types::BaseObject
 
     field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
+
+    # can't use skip_activity_log due to load order?
+    def activity_log_object_identity
+      nil
+    end
   end
 end

@@ -305,56 +305,9 @@ module Health
 
     # CP 2 relaxed the requirements for the PCTP so that it required in-house clinical approval instead of needing
     # to be approved by the patients PCP.
+    # Oct 31, 2023: simplified engagement to be based on PCTP being sent to PCP in the last year
     def self.cp_2_engagement(on) # rubocop:disable Naming/MethodParameterName
-      ssm_patient_id_scope = Health::HrsnScreening.distinct.
-        completed_within(..on.to_time).
-        allowed_for_engagement.
-        select(:patient_id)
-
-      epic_ssm_patient_id_scope = Health::EpicSsm.distinct.
-        allowed_for_engagement.
-        where(ssm_updated_at: (..on.to_time)).
-        select(hp_t[:id].to_sql)
-
-      release_form_patient_id_scope = Health::ReleaseForm.distinct.
-        valid.
-        allowed_for_engagement.
-        select(:patient_id)
-
-      cha_patient_id_scope = Health::CaAssessment.distinct.
-        completed.
-        allowed_for_engagement.
-        completed_within(..on.to_time).
-        select(:patient_id)
-
-      epic_cha_patient_id_scope = Health::EpicCha.distinct.
-        allowed_for_engagement.
-        where(cha_updated_at: (..on.to_time)).
-        select(hp_t[:id].to_sql)
-
-      pctp_signed_patient_id_scope = Health::PctpCareplan.distinct.
-        rn_approved.
-        reviewed_within(..on.to_time).
-        select(:patient_id)
-
-      where(
-        arel_table[:id].in(Arel.sql(release_form_patient_id_scope.to_sql)).
-          and(
-            arel_table[:id].in(Arel.sql(cha_patient_id_scope.to_sql)).
-              or(
-                arel_table[:id].in(Arel.sql(epic_cha_patient_id_scope.to_sql)),
-              ),
-          ).
-          and(
-            arel_table[:id].in(Arel.sql(ssm_patient_id_scope.to_sql)).
-              or(
-                arel_table[:id].in(Arel.sql(epic_ssm_patient_id_scope.to_sql)),
-              ),
-          ).
-          and(
-            arel_table[:id].in(Arel.sql(pctp_signed_patient_id_scope.to_sql)),
-          ),
-      )
+      where(id: Health::PctpCareplan.recent.sent_within(on - 365.days .. on).select(:patient_id))
     end
 
     scope :engagement_required_by, ->(date) do
@@ -413,6 +366,67 @@ module Health
     scope :engaged_for, ->(range) do
       where(id: Health::StatusDate.engaged.group(h_sd_t[:patient_id]).
         having(nf('count', [h_sd_t[:patient_id]]).between(range)).select(:patient_id))
+    end
+
+    # Dashboard scopes
+    scope :needs_f2f, ->(on: Date.current.end_of_month) do
+      f2f_range = on - 60.days .. on
+
+      where.not(id: Health::QualifyingActivity.
+        payable.
+        not_valid_unpayable.
+        face_to_face.
+        in_range(f2f_range).
+        select(:patient_id))
+    end
+
+    scope :needs_qa, ->(on: Date.current.end_of_month) do
+      without_intake_query = intake_required.
+        where.not(id: Health::QualifyingActivity.
+          payable.
+          not_valid_unpayable.
+          in_range(on - 30.days .. on).
+          select(:patient_id)).
+        select(:id)
+      with_intake_query = has_intake.
+        where.not(id: Health::QualifyingActivity.
+          payable.
+          not_valid_unpayable.
+          in_range(on - 60.days .. on).
+          select(:patient_id)).
+        select(:id)
+      where(id: without_intake_query).or(where(id: with_intake_query))
+    end
+
+    scope :needs_intake, ->(on: Date.current) do
+      intake_due(on: on).or(intake_overdue(on: on))
+    end
+
+    scope :intake_due, ->(on: Date.current) do
+      intake_required.where(engagement_date: on .. on + 30.days)
+    end
+
+    scope :intake_overdue, ->(on: Date.current) do
+      intake_required.where(engagement_date: ... on)
+    end
+
+    scope :has_intake, -> do
+      where(id: Health::PctpCareplan.sent.select(:patient_id))
+    end
+
+    scope :intake_required, -> do
+      where.not(id: Health::PctpCareplan.sent.select(:patient_id)).
+        or(where(id: where.missing(:pctp_careplans).select(:id)))
+    end
+
+    scope :needs_renewal, ->(on: Date.current.end_of_month) do
+      joins(:recent_pctp_careplan).
+        merge(Health::PctpCareplan.recent.sent_within(.. on - 335.days)) # 1 year - 30 days
+    end
+
+    scope :overdue_for_renewal, ->(on: Date.current.end_of_month) do
+      joins(:recent_pctp_careplan).
+        merge(Health::PctpCareplan.recent.sent_within(.. on - 365.days)) # 1 year
     end
 
     # For now, all patients are visible to all health users
@@ -539,7 +553,7 @@ module Health
 
     def reenroll!(referral)
       # Create a "Care Plan Complete QA" if the patient has an unexpired care plan as of the enrollment start date
-      return unless careplans.fully_signed.where(h_cp_t[:provider_signed_on].gteq(referral.enrollment_start_date - 1.year)).exists?
+      return unless pctp_careplans.completed_within(referral.enrollment_start_date - 1.year ..).exists?
 
       user = User.setup_system_user
       qualifying_activities.create(
@@ -756,26 +770,26 @@ module Health
       elsif missing_careplan?
         'Care plan not completed by required date'
       elsif expiring_careplan?
-        "Care plan expires #{careplans.fully_signed.recent.during_current_enrollment.last.expires_on}"
+        "Care plan expires #{recent_pctp_careplan.expires_on}"
       elsif expired_careplan?
-        "Care plan expired on #{careplans.fully_signed.recent.during_current_enrollment.last.expires_on}"
+        "Care plan expired on #{recent_pctp_careplan.expires_on}"
       end
     end
 
     private def active_careplan?
-      @active_careplan ||= careplans.active.during_current_enrollment.exists?
+      @active_careplan ||= recent_pctp_careplan&.active? || false
     end
 
     private def missing_careplan?
-      @missing_careplan ||= current_days_enrolled > 150 && ! careplans.during_current_enrollment.fully_signed.exists?
+      @missing_careplan ||= current_days_enrolled > 150 && !active_careplan? && !expired_careplan?
     end
 
     private def expiring_careplan?
-      @expiring_careplan ||= careplans.fully_signed.recent.expiring_soon.during_current_enrollment.exists?
+      @expiring_careplan ||= recent_pctp_careplan&.expiring? || false
     end
 
     private def expired_careplan?
-      @expired_careplan ||= careplans.fully_signed.recent.expired.during_current_enrollment.exists?
+      @expired_careplan ||= recent_pctp_careplan&.expired? || false
     end
 
     def pilot_patient?
@@ -1324,8 +1338,7 @@ module Health
     end
 
     def sdoh_icd10_codes
-      # TODO: Replace with THRIVE
-      homelessness_unspecified = recent_ssm_form&.housing_score&.in?([1, 2])
+      homelessness_unspecified = recent_hrsn_screening&.instrument&.positive_for_homelessness?
 
       [].tap do |codes|
         codes << 'Z5900' if homelessness_unspecified

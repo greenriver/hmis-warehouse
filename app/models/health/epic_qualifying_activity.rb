@@ -167,7 +167,7 @@ module Health
         else
           activity
         end
-      when 'QualifyingActivityV2'
+      when 'QualifyingActivityV2', 'QualifyingActivityV3'
         case activity
         when 'Comprehensive health assessment'
           'Comprehensive Assessment'

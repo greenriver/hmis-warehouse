@@ -15,18 +15,15 @@ module Mutations
       return { unit_ids: [], errors: [] } unless units.any?
 
       projects = units.pluck(:project_id).uniq
-      errors = HmisErrors::Errors.new
-      errors.add :base, :not_found if projects.empty?
-      errors.add :base, :invalid, full_message: 'Cannot delete units across projects' if projects.size > 1
-      return { errors: errors } if errors.any?
+      raise 'Not found' if projects.empty?
+      raise 'Cannot delete units across projects' if projects.size > 1
 
       project = Hmis::Hud::Project.find_by(id: projects&.first)
-      errors.add :base, :not_found unless project.present?
-      errors.add :base, :not_allowed unless current_user.permissions_for?(project, :can_manage_inventory)
-      return { errors: errors } if errors.any?
+      raise 'Not found' unless project.present?
+      raise 'Access denied' unless current_user.permissions_for?(project, :can_manage_inventory)
 
       units = Hmis::Unit.where(id: unit_ids).preload(:unit_type)
-      unit_types = units.map(&:unit_type).uniq
+      unit_types = units.map(&:unit_type).uniq.compact
       Hmis::Unit.transaction do
         units.each(&:destroy!)
         unit_types.each do |unit_type|

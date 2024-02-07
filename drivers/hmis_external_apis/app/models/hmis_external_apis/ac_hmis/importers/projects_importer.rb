@@ -88,6 +88,7 @@ module HmisExternalApis::AcHmis::Importers
         Hmis::ProjectUnitTypeMapping.freshen_project_units(user: sys_user)
         cleanup_project_dates
         cleanup_dangling_funders
+        apply_project_overrides
       end
       analyze
       finish
@@ -214,7 +215,7 @@ module HmisExternalApis::AcHmis::Importers
         critical_columns: ['InventoryID'],
       )
 
-      @project_result = generic_upsert(
+      generic_upsert(
         file: file,
         conflict_target: ['"InventoryID"', 'data_source_id'],
         klass: GrdaWarehouse::Hud::Inventory,
@@ -296,6 +297,26 @@ module HmisExternalApis::AcHmis::Importers
       dangling_funders.each(&:destroy!)
     end
 
+    # Apply overrides that can be set in the Warehouse
+    def apply_project_overrides
+      overrides = {
+        project_type: :act_as_project_type,
+        operating_start_date: :operating_start_date_override,
+        operating_end_date: :operating_end_date_override,
+      }
+
+      Hmis::Hud::Project.where(id: @project_result.ids).map do |project|
+        overrides.each do |key, override_key|
+          override = project.send(override_key)
+          next unless override.present?
+
+          project.write_attribute(key, override)
+        end
+
+        project.save!(validate: false) if project.changed?
+      end
+    end
+
     def analyze
       Rails.logger.info 'Analyzing imported tables'
       ProjectsImportAttempt.connection.exec_query('ANALYZE "Funder", "Project", "Organization", "CustomDataElements";')
@@ -360,6 +381,22 @@ module HmisExternalApis::AcHmis::Importers
 
       records.each do |r|
         r['data_source_id'] = data_source.id
+      end
+
+      # Validate format of all dates before attempting import, so we don't import them incorrectly
+      date_columns = csv.headers.filter { |h| h.end_with?('Date') }
+      if date_columns.any?
+        date_columns.each do |col|
+          records.each do |r|
+            next unless r[col]
+            # break as soon as we find 1 correctly formatted record for this column
+            break if valid_date?(r[col])
+
+            # Abort import if we find a malformatted date. Dates like '30-JUN-24' would be incorrectly
+            # parsed and lead to unexpected behavior in the HMIS.
+            raise(AbortImportException, "Incorrectly formatted date in #{file} #{col}: #{r[col]}")
+          end
+        end
       end
 
       if ignore_columns.present?
@@ -432,6 +469,20 @@ module HmisExternalApis::AcHmis::Importers
       elsif headers.include?('ResidentialAffiliation') || headers.include?('TrackingMethod')
         '2022'
       end
+    end
+
+    # Validate date format 'YYYY-MM-DD'
+    def valid_date?(str)
+      format_ok = str.match(/\d{4}-\d{2}-\d{2}/)
+      return false unless format_ok
+
+      begin
+        Date.strptime(str, '%Y-%m-%d')
+      rescue StandardError
+        return false
+      end
+
+      true
     end
   end
 end

@@ -112,7 +112,7 @@ module HmisCsvTwentyTwentyFour::Importer
         ],
         EnrollmentCoC: [
           {
-            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidation,
+            class: HmisCsvImporter::HmisCsvValidation::NonBlankValidationHoh,
           },
           {
             class: HmisCsvImporter::HmisCsvValidation::InclusionInSet,

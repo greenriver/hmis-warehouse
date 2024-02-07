@@ -1,0 +1,50 @@
+version: '3.9'
+
+services:
+  reverse-proxy:
+    # The official v2 Traefik docker image
+    image: traefik:v2.8
+    container_name: traefik
+    # Enables the web UI and tells Traefik to listen to docker
+    command:
+      # - --log.level=DEBUG
+      - --api.insecure=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.web-secure.address=:443
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.file.directory=/etc/traefik/dynamic_conf
+    ports:
+      - "80:80"
+      - "443:443"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080"
+    volumes:
+      # let traefik know where to look for the certs.
+      - ./tools/certs:/tools/certs
+      - ./tools/traefik/config.yml:/etc/traefik/dynamic_conf/conf.yml
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+      #- ./traefik.yml:/etc/traefik/traefik.yml:cached
+    restart: unless-stopped
+  example:
+    image: nginx:alpine
+    profiles:
+      - manual
+    labels:
+      # Set the host name. The fourth token needs to unique across all the projects you work on
+      - "traefik.http.routers.example.rule=Host(`example.127.0.0.1.nip.io`)"
+      # Automatically make a cert. You'll be warned in your browser, but it's okay.
+      - "traefik.http.routers.example.tls=true"
+      # If you start multiple containers with docker compose run, make sure only one has this label.
+      # Like if you run a web container and then do `docker compose run web bash` you'll confuse traefik.
+      # In these cases, don't set this particular label in your docker compose. Instead:
+      # docker compose run --service-ports --label traefik.enable=true --use-aliases web
+      - "traefik.enable=true"
+      # https://traefik.io/blog/traefik-2-tls-101-23b4fbee81f1/
+
+# use traefik or nginx-proxy, but not both since both need to bind ports 80 and 443
+networks:
+  default:
+    external: true
+    name: traefik

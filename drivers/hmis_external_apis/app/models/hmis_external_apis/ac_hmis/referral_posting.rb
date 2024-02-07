@@ -23,6 +23,8 @@ module HmisExternalApis::AcHmis
     # see note about enrollment / household_id on enrollment in the Referral class
     has_one :household, **Hmis::Hud::Base.hmis_relation(:HouseholdID, 'Household')
 
+    scope :from_link, -> { where.not(identifier: nil) }
+
     scope :viewable_by, ->(_user) { raise } # this scope is replaced by ::Hmis::Hud::Concerns::ProjectRelated
     include ::Hmis::Hud::Concerns::ProjectRelated
 

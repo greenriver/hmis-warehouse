@@ -5,9 +5,22 @@
       "operator": "ANY",
       "parts": [
         {
+          "_comment": "YDHP",
           "variable": "projectFunders",
           "operator": "INCLUDE",
           "value": 43
+        },
+        {
+          "_comment": "RHY-BCP",
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 22
+        },
+        {
+          "_comment": "RHY-MGH",
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 23
         },
         {
           "variable": "projectId",
@@ -28,6 +41,11 @@
           "variable": "projectId",
           "operator": "EQUAL",
           "value": "825"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "202dac9edb964811891c9cea77d5db32"
         }
       ]
     }
@@ -73,6 +91,16 @@
           "variable": "projectId",
           "operator": "EQUAL",
           "value": "825"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "755"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "202dac9edb964811891c9cea77d5db32"
         }
       ]
     }
@@ -119,6 +147,11 @@
           "variable": "projectId",
           "operator": "EQUAL",
           "value": "825"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "202dac9edb964811891c9cea77d5db32"
         }
       ]
     }
@@ -158,6 +191,122 @@
           "variable": "projectId",
           "operator": "EQUAL",
           "value": "825"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "202dac9edb964811891c9cea77d5db32"
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "R7",
+    "rule": {
+      "operator": "ANY",
+      "parts": [
+        {
+          "_comment": "HUD: HUD-VASH – Collection required for HUD/VASH-Continuum",
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HUD: HUD-VASH"
+        },
+        {
+          "operator": "ALL",
+          "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
+          "parts": [
+            {
+              "variable": "projectFunderComponents",
+              "operator": "INCLUDE",
+              "value": "HHS: RHY"
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 4
+            }
+          ]
+        },
+        {
+          "_comment": "Included in YHDP Supplemental CSV. Recommended for YHDP projects.",
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "202dac9edb964811891c9cea77d5db32"
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "R8",
+    "rule": {
+      "operator": "ANY",
+      "parts": [
+        {
+          "operator": "ALL",
+          "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
+          "parts": [
+            {
+              "variable": "projectFunderComponents",
+              "operator": "INCLUDE",
+              "value": "HHS: RHY"
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 4
+            }
+          ]
+        },
+        {
+          "_comment": "Included in YHDP Supplemental CSV. Recommended for YHDP projects.",
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "202dac9edb964811891c9cea77d5db32"
+        }
+      ]
+    }
+  },
+  {
+    "link_id": "R9",
+    "rule": {
+      "operator": "ANY",
+      "parts": [
+        {
+          "operator": "ALL",
+          "_comment": "HHS: RHY – Collection required for all components except for Street Outreach",
+          "parts": [
+            {
+              "variable": "projectFunderComponents",
+              "operator": "INCLUDE",
+              "value": "HHS: RHY"
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 4
+            }
+          ]
+        },
+        {
+          "_comment": "Included in YHDP Supplemental CSV. Recommended for YHDP projects.",
+          "variable": "projectFunders",
+          "operator": "INCLUDE",
+          "value": 43
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "202dac9edb964811891c9cea77d5db32"
         }
       ]
     }
@@ -196,6 +345,11 @@
           "variable": "projectId",
           "operator": "EQUAL",
           "value": "825"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "202dac9edb964811891c9cea77d5db32"
         }
       ]
     }
@@ -234,6 +388,11 @@
           "variable": "projectId",
           "operator": "EQUAL",
           "value": "825"
+        },
+        {
+          "variable": "projectId",
+          "operator": "EQUAL",
+          "value": "202dac9edb964811891c9cea77d5db32"
         }
       ]
     }

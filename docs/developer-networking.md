@@ -33,9 +33,9 @@ It can be very helpful to add the following lines to your `/etc/hosts` file to a
 ```
 
 ## Certificate
-We'll generate a self-signed certificates for nginx-proxy to use to serve our site over ssl.  Before you begin this, make sure you are in the root directory of the application.
+We'll generate a self-signed certificates for traefik to serve our site over ssl. Before you begin this, make sure you have an installation of the [traefik proxy](http://traefik.io) up and running. 
 ```
-cd docker/nginx-proxy/certs
+cd <path_to_traefik_installation>/tools/certs  
 cat > openssl.cnf <<-EOF
   [req]
   distinguished_name = req_distinguished_name
@@ -50,6 +50,7 @@ cat > openssl.cnf <<-EOF
   [alt_names]
   DNS.1 = *.dev.test
   DNS.2 = dev.test
+  DNS.3 = *.hmis-warehouse.dev.test
 EOF
 
 openssl req \
@@ -69,12 +70,32 @@ open dev.test.crt
 
 When prompted to add the certificate to your Keychain, choose the System keychain.  After verifying that you are an administrator, search for `dev.test` in Keychain Access and double click the certificate.  Open the Trust section and in the top drop-down select Always Trust.
 
-# Nginx Proxy
+# Traefik proxy
 
-Before you begin this, make sure you are in the root directory of the application.
+Update the Virtual-Machine repo's `.tools/traefik/config.yml` file to reference these certificates.
+
+Once the certificates are setup and in place, turn on the traefik network and bring up the traefik docker container
+```
+docker network create traefik
+docker compose up -d reverse-proxy
+```
+
+### DIRENV
+
+If not already set up, install DIRENV. You will need to allow the changes after updating the file.
 
 ```
-cd docker/nginx-proxy
-docker network create nginx-proxy
-docker-compose up -d
+brew install direnv
+```
+
+Append your `.envrc` with the following 
+
+```
+export FQDN=hmis-warehouse.dev.test
+export TRAEFIK_ENABLED=true
+```
+For direnv to work properly it needs to be hooked into the shell. Each shell has its own extension mechanism. Complete the [setup instructions](https://direnv.net/docs/hook.html) for  your shell.
+Allow the file changes through direnv
+```
+direnv allow
 ```

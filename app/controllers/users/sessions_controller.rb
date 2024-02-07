@@ -15,6 +15,8 @@ class Users::SessionsController < Devise::SessionsController
     super do |resource|
       # User has successfully signed in, so clear any unused reset token
       resource.update(reset_password_token: nil, reset_password_sent_at: nil) if resource.reset_password_token.present?
+      # Note access for external reporting
+      resource.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!
     end
   end
 
@@ -24,21 +26,8 @@ class Users::SessionsController < Devise::SessionsController
     super
   end
 
-  # configure auto_session_timeout
-  def active
-    respond_to do |format|
-      format.json do
-        render_session_status
-      end
-      format.html do
-        redirect_to(root_path)
-      end
-    end
-  end
-
-  def timeout
-    flash[:notice] = 'Your session expired; you have been logged out.'
-    redirect_to root_path
+  def keepalive
+    head :ok
   end
 
   def find_user

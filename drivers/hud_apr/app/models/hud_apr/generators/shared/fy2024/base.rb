@@ -64,9 +64,8 @@ module HudApr::Generators::Shared::Fy2024
     end
 
     private def add_apr_clients # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/AbcSize
-      @generator.client_scope.find_in_batches(batch_size: 100) do |batch|
+      @generator.client_scope.find_in_batches(batch_size: batch_size) do |batch|
         enrollments_by_client_id = clients_with_enrollments(batch)
-
         # Pre-calculate some values
         household_types = {}
         household_assessment_required = {}
@@ -78,6 +77,8 @@ module HudApr::Generators::Shared::Fy2024
           last_service_history_enrollment = enrollments.last
           enrollment = last_service_history_enrollment.enrollment
           source_client = enrollment.client
+          next unless source_client.present?
+
           client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
           age = source_client.age_on(client_start_date)
 
@@ -321,6 +322,7 @@ module HudApr::Generators::Shared::Fy2024
                 head_of_household: last_service_history_enrollment[:head_of_household],
                 household_members: household_member_data(last_service_history_enrollment, household_calculation_date),
                 first_date_in_program: last_service_history_enrollment.first_date_in_program,
+                age: age,
               ),
             ),
             pit_enrollments: pit_enrollment_info(enrollments),
@@ -363,6 +365,7 @@ module HudApr::Generators::Shared::Fy2024
                   head_of_household: last_service_history_enrollment[:head_of_household],
                   household_members: household_member_data(last_service_history_enrollment, household_calculation_date),
                   first_date_in_program: last_service_history_enrollment.first_date_in_program,
+                  age: age,
                 ),
               ),
               ce_assessment_date: ce_latest_assessment&.AssessmentDate,
@@ -467,8 +470,8 @@ module HudApr::Generators::Shared::Fy2024
       @report.report_cells.joins(universe_members: :apr_client).exists?
     end
 
-    private def clients_with_enrollments(batch)
-      enrollment_scope.
+    private def clients_with_enrollments(batch, scope: enrollment_scope, **)
+      scope.
         where(client_id: batch.map(&:id)).
         order(first_date_in_program: :asc).
         group_by(&:client_id).
@@ -526,6 +529,7 @@ module HudApr::Generators::Shared::Fy2024
           :health_and_dvs,
           :exit,
           :assessments,
+          :youth_education_statuses,
           client: [
             assessments: [
               enrollment: :project,
@@ -535,6 +539,7 @@ module HudApr::Generators::Shared::Fy2024
             ],
           ],
         ],
+        client: [:source_events],
       }
       enrollment_scope_without_preloads.preload(preloads)
     end
@@ -543,7 +548,7 @@ module HudApr::Generators::Shared::Fy2024
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         open_between(start_date: @report.start_date, end_date: @report.end_date).
-        joins(:enrollment).
+        joins(:enrollment, :client, :project).
         merge(
           GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: @report.coc_codes).
           or(GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: nil)).
@@ -572,7 +577,7 @@ module HudApr::Generators::Shared::Fy2024
           when 0, 1, 2, 8, 9, 10 # Other residential
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) # Exclude exit date
-          else # Other project types (4, 6, 11)
+          else # Other project types (4, 6, 7, 11, 12, 14)
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program >= pit_date) # Include the exit date
           end

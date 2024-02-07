@@ -113,13 +113,14 @@ module HudLsa
 
     def available_report_versions
       {
-        'FY 2022' => { slug: :fy2022, active: true },
+        'FY 2022' => { slug: :fy2022, active: false },
+        'FY 2023' => { slug: :fy2023, active: true },
       }.freeze
     end
     helper_method :available_report_versions
 
     def default_report_version
-      :fy2022
+      :fy2023
     end
 
     private def filter_class
@@ -129,6 +130,7 @@ module HudLsa
     private def possible_generator_classes
       {
         fy2022: HudLsa::Generators::Fy2022::Lsa,
+        fy2023: HudLsa::Generators::Fy2023::Lsa,
       }
     end
 
@@ -141,11 +143,11 @@ module HudLsa
     end
 
     private def path_for_running_all_questions
-      running_all_questions_hud_reports_lsas_path(link_params.except('action', 'controller'))
+      running_all_questions_hud_reports_lsas_path({ skip_trackable: true }.merge(link_params.except('action', 'controller')))
     end
 
     private def path_for_running_question
-      running_hud_reports_lsas_path(link_params.except('action', 'controller'))
+      running_hud_reports_lsas_path({ skip_trackable: true }.merge(link_params.except('action', 'controller')))
     end
 
     private def path_for_history(args = nil)

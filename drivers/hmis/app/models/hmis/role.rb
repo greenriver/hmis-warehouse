@@ -6,7 +6,8 @@
 
 class Hmis::Role < ::ApplicationRecord
   self.table_name = :hmis_roles
-  # Warehouse roles do not have a paper trail, so neither do these
+  acts_as_paranoid
+  has_paper_trail
 
   has_many :access_controls, class_name: '::Hmis::AccessControl', inverse_of: :role
   has_many :users, through: :access_controls
@@ -156,6 +157,22 @@ class Hmis::Role < ::ApplicationRecord
           'Projects',
         ],
       },
+      can_impersonate_users: {
+        description: 'Ability to impersonate other users',
+        administrative: true,
+        access: [:editable],
+        categories: [
+          'Users',
+        ],
+      },
+      can_audit_users: {
+        description: 'Ability to audit users',
+        administrative: true,
+        access: [:viewable],
+        categories: [
+          'Users',
+        ],
+      },
       can_edit_organization: {
         description: 'Grants access to edit organizations',
         administrative: false,
@@ -236,6 +253,14 @@ class Hmis::Role < ::ApplicationRecord
           'Enrollments',
         ],
       },
+      can_view_limited_enrollment_details: {
+        description: 'Grants access to view limited information about an enrollment, including: entry date, exit date, project name, project type, move-in date, and last bed night date.',
+        administrative: false,
+        access: [:viewable],
+        categories: [
+          'Enrollments',
+        ],
+      },
       can_view_open_enrollment_summary: {
         description: 'Grants access to view minimal information (entry date, project name, move-in date) for all open enrollments for a given client, regardless of whether the user can see those other projects.',
         administrative: false,
@@ -266,6 +291,14 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         categories: [
           'Enrollments',
+        ],
+      },
+      can_audit_enrollments: {
+        description: 'Access to see who has changed an enrollment record.',
+        administrative: true,
+        access: [:viewable],
+        categories: [
+          'Audit History',
         ],
       },
       can_delete_assessments: {
@@ -341,6 +374,22 @@ class Hmis::Role < ::ApplicationRecord
         categories: [
           'Administrative',
           'Enrollments',
+        ],
+      },
+      can_configure_data_collection: {
+        description: 'Grants access to configuration tool for forms, services, and assessments',
+        administrative: true,
+        access: [:editable],
+        categories: [
+          'Administrative',
+        ],
+      },
+      can_manage_scan_cards: {
+        description: 'Grants the ability to create and deactivate Scan Cards',
+        administrative: true,
+        access: [:editable],
+        categories: [
+          'Administrative',
         ],
       },
     }

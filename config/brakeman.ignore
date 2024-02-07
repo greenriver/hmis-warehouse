@@ -144,7 +144,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 307,
+      "line": 313,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_project_access_groups(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -203,6 +203,30 @@
       "confidence": "Medium",
       "cwe_id": [
         77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Denial of Service",
+      "warning_code": 76,
+      "fingerprint": "12d54f9786ea1b87aaff0a84ef939d760a3eac5d1e4c213b702b67a0f9b7905e",
+      "check_name": "RegexDoS",
+      "message": "Model attribute used in regular expression",
+      "file": "app/models/health/qualifying_activity.rb",
+      "line": 68,
+      "link": "https://brakemanscanner.org/docs/warning_types/denial_of_service/",
+      "code": "/#{[Health::QualifyingActivityV1, Health::QualifyingActivityV2, Health::QualifyingActivityV3].map do\n (version::ATTRIBUTE_SUFFIX + \"$\")\n end.join(\"|\")}/",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Health::QualifyingActivity",
+        "method": "Health::QualifyingActivity.human_attribute_name"
+      },
+      "user_input": "[Health::QualifyingActivityV1, Health::QualifyingActivityV2, Health::QualifyingActivityV3].map",
+      "confidence": "Weak",
+      "cwe_id": [
+        20,
+        185
       ],
       "note": ""
     },
@@ -473,29 +497,6 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "19c3fe8a852b93bcbe76a2c538efd1bd4f415d54be801c0dea33174d4f297668",
-      "check_name": "SQL",
-      "message": "Possible SQL injection",
-      "file": "lib/rds_sql_server/lsa/fy2022/lsa_queries.rb",
-      "line": 82,
-      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "SqlServerBase.connection.execute((\"-- 4.1 Get Project Records for Export\\ndelete from lsa_Project\\n\\ninsert into lsa_Project\\n  (ProjectID, OrganizationID, ProjectName\\n  , OperatingStartDate, OperatingEndDate\\n  , ContinuumProject, ProjectType, HousingType\\n  , TrackingMethod, HMISParticipatingProject\\n  , TargetPopulation\\n  , HOPWAMedAssistedLivingFac\\n  , DateCreated, DateUpdated, ExportID)\\nselect distinct\\n  hp.ProjectID, hp.OrganizationID, left(hp.ProjectName, 100)\\n  , format(hp.OperatingStartDate, 'yyyy-MM-dd')\\n  , case when hp.OperatingEndDate is not null then format(hp.OperatingEndDate, 'yyyy-MM-dd') else null end\\n  , hp.ContinuumProject, hp.ProjectType, hp.HousingType\\n  , hp.TrackingMethod, hp.HMISParticipatingProject\\n  , hp.TargetPopulation\\n  , hp.HOPWAMedAssistedLivingFac\\n  , format(hp.DateCreated, 'yyyy-MM-dd hh:mm:ss')\\n  , format(hp.DateUpdated, 'yyyy-MM-dd hh:mm:ss')\\n  , rpt.ReportID\\nfrom hmis_Project hp\\ninner join lsa_Report rpt on hp.OperatingStartDate <= rpt.ReportEnd\\ninner join hmis_ProjectCoC coc on coc.CoCCode = rpt.ReportCoC\\n  and coc.ProjectID = hp.ProjectID\\n  and coc.DateDeleted is null\\nwhere hp.DateDeleted is null\\n  and hp.ContinuumProject = 1\\n  and hp.ProjectType in (1,2,3,8,9,10,13)\\n  and hp.OperatingStartDate <= rpt.ReportEnd\\n  and (hp.OperatingEndDate is null\\n    or\\t(hp.OperatingEndDate >= '10/1/2012'\\n      and hp.OperatingEndDate > hp.OperatingStartDate)\\n    )\\n\" + \"and hp.ProjectID in(#{project_ids.join(\",\")})\"))",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "LsaSqlServer::LSAQueries",
-        "method": "insert_projects"
-      },
-      "user_input": "project_ids.join(\",\")",
-      "confidence": "Medium",
-      "cwe_id": [
-        89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "SQL Injection",
-      "warning_code": 0,
       "fingerprint": "1ac799c533aadef8fe47464b7d13b7194917e146920bf3046c57c2f22e03e255",
       "check_name": "SQL",
       "message": "Possible SQL injection",
@@ -523,7 +524,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/service_history_service.rb",
-      "line": 149,
+      "line": 154,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"select count(*) from information_schema.triggers where trigger_name = '#{trigger_name}'\")",
       "render_path": null,
@@ -542,20 +543,20 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "25d28895cd8c28107ce7787e8a0d20c3123f46547dcb6a29559bb11780b3c84e",
+      "fingerprint": "1f783c9de44748b596eb8eeca407735742a98d87f1c6c1c4554cc5e8eafe7c30",
       "check_name": "SQL",
       "message": "Possible SQL injection",
-      "file": "lib/rds_sql_server/lsa/fy2022/lsa_queries.rb",
-      "line": 25,
+      "file": "lib/rds_sql_server/lsa/fy2023/lsa_queries.rb",
+      "line": 82,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "SqlServerBase.connection.execute(\"#{File.read(step)}\\n\")",
+      "code": "SqlServerBase.connection.execute((\"-- 4.1 Get Project Records for Export\\ndelete from lsa_Project\\n\\ninsert into lsa_Project\\n  (ProjectID, OrganizationID, ProjectName\\n  , OperatingStartDate, OperatingEndDate\\n  , ContinuumProject, ProjectType, HousingType, RRHSubType\\n  , ResidentialAffiliation, TargetPopulation\\n  , HOPWAMedAssistedLivingFac\\n  , DateCreated, DateUpdated, ExportID)\\nselect distinct\\n  hp.ProjectID, hp.OrganizationID, left(hp.ProjectName, 200)\\n  , format(hp.OperatingStartDate, 'yyyy-MM-dd')\\n  , case when hp.OperatingEndDate is not null then format(hp.OperatingEndDate, 'yyyy-MM-dd') else null end\\n  , hp.ContinuumProject, hp.ProjectType\\n  , case when hp.RRHSubType = 1 then null else hp.HousingType end\\n  , case when hp.ProjectType = 13 then hp.RRHSubType else null end\\n  , case when hp.RRHSubType = 1 then hp.ResidentialAffiliation else null end\\n  , hp.TargetPopulation\\n  , hp.HOPWAMedAssistedLivingFac\\n  , format(hp.DateCreated, 'yyyy-MM-dd HH:mm:ss')\\n  , format(hp.DateUpdated, 'yyyy-MM-dd HH:mm:ss')\\n  , rpt.ReportID\\nfrom hmis_Project hp\\ninner join lsa_Report rpt on rpt.ReportEnd >= hp.OperatingStartDate\\ninner join hmis_ProjectCoC coc on coc.CoCCode = rpt.ReportCoC\\n  and coc.ProjectID = hp.ProjectID\\n  and coc.DateDeleted is null\\nwhere hp.DateDeleted is null\\n  and hp.ContinuumProject = 1\\n  and hp.ProjectType in (0,1,2,3,8,9,10,13)\\n  and (hp.OperatingEndDate is null\\n    or\\t(hp.OperatingEndDate >= rpt.LookbackDate\\n      and hp.OperatingEndDate > hp.OperatingStartDate)\\n    )\\n\" + \"and hp.ProjectID in(#{project_ids.join(\",\")})\"))",
       "render_path": null,
       "location": {
         "type": "method",
         "class": "LsaSqlServer::LSAQueries",
-        "method": "run_query"
+        "method": "insert_projects"
       },
-      "user_input": "File.read(step)",
+      "user_input": "project_ids.join(\",\")",
       "confidence": "Medium",
       "cwe_id": [
         89
@@ -602,6 +603,29 @@
         "method": "prefix_search_term_scope"
       },
       "user_input": "csn_fn(:last_name)",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "2a95757128ca5e18259189845472a81f7b5907e6b81078b672ee369036c417f9",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "lib/rds_sql_server/lsa/fy2023/lsa_queries.rb",
+      "line": 25,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "SqlServerBase.connection.execute(\"#{File.read(step)}\\n\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "LsaSqlServer::LSAQueries",
+        "method": "run_query"
+      },
+      "user_input": "File.read(step)",
       "confidence": "Medium",
       "cwe_id": [
         89
@@ -822,6 +846,28 @@
       "confidence": "Medium",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "3e172786fd9cb66095a3f7b1e0f08576926f2ed63d9d79e07df69e40a3e509fb",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "drivers/boston_reports/app/views/boston_reports/warehouse_reports/community_of_origins/section.haml",
+      "line": 3,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => \"boston_reports/warehouse_reports/community_of_origins/#{params[:partial]}\", {})",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "boston_reports/warehouse_reports/community_of_origins/section"
+      },
+      "user_input": "params[:partial]",
+      "confidence": "Medium",
+      "cwe_id": [
+        22
       ],
       "note": ""
     },
@@ -1092,7 +1138,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 116,
+      "line": 112,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git rev-parse #{`git rev-parse --abbrev-ref HEAD`.chomp}`",
       "render_path": null,
@@ -1320,7 +1366,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/shape/shared_behaviors.rb",
-      "line": 52,
+      "line": 48,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "Arel.sql(\"simplified_geom = ST_MakeValid(ST_Simplify(geom, #{simplification_distance_in_degrees}))\")",
       "render_path": null,
@@ -1335,40 +1381,6 @@
         89
       ],
       "note": "Injection from internal sources"
-    },
-    {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "71fcba957e924214d21f72cc0437daccd8704cf71ff85e186ae831b36dc62423",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped model attribute",
-      "file": "app/views/health/sdh_case_management_notes/edit.haml",
-      "line": 7,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "[Health::QualifyingActivityV1, Health::QualifyingActivityV2].map(&:js_model).join(\", \")",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "Health::SdhCaseManagementNotesController",
-          "method": "edit",
-          "line": 43,
-          "file": "app/controllers/health/sdh_case_management_notes_controller.rb",
-          "rendered": {
-            "name": "health/sdh_case_management_notes/edit",
-            "file": "app/views/health/sdh_case_management_notes/edit.haml"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "health/sdh_case_management_notes/edit"
-      },
-      "user_input": "[Health::QualifyingActivityV1, Health::QualifyingActivityV2].map(&:js_model)",
-      "confidence": "Weak",
-      "cwe_id": [
-        79
-      ],
-      "note": ""
     },
     {
       "warning_type": "SQL Injection",
@@ -1707,7 +1719,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/shape/shared_behaviors.rb",
-      "line": 57,
+      "line": 53,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(:full_geoid => nil).update_all(\"full_geoid = '#{Arel.sql(_full_geoid_prefix)}' || 'US' || #{_geoid_column}\")",
       "render_path": null,
@@ -1947,7 +1959,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 115,
+      "line": 111,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git ls-remote origin | grep refs/heads/#{`git rev-parse --abbrev-ref HEAD`.chomp}$`",
       "render_path": null,
@@ -1993,7 +2005,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 337,
+      "line": 334,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`docker image ls -f 'reference=#{repo_name}' | grep \"#{_ruby_version}-#{_pre_cache_version}--pre-cache\"`",
       "render_path": null,
@@ -2039,7 +2051,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/data_source.rb",
-      "line": 89,
+      "line": 88,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_data_source_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_organizations(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_data_source_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -2345,21 +2357,21 @@
     {
       "warning_type": "SQL Injection",
       "warning_code": 0,
-      "fingerprint": "af923f7adbadbb51b8aa204d9c1085fb31bcc92a74cc1d9f0eab00e6813c0db4",
+      "fingerprint": "ae156e7b878e467c35a7e29b2e0159c51373ca7bf3455845d45aef91abd4979a",
       "check_name": "SQL",
       "message": "Possible SQL injection",
-      "file": "app/models/client_search_util/name_search.rb",
-      "line": 71,
+      "file": "drivers/performance_measurement/app/models/performance_measurement/equity_analysis/data.rb",
+      "line": 184,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
-      "code": "Arel.sql(\"MAX(#{term_score_sql(ActiveSupport::Inflector.transliterate(original_term), :term_weight => 1.0)}) AS search_score\")",
+      "code": "scope.where(\"#{period}_age\" => (age_params.map do\n Filters::FilterBase.age_range(d)\n end))",
       "render_path": null,
       "location": {
         "type": "method",
-        "class": "ClientSearchUtil::NameSearch",
-        "method": "filter_clients"
+        "class": "PerformanceMeasurement::EquityAnalysis::Data",
+        "method": "apply_params"
       },
-      "user_input": "term_score_sql(ActiveSupport::Inflector.transliterate(original_term), :term_weight => 1.0)",
-      "confidence": "Medium",
+      "user_input": "period",
+      "confidence": "Weak",
       "cwe_id": [
         89
       ],
@@ -2372,7 +2384,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/homeless_summary_report/app/models/homeless_summary_report/report.rb",
-      "line": 949,
+      "line": 961,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "clients.send(variant).send(\"spm_#{field}\").average(\"spm_#{field}\")",
       "render_path": null,
@@ -2418,7 +2430,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 157,
+      "line": 154,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git rev-parse HEAD > #{_assets_path}/REVISION`",
       "render_path": null,
@@ -2587,7 +2599,7 @@
       "check_name": "Redirect",
       "message": "Possible unprotected redirect",
       "file": "app/controllers/user_training_controller.rb",
-      "line": 34,
+      "line": 41,
       "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
       "code": "redirect_to(Talentlms::Facade.new.course_url(current_user, Talentlms::Config.first.courseid, (clients_url or root_url), logout_talentlms_url))",
       "render_path": null,
@@ -2826,7 +2838,7 @@
       "check_name": "MassAssignment",
       "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
       "file": "app/controllers/application_controller.rb",
-      "line": 78,
+      "line": 77,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -2885,6 +2897,40 @@
       "confidence": "Weak",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "d566e8f5cf0f511bf0a863a9efca15938668b0c5bfc7a0fef9530afedfc5ece0",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "app/views/health/sdh_case_management_notes/edit.haml",
+      "line": 7,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "[Health::QualifyingActivityV1, Health::QualifyingActivityV2, Health::QualifyingActivityV3].map(&:js_model).join(\", \")",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Health::SdhCaseManagementNotesController",
+          "method": "edit",
+          "line": 43,
+          "file": "app/controllers/health/sdh_case_management_notes_controller.rb",
+          "rendered": {
+            "name": "health/sdh_case_management_notes/edit",
+            "file": "app/views/health/sdh_case_management_notes/edit.haml"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "health/sdh_case_management_notes/edit"
+      },
+      "user_input": "[Health::QualifyingActivityV1, Health::QualifyingActivityV2, Health::QualifyingActivityV3].map(&:js_model)",
+      "confidence": "Weak",
+      "cwe_id": [
+        79
       ],
       "note": ""
     },
@@ -2986,7 +3032,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/concerns/hmis_structure/base.rb",
-      "line": 154,
+      "line": 159,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "connection.execute(\"CREATE INDEX #{((table_name.gsub(/[^0-9a-z ]/i, \"\") + \"_\") + Digest::MD5.hexdigest(columns.join(\"_\"))[0, 4])} ON #{connection.quote_table_name(table_name)} (#{columns.map do\n connection.quote_column_name(c)\n end.join(\", \")}) INCLUDE (#{details[:include].map do\n connection.quote_column_name(c)\n end.join(\", \")})\")",
       "render_path": null,
@@ -3348,30 +3394,6 @@
       "note": ""
     },
     {
-      "warning_type": "Denial of Service",
-      "warning_code": 76,
-      "fingerprint": "fa3c76143ef1b1af288e9f4ba624abe711f9407919ae94cf296c608cda6d96d8",
-      "check_name": "RegexDoS",
-      "message": "Model attribute used in regular expression",
-      "file": "app/models/health/qualifying_activity.rb",
-      "line": 67,
-      "link": "https://brakemanscanner.org/docs/warning_types/denial_of_service/",
-      "code": "/#{[Health::QualifyingActivityV1, Health::QualifyingActivityV2].map do\n (version::ATTRIBUTE_SUFFIX + \"$\")\n end.join(\"|\")}/",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Health::QualifyingActivity",
-        "method": "Health::QualifyingActivity.human_attribute_name"
-      },
-      "user_input": "[Health::QualifyingActivityV1, Health::QualifyingActivityV2].map",
-      "confidence": "Weak",
-      "cwe_id": [
-        20,
-        185
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "Dynamic Render Path",
       "warning_code": 15,
       "fingerprint": "fde02e1709a167801d237e080ec6ee9c281c0a4aaaef4e81a09c70c01613e32d",
@@ -3417,6 +3439,6 @@
       "note": ""
     }
   ],
-  "updated": "2023-09-29 22:03:21 +0000",
+  "updated": "2024-01-24 17:06:25 +0000",
   "brakeman_version": "5.4.1"
 }

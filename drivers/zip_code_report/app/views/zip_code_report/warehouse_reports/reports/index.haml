@@ -1,0 +1,36 @@
+- title = Translation.translate('Zip Code Report')
+- content_for :title, title
+
+- @layout__plain_inner = true
+- @layout__width = 'lg'
+.content-outer-prs1
+  %nav.nav-drawer.prs1
+    = render 'filters/filter_controls/sidebar'
+  .main-outer-prs1
+    .utility-prs1
+      = render '/warehouse_reports/breadcrumbs', tab: 'operational'
+      = render 'utility'
+    .top-nav-prs1
+      %h1.mb-5= title
+    .main-inner-prs1
+      .text-right.mb-4
+        = render 'report_downloads/report_download', export: nil, excel_export: @excel_export, excel_download_path: nil
+      - if @report.total_client_count > 0
+        = render 'common/pagination_top', item_name: 'zip code'
+        .card
+          %table.table.table-striped.mb-0
+            %thead
+              %tr
+                %th Zip Code
+                %th Clients
+                %th Households
+            %tbody
+              - @zip_codes.each do |zip_code|
+                %tr
+                  %td= zip_code["Zip"]
+                  %td= @report.clients_count(zip_code["Zip"])
+                  %td= @report.households_count(zip_code["Zip"])
+        = render 'common/pagination_bottom', item_name: 'zip code'
+      - else
+        .well.none-found
+          No clients match the chosen universe.

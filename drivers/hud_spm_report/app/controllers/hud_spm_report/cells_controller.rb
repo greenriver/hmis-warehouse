@@ -20,14 +20,9 @@ module HudSpmReport
       @table = params.require(:table) # valid_table_name is too strict for the SPM table names
       @name = "#{generator.file_prefix} #{@question} #{@cell}"
 
-      # this is a very wide table. just grab the cols related to this measure
-      q_num = @question[/\d+\z/]
-      cols = ['client_id', 'source_client_personal_ids', 'first_name', 'last_name'] + HudSpmReport::Fy2020::SpmClient.column_names.select { |c| c.starts_with? "m#{q_num}" }
-      @headers = cols.map do |col|
-        [col, HudSpmReport::Fy2020::SpmClient.header_label(col)]
-      end.to_h
+      @headers = generator.column_headings(@question)
 
-      @clients = HudSpmReport::Fy2020::SpmClient.
+      @clients = generator.client_class(@question).
         joins(hud_reports_universe_members: { report_cell: :report_instance }).
         merge(::HudReports::ReportCell.for_table(@table).for_cell(@cell)).
         merge(::HudReports::ReportInstance.where(id: @report.id))
@@ -35,16 +30,28 @@ module HudSpmReport
       respond_to do |format|
         format.html {}
         format.xlsx do
-          @headers.except!('first_name', 'last_name', 'dob', 'ssn') unless GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+          @headers = @headers.transform_keys(&:to_s).except(*generator.pii_columns) unless GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
           headers['Content-Disposition'] = "attachment; filename=#{@name}.xlsx"
         end
       end
     end
 
-    def formatted_cell(cell)
+    def formatted_cell(cell, key)
       return view_context.content_tag(:pre, JSON.pretty_generate(cell)) if cell.is_a?(Array) || cell.is_a?(Hash)
+      return view_context.yes_no(cell) if cell.in?([true, false])
 
-      cell
+      case key.to_s
+      when /project_type$/
+        HudUtility2024.project_type_brief(cell)
+      when /prior_living_situation$/
+        HudUtility2024.living_situation(cell)
+      when /.*destination$/
+        HudUtility2024.destination(cell)
+      when /_days_/
+        number_with_delimiter(cell)
+      else
+        cell
+      end
     end
     helper_method :formatted_cell
   end

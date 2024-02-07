@@ -26,6 +26,12 @@ module ClientSearch
       max_pk = 2_147_483_648 # PK is a 4 byte signed INT (2 ** ((4 * 8) - 1))
       term_is_possibly_pk = numeric ? text.to_i < max_pk : false
 
+      # If alphanumeric search term matches a Scan Card code, return immediately
+      if alpha_numeric && HmisEnforcement.hmis_enabled?
+        matching_scan_card = Hmis::ScanCardCode.active.find_by(value: text)
+        return where(sa[:id].eq(matching_scan_card.client_id)) if matching_scan_card
+      end
+
       if alpha_numeric && (text.size == 32 || text.size == 36)
         where = sa[:PersonalID].matches(text.gsub('-', ''))
       elsif social
@@ -35,7 +41,16 @@ module ClientSearch
         where = sa[:DOB].eq("#{year}-#{month}-#{day}")
       elsif numeric
         where = sa[:PersonalID].eq(text)
-        where = where.or(sa[:id].eq(text)) if term_is_possibly_pk
+        if term_is_possibly_pk
+          conditions = [where, sa[:id].eq(text)]
+
+          # Match against deleted/merged ids
+          cmh_t = Hmis::ClientMergeHistory.arel_table
+          conditions.push(
+            sa[:id].in(cmh_t.project(:retained_client_id).where(cmh_t[:deleted_client_id].eq(text))),
+          )
+          where = conditions.reduce(:or)
+        end
       else
         # NOTE: per discussion with Gig, only numeric IDs are in use at this time, commenting this out for now
         ## At this point, term could be an alpha-numeric ID or a human name. To avoid having to combine fuzzy name

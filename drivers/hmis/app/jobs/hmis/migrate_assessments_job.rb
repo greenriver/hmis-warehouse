@@ -4,12 +4,18 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# == Hmis::MigrateAssessmentsJob
+#
+# Intended to be run manually during the setup and migration phase of a new HMIS installation
+#
 module Hmis
   class MigrateAssessmentsJob < BaseJob
     include Hmis::Concerns::HmisArelHelper
     include NotifierConfig
 
-    attr_accessor :data_source_id, :soft_delete_datetime, :delete_dangling_records, :preferred_source_hash
+    # TODO: Add option to specify creating all Intake Assessments, even if there are no Entry-stage records. The intake may still have information such as the DisablingCondition on the Enrollment.
+    # TODO(maybe): Add option to create Exit Assessment if there are Exit-stage records, even if there is no Exit record. Enrollment would remain open but the exit assessment would exist. This could have other unintended side effects.
+    attr_accessor :data_source_id, :soft_delete_datetime, :delete_dangling_records, :preferred_source_hash, :project_ids
 
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
@@ -26,6 +32,7 @@ module Hmis
     ].freeze
 
     # Construct CustomAssessment and FormProcessor records for Assessment-related records.
+    # Can be run for an entire data source or for a set of projects.
     #
     # For Entry/Exit assessments, records are grouped together if they have the same Data Collection Stage.
     # If information dates differ across records, the earliest one is chosen.
@@ -37,19 +44,21 @@ module Hmis
     #  - DateCreated = earliest creation date of related records
     #  - DateUpdated = latest update date of related records
     #  - UserID = UserID from the related record that was most recently updated
-    def perform(data_source_id:, clobber: false, delete_dangling_records: false, preferred_source_hash: nil)
+    def perform(data_source_id:, project_ids: nil, clobber: false, delete_dangling_records: false, preferred_source_hash: nil)
       setup_notifier('Migrate HMIS Assessments')
 
       self.data_source_id = data_source_id
+      self.project_ids = Array.wrap(project_ids)
       self.soft_delete_datetime = Time.current
       self.delete_dangling_records = delete_dangling_records
       self.preferred_source_hash = preferred_source_hash
-      raise 'Not an HMIS Data source' if GrdaWarehouse::DataSource.find(data_source_id).hmis.nil?
+      raise 'Not an HMIS Data source' if ::GrdaWarehouse::DataSource.find(data_source_id).hmis.nil?
 
       # Deletes the CustomAssessment and FormProcessor, but not the underlying data. It DOES delete Custom Data Elements tied to CustomAssessment.
-      Hmis::Hud::CustomAssessment.where(data_source_id: data_source_id).each(&:really_destroy!) if clobber
+      Hmis::Hud::CustomAssessment.joins(:project).merge(project_scope).each(&:really_destroy!) if clobber
 
-      Hmis::Hud::Enrollment.where(data_source_id: data_source_id).in_batches(of: 5_000) do |batch|
+      # Note: joining with project drops WIP enrollments. That should be fine since they won't have assessment records yet.
+      Hmis::Hud::Enrollment.joins(:project).merge(project_scope).in_batches(of: 5_000) do |batch|
         # Build entry/exit assessments
         build_assessments(
           enrollment_scope: batch,
@@ -74,7 +83,7 @@ module Hmis
         end
       end
 
-      summarize_assessments(data_source_id: data_source_id)
+      log_assessment_summary
     end
 
     def records_to_delete
@@ -248,6 +257,14 @@ module Hmis
       @hud_users_by_id ||= Hmis::Hud::User.where(data_source_id: data_source_id).index_by(&:user_id)
     end
 
+    def project_scope
+      @project_scope ||= begin
+        scope = Hmis::Hud::Project.where(data_source_id: data_source_id)
+        scope = scope.where(id: project_ids) if project_ids.any?
+        scope
+      end
+    end
+
     # Map class name to column name on form process0r
     def form_processor_column_name(klass, disability_type: nil)
       return "#{klass.name.demodulize.underscore}_id".to_sym unless klass == Hmis::Hud::Disability
@@ -311,9 +328,9 @@ module Hmis
       "#{pct}% #{msg} (#{numer}/#{denom})"
     end
 
-    def summarize_assessments(data_source_id:)
-      enrollment_scope = Hmis::Hud::Enrollment.where(data_source_id: data_source_id)
-      assessment_scope = Hmis::Hud::CustomAssessment.where(data_source_id: data_source_id)
+    def log_assessment_summary
+      enrollment_scope = Hmis::Hud::Enrollment.joins(:project).merge(project_scope)
+      assessment_scope = Hmis::Hud::CustomAssessment.joins(:project).merge(project_scope)
 
       open_enrollment_assessment_scope = Hmis::Hud::CustomAssessment.joins(:enrollment).merge(enrollment_scope.open_on_date)
 

@@ -9,6 +9,7 @@
 #   If the assessment is non-WIP: The HUD data is stored in records (IncomeBenefit, HealthAndDv, etc) that are referenced by this form_processor directly. (health_and_dv_id etc)
 class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   self.table_name = :hmis_form_processors
+  has_paper_trail
 
   # The assessment that was processed with this processor.
   # If processor is being used as in-memory processor for records, this will be empty.
@@ -29,6 +30,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   belongs_to :youth_education_status, class_name: 'Hmis::Hud::YouthEducationStatus', optional: true, autosave: true
   belongs_to :employment_education, class_name: 'Hmis::Hud::EmploymentEducation', optional: true, autosave: true
   belongs_to :current_living_situation, class_name: 'Hmis::Hud::CurrentLivingSituation', optional: true, autosave: true
+  # Note: this is NOT the assessment that created this processor, that's CustomAssessment. Rather this is a
+  # Coordinated Entry (CE) Assessment that was created by the processor. The HUD model for CE Assessment is 'Assessment'
+  belongs_to :ce_assessment, class_name: 'Hmis::Hud::Assessment', optional: true, autosave: true
 
   validate :hmis_records_are_valid, on: :form_submission
 
@@ -146,6 +150,18 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
   end
 
+  def ce_assessment_factory(create: true)
+    return owner if owner.is_a? Hmis::Hud::Assessment
+
+    if create
+      self.ce_assessment ||= enrollment_factory.assessments.build(
+        personal_id: enrollment_factory.personal_id,
+        user_id: custom_assessment&.user_id,
+      )
+    end
+    ce_assessment
+  end
+
   def health_and_dv_factory(create: true)
     return health_and_dv if health_and_dv.present? || !create
 
@@ -236,7 +252,15 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   private def container_processor(container)
     container = container.to_sym
-    return unless container.in?(valid_containers.keys)
+    return if container == :CustomAssessment
+
+    if !container.in?(valid_containers.keys)
+      message = "invalid container \"#{container}\" for Hmis::FormProcessor##{id}"
+      raise message if Rails.env.development? || Rails.env.test?
+
+      Sentry.capture_message(message)
+      return
+    end
 
     @container_processors ||= {}
     @container_processors[container] ||= valid_containers[container].new(self)
@@ -265,7 +289,8 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       YouthEducationStatus: Hmis::Hud::Processors::YouthEducationStatusProcessor,
       EmploymentEducation: Hmis::Hud::Processors::EmploymentEducationProcessor,
       CurrentLivingSituation: Hmis::Hud::Processors::CurrentLivingSituationProcessor,
-      Assessment: Hmis::Hud::Processors::CeAssessmentProcessor,
+      Assessment: Hmis::Hud::Processors::CeAssessmentProcessor, # CE Assessment owner
+      CeAssessment: Hmis::Hud::Processors::CeAssessmentProcessor, # Custom Assessment includes CE Assessment
       Event: Hmis::Hud::Processors::CeEventProcessor,
       CustomCaseNote: Hmis::Hud::Processors::CustomCaseNoteProcessor,
     }.freeze
@@ -279,6 +304,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       :physical_disability_factory,
       :developmental_disability_factory,
       :chronic_health_condition_factory,
+      :ce_assessment_factory,
       :hiv_aids_factory,
       :mental_health_disorder_factory,
       :substance_use_disorder_factory,

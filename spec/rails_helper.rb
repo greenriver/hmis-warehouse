@@ -89,12 +89,7 @@ RSpec.configure do |config|
     # disable papertrail for test performance
     PaperTrail.enabled = false
 
-    if ENV['ENABLE_HMIS_API'] == 'true'
-      ::HmisUtil::JsonForms.new.tap do |builder|
-        builder.seed_record_form_definitions
-        builder.seed_assessment_form_definitions
-      end
-    end
+    ::HmisUtil::JsonForms.seed_all if ENV['ENABLE_HMIS_API'] == 'true'
   end
 end
 
@@ -121,7 +116,7 @@ def cleanup_test_environment
 end
 
 def default_excluded_tables
-  ['versions', 'spatial_ref_sys', 'homeless_summary_report_clients', 'homeless_summary_report_results', 'hmis_csv_importer_logs', 'hap_report_clients', 'simple_report_cells', 'simple_report_universe_members', 'whitelisted_projects_for_clients', 'hmis_csv_import_validations', 'uploads', 'hmis_csv_loader_logs', 'import_logs', 'delayed_jobs', 'translations'] +
+  ['versions', 'spatial_ref_sys', 'homeless_summary_report_clients', 'homeless_summary_report_results', 'hmis_csv_importer_logs', 'hap_report_clients', 'simple_report_cells', 'simple_report_universe_members', 'whitelisted_projects_for_clients', 'hmis_csv_import_validations', 'uploads', 'hmis_csv_loader_logs', 'import_logs', 'delayed_jobs', 'translations', 'schema_migrations'] +
   HmisCsvImporter::Loader::Loader.loadable_files.values.map(&:table_name) +
   HmisCsvImporter::Importer::Importer.importable_files.values.map(&:table_name)
 end

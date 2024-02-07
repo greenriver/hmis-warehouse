@@ -9,8 +9,11 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::Shared
   include ActiveModel::Dirty
 
+  has_paper_trail(meta: { project_id: :id })
+
   self.table_name = :Project
   self.sequence_name = "public.\"#{table_name}_id_seq\""
+  CONFIDENTIAL_PROJECT_NAME = 'Confidential Project'.freeze
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :organization, **hmis_relation(:OrganizationID, 'Organization')
@@ -57,7 +60,13 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   has_many :services, through: :enrollments_including_wip
   has_many :custom_services, through: :enrollments_including_wip
-  has_many :hmis_services, through: :enrollments_including_wip
+
+  # FIXME: joining services through enrollments confounds postgres. On larger projects, the query might take many
+  # minutes. It needs optimization; for now we use a class method instead of a AR association
+  # has_many :hmis_services, through: :enrollments_including_wip
+  def hmis_services
+    Hmis::Hud::HmisService.joins(:project).where(Hmis::Hud::Project.arel_table[:id].eq(id))
+  end
 
   has_and_belongs_to_many :project_groups,
                           class_name: 'GrdaWarehouse::ProjectGroup',
@@ -71,7 +80,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     ids = user.viewable_projects.pluck(:id)
     ids += user.viewable_organizations.joins(:projects).pluck(p_t[:id])
     ids += user.viewable_data_sources.joins(:projects).pluck(p_t[:id])
-    ids += user.viewable_project_access_groups.joins(:projects).pluck(p_t[:id])
 
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
@@ -84,7 +92,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     ids = user.entities_with_permissions(Hmis::Hud::Project, *permissions, **kwargs).pluck(:id)
     ids += user.entities_with_permissions(Hmis::Hud::Organization, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
     ids += user.entities_with_permissions(GrdaWarehouse::DataSource, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
-    ids += user.entities_with_permissions(GrdaWarehouse::ProjectAccessGroup, *permissions, **kwargs).joins(:projects).pluck(p_t[:id])
 
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
@@ -135,6 +142,13 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     name: 'Name',
   }.freeze
 
+  HudUtility2024.residential_project_type_numbers_by_code.each do |k, v|
+    scope k, -> { where(project_type: v) }
+    define_method "#{k}?" do
+      v.include? project_type
+    end
+  end
+
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 
@@ -159,9 +173,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   end
 
   def households_including_wip
-    household_ids = enrollments_including_wip.pluck(:household_id)
-
-    Hmis::Hud::Household.where(HouseholdID: household_ids, data_source_id: data_source_id)
+    # correlated subquery for performance
+    cp_t = Hmis::Hud::ClientProject.arel_table
+    subquery = client_projects.where(cp_t[:HouseholdID].eq(hh_t[:HouseholdID]))
+    Hmis::Hud::Household.where(data_source_id: data_source_id).where(subquery.arel.exists)
   end
 
   def close_related_funders_and_inventory!
@@ -203,12 +218,11 @@ class Hmis::Hud::Project < Hmis::Hud::Base
       # Inactive features need to continue to be "turned on" in order to view and edit legacy data.
       # If/when there is no legacy data, the instance can be fully deleted.
 
-      best_active_instances = Hmis::Form::Instance.detect_best_instance_scope_for_project(base_scope.active, project: self)
-      best_inactive_instances = Hmis::Form::Instance.detect_best_instance_scope_for_project(base_scope.inactive, project: self)
-      best_instances = [best_active_instances, best_inactive_instances].detect(&:present?)
-      next unless best_instances.present?
-
-      best_instance = best_instances.order(updated_at: :desc).first
+      best_instance = [
+        base_scope.active,
+        base_scope.inactive,
+      ].lazy.map { |scope| scope.order(updated_at: :desc).detect_best_instance_for_project(project: self) }.detect(&:present?)
+      next unless best_instance
 
       OpenStruct.new(
         role: role.to_s,
@@ -230,11 +244,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
     # Choose the most specific instance for each definition identifier
     occurrence_point_identifiers.map do |identifier|
-      scope = base_scope.where(definition_identifier: identifier)
-      best_instances = Hmis::Form::Instance.detect_best_instance_scope_for_project(scope, project: self)
-      next unless best_instances.present?
-
-      best_instances.order(updated_at: :desc).first
+      scope = base_scope.where(definition_identifier: identifier).order(updated_at: :desc)
+      scope.detect_best_instance_for_project(project: self)
     end.compact
   end
 

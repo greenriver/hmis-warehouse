@@ -21,6 +21,21 @@ module CohortColumns
     attribute :editable, Boolean, lazy: false, default: true
     attribute :current_user
 
+    def show_description?
+      return false if description == "#{translation_key} Description"
+      return false if description.blank?
+      return false if description == title
+
+      true
+    end
+
+    def show_default_description?
+      return false if description_translation_key.include?('Description')
+      return false if description_translation_key == title
+
+      true
+    end
+
     def available_for_rules?
       true
     end

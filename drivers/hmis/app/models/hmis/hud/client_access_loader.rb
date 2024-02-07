@@ -15,17 +15,17 @@ class Hmis::Hud::ClientAccessLoader < Hmis::BaseAccessLoader
 
     group_view_t = Hmis::GroupViewableEntity.arel_table
     client_project_t = Hmis::Hud::ClientProject.arel_table
-    orphan_client_ids = Hmis::Hud::Client
-      .left_outer_joins(:client_projects)
-      .where(id: client_ids)
-      .where(client_project_t[:project_id].eq(nil))
-      .pluck(arel.c_t[:id])
+    orphan_client_ids = Hmis::Hud::Client.
+      left_outer_joins(:client_projects).
+      where(id: client_ids).
+      where(client_project_t[:project_id].eq(nil)).
+      pluck(arel.c_t[:id])
 
-    access_group_ids_by_client_id = Hmis::Hud::Project
-      .joins(:client_projects, :group_viewable_entities)
-      .where(client_project_t[:client_id].in(client_ids - orphan_client_ids))
-      .pluck(client_project_t[:client_id], group_view_t[:access_group_id])
-      .group_by(&:shift).transform_values(&:flatten)
+    access_group_ids_by_client_id = Hmis::Hud::Project.
+      joins(:client_projects, :group_viewable_entities).
+      where(client_project_t[:client_id].in(client_ids - orphan_client_ids)).
+      pluck(client_project_t[:client_id], group_view_t[:collection_id]).
+      group_by(&:shift).transform_values(&:flatten)
 
     orphan_client_ids = orphan_client_ids.to_set
     items.map do |item|

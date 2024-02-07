@@ -8,25 +8,27 @@ module HudApr::Generators::Shared::Fy2024
   class QuestionFour < Base
     QUESTION_NUMBER = 'Question 4'.freeze
 
-    TABLE_HEADER = [
-      'Organization Name',
-      'Organization ID',
-      'Project Name',
-      'Project ID',
-      'HMIS Project Type',
-      'RRH Subtype',
-      'Coordinated Entry Access Point',
-      'Affiliated with a residential project',
-      'Project IDs of affiliations',
-      'CoC Number',
-      'Geocode',
-      'Victim Service Provider',
-      'HMIS Software Name',
-      'Report Start Date',
-      'Report End Date',
-      'Total Active Clients',
-      'Total Active Households',
-    ].freeze
+    def table_header
+      [
+        'Organization Name',
+        'Organization ID',
+        'Project Name',
+        'Project ID',
+        'HMIS Project Type',
+        'RRH Subtype',
+        'Coordinated Entry Access Point',
+        'Affiliated with a residential project',
+        'Project IDs of affiliations',
+        'CoC Number',
+        'Geocode',
+        'Victim Service Provider',
+        'HMIS Software Name',
+        'Report Start Date',
+        'Report End Date',
+        'Total Active Clients',
+        'Total Active Households',
+      ].freeze
+    end
 
     HMIS_SOFTWARE_NAME = 'OpenPath HMIS Warehouse'.freeze
 
@@ -52,7 +54,7 @@ module HudApr::Generators::Shared::Fy2024
 
     private def q4_project_identifiers
       @report.universe(QUESTION_NUMBER)
-      headers = TABLE_HEADER.zip(('A'..'Q').to_a)
+      headers = table_header.zip(('A'..'Q').to_a)
 
       question_sheet(question: 'Q4a') do |sheet|
         headers.each { |label, col| sheet.add_header(col: col, label: label) }
@@ -73,7 +75,7 @@ module HudApr::Generators::Shared::Fy2024
           project.computed_project_type,
           project.RRHSubType,
           # Coordinated Entry Access Point
-          ce_participation&.AccessPoint,
+          (ce_participation&.AccessPoint || 0),
           # (If 2.02.6 =6 or (13 and 2.02.6A = 1)), then 0 or 1
           (project.computed_project_type == 6 || (project.computed_project_type == 13 && project.RRHSubType == 1) ? project.ResidentialAffiliation : 0),
           if project.computed_project_type == 6 && project.ResidentialAffiliation == 1 then project.residential_affiliations.map(&:ResProjectID).join(', ') else ' ' end,

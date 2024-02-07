@@ -9,14 +9,17 @@ module GrdaWarehouse::Tasks
     include ArelHelper
     include NotifierConfig
 
+    attr_accessor :skip_location_cleanup
     def initialize(
       _bogus_notifier = false,
       project_ids: GrdaWarehouse::Hud::Project.select(:id),
+      skip_location_cleanup: false,
       debug: false
     )
       setup_notifier('Project Cleaner')
       @project_ids = project_ids
       @debug = debug
+      self.skip_location_cleanup = skip_location_cleanup
     end
 
     def run!
@@ -25,16 +28,17 @@ module GrdaWarehouse::Tasks
       @projects = load_projects
 
       @projects.each do |project|
-        next unless project.enrollments.exists?
+        any_enrollments = project.enrollments.exists?
 
         if should_update_type?(project)
           fix_project_type(project)
-        elsif homeless_mismatch?(project) # if should_update_type? returned true, these have been fixed
+        elsif homeless_mismatch?(project) && any_enrollments # if should_update_type? returned true, these have been fixed
           invalidate_enrollments(project)
         end
 
         fix_name(project)
-        fix_client_locations(project)
+        fix_client_locations(project) if any_enrollments
+        remove_unneeded_hmis_participations(project)
       end
       GrdaWarehouse::Tasks::ServiceHistory::Enrollment.batch_process_unprocessed!(max_wait_seconds: 1_800)
 
@@ -53,10 +57,12 @@ module GrdaWarehouse::Tasks
 
       sh_project_types_for_check = sh_project_types(project)
       project_types_match_sh_types = true
+      # If SHE only has one set of project types, that's generally good, just confirm they match the project's types
       if sh_project_types_for_check.count == 1
         (project_type, computed_project_type) = sh_project_types_for_check.first
         project_types_match_sh_types = project.ProjectType == project_type && project.computed_project_type == computed_project_type
       end
+      # If SHE has more than one set of project types, we'll need to rebuild
       project_type_changed_in_source = sh_project_types_for_check.count > 1
       project_type_changed_in_source || project_override_changed || ! project_types_match_sh_types
     end
@@ -64,16 +70,16 @@ module GrdaWarehouse::Tasks
     def fix_project_type(project)
       blank_initial_computed_project_type = project.computed_project_type.blank?
       debug_log("Updating type for #{project.ProjectName} << #{project.organization&.OrganizationName || 'unknown'} in #{project.data_source.short_name}... current ProjectType: #{project.ProjectType} acts_as: #{project.act_as_project_type} project types in Service History:  #{sh_project_types(project).inspect}") unless blank_initial_computed_project_type
-      project_type = project.compute_project_type
+      computed_project_type = project.compute_project_type
       # Force a rebuild of all related enrollments
       project_source.transaction do
         project.enrollments.invalidate_processing!
-        project.update(computed_project_type: project_type)
+        project.update(computed_project_type: computed_project_type)
         # Fix the SHE with record_type "first"
         service_history_enrollment_source.where(
           project_id: project.ProjectID,
           data_source_id: project.data_source_id,
-        ).update_all(computed_project_type: project_type, project_type: project_type)
+        ).update_all(computed_project_type: computed_project_type, project_type: project.ProjectType)
       end
       debug_log("done invalidating enrollments for #{project.ProjectName}") unless blank_initial_computed_project_type
     end
@@ -165,11 +171,27 @@ module GrdaWarehouse::Tasks
     # If the project only has one CoC Code, set all EnrollmentCoC to match
     # If the project has more than one, clear out any EnrollmentCoC where isn't covered
     def fix_client_locations(project)
-      # debug_log("Setting client locations for #{project.ProjectName}")
-      coc_codes = project.project_cocs.map(&:effective_coc_code).uniq
-      project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: coc_codes.first) if coc_codes.count == 1
+      return if skip_location_cleanup
 
-      project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: nil)
+      # debug_log("Setting client locations for #{project.ProjectName}")
+      coc_codes = project.project_cocs.map(&:effective_coc_code).uniq.
+        # Ensure the CoC codes are valid
+        select { |code| HudUtility2024.valid_coc?(code) }
+      # Don't do anything if we don't know what CoC the project operates in
+      return unless coc_codes.present?
+
+      project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: coc_codes.first, source_hash: nil) if coc_codes.count == 1
+
+      project.enrollments.where.not(EnrollmentCoC: coc_codes).update_all(EnrollmentCoC: nil, source_hash: nil)
+    end
+
+    # If a project has user provided HMIS Participation records, than we don't need the 2022 -> 2024 migration generated
+    # ones, so remove them
+    def remove_unneeded_hmis_participations(project)
+      hmis_p_t = GrdaWarehouse::Hud::HmisParticipation.arel_table
+      return unless project.hmis_participations.where(hmis_p_t[:HMISParticipationID].does_not_match('GR-%', nil, true)).exists?
+
+      project.hmis_participations.where(hmis_p_t[:HMISParticipationID].matches('GR-%', nil, true)).destroy_all
     end
 
     def project_source

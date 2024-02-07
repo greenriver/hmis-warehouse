@@ -289,6 +289,7 @@ module GrdaWarehouse::Hud
         id: GrdaWarehouse::ServiceHistoryEnrollment.entry.
           currently_homeless(date: on_date, chronic_types_only: chronic_types_only).
           distinct.
+          with_service.
           select(:client_id),
       )
     end
@@ -346,12 +347,32 @@ module GrdaWarehouse::Hud
       when :active_clients
         range = GrdaWarehouse::Config.cas_sync_range
         # Homeless or Coordinated Entry
-        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.in_project_type([1, 2, 4, 8, 14]).
+        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.in_project_type([0, 1, 2, 4, 8, 14]).
           with_service_between(start_date: range.first, end_date: range.last)
         where(id: enrollment_scope.select(:client_id))
       when :project_group
-        project_ids = GrdaWarehouse::Config.cas_sync_project_group.projects.ids
+        project_ids = GrdaWarehouse::Config.cas_sync_project_group&.projects&.ids
+        return none if project_ids.blank?
+
         enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.ongoing.in_project(project_ids)
+        where(id: enrollment_scope.select(:client_id))
+      when :boston
+        # Release on file
+        scope = where(housing_release_status: [full_release_string, partial_release_string])
+        # enrolled in the chosen project group
+        project_ids = GrdaWarehouse::Config.cas_sync_project_group&.projects&.ids
+        if project_ids.present?
+          enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.ongoing.in_project(project_ids)
+          scope = scope.where(id: enrollment_scope.select(:client_id))
+        end
+        # with a Pathways assessment (removed by request 11/23/23)
+        # scope.where(id: joins(source_clients: :most_recent_pathways_or_rrh_assessment).select(:id))
+        scope
+      when :ce_with_assessment
+        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.entry.
+          in_project_type(HudUtility2024.performance_reporting[:ce]).
+          ongoing.
+          joins(enrollment: :assessments)
         where(id: enrollment_scope.select(:client_id))
       else
         raise NotImplementedError
@@ -1961,10 +1982,6 @@ module GrdaWarehouse::Hud
       personal_id.split(/(\w{8})(\w{4})(\w{4})(\w{4})(\w{12})/).reject do |c|
         c.empty? || c == '__#'
       end.join('-')
-    end
-
-    def veteran?
-      self.VeteranStatus == 1
     end
 
     def ever_veteran?

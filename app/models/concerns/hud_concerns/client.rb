@@ -34,6 +34,10 @@ module HudConcerns::Client
       age(on_date) < 18
     end
 
+    def veteran?
+      self.VeteranStatus == 1
+    end
+
     # This can be used to retrieve numeric representations of the client gender, useful for HUD reporting
     def gender_multi
       @gender_multi ||= [].tap do |gm|

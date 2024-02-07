@@ -111,6 +111,8 @@ class App.Cohorts.Cohort
     @grid_column_headers = $.map @column_headers, (column, index) =>
       header = {
         headerName: column.headerName,
+        headerTooltip: column.headerTooltip,
+        tooltipShowDelay: 250,
         field: column.field,
         editable: column.editable,
         # tooltip: (params) ->
@@ -239,7 +241,7 @@ class App.Cohorts.Cohort
     if @current_page > @pages + 1
       return $.Deferred().resolve().promise()
     # Gather all the data first and then display it
-    $.get({url: url}).done(@save_batch).then(@load_page)
+    $.get({url: url}).then(@save_batch).then(@load_page)
 
   save_batch: (data, status) =>
     $.merge @raw_data, data
@@ -307,8 +309,12 @@ class App.Cohorts.Cohort
         @updated_ats = data
 
   reload_client: (cohort_client_id) =>
-    url =  "#{@client_path}.json?page=1&per=10&content=true&inactive=true&cohort_client_id=#{cohort_client_id}"
-    $.get url, (data) =>
-      client = data[0]
-      rowNode = @grid_options.api.getRowNode(client.meta.cohort_client_id)
-      rowNode.setData(client)
+    url =  "#{@client_path}.json?page=1&per=10&content=true&inactive=true&skip_trackable=true&cohort_client_id=#{cohort_client_id}"
+    # Force synchronous loads so we don't fire dozens of queries simultaneously
+    $.ajax
+      async: false,
+      url: url,
+      success: (data) =>
+        client = data[0]
+        rowNode = @grid_options.api.getRowNode(client.meta.cohort_client_id)
+        rowNode.setData(client)

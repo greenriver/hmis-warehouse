@@ -117,7 +117,7 @@ module UserConcern
     end
 
     scope :nurse_care_managers, -> do
-      joins(:roles).merge(Role.nurse_care_manager)
+      joins(:health_roles).merge(Role.nurse_care_manager)
     end
 
     scope :not_system, -> { where.not(first_name: 'System') }
@@ -146,10 +146,10 @@ module UserConcern
     # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }
     # scope :dnd_staff, -> { includes(:roles).where(roles: {name: :dnd_staff}) }
 
-    def can_access_project?(project)
-      return false unless can_view_projects?
+    def can_access_project?(project, permission: :can_view_projects)
+      return false unless send("#{permission}?")
 
-      cached_viewable_project_ids.include? project.id
+      cached_viewable_project_ids(permission: permission).include?(project.id)
     end
 
     def can_view_censuses?
@@ -485,11 +485,11 @@ module UserConcern
       @viewable_project_ids ||= GrdaWarehouse::Hud::Project.viewable_by(self, permission: :can_view_projects).pluck(:id)
     end
 
-    private def cached_viewable_project_ids(force_calculation: false)
-      key = [self.class.name, __method__, id]
+    private def cached_viewable_project_ids(permission: :can_view_projects, force_calculation: false)
+      key = [self.class.name, __method__, permission, id]
       Rails.cache.delete(key) if force_calculation
       Rails.cache.fetch(key, expires_in: 1.minutes) do
-        GrdaWarehouse::Hud::Project.viewable_by(self, confidential_scope_limiter: :all, permission: :can_view_projects).pluck(:id).to_set
+        GrdaWarehouse::Hud::Project.viewable_by(self, confidential_scope_limiter: :all, permission: permission).pluck(:id).to_set
       end
     end
 

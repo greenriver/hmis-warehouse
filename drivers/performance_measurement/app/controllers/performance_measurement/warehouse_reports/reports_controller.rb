@@ -14,8 +14,11 @@ module PerformanceMeasurement::WarehouseReports
 
     before_action :require_can_access_some_version_of_clients!, only: [:clients]
     before_action :require_my_project!, only: [:clients]
-    before_action :set_report, only: [:show, :destroy]
+    before_action :require_can_publish_reports!, only: [:raw, :update]
+    before_action :set_report, except: [:index, :create, :details]
     before_action :set_pdf_export, only: [:show]
+
+    @include_in_published_version = false
 
     def index
       @filter.default_project_type_codes = report_class.default_project_type_codes
@@ -33,6 +36,7 @@ module PerformanceMeasurement::WarehouseReports
     def show
       # Used for testing PDF generation
       # render 'show_pdf', layout: 'layouts/performance_report'
+      @default_goal = PerformanceMeasurement::Goal.default_goal
     end
 
     def create
@@ -57,6 +61,24 @@ module PerformanceMeasurement::WarehouseReports
       respond_with(@report, location: performance_measurement_warehouse_reports_reports_path)
     end
 
+    def update
+      path = publish_params[:path]
+      if publish_params&.key?(:path)
+        @report.update(path: path)
+        respond_with(@report, location: path_to_report)
+      elsif publish_params[:unpublish] == @report.generate_publish_url
+        @report.unpublish!
+        flash[:notice] = 'Report has been unpublished.'
+        respond_with(@report, location: path_to_report)
+      elsif publish_params[:published_url].present?
+        @report.delay.publish!(current_user.id)
+        flash[:notice] = 'Report publishing queued, please check the public link in a few minutes.'
+        respond_with(@report, location: path_to_report)
+      else
+        redirect_to(action: :edit)
+      end
+    end
+
     def details
       @report = report_class.find(params[:report_id].to_i)
       @key = params[:key].to_sym
@@ -72,6 +94,16 @@ module PerformanceMeasurement::WarehouseReports
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
+    end
+
+    def equity_analysis
+      @equity_filters = params[:equity_filters]
+      @analysis_builder = PerformanceMeasurement::EquityAnalysis::Builder.new(@equity_filters, @report, current_user)
+      if @equity_filters.present?
+        # if there are filters set errors
+        flash[:error] = @analysis_builder.valid? ? '' : 'There was an error building the equity analysis.'
+      end
+      render :show
     end
 
     def details_params
@@ -146,5 +178,15 @@ module PerformanceMeasurement::WarehouseReports
       end
     end
     helper_method :formatted_cell
+
+    def path_to_report
+      performance_measurement_warehouse_reports_report_path(@report)
+    end
+    helper_method :path_to_report
+
+    def publish_params
+      params.require(:public_report).
+        permit(:path, :published_url, :unpublish)
+    end
   end
 end

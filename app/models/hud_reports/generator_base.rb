@@ -98,23 +98,27 @@ module HudReports
 
     def self.column_headings(question)
       question_fields(question).map do |key|
-        [key, client_class.detail_headers[key.to_s]]
+        [key, client_class(question).detail_headers[key.to_s]]
       end.to_h
     end
 
-    def self.all_extra_fields
-      client_class.detail_headers.keys.map(&:to_sym) - common_fields
+    def self.all_extra_fields(question)
+      client_class(question).detail_headers.keys.map(&:to_sym) - common_fields
     end
 
     # Override in concern per HUD report driver
     # defaults to all questions
-    def self.question_fields(_question)
-      all_extra_fields
+    def self.question_fields(question)
+      all_extra_fields(question)
     end
 
     # Override in concern per HUD report driver
     def self.common_fields
       []
+    end
+
+    def self.pii_columns
+      ['first_name', 'last_name', 'dob', 'ssn']
     end
 
     def self.allowed_options

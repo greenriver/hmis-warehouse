@@ -887,7 +887,8 @@ CREATE TABLE public."CustomCaseNote" (
     "UserID" character varying,
     "DateCreated" timestamp without time zone,
     "DateUpdated" timestamp without time zone,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    information_date date
 );
 
 
@@ -932,7 +933,9 @@ CREATE TABLE public."CustomClientAddress" (
     data_source_id integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    "EnrollmentID" character varying,
+    enrollment_address_type character varying
 );
 
 
@@ -1833,7 +1836,8 @@ CREATE TABLE public."Exit" (
     "CMExitReason" integer,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
-    "DestinationSubsidyType" integer
+    "DestinationSubsidyType" integer,
+    auto_exited timestamp without time zone
 );
 
 
@@ -2856,7 +2860,6 @@ CREATE TABLE public.ansd_enrollments (
     id bigint NOT NULL,
     report_id bigint,
     enrollment_id bigint,
-    project_id character varying,
     project_name character varying,
     project_type integer,
     household_id character varying,
@@ -2884,7 +2887,9 @@ CREATE TABLE public.ansd_enrollments (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     destination_client_id integer,
-    relationship_to_hoh integer
+    relationship_to_hoh integer,
+    placed_date date,
+    project_id bigint
 );
 
 
@@ -5596,7 +5601,8 @@ CREATE TABLE public.clh_locations (
     processed_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    enrollment_id bigint
 );
 
 
@@ -6472,7 +6478,8 @@ CREATE TABLE public.configs (
     chronic_tab_roi boolean,
     filter_date_span_years integer DEFAULT 1 NOT NULL,
     include_pii_in_detail_downloads boolean DEFAULT true,
-    self_report_start_date date
+    self_report_start_date date,
+    chronic_adult_only_cohort boolean DEFAULT false
 );
 
 
@@ -7577,6 +7584,74 @@ ALTER SEQUENCE public.external_ids_id_seq OWNED BY public.external_ids.id;
 
 
 --
+-- Name: external_reporting_cohort_permissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.external_reporting_cohort_permissions (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    cohort_id bigint NOT NULL,
+    permission character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    email character varying
+);
+
+
+--
+-- Name: external_reporting_cohort_permissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.external_reporting_cohort_permissions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: external_reporting_cohort_permissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.external_reporting_cohort_permissions_id_seq OWNED BY public.external_reporting_cohort_permissions.id;
+
+
+--
+-- Name: external_reporting_project_permissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.external_reporting_project_permissions (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    project_id bigint NOT NULL,
+    permission character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    email character varying
+);
+
+
+--
+-- Name: external_reporting_project_permissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.external_reporting_project_permissions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: external_reporting_project_permissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.external_reporting_project_permissions_id_seq OWNED BY public.external_reporting_project_permissions.id;
+
+
+--
 -- Name: external_request_logs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -7805,7 +7880,8 @@ CREATE TABLE public.files (
     coc_codes jsonb DEFAULT '[]'::jsonb,
     enrollment_id bigint,
     confidential boolean DEFAULT false NOT NULL,
-    updated_by_id bigint
+    updated_by_id bigint,
+    data_source_id bigint
 );
 
 
@@ -13254,6 +13330,40 @@ ALTER SEQUENCE public.hmis_assessments_id_seq OWNED BY public.hmis_assessments.i
 
 
 --
+-- Name: hmis_auto_exit_configs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_auto_exit_configs (
+    id bigint NOT NULL,
+    length_of_absence_days integer NOT NULL,
+    project_type integer,
+    organization_id bigint,
+    project_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_auto_exit_configs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_auto_exit_configs_id_seq OWNED BY public.hmis_auto_exit_configs.id;
+
+
+--
 -- Name: hmis_case_notes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -17535,7 +17645,8 @@ CREATE TABLE public.hmis_dqt_current_living_situations (
     deleted_at timestamp without time zone,
     project_id integer,
     first_name character varying,
-    last_name character varying
+    last_name character varying,
+    personal_id character varying
 );
 
 
@@ -18153,7 +18264,8 @@ CREATE TABLE public.hmis_form_processors (
     hud_values jsonb,
     youth_education_status_id integer,
     employment_education_id integer,
-    current_living_situation_id integer
+    current_living_situation_id integer,
+    ce_assessment_id bigint
 );
 
 
@@ -18275,31 +18387,35 @@ ALTER SEQUENCE public.hmis_forms_id_seq OWNED BY public.hmis_forms.id;
 
 
 --
--- Name: project_groups; Type: TABLE; Schema: public; Owner: -
+-- Name: hmis_group_viewable_entities; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.project_groups (
-    id integer NOT NULL,
-    name character varying NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    deleted_at timestamp without time zone,
-    options jsonb DEFAULT '{}'::jsonb
-);
-
-
---
--- Name: project_project_groups; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.project_project_groups (
-    id integer NOT NULL,
-    project_group_id integer,
-    project_id integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
+CREATE TABLE public.hmis_group_viewable_entities (
+    id bigint NOT NULL,
+    entity_type character varying NOT NULL,
+    entity_id bigint NOT NULL,
+    collection_id bigint NOT NULL,
     deleted_at timestamp without time zone
 );
+
+
+--
+-- Name: hmis_group_viewable_entities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_group_viewable_entities_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_group_viewable_entities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_group_viewable_entities_id_seq OWNED BY public.hmis_group_viewable_entities.id;
 
 
 --
@@ -18307,37 +18423,28 @@ CREATE TABLE public.project_project_groups (
 --
 
 CREATE VIEW public.hmis_group_viewable_entity_projects AS
- SELECT group_viewable_entities.id AS group_viewable_entity_id,
+ SELECT hmis_group_viewable_entities.id AS group_viewable_entity_id,
     NULL::integer AS organization_id,
-    group_viewable_entities.entity_id AS project_id
-   FROM public.group_viewable_entities
-  WHERE (((group_viewable_entities.entity_type)::text = 'Hmis::Hud::Project'::text) AND (group_viewable_entities.deleted_at IS NULL))
+    hmis_group_viewable_entities.entity_id AS project_id
+   FROM public.hmis_group_viewable_entities
+  WHERE (((hmis_group_viewable_entities.entity_type)::text = 'Hmis::Hud::Project'::text) AND (hmis_group_viewable_entities.deleted_at IS NULL))
 UNION
- SELECT group_viewable_entities.id AS group_viewable_entity_id,
+ SELECT hmis_group_viewable_entities.id AS group_viewable_entity_id,
     "Organization".id AS organization_id,
     "Project".id AS project_id
-   FROM ((public.group_viewable_entities
-     JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND ("Organization".id = group_viewable_entities.entity_id))))
+   FROM ((public.hmis_group_viewable_entities
+     JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND ("Organization".id = hmis_group_viewable_entities.entity_id))))
      JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Organization".data_source_id = "Project".data_source_id) AND (("Organization"."OrganizationID")::text = ("Project"."OrganizationID")::text))))
-  WHERE (((group_viewable_entities.entity_type)::text = 'Hmis::Hud::Organization'::text) AND (group_viewable_entities.deleted_at IS NULL))
+  WHERE (((hmis_group_viewable_entities.entity_type)::text = 'Hmis::Hud::Organization'::text) AND (hmis_group_viewable_entities.deleted_at IS NULL))
 UNION
- SELECT group_viewable_entities.id AS group_viewable_entity_id,
+ SELECT hmis_group_viewable_entities.id AS group_viewable_entity_id,
     "Organization".id AS organization_id,
     "Project".id AS project_id
-   FROM (((public.group_viewable_entities
-     JOIN public.data_sources ON (((data_sources.deleted_at IS NULL) AND (data_sources.id = group_viewable_entities.entity_id))))
+   FROM (((public.hmis_group_viewable_entities
+     JOIN public.data_sources ON (((data_sources.deleted_at IS NULL) AND (data_sources.id = hmis_group_viewable_entities.entity_id))))
      LEFT JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND (data_sources.id = "Project".data_source_id))))
      LEFT JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND (data_sources.id = "Organization".data_source_id))))
-  WHERE (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (group_viewable_entities.deleted_at IS NULL))
-UNION
- SELECT group_viewable_entities.id AS group_viewable_entity_id,
-    NULL::integer AS organization_id,
-    "Project".id AS project_id
-   FROM (((public.group_viewable_entities
-     JOIN public.project_groups ON (((project_groups.deleted_at IS NULL) AND (project_groups.id = group_viewable_entities.entity_id))))
-     JOIN public.project_project_groups ON ((project_project_groups.project_group_id = project_groups.id)))
-     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = project_project_groups.project_id))))
-  WHERE (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::ProjectGroup'::text) AND (group_viewable_entities.deleted_at IS NULL));
+  WHERE (((hmis_group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (hmis_group_viewable_entities.deleted_at IS NULL));
 
 
 --
@@ -18345,25 +18452,49 @@ UNION
 --
 
 CREATE VIEW public.hmis_households AS
- SELECT concat("Enrollment"."HouseholdID", ':', max(("Project"."ProjectID")::text), ':', max("Enrollment".data_source_id)) AS id,
-    "Enrollment"."HouseholdID",
-    max(("Project"."ProjectID")::text) AS "ProjectID",
-    max("Enrollment".data_source_id) AS data_source_id,
-    min("Enrollment"."EntryDate") AS earliest_entry,
+ WITH tmp1 AS (
+         SELECT "Enrollment"."HouseholdID",
+            "Project"."ProjectID",
+            false AS wip,
+            "Project".data_source_id,
+            "Enrollment"."EntryDate",
+            "Exit"."ExitDate",
+            "Enrollment"."DateUpdated",
+            "Enrollment"."DateCreated"
+           FROM ((public."Enrollment"
+             LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
+             JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = "Enrollment".data_source_id) AND (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text))))
+          WHERE ("Enrollment"."DateDeleted" IS NULL)
+        UNION ALL
+         SELECT "Enrollment"."HouseholdID",
+            "Project"."ProjectID",
+            true AS wip,
+            "Project".data_source_id,
+            "Enrollment"."EntryDate",
+            "Exit"."ExitDate",
+            "Enrollment"."DateUpdated",
+            "Enrollment"."DateCreated"
+           FROM (((public."Enrollment"
+             LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
+             JOIN public.hmis_wips ON (((hmis_wips.source_id = "Enrollment".id) AND ((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text))))
+             JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = hmis_wips.project_id))))
+          WHERE (("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment"."ProjectID" IS NULL))
+        )
+ SELECT concat(tmp1."HouseholdID", ':', tmp1."ProjectID", ':', tmp1.data_source_id) AS id,
+    tmp1."HouseholdID",
+    tmp1."ProjectID",
+    tmp1.data_source_id,
+    min(tmp1."EntryDate") AS earliest_entry,
         CASE
-            WHEN bool_or(("Exit"."ExitDate" IS NULL)) THEN NULL::date
-            ELSE max("Exit"."ExitDate")
+            WHEN bool_or((tmp1."ExitDate" IS NULL)) THEN NULL::date
+            ELSE max(tmp1."ExitDate")
         END AS latest_exit,
-    bool_or(("Enrollment"."ProjectID" IS NULL)) AS any_wip,
+    bool_or(tmp1.wip) AS any_wip,
     NULL::text AS "DateDeleted",
-    max("Enrollment"."DateUpdated") AS "DateUpdated",
-    min("Enrollment"."DateCreated") AS "DateCreated"
-   FROM (((public."Enrollment"
-     LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
-     LEFT JOIN public.hmis_wips ON (((hmis_wips.source_id = "Enrollment".id) AND ((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text))))
-     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = "Enrollment".data_source_id) AND (("Project".id = hmis_wips.project_id) OR (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text)))))
-  WHERE (("Enrollment"."HouseholdID" IS NOT NULL) AND ("Enrollment"."DateDeleted" IS NULL))
-  GROUP BY "Enrollment"."HouseholdID", "Project"."ProjectID", "Enrollment".data_source_id;
+    max(tmp1."DateUpdated") AS "DateUpdated",
+    min(tmp1."DateCreated") AS "DateCreated"
+   FROM tmp1
+  GROUP BY tmp1."HouseholdID", tmp1."ProjectID", tmp1.data_source_id;
 
 
 --
@@ -18442,27 +18573,92 @@ ALTER SEQUENCE public.hmis_project_unit_type_mappings_id_seq OWNED BY public.hmi
 
 
 --
+-- Name: hmis_scan_card_codes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_scan_card_codes (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    value character varying NOT NULL,
+    created_by_id bigint,
+    deleted_by_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    expires_at timestamp without time zone
+);
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.value; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.value IS 'code to embed in scan card';
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.created_by_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.created_by_id IS 'user that generated code';
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.deleted_by_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.deleted_by_id IS 'user that deleted code';
+
+
+--
+-- Name: COLUMN hmis_scan_card_codes.expires_at; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.hmis_scan_card_codes.expires_at IS 'when scan card should expire';
+
+
+--
+-- Name: hmis_scan_card_codes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_scan_card_codes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_scan_card_codes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_scan_card_codes_id_seq OWNED BY public.hmis_scan_card_codes.id;
+
+
+--
 -- Name: hmis_services; Type: VIEW; Schema: public; Owner: -
 --
 
 CREATE VIEW public.hmis_services AS
- SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
+( SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
     "Services".id AS owner_id,
     'Hmis::Hud::Service'::text AS owner_type,
     "CustomServiceTypes".id AS custom_service_type_id,
     "Services"."EnrollmentID",
     "Services"."PersonalID",
     "Services"."DateProvided",
-    "Services"."UserID",
+    ("Services"."UserID")::character varying AS "UserID",
     "Services"."DateCreated",
     "Services"."DateUpdated",
     "Services"."DateDeleted",
     "Services".data_source_id
    FROM (public."Services"
-     JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes"."DateDeleted" IS NULL))))
+     JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes".data_source_id = "Services".data_source_id) AND ("CustomServiceTypes"."DateDeleted" IS NULL))))
   WHERE ("Services"."DateDeleted" IS NULL)
+  ORDER BY "Services"."DateProvided")
 UNION ALL
- SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
+( SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
     ("CustomServices".id)::integer AS owner_id,
     'Hmis::Hud::CustomService'::text AS owner_type,
     "CustomServices".custom_service_type_id,
@@ -18475,7 +18671,8 @@ UNION ALL
     "CustomServices"."DateDeleted",
     "CustomServices".data_source_id
    FROM public."CustomServices"
-  WHERE ("CustomServices"."DateDeleted" IS NULL);
+  WHERE ("CustomServices"."DateDeleted" IS NULL)
+  ORDER BY "CustomServices"."DateProvided");
 
 
 --
@@ -19837,7 +20034,8 @@ CREATE TABLE public.hud_report_instances (
     failed_at timestamp without time zone,
     percent_complete double precision,
     export_id bigint,
-    type character varying DEFAULT 'HudReports::ReportInstance'::character varying NOT NULL
+    type character varying DEFAULT 'HudReports::ReportInstance'::character varying NOT NULL,
+    error_details text
 );
 
 
@@ -19917,7 +20115,9 @@ CREATE TABLE public.hud_report_path_clients (
     updated_at timestamp without time zone NOT NULL,
     gender_multi character varying,
     destination_client_id integer,
-    personal_id character varying
+    personal_id character varying,
+    race_multi character varying,
+    newly_enrolled_client boolean DEFAULT false
 );
 
 
@@ -20020,6 +20220,39 @@ ALTER SEQUENCE public.hud_report_pit_clients_id_seq OWNED BY public.hud_report_p
 
 
 --
+-- Name: hud_report_spm_bed_nights; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_spm_bed_nights (
+    id bigint NOT NULL,
+    date date,
+    episode_id bigint,
+    service_id bigint,
+    enrollment_id bigint,
+    client_id bigint
+);
+
+
+--
+-- Name: hud_report_spm_bed_nights_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_spm_bed_nights_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_spm_bed_nights_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_spm_bed_nights_id_seq OWNED BY public.hud_report_spm_bed_nights.id;
+
+
+--
 -- Name: hud_report_spm_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -20111,6 +20344,162 @@ CREATE SEQUENCE public.hud_report_spm_clients_id_seq
 --
 
 ALTER SEQUENCE public.hud_report_spm_clients_id_seq OWNED BY public.hud_report_spm_clients.id;
+
+
+--
+-- Name: hud_report_spm_enrollment_links; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_spm_enrollment_links (
+    id bigint NOT NULL,
+    enrollment_id bigint,
+    episode_id bigint
+);
+
+
+--
+-- Name: hud_report_spm_enrollment_links_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_spm_enrollment_links_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_spm_enrollment_links_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_spm_enrollment_links_id_seq OWNED BY public.hud_report_spm_enrollment_links.id;
+
+
+--
+-- Name: hud_report_spm_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_spm_enrollments (
+    id bigint NOT NULL,
+    first_name character varying,
+    last_name character varying,
+    personal_id character varying,
+    data_source_id integer,
+    start_of_homelessness date,
+    entry_date date,
+    exit_date date,
+    move_in_date date,
+    project_type integer,
+    eligible_funding boolean,
+    prior_living_situation integer,
+    length_of_stay integer,
+    los_under_threshold boolean,
+    previous_street_essh boolean,
+    destination integer,
+    age integer,
+    previous_earned_income numeric,
+    previous_non_employment_income numeric,
+    previous_total_income numeric,
+    current_earned_income numeric,
+    current_non_employment_income numeric,
+    current_total_income numeric,
+    report_instance_id bigint,
+    client_id bigint,
+    previous_income_benefits_id bigint,
+    current_income_benefits_id bigint,
+    enrollment_id bigint,
+    days_enrolled integer
+);
+
+
+--
+-- Name: hud_report_spm_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_spm_enrollments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_spm_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_spm_enrollments_id_seq OWNED BY public.hud_report_spm_enrollments.id;
+
+
+--
+-- Name: hud_report_spm_episodes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_spm_episodes (
+    id bigint NOT NULL,
+    first_date date,
+    last_date date,
+    days_homeless integer,
+    literally_homeless_at_entry boolean,
+    client_id bigint
+);
+
+
+--
+-- Name: hud_report_spm_episodes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_spm_episodes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_spm_episodes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_spm_episodes_id_seq OWNED BY public.hud_report_spm_episodes.id;
+
+
+--
+-- Name: hud_report_spm_returns; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hud_report_spm_returns (
+    id bigint NOT NULL,
+    exit_date date,
+    return_date date,
+    exit_destination integer,
+    exit_enrollment_id bigint,
+    return_enrollment_id bigint,
+    client_id bigint,
+    report_instance_id bigint,
+    days_to_return integer,
+    project_type integer
+);
+
+
+--
+-- Name: hud_report_spm_returns_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hud_report_spm_returns_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hud_report_spm_returns_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hud_report_spm_returns_id_seq OWNED BY public.hud_report_spm_returns.id;
 
 
 --
@@ -21245,7 +21634,8 @@ CREATE TABLE public.performance_measurement_goals (
     destination_so integer DEFAULT 85 NOT NULL,
     destination_homeless_plus integer DEFAULT 85 NOT NULL,
     destination_permanent integer DEFAULT 85 NOT NULL,
-    time_time_homeless_and_ph integer DEFAULT 90 NOT NULL
+    time_time_homeless_and_ph integer DEFAULT 90 NOT NULL,
+    equity_analysis_visible boolean DEFAULT false NOT NULL
 );
 
 
@@ -21353,7 +21743,9 @@ CREATE TABLE public.places (
     updated_at timestamp(6) without time zone NOT NULL,
     city character varying,
     state character varying,
-    zipcode character varying
+    zipcode character varying,
+    lat double precision,
+    lon double precision
 );
 
 
@@ -21387,8 +21779,16 @@ CREATE TABLE public.pm_client_projects (
     deleted_at timestamp without time zone,
     report_id integer,
     for_question character varying,
-    period character varying
+    period character varying,
+    household_type integer
 );
+
+
+--
+-- Name: COLUMN pm_client_projects.household_type; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.pm_client_projects.household_type IS '2.07.4';
 
 
 --
@@ -21733,6 +22133,20 @@ ALTER SEQUENCE public.project_data_quality_id_seq OWNED BY public.project_data_q
 
 
 --
+-- Name: project_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.project_groups (
+    id integer NOT NULL,
+    name character varying NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    deleted_at timestamp without time zone,
+    options jsonb DEFAULT '{}'::jsonb
+);
+
+
+--
 -- Name: project_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -21912,6 +22326,20 @@ CREATE SEQUENCE public.project_pass_fails_projects_id_seq
 --
 
 ALTER SEQUENCE public.project_pass_fails_projects_id_seq OWNED BY public.project_pass_fails_projects.id;
+
+
+--
+-- Name: project_project_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.project_project_groups (
+    id integer NOT NULL,
+    project_group_id integer,
+    project_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    deleted_at timestamp without time zone
+);
 
 
 --
@@ -24637,6 +25065,38 @@ ALTER SEQUENCE public.tags_id_seq OWNED BY public.tags.id;
 
 
 --
+-- Name: talentlms_completed_trainings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.talentlms_completed_trainings (
+    id bigint NOT NULL,
+    login_id bigint NOT NULL,
+    config_id bigint NOT NULL,
+    course_id integer NOT NULL,
+    completion_date date NOT NULL
+);
+
+
+--
+-- Name: talentlms_completed_trainings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.talentlms_completed_trainings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: talentlms_completed_trainings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.talentlms_completed_trainings_id_seq OWNED BY public.talentlms_completed_trainings.id;
+
+
+--
 -- Name: talentlms_configs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -24645,7 +25105,8 @@ CREATE TABLE public.talentlms_configs (
     subdomain character varying,
     encrypted_api_key character varying,
     encrypted_api_key_iv character varying,
-    courseid integer
+    courseid integer,
+    months_to_expiration integer
 );
 
 
@@ -25134,6 +25595,58 @@ CREATE SEQUENCE public.verification_sources_id_seq
 --
 
 ALTER SEQUENCE public.verification_sources_id_seq OWNED BY public.verification_sources.id;
+
+
+--
+-- Name: versions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.versions (
+    id bigint NOT NULL,
+    item_type character varying NOT NULL,
+    item_id bigint NOT NULL,
+    event character varying NOT NULL,
+    whodunnit character varying,
+    object jsonb,
+    object_changes jsonb,
+    created_at timestamp without time zone,
+    session_id character varying,
+    request_id character varying,
+    user_id bigint,
+    referenced_user_id bigint,
+    referenced_entity_name character varying,
+    migrated_app_version_id bigint,
+    true_user_id bigint,
+    client_id bigint,
+    enrollment_id bigint,
+    project_id bigint
+);
+
+
+--
+-- Name: COLUMN versions.migrated_app_version_id; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.versions.migrated_app_version_id IS 'app database version record';
+
+
+--
+-- Name: versions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.versions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: versions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.versions_id_seq OWNED BY public.versions.id;
 
 
 --
@@ -26565,6 +27078,20 @@ ALTER TABLE ONLY public.external_ids ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
+-- Name: external_reporting_cohort_permissions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_reporting_cohort_permissions ALTER COLUMN id SET DEFAULT nextval('public.external_reporting_cohort_permissions_id_seq'::regclass);
+
+
+--
+-- Name: external_reporting_project_permissions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_reporting_project_permissions ALTER COLUMN id SET DEFAULT nextval('public.external_reporting_project_permissions_id_seq'::regclass);
+
+
+--
 -- Name: external_request_logs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -27265,6 +27792,13 @@ ALTER TABLE ONLY public.hmis_assessments ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: hmis_auto_exit_configs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_auto_exit_configs ALTER COLUMN id SET DEFAULT nextval('public.hmis_auto_exit_configs_id_seq'::regclass);
+
+
+--
 -- Name: hmis_case_notes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -27937,6 +28471,13 @@ ALTER TABLE ONLY public.hmis_forms ALTER COLUMN id SET DEFAULT nextval('public.h
 
 
 --
+-- Name: hmis_group_viewable_entities id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_group_viewable_entities ALTER COLUMN id SET DEFAULT nextval('public.hmis_group_viewable_entities_id_seq'::regclass);
+
+
+--
 -- Name: hmis_import_configs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -27948,6 +28489,13 @@ ALTER TABLE ONLY public.hmis_import_configs ALTER COLUMN id SET DEFAULT nextval(
 --
 
 ALTER TABLE ONLY public.hmis_project_unit_type_mappings ALTER COLUMN id SET DEFAULT nextval('public.hmis_project_unit_type_mappings_id_seq'::regclass);
+
+
+--
+-- Name: hmis_scan_card_codes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scan_card_codes ALTER COLUMN id SET DEFAULT nextval('public.hmis_scan_card_codes_id_seq'::regclass);
 
 
 --
@@ -28140,10 +28688,45 @@ ALTER TABLE ONLY public.hud_report_pit_clients ALTER COLUMN id SET DEFAULT nextv
 
 
 --
+-- Name: hud_report_spm_bed_nights id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_bed_nights ALTER COLUMN id SET DEFAULT nextval('public.hud_report_spm_bed_nights_id_seq'::regclass);
+
+
+--
 -- Name: hud_report_spm_clients id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hud_report_spm_clients ALTER COLUMN id SET DEFAULT nextval('public.hud_report_spm_clients_id_seq'::regclass);
+
+
+--
+-- Name: hud_report_spm_enrollment_links id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_enrollment_links ALTER COLUMN id SET DEFAULT nextval('public.hud_report_spm_enrollment_links_id_seq'::regclass);
+
+
+--
+-- Name: hud_report_spm_enrollments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_enrollments ALTER COLUMN id SET DEFAULT nextval('public.hud_report_spm_enrollments_id_seq'::regclass);
+
+
+--
+-- Name: hud_report_spm_episodes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_episodes ALTER COLUMN id SET DEFAULT nextval('public.hud_report_spm_episodes_id_seq'::regclass);
+
+
+--
+-- Name: hud_report_spm_returns id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_returns ALTER COLUMN id SET DEFAULT nextval('public.hud_report_spm_returns_id_seq'::regclass);
 
 
 --
@@ -29036,6 +29619,13 @@ ALTER TABLE ONLY public.tags ALTER COLUMN id SET DEFAULT nextval('public.tags_id
 
 
 --
+-- Name: talentlms_completed_trainings id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.talentlms_completed_trainings ALTER COLUMN id SET DEFAULT nextval('public.talentlms_completed_trainings_id_seq'::regclass);
+
+
+--
 -- Name: talentlms_configs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -29124,6 +29714,13 @@ ALTER TABLE ONLY public.va_check_histories ALTER COLUMN id SET DEFAULT nextval('
 --
 
 ALTER TABLE ONLY public.verification_sources ALTER COLUMN id SET DEFAULT nextval('public.verification_sources_id_seq'::regclass);
+
+
+--
+-- Name: versions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.versions ALTER COLUMN id SET DEFAULT nextval('public.versions_id_seq'::regclass);
 
 
 --
@@ -30163,6 +30760,22 @@ ALTER TABLE ONLY public.external_ids
 
 
 --
+-- Name: external_reporting_cohort_permissions external_reporting_cohort_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_reporting_cohort_permissions
+    ADD CONSTRAINT external_reporting_cohort_permissions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: external_reporting_project_permissions external_reporting_project_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.external_reporting_project_permissions
+    ADD CONSTRAINT external_reporting_project_permissions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: external_request_logs external_request_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -30963,6 +31576,14 @@ ALTER TABLE ONLY public.hmis_assessments
 
 
 --
+-- Name: hmis_auto_exit_configs hmis_auto_exit_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_auto_exit_configs
+    ADD CONSTRAINT hmis_auto_exit_configs_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_case_notes hmis_case_notes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -31731,6 +32352,14 @@ ALTER TABLE ONLY public.hmis_forms
 
 
 --
+-- Name: hmis_group_viewable_entities hmis_group_viewable_entities_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_group_viewable_entities
+    ADD CONSTRAINT hmis_group_viewable_entities_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_import_configs hmis_import_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -31744,6 +32373,14 @@ ALTER TABLE ONLY public.hmis_import_configs
 
 ALTER TABLE ONLY public.hmis_project_unit_type_mappings
     ADD CONSTRAINT hmis_project_unit_type_mappings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_scan_card_codes hmis_scan_card_codes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_scan_card_codes
+    ADD CONSTRAINT hmis_scan_card_codes_pkey PRIMARY KEY (id);
 
 
 --
@@ -31963,11 +32600,51 @@ ALTER TABLE ONLY public.hud_report_pit_clients
 
 
 --
+-- Name: hud_report_spm_bed_nights hud_report_spm_bed_nights_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_bed_nights
+    ADD CONSTRAINT hud_report_spm_bed_nights_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hud_report_spm_clients hud_report_spm_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hud_report_spm_clients
     ADD CONSTRAINT hud_report_spm_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_report_spm_enrollment_links hud_report_spm_enrollment_links_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_enrollment_links
+    ADD CONSTRAINT hud_report_spm_enrollment_links_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_report_spm_enrollments hud_report_spm_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_enrollments
+    ADD CONSTRAINT hud_report_spm_enrollments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_report_spm_episodes hud_report_spm_episodes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_episodes
+    ADD CONSTRAINT hud_report_spm_episodes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hud_report_spm_returns hud_report_spm_returns_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hud_report_spm_returns
+    ADD CONSTRAINT hud_report_spm_returns_pkey PRIMARY KEY (id);
 
 
 --
@@ -32587,6 +33264,14 @@ ALTER TABLE ONLY public.tags
 
 
 --
+-- Name: talentlms_completed_trainings talentlms_completed_trainings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.talentlms_completed_trainings
+    ADD CONSTRAINT talentlms_completed_trainings_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: talentlms_configs talentlms_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -32688,6 +33373,14 @@ ALTER TABLE ONLY public.va_check_histories
 
 ALTER TABLE ONLY public.verification_sources
     ADD CONSTRAINT verification_sources_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: versions versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.versions
+    ADD CONSTRAINT versions_pkey PRIMARY KEY (id);
 
 
 --
@@ -48915,6 +49608,13 @@ CREATE INDEX "index_CustomCaseNote_on_UserID" ON public."CustomCaseNote" USING b
 
 
 --
+-- Name: index_CustomClientAddress_on_data_source_id_and_EnrollmentID; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX "index_CustomClientAddress_on_data_source_id_and_EnrollmentID" ON public."CustomClientAddress" USING btree (data_source_id, "EnrollmentID") WHERE (((enrollment_address_type)::text = 'move_in'::text) AND ("DateDeleted" IS NULL));
+
+
+--
 -- Name: index_CustomDataElementDefinitions_on_custom_service_type_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50140,6 +50840,13 @@ CREATE INDEX index_clh_locations_on_client_id ON public.clh_locations USING btre
 
 
 --
+-- Name: index_clh_locations_on_lat_and_lon; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_clh_locations_on_lat_and_lon ON public.clh_locations USING btree (lat, lon);
+
+
+--
 -- Name: index_clh_locations_on_source_type_and_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50756,6 +51463,34 @@ CREATE INDEX index_external_ids_on_value ON public.external_ids USING btree (val
 
 
 --
+-- Name: index_external_reporting_cohort_permissions_on_cohort_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_reporting_cohort_permissions_on_cohort_id ON public.external_reporting_cohort_permissions USING btree (cohort_id);
+
+
+--
+-- Name: index_external_reporting_cohort_permissions_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_reporting_cohort_permissions_on_user_id ON public.external_reporting_cohort_permissions USING btree (user_id);
+
+
+--
+-- Name: index_external_reporting_project_permissions_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_reporting_project_permissions_on_project_id ON public.external_reporting_project_permissions USING btree (project_id);
+
+
+--
+-- Name: index_external_reporting_project_permissions_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_external_reporting_project_permissions_on_user_id ON public.external_reporting_project_permissions USING btree (user_id);
+
+
+--
 -- Name: index_external_request_logs_on_initiator; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50809,6 +51544,13 @@ CREATE INDEX index_favorites_on_updated_at ON public.favorites USING btree (upda
 --
 
 CREATE INDEX index_favorites_on_user_id ON public.favorites USING btree (user_id);
+
+
+--
+-- Name: index_files_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_files_on_data_source_id ON public.files USING btree (data_source_id);
 
 
 --
@@ -51397,6 +52139,20 @@ CREATE INDEX index_hmis_assessments_on_name ON public.hmis_assessments USING btr
 --
 
 CREATE INDEX index_hmis_assessments_on_site_id ON public.hmis_assessments USING btree (site_id);
+
+
+--
+-- Name: index_hmis_auto_exit_configs_on_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_auto_exit_configs_on_organization_id ON public.hmis_auto_exit_configs USING btree (organization_id);
+
+
+--
+-- Name: index_hmis_auto_exit_configs_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_auto_exit_configs_on_project_id ON public.hmis_auto_exit_configs USING btree (project_id);
 
 
 --
@@ -52121,6 +52877,13 @@ CREATE INDEX index_hmis_form_instances_on_entity ON public.hmis_form_instances U
 
 
 --
+-- Name: index_hmis_form_processors_on_ce_assessment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_ce_assessment_id ON public.hmis_form_processors USING btree (ce_assessment_id);
+
+
+--
 -- Name: index_hmis_form_processors_on_chronic_health_condition_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -52219,6 +52982,20 @@ CREATE INDEX index_hmis_forms_on_name ON public.hmis_forms USING btree (name);
 
 
 --
+-- Name: index_hmis_group_viewable_entities_on_collection_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_group_viewable_entities_on_collection_id ON public.hmis_group_viewable_entities USING btree (collection_id);
+
+
+--
+-- Name: index_hmis_group_viewable_entities_on_entity; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_group_viewable_entities_on_entity ON public.hmis_group_viewable_entities USING btree (entity_type, entity_id);
+
+
+--
 -- Name: index_hmis_import_configs_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -52237,6 +53014,34 @@ CREATE INDEX index_hmis_project_unit_type_mappings_on_project_id ON public.hmis_
 --
 
 CREATE INDEX index_hmis_project_unit_type_mappings_on_unit_type_id ON public.hmis_project_unit_type_mappings USING btree (unit_type_id);
+
+
+--
+-- Name: index_hmis_scan_card_codes_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_scan_card_codes_on_client_id ON public.hmis_scan_card_codes USING btree (client_id);
+
+
+--
+-- Name: index_hmis_scan_card_codes_on_created_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_scan_card_codes_on_created_by_id ON public.hmis_scan_card_codes USING btree (created_by_id);
+
+
+--
+-- Name: index_hmis_scan_card_codes_on_deleted_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_scan_card_codes_on_deleted_by_id ON public.hmis_scan_card_codes USING btree (deleted_by_id);
+
+
+--
+-- Name: index_hmis_scan_card_codes_on_value; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hmis_scan_card_codes_on_value ON public.hmis_scan_card_codes USING btree (value);
 
 
 --
@@ -52580,6 +53385,104 @@ CREATE INDEX index_hud_report_pit_clients_on_data_source_id ON public.hud_report
 --
 
 CREATE INDEX index_hud_report_pit_clients_on_report_instance_id ON public.hud_report_pit_clients USING btree (report_instance_id);
+
+
+--
+-- Name: index_hud_report_spm_bed_nights_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_bed_nights_on_client_id ON public.hud_report_spm_bed_nights USING btree (client_id);
+
+
+--
+-- Name: index_hud_report_spm_bed_nights_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_bed_nights_on_enrollment_id ON public.hud_report_spm_bed_nights USING btree (enrollment_id);
+
+
+--
+-- Name: index_hud_report_spm_bed_nights_on_episode_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_bed_nights_on_episode_id ON public.hud_report_spm_bed_nights USING btree (episode_id);
+
+
+--
+-- Name: index_hud_report_spm_bed_nights_on_service_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_bed_nights_on_service_id ON public.hud_report_spm_bed_nights USING btree (service_id);
+
+
+--
+-- Name: index_hud_report_spm_enrollment_links_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_enrollment_links_on_enrollment_id ON public.hud_report_spm_enrollment_links USING btree (enrollment_id);
+
+
+--
+-- Name: index_hud_report_spm_enrollment_links_on_episode_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_enrollment_links_on_episode_id ON public.hud_report_spm_enrollment_links USING btree (episode_id);
+
+
+--
+-- Name: index_hud_report_spm_enrollments_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_enrollments_on_client_id ON public.hud_report_spm_enrollments USING btree (client_id);
+
+
+--
+-- Name: index_hud_report_spm_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_enrollments_on_enrollment_id ON public.hud_report_spm_enrollments USING btree (enrollment_id);
+
+
+--
+-- Name: index_hud_report_spm_enrollments_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_enrollments_on_report_instance_id ON public.hud_report_spm_enrollments USING btree (report_instance_id);
+
+
+--
+-- Name: index_hud_report_spm_episodes_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_episodes_on_client_id ON public.hud_report_spm_episodes USING btree (client_id);
+
+
+--
+-- Name: index_hud_report_spm_returns_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_returns_on_client_id ON public.hud_report_spm_returns USING btree (client_id);
+
+
+--
+-- Name: index_hud_report_spm_returns_on_exit_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_returns_on_exit_enrollment_id ON public.hud_report_spm_returns USING btree (exit_enrollment_id);
+
+
+--
+-- Name: index_hud_report_spm_returns_on_report_instance_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_returns_on_report_instance_id ON public.hud_report_spm_returns USING btree (report_instance_id);
+
+
+--
+-- Name: index_hud_report_spm_returns_on_return_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hud_report_spm_returns_on_return_enrollment_id ON public.hud_report_spm_returns USING btree (return_enrollment_id);
 
 
 --
@@ -53063,6 +53966,13 @@ CREATE INDEX index_performance_metrics_clients_on_report_id ON public.performanc
 --
 
 CREATE INDEX index_performance_metrics_clients_on_updated_at ON public.performance_metrics_clients USING btree (updated_at);
+
+
+--
+-- Name: index_places_on_lat_and_lon; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_places_on_lat_and_lon ON public.places USING btree (lat, lon);
 
 
 --
@@ -56986,6 +57896,20 @@ CREATE UNIQUE INDEX index_tags_on_name ON public.tags USING btree (name);
 
 
 --
+-- Name: index_talentlms_completed_trainings_on_config_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_talentlms_completed_trainings_on_config_id ON public.talentlms_completed_trainings USING btree (config_id);
+
+
+--
+-- Name: index_talentlms_completed_trainings_on_login_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_talentlms_completed_trainings_on_login_id ON public.talentlms_completed_trainings USING btree (login_id);
+
+
+--
 -- Name: index_talentlms_logins_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -57084,13 +58008,6 @@ CREATE INDEX index_tx_research_exports_on_user_id ON public.tx_research_exports 
 
 
 --
--- Name: index_unique_identifiers_per_role; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_unique_identifiers_per_role ON public.hmis_form_definitions USING btree (identifier, role, version, status);
-
-
---
 -- Name: index_universe_type_and_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -57144,6 +58061,34 @@ CREATE INDEX index_va_check_histories_on_client_id ON public.va_check_histories 
 --
 
 CREATE INDEX index_va_check_histories_on_user_id ON public.va_check_histories USING btree (user_id);
+
+
+--
+-- Name: index_versions_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_versions_on_client_id ON public.versions USING btree (client_id);
+
+
+--
+-- Name: index_versions_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_versions_on_enrollment_id ON public.versions USING btree (enrollment_id);
+
+
+--
+-- Name: index_versions_on_item_type_and_item_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_versions_on_item_type_and_item_id ON public.versions USING btree (item_type, item_id);
+
+
+--
+-- Name: index_versions_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_versions_on_project_id ON public.versions USING btree (project_id);
 
 
 --
@@ -57616,6 +58561,13 @@ CREATE UNIQUE INDEX spm_client_conflict_columns ON public.hud_report_spm_clients
 
 
 --
+-- Name: spm_p_id_ds_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX spm_p_id_ds_id ON public.hud_report_spm_enrollments USING btree (personal_id, data_source_id);
+
+
+--
 -- Name: taggings_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -57644,6 +58596,13 @@ CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "Personal
 
 
 --
+-- Name: tt_hh_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX tt_hh_id ON public.service_history_enrollments USING btree (household_id);
+
+
+--
 -- Name: tx_id_ds_id_ft_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -57654,7 +58613,7 @@ CREATE UNIQUE INDEX tx_id_ds_id_ft_idx ON public.financial_transactions USING bt
 -- Name: uidx_external_id_ns_value; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL ((ARRAY['ac_hmis_mci'::character varying, 'ac_hmis_mci_unique_id'::character varying])::text[]));
+CREATE UNIQUE INDEX uidx_external_id_ns_value ON public.external_ids USING btree (source_type, namespace, value) WHERE ((namespace)::text <> ALL (ARRAY[('ac_hmis_mci'::character varying)::text, ('ac_hmis_mci_unique_id'::character varying)::text]));
 
 
 --
@@ -57704,6 +58663,13 @@ CREATE UNIQUE INDEX uidx_hmis_external_referrals_identifier ON public.hmis_exter
 --
 
 CREATE UNIQUE INDEX uidx_hmis_external_unit_availability_syncs ON public.hmis_external_unit_availability_syncs USING btree (project_id, unit_type_id);
+
+
+--
+-- Name: uidx_hmis_form_definitions_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX uidx_hmis_form_definitions_identifier ON public.hmis_form_definitions USING btree (identifier, version);
 
 
 --
@@ -58871,22 +59837,6 @@ CREATE RULE attempt_client_searchable_names_up AS
 
 
 --
--- Name: hmis_group_viewable_entity_projects attempt_hmis_group_viewable_entity_projects_del; Type: RULE; Schema: public; Owner: -
---
-
-CREATE RULE attempt_hmis_group_viewable_entity_projects_del AS
-    ON DELETE TO public.hmis_group_viewable_entity_projects DO INSTEAD NOTHING;
-
-
---
--- Name: hmis_group_viewable_entity_projects attempt_hmis_group_viewable_entity_projects_up; Type: RULE; Schema: public; Owner: -
---
-
-CREATE RULE attempt_hmis_group_viewable_entity_projects_up AS
-    ON UPDATE TO public.hmis_group_viewable_entity_projects DO INSTEAD NOTHING;
-
-
---
 -- Name: hmis_households attempt_hmis_households_del; Type: RULE; Schema: public; Owner: -
 --
 
@@ -59755,17 +60705,60 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230926205059'),
 ('20230927205059'),
 ('20230929205059'),
+('20230930131206'),
 ('20231003220010'),
 ('20231004162425'),
 ('20231004172833'),
 ('20231004203202'),
 ('20231009121430'),
 ('20231009190301'),
+('20231011143621'),
+('20231012131855'),
 ('20231013190301'),
 ('20231014150301'),
 ('20231014190301'),
 ('20231016190301'),
 ('20231017190301'),
-('20231020151224');
+('20231020151224'),
+('20231021205059'),
+('20231028140507'),
+('20231028230227'),
+('20231028231546'),
+('20231030140507'),
+('20231103151804'),
+('20231103153556'),
+('20231103154939'),
+('20231107190301'),
+('20231110134113'),
+('20231114235529'),
+('20231115170459'),
+('20231120221840'),
+('20231121165752'),
+('20231122185546'),
+('20231124171521'),
+('20231201154136'),
+('20231203221840'),
+('20231204134123'),
+('20231205141010'),
+('20231206200436'),
+('20231206205805'),
+('20231207155629'),
+('20231207161830'),
+('20231212212354'),
+('20231215143621'),
+('20231220194404'),
+('20231220203530'),
+('20231226194235'),
+('20240102155413'),
+('20240102205532'),
+('20240105222927'),
+('20240110135132'),
+('20240113025936'),
+('20240115190843'),
+('20240116193554'),
+('20240117133558'),
+('20240118203430'),
+('20240119035058'),
+('20240125143214');
 
 

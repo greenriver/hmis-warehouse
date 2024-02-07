@@ -19,7 +19,7 @@ require_relative 'datalab_caper/organization_m_es'
 require_relative 'datalab_caper/organization_m_rrh'
 require_relative 'datalab_caper/organization_s_es'
 
-# require_relative 'datalab_ce_apr/systemwide'
+require_relative 'datalab_ce_apr/systemwide'
 
 RSpec.describe 'Datalab 2024', type: :model do
   include_context 'datalab testkit context'
@@ -42,7 +42,7 @@ RSpec.describe 'Datalab 2024', type: :model do
 
   if File.exist?('drivers/datalab_testkit/spec/fixtures/inputs/merged/source/Export.csv')
     include_context 'datalab multiple projects apr'
-    # include_context 'datalab organization a rrh apr'
+    include_context 'datalab organization a rrh apr'
     # include_context 'datalab organization o sso apr'
     # include_context 'datalab organization o th apr'
     # include_context 'datalab organization s rrh apr'
@@ -53,9 +53,7 @@ RSpec.describe 'Datalab 2024', type: :model do
     # include_context 'datalab organization m es caper'
     # include_context 'datalab organization m rrh caper'
     # include_context 'datalab organization s es caper'
-
-    # TODO: re-enable when CE APR is built
-    # include_context 'datalab systemwide ce apr'
+    include_context 'datalab systemwide ce apr'
   else
     xit 'Data Lab Testkit based tests are skipped, files are missing' do
     end

@@ -9,6 +9,8 @@ module CohortColumns
     attribute :column, String, lazy: true, default: :first_date_homeless
     attribute :translation_key, String, lazy: true, default: 'First Date Homeless'
     attribute :title, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.translation_key) }
+    attribute :description_translation_key, String, lazy: true, default: 'Date the client first appeared in a homeless enrollment in HMIS.'
+    attribute :description, String, lazy: true, default: ->(model, _attr) { Translation.translate(model.description_translation_key) }
 
     def cast_value(val)
       val.to_date

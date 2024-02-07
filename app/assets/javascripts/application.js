@@ -80,6 +80,7 @@
 //= require_directory ./warehouse_reports/outflow
 //= require_directory ./warehouse_reports/performance_dashboards
 //= require_directory ./warehouse_reports/homeless_summary_report
+//= require_directory ./warehouse_reports/all_neighbors_system_dashboard
 //= require_directory ./warehouse_reports
 //= require_directory ./d3_charts
 //= require_directory ./clients
@@ -92,6 +93,7 @@
 //= require affix
 //= require list_search
 //= require stimulus_select
+//= require inactive-session-modal-controller
 //= require chart_loader
 //= require filter_projects
 //= require TableWithToggleRows

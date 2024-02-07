@@ -125,7 +125,7 @@ module GrdaWarehouse::Hud
       :Medicaid,
       :Medicare,
       :SCHIP,
-      :VAMedicalServices,
+      :VHAServices,
       :EmployerProvided,
       :COBRA,
       :PrivatePay,
@@ -181,14 +181,21 @@ module GrdaWarehouse::Hud
 
     # This is the logic described in "Determining Total Income and Earned Income on a Specific Record"
     # in the APR spec
+    # This has been removed from the FY2024 spec, should now rely on the glossary "Determining Total and Earned Income"
     def hud_total_monthly_income
-      return self.TotalMonthlyIncome if self.TotalMonthlyIncome&.positive?
+      # rows 1 & 2
+      return self.TotalMonthlyIncome if self.TotalMonthlyIncome&.zero? || self.TotalMonthlyIncome&.positive?
 
       calculated = amounts&.compact&.sum
-      return calculated if calculated.positive?
-      return 0.0 if self.IncomeFromAnySource.in?([1, nil])
-      return 0.0 if self.IncomeFromAnySource.zero?
+      # row 3
+      return calculated if amounts.any? && (calculated.zero? || calculated.positive?)
+      # row 4
+      return 0.0 if self.IncomeFromAnySource&.zero?
+      # row 5
+      return 0.0 if self.TotalMonthlyIncome.present? && self.IncomeFromAnySource.in?([1, nil])
 
+      # row 6 & 7
+      # return nil if self.IncomeFromAnySource.in?([8, 9, 99])
       nil
     end
   end

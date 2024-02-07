@@ -8,6 +8,7 @@
 
 module Types
   class Forms::AutofillValue < Types::BaseObject
+    skip_activity_log
     description 'Value to autofill based on conditional logic'
 
     # Value to autofill. Only 1 of the below should be specified

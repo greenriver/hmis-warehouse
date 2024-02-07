@@ -4,7 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::BaseController < ApplicationController
+class Hmis::BaseController < ActionController::Base
+  include BaseApplicationControllerBehavior
+
+  before_action :authenticate_hmis_user!
+  impersonates :hmis_user, with: ->(id) { Hmis::User.find_by(id: id) }
+
   include Hmis::Concerns::JsonErrors
   respond_to :json
   before_action :set_csrf_cookie
@@ -13,10 +18,6 @@ class Hmis::BaseController < ApplicationController
 
   private def set_csrf_cookie
     cookies['CSRF-Token'] = form_authenticity_token
-  end
-
-  def authenticate_user!
-    authenticate_hmis_user!
   end
 
   # Override the devise implementation to reset the session
@@ -44,7 +45,19 @@ class Hmis::BaseController < ApplicationController
 
   # PaperTrail whodunnit (set in ApplicationController) uses this method to determine the label to be stored
   def user_for_paper_trail
-    current_hmis_user&.id
+    return 'unauthenticated' unless current_hmis_user.present?
+    return current_hmis_user.id unless impersonating?
+
+    "#{true_hmis_user.id} as #{current_hmis_user.id}"
+  end
+
+  def info_for_paper_trail
+    {
+      user_id: current_hmis_user&.id,
+      true_user_id: true_hmis_user&.id,
+      session_id: request.env['rack.session.record']&.session_id,
+      request_id: request.uuid,
+    }
   end
 
   def set_app_user_header
@@ -53,5 +66,30 @@ class Hmis::BaseController < ApplicationController
 
   def set_git_revision_header
     response.headers['X-git-revision'] = Git.revision
+  end
+
+  def impersonating?
+    true_hmis_user != current_hmis_user
+  end
+
+  # for mixins
+  def current_app_user
+    current_hmis_user
+  end
+
+  def authenticate_user!
+    raise 'authenticate_user called in HMIS controller. Did you mean authenticate_user?'
+  end
+
+  def current_user
+    raise 'current_user called in HMIS controller. Did you mean current_hmis_user?'
+  end
+
+  def not_authorized!
+    raise HmisErrors::NotAuthorizedError
+  end
+
+  rescue_from 'HmisErrors::NotAuthorizedError' do |_exception|
+    head :unauthorized
   end
 end

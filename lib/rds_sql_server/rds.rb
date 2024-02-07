@@ -55,7 +55,7 @@ class Rds
   define_method(:sqlservers) { _list.select { |server| server.engine.match(/sqlserver/) } }
 
   def start!
-    status = instance_data.db_instance_status
+    status = current_state
 
     if status.in?(['available', 'starting', 'creating'])
       Rails.logger.info "Not starting #{identifier}. It's #{status}"
@@ -69,7 +69,7 @@ class Rds
   end
 
   def stop!
-    status = instance_data.db_instance_status
+    status = current_state
 
     if status.in?(['stopped', 'stopping'])
       Rails.logger.info "Not stopping #{identifier}. It's already #{status}"
@@ -162,7 +162,7 @@ class Rds
       timezone: 'US Eastern Standard Time',
       copy_tags_to_snapshot: true,
       multi_az: false,
-      engine_version: '14.00.3381.3.v1',
+      engine_version: '14.00.3460.9.v1',
       tags: [
         { key: 'Rails Environment', value: Rails.env },
       ],
@@ -186,7 +186,7 @@ class Rds
   def wait!
     # return if ENV['LSA_DB_HOST'].present? || exists?
 
-    status = instance_data.db_instance_status
+    status = current_state
 
     # rubocop:disable Style/IfUnlessModifier
     if status.in?(NEVER_STARTING_STATUSES)
@@ -196,7 +196,7 @@ class Rds
     # rubocop:enable Style/IfUnlessModifier
 
     Timeout.timeout(MAX_WAIT_TIME) do
-      until host.present? && instance_data.db_instance_status == 'available'
+      until host.present? && current_state == 'available'
         Rails.logger.debug 'no host yet'
         # puts "no host yet"
         sleep 5

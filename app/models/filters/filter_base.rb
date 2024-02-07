@@ -109,6 +109,8 @@ module Filters
       require_service = filters.dig(:require_service_during_range)
       self.require_service_during_range = require_service.in?(['1', 'true', true]) unless require_service.nil?
       self.comparison_pattern = clean_comparison_pattern(filters.dig(:comparison_pattern)&.to_sym)
+      # NOTE: If an installation is Multi-CoC and a user has assigned CoC Codes,
+      # there can be odd behavior if the coc_codes key doesn't exist in the filter params
       self.coc_codes = filters.dig(:coc_codes)&.select { |code| available_coc_codes&.include?(code) }.presence || coc_codes.presence
       self.coc_codes = user.coc_codes.presence || coc_codes.presence if GrdaWarehouse::Config.get(:multi_coc_installation) && ! filters.key?(:coc_codes)
       self.coc_code = filters.dig(:coc_code) if available_coc_codes&.include?(filters.dig(:coc_code))
@@ -543,24 +545,19 @@ module Filters
       @report_scope_source = report_scope_source
       @filter = self
 
-      scope = filter_for_user_access(scope)
-      scope = filter_for_range(scope) if include_date_range
-      scope = if multi_coc_code_filter
-        filter_for_cocs(scope)
-      else
-        filter_for_coc(scope)
-      end
+      scope = apply_project_level_restrictions(scope, all_project_types: all_project_types, multi_coc_code_filter: multi_coc_code_filter, include_date_range: include_date_range)
+      scope = apply_client_level_restrictions(scope, chronic_at_entry: chronic_at_entry)
+      scope
+    end
+
+    def apply_client_level_restrictions(scope, chronic_at_entry: true)
+      @filter = self
       scope = filter_for_household_type(scope)
       scope = filter_for_head_of_household(scope)
       scope = filter_for_age(scope)
       scope = filter_for_gender(scope)
       scope = filter_for_race(scope)
       scope = filter_for_veteran_status(scope)
-      scope = filter_for_project_type(scope, all_project_types: all_project_types)
-      scope = filter_for_projects(scope)
-      scope = filter_for_funders(scope)
-      scope = filter_for_data_sources(scope)
-      scope = filter_for_organizations(scope)
       scope = filter_for_sub_population(scope)
       scope = filter_for_prior_living_situation(scope)
       scope = filter_for_destination(scope)
@@ -581,7 +578,25 @@ module Filters
       scope = filter_for_ce_cls_homeless(scope)
       scope = filter_for_cohorts(scope)
       scope = filter_for_active_roi(scope)
-      filter_for_times_homeless(scope)
+      scope = filter_for_times_homeless(scope)
+      scope
+    end
+
+    def apply_project_level_restrictions(scope, all_project_types: nil, multi_coc_code_filter: true, include_date_range: true)
+      @filter = self
+      scope = filter_for_user_access(scope)
+      scope = filter_for_range(scope) if include_date_range
+      scope = if multi_coc_code_filter
+        filter_for_cocs(scope)
+      else
+        filter_for_coc(scope)
+      end
+      scope = filter_for_project_type(scope, all_project_types: all_project_types)
+      scope = filter_for_projects(scope)
+      scope = filter_for_funders(scope)
+      scope = filter_for_data_sources(scope)
+      scope = filter_for_organizations(scope)
+      scope
     end
 
     def report_scope_source
@@ -902,6 +917,23 @@ module Filters
       }.invert.freeze
     end
 
+    def self.available_census_age_ranges
+      {
+        zero_to_four: '0 - 4',
+        five_to_nine: '5 - 9',
+        ten_to_fourteen: '10 - 14',
+        fifteen_to_seventeen: '15 - 17',
+        eighteen_to_twenty_four: '18 - 24',
+        twenty_five_to_thirty_four: '25 - 34',
+        thirty_five_to_forty_four: '35 - 44',
+        forty_five_to_fifty_four: '45 - 54',
+        fifty_five_to_sixty_four: '55 - 64',
+        sixty_five_to_seventy_four: '65 - 74',
+        seventy_five_to_eighty_four: '75 - 84',
+        eighty_five_plus: '85+',
+      }.invert.freeze
+    end
+
     def available_age_ranges
       self.class.available_age_ranges
     end
@@ -910,8 +942,12 @@ module Filters
       case description
       when :zero_to_four
         0..4
+      when :five_to_nine
+        5..9
       when :five_to_ten
         5..10
+      when :ten_to_fourteen
+        10..14
       when :eleven_to_fourteen
         11..14
       when :fifteen_to_seventeen
@@ -922,22 +958,30 @@ module Filters
         18..24
       when :twenty_five_to_twenty_nine
         25..29
+      when :twenty_five_to_thirty_four
+        25..34
       when :thirty_to_thirty_four
         30..34
       when :thirty_five_to_thirty_nine
         35..39
+      when :thirty_five_to_forty_four
+        35..44
       when :thirty_to_thirty_nine
         30..39
       when :forty_to_forty_four
         40..44
       when :forty_five_to_forty_nine
         45..49
+      when :forty_five_to_fifty_four
+        45..54
       when :forty_to_forty_nine
         40..49
       when :fifty_to_fifty_four
         50..54
       when :fifty_five_to_fifty_nine
         55..59
+      when :fifty_five_to_sixty_four
+        55..64
       when :sixty_to_sixty_one
         60..61
       when :sixty_two_to_sixty_four
@@ -946,6 +990,12 @@ module Filters
         62..110
       when :over_sixty_four
         65..110
+      when :sixty_five_to_seventy_four
+        65..74
+      when :seventy_five_to_eighty_four
+        75..84
+      when :eighty_five_plus
+        85..110
       end
     end
 

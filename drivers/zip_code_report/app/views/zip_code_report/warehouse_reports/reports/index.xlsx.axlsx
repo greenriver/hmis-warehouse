@@ -1,0 +1,26 @@
+wb = xlsx_package.workbook
+wb_styles = wb.styles
+header_style = wb_styles.add_style({ sz: 14 })
+wb_styles.add_style(
+  {
+    border: { style: :thin, color: 'FFFFFF', edges: [:bottom, :top] },
+  },
+)
+wb.add_worksheet(name: 'Zip Codes') do |sheet|
+  sheet.styles.add_style(sz: 24, b: true, alignment: { horizontal: :center })
+  row = [
+    'Zip Codes',
+    'Clients',
+    'Households',
+  ]
+  sheet.add_row(row, style: header_style)
+  @report.zip_code_data.map do |k, _|
+    [
+      k.to_s,
+      @report.clients_count(k),
+      @report.households_count(k),
+    ]
+  end.sort_by(&:first).each do |r|
+    sheet.add_row(r, types: [:string, nil, nil])
+  end
+end

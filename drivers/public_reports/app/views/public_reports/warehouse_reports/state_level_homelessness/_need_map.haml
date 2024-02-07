@@ -30,8 +30,11 @@
 :javascript
   (function() {
     const state = #{@report.state_shape_json}
+    console.log('state', state)
     const shapes = #{@report.map_shape_json}
+    console.log('shapes', shapes)
     const data = #{Oj.dump(data, mode: :compat).html_safe}
+    console.log('data', data)
     const comparison_colors = #{@report.map_colors.to_json.html_safe}
 
     let selected_date = $('.jQuarters').data('dates')[$('.jQuarters').val()];

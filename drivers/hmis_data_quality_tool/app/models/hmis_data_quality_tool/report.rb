@@ -230,6 +230,8 @@ module HmisDataQualityTool
       @pivot_details ||= OpenStruct.new.tap do |struct|
         struct.groups = result_groups.except('Inventory')
         struct.lookup = (
+          # NOTE: anything added here must have personal_id and data_source_id columns
+          # or some views will break
           Client.sections(self).map { |k, v| [k, v[:title]] } +
             Enrollment.sections(self).map { |k, v| [k, v[:title]] } +
             CurrentLivingSituation.sections(self).map { |k, v| [k, v[:title]] }
@@ -269,6 +271,8 @@ module HmisDataQualityTool
             report_age_date = [enrollment.EntryDate, filter.start].max
             households[enrollment.HouseholdID] ||= []
             she = enrollment.service_history_enrollment
+            next unless enrollment.client.present?
+
             # Make sure the age reflects the reporting age
             she.age = enrollment.client.age_on(report_age_date)
             households[enrollment.HouseholdID] << she

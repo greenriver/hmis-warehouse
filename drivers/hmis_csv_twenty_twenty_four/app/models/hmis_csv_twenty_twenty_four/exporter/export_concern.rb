@@ -111,9 +111,46 @@ module HmisCsvTwentyTwentyFour::Exporter::ExportConcern
 
     def process(row)
       row = assign_export_id(row)
-      row = self.class.adjust_keys(row)
+      row = self.class.adjust_keys(row, @options[:export])
+      row = enforce_lengths(row)
 
       row
+    end
+
+    def enforce_lengths(row)
+      length_limited_columns.each do |k, opts|
+        next if row[k].blank?
+        next unless row[k].is_a?(String)
+
+        # Remove returns, they aren't counted correctly in the length calculation
+        row[k] = row[k].gsub("\n", ' ')
+        next if row[k].length <= opts[:limit]
+
+        row[k] = row[k][0...opts[:limit]]
+      end
+      row
+    end
+
+    def length_limited_columns
+      @length_limited_columns ||= HmisCsvTwentyTwentyFour::Exporter::Base.hmis_class_for(self.class).hmis_configuration(version: '2024').select do |col, m|
+        m.key?(:limit) && ! hashed_column?(col)
+      end
+    end
+
+    # A few columns get hashed and the hash is longer than the allowed length, that's ok
+    private def hashed_column?(col)
+      return false unless @options[:export].hash_status == 4
+
+      col.in?(hashed_columns)
+    end
+
+    private def hashed_columns
+      [
+        :FirstName,
+        :MiddleName,
+        :LastName,
+        :SSN,
+      ].freeze
     end
 
     def assign_export_id(row)

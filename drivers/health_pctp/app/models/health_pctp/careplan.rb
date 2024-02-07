@@ -39,6 +39,7 @@ module HealthPctp
     scope :rn_approved, -> { where.not(reviewed_by_rn_on: nil) }
     scope :reviewed_within, ->(range) { where(reviewed_by_rn_on: range) }
     scope :signature_present, -> { joins(:health_file) }
+    scope :sent_within, ->(range) { where(sent_to_pcp_on: range) }
 
     scope :allowed_for_engagement, -> do
       joins(patient: :patient_referrals).
@@ -339,6 +340,12 @@ module HealthPctp
 
     def careplan_logo
       @careplan_logo ||= GrdaWarehouse::PublicFile.find_by(name: 'patient/careplan_logo')&.content
+    end
+
+    def self.encounter_report_details
+      {
+        source: 'Warehouse',
+      }
     end
   end
 end

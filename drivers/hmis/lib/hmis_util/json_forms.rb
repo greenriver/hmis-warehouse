@@ -8,7 +8,29 @@ module HmisUtil
   class JsonForms
     DATA_DIR = 'drivers/hmis/lib/form_data'.freeze
 
+    def self.seed_all
+      new.seed_all
+    end
+
+    def seed_all
+      # Load ALL the latest record definitions from JSON files.
+      # This also ensures that any system-level instances exist.
+      seed_record_form_definitions
+      # Load ALL the latest assessment definition from JSON files.
+      seed_assessment_form_definitions
+      seed_custom_assessment_form_definitions
+      # Load admin forms (not configurable)
+      seed_static_forms
+    end
+
     protected
+
+    def env_key
+      return ENV['CLIENT'] if ENV['CLIENT'].present?
+
+      # default to QA environment in development to get forms with all possible questions enabled
+      'qa_hmis' if Rails.env.development?
+    end
 
     def fragment_map
       @fragment_map ||= begin
@@ -20,10 +42,10 @@ module HmisUtil
         end
 
         # If we're in a client env, override any fragments
-        if ENV['CLIENT'].present?
-          Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/fragments/*.json") do |file_path|
+        if env_key
+          Dir.glob("#{DATA_DIR}/#{env_key}/fragments/*.json") do |file_path|
             identifier = File.basename(file_path, '.json')
-            puts "Loading #{ENV['CLIENT']} override for #{identifier} fragment"
+            puts "Loading #{env_key} override for #{identifier} fragment"
             file = File.read(file_path)
             fragments[identifier] = JSON.parse(file)
           end
@@ -41,10 +63,10 @@ module HmisUtil
           forms[identifier] = JSON.parse(file)
         end
 
-        if ENV['CLIENT'].present?
-          Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/records/*.json") do |file_path|
+        if env_key
+          Dir.glob("#{DATA_DIR}/#{env_key}/records/*.json") do |file_path|
             identifier = File.basename(file_path, '.json')
-            # puts "Applying #{ENV['CLIENT']} override for #{identifier} form"
+            # puts "Applying #{env_key} override for #{identifier} form"
             file = File.read(file_path)
             forms[identifier] = JSON.parse(file)
           end
@@ -54,9 +76,9 @@ module HmisUtil
     end
 
     def client_override(file_path)
-      return file_path unless ENV['CLIENT'].present?
+      return file_path unless env_key
 
-      client_override_fpath = file_path.gsub('/default/', "/#{ENV['CLIENT']}/")
+      client_override_fpath = file_path.gsub('/default/', "/#{env_key}/")
       if File.exist?(client_override_fpath)
         client_override_fpath
       else
@@ -95,10 +117,10 @@ module HmisUtil
             file = File.read(file_path)
             forms[role][identifier] = JSON.parse(file)
           end
-          next unless ENV['CLIENT'].present?
+          next unless env_key.present?
 
           # Load client-specific
-          Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/#{dirname}/*.json") do |file_path|
+          Dir.glob("#{DATA_DIR}/#{env_key}/#{dirname}/*.json") do |file_path|
             identifier = File.basename(file_path, '.json')
             file_path = client_override(file_path)
             # puts "Loading #{identifier} from #{file_path}"
@@ -126,7 +148,7 @@ module HmisUtil
         applied_patches << id
         children, patch_to_apply = patch.partition { |k, _| ['append_items', 'prepend_items'].include?(k) }.map(&:to_h)
         # Could also be deep merge. This is probably more intuitive though
-        node.merge!(patch_to_apply)
+        node.merge!(patch_to_apply).compact!
 
         # Prepend or append any child items
         raise 'Cannot append/prepend to item with no children' if children.any? && node['item'].nil?
@@ -139,7 +161,7 @@ module HmisUtil
 
     def apply_all_patches!(definition, identifier:)
       applied_patches = []
-      Dir.glob("#{DATA_DIR}/#{ENV['CLIENT']}/fragments/patches/*.json") do |file_path|
+      Dir.glob("#{DATA_DIR}/#{env_key}/fragments/patches/*.json") do |file_path|
         # patch_name = File.basename(file_path, '.json')
         file = File.read(file_path)
         definition['item'].each do |item|
@@ -288,6 +310,7 @@ module HmisUtil
       'path_status' => 'PATH Status',
       'base-intake' => 'Intake Assessment',
       'base-exit' => 'Exit Assessment',
+      'base-post_exit' => 'Post Exit Assessment',
       'base-update' => 'Update Assessment',
       'base-annual' => 'Annual Assessment',
     }.freeze
@@ -311,12 +334,12 @@ module HmisUtil
 
     # Load form definitions for HUD assessments
     public def seed_assessment_form_definitions
-      roles = [:INTAKE, :EXIT, :UPDATE, :ANNUAL]
+      roles = [:INTAKE, :EXIT, :UPDATE, :ANNUAL, :POST_EXIT]
       identifiers = []
       roles.each do |role|
         filename = "base_#{role.to_s.downcase}.json"
         begin
-          file = File.read("#{DATA_DIR}/#{ENV['CLIENT']}/assessments/#{filename}")
+          file = File.read("#{DATA_DIR}/#{env_key}/assessments/#{filename}")
         rescue Errno::ENOENT
           nil # no client override, which is fine
         end
@@ -334,6 +357,9 @@ module HmisUtil
           title: FORM_TITLES[identifier],
         )
 
+        # Don't create default instance for post-exit. Those are going to be configured per installation
+        next if role == :POST_EXIT
+
         # Make this form the default instance for this role
         default_instance = Hmis::Form::Instance.defaults.where(definition_identifier: identifier).first_or_create!
         default_instance.update(system: true, active: true)
@@ -342,46 +368,78 @@ module HmisUtil
       # puts "Saved definitions with identifiers: #{identifiers.join(', ')}"
     end
 
-    def validate_definition(json, role)
-      Hmis::Form::Definition.validate_json(json, valid_pick_lists: valid_pick_lists)
+    def seed_custom_assessment_form_definitions
+      dirname = "#{DATA_DIR}/#{env_key}/custom_assessments"
+      return unless Dir.exist?(dirname)
+
+      Dir.glob("#{dirname}/*").each do |filename|
+        raise 'nested directories not supported' if File.directory?(filename)
+
+        # use file filename as identifier
+        identifier = File.basename(filename, File.extname(filename))
+        hud_identifiers = [:INTAKE, :EXIT, :UPDATE, :ANNUAL].map { |role| "base-#{role.to_s.downcase}" }
+        raise "custom assessment name \"#{file_name}\" overlaps with HUD assessment" if identifier.in?(hud_identifiers)
+
+        load_definition(
+          form_definition: parse_json_file(filename),
+          identifier: identifier,
+          role: :CUSTOM_ASSESSMENT,
+          title: identifier.humanize,
+        )
+      end
+    end
+
+    def parse_json_file(filename)
+      JSON.parse(File.read(filename))
+    end
+
+    public def seed_static_forms
+      Hmis::Form::Definition::STATIC_FORM_ROLES.each do |role|
+        filename = "#{role.to_s.downcase}.json"
+        file = File.read("#{DATA_DIR}/static/#{filename}")
+        form_definition = JSON.parse(file)
+        load_definition(
+          form_definition: form_definition,
+          identifier: role.to_s.downcase,
+          role: role,
+          title: role.to_s.titlecase,
+        )
+      end
+    end
+
+    # on_error allows customization of error handling incase we want to collect them instead of raising
+    public def validate_definition(json, role = nil)
+      on_error = ->(err) { block_given? ? yield(err) : raise(err) }
+      Hmis::Form::Definition.validate_json(json, valid_pick_lists: valid_pick_lists, &on_error)
       schema_errors = Hmis::Form::Definition.validate_schema(json)
       return unless schema_errors.present?
 
+      schema_errors.each { |err| on_error.call(err) }
       pp schema_errors
-      raise "schema invalid for role: #{role}"
+      if role
+        on_error.call("schema invalid for role: #{role}")
+      else
+        on_error.call('schema invalid')
+      end
     end
 
     def valid_pick_lists
       @valid_pick_lists ||= begin
-        pick_list_references = []
-        pick_list_references << all_enums_in_schema(Types::HmisSchema::QueryType)
-        pick_list_references << all_enums_in_schema(Types::HmisSchema::MutationType)
-        pick_list_references << Types::Forms::Enums::PickListType.values.keys
-        pick_list_references.flatten.uniq.sort
+        enums = []
+        collect_enums = ->(parent) {
+          parent.constants.each do |name|
+            child = parent.const_get(name)
+            if child.is_a? Class
+              enums << child.graphql_name if child < Types::BaseEnum
+            elsif child.is_a? Module
+              collect_enums.call(child)
+            end
+          end
+        }
+        collect_enums.call(Types::HmisSchema::Enums)
+        collect_enums.call(Types::Forms::Enums)
+        enums + Types::Forms::Enums::PickListType.values.keys
       end
-    end
-
-    # Traverse schema to find ALL enums used
-    def all_enums_in_schema(schema, traversed_types: [])
-      enums = []
-      schema.fields.each do |_, field|
-        type = field.type
-        (type = type&.of_type) while type.non_null? || type.list?
-        seen = traversed_types.include?(type)
-        traversed_types << type
-        if type.respond_to?(:fields) && type.to_s.include?('::HmisSchema::') && !seen
-          enums << all_enums_in_schema(type, traversed_types: traversed_types)
-        elsif type.to_s.include?('::Enums::')
-          enums << type.graphql_name
-        # Hacky way to traverse into paginated node, because its an anonymous class
-        elsif type.to_s&.ends_with?('Paginated') && !type.to_s.include?('AuditEvent')
-          node_type = "Types::HmisSchema::#{type.to_s.gsub('Paginated', '').singularize}".constantize
-          seen_node_type = traversed_types.include?(node_type)
-          traversed_types << node_type
-          enums << all_enums_in_schema(node_type, traversed_types: traversed_types) unless seen_node_type
-        end
-      end
-      return enums.flatten.sort.uniq
     end
   end
 end
