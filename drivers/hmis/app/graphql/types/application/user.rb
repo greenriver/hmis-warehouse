@@ -8,8 +8,6 @@
 
 module Types
   class Application::User < Types::BaseObject
-    EXCLUDED_KEYS = ['owner_type', 'enrollment_address_type', 'wip'].freeze
-
     include Types::HmisSchema::HasAuditHistory
 
     # maps to Hmis::User
@@ -43,17 +41,20 @@ module Types
     # We use the generic term 'audit' to encompass both types of history (view and edit), but many places in the code,
     # 'audit' just refers to edit history.
     audit_history_field(
-      excluded_keys: EXCLUDED_KEYS,
+      excluded_keys: Types::HmisSchema::Enrollment::EXCLUDED_KEYS_FOR_AUDIT,
       # filter_args: { type_name: 'UserAuditEvent' },
       filter_args: { type_name: 'UserAuditEvent', omit: [:user] },
     )
 
+    EXCLUDED_RECORD_TYPES_FOR_AUDIT = ['Hmis::Wip'].freeze
+
     def audit_history(filters: nil)
       v_t = GrdaWarehouse.paper_trail_versions.arel_table
       scope = GrdaWarehouse.paper_trail_versions.
-        where(user_id: object.id).
+        where(true_user_id: object.id).
         where.not(v_t[:enrollment_id].eq(nil).and(v_t[:client_id].eq(nil)).and(v_t[:project_id].eq(nil))).
         where.not(object_changes: nil, event: 'update').
+        where.not(item_type: EXCLUDED_RECORD_TYPES_FOR_AUDIT).
         unscope(:order). # Unscope to remove default order, otherwise it will conflict
         order(created_at: :desc)
       Hmis::Filter::PaperTrailVersionFilter.new(filters).filter_scope(scope)

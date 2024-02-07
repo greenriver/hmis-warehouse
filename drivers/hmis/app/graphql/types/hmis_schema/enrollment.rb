@@ -8,6 +8,8 @@
 
 module Types
   class HmisSchema::Enrollment < Types::BaseObject
+    EXCLUDED_KEYS_FOR_AUDIT = ['owner_type', 'enrollment_address_type', 'wip'].freeze
+
     include Types::HmisSchema::HasEvents
     include Types::HmisSchema::HasServices
     include Types::HmisSchema::HasAssessments
