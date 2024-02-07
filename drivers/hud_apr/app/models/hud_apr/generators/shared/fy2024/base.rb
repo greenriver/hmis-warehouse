@@ -548,7 +548,7 @@ module HudApr::Generators::Shared::Fy2024
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         open_between(start_date: @report.start_date, end_date: @report.end_date).
-        joins(:enrollment).
+        joins(:enrollment, :client, :project).
         merge(
           GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: @report.coc_codes).
           or(GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: nil)).
