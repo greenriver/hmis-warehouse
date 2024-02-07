@@ -58,8 +58,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       actual = 0
       records = rows.flat_map do |row|
         expected += 1
-        enrollment_id = row.field_value(ENROLLMENT_ID_COL)
-        # enrollment_id = personal_id_by_enrollment_id.keys.first
+        # enrollment_id = row.field_value(ENROLLMENT_ID_COL)
+        enrollment_id = personal_id_by_enrollment_id.keys.first
         personal_id = personal_id_by_enrollment_id[enrollment_id]
 
         if personal_id.nil?
@@ -107,9 +107,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       ar_import(Hmis::Hud::CustomDataElement, cdes)
     end
 
-    def cde_values(row, config, index: nil, required: false)
-      field = config.fetch(:label) # the label is the row field
-      raw_value = row.field_value(field, index: index, required: required)
+    def cde_values(row, config, required: false)
+      raw_value = row.field_value(config.fetch(:label), id: config[:id], required: required)
       return [] unless raw_value
 
       values = config.fetch(:repeats) ? raw_value.split('|').map(&:strip) : [raw_value]

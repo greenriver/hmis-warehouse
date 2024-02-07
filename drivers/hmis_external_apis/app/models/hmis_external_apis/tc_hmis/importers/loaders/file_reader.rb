@@ -15,10 +15,15 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       File.exist?("#{dir}/#{filename}")
     end
 
-    def rows(filename:, sheet_number: 0, header_row_number: 3)
+    def rows(filename:, sheet_number: 0, header_row_number: 3, field_id_row_number: 2)
       case filename
       when /\.xlsx$/i
-        XlsxFile.new(filename: "#{dir}/#{filename}", sheet_number: sheet_number, header_row_number: header_row_number)
+        XlsxFile.new(
+          filename: "#{dir}/#{filename}",
+          sheet_number: sheet_number,
+          header_row_number: header_row_number,
+          field_id_row_number: field_id_row_number,
+        )
       else
         raise "File format not supported for \"#{filename}\". Expected xlsx"
       end

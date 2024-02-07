@@ -6,26 +6,22 @@
 
 module HmisExternalApis::TcHmis::Importers::Loaders
   class UhaLoader < CustomAssessmentLoader
+
     ASSESSMENT_DATE_COL = 'Date Taken'.freeze
+    ALT_MAILING_ADDRESS_CONFIGS = [
+      { label: 'Alternate Mailing Address', id: 12275, key: "uha_alt_zip", repeats: false, field_type: 'string' },
+      { label: 'Name', id: 12327, key: "uha_alt_name", repeats: false, field_type: 'string' },
+    ]
 
-    CDED_FIELD_TYPE_MAP = {
-      # 'travel_time_minutes' => 'integer',
-    }.freeze
+    GENERAL_CONFIGS = [
+      { label: 'Program Name', key: 'uha_program_name', repeats: false, field_type: 'string' },
+      { label: 'Case Number', key: 'uha_case_number', repeats: false, field_type: 'string' },
+      { label: 'Participant Enterprise Identifier', key: 'uha_participant_enterprise_identifier', repeats: false, field_type: 'string' },
+    ]
 
-    CDED_COL_MAP = {
-      'Program Name' => 'program_name',
-      'Case Number' => 'case_number',
-      'Participant Enterprise Identifier' => 'participant_enterprise_identifier',
-      #
-
-    }.to_a.map do |label, key|
-      {
-        label: label.gsub(/\s+/, ' '), # normalize whitespace
-        key: "uha-#{key}",
-        repeats: false,
-        field_type: CDED_FIELD_TYPE_MAP[key] || 'string',
-      }
-    end
+    CDED_CONFIGS = (
+      GENERAL_CONFIGS + ALT_MAILING_ADDRESS_CONFIGS
+    )
 
     def filename
       'UHA.xlsx'
@@ -34,7 +30,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     protected
 
     def cded_configs
-      CDED_COL_MAP
+      CDED_CONFIGS
     end
 
     def row_assessment_date(row)

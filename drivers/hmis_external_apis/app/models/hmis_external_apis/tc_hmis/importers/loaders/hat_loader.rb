@@ -8,7 +8,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
   class HatLoader < CustomAssessmentLoader
     ASSESSMENT_DATE_COL = 'Date of assessment'.freeze
 
-    CDED_COL_MAP = [
+    CDED_CONFIGS = [
       { key: 'hat_a6_household_type', label: 'Household Type', repeats: false, field_type: 'string' },
       { key: 'hat_a7_single_parent', label: 'Are you a single parent with a child over the age of 10?', repeats: false, field_type: 'boolean' },
       { key: 'hat_a8_household_size', label: "How many household members (including minor children) do you expect to live with you when you're housed?", repeats: false, field_type: 'integer' },
@@ -78,7 +78,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     protected
 
     def cded_configs
-      CDED_COL_MAP
+      CDED_CONFIGS
     end
 
     def row_assessment_date(row)

@@ -8,7 +8,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
   class SpdatLoader < CustomAssessmentLoader
     ASSESSMENT_DATE_COL = 'Date Taken'.freeze
 
-    CDED_COL_MAP = [
+    CDED_CONFIGS = [
       { label: 'Program Name', key: 'spdat_program_name', repeats: false, field_type: 'string' },
       { label: 'Case Number', key: 'spdat_case_number', repeats: false, field_type: 'string' },
       { label: 'Participant Enterprise Identifier', key: 'spdat_participant_enterprise_identifier', repeats: false, field_type: 'string' },
@@ -62,7 +62,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     protected
 
     def cded_configs
-      CDED_COL_MAP
+      CDED_CONFIGS
     end
 
     def row_assessment_date(row)
