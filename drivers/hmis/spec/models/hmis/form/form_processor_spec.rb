@@ -675,6 +675,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       hud_values: hud_values,
       definition: definition,
     )
+    record.form_processor = form_processor if record.is_a?(Hmis::Hud::CustomAssessment)
     form_processor.run!(owner: record, user: user)
     form_processor.owner.save!(context: :form_submission) if save
     form_processor
@@ -1861,6 +1862,35 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(file.confidential).to eq(hud_values['confidential'])
         expect(file.client_file.blob).to eq(blob)
       end
+    end
+  end
+
+  describe 'Form processing for CE Event' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :CE_EVENT) }
+    let(:event_date) { 1.week.ago.to_date }
+    let(:hud_values) do
+      {
+        'Event.eventDate' => event_date.strftime('%Y-%m-%d'),
+        'Event.event' => 'PROBLEM_SOLVING_DIVERSION_RAPID_RESOLUTION_INTERVENTION_OR_SERVICE', # 2
+        'Event.referralResult' => nil,
+      }
+    end
+
+    it 'should work when CE Event is the form owner' do
+      event = Hmis::Hud::Event.new(client: c1, enrollment: e1, data_source: ds1)
+      process_record(record: event, hud_values: hud_values, user: hmis_user, definition: definition)
+
+      expect(event.event).to eq(2) # problem solving diversion
+      expect(event.event_date).to eq(event_date)
+    end
+
+    it 'should work when CustomAssessment is the form owner' do
+      assessment = build(:hmis_custom_assessment, client: c1, enrollment: e1, data_source: ds1, user: u1)
+      process_record(record: assessment, hud_values: hud_values, user: hmis_user, definition: definition)
+
+      expect(assessment.ce_event).to be_present
+      expect(assessment.ce_event.event).to eq(2)
+      expect(assessment.ce_event.event_date).to eq(event_date)
     end
   end
 end
