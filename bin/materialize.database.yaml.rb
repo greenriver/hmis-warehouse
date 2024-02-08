@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 require 'erb'
 require 'yaml'
 require 'dotenv'

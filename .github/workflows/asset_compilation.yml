@@ -130,6 +130,7 @@ jobs:
         bundle install --jobs 10 --retry 3
 
     - name: Generate checksum and compile
+      shell: bash
       env:
         SECRETS_YML_SECRET_ARN: ${{ secrets.SECRETS_YML_SECRET_ARN }}
         DATABASE_ADAPTER: postgresql
@@ -154,5 +155,10 @@ jobs:
         WAREHOUSE_DATABASE_DB: warehouse_db
         HEALTH_DATABASE_DB: health_db
         REPORTING_DATABASE_DB: reporting_db
+        DEBUG: "false"
       run: |
         DEPLOY_PROTECT_SECRETS=true EXCEPTION_WEBHOOK_CHANNEL_OVERRIDE=gr-op-gha-except bundle exec bin/compile_assets.rb ${{ matrix.client_group }}
+        if [[ "$DEBUG" = "true" ]]; then
+          echo "asset.checksum.log"
+          cat asset.checksum.log
+        fi

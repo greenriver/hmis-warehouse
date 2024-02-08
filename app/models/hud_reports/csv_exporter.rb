@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -42,6 +42,28 @@ module HudReports
             answer = @report.preload_answers(@table).answer(question: @table, cell: "#{column_name}#{row_name}").summary || ''
             answer = '0.0000' if answer == 'NaN'
             row << answer
+          end
+          table << row
+        end
+
+        table
+      end
+    end
+
+    def as_array_of_hashes
+      @as_array_of_hashes ||= begin
+        table = answer_table
+
+        row_names.each do |row_name|
+          row = row_with_label(row_name)
+          column_names.each do |column_name|
+            answer = @report.preload_answers(@table).answer(question: @table, cell: "#{column_name}#{row_name}")
+            answer.summary ||= ''
+            answer.summary = '0.0000' if answer.summary == 'NaN'
+            row << {
+              value: answer.summary,
+              any_members: answer.any_members,
+            }
           end
           table << row
         end

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -383,6 +383,22 @@ module HmisExternalApis::AcHmis::Importers
         r['data_source_id'] = data_source.id
       end
 
+      # Validate format of all dates before attempting import, so we don't import them incorrectly
+      date_columns = csv.headers.filter { |h| h.end_with?('Date') }
+      if date_columns.any?
+        date_columns.each do |col|
+          records.each do |r|
+            next unless r[col]
+            # break as soon as we find 1 correctly formatted record for this column
+            break if valid_date?(r[col])
+
+            # Abort import if we find a malformatted date. Dates like '30-JUN-24' would be incorrectly
+            # parsed and lead to unexpected behavior in the HMIS.
+            raise(AbortImportException, "Incorrectly formatted date in #{file} #{col}: #{r[col]}")
+          end
+        end
+      end
+
       if ignore_columns.present?
         records.each do |r|
           ignore_columns.each do |col|
@@ -453,6 +469,20 @@ module HmisExternalApis::AcHmis::Importers
       elsif headers.include?('ResidentialAffiliation') || headers.include?('TrackingMethod')
         '2022'
       end
+    end
+
+    # Validate date format 'YYYY-MM-DD'
+    def valid_date?(str)
+      format_ok = str.match(/\d{4}-\d{2}-\d{2}/)
+      return false unless format_ok
+
+      begin
+        Date.strptime(str, '%Y-%m-%d')
+      rescue StandardError
+        return false
+      end
+
+      true
     end
   end
 end
