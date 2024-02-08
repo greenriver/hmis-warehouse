@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -37,6 +37,7 @@ module HudSpmReport::Generators::Fy2023
         HudSpmReport::Generators::Fy2023::MeasureFive,
         HudSpmReport::Generators::Fy2023::MeasureSix,
         HudSpmReport::Generators::Fy2023::MeasureSeven,
+        HudSpmReport::Generators::Fy2023::HdxUpload,
       ].map do |q|
         [q.question_number, q]
       end.to_h.freeze

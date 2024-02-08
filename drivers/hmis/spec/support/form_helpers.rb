@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -61,7 +61,6 @@ module FormHelpers
         'targetPopulation' => 'HIV_PERSONS_WITH_HIV_AIDS',
         'HOPWAMedAssistedLivingFac' => 'NO',
         'continuumProject' => 'NO',
-        'HMISParticipatingProject' => 'YES',
       },
     },
     CLIENT: {
@@ -229,9 +228,9 @@ module FormHelpers
         'relationship-to-hoh' => 'SELF_HEAD_OF_HOUSEHOLD',
       },
       hud_values: {
-        'Client.names' => [
-          { first: 'First', last: 'Last', nameDataQuality: 'FULL_NAME_REPORTED', primary: true },
-        ],
+        'Client.firstName' => 'First',
+        'Client.lastName' => 'Last',
+        'Client.nameDataQuality' => 'FULL_NAME_REPORTED',
         'Client.dob' => '2000-03-29',
         'Client.dobDataQuality' => 'FULL_DOB_REPORTED',
         'Client.ssn' => 'XXXXX1234',

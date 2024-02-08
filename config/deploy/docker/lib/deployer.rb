@@ -62,7 +62,7 @@ class Deployer
     self.registry_id              = args.fetch(:registry_id)
     self.repo_name                = args.fetch(:repo_name)
     self.variant                  = 'web'
-    self.version                  = `git rev-parse --short=9 HEAD`.chomp
+    self.version                  = `git rev-parse --short=7 HEAD`.chomp
     self.args                     = OpenStruct.new(args)
 
     Dir.chdir(_root)
@@ -84,7 +84,7 @@ class Deployer
 
     roll_out.run!
 
-    _add_latest_tags!
+    _add_latest_tag!
   end
 
   def run_migrations!
@@ -121,7 +121,7 @@ class Deployer
     _set_revision!
     _check_that_you_pushed_to_remote!
     _docker_login!
-    _build_and_push_all!
+    _wait_for_image_ready
     _check_secrets!
   end
 
@@ -180,19 +180,7 @@ class Deployer
     _run(cmd, alt_msg: 'docker login')
   end
 
-  def _build_and_push_all!
-    _wait_for_image_ready('pre-cache')
-    _wait_for_image_ready('base')
-  end
-
-  def _wait_for_image_ready(variant)
-    self.variant = variant
-
-    unless File.exist?(_dockerfile_path)
-      puts "[WARN] Not checking #{variant} since the dockerfile #{_dockerfile_path} doesn't exist"
-      return
-    end
-
+  def _wait_for_image_ready
     _set_image_tag!
 
     while _revision_not_in_repo?
@@ -204,19 +192,14 @@ class Deployer
     end
   end
 
-  def _add_latest_tags!
-    _add_latest_tag!('base')
-  end
-
-  def _add_latest_tag!(variant)
-    self.variant = variant
+  def _add_latest_tag!
     _set_image_tag!
 
     puts "[INFO] Update latest tag for '#{image_tag}':"
-    if image_tag_latest.nil?
-      puts '>> Skipping, no latest tag set (this is the pre-cache image).'
-      return
-    end
+    # if image_tag_latest.nil?
+    #   puts '>> Skipping, no latest tag set (this is the pre-cache image).'
+    #   return
+    # end
 
     getparams = {
       repository_name: repo_name,
@@ -273,36 +256,15 @@ class Deployer
   end
 
   def _set_image_tag!
-    if variant == 'pre-cache'
-      self.image_tag = "#{_ruby_version}-#{_pre_cache_version}--pre-cache"
-    elsif ENV['IMAGE_TAG']
-      self.image_tag = ENV['IMAGE_TAG'] + "--#{variant}"
-      self.image_tag_latest = 'latest-' + ENV['IMAGE_TAG'] + "--#{variant}"
+    if ENV['IMAGE_TAG']
+      self.image_tag = ENV['IMAGE_TAG']
+      self.image_tag_latest = 'latest-' + ENV['IMAGE_TAG']
     else
-      self.image_tag = "githash-#{version}--#{variant}"
-      self.image_tag_latest = "latest-#{target_group_name}--#{variant}"
+      self.image_tag = "githash-#{version}"
+      self.image_tag_latest = "latest-#{target_group_name}"
     end
 
     # puts "Setting image tag to #{image_tag}"
-  end
-
-  def _build!
-    _run(<<~CMD)
-      docker build
-        --file=#{_dockerfile_path}
-        --tag #{repo_name}:latest--#{variant}
-        .
-    CMD
-  end
-
-  def _tag_the_image!(authority: 'us')
-    if authority == 'us'
-      _run("docker image tag #{repo_name}:latest--#{variant} #{_remote_tag}")
-    elsif authority == 'them'
-      _run("docker image tag #{_remote_tag} #{repo_name}:latest--#{variant} ")
-    else
-      raise 'invalid authority'
-    end
   end
 
   def debug?
@@ -328,12 +290,6 @@ class Deployer
     _image_tags_in_repo.none? do |tag|
       tag == image_tag
     end
-  end
-
-  def _pre_cache_image_exists?
-    result = `docker image ls -f 'reference=#{repo_name}' | grep "#{_ruby_version}-#{_pre_cache_version}--pre-cache"`
-
-    !result.match?(/^\s*$/)
   end
 
   def _remote_tag

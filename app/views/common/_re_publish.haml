@@ -1,12 +1,24 @@
 - if @report.published?
   .warehouse-reports__completed.d-flex
     .mr-2
+      - if @report.publish_summary?
+        %p.font-weight-bold Report 
       %p
-        This report was published on #{@report.published_at.to_date} and is is publicly available at this url:
+        This report was published on #{@report.published_at.to_date} and is publicly available at this url:
         %br
         = link_to @report.published_report.published_url, @report.published_report.published_url, target: :_blank
       %p You can use the following embed code as a starting point for including the published report in any website.
       %code= @report.published_report.embed_code
+      - if @report.publish_summary?
+        %br
+        %br
+        %p.font-weight-bold Summary
+        %p
+          This report summary is publicly available at this url:
+          %br
+          = link_to @report.publish_summary_url, @report.publish_summary_url, target: :_blank
+      %p You can use the following embed code as a starting point for including the published summary report in any website.
+      %code= @report.publish_summary_embed_code
     .ml-auto
       .mb-4
         = simple_form_for(@report, url: path_to_report, as: :public_report) do |f|

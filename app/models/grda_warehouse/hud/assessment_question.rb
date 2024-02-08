@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -37,13 +37,19 @@ module GrdaWarehouse::Hud
     has_one :lookup, class_name: 'GrdaWarehouse::AssessmentAnswerLookup', primary_key: [:AssessmentQuestion, :AssessmentAnswer], foreign_key: [:assessment_question, :response_code]
 
     scope :pathways_or_rrh, -> do
-      where(AssessmentQuestion: :c_housing_assessment_name)
+      # where(AssessmentQuestion: :c_housing_assessment_name)
+
+      # Temporary solution until we have the c_housing_assessment_name question in the 2024 pathways assessment
+      where(AssessmentQuestion: [:c_housing_assessment_name, :c_pathways_barriers_yn])
     end
 
     scope :pathways, -> do
-      pathways_or_rrh.
-        joins(:lookup).
-        merge(GrdaWarehouse::AssessmentAnswerLookup.where(response_text: 'Pathways'))
+      # pathways_or_rrh.
+      #   joins(:lookup).
+      #   merge(GrdaWarehouse::AssessmentAnswerLookup.where(response_text: 'Pathways'))
+
+      # Temporary solution until we have the c_housing_assessment_name question in the 2024 pathways assessment
+      where(AssessmentQuestion: [:c_housing_assessment_name, :c_pathways_barriers_yn])
     end
 
     scope :transfer, -> do
@@ -59,6 +65,11 @@ module GrdaWarehouse::Hud
 
     def default_response_text(answer)
       DEFAULT_ANSWERS[answer.to_s]
+    end
+
+    # FIXME: this is temporary until we have a more permanent solution
+    def pathways?
+      self.AssessmentQuestion.to_s == 'c_pathways_barriers_yn'
     end
   end
 end

@@ -1,0 +1,45 @@
+[
+  {
+    "link_id": "demographics",
+    "append_items": [
+      {
+        "type": "CHOICE",
+        "link_id": "sexual_orientation",
+        "text": "Sexual Orientation",
+        "mapping": {
+          "custom_field_key": "sexual_orientation"
+        },
+        "component": "DROPDOWN",
+        "pick_list_options": [
+          {
+            "code": "Heterosexual"
+          },
+          {
+            "code": "Gay"
+          },
+          {
+            "code": "Lesbian"
+          },
+          {
+            "code": "Questioning/unsure"
+          },
+          {
+            "code": "Bi-sexual"
+          },
+          {
+            "code": "Pan-sexual"
+          },
+          {
+            "code": "Client Doesn't Know"
+          },
+          {
+            "code": "Client refused"
+          },
+          {
+            "code": "Data not collected"
+          }
+        ]
+      }
+    ]
+  }
+]

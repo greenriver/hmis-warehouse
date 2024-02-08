@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -68,5 +68,8 @@ module Types
     field :create_scan_card_code, mutation: Mutations::CreateScanCardCode
     field :delete_scan_card_code, mutation: Mutations::DeleteScanCardCode
     field :restore_scan_card_code, mutation: Mutations::RestoreScanCardCode
+
+    field :create_client_alert, mutation: Mutations::CreateClientAlert
+    field :delete_client_alert, mutation: Mutations::DeleteClientAlert
   end
 end

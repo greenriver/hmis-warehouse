@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,19 +8,26 @@ require 'csv'
 
 module HudReports
   class CsvExporter
-    attr_accessor :report, :table, :metadata, :force_quotes, :quote_empty
+    attr_accessor :report, :table, :metadata, :force_quotes, :quote_empty, :external_row_label
 
-    def initialize(report, table, force_quotes: true, quote_empty: true)
+    def initialize(report, table, force_quotes: true, quote_empty: true, external_row_label: false)
       @report = report
       @table = table
       @metadata = report.answer(question: table).metadata
       @force_quotes = force_quotes
       @quote_empty = quote_empty
+      @external_row_label = external_row_label
     end
 
     def export(file_path)
       file = "#{file_path}/#{csv_name}"
       CSV.open(file, 'wb', force_quotes: @force_quotes, quote_empty: @quote_empty) do |table|
+        as_array.each { |row| table << row }
+      end
+    end
+
+    def export_as_string
+      CSV.generate(force_quotes: true, quote_empty: true) do |table|
         as_array.each { |row| table << row }
       end
     end
@@ -35,6 +42,28 @@ module HudReports
             answer = @report.preload_answers(@table).answer(question: @table, cell: "#{column_name}#{row_name}").summary || ''
             answer = '0.0000' if answer == 'NaN'
             row << answer
+          end
+          table << row
+        end
+
+        table
+      end
+    end
+
+    def as_array_of_hashes
+      @as_array_of_hashes ||= begin
+        table = answer_table
+
+        row_names.each do |row_name|
+          row = row_with_label(row_name)
+          column_names.each do |column_name|
+            answer = @report.preload_answers(@table).answer(question: @table, cell: "#{column_name}#{row_name}")
+            answer.summary ||= ''
+            answer.summary = '0.0000' if answer.summary == 'NaN'
+            row << {
+              value: answer.summary,
+              any_members: answer.any_members,
+            }
           end
           table << row
         end
@@ -66,7 +95,7 @@ module HudReports
 
     def row_with_label(row_name)
       label = @metadata['row_labels'][row_name.to_i - @metadata['first_row']] # Table rows are 1 based
-      if label.present?
+      if label.present? && !external_row_label
         [label]
       else
         []

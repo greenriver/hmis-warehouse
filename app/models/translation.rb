@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,28 +8,20 @@ class Translation < ApplicationRecord
   include NotifierConfig
 
   def self.translate(text)
-    Rails.cache.fetch("translations/#{text}", expires_in: 15.minutes) do
-      translations = all.pluck(:key, :text).to_h
-      translations.each do |k, v|
-        Rails.cache.write("translations/#{k}", (v.presence || k), expires_in: 15.minutes)
+    # don't set expiry, the cache is updated via BuildTranslationCacheJob
+    translated = Rails.cache.fetch(cache_key(text)) do
+      translation = where(key: text).order(:id).first_or_create do |record|
+        record.key = text
+        Rails.logger.info("Unknown Translation key \"#{text}\", added to DB")
       end
-      translated = translations[text]
-      if ! translations.key?(text)
-        msg = "Unknown Translation key \"#{text}\", added to DB"
-        # Fail painfully if this is development so we see the error of our ways
-        # Actually, don't fail because sometimes we don't know where the string is coming from (pagy)
-        # raise msg if Rails.env.development?
-
-        # Notify if this isn't development so we can track it down later
-        # send_single_notification(msg, 'Translations', exception: StandardError.new(msg))
-
-        # Add it to the database if we don't have it
-        Translation.where(key: text).first_or_create
-        Rails.logger.info(msg)
-      end
-
-      translated.presence || text
+      translation.text
     end
+    translated.presence || text
+  end
+
+  def self.cache_key(text)
+    digest = Digest::MD5.hexdigest(text)
+    "translations/#{digest}"
   end
 
   def self.invalidate_translations_cache
@@ -37,16 +29,20 @@ class Translation < ApplicationRecord
   end
 
   def self.invalidate_translation_cache(key)
-    Rails.cache.delete("translations/#{key}")
+    Rails.cache.delete(cache_key(key))
   end
 
   def invalidate_cache
-    Rails.cache.delete("translations/#{key}")
+    self.class.invalidate_translation_cache(key)
   end
 
   def self.maintain_keys
     existing = pluck(:key)
     to_add = (known_translations - existing).map { |k| new(key: k) }
+    import!(to_add)
+
+    existing = pluck(:key)
+    to_add = default_translations.except(*existing).map { |k, v| new(key: k, text: v) }
     import!(to_add)
   end
 
@@ -1811,5 +1807,50 @@ class Translation < ApplicationRecord
       'were enrolled in housing',
       'were in search',
     ]
+  end
+
+  def self.default_translations
+    {
+      'assessment_date' => 'Assessment Date',
+      'assessment_level' => 'Assessment Level',
+      'assessment_location' => 'Location',
+      'assessment_type' => 'Assessment Type',
+      'c_add_boston_nights_outside_pathways' => 'Length of Time Homeless (Unsheltered) - Non-HMIS',
+      'c_add_boston_nights_sheltered_pathways' => 'Length of Time Homeless (Sheltered) - Non-HMIS',
+      'c_additional_household_members_coordination_warehouseID' => 'If there is a second adult in your household, is this person also homeless in the City of Boston?',
+      'c_boston_homeless_nights_outside_wiw' => 'Length of Time Homeless (Unsheltered) - Warehouse',
+      'c_boston_homeless_nights_sheltered_wiw' => 'Length of Time Homeless (Sheltered) - Warehouse',
+      'c_casemanager_contacts' => 'Contact Information, Case Manager',
+      'c_disability_accomodations' => 'Are you seeking any of the following due to a disability?',
+      'c_hang_outs_day' => 'Are there agencies, shelters, or places you hang out in during the day where we could connect with you?',
+      'c_hang_outs_night' => 'Are there agencies, shelters or places you hang out in during nights or weekends where we could connect with you?',
+      'c_interested_rrh' => 'Are you interested in Rapid Re-Housing?',
+      'c_larger_room_size' => 'If you need a bedroom size larger than an SRO, studio or 1 bedroom, select the size below.',
+      'c_new_boston_homeless_nights_total' => 'Total # of nights',
+      'c_other_method_contacts' => 'Are there other ways we could contact you that we have not asked you or thought of yet?',
+      'c_pathway_pregnant_parentingchild' => 'Are you pregnant or parenting a child under 18?',
+      'c_pathways_adult_couple_coordination_matching' => 'Partner name',
+      'c_pathways_assessing_agency' => 'Assessing Agency',
+      'c_pathways_barrier_meth' => 'Have been convicted or found guilty of producing methamphetamine on subsidized properties',
+      'c_pathways_barrier_PHAterm' => 'Have been evicted from a BHA development or have had a BHA voucher terminated within the last three years',
+      'c_pathways_barrier_SORI' => 'Registered sex offender (level 1,2,3) - lifetime registration (SORI)',
+      'c_pathways_barriers_other' => 'Other Barriers (open cases, undocumented, etc.)',
+      'c_pathways_barriers_yn' => 'Do you have any of the following histories and/or barriers?',
+      'c_pathways_Household_size' => 'If you need a bedroom size larger than an SRO, studio or 1 bedroom, select the size below.',
+      'c_pathways_nights_sheltered_warehouse_added_total' => 'Total # of Sheltered Nights',
+      'c_pathways_nights_unsheltered_warehouse_added_total' => 'Total # of Unsheltered Nights',
+      'c_pathways_service_indicators' => 'Do any Service Need Indicators apply to you?',
+      'c_pathways_service_indicators_Bostonhomeless_10years' => 'My experience of homelessness began in Boston over 10 years ago',
+      'c_pathways_service_indicators_dangerous_weather' => 'There have been instances where I declined to come inside during dangerous weather',
+      'c_pathways_service_indicators_highrisk_exploitative' => 'I am or have been at risk of engaging in high-risk and exploitative situations, such as sex trafficking.',
+      'c_pathways_service_indicators_HUES' => 'I am on a High Utilizer of Emergency Services (HUES) list.',
+      'c_pathways_service_indicators_legal' => 'I have a criminal record (CORI) or ongoing legal cases',
+      'c_pathways_service_indicators_medical' => 'I have a history of extended stays (12+ months) in medical respite and other inpatient treatment facilities',
+      'c_pathways_service_indicators_Sectioned' => 'In the last 2 years, I have had at least one Section 12 or 35 and/or have been involuntarily committed',
+      'c_pathways_service_indicators_shelter_recidivism' => 'In the last 3 years, I have been housed but lost housing',
+      'c_pathways_service_indicators_shelter_restriction' => 'I\'ve faced indefinite restrictions and a history of restrictions from area shelters',
+      'c_share_permission' => 'Permission to Share Your Information with Partner Agencies',
+      'c_singleadult_sro' => 'If you are a single adult, would you consider living in a single room occupancy (SRO)?',
+    }
   end
 end

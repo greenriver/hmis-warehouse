@@ -1,0 +1,24 @@
+{
+  "item": [
+    {
+      "text": "Emergency Contact Name",
+      "type": "STRING",
+      "link_id": "emergency_contact_name",
+      "mapping": {
+        "custom_field_key": "emergency_contact_name"
+      }
+    },
+    {
+      "type": "STRING",
+      "component": "PHONE",
+      "link_id": "emergency_contact_number",
+      "mapping": {
+        "custom_field_key": "emergency_contact_number"
+      },
+      "text": "Emergency Contact Number"
+    }
+  ],
+  "text": "Emergency Contact",
+  "link_id": "emergency_contact",
+  "type": "GROUP"
+}

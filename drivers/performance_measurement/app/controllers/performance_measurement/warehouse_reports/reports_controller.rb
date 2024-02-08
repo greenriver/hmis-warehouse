@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,6 +19,7 @@ module PerformanceMeasurement::WarehouseReports
     before_action :set_pdf_export, only: [:show]
 
     @include_in_published_version = false
+    @include_in_summary_only_version = false
 
     def index
       @filter.default_project_type_codes = report_class.default_project_type_codes

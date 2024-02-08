@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -79,6 +79,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
 
   has_many :scan_card_codes, class_name: 'Hmis::ScanCardCode', inverse_of: :client
+
+  has_many :alerts, class_name: '::Hmis::ClientAlert', dependent: :destroy, inverse_of: :client
 
   validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 

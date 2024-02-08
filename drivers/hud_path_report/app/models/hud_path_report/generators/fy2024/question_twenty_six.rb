@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -76,9 +76,10 @@ module HudPathReport::Generators::Fy2024
             else
               members = universe.members.where(active_and_enrolled_clients).where(query)
               answer.add_members(members)
-              sum_members += members
               count = members.count
-              sum += count
+              sum_members += members
+              sum_members.uniq!(&:client_id)
+              sum = sum_members.count
               answer.update(summary: count)
             end
           end

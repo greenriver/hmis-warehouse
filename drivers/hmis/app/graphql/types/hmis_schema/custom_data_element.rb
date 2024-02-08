@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -13,6 +13,7 @@ module Types
     field :field_type, HmisSchema::Enums::CustomDataElementType, null: false
     field :label, String, null: false
     field :repeats, Boolean, null: false
+    field :display_hooks, [HmisSchema::Enums::DisplayHook], null: false, description: 'Where to display the custom field in the application'
     field :value, HmisSchema::CustomDataElementValue, null: true, extras: [:parent]
     field :values, [HmisSchema::CustomDataElementValue], null: true, extras: [:parent]
 
@@ -44,6 +45,12 @@ module Types
 
     def activity_log_object_identity
       object.id
+    end
+
+    def display_hooks
+      hooks = []
+      hooks << 'TABLE_SUMMARY' if object.show_in_summary
+      hooks
     end
   end
 end

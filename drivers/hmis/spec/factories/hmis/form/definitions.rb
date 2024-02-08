@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -25,7 +25,7 @@ FactoryBot.define do
                 'warn_if_empty': false,
                 'text': 'Information Date',
                 'assessment_date': true,
-                'mapping': { 'field_name': 'informationDate' },
+                'mapping': { 'field_name': 'informationDate', 'custom_field_key': 'informationDate' },
               },
               {
                 'type': 'NUMBER',
@@ -33,7 +33,7 @@ FactoryBot.define do
                 'required': true,
                 'warn_if_empty': false,
                 'brief_text': 'The Required Field',
-                'mapping': { 'field_name': 'fieldOne' },
+                'mapping': { 'field_name': 'fieldOne', 'custom_field_key': 'fieldOne' },
               },
               {
                 'type': 'CHOICE',
@@ -41,7 +41,7 @@ FactoryBot.define do
                 'required': false,
                 'warn_if_empty': true,
                 'text': 'Choice field',
-                'mapping': { 'field_name': 'fieldTwo' },
+                'mapping': { 'field_name': 'fieldTwo', 'custom_field_key': 'fieldTwo' },
               },
             ],
           },

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -30,7 +30,6 @@ RSpec.describe 'PATH Datalab 2024', type: :model do
   end
 
   if File.exist?('drivers/datalab_testkit/spec/fixtures/inputs/merged/source/Export.csv')
-    # tests are all failing at the moment
     include_context 'path organization f'
     include_context 'path organization q'
     include_context 'path organization r'
