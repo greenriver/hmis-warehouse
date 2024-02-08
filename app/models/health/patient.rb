@@ -143,14 +143,36 @@ module Health
       return unless status.present?
 
       housing_status = recent_housing_status
-      if housing_status&.collected_on == on_date
+      housing_status = if housing_status&.collected_on == on_date
         # The housing status string is recorded, for detail, but is mostly treated as a boolean
         # Don't overwrite an existing status if the patient would lose homeless status
-        housing_status.update(status: status) if status.in?(Health::HomelessStatus::HOMELESS_STATUSES)
-        housing_status
+        housing_status.update(status: status) if housing_status.positive_for_homelessness?
       else
         housing_statuses.create(collected_on: on_date, status: status)
       end
+
+      generate_daily_hrsn_qa(housing_status)
+      housing_status
+    end
+
+    private def generate_daily_hrsn_qa(housing_status)
+      previous_status = Health::HousingStatus.as_of(date: housing_status.collected_on - 1.day).first
+      return unless housing_status.positive_for_homelessness? && (previous_status.blank? || ! previous_status.positive_for_homelessness?) # Only record no -> yes
+      return if Health::QualifyingActivity.find_by(date_of_activity: housing_status.collected_on, activity: :sdoh_positive).present? # Don't duplicate QAs
+
+      user = User.system_user # Mark created QAs as from the system
+      ::Health::QualifyingActivity.create!(
+        source_type: housing_status.class.name,
+        source_id: housing_status.id,
+        user_id: user.id,
+        user_full_name: user.name_with_email,
+        date_of_activity: housing_status.collected_on,
+        mode_of_contact: nil, # There are no contact modifiers listed in the QA specification
+        reached_client: nil,
+        patient_id: id,
+        activity: :sdoh_positive,
+        follow_up: 'Patient SDoH Screening Positive',
+      )
     end
 
     scope :pilot, -> { where pilot: true }
