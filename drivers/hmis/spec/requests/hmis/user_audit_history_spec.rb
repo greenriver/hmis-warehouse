@@ -48,7 +48,7 @@ RSpec.describe 'User Audit History Query', type: :request do
 
   context 'user who created a client' do
     before(:each) do
-      PaperTrail.request(controller_info: { user_id: hmis_user.id }) do
+      PaperTrail.request(controller_info: { true_user_id: hmis_user.id }) do
         c1.update!(Man: 0)
       end
     end
