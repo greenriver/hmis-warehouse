@@ -65,7 +65,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     private def assessment_keys
       {
         family_member: :hat_a6_household_type,
-        lifetime_sex_offender: :hat_b3_lifetime_sex_offendor,
+        lifetime_sex_offender: :hat_b3_lifetime_sex_offender,
         strengths: :hat_b1_strength,
         challenges: :hat_b2_challenge,
         foster_care: :hat_e12_foster_youth,
@@ -175,13 +175,14 @@ module GrdaWarehouse::CasProjectClientCalculator
         compact.
         max_by(&:assessment_date)
     end
+    memoize :cas_assessment
 
     private def for_string(client, key)
-      cas_assessment(client).assessment_questions.find_by(assessment_question: assessment_keys[key])&.assessment_answer
+      cas_assessment(client).answer(assessment_keys[key])
     end
 
     private def for_boolean(client, key)
-      for_string(client, key)&.downcase == 'yes'
+      cas_assessment(client).question_matching_requirement(assessment_keys[key], 'yes', case_sensitive: false)
     end
 
     private def family_member(client)

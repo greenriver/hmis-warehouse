@@ -73,6 +73,10 @@ module Hmis
       end
     end
 
+    # Parse form definition hash to determine the order that custom field keys are declared,
+    # and when they are nested within a group, the label on the group (otherwise nil)
+    #
+    # @return Hash of custom_field_keys to a hash containing {group: group_label, order: the order that the fields appear, type: the type declaration}
     private def parse(definition, group: nil)
       {}.tap do |h|
         definition.each do |item|
