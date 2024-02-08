@@ -518,7 +518,7 @@ CREATE TABLE public."Client" (
     "Ethnicity" integer,
     "Gender" integer,
     "OtherGender" character varying(50),
-    "VeteranStatus" integer,
+    "VeteranStatus" integer DEFAULT 99,
     "YearEnteredService" integer,
     "YearSeparated" integer,
     "WorldWarII" integer,
@@ -1094,7 +1094,8 @@ CREATE TABLE public."CustomDataElementDefinitions" (
     "UserID" character varying(32) NOT NULL,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    show_in_summary boolean DEFAULT false NOT NULL
 );
 
 
@@ -1138,6 +1139,13 @@ COMMENT ON COLUMN public."CustomDataElementDefinitions".label IS 'Human-readable
 --
 
 COMMENT ON COLUMN public."CustomDataElementDefinitions".repeats IS 'Whether multiple values are allowed per record.';
+
+
+--
+-- Name: COLUMN "CustomDataElementDefinitions".show_in_summary; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomDataElementDefinitions".show_in_summary IS 'Whether to show this custom field in summary views such as in a table row when viewing a Service/CLS/Note';
 
 
 --
@@ -1529,7 +1537,7 @@ CREATE TABLE public."Enrollment" (
     "LivingSituation" integer,
     "OtherResidencePrior" character varying,
     "LengthOfStay" integer,
-    "DisablingCondition" integer,
+    "DisablingCondition" integer DEFAULT 99,
     "EntryFromStreetESSH" integer,
     "DateToStreetESSH" date,
     "ContinuouslyHomelessOneYear" integer,
@@ -3081,744 +3089,6 @@ ALTER SEQUENCE public.available_file_tags_id_seq OWNED BY public.available_file_
 
 
 --
--- Name: bi_Affiliation; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Affiliation" AS
- SELECT "Affiliation".id AS "AffiliationID",
-    "Project".id AS "ProjectID",
-    "Affiliation"."ResProjectID",
-    "Affiliation"."DateCreated",
-    "Affiliation"."DateUpdated",
-    "Affiliation"."UserID",
-    "Affiliation"."DateDeleted",
-    "Affiliation"."ExportID",
-    "Affiliation".data_source_id
-   FROM (public."Affiliation"
-     JOIN public."Project" ON ((("Affiliation".data_source_id = "Project".data_source_id) AND (("Affiliation"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
-  WHERE ("Affiliation"."DateDeleted" IS NULL);
-
-
---
--- Name: warehouse_clients; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.warehouse_clients (
-    id integer NOT NULL,
-    id_in_source character varying NOT NULL,
-    data_source_id integer,
-    proposed_at timestamp without time zone,
-    reviewed_at timestamp without time zone,
-    reviewd_by character varying,
-    approved_at timestamp without time zone,
-    rejected_at timestamp without time zone,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    deleted_at timestamp without time zone,
-    source_id integer,
-    destination_id integer,
-    client_match_id integer,
-    source_hash character varying
-);
-
-
---
--- Name: bi_Assessment; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Assessment" AS
- SELECT "Assessment".id AS "AssessmentID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Enrollment".id AS "EnrollmentID",
-    "Assessment"."AssessmentDate",
-    "Assessment"."AssessmentLocation",
-    "Assessment"."AssessmentType",
-    "Assessment"."AssessmentLevel",
-    "Assessment"."PrioritizationStatus",
-    "Assessment"."DateCreated",
-    "Assessment"."DateUpdated",
-    "Assessment"."UserID",
-    "Assessment"."DateDeleted",
-    "Assessment"."ExportID",
-    "Assessment".data_source_id,
-    source_clients.id AS demographic_id
-   FROM (((((public."Assessment"
-     JOIN public."Enrollment" ON ((("Assessment".data_source_id = "Enrollment".data_source_id) AND (("Assessment"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("Assessment".data_source_id = source_clients.data_source_id) AND (("Assessment"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Assessment"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_AssessmentQuestions; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_AssessmentQuestions" AS
- SELECT "AssessmentQuestions".id AS "AssessmentQuestionID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Assessment".id AS "AssessmentID",
-    "Enrollment".id AS "EnrollmentID",
-    "AssessmentQuestions"."AssessmentQuestionGroup",
-    "AssessmentQuestions"."AssessmentQuestionOrder",
-    "AssessmentQuestions"."AssessmentQuestion",
-    "AssessmentQuestions"."AssessmentAnswer",
-    "AssessmentQuestions"."DateCreated",
-    "AssessmentQuestions"."DateUpdated",
-    "AssessmentQuestions"."UserID",
-    "AssessmentQuestions"."DateDeleted",
-    "AssessmentQuestions"."ExportID",
-    "AssessmentQuestions".data_source_id,
-    source_clients.id AS demographic_id
-   FROM ((((((public."AssessmentQuestions"
-     JOIN public."Enrollment" ON ((("AssessmentQuestions".data_source_id = "Enrollment".data_source_id) AND (("AssessmentQuestions"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("AssessmentQuestions".data_source_id = source_clients.data_source_id) AND (("AssessmentQuestions"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-     JOIN public."Assessment" ON ((("AssessmentQuestions".data_source_id = "Assessment".data_source_id) AND (("AssessmentQuestions"."AssessmentID")::text = ("Assessment"."AssessmentID")::text) AND ("Assessment"."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("AssessmentQuestions"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_AssessmentResults; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_AssessmentResults" AS
- SELECT "AssessmentResults".id AS "AssessmentResultID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Assessment".id AS "AssessmentID",
-    "Enrollment".id AS "EnrollmentID",
-    "AssessmentResults"."AssessmentResultType",
-    "AssessmentResults"."AssessmentResult",
-    "AssessmentResults"."DateCreated",
-    "AssessmentResults"."DateUpdated",
-    "AssessmentResults"."UserID",
-    "AssessmentResults"."DateDeleted",
-    "AssessmentResults"."ExportID",
-    "AssessmentResults".data_source_id,
-    source_clients.id AS demographic_id
-   FROM ((((((public."AssessmentResults"
-     JOIN public."Enrollment" ON ((("AssessmentResults".data_source_id = "Enrollment".data_source_id) AND (("AssessmentResults"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("AssessmentResults".data_source_id = source_clients.data_source_id) AND (("AssessmentResults"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-     JOIN public."Assessment" ON ((("AssessmentResults".data_source_id = "Assessment".data_source_id) AND (("AssessmentResults"."AssessmentID")::text = ("Assessment"."AssessmentID")::text) AND ("Assessment"."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("AssessmentResults"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_Client; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Client" AS
- SELECT "Client".id AS personalid,
-    4 AS "HashStatus",
-    encode(sha256((public.soundex(upper(btrim(("Client"."FirstName")::text))))::bytea), 'hex'::text) AS "FirstName",
-    encode(sha256((public.soundex(upper(btrim(("Client"."MiddleName")::text))))::bytea), 'hex'::text) AS "MiddleName",
-    encode(sha256((public.soundex(upper(btrim(("Client"."LastName")::text))))::bytea), 'hex'::text) AS "LastName",
-    encode(sha256((public.soundex(upper(btrim(("Client"."NameSuffix")::text))))::bytea), 'hex'::text) AS "NameSuffix",
-    "Client"."NameDataQuality",
-    concat("right"(("Client"."SSN")::text, 4), encode(sha256((lpad(("Client"."SSN")::text, 9, 'x'::text))::bytea), 'hex'::text)) AS "SSN",
-    "Client"."SSNDataQuality",
-    "Client"."DOB",
-    "Client"."DOBDataQuality",
-    "Client"."AmIndAKNative",
-    "Client"."Asian",
-    "Client"."BlackAfAmerican",
-    "Client"."NativeHIOtherPacific",
-    "Client"."White",
-    "Client"."RaceNone",
-    "Client"."Ethnicity",
-    "Client"."Gender",
-    "Client"."VeteranStatus",
-    "Client"."YearEnteredService",
-    "Client"."YearSeparated",
-    "Client"."WorldWarII",
-    "Client"."KoreanWar",
-    "Client"."VietnamWar",
-    "Client"."DesertStorm",
-    "Client"."AfghanistanOEF",
-    "Client"."IraqOIF",
-    "Client"."IraqOND",
-    "Client"."OtherTheater",
-    "Client"."MilitaryBranch",
-    "Client"."DischargeStatus",
-    "Client"."DateCreated",
-    "Client"."DateUpdated",
-    "Client"."UserID",
-    "Client"."DateDeleted",
-    "Client"."ExportID"
-   FROM public."Client"
-  WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id = 85));
-
-
---
--- Name: bi_CurrentLivingSituation; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_CurrentLivingSituation" AS
- SELECT "CurrentLivingSituation".id AS "CurrentLivingSitID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Enrollment".id AS "EnrollmentID",
-    "CurrentLivingSituation"."InformationDate",
-    "CurrentLivingSituation"."CurrentLivingSituation",
-    "CurrentLivingSituation"."VerifiedBy",
-    "CurrentLivingSituation"."LeaveSituation14Days",
-    "CurrentLivingSituation"."SubsequentResidence",
-    "CurrentLivingSituation"."ResourcesToObtain",
-    "CurrentLivingSituation"."LeaseOwn60Day",
-    "CurrentLivingSituation"."MovedTwoOrMore",
-    "CurrentLivingSituation"."LocationDetails",
-    "CurrentLivingSituation"."DateCreated",
-    "CurrentLivingSituation"."DateUpdated",
-    "CurrentLivingSituation"."UserID",
-    "CurrentLivingSituation"."DateDeleted",
-    "CurrentLivingSituation"."ExportID",
-    "CurrentLivingSituation".data_source_id,
-    source_clients.id AS demographic_id
-   FROM (((((public."CurrentLivingSituation"
-     JOIN public."Enrollment" ON ((("CurrentLivingSituation".data_source_id = "Enrollment".data_source_id) AND (("CurrentLivingSituation"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("CurrentLivingSituation".data_source_id = source_clients.data_source_id) AND (("CurrentLivingSituation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("CurrentLivingSituation"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_Demographics; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Demographics" AS
- SELECT "Client".id AS personalid,
-    4 AS "HashStatus",
-    encode(sha256((public.soundex(upper(btrim(("Client"."FirstName")::text))))::bytea), 'hex'::text) AS "FirstName",
-    encode(sha256((public.soundex(upper(btrim(("Client"."MiddleName")::text))))::bytea), 'hex'::text) AS "MiddleName",
-    encode(sha256((public.soundex(upper(btrim(("Client"."LastName")::text))))::bytea), 'hex'::text) AS "LastName",
-    encode(sha256((public.soundex(upper(btrim(("Client"."NameSuffix")::text))))::bytea), 'hex'::text) AS "NameSuffix",
-    "Client"."NameDataQuality",
-    concat("right"(("Client"."SSN")::text, 4), encode(sha256((lpad(("Client"."SSN")::text, 9, 'x'::text))::bytea), 'hex'::text)) AS "SSN",
-    "Client"."SSNDataQuality",
-    "Client"."DOB",
-    "Client"."DOBDataQuality",
-    "Client"."AmIndAKNative",
-    "Client"."Asian",
-    "Client"."BlackAfAmerican",
-    "Client"."NativeHIOtherPacific",
-    "Client"."White",
-    "Client"."RaceNone",
-    "Client"."Ethnicity",
-    "Client"."Gender",
-    "Client"."VeteranStatus",
-    "Client"."YearEnteredService",
-    "Client"."YearSeparated",
-    "Client"."WorldWarII",
-    "Client"."KoreanWar",
-    "Client"."VietnamWar",
-    "Client"."DesertStorm",
-    "Client"."AfghanistanOEF",
-    "Client"."IraqOIF",
-    "Client"."IraqOND",
-    "Client"."OtherTheater",
-    "Client"."MilitaryBranch",
-    "Client"."DischargeStatus",
-    "Client"."DateCreated",
-    "Client"."DateUpdated",
-    "Client"."UserID",
-    "Client"."DateDeleted",
-    "Client"."ExportID",
-    warehouse_clients.destination_id AS client_id,
-    "Client".data_source_id
-   FROM (public."Client"
-     JOIN public.warehouse_clients ON ((warehouse_clients.source_id = "Client".id)))
-  WHERE (("Client"."DateDeleted" IS NULL) AND ("Client".data_source_id = ANY (ARRAY[87, 88, 98, 91, 107, 80, 106, 105, 99, 108, 102, 110, 103, 82, 109, 112, 111, 81, 86, 113])));
-
-
---
--- Name: bi_Disabilities; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Disabilities" AS
- SELECT "Disabilities".id AS "DisabilitiesID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Enrollment".id AS "EnrollmentID",
-    "Disabilities"."InformationDate",
-    "Disabilities"."DisabilityType",
-    "Disabilities"."DisabilityResponse",
-    "Disabilities"."IndefiniteAndImpairs",
-    "Disabilities"."TCellCountAvailable",
-    "Disabilities"."TCellCount",
-    "Disabilities"."TCellSource",
-    "Disabilities"."ViralLoadAvailable",
-    "Disabilities"."ViralLoad",
-    "Disabilities"."ViralLoadSource",
-    "Disabilities"."DataCollectionStage",
-    "Disabilities"."DateCreated",
-    "Disabilities"."DateUpdated",
-    "Disabilities"."UserID",
-    "Disabilities"."DateDeleted",
-    "Disabilities"."ExportID",
-    "Disabilities".data_source_id,
-    source_clients.id AS demographic_id
-   FROM (((((public."Disabilities"
-     JOIN public."Enrollment" ON ((("Disabilities".data_source_id = "Enrollment".data_source_id) AND (("Disabilities"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("Disabilities".data_source_id = source_clients.data_source_id) AND (("Disabilities"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Disabilities"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_EmploymentEducation; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_EmploymentEducation" AS
- SELECT "EmploymentEducation".id AS "EmploymentEducationID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Enrollment".id AS "EnrollmentID",
-    "EmploymentEducation"."InformationDate",
-    "EmploymentEducation"."LastGradeCompleted",
-    "EmploymentEducation"."SchoolStatus",
-    "EmploymentEducation"."Employed",
-    "EmploymentEducation"."EmploymentType",
-    "EmploymentEducation"."NotEmployedReason",
-    "EmploymentEducation"."DataCollectionStage",
-    "EmploymentEducation"."DateCreated",
-    "EmploymentEducation"."DateUpdated",
-    "EmploymentEducation"."UserID",
-    "EmploymentEducation"."DateDeleted",
-    "EmploymentEducation"."ExportID",
-    "EmploymentEducation".data_source_id,
-    source_clients.id AS demographic_id
-   FROM (((((public."EmploymentEducation"
-     JOIN public."Enrollment" ON ((("EmploymentEducation".data_source_id = "Enrollment".data_source_id) AND (("EmploymentEducation"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("EmploymentEducation".data_source_id = source_clients.data_source_id) AND (("EmploymentEducation"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("EmploymentEducation"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_Enrollment; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Enrollment" AS
- SELECT "Enrollment".id AS "EnrollmentID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Project".id AS "ProjectID",
-    "Enrollment"."EntryDate",
-    "Enrollment"."HouseholdID",
-    "Enrollment"."RelationshipToHoH",
-    "Enrollment"."LivingSituation",
-    "Enrollment"."LengthOfStay",
-    "Enrollment"."LOSUnderThreshold",
-    "Enrollment"."PreviousStreetESSH",
-    "Enrollment"."DateToStreetESSH",
-    "Enrollment"."TimesHomelessPastThreeYears",
-    "Enrollment"."MonthsHomelessPastThreeYears",
-    "Enrollment"."DisablingCondition",
-    "Enrollment"."DateOfEngagement",
-    "Enrollment"."MoveInDate",
-    "Enrollment"."DateOfPATHStatus",
-    "Enrollment"."ClientEnrolledInPATH",
-    "Enrollment"."ReasonNotEnrolled",
-    "Enrollment"."WorstHousingSituation",
-    "Enrollment"."PercentAMI",
-    "Enrollment"."LastPermanentStreet",
-    "Enrollment"."LastPermanentCity",
-    "Enrollment"."LastPermanentState",
-    "Enrollment"."LastPermanentZIP",
-    "Enrollment"."AddressDataQuality",
-    "Enrollment"."DateOfBCPStatus",
-    "Enrollment"."EligibleForRHY",
-    "Enrollment"."ReasonNoServices",
-    "Enrollment"."RunawayYouth",
-    "Enrollment"."SexualOrientation",
-    "Enrollment"."SexualOrientationOther",
-    "Enrollment"."FormerWardChildWelfare",
-    "Enrollment"."ChildWelfareYears",
-    "Enrollment"."ChildWelfareMonths",
-    "Enrollment"."FormerWardJuvenileJustice",
-    "Enrollment"."JuvenileJusticeYears",
-    "Enrollment"."JuvenileJusticeMonths",
-    "Enrollment"."UnemploymentFam",
-    "Enrollment"."MentalHealthIssuesFam",
-    "Enrollment"."PhysicalDisabilityFam",
-    "Enrollment"."AlcoholDrugAbuseFam",
-    "Enrollment"."InsufficientIncome",
-    "Enrollment"."IncarceratedParent",
-    "Enrollment"."ReferralSource",
-    "Enrollment"."CountOutreachReferralApproaches",
-    "Enrollment"."UrgentReferral",
-    "Enrollment"."TimeToHousingLoss",
-    "Enrollment"."ZeroIncome",
-    "Enrollment"."AnnualPercentAMI",
-    "Enrollment"."FinancialChange",
-    "Enrollment"."HouseholdChange",
-    "Enrollment"."EvictionHistory",
-    "Enrollment"."SubsidyAtRisk",
-    "Enrollment"."LiteralHomelessHistory",
-    "Enrollment"."DisabledHoH",
-    "Enrollment"."CriminalRecord",
-    "Enrollment"."SexOffender",
-    "Enrollment"."DependentUnder6",
-    "Enrollment"."SingleParent",
-    "Enrollment"."HH5Plus",
-    "Enrollment"."IraqAfghanistan",
-    "Enrollment"."FemVet",
-    "Enrollment"."HPScreeningScore",
-    "Enrollment"."ThresholdScore",
-    "Enrollment"."VAMCStation_deleted" AS "VAMCStation",
-    "Enrollment"."DateCreated",
-    "Enrollment"."DateUpdated",
-    "Enrollment"."UserID",
-    "Enrollment"."DateDeleted",
-    "Enrollment"."ExportID",
-    "Enrollment".data_source_id,
-    source_clients.id AS demographic_id
-   FROM (((((public."Enrollment"
-     JOIN public."Project" ON ((("Enrollment".data_source_id = "Project".data_source_id) AND (("Enrollment"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
-     JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("Enrollment".data_source_id = source_clients.data_source_id) AND (("Enrollment"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Enrollment"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_EnrollmentCoC; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_EnrollmentCoC" AS
- SELECT "EnrollmentCoC".id AS "EnrollmentCoCID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Project".id AS "ProjectID",
-    "Enrollment".id AS "EnrollmentID",
-    "EnrollmentCoC"."HouseholdID",
-    "EnrollmentCoC"."InformationDate",
-    "EnrollmentCoC"."CoCCode",
-    "EnrollmentCoC"."DataCollectionStage",
-    "EnrollmentCoC"."DateCreated",
-    "EnrollmentCoC"."DateUpdated",
-    "EnrollmentCoC"."UserID",
-    "EnrollmentCoC"."DateDeleted",
-    "EnrollmentCoC"."ExportID",
-    "EnrollmentCoC".data_source_id,
-    source_clients.id AS demographic_id
-   FROM ((((((public."EnrollmentCoC"
-     JOIN public."Project" ON ((("EnrollmentCoC".data_source_id = "Project".data_source_id) AND (("EnrollmentCoC"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
-     JOIN public."Enrollment" ON ((("EnrollmentCoC".data_source_id = "Enrollment".data_source_id) AND (("EnrollmentCoC"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("EnrollmentCoC".data_source_id = source_clients.data_source_id) AND (("EnrollmentCoC"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("EnrollmentCoC"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_Event; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Event" AS
- SELECT "Event".id AS "EventID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Enrollment".id AS "EnrollmentID",
-    "Event"."EventDate",
-    "Event"."Event",
-    "Event"."ProbSolDivRRResult",
-    "Event"."ReferralCaseManageAfter",
-    "Event"."LocationCrisisOrPHHousing",
-    "Event"."ReferralResult",
-    "Event"."ResultDate",
-    "Event"."DateCreated",
-    "Event"."DateUpdated",
-    "Event"."UserID",
-    "Event"."DateDeleted",
-    "Event"."ExportID",
-    "Event".data_source_id,
-    source_clients.id AS demographic_id
-   FROM (((((public."Event"
-     JOIN public."Enrollment" ON ((("Event".data_source_id = "Enrollment".data_source_id) AND (("Event"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("Event".data_source_id = source_clients.data_source_id) AND (("Event"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Event"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_Exit; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Exit" AS
- SELECT "Exit".id AS "ExitID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Enrollment".id AS "EnrollmentID",
-    "Exit"."ExitDate",
-    "Exit"."Destination",
-    "Exit"."OtherDestination",
-    "Exit"."HousingAssessment",
-    "Exit"."SubsidyInformation",
-    "Exit"."ProjectCompletionStatus",
-    "Exit"."EarlyExitReason",
-    "Exit"."ExchangeForSex",
-    "Exit"."ExchangeForSexPastThreeMonths",
-    "Exit"."CountOfExchangeForSex",
-    "Exit"."AskedOrForcedToExchangeForSex",
-    "Exit"."AskedOrForcedToExchangeForSexPastThreeMonths",
-    "Exit"."WorkPlaceViolenceThreats",
-    "Exit"."WorkplacePromiseDifference",
-    "Exit"."CoercedToContinueWork",
-    "Exit"."LaborExploitPastThreeMonths",
-    "Exit"."CounselingReceived",
-    "Exit"."IndividualCounseling",
-    "Exit"."FamilyCounseling",
-    "Exit"."GroupCounseling",
-    "Exit"."SessionCountAtExit",
-    "Exit"."PostExitCounselingPlan",
-    "Exit"."SessionsInPlan",
-    "Exit"."DestinationSafeClient",
-    "Exit"."DestinationSafeWorker",
-    "Exit"."PosAdultConnections",
-    "Exit"."PosPeerConnections",
-    "Exit"."PosCommunityConnections",
-    "Exit"."AftercareDate",
-    "Exit"."AftercareProvided",
-    "Exit"."EmailSocialMedia",
-    "Exit"."Telephone",
-    "Exit"."InPersonIndividual",
-    "Exit"."InPersonGroup",
-    "Exit"."CMExitReason",
-    "Exit"."DateCreated",
-    "Exit"."DateUpdated",
-    "Exit"."UserID",
-    "Exit"."DateDeleted",
-    "Exit"."ExportID",
-    "Exit".data_source_id,
-    source_clients.id AS demographic_id
-   FROM ((((public."Exit"
-     JOIN public."Enrollment" ON ((("Exit".data_source_id = "Enrollment".data_source_id) AND (("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("Exit".data_source_id = source_clients.data_source_id) AND (("Exit"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Exit"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_Export; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Export" AS
- SELECT "Export".id AS "ExportID",
-    "Export"."SourceType",
-    "Export"."SourceID",
-    "Export"."SourceName",
-    "Export"."SourceContactFirst",
-    "Export"."SourceContactLast",
-    "Export"."SourceContactPhone",
-    "Export"."SourceContactExtension",
-    "Export"."SourceContactEmail",
-    "Export"."ExportDate",
-    "Export"."ExportStartDate",
-    "Export"."ExportEndDate",
-    "Export"."SoftwareName",
-    "Export"."SoftwareVersion",
-    "Export"."ExportPeriodType",
-    "Export"."ExportDirective",
-    "Export"."HashStatus",
-    "Export".data_source_id
-   FROM public."Export";
-
-
---
--- Name: bi_Funder; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Funder" AS
- SELECT "Funder".id AS "FunderID",
-    "Project".id AS "ProjectID",
-    "Funder"."Funder",
-    "Funder"."OtherFunder",
-    "Funder"."GrantID",
-    "Funder"."StartDate",
-    "Funder"."EndDate",
-    "Funder"."DateCreated",
-    "Funder"."DateUpdated",
-    "Funder"."UserID",
-    "Funder"."DateDeleted",
-    "Funder"."ExportID",
-    "Funder".data_source_id
-   FROM (public."Funder"
-     JOIN public."Project" ON ((("Funder".data_source_id = "Project".data_source_id) AND (("Funder"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
-  WHERE ("Funder"."DateDeleted" IS NULL);
-
-
---
--- Name: bi_HealthAndDV; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_HealthAndDV" AS
- SELECT "HealthAndDV".id AS "HealthAndDVID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Enrollment".id AS "EnrollmentID",
-    "HealthAndDV"."InformationDate",
-    "HealthAndDV"."DomesticViolenceVictim",
-    "HealthAndDV"."WhenOccurred",
-    "HealthAndDV"."CurrentlyFleeing",
-    "HealthAndDV"."GeneralHealthStatus",
-    "HealthAndDV"."DentalHealthStatus",
-    "HealthAndDV"."MentalHealthStatus",
-    "HealthAndDV"."PregnancyStatus",
-    "HealthAndDV"."DueDate",
-    "HealthAndDV"."DataCollectionStage",
-    "HealthAndDV"."DateCreated",
-    "HealthAndDV"."DateUpdated",
-    "HealthAndDV"."UserID",
-    "HealthAndDV"."DateDeleted",
-    "HealthAndDV"."ExportID",
-    "HealthAndDV".data_source_id,
-    source_clients.id AS demographic_id
-   FROM (((((public."HealthAndDV"
-     JOIN public."Enrollment" ON ((("HealthAndDV".data_source_id = "Enrollment".data_source_id) AND (("HealthAndDV"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("HealthAndDV".data_source_id = source_clients.data_source_id) AND (("HealthAndDV"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("HealthAndDV"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_IncomeBenefits; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_IncomeBenefits" AS
- SELECT "IncomeBenefits".id AS "IncomeBenefitsID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Enrollment".id AS "EnrollmentID",
-    "IncomeBenefits"."InformationDate",
-    "IncomeBenefits"."IncomeFromAnySource",
-    "IncomeBenefits"."TotalMonthlyIncome",
-    "IncomeBenefits"."Earned",
-    "IncomeBenefits"."EarnedAmount",
-    "IncomeBenefits"."Unemployment",
-    "IncomeBenefits"."UnemploymentAmount",
-    "IncomeBenefits"."SSI",
-    "IncomeBenefits"."SSIAmount",
-    "IncomeBenefits"."SSDI",
-    "IncomeBenefits"."SSDIAmount",
-    "IncomeBenefits"."VADisabilityService",
-    "IncomeBenefits"."VADisabilityServiceAmount",
-    "IncomeBenefits"."VADisabilityNonService",
-    "IncomeBenefits"."VADisabilityNonServiceAmount",
-    "IncomeBenefits"."PrivateDisability",
-    "IncomeBenefits"."PrivateDisabilityAmount",
-    "IncomeBenefits"."WorkersComp",
-    "IncomeBenefits"."WorkersCompAmount",
-    "IncomeBenefits"."TANF",
-    "IncomeBenefits"."TANFAmount",
-    "IncomeBenefits"."GA",
-    "IncomeBenefits"."GAAmount",
-    "IncomeBenefits"."SocSecRetirement",
-    "IncomeBenefits"."SocSecRetirementAmount",
-    "IncomeBenefits"."Pension",
-    "IncomeBenefits"."PensionAmount",
-    "IncomeBenefits"."ChildSupport",
-    "IncomeBenefits"."ChildSupportAmount",
-    "IncomeBenefits"."Alimony",
-    "IncomeBenefits"."AlimonyAmount",
-    "IncomeBenefits"."OtherIncomeSource",
-    "IncomeBenefits"."OtherIncomeAmount",
-    "IncomeBenefits"."OtherIncomeSourceIdentify",
-    "IncomeBenefits"."BenefitsFromAnySource",
-    "IncomeBenefits"."SNAP",
-    "IncomeBenefits"."WIC",
-    "IncomeBenefits"."TANFChildCare",
-    "IncomeBenefits"."TANFTransportation",
-    "IncomeBenefits"."OtherTANF",
-    "IncomeBenefits"."OtherBenefitsSource",
-    "IncomeBenefits"."OtherBenefitsSourceIdentify",
-    "IncomeBenefits"."InsuranceFromAnySource",
-    "IncomeBenefits"."Medicaid",
-    "IncomeBenefits"."NoMedicaidReason",
-    "IncomeBenefits"."Medicare",
-    "IncomeBenefits"."NoMedicareReason",
-    "IncomeBenefits"."SCHIP",
-    "IncomeBenefits"."NoSCHIPReason",
-    "IncomeBenefits"."VAMedicalServices",
-    "IncomeBenefits"."NoVAMedReason",
-    "IncomeBenefits"."EmployerProvided",
-    "IncomeBenefits"."NoEmployerProvidedReason",
-    "IncomeBenefits"."COBRA",
-    "IncomeBenefits"."NoCOBRAReason",
-    "IncomeBenefits"."PrivatePay",
-    "IncomeBenefits"."NoPrivatePayReason",
-    "IncomeBenefits"."StateHealthIns",
-    "IncomeBenefits"."NoStateHealthInsReason",
-    "IncomeBenefits"."IndianHealthServices",
-    "IncomeBenefits"."NoIndianHealthServicesReason",
-    "IncomeBenefits"."OtherInsurance",
-    "IncomeBenefits"."OtherInsuranceIdentify",
-    "IncomeBenefits"."HIVAIDSAssistance",
-    "IncomeBenefits"."NoHIVAIDSAssistanceReason",
-    "IncomeBenefits"."ADAP",
-    "IncomeBenefits"."NoADAPReason",
-    "IncomeBenefits"."ConnectionWithSOAR",
-    "IncomeBenefits"."DataCollectionStage",
-    "IncomeBenefits"."DateCreated",
-    "IncomeBenefits"."DateUpdated",
-    "IncomeBenefits"."UserID",
-    "IncomeBenefits"."DateDeleted",
-    "IncomeBenefits"."ExportID",
-    "IncomeBenefits".data_source_id,
-    source_clients.id AS demographic_id
-   FROM (((((public."IncomeBenefits"
-     JOIN public."Enrollment" ON ((("IncomeBenefits".data_source_id = "Enrollment".data_source_id) AND (("IncomeBenefits"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("IncomeBenefits".data_source_id = source_clients.data_source_id) AND (("IncomeBenefits"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("IncomeBenefits"."DateDeleted" IS NULL)));
-
-
---
--- Name: bi_Inventory; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Inventory" AS
- SELECT "Inventory".id AS "InventoryID",
-    "Project".id AS "ProjectID",
-    "Inventory"."CoCCode",
-    "Inventory"."HouseholdType",
-    "Inventory"."Availability",
-    "Inventory"."UnitInventory",
-    "Inventory"."BedInventory",
-    "Inventory"."CHVetBedInventory",
-    "Inventory"."YouthVetBedInventory",
-    "Inventory"."VetBedInventory",
-    "Inventory"."CHYouthBedInventory",
-    "Inventory"."YouthBedInventory",
-    "Inventory"."CHBedInventory",
-    "Inventory"."OtherBedInventory",
-    "Inventory"."ESBedType",
-    "Inventory"."InventoryStartDate",
-    "Inventory"."InventoryEndDate",
-    "Inventory"."DateCreated",
-    "Inventory"."DateUpdated",
-    "Inventory"."UserID",
-    "Inventory"."DateDeleted",
-    "Inventory"."ExportID",
-    "Inventory".data_source_id
-   FROM (public."Inventory"
-     JOIN public."Project" ON ((("Inventory".data_source_id = "Project".data_source_id) AND (("Inventory"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
-  WHERE ("Inventory"."DateDeleted" IS NULL);
-
-
---
 -- Name: bi_Organization; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -3835,461 +3105,6 @@ CREATE VIEW public."bi_Organization" AS
     "Organization".data_source_id
    FROM public."Organization"
   WHERE ("Organization"."DateDeleted" IS NULL);
-
-
---
--- Name: bi_Project; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Project" AS
- SELECT "Project".id AS "ProjectID",
-    "Organization".id AS "OrganizationID",
-    "Project"."ProjectName",
-    "Project"."ProjectCommonName",
-    "Project"."OperatingStartDate",
-    "Project"."OperatingEndDate",
-    "Project"."ContinuumProject",
-    "Project"."ProjectType",
-    "Project"."HousingType",
-    "Project"."ResidentialAffiliation",
-    "Project"."TrackingMethod",
-    "Project"."HMISParticipatingProject",
-    "Project"."TargetPopulation",
-    "Project"."PITCount",
-    "Project"."DateCreated",
-    "Project"."DateUpdated",
-    "Project"."UserID",
-    "Project"."DateDeleted",
-    "Project"."ExportID",
-    "Project".data_source_id
-   FROM (public."Project"
-     JOIN public."Organization" ON ((("Project".data_source_id = "Organization".data_source_id) AND (("Project"."OrganizationID")::text = ("Organization"."OrganizationID")::text) AND ("Organization"."DateDeleted" IS NULL))))
-  WHERE ("Project"."DateDeleted" IS NULL);
-
-
---
--- Name: bi_ProjectCoC; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_ProjectCoC" AS
- SELECT "ProjectCoC".id AS "ProjectCoCID",
-    "Project".id AS "ProjectID",
-    "ProjectCoC"."CoCCode",
-    "ProjectCoC"."Geocode",
-    "ProjectCoC"."Address1",
-    "ProjectCoC"."Address2",
-    "ProjectCoC"."City",
-    "ProjectCoC"."State",
-    "ProjectCoC"."Zip",
-    "ProjectCoC"."GeographyType",
-    "ProjectCoC"."DateCreated",
-    "ProjectCoC"."DateUpdated",
-    "ProjectCoC"."UserID",
-    "ProjectCoC"."DateDeleted",
-    "ProjectCoC"."ExportID",
-    "ProjectCoC".data_source_id
-   FROM (public."ProjectCoC"
-     JOIN public."Project" ON ((("ProjectCoC".data_source_id = "Project".data_source_id) AND (("ProjectCoC"."ProjectID")::text = ("Project"."ProjectID")::text) AND ("Project"."DateDeleted" IS NULL))))
-  WHERE ("ProjectCoC"."DateDeleted" IS NULL);
-
-
---
--- Name: bi_Services; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public."bi_Services" AS
- SELECT "Services".id AS "ServicesID",
-    warehouse_clients.destination_id AS "PersonalID",
-    "Enrollment".id AS "EnrollmentID",
-    "Services"."DateProvided",
-    "Services"."RecordType",
-    "Services"."TypeProvided",
-    "Services"."OtherTypeProvided",
-    "Services"."SubTypeProvided",
-    "Services"."FAAmount",
-    "Services"."ReferralOutcome",
-    "Services"."DateCreated",
-    "Services"."DateUpdated",
-    "Services"."UserID",
-    "Services"."DateDeleted",
-    "Services"."ExportID",
-    "Services".data_source_id,
-    source_clients.id AS demographic_id
-   FROM (((((public."Services"
-     JOIN public."Enrollment" ON ((("Services".data_source_id = "Enrollment".data_source_id) AND (("Services"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Enrollment"."DateDeleted" IS NULL))))
-     LEFT JOIN public."Exit" ON ((("Enrollment".data_source_id = "Exit".data_source_id) AND (("Enrollment"."EnrollmentID")::text = ("Exit"."EnrollmentID")::text) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Client" source_clients ON ((("Services".data_source_id = source_clients.data_source_id) AND (("Services"."PersonalID")::text = (source_clients."PersonalID")::text) AND (source_clients."DateDeleted" IS NULL))))
-     JOIN public.warehouse_clients ON ((source_clients.id = warehouse_clients.source_id)))
-     JOIN public."Client" destination_clients ON (((destination_clients.id = warehouse_clients.destination_id) AND (destination_clients."DateDeleted" IS NULL))))
-  WHERE (("Exit"."ExitDate" IS NULL) OR (("Exit"."ExitDate" >= (CURRENT_DATE - '5 years'::interval)) AND ("Services"."DateProvided" >= (CURRENT_DATE - '5 years'::interval)) AND ("Services"."DateDeleted" IS NULL)));
-
-
---
--- Name: data_sources; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.data_sources (
-    id integer NOT NULL,
-    name character varying,
-    file_path character varying,
-    last_imported_at timestamp without time zone,
-    newest_updated_at date,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    source_type character varying,
-    munged_personal_id boolean DEFAULT false NOT NULL,
-    short_name character varying,
-    visible_in_window boolean DEFAULT false NOT NULL,
-    authoritative boolean DEFAULT false,
-    after_create_path character varying,
-    import_paused boolean DEFAULT false NOT NULL,
-    authoritative_type character varying,
-    source_id character varying,
-    deleted_at timestamp without time zone,
-    service_scannable boolean DEFAULT false NOT NULL,
-    import_aggregators jsonb DEFAULT '{}'::jsonb,
-    import_cleanups jsonb DEFAULT '{}'::jsonb,
-    refuse_imports_with_errors boolean DEFAULT false,
-    hmis character varying,
-    obey_consent boolean DEFAULT true
-);
-
-
---
--- Name: bi_data_sources; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_data_sources AS
- SELECT data_sources.id,
-    data_sources.name,
-    data_sources.short_name
-   FROM public.data_sources
-  WHERE ((data_sources.deleted_at IS NULL) AND (data_sources.deleted_at IS NULL));
-
-
---
--- Name: lookups_ethnicities; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.lookups_ethnicities (
-    id bigint NOT NULL,
-    value integer NOT NULL,
-    text character varying NOT NULL
-);
-
-
---
--- Name: bi_lookups_ethnicities; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_lookups_ethnicities AS
- SELECT lookups_ethnicities.id,
-    lookups_ethnicities.value,
-    lookups_ethnicities.text
-   FROM public.lookups_ethnicities;
-
-
---
--- Name: lookups_funding_sources; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.lookups_funding_sources (
-    id bigint NOT NULL,
-    value integer NOT NULL,
-    text character varying NOT NULL
-);
-
-
---
--- Name: bi_lookups_funding_sources; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_lookups_funding_sources AS
- SELECT lookups_funding_sources.id,
-    lookups_funding_sources.value,
-    lookups_funding_sources.text
-   FROM public.lookups_funding_sources;
-
-
---
--- Name: lookups_genders; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.lookups_genders (
-    id bigint NOT NULL,
-    value integer NOT NULL,
-    text character varying NOT NULL
-);
-
-
---
--- Name: bi_lookups_genders; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_lookups_genders AS
- SELECT lookups_genders.id,
-    lookups_genders.value,
-    lookups_genders.text
-   FROM public.lookups_genders;
-
-
---
--- Name: lookups_living_situations; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.lookups_living_situations (
-    id bigint NOT NULL,
-    value integer NOT NULL,
-    text character varying NOT NULL
-);
-
-
---
--- Name: bi_lookups_living_situations; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_lookups_living_situations AS
- SELECT lookups_living_situations.id,
-    lookups_living_situations.value,
-    lookups_living_situations.text
-   FROM public.lookups_living_situations;
-
-
---
--- Name: lookups_project_types; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.lookups_project_types (
-    id bigint NOT NULL,
-    value integer NOT NULL,
-    text character varying NOT NULL
-);
-
-
---
--- Name: bi_lookups_project_types; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_lookups_project_types AS
- SELECT lookups_project_types.id,
-    lookups_project_types.value,
-    lookups_project_types.text
-   FROM public.lookups_project_types;
-
-
---
--- Name: lookups_relationships; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.lookups_relationships (
-    id bigint NOT NULL,
-    value integer NOT NULL,
-    text character varying NOT NULL
-);
-
-
---
--- Name: bi_lookups_relationships; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_lookups_relationships AS
- SELECT lookups_relationships.id,
-    lookups_relationships.value,
-    lookups_relationships.text
-   FROM public.lookups_relationships;
-
-
---
--- Name: lookups_tracking_methods; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.lookups_tracking_methods (
-    id bigint NOT NULL,
-    value integer,
-    text character varying NOT NULL
-);
-
-
---
--- Name: bi_lookups_tracking_methods; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_lookups_tracking_methods AS
- SELECT lookups_tracking_methods.id,
-    lookups_tracking_methods.value,
-    lookups_tracking_methods.text
-   FROM public.lookups_tracking_methods;
-
-
---
--- Name: lookups_yes_no_etcs; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.lookups_yes_no_etcs (
-    id bigint NOT NULL,
-    value integer NOT NULL,
-    text character varying NOT NULL
-);
-
-
---
--- Name: bi_lookups_yes_no_etcs; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_lookups_yes_no_etcs AS
- SELECT lookups_yes_no_etcs.id,
-    lookups_yes_no_etcs.value,
-    lookups_yes_no_etcs.text
-   FROM public.lookups_yes_no_etcs;
-
-
---
--- Name: nightly_census_by_projects; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.nightly_census_by_projects (
-    id integer NOT NULL,
-    date date NOT NULL,
-    project_id integer NOT NULL,
-    veterans integer DEFAULT 0,
-    non_veterans integer DEFAULT 0,
-    children integer DEFAULT 0,
-    adults integer DEFAULT 0,
-    youth integer DEFAULT 0,
-    families integer DEFAULT 0,
-    individuals integer DEFAULT 0,
-    parenting_youth integer DEFAULT 0,
-    parenting_juveniles integer DEFAULT 0,
-    all_clients integer DEFAULT 0,
-    beds integer DEFAULT 0,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    juveniles integer DEFAULT 0,
-    unaccompanied_minors integer DEFAULT 0,
-    youth_families integer DEFAULT 0,
-    family_parents integer DEFAULT 0
-);
-
-
---
--- Name: bi_nightly_census_by_projects; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_nightly_census_by_projects AS
- SELECT nightly_census_by_projects.id,
-    nightly_census_by_projects.date,
-    nightly_census_by_projects.project_id,
-    nightly_census_by_projects.veterans,
-    nightly_census_by_projects.non_veterans,
-    nightly_census_by_projects.children,
-    nightly_census_by_projects.adults,
-    nightly_census_by_projects.all_clients,
-    nightly_census_by_projects.beds
-   FROM public.nightly_census_by_projects;
-
-
---
--- Name: service_history_enrollments; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.service_history_enrollments (
-    id bigint NOT NULL,
-    client_id integer NOT NULL,
-    data_source_id integer,
-    date date NOT NULL,
-    first_date_in_program date NOT NULL,
-    last_date_in_program date,
-    enrollment_group_id character varying(50),
-    project_id character varying(50),
-    age smallint,
-    destination integer,
-    head_of_household_id character varying(50),
-    household_id character varying(50),
-    project_name character varying(150),
-    project_type smallint,
-    project_tracking_method integer,
-    organization_id character varying(50),
-    record_type character varying(50) NOT NULL,
-    housing_status_at_entry integer,
-    housing_status_at_exit integer,
-    service_type smallint,
-    computed_project_type smallint,
-    presented_as_individual boolean,
-    other_clients_over_25 smallint DEFAULT 0 NOT NULL,
-    other_clients_under_18 smallint DEFAULT 0 NOT NULL,
-    other_clients_between_18_and_25 smallint DEFAULT 0 NOT NULL,
-    unaccompanied_youth boolean DEFAULT false NOT NULL,
-    parenting_youth boolean DEFAULT false NOT NULL,
-    parenting_juvenile boolean DEFAULT false NOT NULL,
-    children_only boolean DEFAULT false NOT NULL,
-    individual_adult boolean DEFAULT false NOT NULL,
-    individual_elder boolean DEFAULT false NOT NULL,
-    head_of_household boolean DEFAULT false NOT NULL,
-    move_in_date date,
-    unaccompanied_minor boolean DEFAULT false
-);
-
-
---
--- Name: bi_service_history_enrollments; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_service_history_enrollments AS
- SELECT service_history_enrollments.id,
-    service_history_enrollments.client_id,
-    service_history_enrollments.data_source_id,
-    service_history_enrollments.first_date_in_program,
-    service_history_enrollments.last_date_in_program,
-    service_history_enrollments.age,
-    service_history_enrollments.destination,
-    service_history_enrollments.head_of_household_id,
-    service_history_enrollments.household_id,
-    service_history_enrollments.project_name,
-    service_history_enrollments.project_tracking_method,
-    service_history_enrollments.computed_project_type,
-    service_history_enrollments.move_in_date,
-    "Project".id AS project_id,
-    "Enrollment".id AS enrollment_id
-   FROM (((public.service_history_enrollments
-     JOIN public."Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_enrollments.client_id))))
-     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = service_history_enrollments.data_source_id) AND (("Project"."ProjectID")::text = (service_history_enrollments.project_id)::text) AND (("Project"."OrganizationID")::text = (service_history_enrollments.organization_id)::text))))
-     JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".data_source_id = service_history_enrollments.data_source_id) AND (("Enrollment"."EnrollmentID")::text = (service_history_enrollments.enrollment_group_id)::text) AND (("Enrollment"."ProjectID")::text = (service_history_enrollments.project_id)::text))))
-  WHERE (((service_history_enrollments.record_type)::text = 'entry'::text) AND ((service_history_enrollments.last_date_in_program IS NULL) OR (service_history_enrollments.last_date_in_program >= (CURRENT_DATE - '5 years'::interval))));
-
-
---
--- Name: service_history_services; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.service_history_services (
-    id bigint NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
-    age smallint,
-    service_type smallint,
-    client_id integer,
-    project_type smallint,
-    homeless boolean,
-    literally_homeless boolean
-);
-
-
---
--- Name: bi_service_history_services; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_service_history_services AS
- SELECT service_history_services.id,
-    service_history_services.service_history_enrollment_id,
-    service_history_services.record_type,
-    service_history_services.date,
-    service_history_services.age,
-    service_history_services.client_id,
-    service_history_services.project_type
-   FROM (public.service_history_services
-     JOIN public."Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_services.client_id))))
-  WHERE (service_history_services.date >= (CURRENT_DATE - '5 years'::interval));
 
 
 --
@@ -6863,6 +5678,37 @@ CREATE SEQUENCE public.data_monitorings_id_seq
 --
 
 ALTER SEQUENCE public.data_monitorings_id_seq OWNED BY public.data_monitorings.id;
+
+
+--
+-- Name: data_sources; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_sources (
+    id integer NOT NULL,
+    name character varying,
+    file_path character varying,
+    last_imported_at timestamp without time zone,
+    newest_updated_at date,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    source_type character varying,
+    munged_personal_id boolean DEFAULT false NOT NULL,
+    short_name character varying,
+    visible_in_window boolean DEFAULT false NOT NULL,
+    authoritative boolean DEFAULT false,
+    after_create_path character varying,
+    import_paused boolean DEFAULT false NOT NULL,
+    authoritative_type character varying,
+    source_id character varying,
+    deleted_at timestamp without time zone,
+    service_scannable boolean DEFAULT false NOT NULL,
+    import_aggregators jsonb DEFAULT '{}'::jsonb,
+    import_cleanups jsonb DEFAULT '{}'::jsonb,
+    refuse_imports_with_errors boolean DEFAULT false,
+    hmis character varying,
+    obey_consent boolean DEFAULT true
+);
 
 
 --
@@ -18643,7 +17489,7 @@ CREATE VIEW public.hmis_services AS
     "Services"."EnrollmentID",
     "Services"."PersonalID",
     "Services"."DateProvided",
-    ("Services"."UserID")::character varying AS "UserID",
+    "Services"."UserID",
     "Services"."DateCreated",
     "Services"."DateUpdated",
     "Services"."DateDeleted",
@@ -19563,7 +18409,8 @@ CREATE TABLE public.hud_report_cells (
     summary json,
     status character varying,
     error_messages text,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    any_members boolean DEFAULT false NOT NULL
 );
 
 
@@ -20191,12 +19038,7 @@ CREATE TABLE public.hud_report_pit_clients (
     deleted_at timestamp without time zone,
     personal_id character varying,
     hoh_age integer,
-    household_member_count integer,
-    culturally_specific integer,
-    different_identity integer,
-    non_binary integer,
-    more_than_one_gender boolean,
-    mid_east_n_african integer
+    household_member_count integer
 );
 
 
@@ -20535,189 +19377,6 @@ CREATE SEQUENCE public.hud_report_universe_members_id_seq
 --
 
 ALTER SEQUENCE public.hud_report_universe_members_id_seq OWNED BY public.hud_report_universe_members.id;
-
-
---
--- Name: hud_spm_bed_nights; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hud_spm_bed_nights (
-    id bigint NOT NULL,
-    date date,
-    service_id bigint,
-    enrollment_id bigint,
-    client_id bigint
-);
-
-
---
--- Name: hud_spm_bed_nights_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hud_spm_bed_nights_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hud_spm_bed_nights_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hud_spm_bed_nights_id_seq OWNED BY public.hud_spm_bed_nights.id;
-
-
---
--- Name: hud_spm_enrollment_links; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hud_spm_enrollment_links (
-    id bigint NOT NULL,
-    enrollment_id bigint,
-    episode_type character varying,
-    episode_id bigint
-);
-
-
---
--- Name: hud_spm_enrollment_links_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hud_spm_enrollment_links_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hud_spm_enrollment_links_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hud_spm_enrollment_links_id_seq OWNED BY public.hud_spm_enrollment_links.id;
-
-
---
--- Name: hud_spm_enrollments; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hud_spm_enrollments (
-    id bigint NOT NULL,
-    first_name character varying,
-    last_name character varying,
-    personal_id character varying,
-    data_source_id integer,
-    start_of_homelessness date,
-    entry_date date,
-    exit_date date,
-    move_in_date date,
-    project_type integer,
-    eligible_funding boolean,
-    destination integer,
-    age date,
-    previous_earned_income numeric,
-    previous_non_employment_income numeric,
-    previous_total_income numeric,
-    current_earned_income numeric,
-    current_non_employment_income numeric,
-    current_total_income numeric,
-    report_id bigint,
-    client_id bigint,
-    previous_income_benefits_id bigint,
-    current_income_benefits_id bigint,
-    enrollment_id bigint
-);
-
-
---
--- Name: hud_spm_enrollments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hud_spm_enrollments_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hud_spm_enrollments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hud_spm_enrollments_id_seq OWNED BY public.hud_spm_enrollments.id;
-
-
---
--- Name: hud_spm_episodes; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hud_spm_episodes (
-    id bigint NOT NULL,
-    start_of_homelessness date,
-    entry_date date,
-    exit_date date,
-    move_in_date date,
-    destination integer,
-    age integer,
-    client_id bigint
-);
-
-
---
--- Name: hud_spm_episodes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hud_spm_episodes_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hud_spm_episodes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hud_spm_episodes_id_seq OWNED BY public.hud_spm_episodes.id;
-
-
---
--- Name: hud_spm_returns; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hud_spm_returns (
-    id bigint NOT NULL,
-    exit_date date,
-    return_date date,
-    exit_destination integer,
-    exit_enrollment_id bigint,
-    return_enrollment_id bigint,
-    client_id bigint
-);
-
-
---
--- Name: hud_spm_returns_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hud_spm_returns_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hud_spm_returns_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hud_spm_returns_id_seq OWNED BY public.hud_spm_returns.id;
 
 
 --
@@ -21282,6 +19941,17 @@ ALTER SEQUENCE public.longitudinal_spms_id_seq OWNED BY public.longitudinal_spms
 
 
 --
+-- Name: lookups_ethnicities; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lookups_ethnicities (
+    id bigint NOT NULL,
+    value integer NOT NULL,
+    text character varying NOT NULL
+);
+
+
+--
 -- Name: lookups_ethnicities_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -21298,6 +19968,17 @@ CREATE SEQUENCE public.lookups_ethnicities_id_seq
 --
 
 ALTER SEQUENCE public.lookups_ethnicities_id_seq OWNED BY public.lookups_ethnicities.id;
+
+
+--
+-- Name: lookups_funding_sources; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lookups_funding_sources (
+    id bigint NOT NULL,
+    value integer NOT NULL,
+    text character varying NOT NULL
+);
 
 
 --
@@ -21320,6 +20001,17 @@ ALTER SEQUENCE public.lookups_funding_sources_id_seq OWNED BY public.lookups_fun
 
 
 --
+-- Name: lookups_genders; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lookups_genders (
+    id bigint NOT NULL,
+    value integer NOT NULL,
+    text character varying NOT NULL
+);
+
+
+--
 -- Name: lookups_genders_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -21336,6 +20028,17 @@ CREATE SEQUENCE public.lookups_genders_id_seq
 --
 
 ALTER SEQUENCE public.lookups_genders_id_seq OWNED BY public.lookups_genders.id;
+
+
+--
+-- Name: lookups_living_situations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lookups_living_situations (
+    id bigint NOT NULL,
+    value integer NOT NULL,
+    text character varying NOT NULL
+);
 
 
 --
@@ -21358,6 +20061,17 @@ ALTER SEQUENCE public.lookups_living_situations_id_seq OWNED BY public.lookups_l
 
 
 --
+-- Name: lookups_project_types; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lookups_project_types (
+    id bigint NOT NULL,
+    value integer NOT NULL,
+    text character varying NOT NULL
+);
+
+
+--
 -- Name: lookups_project_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -21374,6 +20088,17 @@ CREATE SEQUENCE public.lookups_project_types_id_seq
 --
 
 ALTER SEQUENCE public.lookups_project_types_id_seq OWNED BY public.lookups_project_types.id;
+
+
+--
+-- Name: lookups_relationships; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lookups_relationships (
+    id bigint NOT NULL,
+    value integer NOT NULL,
+    text character varying NOT NULL
+);
 
 
 --
@@ -21396,6 +20121,17 @@ ALTER SEQUENCE public.lookups_relationships_id_seq OWNED BY public.lookups_relat
 
 
 --
+-- Name: lookups_tracking_methods; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lookups_tracking_methods (
+    id bigint NOT NULL,
+    value integer,
+    text character varying NOT NULL
+);
+
+
+--
 -- Name: lookups_tracking_methods_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -21412,6 +20148,17 @@ CREATE SEQUENCE public.lookups_tracking_methods_id_seq
 --
 
 ALTER SEQUENCE public.lookups_tracking_methods_id_seq OWNED BY public.lookups_tracking_methods.id;
+
+
+--
+-- Name: lookups_yes_no_etcs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lookups_yes_no_etcs (
+    id bigint NOT NULL,
+    value integer NOT NULL,
+    text character varying NOT NULL
+);
 
 
 --
@@ -21702,6 +20449,34 @@ CREATE SEQUENCE public.new_service_history_id_seq
 --
 
 ALTER SEQUENCE public.new_service_history_id_seq OWNED BY public.new_service_history.id;
+
+
+--
+-- Name: nightly_census_by_projects; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.nightly_census_by_projects (
+    id integer NOT NULL,
+    date date NOT NULL,
+    project_id integer NOT NULL,
+    veterans integer DEFAULT 0,
+    non_veterans integer DEFAULT 0,
+    children integer DEFAULT 0,
+    adults integer DEFAULT 0,
+    youth integer DEFAULT 0,
+    families integer DEFAULT 0,
+    individuals integer DEFAULT 0,
+    parenting_youth integer DEFAULT 0,
+    parenting_juveniles integer DEFAULT 0,
+    all_clients integer DEFAULT 0,
+    beds integer DEFAULT 0,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    juveniles integer DEFAULT 0,
+    unaccompanied_minors integer DEFAULT 0,
+    youth_families integer DEFAULT 0,
+    family_parents integer DEFAULT 0
+);
 
 
 --
@@ -23000,7 +21775,7 @@ CREATE TABLE public.recent_report_enrollments (
     "CoercedToContinueWork" integer,
     "LaborExploitPastThreeMonths" integer,
     "HPScreeningScore" integer,
-    "VAMCStation_deleted" integer,
+    "VAMCStation" integer,
     "DateCreated" timestamp without time zone,
     "DateUpdated" timestamp without time zone,
     "UserID" character varying(100),
@@ -23053,42 +21828,8 @@ CREATE TABLE public.recent_report_enrollments (
     "CoCPrioritized" integer,
     "TargetScreenReqd" integer,
     "HOHLeaseholder" integer,
-    "EnrollmentCoC" character varying,
-    "RentalSubsidyType" integer,
-    "TranslationNeeded" integer,
-    "PreferredLanguage" integer,
-    "PreferredLanguageDifferent" character varying,
-    "VAMCStation" character varying,
     demographic_id integer,
     client_id integer
-);
-
-
---
--- Name: recent_service_history; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.recent_service_history (
-    id bigint,
-    client_id integer,
-    data_source_id integer,
-    date date,
-    first_date_in_program date,
-    last_date_in_program date,
-    enrollment_group_id character varying(50),
-    age smallint,
-    destination integer,
-    head_of_household_id character varying(50),
-    household_id character varying(50),
-    project_id integer,
-    project_type smallint,
-    project_tracking_method integer,
-    organization_id integer,
-    "LivingSituation" integer,
-    "HousingAssessment" integer,
-    service_type smallint,
-    computed_project_type smallint,
-    presented_as_individual boolean
 );
 
 
@@ -23308,6 +22049,29 @@ CREATE SEQUENCE public.report_definitions_id_seq
 --
 
 ALTER SEQUENCE public.report_definitions_id_seq OWNED BY public.report_definitions.id;
+
+
+--
+-- Name: warehouse_clients; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.warehouse_clients (
+    id integer NOT NULL,
+    id_in_source character varying NOT NULL,
+    data_source_id integer,
+    proposed_at timestamp without time zone,
+    reviewed_at timestamp without time zone,
+    reviewd_by character varying,
+    approved_at timestamp without time zone,
+    rejected_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    deleted_at timestamp without time zone,
+    source_id integer,
+    destination_id integer,
+    client_match_id integer,
+    source_hash character varying
+);
 
 
 --
@@ -23832,6 +22596,66 @@ ALTER SEQUENCE public.secure_files_id_seq OWNED BY public.secure_files.id;
 
 
 --
+-- Name: service_history_enrollments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.service_history_enrollments (
+    id bigint NOT NULL,
+    client_id integer NOT NULL,
+    data_source_id integer,
+    date date NOT NULL,
+    first_date_in_program date NOT NULL,
+    last_date_in_program date,
+    enrollment_group_id character varying(50),
+    project_id character varying(50),
+    age smallint,
+    destination integer,
+    head_of_household_id character varying(50),
+    household_id character varying(50),
+    project_name character varying(150),
+    project_type smallint,
+    project_tracking_method integer,
+    organization_id character varying(50),
+    record_type character varying(50) NOT NULL,
+    housing_status_at_entry integer,
+    housing_status_at_exit integer,
+    service_type smallint,
+    computed_project_type smallint,
+    presented_as_individual boolean,
+    other_clients_over_25 smallint DEFAULT 0 NOT NULL,
+    other_clients_under_18 smallint DEFAULT 0 NOT NULL,
+    other_clients_between_18_and_25 smallint DEFAULT 0 NOT NULL,
+    unaccompanied_youth boolean DEFAULT false NOT NULL,
+    parenting_youth boolean DEFAULT false NOT NULL,
+    parenting_juvenile boolean DEFAULT false NOT NULL,
+    children_only boolean DEFAULT false NOT NULL,
+    individual_adult boolean DEFAULT false NOT NULL,
+    individual_elder boolean DEFAULT false NOT NULL,
+    head_of_household boolean DEFAULT false NOT NULL,
+    move_in_date date,
+    unaccompanied_minor boolean DEFAULT false
+);
+
+
+--
+-- Name: service_history_services; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.service_history_services (
+    id bigint NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
+
+
+--
 -- Name: service_history; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -24190,6 +23014,16 @@ INHERITS (public.service_history_services);
 
 CREATE TABLE public.service_history_services_2023 (
     CONSTRAINT service_history_services_2023_date_check CHECK (((date >= '2023-01-01'::date) AND (date <= '2023-12-31'::date)))
+)
+INHERITS (public.service_history_services);
+
+
+--
+-- Name: service_history_services_2024; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.service_history_services_2024 (
+    CONSTRAINT service_history_services_2024_date_check CHECK (((date >= '2024-01-01'::date) AND (date <= '2024-12-31'::date)))
 )
 INHERITS (public.service_history_services);
 
@@ -28890,41 +27724,6 @@ ALTER TABLE ONLY public.hud_report_universe_members ALTER COLUMN id SET DEFAULT 
 
 
 --
--- Name: hud_spm_bed_nights id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hud_spm_bed_nights ALTER COLUMN id SET DEFAULT nextval('public.hud_spm_bed_nights_id_seq'::regclass);
-
-
---
--- Name: hud_spm_enrollment_links id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hud_spm_enrollment_links ALTER COLUMN id SET DEFAULT nextval('public.hud_spm_enrollment_links_id_seq'::regclass);
-
-
---
--- Name: hud_spm_enrollments id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hud_spm_enrollments ALTER COLUMN id SET DEFAULT nextval('public.hud_spm_enrollments_id_seq'::regclass);
-
-
---
--- Name: hud_spm_episodes id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hud_spm_episodes ALTER COLUMN id SET DEFAULT nextval('public.hud_spm_episodes_id_seq'::regclass);
-
-
---
--- Name: hud_spm_returns id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hud_spm_returns ALTER COLUMN id SET DEFAULT nextval('public.hud_spm_returns_id_seq'::regclass);
-
-
---
 -- Name: identify_duplicates_log id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -29468,6 +28267,13 @@ ALTER TABLE ONLY public.service_history_services_2022 ALTER COLUMN id SET DEFAUL
 --
 
 ALTER TABLE ONLY public.service_history_services_2023 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
+
+
+--
+-- Name: service_history_services_2024 id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2024 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
 
 
 --
@@ -32837,46 +31643,6 @@ ALTER TABLE ONLY public.hud_report_universe_members
 
 
 --
--- Name: hud_spm_bed_nights hud_spm_bed_nights_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hud_spm_bed_nights
-    ADD CONSTRAINT hud_spm_bed_nights_pkey PRIMARY KEY (id);
-
-
---
--- Name: hud_spm_enrollment_links hud_spm_enrollment_links_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hud_spm_enrollment_links
-    ADD CONSTRAINT hud_spm_enrollment_links_pkey PRIMARY KEY (id);
-
-
---
--- Name: hud_spm_enrollments hud_spm_enrollments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hud_spm_enrollments
-    ADD CONSTRAINT hud_spm_enrollments_pkey PRIMARY KEY (id);
-
-
---
--- Name: hud_spm_episodes hud_spm_episodes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hud_spm_episodes
-    ADD CONSTRAINT hud_spm_episodes_pkey PRIMARY KEY (id);
-
-
---
--- Name: hud_spm_returns hud_spm_returns_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hud_spm_returns
-    ADD CONSTRAINT hud_spm_returns_pkey PRIMARY KEY (id);
-
-
---
 -- Name: identify_duplicates_log identify_duplicates_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -33868,20 +32634,6 @@ CREATE INDEX assessment_r_a_id_ds_id_p_id_en_id_ar_id ON public."AssessmentResul
 
 
 --
--- Name: c_r_system_pathways_clients_idx; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX c_r_system_pathways_clients_idx ON public.system_pathways_clients USING btree (client_id, report_id);
-
-
---
--- Name: c_r_system_pathways_enrollments_idx; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX c_r_system_pathways_enrollments_idx ON public.system_pathways_enrollments USING btree (client_id, report_id);
-
-
---
 -- Name: ch_enrollments_e_id_ch; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -33931,13 +32683,6 @@ CREATE INDEX client_id_ret_index ON public.recent_report_enrollments USING btree
 
 
 --
--- Name: client_id_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX client_id_rsh_index ON public.recent_service_history USING btree (client_id);
-
-
---
 -- Name: client_last_name; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -33949,13 +32694,6 @@ CREATE INDEX client_last_name ON public."Client" USING btree ("LastName");
 --
 
 CREATE INDEX client_personal_id ON public."Client" USING btree ("PersonalID");
-
-
---
--- Name: computed_project_type_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX computed_project_type_rsh_index ON public.recent_service_history USING btree (computed_project_type);
 
 
 --
@@ -33977,13 +32715,6 @@ CREATE INDEX cur_liv_sit_p_id_en_id_ds_id_cur_id ON public."CurrentLivingSituati
 --
 
 CREATE UNIQUE INDEX cur_liv_sit_sit_id_ds_id ON public."CurrentLivingSituation" USING btree ("CurrentLivingSitID", data_source_id);
-
-
---
--- Name: date_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX date_rsh_index ON public.recent_service_history USING btree (date);
 
 
 --
@@ -43535,13 +42266,6 @@ CREATE INDEX "hmisaggregatedexits_tmOV" ON public.hmis_aggregated_exits USING bt
 
 
 --
--- Name: hmiscsv2022affiliations_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022affiliations_634d ON public.hmis_csv_2022_affiliations USING btree ("ExportID");
-
-
---
 -- Name: hmiscsv2022affiliations_6QZN; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -43581,13 +42305,6 @@ CREATE INDEX hmiscsv2022affiliations_ayf6 ON public.hmis_csv_2022_affiliations U
 --
 
 CREATE INDEX "hmiscsv2022assessmentquestions_0Hnw" ON public.hmis_csv_2022_assessment_questions USING btree ("ExportID");
-
-
---
--- Name: hmiscsv2022assessmentquestions_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022assessmentquestions_634d ON public.hmis_csv_2022_assessment_questions USING btree ("ExportID");
 
 
 --
@@ -43633,13 +42350,6 @@ CREATE INDEX hmiscsv2022assessmentquestions_b7du ON public.hmis_csv_2022_assessm
 
 
 --
--- Name: hmiscsv2022assessmentquestions_da04; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022assessmentquestions_da04 ON public.hmis_csv_2022_assessment_questions USING btree ("AssessmentID");
-
-
---
 -- Name: hmiscsv2022assessmentquestions_f92d; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -43658,13 +42368,6 @@ CREATE INDEX "hmiscsv2022assessmentquestions_tkC5" ON public.hmis_csv_2022_asses
 --
 
 CREATE INDEX "hmiscsv2022assessmentquestions_zaOr" ON public.hmis_csv_2022_assessment_questions USING btree ("ExportID");
-
-
---
--- Name: hmiscsv2022assessmentresults_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022assessmentresults_634d ON public.hmis_csv_2022_assessment_results USING btree ("ExportID");
 
 
 --
@@ -43700,13 +42403,6 @@ CREATE INDEX "hmiscsv2022assessmentresults_Kx2Z" ON public.hmis_csv_2022_assessm
 --
 
 CREATE INDEX "hmiscsv2022assessmentresults_WyDM" ON public.hmis_csv_2022_assessment_results USING btree ("AssessmentID");
-
-
---
--- Name: hmiscsv2022assessmentresults_da04; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022assessmentresults_da04 ON public.hmis_csv_2022_assessment_results USING btree ("AssessmentID");
 
 
 --
@@ -43752,38 +42448,10 @@ CREATE INDEX "hmiscsv2022assessments_2PIZ" ON public.hmis_csv_2022_assessments U
 
 
 --
--- Name: hmiscsv2022assessments_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022assessments_4337 ON public.hmis_csv_2022_assessments USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2022assessments_4fa0; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022assessments_4fa0 ON public.hmis_csv_2022_assessments USING btree ("AssessmentDate");
-
-
---
 -- Name: hmiscsv2022assessments_53fu; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2022assessments_53fu ON public.hmis_csv_2022_assessments USING btree ("AssessmentDate");
-
-
---
--- Name: hmiscsv2022assessments_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022assessments_603f ON public.hmis_csv_2022_assessments USING btree ("PersonalID");
-
-
---
--- Name: hmiscsv2022assessments_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022assessments_634d ON public.hmis_csv_2022_assessments USING btree ("ExportID");
 
 
 --
@@ -43899,13 +42567,6 @@ CREATE INDEX "hmiscsv2022assessments_bNif" ON public.hmis_csv_2022_assessments U
 
 
 --
--- Name: hmiscsv2022assessments_da04; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022assessments_da04 ON public.hmis_csv_2022_assessments USING btree ("AssessmentID");
-
-
---
 -- Name: hmiscsv2022assessments_iP36; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -43962,20 +42623,6 @@ CREATE INDEX "hmiscsv2022clients_1B2M" ON public.hmis_csv_2022_clients USING btr
 
 
 --
--- Name: hmiscsv2022clients_202d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022clients_202d ON public.hmis_csv_2022_clients USING btree ("DOB");
-
-
---
--- Name: hmiscsv2022clients_20a8; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022clients_20a8 ON public.hmis_csv_2022_clients USING btree ("VeteranStatus");
-
-
---
 -- Name: hmiscsv2022clients_2g9p; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -43983,45 +42630,10 @@ CREATE INDEX hmiscsv2022clients_2g9p ON public.hmis_csv_2022_clients USING btree
 
 
 --
--- Name: hmiscsv2022clients_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022clients_42d5 ON public.hmis_csv_2022_clients USING btree ("DateUpdated");
-
-
---
 -- Name: hmiscsv2022clients_4Erz; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmiscsv2022clients_4Erz" ON public.hmis_csv_2022_clients USING btree ("VeteranStatus");
-
-
---
--- Name: hmiscsv2022clients_5289; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022clients_5289 ON public.hmis_csv_2022_clients USING btree ("FirstName");
-
-
---
--- Name: hmiscsv2022clients_539c; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022clients_539c ON public.hmis_csv_2022_clients USING btree ("LastName");
-
-
---
--- Name: hmiscsv2022clients_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022clients_603f ON public.hmis_csv_2022_clients USING btree ("PersonalID");
-
-
---
--- Name: hmiscsv2022clients_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022clients_634d ON public.hmis_csv_2022_clients USING btree ("ExportID");
 
 
 --
@@ -44155,13 +42767,6 @@ CREATE INDEX "hmiscsv2022clients_ZbiK" ON public.hmis_csv_2022_clients USING btr
 --
 
 CREATE INDEX "hmiscsv2022clients_bTWy" ON public.hmis_csv_2022_clients USING btree ("DOB");
-
-
---
--- Name: hmiscsv2022clients_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022clients_d381 ON public.hmis_csv_2022_clients USING btree ("DateCreated");
 
 
 --
@@ -44312,27 +42917,6 @@ CREATE INDEX hmiscsv2022currentlivingsituations_2ix3 ON public.hmis_csv_2022_cur
 
 
 --
--- Name: hmiscsv2022currentlivingsituations_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022currentlivingsituations_4337 ON public.hmis_csv_2022_current_living_situations USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2022currentlivingsituations_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022currentlivingsituations_603f ON public.hmis_csv_2022_current_living_situations USING btree ("PersonalID");
-
-
---
--- Name: hmiscsv2022currentlivingsituations_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022currentlivingsituations_634d ON public.hmis_csv_2022_current_living_situations USING btree ("ExportID");
-
-
---
 -- Name: hmiscsv2022currentlivingsituations_79om; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -44424,13 +43008,6 @@ CREATE INDEX "hmiscsv2022currentlivingsituations_beIg" ON public.hmis_csv_2022_c
 
 
 --
--- Name: hmiscsv2022currentlivingsituations_c1ef; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022currentlivingsituations_c1ef ON public.hmis_csv_2022_current_living_situations USING btree ("CurrentLivingSitID");
-
-
---
 -- Name: hmiscsv2022currentlivingsituations_c7Fg; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -44438,24 +43015,10 @@ CREATE INDEX "hmiscsv2022currentlivingsituations_c7Fg" ON public.hmis_csv_2022_c
 
 
 --
--- Name: hmiscsv2022currentlivingsituations_d718; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022currentlivingsituations_d718 ON public.hmis_csv_2022_current_living_situations USING btree ("CurrentLivingSituation");
-
-
---
 -- Name: hmiscsv2022currentlivingsituations_dUT6; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmiscsv2022currentlivingsituations_dUT6" ON public.hmis_csv_2022_current_living_situations USING btree ("ExportID");
-
-
---
--- Name: hmiscsv2022currentlivingsituations_fabe; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022currentlivingsituations_fabe ON public.hmis_csv_2022_current_living_situations USING btree ("InformationDate");
 
 
 --
@@ -44557,45 +43120,10 @@ CREATE INDEX "hmiscsv2022disabilities_14pD" ON public.hmis_csv_2022_disabilities
 
 
 --
--- Name: hmiscsv2022disabilities_1873; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022disabilities_1873 ON public.hmis_csv_2022_disabilities USING btree ("DisabilitiesID");
-
-
---
 -- Name: hmiscsv2022disabilities_3jSy; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmiscsv2022disabilities_3jSy" ON public.hmis_csv_2022_disabilities USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2022disabilities_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022disabilities_42d5 ON public.hmis_csv_2022_disabilities USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2022disabilities_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022disabilities_4337 ON public.hmis_csv_2022_disabilities USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2022disabilities_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022disabilities_603f ON public.hmis_csv_2022_disabilities USING btree ("PersonalID");
-
-
---
--- Name: hmiscsv2022disabilities_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022disabilities_634d ON public.hmis_csv_2022_disabilities USING btree ("ExportID");
 
 
 --
@@ -44732,13 +43260,6 @@ CREATE INDEX "hmiscsv2022disabilities_bckS" ON public.hmis_csv_2022_disabilities
 
 
 --
--- Name: hmiscsv2022disabilities_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022disabilities_d381 ON public.hmis_csv_2022_disabilities USING btree ("DateCreated");
-
-
---
 -- Name: hmiscsv2022disabilities_dHHy; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -44792,41 +43313,6 @@ CREATE INDEX "hmiscsv2022disabilities_xTGY" ON public.hmis_csv_2022_disabilities
 --
 
 CREATE INDEX hmiscsv2022disabilities_y3fv ON public.hmis_csv_2022_disabilities USING btree ("ExportID");
-
-
---
--- Name: hmiscsv2022employmenteducations_350e; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022employmenteducations_350e ON public.hmis_csv_2022_employment_educations USING btree ("EmploymentEducationID");
-
-
---
--- Name: hmiscsv2022employmenteducations_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022employmenteducations_42d5 ON public.hmis_csv_2022_employment_educations USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2022employmenteducations_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022employmenteducations_4337 ON public.hmis_csv_2022_employment_educations USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2022employmenteducations_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022employmenteducations_603f ON public.hmis_csv_2022_employment_educations USING btree ("PersonalID");
-
-
---
--- Name: hmiscsv2022employmenteducations_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022employmenteducations_634d ON public.hmis_csv_2022_employment_educations USING btree ("ExportID");
 
 
 --
@@ -44956,13 +43442,6 @@ CREATE INDEX "hmiscsv2022employmenteducations_cugU" ON public.hmis_csv_2022_empl
 
 
 --
--- Name: hmiscsv2022employmenteducations_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022employmenteducations_d381 ON public.hmis_csv_2022_employment_educations USING btree ("DateCreated");
-
-
---
 -- Name: hmiscsv2022employmenteducations_dRqv; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -45054,13 +43533,6 @@ CREATE INDEX "hmiscsv2022enrollmentcocs_0IAL" ON public.hmis_csv_2022_enrollment
 
 
 --
--- Name: hmiscsv2022enrollmentcocs_13b0; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollmentcocs_13b0 ON public.hmis_csv_2022_enrollment_cocs USING btree ("DateDeleted", "InformationDate") INCLUDE ("HouseholdID", "CoCCode");
-
-
---
 -- Name: hmiscsv2022enrollmentcocs_1Xm2; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -45072,34 +43544,6 @@ CREATE INDEX "hmiscsv2022enrollmentcocs_1Xm2" ON public.hmis_csv_2022_enrollment
 --
 
 CREATE INDEX "hmiscsv2022enrollmentcocs_1dHp" ON public.hmis_csv_2022_enrollment_cocs USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2022enrollmentcocs_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollmentcocs_42d5 ON public.hmis_csv_2022_enrollment_cocs USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2022enrollmentcocs_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollmentcocs_4337 ON public.hmis_csv_2022_enrollment_cocs USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2022enrollmentcocs_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollmentcocs_603f ON public.hmis_csv_2022_enrollment_cocs USING btree ("PersonalID");
-
-
---
--- Name: hmiscsv2022enrollmentcocs_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollmentcocs_634d ON public.hmis_csv_2022_enrollment_cocs USING btree ("ExportID");
 
 
 --
@@ -45250,38 +43694,10 @@ CREATE INDEX "hmiscsv2022enrollmentcocs_caGj" ON public.hmis_csv_2022_enrollment
 
 
 --
--- Name: hmiscsv2022enrollmentcocs_cea3; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollmentcocs_cea3 ON public.hmis_csv_2022_enrollment_cocs USING btree ("EnrollmentID", "InformationDate", "DateDeleted") INCLUDE ("CoCCode");
-
-
---
 -- Name: hmiscsv2022enrollmentcocs_cezi; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2022enrollmentcocs_cezi ON public.hmis_csv_2022_enrollment_cocs USING btree ("PersonalID");
-
-
---
--- Name: hmiscsv2022enrollmentcocs_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollmentcocs_d381 ON public.hmis_csv_2022_enrollment_cocs USING btree ("DateCreated");
-
-
---
--- Name: hmiscsv2022enrollmentcocs_e294; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollmentcocs_e294 ON public.hmis_csv_2022_enrollment_cocs USING btree ("CoCCode");
-
-
---
--- Name: hmiscsv2022enrollmentcocs_ec78; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollmentcocs_ec78 ON public.hmis_csv_2022_enrollment_cocs USING btree ("EnrollmentCoCID");
 
 
 --
@@ -45446,13 +43862,6 @@ CREATE INDEX "hmiscsv2022enrollments_1jXQ" ON public.hmis_csv_2022_enrollments U
 
 
 --
--- Name: hmiscsv2022enrollments_2735; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_2735 ON public.hmis_csv_2022_enrollments USING btree ("ProjectID", "HouseholdID");
-
-
---
 -- Name: hmiscsv2022enrollments_2KUN; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -45474,94 +43883,10 @@ CREATE INDEX "hmiscsv2022enrollments_2W2h" ON public.hmis_csv_2022_enrollments U
 
 
 --
--- Name: hmiscsv2022enrollments_3085; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_3085 ON public.hmis_csv_2022_enrollments USING btree ("PreviousStreetESSH", "LengthOfStay");
-
-
---
--- Name: hmiscsv2022enrollments_34e3; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_34e3 ON public.hmis_csv_2022_enrollments USING btree ("EnrollmentID", "ProjectID", "EntryDate");
-
-
---
--- Name: hmiscsv2022enrollments_42af; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_42af ON public.hmis_csv_2022_enrollments USING btree ("ProjectID");
-
-
---
--- Name: hmiscsv2022enrollments_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_42d5 ON public.hmis_csv_2022_enrollments USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2022enrollments_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_4337 ON public.hmis_csv_2022_enrollments USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2022enrollments_44c4; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_44c4 ON public.hmis_csv_2022_enrollments USING btree ("MonthsHomelessPastThreeYears") INCLUDE ("EnrollmentID", "LivingSituation", "PreviousStreetESSH");
-
-
---
--- Name: hmiscsv2022enrollments_4685; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_4685 ON public.hmis_csv_2022_enrollments USING btree ("LengthOfStay") INCLUDE ("EnrollmentID");
-
-
---
--- Name: hmiscsv2022enrollments_5328; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_5328 ON public.hmis_csv_2022_enrollments USING btree ("HouseholdID");
-
-
---
 -- Name: hmiscsv2022enrollments_5Od1; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmiscsv2022enrollments_5Od1" ON public.hmis_csv_2022_enrollments USING btree ("ExportID");
-
-
---
--- Name: hmiscsv2022enrollments_5d40; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_5d40 ON public.hmis_csv_2022_enrollments USING btree ("HouseholdID", "DateDeleted", "EntryDate", "RelationshipToHoH") INCLUDE ("EnrollmentID", "PersonalID", "DisablingCondition");
-
-
---
--- Name: hmiscsv2022enrollments_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_603f ON public.hmis_csv_2022_enrollments USING btree ("PersonalID");
-
-
---
--- Name: hmiscsv2022enrollments_6191; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_6191 ON public.hmis_csv_2022_enrollments USING btree ("EntryDate") INCLUDE ("EnrollmentID", "ProjectID", "HouseholdID", "RelationshipToHoH", "DateDeleted");
-
-
---
--- Name: hmiscsv2022enrollments_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_634d ON public.hmis_csv_2022_enrollments USING btree ("ExportID");
 
 
 --
@@ -45576,34 +43901,6 @@ CREATE INDEX "hmiscsv2022enrollments_6RGw" ON public.hmis_csv_2022_enrollments U
 --
 
 CREATE INDEX "hmiscsv2022enrollments_6xDx" ON public.hmis_csv_2022_enrollments USING btree ("ProjectID", "RelationshipToHoH");
-
-
---
--- Name: hmiscsv2022enrollments_821a; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_821a ON public.hmis_csv_2022_enrollments USING btree ("LivingSituation") INCLUDE ("EnrollmentID");
-
-
---
--- Name: hmiscsv2022enrollments_89e7; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_89e7 ON public.hmis_csv_2022_enrollments USING btree ("HouseholdID", "DateDeleted", "RelationshipToHoH") INCLUDE ("EnrollmentID", "PersonalID", "EntryDate", "DisablingCondition");
-
-
---
--- Name: hmiscsv2022enrollments_8d5c; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_8d5c ON public.hmis_csv_2022_enrollments USING btree ("DateDeleted", "RelationshipToHoH") INCLUDE ("EnrollmentID", "PersonalID", "EntryDate", "HouseholdID", "DisablingCondition");
-
-
---
--- Name: hmiscsv2022enrollments_9005; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_9005 ON public.hmis_csv_2022_enrollments USING btree ("ProjectID", "RelationshipToHoH", "DateDeleted") INCLUDE ("EnrollmentID", "PersonalID", "EntryDate", "HouseholdID", "MoveInDate");
 
 
 --
@@ -45845,45 +44142,10 @@ CREATE INDEX "hmiscsv2022enrollments_bItG" ON public.hmis_csv_2022_enrollments U
 
 
 --
--- Name: hmiscsv2022enrollments_c321; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_c321 ON public.hmis_csv_2022_enrollments USING btree ("TimesHomelessPastThreeYears", "MonthsHomelessPastThreeYears") INCLUDE ("EnrollmentID");
-
-
---
--- Name: hmiscsv2022enrollments_c3b4; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_c3b4 ON public.hmis_csv_2022_enrollments USING btree ("RelationshipToHoH", "DateDeleted") INCLUDE ("EnrollmentID", "PersonalID", "ProjectID", "EntryDate", "HouseholdID", "MoveInDate", "DisablingCondition");
-
-
---
--- Name: hmiscsv2022enrollments_c548; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_c548 ON public.hmis_csv_2022_enrollments USING btree ("EnrollmentID", "PersonalID");
-
-
---
--- Name: hmiscsv2022enrollments_c830; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_c830 ON public.hmis_csv_2022_enrollments USING btree ("DateDeleted", "EntryDate") INCLUDE ("EnrollmentID", "HouseholdID", "ProjectID", "RelationshipToHoH");
-
-
---
 -- Name: hmiscsv2022enrollments_cCys; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmiscsv2022enrollments_cCys" ON public.hmis_csv_2022_enrollments USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2022enrollments_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_d381 ON public.hmis_csv_2022_enrollments USING btree ("DateCreated");
 
 
 --
@@ -45908,31 +44170,10 @@ CREATE INDEX "hmiscsv2022enrollments_eMPH" ON public.hmis_csv_2022_enrollments U
 
 
 --
--- Name: hmiscsv2022enrollments_ea7f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_ea7f ON public.hmis_csv_2022_enrollments USING btree ("HouseholdID", "RelationshipToHoH", "DateDeleted") INCLUDE ("EnrollmentID");
-
-
---
--- Name: hmiscsv2022enrollments_f3a2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_f3a2 ON public.hmis_csv_2022_enrollments USING btree ("DateDeleted");
-
-
---
 -- Name: hmiscsv2022enrollments_fYTX; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmiscsv2022enrollments_fYTX" ON public.hmis_csv_2022_enrollments USING btree ("PreviousStreetESSH", "LengthOfStay");
-
-
---
--- Name: hmiscsv2022enrollments_fbbd; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022enrollments_fbbd ON public.hmis_csv_2022_enrollments USING btree ("MoveInDate") INCLUDE ("EnrollmentID");
 
 
 --
@@ -46160,34 +44401,6 @@ CREATE INDEX hmiscsv2022enrollments_zumz ON public.hmis_csv_2022_enrollments USI
 
 
 --
--- Name: hmiscsv2022events_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022events_4337 ON public.hmis_csv_2022_events USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2022events_5251; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022events_5251 ON public.hmis_csv_2022_events USING btree ("EventID");
-
-
---
--- Name: hmiscsv2022events_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022events_603f ON public.hmis_csv_2022_events USING btree ("PersonalID");
-
-
---
--- Name: hmiscsv2022events_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022events_634d ON public.hmis_csv_2022_events USING btree ("ExportID");
-
-
---
 -- Name: hmiscsv2022events_6eMI; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46300,13 +44513,6 @@ CREATE INDEX "hmiscsv2022events_UMEc" ON public.hmis_csv_2022_events USING btree
 
 
 --
--- Name: hmiscsv2022events_ab19; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022events_ab19 ON public.hmis_csv_2022_events USING btree ("EventDate");
-
-
---
 -- Name: hmiscsv2022events_b0HY; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46377,13 +44583,6 @@ CREATE INDEX "hmiscsv2022exits_0oqJ" ON public.hmis_csv_2022_exits USING btree (
 
 
 --
--- Name: hmiscsv2022exits_13dc; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022exits_13dc ON public.hmis_csv_2022_exits USING btree ("ExitDate", "Destination") INCLUDE ("EnrollmentID");
-
-
---
 -- Name: hmiscsv2022exits_2IJt; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46395,41 +44594,6 @@ CREATE INDEX "hmiscsv2022exits_2IJt" ON public.hmis_csv_2022_exits USING btree (
 --
 
 CREATE INDEX "hmiscsv2022exits_3hM6" ON public.hmis_csv_2022_exits USING btree ("ExitDate");
-
-
---
--- Name: hmiscsv2022exits_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022exits_42d5 ON public.hmis_csv_2022_exits USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2022exits_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022exits_4337 ON public.hmis_csv_2022_exits USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2022exits_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022exits_603f ON public.hmis_csv_2022_exits USING btree ("PersonalID");
-
-
---
--- Name: hmiscsv2022exits_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022exits_634d ON public.hmis_csv_2022_exits USING btree ("ExportID");
-
-
---
--- Name: hmiscsv2022exits_6f2b; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022exits_6f2b ON public.hmis_csv_2022_exits USING btree ("ExitID");
 
 
 --
@@ -46580,27 +44744,6 @@ CREATE INDEX "hmiscsv2022exits_b9Iz" ON public.hmis_csv_2022_exits USING btree (
 
 
 --
--- Name: hmiscsv2022exits_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022exits_d381 ON public.hmis_csv_2022_exits USING btree ("DateCreated");
-
-
---
--- Name: hmiscsv2022exits_f3a2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022exits_f3a2 ON public.hmis_csv_2022_exits USING btree ("DateDeleted") INCLUDE ("EnrollmentID", "ExitDate");
-
-
---
--- Name: hmiscsv2022exits_fa9a; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022exits_fa9a ON public.hmis_csv_2022_exits USING btree ("ExitDate");
-
-
---
 -- Name: hmiscsv2022exits_jid6; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46720,13 +44863,6 @@ CREATE INDEX "hmiscsv2022exports_4A4m" ON public.hmis_csv_2022_exports USING btr
 
 
 --
--- Name: hmiscsv2022exports_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022exports_634d ON public.hmis_csv_2022_exports USING btree ("ExportID");
-
-
---
 -- Name: hmiscsv2022exports_786V; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46752,27 +44888,6 @@ CREATE INDEX "hmiscsv2022exports_Gf6i" ON public.hmis_csv_2022_exports USING btr
 --
 
 CREATE INDEX "hmiscsv2022exports_qkPK" ON public.hmis_csv_2022_exports USING btree ("ExportID");
-
-
---
--- Name: hmiscsv2022funders_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022funders_42d5 ON public.hmis_csv_2022_funders USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2022funders_4657; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022funders_4657 ON public.hmis_csv_2022_funders USING btree ("FunderID");
-
-
---
--- Name: hmiscsv2022funders_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022funders_634d ON public.hmis_csv_2022_funders USING btree ("ExportID");
 
 
 --
@@ -46853,13 +44968,6 @@ CREATE INDEX "hmiscsv2022funders_acMZ" ON public.hmis_csv_2022_funders USING btr
 
 
 --
--- Name: hmiscsv2022funders_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022funders_d381 ON public.hmis_csv_2022_funders USING btree ("DateCreated");
-
-
---
 -- Name: hmiscsv2022funders_gFjD; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -46923,45 +45031,10 @@ CREATE INDEX "hmiscsv2022funders_zZPu" ON public.hmis_csv_2022_funders USING btr
 
 
 --
--- Name: hmiscsv2022healthanddvs_1329; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022healthanddvs_1329 ON public.hmis_csv_2022_health_and_dvs USING btree ("HealthAndDVID");
-
-
---
 -- Name: hmiscsv2022healthanddvs_3s5V; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmiscsv2022healthanddvs_3s5V" ON public.hmis_csv_2022_health_and_dvs USING btree ("DateCreated");
-
-
---
--- Name: hmiscsv2022healthanddvs_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022healthanddvs_42d5 ON public.hmis_csv_2022_health_and_dvs USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2022healthanddvs_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022healthanddvs_4337 ON public.hmis_csv_2022_health_and_dvs USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2022healthanddvs_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022healthanddvs_603f ON public.hmis_csv_2022_health_and_dvs USING btree ("PersonalID");
-
-
---
--- Name: hmiscsv2022healthanddvs_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022healthanddvs_634d ON public.hmis_csv_2022_health_and_dvs USING btree ("ExportID");
 
 
 --
@@ -47053,13 +45126,6 @@ CREATE INDEX "hmiscsv2022healthanddvs_Xory" ON public.hmis_csv_2022_health_and_d
 --
 
 CREATE INDEX "hmiscsv2022healthanddvs_Y01x" ON public.hmis_csv_2022_health_and_dvs USING btree ("HealthAndDVID");
-
-
---
--- Name: hmiscsv2022healthanddvs_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022healthanddvs_d381 ON public.hmis_csv_2022_health_and_dvs USING btree ("DateCreated");
 
 
 --
@@ -47175,13 +45241,6 @@ CREATE INDEX hmiscsv2022healthanddvs_zf1v ON public.hmis_csv_2022_health_and_dvs
 
 
 --
--- Name: hmiscsv2022incomebenefits_16c2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022incomebenefits_16c2 ON public.hmis_csv_2022_income_benefits USING btree ("Earned", "DataCollectionStage");
-
-
---
 -- Name: hmiscsv2022incomebenefits_1RQb; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47207,34 +45266,6 @@ CREATE INDEX hmiscsv2022incomebenefits_1tdi ON public.hmis_csv_2022_income_benef
 --
 
 CREATE INDEX "hmiscsv2022incomebenefits_2tUP" ON public.hmis_csv_2022_income_benefits USING btree ("PersonalID");
-
-
---
--- Name: hmiscsv2022incomebenefits_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022incomebenefits_42d5 ON public.hmis_csv_2022_income_benefits USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2022incomebenefits_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022incomebenefits_4337 ON public.hmis_csv_2022_income_benefits USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2022incomebenefits_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022incomebenefits_603f ON public.hmis_csv_2022_income_benefits USING btree ("PersonalID");
-
-
---
--- Name: hmiscsv2022incomebenefits_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022incomebenefits_634d ON public.hmis_csv_2022_income_benefits USING btree ("ExportID");
 
 
 --
@@ -47448,38 +45479,10 @@ CREATE INDEX "hmiscsv2022incomebenefits_ZW68" ON public.hmis_csv_2022_income_ben
 
 
 --
--- Name: hmiscsv2022incomebenefits_ae8d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022incomebenefits_ae8d ON public.hmis_csv_2022_income_benefits USING btree ("IncomeFromAnySource", "DataCollectionStage");
-
-
---
 -- Name: hmiscsv2022incomebenefits_cE9a; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmiscsv2022incomebenefits_cE9a" ON public.hmis_csv_2022_income_benefits USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2022incomebenefits_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022incomebenefits_d381 ON public.hmis_csv_2022_income_benefits USING btree ("DateCreated");
-
-
---
--- Name: hmiscsv2022incomebenefits_f5f5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022incomebenefits_f5f5 ON public.hmis_csv_2022_income_benefits USING btree ("IncomeBenefitsID");
-
-
---
--- Name: hmiscsv2022incomebenefits_fabe; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022incomebenefits_fabe ON public.hmis_csv_2022_income_benefits USING btree ("InformationDate");
 
 
 --
@@ -47567,13 +45570,6 @@ CREATE INDEX "hmiscsv2022inventories_2JYH" ON public.hmis_csv_2022_inventories U
 
 
 --
--- Name: hmiscsv2022inventories_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022inventories_42d5 ON public.hmis_csv_2022_inventories USING btree ("DateUpdated");
-
-
---
 -- Name: hmiscsv2022inventories_5blG; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47581,24 +45577,10 @@ CREATE INDEX "hmiscsv2022inventories_5blG" ON public.hmis_csv_2022_inventories U
 
 
 --
--- Name: hmiscsv2022inventories_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022inventories_634d ON public.hmis_csv_2022_inventories USING btree ("ExportID");
-
-
---
 -- Name: hmiscsv2022inventories_7XPQ; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmiscsv2022inventories_7XPQ" ON public.hmis_csv_2022_inventories USING btree ("ExportID");
-
-
---
--- Name: hmiscsv2022inventories_9529; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022inventories_9529 ON public.hmis_csv_2022_inventories USING btree ("InventoryID");
 
 
 --
@@ -47658,13 +45640,6 @@ CREATE INDEX "hmiscsv2022inventories_Xkhg" ON public.hmis_csv_2022_inventories U
 
 
 --
--- Name: hmiscsv2022inventories_b15e; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022inventories_b15e ON public.hmis_csv_2022_inventories USING btree ("ProjectID", "CoCCode");
-
-
---
 -- Name: hmiscsv2022inventories_bqiF; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47676,13 +45651,6 @@ CREATE INDEX "hmiscsv2022inventories_bqiF" ON public.hmis_csv_2022_inventories U
 --
 
 CREATE INDEX hmiscsv2022inventories_ctyg ON public.hmis_csv_2022_inventories USING btree ("ProjectID", "CoCCode");
-
-
---
--- Name: hmiscsv2022inventories_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022inventories_d381 ON public.hmis_csv_2022_inventories USING btree ("DateCreated");
 
 
 --
@@ -47763,13 +45731,6 @@ CREATE INDEX "hmiscsv2022inventories_yqNs" ON public.hmis_csv_2022_inventories U
 
 
 --
--- Name: hmiscsv2022organizations_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022organizations_634d ON public.hmis_csv_2022_organizations USING btree ("ExportID");
-
-
---
 -- Name: hmiscsv2022organizations_FjV6; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47812,13 +45773,6 @@ CREATE INDEX "hmiscsv2022organizations_SBB6" ON public.hmis_csv_2022_organizatio
 
 
 --
--- Name: hmiscsv2022organizations_b19d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022organizations_b19d ON public.hmis_csv_2022_organizations USING btree ("OrganizationID");
-
-
---
 -- Name: hmiscsv2022organizations_eKN2; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -47851,27 +45805,6 @@ CREATE INDEX "hmiscsv2022organizations_uD5T" ON public.hmis_csv_2022_organizatio
 --
 
 CREATE INDEX "hmiscsv2022projectcocs_0mWW" ON public.hmis_csv_2022_project_cocs USING btree ("DateCreated");
-
-
---
--- Name: hmiscsv2022projectcocs_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022projectcocs_42d5 ON public.hmis_csv_2022_project_cocs USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2022projectcocs_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022projectcocs_634d ON public.hmis_csv_2022_project_cocs USING btree ("ExportID");
-
-
---
--- Name: hmiscsv2022projectcocs_787b; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022projectcocs_787b ON public.hmis_csv_2022_project_cocs USING btree ("ProjectCoCID");
 
 
 --
@@ -47959,20 +45892,6 @@ CREATE INDEX "hmiscsv2022projectcocs_ZwP7" ON public.hmis_csv_2022_project_cocs 
 
 
 --
--- Name: hmiscsv2022projectcocs_b15e; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022projectcocs_b15e ON public.hmis_csv_2022_project_cocs USING btree ("ProjectID", "CoCCode");
-
-
---
--- Name: hmiscsv2022projectcocs_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022projectcocs_d381 ON public.hmis_csv_2022_project_cocs USING btree ("DateCreated");
-
-
---
 -- Name: hmiscsv2022projectcocs_fHPb; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48054,27 +45973,6 @@ CREATE INDEX "hmiscsv2022projectcocs_uGEA" ON public.hmis_csv_2022_project_cocs 
 --
 
 CREATE INDEX "hmiscsv2022projectcocs_xNgm" ON public.hmis_csv_2022_project_cocs USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2022projects_42af; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022projects_42af ON public.hmis_csv_2022_projects USING btree ("ProjectID");
-
-
---
--- Name: hmiscsv2022projects_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022projects_42d5 ON public.hmis_csv_2022_projects USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2022projects_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022projects_634d ON public.hmis_csv_2022_projects USING btree ("ExportID");
 
 
 --
@@ -48197,20 +46095,6 @@ CREATE INDEX "hmiscsv2022projects_VzMf" ON public.hmis_csv_2022_projects USING b
 
 
 --
--- Name: hmiscsv2022projects_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022projects_d381 ON public.hmis_csv_2022_projects USING btree ("DateCreated");
-
-
---
--- Name: hmiscsv2022projects_e4bb; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022projects_e4bb ON public.hmis_csv_2022_projects USING btree ("ProjectType");
-
-
---
 -- Name: hmiscsv2022projects_fGby; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48274,20 +46158,6 @@ CREATE INDEX "hmiscsv2022services_1kzC" ON public.hmis_csv_2022_services USING b
 
 
 --
--- Name: hmiscsv2022services_237b; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022services_237b ON public.hmis_csv_2022_services USING btree ("RecordType");
-
-
---
--- Name: hmiscsv2022services_3444; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022services_3444 ON public.hmis_csv_2022_services USING btree ("DateProvided");
-
-
---
 -- Name: hmiscsv2022services_3gBa; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48299,20 +46169,6 @@ CREATE INDEX "hmiscsv2022services_3gBa" ON public.hmis_csv_2022_services USING b
 --
 
 CREATE INDEX "hmiscsv2022services_3wwH" ON public.hmis_csv_2022_services USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2022services_42d5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022services_42d5 ON public.hmis_csv_2022_services USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2022services_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022services_4337 ON public.hmis_csv_2022_services USING btree ("EnrollmentID");
 
 
 --
@@ -48330,38 +46186,10 @@ CREATE INDEX "hmiscsv2022services_53sL" ON public.hmis_csv_2022_services USING b
 
 
 --
--- Name: hmiscsv2022services_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022services_603f ON public.hmis_csv_2022_services USING btree ("PersonalID");
-
-
---
--- Name: hmiscsv2022services_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022services_634d ON public.hmis_csv_2022_services USING btree ("ExportID");
-
-
---
--- Name: hmiscsv2022services_6415; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022services_6415 ON public.hmis_csv_2022_services USING btree ("ServicesID");
-
-
---
 -- Name: hmiscsv2022services_68n9; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX hmiscsv2022services_68n9 ON public.hmis_csv_2022_services USING btree ("EnrollmentID", "RecordType", "DateDeleted", "DateProvided");
-
-
---
--- Name: hmiscsv2022services_6c1d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022services_6c1d ON public.hmis_csv_2022_services USING btree ("RecordType", "DateProvided");
 
 
 --
@@ -48372,13 +46200,6 @@ CREATE INDEX "hmiscsv2022services_732S" ON public.hmis_csv_2022_services USING b
 
 
 --
--- Name: hmiscsv2022services_75f1; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022services_75f1 ON public.hmis_csv_2022_services USING btree ("PersonalID", "RecordType", "EnrollmentID", "DateProvided");
-
-
---
 -- Name: hmiscsv2022services_78KE; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48386,31 +46207,10 @@ CREATE INDEX "hmiscsv2022services_78KE" ON public.hmis_csv_2022_services USING b
 
 
 --
--- Name: hmiscsv2022services_8586; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022services_8586 ON public.hmis_csv_2022_services USING btree ("EnrollmentID", "RecordType", "DateDeleted", "DateProvided");
-
-
---
--- Name: hmiscsv2022services_8dbb; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022services_8dbb ON public.hmis_csv_2022_services USING btree ("RecordType", "DateDeleted", "DateProvided") INCLUDE ("EnrollmentID");
-
-
---
 -- Name: hmiscsv2022services_9Ain; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "hmiscsv2022services_9Ain" ON public.hmis_csv_2022_services USING btree ("PersonalID", "RecordType", "EnrollmentID", "DateProvided");
-
-
---
--- Name: hmiscsv2022services_9c1a; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022services_9c1a ON public.hmis_csv_2022_services USING btree ("EnrollmentID", "RecordType", "DateDeleted") INCLUDE ("DateProvided");
 
 
 --
@@ -48652,13 +46452,6 @@ CREATE INDEX "hmiscsv2022services_aK50" ON public.hmis_csv_2022_services USING b
 
 
 --
--- Name: hmiscsv2022services_c548; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022services_c548 ON public.hmis_csv_2022_services USING btree ("EnrollmentID", "PersonalID");
-
-
---
 -- Name: hmiscsv2022services_cK9O; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48670,13 +46463,6 @@ CREATE INDEX "hmiscsv2022services_cK9O" ON public.hmis_csv_2022_services USING b
 --
 
 CREATE INDEX "hmiscsv2022services_cOsh" ON public.hmis_csv_2022_services USING btree ("DateCreated");
-
-
---
--- Name: hmiscsv2022services_d381; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022services_d381 ON public.hmis_csv_2022_services USING btree ("DateCreated");
 
 
 --
@@ -48698,20 +46484,6 @@ CREATE INDEX "hmiscsv2022services_enQH" ON public.hmis_csv_2022_services USING b
 --
 
 CREATE INDEX hmiscsv2022services_f0qq ON public.hmis_csv_2022_services USING btree ("DateUpdated");
-
-
---
--- Name: hmiscsv2022services_f3a2; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022services_f3a2 ON public.hmis_csv_2022_services USING btree ("DateDeleted");
-
-
---
--- Name: hmiscsv2022services_f749; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022services_f749 ON public.hmis_csv_2022_services USING btree ("RecordType", "DateDeleted");
 
 
 --
@@ -48869,20 +46641,6 @@ CREATE INDEX "hmiscsv2022services_zkJ3" ON public.hmis_csv_2022_services USING b
 
 
 --
--- Name: hmiscsv2022users_57c7; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022users_57c7 ON public.hmis_csv_2022_users USING btree ("UserID");
-
-
---
--- Name: hmiscsv2022users_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022users_634d ON public.hmis_csv_2022_users USING btree ("ExportID");
-
-
---
 -- Name: hmiscsv2022users_7hAX; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -48971,34 +46729,6 @@ CREATE INDEX "hmiscsv2022youtheducationstatuses_27QU" ON public.hmis_csv_2022_yo
 --
 
 CREATE INDEX "hmiscsv2022youtheducationstatuses_3wUp" ON public.hmis_csv_2022_youth_education_statuses USING btree ("PersonalID");
-
-
---
--- Name: hmiscsv2022youtheducationstatuses_4337; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022youtheducationstatuses_4337 ON public.hmis_csv_2022_youth_education_statuses USING btree ("EnrollmentID");
-
-
---
--- Name: hmiscsv2022youtheducationstatuses_603f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022youtheducationstatuses_603f ON public.hmis_csv_2022_youth_education_statuses USING btree ("PersonalID");
-
-
---
--- Name: hmiscsv2022youtheducationstatuses_6049; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022youtheducationstatuses_6049 ON public.hmis_csv_2022_youth_education_statuses USING btree ("YouthEducationStatusID");
-
-
---
--- Name: hmiscsv2022youtheducationstatuses_634d; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022youtheducationstatuses_634d ON public.hmis_csv_2022_youth_education_statuses USING btree ("ExportID");
 
 
 --
@@ -49097,13 +46827,6 @@ CREATE INDEX "hmiscsv2022youtheducationstatuses_WARO" ON public.hmis_csv_2022_yo
 --
 
 CREATE INDEX "hmiscsv2022youtheducationstatuses_eWaV" ON public.hmis_csv_2022_youth_education_statuses USING btree ("PersonalID");
-
-
---
--- Name: hmiscsv2022youtheducationstatuses_fabe; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX hmiscsv2022youtheducationstatuses_fabe ON public.hmis_csv_2022_youth_education_statuses USING btree ("InformationDate");
 
 
 --
@@ -50150,13 +47873,6 @@ CREATE INDEX hmiscsv2024youtheducationstatuses_fabe ON public.hmis_csv_2024_yout
 
 
 --
--- Name: household_id_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX household_id_rsh_index ON public.recent_service_history USING btree (household_id);
-
-
---
 -- Name: hud_path_client_conflict_columns; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50210,13 +47926,6 @@ CREATE UNIQUE INDEX hud_report_hic_projects_uniqueness_constraint ON public.hud_
 --
 
 CREATE UNIQUE INDEX id_ret_index ON public.recent_report_enrollments USING btree (id);
-
-
---
--- Name: id_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX id_rsh_index ON public.recent_service_history USING btree (id);
 
 
 --
@@ -54609,97 +52318,6 @@ CREATE INDEX index_hud_report_universe_members_on_report_cell_id ON public.hud_r
 
 
 --
--- Name: index_hud_spm_bed_nights_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hud_spm_bed_nights_on_client_id ON public.hud_spm_bed_nights USING btree (client_id);
-
-
---
--- Name: index_hud_spm_bed_nights_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hud_spm_bed_nights_on_enrollment_id ON public.hud_spm_bed_nights USING btree (enrollment_id);
-
-
---
--- Name: index_hud_spm_bed_nights_on_service_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hud_spm_bed_nights_on_service_id ON public.hud_spm_bed_nights USING btree (service_id);
-
-
---
--- Name: index_hud_spm_enrollment_links_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hud_spm_enrollment_links_on_enrollment_id ON public.hud_spm_enrollment_links USING btree (enrollment_id);
-
-
---
--- Name: index_hud_spm_enrollment_links_on_episode; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hud_spm_enrollment_links_on_episode ON public.hud_spm_enrollment_links USING btree (episode_type, episode_id);
-
-
---
--- Name: index_hud_spm_enrollments_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hud_spm_enrollments_on_client_id ON public.hud_spm_enrollments USING btree (client_id);
-
-
---
--- Name: index_hud_spm_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hud_spm_enrollments_on_enrollment_id ON public.hud_spm_enrollments USING btree (enrollment_id);
-
-
---
--- Name: index_hud_spm_enrollments_on_personal_id_and_data_source_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hud_spm_enrollments_on_personal_id_and_data_source_id ON public.hud_spm_enrollments USING btree (personal_id, data_source_id);
-
-
---
--- Name: index_hud_spm_enrollments_on_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hud_spm_enrollments_on_report_id ON public.hud_spm_enrollments USING btree (report_id);
-
-
---
--- Name: index_hud_spm_episodes_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hud_spm_episodes_on_client_id ON public.hud_spm_episodes USING btree (client_id);
-
-
---
--- Name: index_hud_spm_returns_on_client_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hud_spm_returns_on_client_id ON public.hud_spm_returns USING btree (client_id);
-
-
---
--- Name: index_hud_spm_returns_on_exit_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hud_spm_returns_on_exit_enrollment_id ON public.hud_spm_returns USING btree (exit_enrollment_id);
-
-
---
--- Name: index_hud_spm_returns_on_return_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hud_spm_returns_on_return_enrollment_id ON public.hud_spm_returns USING btree (return_enrollment_id);
-
-
---
 -- Name: index_import_logs_on_completed_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -55698,6 +53316,13 @@ CREATE UNIQUE INDEX index_service_history_services_2022_on_id ON public.service_
 --
 
 CREATE UNIQUE INDEX index_service_history_services_2023_on_id ON public.service_history_services_2023 USING btree (id);
+
+
+--
+-- Name: index_service_history_services_2024_on_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_service_history_services_2024_on_id ON public.service_history_services_2024 USING btree (id);
 
 
 --
@@ -57549,6 +55174,55 @@ CREATE INDEX index_shs_2023_en_id_only ON public.service_history_services_2023 U
 
 
 --
+-- Name: index_shs_2024_c_id_en_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shs_2024_c_id_en_id ON public.service_history_services_2024 USING btree (client_id, service_history_enrollment_id);
+
+
+--
+-- Name: index_shs_2024_client_id_only; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shs_2024_client_id_only ON public.service_history_services_2024 USING btree (client_id);
+
+
+--
+-- Name: index_shs_2024_date_brin; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shs_2024_date_brin ON public.service_history_services_2024 USING brin (date);
+
+
+--
+-- Name: index_shs_2024_date_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shs_2024_date_client_id ON public.service_history_services_2024 USING btree (client_id, date, record_type);
+
+
+--
+-- Name: index_shs_2024_date_en_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_shs_2024_date_en_id ON public.service_history_services_2024 USING btree (date, service_history_enrollment_id);
+
+
+--
+-- Name: index_shs_2024_date_project_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shs_2024_date_project_type ON public.service_history_services_2024 USING btree (project_type, date, record_type);
+
+
+--
+-- Name: index_shs_2024_en_id_only; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_shs_2024_en_id_only ON public.service_history_services_2024 USING btree (service_history_enrollment_id);
+
+
+--
 -- Name: index_shs_2025_c_id_en_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -58970,6 +56644,27 @@ CREATE INDEX index_synthetic_youth_education_statuses_on_source ON public.synthe
 
 
 --
+-- Name: index_system_pathways_clients_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_clients_on_client_id ON public.system_pathways_clients USING btree (client_id);
+
+
+--
+-- Name: index_system_pathways_clients_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_clients_on_report_id ON public.system_pathways_clients USING btree (report_id);
+
+
+--
+-- Name: index_system_pathways_enrollments_on_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_enrollments_on_client_id ON public.system_pathways_enrollments USING btree (client_id);
+
+
+--
 -- Name: index_system_pathways_enrollments_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -58981,6 +56676,13 @@ CREATE INDEX index_system_pathways_enrollments_on_enrollment_id ON public.system
 --
 
 CREATE INDEX index_system_pathways_enrollments_on_project_id ON public.system_pathways_enrollments USING btree (project_id);
+
+
+--
+-- Name: index_system_pathways_enrollments_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_system_pathways_enrollments_on_report_id ON public.system_pathways_enrollments USING btree (report_id);
 
 
 --
@@ -59611,20 +57313,6 @@ CREATE INDEX project_export_id ON public."Project" USING btree ("ExportID");
 --
 
 CREATE INDEX project_project_override_index ON public."Project" USING btree (COALESCE(act_as_project_type, "ProjectType"));
-
-
---
--- Name: project_tracking_method_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX project_tracking_method_rsh_index ON public.recent_service_history USING btree (project_tracking_method);
-
-
---
--- Name: project_type_rsh_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX project_type_rsh_index ON public.recent_service_history USING btree (project_type);
 
 
 --
@@ -60388,6 +58076,27 @@ CREATE STATISTICS public.stats_shs_2023_age_literally_homeless ON age, literally
 --
 
 CREATE STATISTICS public.stats_shs_2023_homeless ON homeless, literally_homeless FROM public.service_history_services_2023;
+
+
+--
+-- Name: stats_shs_2024_age_homeless; Type: STATISTICS; Schema: public; Owner: -
+--
+
+CREATE STATISTICS public.stats_shs_2024_age_homeless ON age, homeless FROM public.service_history_services_2024;
+
+
+--
+-- Name: stats_shs_2024_age_literally_homeless; Type: STATISTICS; Schema: public; Owner: -
+--
+
+CREATE STATISTICS public.stats_shs_2024_age_literally_homeless ON age, literally_homeless FROM public.service_history_services_2024;
+
+
+--
+-- Name: stats_shs_2024_homeless; Type: STATISTICS; Schema: public; Owner: -
+--
+
+CREATE STATISTICS public.stats_shs_2024_homeless ON homeless, literally_homeless FROM public.service_history_services_2024;
 
 
 --
@@ -61293,6 +59002,14 @@ ALTER TABLE ONLY public.external_ids
 
 ALTER TABLE ONLY public.service_history_services_2047
     ADD CONSTRAINT fk_rails_6d17ecb13d FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
+
+
+--
+-- Name: service_history_services_2024 fk_rails_7119cac661; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2024
+    ADD CONSTRAINT fk_rails_7119cac661 FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
 
 
 --
@@ -62787,6 +60504,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230829171917'),
 ('20230830121811'),
 ('20230831162622'),
+('20230831190756'),
 ('20230831211739'),
 ('20230901123748'),
 ('20230901124730'),
@@ -62829,6 +60547,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231103151804'),
 ('20231103153556'),
 ('20231103154939'),
+('20231103165752'),
 ('20231107190301'),
 ('20231110134113'),
 ('20231114235529'),
@@ -62852,7 +60571,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231226194235'),
 ('20240102155413'),
 ('20240102205532'),
-('20240104155138'),
 ('20240105222927'),
 ('20240110135132'),
 ('20240113025936'),
@@ -62865,6 +60583,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240123154914'),
 ('20240125143214'),
 ('20240125163539'),
-('20240126164153');
+('20240126164153'),
+('20240205174218'),
+('20240205175100'),
+('20240205230723');
 
 
