@@ -90,7 +90,6 @@ module AllNeighborsSystemDashboard
         :enrollment,
         :client,
         :project,
-        :service_history_enrollment_for_head_of_household,
       ).find_in_batches do |batch|
         report_enrollments = {}
         ce_infos = ce_infos_for_batch(filter, batch)
@@ -99,13 +98,13 @@ module AllNeighborsSystemDashboard
 
         batch.each do |enrollment|
           source_enrollment = enrollment.enrollment
-          hoh_enrollment = enrollment.service_history_enrollment_for_head_of_household&.enrollment || source_enrollment
+          hoh_enrollment = hoh(source_enrollment)
           ce_info = ce_infos[enrollment.id]
           # Latest CE Event that occurred on or before enrollment.entry_date
           # this would be the referral to housing (or the identification that someone needed housing)
           max_event = ce_info&.ce_event&.select { |e| e.event_date <= enrollment.entry_date }&.max_by(&:event_date)
           # inherit move_in_date from hoh enrollment
-          move_in_date = enrollment.move_in_date || hoh_enrollment.move_in_date
+          move_in_date = enrollment.move_in_date || hoh_enrollment[:move_in_date]
           # invalidate move_in_date if it's after the report end_date
           move_in_date = nil if move_in_date.present? && move_in_date > filter.end_date
 
@@ -132,8 +131,8 @@ module AllNeighborsSystemDashboard
             report_id: id,
             destination_client_id: enrollment.client_id,
             household_id: enrollment.household_id,
-            household_type: household_type(enrollment),
-            prior_living_situation_category: prior_living_situation_category(hoh_enrollment),
+            household_type: household_type(source_enrollment),
+            prior_living_situation_category: prior_living_situation_category(hoh_enrollment[:living_situation]),
             enrollment_id: source_enrollment.enrollment_id,
             entry_date: enrollment.first_date_in_program,
             move_in_date: move_in_date,
@@ -254,7 +253,7 @@ module AllNeighborsSystemDashboard
 
     def enrollment_scope
       GrdaWarehouse::ServiceHistoryEnrollment.
-        joins(:enrollment, :client).
+        joins(:enrollment, :client, :project).
         entry.
         open_between(start_date: filter.start_date, end_date: filter.end_date).
         in_project(
