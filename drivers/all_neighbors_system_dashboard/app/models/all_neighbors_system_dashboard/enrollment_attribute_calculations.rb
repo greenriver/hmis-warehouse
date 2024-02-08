@@ -92,8 +92,8 @@ module AllNeighborsSystemDashboard
               hh[[enrollment.data_source_id, enrollment.household_id]] ||= []
               hh[[enrollment.data_source_id, enrollment.household_id]] << {
                 enrollment_id: enrollment.id,
-                client_id: enrollment.client.id,
-                age: enrollment.client.age_on(date),
+                client_id: she.client_id,
+                age: she.client.age_on(date),
                 relationship_to_hoh: enrollment.relationship_to_hoh,
                 move_in_date: enrollment.move_in_date,
                 living_situation: enrollment.living_situation,

@@ -253,7 +253,7 @@ module AllNeighborsSystemDashboard
 
     def enrollment_scope
       GrdaWarehouse::ServiceHistoryEnrollment.
-        joins(:enrollment, :client, :project).
+        joins(:client, :project, enrollment: :client).
         entry.
         open_between(start_date: filter.start_date, end_date: filter.end_date).
         in_project(
