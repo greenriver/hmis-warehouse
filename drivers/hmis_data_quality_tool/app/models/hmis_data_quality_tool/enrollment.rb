@@ -138,7 +138,7 @@ module HmisDataQualityTool
     end
 
     def self.enrollment_scope(report)
-      GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
+      GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment, :client, :project).
         left_outer_joins(:exit).
         preload(
           :exit,

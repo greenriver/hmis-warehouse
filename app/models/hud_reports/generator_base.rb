@@ -117,6 +117,10 @@ module HudReports
       []
     end
 
+    def self.pii_columns
+      ['first_name', 'last_name', 'dob', 'ssn']
+    end
+
     def self.allowed_options
       [
         :start,
