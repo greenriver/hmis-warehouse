@@ -28,7 +28,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       if id
         value = by_id[id]
       else
-        raise "field '#{label}' is has multiple values. You must specify an id" if by_id.many?
+        # raise "field '#{label}' has multiple values. You must specify an id" if by_id.many?
 
         value = by_id.values.first
       end

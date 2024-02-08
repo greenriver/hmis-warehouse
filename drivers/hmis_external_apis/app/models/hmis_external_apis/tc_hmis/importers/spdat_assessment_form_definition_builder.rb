@@ -1,5 +1,4 @@
 class HmisExternalApis::TcHmis::Importers::SpdatAssessmentFormDefinitionBuilder < HmisUtil::CustomAssessmentFormDefinitionBuilder
-
   def perform
     form_definition = Hmis::Form::Definition.where(
       identifier: 'SPDAT',

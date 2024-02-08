@@ -76,7 +76,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def column_to_letter(column_number)
-      letter = ""
+      letter = ''
       while column_number >= 0
         remainder = column_number % 26
         letter = (65 + remainder).chr + letter

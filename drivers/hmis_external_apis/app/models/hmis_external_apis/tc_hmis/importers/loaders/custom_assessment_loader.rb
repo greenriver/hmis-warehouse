@@ -44,7 +44,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def create_cde_definitions
       cded_configs.each do |config|
         cde_helper.find_or_create_cded(
-          **config.merge(owner_type: model_class.sti_name),
+          **config.merge(owner_type: model_class.sti_name).except(:element_id),
         )
       end
     end
