@@ -1,0 +1,25 @@
+{
+  "type": "GROUP",
+  "component": "SIGNATURE",
+  "link_id": "signature_group",
+  "item": [
+    {
+      "type": "STRING",
+      "component": "SIGNATURE",
+      "link_id": "head_of_household_signature",
+      "text": "Head of Household",
+      "mapping": {
+        "custom_field_key": "head_of_household_signature"
+      }
+    },
+    {
+      "type": "STRING",
+      "component": "SIGNATURE",
+      "link_id": "case_manager_signature",
+      "text": "Case Manager",
+      "mapping": {
+        "custom_field_key": "case_manager_signature"
+      }
+    }
+  ]
+}

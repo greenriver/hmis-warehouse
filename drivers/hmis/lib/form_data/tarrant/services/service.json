@@ -1,0 +1,228 @@
+{
+  "item": [
+    {
+      "fragment": "#signature"
+    },
+    {
+      "type": "STRING",
+      "required": true,
+      "link_id": "otherTypeProvided",
+      "text": "Describe service",
+      "mapping": {
+        "field_name": "otherTypeProvided"
+      },
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "local_constant": "$hudTypeProvided",
+          "operator": "EQUAL",
+          "answer_code": "SSVF_SERVICE__OTHER_NON_TFA_SUPPORTIVE_SERVICE_APPROVED_BY_VA"
+        },
+        {
+          "local_constant": "$hudTypeProvided",
+          "operator": "EQUAL",
+          "answer_code": "HUD_VASH_OTH_VOUCHER_TRACKING__OTHER"
+        }
+      ]
+    },
+    {
+      "type": "STRING",
+      "required": true,
+      "link_id": "movingOnOtherType",
+      "text": "Describe service",
+      "mapping": {
+        "field_name": "movingOnOtherType"
+      },
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "local_constant": "$hudTypeProvided",
+          "operator": "EQUAL",
+          "answer_code": "MOVING_ON_ASSISTANCE__OTHER"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "subTypeProvided3",
+      "required": true,
+      "text": "Sub Type Provided",
+      "pick_list_reference": "SUB_TYPE_PROVIDED_3",
+      "mapping": {
+        "field_name": "subTypeProvided"
+      },
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "local_constant": "$hudTypeProvided",
+          "operator": "EQUAL",
+          "answer_code": "SSVF_SERVICE__ASSISTANCE_OBTAINING_VA_BENEFITS"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "subTypeProvided4",
+      "required": true,
+      "text": "Sub Type Provided",
+      "pick_list_reference": "SUB_TYPE_PROVIDED_4",
+      "mapping": {
+        "field_name": "subTypeProvided"
+      },
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "local_constant": "$hudTypeProvided",
+          "operator": "EQUAL",
+          "answer_code": "SSVF_SERVICE__ASSISTANCE_OBTAINING_COORDINATING_OTHER_PUBLIC_BENEFITS"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "subTypeProvided5",
+      "required": true,
+      "text": "Sub Type Provided",
+      "pick_list_reference": "SUB_TYPE_PROVIDED_5",
+      "mapping": {
+        "field_name": "subTypeProvided"
+      },
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "local_constant": "$hudTypeProvided",
+          "operator": "EQUAL",
+          "answer_code": "SSVF_SERVICE__DIRECT_PROVISION_OF_OTHER_PUBLIC_BENEFITS"
+        }
+      ]
+    },
+    {
+      "type": "DATE",
+      "link_id": "dateProvided",
+      "required": true,
+      "text": "Date Provided",
+      "mapping": {
+        "field_name": "dateProvided"
+      },
+      "bounds": [
+        {
+          "id": "min-service-date",
+          "type": "MIN",
+          "value_local_constant": "$entryDate"
+        },
+        {
+          "id": "max-service-date",
+          "type": "MAX",
+          "value_local_constant": "$today"
+        },
+        {
+          "id": "max-service-date-exit-date",
+          "type": "MAX",
+          "value_local_constant": "$exitDate"
+        },
+        {
+          "_comment": "if there is an end date, start date cannot be after it",
+          "id": "max-fa-start",
+          "type": "MAX",
+          "question": "faEndDate"
+        }
+      ],
+      "enable_when": [
+        {
+          "local_constant": "$hudRecordType",
+          "operator": "NOT_EQUAL",
+          "answer_code": "SSVF_FINANCIAL_ASSISTANCE"
+        }
+      ]
+    },
+    {
+      "type": "DATE",
+      "required": true,
+      "link_id": "faStartDate",
+      "text": "Financial Assistance Start Date",
+      "mapping": {
+        "field_name": "faStartDate"
+      },
+      "enable_behavior": "ANY",
+      "service_detail_type": "CLIENT",
+      "enable_when": [
+        {
+          "local_constant": "$hudRecordType",
+          "operator": "EQUAL",
+          "answer_code": "SSVF_FINANCIAL_ASSISTANCE"
+        }
+      ]
+    },
+    {
+      "type": "DATE",
+      "required": false,
+      "link_id": "faEndDate",
+      "text": "Financial Assistance End Date",
+      "mapping": {
+        "field_name": "faEndDate"
+      },
+      "enable_behavior": "ANY",
+      "service_detail_type": "CLIENT",
+      "enable_when": [
+        {
+          "local_constant": "$hudRecordType",
+          "operator": "EQUAL",
+          "answer_code": "SSVF_FINANCIAL_ASSISTANCE"
+        }
+      ],
+      "bounds": [
+        {
+          "id": "min-fa-end",
+          "type": "MIN",
+          "question": "faStartDate"
+        }
+      ]
+    },
+    {
+      "type": "CURRENCY",
+      "required": false,
+      "link_id": "faAmount",
+      "text": "Financial Assistance Amount",
+      "mapping": {
+        "field_name": "faAmount"
+      },
+      "enable_behavior": "ANY",
+      "service_detail_type": "CLIENT",
+      "enable_when": [
+        {
+          "local_constant": "$hudRecordType",
+          "operator": "EQUAL",
+          "answer_code": "HOPWA_FINANCIAL_ASSISTANCE"
+        },
+        {
+          "local_constant": "$hudRecordType",
+          "operator": "EQUAL",
+          "answer_code": "SSVF_FINANCIAL_ASSISTANCE"
+        },
+        {
+          "local_constant": "$hudTypeProvided",
+          "operator": "EQUAL",
+          "answer_code": "MOVING_ON_ASSISTANCE__FINANCIAL_ASSISTANCE_FOR_MOVING_ON"
+        }
+      ]
+    },
+    {
+      "type": "CHOICE",
+      "link_id": "referralOutcome",
+      "required": false,
+      "text": "Referral Outcome",
+      "pick_list_reference": "PATHReferralOutcome",
+      "mapping": {
+        "field_name": "referralOutcome"
+      },
+      "enable_behavior": "ANY",
+      "enable_when": [
+        {
+          "local_constant": "$hudRecordType",
+          "operator": "EQUAL",
+          "answer_code": "PATH_REFERRAL"
+        }
+      ]
+    }
+  ]
+}
