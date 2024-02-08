@@ -236,6 +236,7 @@ type Assessment {
   disabilityGroup: DisabilityGroup
   employmentEducation: EmploymentEducation
   enrollment: Enrollment!
+  event: Event
   exit: Exit
   healthAndDv: HealthAndDv
   id: ID!
@@ -9246,6 +9247,11 @@ enum RelatedRecordType {
   EnrollmentCoc
   """
   ENROLLMENT_COC
+
+  """
+  Event
+  """
+  EVENT
 
   """
   Exit
