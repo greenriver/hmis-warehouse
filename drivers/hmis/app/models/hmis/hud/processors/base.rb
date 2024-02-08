@@ -107,6 +107,14 @@ class Hmis::Hud::Processors::Base
     raise 'Implement in sub-class'
   end
 
+  # Existing CustomDataElements (BEFORE processing) for this factory's record,
+  # grouped by CustomDataElementDefinition ID
+  def existing_custom_data_elements
+    @existing_custom_data_elements ||= @processor.send(factory_name).custom_data_elements.
+      order(:id).
+      group_by(&:data_element_definition_id)
+  end
+
   # Assign custom data element values to record, if this is a custom data element field
   def process_custom_field(field, value)
     record = @processor.send(factory_name)
@@ -125,10 +133,11 @@ class Hmis::Hud::Processors::Base
     # Infer the field name on the CustomDataElement
     value_field_name = "value_#{cded.field_type}"
 
-    existing_values = record.custom_data_elements.where(data_element_definition: cded, owner: record)
+    # Existing CustomDataElement records for this record with this definition
+    existing_values = existing_custom_data_elements[cded.id] || []
 
     # If this custom field only allows 1 value and there already is one, update it.
-    if !cded.repeats && existing_values.exists?
+    if !cded.repeats && existing_values.any?
       cde_attributes = { id: existing_values.first.id }
       if value.nil?
         cde_attributes[:_destroy] = 1
