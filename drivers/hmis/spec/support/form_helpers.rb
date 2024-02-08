@@ -29,6 +29,12 @@ module FormHelpers
     definition.link_id_item_hash.find { |_link_id, item| item.required && item.mapping&.field_name&.present? }&.last
   end
 
+  def add_item_to_definition(definition, item)
+    definition.definition['item'] << item
+    definition.save!
+    definition
+  end
+
   def completed_form_values_for_role(role)
     yield(COMPLETE_VALUES[role]) if block_given?
 
