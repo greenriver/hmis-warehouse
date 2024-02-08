@@ -44,8 +44,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       @records ||= read_records
     end
 
-    # build a list of header names and columns. Multiple columns with the same name ard grouped together
-    # {'Enrollment ID' => ['a'], 'Nickname' => ['d', 'e','f']}
+    # build a list of header names, column labels, and column ids (ETO element id)
     def sheet_headers(xls)
       ret = []
       500.times do |col_idx|
@@ -86,7 +85,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     # [
-    #   {['label', 1234] => 'value' }
+    #   {label => { (element id || col) => 'value'} }
     # ]
     def read_records
       xls = Roo::Spreadsheet.open(filename)
