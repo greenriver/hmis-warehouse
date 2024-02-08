@@ -8,6 +8,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
   class HatLoader < CustomAssessmentLoader
     ASSESSMENT_DATE_COL = 'Date of assessment'.freeze
 
+    # Gig extracted this from the form definition
     CDED_CONFIGS = [
       { key: 'hat_a6_household_type', label: 'Household Type', repeats: false, field_type: 'string' },
       { key: 'hat_a7_single_parent', label: 'Are you a single parent with a child over the age of 10?', repeats: false, field_type: 'boolean' },

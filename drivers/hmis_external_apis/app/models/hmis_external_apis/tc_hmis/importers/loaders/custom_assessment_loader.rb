@@ -59,8 +59,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       actual = 0
       records = rows.flat_map do |row|
         expected += 1
-        # enrollment_id = row.field_value(ENROLLMENT_ID_COL)
-        enrollment_id = personal_id_by_enrollment_id.keys.first
+        enrollment_id = row.field_value(ENROLLMENT_ID_COL)
+        # enrollment_id = personal_id_by_enrollment_id.keys.first
         personal_id = personal_id_by_enrollment_id[enrollment_id]
 
         if personal_id.nil?

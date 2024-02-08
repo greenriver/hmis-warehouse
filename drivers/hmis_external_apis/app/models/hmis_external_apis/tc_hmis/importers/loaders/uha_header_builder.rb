@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# Not an importer, this is an assistive class for composing the
+# Not an importer, this is an assistive class for composing the UHA cols
 module HmisExternalApis::TcHmis::Importers::Loaders
   class UhaHeaderBuilder
     def perform(dir)
