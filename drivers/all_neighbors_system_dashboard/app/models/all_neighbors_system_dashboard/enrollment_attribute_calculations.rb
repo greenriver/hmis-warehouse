@@ -83,18 +83,57 @@ module AllNeighborsSystemDashboard
         423,
       ].freeze
 
-      def household_type(enrollment)
-        return 'Unknown Household Type' if enrollment.children_only?
-        # The enrollment isn't children only, but contains at least one child
-        return 'Adults and Children' if enrollment.other_clients_under_18.positive? ||
-          (enrollment.age.present? && enrollment.age < 18)
-        return 'Adult Only' if enrollment.other_clients_under_18.zero? && enrollment.age.present? && enrollment.age >= 18
-
-        'Unknown Household Type'
+      def households
+        @households ||= {}.tap do |hh|
+          enrollment_scope.find_in_batches do |batch|
+            batch.each do |she|
+              enrollment = she.enrollment
+              date = [enrollment.entry_date, filter.start].max
+              hh[[enrollment.data_source_id, enrollment.household_id]] ||= []
+              hh[[enrollment.data_source_id, enrollment.household_id]] << {
+                enrollment_id: enrollment.id,
+                client_id: she.client_id,
+                age: she.client.age_on(date),
+                relationship_to_hoh: enrollment.relationship_to_hoh,
+                move_in_date: enrollment.move_in_date,
+                living_situation: enrollment.living_situation,
+              }
+            end
+          end
+        end
       end
 
-      def prior_living_situation_category(enrollment)
-        case enrollment.living_situation
+      def household(enrollment)
+        households[[enrollment.data_source_id, enrollment.household_id]]
+      end
+
+      def hoh(enrollment)
+        # Look for an HoH
+        hoh = household(enrollment).detect { |m| m[:relationship_to_hoh] == 1 }
+        return hoh if hoh.present?
+
+        # if we don't have one, return the record for this enrollment
+        household(enrollment).detect { |m| m[:enrollment_id] == enrollment.id }
+      end
+
+      def household_ages(enrollment)
+        household(enrollment).map { |m| m[:age] }
+      end
+
+      def household_type(enrollment)
+        ages = household_ages(enrollment)
+        # Don't admit anything about child-only households
+        return 'Unknown Household Type' if ages.compact.all? { |age| age < 18 }
+        # The enrollment contains at least one child & one adult
+        return 'Adults and Children' if ages.compact.any? { |age| age >= 18 } && ages.compact.any? { |age| age < 18 }
+        # If  we have at least one unknown age, the household type is unknown
+        return 'Unknown Household Type' if ages.any?(&:blank?)
+
+        'Adult Only'
+      end
+
+      def prior_living_situation_category(living_situation)
+        case living_situation
         when *UNKNOWN_SITUATIONS
           'Unknown Situation'
         when *UNSHELTERED_SITUATIONS
