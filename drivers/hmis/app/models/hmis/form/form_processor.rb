@@ -47,13 +47,19 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
     return unless hud_values.present?
 
+    raise 'No definition' unless definition.present?
+
     # Iterate through each hud_value, processing field-by-field
     hud_values.each do |key, value|
       container, field = parse_key(key)
-      # If this key can be identified as a CustomDataElement, set it and continue
-      next if container_processor(container)&.process_custom_field(field, value)
 
       begin
+        # Validate that field is mapped by the FormDefinition (includes checking custom)
+        ensure_submittable_field!(container, field)
+
+        # If this key can be identified as a CustomDataElement, set it and continue
+        next if container_processor(container)&.process_custom_field(field, value)
+
         container_processor(container)&.process(field, value)
       rescue StandardError => e
         Sentry.capture_exception(e)
@@ -76,11 +82,15 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     if key.include?('.')
       container, field = key.split('.', 2)
     else
-      container = owner.class.name.demodulize
+      container = owner_container_name
       field = key
     end
 
     [container, field]
+  end
+
+  def owner_container_name
+    @owner_container_name ||= owner.class.name.demodulize
   end
 
   def ce_assessment?
@@ -434,5 +444,38 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     return field unless container.present?
 
     "#{container}.#{field}"
+  end
+
+  # @return <Hash{container_name=> Set<fields> }>
+  private def mapped_form_fields
+    @mapped_form_fields ||= {}.tap do |result|
+      definition.link_id_item_hash.each_value do |item|
+        mapping = item.mapping
+        next unless mapping
+        next unless mapping.field_name || mapping.custom_field_key
+
+        # convert the record_type to a "container name" that matches the form processor names
+        container_name = if mapping.record_type
+          enum = Types::Forms::Enums::RelatedRecordType.values[mapping.record_type]
+          raise "Invalid record type '#{mapping.record_type}'" unless enum
+
+          enum.description
+        else
+          owner_container_name
+        end
+
+        result[container_name] ||= Set.new
+        result[container_name].add(mapping.field_name || mapping.custom_field_key)
+      end
+    end
+  end
+
+  # Ensure that a given field is valid for this FormDefinition
+  private def ensure_submittable_field!(container, field)
+    # Find the FormItem Mapping that matches this field.
+    # If it's not found, then this is not a valid submission.
+    found_mapping = mapped_form_fields[container]&.include?(field)
+
+    raise "Not a submittable field for Form Definition id #{definition.id} (#{container}.#{field})" unless found_mapping
   end
 end
