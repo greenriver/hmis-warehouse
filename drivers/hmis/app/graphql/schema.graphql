@@ -1839,6 +1839,7 @@ Case Note
 type CustomCaseNote {
   client: Client!
   content: String!
+  customDataElements: [CustomDataElement!]!
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
