@@ -1893,6 +1893,40 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(assessment.ce_event.event_date).to eq(event_date)
     end
   end
+
+  describe 'Form processing for CE Assessment' do
+    let(:assessment_date) { 1.week.ago.to_date }
+    let(:hud_values) do
+      {
+        'CeAssessment.assessmentDate' => assessment_date.strftime('%Y-%m-%d'),
+        'CeAssessment.assessmentLocation' => 'foo',
+        'CeAssessment.assessmentType' => 'PHONE',
+        'CeAssessment.assessmentLevel' => 'HOUSING_NEEDS_ASSESSMENT',
+        'CeAssessment.prioritizationStatus' => 'PLACED_ON_PRIORITIZATION_LIST',
+      }
+    end
+
+    it 'should work when CE Assessment is the form owner' do
+      definition = Hmis::Form::Definition.find_by(role: :CE_ASSESSMENT)
+      assessment = Hmis::Hud::Assessment.new(client: c1, enrollment: e1, data_source: ds1)
+      process_record(record: assessment, hud_values: hud_values, user: hmis_user, definition: definition)
+
+      expect(assessment.assessment_date).to eq(assessment_date)
+      expect(assessment.assessment_location).to eq('foo')
+    end
+
+    it 'should work when CustomAssessment is the form owner' do
+      # note: definition is loaded in test environment because it is in the form_data/test/ directory
+      definition = Hmis::Form::Definition.find_by(identifier: 'housing_needs_assessment')
+
+      assessment = build(:hmis_custom_assessment, client: c1, enrollment: e1, data_source: ds1, user: u1)
+      process_record(record: assessment, hud_values: hud_values, user: hmis_user, definition: definition)
+
+      expect(assessment.ce_assessment).to be_present
+      expect(assessment.ce_assessment.assessment_date).to eq(assessment_date)
+      expect(assessment.ce_assessment.assessment_location).to eq('foo')
+    end
+  end
 end
 
 RSpec.configure do |c|
