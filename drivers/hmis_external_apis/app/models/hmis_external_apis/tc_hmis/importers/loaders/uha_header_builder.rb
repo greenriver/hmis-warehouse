@@ -20,6 +20,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         key = row.field_value(:key, required: false)
         prefix = row.field_value(:prefix, required: false)
         suffix = row.field_value(:suffix, required: false)
+        repeats = row.field_value(:repeats, required: false).present?
 
         key ||= label.size <= 50 ? label_to_key(label) : id_to_key(id)
         raise unless key
@@ -29,7 +30,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
         seen.add key
 
-        { element_id: id, label: label, key: key, repeats: false, field_type: 'string' }
+        { element_id: id, label: label, key: key, repeats: repeats, field_type: 'string' }
       end
       configs.compact
     end

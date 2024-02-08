@@ -76,8 +76,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         { element_id: 12329, label: 'Last Name', key: 'uha_hoh_last_name', repeats: false, field_type: 'string' },
         { element_id: 12332, label: 'Client Phone Number', key: 'uha_hoh_client_phone_number', repeats: false, field_type: 'string' },
         { element_id: 12333, label: 'Client Email', key: 'uha_hoh_client_email', repeats: false, field_type: 'string' },
-        { element_id: 12334, label: 'Race (HUD)', key: 'uha_hoh_race_hud', repeats: false, field_type: 'string' },
-        { element_id: 12335, label: 'Ethnicity (HUD)', key: 'uha_hoh_ethnicity_hud', repeats: false, field_type: 'string' },
+        { element_id: 12334, label: 'Race (HUD)', key: 'uha_hoh_race_hud', repeats: true, field_type: 'string' },
+        { element_id: 12335, label: 'Ethnicity (HUD)', key: 'uha_hoh_ethnicity_hud', repeats: true, field_type: 'string' },
         { element_id: 12348, label: 'First Name', key: 'uha_household_member_first_name_1', repeats: false, field_type: 'string' },
         { element_id: 12349, label: 'First Name', key: 'uha_household_member_first_name_2', repeats: false, field_type: 'string' },
         { element_id: 12350, label: 'First Name', key: 'uha_household_member_first_name_3', repeats: false, field_type: 'string' },
@@ -216,7 +216,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           key: 'uha_applicant_certification_head_of_household_signature_1',
           repeats: false,
           field_type: 'string' },
-        { element_id: 12564, label: 'Gender (HUD)', key: 'uha_hoh_gender_hud', repeats: false, field_type: 'string' },
+        { element_id: 12564, label: 'Gender (HUD)', key: 'uha_hoh_gender_hud', repeats: true, field_type: 'string' },
         { element_id: 12572, label: 'Name', key: 'uha_asset_info_name_1', repeats: false, field_type: 'string' },
         { element_id: 12573, label: 'Source and Type', key: 'uha_asset_info_source_and_type_1', repeats: false, field_type: 'string' },
         { element_id: 12574, label: 'Gross', key: 'uha_asset_info_gross_1', repeats: false, field_type: 'string' },
@@ -270,13 +270,21 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           key: 'uha_applicant_certification_other_adult_household_member_signature_1',
           repeats: false,
           field_type: 'string' },
-        { element_id: 12740, label: 'Date:', key: 'uha_applicant_certification_other_adult_household_member_signature_date_1', repeats: false, field_type: 'string' },
+        { element_id: 12740,
+          label: 'Date:',
+          key: 'uha_applicant_certification_other_adult_household_member_signature_date_1',
+          repeats: false,
+          field_type: 'string' },
         { element_id: 12741,
           label: 'Other Adult Household Member Signature',
           key: 'uha_applicant_certification_other_adult_household_member_signature_2',
           repeats: false,
           field_type: 'string' },
-        { element_id: 12742, label: 'Date:', key: 'uha_applicant_certification_other_adult_household_member_signature_date_2', repeats: false, field_type: 'string' },
+        { element_id: 12742,
+          label: 'Date:',
+          key: 'uha_applicant_certification_other_adult_household_member_signature_date_2',
+          repeats: false,
+          field_type: 'string' },
         { element_id: 12745, label: 'Agency Name:', key: 'uha_agency_name', repeats: false, field_type: 'string' },
         { element_id: 12746, label: 'Program/Project Name:', key: 'uha_program_project_name', repeats: false, field_type: 'string' },
         { element_id: 12748, label: 'Signature', key: 'uha_applicant_certification_tx_601_rep_signature', repeats: false, field_type: 'string' },
@@ -321,7 +329,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         { element_id: 13098,
           label: 'For out of state searches - list cities, counties, and states below:',
           key: 'uha_cch_key_13098',
-          repeats: false,
           field_type: 'string' },
         { element_id: 13099, label: 'RESULTS', key: 'uha_cch_results', repeats: false, field_type: 'string' },
         { element_id: 13101, label: 'Requestor Name', key: 'uha_cch_requestor_name', repeats: false, field_type: 'string' },
@@ -360,6 +367,13 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def row_assessment_id(row)
       response_id = row.field_value(RESPONSE_ID_COL)
       "uha-eto-#{response_id}"
+    end
+
+    def cde_values(row, config)
+      label = config.fetch(:label)
+      values = super(row, config)
+      values = values.map { |value| value ? 'Signed in ETO' : nil } if label =~ /signature/i
+      values
     end
   end
 end
