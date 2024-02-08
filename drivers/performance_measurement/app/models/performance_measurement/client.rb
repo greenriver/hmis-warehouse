@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -12,6 +12,85 @@ module PerformanceMeasurement
     has_many :simple_reports_universe_members, inverse_of: :universe_membership, class_name: 'SimpleReports::UniverseMember', foreign_key: :universe_membership_id
     belongs_to :report
     has_many :client_projects, primary_key: [:client_id, :report_id], foreign_key: [:client_id, :report_id]
+    belongs_to :source_client, class_name: 'GrdaWarehouse::Hud::Client', optional: true, foreign_key: :client_id
+
+    # Gender scopes
+    scope :gender_woman, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_woman)
+    end
+
+    scope :gender_man, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_man)
+    end
+
+    scope :gender_non_binary, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_non_binary)
+    end
+
+    scope :gender_questioning, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_questioning)
+    end
+
+    scope :gender_transgender, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_transgender)
+    end
+
+    scope :gender_unknown, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_unknown)
+    end
+
+    scope :gender_culturally_specific, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_culturally_specific)
+    end
+
+    scope :gender_different_identity, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.gender_different_identity)
+    end
+
+    # Race scopes
+    scope :race_am_ind_ak_native, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_am_ind_ak_native)
+    end
+
+    scope :race_asian, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_asian)
+    end
+
+    scope :race_black_af_american, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_black_af_american)
+    end
+
+    scope :race_native_hi_pacific, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_native_hi_pacific)
+    end
+
+    scope :race_white, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_white)
+    end
+
+    scope :race_hispanic_latinaeo, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_hispanic_latinaeo)
+    end
+
+    scope :race_mid_east_n_african, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_mid_east_n_african)
+    end
+
+    scope :race_none, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_none)
+    end
+
+    scope :race_doesnt_know, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_doesnt_know)
+    end
+
+    scope :race_refused, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_refused)
+    end
+
+    scope :race_not_collected, -> do
+      joins(:source_client).merge(GrdaWarehouse::Hud::Client.race_not_collected)
+    end
 
     def self.column_titles(period: 'reporting')
       {

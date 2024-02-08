@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -167,7 +167,7 @@ module Health
         else
           activity
         end
-      when 'QualifyingActivityV2'
+      when 'QualifyingActivityV2', 'QualifyingActivityV3'
         case activity
         when 'Comprehensive health assessment'
           'Comprehensive Assessment'

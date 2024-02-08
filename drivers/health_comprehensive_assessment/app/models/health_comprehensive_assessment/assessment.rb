@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -583,6 +583,12 @@ module HealthComprehensiveAssessment
         eaedc: 'EAEDC',
         other: 'Other',
       }.with_indifferent_access.invert
+    end
+
+    def self.encounter_report_details
+      {
+        source: 'Warehouse',
+      }
     end
   end
 end

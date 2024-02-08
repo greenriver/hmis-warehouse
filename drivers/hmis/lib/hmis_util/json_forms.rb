@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,6 +7,21 @@
 module HmisUtil
   class JsonForms
     DATA_DIR = 'drivers/hmis/lib/form_data'.freeze
+
+    def self.seed_all
+      new.seed_all
+    end
+
+    def seed_all
+      # Load ALL the latest record definitions from JSON files.
+      # This also ensures that any system-level instances exist.
+      seed_record_form_definitions
+      # Load ALL the latest assessment definition from JSON files.
+      seed_assessment_form_definitions
+      seed_custom_assessment_form_definitions
+      # Load admin forms (not configurable)
+      seed_static_forms
+    end
 
     protected
 
@@ -353,6 +368,31 @@ module HmisUtil
       # puts "Saved definitions with identifiers: #{identifiers.join(', ')}"
     end
 
+    def seed_custom_assessment_form_definitions
+      dirname = "#{DATA_DIR}/#{env_key}/custom_assessments"
+      return unless Dir.exist?(dirname)
+
+      Dir.glob("#{dirname}/*").each do |filename|
+        raise 'nested directories not supported' if File.directory?(filename)
+
+        # use file filename as identifier
+        identifier = File.basename(filename, File.extname(filename))
+        hud_identifiers = [:INTAKE, :EXIT, :UPDATE, :ANNUAL].map { |role| "base-#{role.to_s.downcase}" }
+        raise "custom assessment name \"#{file_name}\" overlaps with HUD assessment" if identifier.in?(hud_identifiers)
+
+        load_definition(
+          form_definition: parse_json_file(filename),
+          identifier: identifier,
+          role: :CUSTOM_ASSESSMENT,
+          title: identifier.humanize,
+        )
+      end
+    end
+
+    def parse_json_file(filename)
+      JSON.parse(File.read(filename))
+    end
+
     public def seed_static_forms
       Hmis::Form::Definition::STATIC_FORM_ROLES.each do |role|
         filename = "#{role.to_s.downcase}.json"
@@ -385,41 +425,21 @@ module HmisUtil
 
     def valid_pick_lists
       @valid_pick_lists ||= begin
-        pick_list_references = []
-        pick_list_references << all_enums_in_schema(Types::HmisSchema::QueryType)
-        pick_list_references << all_enums_in_schema(Types::HmisSchema::MutationType)
-        pick_list_references << Types::Forms::Enums::PickListType.values.keys
-        pick_list_references.flatten.uniq.sort
+        enums = []
+        collect_enums = ->(parent) {
+          parent.constants.each do |name|
+            child = parent.const_get(name)
+            if child.is_a? Class
+              enums << child.graphql_name if child < Types::BaseEnum
+            elsif child.is_a? Module
+              collect_enums.call(child)
+            end
+          end
+        }
+        collect_enums.call(Types::HmisSchema::Enums)
+        collect_enums.call(Types::Forms::Enums)
+        enums + Types::Forms::Enums::PickListType.values.keys
       end
-    end
-
-    # Traverse schema to find ALL enums used
-    def all_enums_in_schema(schema, traversed_types: [])
-      namespaces = ['HmisSchema', 'Admin', 'Forms']
-      enums = []
-
-      schema.fields.each do |_, field|
-        type = field.type
-        (type = type&.of_type) while type.non_null? || type.list?
-        seen = traversed_types.include?(type)
-        traversed_types << type
-        if type.respond_to?(:fields) && /::(#{namespaces.join('|')})::/.match?(type.to_s) && !seen
-          enums << all_enums_in_schema(type, traversed_types: traversed_types)
-        elsif type.to_s.include?('::Enums::')
-          enums << type.graphql_name
-        # Hacky way to traverse into paginated node, because its an anonymous class
-        elsif type.to_s&.ends_with?('Paginated') && !type.to_s.include?('AuditEvent') && !type.to_s.include?('ApplicationUser')
-          base_type = type.to_s.gsub('Paginated', '').singularize
-
-          node_type = namespaces.map { |namespace| "Types::#{namespace}::#{base_type}".safe_constantize }.compact.first
-          next unless node_type
-
-          seen_node_type = traversed_types.include?(node_type)
-          traversed_types << node_type
-          enums << all_enums_in_schema(node_type, traversed_types: traversed_types) unless seen_node_type
-        end
-      end
-      return enums.flatten.sort.uniq
     end
   end
 end

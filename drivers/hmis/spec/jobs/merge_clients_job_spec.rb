@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -161,6 +161,17 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
     it 'merges external ids' do
       Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
       expect(client1.ac_hmis_mci_ids.pluck(:value)).to contain_exactly(external_id_client_1.value, external_id_client_2.value)
+    end
+  end
+
+  context 'with scan card codes' do
+    let!(:code1) { create :hmis_scan_card_code, client: client1 }
+    let!(:code2) { create :hmis_scan_card_code, client: client2 }
+    let!(:code3) { create :hmis_scan_card_code, client: client2, deleted_at: Time.current }
+
+    it 'moves all scan cards to retained client' do
+      Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id)
+      expect(client1.scan_card_codes.with_deleted.pluck(:value)).to contain_exactly(code1.value, code2.value, code3.value)
     end
   end
 

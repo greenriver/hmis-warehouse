@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,7 +17,7 @@ RSpec.describe Hmis::Hud::Household, type: :model do
 
   include_context 'hmis base setup'
 
-  let!(:e1) { create(:hmis_hud_enrollment, project: p1, client: c1, user: u1, data_source: ds1, household_id: '123', entry_date: Date.today) }
+  let!(:e1) { create(:hmis_hud_enrollment, project: p1, client: c1, user: u1, data_source: ds1, household_id: '123', entry_date: Date.current) }
 
   it 'has the right associations' do
     hh = Hmis::Hud::Household.first
@@ -37,12 +37,12 @@ RSpec.describe Hmis::Hud::Household, type: :model do
     end
 
     it 'should handle open on correctly' do
-      e3 = create(:hmis_hud_enrollment, project: p1, user: u1, data_source: ds1, household_id: '789', entry_date: Date.today - 1.week, client: c2)
+      e3 = create(:hmis_hud_enrollment, project: p1, user: u1, data_source: ds1, household_id: '789', entry_date: Date.current - 1.week, client: c2)
       create(:hmis_hud_exit, data_source: ds1, enrollment: e3, client: c2, exit_date: Date.yesterday)
 
-      expect(Hmis::Hud::Household.open_on_date(Date.today)).to contain_exactly(e1.household, e2.household)
+      expect(Hmis::Hud::Household.open_on_date(Date.current)).to contain_exactly(e1.household, e2.household)
       expect(Hmis::Hud::Household.open_on_date(Date.yesterday)).to contain_exactly(e2.household, e3.household)
-      expect(Hmis::Hud::Household.open_on_date(Date.today - 3.days)).to contain_exactly(e3.household)
+      expect(Hmis::Hud::Household.open_on_date(Date.current - 3.days)).to contain_exactly(e3.household)
     end
 
     it 'should handle enrollment limit correctly' do

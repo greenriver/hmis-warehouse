@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -42,18 +42,18 @@ RSpec.describe 'Graphql HMIS Assessment Eligibility', type: :request do
     result.dig('data', 'enrollment', 'assessmentEligibilities').map { |n| n['role'] }
   end
 
-  it 'resolves intake, exit, annual' do
+  it 'resolves intake, exit, annual, and update' do
     records = run_query(enrollment: e1)
-    expect(records).to contain_exactly('INTAKE', 'EXIT', 'ANNUAL')
+    expect(records).to contain_exactly('INTAKE', 'EXIT', 'ANNUAL', 'UPDATE')
   end
 
   context 'with project entry' do
     before(:each) do
       create(:hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 1)
     end
-    it 'resolves exit and annual' do
+    it 'resolves exit and annual and update' do
       records = run_query(enrollment: e1)
-      expect(records).to contain_exactly('EXIT', 'ANNUAL')
+      expect(records).to contain_exactly('EXIT', 'ANNUAL', 'UPDATE')
     end
 
     context 'with project exit' do

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -78,6 +78,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :warehouse_client_destination, class_name: 'Hmis::WarehouseClient', foreign_key: :destination_id, inverse_of: :destination
   has_many :source_clients, through: :warehouse_client_destination, source: :source, inverse_of: :destination_client
 
+  has_many :scan_card_codes, class_name: 'Hmis::ScanCardCode', inverse_of: :client
+
+  has_many :alerts, class_name: '::Hmis::ClientAlert', dependent: :destroy, inverse_of: :client
+
   validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 
   attr_accessor :image_blob_id
@@ -133,8 +137,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :older_than, ->(age, or_equal: false) do
-    target_dob = Date.today - (age + 1).years
-    target_dob = Date.today - age.years if or_equal == true
+    target_dob = Date.current - (age + 1).years
+    target_dob = Date.current - age.years if or_equal == true
 
     where(c_t[:dob].lt(target_dob))
   end
@@ -177,8 +181,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   def self.source_for(destination_id:, user:)
-    source_id = GrdaWarehouse::WarehouseClient.find_by(destination_id: destination_id, data_source_id: user.hmis_data_source_id).source_id
-    return nil unless source_id.present?
+    source_id = GrdaWarehouse::WarehouseClient.find_by(destination_id: destination_id, data_source_id: user.hmis_data_source_id)&.source_id
+    return Hmis::Hud::Client.none unless source_id.present?
 
     searchable_to(user).where(id: source_id)
   end

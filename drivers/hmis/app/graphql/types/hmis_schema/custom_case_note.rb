@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,6 +9,7 @@
 module Types
   class HmisSchema::CustomCaseNote < Types::BaseObject
     include Types::HmisSchema::HasHudMetadata
+    include Types::HmisSchema::HasCustomDataElements
 
     description 'Case Note'
     field :id, ID, null: false
@@ -16,6 +17,7 @@ module Types
     field :client, HmisSchema::Client, null: false
     field :content, String, null: false
     field :information_date, GraphQL::Types::ISO8601Date, null: true
+    custom_data_elements_field
 
     def enrollment
       load_ar_association(object, :enrollment)

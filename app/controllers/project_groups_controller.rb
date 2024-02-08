@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -28,15 +28,21 @@ class ProjectGroupsController < ApplicationController
       filter = ::Filters::HudFilterBase.new(user_id: current_user.id, project_type_numbers: []).update(filter_params.merge(coc_codes: []))
       filter.coc_codes = []
       @project_group.options = filter.to_h
-      if @project_group.save
-        users = user_params[:editor_ids]&.reject(&:blank?)&.map(&:to_i)
+      if @project_group.save!
+        editors = user_params[:editor_ids]&.reject(&:blank?)&.map(&:to_i)
         # If the user can't edit all project groups, make sure we add the user so they can access it later
-        users << current_user.id
-        @project_group.update_access(users.map(&:to_i)) if users.present? # TODO: START_ACL remove when ACL transition complete
-        @project_group.replace_access(User.find(users), scope: :editor)
+        editors << current_user.id
+
+        @project_group.replace_access(User.find(editors), scope: :editor)
         @project_group.maintain_projects!
-        AccessGroup.maintain_system_groups(group: :project_groups)
         Collection.maintain_system_groups(group: :project_groups)
+
+        # TODO: START_ACL remove when ACL transition complete
+        users = user_params[:users]&.reject(&:empty?)&.map(&:to_i)
+        users << current_user.access_group.id
+        @project_group.update_access(users)
+        AccessGroup.maintain_system_groups(group: :project_groups)
+        # END_ACL
       end
     rescue Exception => e
       flash[:error] = e.message
@@ -84,7 +90,29 @@ class ProjectGroupsController < ApplicationController
     respond_with(@project_group, location: project_groups_path)
   end
 
+  def delete_multiple
+    group_ids = params[:selections]&.try(:[], :group)&.reject(&:empty?)&.map(&:to_i)
+    redirect_to project_groups_path and return unless group_ids
+
+    project_group_source.transaction do
+      group_ids.each do |group|
+        project_group = project_group_scope.find(group)
+        project_group.remove_from_group_viewable_entities!
+        project_group.destroy
+      end
+    end
+    AccessGroup.maintain_system_groups
+    redirect_to project_groups_path
+  end
+
   def maintenance
+  end
+
+  def download
+    @project_groups = project_group_scope
+    @project_groups = @project_groups.text_search(params[:q]) if params[:q].present?
+
+    headers['Content-Disposition'] = "attachment; filename=Project Groups - #{Date.current.strftime('%Y-%m-%d')}.xlsx"
   end
 
   def import

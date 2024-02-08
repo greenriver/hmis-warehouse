@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -147,7 +147,7 @@ module Health
           title: 'Emergency Department visit (7 days)',
           code: 'T2038',
           weight: 45,
-          allowed: ['U1', 'U2', 'U3', '95', '93'],
+          allowed: ['U1', 'U2', 'U3', '95', '93', 'UK'],
           required: [],
           per_day: 2,
         },
@@ -155,7 +155,7 @@ module Health
           title: 'Follow-up from inpatient discharge with client (7 days)',
           code: 'T2038>U5',
           weight: 50,
-          allowed: ['U1', 'U2'],
+          allowed: ['U1', 'U2', '93', '95'],
           required: ['U5'],
           per_day: 2,
         },

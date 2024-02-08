@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -10,13 +10,7 @@ module Types
   class Forms::Enums::DataCollectedAbout < Types::BaseEnum
     graphql_name 'DataCollectedAbout'
 
-    [
-      'ALL_CLIENTS',
-      'HOH_AND_ADULTS',
-      'HOH',
-      'ALL_VETERANS',
-      'VETERAN_HOH',
-    ].each do |val|
+    Hmis::Form::InstanceEnrollmentMatch::MATCHES.each do |val|
       description = val.titleize.
         gsub(/\bHoh\b/, 'HoH').
         gsub(/\bSsvf\b/, 'SSVF').

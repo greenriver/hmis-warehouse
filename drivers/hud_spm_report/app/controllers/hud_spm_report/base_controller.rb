@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,6 +19,19 @@ module HudSpmReport
     def default_report_version
       :fy2023
     end
+
+    def cell_value(cell, path)
+      if path.to_s.include?('.')
+        path_parts = path.to_s.split('.')
+        path_parts.each do |part|
+          cell = cell.send(part) unless cell.nil?
+        end
+        cell
+      else
+        cell[path]
+      end
+    end
+    helper_method :cell_value
 
     private def filter_class
       ::Filters::HudFilterBase

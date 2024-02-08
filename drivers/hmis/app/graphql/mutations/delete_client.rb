@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,6 +19,10 @@ module Mutations
     def resolve(id:, client_lock_version: nil, confirmed: false)
       client = Hmis::Hud::Client.viewable_by(current_user).find_by(id: id)
       client.lock_version = client_lock_version if client_lock_version
+
+      # While this is redundant with the viewable_by() scope above, this check caches the authorization result so that
+      # the client object-level authorization check will succeed even after the client has been deleted
+      access_denied! unless current_permission?(permission: :can_view_clients, entity: client)
 
       warnings, resolvable_enrollments = check_enrollments(client, ignore_warnings: confirmed)
 

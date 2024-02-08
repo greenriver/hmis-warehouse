@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,6 +8,7 @@ module HudSpmReport::Fy2023
   class SpmEnrollment < GrdaWarehouseBase
     self.table_name = 'hud_report_spm_enrollments'
     include ArelHelper
+    include Detail
 
     belongs_to :report_instance, class_name: 'HudReports::ReportInstance'
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
@@ -189,23 +190,6 @@ module HudSpmReport::Fy2023
       end.to_h
     end
 
-    private_class_method def self.header_label(col)
-      case col.to_sym
-      when :client_id
-        'Warehouse Client ID'
-      when :personal_id
-        'HMIS Personal ID'
-      when :data_source_id
-        'Data Source ID'
-      when :los_under_threshold
-        'LOS Under Threshold'
-      when :previous_street_essh
-        'Previous Street ESSH'
-      else
-        col.humanize
-      end
-    end
-
     private_class_method def self.start_of_homelessness(filter, household_info, enrollment)
       age = enrollment.client.age_on([filter.start, enrollment.entry_date].max)
       start_of_homelessness = if age.present? && age <= 17 &&
@@ -295,7 +279,8 @@ module HudSpmReport::Fy2023
     private_class_method def self.date_in_annual_update_window?(date, enrollment)
       entry_date = enrollment.entry_date
       interval = 30.days
-      window_date = Date.new(date.year, entry_date.month, entry_date.day)
+      elapsed_years = date.year - entry_date.year
+      window_date = entry_date + elapsed_years.years
 
       date.between?(window_date - interval, window_date + interval)
     end

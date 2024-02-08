@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -80,8 +80,8 @@ module GrdaWarehouse::ClientNotes
       end
     end
 
-    def destroyable_by(user)
-      user.can_edit_client_notes?
+    def destroyable_by(check_user)
+      check_user.can_edit_client_notes? || user == check_user && check_user.can_edit_own_client_notes?
     end
 
     def recipient_info

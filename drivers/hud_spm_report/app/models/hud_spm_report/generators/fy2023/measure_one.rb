@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,6 +9,11 @@ module HudSpmReport::Generators::Fy2023
   class MeasureOne < MeasureBase
     def self.question_number
       'Measure 1'.freeze
+    end
+
+    def self.client_class
+      HudSpmReport::Fy2023::Episode.
+        joins(:enrollments).preload(:enrollments)
     end
 
     def self.table_descriptions

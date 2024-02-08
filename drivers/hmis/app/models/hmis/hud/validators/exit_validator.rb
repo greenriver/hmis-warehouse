@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -42,13 +42,13 @@ class Hmis::Hud::Validators::ExitValidator < Hmis::Hud::Validators::BaseValidato
     household_members ||= enrollment.household_members
 
     errors.add :exit_date, :out_of_range, message: before_entry_message(entry_date), **options if entry_date.present? && entry_date > exit_date
-    errors.add :exit_date, :information, severity: :warning, message: over_thirty_days_ago_message, **options if exit_date < (Date.today - 30.days)
+    errors.add :exit_date, :information, severity: :warning, message: over_thirty_days_ago_message, **options if exit_date < (Date.current - 30.days)
     errors.add :exit_date, :out_of_range, message: before_dob_message, **options if dob.present? && dob > exit_date
     return errors.errors if errors.any?
 
-    conflict_scope = Hmis::Hud::Enrollment
-      .where(personal_id: enrollment.personal_id, data_source_id: enrollment.data_source_id)
-      .with_conflicting_dates(project: enrollment.project, range: entry_date...exit_date)
+    conflict_scope = Hmis::Hud::Enrollment.
+      where(personal_id: enrollment.personal_id, data_source_id: enrollment.data_source_id).
+      with_conflicting_dates(project: enrollment.project, range: entry_date...exit_date)
 
     conflict_scope = conflict_scope.where.not(id: enrollment.id) if enrollment.persisted?
     errors.add(:exit_date, :out_or_range, severity: :warning, full_message: enrollment_conflict_message) if conflict_scope.any?

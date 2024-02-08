@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -19,8 +19,15 @@ module Mutations
       errors = []
       if enrollment.in_progress?
         enrollment.destroy!
+      elsif !enrollment.intake_assessment
+        # Non-WIP, Active Enrollments can be destroyed if there is no associated intake assessment
+        # (either due to data being migrated in, or if we support projects that don't do assessments in future).
+        # This requires can_delete_enrollments permission.
+        raise HmisErrors::ApiError, 'Access denied' unless current_user.permissions_for?(enrollment, :can_delete_enrollments)
+
+        enrollment.destroy!
       else
-        # Deleting non-WIP Enrollments requires can_delete_enrollments, and can only occur via DeleteAssessment mutation (deleting intake)
+        # Deleting non-WIP Enrollments with Intake Assessment can only occur via DeleteAssessment mutation (deleting intake)
         errors << HmisErrors::Error.new(:base, full_message: 'Completed enrollments can not be deleted. Please exit the client instead.')
       end
 

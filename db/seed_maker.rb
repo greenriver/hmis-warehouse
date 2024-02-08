@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -26,7 +26,7 @@ class SeedMaker
         can_view_full_client_dashboard: true,
         can_view_all_reports: true,
         can_view_assigned_reports: true,
-        can_view_all_hud_reports: true
+        can_view_all_hud_reports: true,
       )
 
       # Add a user.  This should not be added in production
@@ -376,17 +376,9 @@ class SeedMaker
   def load_hmis_data
     return unless ENV['ENABLE_HMIS_API'] == 'true'
 
-    ::HmisUtil::JsonForms.new.tap do |builder|
-      # Load ALL the latest record definitions from JSON files.
-      # This also ensures that any system-level instances exist.
-      builder.seed_record_form_definitions
-      # Load ALL the latest assessment definition froms JSON files.
-      builder.seed_assessment_form_definitions
-      # Load admin forms (not configurable)
-      builder.seed_static_forms
-      # In development, create the initial instances for occurrence-point collection.
-      builder.create_default_occurrence_point_instances! if Rails.env.development?
-    end
+    builder = ::HmisUtil::JsonForms.new
+    builder.seed_all
+    builder.create_default_occurrence_point_instances! if Rails.env.development?
   end
 
   def populate_internal_system_choices
@@ -416,5 +408,6 @@ class SeedMaker
     maintain_system_groups
     populate_internal_system_choices
     GrdaWarehouse::SystemColor.ensure_colors
+    Translation::maintain_keys
   end
 end

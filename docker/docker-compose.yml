@@ -1,14 +1,17 @@
 version: '3.8'
 
 x-app: &app
-  image: hmis-warehouse:3.7
+  image: hmis-warehouse:4.0
   build:
     context: .
+    dockerfile: docker/app/Dockerfile
+    target: dev-build
     args:
       RUBY_VERSION: 3.1.4
       BUNDLER_VERSION: '2.4.13'
       USER_ID: ${USER_ID:-1001}
       GROUP_ID: ${GROUP_ID:-1001}
+      BUILD_TAG: 3.1.4-alpine3.18
   environment: &env
     AWS_REGION: ${AWS_REGION:-us-east-1}
     AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
@@ -59,7 +62,7 @@ services:
     profiles:
       - manual
     command: /bin/bash
-    entrypoint: '/usr/bin/spec.entrypoint.sh'
+    entrypoint: '/usr/bin/entrypoint.spec.sh'
     depends_on:
       db:
         condition: service_healthy
@@ -231,6 +234,9 @@ services:
       POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
       PGPASSWORD: postgres
       PGUSER: postgres
+      # You may want to store your db data locally rather than in a docker volume
+      # to do that, set:
+      # DB_DATA_VOLUME=./dev/db_data
       DB_DATA_VOLUME: ${DB_DATA_VOLUME:-dbdata_pg13}
     healthcheck:
       test: ["CMD-SHELL", "sh -c 'pg_isready -d postgres'"]
@@ -239,7 +245,7 @@ services:
       retries: 3
     volumes:
       # Name each new postgres major version explicitly (dbdata_pg14 when we get to that)
-      - ${DB_DATA_VOLUME-dbdata_pg13}:/var/lib/postgresql/data
+      - ${DB_DATA_VOLUME:-dbdata_pg13}:/var/lib/postgresql/data
       - ./tmp/dumps:/tmp/dumps
     ports:
       - 5432

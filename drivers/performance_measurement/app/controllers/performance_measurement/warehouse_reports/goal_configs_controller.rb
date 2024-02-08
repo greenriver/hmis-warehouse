@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -69,6 +69,7 @@ module PerformanceMeasurement::WarehouseReports
         :always_run_for_coc,
         :label,
         :active,
+        :equity_analysis_visible,
       )
       p[:coc_code] = :default if p[:coc_code].blank?
       p

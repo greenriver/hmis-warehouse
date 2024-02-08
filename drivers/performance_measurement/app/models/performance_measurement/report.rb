@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,6 +20,8 @@ module PerformanceMeasurement
     include PerformanceMeasurement::Details
 
     include ::WarehouseReports::Publish
+
+    attr_accessor :households
 
     acts_as_paranoid
 
@@ -78,14 +80,14 @@ module PerformanceMeasurement
       update(completed_at: Time.current)
     end
 
-    def describe_filter_as_html(keys = nil, inline: false)
+    def describe_filter_as_html(keys = nil, inline: false, limited: true)
       keys ||= [
         :project_type_codes,
         :project_ids,
         :project_group_ids,
         :data_source_ids,
       ]
-      filter.describe_filter_as_html(keys, inline: inline)
+      filter.describe_filter_as_html(keys, inline: inline, limited: limited)
     end
 
     def known_params
@@ -118,6 +120,7 @@ module PerformanceMeasurement
     def filter
       @filter ||= begin
         f = ::Filters::HudFilterBase.new(user_id: filter_user_id, comparison_pattern: :prior_fiscal_year)
+        f.default_project_type_codes = self.class.default_project_type_codes
         f.update((options || {}).with_indifferent_access)
         f.update(start: f.end - 1.years + 1.days)
         f
@@ -275,13 +278,16 @@ module PerformanceMeasurement
     private def add_clients(report_clients)
       # Run CoC-wide SPMs for year prior to selected date and period 2 years prior
       # add records for each client to indicate which projects they were enrolled in within the report window
-      project_clients = Set.new
+      project_clients = {}
       involved_projects = Set.new
       run_spm.each do |variant_name, spec|
         spm_fields.each do |parts|
           cells = parts[:cells]
           cells.each do |cell|
-            cell_members(spec[:report], *cell).each do |member|
+            members = cell_members(spec[:report], *cell)
+            # Force household calculation for cell members
+            calculate_households_for_spm(members)
+            members.each do |member|
               hud_client = member.client
               spm_enrollments = spm_enrollments_from_answer_member(member)
               report_client = report_clients[hud_client.id] || Client.new(report_id: id, client_id: hud_client.id)
@@ -297,24 +303,28 @@ module PerformanceMeasurement
               parts[:questions].each do |question|
                 report_client["#{variant_name}_#{question[:name]}"] = question[:value_calculation].call(member)
                 hud_project_ids.each do |project_id|
-                  project_clients << {
+                  pc_data = {
                     report_id: id,
                     client_id: hud_client.id,
                     project_id: project_id,
                     for_question: question[:name], # allows limiting for a specific response
                     period: variant_name,
+                    household_type: household_type_for_spm(member),
                   }
+                  project_clients = add_to_project_clients(project_clients, hud_client.id, pc_data)
                 end
               end
               parts[:client_project_rows]&.each do |cpr|
                 project_client_attrs = cpr.call(member)
                 next unless project_client_attrs
 
-                project_clients << project_client_attrs.reverse_merge(
+                pc_data = project_client_attrs.reverse_merge(
                   report_id: id,
                   client_id: hud_client.id,
                   period: variant_name,
+                  household_type: household_type_for_spm(member),
                 )
+                project_clients = add_to_project_clients(project_clients, hud_client.id, pc_data)
               end
 
               report_client["#{variant_name}_spm_id"] = spec[:report].id
@@ -336,15 +346,17 @@ module PerformanceMeasurement
             # HoH status may vary, just note if they were ever an HoH
             report_client["#{variant_name}_hoh"] ||= parts[:value_calculation].call(:head_of_household, client_id, data) || false
 
-            parts[:value_calculation].call(:project_ids, client_id, data).each do |project_id|
+            parts[:value_calculation].call(:project_ids, client_id, data).each do |project_id, hh_type|
               involved_projects << project_id
-              project_clients << {
+              pc_data = {
                 report_id: id,
                 client_id: client_id,
                 project_id: project_id,
                 for_question: parts[:key], # allows limiting for a specific response
                 period: variant_name,
+                household_type: hh_type,
               }
+              project_clients = add_to_project_clients(project_clients, client_id, pc_data)
             end
             report_clients[client_id] = report_client
           end
@@ -357,14 +369,22 @@ module PerformanceMeasurement
             client["#{variant_name}_#{parts[:key]}"] = value
             next unless value
 
+            # Use the previously calculated household_type, for now, just get the first for the client
+            # that matches one of the prior calculations
+            project_client = project_clients[client_id]&.detect do |pc|
+              pc[:for_question].in?(parts[:household_type_keys])
+            end
+
             # These are only system level
-            project_clients << {
+            pc_data = {
               report_id: id,
               client_id: client_id,
               project_id: nil,
               for_question: parts[:key], # allows limiting for a specific response
               period: variant_name,
+              household_type: project_client.try(:[], :household_type),
             }
+            project_clients = add_to_project_clients(project_clients, client_id, pc_data)
           end
         end
       end
@@ -378,8 +398,15 @@ module PerformanceMeasurement
         },
       )
       Project.import!([:report_id, :project_id], involved_projects.map { |p_id| [id, p_id] }, batch_size: 5_000)
-      ClientProject.import!(project_clients.to_a.compact, batch_size: 5_000)
+      # Enforce that the hashes in project_clients have all the necessary columns defined by converting it to an array of ClientProject records
+      ClientProject.import!(project_clients.values.flat_map(&:to_a).compact.map { |attr| ClientProject.new(attr) }, batch_size: 5_000)
       universe.add_universe_members(report_clients)
+    end
+
+    private def add_to_project_clients(project_clients, client_id, data)
+      project_clients[client_id] ||= Set.new
+      project_clients[client_id] << data
+      project_clients
     end
 
     private def answer(report, table, cell)
@@ -416,26 +443,103 @@ module PerformanceMeasurement
       end
     end
 
+    private def household_type_for_extra(ages)
+      adult = ages.any? { |age| age.present? && age >= 18 }
+      child = ages.any? { |age| age.present? && age.between?(0, 18) }
+      unknown = ages.any?(&:blank?)
+
+      return HudUtility2024.household_type('Households with at least one adult and one child', true) if adult && child
+      return nil if unknown
+      return HudUtility2024.household_type('Households without children', true) if ages.all? { |age| age.present? && age >= 18 }
+
+      HudUtility2024.household_type('Households with only children', true) if ages.all? { |age| age.present? && age.between?(0, 18) }
+    end
+
+    # Use the household ID if present, otherwise a made-up one for the enrollment
+    private def hh_id_for_row(hh_id, enrollment_id)
+      hh_id.presence || "en-#{enrollment_id}"
+    end
+
+    private def calculate_households_for_extra(rows, columns, date = filter.start)
+      @households = rows.map do |row|
+        row = columns.zip(row).to_h
+        [
+          hh_id_for_row(row[:hh_id], row[:enrollment_id]),
+          GrdaWarehouse::Hud::Client.age(date: date, dob: row[:dob]),
+        ]
+      end.group_by(&:shift)
+    end
+
+    # Generate some household data for clients where all we have is a client id and project id
+    private def household_types_for_all_report_scope_project_client_combinations
+      @household_types_for_all_report_scope_project_client_combinations ||= {}.tap do |data|
+        cols = {
+          client_id: :client_id,
+          project_id: p_t[:id],
+          household_id: e_t[:HouseholdID],
+          dob: c_t[:dob],
+        }
+        # only calculate household-type for enrollments with household ids
+        households = {}
+        report_scope.joins(:project, :enrollment, :client).
+          where(e_t[:HouseholdID].not_eq(nil)).
+          pluck(*cols.values).each do |row|
+            row = cols.keys.zip(row).to_h
+            households[row[:household_id]] ||= []
+            households[row[:household_id]] << row
+          end
+        households.each do |_, rows|
+          ages = rows.map do |row|
+            GrdaWarehouse::Hud::Client.age(date: filter.start, dob: row[:dob])
+          end
+          # Since we don't know the enrollment_id later, we're just going to take the first one we find for each member of the household
+          rows.each do |row|
+            data[client_project_hh_key(row[:client_id], row[:project_id])] ||= household_type_for_extra(ages)
+          end
+        end
+      end
+    end
+
+    private def client_project_hh_key(client_id, project_id)
+      ['c--', client_id, 'p--', project_id].join('_')
+    end
+
     private def extra_calculations # rubocop:disable Metrics/AbcSize
       extras = [
         {
           key: :served_on_pit_date,
           data: ->(filter) {
             {}.tap do |project_types_by_client_id|
-              report_scope.joins(:service_history_services, :project, :client, :enrollment).
+              cols = {
+                client_id: :client_id,
+                dob: c_t[:DOB],
+                project_id: p_t[:id],
+                housing_status_at_entry: e_t[:LivingSituation],
+                head_of_household: :head_of_household,
+                hh_id: e_t[:HouseholdID],
+                enrollment_id: e_t[:id],
+              }
+              rows = report_scope.joins(:service_history_services, :project, :client, :enrollment).
                 where(shs_t[:date].eq(filter.pit_date)).
                 homeless.distinct.
-                pluck(:client_id, c_t[:DOB], p_t[:id], e_t[:LivingSituation], :head_of_household).
-                each do |client_id, dob, project_id, housing_status_at_entry, head_of_household|
-                  project_types_by_client_id[client_id] ||= {
-                    value: true,
-                    project_ids: Set.new,
-                    dob: dob,
-                    housing_status_at_entry: housing_status_at_entry,
-                    head_of_household: head_of_household,
-                  }
-                  project_types_by_client_id[client_id][:project_ids] << project_id
-                end
+                pluck(*cols.values)
+
+              calculate_households_for_extra(rows, cols.keys, filter.pit_date)
+
+              rows.each do |row|
+                row = cols.keys.zip(row).to_h
+                hh_id = hh_id_for_row(row[:hh_id], row[:enrollment_id])
+                ages = households[hh_id].flatten
+                project_types_by_client_id[row[:client_id]] ||= {
+                  value: true,
+                  project_ids: {},
+                  dob: row[:dob],
+                  housing_status_at_entry: row[:housing_status_at_entry],
+                  head_of_household: row[:head_of_household],
+                  household_id: hh_id,
+                }
+                project_types_by_client_id[row[:client_id]][:project_ids][row[:project_id]] = household_type_for_extra(ages)
+              end
             end
           },
           value_calculation: ->(calculation, client_id, data) {
@@ -449,20 +553,35 @@ module PerformanceMeasurement
           key: :served_on_pit_date_unsheltered, # note, actually yearly overall count
           data: ->(_) {
             {}.tap do |project_types_by_client_id|
-              report_scope.joins(:service_history_services, :project, :client, :enrollment).
+              cols = {
+                client_id: :client_id,
+                dob: c_t[:DOB],
+                project_id: p_t[:id],
+                housing_status_at_entry: e_t[:LivingSituation],
+                head_of_household: :head_of_household,
+                hh_id: e_t[:HouseholdID],
+                enrollment_id: e_t[:id],
+              }
+              rows = report_scope.joins(:service_history_services, :project, :client, :enrollment).
                 # where(shs_t[:date].eq(filter.pit_date)). # removed to become yearly to match SPM M3 3.2
                 so.distinct.
-                pluck(:client_id, c_t[:DOB], p_t[:id], e_t[:LivingSituation], :head_of_household).
-                each do |client_id, dob, project_id, housing_status_at_entry, head_of_household|
-                  project_types_by_client_id[client_id] ||= {
-                    value: true,
-                    project_ids: Set.new,
-                    dob: dob,
-                    housing_status_at_entry: housing_status_at_entry,
-                    head_of_household: head_of_household,
-                  }
-                  project_types_by_client_id[client_id][:project_ids] << project_id
-                end
+                pluck(*cols.values)
+              # NOTE: even though we're pullin for the full year, we're using age on the PIT date for now.
+              calculate_households_for_extra(rows, cols.keys, filter.pit_date)
+              rows.each do |row|
+                row = cols.keys.zip(row).to_h
+                hh_id = hh_id_for_row(row[:hh_id], row[:enrollment_id])
+                ages = households[hh_id].flatten
+                project_types_by_client_id[row[:client_id]] ||= {
+                  value: true,
+                  project_ids: {},
+                  dob: row[:dob],
+                  housing_status_at_entry: row[:housing_status_at_entry],
+                  head_of_household: row[:head_of_household],
+                  household_id: hh_id,
+                }
+                project_types_by_client_id[row[:client_id]][:project_ids][row[:project_id]] = household_type_for_extra(ages)
+              end
             end
           },
           value_calculation: ->(calculation, client_id, data) {
@@ -483,9 +602,14 @@ module PerformanceMeasurement
               scope.group(:client_id, p_t[:id]).
                 count(shs_t[:date]).
                 each do |(client_id, project_id), days|
-                  days_by_client_id[client_id] ||= { value: [], project_ids: Set.new, dob: nil }
+                  days_by_client_id[client_id] ||= {
+                    value: [],
+                    project_ids: {},
+                    dob: nil,
+                    household_id: client_project_hh_key(client_id, project_id),
+                  }
                   days_by_client_id[client_id][:value] << { project_id => days }
-                  days_by_client_id[client_id][:project_ids] << project_id
+                  days_by_client_id[client_id][:project_ids][project_id] = household_types_for_all_report_scope_project_client_combinations[client_project_hh_key(client_id, project_id)]
                   days_by_client_id[client_id][:dob] = dobs[client_id]
                 end
             end
@@ -508,9 +632,14 @@ module PerformanceMeasurement
               scope.group(:client_id, p_t[:id]).
                 count(shs_t[:date]).
                 each do |(client_id, project_id), days|
-                  days_by_client_id[client_id] ||= { value: 0, project_ids: Set.new, dob: nil }
+                  days_by_client_id[client_id] ||= {
+                    value: 0,
+                    project_ids: {},
+                    dob: nil,
+                    household_id: client_project_hh_key(client_id, project_id),
+                  }
                   days_by_client_id[client_id][:value] += days
-                  days_by_client_id[client_id][:project_ids] << project_id
+                  days_by_client_id[client_id][:project_ids][project_id] = household_types_for_all_report_scope_project_client_combinations[client_project_hh_key(client_id, project_id)]
                   days_by_client_id[client_id][:dob] = dobs[client_id]
                 end
             end
@@ -534,9 +663,14 @@ module PerformanceMeasurement
               scope.group(:client_id, p_t[:id]).
                 count(shs_t[:date]).
                 each do |(client_id, project_id), days|
-                  days_by_client_id[client_id] ||= { value: 0, project_ids: Set.new, dob: nil }
+                  days_by_client_id[client_id] ||= {
+                    value: 0,
+                    project_ids: {},
+                    dob: nil,
+                    household_id: client_project_hh_key(client_id, project_id),
+                  }
                   days_by_client_id[client_id][:value] += days
-                  days_by_client_id[client_id][:project_ids] << project_id
+                  days_by_client_id[client_id][:project_ids][project_id] = household_types_for_all_report_scope_project_client_combinations[client_project_hh_key(client_id, project_id)]
                   days_by_client_id[client_id][:dob] = dobs[client_id]
                 end
             end
@@ -560,9 +694,14 @@ module PerformanceMeasurement
               scope.group(:client_id, p_t[:id]).
                 count(shs_t[:date]).
                 each do |(client_id, project_id), days|
-                  days_by_client_id[client_id] ||= { value: [], project_ids: Set.new, dob: nil }
+                  days_by_client_id[client_id] ||= {
+                    value: [],
+                    project_ids: {},
+                    dob: nil,
+                    household_id: client_project_hh_key(client_id, project_id),
+                  }
                   days_by_client_id[client_id][:value] << { project_id => days }
-                  days_by_client_id[client_id][:project_ids] << project_id
+                  days_by_client_id[client_id][:project_ids][project_id] = household_types_for_all_report_scope_project_client_combinations[client_project_hh_key(client_id, project_id)]
                   days_by_client_id[client_id][:dob] = dobs[client_id]
                 end
             end
@@ -603,9 +742,14 @@ module PerformanceMeasurement
                   else
                     (move_in - entry_date).to_i
                   end
-                  days_by_client_id[client_id] ||= { value: 0, project_ids: Set.new, dob: nil }
+                  days_by_client_id[client_id] ||= {
+                    value: 0,
+                    project_ids: {},
+                    dob: nil,
+                    household_id: client_project_hh_key(client_id, project_id),
+                  }
                   days_by_client_id[client_id][:value] += days
-                  days_by_client_id[client_id][:project_ids] << project_id
+                  days_by_client_id[client_id][:project_ids][project_id] = household_types_for_all_report_scope_project_client_combinations[client_project_hh_key(client_id, project_id)]
                   days_by_client_id[client_id][:dob] = dobs[client_id]
                 end
             end
@@ -627,9 +771,14 @@ module PerformanceMeasurement
               dobs = scope.pluck(:client_id, c_t[:DOB]).to_h
               scope.pluck(:client_id, p_t[:id], :destination).
                 each do |client_id, project_id, destination|
-                  destination_client_id[client_id] ||= { value: nil, project_ids: Set.new, dob: nil }
+                  destination_client_id[client_id] ||= {
+                    value: nil,
+                    project_ids: {},
+                    dob: nil,
+                    household_id: client_project_hh_key(client_id, project_id),
+                  }
                   destination_client_id[client_id][:value] = destination
-                  destination_client_id[client_id][:project_ids] << project_id
+                  destination_client_id[client_id][:project_ids][project_id] = household_types_for_all_report_scope_project_client_combinations[client_project_hh_key(client_id, project_id)]
                   destination_client_id[client_id][:dob] = dobs[client_id]
                 end
             end
@@ -654,9 +803,14 @@ module PerformanceMeasurement
               scope.group(:client_id, p_t[:id]).
                 count(shs_t[:date]).
                 each do |(client_id, project_id), days|
-                  days_by_client_id[client_id] ||= { value: [], project_ids: Set.new, dob: nil }
+                  days_by_client_id[client_id] ||= {
+                    value: [],
+                    project_ids: {},
+                    dob: nil,
+                    household_id: client_project_hh_key(client_id, project_id),
+                  }
                   days_by_client_id[client_id][:value] << { project_id => days }
-                  days_by_client_id[client_id][:project_ids] << project_id
+                  days_by_client_id[client_id][:project_ids][project_id] = household_types_for_all_report_scope_project_client_combinations[client_project_hh_key(client_id, project_id)]
                   days_by_client_id[client_id][:dob] = dobs[client_id]
                 end
             end
@@ -679,9 +833,14 @@ module PerformanceMeasurement
               scope.group(:client_id, p_t[:id]).
                 count(shs_t[:date]).
                 each do |(client_id, project_id), days|
-                  days_by_client_id[client_id] ||= { value: 0, project_ids: Set.new, dob: nil }
+                  days_by_client_id[client_id] ||= {
+                    value: 0,
+                    project_ids: {},
+                    dob: nil,
+                    household_id: client_project_hh_key(client_id, project_id),
+                  }
                   days_by_client_id[client_id][:value] += days
-                  days_by_client_id[client_id][:project_ids] << project_id
+                  days_by_client_id[client_id][:project_ids][project_id] = household_types_for_all_report_scope_project_client_combinations[client_project_hh_key(client_id, project_id)]
                   days_by_client_id[client_id][:dob] = dobs[client_id]
                 end
             end
@@ -705,10 +864,16 @@ module PerformanceMeasurement
               scope.group(:client_id, p_t[:id]).
                 count(shs_t[:date]).
                 each do |(client_id, project_id), days|
-                  days_by_client_id[client_id] ||= { value: 0, project_ids: Set.new, dob: nil }
+                  days_by_client_id[client_id] ||= {
+                    value: 0,
+                    project_ids: {},
+                    dob: nil,
+                    household_id: client_project_hh_key(client_id, project_id),
+                  }
                   days_by_client_id[client_id][:value] += days
-                  days_by_client_id[client_id][:project_ids] << project_id
+                  days_by_client_id[client_id][:project_ids][project_id] = household_types_for_all_report_scope_project_client_combinations[client_project_hh_key(client_id, project_id)]
                   days_by_client_id[client_id][:dob] = dobs[client_id]
+                  # FIXME: needs household type
                 end
             end
           },
@@ -731,9 +896,14 @@ module PerformanceMeasurement
               scope.group(:client_id, p_t[:id]).
                 count(shs_t[:date]).
                 each do |(client_id, project_id), days|
-                  days_by_client_id[client_id] ||= { value: [], project_ids: Set.new, dob: nil }
+                  days_by_client_id[client_id] ||= {
+                    value: [],
+                    project_ids: {},
+                    dob: nil,
+                    household_id: client_project_hh_key(client_id, project_id),
+                  }
                   days_by_client_id[client_id][:value] << { project_id => days }
-                  days_by_client_id[client_id][:project_ids] << project_id
+                  days_by_client_id[client_id][:project_ids][project_id] = household_types_for_all_report_scope_project_client_combinations[client_project_hh_key(client_id, project_id)]
                   days_by_client_id[client_id][:dob] = dobs[client_id]
                 end
             end
@@ -764,6 +934,10 @@ module PerformanceMeasurement
             client["#{variant_name}_served_on_pit_date_sheltered"] ||
             client["#{variant_name}_served_on_pit_date_unsheltered"]
           },
+          household_type_keys: [
+            :served_on_pit_date_sheltered,
+            :served_on_pit_date_unsheltered,
+          ],
         },
         {
           key: :retention_or_positive_destination,
@@ -774,6 +948,11 @@ module PerformanceMeasurement
 
             false
           },
+          household_type_keys: [
+            :so_destination,
+            :es_sh_th_rrh_destination,
+            :moved_in_destination,
+          ],
         },
       ]
     end
@@ -833,6 +1012,40 @@ module PerformanceMeasurement
       }
     end
 
+    private def household_type_for_spm(member)
+      ages = households[hh_id_for_spm(member)]
+      adult = ages.any? { |age| age.present? && age >= 18 }
+      child = ages.any? { |age| age.present? && age.between?(0, 18) }
+      unknown = ages.any?(&:blank?)
+
+      return HudUtility2024.household_type('Households with at least one adult and one child', true) if adult && child
+      return nil if unknown
+      return HudUtility2024.household_type('Households without children', true) if ages.all? { |age| age.present? && age >= 18 }
+      return HudUtility2024.household_type('Households with only children', true) if ages.all? { |age| age.present? && age.between?(0, 18) }
+    end
+
+    # Use the household ID if present, otherwise a made-up one for the enrollment
+    private def hh_id_for_spm(member)
+      spm_enrollment = relevant_spm_enrollment_for(member)
+      spm_enrollment.enrollment.household_id.presence || "en-#{spm_enrollment.enrollment.id}"
+    end
+
+    # members can take a handful of forms, so grab the last associated enrollment
+    private def relevant_spm_enrollment_for(member)
+      spm_enrollments_from_answer_member(member).last
+    end
+
+    # For all SPM enrollments, that are used in calculations, determine the household type
+    private def calculate_households_for_spm(members)
+      @households = {}.tap do |hh|
+        members.each do |member|
+          hh_id = hh_id_for_spm(member)
+          hh[hh_id] ||= []
+          hh[hh_id] << relevant_spm_enrollment_for(member).age
+        end
+      end
+    end
+
     def spm_fields
       default_calculation = ->(spm_enrollment) { spm_enrollment.present? }
       days_homeless_calculation = ->(spm_episode) { spm_episode.days_homeless }
@@ -848,7 +1061,6 @@ module PerformanceMeasurement
       increased_earned_income_calculation = ->(spm_enrollment) {
         spm_enrollment.current_earned_income.to_f > spm_enrollment.previous_earned_income.to_f
       }
-
       [
         {
           cells: [['3.2', 'C2']],
@@ -1186,11 +1398,48 @@ module PerformanceMeasurement
     end
 
     # Publishing
+    def publish_summary?
+      true
+    end
+
+    def publish_summary_url
+      return unless publish_summary?
+      return unless published_report.present?
+
+      published_report.published_url.gsub('index.html', 'summary.html')
+    end
+
+    def publish_summary_embed_code
+      return unless publish_summary?
+      return unless published_report.present?
+
+      published_report.embed_code.gsub(published_report.published_url, publish_summary_url)
+    end
+
+    def view_summary_template
+      :raw_summary
+    end
+
+    def summary_as_html
+      return controller_class.render(view_summary_template, layout: raw_layout, assigns: { report: self }) unless view_template.is_a?(Array)
+
+      view_template.map do |template|
+        string = html_section_start(template)
+        string << controller_class.render(template, layout: raw_layout, assigns: { report: self })
+        string << html_section_end(template)
+      end.join
+    end
+
     def publish_files
       [
         {
           name: 'index.html',
           content: -> { as_html },
+          type: 'text/html',
+        },
+        {
+          name: 'summary.html',
+          content: -> { summary_as_html },
           type: 'text/html',
         },
         {
@@ -1206,6 +1455,8 @@ module PerformanceMeasurement
               'icons.woff2',
             ].each do |filename|
               css.gsub!("url(/assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
+              # Also replace development version of assets url
+              css.gsub!("url(/dev-assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
             end
             css
           },

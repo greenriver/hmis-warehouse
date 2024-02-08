@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -36,7 +36,7 @@ class Hmis::Hud::Validators::CustomAssessmentValidator < Hmis::Hud::Validators::
     # Error: date in the future
     errors.add :assessment_date, :out_of_range, message: future_message, **options if date.future?
     # Error: > 20 yr ago
-    errors.add :assessment_date, :out_of_range, message: over_twenty_years_ago_message, **options if date < (Date.today - 20.years)
+    errors.add :assessment_date, :out_of_range, message: over_twenty_years_ago_message, **options if date < (Date.current - 20.years)
     return errors.errors if errors.any?
 
     enrollment = assessment.enrollment
@@ -50,7 +50,7 @@ class Hmis::Hud::Validators::CustomAssessmentValidator < Hmis::Hud::Validators::
       exit_date.present? && exit_date < date && (assessment.intake? || assessment.annual? || assessment.update?)
 
     # Warning: >30 days ago
-    errors.add :assessment_date, :information, severity: :warning, message: over_thirty_days_ago_message, **options if date < (Date.today - 30.days)
+    errors.add :assessment_date, :information, severity: :warning, message: over_thirty_days_ago_message, **options if date < (Date.current - 30.days)
 
     # Add Entry Date validations if this is an intake assessment
     errors.push(*Hmis::Hud::Validators::EnrollmentValidator.validate_entry_date(enrollment, household_members: household_members, options: options)) if assessment.intake?

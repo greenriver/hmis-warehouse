@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -340,6 +340,12 @@ module HealthPctp
 
     def careplan_logo
       @careplan_logo ||= GrdaWarehouse::PublicFile.find_by(name: 'patient/careplan_logo')&.content
+    end
+
+    def self.encounter_report_details
+      {
+        source: 'Warehouse',
+      }
     end
   end
 end

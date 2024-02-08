@@ -46,6 +46,7 @@
     .c-chart--vertical-bar{ class: chart_class_name, data: { chart: @result.data_for_chart(@report, @comparison).to_json }}
 = render 'vispdat_breakdown_table'
 = render 'event_breakdown_table'
+= render 'exit_breakdown_table'
 = render 'sub_population_table'
 
 = content_for :page_js do

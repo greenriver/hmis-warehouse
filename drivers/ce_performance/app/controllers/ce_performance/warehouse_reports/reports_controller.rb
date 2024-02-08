@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -86,7 +86,8 @@ module CePerformance::WarehouseReports
       @vispdat_range = @report.vispdat_ranges.detect { |m| m == params[:vispdat_range] }
       @vispdat_type = @report.vispdat_types.detect { |m| m == params[:vispdat_type] }
       @event_type = @result.class.available_event_ids.detect { |m| m == params[:event_type]&.to_i }
-      @clients = @result.clients_for(report: @report, period: @period, sub_population: @sub_population, vispdat_range: @vispdat_range, event_type: @event_type, vispdat_type: @vispdat_type)
+      @exit_type = @result.class.available_exit_destination_ids.detect { |m| m == params[:exit_type]&.to_i }
+      @clients = @result.clients_for(report: @report, period: @period, sub_population: @sub_population, vispdat_range: @vispdat_range, event_type: @event_type, vispdat_type: @vispdat_type, exit_type: @exit_type)
       respond_to do |format|
         format.html {}
         format.xlsx do

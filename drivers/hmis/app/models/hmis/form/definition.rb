@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -8,6 +8,21 @@
 #
 # The canonical definitions are in json files under drivers/hmis/lib/form_data. When the json definitions changes, run the following command to freshen these db records
 #   rails driver:hmis:seed_definitions
+#
+# Table: hmis_form_definitions
+#   identifier
+#     stable identifier for this form across version. Is the foreign key for form instances (rules)
+#   version
+#     in combination with identifier, uniquely identify this form
+#   role
+#     the significance of this form within the system (INTAKE, EXIT, etc)
+#   status
+#     NOT IMPLEMENTED: aspirational support for draft status
+#   definition
+#     JSON field defines the inputs, labels, validation, and mapping to HMIS fields. A JSON-schema exists to validate
+#     the format of the definition
+#   title
+#     User-facing title of the form definition
 class Hmis::Form::Definition < ::GrdaWarehouseBase
   self.table_name = :hmis_form_definitions
   include Hmis::Hud::Concerns::HasEnums
@@ -19,10 +34,12 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   has_many :form_processors
   has_many :custom_service_types, through: :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
 
-  # Forms that are assessments
-  HUD_ASSESSMENT_FORM_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT, :CE, :POST_EXIT, :CUSTOM_ASSESSMENT].freeze
+  # Forms that are used for Assessments. These are submitted using SubmitAssessment mutation.
+  ASSESSMENT_FORM_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT, :POST_EXIT, :CUSTOM_ASSESSMENT].freeze
 
-  # System forms (forms that are required for basic HMIS functionality, and are configurable)
+  # "System" Record-editing Forms
+  # These are forms that are *required* for basic HMIS functionality, and are configurable.
+  # These are submitted using SubmitForm mutation.
   SYSTEM_FORM_ROLES = [
     :PROJECT,
     :ORGANIZATION,
@@ -36,7 +53,13 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :CE_PARTICIPATION,
   ].freeze
 
-  # Forms used for data collection on Enrollments (features that can be "toggled" on and off by specifying Instances)
+  # "Data Collection Feature" Record-editing Forms
+  # These are forms that are *optional* for HMIS functionality, and are configurable. They
+  # are primarily for Enrollment-level data collection.
+  #
+  # Each one is considered a feature that can be "toggled on" for a given project by enabling
+  # a Form Instance for it.
+  # These are submitted using SubmitForm mutation.
   DATA_COLLECTION_FEATURE_ROLES = [
     :CURRENT_LIVING_SITUATION,
     :SERVICE,
@@ -49,22 +72,25 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :REFERRAL_REQUEST,
   ].freeze
 
-  # Static forms are not configurable
+  # Static Forms
+  # Non-configurable forms. These are submitted using custom mutations.
   STATIC_FORM_ROLES = [
     :FORM_RULE,
     :AUTO_EXIT_CONFIG,
+    :CLIENT_ALERT,
     :FORM_DEFINITION,
   ].freeze
 
+  # All form roles
   FORM_ROLES = [
-    *HUD_ASSESSMENT_FORM_ROLES,
+    *ASSESSMENT_FORM_ROLES,
     *SYSTEM_FORM_ROLES,
     *DATA_COLLECTION_FEATURE_ROLES,
     *STATIC_FORM_ROLES,
     :OCCURRENCE_POINT,
     :CLIENT_DETAIL,
     # Other/misc forms
-    :FILE, # should maybe be considered a data collection feature, but different becase its at Client-level (not Project)
+    :FILE, # should maybe be considered a data collection feature, but different because its at Client-level (not Project)
   ].freeze
 
   validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }
@@ -151,6 +177,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     },
   }.freeze
 
+  # HUD-defined numeric representation of Data Collection Stage for each HUD Assessment
   FORM_DATA_COLLECTION_STAGES = {
     INTAKE: 1,
     UPDATE: 2,
@@ -159,25 +186,45 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     POST_EXIT: 6,
   }.freeze
 
-  use_enum_with_same_key :form_role_enum_map, FORM_ROLES.excluding(:CUSTOM_ASSESSMENT, :CE)
-  # may add back CE as HUD Assessment Role when we implement CE assessments. Same for implementing customs. Unsure at this point, so leaving them out.
-  use_enum_with_same_key :assessment_type_enum_map, HUD_ASSESSMENT_FORM_ROLES.excluding(:CUSTOM_ASSESSMENT, :CE)
+  # All form roles
+  use_enum_with_same_key :form_role_enum_map, FORM_ROLES.excluding(:CE)
+  # Form roles that can be used with SubmitForm for editing records
+  use_enum_with_same_key :record_form_role_enum_map, FORM_ROLES.excluding(*ASSESSMENT_FORM_ROLES, *STATIC_FORM_ROLES)
+  # Form roles for Assessments
+  use_enum_with_same_key :assessment_type_enum_map, ASSESSMENT_FORM_ROLES
+  # Form roles that represent optional "features"
   use_enum_with_same_key :data_collection_feature_role_enum_map, DATA_COLLECTION_FEATURE_ROLES
+  # Form roles that are static
   use_enum_with_same_key :static_form_role_enum_map, STATIC_FORM_ROLES
+
+  scope :exclude_definition_from_select, -> {
+    # Get all column names except 'definition'
+    select(column_names - ['definition'])
+  }
 
   scope :with_role, ->(role) { where(role: role) }
 
-  scope :for_project, ->(project:, role:, service_type: nil) do
+  # Finding the appropriate form definition for a project:
+  #  * find the definitions for the required role (i.e. INTAKE)
+  #    ** in the future we might apply status filter here to exclude "draft" definitions
+  #  * choose the form instance with the most specific match that is also associated with any of those definitions
+  #  * of the definitions with that identifier, choose the one with the highest version
+  scope :for_project, ->(project:, role:, service_type: nil, version: nil) do
     # Consider all instances for this role (and service type, if applicable)
     definition_scope = Hmis::Form::Definition.with_role(role)
+    if version
+      # restrict to a specific version
+      definition_scope = definition_scope.where(version: version).order(:id) if version
+    else
+      # order so that detect_best_instance_for_project will use version as a tie-breaker if multiple instances match
+      definition_scope = definition_scope.order(version: :desc, id: :desc)
+    end
     definition_scope = definition_scope.for_service_type(service_type) if service_type.present?
     base_scope = Hmis::Form::Instance.joins(:definition).merge(definition_scope)
 
     # Choose the first scope that has any records. Prefer more specific instances.
-    instance_scope = Hmis::Form::Instance.detect_best_instance_scope_for_project(base_scope, project: project)
-    return none unless instance_scope.present?
-
-    where(identifier: instance_scope.pluck(:definition_identifier))
+    instance = base_scope.detect_best_instance_for_project(project: project)
+    instance ? where(identifier: instance.definition_identifier) : none
   end
 
   scope :non_static, -> do
@@ -201,13 +248,14 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def self.find_definition_for_role(role, project: nil, version: nil)
+    scope = Hmis::Form::Definition.all
     if project.present?
-      scope = Hmis::Form::Definition.for_project(project: project, role: role)
+      scope = scope.for_project(project: project, role: role, version: version)
     else
-      scope = Hmis::Form::Definition.with_role(role)
+      scope = scope.with_role(role)
+      scope = scope.where(version: version) if version.present?
     end
 
-    scope = scope.where(version: version) if version.present?
     scope.order(version: :desc).first
   end
 
@@ -246,7 +294,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def hud_assessment?
-    HUD_ASSESSMENT_FORM_ROLES.include?(role.to_sym)
+    ASSESSMENT_FORM_ROLES.excluding(:CUSTOM_ASSESSMENT).include?(role.to_sym)
   end
 
   def intake?
@@ -388,5 +436,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     else
       raise NotImplementedError
     end
+  end
+
+  # if the enrollment and project match
+  def project_and_enrollment_match(...)
+    instances.map { |i| i.project_and_enrollment_match(...) }.compact.min_by(&:rank)
   end
 end

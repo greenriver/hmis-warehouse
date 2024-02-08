@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -115,6 +115,10 @@ module HudReports
     # Override in concern per HUD report driver
     def self.common_fields
       []
+    end
+
+    def self.pii_columns
+      ['first_name', 'last_name', 'dob', 'ssn']
     end
 
     def self.allowed_options

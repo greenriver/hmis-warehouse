@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -17,6 +17,7 @@ module Types
       arg :project, [ID]
     end
 
+    # object is a Hmis::Hud::CustomAssessment
     description 'Custom Assessment'
     field :id, ID, null: false
     field :lock_version, Integer, null: false
@@ -31,6 +32,7 @@ module Types
       can :delete_assessments
     end
     # Related records that were created by this Assessment, if applicable
+    field :ce_assessment, Types::HmisSchema::CeAssessment, null: true
     field :income_benefit, Types::HmisSchema::IncomeBenefit, null: true
     field :health_and_dv, Types::HmisSchema::HealthAndDv, null: true
     field :exit, Types::HmisSchema::Exit, null: true
@@ -50,7 +52,7 @@ module Types
     end
 
     def role
-      Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES.invert[object.data_collection_stage]&.to_s
+      Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES.invert[object.data_collection_stage]&.to_s || 'CUSTOM_ASSESSMENT'
     end
 
     # EXPENSIVE! Do not use in batch
@@ -59,10 +61,10 @@ module Types
 
       form_processor = load_ar_association(object, :form_processor)
       # If this occurs, it may be an issue with MigrateAssessmentsJob, SaveAssessment, or SubmitAssessment
-      raise "Assessment without form processor: #{id}" unless form_processor.present?
+      raise "Assessment without form processor: #{object.id}" unless form_processor.present?
 
       # If definition is stored on form processor, return that.
-      # TODO: check if form is retired? For non-WIP assessments, we should
+      # TODO: check if form is retired? For non-WIP non-custom assessments, we should
       # really be choosing the "latest" form, which may not be the one on the FormProcessor.
       definition = load_ar_association(form_processor, :definition)
       # If there was no definition specified, which would occur if this is a migrated assessment, choose an appropriate one.
@@ -75,29 +77,23 @@ module Types
       object.in_progress?
     end
 
-    def income_benefit
-      form_processor = load_ar_association(object, :form_processor)
-      return unless form_processor.present?
+    def ce_assessment
+      form_processor ? load_ar_association(form_processor, :ce_assessment) : nil
+    end
 
-      load_ar_association(form_processor, :income_benefit)
+    def income_benefit
+      form_processor ? load_ar_association(form_processor, :income_benefit) : nil
     end
 
     def health_and_dv
-      form_processor = load_ar_association(object, :form_processor)
-      return unless form_processor.present?
-
-      load_ar_association(form_processor, :health_and_dv)
+      form_processor ? load_ar_association(form_processor, :health_and_dv) : nil
     end
 
     def exit
-      form_processor = load_ar_association(object, :form_processor)
-      return unless form_processor.present?
-
-      load_ar_association(form_processor, :exit)
+      form_processor ? load_ar_association(form_processor, :exit) : nil
     end
 
     def disability_group
-      form_processor = load_ar_association(object, :form_processor)
       return unless form_processor.present?
 
       # Load all the disability records
@@ -124,6 +120,12 @@ module Types
 
     def enrollment
       load_ar_association(object, :enrollment)
+    end
+
+    protected
+
+    def form_processor
+      load_ar_association(object, :form_processor)
     end
   end
 end

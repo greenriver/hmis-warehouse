@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -30,16 +30,28 @@ module HudSpmReport
       respond_to do |format|
         format.html {}
         format.xlsx do
-          @headers.except!('first_name', 'last_name', 'dob', 'ssn') unless GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+          @headers = @headers.transform_keys(&:to_s).except(*generator.pii_columns) unless GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
           headers['Content-Disposition'] = "attachment; filename=#{@name}.xlsx"
         end
       end
     end
 
-    def formatted_cell(cell)
+    def formatted_cell(cell, key)
       return view_context.content_tag(:pre, JSON.pretty_generate(cell)) if cell.is_a?(Array) || cell.is_a?(Hash)
+      return view_context.yes_no(cell) if cell.in?([true, false])
 
-      cell
+      case key.to_s
+      when /project_type$/
+        HudUtility2024.project_type_brief(cell)
+      when /prior_living_situation$/
+        HudUtility2024.living_situation(cell)
+      when /.*destination$/
+        HudUtility2024.destination(cell)
+      when /_days_/
+        number_with_delimiter(cell)
+      else
+        cell
+      end
     end
     helper_method :formatted_cell
   end

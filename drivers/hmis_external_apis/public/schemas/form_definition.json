@@ -32,6 +32,8 @@
         "secondary_label": { "type": "string" },
         "group_code": { "type": "string" },
         "group_label": { "type": "string" },
+        "helper_text": { "type": "string" },
+        "numeric_value": { "type": "integer" },
         "initial_selected": { "type": "string" }
       }
     },
@@ -45,6 +47,7 @@
         "type": { "type": "string" },
         "question": { "type": "string" },
         "value_local_constant": { "type": "string" },
+        "value_number": { "type": "integer" },
         "offset": { "type": "integer" },
         "severity": { "enum": ["error", "warning"] }
       }
@@ -142,6 +145,7 @@
         "_comment": { "type": "string" },
         "initial_behavior": { "type": "string" },
         "value_local_constant": { "type": "string" },
+        "value_code": { "type": "string" },
         "value_number": { "type": "integer" },
         "value_boolean": { "type": "boolean" }
       }

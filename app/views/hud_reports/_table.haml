@@ -2,7 +2,7 @@
   show_link = true if defined?(show_link).blank?
   exporter = HudReports::CsvExporter.new(report, table)
   columns = exporter.display_column_names
-  rows = exporter.as_array
+  rows = exporter.as_array_of_hashes
   metadata = report&.answer(question: table).metadata
 
   column_letters = ('A'..'ZZ').to_a
@@ -26,13 +26,14 @@
           - row_num = row_index + row_start
           - row_num_display = if row_num == 0 then '' else row_num end
           %th= row_num_display
-          - row.each_with_index do |value, col_index|
+          - row.each_with_index do |details, col_index|
+            - # Handle the situation where we're handed a string for headers
+            - details = { value: details, any_members: false } if details.is_a?(String)
             - column_letter = column_letters[col_index]
             - cell = "#{column_letter}#{row_num}"
-            - cell_color = 'table-primary' if value.nil? || value == ''
-            - value = '0.0000' if value == 'NaN'
+            - cell_color = 'table-primary' if details[:value].nil? || details[:value] == ''
             %td{class: cell_color}
               - begin
-                = link_to_if show_link && value.is_a?(Integer) && value.positive?, value, path_for_cell(report: report, question: question, cell_label: cell, table: exporter.table)
+                = link_to_if((show_link && details[:any_members]), details[:value], path_for_cell(report: report, question: question, cell_label: cell, table: exporter.table))
               - rescue NoMethodError
-                = value
+                = details[:value]

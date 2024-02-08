@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -23,9 +23,16 @@ module Types
     include Types::HmisSchema::HasGender
     include Types::HmisSchema::HasCustomDataElements
     include Types::HmisSchema::HasHudMetadata
+    include Types::HmisSchema::HasScanCardCodes
 
     def self.configuration
       Hmis::Hud::Client.hmis_configuration(version: '2024')
+    end
+
+    # check for the most minimal permission needed to resolve this object
+    def self.authorized?(object, ctx)
+      permission = :can_view_clients
+      super && GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: permission, entity: object)
     end
 
     available_filter_options do
@@ -68,6 +75,7 @@ module Types
     field :additional_race_ethnicity, String, null: true
     field :names, [HmisSchema::ClientName], null: false
     field :addresses, [HmisSchema::ClientAddress], null: false
+    field :alerts, [HmisSchema::ClientAlert], null: false
     field :contact_points, [HmisSchema::ClientContactPoint], null: false
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
@@ -87,6 +95,7 @@ module Types
     custom_case_notes_field
     files_field
     custom_data_elements_field
+    scan_card_codes_field
     field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false
     audit_history_field(
       field_permissions: {
@@ -148,6 +157,10 @@ module Types
       composite_perm :can_upload_client_files, permissions: [:manage_any_client_files, :manage_own_client_files], mode: :any
       composite_perm :can_view_any_files, permissions: [:manage_own_client_files, :view_any_nonconfidential_client_files, :view_any_confidential_client_files], mode: :any
       can :audit_clients
+      can :manage_scan_cards
+      root_can :can_merge_clients # "Root" permission, resolved on Client for convenience
+      can :view_client_alerts
+      can :manage_client_alerts
     end
 
     def external_ids
@@ -265,6 +278,12 @@ module Types
 
     def addresses
       load_ar_association(object, :addresses)
+    end
+
+    def alerts
+      return [] unless current_permission?(permission: :can_view_client_alerts, entity: object)
+
+      load_ar_association(object, :alerts, scope: Hmis::ClientAlert.active).sort_by(&:created_at).reverse
     end
 
     def hud_chronic

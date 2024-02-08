@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -20,7 +20,12 @@ module HmisExternalApis::AcHmis::Exporters
       user = User.system_user
       version = '2024'
 
-      filter = ::Filters::HmisExport.new(data_source_ids: [data_source.id], version: version, user_id: user.id)
+      filter = ::Filters::HmisExport.new(
+        data_source_ids: [data_source.id],
+        version: version,
+        user_id: user.id,
+        start_date: 3.years.ago.to_date,
+      )
 
       Rails.logger.info 'Generating HMIS CSV Export'
 

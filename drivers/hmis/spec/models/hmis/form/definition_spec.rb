@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -37,7 +37,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
   end
 
-  it 'should return the right definition if a there\' only a default assessment' do
+  it 'should return the right definition if there\'s only a default assessment' do
     fi1.entity = nil
     fi1.save!
     expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
@@ -63,6 +63,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       fd1.update(version: 2)
       expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
     end
+
     it 'should return the most recent version of a definition when a version is provided' do
       fd2.update(role: fd1.role, version: 1)
       fd1.update(version: 2)

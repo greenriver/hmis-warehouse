@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -94,6 +94,7 @@ class GrdaWarehouse::Utility
       ActiveStorage::Attachment,
       ActiveStorage::Blob,
       GrdaWarehouse::File,
+      GrdaWarehouse::Config,
     ]
     if RailsDrivers.loaded.include?(:hud_apr)
       tables << HudApr::Fy2020::AprClient
@@ -147,6 +148,8 @@ class GrdaWarehouse::Utility
     # Clear the materialized view
     GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!
 
+    # Delete any delayed jobs, they have lost their data anyway
+    Delayed::Job.delete_all
     nil
   end
 

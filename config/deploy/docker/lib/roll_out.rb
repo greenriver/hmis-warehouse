@@ -161,10 +161,11 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: DEFAULT_SOFT_RAM_MB,
-      image: image_base + '--deploy',
+      image: image_base,
       environment: environment,
       name: name,
-      command: ['bin/deploy_tasks.sh'],
+      command: ['/app/bin/deploy_tasks.sh'],
+      variant: 'deploy',
     )
 
     _run_task!
@@ -175,10 +176,11 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: DEFAULT_SOFT_RAM_MB,
-      image: image_base + '--deploy',
+      image: image_base,
       name: name,
       cpu_shares: args.dig(:cpu_shares, :deploy),
       command: ['bin/deploy_tasks.sh'],
+      variant: 'deploy',
     )
 
     _run_task!
@@ -191,9 +193,10 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: DEFAULT_SOFT_DJ_RAM_MB.call(target_group_name),
-      image: image_base + '--base',
+      image: image_base,
       cpu_shares: args.dig(:cpu_shares, :cron),
       name: name,
+      variant: 'cron',
       # command: ['echo', 'workerhere'],
     )
   end
@@ -203,10 +206,11 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: DEFAULT_SOFT_RAM_MB,
-      image: image_base + '--base',
+      image: image_base,
       name: name,
       cpu_shares: args.dig(:cpu_shares, :workoff),
       command: ['rake', 'jobs:workoff'],
+      variant: 'workoff',
     )
 
     self.default_environment << { name: 'WORKOFF_TASK_DEFINITION', value: self.task_definition }
@@ -227,7 +231,7 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: soft_mem_limit_mb,
-      image: image_base + '--base',
+      image: image_base,
       environment: environment,
       cpu_shares: args.dig(:cpu_shares, :web),
       health_check: {
@@ -254,6 +258,7 @@ class RollOut
         },
       ],
       name: name,
+      variant: 'web',
     )
 
     return if self.only_check_ram
@@ -308,7 +313,7 @@ class RollOut
 
     _register_task!(
       soft_mem_limit_mb: soft_mem_limit_mb,
-      image: image_base + '--base',
+      image: image_base,
       name: name,
       cpu_shares: args.dig(:cpu_shares, :dj),
       environment: environment,
@@ -316,6 +321,7 @@ class RollOut
         'role' => 'jobs',
       },
       command: ['rake', 'jobs:work'],
+      variant: 'dj',
     )
 
     return if self.only_check_ram
@@ -367,7 +373,7 @@ class RollOut
     @seen = true
   end
 
-  def _register_task!(name:, image:, cpu_shares: nil, soft_mem_limit_mb: 512, ports: [], environment: nil, command: nil, stop_timeout: 30, docker_labels: {}, health_check: nil)
+  def _register_task!(name:, image:, variant:, cpu_shares: nil, soft_mem_limit_mb: 512, ports: [], environment: nil, command: nil, stop_timeout: 30, docker_labels: {}, health_check: nil) # rubocop:disable Metrics/ParameterLists
     puts "[INFO] Registering #{name} task #{target_group_name}"
 
     environment ||= default_environment.dup
@@ -405,7 +411,7 @@ class RollOut
     self.log_stream_name_template = "#{log_prefix}/#{name}/TASK_ID"
     environment << { 'name' => 'LOG_STREAM_NAME_PREFIX', 'value' => "#{log_prefix}/#{name}" }
 
-    environment << { 'name' => 'CONTAINER_VARIANT', 'value' => image.split('--')[1].to_s }
+    environment << { 'name' => 'CONTAINER_VARIANT', 'value' => variant }
 
     ten_minutes = 10 * 60
 

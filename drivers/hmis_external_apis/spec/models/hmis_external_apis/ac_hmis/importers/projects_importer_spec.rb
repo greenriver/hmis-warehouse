@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2022 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -9,6 +9,7 @@ require 'rails_helper'
 RSpec.describe HmisExternalApis::AcHmis::Importers::ProjectsImporter, type: :model do
   let!(:ds) { create(:hmis_data_source) }
   let(:dir) { 'drivers/hmis_external_apis/spec/fixtures/hmis_external_apis/ac_hmis/importers/projects' }
+  let(:invalid_data_dir) { 'drivers/hmis_external_apis/spec/fixtures/hmis_external_apis/ac_hmis/importers/projects_invalid' }
   let(:mper_creds) { create(:ac_hmis_mper_credential) }
   let!(:active_unit_type) do
     # Match ProjectUnitType.csv
@@ -57,5 +58,19 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::ProjectsImporter, type: :mod
     expect(p1.project_type).to eq(1)
     expect(p1.operating_start_date).to eq(start_date_override)
     expect(p1.operating_end_date).to eq(end_date_override)
+  end
+
+  it 'fails when funder dates are formatted incorrectly' do
+    allow(Rails.logger).to receive(:fatal).and_return nil
+
+    Dir.chdir(invalid_data_dir) do
+      importer = HmisExternalApis::AcHmis::Importers::ProjectsImporter.new(dir: '.', key: 'data.zip', etag: '12345')
+      importer.run!
+    end
+
+    expect(Rails.logger).to have_received(:fatal).with('Incorrectly formatted date in Funder.csv StartDate: 01-JUL-20')
+    expect(Rails.logger).to have_received(:fatal).with('ProjectsImporter aborted before it finished.')
+    expect(GrdaWarehouse::Hud::Project.count).to eq(0)
+    expect(GrdaWarehouse::Hud::Funder.count).to eq(0)
   end
 end

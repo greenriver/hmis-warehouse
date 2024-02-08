@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -42,7 +42,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  describe 'User access tests' do
+  context 'User access tests' do
     let!(:client1) { create :hmis_hud_client, data_source: ds1 }
     let!(:client2) { create :hmis_hud_client, data_source: ds2 }
     let!(:client3) { create :hmis_hud_client, data_source: ds1 }
@@ -102,20 +102,28 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'Search tests' do
-    before(:each) do
+    let!(:client) do
       create(
         :hmis_hud_client,
         data_source: ds1,
-        FirstName: 'William',
-        LastName: 'Smith',
-        PersonalID: 'db422f5fff0b8f1c9a4b81f01b00fdb4',
-        # warehouse_id: '85e55698e335bdbcc3ead1b39828ee92',
-        SSN: '123456789',
-        DOB: '1999-12-01',
+        first_name: 'William',
+        last_name: 'Smith',
+        personal_id: 'db422f5fff0b8f1c9a4b81f01b00fdb4',
+        ssn: '123456789',
+        dob: '1999-12-01',
       )
     end
 
-    let(:client) { Hmis::Hud::Client.first }
+    # Create a Warehouse Destination Client with a fixed ID so we can search for it
+    let!(:wh_client) do
+      create(:hmis_hud_base_client, id: 5555)
+      create(:hmis_warehouse_client, destination_id: 5555, data_source: client.data_source, source: client)
+    end
+
+    let!(:scan_code) { create(:hmis_scan_card_code, client: client, value: 'P1234') }
+    let!(:deactivated_scan_code) { create(:hmis_scan_card_code, client: client, value: 'P5678', deleted_at: Time.current) }
+    let!(:expired_scan_code) { create(:hmis_scan_card_code, client: client, value: 'P6666', expires_at: Date.yesterday.end_of_day) }
+    let!(:other_scan_code) { create(:hmis_scan_card_code, value: 'P9999') }
 
     [
       # TEXT SEARCHES
@@ -132,14 +140,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         ['text: wrong ssn and not match', '000-00-0000', false],
         ['text: dob', '12/01/1999', true],
         ['text: wrong dob and not match', '12/01/2000', false],
-        # TODO: Test nickname match
-        # TODO: Test metaphone match
+        ['text: warehouse id', '5555', true],
+        ['text: scan card code', 'P1234', true],
+        ['text: deactivated scan card code', 'P5678', false],
+        ['text: expired scan card code', 'P6666', false],
+        ['text: scan card code for another client', 'P9999', false],
       ].map { |desc, text, match| [desc, { text_search: text }, match] },
       # OTHER FILTERS
       ['personal id', { personal_id: 'db422f5fff0b8f1c9a4b81f01b00fdb4' }, true],
       ['wrong personal id and not match', { personal_id: '00000000000000000000000000000000' }, false],
-      # ['warehouse id', { warehouse_id: 'db422f5fff0b8f1c9a4b81f01b00fdb4' }, true],
-      # ['wrong warehouse id and not match', { warehouse_id: '00000000000000000000000000000000' }, false],
+      ['warehouse id', { warehouse_id: '5555' }, true],
+      ['wrong warehouse id', { warehouse_id: '5556' }, false],
       ['first name', { first_name: 'William' }, true],
       # TODO: Test nickname match
       # TODO: Test metaphone match
@@ -159,7 +170,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it "should search by #{desc}" do
         response, result = post_graphql(input: input) { query }
         aggregate_failures 'checking response' do
-          expect(response.status).to eq 200
+          expect(response.status).to eq(200), result.inspect
           clients = result.dig('data', 'clientSearch', 'nodes')
           matcher = include({ 'id' => client.id.to_s })
           match ? expect(clients).to(matcher) : expect(clients).not_to(matcher)
@@ -204,7 +215,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it "should search custom client names by #{desc}" do
         response, result = post_graphql(input: input) { query }
         aggregate_failures 'checking response' do
-          expect(response.status).to eq 200
+          expect(response.status).to eq(200), result.inspect
           clients = result.dig('data', 'clientSearch', 'nodes')
           matcher = include({ 'id' => client.id.to_s })
           match ? expect(clients).to(matcher) : expect(clients).not_to(matcher)

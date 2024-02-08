@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -7,6 +7,8 @@
 module HudSpmReport::Fy2023
   class Episode < GrdaWarehouseBase
     self.table_name = 'hud_report_spm_episodes'
+    include Detail
+
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
 
     has_many :enrollment_links
@@ -17,6 +19,19 @@ module HudSpmReport::Fy2023
 
     attr_accessor :report # FIXME?
     attr_writer :filter
+
+    def self.detail_headers
+      client_columns = ['client_id', 'enrollment.first_name', 'enrollment.last_name', 'enrollment.personal_id']
+      hidden_columns = ['id', 'report_instance_id'] + client_columns
+      columns = client_columns + (column_names - hidden_columns)
+      columns.map do |col|
+        [col, header_label(col)]
+      end.to_h
+    end
+
+    def enrollment
+      enrollments.first
+    end
 
     def compute_episode(enrollments, included_project_types:, excluded_project_types:, include_self_reported_and_ph:)
       raise 'Client undefined' unless client.present?

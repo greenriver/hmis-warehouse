@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -21,7 +21,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   before(:each) do
     hmis_login(user)
-    c1.update({ dob: Date.today - 18.years, ssn: '123456789' })
+    c1.update({ dob: Date.current - 18.years, ssn: '123456789' })
   end
 
   let!(:f1) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag] }

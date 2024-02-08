@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -173,7 +173,7 @@ module HudPathReport::Generators::Fy2024
       client_scope.find_in_batches(batch_size: 100) do |batch|
         pending_associations = {}
         batch.each do |client|
-          enrollment = last_enrollment(client)
+          enrollment = last_active_enrollment(client)
           next unless enrollment.present?
 
           source_client = enrollment.client
@@ -208,8 +208,8 @@ module HudPathReport::Generators::Fy2024
             prior_living_situation: enrollment.LivingSituation,
             length_of_stay: enrollment.LengthOfStay,
             chronically_homeless: enrollment.chronically_homeless_at_start,
-            domestic_violence: health_and_dv_latest&.DomesticViolenceVictim,
-            active_client: active_in_path(enrollment),
+            domestic_violence: health_and_dv_latest&.DomesticViolenceSurvivor,
+            active_client: true, # Note, last_active_enrollment only returns active enrollments, so all are active, also, every question in the PATH report requires Active & ... so we really only report on active clients
             new_client: new_client,
             enrolled_client: enrolled_in_path(enrollment),
             newly_enrolled_client: newly_enrolled_in_path(enrollment),
@@ -273,8 +273,12 @@ module HudPathReport::Generators::Fy2024
       scope
     end
 
-    private def last_enrollment(client)
-      enrollments(client).first
+    # Per HUD: Per discussions with SAMSHA and as discussed in the last vendor call, we're asking vendors to filter down to only the active enrollments first and then to keep only the most recent enrollment. This is intended to include clients in situations where, for instance, they were active for the first six months before being exited and then returned the day before the report end date and have no services yet.
+    # So we will choose the most-recently started "active" enrollment
+    private def last_active_enrollment(client)
+      enrollments(client).detect do |en|
+        active_in_path(en)
+      end
     end
 
     # Part of the definition of New & Active is:
@@ -334,7 +338,7 @@ module HudPathReport::Generators::Fy2024
         contacts += enrollment.current_living_situations.between(start_date: @report.start_date, end_date: @report.end_date).pluck(:InformationDate)
         contacts += [enrollment.DateOfEngagement] if enrollment.DateOfEngagement.present? && enrollment.DateOfEngagement.between?(@report.start_date, @report.end_date) && ! contacts.include?(enrollment.DateOfEngagement)
         contacts += [enrollment.DateOfPATHStatus] if enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus.between?(@report.start_date, @report.end_date) && ! contacts.include?(enrollment.DateOfPATHStatus)
-        contacts += enrollment.services.path_service.between(start_date: @report.start_date, end_date: @report.end_date).pluck(:DateProvided).reject { |d| d.in?(contacts) }
+        contacts += enrollment.services.path_service.between(start_date: @report.start_date, end_date: @report.end_date).pluck(:DateProvided).uniq.reject { |d| d.in?(contacts) }
       end
       contacts
     end
