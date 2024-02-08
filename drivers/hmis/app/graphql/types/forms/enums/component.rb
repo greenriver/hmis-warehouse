@@ -35,5 +35,6 @@ module Types
     value 'ADDRESS', 'Client Address input'
     value 'PHONE', 'Phone number input for ContactPoint'
     value 'EMAIL', 'Email address input for ContactPoint'
+    value 'SIGNATURE', 'Signature input'
   end
 end

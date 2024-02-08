@@ -1390,6 +1390,11 @@ enum Component {
   RADIO_BUTTONS_VERTICAL
 
   """
+  Signature input
+  """
+  SIGNATURE
+
+  """
   SSN input component
   """
   SSN
