@@ -4,8 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'roo'
-
 module HmisExternalApis::TcHmis::Importers::Loaders
   class FileRow
     attr_accessor :row
