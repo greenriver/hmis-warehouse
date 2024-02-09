@@ -617,8 +617,8 @@ module PerformanceMetrics
           spm_returner = spm_returners[client_id]
           spm_leaver = spm_leavers.keys.include?(client_id)
           if spm_returner
-            days_in_es = spm_episodes[client_id].days_homeless
-            days_to_return = spm_returner.days_to_return
+            days_in_es = spm_episodes[client_id]&.days_homeless
+            days_to_return = spm_returner&.days_to_return
           end
           report_client = report_clients[client_id] || Client.new
           report_client.assign_attributes(
