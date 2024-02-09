@@ -49,7 +49,7 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
     xit 'Measure 2' do
       compare_results(
         file_path: result_file_prefix + 'spm',
-        question: '2',
+        question: '2a and 2b',
       )
     end
 
