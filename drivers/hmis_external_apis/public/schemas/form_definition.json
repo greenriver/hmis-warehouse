@@ -273,6 +273,11 @@
             "SSN",
             "SIGNATURE"
           ]
+        },
+        "variant": {
+          "enum": [
+            "SIGNATURE"
+          ]
         }
       }
     }

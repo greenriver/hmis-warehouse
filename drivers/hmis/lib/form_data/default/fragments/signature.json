@@ -1,25 +1,81 @@
 {
   "type": "GROUP",
-  "component": "SIGNATURE",
+  "variant": "SIGNATURE",
   "link_id": "signature_group",
   "item": [
     {
-      "type": "STRING",
-      "component": "SIGNATURE",
-      "link_id": "head_of_household_signature",
+      "type": "GROUP",
       "text": "Head of Household",
-      "mapping": {
-        "custom_field_key": "head_of_household_signature"
-      }
+      "link_id": "head_of_household_signature_group",
+      "item": [
+        {
+          "type": "STRING",
+          "link_id": "head_of_household_signature",
+          "text": "Full Name",
+          "mapping": {
+            "custom_field_key": "head_of_household_signature"
+          }
+        },
+        {
+          "type": "DATE",
+          "link_id": "head_of_household_signature_date",
+          "text": "Today's Date",
+          "mapping": {
+            "custom_field_key": "head_of_household_signature_date"
+          },
+          "initial": [
+            {
+              "initial_behavior": "IF_EMPTY",
+              "value_local_constant": "$today"
+            }
+          ],
+          "bounds": [
+            {
+              "id": "max",
+              "_comment": "cannot be in the future",
+              "type": "MAX",
+              "value_local_constant": "$today"
+            }
+          ]
+        }
+      ]
     },
     {
-      "type": "STRING",
-      "component": "SIGNATURE",
-      "link_id": "case_manager_signature",
+      "type": "GROUP",
       "text": "Case Manager",
-      "mapping": {
-        "custom_field_key": "case_manager_signature"
-      }
+      "link_id": "case_manager_signature_group",
+      "item": [
+        {
+          "type": "STRING",
+          "link_id": "case_manager_signature",
+          "text": "Full Name",
+          "mapping": {
+            "custom_field_key": "case_manager_signature"
+          }
+        },
+        {
+          "type": "DATE",
+          "link_id": "case_manager_signature_date",
+          "text": "Today's Date",
+          "mapping": {
+            "custom_field_key": "case_manager_signature_date"
+          },
+          "initial": [
+            {
+              "initial_behavior": "IF_EMPTY",
+              "value_local_constant": "$today"
+            }
+          ],
+          "bounds": [
+            {
+              "id": "max",
+              "_comment": "cannot be in the future",
+              "type": "MAX",
+              "value_local_constant": "$today"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
