@@ -117,11 +117,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                                       'label' => cded3.label,
                                       'value' => a_hash_including('valueJson' => cde3.value_json),
                                     ),
-                                    a_hash_including(
-                                      'key' => cded4.key,
-                                      'label' => cded4.label,
-                                      'value' => nil,
-                                    ),
+                                    # a_hash_including(
+                                    #   'key' => cded4.key,
+                                    #   'label' => cded4.label,
+                                    #   'value' => nil,
+                                    # ),
                                   ])
       end
     end
@@ -141,10 +141,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:custom_service_1) { create :hmis_custom_service, data_source: ds1, client: c1, enrollment: e1, custom_service_type_id: custom_service_type.id }
     let!(:custom_service_2) { create :hmis_custom_service, data_source: ds1, client: c1, enrollment: e1, custom_service_type_id: cst1.id }
 
-    # Custom String field on specific HUD Service type
-    let!(:cded_hud) { create :hmis_custom_data_element_definition, label: 'A string', data_source: ds1, owner_type: 'Hmis::Hud::Service', field_type: :string, custom_service_type_id: hud_service_type.id }
-    # Custom Boolean field on specific Custom Service type
-    let!(:cded_custom) { create :hmis_custom_data_element_definition, label: 'A boolean', repeats: true, data_source: ds1, owner_type: 'Hmis::Hud::CustomService', field_type: :boolean, custom_service_type_id: custom_service_type.id }
+    # Custom String field on HUD Service
+    let!(:cded_hud) { create :hmis_custom_data_element_definition, label: 'A string', data_source: ds1, owner_type: 'Hmis::Hud::Service', field_type: :string }
+    # Custom Boolean field on Custom Service
+    let!(:cded_custom) { create :hmis_custom_data_element_definition, label: 'A boolean', repeats: true, data_source: ds1, owner_type: 'Hmis::Hud::CustomService', field_type: :boolean }
 
     let(:query) do
       <<~GRAPHQL

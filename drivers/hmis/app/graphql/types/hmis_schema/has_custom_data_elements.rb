@@ -29,14 +29,7 @@ module Types
           end
 
           define_method(name) do
-            resolve_custom_data_elements(object)
-          end
-
-          define_method(:resolve_custom_data_elements) do |record, definition_scope: nil|
-            # Always resolve all _available_ custom element types for this record type,
-            # (even if they have no value), so that they can be shown as empty if missing.
-            definition_scope ||= Hmis::Hud::CustomDataElementDefinition.for_type(record.class.sti_name)
-            definition_scope
+            load_ar_association(object, :custom_data_element_definitions)
           end
         end
       end

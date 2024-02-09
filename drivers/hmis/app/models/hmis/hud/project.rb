@@ -7,6 +7,7 @@
 class Hmis::Hud::Project < Hmis::Hud::Base
   include ::HmisStructure::Project
   include ::Hmis::Hud::Concerns::Shared
+  include ::Hmis::Hud::Concerns::HasCustomDataElements
   include ActiveModel::Dirty
 
   has_paper_trail(meta: { project_id: :id })
@@ -44,7 +45,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project, dependent: :destroy
   has_many :units, -> { active }, dependent: :destroy
   has_many :unit_type_mappings, dependent: :destroy, class_name: 'Hmis::ProjectUnitTypeMapping'
-  has_many :custom_data_elements, as: :owner, dependent: :destroy
 
   has_many :client_projects
   has_many :clients_including_wip, through: :client_projects, source: :client
@@ -52,8 +52,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   has_many :group_viewable_entity_projects
   has_many :group_viewable_entities, through: :group_viewable_entity_projects, source: :group_viewable_entity
-
-  accepts_nested_attributes_for :custom_data_elements, :affiliations, allow_destroy: true
 
   # Households in this Project, NOT including WIP Enrollments
   has_many :households, through: :enrollments
