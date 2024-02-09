@@ -46,6 +46,8 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   has_one :youth_education_status, through: :form_processor
   has_one :employment_education, through: :form_processor
   has_one :current_living_situation, through: :form_processor
+  has_one :ce_assessment, through: :form_processor
+  has_one :ce_event, through: :form_processor
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
