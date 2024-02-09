@@ -63,8 +63,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
         container_processor(container)&.process(field, value)
       rescue StandardError => e
-        Sentry.capture_exception(e)
-        raise $ERROR_INFO, "Error processing field '#{field}': #{e.message}", $ERROR_INFO.backtrace
+        err_with_context = "Error processing field '#{field}': #{e.message}"
+        Sentry.capture_exception(err_with_context)
+        raise $ERROR_INFO, err_with_context, $ERROR_INFO.backtrace
       end
     end
 
