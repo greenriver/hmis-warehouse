@@ -244,13 +244,15 @@ class Hmis::Hud::Processors::Base
       end
     when 'float'
       case value
-      when Float
+      when Float, Integer
         value
       else
         raise "unexpected value \"#{value}\""
       end
     when 'date'
       case value
+      when String
+        safe_parse_date(value)
       when Date, DateTime
         value.to_date
       else
@@ -268,5 +270,11 @@ class Hmis::Hud::Processors::Base
     else
       raise 'unsupported field type for custom data element'
     end
+  end
+
+  def safe_parse_date(string)
+    Date.strptime(string, '%Y-%m-%d')
+  rescue ArgumentError
+    raise "unexpected value for date \"#{string}\""
   end
 end

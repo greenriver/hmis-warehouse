@@ -1558,6 +1558,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         [:boolean, false],
         [:boolean, true],
         [:integer, 0],
+        [:float, 0],
+        [:float, 90.50],
+        [:date, '2020-02-02'],
       ].each do |field_type, value|
         it "creates a CustomDataElement, on a new or existing record (#{field_type}, #{value})" do
           existing_record = i1
@@ -1569,8 +1572,12 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
             process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
 
             expect(record.custom_data_elements.size).to eq(1)
-            expect(record.custom_data_elements.first.value).to eq(value)
             expect(record.custom_data_elements.first.data_element_definition).to eq(cded)
+            if field_type == :date
+              expect(record.custom_data_elements.first.value).to eq(value.to_date)
+            else
+              expect(record.custom_data_elements.first.value).to eq(value)
+            end
           end
         end
       end
@@ -1619,14 +1626,22 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         end
       end
 
-      it 'fails when custom field type doenst match its definition' do
-        record = i1
-        add_cde_item_to_definition
-        hud_values = complete_hud_values.merge(cded.key => false) # boolean passed for a string field
-        expect do
-          process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
-        end.to raise_error(RuntimeError, /.*#{cded.key}.*unexpected value/)
-        expect(record.custom_data_elements.size).to eq(0)
+      [
+        [:string, false],
+        [:boolean, 'not a bool'],
+        [:date, '02/02/2023'], # invalid format
+        [:float, 'nan'],
+      ].each do |field_type, value|
+        it "fails when custom field type doenst match its definition (#{field_type}=>#{value})" do
+          record = i1
+          cded.update(field_type: field_type)
+          add_cde_item_to_definition
+          hud_values = complete_hud_values.merge(cded.key => value)
+          expect do
+            process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
+          end.to raise_error(RuntimeError, /.*#{cded.key}.*unexpected value/)
+          expect(record.custom_data_elements.size).to eq(0)
+        end
       end
 
       describe 'when CustomDataElement can repeat' do
