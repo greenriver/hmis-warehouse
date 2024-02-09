@@ -33,6 +33,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   # Note: this is NOT the assessment that created this processor, that's CustomAssessment. Rather this is a
   # Coordinated Entry (CE) Assessment that was created by the processor. The HUD model for CE Assessment is 'Assessment'
   belongs_to :ce_assessment, class_name: 'Hmis::Hud::Assessment', optional: true, autosave: true
+  belongs_to :ce_event, class_name: 'Hmis::Hud::Event', optional: true, autosave: true
 
   validate :hmis_records_are_valid, on: :form_submission
 
@@ -47,13 +48,19 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
     return unless hud_values.present?
 
+    raise 'No definition' unless definition.present?
+
     # Iterate through each hud_value, processing field-by-field
     hud_values.each do |key, value|
       container, field = parse_key(key)
-      # If this key can be identified as a CustomDataElement, set it and continue
-      next if container_processor(container)&.process_custom_field(field, value)
 
       begin
+        # Validate that field is mapped by the FormDefinition (includes checking custom)
+        ensure_submittable_field!(container, field)
+
+        # If this key can be identified as a CustomDataElement, set it and continue
+        next if container_processor(container)&.process_custom_field(field, value)
+
         container_processor(container)&.process(field, value)
       rescue StandardError => e
         Sentry.capture_exception(e)
@@ -76,11 +83,20 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     if key.include?('.')
       container, field = key.split('.', 2)
     else
-      container = owner.class.name.demodulize
+      container = owner_container_name
       field = key
     end
 
     [container, field]
+  end
+
+  def owner_container_name
+    @owner_container_name ||= case owner
+    when Hmis::Hud::Assessment
+      'CeAssessment' # special case since the container name and class name don't match
+    else
+      owner.class.name.demodulize
+    end
   end
 
   def owner_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
@@ -144,7 +160,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       self.exit = enrollment_factory.exit
     else
       self.exit = enrollment_factory.build_exit(
-        personal_id: enrollment_factory.client.personal_id,
         user_id: custom_assessment&.user_id,
       )
     end
@@ -155,11 +170,21 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
     if create
       self.ce_assessment ||= enrollment_factory.assessments.build(
-        personal_id: enrollment_factory.personal_id,
         user_id: custom_assessment&.user_id,
       )
     end
     ce_assessment
+  end
+
+  def ce_event_factory(create: true)
+    return owner if owner.is_a? Hmis::Hud::Event
+
+    if create
+      self.ce_event ||= enrollment_factory.events.build(
+        user_id: custom_assessment&.user_id,
+      )
+    end
+    ce_event
   end
 
   def health_and_dv_factory(create: true)
@@ -289,8 +314,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       YouthEducationStatus: Hmis::Hud::Processors::YouthEducationStatusProcessor,
       EmploymentEducation: Hmis::Hud::Processors::EmploymentEducationProcessor,
       CurrentLivingSituation: Hmis::Hud::Processors::CurrentLivingSituationProcessor,
-      Assessment: Hmis::Hud::Processors::CeAssessmentProcessor, # CE Assessment owner
-      CeAssessment: Hmis::Hud::Processors::CeAssessmentProcessor, # Custom Assessment includes CE Assessment
+      CeAssessment: Hmis::Hud::Processors::CeAssessmentProcessor,
       Event: Hmis::Hud::Processors::CeEventProcessor,
       CustomCaseNote: Hmis::Hud::Processors::CustomCaseNoteProcessor,
     }.freeze
@@ -305,6 +329,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       :developmental_disability_factory,
       :chronic_health_condition_factory,
       :ce_assessment_factory,
+      :ce_event_factory,
       :hiv_aids_factory,
       :mental_health_disorder_factory,
       :substance_use_disorder_factory,
@@ -426,5 +451,38 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     return field unless container.present?
 
     "#{container}.#{field}"
+  end
+
+  # @return <Hash{container_name=> Set<fields> }>
+  private def mapped_form_fields
+    @mapped_form_fields ||= {}.tap do |result|
+      definition.link_id_item_hash.each_value do |item|
+        mapping = item.mapping
+        next unless mapping
+        next unless mapping.field_name || mapping.custom_field_key
+
+        # convert the record_type to a "container name" that matches the form processor names
+        container_name = if mapping.record_type
+          enum = Types::Forms::Enums::RelatedRecordType.values[mapping.record_type]
+          raise "Invalid record type '#{mapping.record_type}'" unless enum
+
+          enum.description
+        else
+          owner_container_name
+        end
+
+        result[container_name] ||= Set.new
+        result[container_name].add(mapping.field_name || mapping.custom_field_key)
+      end
+    end
+  end
+
+  # Ensure that a given field is valid for this FormDefinition
+  private def ensure_submittable_field!(container, field)
+    # Find the FormItem Mapping that matches this field.
+    # If it's not found, then this is not a valid submission.
+    found_mapping = mapped_form_fields[container]&.include?(field)
+
+    raise "Not a submittable field for Form Definition id #{definition.id} (#{container}.#{field})" unless found_mapping
   end
 end

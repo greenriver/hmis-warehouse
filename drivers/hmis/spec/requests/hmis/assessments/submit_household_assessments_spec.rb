@@ -22,10 +22,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:c2) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let(:c3) { create :hmis_hud_client, data_source: ds1, user: u1 }
   let(:c4) { create :hmis_hud_client, data_source: ds1, user: u1 }
-  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: '2022-01-01' }
-  let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, user: u1, entry_date: '2022-01-01', household_id: e1.household_id, relationship_to_ho_h: 99 }
-  let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, user: u1, entry_date: '2022-01-01', household_id: e1.household_id, relationship_to_ho_h: 99 }
-  let!(:e4) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c4, user: u1, entry_date: '2022-01-01', relationship_to_ho_h: 99 }
+  let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: 2.weeks.ago }
+  let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c2, user: u1, entry_date: 2.weeks.ago, household_id: e1.household_id, relationship_to_ho_h: 99 }
+  let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c3, user: u1, entry_date: 2.weeks.ago, household_id: e1.household_id, relationship_to_ho_h: 99 }
+  let!(:e4) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c4, user: u1, entry_date: 2.weeks.ago, relationship_to_ho_h: 99 }
   let!(:fd1) do
     ['informationDate', 'fieldOne', 'fieldTwo'].each do |key|
       create(:hmis_custom_data_element_definition, key: key, owner_type: Hmis::Hud::CustomAssessment.sti_name, data_source: ds1)
@@ -83,25 +83,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  describe 'Submitting multiple saved assessments' do
-    before(:each) do
-      # create the initial WIP assessments
-      @wip_assessment_ids = []
-      [e1, e2, e3].each do |e|
-        resp, result = post_graphql(input: { input: { enrollment_id: e.id, **save_input } }) { save_assessment }
-        raise if resp.status != 200
+  def submission_input(*assessments)
+    assessments.map { |a| { id: a.id, lockVersion: a.lock_version } }
+  end
 
-        @wip_assessment_ids << result.dig('data', 'saveAssessment', 'assessment')
-      end
-    end
+  describe 'Submitting multiple saved assessments' do
+    # Create 3 WIP Assessments that have saved values
+    let!(:a1) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e1, client: e1.client, data_source: ds1) }
+    let!(:a2) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e2, client: e2.client, data_source: ds1) }
+    let!(:a3) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e3, client: e3.client, data_source: ds1) }
 
     it 'should work' do
-      expect(@wip_assessment_ids.size).to eq(3)
       expect(Hmis::Hud::CustomAssessment.count).to eq(3)
       expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(3)
 
       input = {
-        submissions: @wip_assessment_ids,
+        submissions: submission_input(a1, a2, a3),
         confirmed: false,
       }
       response, result = post_graphql(input: input) { mutation }
@@ -119,13 +116,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'should emit warnings if any assessment is missing warnIfEmpty fields' do
-      expect(@wip_assessment_ids.size).to eq(3)
       expect(Hmis::Hud::CustomAssessment.count).to eq(3)
       expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(3)
-      Hmis::Hud::CustomAssessment.first.form_processor.update(values: incomplete_values)
+      a1.form_processor.update(values: incomplete_values)
 
       input = {
-        submissions: @wip_assessment_ids,
+        submissions: submission_input(a1, a2, a3),
         confirmed: false,
       }
       response, result = post_graphql(input: input) { mutation }
@@ -141,13 +137,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
     it 'should succeed if existing warnings are confirmed' do
-      expect(@wip_assessment_ids.size).to eq(3)
       expect(Hmis::Hud::CustomAssessment.count).to eq(3)
       expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(3)
       Hmis::Hud::CustomAssessment.last.form_processor.update(values: incomplete_values)
 
       input = {
-        submissions: @wip_assessment_ids,
+        submissions: submission_input(a1, a2, a3),
         confirmed: true,
       }
       response, result = post_graphql(input: input) { mutation }
@@ -166,22 +161,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'Submitting multiple saved assessments that belong to different households' do
-    before(:each) do
-      # create the initial WIP assessments
-      @wip_assessment_ids = []
-      [e1, e4].each do |e|
-        _resp, result = post_graphql(input: { input: { enrollment_id: e.id, **save_input } }) { save_assessment }
-        @wip_assessment_ids << result.dig('data', 'saveAssessment', 'assessment')
-      end
-    end
+    let!(:a1) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e1, client: e1.client, data_source: ds1) }
+    let!(:a4) { create(:hmis_wip_custom_assessment, assessment_date: 2.weeks.ago, values: save_input[:values], enrollment: e4, client: e4.client, data_source: ds1) }
 
     it 'should fail' do
-      expect(@wip_assessment_ids.size).to eq(2)
       expect(Hmis::Hud::CustomAssessment.count).to eq(2)
       expect(Hmis::Hud::CustomAssessment.in_progress.count).to eq(2)
 
       input = {
-        submissions: @wip_assessment_ids,
+        submissions: submission_input(a1, a4),
         confirmed: true,
       }
       expect_gql_error post_graphql(input: input) { mutation }
@@ -195,10 +183,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:a1) { create :hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 1 }
     let!(:a2) { create :hmis_custom_assessment, data_source: ds1, enrollment: e2, data_collection_stage: 1 }
     let!(:a3) { create :hmis_custom_assessment, data_source: ds1, enrollment: e3, data_collection_stage: 1 }
-    let!(:definition) { create :hmis_intake_assessment_definition }
+    let(:definition) { Hmis::Form::Definition.find_by(role: :INTAKE) }
     let(:input) do
       {
-        submissions: [a1, a2, a3].map { |a| { id: a.id, lockVersion: a.lock_version } },
+        submissions: submission_input(a1, a2, a3),
         confirmed: true,
       }
     end
@@ -251,10 +239,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:a1) { create :hmis_custom_assessment, data_source: ds1, enrollment: e1, data_collection_stage: 3 }
     let!(:a2) { create :hmis_custom_assessment, data_source: ds1, enrollment: e2, data_collection_stage: 3 }
     let!(:a3) { create :hmis_custom_assessment, data_source: ds1, enrollment: e3, data_collection_stage: 3 }
-    let!(:definition) { create :hmis_exit_assessment_definition }
+    let(:definition) { Hmis::Form::Definition.find_by(role: :EXIT) }
     let(:input) do
       {
-        submissions: [a1, a2, a3].map { |a| { id: a.id, lockVersion: a.lock_version } },
+        submissions: submission_input(a1, a2, a3),
         confirmed: true,
       }
     end
