@@ -91,7 +91,12 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   end
 
   def owner_container_name
-    @owner_container_name ||= owner.class.name.demodulize
+    @owner_container_name ||= case owner
+    when Hmis::Hud::Assessment
+      'CeAssessment' # special case since the container name and class name don't match
+    else
+      owner.class.name.demodulize
+    end
   end
 
   def owner_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
@@ -309,8 +314,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       YouthEducationStatus: Hmis::Hud::Processors::YouthEducationStatusProcessor,
       EmploymentEducation: Hmis::Hud::Processors::EmploymentEducationProcessor,
       CurrentLivingSituation: Hmis::Hud::Processors::CurrentLivingSituationProcessor,
-      Assessment: Hmis::Hud::Processors::CeAssessmentProcessor, # CE Assessment owner
-      CeAssessment: Hmis::Hud::Processors::CeAssessmentProcessor, # Custom Assessment includes CE Assessment
+      CeAssessment: Hmis::Hud::Processors::CeAssessmentProcessor,
       Event: Hmis::Hud::Processors::CeEventProcessor,
       CustomCaseNote: Hmis::Hud::Processors::CustomCaseNoteProcessor,
     }.freeze
