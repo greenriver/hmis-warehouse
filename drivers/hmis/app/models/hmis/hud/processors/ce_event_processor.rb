@@ -7,7 +7,7 @@
 module Hmis::Hud::Processors
   class CeEventProcessor < Base
     def factory_name
-      :owner_factory
+      :ce_event_factory
     end
 
     def schema

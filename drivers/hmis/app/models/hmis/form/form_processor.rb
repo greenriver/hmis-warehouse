@@ -33,6 +33,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   # Note: this is NOT the assessment that created this processor, that's CustomAssessment. Rather this is a
   # Coordinated Entry (CE) Assessment that was created by the processor. The HUD model for CE Assessment is 'Assessment'
   belongs_to :ce_assessment, class_name: 'Hmis::Hud::Assessment', optional: true, autosave: true
+  belongs_to :ce_event, class_name: 'Hmis::Hud::Event', optional: true, autosave: true
 
   validate :hmis_records_are_valid, on: :form_submission
 
@@ -90,7 +91,12 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   end
 
   def owner_container_name
-    @owner_container_name ||= owner.class.name.demodulize
+    @owner_container_name ||= case owner
+    when Hmis::Hud::Assessment
+      'CeAssessment' # special case since the container name and class name don't match
+    else
+      owner.class.name.demodulize
+    end
   end
 
   def owner_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
@@ -154,7 +160,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       self.exit = enrollment_factory.exit
     else
       self.exit = enrollment_factory.build_exit(
-        personal_id: enrollment_factory.client.personal_id,
         user_id: custom_assessment&.user_id,
       )
     end
@@ -165,11 +170,21 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
     if create
       self.ce_assessment ||= enrollment_factory.assessments.build(
-        personal_id: enrollment_factory.personal_id,
         user_id: custom_assessment&.user_id,
       )
     end
     ce_assessment
+  end
+
+  def ce_event_factory(create: true)
+    return owner if owner.is_a? Hmis::Hud::Event
+
+    if create
+      self.ce_event ||= enrollment_factory.events.build(
+        user_id: custom_assessment&.user_id,
+      )
+    end
+    ce_event
   end
 
   def health_and_dv_factory(create: true)
@@ -299,8 +314,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       YouthEducationStatus: Hmis::Hud::Processors::YouthEducationStatusProcessor,
       EmploymentEducation: Hmis::Hud::Processors::EmploymentEducationProcessor,
       CurrentLivingSituation: Hmis::Hud::Processors::CurrentLivingSituationProcessor,
-      Assessment: Hmis::Hud::Processors::CeAssessmentProcessor, # CE Assessment owner
-      CeAssessment: Hmis::Hud::Processors::CeAssessmentProcessor, # Custom Assessment includes CE Assessment
+      CeAssessment: Hmis::Hud::Processors::CeAssessmentProcessor,
       Event: Hmis::Hud::Processors::CeEventProcessor,
       CustomCaseNote: Hmis::Hud::Processors::CustomCaseNoteProcessor,
     }.freeze
@@ -315,6 +329,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       :developmental_disability_factory,
       :chronic_health_condition_factory,
       :ce_assessment_factory,
+      :ce_event_factory,
       :hiv_aids_factory,
       :mental_health_disorder_factory,
       :substance_use_disorder_factory,
