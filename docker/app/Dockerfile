@@ -138,6 +138,7 @@ RUN yarn install --frozen-lockfile \
 
 COPY --chown=app-user:app-user . ./
 COPY --chown=app-user:app-user sample.irbrc ./.irbrc
+COPY --chown=app-user:app-user config/deploy/docker/assets/dotenv.temporary ./.env
 COPY --chown=app-user:app-user docker/app/REVISION ./
 COPY --chown=app-user:app-user docker/app/GIT_BRANCH ./
 COPY --chown=app-user:app-user docker/app/database.open-path-warehouse.yml ./config/database.yml
