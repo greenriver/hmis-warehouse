@@ -172,7 +172,7 @@ module LongitudinalSpm
           ],
         },
         'Measure 2' => {
-          '2' => [
+          '2a and 2b' => [
             'J2',
             'J3',
             'J4',
