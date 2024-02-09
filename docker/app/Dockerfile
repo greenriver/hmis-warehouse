@@ -142,4 +142,4 @@ COPY --chown=app-user:app-user docker/app/GIT_BRANCH ./
 COPY --chown=app-user:app-user docker/app/database.open-path-warehouse.yml ./config/database.yml
 
 RUN rm -rf tmp/* \
-  && mkdir -p tmp/pids public/assets
+  && mkdir -p tmp/pids public/assets var
