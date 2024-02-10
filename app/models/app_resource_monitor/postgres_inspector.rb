@@ -73,11 +73,14 @@ class AppResourceMonitor::PostgresInspector
       t.tablename,
       c.reltuples::bigint AS num_rows,
       pg_relation_size(quote_ident(t.tablename)::text) AS table_size,
+      pg_relation_size(COALESCE(toast.reltoastrelid, 0)) AS toast_size,
       pg_indexes_size(quote_ident(t.tablename)::text) AS index_size
     FROM
       pg_tables t
     LEFT OUTER JOIN
       pg_class c ON t.tablename = c.relname
+    LEFT OUTER JOIN
+      pg_class toast ON c.reltoastrelid = toast.oid
     WHERE
       t.schemaname = %{schema}
     ORDER BY
