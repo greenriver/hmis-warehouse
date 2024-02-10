@@ -13,72 +13,73 @@ RSpec.shared_context 'datalab systemwide ce apr', shared_context: :metadata do
       run(generator, project_ids_filter(project_ids))
     end
 
-    xit 'Q4a' do
+    it 'Q4a' do
       question = 'Q4a'
       goals = goals(
         file_path: result_file_prefix + results_dir,
         question: question,
+        external_column_header: false,
       )
       compare_columns(goal: goals, question: question, column_names: ['C', 'D'])
     end
 
-    xit 'Q5a' do
+    it 'Q5a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q5a',
       )
     end
 
-    xit 'Q6a' do
+    it 'Q6a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q6a',
       )
     end
 
-    xit 'Q7a' do
+    it 'Q7a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q7a',
       )
     end
 
-    xit 'Q8a' do
+    it 'Q8a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q8a',
       )
     end
 
-    xit 'Q9a' do
+    it 'Q9a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q9a',
       )
     end
 
-    xit 'Q9b' do
+    it 'Q9b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q9b',
       )
     end
 
-    xit 'Q9c' do
+    it 'Q9c' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q9c',
       )
     end
 
-    xit 'Q9d' do
+    it 'Q9d' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q9d',
       )
     end
 
-    xit 'Q10' do
+    it 'Q10' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q10',
