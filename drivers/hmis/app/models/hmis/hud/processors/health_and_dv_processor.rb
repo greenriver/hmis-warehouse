@@ -10,6 +10,10 @@ module Hmis::Hud::Processors
       :health_and_dv_factory
     end
 
+    def relation_name
+      :health_and_dv
+    end
+
     def schema
       Types::HmisSchema::HealthAndDv
     end

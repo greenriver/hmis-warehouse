@@ -10,6 +10,10 @@ module Hmis::Hud::Processors
       :ce_assessment_factory
     end
 
+    def relation_name
+      :ce_event
+    end
+
     def schema
       Types::HmisSchema::CeAssessment
     end

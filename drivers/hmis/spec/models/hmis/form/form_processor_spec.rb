@@ -451,7 +451,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment.form_processor.run!(owner: assessment, user: hmis_user)
       assessment.save_not_in_progress
 
-      assessment.form_processor.hud_values = {
+      assessment.reload.form_processor.hud_values = {
         'IncomeBenefit.incomeFromAnySource' => 'YES',
         'IncomeBenefit.unemploymentAmount' => 100,
       }
@@ -472,12 +472,16 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
         'IncomeBenefit.incomeFromAnySource' => 'YES',
+        'IncomeBenefit.unemploymentAmount' => 100,
       }
 
       assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.save!
       assessment.save_not_in_progress
 
-      assessment.form_processor.hud_values = {
+      expect(assessment.enrollment.income_benefits.first.income_from_any_source).to eq(1)
+
+      assessment.reload.form_processor.hud_values = {
         'IncomeBenefit.incomeFromAnySource' => nil,
       }
 
@@ -552,9 +556,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(assessment.enrollment.exit.in_person_group).to eq(0)
 
       # Re-submit with empty aftercare methods (should set fields to 99)
-      assessment.form_processor.hud_values = {
-        'Exit.aftercareMethods' => [],
-      }
+      assessment.reload.form_processor.hud_values.merge!('Exit.aftercareMethods' => [])
 
       assessment.form_processor.run!(owner: assessment, user: hmis_user)
       assessment.form_processor.save!
@@ -568,9 +570,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(assessment.enrollment.exit.in_person_group).to eq(99)
 
       # Re-submit with hidden aftercare methods (should set fields to nil)
-      assessment.form_processor.hud_values = {
-        'Exit.aftercareMethods' => HIDDEN,
-      }
+      assessment.reload.form_processor.hud_values.merge!('Exit.aftercareMethods' => HIDDEN)
 
       assessment.form_processor.run!(owner: assessment, user: hmis_user)
       assessment.form_processor.save!
@@ -597,7 +597,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       new_entry_date = '2024-03-14'
       expect(old_entry_date).not_to be_nil
 
-      assessment.form_processor.hud_values = {
+      assessment.reload.form_processor.hud_values = {
         'Enrollment.entryDate' => new_entry_date,
       }
 
@@ -1899,13 +1899,61 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(event.event_date).to eq(event_date)
     end
 
-    it 'should work when CustomAssessment is the form owner' do
-      assessment = build(:hmis_custom_assessment, client: c1, enrollment: e1, data_source: ds1, user: u1)
-      process_record(record: assessment, hud_values: hud_values, user: hmis_user, definition: definition)
+    describe 'when CE Event is being collected on an Assessment,' do
+      # note: definition is loaded in test environment because it is in the form_data/test/ directory, and ENV["CLIENT"]=test
+      let(:definition) { Hmis::Form::Definition.find_by(identifier: 'ce_event_assessment') }
+      let(:assessment) { build(:hmis_custom_assessment, client: c1, enrollment: e1, data_source: ds1, user: u1, definition: definition, hud_values: hud_values) }
 
-      expect(assessment.ce_event).to be_present
-      expect(assessment.ce_event.event).to eq(2)
-      expect(assessment.ce_event.event_date).to eq(event_date)
+      def process_assessment
+        assessment.form_processor.run!(owner: assessment, user: hmis_user)
+        assessment.form_processor.save!(context: :form_submission)
+      end
+
+      it 'should create a CE Event' do
+        process_assessment
+
+        expect(assessment.ce_event).to be_present
+        expect(assessment.ce_event.event).to eq(2)
+        expect(assessment.ce_event.event_date).to eq(event_date)
+      end
+
+      describe 'and all CE Event fields are hidden:' do
+        before(:each) do
+          assessment.form_processor.hud_values = {
+            'assessmentDate' => Date.current.strftime('%Y-%m-%d'),
+            'Event.eventDate' => HIDDEN,
+            'Event.event' => HIDDEN,
+            'Event.referralResult' => HIDDEN,
+          }
+        end
+
+        it 'should NOT create a CE Event' do
+          expect { process_assessment }.not_to change(e1.events, :count)
+          expect(assessment.ce_event).to be_nil
+        end
+
+        it 'should destroy the CE Event that was previously attached to the assessment' do
+          # create 2 events for this enrollment
+          event1 = create(:hmis_hud_event, client: c1, enrollment: e1, data_source: ds1, user: u1)
+          create(:hmis_hud_event, client: c1, enrollment: e1, data_source: ds1, user: u1)
+
+          # link 1 of the events to an assessment
+          assessment.save!
+          assessment.form_processor.update(ce_event: event1)
+
+          # check setup
+          expect(assessment.ce_event).to eq(event1)
+          expect(assessment.form_processor.ce_event).to eq(event1)
+
+          # "re-submit" the assessment, this time with all the event fields hidden
+          expect { process_assessment }.to change(e1.events.reload, :count).by(-1)
+
+          # event1 should be deleted
+          expect(event1.reload.date_deleted).to be_present
+          expect(assessment.reload.ce_event).to be_nil
+          expect(assessment.reload.form_processor.ce_event).to be_nil
+        end
+      end
     end
   end
 

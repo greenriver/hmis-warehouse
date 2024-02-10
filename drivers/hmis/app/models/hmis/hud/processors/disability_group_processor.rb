@@ -46,6 +46,26 @@ module Hmis::Hud::Processors
       Types::HmisSchema::DisabilityGroup
     end
 
+    def destroy_record
+      [
+        :physical_disability,
+        :developmental_disability,
+        :chronic_health_condition,
+        :hiv_aids,
+        :mental_health_disorder,
+        :substance_use_disorder,
+      ].each do |relation_name|
+        record = @processor.send(relation_name)
+        next unless record
+
+        if record.persisted?
+          record.mark_for_destruction
+        else
+          @processor.send("#{relation_name}=", nil)
+        end
+      end
+    end
+
     def field_mapping
       @field_mapping ||= begin
         standard_enum = Types::HmisSchema::Enums::Hud::NoYesReasonsForMissingData

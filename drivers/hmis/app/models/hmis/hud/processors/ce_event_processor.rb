@@ -6,6 +6,10 @@
 
 module Hmis::Hud::Processors
   class CeEventProcessor < Base
+    def relation_name
+      :ce_event
+    end
+
     def factory_name
       :ce_event_factory
     end

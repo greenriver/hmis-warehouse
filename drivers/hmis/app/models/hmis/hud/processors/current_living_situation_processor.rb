@@ -10,6 +10,10 @@ module Hmis::Hud::Processors
       :current_living_situation_factory
     end
 
+    def relation_name
+      :current_living_situation
+    end
+
     def schema
       Types::HmisSchema::CurrentLivingSituation
     end
