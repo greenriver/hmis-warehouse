@@ -8,23 +8,11 @@
 
 module HmisExternalApis::TcHmis::Importers::Loaders
   class DiversionAssessmentLoader < CustomAssessmentLoader
-    ASSESSMENT_DATE_COL = 'Date of assessment'.freeze
+    ASSESSMENT_DATE_COL = 'Date Taken'.freeze
 
     CDED_CONFIGS = [
       { element_id: nil, label: 'Program Name', key: 'div_program_name', repeats: false, field_type: 'string' },
       { element_id: nil, label: 'Case Number', key: 'div_case_number', repeats: false, field_type: 'string' },
-      { element_id: nil,
-        label: 'Unique Enrollment Identifier',
-        key: 'div_unique_enrollment_identifier',
-        repeats: false,
-        field_type: 'string' },
-      { element_id: nil, label: 'Response ID', key: 'div_response_id', repeats: false, field_type: 'string' },
-      { element_id: nil, label: 'Date Taken', key: 'div_date_taken', repeats: false, field_type: 'string' },
-      { element_id: nil,
-        label: 'Participant Enterprise Identifier',
-        key: 'div_participant_enterprise_identifier',
-        repeats: false,
-        field_type: 'string' },
       { element_id: 8827, label: 'Date of assessment', key: 'div_date_of_assessment', repeats: false, field_type: 'string' },
       { element_id: 8829, label: 'Assessment Type', key: 'div_assessment_type', repeats: false, field_type: 'string' },
       { element_id: 8830, label: 'Assessment Level', key: 'div_assessment_level', repeats: false, field_type: 'string' },

@@ -29,6 +29,8 @@ module HmisExternalApis::TcHmis::Importers
         Loaders::SpdatLoader,
         Loaders::HatLoader,
         Loaders::UhaLoader,
+        Loaders::NavigationNotesLoader,
+        Loaders::DiversionAssessmentLoader,
       ]
 
       # disable paper trail to improve importer performance
