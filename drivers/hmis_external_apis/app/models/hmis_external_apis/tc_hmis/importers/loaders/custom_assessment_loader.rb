@@ -15,6 +15,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       clobber_records(rows) if clobber
 
       create_assessment_records(rows)
+      create_form_processor_records(rows)
 
       create_cde_definitions
 
@@ -84,6 +85,17 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       end
       log_processed_result(expected: expected, actual: actual)
       ar_import(model_class, records)
+    end
+
+    # create synthetic form processors for imported touchpoints
+    def create_form_processor_records(rows)
+      owner_id_by_assessment_id = model_class.where(data_source: data_source).pluck(:CustomAssessmentID, :id).to_h
+      processor_model = Hmis::Form::FormProcessor
+      records = rows.map do |row|
+        owner_id = owner_id_by_assessment_id.fetch(row_assessment_id(row))
+        Hmis::Form::FormProcessor.new(:custom_assessment, definition: form_definition)
+      end
+      ar_import(processor_model, records)
     end
 
     def create_cde_records(rows)

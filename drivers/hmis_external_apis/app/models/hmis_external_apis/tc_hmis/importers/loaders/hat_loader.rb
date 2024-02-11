@@ -91,5 +91,12 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       response_id = row.field_value(RESPONSE_ID_COL)
       "hat-eto-#{response_id}"
     end
+
+
+
+    def form_definition
+      Hmis::Form::Definition.where(identifier: 'tc-hat').first!
+    end
+
   end
 end

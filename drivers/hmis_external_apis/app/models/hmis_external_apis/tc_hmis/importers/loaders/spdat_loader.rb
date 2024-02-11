@@ -89,5 +89,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         values
       end
     end
+
+    def form_definition
+      Hmis::Form::Definition.where(identifier: 'SPDAT').first!
+    end
   end
 end
