@@ -11,9 +11,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     ASSESSMENT_DATE_COL = 'Date Taken'.freeze
 
     CDED_CONFIGS = [
-      { element_id: nil, label: 'Program Name', key: 'div_program_name', repeats: false, field_type: 'string' },
-      { element_id: nil, label: 'Case Number', key: 'div_case_number', repeats: false, field_type: 'string' },
-      { element_id: 8827, label: 'Date of assessment', key: 'div_date_of_assessment', repeats: false, field_type: 'string' },
       { element_id: 8829, label: 'Assessment Type', key: 'div_assessment_type', repeats: false, field_type: 'string' },
       { element_id: 8830, label: 'Assessment Level', key: 'div_assessment_level', repeats: false, field_type: 'string' },
       { element_id: 8831, label: 'Assessment Location', key: 'div_assessment_location', repeats: false, field_type: 'string' },
@@ -63,7 +60,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def form_definition
-      Hmis::Form::Definition.where(identifier: 'diversion-crisis-assessment').first!
+      Hmis::Form::Definition.where(identifier: 'tc-diversion-crisis-assessment').first!
     end
   end
 end
