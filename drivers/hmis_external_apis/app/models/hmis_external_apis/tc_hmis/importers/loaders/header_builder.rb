@@ -7,7 +7,6 @@
 # Not an importer, this is an assistive class for composing columns
 module HmisExternalApis::TcHmis::Importers::Loaders
   class HeaderBuilder
-
     # HeaderBuilder.new.perform(dir: '/host/tc', filename: 'uha_cols.xlsx', key_prefix: 'uha')
     def perform(dir:, filename:, key_prefix:)
       reader = FileReader.new(dir)

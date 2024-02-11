@@ -40,6 +40,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         assessment.custom_data_elements.delete_all # delete should really destroy
         assessment.really_destroy!
       end
+      Hmis::Form::FormProcessor.where(custom_assessment_id: assessment_ids).delete_all
     end
 
     def create_cde_definitions
@@ -89,11 +90,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     # create synthetic form processors for imported touchpoints
     def create_form_processor_records(rows)
-      owner_id_by_assessment_id = model_class.where(data_source: data_source).pluck(:CustomAssessmentID, :id).to_h
+      owner_id_by_row_id = model_class.where(data_source: data_source).pluck(:CustomAssessmentID, :id).to_h
       processor_model = Hmis::Form::FormProcessor
       records = rows.map do |row|
-        owner_id = owner_id_by_assessment_id.fetch(row_assessment_id(row))
-        Hmis::Form::FormProcessor.new(:custom_assessment, definition: form_definition)
+        assessment_id = owner_id_by_row_id.fetch(row_assessment_id(row))
+        Hmis::Form::FormProcessor.new(custom_assessment_id: assessment_id, definition: form_definition).attributes
       end
       ar_import(processor_model, records)
     end
