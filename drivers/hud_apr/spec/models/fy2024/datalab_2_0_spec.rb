@@ -55,7 +55,8 @@ RSpec.describe 'Datalab 2024', type: :model do
     # include_context 'datalab organization s es caper'
     include_context 'datalab systemwide ce apr'
   else
-    xit 'Data Lab Testkit based tests are skipped, files are missing' do
+    it 'Data Lab Testkit based tests are skipped, files are missing' do
+      expect(true).to be false
     end
   end
 
