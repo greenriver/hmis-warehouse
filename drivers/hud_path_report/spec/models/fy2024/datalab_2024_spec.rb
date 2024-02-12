@@ -34,7 +34,8 @@ RSpec.describe 'PATH Datalab 2024', type: :model do
     include_context 'path organization q'
     include_context 'path organization r'
   else
-    xit 'Data Lab Testkit based tests are skipped, files are missing' do
+    it 'Data Lab Testkit based tests are skipped, files are missing' do
+      expect(true).to be false
     end
   end
 
