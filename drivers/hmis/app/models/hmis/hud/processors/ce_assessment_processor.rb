@@ -11,7 +11,7 @@ module Hmis::Hud::Processors
     end
 
     def relation_name
-      :ce_event
+      :ce_assessment
     end
 
     def schema

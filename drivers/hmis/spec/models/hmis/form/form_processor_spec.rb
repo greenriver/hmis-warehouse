@@ -1900,11 +1900,11 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
 
     describe 'when CE Event is being collected on an Assessment,' do
-      # note: definition is loaded in test environment because it is in the form_data/test/ directory, and ENV["CLIENT"]=test
       let(:definition) { Hmis::Form::Definition.find_by(identifier: 'ce_event_assessment') }
       let(:assessment) { build(:hmis_custom_assessment, client: c1, enrollment: e1, data_source: ds1, user: u1, definition: definition, hud_values: hud_values) }
 
-      def process_assessment
+      def process_assessment(input = hud_values)
+        assessment.form_processor.update(hud_values: input)
         assessment.form_processor.run!(owner: assessment, user: hmis_user)
         assessment.form_processor.save!(context: :form_submission)
       end
@@ -1915,6 +1915,17 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(assessment.ce_event).to be_present
         expect(assessment.ce_event.event).to eq(2)
         expect(assessment.ce_event.event_date).to eq(event_date)
+      end
+
+      it 'should update existing CE Event' do
+        process_assessment
+        expect(assessment.ce_event.event).to eq(2)
+
+        # re-process with changed hud_values
+        new_values = hud_values.merge('Event.event' => 'REFERRAL_TO_PREVENTION_ASSISTANCE_PROJECT')
+        expect { process_assessment(new_values) }.
+          to not_change(e1.reload.events, :count).
+          and change { assessment.reload.ce_event.event }.to(1) # value updated
       end
 
       describe 'and all CE Event fields are hidden:' do
@@ -1952,6 +1963,79 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           expect(event1.reload.date_deleted).to be_present
           expect(assessment.reload.ce_event).to be_nil
           expect(assessment.reload.form_processor.ce_event).to be_nil
+        end
+      end
+    end
+  end
+
+  describe 'Form processing for CurrentLivingSituation' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :CURRENT_LIVING_SITUATION) }
+    let(:information_date) { 1.week.ago.to_date }
+    let(:hud_values) do
+      {
+        'CurrentLivingSituation.informationDate' => information_date.strftime('%Y-%m-%d'),
+        'CurrentLivingSituation.currentLivingSituation' => 'SAFE_HAVEN', # 118
+      }
+    end
+
+    it 'should work when CurrentLivingSituation is the form owner' do
+      cls = Hmis::Hud::CurrentLivingSituation.new(client: c1, enrollment: e1, data_source: ds1)
+      process_record(record: cls, hud_values: hud_values, user: hmis_user, definition: definition)
+
+      expect(cls.current_living_situation).to eq(118) # safe haven
+      expect(cls.information_date).to eq(information_date)
+    end
+
+    describe 'when CurrentLivingSituation is being collected on an Assessment,' do
+      let(:definition) { Hmis::Form::Definition.find_by(identifier: 'cls_assessment') }
+      let(:assessment) { build(:hmis_custom_assessment, client: c1, enrollment: e1, data_source: ds1, user: u1, definition: definition, hud_values: hud_values) }
+
+      def process_assessment
+        assessment.form_processor.run!(owner: assessment, user: hmis_user)
+        assessment.form_processor.save!(context: :form_submission)
+      end
+
+      it 'should create a CurrentLivingSituation' do
+        process_assessment
+
+        expect(assessment.current_living_situation).to be_present
+        expect(assessment.current_living_situation.current_living_situation).to eq(118)
+      end
+
+      describe 'and all CurrentLivingSituation fields are hidden:' do
+        before(:each) do
+          assessment.form_processor.hud_values = {
+            'assessmentDate' => Date.current.strftime('%Y-%m-%d'),
+            'CurrentLivingSituation.informationDate' => HIDDEN,
+            'CurrentLivingSituation.currentLivingSituation' => HIDDEN,
+          }
+        end
+
+        it 'should NOT create a CurrentLivingSituation' do
+          expect { process_assessment }.not_to change(e1.current_living_situations, :count)
+          expect(assessment.current_living_situation).to be_nil
+        end
+
+        it 'should destroy the CurrentLivingSituation that was previously attached to the assessment' do
+          # create 2 CurrentLivingSituations for this enrollment
+          cls1 = create(:hmis_current_living_situation, client: c1, enrollment: e1, data_source: ds1, user: u1)
+          create(:hmis_current_living_situation, client: c1, enrollment: e1, data_source: ds1, user: u1)
+
+          # link 1 of the cls to an assessment
+          assessment.save!
+          assessment.form_processor.update(current_living_situation: cls1)
+
+          # check setup
+          expect(assessment.current_living_situation).to eq(cls1)
+          expect(assessment.form_processor.current_living_situation).to eq(cls1)
+
+          # "re-submit" the assessment, this time with all the event fields hidden
+          expect { process_assessment }.to change(e1.current_living_situations.reload, :count).by(-1)
+
+          # cls1 should be deleted
+          expect(cls1.reload.date_deleted).to be_present
+          expect(assessment.reload.current_living_situation).to be_nil
+          expect(assessment.reload.form_processor.current_living_situation).to be_nil
         end
       end
     end

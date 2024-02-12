@@ -138,11 +138,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     # If this is a form just for collecting CLS, it is the owner
     return owner if owner.is_a? Hmis::Hud::CurrentLivingSituation
 
-    # If this is an assessment, CLS may already exist in relationship to the FormProcessor
-    return current_living_situation if current_living_situation.present? || !create
-
-    # If not, create a new CLS
-    self.current_living_situation = enrollment_factory.current_living_situations.build(**common_attributes)
+    self.current_living_situation ||= enrollment_factory.current_living_situations.build(user_id: custom_assessment&.user_id) if create
   end
 
   def service_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
@@ -200,14 +196,12 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     return owner if owner.is_a? Hmis::Hud::Assessment
 
     self.ce_assessment ||= enrollment_factory.assessments.build(user_id: custom_assessment&.user_id) if create
-    ce_assessment
   end
 
   def ce_event_factory(create: true)
     return owner if owner.is_a? Hmis::Hud::Event
 
     self.ce_event ||= enrollment_factory.events.build(user_id: custom_assessment&.user_id) if create
-    ce_event
   end
 
   def health_and_dv_factory(create: true)
