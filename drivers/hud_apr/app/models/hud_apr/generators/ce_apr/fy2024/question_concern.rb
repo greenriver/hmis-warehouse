@@ -13,7 +13,11 @@ module HudApr::Generators::CeApr::Fy2024::QuestionConcern
       associations.reject { |_, row| row[:ce_assessment_date].blank? }
     end
 
-    private def clients_with_enrollments(batch, scope: enrollment_scope, preloads: { enrollment: :disabilities_at_entry })
+    def needs_ce_assessments?
+      true
+    end
+
+    private def clients_with_enrollments(batch, scope: enrollment_scope, preloads: { enrollment: [:disabilities_at_entry, assessments: { enrollment: { project: :ce_participations } }], project: :ce_participations })
       client_ids = batch.map(&:id)
       assessed_clients = scope.
         joins(:project, enrollment: :assessments).

@@ -675,6 +675,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       hud_values: hud_values,
       definition: definition,
     )
+    record.form_processor = form_processor if record.is_a?(Hmis::Hud::CustomAssessment)
     form_processor.run!(owner: record, user: user)
     form_processor.owner.save!(context: :form_submission) if save
     form_processor
@@ -1344,7 +1345,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       hud_values = empty_hud_values.merge('confidential' => false)
       expect do
         process_record(record: p1, hud_values: hud_values, user: hmis_user, save: false, definition: definition)
-      end.to raise_error(RuntimeError, /Not a submittable field.*confidential/)
+      end.to raise_error(RuntimeError, /Project.confidential.*Not a submittable field/)
     end
   end
 
@@ -1557,6 +1558,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         [:boolean, false],
         [:boolean, true],
         [:integer, 0],
+        [:float, 0],
+        [:float, 90.50],
+        [:date, '2020-02-02'],
       ].each do |field_type, value|
         it "creates a CustomDataElement, on a new or existing record (#{field_type}, #{value})" do
           existing_record = i1
@@ -1568,8 +1572,12 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
             process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
 
             expect(record.custom_data_elements.size).to eq(1)
-            expect(record.custom_data_elements.first.value).to eq(value)
             expect(record.custom_data_elements.first.data_element_definition).to eq(cded)
+            if field_type == :date
+              expect(record.custom_data_elements.first.value).to eq(value.to_date)
+            else
+              expect(record.custom_data_elements.first.value).to eq(value)
+            end
           end
         end
       end
@@ -1618,14 +1626,22 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         end
       end
 
-      it 'fails when custom field type doenst match its definition' do
-        record = i1
-        add_cde_item_to_definition
-        hud_values = complete_hud_values.merge(cded.key => false) # boolean passed for a string field
-        expect do
-          process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
-        end.to raise_error(RuntimeError, /.*#{cded.key}.*unexpected value/)
-        expect(record.custom_data_elements.size).to eq(0)
+      [
+        [:string, false],
+        [:boolean, 'not a bool'],
+        [:date, '02/02/2023'], # invalid format
+        [:float, 'nan'],
+      ].each do |field_type, value|
+        it "fails when custom field type doenst match its definition (#{field_type}=>#{value})" do
+          record = i1
+          cded.update(field_type: field_type)
+          add_cde_item_to_definition
+          hud_values = complete_hud_values.merge(cded.key => value)
+          expect do
+            process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
+          end.to raise_error(RuntimeError, /.*#{cded.key}.*unexpected value/)
+          expect(record.custom_data_elements.size).to eq(0)
+        end
       end
 
       describe 'when CustomDataElement can repeat' do
@@ -1861,6 +1877,69 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(file.confidential).to eq(hud_values['confidential'])
         expect(file.client_file.blob).to eq(blob)
       end
+    end
+  end
+
+  describe 'Form processing for CE Event' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :CE_EVENT) }
+    let(:event_date) { 1.week.ago.to_date }
+    let(:hud_values) do
+      {
+        'Event.eventDate' => event_date.strftime('%Y-%m-%d'),
+        'Event.event' => 'PROBLEM_SOLVING_DIVERSION_RAPID_RESOLUTION_INTERVENTION_OR_SERVICE', # 2
+        'Event.referralResult' => nil,
+      }
+    end
+
+    it 'should work when CE Event is the form owner' do
+      event = Hmis::Hud::Event.new(client: c1, enrollment: e1, data_source: ds1)
+      process_record(record: event, hud_values: hud_values, user: hmis_user, definition: definition)
+
+      expect(event.event).to eq(2) # problem solving diversion
+      expect(event.event_date).to eq(event_date)
+    end
+
+    it 'should work when CustomAssessment is the form owner' do
+      assessment = build(:hmis_custom_assessment, client: c1, enrollment: e1, data_source: ds1, user: u1)
+      process_record(record: assessment, hud_values: hud_values, user: hmis_user, definition: definition)
+
+      expect(assessment.ce_event).to be_present
+      expect(assessment.ce_event.event).to eq(2)
+      expect(assessment.ce_event.event_date).to eq(event_date)
+    end
+  end
+
+  describe 'Form processing for CE Assessment' do
+    let(:assessment_date) { 1.week.ago.to_date }
+    let(:hud_values) do
+      {
+        'CeAssessment.assessmentDate' => assessment_date.strftime('%Y-%m-%d'),
+        'CeAssessment.assessmentLocation' => 'foo',
+        'CeAssessment.assessmentType' => 'PHONE',
+        'CeAssessment.assessmentLevel' => 'HOUSING_NEEDS_ASSESSMENT',
+        'CeAssessment.prioritizationStatus' => 'PLACED_ON_PRIORITIZATION_LIST',
+      }
+    end
+
+    it 'should work when CE Assessment is the form owner' do
+      definition = Hmis::Form::Definition.find_by(role: :CE_ASSESSMENT)
+      assessment = Hmis::Hud::Assessment.new(client: c1, enrollment: e1, data_source: ds1)
+      process_record(record: assessment, hud_values: hud_values, user: hmis_user, definition: definition)
+
+      expect(assessment.assessment_date).to eq(assessment_date)
+      expect(assessment.assessment_location).to eq('foo')
+    end
+
+    it 'should work when CustomAssessment is the form owner' do
+      # note: definition is loaded in test environment because it is in the form_data/test/ directory
+      definition = Hmis::Form::Definition.find_by(identifier: 'housing_needs_assessment')
+
+      assessment = build(:hmis_custom_assessment, client: c1, enrollment: e1, data_source: ds1, user: u1)
+      process_record(record: assessment, hud_values: hud_values, user: hmis_user, definition: definition)
+
+      expect(assessment.ce_assessment).to be_present
+      expect(assessment.ce_assessment.assessment_date).to eq(assessment_date)
+      expect(assessment.ce_assessment.assessment_location).to eq('foo')
     end
   end
 end
