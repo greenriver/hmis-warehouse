@@ -1345,7 +1345,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       hud_values = empty_hud_values.merge('confidential' => false)
       expect do
         process_record(record: p1, hud_values: hud_values, user: hmis_user, save: false, definition: definition)
-      end.to raise_error(RuntimeError, /Not a submittable field.*confidential/)
+      end.to raise_error(RuntimeError, /Project.confidential.*Not a submittable field/)
     end
   end
 

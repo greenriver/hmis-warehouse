@@ -63,8 +63,8 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
         container_processor(container)&.process(field, value)
       rescue StandardError => e
-        err_with_context = "Error processing field '#{field}': #{e.message}"
-        Sentry.capture_exception(err_with_context)
+        err_with_context = "Error processing field '#{container}.#{field}': #{e.message}"
+        Sentry.capture_exception(StandardError.new(err_with_context))
         raise $ERROR_INFO, err_with_context, $ERROR_INFO.backtrace
       end
     end
@@ -484,6 +484,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     # If it's not found, then this is not a valid submission.
     found_mapping = mapped_form_fields[container]&.include?(field)
 
-    raise "Not a submittable field for Form Definition id #{definition.id} (#{container}.#{field})" unless found_mapping
+    raise "Not a submittable field for Form Definition '#{definition.title}' (ID: #{definition.id})" unless found_mapping
   end
 end
