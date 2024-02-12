@@ -167,6 +167,10 @@ module GrdaWarehouse::Hud
       )
     end
 
+    scope :continuum_project, -> do
+      coc_funded
+    end
+
     scope :enrollments_combined, -> do
       where(combine_enrollments: true)
     end
@@ -875,6 +879,13 @@ module GrdaWarehouse::Hud
 
     def operating_end_date_to_use
       operating_end_date_override.presence || self.OperatingEndDate
+    end
+
+    # NOTE: preload ce_participations before calling this
+    def participating_in_ce_on?(date)
+      ce_participations.detect do |ce|
+        ce.ce_participating_on?(date)
+      end.present?
     end
 
     # DEPRECATED_FY2024 no longer used in FY2024
