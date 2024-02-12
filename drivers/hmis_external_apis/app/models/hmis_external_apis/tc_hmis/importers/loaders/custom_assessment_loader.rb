@@ -102,12 +102,12 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def create_cde_records(rows)
       owner_id_by_assessment_id = model_class.where(data_source: data_source).pluck(:CustomAssessmentID, :id).to_h
 
+      seen = Set.new
       cdes = []
       rows.each do |row|
         owner_id = owner_id_by_assessment_id[row_assessment_id(row)]
         raise unless owner_id
 
-        seen = Set.new
         cded_configs.each do |config|
           cde_values(row, config).each do |value|
             next if value.nil?
@@ -125,10 +125,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       end
       ar_import(Hmis::Hud::CustomDataElement, cdes)
 
-      cded_configs.each do |config|
-        key = config.fetch(:key)
-        log_info("no values found for cde: #{key}") unless seen.has?(key)
-      end
+      total =  cded_configs.size
+      missed = cded_configs.map { |c| c.fetch(:key) }.reject { |k| k.in?(seen) }
+      log_info("saw CDE values for #{seen.size} of #{total} fields")
+      log_info("missed CDE values for #{missed.size} of #{total} fields: #{missed.sort.join(', ')}") if missed.any?
     end
 
     def cde_values(row, config, required: false)
