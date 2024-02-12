@@ -3951,6 +3951,16 @@ type FormItem {
   hidden: Boolean!
 
   """
+  Whether to hide the item when form is in view-mode
+  """
+  hideWhenEditing: Boolean!
+
+  """
+  Whether to hide the item when form is in view-mode
+  """
+  hideWhenViewing: Boolean!
+
+  """
   Initial value(s) when item is first rendered
   """
   initial: [InitialValue!]
@@ -5211,6 +5221,7 @@ enum ItemType {
   OPEN_CHOICE
   STRING
   TEXT
+  TIME
 }
 
 """

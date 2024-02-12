@@ -19,6 +19,7 @@ module Types
     # value 'DECIMAL'
     value 'INTEGER'
     value 'DATE'
+    value 'TIME'
     # value 'DATETIME'
     value 'STRING'
     value 'TEXT'
