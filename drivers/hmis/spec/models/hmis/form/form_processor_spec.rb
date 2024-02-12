@@ -1903,8 +1903,8 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       let(:definition) { Hmis::Form::Definition.find_by(identifier: 'ce_event_assessment') }
       let(:assessment) { build(:hmis_custom_assessment, client: c1, enrollment: e1, data_source: ds1, user: u1, definition: definition, hud_values: hud_values) }
 
-      def process_assessment(input = hud_values)
-        assessment.form_processor.update(hud_values: input)
+      def process_assessment(new_hud_values: nil)
+        assessment.form_processor.update(hud_values: new_hud_values) if new_hud_values
         assessment.form_processor.run!(owner: assessment, user: hmis_user)
         assessment.form_processor.save!(context: :form_submission)
       end
@@ -1922,8 +1922,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(assessment.ce_event.event).to eq(2)
 
         # re-process with changed hud_values
-        new_values = hud_values.merge('Event.event' => 'REFERRAL_TO_PREVENTION_ASSISTANCE_PROJECT')
-        expect { process_assessment(new_values) }.
+        expect do
+          process_assessment(new_hud_values: hud_values.merge('Event.event' => 'REFERRAL_TO_PREVENTION_ASSISTANCE_PROJECT'))
+        end.
           to not_change(e1.reload.events, :count).
           and change { assessment.reload.ce_event.event }.to(1) # value updated
       end
