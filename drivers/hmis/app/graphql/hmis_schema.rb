@@ -8,7 +8,8 @@ class HmisSchema < GraphQL::Schema
   mutation(Types::HmisSchema::MutationType)
   query(Types::HmisSchema::QueryType)
 
-  trace_with(GraphQL::Tracing::ActiveSupportNotificationsTrace)
+  trace_with(GraphqlTraceBehavior)
+  use Yabeda::GraphQL
 
   # For batch-loading (see https://graphql-ruby.org/dataloader/overview.html)
   use GraphQL::Dataloader

@@ -722,7 +722,8 @@ CREATE TABLE public.hmis_activity_logs (
     header_enrollment_id bigint,
     header_project_id bigint,
     created_at timestamp without time zone NOT NULL,
-    processed_at date
+    processed_at date,
+    resolved_at timestamp without time zone
 );
 
 
@@ -4303,6 +4304,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231221165753'),
 ('20240122220024'),
 ('20240123160215'),
-('20240124173020');
+('20240124173020'),
+('20240212150622');
 
 
