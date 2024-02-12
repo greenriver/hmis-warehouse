@@ -37,6 +37,11 @@ class Hmis::Hud::Processors::Base
     @processor.send(factory_name, create: false)&.assign_attributes(information_date: date)
   end
 
+  # Whether this record can be conditionally collected on CustomAssessments
+  def dependent_destroyable?
+    false
+  end
+
   def destroy_record
     record = @processor.send(relation_name)
     return unless record

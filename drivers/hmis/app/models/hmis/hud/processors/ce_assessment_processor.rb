@@ -20,5 +20,10 @@ module Hmis::Hud::Processors
 
     def information_date(_)
     end
+
+    # This record type can be conditionally collected on CustomAssessments
+    def dependent_destroyable?
+      true
+    end
   end
 end

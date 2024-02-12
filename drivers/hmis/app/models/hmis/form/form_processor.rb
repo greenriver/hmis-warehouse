@@ -75,7 +75,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
       # If this is an assessment and all fields pertaining to this record type were hidden,
       # the related record should be destroyed. (For example, a Custom Assessment that conditionally creates a CE Event).
-      if custom_assessment.present? && containers_with_all_fields_hidden.include?(container) && !['Assessment', 'Enrollment'].include?(container)
+      if custom_assessment.present? && containers_with_all_fields_hidden.include?(container) && container.dependent_destroyable?
         processor.destroy_record
       else
         # This related record will be created or updated, so assign the metadata and information date.
