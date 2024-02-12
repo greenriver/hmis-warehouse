@@ -4022,10 +4022,20 @@ type FormItem {
   size: InputSize
 
   """
+  Secondary text for the item
+  """
+  subtitle: String
+
+  """
   Primary text for the item
   """
   text: String
   type: ItemType!
+
+  """
+  Component variant to use for display
+  """
+  variant: Variant
 
   """
   Whether to show a warning if this question is unanswered
@@ -11872,6 +11882,13 @@ enum VamcStationNumber {
   (757) (757) Columbus, OH
   """
   NUM_757_COLUMBUS_OH
+}
+
+enum Variant {
+  """
+  Render a signature envelope
+  """
+  SIGNATURE
 }
 
 input VersionedRecordInput {

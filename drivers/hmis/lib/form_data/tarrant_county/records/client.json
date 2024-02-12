@@ -7,6 +7,9 @@
       "mapping": { "field_name": "id" }
     },
     {
+      "fragment": "#signature"
+    },
+    {
       "fragment": "#client_names"
     },
     {
