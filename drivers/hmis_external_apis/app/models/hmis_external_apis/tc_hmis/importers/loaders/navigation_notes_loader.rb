@@ -4,8 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# todays_urgency_and_options
-
 module HmisExternalApis::TcHmis::Importers::Loaders
   class NavigationNotesLoader < CustomAssessmentLoader
     ASSESSMENT_DATE_COL = 'Date Taken'.freeze

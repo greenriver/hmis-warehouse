@@ -107,11 +107,16 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         owner_id = owner_id_by_assessment_id[row_assessment_id(row)]
         raise unless owner_id
 
+        seen = Set.new
         cded_configs.each do |config|
           cde_values(row, config).each do |value|
+            next if value.nil?
+
+            key = config.fetch(:key)
+            seen.add(key)
             cdes << cde_helper.new_cde_record(
               value: value,
-              definition_key: config.fetch(:key),
+              definition_key: key,
               owner_type: model_class.sti_name,
               owner_id: owner_id,
             )
@@ -119,6 +124,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         end
       end
       ar_import(Hmis::Hud::CustomDataElement, cdes)
+
+      cded_configs.each do |config|
+        key = config.fetch(:key)
+        log_info("no values found for cde: #{key}") unless seen.has?(key)
+      end
     end
 
     def cde_values(row, config, required: false)
