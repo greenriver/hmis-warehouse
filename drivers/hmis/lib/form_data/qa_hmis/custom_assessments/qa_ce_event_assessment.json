@@ -23,6 +23,13 @@
         {
           "type": "GROUP",
           "link_id": "evt-group",
+          "enable_when": [
+            {
+              "question": "evt-boolean",
+              "operator": "EQUAL",
+              "answer_boolean": true
+            }
+          ],
           "item": [
             {
               "text": "Event Date",
