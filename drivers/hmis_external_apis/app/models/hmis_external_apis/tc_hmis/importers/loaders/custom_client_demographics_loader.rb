@@ -25,6 +25,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         pluck(:personal_id, :id).
         to_h
       @stored_contact_points = {}
+      @stored_postal_codes = {}
+      @new_postal_codes = []
     end
 
     def process
@@ -43,6 +45,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         end
 
         update_contact_points(personal_id, row.field_value('Cell Phone'), row.field_value('Email'), timestamp)
+
+        update_client_address(personal_id, row.field_value('Address Line 1'), row.field_value('Address Line 2'), row.field_value('Zipcode'), timestamp)
       end
       Hmis::Hud::CustomDataElement.upsert_all(
         @stored_demographic_elements.values.map(&:values).flatten,
@@ -53,6 +57,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         @stored_contact_points.values.flatten,
         unique_by: :id,
       )
+
+      Hmis::Hud::CustomClientAddress.insert_all(@new_postal_codes)
     end
 
     private def update_demographic(client_id:, timestamp:, demographic_key:, value:)
@@ -150,8 +156,58 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       end
     end
 
-    # { owner_type: 'Hmis::Hud::CustomClientAddress', field_type: :string, key: :postal_code, label: 'Zip code- with extension' },
-    # { owner_type: 'Hmis::Hud::CustomClientAddress', field_type: :string, key: :line1, label: 'Address 1' },
-    # { owner_type: 'Hmis::Hud::CustomClientAddress', field_type: :string, key: :line1, label: 'Address 2' },
+    private def update_client_address(personal_id, _line1, _line2, zipcode, timestamp)
+      return unless @client_lookup[personal_id].present? # Skip non-existent clients
+
+      # 2/13/24 -- TC decided they didn't need address information except zipcode
+      # query = [line1, line2].compact.join(' ') || zipcode # send zipcode if we don't have anything else
+      # query = [query, zipcode].compact.join(' ') unless query.match(/\d+$/) # Add the zip if we don't see a number
+      # result = nominatim_lookup(query)
+      # return unless result.present?
+      #
+      # line1 = [result.house_number, result.street].join(' ')
+      # city = result.city
+      # # Need to store 2 letter codes, which is not what Nominatim returns as state
+      # state = result.data.dig('address', 'ISO3166-2-lvl4')[-2..]
+
+      # Don't duplicate zipcodes
+      @stored_postal_codes[personal_id] ||= Hmis::Hud::CustomClientAddress.where(PersonalID: personal_id).where.not(postal_code: nil).pluck(:postal_code)
+      return if @stored_postal_codes[personal_id].include?(zipcode)
+
+      @stored_postal_codes[personal_id] << zipcode
+
+      @new_postal_codes << {
+        PersonalID: personal_id,
+        postal_code: zipcode,
+        AddressID: Hmis::Hud::Base.generate_uuid,
+        UserID: @user_id,
+        data_source_id: @data_source_id,
+        DateCreated: timestamp,
+        DateUpdated: timestamp,
+      }
+    end
+
+    private def nominatim_lookup(query)
+      return if Rails.cache.read(['Nominatim', 'API PAUSE'])
+
+      address = [query, 'US'].compact.join(',')
+      n = Geocoder.search(address)
+
+      # Limit calls to 1 per second (we are defaulting to using Nominatim, and this is their policy)
+      @rate_limit ||= Time.new(0)
+      sleep 1 if (Time.current - @rate_limit) < 1
+      result = n.first
+      @rate_limit = Time.current
+
+      return result
+    rescue Faraday::ConnectionFailed
+      # we've probably been banned, let the API cool off
+      Rails.cache.write(['Nominatim', 'API PAUSE'], true, expires_in: 1.hours)
+    rescue StandardError => e
+      # The API returns various errors which we don't want to prevent continuing with other attempts.
+      # Just send it along to sentry and take a quick break
+      Sentry.capture_exception(e)
+      sleep 1
+    end
   end
 end
