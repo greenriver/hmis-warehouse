@@ -8,6 +8,7 @@
     {
       "type": "GROUP",
       "text": "Head of Household",
+      "variant": "HIGHLIGHT",
       "link_id": "head_of_household_signature_group",
       "component": "HORIZONTAL_GROUP",
       "item": [
@@ -73,6 +74,7 @@
     {
       "type": "GROUP",
       "text": "Case Manager",
+      "variant": "HIGHLIGHT",
       "link_id": "case_manager_signature_group",
       "component": "HORIZONTAL_GROUP",
       "item": [

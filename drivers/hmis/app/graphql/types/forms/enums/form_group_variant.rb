@@ -8,5 +8,6 @@ module Types
   class Forms::Enums::FormGroupVariant < Types::BaseEnum
     graphql_name 'Variant'
     value 'SIGNATURE', 'Render a signature envelope'
+    value 'HIGHLIGHT', 'Render form group with a highlighted bar'
   end
 end

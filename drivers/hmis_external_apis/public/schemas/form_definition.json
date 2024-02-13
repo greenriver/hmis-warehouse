@@ -277,7 +277,8 @@
         },
         "variant": {
           "enum": [
-            "SIGNATURE"
+            "SIGNATURE",
+            "HIGHLIGHT"
           ]
         }
       }

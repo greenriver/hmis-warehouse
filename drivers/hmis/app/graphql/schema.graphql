@@ -4022,11 +4022,6 @@ type FormItem {
   size: InputSize
 
   """
-  Secondary text for the item
-  """
-  subtitle: String
-
-  """
   Primary text for the item
   """
   text: String
@@ -11885,6 +11880,11 @@ enum VamcStationNumber {
 }
 
 enum Variant {
+  """
+  Render form group with a highlighted bar
+  """
+  HIGHLIGHT
+
   """
   Render a signature envelope
   """
