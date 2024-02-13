@@ -19,11 +19,12 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         key: demographics_on_client.map { |key, _| key },
       ).map { |defn| [defn.key.to_sym, defn] }.
         to_h
-      @stored_elements = {}
+      @stored_demographic_elements = {}
       @client_lookup = Hmis::Hud::Client.
         where(data_source_id: @data_source_id).
         pluck(:personal_id, :id).
         to_h
+      @stored_contact_points = {}
     end
 
     def process
@@ -40,9 +41,16 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             value: row.field_value(field_name),
           )
         end
+
+        update_contact_points(personal_id, row.field_value('Cell Phone'), row.field_value('Email'), timestamp)
       end
       Hmis::Hud::CustomDataElement.upsert_all(
-        @stored_elements.values.map(&:values).flatten,
+        @stored_demographic_elements.values.map(&:values).flatten,
+        unique_by: :id,
+      )
+
+      Hmis::Hud::CustomClientContactPoint.upsert_all(
+        @stored_contact_points.values.flatten,
         unique_by: :id,
       )
     end
@@ -51,13 +59,15 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       return unless client_id.present? # Skip non-existent clients
       return unless value.present? # Do we want to keep last collected, or erase any that are blank w/ newest timestamp?
 
-      # Retrieve any existing CDEs for the client
-      @stored_elements[client_id] ||= Hmis::Hud::CustomDataElement.where(owner_type: 'Hmis::Hud::Client', owner_id: client_id).
+      # Retrieve any existing CDEs for the client -- this will be faster than updating 1 by 1, but slower than
+      # retrieving the whole dataset in advance, but will use less memory. If it is too big, we may need to batch the
+      # xlsx records
+      @stored_demographic_elements[client_id] ||= Hmis::Hud::CustomDataElement.where(owner_type: 'Hmis::Hud::Client', owner_id: client_id).
         map { |e| [e.data_element_definition_id, e.attributes.symbolize_keys] }.
         to_h
 
       definition = @element_definitions[demographic_key]
-      element =  @stored_elements[client_id][definition.id]
+      element =  @stored_demographic_elements[client_id][definition.id]
       column = "value_#{definition.field_type}".to_sym
 
       if element.present?
@@ -85,7 +95,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           value_json: nil,
         }
         element[column] = value
-        @stored_elements[client_id][definition.id] = element
+        @stored_demographic_elements[client_id][definition.id] = element
       end
     end
 
@@ -100,8 +110,45 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       }.freeze
     end
 
-    # { owner_type: 'Hmis::Hud::CustomClientContactPoint', field_type: :string, key: :phone, label: 'Phone' },
-    # { owner_type: 'Hmis::Hud::CustomClientContactPoint', field_type: :string, key: :email, label: 'Email' },
+    private def update_contact_points(personal_id, phone_number, email, timestamp)
+      return unless @client_lookup[personal_id].present? # Skip non-existent clients
+
+      @stored_contact_points[personal_id] ||= Hmis::Hud::CustomClientContactPoint.
+        where(PersonalID: personal_id, system: [:phone, :email]).
+        map { |e| e.attributes.symbolize_keys }
+
+      if phone_number.present? && ! @stored_contact_points[personal_id].detect { |c| c[:system].to_s == 'phone' && c[:value] == phone_number }
+        @stored_contact_points[personal_id] << {
+          use: nil,
+          system: :phone,
+          value: phone_number,
+          notes: nil,
+          ContactPointID: Hmis::Hud::Base.generate_uuid,
+          PersonalID: personal_id,
+          UserID: @user_id,
+          data_source_id: @data_source_id,
+          DateCreated: timestamp,
+          DateUpdated: timestamp,
+          DateDeleted: nil,
+        }
+      end
+
+      if email.present? && ! @stored_contact_points[personal_id].detect { |c| c[:system].to_s == 'email' && c[:value] == email } # rubocop:disable Style/GuardClause
+        @stored_contact_points[personal_id] << {
+          use: nil,
+          system: :email,
+          value: email,
+          notes: nil,
+          ContactPointID: Hmis::Hud::Base.generate_uuid,
+          PersonalID: personal_id,
+          UserID: @user_id,
+          data_source_id: @data_source_id,
+          DateCreated: timestamp,
+          DateUpdated: timestamp,
+          DateDeleted: nil,
+        }
+      end
+    end
 
     # { owner_type: 'Hmis::Hud::CustomClientAddress', field_type: :string, key: :postal_code, label: 'Zip code- with extension' },
     # { owner_type: 'Hmis::Hud::CustomClientAddress', field_type: :string, key: :line1, label: 'Address 1' },
