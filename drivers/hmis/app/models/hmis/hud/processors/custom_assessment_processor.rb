@@ -10,6 +10,10 @@ module Hmis::Hud::Processors
       :owner_factory
     end
 
+    def relation_name
+      :custom_assessment
+    end
+
     def schema
       Types::HmisSchema::Assessment
     end

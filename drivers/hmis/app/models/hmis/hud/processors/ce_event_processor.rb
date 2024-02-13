@@ -6,6 +6,10 @@
 
 module Hmis::Hud::Processors
   class CeEventProcessor < Base
+    def relation_name
+      :ce_event
+    end
+
     def factory_name
       :ce_event_factory
     end
@@ -15,6 +19,11 @@ module Hmis::Hud::Processors
     end
 
     def information_date(_)
+    end
+
+    # This record type can be conditionally collected on CustomAssessments
+    def dependent_destroyable?
+      true
     end
   end
 end

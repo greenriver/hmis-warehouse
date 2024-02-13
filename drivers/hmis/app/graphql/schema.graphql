@@ -3498,13 +3498,13 @@ type Event {
   dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
   event: EventType!
-  eventDate: ISO8601DateTime!
+  eventDate: ISO8601Date!
   id: ID!
   locationCrisisOrPhHousing: String
   probSolDivRrResult: NoYesMissing
   referralCaseManageAfter: NoYesMissing
   referralResult: ReferralResult
-  resultDate: ISO8601DateTime
+  resultDate: ISO8601Date
   user: ApplicationUser
 }
 
