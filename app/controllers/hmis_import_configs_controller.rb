@@ -29,6 +29,7 @@ class HmisImportConfigsController < ApplicationController
     object = @config.s3.list_objects(prefix: @config.s3_path).detect { |o| o.key == params[:key] }
 
     if object.nil?
+      flash[:error] = 'File not found'
       redirect_to edit_data_source_hmis_import_config_path
     else
       send_data(
