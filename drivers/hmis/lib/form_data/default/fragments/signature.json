@@ -9,6 +9,7 @@
       "type": "GROUP",
       "text": "Head of Household",
       "link_id": "head_of_household_signature_group",
+      "component": "HORIZONTAL_GROUP",
       "item": [
         {
           "type": "STRING",
@@ -24,6 +25,7 @@
           "link_id": "head_of_household_signature_date",
           "text": "Today's Date",
           "required": true,
+          "size": "XSMALL",
           "enable_when": [
             {
               "question": "head_of_household_signature",
@@ -48,6 +50,21 @@
               "value_local_constant": "$today"
             }
           ]
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "head_of_household_signature_checked",
+          "required": true,
+          "text": "I do hereby certify that the above information is true, accurate and complete to the best of my knowledge",
+          "enable_when": [
+            {
+              "question": "head_of_household_signature",
+              "operator": "EXISTS",
+              "answer_boolean": true
+            }
+          ]
         }
       ]
     },
@@ -55,6 +72,7 @@
       "type": "GROUP",
       "text": "Case Manager",
       "link_id": "case_manager_signature_group",
+      "component": "HORIZONTAL_GROUP",
       "item": [
         {
           "type": "STRING",
@@ -69,6 +87,7 @@
           "link_id": "case_manager_signature_date",
           "text": "Today's Date",
           "required": true,
+          "size": "XSMALL",
           "enable_when": [
             {
               "question": "case_manager_signature",
@@ -91,6 +110,21 @@
               "_comment": "cannot be in the future",
               "type": "MAX",
               "value_local_constant": "$today"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "pick_list_reference": "NoYesMissing",
+          "component": "CHECKBOX",
+          "link_id": "case_manager_signature_checked",
+          "required": true,
+          "text": "I do hereby certify that the above information is true, accurate and complete to the best of my knowledge",
+          "enable_when": [
+            {
+              "question": "case_manager_signature",
+              "operator": "EXISTS",
+              "answer_boolean": true
             }
           ]
         }
