@@ -6,7 +6,7 @@
 
 module Menu
   def menu
-    menu = PageMenu.new(user: current_user)
+    menu = Menu::SiteMenu.new(user: current_user)
 
     hud_reports = MenuItem.new(
       user: current_user,

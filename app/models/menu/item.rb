@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class MenuItem < OpenStruct
+class Menu::Item < OpenStruct
   # attr_accessor(
   #   :user,
   #   :parent,
@@ -18,9 +18,12 @@ class MenuItem < OpenStruct
   #   :visible, # lambda to determine if the user has access to this item
   #   :active, # true if the current path matches the item's path
   # )
+  def initialize
+    self.children = {}
+  end
+
   def add_child(item)
-    self.children ||= {}
-    self.children[item.path] = item
+    children[item.path] = item
   end
 
   def to_html
@@ -28,5 +31,13 @@ class MenuItem < OpenStruct
     return self_html unless children.present?
 
     self_html + children.map(&:to_html)
+  end
+
+  def children?
+    children.present?
+  end
+
+  def icon?
+    icon.present?
   end
 end
