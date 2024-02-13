@@ -121,13 +121,14 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
       it 'does nothing if assessment exists' do
         entry_assessment = create(:hmis_custom_assessment, data_collection_stage: 1, assessment_date: 1.month.ago, enrollment: e1, data_source: ds1, client: c1)
         old_form_processor = entry_assessment.form_processor
-        expect(e1.custom_assessments.count).to eq(1)
+        expect(e1.custom_assessments.intakes.size).to eq(1)
+        expect(e1.intake_assessment.form_processor).to eq(old_form_processor)
 
         Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id)
 
-        expect(e1.custom_assessments.count).to eq(3)
-        expect(e1.custom_assessments).to include(entry_assessment)
-        expect(e1.custom_assessments.intakes.first.form_processor).to eq(old_form_processor)
+        expect(e1.custom_assessments.intakes.size).to eq(1)
+        expect(e1.intake_assessment).to eq(entry_assessment)
+        expect(e1.intake_assessment.form_processor).to eq(old_form_processor)
       end
     end
 
