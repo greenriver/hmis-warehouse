@@ -12,6 +12,10 @@ module Hmis::Hud::Processors
       :owner_factory
     end
 
+    def relation_name
+      :ce_participation
+    end
+
     def schema
       Types::HmisSchema::CeParticipation
     end

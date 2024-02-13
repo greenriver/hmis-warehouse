@@ -137,6 +137,7 @@ RUN yarn install --frozen-lockfile \
   && yarn cache clean
 
 COPY --chown=app-user:app-user . ./
+COPY --chown=app-user:app-user sample.irbrc ./.irbrc
 COPY --chown=app-user:app-user docker/app/REVISION ./
 COPY --chown=app-user:app-user docker/app/GIT_BRANCH ./
 COPY --chown=app-user:app-user docker/app/database.open-path-warehouse.yml ./config/database.yml
