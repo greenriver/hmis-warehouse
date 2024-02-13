@@ -8,6 +8,18 @@ module HmisExternalApis::AcHmis::Exporters
   class PathwaysExport
     attr_accessor :output
 
+    PATHWAY_KEYS = [
+      'client_pathway_1',
+      'client_pathway_2',
+      'client_pathway_3',
+      'client_pathway_1_date',
+      'client_pathway_2_date',
+      'client_pathway_3_date',
+      'client_pathway_1_narrative',
+      'client_pathway_2_narrative',
+      'client_pathway_3_narrative',
+    ].freeze
+
     def initialize(output = StringIO.new)
       require 'csv'
       self.output = output
@@ -46,9 +58,7 @@ module HmisExternalApis::AcHmis::Exporters
       end
     end
 
-    private
-
-    def find_pathway(pathways, key, date_updated: false)
+    private def find_pathway(pathways, key, date_updated: false)
       raise "unrecognized data element key: #{key}" unless pathway_cded_key_to_id[key]
 
       cde = pathways.find { |elem| elem.data_element_definition_id == pathway_cded_key_to_id[key] }
@@ -82,11 +92,11 @@ module HmisExternalApis::AcHmis::Exporters
       ]
     end
 
-    def write_row(row)
+    private def write_row(row)
       output << CSV.generate_line(row, **csv_config)
     end
 
-    def csv_config
+    private def csv_config
       {
         write_converters: ->(value, _) {
           if value.instance_of?(Date)
@@ -100,32 +110,21 @@ module HmisExternalApis::AcHmis::Exporters
       }
     end
 
-    PATHWAY_KEYS = [
-      'client_pathway_1',
-      'client_pathway_2',
-      'client_pathway_3',
-      'client_pathway_1_date',
-      'client_pathway_2_date',
-      'client_pathway_3_date',
-      'client_pathway_1_narrative',
-      'client_pathway_2_narrative',
-      'client_pathway_3_narrative',
-    ].freeze
-    def pathway_cded_key_to_id
+    private def pathway_cded_key_to_id
       @pathway_cded_key_to_id ||= Hmis::Hud::CustomDataElementDefinition.where(key: PATHWAY_KEYS).pluck(:key, :id).to_h
     end
 
-    def pathways_by_client_id
+    private def pathways_by_client_id
       @pathways_by_client_id ||= Hmis::Hud::CustomDataElement.
         where(data_element_definition_id: pathway_cded_key_to_id.values). # All Pathway-related definitions
         group_by(&:owner_id) # By Client ID
     end
 
-    def clients_with_pathways
+    private def clients_with_pathways
       @clients_with_pathways ||= Hmis::Hud::Client.where(id: pathways_by_client_id.keys).preload(:warehouse_client_source)
     end
 
-    def data_source
+    private def data_source
       @data_source ||= HmisExternalApis::AcHmis.data_source
     end
   end
