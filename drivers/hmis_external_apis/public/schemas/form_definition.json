@@ -270,8 +270,7 @@
             "PHONE",
             "RADIO_BUTTONS",
             "RADIO_BUTTONS_VERTICAL",
-            "SSN",
-            "SIGNATURE"
+            "SSN"
           ]
         },
         "variant": {
