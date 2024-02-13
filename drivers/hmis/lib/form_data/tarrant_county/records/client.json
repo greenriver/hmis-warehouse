@@ -1,0 +1,38 @@
+{
+  "item": [
+    {
+      "type": "STRING",
+      "link_id": "client-id",
+      "hidden": true,
+      "mapping": { "field_name": "id" }
+    },
+    {
+      "fragment": "#client_names"
+    },
+    {
+      "fragment": "#client_identification"
+    },
+    {
+      "fragment": "#client_demographics"
+    },
+    {
+      "fragment": "#client_contact_information"
+    },
+    {
+      "fragment": "#client_emergency_contact"
+    },
+    {
+      "fragment": "#client_tb_dates"
+    },
+    {
+      "fragment": "#client_photo",
+      "enable_when": [
+        {
+          "question": "client-id",
+          "operator": "EXISTS",
+          "answer_boolean": false
+        }
+      ]
+    }
+  ]
+}

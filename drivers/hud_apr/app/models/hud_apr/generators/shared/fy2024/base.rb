@@ -77,6 +77,8 @@ module HudApr::Generators::Shared::Fy2024
           last_service_history_enrollment = enrollments.last
           enrollment = last_service_history_enrollment.enrollment
           source_client = enrollment.client
+          next unless source_client.present?
+
           client_start_date = [@report.start_date, last_service_history_enrollment.first_date_in_program].max
           age = source_client.age_on(client_start_date)
 
@@ -432,7 +434,8 @@ module HudApr::Generators::Shared::Fy2024
             last_enrollment.client.assessments.select do |assessment|
               assessment.AssessmentDate.present? &&
                 assessment.AssessmentDate.between?(@report.start_date, @report.end_date) &&
-                assessment.enrollment.project.id.in?(@report.project_ids)
+                assessment.enrollment.project.id.in?(@report.project_ids) &&
+                assessment.enrollment.project.participating_in_ce_on?(assessment.AssessmentDate)
             end.each do |assessment|
               assessments << apr_client.hud_report_ce_assessments.build(
                 project_id: assessment.enrollment.project.id,
@@ -445,7 +448,8 @@ module HudApr::Generators::Shared::Fy2024
               # NOTE: even though latest_ce_event may be 90 days after end of reporting period, Q10 is still fully limited by report range.
               event.EventDate.present? &&
                 event.EventDate.between?(@report.start_date, @report.end_date) &&
-                event.enrollment.project.id.in?(@report.project_ids)
+                event.enrollment.project.id.in?(@report.project_ids) &&
+                event.enrollment.project.participating_in_ce_on?(event.EventDate)
             end.each do |event|
               events << apr_client.hud_report_ce_events.build(
                 project_id: event.enrollment.project.id,
@@ -546,7 +550,7 @@ module HudApr::Generators::Shared::Fy2024
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         entry.
         open_between(start_date: @report.start_date, end_date: @report.end_date).
-        joins(:enrollment).
+        joins(:enrollment, :client, :project).
         merge(
           GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: @report.coc_codes).
           or(GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: nil)).
@@ -723,7 +727,7 @@ module HudApr::Generators::Shared::Fy2024
         e.EventDate.present? && e.EventDate.between?(
           start_date_check,
           end_date_check,
-        )
+        ) && e.enrollment.project.participating_in_ce_on?(e.EventDate)
       end
       events_from_project = potential_events.select do |e|
         e.enrollment.project.id == she_enrollment.project.id

@@ -46,12 +46,26 @@ module Types
     field :user, Application::User, null: true
     field :true_user, Application::User, null: true
     field :object_changes, Types::JsonObject, null: true, description: 'Format is { field: { fieldName: "GQL field name", displayName: "Human readable name", values: [old, new] } }'
+    field :client_id, String, null: true
+    field :client_name, String, null: true
+    field :enrollment_id, String, null: true
+    field :project_id, String, null: true
+    field :project_name, String, null: true
     # TODO: add impersonation user / true user, and display it in the interface
 
     available_filter_options do
       arg :enrollment_record_type, [ID]
       arg :client_record_type, [ID]
       arg :user, [ID]
+    end
+
+    def client_name
+      client = load_ar_association(object, :hmis_client)
+      client&.full_name
+    end
+
+    def project_name
+      load_ar_association(object, :hmis_project)&.project_name
     end
 
     # User-friendly display name for item_type
