@@ -4,10 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: true
-
 module Types
-  class Forms::Enums::Variant < Types::BaseEnum
+  class Forms::Enums::FormGroupVariant < Types::BaseEnum
     graphql_name 'Variant'
     value 'SIGNATURE', 'Render a signature envelope'
   end
