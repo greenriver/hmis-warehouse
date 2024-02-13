@@ -7,20 +7,25 @@
 # CustomDataElementDefinitions.find(key)
 module HmisExternalApis::TcHmis::Importers::Loaders
   class CustomClientDemographicsLoader
-    def initialize(directory, filename, data_source_id, user_id: User.system_user.id)
-      @directory = directory
-      @filename = filename
-      @data_source_id = data_source_id
-      @user_id = user_id
+    attr_reader :table_names
 
-      @element_definitions = Hmis::Hud::CustomDataElementDefinition.where(
-        owner_type: 'Hmis::Hud::Client',
+    def initialize(clobber:, reader:, log_file:)
+      @clobber = clobber
+      @reader = reader
+      @filename = self.class.filename
+      @data_source_id = HmisExternalApis::TcHmis.data_source.id
+      @user_id = User.system_user.id
+      @log_file = log_file
+      @table_names = []
+
+      @element_definitions = cded_source.where(
+        owner_type: client_source.name,
         data_source_id: @data_source_id,
         key: demographics_on_client.map { |key, _| key },
       ).map { |defn| [defn.key.to_sym, defn] }.
         to_h
       @stored_demographic_elements = {}
-      @client_lookup = Hmis::Hud::Client.
+      @client_lookup = client_source.
         where(data_source_id: @data_source_id).
         pluck(:personal_id, :id).
         to_h
@@ -29,9 +34,12 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       @new_postal_codes = []
     end
 
-    def process
-      reader = HmisExternalApis::TcHmis::Importers::Loaders::FileReader.new(@directory)
-      reader.rows(filename: @filename, header_row_number: 4, field_id_row_number: 1).each do |row|
+    def self.filename
+      'Demographic export report.xlsx'
+    end
+
+    def perform
+      @reader.rows(filename: @filename, header_row_number: 4, field_id_row_number: 1).each do |row|
         personal_id = row.field_value('Participant Enterprise Identifier')
         timestamp = row.field_value('Date Last Updated').to_date
 
@@ -48,17 +56,30 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
         update_client_address(personal_id, row.field_value('Address Line 1'), row.field_value('Address Line 2'), row.field_value('Zipcode'), timestamp)
       end
-      Hmis::Hud::CustomDataElement.upsert_all(
-        @stored_demographic_elements.values.map(&:values).flatten,
-        unique_by: :id,
-      )
+      cdes_to_upsert = @stored_demographic_elements.values.map(&:values).flatten
+      if cdes_to_upsert.present?
+        cde_source.upsert_all(
+          cdes_to_upsert,
+          unique_by: :id,
+        )
+        table_names << cde_source.table_name
+      end
+      contact_points_to_upsert = @stored_contact_points.values.flatten
+      if contact_points_to_upsert.present?
+        cccp_source.upsert_all(
+          contact_points_to_upsert,
+          unique_by: :id,
+        )
+        table_names << cccp_source.table_name
+      end
+      if @new_postal_codes.present? # rubocop:disable Style/GuardClause
+        cca_source.insert_all(@new_postal_codes)
+        table_names << cca_source.table_name
+      end
+    end
 
-      Hmis::Hud::CustomClientContactPoint.upsert_all(
-        @stored_contact_points.values.flatten,
-        unique_by: :id,
-      )
-
-      Hmis::Hud::CustomClientAddress.insert_all(@new_postal_codes)
+    def runnable?
+      @reader.file_present?(@filename)
     end
 
     private def update_demographic(client_id:, timestamp:, demographic_key:, value:)
@@ -68,7 +89,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       # Retrieve any existing CDEs for the client -- this will be faster than updating 1 by 1, but slower than
       # retrieving the whole dataset in advance, but will use less memory. If it is too big, we may need to batch the
       # xlsx records
-      @stored_demographic_elements[client_id] ||= Hmis::Hud::CustomDataElement.where(owner_type: 'Hmis::Hud::Client', owner_id: client_id).
+      @stored_demographic_elements[client_id] ||= cde_source.where(owner_type: 'Hmis::Hud::Client', owner_id: client_id).
         map { |e| [e.data_element_definition_id, e.attributes.symbolize_keys] }.
         to_h
 
@@ -83,7 +104,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         element[:DateUpdated] = timestamp
       else
         element = {
-          owner_type: 'Hmis::Hud::Client',
+          owner_type: client_source.name,
           owner_id: client_id,
           data_source_id: @data_source_id,
           data_element_definition_id: definition.id,
@@ -119,7 +140,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     private def update_contact_points(personal_id, phone_number, email, timestamp)
       return unless @client_lookup[personal_id].present? # Skip non-existent clients
 
-      @stored_contact_points[personal_id] ||= Hmis::Hud::CustomClientContactPoint.
+      @stored_contact_points[personal_id] ||= cccp_source.
         where(PersonalID: personal_id, system: [:phone, :email]).
         map { |e| e.attributes.symbolize_keys }
 
@@ -171,7 +192,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       # state = result.data.dig('address', 'ISO3166-2-lvl4')[-2..]
 
       # Don't duplicate zipcodes
-      @stored_postal_codes[personal_id] ||= Hmis::Hud::CustomClientAddress.where(PersonalID: personal_id).where.not(postal_code: nil).pluck(:postal_code)
+      @stored_postal_codes[personal_id] ||= cca_source.where(PersonalID: personal_id).where.not(postal_code: nil).pluck(:postal_code)
       return if @stored_postal_codes[personal_id].include?(zipcode)
 
       @stored_postal_codes[personal_id] << zipcode
@@ -208,6 +229,26 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       # Just send it along to sentry and take a quick break
       Sentry.capture_exception(e)
       sleep 1
+    end
+
+    private def cca_source
+      Hmis::Hud::CustomClientAddress
+    end
+
+    private def cccp_source
+      Hmis::Hud::CustomClientContactPoint
+    end
+
+    private def cde_source
+      Hmis::Hud::CustomDataElement
+    end
+
+    private def client_source
+      Hmis::Hud::Client
+    end
+
+    private def cded_source
+      Hmis::Hud::CustomDataElementDefinition
     end
   end
 end
