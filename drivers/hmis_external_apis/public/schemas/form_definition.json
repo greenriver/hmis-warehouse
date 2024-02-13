@@ -270,13 +270,9 @@
             "PHONE",
             "RADIO_BUTTONS",
             "RADIO_BUTTONS_VERTICAL",
-            "SSN"
-          ]
-        },
-        "variant": {
-          "enum": [
-            "SIGNATURE",
-            "HIGHLIGHT"
+            "SSN",
+            "SIGNATURE_GROUP",
+            "SIGNATURE"
           ]
         }
       }

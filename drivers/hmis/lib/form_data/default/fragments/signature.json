@@ -1,6 +1,6 @@
 {
   "type": "GROUP",
-  "variant": "SIGNATURE",
+  "component": "SIGNATURE_GROUP",
   "link_id": "signature_group",
   "text": "eSignature",
   "helper_text": "The following signatures are required on this document.",
@@ -8,9 +8,8 @@
     {
       "type": "GROUP",
       "text": "Head of Household",
-      "variant": "HIGHLIGHT",
+      "component": "SIGNATURE",
       "link_id": "head_of_household_signature_group",
-      "component": "HORIZONTAL_GROUP",
       "item": [
         {
           "type": "STRING",
@@ -52,31 +51,14 @@
               "value_local_constant": "$today"
             }
           ]
-        },
-        {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
-          "disabled_display": "PROTECTED",
-          "link_id": "head_of_household_signature_checked",
-          "required": true,
-          "text": "I do hereby certify that the above information is true, accurate and complete to the best of my knowledge",
-          "enable_when": [
-            {
-              "question": "head_of_household_signature",
-              "operator": "EXISTS",
-              "answer_boolean": true
-            }
-          ]
         }
       ]
     },
     {
       "type": "GROUP",
       "text": "Case Manager",
-      "variant": "HIGHLIGHT",
+      "component": "SIGNATURE",
       "link_id": "case_manager_signature_group",
-      "component": "HORIZONTAL_GROUP",
       "item": [
         {
           "type": "STRING",
@@ -115,22 +97,6 @@
               "_comment": "cannot be in the future",
               "type": "MAX",
               "value_local_constant": "$today"
-            }
-          ]
-        },
-        {
-          "type": "CHOICE",
-          "pick_list_reference": "NoYesMissing",
-          "component": "CHECKBOX",
-          "link_id": "case_manager_signature_checked",
-          "required": true,
-          "disabled_display": "PROTECTED",
-          "text": "I do hereby certify that the above information is true, accurate and complete to the best of my knowledge",
-          "enable_when": [
-            {
-              "question": "case_manager_signature",
-              "operator": "EXISTS",
-              "answer_boolean": true
             }
           ]
         }

@@ -1428,6 +1428,16 @@ enum Component {
   RADIO_BUTTONS_VERTICAL
 
   """
+  Signature input component
+  """
+  SIGNATURE
+
+  """
+  Signature input component
+  """
+  SIGNATURE_GROUP
+
+  """
   SSN input component
   """
   SSN
@@ -4021,11 +4031,6 @@ type FormItem {
   """
   text: String
   type: ItemType!
-
-  """
-  Component variant to use for display
-  """
-  variant: Variant
 
   """
   Whether to show a warning if this question is unanswered
@@ -11872,18 +11877,6 @@ enum VamcStationNumber {
   (757) (757) Columbus, OH
   """
   NUM_757_COLUMBUS_OH
-}
-
-enum Variant {
-  """
-  Render form group with a highlighted bar
-  """
-  HIGHLIGHT
-
-  """
-  Render a signature envelope
-  """
-  SIGNATURE
 }
 
 input VersionedRecordInput {
