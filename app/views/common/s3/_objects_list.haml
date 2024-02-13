@@ -14,7 +14,7 @@
       %tbody
         - @bucket_objects_list.each do |obj|
           %tr
-            %td= obj.key.gsub(@config.s3_path, '')
+            %td= link_to obj.key.gsub(@config.s3_path, ''), download_data_source_hmis_import_config_path(key: obj.key)
             %td.nobr= obj.last_modified
             %td.nobr= number_to_human_size obj.size
 - else

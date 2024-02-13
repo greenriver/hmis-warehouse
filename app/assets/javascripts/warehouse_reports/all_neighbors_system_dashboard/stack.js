@@ -128,7 +128,7 @@ class AllNeighborsSystemDashboardStack {
         contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
           const index = d[0].index
           const title = this.series[index].name
-          console.debug(d, title)
+          // console.debug(d, title)
           const swatches = d.map((n) => {
             const swatch = `<svg class="chart-legend-item-swatch-prs1 mb-2" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color(n.id)}"/></svg>`;
             const swatchLabel = `<div class="d-flex justify-content-start align-items-center"><div style="width:20px;padding-right:10px;">${swatch}</div><div class="pl-2">${n.name}</div></div>`;
@@ -182,6 +182,10 @@ class AllNeighborsSystemDashboardStack {
     chart.data().forEach((d) => {
       d.values.forEach((v, i) => {
         const text = $(`${selector} .bb-texts-${d.id.replaceAll('_', '-')} .bb-text-${v.x}`)
+        if (text[0] == undefined) {
+          text.text('')
+          return
+        }
         const textBox = text[0].getBBox()
         const bar = $(`${selector} .bb-bars-${d.id.replaceAll('_', '-')} .bb-bar-${v.x}`)
         const barBox = bar[0].getBBox()
@@ -332,8 +336,10 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
     } else {
       const index = this.config.keys.indexOf(name)
       let householdCount = 0
+      // Loop over each month's data
       this.series.forEach((d) => {
-        const total = d.series.filter((n) => {
+        // find data that overlaps the filter date range
+        const filtered = d.series.filter((n) => {
           if(this.state.dateRange) {
             return this.inDateRange(n.date, this.state.dateRange)
           }
@@ -345,7 +351,10 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
           }
           return true
         })
-        .map((s) => {
+        // console.log('filtered', filtered)
+        // Reset the household count for the month
+        householdCount = 0
+        const total = filtered.map((s) => {
           // Because these are averages, they need to be multiplied
           // by the number of households to get the correct value
           householdCount += s.households_count
