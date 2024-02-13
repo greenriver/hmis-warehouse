@@ -18,11 +18,9 @@ class Menu::Item < OpenStruct
   #   :visible, # lambda to determine if the user has access to this item
   #   :active, # true if the current path matches the item's path
   # )
-  def initialize
-    self.children = {}
-  end
 
   def add_child(item)
+    self.children ||= {}
     children[item.path] = item
   end
 

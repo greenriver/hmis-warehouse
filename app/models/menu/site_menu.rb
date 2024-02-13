@@ -5,6 +5,8 @@
 ###
 
 class Menu::SiteMenu < OpenStruct
-  def root
+  def add_child(item)
+    self.children ||= {}
+    children[item.path] = item
   end
 end
