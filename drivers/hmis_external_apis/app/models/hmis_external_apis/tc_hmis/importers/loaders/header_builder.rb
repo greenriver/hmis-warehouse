@@ -17,11 +17,12 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         next if row.field_value(:skip, required: false)
 
         id =  row.field_value(:id, required: false)
-        label = row.field_value(:label)
+        label = normalize_label(row.field_value(:label))
         key = row.field_value(:key, required: false)
         prefix = row.field_value(:prefix, required: false)
         suffix = row.field_value(:suffix, required: false)
         repeats = row.field_value(:repeats, required: false).present?
+        field_type = row.field_value(:field_type, required: false) || 'string'
 
         key ||= label.size <= 50 ? label_to_key(label) : id_to_key(id)
         raise unless key
@@ -31,9 +32,13 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
         seen.add key
 
-        { element_id: id, label: label, key: key, repeats: repeats, field_type: 'string' }
+        { element_id: id, label: label, key: key, repeats: repeats, field_type: field_type }
       end
       configs.compact
+    end
+
+    def normalize_label(value)
+      value&.gsub(/\s+/, ' ')&.strip.presence
     end
 
     def label_to_key(label)

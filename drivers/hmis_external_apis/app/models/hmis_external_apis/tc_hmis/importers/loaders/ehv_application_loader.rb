@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# NOT USED: this import was not necessary. Code left for reference
+
 module HmisExternalApis::TcHmis::Importers::Loaders
   class EhvApplicationLoader < CustomAssessmentLoader
     ASSESSMENT_DATE_COL = 'Date Taken'.freeze
