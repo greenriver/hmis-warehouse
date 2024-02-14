@@ -207,7 +207,7 @@ module Hmis
           rhhm.destroy!
         else
           # Update the referral household record to point to the retained client
-          rhhm.update(client_id: client_to_retain.id)
+          rhhm.update!(client_id: client_to_retain.id)
         end
       end
     end
