@@ -121,8 +121,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     let!(:scan_code) { create(:hmis_scan_card_code, client: client, value: 'P1234') }
-    let!(:deactivated_scan_code) { create(:hmis_scan_card_code, client: client, value: 'P5678', deleted_at: Time.current) }
-    let!(:expired_scan_code) { create(:hmis_scan_card_code, client: client, value: 'P6666', expires_at: Date.yesterday.end_of_day) }
+    let!(:deactivated_scan_code) { create(:hmis_scan_card_code, client: client, value: 'P5678', deleted_at: Time.current - 2.days) }
+    let!(:expired_scan_code) { create(:hmis_scan_card_code, client: client, value: 'P6666', expires_at: Date.current - 2.days) }
     let!(:other_scan_code) { create(:hmis_scan_card_code, value: 'P9999') }
 
     [
