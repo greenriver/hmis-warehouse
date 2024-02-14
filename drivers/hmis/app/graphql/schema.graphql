@@ -503,6 +503,11 @@ type AutofillValue {
   autofillWhen: [EnableWhen!]!
 
   """
+  Expression with mathematical or logical function defining the value
+  """
+  formula: String
+
+  """
   Link IDs of numeric questions to sum up and set as the value if condition is met
   """
   sumQuestions: [String!]
@@ -5211,6 +5216,7 @@ enum ItemType {
   OPEN_CHOICE
   STRING
   TEXT
+  TIME_OF_DAY
 }
 
 """
