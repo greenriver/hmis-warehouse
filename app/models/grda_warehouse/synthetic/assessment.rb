@@ -36,7 +36,7 @@ module GrdaWarehouse::Synthetic
       # Clean up orphans in HUD table
       assessment_source.
         synthetic.
-        # ActiveRecord doesn't work with a simple select since it returns nil in the ID field, must use Arel.sql
+        # ActiveRecord doesn't work with a simple select since it returns nil in the ID field
         where(assessment_source.arel_table[:AssessmentID].not_in(arel_table.project(:hud_assessment_assessment_id))).
         delete_all
     end
