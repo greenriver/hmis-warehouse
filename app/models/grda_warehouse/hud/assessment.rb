@@ -43,6 +43,14 @@ module GrdaWarehouse::Hud
       where(synthetic: true)
     end
 
+    scope :crisis_needs, -> do
+      where(AssessmentLevel: 1)
+    end
+
+    scope :housing_needs, -> do
+      where(AssessmentLevel: 2)
+    end
+
     scope :pathways_or_rrh, -> do
       where(AssessmentID: GrdaWarehouse::Hud::AssessmentQuestion.pathways_or_rrh.select(:AssessmentID))
     end
@@ -55,15 +63,23 @@ module GrdaWarehouse::Hud
       where(AssessmentID: GrdaWarehouse::Hud::AssessmentQuestion.transfer.select(:AssessmentID))
     end
 
-    def question_matching_requirement(question, answer = nil)
+    def answer(question)
+      assessment_questions.find_by(assessment_question: question.to_s)&.assessment_answer
+    end
+
+    def question_matching_requirement(question, answer = nil, case_sensitive: true)
       matching_question = assessment_questions.
         detect do |q|
-          q.AssessmentQuestion.to_s == question
+          q.AssessmentQuestion.to_s == question.to_s
         end
       return nil if matching_question.blank?
       return matching_question unless answer.present?
 
-      matching_question.AssessmentAnswer.to_s == answer
+      assessment_answer = matching_question.AssessmentAnswer.to_s
+      assessment_answer.downcase! unless case_sensitive
+      answer&.downcase! unless case_sensitive
+
+      assessment_answer == answer
     end
 
     def results_matching_requirement(question, answer = nil)

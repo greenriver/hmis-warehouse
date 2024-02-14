@@ -33,6 +33,7 @@ module Types
     end
     # Related records that were created by this Assessment, if applicable
     field :ce_assessment, Types::HmisSchema::CeAssessment, null: true
+    field :event, Types::HmisSchema::Event, null: true
     field :income_benefit, Types::HmisSchema::IncomeBenefit, null: true
     field :health_and_dv, Types::HmisSchema::HealthAndDv, null: true
     field :exit, Types::HmisSchema::Exit, null: true
@@ -79,6 +80,10 @@ module Types
 
     def ce_assessment
       form_processor ? load_ar_association(form_processor, :ce_assessment) : nil
+    end
+
+    def event
+      form_processor ? load_ar_association(form_processor, :ce_event) : nil
     end
 
     def income_benefit
