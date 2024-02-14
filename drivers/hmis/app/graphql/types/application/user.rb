@@ -8,6 +8,8 @@
 
 module Types
   class Application::User < Types::BaseObject
+    include Types::HmisSchema::HasAuditHistory
+
     # maps to Hmis::User
     description 'User account for a user of the system'
     graphql_name 'ApplicationUser'
@@ -16,11 +18,16 @@ module Types
     field :email, String, null: false
     field :first_name, String, null: true
     field :last_name, String, null: true
+
+    # activity_logs is for auditing entities that this user has accessed/viewed.
+    # It's based on every GraphQL query that was made, but the raw data is not useful to show end users
     field :activity_logs, Types::Application::ActivityLog.page_type, null: false
+
+    # client_access_summaries and enrollment_access_summaries are both downstream from hmis_activity_logs table;
+    # the Hmis::ActivityLogProcessorJob populates these views so that the data is more readable by end users.
     field :client_access_summaries, Types::Application::ClientAccessSummary.page_type, null: false do
       argument(:filters, Types::Application::ClientAccessSummary.filter_options_type, required: false)
     end
-
     field :enrollment_access_summaries, Types::Application::EnrollmentAccessSummary.page_type, null: false do
       argument(:filters, Types::Application::EnrollmentAccessSummary.filter_options_type, required: false)
     end
@@ -29,6 +36,29 @@ module Types
     field :date_updated, GraphQL::Types::ISO8601DateTime, null: false
     field :date_created, GraphQL::Types::ISO8601DateTime, null: false
     field :date_deleted, GraphQL::Types::ISO8601DateTime, null: true
+
+    # audit_history returns the changes this user has made (as opposed to activity_logs which is just views, not edits).
+    # We use the generic term 'audit' to encompass both types of history (view and edit), but many places in the code,
+    # 'audit' just refers to edit history.
+    audit_history_field(
+      excluded_keys: Types::HmisSchema::Enrollment::EXCLUDED_KEYS_FOR_AUDIT,
+      # filter_args: { type_name: 'UserAuditEvent' },
+      filter_args: { type_name: 'UserAuditEvent', omit: [:user] },
+    )
+
+    EXCLUDED_RECORD_TYPES_FOR_AUDIT = ['Hmis::Wip'].freeze
+
+    def audit_history(filters: nil)
+      v_t = GrdaWarehouse.paper_trail_versions.arel_table
+      scope = GrdaWarehouse.paper_trail_versions.
+        where(true_user_id: object.id).
+        where.not(v_t[:enrollment_id].eq(nil).and(v_t[:client_id].eq(nil)).and(v_t[:project_id].eq(nil))).
+        where.not(object_changes: nil, event: 'update').
+        where.not(item_type: EXCLUDED_RECORD_TYPES_FOR_AUDIT).
+        unscope(:order). # Unscope to remove default order, otherwise it will conflict
+        order(created_at: :desc)
+      Hmis::Filter::PaperTrailVersionFilter.new(filters).filter_scope(scope)
+    end
 
     available_filter_options do
       arg :search_term, String

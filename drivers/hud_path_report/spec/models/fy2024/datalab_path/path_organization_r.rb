@@ -19,7 +19,6 @@ RSpec.shared_context 'path organization r', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q8-Q16',
-        csv_name: 'Q8_16.csv',
       )
     end
 
@@ -47,7 +46,6 @@ RSpec.shared_context 'path organization r', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19-Q24',
-        csv_name: 'Q19_24.csv',
       )
     end
 
