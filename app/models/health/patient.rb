@@ -139,6 +139,8 @@ module Health
 
     # Record the housing status for a client on a date (default to current).
     # If there is already a housing status on the date, update it, otherwise create a new one
+    #
+    # Note that this is often called in an after_save hook, so care needs to be take not to create cycles
     def record_housing_status(status, on_date: Date.current)
       return unless status.present?
 
@@ -854,7 +856,7 @@ module Health
     # Provide a means of seeing all the case notes, regardless of data source in one location
     def case_notes_for_display
       case_notes = []
-      case_notes += client.health_touch_points.case_mancervixagement_notes.order(collected_at: :desc).map do |form|
+      case_notes += client.health_touch_points.case_management_notes.order(collected_at: :desc).map do |form|
         {
           type: :touch_point,
           id: form.id,

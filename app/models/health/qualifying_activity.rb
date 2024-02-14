@@ -325,7 +325,7 @@ module Health
     end
 
     def screening?
-      activity == 'sdoh_positive' || activity == 'sdoh_negative'
+      positive_screen? || activity == 'sdoh_negative'
     end
 
     def positive_screen?
