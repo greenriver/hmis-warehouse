@@ -22,6 +22,11 @@ module HmisExternalApis::AcHmis
     has_one :referral_posting, class_name: 'HmisExternalApis::AcHmis::ReferralPosting', required: false
 
     # active requests are ones that have not yet been fulfilled (not referenced by a referral)
-    scope :active, -> { where(referral_posting: nil, voided_at: nil) }
+    scope :active, -> {
+      posting_scope = HmisExternalApis::AcHmis::ReferralPosting.
+        where.not(referral_request_id: nil)
+      where.not(id: posting_scope.select(:referral_request_id)).
+        where(voided_at: nil)
+    }
   end
 end
