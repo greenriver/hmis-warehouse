@@ -149,6 +149,7 @@ module Health
         # The housing status string is recorded, for detail, but is mostly treated as a boolean
         # Don't overwrite an existing status if the patient would lose homeless status
         housing_status.update(status: status) if housing_status.positive_for_homelessness?
+        housing_status
       else
         housing_statuses.create(collected_on: on_date, status: status)
       end
