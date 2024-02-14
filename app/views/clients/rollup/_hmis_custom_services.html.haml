@@ -1,0 +1,15 @@
+= cache(['clients', 'hmis_custom_services', @client, can_view_projects?, controller_path, current_user], expires_in: 1.hours) do
+  :ruby
+    services = []
+  - if services.any?
+    .table-responsive(style="max-height:500px;overflow-y:auto;")
+      %table.table
+        %thead
+          %tr
+        %tbody
+          - services.each do |service|
+            %tr
+              %td
+  - else
+    .no-data
+      No custom services on file
