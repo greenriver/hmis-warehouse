@@ -10,6 +10,10 @@ module Hmis::Hud::Processors
       :youth_education_status_factory
     end
 
+    def relation_name
+      :youth_education_status
+    end
+
     def schema
       Types::HmisSchema::YouthEducationStatus
     end

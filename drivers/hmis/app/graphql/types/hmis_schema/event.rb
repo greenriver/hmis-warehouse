@@ -14,13 +14,13 @@ module Types
     field :id, ID, null: false
     field :enrollment, HmisSchema::Enrollment, null: false
     field :client, HmisSchema::Client, null: false
-    field :event_date, GraphQL::Types::ISO8601DateTime, null: false
+    field :event_date, GraphQL::Types::ISO8601Date, null: false
     field :event, HmisSchema::Enums::Hud::EventType, null: false
     field :referral_result, HmisSchema::Enums::Hud::ReferralResult, null: true
     field :location_crisis_or_ph_housing, String, null: true
     hud_field :prob_sol_div_rr_result, HmisSchema::Enums::Hud::NoYesMissing
     hud_field :referral_case_manage_after, HmisSchema::Enums::Hud::NoYesMissing
-    field :result_date, GraphQL::Types::ISO8601DateTime, null: true
+    field :result_date, GraphQL::Types::ISO8601Date, null: true
 
     def enrollment
       load_ar_association(object, :enrollment)

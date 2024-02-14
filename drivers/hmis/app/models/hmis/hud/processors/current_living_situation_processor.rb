@@ -10,8 +10,17 @@ module Hmis::Hud::Processors
       :current_living_situation_factory
     end
 
+    def relation_name
+      :current_living_situation
+    end
+
     def schema
       Types::HmisSchema::CurrentLivingSituation
+    end
+
+    # This record type can be conditionally collected on CustomAssessments
+    def dependent_destroyable?
+      true
     end
   end
 end
