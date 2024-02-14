@@ -21,6 +21,7 @@ module HmisExternalApis::AcHmis
         when 'project_crosswalk' then project_crosswalk
         when 'move_in_addresses' then move_in_address_export
         when 'postings' then posting_export
+        when 'pathways' then pathways_export
         else
           raise "invalid item to upload: #{mode}"
         end
@@ -116,6 +117,23 @@ module HmisExternalApis::AcHmis
         io_streams: [
           OpenStruct.new(
             name: 'Postings.csv',
+            io: export.output,
+          ),
+        ],
+      )
+
+      uploader.run!
+    end
+
+    def pathways_export
+      export = HmisExternalApis::AcHmis::Exporters::PathwaysExport.new
+      export.run!
+
+      uploader = Exporters::DataWarehouseUploader.new(
+        filename_format: '%Y-%m-%d-pathways.zip',
+        io_streams: [
+          OpenStruct.new(
+            name: 'Pathways.csv',
             io: export.output,
           ),
         ],

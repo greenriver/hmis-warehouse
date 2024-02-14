@@ -13,8 +13,8 @@ FactoryBot.define do
     label { 'Custom Field Label' }
     data_source { association :hmis_data_source }
     user { association :hmis_hud_user, data_source: data_source }
-    DateCreated { Date.current }
-    DateUpdated { Date.current }
+    DateCreated { Time.current }
+    DateUpdated { Time.current }
 
     trait :primary_language do
       owner_type { 'Hmis::Hud::Client' }
@@ -42,14 +42,14 @@ FactoryBot.define do
     data_source { association :hmis_data_source }
     data_element_definition { association :hmis_custom_data_element_definition, data_source: data_source }
     user { association :hmis_hud_user, data_source: data_source }
-    DateCreated { Date.current }
-    DateUpdated { Date.current }
+    DateCreated { Time.current }
+    DateUpdated { Time.current }
 
     after(:build) do |cde|
-      # likely_want_types_to_match = cde.data_element_definition.new_record? && cde.owner_type != cde.data_element_definition.owner_type
-      likely_want_types_to_match = cde.owner_type != cde.data_element_definition.owner_type
+      provided_owner_type = cde.owner_type || cde.owner&.class&.sti_name
+      likely_want_types_to_match = provided_owner_type != cde.data_element_definition.owner_type
 
-      cde.data_element_definition.update_attribute(:owner_type, cde.owner_type) if likely_want_types_to_match
+      cde.data_element_definition.update_attribute(:owner_type, provided_owner_type) if likely_want_types_to_match
     end
   end
 end
