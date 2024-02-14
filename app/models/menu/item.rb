@@ -20,15 +20,23 @@ class Menu::Item < OpenStruct
   # )
 
   def add_child(item)
-    self.children ||= {}
-    children[item.path] = item
+    self.children ||= []
+    children << item
   end
 
-  def to_html
-    self_html = [[title, path]]
-    return self_html unless children.present?
+  def options
+    {
+      href: href,
+      target: target,
+      subject: subject,
+      data: data,
+    }.reject { |_, v| v.nil? }
+  end
 
-    self_html + children.map(&:to_html)
+  def href
+    return path if subject.blank?
+
+    "mailto:#{path}?subject=#{subject}"
   end
 
   def children?
@@ -37,5 +45,27 @@ class Menu::Item < OpenStruct
 
   def icon?
     icon.present?
+  end
+
+  def group?
+    group.present?
+  end
+
+  def show?
+    if visible.nil?
+      return children.any?(&:show?) if children?
+
+      false
+    else
+      visible.call(user)
+    end
+  end
+
+  def target?
+    target.present?
+  end
+
+  def data?
+    data.present?
   end
 end

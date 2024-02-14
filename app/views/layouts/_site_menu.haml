@@ -1,17 +1,5 @@
 .o-menu.js-menu.off-canvas{class: @layout__plain_inner ? 'o-menu-prs1' : nil}
-  = page_menu
-  = render 'menus/reports'
-  = render 'menus/clients'
-  = render 'menus/health'
-  = render 'menus/admin'
-  = render 'menus/admin_dashboard'
-  - if HmisEnforcement.hmis_enabled?
-    = render 'hmis/menus/hmis'
-  = render 'menus/accounts'
-  = render 'menus/help'
-  = render 'menus/links'
-  - if Rails.env.development?
-    = render 'menus/style_guide'
+  = render 'menus/site_menu'
 
   %a.js-back-to-top.o-menu__to-top.o-menu__link{ href:'#' }
     Back to Top
