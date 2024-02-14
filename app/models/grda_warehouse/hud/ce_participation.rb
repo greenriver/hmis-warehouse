@@ -29,5 +29,25 @@ module GrdaWarehouse::Hud
         and(start_date.lteq(range.last).or(start_date.eq(nil))),
       )
     end
+
+    scope :ce_participating, -> do
+      where(arel_table[:AccessPoint].eq(1).or(arel_table[:ReceivesReferrals].eq(1)))
+    end
+
+    def ce_participating?
+      access_point == 1 || receives_referrals == 1
+    end
+
+    def ce_participating_on?(date)
+      return false unless ce_participating?
+      return false if ce_participation_status_start_date.blank?
+      # too early
+      return false if date < ce_participation_status_start_date
+      # ce ongoing
+      return true if ce_participation_status_end_date.blank?
+
+      # within range
+      date <= ce_participation_status_end_date
+    end
   end
 end

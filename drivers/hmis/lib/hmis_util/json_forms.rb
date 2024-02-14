@@ -26,10 +26,14 @@ module HmisUtil
     protected
 
     def env_key
-      return ENV['CLIENT'] if ENV['CLIENT'].present?
-
-      # default to QA environment in development to get forms with all possible questions enabled
-      'qa_hmis' if Rails.env.development?
+      @env_key ||= if Rails.env.test?
+        'test'
+      elsif ENV['CLIENT'].present?
+        ENV['CLIENT']
+      elsif Rails.env.development?
+        # default to QA environment in development to get forms with all possible questions enabled
+        'qa_hmis'
+      end
     end
 
     def fragment_map
