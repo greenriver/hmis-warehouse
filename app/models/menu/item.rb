@@ -21,6 +21,9 @@ class Menu::Item < OpenStruct
 
   def add_child(item)
     self.children ||= []
+    # Only add the item if it will be visible
+    return unless item.show?
+
     children << item
   end
 
