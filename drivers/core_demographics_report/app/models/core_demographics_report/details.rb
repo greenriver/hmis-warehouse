@@ -35,7 +35,7 @@ module
     def detail_scope_from_key(key)
       detail = detail_hash[key]
       return report_scope.none unless detail
-      return report_scope.none if detail[:cannot_view_details].present?
+      return report_scope.none if ! detail[:can_view_details].nil? && ! detail[:can_view_details]
 
       detail[:scope].call.distinct
     end
