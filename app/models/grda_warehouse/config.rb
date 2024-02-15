@@ -174,7 +174,7 @@ module GrdaWarehouse
     end
 
     def self.currrent_health_emergency_tracing_title
-      available_health_emergency_tracings.invert[get(:health_emergency_tracing).to_sym] || ''
+      available_health_emergency_tracings.invert[get(:health_emergency_tracing)&.to_sym] || ''
     end
 
     def self.current_health_emergency_title
