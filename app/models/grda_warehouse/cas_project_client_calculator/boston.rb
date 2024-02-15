@@ -142,6 +142,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :calculated_homeless_nights_sheltered,
         :calculated_homeless_nights_unsheltered,
         :total_homeless_nights_sheltered,
+        :total_homeless_nights_unsheltered,
       ]
     end
     # memoize :pathways_questions
@@ -327,7 +328,7 @@ module GrdaWarehouse::CasProjectClientCalculator
     # If the self reported days are verified, use the provided amounts.
     private def pathways_days_homeless(client)
       unsheltered_days = additional_homeless_nights_unsheltered(client)
-      sheltered_days = additional_homeless_nights_unsheltered(client)
+      sheltered_days = additional_homeless_nights_sheltered(client)
       days = (unsheltered_days + sheltered_days).clamp(0, max_extra_homeless_days(client))
 
       warehouse_unsheltered_days = calculated_homeless_nights_unsheltered(client)

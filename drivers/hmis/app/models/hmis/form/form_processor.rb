@@ -130,6 +130,19 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
   end
 
+  def ce_assessment?
+    ce_assessment&.assessment_level.in?([1, 2])
+  end
+
+  def store_assessment_questions!
+    # Rspec test isolation interferes with delayed job transaction
+    if Rails.env.test?
+      ::Hmis::AssessmentQuestionsJob.perform_now(id)
+    else
+      ::Hmis::AssessmentQuestionsJob.perform_later(id)
+    end
+  end
+
   def owner_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
     owner
   end
