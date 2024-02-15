@@ -1836,7 +1836,7 @@ class Translation < ApplicationRecord
       'c_pathways_barrier_SORI' => 'Registered sex offender (level 1,2,3) - lifetime registration (SORI)',
       'c_pathways_barriers_other' => 'Other Barriers (open cases, undocumented, etc.)',
       'c_pathways_barriers_yn' => 'Do you have any of the following histories and/or barriers?',
-      'c_pathways_Household_size' => 'If you need a bedroom size larger than an SRO, studio or 1 bedroom, select the size below.',
+      'c_pathways_Household_size' => 'What is the total number of people in your household?',
       'c_pathways_nights_sheltered_warehouse_added_total' => 'Total # of Sheltered Nights',
       'c_pathways_nights_unsheltered_warehouse_added_total' => 'Total # of Unsheltered Nights',
       'c_pathways_service_indicators' => 'Do any Service Need Indicators apply to you?',
