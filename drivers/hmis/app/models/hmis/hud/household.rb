@@ -115,19 +115,29 @@ class Hmis::Hud::Household < Hmis::Hud::Base
         earliest_entry: :desc,
       )
     when :hoh_last_name_a_to_z
-      joins(:enrollments, :client).
-      merge(Hmis::Hud::Enrollment.heads_of_households).
-      order(c_t[:LastName].asc.nulls_last)
+      joins(:enrollments, :clients).
+        merge(Hmis::Hud::Enrollment.heads_of_households).
+        order(c_t[:LastName].asc.nulls_last)
     when :hoh_last_name_z_to_a
-      joins(:enrollments).where(e_t[:RelationshipToHoH].eq(1)).joins(:clients).order(c_t[:LastName].desc.nulls_last)
+      joins(:enrollments, :clients).
+        merge(Hmis::Hud::Enrollment.heads_of_households).
+        order(c_t[:LastName].desc.nulls_last)
     when :hoh_first_name_a_to_z
-      joins(:enrollments).where(e_t[:RelationshipToHoH].eq(1)).joins(:clients).order(c_t[:FirstName].asc.nulls_last)
+      joins(:enrollments, :clients).
+        merge(Hmis::Hud::Enrollment.heads_of_households).
+        order(c_t[:FirstName].asc.nulls_last)
     when :hoh_first_name_z_to_a
-      joins(:enrollments).where(e_t[:RelationshipToHoH].eq(1)).joins(:clients).order(c_t[:FirstName].desc.nulls_last)
+      joins(:enrollments, :clients).
+        merge(Hmis::Hud::Enrollment.heads_of_households).
+        order(c_t[:FirstName].desc.nulls_last)
     when :hoh_age_youngest_to_oldest
-      joins(:enrollments).where(e_t[:RelationshipToHoH].eq(1)).joins(:clients).order(c_t[:dob].asc.nulls_last)
+      joins(:enrollments, :clients).
+        merge(Hmis::Hud::Enrollment.heads_of_households).
+        order(c_t[:dob].desc.nulls_last)
     when :hoh_age_oldest_to_youngest
-      joins(:enrollments).where(e_t[:RelationshipToHoH].eq(1)).joins(:clients).order(c_t[:dob].desc.nulls_last)
+      joins(:enrollments, :clients).
+        merge(Hmis::Hud::Enrollment.heads_of_households).
+        order(c_t[:dob].asc.nulls_last)
     else
       raise NotImplementedError
     end
