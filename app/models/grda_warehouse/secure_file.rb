@@ -30,7 +30,8 @@ module GrdaWarehouse
     end
 
     scope :expired, -> do
-      where(arel_table[:created_at].lt(1.months.ago.to_date))
+      # TODO: update this to check the delete date
+      where(arel_table[:remove_date].lt(Time.now))
     end
 
     scope :unexpired, -> do

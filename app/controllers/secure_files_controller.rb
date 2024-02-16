@@ -41,6 +41,7 @@ class SecureFilesController < ApplicationController
         sender_id: current_user.id,
         content_type: file.content_type,
         content: file.read,
+        removal_date: Time.now + 1.month,
       ),
     )
     if @secure_file.save
