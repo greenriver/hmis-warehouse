@@ -6,7 +6,7 @@
 
 # Encapsulate the specifics of the menus on the site.
 # site_menu method returns what should show up on the site-level menu
-class Menu::Menu < OpenStruct
+class Menu::Menu
   include Rails.application.routes.url_helpers
   attr_accessor :user, :context
   def initialize(user:, context:)
@@ -154,7 +154,7 @@ class Menu::Menu < OpenStruct
         user: user,
         visible: ->(user) { GrdaWarehouse::Config.get(:health_emergency_tracing).present? && user.can_edit_health_emergency_contact_tracing? },
         path: health_he_search_path,
-        title: "#{GrdaWarehouse::Config.currrent_health_emergency_tracing_title} #{Translation.translate('Contact Tracing')}",
+        title: "#{GrdaWarehouse::Config.current_health_emergency_tracing_title} #{Translation.translate('Contact Tracing')}",
       ),
     )
     menu.add_child(

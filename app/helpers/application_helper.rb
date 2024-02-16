@@ -9,7 +9,7 @@ require_relative '../../lib/util/git'
 module ApplicationHelper
   include Pagy::Frontend
   include AssetHelper
-  include Menu
+
   # permissions
   # See Role.rb for specifics of what permissions are available
   (Role.permissions + User.additional_permissions).each do |permission|
@@ -23,6 +23,10 @@ module ApplicationHelper
   # update files in S3
   def _(text)
     Translation.translate(text)
+  end
+
+  def site_menu
+    ::Menu::Menu.new(user: current_user, context: self).site_menu
   end
 
   def yes_no(boolean, include_icon: true)
