@@ -150,18 +150,7 @@ module
         joins(:source_enrollment_disabilities).
         merge(
           GrdaWarehouse::Hud::Disability.
-          where(
-            DisabilityType: ::HudUtility2024.disability_types.keys,
-            DisabilityResponse: [1, 2, 3],
-            IndefiniteAndImpairs: 1,
-          ).
-          or(
-            GrdaWarehouse::Hud::Disability.
-            where(
-              DisabilityType: ::HudUtility2024.disability_type('HIV/AIDS', true),
-              DisabilityResponse: [1, 2, 3],
-            ),
-          ),
+          where(GrdaWarehouse::Hud::Disability.indefinite_disability_arel),
         ).pluck(
           :id,
           d_t[:DisabilityType],
