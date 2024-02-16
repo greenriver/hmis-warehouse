@@ -3,7 +3,7 @@
   - site_menu.each do |item|
     - if item.children?
       - submenu_id = "#{item.id}-submenu"
-      - collapsed = :collapsed # fixme
+      - collapsed = item.collapsed_class(request.env['PATH_INFO'])
     %li.nav-item.d-flex
       .link-wrapper.w-100
         - href = if item.href then item.href else "##{submenu_id}" end
@@ -16,15 +16,14 @@
           .icon-wrapper
             - if item.icon?
               %i.menu-icon{ class: item.icon }
-
-          .pb-2= item.title
+          .link-text.pb-2= item.title
           - if item.children?
             .ml-auto.toggle-icon-up
               .i.icon-angle-up
             .ml-auto.toggle-icon-down
               .i.icon-angle-down
         - if item.children?
-          .collapse{ id: submenu_id, aria: { expanded: (collapsed != :collapsed).to_s }}
+          .collapse{ id: submenu_id, class: collapsed, aria: { expanded: (collapsed != :collapsed).to_s }}
             %ul.flex-column.pl-1.nav
               - item.children.each do |child|
                 %li.nav-item
@@ -40,6 +39,8 @@
                               .icon-wrapper
                                 %i.menu-icon{ class: grand_child.icon }
                             %div
-                              %a.nav-link{ **grand_child.options }= grand_child.title
+                              %a.nav-link{ **grand_child.options }
+                                .link-text= grand_child.title
                   - else
-                    %a.nav-link{ **child.options }= child.title
+                    %a.nav-link{ **child.options }
+                      .link-text= child.title

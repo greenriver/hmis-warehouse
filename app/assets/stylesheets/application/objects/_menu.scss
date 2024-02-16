@@ -57,6 +57,9 @@
 .site-menu a:active {
   color: white;
 }
+.site-menu a:hover .link-text {
+  text-decoration: underline;
+}
 .site-menu .menu-icon {
   color: $brand-warning-d;
 }

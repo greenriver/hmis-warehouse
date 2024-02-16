@@ -71,4 +71,24 @@ class Menu::Item < OpenStruct
   def data?
     data.present?
   end
+
+  def children_paths(item, paths)
+    found_paths = []
+
+    return found_paths unless item.children?
+
+    item.children.each do |child|
+      found_paths += children_paths(child, paths)
+
+      found_paths << child.path
+    end
+
+    found_paths
+  end
+
+  def collapsed_class(path_info)
+    return :show if children_paths(self, paths)&.include?(path_info)
+
+    :collapsed
+  end
 end
