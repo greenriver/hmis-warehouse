@@ -39,6 +39,7 @@ LABEL "ruby-version"=2.6.5
 COPY --from=builder /key.pem /cert.pem /app/config/
 
 # allow tls connection to database with verification
+COPY config/deploy/docker/assets/us-east-1-bundle.pem /etc/ssl/certs/us-east-1-bundle.pem
 COPY config/deploy/docker/assets/rds-combined-ca-bundle.pem /etc/ssl/certs/rds-combined-ca-bundle.pem
 
 COPY Gemfile Gemfile.lock Rakefile config.ru ./

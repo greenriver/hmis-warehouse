@@ -6,7 +6,7 @@ default: &default
   password: <%= ENV['DATABASE_PASS'] %>
   host: <%= ENV['DATABASE_HOST'] %>
   sslmode: 'verify-full'
-  sslrootcert: /etc/ssl/certs/rds-combined-ca-bundle.pem
+  sslrootcert: /etc/ssl/certs/us-east-1-bundle.pem
 
 <%= ENV.fetch('RAILS_ENV') { 'unknown' } %>:
   <<: *default

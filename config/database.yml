@@ -114,7 +114,7 @@ other_db: &other_db
 
 ssl: &ssl
   sslmode: <%= ENV.fetch('DATABASE_SSLMODE') { 'verify-full' } %>
-  sslrootcert: /etc/ssl/certs/rds-combined-ca-bundle.pem
+  sslrootcert: /etc/ssl/certs/us-east-1-bundle.pem
 
 development:
   primary:
