@@ -260,14 +260,18 @@ class Menu::Menu
         title: Translation.translate('Healthcare Admin'),
       ),
     )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(_user) { context.hmis_admin_visible? },
-        path: hmis_admin_users_path,
-        title: Translation.translate('HMIS Admin'),
-      ),
-    )
+    # If we don't have the ENV for HMIS, the path isn't available
+    # Checking enforcement outside keeps it from throwing an error
+    if HmisEnforcement.hmis_enabled?
+      menu.add_child(
+        Menu::Item.new(
+          user: user,
+          visible: ->(_user) { context.hmis_admin_visible? },
+          path: hmis_admin_users_path,
+          title: Translation.translate('HMIS Admin'),
+        ),
+      )
+    end
 
     menu
   end

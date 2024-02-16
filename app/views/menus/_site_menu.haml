@@ -1,6 +1,8 @@
 
 %ul.nav.flex-column.flex-nowrap.overflow-hidden.site-menu.w-100
   - site_menu.each do |item|
+    - next unless item.show?
+
     - if item.children?
       - submenu_id = "#{item.id}-submenu"
       - collapsed = item.collapsed_class(request.env['PATH_INFO'])
