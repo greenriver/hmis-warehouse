@@ -40,6 +40,8 @@ class Menu::Menu < OpenStruct
       id: 'reports',
       icon: 'icon-chart-bar',
       children: [hud_reports_menu, warehouse_reports_menu],
+      match_pattern: GrdaWarehouse::WarehouseReports::ReportDefinition.pluck(:url).map { |u| "^/#{u}.*" }.join('|'),
+      match_pattern_terminator: '.*',
     )
   end
 
@@ -75,7 +77,6 @@ class Menu::Menu < OpenStruct
     )
   end
 
-  # TODO: perhaps the visibility should boil up from the children?
   def clients_menu
     menu = Menu::Item.new(
       user: user,
@@ -83,6 +84,7 @@ class Menu::Menu < OpenStruct
       title: Translation.translate('Clients'),
       icon: 'icon-users2',
       id: 'clients',
+      match_pattern_terminator: '.*',
     )
     menu.add_child(
       Menu::Item.new(

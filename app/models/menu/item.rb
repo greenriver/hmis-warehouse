@@ -5,20 +5,6 @@
 ###
 
 class Menu::Item < OpenStruct
-  # attr_accessor(
-  #   :user,
-  #   :parent,
-  #   :children,
-  #   :title,
-  #   :path,
-  #   :id,
-  #   :icon,
-  #   :target,
-  #   :html_class,
-  #   :visible, # lambda to determine if the user has access to this item
-  #   :active, # true if the current path matches the item's path
-  # )
-
   def add_child(item)
     self.children ||= []
     # Only add the item if it will be visible
@@ -86,8 +72,16 @@ class Menu::Item < OpenStruct
     found_paths
   end
 
+  def collapse_regex
+    # Most of the time we want an exact match, but for some sections there are a bunch of different paths for the drill-down
+    terminator = match_pattern_terminator || '$'
+    regex = children_paths(self, paths).map { |p| "^#{p}#{terminator}" }.join('|')
+    regex << match_pattern if match_pattern.present?
+    Regexp.new(regex)
+  end
+
   def collapsed_class(path_info)
-    return :show if children_paths(self, paths)&.include?(path_info)
+    return :show if collapse_regex.match?(path_info)
 
     :collapsed
   end
