@@ -9,6 +9,17 @@
             Add Role
       %h2.permission-header.c-table__header-title.mx-auto Permissions
   .card-body.w-25.border-right.border-dark
+    .administrative-permissions.d-flex.mb-4
+      .btn-group.btn-group-toggle{data: {toggle: :buttons}, aria: {label: "Toggle Administrative Permissions"}}
+        %label.btn.btn-secondary.btn-xs.active
+          %input{type: :radio, name: :roles, id: 'on-administrative-permissions', checked: :checked} On
+        %label.btn.btn-secondary.btn-xs
+          %input{type: :radio, name: :roles, id: 'off-administrative-permissions'} Off
+      .ml-4
+        Administrative Permissions
+      .ml-auto
+        %i.icon-lock
+    %input.form-control.j-table__search.w-100{placeholder: 'Search permissions'}
   .list-group.list-group-flush.w-25.role-names.border-right.border-dark
     - @roles.each do |role|
       %li.list-group-item.d-flex
@@ -19,3 +30,7 @@
             %input{type: :radio, name: :roles, id: "off-#{role.name.downcase.gsub(/^a-z/, '-')}"} Off
         .ml-4
           = role.name
+  .role-wrapper.w-75.d-flex
+    - @roles.each do |role|
+      .role-name-header
+        %h3= role.name
