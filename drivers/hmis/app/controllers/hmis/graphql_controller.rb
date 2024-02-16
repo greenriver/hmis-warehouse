@@ -37,7 +37,8 @@ module Hmis
       end
       result = HmisSchema.multiplex(queries)
       log_records.zip(queries).each do |log_record, query|
-        log_record[:resolved_fields] = query.dig(:context, :activity_logger).collection
+        logger = query.dig(:context, :activity_logger)
+        log_record.merge!(logger.activity_log_attrs)
       end
       Hmis::ActivityLog.insert_all!(log_records)
       result
@@ -47,7 +48,8 @@ module Hmis
       log_record = graphql_activity_log(params)
       query = query_for_params(params)
       result = HmisSchema.execute(**query)
-      log_record[:resolved_fields] = query.dig(:context, :activity_logger).collection
+      logger = query.dig(:context, :activity_logger)
+      log_record.merge!(logger.activity_log_attrs)
       Hmis::ActivityLog.insert_all!([log_record])
       result
     end

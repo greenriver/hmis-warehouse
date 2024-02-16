@@ -248,6 +248,8 @@ Style/KeywordParametersOrder:
   Enabled: false
 Style/MethodDefParentheses:
   Enabled: false
+Style/NumericPredicate:
+  Enabled: false
 Style/RedundantAssignment:
   Enabled: false
 Style/RedundantFetchBlock:

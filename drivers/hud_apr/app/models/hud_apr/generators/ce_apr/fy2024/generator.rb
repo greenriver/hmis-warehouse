@@ -136,7 +136,7 @@ module HudApr::Generators::CeApr::Fy2024
         merge(GrdaWarehouse::Hud::Project.continuum_project).
         merge(report_scope_source.open_between(start_date: start_date, end_date: end_date)).
         merge(GrdaWarehouse::Hud::Event.within_range(start_date..event_end_date)).
-        merge(GrdaWarehouse::Hud::CeParticipation.within_range(start_date..end_date).ce_participating).
+        merge(GrdaWarehouse::Hud::CeParticipation.within_range(start_date..event_end_date).ce_participating).
         pluck(p_t[:id])
 
       project_ids & @report.project_ids

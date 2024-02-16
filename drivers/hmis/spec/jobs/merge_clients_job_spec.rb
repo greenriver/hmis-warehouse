@@ -175,6 +175,23 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
     end
   end
 
+  context 'with external referral records' do
+    let!(:referral1) { create :hmis_external_api_ac_hmis_referral }
+    let!(:referral1_hhm1) { create :hmis_external_api_ac_hmis_referral_household_member, client: client1, referral: referral1 }
+    let!(:referral1_hhm2) { create :hmis_external_api_ac_hmis_referral_household_member, client: client2, referral: referral1 }
+    let!(:referral2) { create :hmis_external_api_ac_hmis_referral }
+    let!(:referral2_hhm2) { create :hmis_external_api_ac_hmis_referral_household_member, client: client2, referral: referral2 }
+
+    it 'does not create duplicates when merging ReferralHouseholdMembers' do
+      expect { Hmis::MergeClientsJob.perform_now(client_ids: client_ids, actor_id: actor.id) }.
+        to change(HmisExternalApis::AcHmis::ReferralHouseholdMember, :count).by(-1)
+
+      expect(referral1_hhm1.reload.client_id).to eq(client1.id) # no change
+      expect(HmisExternalApis::AcHmis::ReferralHouseholdMember.find_by(id: referral1_hhm2.id)).to be_nil # deleted
+      expect(referral2_hhm2.reload.client_id).to eq(client1.id) # updated reference
+    end
+  end
+
   context 'client names' do
     let!(:c1_without_custom_name) { create(:hmis_hud_client_complete, date_created: Time.current - 3.days, data_source: data_source) }
     let!(:c2_without_custom_name) { create(:hmis_hud_client_complete, date_created: Time.current, data_source: data_source) }

@@ -186,15 +186,29 @@ module Hmis
         ::GrdaWarehouse::ClientFile,
         Hmis::File,
         Hmis::Wip,
-        HmisExternalApis::AcHmis::ReferralHouseholdMember,
       ]
 
       Rails.logger.info "Updating #{candidates.length} tables with foreign keys to merged clients (client_id)"
-
+      client_ids = clients_needing_reference_updates.map(&:id)
       candidates.each do |candidate|
-        client_ids = clients_needing_reference_updates.map(&:id)
-
         candidate.where(client_id: client_ids).update_all(client_id: client_to_retain.id)
+      end
+
+      # Update ReferralHouseholdMembers in a way that respects uniquness constraint on (client_id, referral_id)
+      HmisExternalApis::AcHmis::ReferralHouseholdMember.where(client_id: client_ids).each do |rhhm|
+        # Find retained client's household membership for this referral, if exists
+        rhhm_for_retained_client = HmisExternalApis::AcHmis::ReferralHouseholdMember.find_by(
+          client_id: client_to_retain.id,
+          referral_id: rhhm.referral_id,
+        )
+
+        if rhhm_for_retained_client
+          # The retained client already has membership on this referral, so just delete the duplicate
+          rhhm.destroy!
+        else
+          # Update the referral household record to point to the retained client
+          rhhm.update!(client_id: client_to_retain.id)
+        end
       end
     end
 

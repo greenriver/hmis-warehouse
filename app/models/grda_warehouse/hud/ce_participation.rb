@@ -41,8 +41,13 @@ module GrdaWarehouse::Hud
     def ce_participating_on?(date)
       return false unless ce_participating?
       return false if ce_participation_status_start_date.blank?
+      # too early
+      return false if date < ce_participation_status_start_date
+      # ce ongoing
+      return true if ce_participation_status_end_date.blank?
 
-      date >= ce_participation_status_start_date && ce_participation_status_end_date.blank? || date <= ce_participation_status_end_date
+      # within range
+      date <= ce_participation_status_end_date
     end
   end
 end

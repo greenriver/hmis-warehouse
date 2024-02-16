@@ -4,6 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# "CustomAssessment" is NOT a HUD defined record type. Although it uses CamelCase conventions, this model is particular to Open Path. CamelCase is used for compatibility with "Appendix C - Custom file transfer template"in the HUD HMIS CSV spec. This specifies optional additional CSV files with the naming convention of Custom*.csv
+# "CustomAssessment" is not to be confused with "Assessment" which IS a HUD defined record type
+
 # A CustomAssessment record represents an assessment that has been performed.
 # It may be a HUD assessment (intake, exit, etc) or a fully custom assessment.
 
@@ -43,6 +46,8 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   has_one :youth_education_status, through: :form_processor
   has_one :employment_education, through: :form_processor
   has_one :current_living_situation, through: :form_processor
+  has_one :ce_assessment, through: :form_processor
+  has_one :ce_event, through: :form_processor
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
@@ -134,6 +139,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
         save_in_progress
       else
         save_not_in_progress
+        form_processor.store_assessment_questions! if form_processor.ce_assessment?
       end
 
       unless as_wip

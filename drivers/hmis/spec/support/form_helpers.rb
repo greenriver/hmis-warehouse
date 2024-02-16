@@ -29,6 +29,12 @@ module FormHelpers
     definition.link_id_item_hash.find { |_link_id, item| item.required && item.mapping&.field_name&.present? }&.last
   end
 
+  def add_item_to_definition(definition, item)
+    definition.definition['item'] << item
+    definition.save!
+    definition
+  end
+
   def completed_form_values_for_role(role)
     yield(COMPLETE_VALUES[role]) if block_given?
 
@@ -61,7 +67,6 @@ module FormHelpers
         'targetPopulation' => 'HIV_PERSONS_WITH_HIV_AIDS',
         'HOPWAMedAssistedLivingFac' => 'NO',
         'continuumProject' => 'NO',
-        'HMISParticipatingProject' => 'YES',
       },
     },
     CLIENT: {
@@ -229,9 +234,9 @@ module FormHelpers
         'relationship-to-hoh' => 'SELF_HEAD_OF_HOUSEHOLD',
       },
       hud_values: {
-        'Client.names' => [
-          { first: 'First', last: 'Last', nameDataQuality: 'FULL_NAME_REPORTED', primary: true },
-        ],
+        'Client.firstName' => 'First',
+        'Client.lastName' => 'Last',
+        'Client.nameDataQuality' => 'FULL_NAME_REPORTED',
         'Client.dob' => '2000-03-29',
         'Client.dobDataQuality' => 'FULL_DOB_REPORTED',
         'Client.ssn' => 'XXXXX1234',

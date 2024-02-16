@@ -30,12 +30,12 @@ RSpec.describe 'PATH Datalab 2024', type: :model do
   end
 
   if File.exist?('drivers/datalab_testkit/spec/fixtures/inputs/merged/source/Export.csv')
-    # tests are all failing at the moment
     include_context 'path organization f'
     include_context 'path organization q'
     include_context 'path organization r'
   else
-    xit 'Data Lab Testkit based tests are skipped, files are missing' do
+    it 'Data Lab Testkit based tests are skipped, files are missing' do
+      expect(true).to be false
     end
   end
 

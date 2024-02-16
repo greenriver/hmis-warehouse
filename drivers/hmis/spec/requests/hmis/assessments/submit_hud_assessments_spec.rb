@@ -340,7 +340,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
 
     it 'succeeds if entering HoH' do
-      input = { enrollment_id: hoh_enrollment.id, form_definition_id: definition.id, confirmed: true, **build_minimum_values(definition, assessment_date: assessment_date) }
+      input = {
+        enrollment_id: hoh_enrollment.id,
+        form_definition_id: definition.id,
+        confirmed: true,
+        **build_minimum_values(definition, assessment_date: assessment_date),
+      }
       _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
       assessment_id = result.dig('data', 'submitAssessment', 'assessment', 'id')
       errors = result.dig('data', 'submitAssessment', 'errors')
@@ -364,7 +369,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             # disability
             'DisabilityGroup.developmentalDisability': 'YES',
             'DisabilityGroup.physicalDisability': 'NO',
-            'DisabilityGroup.disablingCondition': 'YES',
+            'Enrollment.disablingCondition': 'YES',
             # income
             'IncomeBenefit.incomeFromAnySource': 'NO',
             'IncomeBenefit.insuranceFromAnySource': 'CLIENT_PREFERS_NOT_TO_ANSWER',
