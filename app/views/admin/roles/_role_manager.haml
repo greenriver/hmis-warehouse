@@ -1,0 +1,21 @@
+.card.roles.d-flex
+  .card-header
+    .d-flex
+      .user-role.w-25.d-flex.border-right.border-dark
+        %h2.c-table__header-title User Roles
+        .ml-8
+          = link_to new_admin_role_path, class: 'btn btn-secondary btn-sm' do
+            %span.icon-plus
+            Add Role
+      %h2.permission-header.c-table__header-title.mx-auto Permissions
+  .card-body.w-25.border-right.border-dark
+  .list-group.list-group-flush.w-25.role-names.border-right.border-dark
+    - @roles.each do |role|
+      %li.list-group-item.d-flex
+        .btn-group.btn-group-toggle{data: {toggle: :buttons}, aria: {label: "Toggle #{role.name} visibility"}}
+          %label.btn.btn-secondary.btn-xs.active
+            %input{type: :radio, name: :roles, id: "on-#{role.name.downcase.gsub(/^a-z/, '-')}", checked: :checked} On
+          %label.btn.btn-secondary.btn-xs
+            %input{type: :radio, name: :roles, id: "off-#{role.name.downcase.gsub(/^a-z/, '-')}"} Off
+        .ml-4
+          = role.name

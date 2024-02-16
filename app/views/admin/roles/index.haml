@@ -1,8 +1,9 @@
-- content_for(:title, t('.title'))
-.d-flex
-  %h1= t '.title'
-  = link_to new_admin_role_path, class: 'btn btn-primary ml-auto' do
-    %span.icon-plus
-    Add a role
+
+%h1 Manage Permission Roles
+.well
+  .alert.alert-info
+    %p Roles are added to Access Controls to govern what actions a user can take on the associated Collections.  Each role contains a set of active permissions which each grant an ability.  You can use this page to setup any number of roles and their permissions.
+= render 'role_manager'
+
 = render partial: 'menus/admin_tabs'
 = render 'table_form', path_for_new: new_admin_role_path, path_for_patch: admin_roles_path, role_class: Role
