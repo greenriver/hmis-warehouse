@@ -179,7 +179,7 @@
         "autofill_readonly": { "type": "boolean" },
         "autofill_behavior": { "type": "string" },
         "autofill_when": { "type": "array", "items": { "$ref": "#/definitions/enable_when" } },
-        "forumula": { "type": "string" },
+        "formula": { "type": "string" },
         "sum_questions": { "type": "array", "items": { "type": "string" } }
       }
     },
