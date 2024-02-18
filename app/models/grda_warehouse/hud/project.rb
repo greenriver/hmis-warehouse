@@ -348,6 +348,7 @@ module GrdaWarehouse::Hud
       scope
     end
 
+    # TODO: This should be removed when all overrides have been removed
     # If any of these are not blank, we'll consider it overridden
     def self.override_columns
       {
@@ -634,13 +635,15 @@ module GrdaWarehouse::Hud
       [:OrganizationID]
     end
 
+    # TODO: this should be replaced with calls to project type
     def self.project_type_override
-      p_t[:computed_project_type]
+      p_t[:ProjectType]
       # cl(p_t[:act_as_project_type], p_t[:ProjectType])
     end
 
+    # TODO: this should be replaced with calls to project type
     def compute_project_type
-      act_as_project_type.presence || self.ProjectType
+      self.ProjectType
     end
 
     # Originally wasn't PH, but is overridden to PH
