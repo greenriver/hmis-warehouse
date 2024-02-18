@@ -11,12 +11,31 @@ module WarehouseReports
     before_action :set_limited, only: [:index]
 
     def index
-      @projects = project_source.joins(:organization, :data_source).
-        where(
-          p_t[:act_as_project_type].not_eq(nil).
-          and(p_t[:act_as_project_type].not_eq(p_t[:ProjectType])),
-        ).
-        order(ds_t[:short_name].asc, o_t[:OrganizationName].asc, p_t[:ProjectName].asc)
+      @overrides = HmisCsvImporter::ImportOverride.where(file_name: 'Project.csv', replaces_column: 'ProjectType')
+      overridden_ids = []
+      @overrides.each do |o|
+        if o.matched_hud_key.present?
+          # Individual overrides
+          overridden_ids += project_source.
+            where(data_source_id: o.data_source_id, ProjectID: o.matched_hud_key).
+            # where.not(ProjectType: o.replacement_value).
+            pluck(:id)
+        else
+          # Blanket overrides (this should never happen)
+          overridden_ids += project_source.
+            where(data_source_id: o.data_source_id).
+            # where.not(ProjectType: o.replacement_value).
+            pluck(:id)
+        end
+      end
+      @projects = if overridden_ids.any?
+        project_source.
+          joins(:organization, :data_source).
+          where(id: overridden_ids).
+          order(ds_t[:short_name].asc, o_t[:OrganizationName].asc, p_t[:ProjectName].asc)
+      else
+        project_source.none
+      end
     end
 
     def project_source

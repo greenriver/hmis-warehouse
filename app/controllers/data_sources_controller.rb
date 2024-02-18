@@ -100,14 +100,6 @@ class DataSourcesController < ApplicationController
         projects_attributes:
         [
           :id,
-          :act_as_project_type,
-          :hud_coc_code,
-          :hud_continuum_funded,
-          :housing_type_override,
-          :uses_move_in_date,
-          :geocode_override,
-          :geography_type_override,
-          :zip_override,
           :confidential,
           :after_create_path,
         ],

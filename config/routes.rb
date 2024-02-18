@@ -608,7 +608,7 @@ Rails.application.routes.draw do
     resources :non_hmis_uploads, except: [:update, :destroy, :edit]
     resources :custom_imports, controller: 'data_sources/custom_imports'
     resource :api_config
-    resource :hmis_import_config do 
+    resource :hmis_import_config do
       get :download
     end
 
@@ -630,10 +630,6 @@ Rails.application.routes.draw do
       get :answers, on: :member
     end
   end
-
-  resources :inventories, only: [:edit, :update]
-  resources :geography, only: [:edit, :update]
-  resources :project_cocs, only: [:edit, :update]
 
   resources :project_groups, except: [:show] do
     get :maintenance, on: :collection
