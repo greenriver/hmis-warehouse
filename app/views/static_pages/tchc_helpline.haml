@@ -1,0 +1,69 @@
+%h1.h3.mb-4 TCHC Homeless Resources Helpline Form
+%form{method: 'post', id: @config.form_id}
+  = render_form_input(label: 'First Name', required: true)
+  = render_form_input(label: 'Last Name', required: true)
+  = render_form_input(label: 'Address 1')
+  = render_form_input(label: 'Address 2')
+  = render_form_input(label: 'Date of Birth', input_type: 'date')
+
+  = render_form_input(label: 'Client Email', input_type: 'email')
+  = render_form_input(label: 'Client Phone Number', input_type: 'tel')
+
+  = render_form_radio_group(legend: 'Are you homeless (living on the street, staying in an emergency shelter or transitional housing program, fleeing domestic violence) or at-risk of homelessness?', options: yes_no_options, name: 'are_you_homeless')
+  .dependent-form-group.fade-effect(id="are_you_homeless_is_yes")
+    = render_form_radio_group(name: 'household_type', legend: 'Household Type', options: [{label: 'Single Adult (no children in the household)', value: 'single_adult'}, {label: 'A member of a household that includes Children', value: 'household_with_children'}])
+    .fade-effect(id="household_type_single_adult")
+      %ul
+        %li Arlington Shelter - for individuals - 325 W. Division Street, Arlington, 76011; 817-548-9885
+        %li Presbyterian Night Shelter - Single individuals - 2400 Cypress, Fort Worth, 76102; 817-632-740;
+        %li Safe Haven - Domestic violence victims - call Crisis line: 877-701-7233 for shelter information
+        %li Salvation Army - Families first - if not full for the night, single women may be allowed in- 1855 E. Lancaster, Fort Worth, 76102; 817-344-1801;
+        %li Union Gospel Mission - Individuals - 1321 E. Lancaster, Fort Worth, 76102; 817-332-3019 (men’s shelter); 817-338-8475 (women);
+        %li True Worth Place - daytime shelter with resources (7a-3p); 1513 E. Presidio, Fort Worth, 76102; 817-289-7474
+
+  = render_form_radio_group(legend: 'If you are not homeless, do you need financial assistance?', name: 'needs_financial_assistance', options: yes_no_options)
+
+  = render_form_checkboxes(legend: 'If you need financial assistance, what type do you need?', name: 'financial_assistance', options: ['Rental/mortgage', 'Utility'])
+
+  = render_form_select(name: 'where_you_stayed_last_night', label: 'Where did you stay last night?', options: [ "With a friend / family member / other doubled up situation", "A hospital", "Jail / Prison", "Juvenile detention facility", "In a hotel / motel", "In foster care / group home", "In a substance abuse treatment facility", "In my own housing -- rental", "In my own housing -- owned", "In a car, on the street, or in another place not meant for human habitation", {label: "In other housing -- please provide in box below", value: 'other'}])
+  .dependent-form-group.fade-effect(id="where_you_stayed_last_night_is_other")
+    = render_form_textarea(label: "Please describe the other location where you stayed last night")
+
+  = render_form_checkboxes(legend: 'What brought on your housing crisis?', name: 'cause_of_crisis', options: [ "Landlord Dispute/Disagreement", "Inability to Pay Rent or Eviction (or in the process of being evicted)", "Foreclosure", "Experiencing overcrowding/Doubled Up", "Violence or Abuse in the Household", "Unexpected Financial Hardship" ])
+
+  = render_form_radio_group(legend: 'Would you like a call back?', name: 'call_back_requested', options: yes_no_options)
+  = render_form_input(label: 'Phone Number', input_type: 'tel', required: true)
+
+  = render_form_actions
+
+- content_for :page_js do
+  :javascript
+    'use strict';
+    $(function() {
+      function configDep(selector, condValue, targetSelector) {
+        $(selector).change(function() {
+          var target = $(targetSelector);
+          var value = $(this).val();
+          console.info(selector, value, condValue);
+          if (value === condValue) {
+            target.addClass('visible');
+            target.find('input, select, textarea').prop('disabled', false);
+          } else {
+            target.removeClass('visible');
+            target.find('input, select, textarea').prop('disabled', true);
+          }
+        });
+      }
+
+      // [selector, conditionValue, targetSelector]
+      var dependents = [
+        ['input[name="household_type"]', 'single_adult', '#household_type_single_adult'],
+        ['input[name="are_you_homeless"]', 'yes', '#are_you_homeless_is_yes'],
+        ['select[name="where_you_stayed_last_night"]', 'other', '#where_you_stayed_last_night_is_other']
+      ];
+
+      var i, selector, condValue, targetSelector;
+      for ( i = 0; i < dependents.length; i++) {
+        configDep(dependents[i][0], dependents[i][1], dependents[i][2])
+      }
+    })

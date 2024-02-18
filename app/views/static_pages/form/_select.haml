@@ -1,0 +1,5 @@
+.form-group
+  %label{for:html_id, class: required && 'required'}= label
+  %select.form-control{id: html_id, name: name, required: required}
+    - options.each do |option|
+      %option{value: option[:value]}= option[:label]
