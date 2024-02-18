@@ -32,14 +32,11 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     ]
   end
 
-  # Row should be a hash with string keys in correct HUD casing
+  # Accepts either an object based on GrdaWarehouse::Hud::Base, or a has of attributes with string keys
+  # Returns same object with overides applied
+  # NOTE: this does not save the object
   def apply(row)
-    # Double check we actually have the column we're looking for (protects against typos or future spec changes)
-    return row unless row.key?(replaces_column)
-    # We were expecting a specific HUD key, and this is not it
-    return row if matched_hud_key.present? && row[hud_key] != matched_hud_key
-    # We were expecting a specific value, and this is not it
-    return row if replaces_value.present? && row[replaces_column] != replaces_value
+    return row unless applies?(row)
 
     # We either have the right HUD Key, or the right source value, or both
     # or we weren't looking for anything specific
@@ -47,6 +44,24 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     row[replaces_column] = replacement_value
 
     row
+  end
+
+  private def normalize_row(row)
+    return row.attributes if row.is_a?(GrdaWarehouse::Hud::Base)
+
+    row
+  end
+
+  def applies?(row)
+    row = normalize_row(row)
+    # Double check we actually have the column we're looking for (protects against typos or future spec changes)
+    return false unless row.key?(replaces_column)
+    # We were expecting a specific HUD key, and this is not it
+    return false if matched_hud_key.present? && row[hud_key] != matched_hud_key
+    # We were expecting a specific value, and this is not it
+    return false if replaces_value.present? && row[replaces_column] != replaces_value
+
+    true
   end
 
   def describe_with

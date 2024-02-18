@@ -101,6 +101,24 @@ RSpec.describe 'Applies overrides as expected', type: :model do
       expect(GrdaWarehouse::Hud::Funder.find_by(FunderID: 29).Funder).to eq('4')
       expect(GrdaWarehouse::Hud::Funder.pluck(:Funder).uniq.sort).to eq(['2', '4', '9', '34'].sort)
     end
+
+    it 'Applies? and apply method works even with an instance' do
+      funder = GrdaWarehouse::Hud::Funder.find_by(FunderID: 29)
+      # reset funder record since the previous run update the db as part of the import process
+      funder.update(Funder: '2')
+      override = HmisCsvImporter::ImportOverride.find_by(file_name: 'Funder.csv', matched_hud_key: '29')
+      expect(override.applies?(funder)).to eq(true)
+      expect(override.applies?(funder.attributes)).to eq(true)
+      # Change applied even though we passed an active-record based object
+      expect(override.apply(funder).Funder).to eq('4')
+
+      funder = GrdaWarehouse::Hud::Funder.find_by(FunderID: 29)
+      override = HmisCsvImporter::ImportOverride.find_by(file_name: 'Project.csv', matched_hud_key: 'PROJECT')
+      expect(override.applies?(funder)).to eq(false)
+      expect(override.applies?(funder.attributes)).to eq(false)
+      # No change
+      expect(override.apply(funder).Funder).to eq('2')
+    end
   end
 
   def setup(with_overrides:)
