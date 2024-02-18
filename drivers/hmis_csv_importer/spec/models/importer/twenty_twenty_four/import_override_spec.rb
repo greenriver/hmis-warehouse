@@ -50,6 +50,7 @@ RSpec.describe 'Applies overrides as expected', type: :model do
 
     it 'Funder have Funder 2' do
       expect(GrdaWarehouse::Hud::Funder.find_by(FunderID: 29).Funder).to eq('2')
+      expect(GrdaWarehouse::Hud::Funder.pluck(:Funder).uniq.sort).to eq(['2', '9', '34'].sort)
     end
   end
 
@@ -83,7 +84,7 @@ RSpec.describe 'Applies overrides as expected', type: :model do
     end
 
     it 'Project has ProjectType 2' do
-      expect(GrdaWarehouse::Hud::Project.find_by(ProjectID: 'PROJECT').ProjectType).to eq('2')
+      expect(GrdaWarehouse::Hud::Project.find_by(ProjectID: 'PROJECT').ProjectType).to eq(2)
     end
 
     it 'Project has ProjectType 3' do
@@ -97,8 +98,8 @@ RSpec.describe 'Applies overrides as expected', type: :model do
     end
 
     it 'Funder have Funder 4' do
-      expect(GrdaWarehouse::Hud::Funder.find_by(FunderID: 29).Funder).to eq(4)
-      expect(GrdaWarehouse::Hud::Funder.pluck(:Funder).uniq.sort).to eq([2, 4, 9, 34].sort)
+      expect(GrdaWarehouse::Hud::Funder.find_by(FunderID: 29).Funder).to eq('4')
+      expect(GrdaWarehouse::Hud::Funder.pluck(:Funder).uniq.sort).to eq(['2', '4', '9', '34'].sort)
     end
   end
 

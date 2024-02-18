@@ -32,6 +32,23 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     ]
   end
 
+  # Row should be a hash with string keys in correct HUD casing
+  def apply(row)
+    # Double check we actually have the column we're looking for (protects against typos or future spec changes)
+    return row unless row.key?(replaces_column)
+    # We were expecting a specific HUD key, and this is not it
+    return row if matched_hud_key.present? && row[hud_key] != matched_hud_key
+    # We were expecting a specific value, and this is not it
+    return row if replaces_value.present? && row[replaces_column] != replaces_value
+
+    # We either have the right HUD Key, or the right source value, or both
+    # or we weren't looking for anything specific
+    # Just replace the data
+    row[replaces_column] = replacement_value
+
+    row
+  end
+
   def describe_with
     "replaces #{replaces_column} with #{replacement_value}"
   end
@@ -46,5 +63,9 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
 
   def associated_class
     self.class.available_classes.dig(file_name, :model)
+  end
+
+  def hud_key
+    associated_class.hud_key.to_s
   end
 end

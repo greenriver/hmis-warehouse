@@ -155,6 +155,8 @@ module HmisCsvImporter::Importer
         batch = []
         failures = []
         row_failures = []
+        # Set any import overrides for this class so we avoid going back to the db
+        klass.import_overrides = import_overrides_for(file_name)
         scope.find_each(batch_size: SELECT_BATCH_SIZE) do |source|
           row_failures = []
 
@@ -195,6 +197,10 @@ module HmisCsvImporter::Importer
       Rails.logger.debug do
         " Pre-processed #{klass.table_name} #{hash_as_log_str({ importer_log_id: importer_log_id, processed: records }.merge(stats))}"
       end
+    end
+
+    private def import_overrides_for(file_name)
+      HmisCsvImporter::ImportOverride.where(file_name: file_name)
     end
 
     private def run_row_validations(klass, row, filename, importer_log)
