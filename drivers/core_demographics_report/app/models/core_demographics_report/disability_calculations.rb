@@ -13,6 +13,7 @@ module
         HudUtility2024.disability_types.each do |key, title|
           hashes["disability_#{key}"] = {
             title: "Disability #{title}",
+            can_view_details: can_view_client_disability?(@filter.user, key),
             headers: client_headers,
             columns: client_columns,
             scope: -> { report_scope.joins(:client, :enrollment).where(client_id: client_ids_in_disability(key)).distinct },
@@ -149,12 +150,11 @@ module
         joins(:source_enrollment_disabilities).
         merge(
           GrdaWarehouse::Hud::Disability.
-          where(
-            DisabilityType: ::HudUtility2024.disability_types.keys,
-            DisabilityResponse: [1, 2, 3],
-            IndefiniteAndImpairs: 1,
-          ),
-        ).pluck(:id, d_t[:DisabilityType])
+          where(GrdaWarehouse::Hud::Disability.indefinite_disability_arel),
+        ).pluck(
+          :id,
+          d_t[:DisabilityType],
+        )
     end
 
     private def disabilities_cache_key

@@ -146,6 +146,7 @@ class StyleGuidesController < ApplicationController
       health_dashboard: 'Health Dashboard',
       icon_font: 'Icon Font',
       pagination: 'Pagination',
+      menu: 'Menu',
       modals: 'Modals',
       stimulus_select: 'Stimulus Select',
       reports: 'Reports',
