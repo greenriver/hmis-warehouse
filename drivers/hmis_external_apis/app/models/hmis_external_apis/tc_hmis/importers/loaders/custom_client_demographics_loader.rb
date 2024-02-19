@@ -41,6 +41,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
         demographics_on_client.each do |key, field_name|
           update_demographic(
+            row: row,
             client_id: @client_lookup[personal_id],
             timestamp: timestamp,
             demographic_key: key,
@@ -48,9 +49,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           )
         end
 
-        update_contact_points(personal_id, row.field_value('Cell Phone'), row.field_value('Email'), timestamp)
+        update_contact_points(row, personal_id, row.field_value('Cell Phone'), row.field_value('Email'), timestamp)
 
-        update_client_address(personal_id, row.field_value('Address Line 1'), row.field_value('Address Line 2'), row.field_value('Zipcode'), timestamp)
+        update_client_address(row, personal_id, row.field_value('Address Line 1'), row.field_value('Address Line 2'), row.field_value('Zipcode'), timestamp)
       end
 
       cdes_to_insert = @stored_demographic_elements.values.map(&:values).flatten
@@ -81,9 +82,13 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       relevant_ccas.delete_all
     end
 
-    private def update_demographic(client_id:, timestamp:, demographic_key:, value:)
-      return unless client_id.present? # Skip non-existent clients
+    private def update_demographic(row:, client_id:, timestamp:, demographic_key:, value:)
       return unless value.present? # Do we want to keep last collected, or erase any that are blank w/ newest timestamp?
+
+      if client_id.blank?
+        log_skipped_row(row, field: demographic_key)
+        return
+      end
 
       definition = @element_definitions[demographic_key]
       element =  @stored_demographic_elements.dig(client_id, definition.id)
@@ -112,8 +117,12 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       }.freeze
     end
 
-    private def update_contact_points(personal_id, phone_number, email, timestamp)
-      return unless @client_lookup[personal_id].present? # Skip non-existent clients
+    private def update_contact_points(row, personal_id, phone_number, email, timestamp)
+      client_id = @client_lookup[personal_id].present?
+      if client_id.blank?
+        log_skipped_row(row, field: personal_id)
+        return
+      end
 
       if phone_number.present? && ! @stored_contact_points[personal_id].detect { |c| c[:system].to_s == 'phone' && c[:value] == phone_number }
         @stored_contact_points[personal_id] << {
@@ -121,7 +130,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           system: :phone,
           value: phone_number,
           notes: nil,
-          ContactPointID: Hmis::Hud::Base.generate_uuid,
+          ContactPointID: "import-phone-#{row[:row_number]}",
           PersonalID: personal_id,
           UserID: system_user_id,
           data_source_id: data_source.id,
@@ -137,7 +146,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           system: :email,
           value: email,
           notes: nil,
-          ContactPointID: Hmis::Hud::Base.generate_uuid,
+          ContactPointID: "import-email-#{row[:row_number]}",
           PersonalID: personal_id,
           UserID: system_user_id,
           data_source_id: data_source.id,
@@ -148,8 +157,12 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       end
     end
 
-    private def update_client_address(personal_id, _line1, _line2, zipcode, timestamp)
-      return unless @client_lookup[personal_id].present? # Skip non-existent clients
+    private def update_client_address(row, personal_id, _line1, _line2, zipcode, timestamp)
+      client_id = @client_lookup[personal_id].present?
+      if client_id.blank?
+        log_skipped_row(row, field: personal_id)
+        return
+      end
 
       # 2/13/24 -- TC decided they didn't need address information except zipcode
       # TODO: before enabling, address cleaning confirm that there are no privacy issues associated with exposing the data to Nominatim/OpenStreetMap
@@ -173,7 +186,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       @new_postal_codes << {
         PersonalID: personal_id,
         postal_code: zipcode,
-        AddressID: Hmis::Hud::Base.generate_uuid,
+        AddressID: "import-zip-#{row[:row_number]}",
         UserID: system_user_id,
         data_source_id: data_source.id,
         DateCreated: timestamp,
