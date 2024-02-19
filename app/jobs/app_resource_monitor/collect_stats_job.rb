@@ -21,7 +21,7 @@ class AppResourceMonitor::CollectStatsJob < ::BaseJob
     @active_config ||= GrdaWarehouse::RemoteCredentials::S3.active.where(slug: 'app_stats').first
   end
 
-  # To make this work, you'll need to create somthing like this:
+  # To make this work, you'll need to create something like this:
   # GrdaWarehouse::RemoteCredentials::S3.create(slug: 'app_stats', bucket: 'bucket-name', username: 'unknown', password: 'unknown', active: true, path: 'path/to/stats', region: 'us-east-1')
   def perform
     return unless active_config?

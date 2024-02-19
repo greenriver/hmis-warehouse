@@ -8,6 +8,8 @@
 #
 # Utility to help monitor health and growth of postgres database
 #
+# Note, we cast floats to text to prevent ruby from using scientific notation
+#
 class AppResourceMonitor::PostgresInspector
   extend Enumerable
   include SafeInspectable
@@ -49,6 +51,10 @@ class AppResourceMonitor::PostgresInspector
     select_all(format(DATABASE_STATS_SQL, query_variables))
   end
 
+  def toast_stats
+    select_all(format(TOAST_STATS_SQL, query_variables))
+  end
+
   def query_variables
     db_name = connection.current_database
     {
@@ -60,7 +66,7 @@ class AppResourceMonitor::PostgresInspector
   DATABASE_STATS_SQL = <<~SQL.freeze
     SELECT
       %{db_name} AS database,
-      pg_database_size(%{db_name})::bigint AS total_size
+      pg_database_size(%{db_name})::text AS total_size
     FROM
       pg_stat_database
     WHERE
@@ -72,16 +78,39 @@ class AppResourceMonitor::PostgresInspector
       %{db_name} AS database,
       t.tablename,
       c.reltuples::bigint AS num_rows,
-      pg_relation_size(quote_ident(t.tablename)::text) AS table_size,
-      pg_indexes_size(quote_ident(t.tablename)::text) AS index_size
+      pg_relation_size(quote_ident(t.tablename)::text)::text AS table_size,
+      pg_indexes_size(quote_ident(t.tablename)::text)::text AS index_size,
+      n_live_tup::text AS live_tuples,
+      n_dead_tup::text AS dead_tuples,
+      CASE WHEN n_live_tup = 0 THEN '0' ELSE (n_dead_tup::float / n_live_tup)::text END AS dead_tuple_ratio,
+      GREATEST(stat.last_vacuum, stat.last_autovacuum) AS last_vacuum,
+      GREATEST(stat.last_analyze, stat.last_autoanalyze) AS last_analyze
     FROM
       pg_tables t
     LEFT OUTER JOIN
       pg_class c ON t.tablename = c.relname
+    LEFT OUTER JOIN
+      pg_stat_user_tables stat ON t.tablename = stat.relname AND t.schemaname = stat.schemaname
     WHERE
       t.schemaname = %{schema}
     ORDER BY
       t.tablename;
+  SQL
+
+  TOAST_STATS_SQL = <<~SQL.freeze
+    SELECT
+      %{db_name} AS database,
+      relname AS table_name,
+      pg_total_relation_size(reltoastrelid)::text AS toast_table_size
+    FROM
+      pg_class c
+    JOIN
+      pg_namespace n ON c.relnamespace = n.oid
+    WHERE
+      nspname = %{schema} AND
+      reltoastrelid != 0
+    ORDER BY
+      table_name;
   SQL
 
   INDEX_STATS_SQL = <<~SQL.freeze
@@ -89,10 +118,10 @@ class AppResourceMonitor::PostgresInspector
       %{db_name} AS database,
       t.tablename,
       ipg.relname AS index_name,
-      idx_scan AS number_of_scans,
-      idx_tup_read AS tuples_read,
-      idx_tup_fetch AS tuples_fetched,
-      pg_relation_size(ipg.oid) AS index_size
+      idx_scan::text AS number_of_scans,
+      idx_tup_read::text AS tuples_read,
+      idx_tup_fetch::text AS tuples_fetched,
+      pg_relation_size(ipg.oid)::text AS index_size
     FROM
       pg_tables t
     JOIN
