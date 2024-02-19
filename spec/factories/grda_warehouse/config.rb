@@ -3,7 +3,6 @@ FactoryBot.define do
   end
 
   factory :config_b, class: 'GrdaWarehouse::Config' do
-    project_type_override { true }
     family_calculation_method { 'multiple_people' }
     release_duration { 'Indefinite' }
     allow_partial_release { true }
@@ -16,7 +15,6 @@ FactoryBot.define do
   end
 
   factory :config_s, class: 'GrdaWarehouse::Config' do
-    project_type_override { true }
     family_calculation_method { 'adult_child' }
     release_duration { 'One Year' }
     allow_partial_release { false }
@@ -29,7 +27,6 @@ FactoryBot.define do
   end
 
   factory :config_3c, class: 'GrdaWarehouse::Config' do
-    project_type_override { true }
     family_calculation_method { 'adult_child' }
     release_duration { 'One Year' }
     allow_partial_release { true }
@@ -42,7 +39,6 @@ FactoryBot.define do
   end
 
   factory :config_tc, class: 'GrdaWarehouse::Config' do
-    project_type_override { true }
     family_calculation_method { 'multiple_people' }
     release_duration { 'Use Expiration Date' }
     allow_partial_release { false }
@@ -55,7 +51,6 @@ FactoryBot.define do
   end
 
   factory :config_ma, class: 'GrdaWarehouse::Config' do
-    project_type_override { true }
     family_calculation_method { 'adult_child' }
     release_duration { 'One Year' }
     allow_partial_release { false }
@@ -68,7 +63,6 @@ FactoryBot.define do
   end
 
   factory :config_mi, class: 'GrdaWarehouse::Config' do
-    project_type_override { true }
     family_calculation_method { 'adult_child' }
     release_duration { 'One Year' }
     allow_partial_release { false }
@@ -81,7 +75,6 @@ FactoryBot.define do
   end
 
   factory :config_va, class: 'GrdaWarehouse::Config' do
-    project_type_override { true }
     family_calculation_method { 'adult_child' }
     release_duration { 'Indefinite' }
     allow_partial_release { false }
