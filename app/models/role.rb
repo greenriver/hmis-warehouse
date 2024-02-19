@@ -141,8 +141,27 @@ class Role < ApplicationRecord
     permissions_with_descriptions.select { |_k, attrs| attrs[:access].include?(access) }.keys
   end
 
+  def self.permissions_by_group
+    {}.tap do |perms|
+      permissions_with_descriptions.each do |key, role|
+        role[:categories].each do |category|
+          perms[category] ||= {}
+          perms[category][key] = role
+        end
+      end
+    end
+  end
+
   def enabled_permissions
     self.class.permissions_with_descriptions.select { |k, _| send(k) }
+  end
+
+  def bg_color
+    @bg_color ||= "##{Digest::MD5.hexdigest(name)[0, 6]}"
+  end
+
+  def fg_color
+    @fg_color ||= GrdaWarehouse::SystemColor.new.calculated_foreground_color(bg_color)
   end
 
   def self.permissions_with_descriptions
