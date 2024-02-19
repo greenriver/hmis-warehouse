@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -44,7 +44,6 @@ end
 
 def compare_results(goal: nil, file_path:, question:, skip: [], external_column_header: false, external_row_label: false, detail_columns: [])
   goal ||= goals(file_path: file_path, question: question, external_column_header: external_column_header)
-
   aggregate_failures 'comparing cells' do
     results_metadata = report_result.answer(question: question).metadata
     expect(results_metadata['last_row']).to eq(goal.count), "expected #{results_metadata['last_row']} total rows, got #{goal.count} rows"

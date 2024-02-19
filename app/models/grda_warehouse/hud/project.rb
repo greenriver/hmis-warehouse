@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -165,6 +165,10 @@ module GrdaWarehouse::Hud
         and(arel_table[:hud_continuum_funded].eq(nil)).
         or(arel_table[:hud_continuum_funded].eq(true)),
       )
+    end
+
+    scope :continuum_project, -> do
+      coc_funded
     end
 
     scope :enrollments_combined, -> do
@@ -875,6 +879,13 @@ module GrdaWarehouse::Hud
 
     def operating_end_date_to_use
       operating_end_date_override.presence || self.OperatingEndDate
+    end
+
+    # NOTE: preload ce_participations before calling this
+    def participating_in_ce_on?(date)
+      ce_participations.detect do |ce|
+        ce.ce_participating_on?(date)
+      end.present?
     end
 
     # DEPRECATED_FY2024 no longer used in FY2024

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -78,6 +78,40 @@ module AllNeighborsSystemDashboard
 
     def scaffold_link
       1
+    end
+
+    def debug_column_names
+      [
+        'destination_client_id',
+        'enrollment_id',
+        'entry_date',
+        'project_name',
+        'project_type',
+        'prior_living_situation_category',
+        'household_type',
+        'household_id',
+        'relationship_to_hoh',
+        'move_in_date',
+        'placed_date',
+        'exit_date',
+        'exit_type',
+        'destination_text',
+        'age',
+        'gender',
+        'race_list',
+        'ce_entry_date',
+        'ce_referral_date',
+        # 'return_date',
+      ].map do |col|
+        [
+          col,
+          col.humanize,
+        ].freeze
+      end.to_h
+    end
+
+    def debug_attributes
+      attributes.slice(*debug_column_names.keys)
     end
   end
 end

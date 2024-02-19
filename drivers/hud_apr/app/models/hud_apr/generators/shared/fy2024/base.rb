@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -434,7 +434,8 @@ module HudApr::Generators::Shared::Fy2024
             last_enrollment.client.assessments.select do |assessment|
               assessment.AssessmentDate.present? &&
                 assessment.AssessmentDate.between?(@report.start_date, @report.end_date) &&
-                assessment.enrollment.project.id.in?(@report.project_ids)
+                assessment.enrollment.project.id.in?(@report.project_ids) &&
+                assessment.enrollment.project.participating_in_ce_on?(assessment.AssessmentDate)
             end.each do |assessment|
               assessments << apr_client.hud_report_ce_assessments.build(
                 project_id: assessment.enrollment.project.id,
@@ -447,7 +448,8 @@ module HudApr::Generators::Shared::Fy2024
               # NOTE: even though latest_ce_event may be 90 days after end of reporting period, Q10 is still fully limited by report range.
               event.EventDate.present? &&
                 event.EventDate.between?(@report.start_date, @report.end_date) &&
-                event.enrollment.project.id.in?(@report.project_ids)
+                event.enrollment.project.id.in?(@report.project_ids) &&
+                event.enrollment.project.participating_in_ce_on?(event.EventDate)
             end.each do |event|
               events << apr_client.hud_report_ce_events.build(
                 project_id: event.enrollment.project.id,
@@ -725,7 +727,7 @@ module HudApr::Generators::Shared::Fy2024
         e.EventDate.present? && e.EventDate.between?(
           start_date_check,
           end_date_check,
-        )
+        ) && e.enrollment.project.participating_in_ce_on?(e.EventDate)
       end
       events_from_project = potential_events.select do |e|
         e.enrollment.project.id == she_enrollment.project.id

@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -77,6 +77,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   STATIC_FORM_ROLES = [
     :FORM_RULE,
     :AUTO_EXIT_CONFIG,
+    :CLIENT_ALERT,
     :FORM_DEFINITION,
   ].freeze
 

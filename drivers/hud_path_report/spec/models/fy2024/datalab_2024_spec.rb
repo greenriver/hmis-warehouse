@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -35,7 +35,8 @@ RSpec.describe 'PATH Datalab 2024', type: :model do
     include_context 'path organization q'
     include_context 'path organization r'
   else
-    xit 'Data Lab Testkit based tests are skipped, files are missing' do
+    it 'Data Lab Testkit based tests are skipped, files are missing' do
+      expect(true).to be false
     end
   end
 

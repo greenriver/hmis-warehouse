@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -390,6 +390,22 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         categories: [
           'Administrative',
+        ],
+      },
+      can_view_client_alerts: {
+        description: 'Grants the ability to view Client Alerts',
+        administrative: true,
+        access: [:viewable],
+        categories: [
+          'Client Details',
+        ],
+      },
+      can_manage_client_alerts: {
+        description: 'Grants the ability to manage Client Alerts',
+        administrative: true,
+        access: [:editable],
+        categories: [
+          'Client Details',
         ],
       },
     }

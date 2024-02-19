@@ -1,5 +1,5 @@
 ###
-# Copyright 2016 - 2023 Green River Data Analysis, LLC
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
@@ -685,8 +685,8 @@ module HomelessSummaryReport
           calculations: [:count, :average, :median],
         },
         m2_reentry_days: {
-          cells: [['2', 'B7']],
-          value_accessor: ->(_spm_return) { spm_episode.days_to_return },
+          cells: [['2a and 2b', 'B7']],
+          value_accessor: ->(spm_return) { spm_return.days_to_return },
           title: 'Re-Entering Homelessness',
         },
         m7a1_destination: {
