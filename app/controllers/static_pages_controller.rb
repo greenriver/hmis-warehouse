@@ -14,6 +14,9 @@ class StaticPagesController < ActionController::Base
     when 'tchc_helpline'
       @config = tchc_config
       render 'tchc_helpline'
+    when 'tchc_prevention_screening'
+      @config = tchc_config
+      render 'tchc_prevention_screening'
     else
       head :not_found
     end

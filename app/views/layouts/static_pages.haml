@@ -11,10 +11,13 @@
     %script(src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous")
     - # %script(src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous")
     :css
+      section {
+        margin-bottom: 2rem;
+      }
       .form-group {
         margin-bottom: 1.25rem;
       }
-      .form-group .required:after {
+      .form-group > .required:after, fieldset > .required:after {
         content: " *";
         color: red;
         font-weight: 100;
@@ -23,13 +26,11 @@
         font-size: 16px;
         font-weight: normal;
       }
-      fieldset {
-        margin-bottom: 1.25rem;
-      }
       main.container {
         max-width: 540px;
       }
-      .dependent-form-group > .form-group{
+      .dependent-form-group{
+        margin-top: 1rem;
         padding-left : 1.25rem;
         border-left: 5px solid #eee;
       }
@@ -40,6 +41,7 @@
         }
       }
       .fade-effect {
+        position: absolute;
         overflow: hidden;
         max-height: 0;
         opacity: 0;
@@ -47,6 +49,7 @@
         transition: opacity 0.5s ease;
       }
       .fade-effect.visible {
+        position: relative;
         opacity: 1;
         visibility: visible;
         max-height: 2000px; /* Adjust as necessary to fit content */
@@ -63,7 +66,7 @@
 
   :javascript
     'use strict';
-    (function() {
+    $(function() {
       if (!window.grecaptcha) return;
       var captchaKey = #{@config.google_captcha_key.to_json.html_safe};
       var formId = #{@config.form_id.to_json.html_safe};
@@ -87,5 +90,33 @@
           });
         });
       });
-    })();
+    });
+
+    window.addDependentGroup = function(inputName, condValue, targetSelector) {
+      var target = $(targetSelector);
+      var show = function() {
+        target.addClass('visible');
+        target.attr('aria-hidden', "false");
+        target.find('input, select, textarea').prop('disabled', false);
+      }
+      var hide = function() {
+        target.removeClass('visible');
+        target.attr('aria-hidden', "true");
+        target.find('input, select, textarea').prop('disabled', true);
+      }
+
+      $('[name="' + inputName + '"]').change(function() {
+        var el = $(this)
+        var value = el.val();
+        console.info('hi', inputName, value, condValue, el.attr('type'), el.is(':checked'))
+        if (el.prop('type') === 'checkbox') {
+          if (value === condValue) {
+            el.is(':checked') ? show() : hide();
+          }
+        } else {
+          value === condValue ? show() : hide();
+        }
+      });
+      hide();
+    }
   = yield :page_js

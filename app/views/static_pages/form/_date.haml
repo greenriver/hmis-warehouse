@@ -1,0 +1,9 @@
+%fieldset
+  %legend{class: required && 'required'}= legend
+  .form-row(style="max-width: 300px")
+    .col-3
+      = render_numeric_input(label: 'Month', name: "#{name}_month", required: required, input_placeholder: 'MM')
+    .col-3
+      = render_numeric_input(label: 'Day', name: "#{name}_day", required: required, input_placeholder: 'DD')
+    .col-6
+      = render_numeric_input(label: 'Year', name: "#{name}_year", required: required, input_placeholder: 'YYYY')

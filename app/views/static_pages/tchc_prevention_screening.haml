@@ -1,0 +1,56 @@
+%h1.h3.mb-4 Tarrant County Prevention Screening Form
+%form{method: 'post', id: @config.form_id}
+  %section
+    %h2.h4 About you
+    = render_form_input(label: 'First Name', required: true)
+    = render_form_input(label: 'Last Name', required: true)
+    = render_form_input(label: 'Address & Apartment Number', required: true)
+    = render_form_input(label: 'City', required: true)
+    = render_form_input(label: 'Zip Code')
+
+    = render_form_input(label: 'Client Email', input_type: 'email')
+    = render_form_input(label: 'Client Phone Number', input_type: 'tel')
+    = render_form_date(legend: 'Date of Birth', name: 'dob', required: true)
+
+  %section
+    %h2.h4 Overview:
+    %p Please note: Assessments will be evaluated for eligibility and completeness. Tenants will be notified or asked for additional requested items by email.
+    %p Tenants MUST NOT have received rental assistance from any other sources for which tenant is requesting at this time.
+
+    = render_form_radio_group(legend: 'Is there a military veteran in the home?', options: yes_no_options, name: 'military_veteran_in_home') do
+      = render_dependent_block(input_name: 'military_veteran_in_home', input_value: 'yes') do
+        %p If there is a military veteran in the home, please call Community Actions Partners first at 817-392-5780.
+
+    = render_form_radio_group(legend: 'Have you received rental assistance within the past three (3) years?', options: yes_no_options)
+    = render_form_radio_group(legend: 'Have you received "Texas Rent Relief" or "Tarrant County ERAP" assistance?', options: yes_no_options)
+    = render_form_radio_group(legend: 'Do you live in a unit assisted by another Federal Funded housing, such as Section 8?', options: yes_no_options)
+
+    = render_form_radio_group(legend: 'Do you live in a unit assisted by another Federal Funded housing, such as Section 8?', options: yes_no_options)
+
+    = render_form_checkboxes(legend: 'My information', options: ["I understand that my information will be cross referenced with other agencies that may have provided rental assistance to my household within the last 3 years"])
+    = render_form_textarea(label: 'Please explain current Household "Crisis" that has resulted in the non-Payment of rent for your household this month.', rows: 3)
+    = render_form_radio_group(legend: 'Have you ever been literally homeless (Stayed in an Emergency Shelter or Outside or a place not meant for habitation)?', options: yes_no_options)
+
+  %section
+    %h2.h4 Rental History:
+    = render_form_select(label: 'How many months is your lease?', options: ['6 months', '12 months', '18 months', '24 months', 'Other'])
+    = render_form_select(label: 'How many bedrooms is your unit?', options: ['1 bedroom', '2 bedroom','3 bedroom','4 bedroom', '5 bedroom'])
+    = render_form_radio_group(legend: 'Have you received a "3 Day Notice to Vacate" from your property management?', options: yes_no_options)
+    = render_form_radio_group(legend: 'Have you been served by the Tarrant County Constable Office with a formal eviction court date?', options: yes_no_options)
+    = render_numeric_input(label: 'How many people on the lease are over 18 years old?')
+    = render_numeric_input(label: 'How much is your base rent? (This does NOT include utilities or other incidentals.)')
+    = render_numeric_input(label: 'As of today, how much do you owe on your rent?')
+    = render_form_textarea(label: 'Landlord/Property Owner NAME, PHONE NUMBER, and EMAIL ADDRESS:', rows: 3)
+
+  %section
+    %h2.h4 Income Details:
+    = render_form_radio_group(legend: 'Does the landlord have a relationship to anyone in the household?', options: yes_no_options)
+    = render_form_radio_group(legend: 'Has any person or program assisted in paying rent for your household in past 12 months?', options: yes_no_options)
+    = render_form_radio_group(legend: 'Do you live outside of the following cities: Arlington, Fort Worth, or Grand Prairie?', options: yes_no_options)
+    = render_numeric_input(label: 'What is the GROSS Income per pay period or Monthly Income for household members over age 18?')
+    = render_form_checkboxes(legend: 'What forms of income were received within the past 30 days? (All income sources will be counted.  Proof of employment termination may be needed.)', options: ["SSI", "SSDI", "Veteran's Benefits", "Food Stamps", "Child Support", "Unemployment"])
+
+    = render_form_radio_group(legend: 'Did you lose employment or have lower income within the past 30 days?', options: yes_no_options)
+    = render_form_radio_group(legend: 'Has anyone in your household received written notice that they will start receiving income and or state benefits? (Ex: Job offer letter, unemployment benefits, SNAP benefits, child support, etc.)', options: yes_no_options)
+
+  = render_form_actions

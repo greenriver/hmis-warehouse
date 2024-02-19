@@ -3,3 +3,5 @@
   %select.form-control{id: html_id, name: name, required: required}
     - options.each do |option|
       %option{value: option[:value]}= option[:label]
+  - if local_assigns.key?(:footer)
+    = footer
