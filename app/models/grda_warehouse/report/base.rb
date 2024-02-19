@@ -71,7 +71,6 @@ module GrdaWarehouse::Report
         :household_id,
         :project_type,
         :project_tracking_method,
-        :computed_project_type,
       ].each do |column|
         connection.execute("create index #{column}_rsh_index on recent_service_history (#{column})")
       end
