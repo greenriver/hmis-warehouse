@@ -59,36 +59,4 @@ RSpec.describe HmisCsvTwentyTwentyFour::Exporter::Base, type: :model do
       expect(csv.count).to eq 3
     end
   end
-
-  describe 'with a ProjectCoC override' do
-    before(:all) do
-      cleanup_test_environment
-      setup_data
-
-      @project_cocs.first.update(CoCCode: 'XX-501')
-      @project_cocs.second.update(hud_coc_code: 'XX-501')
-
-      @involved_project_ids = @projects.map(&:id)
-      @exporter = HmisCsvTwentyTwentyFour::Exporter::Base.new(
-        start_date: 1.week.ago.to_date,
-        end_date: Date.current,
-        projects: @involved_project_ids,
-        coc_codes: 'XX-501',
-        period_type: 3,
-        directive: 3,
-        user_id: @user.id,
-      )
-      @exporter.export!(cleanup: false, zip: false, upload: false)
-    end
-
-    after(:all) do
-      @exporter.remove_export_files
-      cleanup_test_environment
-    end
-
-    it 'includes the ProjectCoC with the override' do
-      csv = CSV.read(File.join(@exporter.file_path, 'ProjectCoC.csv'), headers: true)
-      expect(csv.count).to eq 2
-    end
-  end
 end

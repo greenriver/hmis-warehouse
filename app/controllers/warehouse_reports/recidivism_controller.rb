@@ -69,7 +69,7 @@ module WarehouseReports
     end
 
     private def columns
-      [:client_id, :project_name, :first_date_in_program, :last_date_in_program, :move_in_date, :computed_project_type, :id, bool_or(p_t[:confidential], o_t[:confidential])]
+      [:client_id, :project_name, :first_date_in_program, :last_date_in_program, :move_in_date, :project_type, :id, bool_or(p_t[:confidential], o_t[:confidential])]
     end
 
     private def to_hash_confidentialized(row)

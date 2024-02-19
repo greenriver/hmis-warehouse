@@ -297,6 +297,7 @@ module HmisExternalApis::AcHmis::Importers
       dangling_funders.each(&:destroy!)
     end
 
+    # FIXME: Are these still needed?  If they are, can we move to the new mechanism?
     # Apply overrides that can be set in the Warehouse
     def apply_project_overrides
       overrides = {

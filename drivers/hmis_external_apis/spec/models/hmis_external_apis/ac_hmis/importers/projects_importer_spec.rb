@@ -42,6 +42,7 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::ProjectsImporter, type: :mod
     expect(Hmis::Unit.where(unit_type: active_unit_type).count).to eq(10)
   end
 
+  # FIXME: these should be removed, or replaced with import_overrides
   it 'updates existing project, and applies overrides' do
     # p1 ProjectID matches the fixture file
     start_date_override = 1.year.ago.to_date

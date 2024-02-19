@@ -6,12 +6,6 @@
       .enrollment__project_type.mr-2{class: "client__service_type_#{project.ProjectType}"}
         .service-type__program-type{data: {toggle: :tooltip, title: HudUtility2024.project_type(project.ProjectType)}}
           = HudUtility2024.project_type_brief project.ProjectType
-      - if project.act_as_project_type.present? && project.act_as_project_type != project.ProjectType
-        .o-text--italic.mr-2
-          acts as
-        .enrollment__project_type{class: "client__service_type_#{project.act_as_project_type}"}
-          .service-type__program-type{data: {toggle: :tooltip, title: HudUtility2024.project_type(project.act_as_project_type)}}
-            = HudUtility2024.project_type_brief project.act_as_project_type
     %td.text-center
       %span{data: {toggle: :tooltip, title: project.confidential_hint}}
         = checkmark project.confidential

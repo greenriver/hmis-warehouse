@@ -32,7 +32,6 @@ RSpec.describe GrdaWarehouse::ChEnrollment, type: :model do
     create(
       :hud_project,
       ProjectType: 0,
-      computed_project_type: 0,
       ExportID: source_export.ExportID,
       data_source_id: source_client.data_source_id,
     )

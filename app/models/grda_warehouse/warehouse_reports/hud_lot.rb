@@ -10,7 +10,7 @@ module GrdaWarehouse::WarehouseReports
   class HudLot
     attr_accessor :filter, :client
 
-    def initialize(client:, filter: )
+    def initialize(client:, filter:)
       @client = client
       @filter = filter
     end
@@ -37,7 +37,7 @@ module GrdaWarehouse::WarehouseReports
           summary[key] ||= Set.new
           summary[key] << type
         end
-        summary.sort_by{|k, _|}.reverse
+        summary.sort_by { |k, _| }.reverse
       end
     end
 
@@ -45,7 +45,7 @@ module GrdaWarehouse::WarehouseReports
       @details_by_range ||= begin
         details = []
         (start_date, current_location) = locations_by_date&.first
-        locations_by_date.each_with_index do |(date, type), index|
+        locations_by_date.each_with_index do |(date, type), _index|
           next_date = date + 1.days
           next_location = locations_by_date[next_date]
           # we've reached the end
@@ -104,17 +104,17 @@ module GrdaWarehouse::WarehouseReports
         extra_days = {}
         # Fill in any gaps of < 7 days
         lit_dates.to_a.each_with_index do |(date, _), i|
-          (next_date, _) = lit_dates.to_a[i + 1]
+          (next_date, _) = lit_dates.to_a[i + 1] # rubocop:disable Style/TrailingUnderscoreVariable
           next if next_date.blank? || next_date > filter.end
 
-          if next_date < date + 7.days
+          if next_date < date + 7.days # rubocop:disable Style/Next
             (date..next_date).each do |d|
               extra_days[d] = shelter_stay unless lit_dates.key?(d)
             end
           end
         end
 
-        lit_dates.merge(extra_days).sort_by{|k,_| k}.to_h
+        lit_dates.merge(extra_days).sort_by { |k,_| k }.to_h
       end
     end
 
@@ -127,10 +127,11 @@ module GrdaWarehouse::WarehouseReports
     private def breaks(un_processed_dates)
       breaks = {}
       a_dates = un_processed_dates.to_a
-      dates_present = a_dates.select{|_, v| v.present?}
+      dates_present = a_dates.select { |_, v| v.present? }
       dates_present.each_with_index do |(date, type), i|
         next if i.zero?
         next if shelter_stay?(type)
+
         previous_i = i - 1
         next unless shelter_stay?(dates_present[previous_i].last)
         break unless dates_present.map(&:last)[i..].include?(shelter_stay)
@@ -145,10 +146,10 @@ module GrdaWarehouse::WarehouseReports
     end
 
     # For any date not already assigned a status, or which has a status of Self-reported street/shelter, assign a status of Self- reported/potential break for the date immediately prior to Project Start Date for any continuum enrollment where all of the following are true:
-      # Project Start Date minus 1 day is between any two dates with a status of Documented street/shelter or Self- reported street/shelter.
-      # AND Living Situation is one of the following:
-        # a. Institutional stay of more than 90 days
-        # b. OR Transitional or permanent housing situation of 7 nights or more
+    # Project Start Date minus 1 day is between any two dates with a status of Documented street/shelter or Self- reported street/shelter.
+    # AND Living Situation is one of the following:
+    # a. Institutional stay of more than 90 days
+    # b. OR Transitional or permanent housing situation of 7 nights or more
 
     private def self_reported_breaks(un_processed_dates)
       self_reported_breaks = {}
@@ -209,16 +210,17 @@ module GrdaWarehouse::WarehouseReports
           end
         else
           next unless project.ContinuumProject == 1
-          next unless en.computed_project_type.in?([0, 1, 2, 4, 8, 11, 12, 14])
+          next unless en.project_type.in?([0, 1, 2, 4, 8, 11, 12, 14])
+
           # Homeless enrollment, or institutional stay
           if en.es? || en.es_nbn? || en.sh? || en.so? || HudUtility2024.institutional_situations(as: :prior).include?(enrollment&.LivingSituation)
-            (enrollment.DateToStreetESSH..en.first_date_in_program).each do |d|
+            (enrollment.DateToStreetESSH..en.first_date_in_program).each do |d| # rubocop:disable Style/IdenticalConditionalBranches
               self_report_dates[d] = self_reported_shelter
             end
           else
             next unless enrollment.LOSUnderThreshold == 1 && enrollment.PreviousStreetESSH == 1
 
-            (enrollment.DateToStreetESSH..en.first_date_in_program).each do |d|
+            (enrollment.DateToStreetESSH..en.first_date_in_program).each do |d|#  rubocop:disable Style/IdenticalConditionalBranches
               self_report_dates[d] = self_reported_shelter
             end
           end
@@ -231,7 +233,7 @@ module GrdaWarehouse::WarehouseReports
       self_report_dates
     end
 
-    private def set_unknowns(un_processed_dates)
+    private def set_unknowns(un_processed_dates) # rubocop:disable Do not prefix writer method names with `set_`. (convention:Naming/AccessorMethodName
       unknown_dates = {}
       un_processed_dates.each do |d, type|
         unknown_dates[d] = unknown if type.blank?
@@ -258,7 +260,6 @@ module GrdaWarehouse::WarehouseReports
       entry.enrollment.LivingSituation.in?(HudUtility2024.temporary_and_permanent_housing_situations(as: :prior)) &&
         entry.enrollment.LengthOfStay.in?([2, 3, 4, 5])
     end
-
 
     def break_marker
       'Documented break entering TH/PH'
@@ -298,7 +299,7 @@ module GrdaWarehouse::WarehouseReports
 
     # While the service dates may come from enrollments started before the start_date
     # the self-report would only ever count if it included a date within the range
-    # which is only possible if the entry assessment occured within the range
+    # which is only possible if the entry assessment occurred within the range
     private def entries
       client.service_history_enrollments.
         with_service_between(start_date: filter.start, end_date: filter.end).
@@ -310,7 +311,7 @@ module GrdaWarehouse::WarehouseReports
     end
 
     private def services
-     client.service_history_services.
+      client.service_history_services.
         service_within_date_range(start_date: filter.start, end_date: filter.end)
     end
 

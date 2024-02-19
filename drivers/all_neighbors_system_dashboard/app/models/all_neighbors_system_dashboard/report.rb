@@ -155,7 +155,7 @@ module AllNeighborsSystemDashboard
             return_date: return_dates[enrollment.id],
             project_id: enrollment.project.id,
             project_name: enrollment.project.name, # get from project directly to handle project confidentiality
-            project_type: enrollment.computed_project_type,
+            project_type: enrollment.project_type,
           )
         end
         Enrollment.import!(report_enrollments.values)

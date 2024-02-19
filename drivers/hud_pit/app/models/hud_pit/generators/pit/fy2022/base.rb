@@ -157,7 +157,7 @@ module HudPit::Generators::Pit::Fy2022
             hiv_aids: disabilities_latest.detect(&:hiv?)&.DisabilityResponse&.present?,
             mental_illness: disabilities_latest.detect(&:mental?)&.DisabilityResponse&.present?,
             mental_illness_indefinite_impairing: disabilities_latest.detect { |d| d.indefinite_and_impairs? && d.mental? }&.DisabilityResponse.present?,
-            project_type: last_service_history_enrollment.computed_project_type,
+            project_type: last_service_history_enrollment.project_type,
             project_name: last_service_history_enrollment.project_name,
             project_id: last_service_history_enrollment.project.id,
             project_hmis_pit_count: last_service_history_enrollment.project.PITCount,
@@ -190,10 +190,10 @@ module HudPit::Generators::Pit::Fy2022
       # ES > SH > TH > SO (1, 8, 2, 4)
       # if there isn't one of these, move on
       # reverse so we get the most-recent enrollment
-      last_service_history_enrollment ||= enrollments.reverse_each.detect { |en| en.computed_project_type == PROJECT_TYPES[:es] }
-      last_service_history_enrollment ||= enrollments.reverse_each.detect { |en| en.computed_project_type == PROJECT_TYPES[:sh] }
-      last_service_history_enrollment ||= enrollments.reverse_each.detect { |en| en.computed_project_type == PROJECT_TYPES[:th] }
-      last_service_history_enrollment ||= enrollments.reverse_each.detect { |en| en.computed_project_type == PROJECT_TYPES[:so] }
+      last_service_history_enrollment ||= enrollments.reverse_each.detect { |en| en.project_type == PROJECT_TYPES[:es] }
+      last_service_history_enrollment ||= enrollments.reverse_each.detect { |en| en.project_type == PROJECT_TYPES[:sh] }
+      last_service_history_enrollment ||= enrollments.reverse_each.detect { |en| en.project_type == PROJECT_TYPES[:th] }
+      last_service_history_enrollment ||= enrollments.reverse_each.detect { |en| en.project_type == PROJECT_TYPES[:so] }
       last_service_history_enrollment
     end
 

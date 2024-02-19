@@ -161,7 +161,7 @@ module GrdaWarehouse::Report
         e_t[:LivingSituation].to_sql,
         ex_t[:HousingAssessment].to_sql,
         :service_type,
-        she_t[:computed_project_type].to_sql,
+        she_t[:project_type].to_sql,
         she_t[:presented_as_individual].to_sql,
       ]
     end

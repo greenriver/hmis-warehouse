@@ -86,7 +86,7 @@ module WarehouseReports
         row += [
           HudUtility2024.no_yes_reasons_for_missing_data(client.VeteranStatus),
           enrollment.first_date_in_program,
-          HudUtility2024.project_type(enrollment.computed_project_type),
+          HudUtility2024.project_type(enrollment.project_type),
           project.name(current_user),
           project.organization_name(current_user),
           re_entry.days_since_last_exit,

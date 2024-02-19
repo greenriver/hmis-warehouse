@@ -619,9 +619,7 @@ module PublicReports
 
       @coc_codes ||= begin
         result = scope.joins(project: :project_cocs).distinct.
-          pluck(pc_t[:hud_coc_code], pc_t[:CoCCode]).map do |override, original|
-            override.presence || original
-          end
+          pluck(pc_t[:CoCCode])
         reasonable_cocs_count = GrdaWarehouse::Shape::Coc.my_state.where(cocnum: result).count
         result = GrdaWarehouse::Shape::Coc.my_state.map(&:cocnum) if reasonable_cocs_count.zero? && !Rails.env.production?
 

@@ -30,7 +30,7 @@ module HmisCsvTwentyTwentyTwo::Exporter::ExportConcern
 
     def self.simple_override(row, hud_field:, override_field:, default_value: nil)
       row[hud_field] ||= default_value if default_value.present?
-      return row if row.send(override_field).blank?
+      return row if override_field.blank? || row.send(override_field).blank?
 
       row[hud_field] = row.send(override_field)
       row

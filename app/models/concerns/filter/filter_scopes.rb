@@ -375,9 +375,9 @@ module Filter::FilterScopes
 
       p_types = @project_types.presence || @filter.project_type_ids
       scope.joins(:enrollment).where(
-        she_t[:computed_project_type].in(HudUtility2024.performance_reporting[:ce]).
+        she_t[:project_type].in(HudUtility2024.performance_reporting[:ce]).
         and(e_t[:LivingSituation].in(HudUtility2024.homeless_situations(as: :prior))).
-        or(she_t[:computed_project_type].in(p_types)),
+        or(she_t[:project_type].in(p_types)),
       )
     end
 
@@ -390,7 +390,7 @@ module Filter::FilterScopes
         select(:client_id)
       p_types = @project_types.presence || @filter.project_type_ids
       scope.where(client_id: client_ids_with_two_homeless_cls).
-        or(scope.where(computed_project_type: p_types))
+        or(scope.where(project_type: p_types))
     end
 
     private def filter_for_times_homeless(scope)

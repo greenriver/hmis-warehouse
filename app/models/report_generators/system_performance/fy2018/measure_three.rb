@@ -95,7 +95,7 @@ module ReportGenerators::SystemPerformance::Fy2018
         # "
         columns = {
           client_id: :client_id,
-          project_type: :computed_project_type,
+          project_type: :project_type,
           project_name: :project_name,
           first_date_in_program: :first_date_in_program,
         }

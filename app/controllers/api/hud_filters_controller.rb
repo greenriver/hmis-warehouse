@@ -28,7 +28,7 @@ module Api
           :id,
           :ProjectName,
           :confidential,
-          :computed_project_type,
+          :ProjectType,
           o_t[:OrganizationName],
           o_t[:id],
           o_t[:confidential],

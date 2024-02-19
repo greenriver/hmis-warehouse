@@ -71,7 +71,7 @@ module ReportGenerators::DataQuality::Fy2017
         she_t[:client_id] => :client_id,
         she_t[:age] => :age,
         c_t[:DOB] => :DOB,
-        she_t[:computed_project_type] => :project_type,
+        she_t[:project_type] => :project_type,
         c_t[:VeteranStatus] => :VeteranStatus,
         she_t[:enrollment_group_id] =>  :enrollment_group_id,
         she_t[:project_id] => :project_id,

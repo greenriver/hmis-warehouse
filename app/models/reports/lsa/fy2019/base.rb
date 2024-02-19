@@ -119,7 +119,7 @@ module Reports::Lsa::Fy2019
       {
         project_name: p_t[:ProjectName].to_sql,
         org_name: o_t[:OrganizationName].to_sql,
-        project_type: p_t[:computed_project_type].to_sql,
+        project_type: p_t[:ProjectType].to_sql,
         funder: f_t[:Funder].to_sql,
         id: p_t[:id].to_sql,
         ds_id: p_t[:data_source_id].to_sql,
@@ -144,8 +144,8 @@ module Reports::Lsa::Fy2019
       missing_data_rows(
         GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.joins(:organization).
         includes(:funders).
-        where(computed_project_type: [1, 2, 3, 8, 9, 10, 13]).
-        where(HousingType: nil, housing_type_override: nil).
+        where(project_type: [1, 2, 3, 8, 9, 10, 13]).
+        where(HousingType: nil).
         where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)), # this is imperfect, but only look at projects with enrollments open during the past three years
       )
     end
@@ -157,7 +157,7 @@ module Reports::Lsa::Fy2019
         distinct.
         merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential).
         where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
-        where(Geocode: nil, geocode_override: nil),
+        where(Geocode: nil),
       )
     end
 
@@ -168,7 +168,7 @@ module Reports::Lsa::Fy2019
         distinct.
         merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential).
         where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
-        where(GeographyType: nil, geography_type_override: nil),
+        where(GeographyType: nil),
       )
     end
 
@@ -179,7 +179,7 @@ module Reports::Lsa::Fy2019
         distinct.
         merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential).
         where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
-        where(Zip: nil, zip_override: nil),
+        where(Zip: nil),
       )
     end
 
@@ -187,8 +187,8 @@ module Reports::Lsa::Fy2019
       missing_data_rows(
         GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.joins(:organization).
         includes(:funders).
-        where(computed_project_type: [1, 2, 3, 8, 9, 10, 13, 4]).
-        where(OperatingStartDate: nil, operating_start_date_override: nil),
+        where(project_type: [1, 2, 3, 8, 9, 10, 13, 4]).
+        where(OperatingStartDate: nil),
       )
     end
 
@@ -210,7 +210,7 @@ module Reports::Lsa::Fy2019
         distinct.
         merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential).
         where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
-        where(CoCCode: nil, hud_coc_code: nil),
+        where(CoCCode: nil),
       )
     end
 
@@ -218,16 +218,11 @@ module Reports::Lsa::Fy2019
       missing_data_rows(
         GrdaWarehouse::Hud::Project.coc_funded.
         viewable_by(user).
-        where(computed_project_type: [1, 2, 3, 8, 9, 10, 13]).
+        where(project_type: [1, 2, 3, 8, 9, 10, 13]).
         joins(:project_cocs, :inventories, :organization).
         includes(:funders).
-        merge(
-          GrdaWarehouse::Hud::ProjectCoc.where(
-            pc_t[:CoCCode].eq(nil).and(pc_t[:hud_coc_code].not_eq(nil)).
-            or(pc_t[:CoCCode].not_eq(nil)),
-          ),
-        ).
-        merge(GrdaWarehouse::Hud::Inventory.where(CoCCode: nil, coc_code_override: nil)).
+        merge(GrdaWarehouse::Hud::ProjectCoc.where(pc_t[:CoCCode].not_eq(nil))).
+        merge(GrdaWarehouse::Hud::Inventory.where(CoCCode: nil)).
         distinct,
       )
     end
@@ -239,7 +234,7 @@ module Reports::Lsa::Fy2019
         distinct.
         merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential).
         where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
-        where(InventoryStartDate: nil, inventory_start_date_override: nil),
+        where(InventoryStartDate: nil),
       )
     end
   end
