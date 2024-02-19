@@ -1,0 +1,11 @@
+= render 'breadcrumbs'
+
+:css
+  .site-menu {
+    padding: 1rem;
+  }
+- # First level is either a direct link or a header containing children in a collapsible
+- # Second level is either a direct link, or a header containing children in an exposed group
+.well
+  .menu-wrapper{style: 'width: 220px;' }
+    = render 'menus/site_menu'
