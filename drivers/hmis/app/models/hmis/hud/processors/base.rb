@@ -23,7 +23,7 @@ class Hmis::Hud::Processors::Base
     attribute_name = ar_attribute_name(field)
     attribute_value = attribute_value_for_enum(graphql_enum(field), value)
 
-    @processor.send(factory_name).assign_attributes(attribute_name => attribute_value)
+    @processor.send(factory_name)&.assign_attributes(attribute_name => attribute_value)
   end
 
   def assign_metadata
@@ -35,6 +35,22 @@ class Hmis::Hud::Processors::Base
 
   def information_date(date)
     @processor.send(factory_name, create: false)&.assign_attributes(information_date: date)
+  end
+
+  # Whether this record can be conditionally collected on CustomAssessments
+  def dependent_destroyable?
+    false
+  end
+
+  def destroy_record
+    record = @processor.send(relation_name)
+    return unless record
+
+    if record.persisted?
+      record.mark_for_destruction
+    else
+      @processor.send("#{relation_name}=", nil)
+    end
   end
 
   def ar_attribute_name(field)
@@ -99,12 +115,25 @@ class Hmis::Hud::Processors::Base
     raise 'Implement in sub-class'
   end
 
+  # @return [Symbol] the name of the relation to the record on the FormProcessor
+  def relation_name
+    raise 'Implement in sub-class'
+  end
+
   # The GraphQL schema for the HMIS type to translate string values into DB values,
   # or nil to use the DB translation.
   #
   # @return [Class, nil] a schema class that implements respond_to?, or nil
   def schema
     raise 'Implement in sub-class'
+  end
+
+  # Existing CustomDataElements (BEFORE processing) for this factory's record,
+  # grouped by CustomDataElementDefinition ID
+  def existing_custom_data_elements
+    @existing_custom_data_elements ||= @processor.send(factory_name).custom_data_elements.
+      order(:id).
+      group_by(&:data_element_definition_id)
   end
 
   # Assign custom data element values to record, if this is a custom data element field
@@ -120,19 +149,22 @@ class Hmis::Hud::Processors::Base
       data_source_id: @processor.hud_user.data_source_id,
       data_element_definition: cded,
     }
+    # Normalize the input value
+    value = normalize_custom_field_value(cded, value)
+    # Infer the field name on the CustomDataElement
     value_field_name = "value_#{cded.field_type}"
-    value = attribute_value_for_enum(nil, value) # converts HIDDEN => nil
 
-    existing_values = record.custom_data_elements.where(data_element_definition: cded, owner: record)
+    # Existing CustomDataElement records for this record with this definition
+    existing_values = existing_custom_data_elements[cded.id] || []
 
     # If this custom field only allows 1 value and there already is one, update it.
-    if !cded.repeats && existing_values.exists?
+    if !cded.repeats && existing_values.any?
       cde_attributes = { id: existing_values.first.id }
-      if value.present?
+      if value.nil?
+        cde_attributes[:_destroy] = 1
+      else
         cde_attributes[value_field_name] = value
         cde_attributes.merge!(attrs)
-      else
-        cde_attributes[:_destroy] = 1
       end
     # If value(s) haven't changed, just update the User and timestamps
     elsif existing_values.map(&:value) == Array.wrap(value)
@@ -192,5 +224,78 @@ class Hmis::Hud::Processors::Base
     end
 
     { "#{attribute_name}_attributes" => attributes }
+  end
+
+  def normalize_custom_field_value(cded, value)
+    value = attribute_value_for_enum(nil, value) # converts HIDDEN => nil
+
+    # If this is a repeated element, normalize each value
+    if cded.repeats
+      Array.wrap(value).map do |val|
+        normalize_single_custom_field_value(cded, val)
+      end.compact.presence
+    # Else normalize the single element, and ensure its not an array
+    else
+      raise "Custom field '#{cded.key}' can't be an array" if value.is_a?(Array)
+
+      normalize_single_custom_field_value(cded, value)
+    end
+  end
+
+  def normalize_single_custom_field_value(cded, value)
+    return value if value.nil?
+
+    # Match on Hmis::Hud::CustomDataElementDefinition::FIELD_TYPES and normalize value
+    case cded.field_type
+    when 'string', 'text'
+      case value
+      when String
+        value&.presence&.strip
+      when Integer
+        value.to_s
+      else
+        raise "unexpected value \"#{value}\""
+      end
+    when 'integer'
+      case value
+      when Integer
+        value
+      else
+        raise "unexpected value \"#{value}\""
+      end
+    when 'float'
+      case value
+      when Float, Integer
+        value
+      else
+        raise "unexpected value \"#{value}\""
+      end
+    when 'date'
+      case value
+      when String
+        safe_parse_date(value)
+      when Date, DateTime
+        value.to_date
+      else
+        raise "unexpected value \"#{value}\""
+      end
+    when 'boolean'
+      case value
+      when nil, ''
+        nil
+      when true, false
+        value
+      else
+        raise "unexpected value \"#{value}\""
+      end
+    else
+      raise 'unsupported field type for custom data element'
+    end
+  end
+
+  def safe_parse_date(string)
+    Date.strptime(string, '%Y-%m-%d')
+  rescue ArgumentError
+    raise "unexpected value for date \"#{string}\""
   end
 end

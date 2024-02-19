@@ -43,7 +43,7 @@ RSpec.describe 'Datalab 2024', type: :model do
   if File.exist?('drivers/datalab_testkit/spec/fixtures/inputs/merged/source/Export.csv')
     include_context 'datalab multiple projects apr'
     include_context 'datalab organization a rrh apr'
-    # include_context 'datalab organization o sso apr'
+    include_context 'datalab organization o sso apr'
     # include_context 'datalab organization o th apr'
     # include_context 'datalab organization s rrh apr'
     # include_context 'datalab organization t psh apr'
@@ -55,7 +55,8 @@ RSpec.describe 'Datalab 2024', type: :model do
     # include_context 'datalab organization s es caper'
     include_context 'datalab systemwide ce apr'
   else
-    xit 'Data Lab Testkit based tests are skipped, files are missing' do
+    it 'Data Lab Testkit based tests are skipped, files are missing' do
+      expect(true).to be false
     end
   end
 

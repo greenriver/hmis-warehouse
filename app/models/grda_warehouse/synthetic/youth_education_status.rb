@@ -47,9 +47,10 @@ module GrdaWarehouse::Synthetic
       create_hud_youth_education_statuses
 
       # Clean up orphans in HUD table
-      GrdaWarehouse::Hud::YouthEducationStatus.
+      youth_education_status_source.
         synthetic.
-        where.not(YouthEducationStatusID: select(:hud_youth_education_status_youth_education_status_id)).
+        # ActiveRecord doesn't work with a simple select since it returns nil in the ID field
+        where(youth_education_status_source.arel_table[:YouthEducationStatusID].not_in(arel_table.project(:hud_youth_education_status_youth_education_status_id))).
         delete_all
     end
 

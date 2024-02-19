@@ -1,0 +1,96 @@
+{
+  "item": [
+    {
+      "link_id": "event",
+      "type": "GROUP",
+      "text": "Test ce assmt",
+      "item": [
+        {
+          "text": "Assessment Date",
+          "type": "DATE",
+          "link_id": "assmt-date",
+          "required": true,
+          "assessment_date": true,
+          "mapping": {
+            "field_name": "assessmentDate"
+          }
+        },
+        {
+          "text": "Event Date",
+          "type": "DATE",
+          "link_id": "event-date",
+          "required": true,
+          "mapping": {
+            "record_type": "EVENT",
+            "field_name": "eventDate"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "required": true,
+          "text": "Event Type",
+          "pick_list_reference": "CE_EVENTS",
+          "link_id": "4.20.2",
+          "mapping": {
+            "record_type": "EVENT",
+            "field_name": "event"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "required": false,
+          "text": "Client housed/re-housed in a safe alternative",
+          "pick_list_reference": "NoYesMissing",
+          "mapping": {
+            "record_type": "EVENT",
+            "field_name": "probSolDivRrResult"
+          },
+          "link_id": "4.20.A"
+        },
+        {
+          "type": "CHOICE",
+          "required": false,
+          "text": "Enrolled in Aftercare project",
+          "pick_list_reference": "NoYesMissing",
+          "mapping": {
+            "record_type": "EVENT",
+            "field_name": "referralCaseManageAfter"
+          },
+          "link_id": "4.20.B"
+        },
+        {
+          "type": "TEXT",
+          "required": false,
+          "link_id": "4.20.C",
+          "text": "Location of Crisis Housing or Permanent Housing Referral",
+          "mapping": {
+            "record_type": "EVENT",
+            "field_name": "locationCrisisOrPhHousing"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "required": false,
+          "text": "Referral Result",
+          "pick_list_reference": "ReferralResult",
+          "component": "RADIO_BUTTONS_VERTICAL",
+          "link_id": "4.20.D",
+          "mapping": {
+            "record_type": "EVENT",
+            "field_name": "referralResult"
+          }
+        },
+        {
+          "type": "DATE",
+          "required": false,
+          "link_id": "4.20.E",
+          "text": "Result Date",
+          "mapping": {
+            "record_type": "EVENT",
+            "field_name": "resultDate"
+          }
+        }
+      ]
+    }
+  ]
+}

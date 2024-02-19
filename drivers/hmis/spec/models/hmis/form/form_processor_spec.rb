@@ -451,7 +451,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment.form_processor.run!(owner: assessment, user: hmis_user)
       assessment.save_not_in_progress
 
-      assessment.form_processor.hud_values = {
+      assessment.reload.form_processor.hud_values = {
         'IncomeBenefit.incomeFromAnySource' => 'YES',
         'IncomeBenefit.unemploymentAmount' => 100,
       }
@@ -472,12 +472,16 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment = Hmis::Hud::CustomAssessment.new_with_defaults(enrollment: e1, user: u1, form_definition: fd, assessment_date: Date.yesterday)
       assessment.form_processor.hud_values = {
         'IncomeBenefit.incomeFromAnySource' => 'YES',
+        'IncomeBenefit.unemploymentAmount' => 100,
       }
 
       assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.save!
       assessment.save_not_in_progress
 
-      assessment.form_processor.hud_values = {
+      expect(assessment.enrollment.income_benefits.first.income_from_any_source).to eq(1)
+
+      assessment.reload.form_processor.hud_values = {
         'IncomeBenefit.incomeFromAnySource' => nil,
       }
 
@@ -552,9 +556,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(assessment.enrollment.exit.in_person_group).to eq(0)
 
       # Re-submit with empty aftercare methods (should set fields to 99)
-      assessment.form_processor.hud_values = {
-        'Exit.aftercareMethods' => [],
-      }
+      assessment.reload.form_processor.hud_values.merge!('Exit.aftercareMethods' => [])
 
       assessment.form_processor.run!(owner: assessment, user: hmis_user)
       assessment.form_processor.save!
@@ -568,9 +570,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(assessment.enrollment.exit.in_person_group).to eq(99)
 
       # Re-submit with hidden aftercare methods (should set fields to nil)
-      assessment.form_processor.hud_values = {
-        'Exit.aftercareMethods' => HIDDEN,
-      }
+      assessment.reload.form_processor.hud_values.merge!('Exit.aftercareMethods' => HIDDEN)
 
       assessment.form_processor.run!(owner: assessment, user: hmis_user)
       assessment.form_processor.save!
@@ -597,7 +597,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       new_entry_date = '2024-03-14'
       expect(old_entry_date).not_to be_nil
 
-      assessment.form_processor.hud_values = {
+      assessment.reload.form_processor.hud_values = {
         'Enrollment.entryDate' => new_entry_date,
       }
 
@@ -675,6 +675,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       hud_values: hud_values,
       definition: definition,
     )
+    record.form_processor = form_processor if record.is_a?(Hmis::Hud::CustomAssessment)
     form_processor.run!(owner: record, user: user)
     form_processor.owner.save!(context: :form_submission) if save
     form_processor
@@ -705,13 +706,12 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     let(:definition) do
       fd = Hmis::Form::Definition.find_by(role: :ENROLLMENT)
       # Add unit selection item to the Enrollment form definition (it is not present by default)
-      fd.definition['item'] << {
+      item = {
         type: 'CHOICE',
         link_id: 'unit-selection',
         mapping: { record_type: 'ENROLLMENT', field_name: 'currentUnit' },
       }
-      fd.save!
-      fd
+      add_item_to_definition(fd, item)
     end
     let(:complete_hud_values) do
       {
@@ -1345,7 +1345,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       hud_values = empty_hud_values.merge('confidential' => false)
       expect do
         process_record(record: p1, hud_values: hud_values, user: hmis_user, save: false, definition: definition)
-      end.to raise_error(RuntimeError, /Not a submittable field.*confidential/)
+      end.to raise_error(RuntimeError, /Project.confidential.*Not a submittable field/)
     end
   end
 
@@ -1544,96 +1544,161 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
     describe 'with custom data elements' do
       let!(:cded) { create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::Inventory') }
-      let(:definition) do
-        fd = Hmis::Form::Definition.find_by(role: :INVENTORY)
-        # Add unit selection item to the Enrollment form definition (it is not present by default)
-        fd.definition['item'] << {
-          type: 'STRING',
-          link_id: 'custom-example',
+      def add_cde_item_to_definition
+        item = {
+          type: cded.field_type.upcase, # happens to work for these types, but doesnt always
+          link_id: 'cde',
           mapping: { custom_field_key: cded.key },
         }
-        fd.save!
-        fd
-      end
-      let(:hud_values) { complete_hud_values.merge(cded.key => 'submitted value') }
-
-      it 'creates a new CustomDataElement' do
-        existing_record = i1
-        new_record = Hmis::Hud::Inventory.new(data_source: ds1, user: u1, project: p1)
-
-        [existing_record, new_record].each do |record|
-          process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
-
-          expect(record.custom_data_elements.size).to eq(1)
-          expect(record.custom_data_elements.first.value_string).to eq('submitted value')
-          expect(record.custom_data_elements.first.data_element_definition).to eq(cded)
-        end
+        add_item_to_definition(definition, item)
       end
 
-      it 'updates an existing CustomDataElement (repeats: false)' do
-        record = i1
-        cde = create(:hmis_custom_data_element, owner: record, value_string: 'old value', data_element_definition: cded)
-        expect(record.custom_data_elements.first!.value_string).to eq(cde.value_string)
-
-        # hud_values = complete_hud_values.merge(cded.key => 'new value')
-        process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
-
-        expect(record.custom_data_elements.size).to eq(1)
-        updated_cde = record.custom_data_elements.first
-        expect(updated_cde.value_string).to eq('submitted value')
-        expect(updated_cde.user).not_to eq(cde.user)
-        expect(updated_cde.date_updated).not_to eq(cde.date_updated)
-        expect(updated_cde.data_element_definition).to eq(cded)
-      end
-
-      [nil, HIDDEN, []].each do |value|
-        it "doesnt error when receiving custom data element value #{value} (new record / existing record with no value)" do
+      [
+        [:string, 'foo'],
+        [:boolean, false],
+        [:boolean, true],
+        [:integer, 0],
+        [:float, 0],
+        [:float, 90.50],
+        [:date, '2020-02-02'],
+      ].each do |field_type, value|
+        it "creates a CustomDataElement, on a new or existing record (#{field_type}, #{value})" do
           existing_record = i1
           new_record = Hmis::Hud::Inventory.new(data_source: ds1, user: u1, project: p1)
+          cded.update(field_type: field_type)
+          add_cde_item_to_definition
           [existing_record, new_record].each do |record|
             hud_values = complete_hud_values.merge(cded.key => value)
             process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
+
+            expect(record.custom_data_elements.size).to eq(1)
+            expect(record.custom_data_elements.first.data_element_definition).to eq(cded)
+            if field_type == :date
+              expect(record.custom_data_elements.first.value).to eq(value.to_date)
+            else
+              expect(record.custom_data_elements.first.value).to eq(value)
+            end
           end
         end
       end
 
-      it 'updates a CustomDataElement (repeats: true)' do
-        record = i1
-        cded.update(repeats: true)
-        common_attrs = { owner: record, data_element_definition: cded }
-        old1 = create(:hmis_custom_data_element, value_string: 'old value 1', **common_attrs)
-        old2 = create(:hmis_custom_data_element, value_string: 'old value 2', **common_attrs)
-        old3 = create(:hmis_custom_data_element, value_string: 'old value 3', **common_attrs)
-        expect(record.custom_data_elements.size).to eq(3)
+      [
+        [:string, :value_string, 'foo', 'bar'],
+        [:string, :value_string, 'same', 'same'],
+        [:integer, :value_integer, 10, 0],
+        [:integer, :value_integer, 0, 10],
+        [:integer, :value_integer, 0, 0],
+        [:boolean, :value_boolean, true, false],
+        [:boolean, :value_boolean, true, true],
+        [:boolean, :value_boolean, false, false],
+        [:boolean, :value_boolean, false, true],
+      ].each do |field_type, field_name, old_value, new_value|
+        it "updates a CustomDataElement on an existing record (#{field_type}, #{old_value}=>#{new_value}) (repeats: false)" do
+          record = i1
+          cded.update(field_type: field_type)
+          add_cde_item_to_definition
+          cde = create(:hmis_custom_data_element, owner: record, **{ field_name => old_value }, data_element_definition: cded)
+          expect(record.custom_data_elements.first.value).to eq(old_value)
 
-        hud_values = complete_hud_values.merge(
-          cded.key => ['new value 1', 'new value 2'],
-        )
-        process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
+          hud_values = complete_hud_values.merge(cded.key => new_value)
+          process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
 
-        expect(record.custom_data_elements.size).to eq(2)
-        expect(record.custom_data_elements.map(&:value_string)).to contain_exactly('new value 1', 'new value 2')
-        # Old records should have been replaced
-        expect(record.custom_data_elements.map(&:id)).not_to include(old1.id, old2.id, old3.id)
+          expect(record.custom_data_elements.size).to eq(1)
+          updated_cde = record.custom_data_elements.first
+          expect(updated_cde.value).to eq(new_value)
+          expect(updated_cde.id).to eq(cde.id) # It updated the same record
+          expect(updated_cde.user).not_to eq(cde.user)
+          expect(updated_cde.date_updated).not_to eq(cde.date_updated)
+          expect(updated_cde.data_element_definition).to eq(cded)
+        end
       end
 
-      it 'does not delete and replace if the values are the same' do
-        record = i1
-        cded.update(repeats: true)
-        old1 = create(:hmis_custom_data_element, owner: record, value_string: 'old value 1', data_element_definition: cded)
-        old2 = create(:hmis_custom_data_element, owner: record, value_string: 'old value 2', data_element_definition: cded)
-        expect(record.custom_data_elements.size).to eq(2)
+      [nil, HIDDEN].each do |value|
+        it "doesnt error when receiving custom data element value #{value} (new record / existing record with no value)" do
+          existing_record = i1
+          new_record = Hmis::Hud::Inventory.new(data_source: ds1, user: u1, project: p1)
+          add_cde_item_to_definition
+          [existing_record, new_record].each do |record|
+            hud_values = complete_hud_values.merge(cded.key => value)
+            process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
+            expect(record.custom_data_elements.size).to eq(0)
+          end
+        end
+      end
 
-        hud_values = complete_hud_values.merge(
-          cded.key => [old1.value_string, old2.value_string],
-        )
-        process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
-        record.reload
+      [
+        [:string, false],
+        [:boolean, 'not a bool'],
+        [:date, '02/02/2023'], # invalid format
+        [:float, 'nan'],
+      ].each do |field_type, value|
+        it "fails when custom field type doenst match its definition (#{field_type}=>#{value})" do
+          record = i1
+          cded.update(field_type: field_type)
+          add_cde_item_to_definition
+          hud_values = complete_hud_values.merge(cded.key => value)
+          expect do
+            process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
+          end.to raise_error(RuntimeError, /.*#{cded.key}.*unexpected value/)
+          expect(record.custom_data_elements.size).to eq(0)
+        end
+      end
 
-        expect(record.custom_data_elements.size).to eq(2)
-        # Old records should remain, with updated timestamps
-        expect(record.custom_data_elements.map(&:id)).to contain_exactly(old1.id, old2.id)
-        expect(record.custom_data_elements.map(&:date_updated)).not_to include(old1.date_updated, old2.date_updated)
+      describe 'when CustomDataElement can repeat' do
+        before(:each) do
+          cded.update(repeats: true)
+          add_cde_item_to_definition
+        end
+
+        it 'updates an existing CustomDataElement (repeats: true)' do
+          record = i1
+          common_attrs = { owner: record, data_element_definition: cded }
+          old1 = create(:hmis_custom_data_element, value_string: 'old value 1', **common_attrs)
+          old2 = create(:hmis_custom_data_element, value_string: 'old value 2', **common_attrs)
+          old3 = create(:hmis_custom_data_element, value_string: 'old value 3', **common_attrs)
+          expect(record.custom_data_elements.size).to eq(3)
+
+          hud_values = complete_hud_values.merge(
+            cded.key => ['new value 1', 'new value 2'],
+          )
+          process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
+
+          expect(record.custom_data_elements.size).to eq(2)
+          expect(record.custom_data_elements.map(&:value_string)).to contain_exactly('new value 1', 'new value 2')
+          # Old records should have been replaced
+          expect(record.custom_data_elements.map(&:id)).not_to include(old1.id, old2.id, old3.id)
+        end
+
+        it 'does not delete and replace if the values are the same (repeats: true)' do
+          record = i1
+          old1 = create(:hmis_custom_data_element, owner: record, value_string: 'old value 1', data_element_definition: cded)
+          old2 = create(:hmis_custom_data_element, owner: record, value_string: 'old value 2', data_element_definition: cded)
+          expect(record.custom_data_elements.size).to eq(2)
+
+          hud_values = complete_hud_values.merge(
+            cded.key => [old1.value_string, old2.value_string],
+          )
+          process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
+          record.reload
+
+          expect(record.custom_data_elements.size).to eq(2)
+          # Old records should remain, with updated timestamps
+          expect(record.custom_data_elements.map(&:id)).to contain_exactly(old1.id, old2.id)
+          expect(record.custom_data_elements.map(&:date_updated)).not_to include(old1.date_updated, old2.date_updated)
+        end
+
+        [nil, HIDDEN, []].each do |value|
+          it "doesnt error when receiving custom data element value #{value} (new record / existing record with no value)" do
+            existing_record = i1
+            new_record = Hmis::Hud::Inventory.new(data_source: ds1, user: u1, project: p1)
+            add_cde_item_to_definition
+            [existing_record, new_record].each do |record|
+              hud_values = complete_hud_values.merge(cded.key => value)
+              process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
+              expect(record.custom_data_elements.size).to eq(0)
+            end
+          end
+        end
       end
 
       [nil, HIDDEN].each do |value|
@@ -1642,6 +1707,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           create(:hmis_custom_data_element, owner: record, value_string: 'old value', data_element_definition: cded)
           expect(record.custom_data_elements.size).to eq(1)
 
+          add_cde_item_to_definition
           hud_values = complete_hud_values.merge(cded.key => value)
           process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
           expect(record.custom_data_elements).to be_empty
@@ -1656,6 +1722,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           create(:hmis_custom_data_element, owner: record, value_string: 'old value 2', data_element_definition: cded)
           expect(record.custom_data_elements.size).to eq(2)
 
+          add_cde_item_to_definition
           hud_values = complete_hud_values.merge(cded.key => value)
           process_record(record: record, hud_values: hud_values, user: hmis_user, definition: definition)
           expect(record.custom_data_elements).to be_empty
@@ -1812,4 +1879,218 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       end
     end
   end
+
+  describe 'Form processing for CE Event' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :CE_EVENT) }
+    let(:event_date) { 1.week.ago.to_date }
+    let(:hud_values) do
+      {
+        'Event.eventDate' => event_date.strftime('%Y-%m-%d'),
+        'Event.event' => 'PROBLEM_SOLVING_DIVERSION_RAPID_RESOLUTION_INTERVENTION_OR_SERVICE', # 2
+        'Event.referralResult' => nil,
+      }
+    end
+
+    it 'should work when CE Event is the form owner' do
+      event = Hmis::Hud::Event.new(client: c1, enrollment: e1, data_source: ds1)
+      process_record(record: event, hud_values: hud_values, user: hmis_user, definition: definition)
+
+      expect(event.event).to eq(2) # problem solving diversion
+      expect(event.event_date).to eq(event_date)
+    end
+
+    describe 'when CE Event is being collected on an Assessment,' do
+      let(:definition) { Hmis::Form::Definition.find_by(identifier: 'ce_event_assessment') }
+      let(:assessment) { build(:hmis_custom_assessment, client: c1, enrollment: e1, data_source: ds1, user: u1, definition: definition, hud_values: hud_values) }
+
+      def process_assessment(new_hud_values: nil)
+        assessment.form_processor.update(hud_values: new_hud_values) if new_hud_values
+        assessment.form_processor.run!(owner: assessment, user: hmis_user)
+        assessment.form_processor.save!(context: :form_submission)
+      end
+
+      it 'should create a CE Event' do
+        process_assessment
+
+        expect(assessment.ce_event).to be_present
+        expect(assessment.ce_event.event).to eq(2)
+        expect(assessment.ce_event.event_date).to eq(event_date)
+      end
+
+      it 'should update existing CE Event' do
+        process_assessment
+        expect(assessment.ce_event.event).to eq(2)
+
+        # re-process with changed hud_values
+        expect do
+          process_assessment(new_hud_values: hud_values.merge('Event.event' => 'REFERRAL_TO_PREVENTION_ASSISTANCE_PROJECT'))
+        end.
+          to not_change(e1.reload.events, :count).
+          and change { assessment.reload.ce_event.event }.to(1) # value updated
+      end
+
+      describe 'and all CE Event fields are hidden:' do
+        before(:each) do
+          assessment.form_processor.hud_values = {
+            'assessmentDate' => Date.current.strftime('%Y-%m-%d'),
+            'Event.eventDate' => HIDDEN,
+            'Event.event' => HIDDEN,
+            'Event.referralResult' => HIDDEN,
+          }
+        end
+
+        it 'should NOT create a CE Event' do
+          expect { process_assessment }.not_to change(e1.events, :count)
+          expect(assessment.ce_event).to be_nil
+        end
+
+        it 'should destroy the CE Event that was previously attached to the assessment' do
+          # create 2 events for this enrollment
+          event1 = create(:hmis_hud_event, client: c1, enrollment: e1, data_source: ds1, user: u1)
+          create(:hmis_hud_event, client: c1, enrollment: e1, data_source: ds1, user: u1)
+
+          # link 1 of the events to an assessment
+          assessment.save!
+          assessment.form_processor.update(ce_event: event1)
+
+          # check setup
+          expect(assessment.ce_event).to eq(event1)
+          expect(assessment.form_processor.ce_event).to eq(event1)
+
+          # "re-submit" the assessment, this time with all the event fields hidden
+          expect { process_assessment }.to change(e1.events.reload, :count).by(-1)
+
+          # event1 should be deleted
+          expect(event1.reload.date_deleted).to be_present
+          expect(assessment.reload.ce_event).to be_nil
+          expect(assessment.reload.form_processor.ce_event).to be_nil
+        end
+      end
+    end
+  end
+
+  describe 'Form processing for CurrentLivingSituation' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :CURRENT_LIVING_SITUATION) }
+    let(:information_date) { 1.week.ago.to_date }
+    let(:hud_values) do
+      {
+        'CurrentLivingSituation.informationDate' => information_date.strftime('%Y-%m-%d'),
+        'CurrentLivingSituation.currentLivingSituation' => 'SAFE_HAVEN', # 118
+      }
+    end
+
+    it 'should work when CurrentLivingSituation is the form owner' do
+      cls = Hmis::Hud::CurrentLivingSituation.new(client: c1, enrollment: e1, data_source: ds1)
+      process_record(record: cls, hud_values: hud_values, user: hmis_user, definition: definition)
+
+      expect(cls.current_living_situation).to eq(118) # safe haven
+      expect(cls.information_date).to eq(information_date)
+    end
+
+    describe 'when CurrentLivingSituation is being collected on an Assessment,' do
+      let(:definition) { Hmis::Form::Definition.find_by(identifier: 'cls_assessment') }
+      let(:assessment) { build(:hmis_custom_assessment, client: c1, enrollment: e1, data_source: ds1, user: u1, definition: definition, hud_values: hud_values) }
+
+      def process_assessment
+        assessment.form_processor.run!(owner: assessment, user: hmis_user)
+        assessment.form_processor.save!(context: :form_submission)
+      end
+
+      it 'should create a CurrentLivingSituation' do
+        process_assessment
+
+        expect(assessment.current_living_situation).to be_present
+        expect(assessment.current_living_situation.current_living_situation).to eq(118)
+      end
+
+      describe 'and all CurrentLivingSituation fields are hidden:' do
+        before(:each) do
+          assessment.form_processor.hud_values = {
+            'assessmentDate' => Date.current.strftime('%Y-%m-%d'),
+            'CurrentLivingSituation.informationDate' => HIDDEN,
+            'CurrentLivingSituation.currentLivingSituation' => HIDDEN,
+          }
+        end
+
+        it 'should NOT create a CurrentLivingSituation' do
+          expect { process_assessment }.not_to change(e1.current_living_situations, :count)
+          expect(assessment.current_living_situation).to be_nil
+        end
+
+        it 'should destroy the CurrentLivingSituation that was previously attached to the assessment' do
+          # create 2 CurrentLivingSituations for this enrollment
+          cls1 = create(:hmis_current_living_situation, client: c1, enrollment: e1, data_source: ds1, user: u1)
+          create(:hmis_current_living_situation, client: c1, enrollment: e1, data_source: ds1, user: u1)
+
+          # link 1 of the cls to an assessment
+          assessment.save!
+          assessment.form_processor.update(current_living_situation: cls1)
+
+          # check setup
+          expect(assessment.current_living_situation).to eq(cls1)
+          expect(assessment.form_processor.current_living_situation).to eq(cls1)
+
+          # "re-submit" the assessment, this time with all the event fields hidden
+          expect { process_assessment }.to change(e1.current_living_situations.reload, :count).by(-1)
+
+          # cls1 should be deleted
+          expect(cls1.reload.date_deleted).to be_present
+          expect(assessment.reload.current_living_situation).to be_nil
+          expect(assessment.reload.form_processor.current_living_situation).to be_nil
+        end
+      end
+    end
+  end
+
+  describe 'Form processing for CE Assessment' do
+    let(:assessment_date) { 1.week.ago.to_date }
+    let(:hud_values) do
+      {
+        'CeAssessment.assessmentDate' => assessment_date.strftime('%Y-%m-%d'),
+        'CeAssessment.assessmentLocation' => 'foo',
+        'CeAssessment.assessmentType' => 'PHONE',
+        'CeAssessment.assessmentLevel' => 'HOUSING_NEEDS_ASSESSMENT',
+        'CeAssessment.prioritizationStatus' => 'PLACED_ON_PRIORITIZATION_LIST',
+      }
+    end
+
+    it 'should work when CE Assessment is the form owner' do
+      definition = Hmis::Form::Definition.find_by(role: :CE_ASSESSMENT)
+      assessment = Hmis::Hud::Assessment.new(client: c1, enrollment: e1, data_source: ds1)
+      process_record(record: assessment, hud_values: hud_values, user: hmis_user, definition: definition)
+
+      expect(assessment.assessment_date).to eq(assessment_date)
+      expect(assessment.assessment_location).to eq('foo')
+    end
+
+    it 'should work when CustomAssessment is the form owner' do
+      # note: definition is loaded in test environment because it is in the form_data/test/ directory
+      definition = Hmis::Form::Definition.find_by(identifier: 'housing_needs_assessment')
+
+      assessment = build(:hmis_custom_assessment, client: c1, enrollment: e1, data_source: ds1, user: u1)
+      process_record(record: assessment, hud_values: hud_values, user: hmis_user, definition: definition)
+
+      expect(assessment.ce_assessment).to be_present
+      expect(assessment.ce_assessment.assessment_date).to eq(assessment_date)
+      expect(assessment.ce_assessment.assessment_location).to eq('foo')
+    end
+
+    it 'should send non-HMIS values to AssessmentQuestions' do
+      # note: definition is loaded in test environment because it is in the form_data/test/ directory
+      definition = Hmis::Form::Definition.find_by(identifier: 'housing_needs_assessment')
+      create(:hmis_custom_data_element_definition, key: 'assessment_question', owner_type: 'Hmis::Hud::CustomAssessment')
+      hud_values.merge!({ 'assessment_question' => 'answer' })
+
+      assessment = build(:hmis_wip_custom_assessment, client: c1, enrollment: e1, data_source: ds1, user: u1)
+      process_record(record: assessment, hud_values: hud_values, user: hmis_user, definition: definition)
+      assessment.form_processor.store_assessment_questions!
+
+      expect(assessment.ce_assessment.assessment_questions.count).to eq(1)
+      expect(assessment.ce_assessment.assessment_questions.find_by(assessment_question: 'assessment_question').assessment_answer).to eq('answer')
+    end
+  end
+end
+
+RSpec.configure do |c|
+  c.include FormHelpers
 end

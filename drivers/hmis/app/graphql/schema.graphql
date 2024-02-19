@@ -268,6 +268,7 @@ type Assessment {
   disabilityGroup: DisabilityGroup
   employmentEducation: EmploymentEducation
   enrollment: Enrollment!
+  event: Event
   exit: Exit
   healthAndDv: HealthAndDv
   id: ID!
@@ -3497,13 +3498,13 @@ type Event {
   dateUpdated: ISO8601DateTime
   enrollment: Enrollment!
   event: EventType!
-  eventDate: ISO8601DateTime!
+  eventDate: ISO8601Date!
   id: ID!
   locationCrisisOrPhHousing: String
   probSolDivRrResult: NoYesMissing
   referralCaseManageAfter: NoYesMissing
   referralResult: ReferralResult
-  resultDate: ISO8601DateTime
+  resultDate: ISO8601Date
   user: ApplicationUser
 }
 
@@ -9288,6 +9289,11 @@ enum RelatedRecordType {
   EnrollmentCoc
   """
   ENROLLMENT_COC
+
+  """
+  Event
+  """
+  EVENT
 
   """
   Exit
