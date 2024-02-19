@@ -11,11 +11,27 @@ The warehouse is configured for development using Docker.  There are a variety o
 ```
 git clone git@github.com:greenriver/hmis-warehouse.git
 ```
-2. Install Docker Desktop for your OS following the [instructions provided by Docker](https://www.docker.com/get-started).
+2. [Install Colima for your OS](https://github.com/abiosoft/colima).  Mac instructions below.
 
-3. Adjust the Docker Resources to allow up to 8GB of RAM.  See Docker -> Preferences -> Resources
+```
+brew install lima colima docker docker-compose direnv
+colima template
+```
+Adjust the following settings:
+```
+cpu: 8
+memory: 16
+vmType: vz
+rosetta: true
+mountType: virtiofs
+```
+Setup colima to start on boot
+```
+colima stop
+brew services colima start
+```
 
-4. If you have not previously setup [nginx-proxy](https://github.com/jwilder/nginx-proxy) to streamline local development. You should [follow the instructions here](developer-networking.md) before continuing.
+4. If you have not previously setup [traefik](http://traefik.io/) to streamline local development. You should [follow the instructions here](developer-networking.md) before continuing.
 
 5. Copy in the sample environment variable
 ```
