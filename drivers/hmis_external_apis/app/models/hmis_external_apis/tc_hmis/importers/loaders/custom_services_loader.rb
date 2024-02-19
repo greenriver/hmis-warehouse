@@ -73,7 +73,13 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
           response_id = row.field_value(RESPONSE_ID)
 
-          service_type_id = service_type_ids[config[:service_type]]
+          service_type = config[:service_type]
+          service_type_id = service_type_ids[service_type]
+          if service_type_id.blank?
+            log_info("Service type configuration error: can't find #{service_type}!")
+            log_skipped_row(row, field: service_type)
+            next
+          end
 
           row_field_value = row.field_value(ENROLLMENT_ID)
           enrollment = enrollments[row_field_value]
@@ -92,6 +98,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             DateProvided: parse_date(row.field_value(DATE_PROVIDED)),
             data_source_id: data_source.id,
             custom_service_type_id: service_type_id,
+            service_name: service_type,
             DateCreated: today,
             DateUpdated: today,
             FAAmount: nil,
@@ -143,12 +150,20 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             next
           end
 
+          response_id = row.field_value(RESPONSE_ID)
+          service = @services[response_id]
+          if service.blank?
+            log_info("Missing service for response id #{response_id}!")
+            log_skipped_row(row, field: response_id)
+            next
+          end
           actual += 1
-          service = @services[row.field_value(RESPONSE_ID)]
 
           key = element[:key]
-          value = element[:cleaner].call(row.field_value(ANSWER))
-          cdes << cde_helper.new_cde_record(value: value, owner_type: service_class.name, owner_id: service.id, definition_key: key)
+          answer = element[:cleaner].call(row.field_value(ANSWER))
+          Array.wrap(answer).each do |value|
+            cdes << cde_helper.new_cde_record(value: value, owner_type: service_class.name, owner_id: service.id, definition_key: key)
+          end
         end
       end
       log_processed_result(name: 'create cdes', expected: expected, actual: actual)
@@ -174,6 +189,323 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               key: :food_service_household_size,
               cleaner: ->(size) { size.to_i },
             },
+            'Case Notes' => {
+              key: :service_notes,
+              cleaner: ->(note) { note },
+            },
+          },
+        },
+        'Transportation' => {
+          service_type: 'Transportation',
+          service_fields: {
+            'Cost' => {
+              key: :FAAmount,
+              cleaner: ->(amount) { amount.to_f },
+            },
+          },
+          id_prefix: 'transport',
+          elements: {
+            'Contact Location/Method' => {
+              key: :service_contact_location,
+              cleaner: ->(location) { normalize_location(location) },
+            },
+            'Value' => {
+              key: :transportation_type,
+              cleaner: ->(type) { type },
+            },
+            'Quantity' => {
+              key: :transportation_quantity,
+              cleaner: ->(quantity) { quantity.to_i },
+            },
+            'Note' => {
+              key: :service_notes,
+              cleaner: ->(note) { note },
+            },
+          },
+        },
+        'Baby Supplies' => {
+          service_type: 'Baby Supplies',
+          service_fields: {},
+          id_prefix: 'baby',
+          elements: {
+            'Contact Location/Method' => {
+              key: :service_contact_location,
+              cleaner: ->(location) { normalize_location(location) },
+            },
+            'Items' => {
+              key: :baby_supplies_items,
+              cleaner: ->(items) { items.split('|') },
+            },
+            'Quantity' => {
+              key: :baby_supplies_quantity,
+              cleaner: ->(quantity) { quantity.to_i },
+            },
+            'Case Notes' => {
+              key: :service_notes,
+              cleaner: ->(note) { note },
+            },
+          },
+        },
+        'Material Goods' => {
+          service_type: 'Material Goods / Financial Assistance',
+          service_fields: {
+            'Amount' => {
+              key: :FAAmount,
+              cleaner: ->(amount) { amount.to_f },
+            },
+          },
+          id_prefix: 'goods',
+          elements: {
+            elements: {
+              'Contact Location/Method' => {
+                key: :service_contact_location,
+                cleaner: ->(location) { normalize_location(location) },
+              },
+              'Assistance type' => {
+                key: :financial_assistance_type,
+                cleaner: ->(type) { type },
+              },
+              'Case Notes' => {
+                key: :service_notes,
+                cleaner: ->(note) { note },
+              },
+            },
+          },
+        },
+        'Benefits Contacts' => {
+          service_type: 'Benefits Contact',
+          service_fields: {},
+          id_prefix: 'contacts',
+          elements: { # TODO: Confirm ETO field names
+            'Time Spent' => {
+              key: :service_time_spent,
+              cleaner: ->(time) { parse_duration(time) },
+            },
+            'Contact Attempt' => {
+              key: :service_benefits_contact_attempt,
+              cleaner: ->(type) { type },
+            },
+            'Case Notes' => {
+              key: :service_notes,
+              cleaner: ->(note) { note },
+            },
+          },
+        },
+        'Benefits Touchpoint' => { # TODO: Confirm ETO field names
+          service_type: 'Benefits Service',
+          service_fields: {},
+          id_prefix: 'benefits',
+          elements: {
+            'Service' => {
+              key: :service_benefits_type,
+              cleaner: ->(type) { type },
+            },
+            'Time Spent' => {
+              key: :service_time_spent,
+              cleaner: ->(time) { parse_duration(time) },
+            },
+            'Case Notes' => {
+              key: :service_notes,
+              cleaner: ->(note) { note },
+            },
+          },
+        },
+        '1A-SA Breakfast' => {
+          service_type: 'Breakfast',
+          service_fields: {},
+          id_prefix: 'breakfast',
+          elements: {},
+        },
+        '1A-SA Lunch' => {
+          service_type: 'Lunch',
+          service_fields: {},
+          id_prefix: 'lunch',
+          elements: {},
+        },
+        '1A-SA Dinner' => {
+          service_type: 'Dinner',
+          service_fields: {},
+          id_prefix: 'dinner',
+          elements: {},
+        },
+        'Budgeting/Financial Planning' => {
+          service_type: 'Budgeting/Financial Planning',
+          service_fields: {},
+          id_prefix: 'budgeting',
+          elements: {
+            'Contact Location/Method' => {
+              key: :service_contact_location,
+              cleaner: ->(location) { normalize_location(location) },
+            },
+            'Type of Contact' => {
+              key: :service_contact_type,
+              cleaner: ->(type) { normalize_contact(type) },
+            },
+            'Case Notes' => {
+              key: :service_notes,
+              cleaner: ->(note) { note },
+            },
+          },
+        },
+        'DH Case Management' => {
+          service_type: 'DH Case Management',
+          service_fields: {},
+          id_prefix: 'dh-cm',
+          elements: {
+            'Contact Location/Method' => {
+              key: :service_contact_location,
+              cleaner: ->(location) { normalize_location(location) },
+            },
+            'Type of Contact' => {
+              key: :service_contact_type,
+              cleaner: ->(type) { normalize_contact(type) },
+            },
+            'Time Spent' => {
+              key: :service_time_spent,
+              cleaner: ->(time) { parse_duration(time) },
+            },
+            'Case Notes' => {
+              key: :service_notes,
+              cleaner: ->(note) { note },
+            },
+          },
+        },
+        'Drug Testing' => {
+          service_type: 'Drug Testing',
+          service_fields: {},
+          id_prefix: 'drug-testing',
+          elements: {
+            'Contact Location/Method' => {
+              key: :service_contact_location,
+              cleaner: ->(location) { normalize_location(location) },
+            },
+            'Tests provided' => {
+              key: :service_drug_tests_provided,
+              cleaner: ->(tests) { tests.split('|') },
+            },
+            'Case Notes' => {
+              key: :service_notes,
+              cleaner: ->(note) { note },
+            },
+          },
+        },
+        'Individual TBSS' => {
+          service_type: 'Individual TBSS',
+          service_fields: {},
+          id_prefix: 'tbss',
+          elements: {
+            'Individual' => {
+              key: :service_contact_type,
+              cleaner: ->(type) { normalize_contact(type) },
+            },
+            'Time Spent' => {
+              key: :service_time_spent,
+              cleaner: ->(time) { parse_duration(time) },
+            },
+            'Case Notes' => {
+              key: :service_notes,
+              cleaner: ->(note) { note },
+            },
+          },
+        },
+        'Life Skill Group' => {
+          service_type: 'Life Skill Group',
+          service_fields: {},
+          id_prefix: 'life-skills',
+          elements: {
+            'Contact Location/Method' => {
+              key: :service_contact_location,
+              cleaner: ->(location) { normalize_location(location) },
+            },
+            'Time Spent' => {
+              key: :service_time_spent,
+              cleaner: ->(time) { parse_duration(time) },
+            },
+            'Case Notes' => {
+              key: :service_notes,
+              cleaner: ->(note) { note },
+            },
+          },
+        },
+        'Medication Supervision' => {
+          service_type: 'Medication Supervision',
+          service_fields: {},
+          id_prefix: 'medication',
+          elements: {
+            'Contact Location/Method' => {
+              key: :service_contact_location,
+              cleaner: ->(location) { normalize_location(location) },
+            },
+            'Value' => {
+              key: :medication_supervision_value,
+              cleaner: ->(value) { yn_boolean(value) },
+            },
+            'Case Notes' => {
+              key: :service_notes,
+              cleaner: ->(note) { note },
+            },
+          },
+        },
+        'Substance Abuse Individual' => {
+          service_type: 'Substance Abuse Individual',
+          service_fields: {},
+          id_prefix: 'substance-abuse',
+          elements: {
+            'Contact Location/Method' => {
+              key: :service_contact_location,
+              cleaner: ->(location) { normalize_location(location) },
+            },
+            'Time Spent' => {
+              key: :service_time_spent,
+              cleaner: ->(time) { parse_duration(time) },
+            },
+            'Case Notes' => {
+              key: :service_notes,
+              cleaner: ->(note) { note },
+            },
+          },
+          'Support Groups (Tenant Support Services)' => {
+            service_type: 'Tenant Support Group',
+            service_fields: {},
+            id_prefix: 'tenant',
+            elements: {
+              'Service Location' => {
+                key: :service_location_text,
+                cleaner: ->(service_location) { service_location },
+              },
+              'Time Spent' => {
+                key: :service_time_spent,
+                cleaner: ->(time) { parse_duration(time) },
+              },
+            },
+          },
+          'Case Management/Case Management notes' => {
+            service_type: 'When We Love',
+            service_fields: {
+              'Assistance Amount' => {
+                key: :FAAmount,
+                cleaner: ->(amount) { amount.to_f },
+              },
+            },
+            id_prefix: 'cm-notes',
+            elements: {
+              'Contact Location/Method' => {
+                key: :service_contact_location,
+                cleaner: ->(location) { normalize_location(location) },
+              },
+              'Time Spent' => {
+                key: :service_time_spent,
+                cleaner: ->(time) { parse_duration(time) },
+              },
+              'Type of Contact' => {
+                key: :service_contact_type,
+                cleaner: ->(type) { normalize_contact(type) },
+              },
+              'When We Love Services Provided' => {
+                key: :services_provided_when_we_love,
+                cleaner: ->(services) { services.split('|') },
+              },
+            },
           },
         },
       }.freeze
@@ -181,6 +513,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     private def normalize_location(location)
       location # TODO
+    end
+
+    private def normalize_contact(contact)
+      contact # TODO
     end
 
     private def service_class
