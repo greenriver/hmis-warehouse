@@ -34,7 +34,7 @@
             .ml-4{style: "color: #{role.fg_color}"}
               = role.name
     .role-wrapper.w-75
-      = simple_form_for :roles, url: admin_roles_path do |f|
+      = simple_form_for :role, url: admin_roles_path do |f|
         - # cache permission calculation
         - permissions = Role.permissions_by_group
         .d-flex

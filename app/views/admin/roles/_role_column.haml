@@ -5,5 +5,5 @@
   - content_for "panel_collapse_content_#{category_slug}".to_sym do
     - perms.each do |key, permission|
       - label = permission.try(:[], :title) || key.to_s.humanize
-      -# = f.input key, label: label, hint: permission.try(:[], :description)
+      = f.input key, label: label, hint: permission.try(:[], :description)
   = render 'common/panel_collapse', id: category_slug, title: category, content: "_#{category_slug}", wrapper_class: ''
