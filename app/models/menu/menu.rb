@@ -39,7 +39,7 @@ class Menu::Menu
       title: Translation.translate('Reports'),
       id: 'reports',
       icon: 'icon-chart-bar',
-      children: [hud_reports_menu, warehouse_reports_menu],
+      children: [warehouse_reports_menu, hud_reports_menu],
       match_pattern: GrdaWarehouse::WarehouseReports::ReportDefinition.pluck(:url).map { |u| "^/#{u}.*" }.join('|'),
       match_pattern_terminator: '.*',
     )
