@@ -219,7 +219,7 @@ module AllNeighborsSystemDashboard
           joins(enrollment: :events).
           merge(GrdaWarehouse::Hud::Event.where(event: SERVICE_CODE_IDS, event_date: filter.range)).
           open_between(start_date: filter.start_date, end_date: filter.end_date).
-          where(id: batch.map { |en| en.service_history_enrollment_for_head_of_household&.id }.compact)
+          where(id: batch.map { |en| hoh(en)[:enrollment_id] }.compact)
 
         enrollments_by_hoh = ce_project_enrollments.
           distinct.
