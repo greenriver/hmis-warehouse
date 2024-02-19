@@ -258,11 +258,11 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   # HUD reporting Project Type overlay
   # Now controlled by import overrides
   scope :hud_project_type, ->(project_types) do
-    where(ProjectType: project_types)
+    where(project_type: project_types)
   end
 
   scope :in_project_type, ->(project_types) do
-    where(ProjectType: project_types)
+    where(project_type: project_types)
   end
 
   # uses actual Projects.id not ProjectID (which is stored in the table and requires data_source_id)

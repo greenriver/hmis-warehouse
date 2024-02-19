@@ -75,32 +75,32 @@ module GrdaWarehouse::Hud
       where(ProjectType: HudUtility2024.residential_project_type_ids)
     end
     scope :hud_residential, -> do
-      where(project_type.in(HudUtility2024.residential_project_type_ids))
+      where(project_type: HudUtility2024.residential_project_type_ids)
     end
     scope :non_residential, -> do
       where.not(ProjectType: HudUtility2024.residential_project_type_ids)
     end
     scope :hud_non_residential, -> do
-      where.not(project_type.in(HudUtility2024.residential_project_type_ids))
+      where.not(project_type: HudUtility2024.residential_project_type_ids)
     end
 
     scope :chronic, -> do
-      where(project_type.in(HudUtility2024.chronic_project_types))
+      where(project_type: HudUtility2024.chronic_project_types)
     end
     scope :hud_chronic, -> do
-      where(project_type.in(HudUtility2024.chronic_project_types))
+      where(project_type: HudUtility2024.chronic_project_types)
     end
     scope :homeless, -> do
-      where(project_type.in(HudUtility2024.homeless_project_types))
+      where(project_type: HudUtility2024.homeless_project_types)
     end
     scope :hud_homeless, -> do
-      where(project_type.in(HudUtility2024.chronic_project_types))
+      where(project_type: HudUtility2024.chronic_project_types)
     end
     scope :homeless_sheltered, -> do
-      where(project_type.in(HudUtility2024.homeless_sheltered_project_types))
+      where(project_type: HudUtility2024.homeless_sheltered_project_types)
     end
     scope :homeless_unsheltered, -> do
-      where(project_type.in(HudUtility2024.homeless_unsheltered_project_types))
+      where(project_type: HudUtility2024.homeless_unsheltered_project_types)
     end
     scope :residential_non_homeless, -> do
       r_non_homeless = HudUtility2024.residential_project_type_ids - HudUtility2024.chronic_project_types
@@ -108,11 +108,11 @@ module GrdaWarehouse::Hud
     end
     scope :hud_residential_non_homeless, -> do
       r_non_homeless = HudUtility2024.residential_project_type_ids - HudUtility2024.chronic_project_types
-      where(project_type.in(r_non_homeless))
+      where(project_type: r_non_homeless)
     end
 
     scope :with_hud_project_type, ->(project_types) do
-      where(project_type.in(project_types))
+      where(project_type: project_types)
     end
     scope :with_project_type, ->(project_types) do
       where(project_type_column => project_types)
