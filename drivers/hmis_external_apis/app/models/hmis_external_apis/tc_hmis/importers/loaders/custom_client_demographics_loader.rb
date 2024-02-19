@@ -6,27 +6,19 @@
 
 # CustomDataElementDefinitions.find(key)
 module HmisExternalApis::TcHmis::Importers::Loaders
-  class CustomClientDemographicsLoader
-    attr_reader :table_names
-
-    def initialize(clobber:, reader:, log_file:)
-      @clobber = clobber
-      @reader = reader
-      @filename = self.class.filename
-      @data_source_id = HmisExternalApis::TcHmis.data_source.id
-      @user_id = User.system_user.id
-      @log_file = log_file
-      @table_names = []
+  class CustomClientDemographicsLoader < BaseLoader
+    def initialize(...)
+      super
 
       @element_definitions = cded_source.where(
         owner_type: client_source.name,
-        data_source_id: @data_source_id,
-        key: demographics_on_client.map { |key, _| key },
+        data_source_id: data_source.id,
+        key: demographics_on_client.keys,
       ).map { |defn| [defn.key.to_sym, defn] }.
         to_h
       @stored_demographic_elements = {}
       @client_lookup = client_source.
-        where(data_source_id: @data_source_id).
+        where(data_source_id: data_source.id).
         pluck(:personal_id, :id).
         to_h
       @stored_contact_points = {}
@@ -39,7 +31,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def perform
-      @reader.rows(filename: @filename, header_row_number: 4, field_id_row_number: 1).each do |row|
+      rows = @reader.rows(filename: self.class.filename, header_row_number: 4, field_id_row_number: 1)
+
+      clobber_records(rows) if clobber
+
+      rows.each do |row|
         personal_id = row.field_value('Participant Enterprise Identifier')
         timestamp = row.field_value('Date Last Updated').to_date
 
@@ -56,72 +52,51 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
         update_client_address(personal_id, row.field_value('Address Line 1'), row.field_value('Address Line 2'), row.field_value('Zipcode'), timestamp)
       end
-      cdes_to_upsert = @stored_demographic_elements.values.map(&:values).flatten
-      if cdes_to_upsert.present?
-        cde_source.upsert_all(
-          cdes_to_upsert,
-          unique_by: :id,
-        )
-        table_names << cde_source.table_name
-      end
-      contact_points_to_upsert = @stored_contact_points.values.flatten
-      if contact_points_to_upsert.present?
-        cccp_source.upsert_all(
-          contact_points_to_upsert,
-          unique_by: :id,
-        )
-        table_names << cccp_source.table_name
-      end
-      if @new_postal_codes.present? # rubocop:disable Style/GuardClause
-        cca_source.insert_all(@new_postal_codes)
-        table_names << cca_source.table_name
-      end
+
+      cdes_to_insert = @stored_demographic_elements.values.map(&:values).flatten
+      ar_import(cde_source, cdes_to_insert) if cdes_to_insert.present?
+
+      contact_points_to_insert = @stored_contact_points.values.flatten
+      ar_impoort(cccp_source, contact_points_to_insert) if contact_points_to_insert.present?
+
+      ar_import(cca_source, @new_postal_codes) if @new_postal_codes.present?
     end
 
-    def runnable?
-      @reader.file_present?(@filename)
+    private def clobber_records(rows)
+      personal_ids = Set.new(rows.map { |row| row.field_value('Participant Enterprise Identifier') }.compact.uniq)
+      client_ids = @client_lookup.select { |k, _v| personal_ids.include?(k) }.values
+      demographic_element_ids = @element_definitions.values.map(&:id)
+      relevant_cdes = cde_source.where(
+        owner_type: 'Hmis::Hud::Client',
+        owner_id: client_ids,
+        data_element_definition_id: demographic_element_ids,
+        data_source_id: data_source.id,
+      )
+      relevant_cdes.delete_all
+
+      relevant_contacts = cccp_source.where(PersonalID: personal_ids, system: [:phone, :email])
+      relevant_contacts.delete_all
+
+      relevant_ccas = cca_source.where(PersonalID: personal_ids)
+      relevant_ccas.delete_all
     end
 
     private def update_demographic(client_id:, timestamp:, demographic_key:, value:)
       return unless client_id.present? # Skip non-existent clients
       return unless value.present? # Do we want to keep last collected, or erase any that are blank w/ newest timestamp?
 
-      # Retrieve any existing CDEs for the client -- this will be faster than updating 1 by 1, but slower than
-      # retrieving the whole dataset in advance, but will use less memory. If it is too big, we may need to batch the
-      # xlsx records
-      @stored_demographic_elements[client_id] ||= cde_source.where(owner_type: 'Hmis::Hud::Client', owner_id: client_id).
-        map { |e| [e.data_element_definition_id, e.attributes.symbolize_keys] }.
-        to_h
-
       definition = @element_definitions[demographic_key]
-      element =  @stored_demographic_elements[client_id][definition.id]
-      column = "value_#{definition.field_type}".to_sym
+      element =  @stored_demographic_elements.dig(client_id, definition.id)
 
       if element.present?
         return unless element[:DateUpdated] < timestamp
 
+        column = "value_#{definition.field_type}".to_sym
         element[column] = value
         element[:DateUpdated] = timestamp
       else
-        element = {
-          owner_type: client_source.name,
-          owner_id: client_id,
-          data_source_id: @data_source_id,
-          data_element_definition_id: definition.id,
-          UserID: @user_id,
-          DateCreated: timestamp,
-          DateUpdated: timestamp,
-          DateDeleted: nil,
-
-          value_float: nil, # Make sure we have all the value columns for the import
-          value_integer: nil,
-          value_boolean: nil,
-          value_string: nil,
-          value_text: nil,
-          value_date: nil,
-          value_json: nil,
-        }
-        element[column] = value
+        element = cde_helper.new_cde_record(value: value, owner_type: client_source.name, owner_id: client_id, definition_key: demographic_key)
+        @stored_demographic_elements[client_id] ||= {}
         @stored_demographic_elements[client_id][definition.id] = element
       end
     end
@@ -140,10 +115,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     private def update_contact_points(personal_id, phone_number, email, timestamp)
       return unless @client_lookup[personal_id].present? # Skip non-existent clients
 
-      @stored_contact_points[personal_id] ||= cccp_source.
-        where(PersonalID: personal_id, system: [:phone, :email]).
-        map { |e| e.attributes.symbolize_keys }
-
       if phone_number.present? && ! @stored_contact_points[personal_id].detect { |c| c[:system].to_s == 'phone' && c[:value] == phone_number }
         @stored_contact_points[personal_id] << {
           use: nil,
@@ -152,8 +123,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           notes: nil,
           ContactPointID: Hmis::Hud::Base.generate_uuid,
           PersonalID: personal_id,
-          UserID: @user_id,
-          data_source_id: @data_source_id,
+          UserID: system_user_id,
+          data_source_id: data_source.id,
           DateCreated: timestamp,
           DateUpdated: timestamp,
           DateDeleted: nil,
@@ -168,8 +139,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           notes: nil,
           ContactPointID: Hmis::Hud::Base.generate_uuid,
           PersonalID: personal_id,
-          UserID: @user_id,
-          data_source_id: @data_source_id,
+          UserID: system_user_id,
+          data_source_id: data_source.id,
           DateCreated: timestamp,
           DateUpdated: timestamp,
           DateDeleted: nil,
@@ -181,6 +152,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       return unless @client_lookup[personal_id].present? # Skip non-existent clients
 
       # 2/13/24 -- TC decided they didn't need address information except zipcode
+      # TODO: before enabling, address cleaning confirm that there are no privacy issues associated with exposing the data to Nominatim/OpenStreetMap
+      #
       # query = [line1, line2].compact.join(' ') || zipcode # send zipcode if we don't have anything else
       # query = [query, zipcode].compact.join(' ') unless query.match(/\d+$/) # Add the zip if we don't see a number
       # result = nominatim_lookup(query)
@@ -192,17 +165,17 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       # state = result.data.dig('address', 'ISO3166-2-lvl4')[-2..]
 
       # Don't duplicate zipcodes
-      @stored_postal_codes[personal_id] ||= cca_source.where(PersonalID: personal_id).where.not(postal_code: nil).pluck(:postal_code)
-      return if @stored_postal_codes[personal_id].include?(zipcode)
+      return if @stored_postal_codes[personal_id]&.include?(zipcode)
 
+      @stored_postal_codes[personal_id] ||= []
       @stored_postal_codes[personal_id] << zipcode
 
       @new_postal_codes << {
         PersonalID: personal_id,
         postal_code: zipcode,
         AddressID: Hmis::Hud::Base.generate_uuid,
-        UserID: @user_id,
-        data_source_id: @data_source_id,
+        UserID: system_user_id,
+        data_source_id: data_source.id,
         DateCreated: timestamp,
         DateUpdated: timestamp,
       }
