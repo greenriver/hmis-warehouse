@@ -5,16 +5,17 @@
 ###
 
 class Hmis::GraphqlFieldLogger
+  attr_accessor :last_event_at
   def initialize
     @collection = {}
   end
 
-  # @param [Hash] ActiveSupport::Notification payload
-  def capture_event(payload)
-    field = payload.fetch(:field)
+  # @param [Types::BaseField] field
+  # @param [Object] object from graphql resolver
+  def capture_event(field, object)
+    self.last_event_at = Time.current
     return if field.name == '__typename'
 
-    object = payload.fetch(:object)
     return unless object.is_a?(Types::BaseObject)
 
     object_identity = object.activity_log_object_identity
@@ -30,5 +31,12 @@ class Hmis::GraphqlFieldLogger
 
   def collection
     @collection.transform_values { |v| v.sort.uniq }
+  end
+
+  def activity_log_attrs
+    {
+      resolved_fields: collection,
+      resolved_at: last_event_at,
+    }
   end
 end

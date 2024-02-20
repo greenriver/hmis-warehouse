@@ -30,4 +30,8 @@ class Hmis::ActivityLog < ApplicationRecord
     join_clause = arel_table.create_join(jt, arel_table.create_on(jt[:activity_log_id].eq(arel_table[:id])))
     joins(join_clause).select(jt[:enrollment_id])
   end
+
+  def response_time
+    resolved_at - created_at if resolved_at
+  end
 end

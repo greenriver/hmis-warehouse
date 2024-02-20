@@ -23,7 +23,7 @@ module WarehouseReports
           class: WarehouseReport::Outcomes::RrhReport,
           index_path: warehouse_reports_rrh_index_path,
           scope: ::Reporting::Housed.rrh,
-          project_types: [13],
+          project_types: HudUtility2024.performance_reporting[:rrh],
         },
         psh: {
           class: WarehouseReport::Outcomes::PshReport,
@@ -35,13 +35,13 @@ module WarehouseReports
           class: WarehouseReport::Outcomes::EsReport,
           index_path: warehouse_reports_shelter_index_path,
           scope: ::Reporting::Housed.es,
-          project_types: [1],
+          project_types: HudUtility2024.performance_reporting[:es],
         },
         th: {
           class: WarehouseReport::Outcomes::ThReport,
           index_path: warehouse_reports_th_index_path,
           scope: ::Reporting::Housed.th,
-          project_types: [2],
+          project_types: HudUtility2024.performance_reporting[:th],
         },
       }
     end
