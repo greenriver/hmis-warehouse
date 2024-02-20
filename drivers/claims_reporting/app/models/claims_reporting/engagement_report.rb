@@ -57,8 +57,10 @@ module ClaimsReporting
           where(member_id: @medical_claims.select(:member_id))
       end
 
-      @claim_date_range = (@medical_claims.minimum(:service_start_date) || self.class.max_date_range.min) .. (
-           @medical_claims.maximum(:service_start_date) || self.class.max_date_range.max)
+      # @claim_date_range = (@medical_claims.minimum(:service_start_date) || self.class.max_date_range.min) .. (
+      #      @medical_claims.maximum(:service_start_date) || self.class.max_date_range.max)
+      @claim_date_range = [@medical_claims.minimum(:service_start_date), filter.start_date].compact.max ..
+        [@medical_claims.maximum(:service_start_date), filter.end_date].compact.min
 
       @rx_claims = ClaimsReporting::RxClaim.none # TBD
     end
