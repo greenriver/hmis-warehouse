@@ -64,6 +64,7 @@ class CohortsController < ApplicationController
     @population = params[:population]
     respond_to do |format|
       format.html do
+        @excel_export = GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport.new
         @visible_columns = [CohortColumns::Meta.new]
         @visible_columns += @cohort.visible_columns(user: current_user)
         delete_column = if params[:population] == 'deleted'
