@@ -373,6 +373,12 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       phone_qa.date_of_activity = '2024-01-01'.to_date
       expect(phone_qa.modifiers).to include('93')
     end
+
+    it 'is still a U3 if it was a collateral contact' do
+      phone_qa.date_of_activity = '2024-01-01'.to_date
+      phone_qa.reached_client = :collateral
+      expect(phone_qa.modifiers).to include('U3')
+    end
   end
 
   describe '2024 care team indirect contact changes' do

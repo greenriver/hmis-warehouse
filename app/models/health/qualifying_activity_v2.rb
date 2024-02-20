@@ -48,8 +48,18 @@ module Health
         },
         video_call: {
           title: 'Video call',
-          code: '95',
+          # code: '95',
           weight: 30,
+          dynamic_code: ->(qa) do
+            case qa.reached_client&.to_sym
+            when :yes # Video calls with clients are telehealth
+              '95'
+            when :collateral # With collaterals are indirect
+              'U3'
+            else # Otherwise
+              'U3'
+            end
+          end,
         },
         text_message: {
           title: 'Text messaging',
