@@ -41,4 +41,17 @@
   .panel-group {
     margin-bottom: 0
   }
+  .administrative {
+    background-color: $gray-015;
+    padding: 1rem;
+  }
+
+  .c-checkbox input:checked+label,
+  .c-checkbox input:not(:checked)+label {
+    @include checkbox-default(20px, false, 3px);
+  }
+  .c-checkbox input:checked~label,
+  .c-checkbox input:not(:checked)~label {
+    @include checkbox-default(20px, false, 3px);
+  }
 }
