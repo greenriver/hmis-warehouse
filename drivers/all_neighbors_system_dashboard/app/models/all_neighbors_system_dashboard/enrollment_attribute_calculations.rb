@@ -214,15 +214,16 @@ module AllNeighborsSystemDashboard
 
       def ce_infos_for_batch(filter, batch)
         # Find the active enrollments with appropriate events for the HoH of the enrollments in the batch
-        en_ids = batch.map do |en|
-          hoh(en)&.try(:[], :enrollment_id) || en.id
+        c_ids = batch.map do |en|
+          hoh(en)&.try(:[], :client_id) || en.client_id
         end
+        # For the HoH in the batch find their ce_enrollments
         ce_project_enrollments = GrdaWarehouse::ServiceHistoryEnrollment.
           entry.
           joins(enrollment: :events).
           merge(GrdaWarehouse::Hud::Event.where(event: SERVICE_CODE_IDS, event_date: filter.range)).
           open_between(start_date: filter.start_date, end_date: filter.end_date).
-          where(id: en_ids.compact)
+          where(client_id: c_ids.compact)
 
         enrollments_by_hoh = ce_project_enrollments.
           distinct.
