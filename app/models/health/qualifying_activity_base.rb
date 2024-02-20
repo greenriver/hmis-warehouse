@@ -57,5 +57,9 @@ module Health
 
       return modlist.reject(&:blank?).compact
     end
+
+    def place_of_service
+      11
+    end
   end
 end

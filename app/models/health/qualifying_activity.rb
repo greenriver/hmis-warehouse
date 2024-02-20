@@ -683,5 +683,9 @@ module Health
         in_first_three_months_procedure_codes.include?(act[:code].to_s)
       end.keys
     end
+
+    def place_of_service
+      qa_version.place_of_service.to_s
+    end
   end
 end

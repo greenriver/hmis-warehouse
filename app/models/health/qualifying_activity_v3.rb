@@ -217,5 +217,15 @@ module Health
 
       reasons.uniq
     end
+
+    def place_of_service
+      return '11' if telehealth?
+
+      super
+    end
+
+    private def telehealth?
+      @qa.mode_of_contact&.to_sym.in?([:phone_call, :video_call]) && @qa.reached_client.to_sym == :yes
+    end
   end
 end
