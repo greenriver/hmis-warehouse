@@ -65,15 +65,15 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
   end
 
   def describe_with
-    "replaces #{replaces_column} with #{replacement_value}"
+    replacement_value
   end
 
   def describe_when
     return 'always' if matched_hud_key.blank? && replaces_value.blank?
-    return "when #{associated_class.hud_key} is #{matched_hud_key} and #{replaces_column} is #{replaces_value}" if matched_hud_key.present? && replaces_value.present?
-    return "when #{associated_class.hud_key} is #{matched_hud_key}" if matched_hud_key.present?
+    return "#{associated_class.hud_key} is #{matched_hud_key} and #{replaces_column} is #{replaces_value}" if matched_hud_key.present? && replaces_value.present?
+    return "#{associated_class.hud_key} is #{matched_hud_key}" if matched_hud_key.present?
 
-    "when #{replaces_column} is #{replaces_value}" if replaces_value.present?
+    "#{replaces_column} is #{replaces_value}" if replaces_value.present?
   end
 
   def associated_class
