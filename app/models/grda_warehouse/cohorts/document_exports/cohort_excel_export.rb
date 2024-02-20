@@ -16,11 +16,11 @@ module GrdaWarehouse::Cohorts::DocumentExports
     end
 
     protected def cohort_clients
-      cohort.search_clients(population: params[:population], user: user)
+      cohort.search_clients(population: population, user: user)
     end
 
     protected def population
-      params[:population] ||= 'Active Clients'
+      params['population'] ||= 'Active Clients'
     end
 
     protected def view_assigns
