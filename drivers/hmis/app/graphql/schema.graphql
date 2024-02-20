@@ -1441,6 +1441,11 @@ enum Component {
   SSN input component
   """
   SSN
+
+  """
+  Time duration component with hours and minutes
+  """
+  TIME_DURATION
 }
 
 enum CounselingMethod {
