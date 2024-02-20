@@ -1,0 +1,48 @@
+
+%ul.nav.flex-column.flex-nowrap.overflow-hidden.site-menu.w-100
+  - site_menu.each do |item|
+    - next unless item.show?
+
+    - if item.children?
+      - submenu_id = "#{item.id}-submenu"
+      - collapsed = item.collapsed_class(request.env['PATH_INFO'])
+    %li.nav-item.d-flex
+      .link-wrapper.w-100
+        - href = if item.href then item.href else "##{submenu_id}" end
+        - options = item.options.merge( href: href )
+        - if item.children?
+          - options[:class] = collapsed
+          - options[:data] ||= {}
+          - options[:data].merge!(toggle: :collapse, target: href)
+        %a.nav-link.d-flex{ **options }
+          .icon-wrapper
+            - if item.icon?
+              %i.menu-icon{ class: item.icon }
+          .link-text.pb-2= item.title
+          - if item.children?
+            .ml-auto.toggle-icon-up
+              .i.icon-angle-up
+            .ml-auto.toggle-icon-down
+              .i.icon-angle-down
+        - if item.children?
+          .collapse{ id: submenu_id, class: collapsed, aria: { expanded: (collapsed != :collapsed).to_s }}
+            %ul.flex-column.pl-1.nav
+              - item.children.each do |child|
+                %li.nav-item
+                  - if child.icon?
+                    %i.menu-icon{ class: child.icon }
+                  - if child.children?
+                    .group-header= child.title
+                    .group
+                      %ul.flex-column.pl-2.nav
+                        - child.children.each do |grand_child|
+                          %li.nav-item.d-flex
+                            - if grand_child.icon?
+                              .icon-wrapper
+                                %i.menu-icon{ class: grand_child.icon }
+                            %div
+                              %a.nav-link{ **grand_child.options }
+                                .link-text= grand_child.title
+                  - else
+                    %a.nav-link{ **child.options }
+                      .link-text= child.title

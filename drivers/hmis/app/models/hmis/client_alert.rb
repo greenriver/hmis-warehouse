@@ -7,6 +7,12 @@
 class Hmis::ClientAlert < Hmis::HmisBase
   acts_as_paranoid
 
+  has_paper_trail(
+    meta: {
+      client_id: ->(r) { r.client&.id },
+    },
+  )
+
   HIGH = 'high'.freeze
   MEDIUM = 'medium'.freeze
   LOW = 'low'.freeze

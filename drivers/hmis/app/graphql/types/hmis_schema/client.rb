@@ -300,6 +300,7 @@ module Types
         Hmis::Hud::CustomClientName.sti_name,
         Hmis::Hud::CustomClientAddress.sti_name,
         Hmis::Hud::CustomClientContactPoint.sti_name,
+        Hmis::ClientAlert.sti_name,
       ]
 
       # Also include CustomDataElements that are linked to clients.
