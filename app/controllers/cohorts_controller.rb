@@ -111,6 +111,11 @@ class CohortsController < ApplicationController
           end
           options
         end
+
+        # included so the excel download can be regenerated when the visible columns change
+        params['visible_columns'] ||= @visible_columns.map { |m| m.column.to_s }.join(',')
+        # included so the excel download can be regenerated if the total number of clients changes
+        params['client_count'] ||= @cohort.search_clients(population: params[:population], user: current_user).count
       end
       format.xlsx do
         @user = current_user
