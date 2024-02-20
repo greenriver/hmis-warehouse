@@ -16,5 +16,8 @@ BostonHmis::Application.routes.draw do
           as: 'hmis_external_apis_client_involvements',
           defaults: { format: 'json' }
     end
+    scope(module: :tc_hmis) do
+      resources :static_pages, only: [:show]
+    end
   end
 end

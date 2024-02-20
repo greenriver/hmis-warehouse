@@ -7,3 +7,5 @@
       .form-check.mb-1
         %input.form-check-input{type: "checkbox", name: name, id: input_id, value: value}
         %label.form-check-label{for: input_id}= label
+  - if local_assigns.key?(:footer)
+    = footer
