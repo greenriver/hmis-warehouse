@@ -23,8 +23,8 @@ module ClaimsReporting::WarehouseReports
       @report = report_class.new(
         user_id: current_user.id,
         options: {
-          start_date: dates.min.iso8601,
-          end_date: dates.max.iso8601,
+          start: dates.min.iso8601,
+          end: dates.max.iso8601,
         }.merge(report_params),
       )
       @report.save

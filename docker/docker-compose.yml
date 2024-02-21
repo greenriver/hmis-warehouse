@@ -299,6 +299,7 @@ services:
     image: op-superset
     platform: linux/amd64
     labels:
+      - traefik.enable=${TRAEFIK_ENABLED:-false}
       - "traefik.http.routers.op-superset.rule=Host(`superset.${FQDN:-hmis-warehouse.dev.test}`)"
       - "traefik.http.routers.op-superset.tls=true"
       - "traefik.http.services.op-superset.loadbalancer.server.port=8088"
