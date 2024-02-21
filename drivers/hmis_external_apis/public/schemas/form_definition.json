@@ -265,6 +265,7 @@
             "ALERT_WARNING",
             "CHECKBOX",
             "DISABILITY_TABLE",
+            "TABLE",
             "DROPDOWN",
             "EMAIL",
             "MCI",

@@ -1451,6 +1451,11 @@ enum Component {
   SSN input component
   """
   SSN
+
+  """
+  Render group as a table. Each child item should be a group representing 1 table row.
+  """
+  TABLE
 }
 
 enum CounselingMethod {

@@ -15,6 +15,7 @@ module Types
     value 'DISABILITY_TABLE', 'Specialized component for rendering disabilities in a table'
     value 'HORIZONTAL_GROUP', 'Render a group of inputs horizontally'
     value 'INFO_GROUP', 'Render contents in an info box'
+    value 'TABLE', 'Render group as a table. Each child item should be a group representing 1 table row.'
 
     # Input components
     value 'CHECKBOX', 'Render a boolean input item as a checkbox'
