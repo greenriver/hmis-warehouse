@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# CE Event
 class Hmis::Hud::Event < Hmis::Hud::Base
   self.table_name = :Event
   self.sequence_name = "public.\"#{table_name}_id_seq\""

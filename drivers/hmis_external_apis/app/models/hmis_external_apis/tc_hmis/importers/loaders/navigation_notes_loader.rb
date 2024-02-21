@@ -58,6 +58,43 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     protected
 
+    def ce_events?
+      false
+    end
+
+    # create synthetic CE events if we don't have organic ones
+    def create_synthetic_ce_events
+      ce_event_id_by_enrollment_date = build_ce_event_id_by_enrollment_date(rows)
+
+      records = []
+      rows.each do |row|
+        enrollment_id = row.field_value(ENROLLMENT_ID_COL)
+        next unless enrolment_id
+
+        row_date = parse_date(row.field_value('Date of Event'))&.to_date
+        next unless row_date
+
+        # record already exists
+        next if ce_event_id_by_enrollment_date.dig(enrollment_id, event_date)
+
+        records.push(
+          'EventID' => row_assessment_id(row),
+          'EnrollmentID' => enrollment_id,
+          'PersonalID' => row.field_value('Participant Enterprise Identifier'),
+          'EventDate' => row_date,
+          'UserID' => system_hud_user_id,
+          'ResultDate' => parse_date(row.field_value('Date of result')),
+          'ReferralResult' => HudUtility2024.referral_result(row.field_value('Referral Result'), true),
+          synthetic: true,
+          data_source_id: data_source_id,
+          # tbd:
+          # 'ProbSolDivRRResult' => Problem Solving/Diversion/Rapid Resolution intervention or service result - Client housed/re-housed in a safe alternative
+          # 'Event' => event
+        )
+      end
+      ar_import(Hmis::Hud::Event, records)
+    end
+
     def cded_configs
       CDED_CONFIGS
     end

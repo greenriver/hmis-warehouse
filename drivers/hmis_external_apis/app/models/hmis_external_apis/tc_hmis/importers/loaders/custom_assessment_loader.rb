@@ -15,6 +15,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       rows = reader.rows(filename: filename)
       clobber_records(rows) if clobber
 
+      create_synthetic_ce_events(rows) if ce_events?
       create_assessment_records(rows)
       create_form_processor_records(rows)
 
@@ -30,6 +31,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     protected
+
+    def ce_events?
+      false
+    end
 
     def validate_cde_configs
       seen_element_ids = Set.new
@@ -66,6 +71,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         assessment.really_destroy!
       end
       Hmis::Form::FormProcessor.where(custom_assessment_id: assessment_ids).delete_all
+
+      # delete_synthetic_ce_events
+      Hmis::Hud::Event.where(data_source_id: data_source_id, custom_assessment_id: assessment_ids, synthetic: true).delete_all if ce_events?
     end
 
     def create_cde_definitions
@@ -116,6 +124,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     # create synthetic form processors for imported touchpoints
     def create_form_processor_records(rows)
+      ce_event_ids_by_row_assessment_id = ce_event_id_by_enrollment_date(rows) if ce_events?
+
       owner_id_by_row_id = model_class.where(data_source: data_source).pluck(:CustomAssessmentID, :id).to_h
       processor_model = Hmis::Form::FormProcessor
       records = []
@@ -123,9 +133,16 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         assessment_id = owner_id_by_row_id[row_assessment_id(row)]
         next unless assessment_id
 
+        enrollment_id = row.field_value(ENROLLMENT_ID_COL)
+        next unless enrollment_id
+
+        row_date = parse_date(row.field_value('Date of Event'))&.to_date
+        next unless row_date
+
         records << {
           custom_assessment_id: assessment_id,
           definition_id: form_definition.id,
+          ce_event_id: ce_event_ids_by_row_assessment_id&.dig(enrollment_id, row_date),
         }
       end
       ar_import(processor_model, records)
@@ -161,6 +178,22 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       missed = cded_configs.map { |c| c.fetch(:key) }.reject { |k| k.in?(seen) }
       log_info("saw CDE values for #{seen.size} of #{total} fields")
       log_info("missed CDE values for #{missed.size} of #{total} fields: #{missed.sort.join(', ')}") if missed.any?
+    end
+
+    # {enrollment_id => {event_date => id_for_most_recent_event}}
+    def ce_event_id_by_enrollment_date(rows)
+      enrollment_ids = rows.map { |row| row.field_value(ENROLLMENT_ID_COL) }.compact
+      result = {}
+      Hmis::Hud::Event.
+        where(enrollment_id: enrollment_ids).
+        where(data_source_id: data_source_id).
+        order(DateCreated: :desc) # get the most recent event
+      pluck(:id, :enrollment_id, '"EventDate"::date').
+        each do |event_id, enrollment_id, date|
+        result[enrollment_id] ||= {}
+        result[enrollment_id][date] = event_id
+      end
+      result
     end
 
     def cde_values(row, config, required: false)
