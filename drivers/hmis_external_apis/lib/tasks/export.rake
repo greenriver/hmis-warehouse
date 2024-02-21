@@ -6,10 +6,15 @@ namespace :export do
     next unless HmisEnforcement.hmis_enabled?
     next unless GrdaWarehouse::DataSource.hmis.exists?
 
-    HmisExternalApis::AcHmis::DataWarehouseUploadJob.perform_later('clients_with_mci_ids_and_address')
-    HmisExternalApis::AcHmis::DataWarehouseUploadJob.perform_later('hmis_csv_export')
-    HmisExternalApis::AcHmis::DataWarehouseUploadJob.perform_later('project_crosswalk')
-    HmisExternalApis::AcHmis::DataWarehouseUploadJob.perform_later('move_in_addresses')
-    HmisExternalApis::AcHmis::DataWarehouseUploadJob.perform_later('postings')
+    [
+      'clients_with_mci_ids_and_address',
+      'hmis_csv_export',
+      'project_crosswalk',
+      'move_in_addresses',
+      'postings',
+      'pathways',
+    ].each do |export_mode|
+      HmisExternalApis::AcHmis::DataWarehouseUploadJob.perform_later(export_mode)
+    end
   end
 end

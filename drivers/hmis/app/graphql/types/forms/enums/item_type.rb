@@ -4,8 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: true
-
 module Types
   class Forms::Enums::ItemType < Types::BaseEnum
     graphql_name 'ItemType'
@@ -20,6 +18,7 @@ module Types
     value 'INTEGER'
     value 'DATE'
     # value 'DATETIME'
+    value 'TIME_OF_DAY'
     value 'STRING'
     value 'TEXT'
     value 'CHOICE'

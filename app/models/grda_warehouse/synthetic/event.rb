@@ -57,7 +57,8 @@ module GrdaWarehouse::Synthetic
       # Clean up orphans in HUD table
       event_source.
         synthetic.
-        where.not(EventID: select(:hud_event_event_id)).
+        # ActiveRecord doesn't work with a simple select since it returns nil in the ID field
+        where(event_source.arel_table[:EventID].not_in(arel_table.project(:hud_event_event_id))).
         delete_all
     end
 

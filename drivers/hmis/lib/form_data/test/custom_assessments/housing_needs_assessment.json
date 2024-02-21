@@ -58,6 +58,14 @@
             "record_type": "ASSESSMENT",
             "field_name": "prioritizationStatus"
           }
+        },
+        {
+          "text": "TEST assessment question",
+          "type": "TEXT",
+          "link_id": "A1",
+          "mapping": {
+            "custom_field_key": "assessment_question"
+          }
         }
       ]
     }

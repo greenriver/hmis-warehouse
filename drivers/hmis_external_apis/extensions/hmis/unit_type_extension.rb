@@ -32,9 +32,13 @@ module HmisExternalApis
           user_id: user_id,
           unit_type_id: id,
         )
-        HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob
-          .set(wait: 1.minute) # short wait to accumulate batch of changes before update
-          .perform_later
+
+        # Don't re-queue if job is already queued
+        return if Delayed::Job.queued?('HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob')
+
+        HmisExternalApis::AcHmis::UpdateUnitAvailabilityJob.
+          set(wait: 1.minute). # short wait to accumulate batch of changes before update
+          perform_later
       end
     end
   end
