@@ -1413,6 +1413,11 @@ enum Component {
   MCI
 
   """
+  Duration component with hours and minutes, value stored as minutes
+  """
+  MINUTES_DURATION
+
+  """
   Client Name input
   """
   NAME

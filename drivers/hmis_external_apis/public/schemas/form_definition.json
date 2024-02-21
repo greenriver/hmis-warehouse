@@ -274,7 +274,8 @@
             "RADIO_BUTTONS_VERTICAL",
             "SSN",
             "SIGNATURE_GROUP",
-            "SIGNATURE"
+            "SIGNATURE",
+            "MINUTES_DURATION"
           ]
         }
       }

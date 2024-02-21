@@ -22,6 +22,7 @@ module Types
     value 'DROPDOWN', 'Render a choice input item as a dropdown'
     value 'RADIO_BUTTONS_VERTICAL', 'Render a choice input item as vertical radio buttons'
     value 'SSN', 'SSN input component'
+    value 'MINUTES_DURATION', 'Duration component with hours and minutes, value stored as minutes'
 
     # Display components
     value 'ALERT_INFO', 'Display text as an info alert'
