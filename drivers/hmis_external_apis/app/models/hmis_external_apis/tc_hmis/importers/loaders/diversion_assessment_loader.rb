@@ -9,14 +9,17 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     ASSESSMENT_DATE_COL = 'Date Taken'.freeze
 
     CDED_CONFIGS = [
+      { label: 'Program Name', key: 'div_program_name', repeats: false, field_type: 'string' },
+      { label: 'Case Number', key: 'div_case_number', repeats: false, field_type: 'string' },
+      { label: 'Unique Enrollment Identifier', key: 'div_unique_enrollment_identifier', repeats: false, field_type: 'string' },
+      { label: 'Response ID', key: 'div_response_id', repeats: false, field_type: 'string' },
+      { label: 'Date Taken', key: 'div_date_taken', repeats: false, field_type: 'date' },
+      { label: 'Participant Enterprise Identifier', key: 'div_participant_enterprise_identifier', repeats: false, field_type: 'string' },
+      { element_id: 8827, label: 'Date of assessment', key: 'div_date_of_assessment', repeats: false, field_type: 'string' },
       { element_id: 8829, label: 'Assessment Type', key: 'div_assessment_type', repeats: false, field_type: 'string' },
       { element_id: 8830, label: 'Assessment Level', key: 'div_assessment_level', repeats: false, field_type: 'string' },
       { element_id: 8831, label: 'Assessment Location', key: 'div_assessment_location', repeats: false, field_type: 'string' },
-      { element_id: 8839,
-        label: 'Were you able to divert the family today?',
-        key: 'div_diverted_today',
-        repeats: false,
-        field_type: 'string' },
+      { element_id: 8839, label: 'Were you able to divert the family today?', key: 'div_diverted_today', repeats: false, field_type: 'string' },
       { element_id: 8840,
         label: 'If they cannot be diverted today can they be diverted in the next 30 days?',
         key: 'div_diverted_in_next_30_days',

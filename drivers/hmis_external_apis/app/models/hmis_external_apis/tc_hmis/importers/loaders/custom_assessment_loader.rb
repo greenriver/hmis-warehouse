@@ -175,12 +175,16 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         case field_type
         when 'string'
           value
+        when 'float'
+          value.to_f
         when 'integer'
           value.to_i
         when 'boolean'
           yn_boolean(value)
         when 'date'
           parse_date(value)
+        when 'signature'
+          value ? 'Signed in ETO' : nil
         else
           raise "field_type #{field_type} not support on key #{config.fetch(:key)}"
         end

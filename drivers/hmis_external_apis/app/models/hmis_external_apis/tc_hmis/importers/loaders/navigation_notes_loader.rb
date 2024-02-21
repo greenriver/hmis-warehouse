@@ -9,18 +9,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     ASSESSMENT_DATE_COL = 'Date Taken'.freeze
 
     CDED_CONFIGS = [
-      { element_id: 7313,
-        label: 'Are you assigned to a housing Navigator?',
-        key: 'nav_are_you_assigned_to_a_housing_navigator',
-        repeats: false,
-        field_type: 'string' },
+      { label: 'Date Taken', key: 'nav_date_taken', repeats: false, field_type: 'date' },
+      { element_id: 7313, label: 'Are you assigned to a housing Navigator?', key: 'nav_are_you_assigned_to_a_housing_navigator', repeats: false, field_type: 'string' },
       { element_id: 7316, label: 'Case Notes', key: 'nav_case_notes', repeats: false, field_type: 'string' },
       { element_id: 7356, label: 'Navigator.', key: 'nav_navigator', repeats: false, field_type: 'string' },
-      { element_id: 7357,
-        label: 'Did the client show up for appointment?',
-        key: 'nav_did_the_client_show_up_for_appointment',
-        repeats: false,
-        field_type: 'string' },
+      { element_id: 7357, label: 'Did the client show up for appointment?', key: 'nav_did_the_client_show_up_for_appointment', repeats: false, field_type: 'string' },
       { element_id: 7358, label: 'Is this an attempt to contact?', key: 'nav_is_this_an_attempt_to_contact', repeats: false, field_type: 'string' },
       { element_id: 7871, label: 'Time Spent', key: 'nav_time_spent', repeats: false, field_type: 'string' },
       { element_id: 8487, label: 'Type of Client Interaction', key: 'nav_type_of_client_interaction', repeats: false, field_type: 'string' },
@@ -39,17 +32,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       { element_id: 8846, label: 'Date of result', key: 'nav_date_of_result', repeats: false, field_type: 'string' },
       { element_id: 10586, label: 'Services Rendered', key: 'nav_services_rendered', repeats: true, field_type: 'string' },
       { element_id: 10587, label: 'Other Services', key: 'nav_other_services', repeats: false, field_type: 'string' },
-      { element_id: 10588,
-        label: 'Primary Point of Contact for Housing match',
-        key: 'nav_primary_point_of_contact_for_housing_match',
-        repeats: false,
-        field_type: 'string' },
+      { element_id: 10588, label: 'Primary Point of Contact for Housing match', key: 'nav_primary_point_of_contact_for_housing_match', repeats: false, field_type: 'string' },
       { element_id: 10674, label: 'Event', key: 'nav_event', repeats: false, field_type: 'string' },
-      { element_id: 10675,
-        label: 'Where you able to divert the client?',
-        key: 'nav_where_you_able_to_divert_the_client',
-        repeats: false,
-        field_type: 'string' },
+      { element_id: 10675, label: 'Where you able to divert the client?', key: 'nav_where_you_able_to_divert_the_client', repeats: false, field_type: 'string' },
     ].freeze
 
     def filename

@@ -16,23 +16,27 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       configs = rows.map do |row|
         next if row.field_value(:skip, required: false)
 
-        id =  row.field_value(:id, required: false)
+        id =  row.field_value(:id, required: false)&.to_i
         label = normalize_label(row.field_value(:label))
         key = row.field_value(:key, required: false)
         prefix = row.field_value(:prefix, required: false)
+
         suffix = row.field_value(:suffix, required: false)
+        suffix = suffix.is_a?(Float) ? suffix.to_i : suffix # this ends up as a float. Annoying.
         repeats = row.field_value(:repeats, required: false).present?
         field_type = row.field_value(:field_type, required: false) || 'string'
 
         key ||= label.size <= 50 ? label_to_key(label) : id_to_key(id)
-        raise unless key
+        # ensure key is valid js identifier
+        raise unless key && key =~ /\A[a-zA-Z_$][a-zA-Z\d_$]*\z/
 
         key = [key_prefix, prefix, key, suffix].compact.join('_')
         raise "duplicate key #{key}" if key.in?(seen)
 
         seen.add key
 
-        { element_id: id, label: label, key: key, repeats: repeats, field_type: field_type }
+        config = id ? { element_id: id } : {}
+        config.merge({ label: label, key: key, repeats: repeats, field_type: field_type })
       end
       configs.compact
     end
