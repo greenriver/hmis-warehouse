@@ -30,6 +30,7 @@ module HmisExternalApis::TcHmis::Importers
         Loaders::HatLoader,
         Loaders::UhaLoader,
         Loaders::CriticalDocumentsCmLoader,
+        Loaders::CaseManagementAssessmentLoader,
       ]
 
       # disable paper trail to improve importer performance
