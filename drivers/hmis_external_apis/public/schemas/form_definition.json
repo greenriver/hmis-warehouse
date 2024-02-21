@@ -273,7 +273,7 @@
             "SSN",
             "SIGNATURE_GROUP",
             "SIGNATURE",
-            "TIME_DURATION"
+            "MINUTES_DURATION"
           ]
         }
       }
