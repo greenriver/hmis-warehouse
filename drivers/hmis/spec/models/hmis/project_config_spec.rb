@@ -20,14 +20,23 @@ RSpec.describe Hmis::ProjectConfig, type: :model do
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
 
   it 'should create an auto entry config' do
-    aec1 = Hmis::ProjectAutoEnterConfig.create!(project: p1)
-    expect(aec1.id).not_to be_nil
-    expect(aec1.type).to eq('Hmis::ProjectAutoEnterConfig')
+    auto_enter_config = Hmis::ProjectAutoEnterConfig.create!(project: p1)
+    expect(auto_enter_config.id).not_to be_nil
+    expect(auto_enter_config.type).to eq('Hmis::ProjectAutoEnterConfig')
   end
 
   it 'should not create a config if both project and organization are provided' do
     expect do
       Hmis::ProjectAutoEnterConfig.create!(project: p1, organization: o1)
     end.to raise_error(ActiveRecord::RecordInvalid, /Specify at most one of project, organization, and project type/)
+  end
+
+  it 'should return nil if no auto-enter config exists, even if auto-exit configs exist' do
+    config = Hmis::ProjectAutoEnterConfig.config_for_project(p1)
+    expect(config).to be_nil
+    Hmis::ProjectAutoExitConfig.create!(config_options: { 'length_of_absence_days': 30 })
+    Hmis::ProjectAutoExitConfig.create!(project: p1, config_options: { 'length_of_absence_days': 90 })
+    config = Hmis::ProjectAutoEnterConfig.config_for_project(p1)
+    expect(config).to be_nil
   end
 end

@@ -96,7 +96,26 @@ module Mutations
           HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(record)
         when Hmis::Hud::Enrollment
           record.client.save! if record.client.changed? # Enrollment form may create or update client
-          if record.new_record? || record.in_progress?
+
+          config = Hmis::ProjectAutoEnterConfig.config_for_project(record.project)
+          if config
+            # Save the enrollment as non-WIP
+            record.save_not_in_progress
+
+            # Build empty CustomAssessment
+            assessment = Hmis::Hud::CustomAssessment.create!(
+              assessment_date: record.entry_date,
+              user: Hmis::Hud::User.from_user(current_user),
+              wip: false,
+              data_collection_stage: 1,
+              client: record.client,
+              enrollment: record,
+            )
+
+            # Save the FormProcessor tied to the form definition id that would be used for intakes in this project
+            form_processor.custom_assessment = assessment
+            form_processor.save!
+          elsif record.new_record? || record.in_progress?
             record.save_in_progress
           else
             record.save!

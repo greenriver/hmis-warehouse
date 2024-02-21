@@ -555,6 +555,36 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
+  describe 'SubmitForm for Enrollment on project with ProjectAutoEnterConfig' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :ENROLLMENT) }
+    let!(:aec) { create :hmis_project_auto_enter_config, project: p1 }
+    let(:test_input) do
+      {
+        form_definition_id: definition.id,
+        **completed_form_values_for_role(:ENROLLMENT),
+        project_id: p1.id,
+        client_id: c1.id,
+        confirmed: false,
+      }
+    end
+
+    it 'should save new enrollment without WIP status' do
+      response, result = post_graphql(input: { input: test_input }) { mutation }
+      errors = result.dig('data', 'submitForm', 'errors')
+      expect(response.status).to eq(200), result.inspect
+      expect(errors).to be_empty
+      record = result.dig('data', 'submitForm', 'record')
+      expect(record['inProgress']).to eq(false)
+      e_id = Hmis::Hud::Enrollment.find(record['id']).enrollment_id
+      ca = Hmis::Hud::CustomAssessment.where(enrollment_id: e_id).last
+      expect(ca).not_to be_nil
+      expect(ca.wip).to eq(false)
+      fp = Hmis::Form::FormProcessor.where(custom_assessment: ca).last
+      expect(fp).not_to be_nil
+      expect(fp.definition.id).to eq(test_input[:form_definition_id])
+    end
+  end
+
   describe 'SubmitForm for Create+Enroll' do
     let(:definition) { Hmis::Form::Definition.find_by(role: :NEW_CLIENT_ENROLLMENT) }
     let(:test_input) do
