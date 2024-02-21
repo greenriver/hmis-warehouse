@@ -4,12 +4,18 @@
 #
 
 class Hmis::ProjectConfig < Hmis::HmisBase
-  self.abstract_class = true
   self.table_name = 'hmis_project_configs'
 
-  # todo @martha - validate at least one of project, etc.
   belongs_to :project, optional: true, class_name: 'Hmis::Hud::Project'
   belongs_to :organization, optional: true, class_name: 'Hmis::Hud::Organization'
+  validate :project_org_type_xor
+
+  def project_org_type_xor
+    count = [project, organization, project_type].map(&:blank?).count(false)
+    return if count <= 1 # 0 or 1 of these 3 fields can be specified
+
+    errors.add(:base, 'Specify at most one of project, organization, and project type')
+  end
 
   AUTO_EXIT_CONFIG = 'Hmis::ProjectAutoExitConfig'.freeze
   AUTO_ENTER_CONFIG = 'Hmis::ProjectAutoEnterConfig'.freeze
