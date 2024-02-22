@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -20656,6 +20656,43 @@ ALTER SEQUENCE public.import_logs_id_seq OWNED BY public.import_logs.id;
 
 
 --
+-- Name: import_overrides; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.import_overrides (
+    id bigint NOT NULL,
+    file_name character varying NOT NULL,
+    matched_hud_key character varying,
+    replaces_column character varying NOT NULL,
+    replaces_value character varying,
+    replacement_value character varying NOT NULL,
+    data_source_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: import_overrides_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.import_overrides_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: import_overrides_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.import_overrides_id_seq OWNED BY public.import_overrides.id;
+
+
+--
 -- Name: inbound_api_configurations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -28799,6 +28836,13 @@ ALTER TABLE ONLY public.import_logs ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
+-- Name: import_overrides id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.import_overrides ALTER COLUMN id SET DEFAULT nextval('public.import_overrides_id_seq'::regclass);
+
+
+--
 -- Name: inbound_api_configurations id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -32725,6 +32769,14 @@ ALTER TABLE ONLY public.identify_duplicates_log
 
 ALTER TABLE ONLY public.import_logs
     ADD CONSTRAINT import_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: import_overrides import_overrides_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.import_overrides
+    ADD CONSTRAINT import_overrides_pkey PRIMARY KEY (id);
 
 
 --
@@ -53598,6 +53650,13 @@ CREATE INDEX index_import_logs_on_updated_at ON public.import_logs USING btree (
 
 
 --
+-- Name: index_import_overrides_on_data_source_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_import_overrides_on_data_source_id ON public.import_overrides USING btree (data_source_id);
+
+
+--
 -- Name: index_inbound_api_configurations_on_hashed_api_key; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -58736,6 +58795,13 @@ CREATE UNIQUE INDEX uidx_hmis_project_unit_type_mappings ON public.hmis_project_
 
 
 --
+-- Name: uidx_import_overrides_rules; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_import_overrides_rules ON public.import_overrides USING btree (data_source_id, file_name, replaces_column, COALESCE(matched_hud_key, 'ALL'::character varying), COALESCE(replaces_value, 'ALL'::character varying)) WHERE (deleted_at IS NOT NULL);
+
+
+--
 -- Name: uniq_hud_report_universe_members; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60172,6 +60238,14 @@ ALTER TABLE ONLY public."Inventory"
 
 
 --
+-- Name: import_overrides fk_rails_5a2f47c5bf; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.import_overrides
+    ADD CONSTRAINT fk_rails_5a2f47c5bf FOREIGN KEY (data_source_id) REFERENCES public.data_sources(id);
+
+
+--
 -- Name: service_history_services_2040 fk_rails_5ebdc04142; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -60824,7 +60898,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240205175100'),
 ('20240205230723'),
 ('20240208184013'),
+('20240217192729'),
+('20240218201801'),
+('20240218222444'),
 ('20240220171320'),
 ('20240221195839');
-
-

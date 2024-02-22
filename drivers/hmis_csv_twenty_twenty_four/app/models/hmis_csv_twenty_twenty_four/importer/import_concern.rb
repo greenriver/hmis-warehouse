@@ -6,6 +6,11 @@
 
 module HmisCsvTwentyTwentyFour::Importer::ImportConcern
   extend ActiveSupport::Concern
+  # A place to store the overrides for this class so we don't keep going back to the database
+  class << self
+    attr_accessor :import_overrides
+  end
+
   SELECT_BATCH_SIZE = 10_000
   INSERT_BATCH_SIZE = 2_000
   RE_YYYYMMDD = /(?<y>\d{4})-(?<m>\d{1,2})-(?<d>\d{1,2})/
@@ -46,6 +51,14 @@ module HmisCsvTwentyTwentyFour::Importer::ImportConcern
       row
     end
 
+    # NOTE import_overrides is loaded in importer.rb pre_process_class! with the appropriate records
+    def self.apply_import_overrides(row)
+      import_overrides.each do |override|
+        row = override.apply(row)
+      end
+      row
+    end
+
     def self.replace_blanks_with_nils(row)
       row.transform_values!(&:presence)
     end
@@ -83,6 +96,7 @@ module HmisCsvTwentyTwentyFour::Importer::ImportConcern
       csv_data = loaded.hmis_data
       csv_data = fix_date_columns(csv_data)
       csv_data = fix_time_columns(csv_data)
+      csv_data = apply_import_overrides(csv_data)
       csv_data = clean_row_for_import(csv_data, deidentified: deidentified)
       csv_data = replace_blanks_with_nils(csv_data)
       csv_data.merge(
