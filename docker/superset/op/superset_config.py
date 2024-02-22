@@ -187,7 +187,12 @@ if (get_env_variable(var_name='SUPERSET_USE_OAUTH', default="false") == "true"):
 AUTH_USER_REGISTRATION = True
 
 # The default user self registration role
-AUTH_USER_REGISTRATION_ROLE = "Admin"
+# AUTH_USER_REGISTRATION_ROLE = "Admin"
+AUTH_USER_REGISTRATION_ROLE = "Reports Dashboard Role"
+AUTH_ROLES_MAPPING = {
+    "Admin": ["Admin"],
+    "Default": ["Reports Dashboard Role"],
+}
 
 #
 # Optionally import superset_config_docker.py (which will have been included on

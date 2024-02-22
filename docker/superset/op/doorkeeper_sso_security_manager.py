@@ -13,4 +13,12 @@ class DoorkeeperSsoSecurityManager(SupersetSecurityManager):
             #debugger()
             me = self.appbuilder.sm.oauth_remotes[provider].get(f'oauth/user-data').json()
             logging.debug("user_data: {0}".format(me))
-            return { 'first_name' : me['first_name'], 'last_name' : me['last_name'], 'username' : me['email'], 'email' : me['email'], 'id' : me['id'] }
+            # return { 'first_name' : me['first_name'], 'last_name' : me['last_name'], 'username' : me['email'], 'email' : me['email'], 'id' : me['id'] }
+            return {
+                'first_name' : me['first_name'],
+                'last_name' : me['last_name'],
+                'username' : me['email'],
+                'email' : me['email'],
+                'id' : me['id'],
+                'role_keys': ['Admin' if me['email'].endswith('@greenriver.org') else 'Default'],
+            }
