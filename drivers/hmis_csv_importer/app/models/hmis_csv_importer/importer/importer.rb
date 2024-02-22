@@ -156,7 +156,7 @@ module HmisCsvImporter::Importer
         failures = []
         row_failures = []
         # Set any import overrides for this class and data source so we avoid going back to the db
-        klass.import_overrides = import_overrides_for(file_name, data_source_id)
+        klass.import_overrides = import_overrides_for(file_name, @data_source.id)
         scope.find_each(batch_size: SELECT_BATCH_SIZE) do |source|
           row_failures = []
 
