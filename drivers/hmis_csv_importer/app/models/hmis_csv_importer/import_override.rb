@@ -57,9 +57,9 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     # Double check we actually have the column we're looking for (protects against typos or future spec changes)
     return false unless row.key?(replaces_column)
     # We were expecting a specific HUD key, and this is not it
-    return false if matched_hud_key.present? && row[hud_key] != matched_hud_key
+    return false if matched_hud_key.presence&.!= row[hud_key]
     # We were expecting a specific value, and this is not it
-    return false if replaces_value.present? && row[replaces_column] != replaces_value
+    return false if replaces_value.presence&.!= row[replaces_column]
 
     true
   end
