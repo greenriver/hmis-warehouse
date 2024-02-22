@@ -1,0 +1,32 @@
+{
+  "item": [
+    {
+      "text": "Assessment Date",
+      "type": "DATE",
+      "link_id": "assmt-date",
+      "required": true,
+      "assessment_date": true,
+      "mapping": {
+        "field_name": "assessmentDate"
+      }
+    },
+    {
+      "type": "DATE",
+      "link_id": "4.12.1",
+      "required": true,
+      "mapping": {
+        "record_type": "CURRENT_LIVING_SITUATION",
+        "field_name": "informationDate"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "required": true,
+      "link_id": "4.12.2",
+      "mapping": {
+        "record_type": "CURRENT_LIVING_SITUATION",
+        "field_name": "currentLivingSituation"
+      }
+    }
+  ]
+}

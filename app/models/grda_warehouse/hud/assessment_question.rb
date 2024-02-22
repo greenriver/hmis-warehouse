@@ -38,12 +38,18 @@ module GrdaWarehouse::Hud
 
     scope :pathways_or_rrh, -> do
       where(AssessmentQuestion: :c_housing_assessment_name)
+
+      # Temporary solution until we have the c_housing_assessment_name question in the 2024 pathways assessment
+      # where(AssessmentQuestion: [:c_housing_assessment_name, :c_pathways_barriers_yn])
     end
 
     scope :pathways, -> do
       pathways_or_rrh.
         joins(:lookup).
-        merge(GrdaWarehouse::AssessmentAnswerLookup.where(response_text: 'Pathways'))
+        merge(GrdaWarehouse::AssessmentAnswerLookup.where(response_text: pathways_titles))
+
+      # Temporary solution until we have the c_housing_assessment_name question in the 2024 pathways assessment
+      # where(AssessmentQuestion: [:c_housing_assessment_name, :c_pathways_barriers_yn])
     end
 
     scope :transfer, -> do
@@ -54,11 +60,27 @@ module GrdaWarehouse::Hud
 
     # NOTE: you probably want to join/preload :lookup
     def human_readable
+      # special case, this is sometimes a 1, but should not be yes
+      return self.AssessmentAnswer if self.AssessmentQuestion.in?(['c_pathways_Household_size', 'c_larger_room_size'])
+
       lookup&.response_text || default_response_text(self.AssessmentAnswer) || self.AssessmentAnswer
     end
 
     def default_response_text(answer)
       DEFAULT_ANSWERS[answer.to_s]
+    end
+
+    def pathways?
+      # FIXME: this is temporary until we have a more permanent solution
+      # self.AssessmentQuestion.to_s == 'c_pathways_barriers_yn'
+      self.AssessmentQuestion.to_s == 'c_housing_assessment_name' && human_readable.in?(self.class.pathways_titles)
+    end
+
+    def self.pathways_titles
+      [
+        'Pathways',
+        'Pathways 2024',
+      ]
     end
   end
 end

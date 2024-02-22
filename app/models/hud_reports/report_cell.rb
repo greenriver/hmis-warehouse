@@ -66,6 +66,9 @@ module HudReports
         validate: false,
         on_duplicate_key_ignore: true,
       )
+      # If we just added members, make note that we have some so we can display
+      # the link correctly in the UI. Don't save, that's done in the calling report
+      self.any_members = true if members.count.positive?
     end
 
     # Add members to the universe of this cell
