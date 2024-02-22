@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# TODO: This file should be removed after migration 20240221195839 runs
 class Hmis::AutoExitConfig < Hmis::HmisBase
   self.table_name = 'hmis_auto_exit_configs'
 

@@ -6,7 +6,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Hmis::ProjectConfig, type: :model do
+RSpec.describe Hmis::ProjectAutoEnterConfig, type: :model do
   before(:all) do
     cleanup_test_environment
   end

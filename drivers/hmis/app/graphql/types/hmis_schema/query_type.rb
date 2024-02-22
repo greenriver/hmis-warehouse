@@ -414,7 +414,7 @@ module Types
     def auto_exit_configs
       raise 'not allowed' unless current_user.can_configure_data_collection?
 
-      Hmis::AutoExitConfig.all
+      Hmis::ProjectAutoExitConfig.all
     end
 
     field :client_detail_forms, [Types::HmisSchema::OccurrencePointForm], null: false, description: 'Custom forms for collecting and/or displaying custom details for a Client (outside of the Client demographics form)'

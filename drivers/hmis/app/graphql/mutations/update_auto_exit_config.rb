@@ -13,7 +13,7 @@ module Mutations
     field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(id:, input:)
-      record = Hmis::AutoExitConfig.find(id)
+      record = Hmis::ProjectAutoExitConfig.find(id)
       raise 'Access denied' unless allowed?(permissions: [:can_configure_data_collection])
 
       record.assign_attributes(**input.to_params)

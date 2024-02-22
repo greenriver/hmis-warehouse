@@ -22,8 +22,6 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   TYPE_OPTIONS = [AUTO_EXIT_CONFIG, AUTO_ENTER_CONFIG].freeze
   validates :type, inclusion: { in: TYPE_OPTIONS }
 
-  # TODO: The following 3 methods are repeated code in auto_exit_config.rb.
-  # In the future auto_exit_config.rb will be fully replaced by project_auto_exit_config.rb.
   def self.default_config
     find_by(project_type: nil, organization_id: nil, project_id: nil)
   end
