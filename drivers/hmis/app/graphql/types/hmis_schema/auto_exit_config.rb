@@ -24,7 +24,5 @@ module Types
     def organization
       load_ar_association(object, :organization)
     end
-
-    # todo @martha - needs to do anything for length_of_absence_days?
   end
 end
