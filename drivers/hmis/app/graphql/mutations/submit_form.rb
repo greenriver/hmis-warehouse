@@ -101,20 +101,11 @@ module Mutations
           if record.new_record? && Hmis::ProjectAutoEnterConfig.config_for_project(record.project)
             # Save the enrollment as non-WIP
             record.save_not_in_progress
-
-            # Build empty CustomAssessment
-            assessment = Hmis::Hud::CustomAssessment.create!(
-              assessment_date: record.entry_date,
-              user: Hmis::Hud::User.from_user(current_user),
-              wip: false,
-              data_collection_stage: 1,
-              client: record.client,
-              enrollment: record,
-            )
-
-            # Save the FormProcessor tied to the form definition id that would be used for intakes in this project
-            form_processor.custom_assessment = assessment
-            form_processor.save!
+            # Save an empty intake assessment. "Auto-entered" enrollments do not require
+            # an intake. We save an empty one so that the user doesn't get
+            # reminders about performing the intake.
+            intake_assessment = record.build_synthetic_intake_assessment
+            intake_assessment.save!
           elsif record.new_record? || record.in_progress?
             record.save_in_progress
           else
