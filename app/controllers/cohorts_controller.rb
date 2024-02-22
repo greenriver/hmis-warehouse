@@ -62,8 +62,10 @@ class CohortsController < ApplicationController
     # redirect_to cohorts_path(population: ) if @cohort.needs_client_search?
     @cohort_client_updates = @cohort.cohort_clients.select(:id, :updated_at).map { |m| [m.id, m.updated_at.to_i] }.to_h
     @population = params[:population]
+
     respond_to do |format|
       format.html do
+        @excel_export = GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport.new
         @visible_columns = [CohortColumns::Meta.new]
         @visible_columns += @cohort.visible_columns(user: current_user)
         delete_column = if params[:population] == 'deleted'
@@ -110,14 +112,10 @@ class CohortsController < ApplicationController
           end
           options
         end
-      end
-      format.xlsx do
-        @user = current_user
-        not_authorized! unless can_download_cohorts?
 
-        # Limit is imposed above to prevent loading all clients, but for the download, we actually want them all
-        @cohort_clients = @cohort_clients.limit(nil)
-        headers['Content-Disposition'] = "attachment; filename=#{@cohort.sanitized_name}.xlsx"
+        # included so the excel download can be regenerated when the visible columns change
+        digest = Digest::MD5.hexdigest(@visible_columns.to_s + @cohort.search_clients(population: params[:population], user: current_user).count.to_s)
+        params['cache_key'] = digest
       end
     end
   end
@@ -251,7 +249,7 @@ class CohortsController < ApplicationController
   end
 
   def load_cohort_names
-    @cohort_names ||= cohort_source.pluck(:id, :name, :short_name).  # rubocop:disable  Naming/MemoizedInstanceVariableName
+    @cohort_names ||= cohort_source.pluck(:id, :name, :short_name). # rubocop:disable  Naming/MemoizedInstanceVariableName
       map do |id, name, short_name|
       [id, short_name.presence || name]
     end.to_h

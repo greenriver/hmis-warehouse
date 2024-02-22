@@ -17,5 +17,8 @@ BostonHmis::Application.routes.draw do
     resources :loaded, only: [:show]
     resources :imported, only: [:show]
     resources :importer_restarts, only: [:update]
+    resources :data_sources do
+      resources :import_overrides, only: [:index, :new, :create, :destroy]
+    end
   end
 end

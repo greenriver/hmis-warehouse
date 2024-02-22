@@ -81,6 +81,7 @@ class Menu::Item < OpenStruct
   end
 
   def collapsed_class(path_info)
+    return :show if always_open
     return :show if collapse_regex.match?(path_info.gsub("\n", '').slice(0, 500))
 
     :collapsed

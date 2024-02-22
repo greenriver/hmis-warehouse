@@ -1,0 +1,16 @@
+= content_for :crumbs do
+  = link_to data_source_path(@data_source) do
+    &laquo; #{@data_source.name}
+
+.d-flex.mb-4
+  %h1 Import Overrides for #{@data_source.name}
+  = link_to new_hmis_csv_importer_data_source_import_override_path(data_source: @data_source.id), class: 'btn btn-primary ml-auto' do
+    %i.icon-plus
+    Add Override
+- if @overrides.any?
+  .card.mb-4
+    = render 'table', overrides: @overrides, data_source: @data_source, editable: true
+
+- else
+  .none-found
+    No Overrides for #{@data_source.name}
