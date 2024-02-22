@@ -10,17 +10,22 @@
       %span.icon-upload2
       Upload HUD HMIS ZIP
 
-- if can_upload_dashboard_extras?
   .config-button-wrapper
-    = link_to new_data_source_non_hmis_upload_path(@data_source), class: 'btn btn-sm btn-secondary mb-4 mr-2' do
-      %span.icon-upload2
-      Upload #{GrdaWarehouse::Config.active_supplemental_enrollment_importer_class.title}
+    = link_to hmis_csv_importer_data_source_import_overrides_path(data_source_id: @data_source), class: 'btn btn-secondary btn-sm mb-4 mr-2' do
+      %i.icon-enlarge2
+      Import Overrides
 
 - if can_edit_data_sources?
   .config-button-wrapper
     = link_to new_data_source_hmis_import_config_path(data_source_id: @data_source), class: 'btn btn-secondary btn-sm mb-4 mr-2' do
-      %i.icon.icon-pencil
+      %i.icon-file-drawn
       Automate HMIS CSV Loads
+
+- if can_edit_data_sources? && RailsDrivers.loaded.include?(:hmis_csv_importer)
+  .config-button-wrapper
+    = link_to edit_hmis_csv_importer_importer_extension_path(@data_source), class: 'btn btn-sm btn-secondary mb-4 mr-2' do
+      %span.icon-eye
+      Importer Extensions
 
 - if can_edit_data_sources? && GrdaWarehouse::Config.get(:eto_api_available)
   .config-button-wrapper
@@ -28,14 +33,14 @@
       %i.icon.icon-pencil
       Configure ETO API
 
-- if can_edit_data_sources? && RailsDrivers.loaded.include?(:hmis_csv_importer)
+- if can_upload_dashboard_extras?
   .config-button-wrapper
-    = link_to edit_hmis_csv_importer_importer_extension_path(@data_source), class: 'btn btn-sm btn-secondary mb-4 mr-2' do
-      %span.icon-eye
-      Show Importer Extensions
+    = link_to new_data_source_non_hmis_upload_path(@data_source), class: 'btn btn-sm btn-secondary mb-4 mr-2' do
+      %span.icon-upload2
+      Upload #{GrdaWarehouse::Config.active_supplemental_enrollment_importer_class.title}
 
 - if can_edit_data_sources? && Rails.application.config.custom_imports.any?
   .config-button-wrapper
     = link_to data_source_custom_imports_path(@data_source), class: 'btn btn-sm btn-secondary mb-4 mr-2' do
       %span.icon-eye
-      Show Custom Imports
+      Custom Imports

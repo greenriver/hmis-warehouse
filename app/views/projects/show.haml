@@ -148,6 +148,11 @@
         %tr
           %th PIT Count
           %td= @project.PITCount
+- overrides = HmisCsvImporter::ImportOverride.where(data_source: @project.data_source).sorted.select { |override| override.applies?(@project) }
+- if overrides.any?
+  %p The following import overrides are in effect for this project.
+  .mb-4.card
+    = render 'hmis_csv_importer/import_overrides/table', overrides: overrides, data_source: @project.data_source, editable: false
 - if @show_census
   = render 'census'
 = render 'funders', funders: @project.funders

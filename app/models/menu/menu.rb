@@ -148,6 +148,7 @@ class Menu::Menu
       title: Translation.translate('Care Hub'),
       icon: 'icon-heart-empty',
       id: 'care-hub',
+      always_open: true,
     )
     menu.add_child(
       Menu::Item.new(

@@ -1,0 +1,20 @@
+%table.table.table-striped
+  %thead
+    %tr
+      %th File
+      %th Replaces
+      %th With
+      %th When
+      - if editable
+        %th
+  %tbody
+    - overrides.each do |override|
+      %tr
+        %td= override.file_name
+        %td= override.replaces_column
+        %td= override.describe_with
+        %td= override.describe_when
+        - if editable
+          %td
+            = link_to hmis_csv_importer_data_source_import_override_path(data_source, override), method: :delete, class: 'btn btn-sm btn-icon-only btn-danger', data: { confirm: "Really delete override for #{override.replaces_column}?"} do
+              %i.icon-cross
