@@ -28,7 +28,7 @@ class Menu::Menu
       links_menu.each do |item|
         menu << item
       end
-      menu << style_guide_menu
+      menu << style_guide_menu unless Rails.env.production?
       menu << account_menu
     end
   end
