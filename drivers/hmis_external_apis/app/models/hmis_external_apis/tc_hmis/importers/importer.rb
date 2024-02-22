@@ -33,6 +33,7 @@ module HmisExternalApis::TcHmis::Importers
         Loaders::CaseManagementAssessmentLoader,
         Loaders::MhmrCaseManagementNoteLoader,
         Loaders::MhmrNonBillableNoteLoader,
+        Loaders::MhmrRehabilitationNoteLoader,
       ]
 
       # disable paper trail to improve importer performance
