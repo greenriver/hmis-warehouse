@@ -24,7 +24,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
 
   # TODO: The following 2 methods are repeated code in auto_exit_config.rb.
   # In the future auto_exit_config.rb will be fully replaced by project_auto_exit_config.rb.
-  def self.configs_for_project(project)
+  scope :for_project, ->(project) do
     pc_t = Hmis::ProjectConfig.arel_table
 
     where(
