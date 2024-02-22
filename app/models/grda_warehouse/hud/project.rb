@@ -343,6 +343,7 @@ module GrdaWarehouse::Hud
     end
 
     # TODO: This should be removed when all overrides have been removed
+    TodoOrDie('Remove override_columns method and columns from the database', by: '2024-12-01')
     # If any of these are not blank, we'll consider it overridden
     def self.override_columns
       {

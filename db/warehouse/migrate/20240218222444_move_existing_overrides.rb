@@ -25,7 +25,7 @@ class MoveExistingOverrides < ActiveRecord::Migration[6.1]
       HmisCsvImporter::ImportOverride.where(
         file_name: 'Project.csv',
         matched_hud_key: project.ProjectID,
-        replaces_column: ContinuumProject,
+        replaces_column: :ContinuumProject,
         replacement_value: 1,
         data_source_id: project.data_source_id,
       ).first_or_create
@@ -34,7 +34,7 @@ class MoveExistingOverrides < ActiveRecord::Migration[6.1]
       HmisCsvImporter::ImportOverride.where(
         file_name: 'Project.csv',
         matched_hud_key: project.ProjectID,
-        replaces_column: ContinuumProject,
+        replaces_column: :ContinuumProject,
         replacement_value: 0,
         data_source_id: project.data_source_id,
       ).first_or_create
