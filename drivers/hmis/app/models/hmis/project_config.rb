@@ -34,8 +34,12 @@ class Hmis::ProjectConfig < Hmis::HmisBase
     )
   end
 
+  scope :active, -> do
+    where(enabled: true)
+  end
+
   def self.config_for_project(project)
-    configs = for_project(project)
+    configs = for_project(project).active
     return unless configs.exists?
 
     [
