@@ -2,8 +2,7 @@
   = link_to data_source_path(@data_source) do
     &laquo; #{@data_source.name}
 
-%h2
-  Importer Extensions for #{@data_source.name}
+%h1 Importer Extensions for #{@data_source.name}
 
 - editable = current_user.can_manage_config?
 
