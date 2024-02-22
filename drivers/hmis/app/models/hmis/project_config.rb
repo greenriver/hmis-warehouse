@@ -35,8 +35,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   end
 
   def self.config_for_project(project)
-    configs = configs_for_project(project)
-
+    configs = for_project(project)
     return unless configs.exists?
 
     [
