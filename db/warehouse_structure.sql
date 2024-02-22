@@ -58730,6 +58730,13 @@ CREATE UNIQUE INDEX uidx_hmis_project_unit_type_mappings ON public.hmis_project_
 
 
 --
+-- Name: uidx_import_overrides_rules; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_import_overrides_rules ON public.import_overrides USING btree (data_source_id, file_name, replaces_column, COALESCE(matched_hud_key, 'ALL'::character varying), COALESCE(replaces_value, 'ALL'::character varying)) WHERE (deleted_at IS NOT NULL);
+
+
+--
 -- Name: uniq_hud_report_universe_members; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60826,6 +60833,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240205175100'),
 ('20240205230723'),
 ('20240208184013'),
-('20240217192729');
+('20240217192729'),
+('20240218201801'),
+('20240218222444');
 
 
