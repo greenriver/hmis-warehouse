@@ -8,13 +8,13 @@ class Hmis::ProjectConfig < Hmis::HmisBase
 
   belongs_to :project, optional: true, class_name: 'Hmis::Hud::Project'
   belongs_to :organization, optional: true, class_name: 'Hmis::Hud::Organization'
-  validate :project_org_type_xor
+  validate :exactly_one_of_project_org_type
 
-  def project_org_type_xor
+  def exactly_one_of_project_org_type
     count = [project, organization, project_type].map(&:blank?).count(false)
-    return if count <= 1 # 0 or 1 of these 3 fields can be specified
+    return if count == 1 # exactly 1 of these 3 fields should be specified
 
-    errors.add(:base, 'Specify at most one of project, organization, and project type')
+    errors.add(:base, 'Specify exactly one of project, organization, and project type')
   end
 
   AUTO_EXIT_CONFIG = 'Hmis::ProjectAutoExitConfig'.freeze
@@ -22,12 +22,8 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   TYPE_OPTIONS = [AUTO_EXIT_CONFIG, AUTO_ENTER_CONFIG].freeze
   validates :type, inclusion: { in: TYPE_OPTIONS }
 
-  # TODO: The following 3 methods are repeated code in auto_exit_config.rb.
+  # TODO: The following 2 methods are repeated code in auto_exit_config.rb.
   # In the future auto_exit_config.rb will be fully replaced by project_auto_exit_config.rb.
-  def self.default_config
-    find_by(project_type: nil, organization_id: nil, project_id: nil)
-  end
-
   def self.configs_for_project(project)
     pc_t = Hmis::ProjectConfig.arel_table
 
@@ -41,7 +37,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   def self.config_for_project(project)
     configs = configs_for_project(project)
 
-    return default_config unless configs.exists?
+    return unless configs.exists?
 
     [
       :project_id,
