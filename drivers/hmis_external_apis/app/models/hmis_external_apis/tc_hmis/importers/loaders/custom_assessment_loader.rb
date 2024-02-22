@@ -109,7 +109,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def cde_values(row, config, required: false)
-      raw_value = row.field_value(config.fetch(:label), id: config[:element_id], required: required)
+      id = config[:element_id]
+      raw_value = id ? row.field_value_by_id(id, required: required) : row.field_value(config.fetch(:label), required: required)
+
       return [] unless raw_value
 
       values = config.fetch(:repeats) ? raw_value.split('|').map(&:strip) : [raw_value]

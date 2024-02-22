@@ -4,9 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'roo'
-
-# reads xls from ETO touch points. These files have two headers rows. One row has the optional element id and one row wit hthe label. The element ids are unique, the labels are not.
+require 'creek'
 
 module HmisExternalApis::TcHmis::Importers::Loaders
   class XlsxFile
@@ -15,10 +13,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     attr_accessor :filename, :sheet_number, :header_row_number, :field_id_row_number
 
-    # @param [String] filename this full path to the file
-    # @param [Integer] sheet_number
-    # @param [Integer] header_row_number each column has a label
-    # @param [Integer] field_id_row_number each column may have an id
     def initialize(filename:, sheet_number:, header_row_number:, field_id_row_number: nil)
       self.filename = filename
       self.sheet_number = sheet_number
@@ -27,98 +21,67 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def each
-      records.each do |row|
-        yield(FileRow.new(row))
+      creek = Creek::Book.new(filename)
+      sheet = creek.sheets[sheet_number]
+      headers = sheet_headers(sheet)
+
+      sheet.simple_rows.each_with_index do |row, index|
+        next if index + 1 <= header_row_number
+        row_data = process_row(row, headers)
+        next if row_data.empty?
+
+        yield(FileRow.new(row_data))
       rescue StandardError => e
-        # wrap row-level exceptions with file / line number
-        msg = "[#{filename}:#{sheet_number}:#{row[:row_number]}] #{e.class.name} #{e.message}"
+        msg = "[#{filename}:#{sheet_number}:#{index + 1}] #{e.class.name} #{e.message}"
         wrapped = RuntimeError.new(msg)
         wrapped.set_backtrace(e.backtrace)
         raise wrapped
       end
     end
 
-    protected
+    private
 
-    def records
-      @records ||= read_records
+    def get_row(sheet, number)
+      sheet.rows.each_with_index do |row, idx|
+        return row if idx == number -1
+      end
     end
 
-    # build a list of header names, column labels, and column ids (ETO element id)
-    def sheet_headers(xls)
-      ret = []
-      500.times do |col_idx|
-        col = column_to_letter(col_idx)
-        label = begin
-                  xls.cell(header_row_number, col)
-                rescue StandardError
-                  nil
-                end
-        label = normalize_col(label)
-        next unless label # skip empty labels
+    def sheet_headers(sheet)
+      headers_row = get_row(sheet, header_row_number)
+      field_ids_row = get_row(sheet, field_id_row_number) if field_id_row_number
+      headers = []
 
-        if field_id_row_number
-          id = begin
-                  xls.cell(field_id_row_number, col)
-                rescue StandardError
-                  nil
-                end
-          id = normalize_col(id)&.to_i
-          # column id can be missing
-        else
-          id = nil
-        end
-
-        ret << [label, id, col]
+      [headers_row, field_ids_row].compact.each do |row|
+        row.transform_keys! { |k| k.gsub(/\d*\z/, '') }
       end
-      ret
+
+      [headers_row, field_ids_row].compact.flat_map(&:keys).uniq do |col|
+        label = normalize_col(headers_row[col])
+        id = field_ids_row ? normalize_col(field_ids_row[col])&.to_i : nil
+
+        headers << [label, id, col] if label || id
+      end
+      headers
     end
 
-    def column_to_letter(column_number)
-      letter = ''
-      while column_number >= 0
-        remainder = column_number % 26
-        letter = (65 + remainder).chr + letter
-        column_number = column_number / 26 - 1
+    def process_row(row, headers)
+      by_id = {}
+      row_data = {filename: filename, by_id: by_id}
+      headers.each do |label, id, col|
+        value = normalize_value(row[col])
+        next unless value
+
+        row_data[label] = value if value
+        by_id[id] = value if id
       end
-      letter
-    end
-
-    # [
-    #   {label => { (element id || col) => 'value'} }
-    # ]
-    def read_records
-      xls = Roo::Spreadsheet.open(filename)
-      sheet = xls.sheets[sheet_number]
-
-      xls.default_sheet = sheet
-      headers = sheet_headers(xls)
-
-      ret = []
-      last_row = xls.last_row.to_i
-      return ret if last_row <= header_row_number
-
-      cur_row_number = header_row_number
-      (header_row_number + 1).upto(last_row) do |row|
-        cur_row_number += 1
-        values = {}
-        headers.each do |label, id, col|
-          values[label] ||= {}
-          values[label][id || col] = normalize_value(xls.cell(row, col))
-        end
-        next unless values.values.any?
-
-        values[:row_number] = cur_row_number
-        values[:filename] = filename
-        ret.push(values)
-      end
-      return ret
+      row_data
     end
 
     def normalize_value(value)
       case value
       when String
-        value&.strip.presence
+        value.strip.presence
       else
         value
       end
@@ -127,7 +90,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def normalize_col(value)
       case value
       when String
-        value&.gsub(/\s+/, ' ').presence
+        value&.gsub(/\s+/, ' ')&.strip.presence
       else
         value
       end
