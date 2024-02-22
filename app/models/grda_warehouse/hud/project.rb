@@ -618,13 +618,6 @@ module GrdaWarehouse::Hud
       [:OrganizationID]
     end
 
-    # Originally wasn't PH, but is overridden to PH
-    def project_type_overridden_as_ph?
-      @psh_types ||= HudUtility2024.residential_project_type_numbers_by_code[:ph]
-      ! @psh_types.include?(self.ProjectType) &&
-        @psh_types.include?(loaded_items_2024.last&.ProjectType)
-    end
-
     alias_attribute :name, :ProjectName
 
     # TODO: this should be replaced with calls to TargetPopulation
