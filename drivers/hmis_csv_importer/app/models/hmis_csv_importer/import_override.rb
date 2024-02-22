@@ -64,6 +64,19 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     true
   end
 
+  # Least specific should be run first
+  def specificity
+    if matched_hud_key && replaces_value
+      3
+    elsif replaces_value
+      2
+    elsif matched_hud_key
+      1
+    else
+      0
+    end
+  end
+
   def describe_with
     "replaces #{replaces_column} with #{replacement_value}"
   end
