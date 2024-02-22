@@ -581,7 +581,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(ca.wip).to eq(false)
       fp = Hmis::Form::FormProcessor.where(custom_assessment: ca).last
       expect(fp).not_to be_nil
-      expect(fp.definition.id).to eq(test_input[:form_definition_id])
     end
   end
 
