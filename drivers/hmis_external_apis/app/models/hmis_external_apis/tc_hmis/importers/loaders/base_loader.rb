@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
@@ -22,21 +24,21 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       @table_names = []
     end
 
+    def runnable?
+      clobber ? true : supports_upsert?
+    end
+
     protected
 
     def supports_upsert?
       false
     end
 
-    def runnable?
-      clobber ? true : supports_upsert?
-    end
-
-    DATE_FMT = '%Y-%m-%d'.freeze
+    DATE_FMT = '%Y-%m-%d'
     DATE_RGX = /\A\d{4}-\d{2}-\d{2}\z/
 
     # 'YYYY-MM-DDT00:00:00.0000000'
-    DATE_TIME_FMT = '%Y-%m-%dT%H:%M:%S.%N'.freeze
+    DATE_TIME_FMT = '%Y-%m-%dT%H:%M:%S.%N'
     DATE_TIME_RGX = /\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{7}\z/
 
     def parse_date(str)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
@@ -10,6 +12,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def initialize(...)
       super
 
+      create_cdeds
       @element_definitions = cded_source.where(
         owner_type: client_source.name,
         data_source_id: data_source.id,
@@ -26,23 +29,35 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       @new_postal_codes = []
     end
 
-    def self.filename
+    def filename
       'Demographic export report.xlsx'
     end
 
+    def runnable?
+      reader.file_present?(filename)
+    end
+
     def perform
-      rows = @reader.rows(filename: self.class.filename, header_row_number: 4, field_id_row_number: 1)
+      rows = @reader.rows(filename: filename, header_row_number: 4, field_id_row_number: 1)
 
       clobber_records(rows) if clobber
 
+      actual = 0
+      expected = 0
       rows.each do |row|
+        expected += 1
         personal_id = row.field_value('Participant Enterprise Identifier')
-        timestamp = row.field_value('Date Last Updated').to_date
+        timestamp = parse_date(row.field_value('Date Last Updated'))
 
+        client_id = @client_lookup[personal_id]
+        log_skipped_row(row, field: 'Participant Enterprise Identifier') unless client_id
+        next unless client_id
+
+        actual += 1
         demographics_on_client.each do |key, field_name|
           update_demographic(
             row: row,
-            client_id: @client_lookup[personal_id],
+            client_id: client_id,
             timestamp: timestamp,
             demographic_key: key,
             value: row.field_value(field_name),
@@ -53,42 +68,36 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
         update_client_address(row, personal_id, row.field_value('Address Line 1'), row.field_value('Address Line 2'), row.field_value('Zipcode'), timestamp)
       end
+      log_processed_result(name: 'Client Demographics', expected: expected, actual: actual)
 
       cdes_to_insert = @stored_demographic_elements.values.map(&:values).flatten
       ar_import(cde_source, cdes_to_insert) if cdes_to_insert.present?
 
       contact_points_to_insert = @stored_contact_points.values.flatten
-      ar_impoort(cccp_source, contact_points_to_insert) if contact_points_to_insert.present?
+      ar_import(cccp_source, contact_points_to_insert) if contact_points_to_insert.present?
 
       ar_import(cca_source, @new_postal_codes) if @new_postal_codes.present?
     end
 
     private def clobber_records(rows)
-      personal_ids = Set.new(rows.map { |row| row.field_value('Participant Enterprise Identifier') }.compact.uniq)
-      client_ids = @client_lookup.select { |k, _v| personal_ids.include?(k) }.values
+      personal_ids = rows.map { |row| row.field_value('Participant Enterprise Identifier') }.compact_blank.uniq
       demographic_element_ids = @element_definitions.values.map(&:id)
       relevant_cdes = cde_source.where(
         owner_type: 'Hmis::Hud::Client',
-        owner_id: client_ids,
         data_element_definition_id: demographic_element_ids,
         data_source_id: data_source.id,
       )
       relevant_cdes.delete_all
 
-      relevant_contacts = cccp_source.where(PersonalID: personal_ids, system: [:phone, :email])
+      relevant_contacts = cccp_source.where(data_source_id: data_source.id, PersonalID: personal_ids, system: [:phone, :email])
       relevant_contacts.delete_all
 
-      relevant_ccas = cca_source.where(PersonalID: personal_ids)
+      relevant_ccas = cca_source.where(data_source_id: data_source.id, PersonalID: personal_ids)
       relevant_ccas.delete_all
     end
 
     private def update_demographic(row:, client_id:, timestamp:, demographic_key:, value:)
       return unless value.present? # Do we want to keep last collected, or erase any that are blank w/ newest timestamp?
-
-      if client_id.blank?
-        log_skipped_row(row, field: demographic_key)
-        return
-      end
 
       definition = @element_definitions[demographic_key]
       element =  @stored_demographic_elements.dig(client_id, definition.id)
@@ -117,13 +126,24 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       }.freeze
     end
 
+    def create_cdeds
+      demographics_on_client.each_pair do |key, label|
+        cded_source.where(
+          owner_type: client_source.name,
+          data_source_id: data_source.id,
+          key: key,
+        ).first_or_create! do |record|
+          record.label = label
+          record.field_type = label =~ /date/i ? 'date' : 'string'
+          record.UserID = system_user_id
+        end
+      end
+    end
+
     private def update_contact_points(row, personal_id, phone_number, email, timestamp)
       client_id = @client_lookup[personal_id].present?
-      if client_id.blank?
-        log_skipped_row(row, field: personal_id)
-        return
-      end
 
+      @stored_contact_points[personal_id] ||= []
       if phone_number.present? && ! @stored_contact_points[personal_id].detect { |c| c[:system].to_s == 'phone' && c[:value] == phone_number }
         @stored_contact_points[personal_id] << {
           use: nil,
@@ -159,10 +179,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     private def update_client_address(row, personal_id, _line1, _line2, zipcode, timestamp)
       client_id = @client_lookup[personal_id].present?
-      if client_id.blank?
-        log_skipped_row(row, field: personal_id)
-        return
-      end
 
       # 2/13/24 -- TC decided they didn't need address information except zipcode
       # TODO: before enabling, address cleaning confirm that there are no privacy issues associated with exposing the data to Nominatim/OpenStreetMap
