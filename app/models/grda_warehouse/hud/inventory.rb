@@ -48,8 +48,8 @@ module GrdaWarehouse::Hud
     end
 
     scope :within_range, ->(range) do
-      start_date = cl(i_t[:inventory_start_date_override], i_t[:InventoryStartDate])
-      end_date = cl(i_t[:inventory_end_date_override], i_t[:InventoryEndDate])
+      start_date = i_t[:InventoryStartDate]
+      end_date = i_t[:InventoryEndDate]
       where(
         end_date.gteq(range.first).or(end_date.eq(nil)).
         and(start_date.lteq(range.last).or(start_date.eq(nil))),
@@ -64,10 +64,7 @@ module GrdaWarehouse::Hud
     # hide previous declaration of :in_coc, we'll use this one
     replace_scope :in_coc, ->(coc_code:) do
       coc_code = Array(coc_code)
-      where(
-        i_t[:CoCCode].in(coc_code).and(i_t[:coc_code_override].eq(nil).or(i_t[:coc_code_override].eq(''))).
-        or(i_t[:coc_code_override].in(coc_code)),
-      )
+      where(CoCCode: coc_code)
     end
 
     scope :serves_families, -> do
@@ -99,6 +96,7 @@ module GrdaWarehouse::Hud
       scope
     end
 
+    TodoOrDie('Remove override_columns method and columns from the database', by: '2024-12-01')
     # If any of these are not blank, we'll consider it overridden
     def self.override_columns
       {
@@ -122,12 +120,14 @@ module GrdaWarehouse::Hud
       HOUSEHOLD_TYPES
     end
 
+    # TODO: replace calls to this with InventoryStartDate
     def computed_start_date
-      inventory_start_date_override.presence || self.InventoryStartDate
+      self.InventoryStartDate
     end
 
+    # TODO: replace calls to this with InventoryEndDate
     def computed_end_date
-      inventory_end_date_override.presence || self.InventoryEndDate
+      self.InventoryEndDate
     end
 
     # field is usually :UnitInventory or :BedInventory

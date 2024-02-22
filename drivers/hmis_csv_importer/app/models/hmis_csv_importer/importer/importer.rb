@@ -807,9 +807,6 @@ module HmisCsvImporter::Importer
       project_ids = GrdaWarehouse::Hud::Project.
         where(data_source_id: @data_source.id, ProjectID: involved_project_ids).
         pluck(:id)
-      project_ids += GrdaWarehouse::Hud::Project.
-        where(computed_project_type: nil).
-        pluck(:id)
       GrdaWarehouse::Tasks::ProjectCleanup.new(project_ids: project_ids.uniq).run!
 
       # Clean up any dangling enrollments for updated clients

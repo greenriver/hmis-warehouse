@@ -42,24 +42,6 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::ProjectsImporter, type: :mod
     expect(Hmis::Unit.where(unit_type: active_unit_type).count).to eq(10)
   end
 
-  it 'updates existing project, and applies overrides' do
-    # p1 ProjectID matches the fixture file
-    start_date_override = 1.year.ago.to_date
-    end_date_override = Date.yesterday
-    p1 = create(:hmis_hud_project, data_source: ds, project_type: 0, project_id: '1000', act_as_project_type: 1, operating_start_date_override: start_date_override, operating_end_date_override: end_date_override)
-
-    Dir.chdir(dir) do
-      importer = HmisExternalApis::AcHmis::Importers::ProjectsImporter.new(dir: '.', key: 'data.zip', etag: '12345')
-      importer.run!
-    end
-
-    expect(GrdaWarehouse::Hud::Project.count).to eq(1)
-    p1.reload
-    expect(p1.project_type).to eq(1)
-    expect(p1.operating_start_date).to eq(start_date_override)
-    expect(p1.operating_end_date).to eq(end_date_override)
-  end
-
   it 'fails when funder dates are formatted incorrectly' do
     allow(Rails.logger).to receive(:fatal).and_return nil
 

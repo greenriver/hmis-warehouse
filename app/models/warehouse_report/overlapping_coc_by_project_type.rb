@@ -85,11 +85,11 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
 
     if @project_type
       scope = scope.merge(
-        GrdaWarehouse::ServiceHistoryEnrollment.where(computed_project_type: @project_type),
+        GrdaWarehouse::ServiceHistoryEnrollment.where(project_type: @project_type),
       )
     end
 
-    scope.distinct.pluck(:client_id, :computed_project_type)
+    scope.distinct.pluck(:client_id, :project_type)
   end
   memoize :coc_client_ids
 
@@ -120,7 +120,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
 
     if project_type
       scope = scope.merge(
-        GrdaWarehouse::ServiceHistoryEnrollment.where(computed_project_type: @project_type),
+        GrdaWarehouse::ServiceHistoryEnrollment.where(project_type: @project_type),
       )
     end
     scope

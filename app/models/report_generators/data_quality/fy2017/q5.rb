@@ -327,7 +327,7 @@ module ReportGenerators::DataQuality::Fy2017
         client_id: she_t[:client_id],
         age: she_t[:age],
         DOB: c_t[:DOB],
-        project_type: she_t[:computed_project_type],
+        project_type: she_t[:project_type],
         project_id: she_t[:project_id],
         data_source_id: she_t[:data_source_id],
         first_date_in_program: she_t[:first_date_in_program],

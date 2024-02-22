@@ -198,7 +198,7 @@ module GrdaWarehouse
 
     # Line 3 (2.02.6)
     def self.project_type(enrollment)
-      ptype = enrollment.project.computed_project_type
+      ptype = enrollment.project.project_type
       result = HudUtility2024.chronic_project_types.include?(ptype) ? :continue : :skip
       { result: result, display_value: "#{ptype} (#{::HudUtility2024.project_type_brief(ptype)})", line: 3 }
     end

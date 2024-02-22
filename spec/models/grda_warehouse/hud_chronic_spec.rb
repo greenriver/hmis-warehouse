@@ -24,7 +24,6 @@ RSpec.describe GrdaWarehouse::HudChronic, type: :model do
     create(
       :grda_warehouse_hud_project,
       ProjectType: 1,
-      computed_project_type: 1,
       data_source_id: source_ds.id,
     )
   end

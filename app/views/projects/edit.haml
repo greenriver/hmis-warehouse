@@ -5,17 +5,9 @@
 = simple_form_for @project, as: :project, url: project_path(@project) do |f|
   .row
     .col-sm-6
-      = f.input :act_as_project_type, collection: ::HudUtility2024.project_types.invert, include_blank: "Use Actual Project Type: #{HudUtility2024.project_type(@project.ProjectType)} (#{@project.ProjectType})", as: :select_two
       = f.input :active_homeless_status_override, label: 'Consider enrolled clients as actively homeless for CAS and Cohorts?', hint: 'Active state does not require this to have a homeless project type'
       = f.input :include_in_days_homeless_override, label: 'Include in verified additional days calculations?'
       = f.input :extrapolate_contacts, label: 'Should service records for this project be extrapolated to cover the month of contact?'
-      = f.input :operating_start_date_override, as: :date_picker, label: "Override the operating start date, currently: #{@project.OperatingStartDate&.to_date || 'unset'}"
-      = f.input :operating_end_date_override, as: :date_picker, label: "Override the operating end date, currently: #{@project.OperatingEndDate&.to_date || 'unset'}"
       = f.input :confidential, label: 'Confidential?', hint: @project.confidential_hint, disabled: @project.organization.confidential?, wrapper_html: @project.organization.confidential? && { data: { toggle: :tooltip }, title: @project.member_of_confidential_organization_hint }
-      = f.input :uses_move_in_date, label: 'Uses move-in-date?'
-      = f.input :hud_continuum_funded, collection: {'Yes'=>true, 'No'=>false}, label: 'Continuum project?', include_blank: "Use actual ContinuumProject: #{yes_no(@project.ContinuumProject == 1, include_icon: false)}", as: :select_two
-      = f.input :hmis_participating_project_override, collection: HudUtility2024.yes_no_missing_options.invert, include_blank: "Use actual HMISParticipatingProject: #{HudUtility2024.no_yes_missing(@project.HMISParticipatingProject) || 'unset'}", as: :select_two, label: 'HMIS Participating Project Override'
-      = f.input :housing_type_override, label: 'Housing Type Override', input_html: { value: @project.housing_type_override}, collection: HudUtility2024.housing_types.invert, include_blank: "Use actual Housing Type: #{HudUtility2024.housing_type(@project.HousingType) || 'unset'}", as: :select_two
-      = f.input :target_population_override, label: 'Target Population Override', input_html: { value: @project.target_population_override}, collection: HudUtility2024.target_populations.invert, include_blank: "Use actual Target Population: #{HudUtility2024.target_population(@project.TargetPopulation) || 'unset'}", as: :select_two
       .form-actions
         = f.submit 'Save', class: ['btn', 'btn-primary', 'ml-auto']

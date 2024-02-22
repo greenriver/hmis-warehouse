@@ -52,9 +52,6 @@
             %td= client.first_service_history.date
             %td
               = ::HudUtility2024.project_type(client.first_service_history.project_type)
-              - if client.first_service_history.project.act_as_project_type.present?
-                acts as
-                = ::HudUtility2024.project_type_brief(client.first_service_history.project.act_as_project_type)
             %td= project.name(current_user)
             %td= project.organization_name(current_user)
             %td= client.source_clients.map{|m| m.data_source&.short_name}.uniq.reject(&:blank?).join(', ')

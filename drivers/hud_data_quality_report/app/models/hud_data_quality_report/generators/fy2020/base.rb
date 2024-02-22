@@ -193,7 +193,7 @@ module HudDataQualityReport::Generators::Fy2020
             prior_length_of_stay: enrollment.LengthOfStay,
             prior_living_situation: enrollment.LivingSituation,
             project_tracking_method: last_service_history_enrollment.project_tracking_method,
-            project_type: last_service_history_enrollment.computed_project_type,
+            project_type: last_service_history_enrollment.project_type,
             race: calculate_race(source_client),
             relationship_to_hoh: enrollment.RelationshipToHoH,
             ssn_quality: source_client.SSNDataQuality,

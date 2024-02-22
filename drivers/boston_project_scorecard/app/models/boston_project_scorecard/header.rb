@@ -16,7 +16,7 @@ module BostonProjectScorecard
 
       def project_type_options
         project_group.projects.map do |project|
-          [project.human_readable_project_type, project.computed_project_type]
+          [project.human_readable_project_type, project.project_type]
         end.uniq
       end
 

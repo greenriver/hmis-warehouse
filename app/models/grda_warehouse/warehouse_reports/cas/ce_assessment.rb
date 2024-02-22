@@ -142,7 +142,7 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
           :first_date_in_program,
           :last_date_in_program,
           :project_name,
-          :computed_project_type,
+          :project_type,
           bool_or(p_t[:confidential], o_t[:confidential]).as('confidential'),
         ).each do |enrollment|
           enrollments[enrollment.client_id] ||= enrollment

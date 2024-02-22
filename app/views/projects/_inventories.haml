@@ -33,17 +33,8 @@
             %td= inventory.BedInventory
             %td
               = inventory.CoCCode
-              - if inventory.coc_code_override.present?
-                %br
-                %em
-                  Overridden as
-                  = inventory.coc_code_override
             %td
               - if can_edit_projects?
-                - unless inventory.manual_entry?
-                  = link_to edit_inventory_path(inventory), class: 'btn btn-sm btn-secondary mr-2 mb-1', data: {loads_in_pjax_modal: true} do
-                    %i.icon-pencil
-                    Edit
                 - if inventory.manual_entry? && RailsDrivers.loaded.include?(:manual_hmis_data)
                   = link_to edit_manual_hmis_data_inventory_path(inventory), class: 'btn btn-sm btn-secondary mr-2 mb-1', data: {loads_in_pjax_modal: true} do
                     %i.icon-pencil

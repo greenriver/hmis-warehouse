@@ -173,9 +173,9 @@ module GrdaWarehouse::Tasks
         open_between(start_date: @date - 3.years, end_date: @date).
         where(
           she_t[:move_in_date].not_eq(nil).and(
-            she_t[:computed_project_type].in(HudUtility2024.residential_project_type_numbers_by_code[:ph]),
+            she_t[:project_type].in(HudUtility2024.residential_project_type_numbers_by_code[:ph]),
           ).or(
-            she_t[:computed_project_type].in(HudUtility2024.residential_project_type_numbers_by_code[:th]),
+            she_t[:project_type].in(HudUtility2024.residential_project_type_numbers_by_code[:th]),
           ),
         ).
         where(she_t[:last_date_in_program].lteq(@date)).

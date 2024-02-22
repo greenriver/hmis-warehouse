@@ -181,9 +181,9 @@ module BostonProjectScorecard
       # end
       apr = apr_report if RailsDrivers.loaded.include?(:hud_apr)
       project_type = if project_id.present?
-        project.computed_project_type
+        project.project_type
       else
-        project_group.projects.first.computed_project_type
+        project_group.projects.first.project_type
       end
       update(project_type: project_type)
 
