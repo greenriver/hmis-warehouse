@@ -34,15 +34,17 @@ class Menu::Menu
   end
 
   def reports_menu
-    Menu::Item.new(
+    menu = Menu::Item.new(
       user: user,
       title: Translation.translate('Reports'),
       id: 'reports',
       icon: 'icon-chart-bar',
-      children: [warehouse_reports_menu, hud_reports_menu],
       match_pattern: GrdaWarehouse::WarehouseReports::ReportDefinition.pluck(:url).map { |u| "^/#{u}.*" }.join('|'),
       match_pattern_terminator: '.*',
     )
+    menu.add_child(warehouse_reports_menu)
+    menu.add_child(hud_reports_menu)
+    menu
   end
 
   def hud_reports_menu
@@ -50,6 +52,7 @@ class Menu::Menu
     menu = Menu::Item.new(
       user: user,
       path: reports.first.last,
+      visible: ->(user) { user.can_view_hud_reports? },
       title: Translation.translate('HUD Reports'),
       id: 'hud-reports',
     )
