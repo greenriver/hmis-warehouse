@@ -131,7 +131,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         values.map { |value| value.present? ? value.split(' - ').last : nil }
         # Booleans where presence of a string means true
       when 'mhmr_referring_linking', 'mhmr_referring_advocating', 'mhmr_monitoring'
-        values.map(&:value.present)
+        values.map(&:present?)
       else
         values
       end
