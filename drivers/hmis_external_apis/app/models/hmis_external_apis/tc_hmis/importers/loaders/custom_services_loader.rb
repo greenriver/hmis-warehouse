@@ -31,14 +31,12 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         rows.each do |row|
           row_field_value = row.field_value(TOUCHPOINT_NAME)
           config = configs[row_field_value]
-          if config.blank?
-            log_skipped_row(row, field: row_field_value)
-            next
-          end
+          next if config.blank?
+
           ids << generate_service_id(config, row)
         end
       end
-      services = service_class.where(CustomServiceID: custom_service_ids)
+      services = service_class.where(CustomServiceID: custom_service_ids, data_source: data_source.id)
 
       rails_service_ids = [].tap do |ids|
         services.find_each do |service|
@@ -57,8 +55,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       expected = 0
       actual = 0
 
-      enrollments = Hmis::Hud::Enrollment.where(data_source_id: data_source.id).all.map { |en| [en.EnrollmentID, en] }.to_h
-      service_type_ids = Hmis::Hud::CustomServiceType.pluck(:name, :id).to_h
+      enrollments = Hmis::Hud::Enrollment.where(data_source_id: data_source.id).index_by(:enrollment_id)
+      service_type_ids = Hmis::Hud::CustomServiceType.where(data_source_id: data_source.id).pluck(:name, :id).to_h
 
       result = {}.tap do |services|
         rows.each do |row|
@@ -67,7 +65,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           row_field_value = row.field_value(TOUCHPOINT_NAME)
           config = configs[row_field_value]
           if config.blank?
-            log_skipped_row(row, field: row_field_value)
+            log_skipped_row(row, field: TOUCHPOINT_NAME)
             next
           end
 
@@ -77,14 +75,14 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           service_type_id = service_type_ids[service_type]
           if service_type_id.blank?
             log_info("Service type configuration error: can't find #{service_type}!")
-            log_skipped_row(row, field: service_type)
+            log_skipped_row(row, field: :service_type)
             next
           end
 
           row_field_value = row.field_value(ENROLLMENT_ID)
           enrollment = enrollments[row_field_value]
           if enrollment.blank?
-            log_skipped_row(row, field: row_field_value)
+            log_skipped_row(row, field: ENROLLMENT_ID)
             next
           end
 
@@ -93,7 +91,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           services[response_id] ||= service_class.new(
             CustomServiceID: generate_service_id(config, row),
             EnrollmentID: enrollment.EnrollmentID,
-            PersonalID: enrollment.client.PersonalID,
+            PersonalID: enrollment.PersonalID,
             UserID: system_hud_user.id,
             DateProvided: parse_date(row.field_value(DATE_PROVIDED)),
             data_source_id: data_source.id,
@@ -132,10 +130,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         rows.each do |row|
           row_field_value = row.field_value(TOUCHPOINT_NAME)
           config = configs[row_field_value]
-          if config.blank?
-            log_skipped_row(row, field: row_field_value)
-            next
-          end
+          next if config.blank?
 
           row_field_value = row.field_value(QUESTION)
           if config[:service_fields].keys.include?(row_field_value)
@@ -146,7 +141,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
           element = config[:elements][row_field_value]
           if element.blank?
-            log_skipped_row(row, field: row_field_value)
+            log_skipped_row(row, field: QUESTION)
             next
           end
 
@@ -154,7 +149,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           service = @services[response_id]
           if service.blank?
             log_info("Missing service for response id #{response_id}!")
-            log_skipped_row(row, field: response_id)
+            log_skipped_row(row, field: RESPONSE_ID)
             next
           end
           actual += 1
