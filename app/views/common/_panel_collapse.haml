@@ -1,7 +1,8 @@
 - id ||= 'panel-collapsible'
 - title ||= ''
 - allow_toggle ||= 'yes'
-- heading_attrs = allow_toggle == 'yes' ? { data: {toggle: 'collapse'}, href: "##{id}" } : {}
+- heading_data ||= {}
+- heading_attrs = allow_toggle == 'yes' ? { data: {toggle: 'collapse'}.merge(heading_data), href: "##{id}" } : {}
 - panel_body_padded ||= 'y'
 - heading_slug ||= ''
 - content ||= ''
