@@ -23,9 +23,7 @@ RSpec.describe HmisCsvTwentyTwentyFour::Exporter::Base, type: :model do
         ProjectName: "Project Name #{i + 1}",
         ProjectCommonName: "Project Common Name #{i + 1}",
         OrganizationID: (i + 1).to_s,
-        ProjectType: 1,
-        act_as_project_type: 13,
-        computed_project_type: 13,
+        ProjectType: 13,
       )
     end
 
