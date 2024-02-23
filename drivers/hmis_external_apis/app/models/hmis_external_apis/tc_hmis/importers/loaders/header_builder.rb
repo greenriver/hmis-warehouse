@@ -8,7 +8,7 @@
 module HmisExternalApis::TcHmis::Importers::Loaders
   class HeaderBuilder
     # HeaderBuilder.new.perform(dir: '/host/tc', filename: 'uha_cols.xlsx', key_prefix: 'uha')
-    def perform(dir:, filename:, key_prefix:)
+    def perform(dir:, filename:, key_prefix: nil)
       reader = FileReader.new(dir)
 
       seen = Set.new
@@ -30,7 +30,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         # ensure key is valid js identifier
         raise unless key && key =~ /\A[a-zA-Z_$][a-zA-Z\d_$]*\z/
 
-        key = [key_prefix, prefix, key, suffix].compact.join('_')
+        key = [prefix, key, suffix].compact.join('_')
+        key = [key_prefix, key].compact.join('_') if key_prefix.present? && key !~ /\A#{key_prefix}_/
         raise "duplicate key #{key}" if key.in?(seen)
 
         seen.add key

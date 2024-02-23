@@ -9,35 +9,24 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     ASSESSMENT_DATE_COL = 'Date Taken'.freeze
 
     CDED_CONFIGS = [
-      { label: 'Program Name', key: 'div_program_name', repeats: false, field_type: 'string' },
-      { label: 'Case Number', key: 'div_case_number', repeats: false, field_type: 'string' },
-      { label: 'Unique Enrollment Identifier', key: 'div_unique_enrollment_identifier', repeats: false, field_type: 'string' },
-      { label: 'Response ID', key: 'div_response_id', repeats: false, field_type: 'string' },
-      { label: 'Date Taken', key: 'div_date_taken', repeats: false, field_type: 'date' },
-      { label: 'Participant Enterprise Identifier', key: 'div_participant_enterprise_identifier', repeats: false, field_type: 'string' },
-      { element_id: 8827, label: 'Date of assessment', key: 'div_date_of_assessment', repeats: false, field_type: 'string' },
-      { element_id: 8829, label: 'Assessment Type', key: 'div_assessment_type', repeats: false, field_type: 'string' },
-      { element_id: 8830, label: 'Assessment Level', key: 'div_assessment_level', repeats: false, field_type: 'string' },
-      { element_id: 8831, label: 'Assessment Location', key: 'div_assessment_location', repeats: false, field_type: 'string' },
-      { element_id: 8839, label: 'Were you able to divert the family today?', key: 'div_diverted_today', repeats: false, field_type: 'string' },
+      { element_id: 8839, label: 'Were you able to divert the family today?', key: 'dca_diverted', repeats: false, field_type: 'boolean' },
       { element_id: 8840,
         label: 'If they cannot be diverted today can they be diverted in the next 30 days?',
-        key: 'div_diverted_in_next_30_days',
+        key: 'dca_diverted_30_days',
         repeats: false,
-        field_type: 'string' },
+        field_type: 'boolean' },
       { element_id: 10003,
         label: 'Where were you staying prior to entering homelessness OR what is your current housing situation?',
-        key: 'div_prior_or_current_housing_situation',
+        key: 'dca_current_housing',
         repeats: false,
         field_type: 'string' },
-      { element_id: 10658, label: 'Notes:', key: 'div_todays_urgency_and_options_notes', repeats: false, field_type: 'string' },
-      { element_id: 10659, label: 'Notes:', key: 'div_last_night_notes', repeats: false, field_type: 'string' },
-      { element_id: 10660, label: 'Notes:', key: 'div_story_behind_the_story_notes', repeats: false, field_type: 'string' },
-      { element_id: 10661, label: 'Notes:', key: 'div_what_would_it_take_to_go_back_notes', repeats: false, field_type: 'string' },
-      { element_id: 10662, label: 'Notes:', key: 'div_new_place_to_stay_notes', repeats: false, field_type: 'string' },
-      { element_id: 10663, label: 'Notes:', key: 'div_identify_barriers_notes', repeats: false, field_type: 'string' },
-      { element_id: 10664, label: 'Notes:', key: 'div_current_resources_notes', repeats: false, field_type: 'string' },
-      { element_id: 11943, label: 'Prioritization Status', key: 'div_prioritization_status', repeats: false, field_type: 'string' },
+      { element_id: 10658, label: 'Notes:', key: 'dca_process_notes', repeats: false, field_type: 'string' },
+      { element_id: 10659, label: 'Notes:', key: 'dca_last_night_notes', repeats: false, field_type: 'string' },
+      { element_id: 10660, label: 'Notes:', key: 'dca_story_notes', repeats: false, field_type: 'string' },
+      { element_id: 10661, label: 'Notes:', key: 'dca_going_back_notes', repeats: false, field_type: 'string' },
+      { element_id: 10662, label: 'Notes:', key: 'dca_temporary_housing_notes', repeats: false, field_type: 'string' },
+      { element_id: 10663, label: 'Notes:', key: 'dca_barriers_notes', repeats: false, field_type: 'string' },
+      { element_id: 10664, label: 'Notes:', key: 'dca_resources_notes', repeats: false, field_type: 'string' },
     ].freeze
 
     def filename
@@ -57,7 +46,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     # use the eto response id to construct the custom assessment id
     def row_assessment_id(row)
       response_id = row.field_value(RESPONSE_ID_COL)
-      "div-eto-#{response_id}"
+      "dca-eto-#{response_id}"
     end
 
     def form_definition
