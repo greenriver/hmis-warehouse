@@ -27,10 +27,10 @@
         - @roles.each do |role|
           %li.list-group-item.d-flex{style: "background-color: #{role.bg_color}"}
             .btn-group.btn-group-toggle{data: {toggle: :buttons}, aria: {label: "Toggle #{role.name} visibility"}}
-              %label.btn.btn-secondary.btn-xs.active
-                %input{type: :radio, name: :roles, id: "on-#{role.name.downcase.gsub(/^a-z/, '-')}", checked: :checked} On
-              %label.btn.btn-secondary.btn-xs
-                %input{type: :radio, name: :roles, id: "off-#{role.name.downcase.gsub(/^a-z/, '-')}"} Off
+              %label.btn.btn-secondary.btn-xs.active{data: { 'role-manager' => { target: 'roleToggle', 'role-value' => role.id }, action: 'click->role-manager#toggleColumn'}}
+                %input{type: :radio, name: :roles, id: "on-#{role.name.downcase.gsub(/^a-z/, '-')}", checked: :checked, value: 'show'} On
+              %label.btn.btn-secondary.btn-xs{data: { 'role-manager' => { target: 'roleToggle', 'role-value' => role.id }, action: 'click->role-manager#toggleColumn'}}
+                %input{type: :radio, name: :roles, id: "off-#{role.name.downcase.gsub(/^a-z/, '-')}", value: 'hide'} Off
             .ml-4{style: "color: #{role.fg_color}"}
               = role.name
     .role-wrapper.w-75
@@ -38,9 +38,9 @@
       - permissions = Role.permissions_by_group
       .d-flex
         - @roles.each do |role|
-          .role-name-header.role-column.d-flex{style: "background-color: #{role.bg_color}"}
+          .role-name-header.role-column.d-flex{style: "background-color: #{role.bg_color}", data: { 'role-manager' => { target: 'roleColumn', 'role-value' => role.id }}}
             %h3{style: "color: #{role.fg_color}"}= role.name
       .d-flex
         - @roles.each do |role|
-          .role-column
+          .role-column{data: { 'role-manager' => { target: 'roleColumn', 'role-value' => role.id }}}
             = render 'role_column', role: role, permissions: permissions
