@@ -6,39 +6,46 @@
 
 module HmisExternalApis::TcHmis::Importers::Loaders
   class CustomServicesLoader < BaseLoader
-    FILENAME = 'test.xlsx'.freeze
+    FILENAME_PATTERN = 'Services *.xlsx'.freeze
 
     TOUCHPOINT_NAME = 'TouchPoint Name'.freeze
-    RESPONSE_ID = 'Response ID'.freeze
-    ENROLLMENT_ID = 'Enrollment ID'.freeze
-    DATE_PROVIDED = 'Date Provided'.freeze
+    RESPONSE_ID = 'Response Unique ID_Form ID'.freeze
+    ENROLLMENT_ID = 'Unique Enrollment Identifier'.freeze
+    DATE_PROVIDED = 'Date Taken'.freeze
     QUESTION = 'Question'.freeze
     ANSWER = 'Answer'.freeze
 
     def perform
-      rows = @reader.rows(filename: FILENAME, field_id_row_number: nil)
+      @reader.glob(FILENAME_PATTERN).each do |filename|
+        process_file(filename)
+      end
+    end
+
+    private def process_file(filename)
+      rows = @reader.rows(filename: filename, header_row_number: 2, field_id_row_number: nil)
       clobber_records(rows) if clobber
 
+      # services is an instance variable because it holds state that is updated by ar_import, and is needed in create_records
       @services = create_services(rows)
       ar_import(service_class, @services.values) # We need to save these first as we need the ids for CDEs
 
-      @cdes = create_records(rows)
-      ar_import(cde_class, @cdes)
+      cdes = create_records(rows)
+      ar_import(cde_class, cdes)
     end
 
     private def clobber_records(rows)
-      custom_service_ids = [].tap do |ids|
+      custom_service_ids = Set.new.tap do |ids|
         rows.each do |row|
           row_field_value = row.field_value(TOUCHPOINT_NAME)
           config = configs[row_field_value]
           next if config.blank?
 
-          ids << generate_service_id(config, row)
+          ids << generate_service_id(config, row) # Collect only the services in the file to be clobbered
         end
       end
       services = service_class.where(CustomServiceID: custom_service_ids, data_source: data_source.id)
 
-      rails_service_ids = [].tap do |ids|
+      rails_service_ids = Set.new.tap do |ids|
         services.find_each do |service|
           ids << service.id
         end
@@ -55,7 +62,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       expected = 0
       actual = 0
 
-      enrollments = Hmis::Hud::Enrollment.where(data_source_id: data_source.id).index_by(:enrollment_id)
+      enrollments = Hmis::Hud::Enrollment.where(data_source_id: data_source.id).index_by(&:enrollment_id)
       service_type_ids = Hmis::Hud::CustomServiceType.where(data_source_id: data_source.id).pluck(:name, :id).to_h
 
       result = {}.tap do |services|
@@ -117,7 +124,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     private def generate_service_id(config, row)
-      "#{config[:id_prefix]}-#{row[:row_number]}"
+      "#{config[:id_prefix]}-#{row[RESPONSE_ID]}"
     end
 
     private def create_records(rows)
