@@ -26,6 +26,15 @@ RSpec.shared_context '2024 single-project tests', shared_context: :metadata do
     end
   end
 
+  describe 'when exporting enrollment' do
+    it 'enrollment scope should find one enrollment' do
+      csv = CSV.read(csv_file_path(@enrollment_class), headers: true)
+      expect(csv.count).to eq 1
+      expect(csv.first['MoveInDate']).to be_present
+      expect(csv.first['MoveInDate']).to eq(csv.first['MoveInDate'])
+    end
+  end
+
   project_classes.each do |klass|
     describe "when exporting #{klass}" do
       it "creates one #{klass.hud_csv_file_name} CSV file" do
