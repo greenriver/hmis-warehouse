@@ -46,12 +46,30 @@
     padding: 1rem;
   }
 
-  .c-checkbox input:checked+label,
-  .c-checkbox input:not(:checked)+label {
-    @include checkbox-default(20px, false, 3px);
-  }
   .c-checkbox input:checked~label,
   .c-checkbox input:not(:checked)~label {
     @include checkbox-default(20px, false, 3px);
+  }
+
+  .c-checkbox input:not(:checked)~label {
+    @include checkbox-not-checked;
+  }
+
+  .c-checkbox input:checked~label {
+    @include checkbox-checked;
+  }
+
+  .c-checkbox input:disabled:checked~label,
+  .c-checkbox input.disabled:checked~label,
+  .c-checkbox input.disabled:not(:checked)~label,
+  .c-checkbox input:disabled:not(:checked)~label {
+    background: $input-disabled !important;
+    border-color: $input-disabled !important;
+    pointer-events: none !important;
+    cursor: not-allowed;
+
+    .c-checkbox__check-container {
+      opacity: .75;
+    }
   }
 }

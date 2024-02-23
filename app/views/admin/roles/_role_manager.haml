@@ -1,9 +1,9 @@
-.card.roles.d-flex{ data: { controller: 'role-manager' }}
+.card.roles.d-flex{ data: { controller: 'role-manager'}}
   .card-header
     .d-flex
       .user-role.w-25.d-flex.border-right.border-dark
         %h2 User Roles
-        .ml-8
+        .ml-auto
           = link_to new_admin_role_path, class: 'btn btn-secondary btn-sm' do
             %span.icon-plus
             Add Role
@@ -33,7 +33,8 @@
                 %input{type: :radio, name: :roles, id: "off-#{role.name.downcase.gsub(/^a-z/, '-')}", value: 'hide'} Off
             .ml-4{style: "color: #{role.fg_color}"}
               = role.name
-    .role-wrapper.w-75
+    .role-wrapper.w-75{ data: { 'role-manager' => { target: 'inputWrapper', 'form-value' => path_for_patch }}}
+      = hidden_field_tag :authenticity_token, form_authenticity_token, class: 'j-authenticity-token'
       - # cache permission calculation
       - permissions = Role.permissions_by_group
       .d-flex

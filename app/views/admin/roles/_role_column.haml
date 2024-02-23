@@ -17,13 +17,13 @@
               %small
                 %i.icon-lock.icon-sm
                 Administtive Permission
-          - id = permission.to_s
-          - name = "role[#{id}]"
+          - id = key.to_s
+          - name = "role[#{role.id}][#{id}]"
           - id += "_#{role.id}"
-          - checked = role.send(key)
+          - checked = if role.send(key) then 'checked' else nil end
           %input{name: name, type: 'hidden', value: 0}
           .c-checkbox.d-flex
-            %input{id: id, name:name, type: 'checkbox', value: 1, checked: checked}
+            %input{id: id, name: name, type: 'checkbox', value: 1, checked: checked, data: { 'role-manager' => { target: 'individualPermission', 'role-value' => role.id, 'permission-value' => key }, action: 'role-manager#save'}}
             %label.pl-6{for: id}
               = label
           - if permission[:description]
