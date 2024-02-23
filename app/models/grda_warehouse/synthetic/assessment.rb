@@ -34,9 +34,10 @@ module GrdaWarehouse::Synthetic
       create_hud_assessments
 
       # Clean up orphans in HUD table
-      GrdaWarehouse::Hud::Assessment.
-        where(synthetic: true).
-        where.not(AssessmentID: select(:hud_assessment_assessment_id)).
+      assessment_source.
+        synthetic.
+        # ActiveRecord doesn't work with a simple select since it returns nil in the ID field
+        where(assessment_source.arel_table[:AssessmentID].not_in(arel_table.project(:hud_assessment_assessment_id))).
         delete_all
     end
 

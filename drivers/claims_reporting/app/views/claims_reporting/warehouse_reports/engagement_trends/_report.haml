@@ -1,143 +1,146 @@
 :ruby
   f = ClaimsReporting::Formatter.new
   highlights_only = !(params[:details].to_s =~ /\A1|t|y/i)
-%p
-  Data shown reflects claims for services starting between #{report.claim_date_range.first} and #{report.claim_date_range.last} and paid through #{report.latest_payment_date}. Demographics are as of #{report.roster_as_of}.
-%h3 Patients
-.card.mb-4
-  %table.table.table-sm.table-striped.table-bordered.mb-0
-    %thead
-      %tr
-        %th
-        - report.cohorts.each do |_, cohort|
-          %th.text-center{data: {toggle: :tooltip, title: cohort[:tooltip]}}= cohort[:title]
-    %tbody
-      - report.summary_headers.each do |key, (html_label, formatter)|
+- if report.claim_date_range.present?
+  %p
+    Data shown reflects claims for services starting between #{report.claim_date_range.first} and #{report.claim_date_range.last} and paid through #{report.latest_payment_date}. Demographics are as of #{report.roster_as_of}.
+  %h3 Patients
+  .card.mb-4
+    %table.table.table-sm.table-striped.table-bordered.mb-0
+      %thead
         %tr
           %th
-            = raw html_label
-          - report.cohorts.each do |corhort_id, cohort|
-            %td.text-right= f.send(formatter, report.summary(corhort_id)[key.to_s])
+          - report.cohorts.each do |_, cohort|
+            %th.text-center{data: {toggle: :tooltip, title: cohort[:tooltip]}}= cohort[:title]
+      %tbody
+        - report.summary_headers.each do |key, (html_label, formatter)|
+          %tr
+            %th
+              = raw html_label
+            - report.cohorts.each do |corhort_id, cohort|
+              %td.text-right= f.send(formatter, report.summary(corhort_id)[key.to_s])
 
-%h3 SDoH Metrics
-.card.mb-4
-  %table.table.table-sm.table-striped.table-bordered.mb-0
-    %thead
-      %tr
-        %th SDoH Categories
-        - report.cohorts.each do |_, cohort|
-          %th.text-center= cohort[:title]
-    %tbody
-      - report.results[report.cohorts.keys.first.to_s]['sdoh'].each do |section|
-        - title = section.first
-        - sub_categories = report.class.sdoh_categories[title].values
+  %h3 SDoH Metrics
+  .card.mb-4
+    %table.table.table-sm.table-striped.table-bordered.mb-0
+      %thead
         %tr
-          %th{data: {toggle: :tooltip, title: section.last['tooltip']}}
-            = title
-          - report.cohorts.keys.each do |_|
-            %td
+          %th SDoH Categories
+          - report.cohorts.each do |_, cohort|
+            %th.text-center= cohort[:title]
+      %tbody
+        - report.results[report.cohorts.keys.first.to_s]['sdoh'].each do |section|
+          - title = section.first
+          - sub_categories = report.class.sdoh_categories[title].values
+          %tr
+            %th{data: {toggle: :tooltip, title: section.last['tooltip']}}
+              = title
+            - report.cohorts.keys.each do |_|
+              %td
 
-        - report.cohorts.keys.each.with_index do |key, i|
+          - report.cohorts.keys.each.with_index do |key, i|
 
-          - sub_categories.each do |cat|
-            - if i.zero?
-              %tr
-                %td.pl-4= cat
-                - report.cohorts.keys.each do |cohort_key|
-                  - sdoh = report.results[cohort_key.to_s]['sdoh']
-                  %td= sdoh[title]['data'][cat]
+            - sub_categories.each do |cat|
+              - if i.zero?
+                %tr
+                  %td.pl-4= cat
+                  - report.cohorts.keys.each do |cohort_key|
+                    - sdoh = report.results[cohort_key.to_s]['sdoh']
+                    %td= sdoh[title]['data'][cat]
 
-.d-flex.mb-2
-  %h3#claims Claims
-  .ml-auto
-    - if highlights_only
-      = link_to 'Show All Categories', link_params.merge(details: 1, anchor: 'claims'), class: 'btn btn-sm btn-secondary'
-    - else
-      = link_to 'Show Highlighted Categories', link_params.except(:details).merge(anchor: 'claims'), class: 'btn btn-sm btn-secondary'
-.card.mb-4
-  %table.table.table-sm.table-striped.table-bordered.mb-0
-    %thead
-      %tr
-        %th
-        %th.text-center{colspan: report.cohorts.size}
-          Utilization - events per 1000 members per year
-      %tr
-        %th Claim Categories
-        - report.cohorts.each do |_, cohort|
-          %th.text-center= cohort[:title]
-    %tbody
-      - report.detail_row_headers.group_by(&:first).each do |cos_rollup, rollup_rows|
-        - rollup_rows.sort_by{|row| report.cos_description(row['cde_cos_category'])||'AAAA'}.each_with_index do |row, idx|
-          :ruby
-            category_code = row['cde_cos_category']
-            next if highlights_only && !category_code.in?(report.highlighted_categories)
+  .d-flex.mb-2
+    %h3#claims Claims
+    .ml-auto
+      - if highlights_only
+        = link_to 'Show All Categories', link_params.merge(details: 1, anchor: 'claims'), class: 'btn btn-sm btn-secondary'
+      - else
+        = link_to 'Show Highlighted Categories', link_params.except(:details).merge(anchor: 'claims'), class: 'btn btn-sm btn-secondary'
+  .card.mb-4
+    %table.table.table-sm.table-striped.table-bordered.mb-0
+      %thead
+        %tr
+          %th
+          %th.text-center{colspan: report.cohorts.size}
+            Utilization - events per 1000 members per year
+        %tr
+          %th Claim Categories
+          - report.cohorts.each do |_, cohort|
+            %th.text-center= cohort[:title]
+      %tbody
+        - report.detail_row_headers.group_by(&:first).each do |cos_rollup, rollup_rows|
+          - rollup_rows.sort_by{|row| report.cos_description(row['cde_cos_category'])||'AAAA'}.each_with_index do |row, idx|
+            :ruby
+              category_code = row['cde_cos_category']
+              next if highlights_only && !category_code.in?(report.highlighted_categories)
 
-            rollup_label = report.cos_rollup(row['cde_cos_rollup']).presence || 'All Claims'
-            category_label = report.cos_description(category_code).presence || ''
-            sentence_label = (category_label.presence || rollup_label).downcase.gsub(/all claims/,'total claims')
-          %tr{class: ('table-primary' if !highlights_only && category_code.in?(report.highlighted_categories))}
-            - if category_label.blank?
-              %th{axis: :row}= rollup_label
-            - else
-              %td{axis: :row, class: ('pl-4' if !highlights_only)}
-                = category_label
-                %nobr= category_code
-            - report.cohorts.keys.each_with_index do |cohort_id, idx|
-              :ruby
-                cohort = report.cohorts[cohort_id]
-                cohort_phrase = cohort_id.to_s == 'total_population' ? 'members' : "members #{ cohort[:title].downcase }"
-                d = report.result_for(cohort_id, row['cde_cos_rollup'], row['cde_cos_category'])
-                utilization = d['utilization']
+              rollup_label = report.cos_rollup(row['cde_cos_rollup']).presence || 'All Claims'
+              category_label = report.cos_description(category_code).presence || ''
+              sentence_label = (category_label.presence || rollup_label).downcase.gsub(/all claims/,'total claims')
+            %tr{class: ('table-primary' if !highlights_only && category_code.in?(report.highlighted_categories))}
+              - if category_label.blank?
+                %th{axis: :row}= rollup_label
+              - else
+                %td{axis: :row, class: ('pl-4' if !highlights_only)}
+                  = category_label
+                  %nobr= category_code
+              - report.cohorts.keys.each_with_index do |cohort_id, idx|
+                :ruby
+                  cohort = report.cohorts[cohort_id]
+                  cohort_phrase = cohort_id.to_s == 'total_population' ? 'members' : "members #{ cohort[:title].downcase }"
+                  d = report.result_for(cohort_id, row['cde_cos_rollup'], row['cde_cos_category'])
+                  utilization = d['utilization']
 
-                tooltip = "Based on #{f.format_i d['n_claims']} #{sentence_label} claims from #{f.format_i d['n_members']} #{cohort_phrase}."
-                if d['paid_amount_sum'].to_f.positive?
-                  tooltip +="\nTotal Paid: #{f.format_c d['paid_amount_sum']}."
-                end
+                  tooltip = "Based on #{f.format_i d['n_claims']} #{sentence_label} claims from #{f.format_i d['n_members']} #{cohort_phrase}."
+                  if d['paid_amount_sum'].to_f.positive?
+                    tooltip +="\nTotal Paid: #{f.format_c d['paid_amount_sum']}."
+                  end
 
-                dead_band = 10 # percentage points
-                min_value = 20 # utilization per mille
+                  dead_band = 10 # percentage points
+                  min_value = 20 # utilization per mille
 
-                # call out changes when we have a decent amount of number
-                utilization_change = if idx.present? && utilization.present? && min_value.present? && idx > 0 && utilization > min_value
-                  baseline_cohort_id = report.cohorts.keys[idx-1]
-                  b = report.result_for(baseline_cohort_id, row['cde_cos_rollup'], row['cde_cos_category'])
+                  # call out changes when we have a decent amount of number
+                  utilization_change = if idx.present? && utilization.present? && min_value.present? && idx > 0 && utilization > min_value
+                    baseline_cohort_id = report.cohorts.keys[idx-1]
+                    b = report.result_for(baseline_cohort_id, row['cde_cos_rollup'], row['cde_cos_category'])
 
-                  baseline_cohort = report.cohorts[baseline_cohort_id][:title].downcase
+                    baseline_cohort = report.cohorts[baseline_cohort_id][:title].downcase
 
-                  base_utilization = b['utilization']
+                    base_utilization = b['utilization']
 
-                  (100*((utilization/base_utilization) - 1)).round if base_utilization.present? && base_utilization > min_value
-                end
+                    (100*((utilization/base_utilization) - 1)).round if base_utilization.present? && base_utilization > min_value
+                  end
 
-                if utilization_change
-                  tooltip +="\n#{utilization_change > 0 ? 'Up' : 'Down'} #{utilization_change.abs}% vs. #{baseline_cohort}."
-                end
-              %td.text-right{data: {toggle: :tooltip, title: tooltip }, tabindex: 0}
-                = f.format_i d['utilization']
-                - if utilization_change
-                  - if utilization_change > +dead_band
-                    %span.text-danger
-                      %i.icon-arrow-up
-                      -# = "#{utilization_change.abs}%"
-                  - elsif utilization_change < -dead_band
-                    %span.text-success
-                      %i.icon-arrow-down
+                  if utilization_change
+                    tooltip +="\n#{utilization_change > 0 ? 'Up' : 'Down'} #{utilization_change.abs}% vs. #{baseline_cohort}."
+                  end
+                %td.text-right{data: {toggle: :tooltip, title: tooltip }, tabindex: 0}
+                  = f.format_i d['utilization']
+                  - if utilization_change
+                    - if utilization_change > +dead_band
+                      %span.text-danger
+                        %i.icon-arrow-up
                         -# = "#{utilization_change.abs}%"
--#  %b Notes:
--#  %div ¹ "Total Paid" amounts are based on incompleted.
--# - unless Rails.env.production?
--#   %details
--#     %summary Query
--#     %code= report.claims_query.to_sql
+                    - elsif utilization_change < -dead_band
+                      %span.text-success
+                        %i.icon-arrow-down
+                          -# = "#{utilization_change.abs}%"
+  -#  %b Notes:
+  -#  %div ¹ "Total Paid" amounts are based on incompleted.
+  -# - unless Rails.env.production?
+  -#   %details
+  -#     %summary Query
+  -#     %code= report.claims_query.to_sql
 
--# = content_for :page_js do
--#   :javascript
--#     $(function() {
--#       $('.datatable').DataTable({
--#         searching: false,
--#         ordering: false,
--#         paging: false,
--#         info: false,
--#         scrollY: '600px'
--#       })
--#     })
+  -# = content_for :page_js do
+  -#   :javascript
+  -#     $(function() {
+  -#       $('.datatable').DataTable({
+  -#         searching: false,
+  -#         ordering: false,
+  -#         paging: false,
+  -#         info: false,
+  -#         scrollY: '600px'
+  -#       })
+  -#     })
+- else
+  No claims data found

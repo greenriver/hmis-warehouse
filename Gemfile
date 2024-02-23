@@ -113,7 +113,6 @@ gem 'logstop'
 gem 'yabeda-rails'
 gem 'yabeda-prometheus'
 gem 'yabeda-puma-plugin'
-gem 'yabeda-graphql'
 gem 'yabeda-http_requests'
 gem 'yabeda-activerecord'
 

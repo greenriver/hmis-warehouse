@@ -7,9 +7,9 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
 
   describe 'finds current clients' do
     date = '2020-01-01'.to_date
-    let!(:enrollment_1) { create :she_entry, client_id: new_client.id, computed_project_type: 1, date: date, first_date_in_program: date }
-    let!(:enrollment_2) { create :she_entry, client_id: housed_client.id, computed_project_type: 1, date: date, first_date_in_program: date }
-    let!(:enrollment_3) { create :she_entry, client_id: housed_client.id, computed_project_type: 3, date: date - 1.day, first_date_in_program: date - 1.day, move_in_date: date - 1.day }
+    let!(:enrollment_1) { create :she_entry, client_id: new_client.id, project_type: 1, date: date, first_date_in_program: date }
+    let!(:enrollment_2) { create :she_entry, client_id: housed_client.id, project_type: 1, date: date, first_date_in_program: date }
+    let!(:enrollment_3) { create :she_entry, client_id: housed_client.id, project_type: 3, date: date - 1.day, first_date_in_program: date - 1.day, move_in_date: date - 1.day }
 
     let!(:service_1) { create :service_history_service, client_id: new_client.id, service_history_enrollment_id: enrollment_1.id, record_type: 'service', date: date }
 
@@ -53,7 +53,7 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
 
   describe 'removes the client when it is housed' do
     first_date = '2020-01-01'.to_date
-    let!(:enrollment_1) { create :she_entry, client_id: new_client.id, computed_project_type: 1, date: first_date, first_date_in_program: first_date }
+    let!(:enrollment_1) { create :she_entry, client_id: new_client.id, project_type: 1, date: first_date, first_date_in_program: first_date }
 
     let!(:service_1) { create :service_history_service, client_id: new_client.id, service_history_enrollment_id: enrollment_1.id, record_type: 'service', date: first_date }
 
@@ -66,7 +66,7 @@ RSpec.describe GrdaWarehouse::SystemCohorts::CurrentlyHomeless, type: :model do
 
     context 'then with the housed enrollment' do
       second_date = '2020-01-31'.to_date
-      let!(:housed_enrollment) { create :she_entry, client_id: new_client.id, computed_project_type: 3, date: second_date, first_date_in_program: second_date, move_in_date: second_date }
+      let!(:housed_enrollment) { create :she_entry, client_id: new_client.id, project_type: 3, date: second_date, first_date_in_program: second_date, move_in_date: second_date }
 
       it 'removes the client' do
         travel_to('2020-02-01'.to_date) do

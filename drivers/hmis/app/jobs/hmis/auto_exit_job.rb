@@ -83,6 +83,11 @@ module Hmis
       )
       assessment.build_form_processor(exit: exit_record)
       assessment.save!
+
+      # Release the unit that was assigned to this Enrollment (if applicable)
+      enrollment.release_unit!(exit_date, user: system_user)
+      # Close referral in External LINK system (if applicable)
+      enrollment.close_referral!(current_user: system_user)
     end
 
     def contact_date_for_entity(entity)
@@ -98,6 +103,10 @@ module Hmis
       else
         raise "Unknown entity '#{entity.class}'"
       end
+    end
+
+    def system_user
+      @system_user ||= Hmis::User.system_user
     end
   end
 end

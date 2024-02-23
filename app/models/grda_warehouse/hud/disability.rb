@@ -44,11 +44,13 @@ module GrdaWarehouse::Hud
       joins(:enrollment).
         where(
           e_t[:DisablingCondition].eq(1).
-          or(
-            arel_table[:DisabilityResponse].in(positive_responses).
-            and(arel_table[:DisabilityType].in([6, 8]).or(arel_table[:IndefiniteAndImpairs].eq(1))),
-          ),
+          or(indefinite_disability_arel),
         )
+    end
+
+    def self.indefinite_disability_arel
+      arel_table[:DisabilityResponse].in(positive_responses).
+        and(arel_table[:DisabilityType].in([6, 8]).or(arel_table[:IndefiniteAndImpairs].eq(1)))
     end
 
     scope :at_entry, -> do

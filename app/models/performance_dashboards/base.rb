@@ -93,7 +93,7 @@ class PerformanceDashboards::Base
   end
 
   def self.coc_codes
-    GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode, :hud_coc_code).flatten.map(&:presence).compact
+    GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode).map(&:presence).compact
   end
 
   def include_comparison?

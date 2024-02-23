@@ -26,10 +26,6 @@
             %li have reported being homeless in 12 of the last 36 months.
             %li have reported being homeless continuously for the past 12 months, or reported 4 or more episodes of homelessness in the past three years.
 
-          - if GrdaWarehouse::Config.get(:project_type_override)
-            .mb-1
-              %span.font-italic Please note:
-              %span Chronic calculations are done using the Project Type Overrides.
           .mb-0= link_to 'The HUD HMIS Glossary definition of Chronically Homeless can be found here.', 'https://www.hudexchange.info/resource/4489/hmis-standard-reporting-terminology-glossary'
 
 

@@ -288,7 +288,7 @@ module ReportGenerators::SystemPerformance::Fy2019
       columns = {
         enrollment_id: she_t[:id],
         date: shs_t[:date],
-        project_type: she_t[:computed_project_type],
+        project_type: she_t[:project_type],
         first_date_in_program: she_t[:first_date_in_program],
         last_date_in_program: she_t[:last_date_in_program],
         DateToStreetESSH: e_t[:DateToStreetESSH],

@@ -41,7 +41,7 @@ module GrdaWarehouse::WarehouseReports::Exports
               report_calculator.average_episode_length_for(client),
               report_calculator.days_homeless(client),
               report_calculator.episode_counts_past_3_years_for(client),
-              HudUtility2024.project_type(report_calculator.enrollment_for_client(client)&.project&.computed_project_type),
+              HudUtility2024.project_type(report_calculator.enrollment_for_client(client)&.project&.project_type),
               HudUtility2024.destination(report_calculator.exit_for_client(client)&.Destination),
               HudUtility2024.destination(report_calculator.most_recent_exit_with_destination_for_client(client)&.Destination),
               yes_no(report_calculator.returned?(client)),

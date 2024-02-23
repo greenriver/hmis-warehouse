@@ -70,17 +70,19 @@ module ClaimsReporting
     end
 
     def claim_date_range
-      min = results.values.map { |c| c[:min_claim_date]&.to_date }.min || self.class.max_date_range.min
-      max = results.values.map { |c| c[:max_claim_date]&.to_date }.max || completed_at.to_date
+      min = results.values.map { |c| c[:min_claim_date]&.to_date }.min
+      max = results.values.map { |c| c[:max_claim_date]&.to_date }.max
+      return unless min.present?
+
       min .. max
     end
 
     def latest_payment_date
-      results.values.map { |c| c[:latest_paid_date]&.to_date }.max || completed_at.to_date
+      results.values.map { |c| c[:latest_paid_date]&.to_date }.max
     end
 
     def roster_as_of
-      claim_date_range.last
+      claim_date_range&.last
     end
 
     HIGHLIGHT_COS_CATEGORIES = [
