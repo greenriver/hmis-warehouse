@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -60829,8 +60829,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240205230723'),
 ('20240208184013'),
 ('20240217192729'),
+('20240218201801'),
+('20240218222444'),
 ('20240220171320'),
 ('20240221195839'),
 ('20240222152739');
-
-
