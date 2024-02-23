@@ -27,42 +27,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       { key: 'mhmr_client_response', label: "Response: (The client's response to the services you provided)", field_type: 'string', repeats: false },
       { key: 'mhmr_progress', label: 'Progress or Lack of Progress: (Toward the goal or measurable outcomes, as it relates to the wellness plan)', field_type: 'string', repeats: false },
       { key: 'mhmr_followup_comments', label: 'Follow-Up / Comments:', field_type: 'string', repeats: false },
-
-      { key: 'mhmr_service_code_location_1', label: 'Location Row 1', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_activity_code_1', label: 'Activity Code Row 1', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_project_no_1', label: 'Project Number Row 1', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_start_time_1', label: 'Start/Stop Time Row 1', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_stop_time_1', label: 'Start/Stop Time Row 1', field_type: 'string', repeats: false },
-
-      { key: 'mhmr_service_code_location_2', label: 'Location Row 2', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_activity_code_2', label: 'Activity Code Row 2', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_project_no_2', label: 'Project Number Row 2', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_start_time_2', label: 'Start/Stop Time Row 2', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_stop_time_2', label: 'Start/Stop Time Row 2', field_type: 'string', repeats: false },
-
-      { key: 'mhmr_service_code_location_3', label: 'Location Row 3', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_activity_code_3', label: 'Activity Code Row 3', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_project_no_3', label: 'Project Number Row 3', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_start_time_3', label: 'Start/Stop Time Row 3', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_stop_time_3', label: 'Start/Stop Time Row 3', field_type: 'string', repeats: false },
-
-      { key: 'mhmr_service_code_location_4', label: 'Location Row 4', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_activity_code_4', label: 'Activity Code Row 4', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_project_no_4', label: 'Project Number Row 4', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_start_time_4', label: 'Start/Stop Time Row 4', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_stop_time_4', label: 'Start/Stop Time Row 4', field_type: 'string', repeats: false },
-
-      { key: 'mhmr_service_code_location_5', label: 'Location Row 5', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_activity_code_5', label: 'Activity Code Row 5', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_project_no_5', label: 'Project Number Row 5', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_start_time_5', label: 'Start/Stop Time Row 5', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_stop_time_5', label: 'Start/Stop Time Row 5', field_type: 'string', repeats: false },
-
-      { key: 'mhmr_service_code_location_6', label: 'Location Row 6', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_activity_code_6', label: 'Activity Code Row 6', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_project_no_6', label: 'Project Number Row 6', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_start_time_6', label: 'Start/Stop Time Row 6', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_stop_time_6', label: 'Start/Stop Time Row 6', field_type: 'string', repeats: false },
     ].freeze
 
     def filename
@@ -70,7 +34,16 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def cded_configs
-      CDED_CONFIGS
+      CDED_CONFIGS +
+        (1..6).map do |i|
+          [
+            { key: "mhmr_service_code_location_#{i}", label: "Location Row #{i}", field_type: 'string', repeats: false },
+            { key: "mhmr_service_code_activity_code_#{i}", label: "Activity Code Row #{i}", field_type: 'string', repeats: false },
+            { key: "mhmr_service_code_project_no_#{i}", label: "Project Number Row #{i}", field_type: 'string', repeats: false },
+            { key: "mhmr_service_code_start_time_#{i}", label: "Start/Stop Time Row #{i}", field_type: 'string', repeats: false },
+            { key: "mhmr_service_code_stop_time_#{i}", label: "Start/Stop Time Row #{i}", field_type: 'string', repeats: false },
+          ]
+        end.flatten
     end
 
     def row_assessment_date(row)

@@ -34,72 +34,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       { key: 'mhmr_progress_towards_goals', label: 'Progress lack of progress narrative', field_type: 'string', repeats: false },
       { key: 'mhmr_no_show', label: 'No show', field_type: 'string', repeats: false },
       { key: 'mhmr_staff_signature', label: 'Staff Signature / Credentials / ID#:', field_type: 'string', repeats: false },
-
-      { key: 'mhmr_service_code_location_1', label: 'Location Code Row 1', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_activity_code_1', label: 'Activity Code Row 1', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_project_no_1', label: 'Project Number Row 1', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_start_time_1', label: 'Start / Stop Time Row 1', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_stop_time_1', label: 'Start / Stop Time Row 1', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_recipient_1', label: 'Recipient Row 1', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_attendance_1', label: 'Attendance Row 1', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_num_recipients_1', label: 'Number of Recipients Row 1', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_recipient_time_1', label: 'Recipient Time Row 1', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_lof_1', label: 'LOF Row 1', field_type: 'string', repeats: false },
-
-      { key: 'mhmr_service_code_location_2', label: 'Location Code Row 2', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_activity_code_2', label: 'Activity Code Row 2', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_project_no_2', label: 'Project Number Row 2', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_start_time_2', label: 'Start / Stop Time Row 2', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_stop_time_2', label: 'Start / Stop Time Row 2', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_recipient_2', label: 'Recipient Row 2', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_attendance_2', label: 'Attendance Row 2', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_num_recipients_2', label: 'Number of Recipients Row 2', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_recipient_time_2', label: 'Recipient Time Row 2', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_lof_2', label: 'LOF Row 2', field_type: 'string', repeats: false },
-
-      { key: 'mhmr_service_code_location_3', label: 'Location Code Row 3', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_activity_code_3', label: 'Activity Code Row 3', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_project_no_3', label: 'Project Number Row 3', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_start_time_3', label: 'Start / Stop Time Row 3', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_stop_time_3', label: 'Start / Stop Time Row 3', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_recipient_3', label: 'Recipient Row 3', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_attendance_3', label: 'Attendance Row 3', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_num_recipients_3', label: 'Number of Recipients Row 3', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_recipient_time_3', label: 'Recipient Time Row 3', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_lof_3', label: 'LOF Row 3', field_type: 'string', repeats: false },
-
-      { key: 'mhmr_service_code_location_4', label: 'Location Code Row 4', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_activity_code_4', label: 'Activity Code Row 4', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_project_no_4', label: 'Project Number Row 4', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_start_time_4', label: 'Start / Stop Time Row 4', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_stop_time_4', label: 'Start / Stop Time Row 4', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_recipient_4', label: 'Recipient Row 4', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_attendance_4', label: 'Attendance Row 4', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_num_recipients_4', label: 'Number of Recipients Row 4', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_recipient_time_4', label: 'Recipient Time Row 4', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_lof_4', label: 'LOF Row 4', field_type: 'string', repeats: false },
-
-      { key: 'mhmr_service_code_location_5', label: 'Location Code Row 5', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_activity_code_5', label: 'Activity Code Row 5', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_project_no_5', label: 'Project Number Row 5', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_start_time_5', label: 'Start / Stop Time Row 5', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_stop_time_5', label: 'Start / Stop Time Row 5', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_recipient_5', label: 'Recipient Row 5', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_attendance_5', label: 'Attendance Row 5', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_num_recipients_5', label: 'Number of Recipients Row 5', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_recipient_time_5', label: 'Recipient Time Row 5', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_lof_5', label: 'LOF Row 5', field_type: 'string', repeats: false },
-
-      { key: 'mhmr_service_code_location_6', label: 'Location Code Row 6', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_activity_code_6', label: 'Activity Code Row 6', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_project_no_6', label: 'Project Number Row 6', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_start_time_6', label: 'Start / Stop Time Row 6', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_stop_time_6', label: 'Start / Stop Time Row 6', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_recipient_6', label: 'Recipient Row 6', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_attendance_6', label: 'Attendance Row 6', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_num_recipients_6', label: 'Number of Recipients Row 6', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_recipient_time_6', label: 'Recipient Time Row 6', field_type: 'string', repeats: false },
-      { key: 'mhmr_service_code_lof_6', label: 'LOF Row 6', field_type: 'string', repeats: false },
     ].freeze
 
     def filename
@@ -107,7 +41,21 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def cded_configs
-      CDED_CONFIGS
+      CDED_CONFIGS +
+        (1..6).map do |i|
+          [
+            { key: "mhmr_service_code_location_#{i}", label: "Location Row #{i}", field_type: 'string', repeats: false },
+            { key: "mhmr_service_code_activity_code_#{i}", label: "Activity Code Row #{i}", field_type: 'string', repeats: false },
+            { key: "mhmr_service_code_project_no_#{i}", label: "Project Number Row #{i}", field_type: 'string', repeats: false },
+            { key: "mhmr_service_code_start_time_#{i}", label: "Start/Stop Time Row #{i}", field_type: 'string', repeats: false },
+            { key: "mhmr_service_code_stop_time_#{i}", label: "Start/Stop Time Row #{i}", field_type: 'string', repeats: false },
+            { key: "mhmr_service_code_recipient_#{i}", label: "Recipient Row #{i}", field_type: 'string', repeats: false },
+            { key: "mhmr_service_code_attendance_#{i}", label: "Attendance Row #{i}", field_type: 'string', repeats: false },
+            { key: "mhmr_service_code_num_recipients_#{i}", label: "Number of Recipients Row #{i}", field_type: 'string', repeats: false },
+            { key: "mhmr_service_code_recipient_time_#{i}", label: "Recipient Time Row #{i}", field_type: 'string', repeats: false },
+            { key: "mhmr_service_code_lof_#{i}", label: "LOF Row #{i}", field_type: 'string', repeats: false },
+          ]
+        end.flatten
     end
 
     def row_assessment_date(row)
