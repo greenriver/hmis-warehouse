@@ -59,7 +59,7 @@ module Health
     end
 
     def place_of_service
-      11
+      '11'
     end
   end
 end

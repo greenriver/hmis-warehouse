@@ -219,13 +219,14 @@ module Health
     end
 
     def place_of_service
-      return '11' if telehealth?
+      return '02' if telehealth? # Location other than enrollee's home
 
       super
     end
 
     private def telehealth?
-      @qa.mode_of_contact&.to_sym.in?([:video_call]) && @qa.reached_client.to_sym == :yes
+      # Treat contact as telehealth unless a collateral is reached (so, no a failed contact is still telehealth)
+      @qa.mode_of_contact&.to_sym.in?([:video_call]) && @qa.reached_client.to_sym != :collateral
     end
   end
 end
