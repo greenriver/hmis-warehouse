@@ -18752,6 +18752,78 @@ ALTER SEQUENCE public.hmis_staff_x_clients_id_seq OWNED BY public.hmis_staff_x_c
 
 
 --
+-- Name: hmis_static_form_submissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_static_form_submissions (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    submitted_at timestamp without time zone,
+    spam_score integer,
+    status character varying DEFAULT 'new'::character varying NOT NULL,
+    form_name character varying NOT NULL,
+    form_version character varying NOT NULL,
+    remote_location character varying,
+    data jsonb NOT NULL,
+    notes text
+);
+
+
+--
+-- Name: hmis_static_form_submissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_static_form_submissions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_static_form_submissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_static_form_submissions_id_seq OWNED BY public.hmis_static_form_submissions.id;
+
+
+--
+-- Name: hmis_static_forms; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_static_forms (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    name character varying NOT NULL,
+    version character varying NOT NULL,
+    fields jsonb NOT NULL,
+    remote_location character varying
+);
+
+
+--
+-- Name: hmis_static_forms_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_static_forms_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_static_forms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_static_forms_id_seq OWNED BY public.hmis_static_forms.id;
+
+
+--
 -- Name: hmis_unit_occupancy; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -28555,6 +28627,20 @@ ALTER TABLE ONLY public.hmis_staff_x_clients ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: hmis_static_form_submissions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_static_form_submissions ALTER COLUMN id SET DEFAULT nextval('public.hmis_static_form_submissions_id_seq'::regclass);
+
+
+--
+-- Name: hmis_static_forms id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_static_forms ALTER COLUMN id SET DEFAULT nextval('public.hmis_static_forms_id_seq'::regclass);
+
+
+--
 -- Name: hmis_unit_occupancy id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -32446,6 +32532,22 @@ ALTER TABLE ONLY public.hmis_staff
 
 ALTER TABLE ONLY public.hmis_staff_x_clients
     ADD CONSTRAINT hmis_staff_x_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_static_form_submissions hmis_static_form_submissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_static_form_submissions
+    ADD CONSTRAINT hmis_static_form_submissions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_static_forms hmis_static_forms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_static_forms
+    ADD CONSTRAINT hmis_static_forms_pkey PRIMARY KEY (id);
 
 
 --
@@ -60835,6 +60937,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240208184013'),
 ('20240217192729'),
 ('20240218201801'),
-('20240218222444');
+('20240218222444'),
+('20240223002628');
 
 

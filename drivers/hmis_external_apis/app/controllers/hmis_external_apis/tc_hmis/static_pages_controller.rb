@@ -12,13 +12,12 @@ class HmisExternalApis::TcHmis::StaticPagesController < ActionController::Base
   content_security_policy false
 
   def show
-    case params[:id]
-    when 'tchc_helpline'
-      render 'tchc_helpline'
-    when 'tchc_prevention_screening'
-      render 'tchc_prevention_screening'
-    else
-      head :not_found
-    end
+    # this is intended for development. See PublishStaticFormsJob for production usage
+    raise unless Rails.env.development?
+
+    @field_collection = []
+    # template might be tchc_helpline or tchc_prevention_screening
+    template = params[:id]
+    render template
   end
 end
