@@ -65,7 +65,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         assessment.custom_data_elements.delete_all # delete should really destroy
         assessment.really_destroy!
       end
-      Hmis::Form::FormProcessor.where(custom_assessment_id: assessment_ids).delete_all
     end
 
     def create_cde_definitions
