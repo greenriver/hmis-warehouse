@@ -68,11 +68,26 @@ module HmisCsvTwentyTwentyTwo::Exporter
     # Usually we won't have a MoveInDate because it isn't required
     # if the project type isn't PH
     def self.assign_move_in_date(row)
-      return row unless row.project.project_type_overridden_as_ph?
+      return row unless project_type_overridden_as_ph?(row)
 
       row.MoveInDate ||= row.EntryDate
 
       row
+    end
+
+    def self.project_type_overridden_as_ph?(row)
+      # NOTE: this exporter should never be called, and 2022 and 2024 PH codes are the same, but the HudUtility doesn't include this method
+      psh_types = HudUtility2024.residential_project_type_numbers_by_code[:ph]
+      existing_project_type = row.project.ProjectType
+      # Not PH, no need to change
+      return false unless existing_project_type.in?(psh_types)
+
+      last_loaded_project_type = row.project.loaded_items_2022.last&.ProjectType
+      # If we don't have a previous CSV version, we can't determine if it's been overridden
+      return false if last_loaded_project_type.blank?
+
+      # If it wasn't a PH project when we loaded it, then we need to update things
+      ! last_loaded_project_type.in?(psh_types)
     end
   end
 end

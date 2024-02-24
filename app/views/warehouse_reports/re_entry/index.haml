@@ -48,7 +48,7 @@
               %nobr= link_to_if can_view_clients?, client.FirstName, appropriate_client_path(client)
             %td= HudUtility2024.no_yes_reasons_for_missing_data(client.VeteranStatus)
             %td= enrollment.first_date_in_program
-            %td= HudUtility2024.project_type enrollment.computed_project_type
+            %td= HudUtility2024.project_type enrollment.project_type
             %td= project.name(current_user)
             %td= project.organization_name(current_user)
             %td= re_entry.days_since_last_exit
