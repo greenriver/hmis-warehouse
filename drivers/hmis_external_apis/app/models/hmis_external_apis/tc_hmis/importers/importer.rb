@@ -29,6 +29,10 @@ module HmisExternalApis::TcHmis::Importers
         Loaders::SpdatLoader,
         Loaders::HatLoader,
         Loaders::UhaLoader,
+        Loaders::NavigationNotesLoader,
+        Loaders::DiversionAssessmentLoader,
+        # This importer was not needed
+        # Loaders::EhvApplicationLoader,
       ]
 
       # disable paper trail to improve importer performance
@@ -43,6 +47,7 @@ module HmisExternalApis::TcHmis::Importers
       end
 
       analyze_tables
+      true
     rescue StandardError => e
       # this might be swallowing the exception
       @notifier.ping("Failure in #{importer_name}") # , { exception: e })
