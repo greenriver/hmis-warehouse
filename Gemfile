@@ -77,8 +77,8 @@ gem 'acts-as-taggable-on', '~> 7.0'
 # FIXME: the hellosign gem is no longer a requirement. This dependency can be dropped pending code pruning
 gem 'hellosign-ruby-sdk', git: 'https://github.com/greenriver/hellosign-ruby-sdk.git'
 
-gem 'devise', '~> 4'
-gem 'devise_invitable', '~> 2.0'
+gem 'devise', '~> 4.8'
+gem 'devise_invitable', '~> 2.0.9'
 gem 'devise-pwned_password'
 gem 'devise-security'
 gem 'devise-two-factor'
@@ -113,7 +113,6 @@ gem 'logstop'
 gem 'yabeda-rails'
 gem 'yabeda-prometheus'
 gem 'yabeda-puma-plugin'
-gem 'yabeda-graphql'
 gem 'yabeda-http_requests'
 gem 'yabeda-activerecord'
 

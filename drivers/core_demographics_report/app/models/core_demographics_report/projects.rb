@@ -34,7 +34,7 @@ module
               {
                 project_name: project.name(@filter.user),
                 organization_name: project.organization_name(@filter.user),
-                project_type: HudUtility2024.project_type_brief(project.computed_project_type),
+                project_type: HudUtility2024.project_type_brief(project.project_type),
               },
             ]
           end.to_h

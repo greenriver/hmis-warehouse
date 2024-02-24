@@ -13,8 +13,6 @@
         %p
           %strong Please note:
         %ol
-          - if GrdaWarehouse::Config.get(:project_type_override)
-            %li Chronic calculations are done using the Project Type Overrides
           %li Individuals only option limits the clients included to those who didn't present for an enrollment with anyone else during the report period
 
   = render 'common/panel_collapse',

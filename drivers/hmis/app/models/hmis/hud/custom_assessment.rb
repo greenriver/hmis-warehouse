@@ -139,6 +139,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
         save_in_progress
       else
         save_not_in_progress
+        form_processor.store_assessment_questions! if form_processor.ce_assessment?
       end
 
       unless as_wip

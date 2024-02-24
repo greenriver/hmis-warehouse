@@ -158,6 +158,7 @@ module CasClientData
         max_by(&:InformationDate)
     end
 
+    # Find the most recent TC HAT from ETO
     def most_recent_tc_hat_for_destination
       @most_recent_tc_hat_for_destination ||= source_clients.map(&:most_recent_tc_hat).
         compact.
