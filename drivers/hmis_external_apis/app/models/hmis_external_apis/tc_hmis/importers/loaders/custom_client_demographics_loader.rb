@@ -48,6 +48,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         expected += 1
         personal_id = row.field_value('Participant Enterprise Identifier')
         timestamp = parse_date(row.field_value('Date Last Updated'))
+        next unless row_id(row)
 
         client_id = @client_lookup[personal_id]
         log_skipped_row(row, field: 'Participant Enterprise Identifier') unless client_id
@@ -70,13 +71,32 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       end
       log_processed_result(name: 'Client Demographics', expected: expected, actual: actual)
 
-      cdes_to_insert = @stored_demographic_elements.values.map(&:values).flatten
+      cdes_to_insert = transform_demographic_elements(@stored_demographic_elements)
+      @stored_demographic_elements = nil
+      GC.start
       ar_import(cde_source, cdes_to_insert) if cdes_to_insert.present?
 
       contact_points_to_insert = @stored_contact_points.values.flatten
       ar_import(cccp_source, contact_points_to_insert) if contact_points_to_insert.present?
 
       ar_import(cca_source, @new_postal_codes) if @new_postal_codes.present?
+    end
+
+    # @param [Hash] elements: [client_id][demographic_key] = {value: , timestamp: , row_id: }
+    def transform_demographic_elements(_elements)
+      results = []
+      @stored_demographic_elements.each_pair do |client_id, demographics|
+        demographics.each_pair do |demographic_key, element|
+          results << cde_helper.new_cde_record(
+            value: element.fetch(:value),
+            owner_type: client_source.name,
+            owner_id: client_id,
+            definition_key: demographic_key,
+            date_created: element.fetch(:timestamp),
+          )
+        end
+      end
+      results
     end
 
     private def clobber_records(rows)
@@ -99,20 +119,20 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     private def update_demographic(row:, client_id:, timestamp:, demographic_key:, value:)
       return unless value.present? # Do we want to keep last collected, or erase any that are blank w/ newest timestamp?
 
-      definition = @element_definitions[demographic_key]
-      element =  @stored_demographic_elements.dig(client_id, definition.id)
+      element = @stored_demographic_elements.dig(client_id, demographic_key)
 
       if element.present?
-        return unless element[:DateUpdated] < timestamp
-
-        column = "value_#{definition.field_type}".to_sym
-        element[column] = value
-        element[:DateUpdated] = timestamp
-      else
-        element = cde_helper.new_cde_record(value: value, owner_type: client_source.name, owner_id: client_id, definition_key: demographic_key)
-        @stored_demographic_elements[client_id] ||= {}
-        @stored_demographic_elements[client_id][definition.id] = element
+        if element.fetch(:timestamp) == timestamp
+          # tie break with row id
+          return unless element.fetch(:row_id) < row_id(row)
+        else
+          # ignore demographics with older timestamps
+          return unless element.fetch(:timestamp) < timestamp
+        end
       end
+
+      @stored_demographic_elements[client_id] ||= {}
+      @stored_demographic_elements[client_id][demographic_key] = { value: value, timestamp: timestamp, row_id: row_id(row) }
     end
 
     private def demographics_on_client
@@ -128,21 +148,17 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     def create_cdeds
       demographics_on_client.each_pair do |key, label|
-        cded_source.where(
+        cde_helper.find_or_create_cded(
           owner_type: client_source.name,
-          data_source_id: data_source.id,
           key: key,
-        ).first_or_create! do |record|
-          record.label = label
-          record.field_type = label =~ /date/i ? 'date' : 'string'
-          record.UserID = system_user_id
-        end
+          field_type: label =~ /date/i ? 'date' : 'string',
+          repeats: false,
+          label: label,
+        )
       end
     end
 
     private def update_contact_points(row, personal_id, phone_number, email, timestamp)
-      client_id = @client_lookup[personal_id].present?
-
       @stored_contact_points[personal_id] ||= []
       if phone_number.present? && ! @stored_contact_points[personal_id].detect { |c| c[:system].to_s == 'phone' && c[:value] == phone_number }
         @stored_contact_points[personal_id] << {
@@ -150,7 +166,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           system: :phone,
           value: phone_number,
           notes: nil,
-          ContactPointID: "import-phone-#{row[:row_number]}",
+          ContactPointID: "import-phone-#{row_id(row)}",
           PersonalID: personal_id,
           UserID: system_user_id,
           data_source_id: data_source.id,
@@ -166,7 +182,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           system: :email,
           value: email,
           notes: nil,
-          ContactPointID: "import-email-#{row[:row_number]}",
+          ContactPointID: "import-email-#{row_id(row)}",
           PersonalID: personal_id,
           UserID: system_user_id,
           data_source_id: data_source.id,
@@ -178,7 +194,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     private def update_client_address(row, personal_id, _line1, _line2, zipcode, timestamp)
-      client_id = @client_lookup[personal_id].present?
+      return unless zipcode
 
       # 2/13/24 -- TC decided they didn't need address information except zipcode
       # TODO: before enabling, address cleaning confirm that there are no privacy issues associated with exposing the data to Nominatim/OpenStreetMap
@@ -202,7 +218,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       @new_postal_codes << {
         PersonalID: personal_id,
         postal_code: zipcode,
-        AddressID: "import-zip-#{row[:row_number]}",
+        AddressID: "import-zip-#{row_id(row)}",
         UserID: system_user_id,
         data_source_id: data_source.id,
         DateCreated: timestamp,
@@ -251,6 +267,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     private def cded_source
       Hmis::Hud::CustomDataElementDefinition
+    end
+
+    private def row_id(row)
+      row.field_value('Unique Enrollment Number')
     end
   end
 end

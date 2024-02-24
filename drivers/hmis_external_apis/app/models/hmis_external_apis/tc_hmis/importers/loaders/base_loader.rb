@@ -41,16 +41,18 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     DATE_TIME_FMT = '%Y-%m-%dT%H:%M:%S.%N'
     DATE_TIME_RGX = /\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{7}\z/
 
-    def parse_date(str)
-      return unless str
+    def parse_date(value)
+      return unless value
 
-      case str
+      case value
+      when Date, Time
+        value
       when DATE_RGX
-        Date.strptime(str, DATE_FMT)
+        Date.strptime(value, DATE_FMT)
       when DATE_TIME_RGX
-        DateTime.strptime(str, DATE_TIME_FMT)
+        DateTime.strptime(value, DATE_TIME_FMT)
       else
-        raise ArgumentError, "Invalid date or date-time format: '#{str}'"
+        raise ArgumentError, "Invalid date or date-time format: '#{value}'"
       end
     end
 
