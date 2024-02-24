@@ -29,7 +29,26 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
 
   after_initialize :initialize_owner, if: :new_record?
 
-  SORT_OPTIONS = [:date_provided].freeze
+  SORT_OPTIONS = [
+    :date_provided,
+    :last_name_a_to_z,
+    :last_name_z_to_a,
+    :first_name_a_to_z,
+    :first_name_z_to_a,
+    :age_youngest_to_oldest,
+    :age_oldest_to_youngest,
+  ].freeze
+
+  SORT_OPTION_DESCRIPTIONS = {
+    date_provided: 'Date service was provided',
+    last_name_a_to_z: 'Client Last Name: A-Z',
+    last_name_z_to_a: 'Client Last Name: Z-A',
+    first_name_a_to_z: 'Client First Name: A-Z',
+    first_name_z_to_a: 'Client First Name: Z-A',
+    age_youngest_to_oldest: 'Client Age: Youngest to Oldest',
+    age_oldest_to_youngest: 'Client Age: Oldest to Youngest',
+  }.freeze
+
   HUD_ATTRIBUTES = [:record_type, :type_provided, :other_type_provided, :moving_on_other_type, :sub_type_provided, :referral_outcome].freeze
   HUD_AND_CUSTOM_ATTRIBUTES = [:fa_amount, :fa_start_date, :fa_end_date].freeze
 
@@ -117,6 +136,18 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
     case option
     when :date_provided
       order(DateProvided: :desc)
+    when :last_name_a_to_z
+      joins(enrollment: :client).order(c_t[:LastName].asc.nulls_last)
+    when :last_name_z_to_a
+      joins(enrollment: :client).order(c_t[:LastName].desc.nulls_last)
+    when :first_name_a_to_z
+      joins(enrollment: :client).order(c_t[:FirstName].asc.nulls_last)
+    when :first_name_z_to_a
+      joins(enrollment: :client).order(c_t[:FirstName].desc.nulls_last)
+    when :age_youngest_to_oldest
+      joins(enrollment: :client).order(c_t[:dob].asc.nulls_last)
+    when :age_oldest_to_youngest
+      joins(enrollment: :client).order(c_t[:dob].desc.nulls_last)
     else
       raise NotImplementedError
     end

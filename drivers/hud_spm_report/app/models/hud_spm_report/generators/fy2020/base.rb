@@ -71,7 +71,7 @@ module HudSpmReport::Generators::Fy2020
       date: :date,
       first_date_in_program: :first_date_in_program,
       last_date_in_program: :last_date_in_program,
-      project_type: :computed_project_type,
+      project_type: :project_type,
       project_id: p_t[:id],
       project_name: :project_name,
       household_id: she_household_column,
@@ -1712,7 +1712,7 @@ module HudSpmReport::Generators::Fy2020
       @hoh_enrollment_for ||= begin
         columns = {
           enrollment_id: she_t[:id],
-          project_type: she_t[:computed_project_type],
+          project_type: she_t[:project_type],
           project_id: p_t[:id],
           first_date_in_program: she_t[:first_date_in_program],
           last_date_in_program: she_t[:last_date_in_program],

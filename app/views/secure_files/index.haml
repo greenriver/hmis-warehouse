@@ -3,6 +3,7 @@
 
 %h1= content_for :title
 
+%p After 1 month files will be permanently deleted and can not be retrieved
 .row
   .col-sm-6
     - if @secure_files.any?
@@ -19,6 +20,8 @@
               %th
                 Uploaded On
               %th
+                Removal Date
+              %th
                 Remove
           %tbody
             - @secure_files.each do |file|
@@ -29,6 +32,7 @@
                 %td= file.sender&.name
                 %td= file.recipient&.name
                 %td= file.created_at.to_date
+                %td= file.created_at.to_date + 1.month
                 %td
                   = link_to secure_file_path(file), method: :delete, class: 'btn btn-sm btn-icon-only btn-danger' do
                     %i.icon-cross

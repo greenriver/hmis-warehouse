@@ -25,19 +25,7 @@ module HmisCsvTwentyTwentyFour::Exporter
 
     def self.apply_overrides(row, options:)
       row = ensure_reasonable_name(row, confidential: options[:confidential])
-      row = override_project_type(row)
-      row = override_continuum_project(row)
       row = calculated_pit_count(row, export: options[:export]) if options[:export].present?
-
-      [
-        { hud_field: :HousingType, override_field: :housing_type_override },
-        { hud_field: :OperatingStartDate, override_field: :operating_start_date_override },
-        { hud_field: :OperatingEndDate, override_field: :operating_end_date_override },
-        { hud_field: :TargetPopulation, override_field: :target_population_override },
-      ].each do |settings|
-        row = simple_override(row, **settings)
-      end
-
       row
     end
 
@@ -48,29 +36,6 @@ module HmisCsvTwentyTwentyFour::Exporter
       end
       row.ProjectCommonName = row.ProjectName if row.ProjectCommonName.blank?
 
-      row
-    end
-
-    def self.override_project_type(row)
-      return row unless GrdaWarehouse::Config.get(:project_type_override)
-      return row if row.computed_project_type.blank?
-      return row if row.ProjectType == row.computed_project_type
-
-      row.ProjectType = row.computed_project_type
-
-      row
-    end
-
-    def self.override_continuum_project(row)
-      # ContinuumProject can't be NULL, set to 0 if we don't know what it should be
-      row.ContinuumProject ||= 0
-      return row if row.hud_continuum_funded.nil?
-
-      row.ContinuumProject = if row.hud_continuum_funded
-        1
-      else
-        0
-      end
       row
     end
 

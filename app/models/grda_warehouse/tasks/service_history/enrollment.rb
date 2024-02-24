@@ -420,7 +420,6 @@ module GrdaWarehouse::Tasks::ServiceHistory
         enrollment_group_id: self.EnrollmentID,
         service_type: nil,
         project_type: project.ProjectType,
-        computed_project_type: project.computed_project_type,
         project_id: self.ProjectID,
         data_source_id: data_source_id,
         age: nil,
@@ -456,7 +455,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
         age: nil,
         record_type: nil,
         client_id: destination_client.id,
-        project_type: project.computed_project_type,
+        project_type: project.project_type,
         homeless: false,
         literally_homeless: false,
       }
@@ -468,8 +467,8 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # neither homeless nor not homeless and receives a nil value and will neither show up in homeless,
     # or non_homeless scopes"?
     def homeless?(date)
-      return true if HudUtility2024.homeless_project_types.include?(project.computed_project_type)
-      return false if HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(project.computed_project_type) &&
+      return true if HudUtility2024.homeless_project_types.include?(project.project_type)
+      return false if HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(project.project_type) &&
         (self.MoveInDate.present? && date > self.MoveInDate)
 
       nil
@@ -479,10 +478,10 @@ module GrdaWarehouse::Tasks::ServiceHistory
     # TH or PH after move-in date negates literally homeless
     # Others don't negate it, but don't count as such
     def literally_homeless? date
-      return true if HudUtility2024.chronic_project_types.include?(project.computed_project_type)
-      return false if HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(project.computed_project_type) &&
+      return true if HudUtility2024.chronic_project_types.include?(project.project_type)
+      return false if HudUtility2024.residential_project_type_numbers_by_code[:ph].include?(project.project_type) &&
         (self.MoveInDate.present? && date > self.MoveInDate)
-      return false if HudUtility2024.residential_project_type_numbers_by_code[:th].include?(project.computed_project_type)
+      return false if HudUtility2024.residential_project_type_numbers_by_code[:th].include?(project.project_type)
 
       nil
     end
@@ -722,7 +721,7 @@ module GrdaWarehouse::Tasks::ServiceHistory
     def build_for_dates
       @build_for_dates ||= if entry_exit_tracking?
         (self.EntryDate..build_until).map do |date|
-          [date, service_type_from_project_type(project.computed_project_type)]
+          [date, service_type_from_project_type(project.project_type)]
         end.to_h
       else
         # Fetch all services provided between the start of the enrollment and the end of the build period
