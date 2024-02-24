@@ -93,6 +93,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         true
       when /^(n|no)$/i
         false
+      when '.'
+        # for element 12180 in the HAT, the dot appears to mean 'true'
+        true
       when nil
         nil
       else
@@ -158,7 +161,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def log_processed_result(name: nil, expected:, actual:)
       name ||= model_class.name
       rate = expected.zero? ? 0 : (actual.to_f / expected).round(3)
-      log_info("processed #{name}: #{actual} of #{expected} records (#{(1.0 - rate) * 100}% skipped)")
+      log_info("processed #{name}: #{actual} of #{expected} records (#{((1.0 - rate) * 100).round(2)}% skipped)")
     end
   end
 end

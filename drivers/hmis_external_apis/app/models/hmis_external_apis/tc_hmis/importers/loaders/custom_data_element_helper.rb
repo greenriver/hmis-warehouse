@@ -26,6 +26,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def _find_or_create_cded(owner_type:, key:, field_type: nil, repeats: nil, label: nil)
       cded = cdeds.where(owner_type: owner_type, key: key).first_or_initialize
 
+      field_type = field_type == 'signature' ? 'string' : field_type
       cded.field_type = field_type if field_type
       cded.field_type ||= 'string'
 
