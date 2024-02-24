@@ -345,9 +345,6 @@ GEM
     crack (0.4.5)
       rexml
     crass (1.0.6)
-    creek (2.6.3)
-      nokogiri (>= 1.10.0)
-      rubyzip (>= 1.0.0)
     css_parser (1.10.0)
       addressable
     cuprite (0.14.3)
@@ -1051,7 +1048,6 @@ DEPENDENCIES
   coffee-rails
   combine_pdf
   composite_primary_keys (= 13.0.3)
-  creek
   cuprite
   curb
   daemons

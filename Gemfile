@@ -165,7 +165,6 @@ gem 'kiba-common'
 # For exporting
 gem 'caxlsx'
 gem 'caxlsx_rails'
-gem 'creek', require: false
 gem 'roo', require: false
 gem 'roo-xls', require: false
 gem 'rubyXL', require: false

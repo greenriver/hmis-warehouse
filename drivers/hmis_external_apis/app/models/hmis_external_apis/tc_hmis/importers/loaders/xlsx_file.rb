@@ -6,9 +6,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'creek'
+require 'roo'
 
-# reads xls from ETO touch points. These files have two headers rows. One row has the optional element id and one row wit hthe label. The element ids are unique, the labels are not.
+# Streaming xls reader for ETO touch points. These files have two headers rows. One row has the optional element id and one row with the label. The element ids are unique, the labels are not.
 #
 # @param [String] filename this full path to the file
 # @param [Integer] sheet_number
@@ -29,19 +29,18 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def each
-      creek = Creek::Book.new(filename)
-      sheet = creek.sheets[sheet_number]
+      xlsx = Roo::Excelx.new(filename)
+      row_number = header_row_number
+      sheet = xlsx.sheet(sheet_number)
       headers = sheet_headers(sheet)
-
-      sheet.simple_rows.each_with_index do |row, index|
-        next if index + 1 <= header_row_number
-
-        row_data = process_row(row, headers, index + 1)
+      sheet.each_row_streaming(offset: header_row_number, pad_cells: true) do |row|
+        row_number += 1
+        row_data = process_row(row, headers, row_number)
         next unless row_data
 
         yield(FileRow.new(row_data))
       rescue StandardError => e
-        msg = "[#{filename}:#{sheet_number}:#{index + 1}] #{e.class.name} #{e.message}"
+        msg = "[#{filename}:#{sheet_number}:#{row_number}] #{e.class.name} #{e.message}"
         wrapped = RuntimeError.new(msg)
         wrapped.set_backtrace(e.backtrace)
         raise wrapped
@@ -53,8 +52,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     private
 
     def get_row(sheet, number)
-      sheet.simple_rows.each_with_index do |row, idx|
-        return row if idx == number - 1
+      sheet.each_row_streaming(offset: number - 1, max_rows: 0, pad_cells: true) do |row|
+        return row
       end
     end
 
@@ -63,11 +62,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       field_ids_row = get_row(sheet, field_id_row_number) if field_id_row_number
       headers = []
 
-      [headers_row, field_ids_row].compact.flat_map(&:keys).uniq do |col|
-        label = normalize_col(headers_row[col])
-        id = field_ids_row ? normalize_col(field_ids_row[col])&.to_i : nil
-
-        headers << [label, id, col] if label || id
+      headers_row.each_with_index do |col, idx|
+        label = normalize_col(col&.value)
+        id = field_ids_row[idx].value if field_ids_row
+        headers << [label, id]
       end
       headers
     end
@@ -76,13 +74,15 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       by_id = {}
       row_data = { filename: filename, by_id: by_id, row_number: row_number }
       blank = true
-      headers.each do |label, id, col|
-        value = normalize_value(row[col])
+      headers.each_with_index do |(label, id), index|
+        next unless label || id
+
+        value = normalize_value(row[index]&.value)
         next unless value
 
         blank = false
 
-        row_data[label] = value if value
+        row_data[label] = value if label
         by_id[id] = value if id
       end
       blank ? nil : row_data

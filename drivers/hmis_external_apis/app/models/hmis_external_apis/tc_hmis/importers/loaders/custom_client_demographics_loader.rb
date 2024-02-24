@@ -38,7 +38,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def perform
-      rows = @reader.rows(filename: filename, header_row_number: 4, field_id_row_number: 1)
+      rows = @reader.rows(filename: filename, header_row_number: 4, field_id_row_number: nil)
 
       clobber_records(rows) if clobber
 
