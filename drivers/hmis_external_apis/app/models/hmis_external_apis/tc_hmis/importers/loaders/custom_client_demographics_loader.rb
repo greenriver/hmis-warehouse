@@ -71,7 +71,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       end
       log_processed_result(name: 'Client Demographics', expected: expected, actual: actual)
 
-      cdes_to_insert = transform_demographic_elements(@stored_demographic_elements)
+      cdes_to_insert = transform_demographic_elements
       @stored_demographic_elements = nil
       GC.start
       ar_import(cde_source, cdes_to_insert) if cdes_to_insert.present?
@@ -83,7 +83,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     # @param [Hash] elements: [client_id][demographic_key] = {value: , timestamp: , row_id: }
-    def transform_demographic_elements(_elements)
+    def transform_demographic_elements
       results = []
       @stored_demographic_elements.each_pair do |client_id, demographics|
         demographics.each_pair do |demographic_key, element|

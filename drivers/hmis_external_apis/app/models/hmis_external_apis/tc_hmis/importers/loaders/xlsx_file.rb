@@ -52,9 +52,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     private
 
     def get_row(sheet, number)
+      # rubocop:disable Lint/UnreachableLoop
       sheet.each_row_streaming(offset: number - 1, max_rows: 0, pad_cells: true) do |row|
         return row
       end
+      # rubocop:enable Lint/UnreachableLoop
     end
 
     def sheet_headers(sheet)
@@ -64,7 +66,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
       headers_row.each_with_index do |col, idx|
         label = normalize_col(col&.value)
-        id = field_ids_row[idx].value if field_ids_row
+        id = field_ids_row[idx]&.value if field_ids_row
         headers << [label, id]
       end
       headers
