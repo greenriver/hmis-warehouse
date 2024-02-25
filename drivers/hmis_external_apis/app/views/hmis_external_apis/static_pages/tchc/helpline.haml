@@ -13,7 +13,7 @@
   = render_form_radio_group(legend: 'Are you homeless (living on the street, staying in an emergency shelter or transitional housing program, fleeing domestic violence) or at-risk of homelessness?', options: yes_no_options, name: 'are_you_homeless') do
     = render_dependent_block(input_name: 'are_you_homeless', input_value: 'yes') do
       = render_form_select(name: 'household_type', label: 'Household Type', options: [{label: 'Single Adult (no children in the household)', value: 'single_adult'}, {label: 'A member of a household that includes children', value: 'household_with_children'}]) do
-        = render partial_path('tchc_helpline_shelters')
+        = render partial_path('tchc/helpline_shelters')
 
       = render_form_select(name: 'where_you_stayed_last_night', label: 'Where did you stay last night?', options: [ "With a friend / family member / other doubled up situation", "A hospital", "Jail / Prison", "Juvenile detention facility", "In a hotel / motel", "In foster care / group home", "In a substance abuse treatment facility", "In my own housing -- rental", "In my own housing -- owned", "In a car, on the street, or in another place not meant for human habitation", {label: "In other housing -- please provide in box below", value: 'other'}]) do
         = render_dependent_block(input_name: 'where_you_stayed_last_night', input_value: 'other') do
@@ -27,7 +27,7 @@
       = render_dependent_block(input_name: 'needs_financial_assistance', input_value: 'yes') do
         = render_form_checkboxes(legend: 'If you need financial assistance, what type do you need?', name: 'financial_assistance', options: ['Rental/mortgage', 'Utility'])
         = render_form_select(name: 'which_city_do_you_live', label: 'Which city/area do you live?', options: ['Arlington', 'Fort Worth', {label: 'Tarrant County (outside the Fort Worth/Arlington cities)', value: 'tarrant_county'}]) do
-          = render partial_path('tchc_helpline_resources')
+          = render partial_path('tchc/helpline_resources')
 
   = render_form_radio_group(legend: 'Would you like a call back?', name: 'call_back_requested', options: yes_no_options)
   = render_form_input(label: 'Phone Number', input_type: 'tel', required: true)

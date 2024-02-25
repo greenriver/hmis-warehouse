@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HmisExternalApis::TcHmis::StaticPages
+module HmisExternalApis::StaticPages
   class Form < ::HmisExternalApis::HmisExternalApisBase
     self.table_name = 'hmis_static_forms'
   end

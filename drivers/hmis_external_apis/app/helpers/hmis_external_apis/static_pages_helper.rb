@@ -4,12 +4,12 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HmisExternalApis::TcHmis::StaticPagesHelper
+module HmisExternalApis::StaticPagesHelper
   def partial_path(partial)
-    "hmis_external_apis/tc_hmis/static_pages/#{partial}"
+    "hmis_external_apis/static_pages/#{partial}"
   end
 
-  def register_field(name:, label:, type:, options:)
+  def register_field(name:, label:, type:, options: nil)
     @field_collection.push({ name: name, label: label, type: type, options: options })
   end
 
@@ -97,7 +97,7 @@ module HmisExternalApis::TcHmis::StaticPagesHelper
   end
 
   def page_config
-    @page_config ||= HmisExternalApis::TcHmis::StaticPages::Config.new(
+    @page_config ||= HmisExternalApis::StaticPages::Config.new(
       site_title: 'Tarrant County Homeless Coalition',
       site_logo_url: 'https://ahomewithhope.org/wp-content/themes/tchc/assets/images/logo.png',
       site_logo_dimensions: [110, 60],

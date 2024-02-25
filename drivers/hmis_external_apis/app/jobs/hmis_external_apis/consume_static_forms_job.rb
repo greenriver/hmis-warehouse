@@ -1,8 +1,14 @@
+###
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 # retrieve and process uploaded form submissions
-class HmisExternalApis::TcHmis::ConsumeStaticFormsJob
+class HmisExternalApis::ConsumeStaticFormsJob
   def perform
     download_from_s3.each do |data, metadata|
-      HmisExternalApis::TcHmis::StaticPages::FormSubmission.create!(
+      HmisExternalApis::StaticPages::FormSubmission.create!(
         form_name: data.dig('submission', 'form_name'),
         form_version: data.dig('submission', 'version'),
         submitted_at: data['submitted_at'],

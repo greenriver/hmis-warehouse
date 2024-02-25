@@ -1,4 +1,10 @@
-module HmisExternalApis::TcHmis::StaticPages
+###
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
+module HmisExternalApis::StaticPages
   Config = Struct.new(:site_title, :site_logo_url, :site_logo_dimensions, :google_captcha_key, keyword_init: true) do
     def form_id
       'main-form'

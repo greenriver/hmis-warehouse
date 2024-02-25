@@ -4,8 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class HmisExternalApis::TcHmis::StaticPagesController < ActionController::Base
-  include ::HmisExternalApis::TcHmis::StaticPagesHelper
+class HmisExternalApis::StaticPagesController < ActionController::Base
+  include ::HmisExternalApis::StaticPagesHelper
 
   layout 'hmis_external_apis/static_pages'
   # these pages have inline csp meta tags
@@ -16,8 +16,7 @@ class HmisExternalApis::TcHmis::StaticPagesController < ActionController::Base
     raise unless Rails.env.development?
 
     @field_collection = []
-    # template might be tchc_helpline or tchc_prevention_screening
-    template = params[:id]
-    render template
+    template = "hmis_external_apis/static_pages/" + params[:template]
+    render template: template
   end
 end

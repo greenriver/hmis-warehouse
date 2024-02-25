@@ -1,24 +1,28 @@
+###
+# Copyright 2016 - 2024 Green River Data Analysis, LLC
+#
+# License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
+###
+
 require 'nokogiri'
 
 # render and upload static forms
-class HmisExternalApis::TcHmis::PublishStaticFormsJob
-  def perform
-    renderer = HmisExternalApis::TcHmis::StaticPagesController.renderer.new
+class HmisExternalApis::PublishStaticFormsJob
 
-    # form pages to publish
-    page_names = [
-      'tchc_helpline',
-      'tchc_prevention_screening',
-    ]
-    page_names.each do |page_name|
+  def perform
+    renderer = HmisExternalApis::StaticPagesController.renderer.new
+
+    # form pages to publish. Maybe could use ENV['CLIENT']
+    subdir = 'tchc'
+    page_names(subdir).each do |page_name|
       form_fields = []
-      content = renderer.render("hmis_external_apis/tc_hmis/static_pages/#{page_name}", local_assigns: { field_collection: form_fields })
+      content = renderer.render("hmis_external_apis/static_pages/#{page_name}", assigns: { field_collection: form_fields })
 
       # raise for now but in future we could support info pages that have no forms
       raise if form_fields.empty? || content.empty?
 
       version = key_content(content)
-      form = HmisExternalApis::TcHmis::StaticPages::Form.where(page_name: page_name, version: version).first_or_initialize
+      form = HmisExternalApis::StaticPages::Form.where(page_name: page_name, version: version).first_or_initialize
       # skip if already published this content
       next if form.remote_location
 
@@ -28,6 +32,8 @@ class HmisExternalApis::TcHmis::PublishStaticFormsJob
       form.update!(remote_location: location, fields: fields, page_name: page_name)
     end
   end
+
+  protected
 
   # prepare form for publication
   def inject_version(content:, page_name:, form_version:, form_action:)
@@ -58,13 +64,23 @@ class HmisExternalApis::TcHmis::PublishStaticFormsJob
 
   def lambda_url
     # TBD form action to submit to lambda
+    '/todo'
   end
 
   def upload_to_s3(content:, page_name:)
     # TBD upload_to_s3, return location
+    puts content
   end
 
   def key_content(content)
     Digest::MD5.file(content).hexdigest
+  end
+
+  def page_names(subdir)
+    dirname = Rails.root.join("drivers/hmis_external_apis/app/views/hmis_external_apis/static_pages/#{subdir}").to_s
+    Dir.entries(dirname)
+      # skip partial views
+      .filter { |file| file =~ /\A_/ ? false : File.file?(File.join(dirname, file)) }
+      .map { |file| "#{subdir}/#{file}" }
   end
 end
