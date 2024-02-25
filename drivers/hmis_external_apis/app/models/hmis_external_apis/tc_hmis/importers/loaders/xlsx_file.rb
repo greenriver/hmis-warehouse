@@ -101,13 +101,16 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       cur_row_number = header_row_number
       (header_row_number + 1).upto(last_row) do |row|
         cur_row_number += 1
+        by_id = {}
         values = {}
         headers.each do |label, id, col|
-          values[label] ||= {}
-          values[label][id || col] = normalize_value(xls.cell(row, col))
+          value = normalize_value(xls.cell(row, col))
+          by_id[id] = value if id
+          values[label] = value
         end
         next unless values.values.any?
 
+        values[:by_id] = by_id
         values[:row_number] = cur_row_number
         values[:filename] = filename
         ret.push(values)
@@ -127,7 +130,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def normalize_col(value)
       case value
       when String
-        value&.gsub(/\s+/, ' ').presence
+        value&.gsub(/\s+/, ' ')&.strip.presence
       else
         value
       end
