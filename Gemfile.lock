@@ -668,7 +668,7 @@ GEM
       nio4r (~> 2.0)
     pwned (2.0.2)
     racc (1.7.2)
-    rack (2.2.8)
+    rack (2.2.8.1)
     rack-attack (6.5.0)
       rack (>= 1.0, < 3)
     rack-cors (1.1.1)
@@ -1126,7 +1126,7 @@ DEPENDENCIES
   progress_bar
   pry-rails
   puma (~> 6.4)
-  rack (>= 2.2.6.3)
+  rack (>= 2.2.8.1)
   rack-attack
   rack-cors
   rack-mini-profiler
