@@ -70,7 +70,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def create_cde_definitions
       cded_configs.each do |config|
         cde_helper.find_or_create_cded(
-          **config.merge(owner_type: model_class.sti_name).except(:element_id),
+          **config.merge(owner_type: model_class.sti_name).except(:element_id, :ignore_type),
         )
       end
     end
@@ -170,7 +170,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
       values = config.fetch(:repeats) ? raw_value.split('|').map(&:strip) : [raw_value]
       field_type = config.fetch(:field_type)
-      values.compact_blank.map do |value|
+      values.compact_blank!
+      return values if config.key?(:ignore_type) # when ignore_type don't attempt to parse the value
+
+      values.map do |value|
         case field_type
         when 'string'
           value
