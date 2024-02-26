@@ -137,7 +137,7 @@ module Health
             where(hqa_t[:date_of_activity].lteq(max_date)).
             select { |m| m.procedure_code.present? }
           valid_qas.each do |qa|
-            b.CLM pr.id, '0', nil, nil, b.composite('11', 'B', '1'), 'Y', 'A', 'Y', 'Y'
+            b.CLM pr.id, '0', nil, nil, b.composite(qa.place_of_service, 'B', '1'), 'Y', 'A', 'Y', 'Y'
             if qa.screening?
               hi_codes = [b.composite('ABK', 'Z139')] # Encounter for screening, unspecified
               hi_codes += patient.sdoh_icd10_codes.map { |code| b.composite('ABF', code) } if qa.positive_screen?

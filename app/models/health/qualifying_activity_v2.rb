@@ -227,5 +227,16 @@ module Health
 
       reasons.uniq
     end
+
+    def place_of_service
+      return '02' if telehealth? # Location other than enrollee's home
+
+      super
+    end
+
+    private def telehealth?
+      # Treat contact as telehealth unless a collateral is reached (so, no a failed contact is still telehealth)
+      @qa.mode_of_contact&.to_sym.in?([:video_call]) && @qa.reached_client.to_sym != :collateral
+    end
   end
 end
