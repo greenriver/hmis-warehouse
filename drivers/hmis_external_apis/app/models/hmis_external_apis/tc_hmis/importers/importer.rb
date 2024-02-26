@@ -29,6 +29,7 @@ module HmisExternalApis::TcHmis::Importers
         Loaders::SpdatLoader,
         Loaders::HatLoader,
         Loaders::UhaLoader,
+        Loaders::CustomClientDemographicsLoader,
         Loaders::NavigationNotesLoader,
         Loaders::DiversionAssessmentLoader,
         # This importer was not needed

@@ -85,7 +85,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       actual = 0
       records = rows.flat_map do |row|
         expected += 1
-        enrollment_id = row.field_value(ENROLLMENT_ID_COL)
+        enrollment_id = row_enrollment_id(row)
         next if enrollment_id.blank?
 
         personal_id = personal_id_by_enrollment_id[enrollment_id]
@@ -188,6 +188,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           raise "field_type #{field_type} not support on key #{config.fetch(:key)}"
         end
       end
+    end
+
+    def row_enrollment_id(row)
+      # sometimes the enrollment id has braces or other extra chars
+      row.field_value(ENROLLMENT_ID_COL)&.gsub(/[^-a-z0-9]/i, '')
     end
 
     def model_class
