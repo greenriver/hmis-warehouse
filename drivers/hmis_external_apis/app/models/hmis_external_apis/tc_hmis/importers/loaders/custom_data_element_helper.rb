@@ -41,14 +41,14 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       cded
     end
 
-    def new_cde_record(value:, owner_type:, owner_id:, definition_key:)
+    def new_cde_record(value:, owner_type:, owner_id:, definition_key:, date_created: today)
       definition = find_or_create_cded(owner_type: owner_type, key: definition_key)
       {
         owner_type: owner_type,
         owner_id: owner_id,
         data_element_definition_id: definition.id,
-        DateCreated: today,
-        DateUpdated: today,
+        DateCreated: date_created,
+        DateUpdated: date_created,
         data_source_id: data_source.id,
         UserID: system_user.id,
       }.merge(cde_value_fields(definition, value))

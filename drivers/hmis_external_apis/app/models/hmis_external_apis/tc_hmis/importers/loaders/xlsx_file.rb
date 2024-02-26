@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
@@ -6,8 +8,12 @@
 
 require 'roo'
 
-# reads xls from ETO touch points. These files have two headers rows. One row has the optional element id and one row wit hthe label. The element ids are unique, the labels are not.
-
+# Streaming xls reader for ETO touch points. These files have two headers rows. One row has the optional element id and one row with the label. The element ids are unique, the labels are not.
+#
+# @param [String] filename this full path to the file
+# @param [Integer] sheet_number
+# @param [Integer] header_row_number each column has a label
+# @param [Integer] field_id_row_number each column may have an id
 module HmisExternalApis::TcHmis::Importers::Loaders
   class XlsxFile
     include SafeInspectable
@@ -15,10 +21,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     attr_accessor :filename, :sheet_number, :header_row_number, :field_id_row_number
 
-    # @param [String] filename this full path to the file
-    # @param [Integer] sheet_number
-    # @param [Integer] header_row_number each column has a label
-    # @param [Integer] field_id_row_number each column may have an id
     def initialize(filename:, sheet_number:, header_row_number:, field_id_row_number: nil)
       self.filename = filename
       self.sheet_number = sheet_number
@@ -27,101 +29,71 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def each
-      records.each do |row|
-        yield(FileRow.new(row))
+      xlsx = Roo::Excelx.new(filename)
+      row_number = header_row_number
+      sheet = xlsx.sheet(sheet_number)
+      headers = sheet_headers(sheet)
+      sheet.each_row_streaming(offset: header_row_number, pad_cells: true) do |row|
+        row_number += 1
+        row_data = process_row(row, headers, row_number)
+        next unless row_data
+
+        yield(FileRow.new(row_data))
       rescue StandardError => e
-        # wrap row-level exceptions with file / line number
-        msg = "[#{filename}:#{sheet_number}:#{row[:row_number]}] #{e.class.name} #{e.message}"
+        msg = "[#{filename}:#{sheet_number}:#{row_number}] #{e.class.name} #{e.message}"
         wrapped = RuntimeError.new(msg)
         wrapped.set_backtrace(e.backtrace)
         raise wrapped
       end
+      GC.start
+      nil
     end
 
-    protected
+    private
 
-    def records
-      @records ||= read_records
-    end
-
-    # build a list of header names, column labels, and column ids (ETO element id)
-    def sheet_headers(xls)
-      ret = []
-      500.times do |col_idx|
-        col = column_to_letter(col_idx)
-        label = begin
-                  xls.cell(header_row_number, col)
-                rescue StandardError
-                  nil
-                end
-        label = normalize_col(label)
-        next unless label # skip empty labels
-
-        if field_id_row_number
-          id = begin
-                  xls.cell(field_id_row_number, col)
-                rescue StandardError
-                  nil
-                end
-          id = normalize_col(id)&.to_i
-          # column id can be missing
-        else
-          id = nil
-        end
-
-        ret << [label, id, col]
+    def get_row(sheet, number)
+      # rubocop:disable Lint/UnreachableLoop
+      sheet.each_row_streaming(offset: number - 1, max_rows: 0, pad_cells: true) do |row|
+        return row
       end
-      ret
+      # rubocop:enable Lint/UnreachableLoop
     end
 
-    def column_to_letter(column_number)
-      letter = ''
-      while column_number >= 0
-        remainder = column_number % 26
-        letter = (65 + remainder).chr + letter
-        column_number = column_number / 26 - 1
+    def sheet_headers(sheet)
+      headers_row = get_row(sheet, header_row_number)
+      field_ids_row = get_row(sheet, field_id_row_number) if field_id_row_number
+      headers = []
+
+      headers_row.each_with_index do |col, idx|
+        label = normalize_col(col&.value)
+        id = field_ids_row[idx]&.value if field_ids_row
+        headers << [label, id]
       end
-      letter
+      headers
     end
 
-    # [
-    #   {label => { (element id || col) => 'value'} }
-    # ]
-    def read_records
-      xls = Roo::Spreadsheet.open(filename)
-      sheet = xls.sheets[sheet_number]
+    def process_row(row, headers, row_number)
+      by_id = {}
+      row_data = { filename: filename, by_id: by_id, row_number: row_number }
+      blank = true
+      headers.each_with_index do |(label, id), index|
+        next unless label || id
 
-      xls.default_sheet = sheet
-      headers = sheet_headers(xls)
+        value = normalize_value(row[index]&.value)
+        next unless value
 
-      ret = []
-      last_row = xls.last_row.to_i
-      return ret if last_row <= header_row_number
+        blank = false
 
-      cur_row_number = header_row_number
-      (header_row_number + 1).upto(last_row) do |row|
-        cur_row_number += 1
-        by_id = {}
-        values = {}
-        headers.each do |label, id, col|
-          value = normalize_value(xls.cell(row, col))
-          by_id[id] = value if id
-          values[label] = value
-        end
-        next unless values.values.any?
-
-        values[:by_id] = by_id
-        values[:row_number] = cur_row_number
-        values[:filename] = filename
-        ret.push(values)
+        row_data[label] = value if label
+        by_id[id] = value if id
       end
-      return ret
+      blank ? nil : row_data
     end
 
     def normalize_value(value)
       case value
       when String
-        value&.strip.presence
+        value.strip.presence
       else
         value
       end
