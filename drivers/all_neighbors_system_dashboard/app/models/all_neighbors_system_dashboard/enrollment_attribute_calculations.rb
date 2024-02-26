@@ -246,7 +246,7 @@ module AllNeighborsSystemDashboard
 
         {}.tap do |h|
           batch.each do |housing_enrollment|
-            hoh_destination_id = housing_enrollment.client_head_of_household.warehouse_client_source.destination_id
+            hoh_destination_id = housing_enrollment.client_head_of_household&.warehouse_client_source&.destination_id || housing_enrollment.client_id
             ce_enrollment = enrollments_by_hoh[hoh_destination_id]&.
               select { |enrollment| enrollment.entry_date <= housing_enrollment.entry_date }&.
               first
