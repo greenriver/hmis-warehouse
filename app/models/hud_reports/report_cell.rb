@@ -128,7 +128,7 @@ module HudReports
       if universe_client.respond_to?(:first_name)
         UniverseMember.new(
           report_cell: self,
-          client_id: warehouse_client.id,
+          client_id: warehouse_client&.id,
           first_name: universe_client.first_name,
           last_name: universe_client.last_name,
           universe_membership: universe_client,
