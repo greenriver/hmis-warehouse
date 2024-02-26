@@ -28,21 +28,23 @@ class Menu::Menu
       links_menu.each do |item|
         menu << item
       end
-      menu << style_guide_menu
+      menu << style_guide_menu unless Rails.env.production?
       menu << account_menu
     end
   end
 
   def reports_menu
-    Menu::Item.new(
+    menu = Menu::Item.new(
       user: user,
       title: Translation.translate('Reports'),
       id: 'reports',
       icon: 'icon-chart-bar',
-      children: [warehouse_reports_menu, hud_reports_menu],
       match_pattern: GrdaWarehouse::WarehouseReports::ReportDefinition.pluck(:url).map { |u| "^/#{u}.*" }.join('|'),
       match_pattern_terminator: '.*',
     )
+    menu.add_child(warehouse_reports_menu)
+    menu.add_child(hud_reports_menu)
+    menu
   end
 
   def hud_reports_menu
@@ -50,6 +52,7 @@ class Menu::Menu
     menu = Menu::Item.new(
       user: user,
       path: reports.first.last,
+      visible: ->(user) { user.can_view_hud_reports? },
       title: Translation.translate('HUD Reports'),
       id: 'hud-reports',
     )
@@ -148,6 +151,7 @@ class Menu::Menu
       title: Translation.translate('Care Hub'),
       icon: 'icon-heart-empty',
       id: 'care-hub',
+      always_open: true,
     )
     menu.add_child(
       Menu::Item.new(

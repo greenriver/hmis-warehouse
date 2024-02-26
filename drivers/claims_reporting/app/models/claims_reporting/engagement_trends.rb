@@ -70,15 +70,15 @@ module ClaimsReporting
     end
 
     def claim_date_range
-      min = results.values.map { |c| c[:min_claim_date]&.to_date }.min
-      max = results.values.map { |c| c[:max_claim_date]&.to_date }.max
+      min = results.values.map { |c| c.dig('summary', 'min_claim_date')&.to_date }.min
+      max = results.values.map { |c| c.dig('summary', 'max_claim_date')&.to_date }.max
       return unless min.present?
 
       min .. max
     end
 
     def latest_payment_date
-      results.values.map { |c| c[:latest_paid_date]&.to_date }.max
+      results.values.map { |c| c.dig('summary', 'latest_paid_date').to_date }.max
     end
 
     def roster_as_of
