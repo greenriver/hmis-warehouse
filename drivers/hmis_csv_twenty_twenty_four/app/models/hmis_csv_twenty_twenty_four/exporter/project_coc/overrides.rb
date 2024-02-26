@@ -25,10 +25,9 @@ module HmisCsvTwentyTwentyFour::Exporter
 
     def self.apply_overrides(row)
       [
-        { hud_field: :CoCCode, override_field: :hud_coc_code },
-        { hud_field: :GeographyType, override_field: :geography_type_override, default_value: 99 },
-        { hud_field: :Geocode, override_field: :geocode_override, default_value: '0' * 6 },
-        { hud_field: :Zip, override_field: :zip_override, default_value: '0' * 5 },
+        { hud_field: :GeographyType, override_field: nil, default_value: 99 },
+        { hud_field: :Geocode, override_field: nil, default_value: '0' * 6 },
+        { hud_field: :Zip, override_field: nil, default_value: '0' * 5 },
 
       ].each do |settings|
         row = simple_override(row, **settings)

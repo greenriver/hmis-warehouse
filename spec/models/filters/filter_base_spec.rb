@@ -3,8 +3,8 @@ require 'rails_helper'
 RSpec.describe Filters::FilterBase, type: :model do
   let!(:data_source) { create :data_source_fixed_id }
   let!(:organization) { create :grda_warehouse_hud_organization }
-  let!(:es_project) { create :grda_warehouse_hud_project, computed_project_type: 1, OrganizationID: organization.OrganizationID }
-  let!(:psh_project) { create :grda_warehouse_hud_project, ProjectType: 3, computed_project_type: 3, OrganizationID: organization.OrganizationID }
+  let!(:es_project) { create :grda_warehouse_hud_project, ProjectType: 1, OrganizationID: organization.OrganizationID }
+  let!(:psh_project) { create :grda_warehouse_hud_project, ProjectType: 3, OrganizationID: organization.OrganizationID }
   let!(:user) { create :acl_user }
   # filter permissions are governed by the projects you can see in the reporting context
   let!(:reporting_role) { create :role, can_view_assigned_reports: true }
