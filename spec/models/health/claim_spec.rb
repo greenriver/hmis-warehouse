@@ -6,11 +6,15 @@ RSpec.describe Health::Claim, type: :model do
   let!(:ssm) { create(:ssm, patient_id: patient.id, housing_score: 1) }
   let!(:qa1) { create(:qualifying_activity, patient_id: patient.id, date_of_activity: Date.current, force_payable: true) }
   let!(:qa2) { create(:qualifying_activity, patient_id: patient.id, date_of_activity: Date.current, activity: :sdoh_positive, force_payable: true) }
+  let!(:qa3) { create(:qualifying_activity, patient_id: patient.id, date_of_activity: Date.yesterday, force_payable: true) }
+  let!(:qa4) { create(:qualifying_activity, patient_id: patient.id, date_of_activity: Date.yesterday, activity: :sdoh_positive, force_payable: true) }
   let!(:claim) { create :health_claim }
 
   before(:each) do
     claim.qualifying_activities << qa1
     claim.qualifying_activities << qa2
+    claim.qualifying_activities << qa3
+    claim.qualifying_activities << qa4
   end
 
   it 'smoke test' do
