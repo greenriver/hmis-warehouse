@@ -11,7 +11,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     TOUCHPOINT_NAME = 'TouchPoint Name'.freeze
     RESPONSE_ID = 'Response Unique ID_Form ID'.freeze
     ENROLLMENT_ID = 'Unique Enrollment Identifier'.freeze
-    DATE_PROVIDED = 'Date Taken'.freeze
+    DATE_PROVIDED = 'Date take New Format'.freeze
     QUESTION = 'Question'.freeze
     ANSWER = 'Answer'.freeze
 
@@ -124,7 +124,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     private def generate_service_id(config, row)
-      "#{config[:id_prefix]}-#{row[RESPONSE_ID]}"
+      "#{config[:id_prefix]}-#{row.field_value(RESPONSE_ID)}"
     end
 
     private def create_records(rows)
