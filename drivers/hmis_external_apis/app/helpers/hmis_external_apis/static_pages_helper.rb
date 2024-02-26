@@ -10,13 +10,17 @@ module HmisExternalApis::StaticPagesHelper
   end
 
   def register_field(name:, label:, type:, options: nil)
+    @seen ||= Set.new
+    raise "duplicate field name \"#{name}\", (#{label})" if name.in?(@seen)
+    @seen.add(name)
+
     @field_collection.push({ name: name, label: label, type: type, options: options })
   end
 
   def render_form_input(label:, input_type: 'text', name: nil, input_pattern: nil, input_mode: nil, required: false, input_placeholder: nil)
     name ||= name_from_label(label)
     register_field(name: name, label: label, type: input_type)
-    render partial_path('form/field'), label: label, input_type: input_type, name: name, required: required, input_pattern: input_pattern, html_id: next_html_id, input_mode: input_mode, input_placeholder: input_placeholder
+    render partial_path('form/input'), label: label, input_type: input_type, name: name, required: required, input_pattern: input_pattern, html_id: next_html_id, input_mode: input_mode, input_placeholder: input_placeholder
   end
 
   def render_form_textarea(label:, name: nil, required: false, rows: 2)
@@ -25,42 +29,57 @@ module HmisExternalApis::StaticPagesHelper
     render partial_path('form/textarea'), label: label, name: name, required: required, rows: rows, html_id: next_html_id
   end
 
-  def render_numeric_input(label:, name: nil, required: false, input_placeholder: nil)
-    render_form_input(label: label, name: name, required: required, input_pattern: '[0-9*]', input_mode: 'numeric', input_placeholder: input_placeholder)
+  def render_numeric_input(label:, name: nil, required: false, input_placeholder: nil, input_pattern: '\d*')
+    render_form_input(label: label, name: name, required: required, input_pattern: input_pattern, input_mode: 'numeric', input_placeholder: input_placeholder)
   end
 
   def render_form_date(legend:, name: nil, required: false)
     name ||= name_from_label(legend)
     register_field(name: name, label: legend, type: 'date')
-    render partial_path('form/date'), legend: legend, required: required, name: name
+    render_form_fieldset(legend: legend, required: required) do
+      render partial_path('form/date'), legend: legend, required: required, name: name
+    end
   end
 
   def render_form_select(label:, name: nil, required: false, options:, &block)
-    content = capture(&block) if block
     name ||= name_from_label(label)
     options = expand_options([{ label: '-- Select', value: '' }] + options)
     register_field(name: name, label: label, type: 'select', options: options)
-    render partial_path('form/select'), label: label, options: options, name: name, required: required, html_id: next_html_id, footer: content
+    render partial_path('form/select'), label: label, options: options, name: name, required: required, html_id: next_html_id
   end
 
   def render_form_radio_group(legend:, name: nil, required: false, options:, &block)
-    content = capture(&block) if block
     name ||= name_from_label(legend)
     options = expand_options(options)
     register_field(name: name, label: legend, type: 'radio', options: options)
-    render partial_path('form/radio_group'), legend: legend, options: options, name: name, required: required, html_id: next_html_id, footer: content
+    render_form_fieldset(legend: legend, required: required) do
+      radios = render(partial_path('form/radio_group_options'), options: options, name: name, required: required, html_id: next_html_id)
+      extra = capture(&block) if block
+      safe_join([radios, extra].compact_blank, "\n")
+    end
   end
 
   def render_form_actions
     render partial_path('form/actions')
   end
 
-  def render_form_checkboxes(legend:, name: nil, options:, &block)
-    content = capture(&block) if block
+  def render_form_fieldset(legend:, required: false, &block)
+    tag.fieldset do
+      safe_join([
+        tag.legend(legend, class: required && 'required'),
+        capture(&block),
+      ],"\n")
+    end
+  end
+
+  def render_form_group(&block)
+    tag.div(capture(&block), class: 'form-group')
+  end
+
+  def render_form_checkbox(label:, name: nil, required: false)
     name ||= name_from_label(legend)
-    options = expand_options(options)
-    register_field(name: name, label: legend, type: 'checkbox', options: options)
-    render partial_path('form/checkboxes'), legend: legend, name: name, options: options, html_id: next_html_id, footer: content
+    register_field(name: name, label: label, type: 'checkbox')
+    render partial_path('form/checkbox'), label: label, name: name, html_id: next_html_id, required: required
   end
 
   def render_dependent_block(input_name:, input_value:, &block)
@@ -80,7 +99,10 @@ module HmisExternalApis::StaticPagesHelper
   end
 
   def name_from_label(label)
-    label.gsub(/\(.*?\)/, '').downcase.gsub(/[^0-9a-z]+/, ' ').squeeze.strip.gsub(' ', '_').slice(0, 100)
+    result = label.gsub(/\(.*?\)/, '').downcase.gsub(/[^0-9a-z]+/, ' ').squeeze(' ').strip.gsub(' ', '_')
+    raise "label too long: \"#{label}\"" if result.length > 100
+
+    result
   end
 
   def expand_options(opts)

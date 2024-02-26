@@ -9,14 +9,13 @@ class HmisExternalApis::ConsumeStaticFormsJob
   def perform
     download_from_s3.each do |data, metadata|
       HmisExternalApis::StaticPages::FormSubmission.create!(
-        form_name: data.dig('submission', 'form_name'),
-        form_version: data.dig('submission', 'version'),
+        form_content_version: data.dig('submission', 'form_version'),
         submitted_at: data['submitted_at'],
         data: data['data'],
-        score: data['spam_score'],
-        remote_location: metadata['key'],
+        spam_score: data['spam_score'],
+        object_key: metadata['object_key'],
       )
-      delete_from_s3(metadata['key'])
+      delete_from_s3(metadata['object_key'])
     end
   end
 

@@ -22,6 +22,8 @@ BostonHmis::Application.routes.draw do
           to: 'static_pages#show',
           as: 'hmis_external_static_pages',
           defaults: { format: 'html' }
+      post '/hmis_external_api/static_pages/*template',
+          to: 'static_pages#create'
     end
   end
 end

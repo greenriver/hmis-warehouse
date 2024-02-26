@@ -8,79 +8,74 @@ require 'nokogiri'
 
 # render and upload static forms
 class HmisExternalApis::PublishStaticFormsJob
+  include SafeInspectable
 
   def perform
-    renderer = HmisExternalApis::StaticPagesController.renderer.new
-
     # form pages to publish. Maybe could use ENV['CLIENT']
     subdir = 'tchc'
     page_names(subdir).each do |page_name|
-      form_fields = []
-      content = renderer.render("hmis_external_apis/static_pages/#{page_name}", assigns: { field_collection: form_fields })
-
-      # raise for now but in future we could support info pages that have no forms
-      raise if form_fields.empty? || content.empty?
-
-      version = key_content(content)
-      form = HmisExternalApis::StaticPages::Form.where(page_name: page_name, version: version).first_or_initialize
-      # skip if already published this content
-      next if form.remote_location
-
-      versioned_content = inject_version(content: content, version: version, form_action: lambda_url)
-      location = upload_to_s3(content: versioned_content, page_name: page_name)
-
-      form.update!(remote_location: location, fields: fields, page_name: page_name)
+      process_page(page_name)
     end
   end
 
   protected
 
+  def process_page(page_name)
+    form_fields = []
+    renderer = HmisExternalApis::StaticPagesController.renderer.new
+    content = renderer.render("hmis_external_apis/static_pages/#{page_name}", assigns: { field_collection: form_fields })
+
+    # raise for now but in future we could support info pages that have no forms
+    raise if form_fields.empty? || content.empty?
+
+    content_version = key_content(content)
+    form = HmisExternalApis::StaticPages::Form.where(name: page_name, content_version: content_version).first_or_initialize
+    # skip if already published this content
+    return if form.object_key
+
+    versioned_content = process_content(content: content, version: content_version, page_name: page_name, form_action: lambda_url)
+    object_key = upload_to_s3(content: versioned_content, page_name: page_name)
+
+    form.attributes = {object_key: object_key, fields: form_fields, content: versioned_content}
+    form.save!
+  end
+
   # prepare form for publication
-  def inject_version(content:, page_name:, form_version:, form_action:)
+  def process_content(content:, page_name:, version:, form_action:)
     doc = Nokogiri::HTML(content)
 
     forms = doc.css('form')
     raise 'expected one form' unless forms.one?
 
     form = forms.first
-    form['action'] = form_action
+    form['action'] = form_action if form_action
 
-    Nokogiri::XML::Node.new('input', doc).tap do |input|
-      input['type'] = 'hidden'
-      input['name'] = 'form_version'
-      input['value'] = form_version
-      form.add_child(input)
-    end
+    form.add_child(%{<input type="hidden" name="form_version" value="#{version}">})
+    form.add_child(%{<input type="hidden" name="form_name" value="#{page_name}">})
 
-    Nokogiri::XML::Node.new('input', doc).tap do |input|
-      input['type'] = 'hidden'
-      input['name'] = 'form_name'
-      input['value'] = page_name
-      form.add_child(input)
-    end
-
+    doc.xpath('//comment()').each { |comment| comment.remove }
     doc.to_html
   end
 
   def lambda_url
     # TBD form action to submit to lambda
-    '/todo'
+    nil
   end
 
   def upload_to_s3(content:, page_name:)
     # TBD upload_to_s3, return location
-    puts content
+    # puts content
   end
 
   def key_content(content)
-    Digest::MD5.file(content).hexdigest
+    Digest::MD5.hexdigest(content)
   end
 
   def page_names(subdir)
     dirname = Rails.root.join("drivers/hmis_external_apis/app/views/hmis_external_apis/static_pages/#{subdir}").to_s
     Dir.entries(dirname)
       # skip partial views
-      .filter { |file| file =~ /\A_/ ? false : File.file?(File.join(dirname, file)) }
-      .map { |file| "#{subdir}/#{file}" }
+      .filter { |file| file =~ /\A[a-z]/i ? File.file?(File.join(dirname, file)) : false }
+      .map { |file| "#{subdir}/#{file}".sub(/\.[a-z0-9]+\z/i, '') }
   end
 end

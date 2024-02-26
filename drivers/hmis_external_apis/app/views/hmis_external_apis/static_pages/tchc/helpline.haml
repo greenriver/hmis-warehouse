@@ -1,35 +1,59 @@
 %h1.h3.mb-4 TCHC Homeless Resources Helpline Form
 %form{method: 'post', id: page_config.form_id}
-  = render_form_input(label: 'First Name', required: true)
-  = render_form_input(label: 'Last Name', required: true)
-  = render_form_input(label: 'Address 1')
-  = render_form_input(label: 'Address 2')
-  = render_form_date(legend: 'Date of Birth', name: 'dob')
-  = render_form_input(label: 'Zip Code')
+  = render_form_group do
+    = render_form_input(label: 'First Name', required: true)
+  = render_form_group do
+    = render_form_input(label: 'Last Name', required: true)
+  = render_form_group do
+    = render_form_input(label: 'Address 1')
+  = render_form_group do
+    = render_form_input(label: 'Address 2')
+  = render_form_group do
+    = render_form_date(legend: 'Date of Birth', name: 'dob')
+  = render_form_group do
+    = render_form_input(label: 'Zip Code')
+  = render_form_group do
+    = render_form_input(label: 'Client Email', input_type: 'email')
+  = render_form_group do
+    = render_form_input(label: 'Client Phone Number', input_type: 'tel')
 
-  = render_form_input(label: 'Client Email', input_type: 'email')
-  = render_form_input(label: 'Client Phone Number', input_type: 'tel')
-
-  = render_form_radio_group(legend: 'Are you homeless (living on the street, staying in an emergency shelter or transitional housing program, fleeing domestic violence) or at-risk of homelessness?', options: yes_no_options, name: 'are_you_homeless') do
+  = render_form_group do
+    = render_form_radio_group(legend: 'Are you homeless (living on the street, staying in an emergency shelter or transitional housing program, fleeing domestic violence) or at-risk of homelessness?', options: yes_no_options, name: 'are_you_homeless')
     = render_dependent_block(input_name: 'are_you_homeless', input_value: 'yes') do
-      = render_form_select(name: 'household_type', label: 'Household Type', options: [{label: 'Single Adult (no children in the household)', value: 'single_adult'}, {label: 'A member of a household that includes children', value: 'household_with_children'}]) do
+      = render_form_group do
+        = render_form_select(name: 'household_type', label: 'Household Type', options: [{label: 'Single Adult (no children in the household)', value: 'single_adult'}, {label: 'A member of a household that includes children', value: 'household_with_children'}])
         = render partial_path('tchc/helpline_shelters')
 
-      = render_form_select(name: 'where_you_stayed_last_night', label: 'Where did you stay last night?', options: [ "With a friend / family member / other doubled up situation", "A hospital", "Jail / Prison", "Juvenile detention facility", "In a hotel / motel", "In foster care / group home", "In a substance abuse treatment facility", "In my own housing -- rental", "In my own housing -- owned", "In a car, on the street, or in another place not meant for human habitation", {label: "In other housing -- please provide in box below", value: 'other'}]) do
+      = render_form_group do
+        = render_form_select(name: 'where_you_stayed_last_night', label: 'Where did you stay last night?', options: [ "With a friend / family member / other doubled up situation", "A hospital", "Jail / Prison", "Juvenile detention facility", "In a hotel / motel", "In foster care / group home", "In a substance abuse treatment facility", "In my own housing -- rental", "In my own housing -- owned", "In a car, on the street, or in another place not meant for human habitation", {label: "In other housing -- please provide in box below", value: 'other'}])
         = render_dependent_block(input_name: 'where_you_stayed_last_night', input_value: 'other') do
           = render_form_textarea(label: "Please describe the other location where you stayed last night")
-      = render_form_checkboxes(legend: 'What brought on your housing crisis?', name: 'cause_of_crisis', options: [ "Landlord Dispute/Disagreement", "Inability to Pay Rent or Eviction (or in the process of being evicted)", "Foreclosure", "Experiencing overcrowding/Doubled Up", "Violence or Abuse in the Household", {label: "Unexpected Financial Hardship", value: 'other'} ]) do
-        = render_dependent_block(input_name: 'cause_of_crisis', input_value: 'other') do
+
+      = render_form_group do
+        = render_form_fieldset(legend: 'What brought on your housing crisis?') do
+          = render_form_checkbox(name: 'cause_of_housing_crisis_landlord_dispute', label: "Landlord Dispute/Disagreement")
+          = render_form_checkbox(name: 'cause_of_housing_crisis_inability_to_pay_rent', label: "Inability to Pay Rent or Eviction (or in the process of being evicted)")
+          = render_form_checkbox(name: 'cause_of_housing_crisis_foreclosure', label: "Foreclosure")
+          = render_form_checkbox(name: 'cause_of_housing_crisis_overcrowding', label: "Experiencing overcrowding/Doubled Up")
+          = render_form_checkbox(name: 'cause_of_housing_crisis_violence_or_abuse', label: "Violence or Abuse in the Household")
+          = render_form_checkbox( name: 'cause_of_housing_crisis_other', label: "Unexpected Financial Hardship")
+        = render_dependent_block(input_name: 'cause_of_housing_crisis_other', input_value: '1') do
           = render_form_textarea(label: "Please describe the other financial hardship")
 
-  = render_dependent_block(input_name: 'are_you_homeless', input_value: 'no') do
-    = render_form_radio_group(legend: 'If you are not homeless, do you need financial assistance?', name: 'needs_financial_assistance', options: yes_no_options) do
+    = render_dependent_block(input_name: 'are_you_homeless', input_value: 'no') do
+      = render_form_radio_group(legend: 'If you are not homeless, do you need financial assistance?', name: 'needs_financial_assistance', options: yes_no_options)
       = render_dependent_block(input_name: 'needs_financial_assistance', input_value: 'yes') do
-        = render_form_checkboxes(legend: 'If you need financial assistance, what type do you need?', name: 'financial_assistance', options: ['Rental/mortgage', 'Utility'])
-        = render_form_select(name: 'which_city_do_you_live', label: 'Which city/area do you live?', options: ['Arlington', 'Fort Worth', {label: 'Tarrant County (outside the Fort Worth/Arlington cities)', value: 'tarrant_county'}]) do
+        = render_form_group do
+          = render_form_fieldset(legend: 'If you need financial assistance, what type do you need?') do
+            = render_form_checkbox( label: 'Rental/mortgage', name: "needs_assistance_with_rent_or_mortgage")
+            = render_form_checkbox( label: 'Utility', name: "needs_assistance_with_utility")
+        = render_form_group do
+          = render_form_select(name: 'which_city_do_you_live', label: 'Which city/area do you live?', options: ['Arlington', 'Fort Worth', {label: 'Tarrant County (outside the Fort Worth/Arlington cities)', value: 'tarrant_county'}])
           = render partial_path('tchc/helpline_resources')
 
-  = render_form_radio_group(legend: 'Would you like a call back?', name: 'call_back_requested', options: yes_no_options)
-  = render_form_input(label: 'Phone Number', input_type: 'tel', required: true)
+  = render_form_group do
+    = render_form_radio_group(legend: 'Would you like a call back?', name: 'call_back_requested', options: yes_no_options)
+  = render_form_group do
+    = render_form_input(label: 'Phone Number', input_type: 'tel', required: true)
 
   = render_form_actions
