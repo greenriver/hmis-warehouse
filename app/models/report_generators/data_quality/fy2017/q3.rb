@@ -42,7 +42,7 @@ module ReportGenerators::DataQuality::Fy2017
     def columns
       @columns ||= {
         client_id: she_t[:client_id],
-        project_type: she_t[:computed_project_type],
+        project_type: she_t[:project_type],
         VeteranStatus: c_t[:VeteranStatus],
         enrollment_group_id: she_t[:enrollment_group_id],
         project_id: she_t[:project_id],

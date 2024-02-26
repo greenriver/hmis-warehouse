@@ -179,6 +179,7 @@
         "autofill_readonly": { "type": "boolean" },
         "autofill_behavior": { "type": "string" },
         "autofill_when": { "type": "array", "items": { "$ref": "#/definitions/enable_when" } },
+        "formula": { "type": "string" },
         "sum_questions": { "type": "array", "items": { "type": "string" } }
       }
     },
@@ -211,6 +212,7 @@
             "CURRENCY",
             "DATE",
             "DISPLAY",
+            "TIME_OF_DAY",
             "FILE",
             "IMAGE",
             "INTEGER",
@@ -263,6 +265,7 @@
             "ALERT_WARNING",
             "CHECKBOX",
             "DISABILITY_TABLE",
+            "TABLE",
             "DROPDOWN",
             "EMAIL",
             "MCI",
@@ -272,7 +275,8 @@
             "RADIO_BUTTONS_VERTICAL",
             "SSN",
             "SIGNATURE_GROUP",
-            "SIGNATURE"
+            "SIGNATURE",
+            "MINUTES_DURATION"
           ]
         }
       }

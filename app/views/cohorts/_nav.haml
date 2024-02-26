@@ -53,6 +53,6 @@
 
   - if can_download_cohorts?
     %li.nav-item
-      = link_to({format: :xlsx}.merge(link_params),{class: 'nav-link'}) do
+      %a.j-document-exports.nav-link{href: "#", data: { type: @excel_export.type, query_string: link_params.to_query }}
         %i.icon-download2
         Download
