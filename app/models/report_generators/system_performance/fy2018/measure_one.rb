@@ -252,7 +252,7 @@ module ReportGenerators::SystemPerformance::Fy2018
       columns = {
         enrollment_id: she_t[:id].to_sql,
         date: shs_t[:date].to_sql,
-        project_type: she_t[:computed_project_type].to_sql,
+        project_type: she_t[:project_type].to_sql,
         first_date_in_program: she_t[:first_date_in_program].to_sql,
         last_date_in_program: she_t[:last_date_in_program].to_sql,
         DateToStreetESSH: e_t[:DateToStreetESSH].to_sql,

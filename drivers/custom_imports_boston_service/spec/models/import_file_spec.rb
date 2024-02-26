@@ -10,7 +10,7 @@ RSpec.describe CustomImportsBostonService::ImportFile, type: :model do
   let!(:warehouse_ds) { create :destination_data_source }
   let!(:ds1) { create :source_data_source }
   let!(:o1) { create :hud_organization, data_source_id: ds1.id }
-  let!(:p1) { create :hud_project, data_source_id: ds1.id, OrganizationID: o1.OrganizationID, ProjectID: 'P-1', ProjectType: 1, computed_project_type: 1 }
+  let!(:p1) { create :hud_project, data_source_id: ds1.id, OrganizationID: o1.OrganizationID, ProjectID: 'P-1', ProjectType: 1 }
   let!(:p2) { create :hud_project, data_source_id: ds1.id, OrganizationID: o1.OrganizationID, ProjectID: 'P-2' }
   let!(:c1) { create :grda_warehouse_hud_client,  data_source_id: ds1.id, PersonalID: 'C-1' }
   let!(:c2) { create :grda_warehouse_hud_client,  data_source_id: ds1.id, PersonalID: 'C-2' }

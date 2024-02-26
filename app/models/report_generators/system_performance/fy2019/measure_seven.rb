@@ -201,7 +201,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         exit_data = destination_scope.joins(:enrollment).
           order(date: :desc).
           limit(1).
-          pluck(:destination, :computed_project_type, e_t[:MoveInDate]).map do |destination, project_type, move_in_date|
+          pluck(:destination, :project_type, e_t[:MoveInDate]).map do |destination, project_type, move_in_date|
             move_in_date = move_in_date.to_date if move_in_date.present?
             {
               destination: destination,
@@ -309,7 +309,7 @@ module ReportGenerators::SystemPerformance::Fy2019
         exit_data = destination_scope.
           order(date: :desc).
           limit(1).
-          pluck(:destination, :computed_project_type, e_t[:MoveInDate]).map do |destination, project_type, move_in_date|
+          pluck(:destination, :project_type, e_t[:MoveInDate]).map do |destination, project_type, move_in_date|
             {
               destination: destination,
               project_type: project_type,

@@ -503,6 +503,11 @@ type AutofillValue {
   autofillWhen: [EnableWhen!]!
 
   """
+  Expression with mathematical or logical function defining the value
+  """
+  formula: String
+
+  """
   Link IDs of numeric questions to sum up and set as the value if condition is met
   """
   sumQuestions: [String!]
@@ -1408,6 +1413,11 @@ enum Component {
   MCI
 
   """
+  Duration component with hours and minutes, value stored as minutes
+  """
+  MINUTES_DURATION
+
+  """
   Client Name input
   """
   NAME
@@ -1441,6 +1451,11 @@ enum Component {
   SSN input component
   """
   SSN
+
+  """
+  Render group as a table. Each child item should be a group representing 1 table row.
+  """
+  TABLE
 }
 
 enum CounselingMethod {
@@ -5251,6 +5266,7 @@ enum ItemType {
   OPEN_CHOICE
   STRING
   TEXT
+  TIME_OF_DAY
 }
 
 """

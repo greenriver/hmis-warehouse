@@ -92,7 +92,7 @@ module HudReports::LengthOfStays
     end
 
     private def approximate_time_to_move_in(enrollment, reporting_age, hoh_enrollment)
-      move_in_date = if enrollment.computed_project_type.in?(HudUtility2024.residential_project_type_numbers_by_code[:ph])
+      move_in_date = if enrollment.project_type.in?(HudUtility2024.residential_project_type_numbers_by_code[:ph])
         appropriate_move_in_date(enrollment) || enrollment.first_date_in_program
       else
         enrollment.first_date_in_program

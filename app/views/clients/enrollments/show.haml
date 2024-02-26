@@ -14,7 +14,7 @@
         %tbody
           %tr
             %td Project Type
-            %td= ::HudUtility2024.project_type_brief(@service_history_enrollment.computed_project_type)
+            %td= ::HudUtility2024.project_type_brief(@service_history_enrollment.project_type)
           %tr
             %td Entry Date
             %td= @enrollment.EntryDate || '-'
@@ -33,7 +33,7 @@
           %tr
             %td Exit Date
             %td= @service_history_enrollment.last_date_in_program || '-'
-          - if @service_history_enrollment.move_in_date.present? || @service_history_enrollment.computed_project_type.in?(HudUtility2024.project_types_with_move_in_dates)
+          - if @service_history_enrollment.move_in_date.present? || @service_history_enrollment.project_type.in?(HudUtility2024.project_types_with_move_in_dates)
             - move_in_date_inherited = @enrollment.MoveInDate.blank? && @service_history_enrollment.move_in_date.present?
             %tr
               %td Move-in Date
