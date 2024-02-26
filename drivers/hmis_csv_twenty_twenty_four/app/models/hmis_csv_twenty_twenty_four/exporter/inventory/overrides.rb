@@ -25,10 +25,7 @@ module HmisCsvTwentyTwentyFour::Exporter
 
     def self.apply_overrides(row)
       [
-        { hud_field: :CoCCode, override_field: :coc_code_override, default_value: best_coc(row) },
-        { hud_field: :InventoryStartDate, override_field: :inventory_start_date_override },
-        { hud_field: :InventoryEndDate, override_field: :inventory_end_date_override },
-
+        { hud_field: :CoCCode, override_field: nil, default_value: best_coc(row) },
       ].each do |settings|
         row = simple_override(row, **settings)
       end

@@ -34,24 +34,17 @@ module GrdaWarehouse::Hud
 
     # hide previous declaration of :in_coc, we'll use this one
     replace_scope :in_coc, ->(coc_code:) do
-      # hud_coc_code overrides CoCCode
       coc_code = Array(coc_code)
-      where(
-        pc_t[:CoCCode].in(coc_code).and(pc_t[:hud_coc_code].eq(nil).or(pc_t[:hud_coc_code].eq(''))).
-        or(pc_t[:hud_coc_code].in(coc_code)),
-      )
+      where(CoCCode: coc_code)
     end
 
     scope :with_coc, -> do
-      where.not(CoCCode: nil).or(where.not(hud_coc_code: nil))
+      where.not(CoCCode: nil)
     end
 
     scope :in_zip, ->(zip_code:) do
       zip_code = Array(zip_code)
-      where(
-        pc_t[:Zip].in(zip_code).and(pc_t[:zip_override].eq(nil).or(pc_t[:zip_override].eq(''))).
-        or(pc_t[:zip_override].in(zip_code)),
-      )
+      where(Zip: zip_code)
     end
 
     scope :in_place, ->(place:) do
@@ -110,6 +103,7 @@ module GrdaWarehouse::Hud
       scope
     end
 
+    TodoOrDie('Remove override_columns method and columns from the database', by: '2024-12-01')
     # If any of these are not blank, we'll consider it overridden
     def self.override_columns
       {
@@ -126,12 +120,14 @@ module GrdaWarehouse::Hud
       SQL
     end
 
+    # TODO: replace calls to this with CoCCode
     def effective_coc_code
-      hud_coc_code.presence || self.CoCCode
+      self.CoCCode
     end
 
+    # TODO: replace calls to this with Geocode
     def effective_geocode
-      geocode_override.presence || self.Geocode
+      self.Geocode
     end
 
     def self.related_item_keys
@@ -157,16 +153,12 @@ module GrdaWarehouse::Hud
         end
     end
 
+    # TODO: replace calls to this with CoCCode
     def self.coc_code_coalesce
-      conditions = [
-        [pc_t[:hud_coc_code].eq(''), nil],
-        [pc_t[:hud_coc_code].not_eq(''), pc_t[:hud_coc_code]],
-      ]
-      cl(acase(conditions), pc_t[:CoCCode])
+      pc_t[:CoCCode]
     end
 
     def for_export
-      row = HmisCsvTwentyTwentyTwo::Exporter::ProjectCoc::Overrides.apply_overrides(self)
       row = HmisCsvTwentyTwentyTwo::Exporter::ProjectCoc.adjust_keys(row)
       row
     end
