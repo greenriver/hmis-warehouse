@@ -14,7 +14,7 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
 
   connect() {
     this.element['roleManager'] = this // allow access to this controller from other controllers
-    console.log('role manager connected', this.roleToggleTargets)
+    // console.log('role manager connected', this.roleToggleTargets)
     this.path = $(this.inputWrapperTarget).data('roleManagerFormValue')
   }
 
@@ -51,19 +51,31 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
   }
 
   save(e) {
-    let target = $(e.currentTarget)
-    let target_role_id = target.data('roleManagerRoleValue')
-    let key = target.data('roleManagerPermissionValue')
-    let checked = $(target).is(':checked')
-    let value = checked ? '1' : '0'
-    let data = { role: { } }
+    const target = $(e.currentTarget)
+    const target_role_id = target.data('roleManagerRoleValue')
+    const key = target.data('roleManagerPermissionValue')
+    const checked = $(target).is(':checked')
+    const value = checked ? '1' : '0'
+    const data = { role: { } }
+    const label = $(target).closest('.form-check').find('label').text().trim()
+    const text_value = checked ? 'Yes' : 'No'
     data.role[key] = value
-    console.log(target_role_id, key, checked, this.path, data)
+    // console.log(target_role_id, key, checked, this.path, data)
     $.ajax({
       type: 'PATCH',
       dataType: 'JSON',
       url: `${this.path}/${target_role_id}`,
       data: data,
+      success: (response) => {
+        // attach a toast to the page with a success message
+        $('.toast-header strong').text('Permission Updated')
+        $('.toast-body').text(`${label} set to ${text_value}`)
+        $('.toast').toast('show')
+      },
+      error: (response) => {
+        // attach an alert to the page with an error messages
+        alert(`Failed to save permission: ${label}. Please refresh and try again`)
+      }
     })
   }
 });
