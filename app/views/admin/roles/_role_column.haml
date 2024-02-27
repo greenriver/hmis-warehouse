@@ -11,7 +11,8 @@
       - perms.each do |key, permission|
         - label = permission.try(:[], :title) || key.to_s.humanize
         - administrative = if permission[:administrative] then 'administrative' else '' end
-        .form-check.mb-6{class: administrative}
+        - administrative_data = if permission[:administrative] then { 'role-manager' => { target: 'administrativeInput' }} else {} end
+        .form-check.mb-6{class: administrative, data: administrative_data }
           - if administrative.present?
             .mb-2
               %small

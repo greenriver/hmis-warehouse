@@ -10,7 +10,10 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
       'individualPermission',
       'inputWrapper',
       'changeCount',
-      'changeButton'
+      'changeButton',
+      'searchInput',
+      'administrativeFilter',
+      'administrativeInput'
     ]
   }
   // This version of stimulus doesn't seem to support values
@@ -53,15 +56,56 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
     if($(input).val() == 'show') {
       this.roleColumnTargets.forEach((column) => {
         if (target_role == $(column).data('roleManagerRoleValue')) {
-          $(column).removeClass('hidden')
+          $(column).removeClass('hide')
         }
       });
     } else {
       this.roleColumnTargets.forEach((column) => {
         if (target_role == $(column).data('roleManagerRoleValue')) {
-          $(column).addClass('hidden')
+          $(column).addClass('hide')
         }
       });
+    }
+  }
+
+  toggleAdmin(e) {
+    const target = $(e.currentTarget)
+    const input = $(target).find('input')
+    // toggle the visibility of the associated administrative items
+    if ($(input).val() == 'show') {
+      $(this.administrativeInputTargets).removeClass('hide')
+    } else {
+      $(this.administrativeInputTargets).addClass('hide')
+    }
+  }
+
+  searchPermissions(e) {
+    // if we have more than three characters
+    // 1. Expand all sections
+    // 2. hide any permission where the search string doesn't exit in the text
+    const target = $(e.currentTarget)
+    const search_string = target.val().toLowerCase()
+    if (search_string.length > 2) {
+      this.permissionCategoryTargets.forEach((section) => {
+        $(section).siblings('.panel-collapse').collapse('show')
+      });
+      this.individualPermissionTargets.forEach((permission) => {
+        const wrapper = $(permission).closest('.form-check')
+        const permission_text = wrapper.text().toLowerCase()
+        if (permission_text.indexOf(search_string) == -1) {
+          wrapper.addClass('hide')
+        } else {
+          wrapper.removeClass('hide')
+        }
+      });
+    } else {
+      // reset
+      this.permissionCategoryTargets.forEach((section) => {
+        $(section).siblings('.panel-collapse').collapse('hide')
+      });
+      this.individualPermissionTargets.forEach((permission) => {
+        $(permission).closest('.form-check').removeClass('hide')
+      })
     }
   }
 

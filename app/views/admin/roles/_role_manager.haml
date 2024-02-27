@@ -17,24 +17,34 @@
         .card-body.border-right.border-dark
           .administrative-permissions.d-flex.mb-4
             .btn-group.btn-group-toggle{data: {toggle: :buttons}, aria: {label: "Toggle Administrative Permissions"}}
-              %label.btn.btn-secondary.btn-xs.active
-                %input{type: :radio, name: :roles, id: 'on-administrative-permissions', checked: :checked} Show
-              %label.btn.btn-secondary.btn-xs
-                %input{type: :radio, name: :roles, id: 'off-administrative-permissions'} Hide
+              %label.btn.btn-secondary.btn-xs.active{ data: {'role-manager' => { target: 'administrativeFilter' }, action: 'click->role-manager#toggleAdmin' }}
+                %input{type: :radio, name: :roles, id: 'on-administrative-permissions', checked: :checked, value: 'show'} Show
+              %label.btn.btn-secondary.btn-xs{ data: {'role-manager' => { target: 'administrativeFilter' }, action: 'click->role-manager#toggleAdmin' }}
+                %input{type: :radio, name: :roles, id: 'off-administrative-permissions', value: 'hide'} Hide
             .ml-4
               Administrative Permissions
             .ml-auto
               %i.icon-lock
-          %input.form-control.j-table__search.w-100{placeholder: 'Search permissions'}
+          %input.form-control.j-table__search.w-100{placeholder: 'Search permissions', data: { 'role-manager' => { target: 'searchInput' }, action: 'keyup->role-manager#searchPermissions'}}
 
         .list-group.list-group-flush.role-names.border-right.border-dark
-          - @roles.each do |role|
+          - @roles.each.with_index do |role, i|
+            - show = nil
+            - hide = nil
+            - show_class = nil
+            - hide_class = nil
+            - if i < 3
+              - show = :checked
+              - show_class = :active
+            - else
+              - hide = :checked
+              - hide_class = :active
             %li.list-group-item.d-flex{style: "background-color: #{role.bg_color}"}
               .btn-group.btn-group-toggle{data: {toggle: :buttons}, aria: {label: "Toggle #{role.name} visibility"}}
-                %label.btn.btn-secondary.btn-xs.active{data: { 'role-manager' => { target: 'roleToggle', 'role-value' => role.id }, action: 'click->role-manager#toggleColumn'}}
-                  %input{type: :radio, name: :roles, id: "on-#{role.name.downcase.gsub(/^a-z/, '-')}", checked: :checked, value: 'show'} Show
-                %label.btn.btn-secondary.btn-xs{data: { 'role-manager' => { target: 'roleToggle', 'role-value' => role.id }, action: 'click->role-manager#toggleColumn'}}
-                  %input{type: :radio, name: :roles, id: "off-#{role.name.downcase.gsub(/^a-z/, '-')}", value: 'hide'} Hide
+                %label.btn.btn-secondary.btn-xs{class: show_class, data: { 'role-manager' => { target: 'roleToggle', 'role-value' => role.id }, action: 'click->role-manager#toggleColumn'}}
+                  %input{type: :radio, name: :roles, id: "on-#{role.name.downcase.gsub(/^a-z/, '-')}", checked: show, value: 'show'} Show
+                %label.btn.btn-secondary.btn-xs{class: hide_class, data: { 'role-manager' => { target: 'roleToggle', 'role-value' => role.id }, action: 'click->role-manager#toggleColumn'}}
+                  %input{type: :radio, name: :roles, id: "off-#{role.name.downcase.gsub(/^a-z/, '-')}", checked: hide, value: 'hide'} Hide
               .ml-4{style: "color: #{role.fg_color}"}
                 = role.name
       .role-wrapper.w-75{ data: { 'role-manager' => { target: 'inputWrapper', 'form-value' => path_for_patch }}}
@@ -42,10 +52,12 @@
         - # cache permission calculation
         - permissions = Role.permissions_by_group
         .d-flex
-          - @roles.each do |role|
-            .role-name-header.role-column.d-flex{style: "background-color: #{role.bg_color}", data: { 'role-manager' => { target: 'roleColumn', 'role-value' => role.id }}}
+          - @roles.each.with_index do |role, i|
+            - show_class = if i < 3 then nil else :hide end
+            .role-name-header.role-column.d-flex{style: "background-color: #{role.bg_color}", class: show_class, data: { 'role-manager' => { target: 'roleColumn', 'role-value' => role.id }}}
               %h3{style: "color: #{role.fg_color}"}= role.name
         .d-flex
-          - @roles.each do |role|
-            .role-column{data: { 'role-manager' => { target: 'roleColumn', 'role-value' => role.id }}}
+          - @roles.each.with_index do |role, i|
+            - show_class = if i < 3 then nil else :hide end
+            .role-column{class: show_class, data: { 'role-manager' => { target: 'roleColumn', 'role-value' => role.id }}}
               = render 'role_column', role: role, permissions: permissions
