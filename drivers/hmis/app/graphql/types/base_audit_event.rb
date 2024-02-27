@@ -91,9 +91,10 @@ module Types
         definition_id = item_attributes['data_element_definition_id']
         custom_data_element_labels_by_id[definition_id] || 'Custom Data Element'
       when 'Hmis::Hud::CustomAssessment'
-        # Try to label Assessment by name (eg "Exit Assessment")
-        # This would need adjustment to support naming fully custom assessments (eg "SPDAT Assessment")
-        HudUtility2024.assessment_name_by_data_collection_stage[item_attributes['DataCollectionStage']] || 'Assessment'
+        # Label Assessment by name (eg "Exit Assessment")
+        HudUtility2024.assessment_name_by_data_collection_stage[item_attributes['DataCollectionStage']] ||
+          Hmis::Hud::CustomAssessment.find(object.item_id)&.form_processor&.definition&.title ||
+          'Assessment'
       else
         object.item_type.demodulize.gsub(/^Custom(Client)?/, '').
           underscore.humanize.titleize
