@@ -23,12 +23,20 @@ module GrdaWarehouse::Cohorts::DocumentExports
       params['population'] ||= 'Active Clients'
     end
 
+    protected def cohort_names
+      @cohort_names ||= cohort_class.pluck(:id, :name, :short_name).
+        map do |id, name, short_name|
+        [id, short_name.presence || name]
+      end.to_h
+    end
+
     protected def view_assigns
       {
         user: user,
         cohort: cohort,
         cohort_clients: cohort_clients,
         population: population,
+        cohort_names: cohort_names,
       }
     end
 
