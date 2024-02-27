@@ -182,6 +182,12 @@ module GrdaWarehouse::CasProjectClientCalculator
       question_title = 'If you do not have legal custody'
       custody_later = client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.downcase&.include?('Yes')
 
+      question_title = 'Are you currently pregnant?'
+      pregnant = client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.downcase&.include?('Yes')
+
+      # Pregnant clients are always considered a family
+      return true if pregnant
+
       # There is a child, but the parent doesn't, and won't have custody
       return false if single_parent && (!custody_now && !custody_later)
       # Client indicated the household is adult only
