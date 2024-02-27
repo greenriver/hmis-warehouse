@@ -22,12 +22,12 @@ class Hmis::ProjectAutoExitConfig < Hmis::ProjectConfig
     length_of_absence_days = options['length_of_absence_days']
 
     unless length_of_absence_days.is_a? Integer
-      errors.add(:base, 'config_options must contain an integer length_of_absence_days')
+      errors.add(:base, 'Length of Absence is required')
       return
     end
 
     return unless length_of_absence_days < 30
 
-    errors.add(:base, 'length_of_absence_days must be greater than or equal to 30')
+    errors.add(:base, 'Length of Absence must be greater than or equal to 30')
   end
 end
