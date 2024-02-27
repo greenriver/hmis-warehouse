@@ -6,7 +6,7 @@
 class MigrateAutoExitRules < ActiveRecord::Migration[6.1]
   def up
     Hmis::AutoExitConfig.all.each do |old_auto_exit_config|
-      Hmis::ProjectAutoExitConfig.create(
+      Hmis::ProjectAutoExitConfig.create!(
         project_type: old_auto_exit_config.project_type,
         organization_id: old_auto_exit_config.organization_id,
         project_id: old_auto_exit_config.project_id,
