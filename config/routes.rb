@@ -608,7 +608,7 @@ Rails.application.routes.draw do
     resources :non_hmis_uploads, except: [:update, :destroy, :edit]
     resources :custom_imports, controller: 'data_sources/custom_imports'
     resource :api_config
-    resource :hmis_import_config do 
+    resource :hmis_import_config do
       get :download
     end
 
@@ -770,6 +770,7 @@ Rails.application.routes.draw do
     # TODO: START_ACL cleanup after ACL migration
     # resources :roles
     resources :roles do
+      patch :batch_update, on: :collection
       resources :users, only: [:create, :destroy], controller: 'roles/users'
     end
     resources :groups do

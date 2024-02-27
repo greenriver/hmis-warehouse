@@ -1,47 +1,51 @@
 .card.roles.d-flex{ data: { controller: 'role-manager'}}
-  .card-header
-    .d-flex
-      .user-role.w-25.d-flex.border-right.border-dark
-        %h2 User Roles
-        .ml-auto
-          = link_to new_admin_role_path, class: 'btn btn-secondary btn-sm' do
-            %span.icon-plus
-            Add Role
-      %h2.permission-header.mx-auto Permissions
-  .d-flex
-    .w-25
-      .card-body.border-right.border-dark
-        .administrative-permissions.d-flex.mb-4
-          .btn-group.btn-group-toggle{data: {toggle: :buttons}, aria: {label: "Toggle Administrative Permissions"}}
-            %label.btn.btn-secondary.btn-xs.active
-              %input{type: :radio, name: :roles, id: 'on-administrative-permissions', checked: :checked} Show
-            %label.btn.btn-secondary.btn-xs
-              %input{type: :radio, name: :roles, id: 'off-administrative-permissions'} Hide
-          .ml-4
-            Administrative Permissions
+  - @batch = ModelForm.new
+  = simple_form_for @batch, as: :role, url: batch_update_admin_roles_path, method: :patch do |f|
+    .card-header
+      .d-flex
+        .user-role.w-25.d-flex.border-right.border-dark
+          %h2 User Roles
           .ml-auto
-            %i.icon-lock
-        %input.form-control.j-table__search.w-100{placeholder: 'Search permissions'}
+            = link_to new_admin_role_path, class: 'btn btn-secondary btn-sm' do
+              %span.icon-plus
+              Add Role
+        %h2.permission-header.mr-4 Permissions
+        .form-change-count.mr-4.my-auto{ data: { 'role-manager' => { target: 'changeCount' }}}
+        .mr-auto.my-auto.hide{ data: { 'role-manager' => { target: 'changeButton' }}}= f.submit 'Save Changes', class: 'btn btn-sm'
+    .d-flex
+      .w-25
+        .card-body.border-right.border-dark
+          .administrative-permissions.d-flex.mb-4
+            .btn-group.btn-group-toggle{data: {toggle: :buttons}, aria: {label: "Toggle Administrative Permissions"}}
+              %label.btn.btn-secondary.btn-xs.active
+                %input{type: :radio, name: :roles, id: 'on-administrative-permissions', checked: :checked} Show
+              %label.btn.btn-secondary.btn-xs
+                %input{type: :radio, name: :roles, id: 'off-administrative-permissions'} Hide
+            .ml-4
+              Administrative Permissions
+            .ml-auto
+              %i.icon-lock
+          %input.form-control.j-table__search.w-100{placeholder: 'Search permissions'}
 
-      .list-group.list-group-flush.role-names.border-right.border-dark
-        - @roles.each do |role|
-          %li.list-group-item.d-flex{style: "background-color: #{role.bg_color}"}
-            .btn-group.btn-group-toggle{data: {toggle: :buttons}, aria: {label: "Toggle #{role.name} visibility"}}
-              %label.btn.btn-secondary.btn-xs.active{data: { 'role-manager' => { target: 'roleToggle', 'role-value' => role.id }, action: 'click->role-manager#toggleColumn'}}
-                %input{type: :radio, name: :roles, id: "on-#{role.name.downcase.gsub(/^a-z/, '-')}", checked: :checked, value: 'show'} On
-              %label.btn.btn-secondary.btn-xs{data: { 'role-manager' => { target: 'roleToggle', 'role-value' => role.id }, action: 'click->role-manager#toggleColumn'}}
-                %input{type: :radio, name: :roles, id: "off-#{role.name.downcase.gsub(/^a-z/, '-')}", value: 'hide'} Off
-            .ml-4{style: "color: #{role.fg_color}"}
-              = role.name
-    .role-wrapper.w-75{ data: { 'role-manager' => { target: 'inputWrapper', 'form-value' => path_for_patch }}}
-      = hidden_field_tag :authenticity_token, form_authenticity_token, class: 'j-authenticity-token'
-      - # cache permission calculation
-      - permissions = Role.permissions_by_group
-      .d-flex
-        - @roles.each do |role|
-          .role-name-header.role-column.d-flex{style: "background-color: #{role.bg_color}", data: { 'role-manager' => { target: 'roleColumn', 'role-value' => role.id }}}
-            %h3{style: "color: #{role.fg_color}"}= role.name
-      .d-flex
-        - @roles.each do |role|
-          .role-column{data: { 'role-manager' => { target: 'roleColumn', 'role-value' => role.id }}}
-            = render 'role_column', role: role, permissions: permissions
+        .list-group.list-group-flush.role-names.border-right.border-dark
+          - @roles.each do |role|
+            %li.list-group-item.d-flex{style: "background-color: #{role.bg_color}"}
+              .btn-group.btn-group-toggle{data: {toggle: :buttons}, aria: {label: "Toggle #{role.name} visibility"}}
+                %label.btn.btn-secondary.btn-xs.active{data: { 'role-manager' => { target: 'roleToggle', 'role-value' => role.id }, action: 'click->role-manager#toggleColumn'}}
+                  %input{type: :radio, name: :roles, id: "on-#{role.name.downcase.gsub(/^a-z/, '-')}", checked: :checked, value: 'show'} Show
+                %label.btn.btn-secondary.btn-xs{data: { 'role-manager' => { target: 'roleToggle', 'role-value' => role.id }, action: 'click->role-manager#toggleColumn'}}
+                  %input{type: :radio, name: :roles, id: "off-#{role.name.downcase.gsub(/^a-z/, '-')}", value: 'hide'} Hide
+              .ml-4{style: "color: #{role.fg_color}"}
+                = role.name
+      .role-wrapper.w-75{ data: { 'role-manager' => { target: 'inputWrapper', 'form-value' => path_for_patch }}}
+        = hidden_field_tag :authenticity_token, form_authenticity_token, class: 'j-authenticity-token'
+        - # cache permission calculation
+        - permissions = Role.permissions_by_group
+        .d-flex
+          - @roles.each do |role|
+            .role-name-header.role-column.d-flex{style: "background-color: #{role.bg_color}", data: { 'role-manager' => { target: 'roleColumn', 'role-value' => role.id }}}
+              %h3{style: "color: #{role.fg_color}"}= role.name
+        .d-flex
+          - @roles.each do |role|
+            .role-column{data: { 'role-manager' => { target: 'roleColumn', 'role-value' => role.id }}}
+              = render 'role_column', role: role, permissions: permissions
