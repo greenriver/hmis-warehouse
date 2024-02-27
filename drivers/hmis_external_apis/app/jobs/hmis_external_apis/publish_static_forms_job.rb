@@ -36,7 +36,7 @@ class HmisExternalApis::PublishStaticFormsJob
     versioned_content = process_content(content: content, version: content_version, page_name: page_name, form_action: lambda_url)
     object_key = upload_to_s3(content: versioned_content, page_name: page_name)
 
-    form.attributes = {object_key: object_key, fields: form_fields, content: versioned_content}
+    form.attributes = { object_key: object_key, fields: form_fields, content: versioned_content }
     form.save!
   end
 
@@ -50,10 +50,10 @@ class HmisExternalApis::PublishStaticFormsJob
     form = forms.first
     form['action'] = form_action if form_action
 
-    form.add_child(%{<input type="hidden" name="form_version" value="#{version}">})
-    form.add_child(%{<input type="hidden" name="form_name" value="#{page_name}">})
+    form.add_child(%(<input type="hidden" name="form_version" value="#{version}">))
+    form.add_child(%(<input type="hidden" name="form_name" value="#{page_name}">))
 
-    doc.xpath('//comment()').each { |comment| comment.remove }
+    doc.xpath('//comment()').each(&:remove)
     doc.to_html
   end
 
@@ -73,9 +73,9 @@ class HmisExternalApis::PublishStaticFormsJob
 
   def page_names(subdir)
     dirname = Rails.root.join("drivers/hmis_external_apis/app/views/hmis_external_apis/static_pages/#{subdir}").to_s
-    Dir.entries(dirname)
+    Dir.entries(dirname).
       # skip partial views
-      .filter { |file| file =~ /\A[a-z]/i ? File.file?(File.join(dirname, file)) : false }
-      .map { |file| "#{subdir}/#{file}".sub(/\.[a-z0-9]+\z/i, '') }
+      filter { |file| file =~ /\A[a-z]/i ? File.file?(File.join(dirname, file)) : false }.
+      map { |file| "#{subdir}/#{file}".sub(/\.[a-z0-9]+\z/i, '') }
   end
 end

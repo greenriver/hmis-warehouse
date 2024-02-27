@@ -12,6 +12,7 @@ module HmisExternalApis::StaticPagesHelper
   def register_field(name:, label:, type:, options: nil)
     @seen ||= Set.new
     raise "duplicate field name \"#{name}\", (#{label})" if name.in?(@seen)
+
     @seen.add(name)
 
     @field_collection.push({ name: name, label: label, type: type, options: options })
@@ -41,7 +42,7 @@ module HmisExternalApis::StaticPagesHelper
     end
   end
 
-  def render_form_select(label:, name: nil, required: false, options:, &block)
+  def render_form_select(label:, name: nil, required: false, options:)
     name ||= name_from_label(label)
     options = expand_options([{ label: '-- Select', value: '' }] + options)
     register_field(name: name, label: label, type: 'select', options: options)
@@ -66,9 +67,9 @@ module HmisExternalApis::StaticPagesHelper
   def render_form_fieldset(legend:, required: false, &block)
     tag.fieldset do
       safe_join([
-        tag.legend(legend, class: required && 'required'),
-        capture(&block),
-      ],"\n")
+                  tag.legend(legend, class: required && 'required'),
+                  capture(&block),
+                ], "\n")
     end
   end
 

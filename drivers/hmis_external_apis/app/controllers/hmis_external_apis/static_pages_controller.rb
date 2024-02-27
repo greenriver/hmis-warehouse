@@ -22,7 +22,7 @@ class HmisExternalApis::StaticPagesController < ActionController::Base
     end
 
     @field_collection = []
-    template = "hmis_external_apis/static_pages/" + params[:template]
+    template = 'hmis_external_apis/static_pages/' + params[:template]
     render template: template
   end
 

@@ -22,8 +22,8 @@ module Types
         end
       end
 
-      def resolve_static_form_submissions(scope = object.static_form_submissions, filters: nil)
-        scope.order(submitted_at: :desc, :id)
+      def resolve_static_form_submissions(scope = object.static_form_submissions)
+        scope.order(submitted_at: :desc, id: :desc)
         raise 'testing'
       end
     end
