@@ -208,13 +208,17 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   def ce_assessment_factory(create: true)
     return owner if owner.is_a? Hmis::Hud::Assessment
 
-    self.ce_assessment ||= enrollment_factory.assessments.build(user_id: custom_assessment&.user_id) if create
+    return ce_assessment if ce_assessment.present? || !create
+
+    self.ce_assessment ||= enrollment_factory.assessments.build(user_id: custom_assessment&.user_id)
   end
 
   def ce_event_factory(create: true)
     return owner if owner.is_a? Hmis::Hud::Event
 
-    self.ce_event ||= enrollment_factory.events.build(user_id: custom_assessment&.user_id) if create
+    return ce_event if ce_event.present? || !create
+
+    self.ce_event ||= enrollment_factory.events.build(user_id: custom_assessment&.user_id)
   end
 
   def health_and_dv_factory(create: true)
