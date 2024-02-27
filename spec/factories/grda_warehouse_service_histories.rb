@@ -20,7 +20,7 @@ FactoryBot.define do
     # housing_status_at_entry
     # housing_status_at_exit
     # service_type
-    computed_project_type { 1 }
+    project_type { 1 }
     # presented_as_individual
   end
 
@@ -39,7 +39,7 @@ FactoryBot.define do
   trait :with_ph_enrollment do
     enrollment { create :hud_enrollment, data_source_id: 1, MoveInDate: move_in_date }
 
-    computed_project_type { 3 }
+    project_type { 3 }
     enrollment_group_id { enrollment.EnrollmentID }
     project_id { enrollment.ProjectID }
   end
@@ -47,7 +47,7 @@ FactoryBot.define do
   trait :with_th_enrollment do
     enrollment { create :hud_enrollment, data_source_id: 1, MoveInDate: move_in_date }
 
-    computed_project_type { 2 }
+    project_type { 2 }
     enrollment_group_id { enrollment.EnrollmentID }
     project_id { enrollment.ProjectID }
   end

@@ -141,12 +141,12 @@ module Reporting::MonthlyReports
               household_id: enrollment.household_id.presence || "c_#{client_id}",
               destination_id: enrollment.destination,
               enrolled: true, # everyone will be enrolled
-              active: active_in_month?(client_id: client_id, project_type: enrollment.computed_project_type, month: month, year: year, batch: ids),
+              active: active_in_month?(client_id: client_id, project_type: enrollment.project_type, month: month, year: year, batch: ids),
               entered: entered_in_month,
               exited: exited_in_month,
               project_id: project_id(enrollment.project_id, enrollment.data_source_id),
               organization_id: organization_id(enrollment.organization_id, enrollment.data_source_id),
-              project_type: enrollment.computed_project_type,
+              project_type: enrollment.project_type,
               entry_date: enrollment.first_date_in_program,
               exit_date: enrollment.last_date_in_program,
               first_enrollment: first_record?(enrollment),
@@ -175,7 +175,7 @@ module Reporting::MonthlyReports
         :data_source_id,
         :head_of_household,
         :household_id,
-        :computed_project_type,
+        :project_type,
         :destination,
       ]
     end

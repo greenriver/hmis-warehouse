@@ -52,10 +52,19 @@ module Health
       modlist = activities[@qa.activity&.to_sym].try(:[], :code)&.split(/[ |>]/).try(:[], 1..) || []
 
       # Attach modifiers from contact, if present
-      modlist << modes_of_contact[@qa.mode_of_contact&.to_sym].try(:[], :code)
+      mode_of_contact = modes_of_contact[@qa.mode_of_contact&.to_sym]
+      if mode_of_contact.present? && mode_of_contact[:code].present?
+        modlist << mode_of_contact[:code]
+      elsif mode_of_contact.present? && mode_of_contact[:dynamic_code].present?
+        modlist << mode_of_contact[:dynamic_code].call(@qa)
+      end
       modlist << client_reached[@qa.reached_client&.to_sym].try(:[], :code)
 
       return modlist.reject(&:blank?).compact
+    end
+
+    def place_of_service
+      '11'
     end
   end
 end
