@@ -22,6 +22,28 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   TYPE_OPTIONS = [AUTO_EXIT_CONFIG, AUTO_ENTER_CONFIG].freeze
   validates :type, inclusion: { in: TYPE_OPTIONS }
 
+  validate :validate_config_options_json
+
+  def validate_config_options_json
+    return unless config_options
+
+    begin
+      JSON.parse(config_options)
+    rescue JSON::ParserError
+      errors.add(:base, 'config_options must be JSON')
+    end
+  end
+
+  def options= hash
+    self.config_options = hash.to_json
+  end
+
+  def options
+    JSON.parse(config_options)
+  rescue JSON::ParserError, TypeError
+    nil
+  end
+
   scope :for_project, ->(project) do
     pc_t = Hmis::ProjectConfig.arel_table
 
