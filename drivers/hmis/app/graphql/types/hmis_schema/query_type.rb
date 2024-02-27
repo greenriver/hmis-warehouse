@@ -49,6 +49,36 @@ module Types
       resolve_clients(search_scope, **args)
     end
 
+    # we might need a new query if we want to sort by enrollment date or last service date
+    # used for bulk service assignment / bed nights
+    # clients_field :project_client_search, 'Search for clients from within a Project' do
+    #   argument :project_id, ID, required: true
+    #   argument :open_on_date, ID, required: true
+    #   argument :global, Boolean, required: true, description: 'Whether to include clients who were not enrolled at the project on the specified date'
+    #   argument :text_search, String, required: true
+    #   # filters: had service on date, etc.
+    # end
+
+    # def project_client_search(project_id:, open_on_date:, global:, text_search:)
+    #   project = Hmis::Hud::Project.viewable_by(current_user).find(project_id)
+    #   clients = Hmis::Hud::Client.searchable_to(current_user).matching_search_term(text_search)
+
+    #   enrollment_scope = project.enrollments_including_wip.open_on_date(open_on_date)
+    #   clients.left_outer_joins(:enrollments).merge(enrollment_scope)
+
+    #   keep_en = e_1[:project_id].eq(project.project_id).and(e_t[:entry_date].eq(open_on_date))
+    #   clients.left_outer_joins(:enrollments).where(e_t[:id].eq(nil).or(keep_en))
+
+    #   clients.left_outer_joins(:enrollments).group(c_t[:id])
+
+    #   clients.left_outer_joins(:enrollments).having
+    #   # left join => drop rows where enrollment doesnt fit the bill => pick 1 per client
+
+    #   def enrollment
+    #     load_ar_association(object, :enrollments).select { |e| e.entry_date == something && e.project_id == something }
+    #   end
+    # end
+
     clients_field :client_omni_search, 'Client omnisearch' do |field|
       field.argument :text_search, String, 'Omnisearch string', required: true
     end

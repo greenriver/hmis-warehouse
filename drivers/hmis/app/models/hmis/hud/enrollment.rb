@@ -190,7 +190,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   scope :with_project, ->(project_ids) do
-    with_projects_where(p_t[:id].in(project_ids))
+    with_projects_where(p_t[:id].in(Array.wrap(project_ids)))
   end
 
   scope :in_age_group, ->(start_age: 0, end_age: nil) do

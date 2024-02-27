@@ -89,6 +89,9 @@ module Types
     summary_field :move_in_date, GraphQL::Types::ISO8601Date, null: true
     summary_field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
 
+    field :last_service_date, GraphQL::Types::ISO8601Date, null: true do
+      argument :service_type_id, ID, required: true
+    end
     # Override permission requirement for the access object. This is necessary so the frontend
     # knows whether its safe to link to the full enrollment dashboard for a given enrollment.
     access_field permissions: nil do
@@ -232,6 +235,15 @@ module Types
         changes
       end,
     )
+
+    def last_service_date(service_type_id:)
+      cst = Hmis::Hud::CustomServiceType.find(service_type_id)
+      if cst.hud_record_type && cst.hud_type_provided
+        load_ar_association(object, :services).map(&:DateProvided).max
+      else
+        load_ar_association(object, :custom_services).map(&:DateProvided).max
+      end
+    end
 
     def audit_history(filters: nil)
       scope = GrdaWarehouse.paper_trail_versions.
