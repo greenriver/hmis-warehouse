@@ -31,7 +31,6 @@ module Types
     field :update_units, mutation: Mutations::UpdateUnits
     field :delete_units, mutation: Mutations::DeleteUnits
 
-    field :create_service, mutation: Mutations::CreateService
     field :delete_service, mutation: Mutations::DeleteService
     field :update_bed_nights, mutation: Mutations::UpdateBedNights, deprecation_reason: 'Moved to BulkAssignService'
     field :bulk_assign_service, mutation: Mutations::BulkAssignService
