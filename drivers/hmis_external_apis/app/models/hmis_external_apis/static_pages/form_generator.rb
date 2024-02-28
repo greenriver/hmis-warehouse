@@ -41,8 +41,10 @@ module HmisExternalApis::StaticPages
     def render_node_by_type(node)
       node_type = node['type']
       result = case node_type
-      when 'STRING', 'DATE'
+      when 'STRING'
         render_input_node(node)
+      when 'DATE'
+        render_date_node(node)
       when 'DISPLAY'
         render_display_node(node)
       when 'BOOLEAN'
@@ -92,6 +94,12 @@ module HmisExternalApis::StaticPages
     def render_text_node(node)
       render_form_group do
         render_form_textarea(label: node['text'], name: node['link_id'], required: node['required'])
+      end
+    end
+
+    def render_date_node(node)
+      render_form_group do
+        render_form_date(label: node['text'], name: node['link_id'], required: node['required'])
       end
     end
 

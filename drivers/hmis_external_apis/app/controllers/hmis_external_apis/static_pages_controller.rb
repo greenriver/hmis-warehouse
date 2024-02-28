@@ -21,11 +21,11 @@ class HmisExternalApis::StaticPagesController < ActionController::Base
       return render(html: page.content.html_safe)
     end
 
-    @definition = read_definition(params[:template])
+    @form_definition = read_definition(params[:template])
     @renderer =  HmisExternalApis::StaticPages::FormGenerator.new(self)
 
-    #template = 'hmis_external_apis/static_pages/' + params[:template]
-    #render template: template
+    # template = 'hmis_external_apis/static_pages/' + params[:template]
+    # render template: template
   end
 
   def create

@@ -53,6 +53,11 @@
         visibility: visible;
         max-height: 2000px; /* Adjust as necessary to fit content */
       }
+      /* override primary color for contrast */
+      .btn-primary.btn-primary {
+        background-color: #0071bc;
+        border-color: #0071bc;
+      }
 
   %body.bg-light
     %nav.sticky-top.navbar-light.border-bottom.bg-white.mb-4.shadow-sm
@@ -118,4 +123,37 @@
       });
       hide();
     }
+
+    var dateInputMask = function(elm) {
+      elm.addEventListener('keypress', function(e) {
+        // Block if not a number and not a slash
+        if(e.keyCode < 47 || e.keyCode > 57) {
+          e.preventDefault();
+        }
+
+        var len = elm.value.length;
+
+        if(len === 2 || len === 5) {
+          if(e.keyCode == 47) {
+            e.preventDefault();
+          }
+          elm.value += '/';
+        }
+      });
+
+      // Handle paste event
+      elm.addEventListener('input', function(e) {
+        var value = elm.value;
+        // Remove all non-digit characters
+        var cleanedValue = value.replace(/\D+/g, '');
+        // Automatically add slashes
+        var parts = cleanedValue.match(/(\d{0,2})(\d{0,2})(\d{0,4})/).slice(1);
+        elm.value = parts.filter(Boolean).join('/');
+      });
+    };
+
+    var input = document.querySelector('.date-input');
+    dateInputMask(input);
+
+
   = yield :page_js
