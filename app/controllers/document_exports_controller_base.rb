@@ -110,6 +110,7 @@ class DocumentExportsControllerBase < ApplicationController
       'ClientDocumentsReport::DocumentExports::ReportExcelExport',
       'InactiveClientReport::DocumentExports::ReportExcelExport',
       'ZipCodeReport::DocumentExports::ReportExcelExport',
+      'GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport',
     ]
   end
 end
