@@ -40,7 +40,7 @@ RSpec.describe Hmis::ProjectConfig, type: :model do
   it 'should return nil if no auto-enter config exists, even if auto-exit configs exist' do
     config = Hmis::ProjectAutoEnterConfig.config_for_project(p1)
     expect(config).to be_nil
-    Hmis::ProjectAutoExitConfig.create!(project: p1, config_options: { 'length_of_absence_days': 90 })
+    Hmis::ProjectAutoExitConfig.create!(project: p1, options: { 'length_of_absence_days': 90 })
     config = Hmis::ProjectAutoEnterConfig.config_for_project(p1)
     expect(config).to be_nil
   end

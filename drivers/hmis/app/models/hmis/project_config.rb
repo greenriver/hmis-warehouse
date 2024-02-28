@@ -30,7 +30,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
     begin
       JSON.parse(config_options)
     rescue JSON::ParserError
-      errors.add(:base, 'config_options must be JSON')
+      errors.add(:base, 'Config options must be JSON')
     end
   end
 

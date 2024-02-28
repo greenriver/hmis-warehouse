@@ -9,15 +9,17 @@ class Hmis::ProjectAutoExitConfig < Hmis::ProjectConfig
   validate :length_of_absence_days_ge_30
 
   def length_of_absence_days=(value)
-    self.config_options = { 'length_of_absence_days': value }.to_json
+    new_options = { 'length_of_absence_days': value }.stringify_keys
+    merged_options = options ? options.merge(new_options) : new_options
+    self.config_options = merged_options.to_json
   end
 
   def length_of_absence_days
-    JSON.parse(config_options)['length_of_absence_days']
+    options['length_of_absence_days']
   end
 
   def length_of_absence_days_ge_30
-    return unless config_options
+    return unless options
 
     length_of_absence_days = options['length_of_absence_days']
 
