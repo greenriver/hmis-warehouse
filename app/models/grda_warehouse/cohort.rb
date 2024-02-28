@@ -331,6 +331,8 @@ module GrdaWarehouse
         ::CohortColumns::DateDocumentReady.new,
         ::CohortColumns::DaysHomelessLastThreeYears.new,
         ::CohortColumns::DaysLiterallyHomelessLastThreeYears.new,
+        ::CohortColumns::ShelteredDaysHomelessLastThreeYears.new,
+        ::CohortColumns::UnshelteredDaysHomelessLastThreeYears.new,
         ::CohortColumns::EnrolledHomelessShelter.new,
         ::CohortColumns::EnrolledHomelessUnsheltered.new,
         ::CohortColumns::EnrolledPermanentHousing.new,
