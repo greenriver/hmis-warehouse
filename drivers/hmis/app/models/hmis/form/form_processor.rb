@@ -151,7 +151,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     # If this is a form just for collecting CLS, it is the owner
     return owner if owner.is_a? Hmis::Hud::CurrentLivingSituation
 
-    return ce_assessment if ce_assessment.present? || !create
+    return current_living_situation if current_living_situation.present? || !create
 
     self.current_living_situation = enrollment_factory.current_living_situations.build(user_id: custom_assessment&.user_id)
   end
