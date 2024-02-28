@@ -93,7 +93,7 @@ module Types
       when 'Hmis::Hud::CustomAssessment'
         # Label Assessment by name (eg "Exit Assessment")
         HudUtility2024.assessment_name_by_data_collection_stage[item_attributes['DataCollectionStage']] ||
-          Hmis::Hud::CustomAssessment.find(object.item_id)&.form_processor&.definition&.title ||
+          custom_assessment_title ||
           'Assessment'
       else
         object.item_type.demodulize.gsub(/^Custom(Client)?/, '').
@@ -109,6 +109,11 @@ module Types
       else
         object.item_type.demodulize.gsub(/^Custom/, '')
       end
+    end
+
+    private def custom_assessment_title
+      ca = load_ar_scope(scope: Hmis::Hud::CustomAssessment.with_deleted, id: object.item_id)
+      ca&.form_processor&.definition&.title
     end
 
     # NOTE: will be nil if this is a 'destroy' event
