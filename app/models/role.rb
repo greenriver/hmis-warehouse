@@ -155,8 +155,15 @@ class Role < ApplicationRecord
     self.class.permissions_with_descriptions.select { |k, _| send(k) }
   end
 
+  # Pick a background color that is unique to the name, but not terribly vibrant
   def bg_color
-    @bg_color ||= "##{Digest::MD5.hexdigest(name)[0, 6]}"
+    @bg_color ||= begin
+      random_color = Digest::MD5.hexdigest(name)[0, 6]
+      hsl = GrdaWarehouse::SystemColor.new.hsl(random_color)
+      hsl[:l] += 20 if hsl[:l] < 70
+      hsl[:s] -= 30 if hsl[:s] > 40
+      "##{GrdaWarehouse::SystemColor.new.hsl_to_hex(hsl)}"
+    end
   end
 
   def fg_color

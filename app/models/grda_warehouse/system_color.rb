@@ -56,10 +56,79 @@ module GrdaWarehouse
     end
 
     # For debugging
+    # Accepts 000000
+    # Returns [r, g, b]
     def rgb(color)
       color.chars.each_slice(2).map do |chars|
         chars.join.hex
       end
+    end
+
+    # Accepts 000000
+    # Returns {h: 0, s: 0, l: 0}
+    def hsl(color)
+      (r, g, b) = rgb(color)
+      r /= 255.0
+      g /= 255.0
+      b /= 255.0
+      max = [r, g, b].max
+      min = [r, g, b].min
+      h = (min + max) / 2.0
+      l = h
+
+      return { h: 0, s: 0, l: l } if max == min
+
+      d = max - min
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+      case max
+      when r
+        h = (g - b) / d + (g < b ? 6 : 0)
+      when g
+        h = (b - r) / d + 2
+      when b
+        h = (r - g) / d + 4
+      end
+
+      h /= 6
+      s *= 100
+      s = s.round
+      l *= 100
+      l = l.round
+      h = (360 * h).round
+      { h: h, s: s, l: l }
+    end
+
+    # Accepts {h: 0, s: 0, l: 0}
+    # Returns 000000
+    def hsl_to_hex(hsl)
+      h = hsl[:h] / 360.0
+      s = hsl[:s] / 100.0
+      l = hsl[:l] / 100.0
+
+      if s.zero?
+        # Achromatic (grey)
+        return format('%02X%02X%02X', l * 255, l * 255, l * 255)
+      end
+
+      q = l < 0.5 ? l * (1 + s) : l + s - l * s
+      p = 2 * l - q
+
+      r = hue_to_rgb(p, q, h + 1.0 / 3.0) * 255
+      g = hue_to_rgb(p, q, h) * 255
+      b = hue_to_rgb(p, q, h - 1.0 / 3.0) * 255
+
+      format('%02X%02X%02X', r, g, b)
+    end
+
+    private def hue_to_rgb(lower_bound, upper_bound, ratio)
+      ratio += 1.0 if ratio < 0
+      ratio -= 1.0 if ratio > 1
+
+      return lower_bound + (upper_bound - lower_bound) * 6 * ratio if ratio * 6 < 1
+      return upper_bound if ratio * 2 < 1
+      return lower_bound + (upper_bound - lower_bound) * (2.0 / 3.0 - ratio) * 6 if ratio * 3 < 2
+
+      lower_bound
     end
 
     def self.default_colors
