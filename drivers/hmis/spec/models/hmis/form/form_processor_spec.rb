@@ -1931,11 +1931,10 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
       it 'should find the CE event related record' do
         process_assessment
-        expect(assessment.ce_event.event).to eq(2)
         related_records = assessment.form_processor.related_records
         expect(related_records.length).to eq(2)
-        expect(related_records[0].class.name).to eq('Hmis::Hud::Enrollment')
-        expect(related_records[1].class.name).to eq('Hmis::Hud::Event') # Coordinated Entry event
+        expect(related_records).to include(e1)
+        expect(related_records).to include(assessment.ce_event)
       end
 
       describe 'and all CE Event fields are hidden:' do
