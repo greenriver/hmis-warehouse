@@ -78,6 +78,12 @@
           ]
         },
         {
+          "type": "DISPLAY",
+          "text": "If there is a military veteran in the home, please call Community Actions Partners first at 817-392-5780.",
+          "enable_behavior": "ALL",
+          "enable_when": {"question": "military_veteran_in_home", "operator": "EQUAL", "answer_code": "yes"}
+        },
+        {
           "link_id": "received_rental_assistance_in_last_three_years",
           "type": "CHOICE",
           "component": "RADIO_BUTTONS",

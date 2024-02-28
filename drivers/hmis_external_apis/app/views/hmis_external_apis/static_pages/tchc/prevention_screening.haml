@@ -12,6 +12,7 @@
       = render_form_input(label: 'City', required: true)
     = render_form_group do
       = render_form_input(label: 'Zip Code')
+
     = render_form_group do
       = render_form_input(label: 'Client Email', input_type: 'email')
     = render_form_group do
@@ -26,6 +27,8 @@
 
     = render_form_group do
       = render_form_radio_group(legend: 'Is there a military veteran in the home?', options: yes_no_options, name: 'military_veteran_in_home')
+      = render_dependent_block(input_name: 'military_veteran_in_home', input_value: 'yes') do
+        %p If there is a military veteran in the home, please call Community Actions Partners first at 817-392-5780.
 
     = render_form_group do
       = render_form_radio_group(legend: 'Have you received rental assistance within the past three (3) years?', name: 'received_rental_assistance_in last_three_years', options: yes_no_options)
@@ -88,3 +91,5 @@
       = render_form_radio_group(name: 'lost_employment_or_income_in_last_30_days', legend: 'Did you lose employment or have lower income within the past 30 days?', options: yes_no_options)
     = render_form_group do
       = render_form_radio_group(name: 'household_member_notified_of_income_or_state_benefits', legend: 'Has anyone in your household received written notice that they will start receiving income and or state benefits? (Ex: Job offer letter, unemployment benefits, SNAP benefits, child support, etc.)', options: yes_no_options)
+
+  = render_form_actions

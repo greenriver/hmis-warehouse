@@ -31,6 +31,14 @@ module HmisExternalApis::StaticPages
 
     def render_node(node)
       @stack.push(node)
+      result = render_dependent_item_wrapper(node) do
+        render_node_by_type(node)
+      end
+      @stack.pop
+      return result
+    end
+
+    def render_node_by_type(node)
       node_type = node['type']
       result = case node_type
       when 'STRING', 'DATE'
@@ -50,8 +58,6 @@ module HmisExternalApis::StaticPages
       else
         raise "node type #{node_type} not supported in #{node.inspect}"
       end
-      @stack.pop
-      return result
     end
 
     def parent_node
@@ -60,7 +66,14 @@ module HmisExternalApis::StaticPages
 
     def render_input_node(node)
       render_form_group do
-        render_form_input(label: node['text'], name: node['link_id'], required: node['required'])
+        case node['component']
+        when 'PHONE'
+          render_form_input(label: node['text'], name: node['link_id'], required: node['required'],input_type: 'tel')
+        when 'EMAIL'
+          render_form_input(label: node['text'], name: node['link_id'], required: node['required'],input_type: 'email')
+        else
+          render_form_input(label: node['text'], name: node['link_id'], required: node['required'],input_type: 'text')
+        end
       end
     end
 
@@ -83,7 +96,9 @@ module HmisExternalApis::StaticPages
     end
 
     def render_display_node(node)
-      context.tag.div(node['text'].html_safe)
+      render_form_group do
+        context.tag.div(node['text'].html_safe)
+      end
     end
 
     def render_choice_node(node)
@@ -125,6 +140,13 @@ module HmisExternalApis::StaticPages
       return context.capture(&block) if parent_node && parent_node['component'] == 'INPUT_GROUP'
 
       context.render_form_group(&block)
+    end
+
+    def render_dependent_item_wrapper(node, &block)
+      if node['enable_behavior']
+        return context.render_dependent_block(input_name: node.dig('enable_when', 'question'), input_value: node.dig('enable_when', 'answer_code'), &block)
+      end
+      return context.capture(&block)
     end
   end
 end

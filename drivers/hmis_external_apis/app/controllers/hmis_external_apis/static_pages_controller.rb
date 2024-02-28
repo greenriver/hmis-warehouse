@@ -21,7 +21,7 @@ class HmisExternalApis::StaticPagesController < ActionController::Base
       return render(html: page.content.html_safe)
     end
 
-    (@title, @definition_nodes) = read_definition(params[:template]).values_at('name', 'item')
+    @definition = read_definition(params[:template])
     @renderer =  HmisExternalApis::StaticPages::FormGenerator.new(self)
 
     #template = 'hmis_external_apis/static_pages/' + params[:template]
@@ -43,6 +43,6 @@ class HmisExternalApis::StaticPagesController < ActionController::Base
 
   def read_definition(filename)
     filename = Rails.root.join("drivers/hmis_external_apis/lib/static_page_forms/#{filename}.json")
-    data_hash = JSON.parse(File.read(filename))
+    JSON.parse(File.read(filename))
   end
 end

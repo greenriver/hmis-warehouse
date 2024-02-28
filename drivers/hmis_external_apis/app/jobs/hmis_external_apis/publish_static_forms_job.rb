@@ -7,26 +7,14 @@
 require 'nokogiri'
 
 # render and upload static forms
+# PublishStaticFormsJob.new.perform('tchc/prevention_screening')
 class HmisExternalApis::PublishStaticFormsJob
   include SafeInspectable
 
-  def perform
-    # form pages to publish. Maybe could use ENV['CLIENT']
-    subdir = 'tchc'
-    page_names(subdir).each do |page_name|
-      process_page(page_name)
-    end
-  end
-
-  protected
-
-  def process_page(page_name)
-    form_fields = []
+  def perform(page_name)
     renderer = HmisExternalApis::StaticPagesController.renderer.new
-    content = renderer.render("hmis_external_apis/static_pages/#{page_name}", assigns: { field_collection: form_fields })
-
-    # raise for now but in future we could support info pages that have no forms
-    raise if form_fields.empty? || content.empty?
+    form_definition = read_form_definition(page_name)
+    content = renderer.render("hmis_external_apis/static_pages/show", assigns: { form_definition: form_definition})
 
     content_version = key_content(content)
     form = HmisExternalApis::StaticPages::Form.where(name: page_name, content_version: content_version).first_or_initialize
@@ -71,11 +59,9 @@ class HmisExternalApis::PublishStaticFormsJob
     Digest::MD5.hexdigest(content)
   end
 
-  def page_names(subdir)
-    dirname = Rails.root.join("drivers/hmis_external_apis/app/views/hmis_external_apis/static_pages/#{subdir}").to_s
-    Dir.entries(dirname).
-      # skip partial views
-      filter { |file| file =~ /\A[a-z]/i ? File.file?(File.join(dirname, file)) : false }.
-      map { |file| "#{subdir}/#{file}".sub(/\.[a-z0-9]+\z/i, '') }
+  SUB_DIR = "drivers/hmis_external_apis/lib/static_page_forms".freeze
+  def read_form_definition(page_name)
+    filename = Rails.root.join("#{SUB_DIR}/#{page_name}.json")
+    JSON.parse(File.read(filename))
   end
 end

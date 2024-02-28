@@ -9,25 +9,13 @@ module HmisExternalApis::StaticPagesHelper
     "hmis_external_apis/static_pages/#{partial}"
   end
 
-  def register_field(name:, label:, type:, options: nil)
-    return
-    # @seen ||= Set.new
-    # raise "duplicate field name \"#{name}\", (#{label})" if name.in?(@seen)
-
-    # @seen.add(name)
-
-    # @field_collection.push({ name: name, label: label, type: type, options: options })
-  end
-
   def render_form_input(label:, input_type: 'text', name: nil, input_pattern: nil, input_mode: nil, required: false, input_placeholder: nil)
     name ||= name_from_label(label)
-    register_field(name: name, label: label, type: input_type)
     render partial_path('form/input'), label: label, input_type: input_type, name: name, required: required, input_pattern: input_pattern, html_id: next_html_id, input_mode: input_mode, input_placeholder: input_placeholder
   end
 
   def render_form_textarea(label:, name: nil, required: false, rows: 2)
     name ||= name_from_label(label)
-    register_field(name: name, label: label, type: 'textarea')
     render partial_path('form/textarea'), label: label, name: name, required: required, rows: rows, html_id: next_html_id
   end
 
@@ -37,7 +25,6 @@ module HmisExternalApis::StaticPagesHelper
 
   def render_form_date(legend:, name: nil, required: false)
     name ||= name_from_label(legend)
-    register_field(name: name, label: legend, type: 'date')
     render_form_fieldset(legend: legend, required: required) do
       render partial_path('form/date'), legend: legend, required: required, name: name
     end
@@ -46,14 +33,12 @@ module HmisExternalApis::StaticPagesHelper
   def render_form_select(label:, name: nil, required: false, options:)
     name ||= name_from_label(label)
     options = expand_options([{ label: '-- Select', value: '' }] + options)
-    register_field(name: name, label: label, type: 'select', options: options)
     render partial_path('form/select'), label: label, options: options, name: name, required: required, html_id: next_html_id
   end
 
   def render_form_radio_group(legend:, name: nil, required: false, options:, &block)
     name ||= name_from_label(legend)
     options = expand_options(options)
-    register_field(name: name, label: legend, type: 'radio', options: options)
     render_form_fieldset(legend: legend, required: required) do
       radios = render(partial_path('form/radio_group_options'), options: options, name: name, required: required, html_id: next_html_id)
       extra = capture(&block) if block
@@ -89,7 +74,6 @@ module HmisExternalApis::StaticPagesHelper
 
   def render_form_checkbox(label:, name: nil, required: false)
     name ||= name_from_label(legend)
-    register_field(name: name, label: label, type: 'checkbox')
     render partial_path('form/checkbox'), label: label, name: name, html_id: next_html_id, required: required
   end
 
