@@ -34,7 +34,8 @@
           "id": "min-expiration",
           "type": "MIN",
           "_comment": "entry date cannot be in the past",
-          "value_local_constant": "$tomorrow"
+          "value_local_constant": "$today",
+          "offset": 1
         }
       ]
     }
