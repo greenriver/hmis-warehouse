@@ -23,7 +23,7 @@ module HudSpmReport::Adapters
       report_end_date = @filter.end
       lookback_start_date = report_start_date - 7.years
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
-        joins(:client, :project).
+        joins(:client, :project, enrollment: :client).
         open_between(start_date: lookback_start_date, end_date: report_end_date).
         where(project_id: @project_ids)
 
