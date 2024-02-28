@@ -138,7 +138,7 @@ module HudSpmReport::Fy2023
             HomelessnessInfo.new(
               start_of_homelessness: enrollment.date_to_street_essh,
               entry_date: enrollment.entry_date,
-              move_in_date: enrollment.move_in_date,
+              move_in_date: enrollment_own_move_in_date(enrollment),
             ) # If there is no HoH, use the enrollment
           members << {
             report_instance_id: report_instance.id,
@@ -302,7 +302,7 @@ module HudSpmReport::Fy2023
       SQL
     end
 
-    def self.enrollment_own_move_in_date(enrollment)
+    private_class_method def self.enrollment_own_move_in_date(enrollment)
       return nil unless enrollment.move_in_date
 
       enrollment.move_in_date >= enrollment.entry_date ? enrollment.move_in_date : nil

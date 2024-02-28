@@ -38,9 +38,12 @@ module HudSpmReport::Fy2023
 
       calculated_bed_nights = candidate_bed_nights(enrollments, included_project_types, include_self_reported_and_ph)
       calculated_excluded_dates = excluded_bed_nights(enrollments, excluded_project_types)
-      calculated_bed_nights.reject! { |_, _, date| date.in?(calculated_excluded_dates) }
+      limited_bed_nights = calculated_bed_nights.reject { |_, _, date| date.in?(calculated_excluded_dates) }
+      return unless limited_bed_nights.present?
 
-      filtered_bed_nights = filter_episode(calculated_bed_nights)
+      adjusted_bed_nights = add_self_reported(limited_bed_nights, enrollments) if include_self_reported_and_ph
+
+      filtered_bed_nights = filter_episode(adjusted_bed_nights)
       return unless filtered_bed_nights.present?
 
       bed_nights_array = []
@@ -94,32 +97,27 @@ module HudSpmReport::Fy2023
       end
       enrollments.each do |enrollment|
         if enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn))
-          # NbN only gets service nights in the report range
+          # NbN only gets service nights in the report range and within the enrollment period
+          first_night = [report_start_date, enrollment.entry_date].max
+          last_night = if enrollment.exit_date.present?
+            [enrollment.exit_date - 1.day, report_end_date].min # Cannot have an bed night on the exit date
+          else
+            report_end_date # If no exit, cannot have a bed night after the report period
+          end
           bed_nights.merge!(
             enrollment.enrollment.services. # Preloaded
               # merge(GrdaWarehouse::Hud::Service.bed_night.between(start_date: report_start_date, end_date: report_end_date)).
               # pluck(s_t[:id], s_t[:record_type], s_t[:date_provided]).
               map do |service|
                 date = service.date_provided
-                next unless service.record_type == HudUtility2024.record_type('Bed Night', true) && date.between?(report_start_date, report_end_date)
+                next unless service.record_type == HudUtility2024.record_type('Bed Night', true) && date.between?(first_night, last_night)
 
                 [enrollment, service.id, date]
               end.compact.group_by(&:last).
               transform_values { |v| Array.wrap(v).last }, # Unique by date
           )
         else
-          # There are two output tables required for this measure.  Each of the two tables has two rows – each with a different universe of clients and corresponding universe of data.  Effectively, there is a single row of output which must be produced four different ways, each using a different universe of data, as shown below:
-          #   •	Measure 1a / Metric 1:  Persons in ES-EE, ES-NbN, and SH – do not include data from element 3.917.
-          #   •	Measure 1a / Metric 2:  Persons in ES-EE, ES-NbN, SH, and TH – do not include data from element 3.917.
-          #   •	Measure 1b / Metric 1:  Persons in ES-EE, ES-NbN, SH, and PH – include data from element 3.917 and time between [project start date] and [housing move-in date].
-          # •	Measure 1b / Metric 2:  Persons in ES-EE, ES-NbN, SH, TH, and PH – include data from element 3.917 and time between [project start date] and [housing move-in date].
-
-          start_date = if include_self_reported_and_ph
-            # Include self-reported dates, if any, otherwise later of project start and lookback date
-            enrollment.start_of_homelessness || [enrollment.entry_date, lookback_date].max
-          else
-            enrollment.entry_date
-          end
+          start_date = enrollment.entry_date
           end_date = if enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:ph))
             # PH only gets days before move-in, if there is one
             enrollment.move_in_date || enrollment.exit_date
@@ -145,13 +143,23 @@ module HudSpmReport::Fy2023
       enrollments.each do |enrollment|
         if enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:th))
           # TH bed nights are not considered homeless
-          end_date = enrollment.exit_date || report_end_date
+          # The exit day, if present, is not a a bed night
+          end_date = if enrollment.exit_date
+            [enrollment.exit_date - 1.day, report_end_date].min
+          else
+            report_end_date
+          end
           bed_nights += (enrollment.entry_date .. end_date).to_a
         elsif enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:ph))
           # PH bed nights on or after move in are not considered homeless
           next unless enrollment.move_in_date.present?
 
-          end_date = enrollment.exit_date || report_end_date
+          # The exit day, if present, is not a a bed night
+          end_date = if enrollment.exit_date
+            [enrollment.exit_date - 1.day, report_end_date].min
+          else
+            report_end_date
+          end
           bed_nights += (enrollment.move_in_date .. end_date).to_a
         else
           raise 'Unexpected project type, no exclusion rules'
@@ -159,6 +167,43 @@ module HudSpmReport::Fy2023
       end
 
       bed_nights
+    end
+
+    private def add_self_reported(existing_bed_nights, enrollments)
+      bed_nights = existing_bed_nights.index_by(&:last)
+      enrollments.each do |enrollment|
+        if enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn))
+          # NbN only gets service nights in the report range and within the enrollment period
+          first_night = [report_start_date, enrollment.entry_date].max
+          last_night = if enrollment.exit_date.present?
+            [enrollment.exit_date - 1.day, report_end_date].min # Cannot have an bed night on the exit date
+          else
+            report_end_date # If no exit, cannot have a bed night after the report period
+          end
+          earliest_bed_night = enrollment.enrollment.services.select do |service|
+            service.record_type == HudUtility2024.record_type('Bed Night', true) && service.date_provided.between?(first_night, last_night)
+          end.min_by(&:date_provided)&.date_provided
+          next unless earliest_bed_night.present?
+
+          # Self-reported dates earlier than the first bed night if present and the first bed night is on or after the lookback date
+          start_date = [enrollment.start_of_homelessness, earliest_bed_night].compact.min
+          next unless start_date >= lookback_date && start_date < enrollment.entry_date
+
+          (start_date .. earliest_bed_night).map do |date|
+            bed_nights[date] ||= [enrollment, nil, date] # Add the day if not already present
+          end
+        else
+          # Self-reported dates earlier than the entry date if present and the start is on or after the lookback date
+          start_date = [enrollment.start_of_homelessness, enrollment.entry_date].compact.min
+          next unless start_date >= lookback_date && start_date < enrollment.entry_date
+
+          (start_date .. enrollment.entry_date).map do |date|
+            bed_nights[date] ||= [enrollment, nil, date] # Add the day if not already present
+          end
+        end
+      end
+
+      bed_nights.values
     end
 
     # @param bed_nights [[Enrollment, service_id, Date]] Array of candidate bed nights to be processed
