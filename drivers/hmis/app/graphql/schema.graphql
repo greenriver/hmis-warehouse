@@ -6328,6 +6328,7 @@ enum PickListType {
   All unit types.
   """
   ALL_UNIT_TYPES
+  AVAILABLE_BULK_SERVICE_TYPES
   AVAILABLE_FILE_TYPES
   AVAILABLE_SERVICE_TYPES
 
@@ -8250,6 +8251,11 @@ type Project {
   residentialAffiliationProjectIds: [ID!]!
   residentialAffiliationProjects: [Project!]!
   rrhSubType: RRHSubType
+
+  """
+  Service types that are collected for this Project
+  """
+  serviceTypes: [ServiceType!]!
   services(filters: ServicesForProjectFilterOptions, limit: Int, offset: Int, sortOrder: ServiceSortOption): ServicesPaginated!
   targetPopulation: TargetPopulation
   unitTypes: [UnitTypeCapacity!]!
@@ -10027,6 +10033,7 @@ enum ServiceSubTypeProvided {
 }
 
 type ServiceType {
+  bulk: Boolean!
   category: String!
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime

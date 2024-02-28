@@ -14,6 +14,7 @@ module Types
     field :id, ID, null: false
     field :name, String, null: false
     field :hud, Boolean, null: false, method: :hud_service?
+    field :bulk, Boolean, null: false, default_value: false
     field :hud_record_type, HmisSchema::Enums::Hud::RecordType, null: true
     field :hud_type_provided, HmisSchema::Enums::ServiceTypeProvided, null: true
     field :category, String, null: false

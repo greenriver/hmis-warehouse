@@ -41,6 +41,8 @@ module Mutations
               project: project,
               entry_date: date_provided,
               user_id: hud_user_id,
+              household_id: Hmis::Hud::Base.generate_uuid,
+              enrollment_coc: project&.project_cocs&.pluck(:CoCCode)&.uniq&.compact&.first, # FIXME handle multiples
             )
             raise 'unauthorized' unless can_enroll_clients
 

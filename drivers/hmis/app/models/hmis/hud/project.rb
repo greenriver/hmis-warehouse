@@ -234,6 +234,21 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     end.compact
   end
 
+  # Service types that are collected in this project. They are collected if they have an active form definition and instance.
+  def available_service_types
+    # Find form rules for services that are applicable to this project
+    ids = Hmis::Form::Instance.for_services.
+      for_project_through_entities(self).
+      joins(:definition).
+      where(fd_t[:role].eq(:SERVICE)).
+      pluck(:custom_service_type_id, :custom_service_category_id)
+
+    type_matches = cst_t[:id].in(ids.map(&:first))
+    category_matches = cst_t[:custom_service_category_id].in(ids.map(&:last))
+
+    Hmis::Hud::CustomServiceType.where(type_matches.or(category_matches))
+  end
+
   # Occurrence Point Form Instances that are enabled for this project (e.g. Move In Date form)
   def occurrence_point_form_instances
     # All instances for Occurrence Point forms
