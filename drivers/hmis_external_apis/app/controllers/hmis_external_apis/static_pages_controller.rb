@@ -21,9 +21,11 @@ class HmisExternalApis::StaticPagesController < ActionController::Base
       return render(html: page.content.html_safe)
     end
 
-    @field_collection = []
-    template = 'hmis_external_apis/static_pages/' + params[:template]
-    render template: template
+    (@title, @definition_nodes) = read_definition(params[:template]).values_at('name', 'item')
+    @renderer =  HmisExternalApis::StaticPages::FormGenerator.new(self)
+
+    #template = 'hmis_external_apis/static_pages/' + params[:template]
+    #render template: template
   end
 
   def create
@@ -37,5 +39,10 @@ class HmisExternalApis::StaticPagesController < ActionController::Base
       object_key: SecureRandom.uuid,
     )
     render json: params
+  end
+
+  def read_definition(filename)
+    filename = Rails.root.join("drivers/hmis_external_apis/lib/static_page_forms/#{filename}.json")
+    data_hash = JSON.parse(File.read(filename))
   end
 end

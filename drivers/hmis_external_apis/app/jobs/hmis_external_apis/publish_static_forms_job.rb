@@ -36,7 +36,7 @@ class HmisExternalApis::PublishStaticFormsJob
     versioned_content = process_content(content: content, version: content_version, page_name: page_name, form_action: lambda_url)
     object_key = upload_to_s3(content: versioned_content, page_name: page_name)
 
-    form.attributes = { object_key: object_key, fields: form_fields, content: versioned_content }
+    form.attributes = { object_key: object_key, form_definition: form_definition, content: versioned_content }
     form.save!
   end
 

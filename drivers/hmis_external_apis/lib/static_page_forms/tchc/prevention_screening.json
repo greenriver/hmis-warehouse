@@ -1,0 +1,426 @@
+{
+  "name": "Tarrant County Prevention Screening Form",
+  "item": [
+    {
+      "type": "GROUP",
+      "text": "About You",
+      "item": [
+        {
+          "link_id": "first_name",
+          "required": true,
+          "type": "STRING",
+          "text": "First Name"
+        },
+        {
+          "link_id": "last_name",
+          "required": true,
+          "type": "STRING",
+          "text": "Last Name"
+        },
+        {
+          "link_id": "address_apartment_number",
+          "required": true,
+          "type": "STRING",
+          "text": "Address & Apartment Number"
+        },
+        {
+          "link_id": "city",
+          "required": true,
+          "type": "STRING",
+          "text": "City"
+        },
+        {
+          "link_id": "zip_code",
+          "type": "STRING",
+          "text": "Zip Code"
+        },
+        {
+          "link_id": "client_email",
+          "type": "STRING",
+          "text": "Client Email"
+        },
+        {
+          "link_id": "client_phone_number",
+          "type": "STRING",
+          "text": "Client Phone Number"
+        },
+        {
+          "link_id": "dob",
+          "required": true,
+          "type": "DATE",
+          "text": "Date of Birth"
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "text": "Overview",
+      "item": [
+        {
+          "type": "DISPLAY",
+          "text": "<p>Please note: Assessments will be evaluated for eligibility and completeness. Tenants will be notified or asked for additional requested items by email.</p><p>Tenants MUST NOT have received rental assistance from any other sources for which tenant is requesting at this time.</p>"
+        },
+        {
+          "link_id": "military_veteran_in_home",
+          "required": true,
+          "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
+          "text": "Is there a military veteran in the home?",
+          "pick_list_options": [
+            {
+              "code": "yes",
+              "label": "Yes"
+            },
+            {
+              "code": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "link_id": "received_rental_assistance_in_last_three_years",
+          "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
+          "text": "Have you received rental assistance within the past three (3) years?",
+          "pick_list_options": [
+            {
+              "code": "yes",
+              "label": "Yes"
+            },
+            {
+              "code": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "link_id": "received_texas_rent_relief_or_erap",
+          "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
+          "text": "Have you received \"Texas Rent Relief\" or \"Tarrant County ERAP\" assistance?",
+          "pick_list_options": [
+            {
+              "code": "yes",
+              "label": "Yes"
+            },
+            {
+              "code": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "link_id": "lives_in_unit_with_assisted_by_federal_funding",
+          "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
+          "text": "Do you live in a unit assisted by another Federal Funded housing, such as Section 8?",
+          "pick_list_options": [
+            {
+              "code": "yes",
+              "label": "Yes"
+            },
+            {
+              "code": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "link_id": "understanding_of_cross_reference",
+          "type": "BOOLEAN",
+          "component": "CHECKBOX",
+          "text": "I understand that my information will be cross referenced with other agencies that may have provided rental assistance to my household within the last 3 years"
+        },
+        {
+          "link_id": "explanation_of_non_payment_of_rent",
+          "type": "TEXT",
+          "text": "Please explain current Household \"Crisis\" that has resulted in the non-Payment of rent for your household this month."
+        },
+        {
+          "link_id": "has_been_literally_homeless",
+          "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
+          "text": "Have you ever been literally homeless (Stayed in an Emergency Shelter or Outside or a place not meant for habitation)?",
+          "pick_list_options": [
+            {
+              "code": "yes",
+              "label": "Yes"
+            },
+            {
+              "code": "no",
+              "label": "No"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "text": "Rental History",
+      "item": [
+        {
+          "link_id": "how_many_months_is_your_lease",
+          "required": true,
+          "type": "CHOICE",
+          "component": "DROPDOWN",
+          "text": "How many months is your lease?",
+          "pick_list_options": [
+            {
+              "code": "six_months",
+              "label": "6 months"
+            },
+            {
+              "code": "twelve_months",
+              "label": "12 months"
+            },
+            {
+              "code": "eighteen_months",
+              "label": "18 months"
+            },
+            {
+              "code": "twenty_four_months",
+              "label": "24 months"
+            },
+            {
+              "code": "other",
+              "label": "Other"
+            }
+          ]
+        },
+        {
+          "link_id": "how_many_bedrooms_is_your_unit",
+          "required": true,
+          "type": "CHOICE",
+          "component": "DROPDOWN",
+          "text": "How many bedrooms is your unit?",
+          "pick_list_options": [
+            {
+              "code": "studio",
+              "label": "Studio"
+            },
+            {
+              "code": "one_bedroom",
+              "label": "1 Bedroom"
+            },
+            {
+              "code": "two_bedrooms",
+              "label": "2 Bedrooms"
+            },
+            {
+              "code": "three_bedrooms",
+              "label": "3 Bedrooms"
+            },
+            {
+              "code": "four_bedrooms",
+              "label": "4 Bedrooms"
+            },
+            {
+              "code": "five_plus_bedrooms",
+              "label": "5+ Bedrooms"
+            }
+          ]
+        },
+        {
+          "link_id": "have_you_received_a_3_daynotice_to_vacate",
+          "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
+          "text": "Have you received a \"3 Day Notice to Vacate\" from your property management?",
+          "pick_list_options": [
+            {
+              "code": "yes",
+              "label": "Yes"
+            },
+            {
+              "code": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "link_id": "have_you_been_served_with_eviction_court_date",
+          "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
+          "text": "Have you been served by the Tarrant County Constable Office with a formal eviction court date?",
+          "pick_list_options": [
+            {
+              "code": "yes",
+              "label": "Yes"
+            },
+            {
+              "code": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "link_id": "how_many_people_on_lease_are_over_18yo",
+          "type": "INTEGER",
+          "text": "How many people on the lease are over 18 years old?"
+        },
+        {
+          "link_id": "monthly_rent_amount",
+          "type": "INTEGER",
+          "text": "How much is your base rent? (This does NOT include utilities or other incidentals.)"
+        },
+        {
+          "link_id": "amount_of_rent_owed",
+          "type": "INTEGER",
+          "text": "As of today, how much do you owe on your rent?"
+        },
+        {
+          "link_id": "landlord_name",
+          "required": true,
+          "type": "STRING",
+          "text": "Landlord Name"
+        },
+        {
+          "link_id": "landlord_phone_number",
+          "required": true,
+          "type": "STRING",
+          "text": "Landlord Phone Number"
+        },
+        {
+          "link_id": "landlord_email",
+          "required": true,
+          "type": "STRING",
+          "text": "Landlord Email"
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "text": "Income Details",
+      "item": [
+        {
+          "link_id": "landlord_has_relationship_with_anyone_in_household",
+          "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
+          "text": "Does the landlord have a relationship to anyone in the household?",
+          "pick_list_options": [
+            {
+              "code": "yes",
+              "label": "Yes"
+            },
+            {
+              "code": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "link_id": "has_anyone_assisted_with_rent_in_past_12_months",
+          "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
+          "text": "Has any person or program assisted in paying rent for your household in past 12 months?",
+          "pick_list_options": [
+            {
+              "code": "yes",
+              "label": "Yes"
+            },
+            {
+              "code": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "link_id": "resident_of_arlington_fort_worth_or_grand_prairie",
+          "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
+          "text": "Do you live outside of the following cities: Arlington, Fort Worth, or Grand Prairie?",
+          "pick_list_options": [
+            {
+              "code": "yes",
+              "label": "Yes"
+            },
+            {
+              "code": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "link_id": "household_member_gross_income_per_pay_period_or_monthly",
+          "type": "INTEGER",
+          "text": "What is the GROSS Income per pay period or Monthly Income for household members over age 18?"
+        },
+        {
+          "text": "What forms of income were received within the past 30 days? (All income sources will be counted. Proof of employment termination may be needed.)",
+          "link_id": "forms_of_income",
+          "type": "GROUP",
+          "component": "INPUT_GROUP",
+          "item": [
+            {
+              "link_id": "in_past_30_days_had_income_from_ssi",
+              "type": "BOOLEAN",
+              "component": "CHECKBOX",
+              "text": "SSI"
+            },
+            {
+              "link_id": "in_past_30_days_had_income_from_ssdi",
+              "type": "BOOLEAN",
+              "component": "CHECKBOX",
+              "text": "SSDI"
+            },
+            {
+              "link_id": "in_past_30_days_had_income_from_veterans_benefits",
+              "type": "BOOLEAN",
+              "component": "CHECKBOX",
+              "text": "Veteran's Benefits"
+            },
+            {
+              "link_id": "in_past_30_days_had_income_from_food_stamps",
+              "type": "BOOLEAN",
+              "component": "CHECKBOX",
+              "text": "Food Stamps"
+            },
+            {
+              "link_id": "in_past_30_days_had_income_from_child_support",
+              "type": "BOOLEAN",
+              "component": "CHECKBOX",
+              "text": "Child Support"
+            },
+            {
+              "link_id": "in_past_30_days_had_income_from_unemployment",
+              "type": "BOOLEAN",
+              "component": "CHECKBOX",
+              "text": "Unemployment"
+            }
+          ]
+        },
+        {
+          "link_id": "lost_employment_or_income_in_last_30_days",
+          "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
+          "text": "Did you lose employment or have lower income within the past 30 days?",
+          "pick_list_options": [
+            {
+              "code": "yes",
+              "label": "Yes"
+            },
+            {
+              "code": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "link_id": "household_member_notified_of_income_or_state_benefits",
+          "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
+          "text": "Has anyone in your household received written notice that they will start receiving income and or state benefits? (Ex: Job offer letter, unemployment benefits, SNAP benefits, child support, etc.)",
+          "pick_list_options": [
+            {
+              "code": "yes",
+              "label": "Yes"
+            },
+            {
+              "code": "no",
+              "label": "No"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -10,12 +10,13 @@ module HmisExternalApis::StaticPagesHelper
   end
 
   def register_field(name:, label:, type:, options: nil)
-    @seen ||= Set.new
-    raise "duplicate field name \"#{name}\", (#{label})" if name.in?(@seen)
+    return
+    # @seen ||= Set.new
+    # raise "duplicate field name \"#{name}\", (#{label})" if name.in?(@seen)
 
-    @seen.add(name)
+    # @seen.add(name)
 
-    @field_collection.push({ name: name, label: label, type: type, options: options })
+    # @field_collection.push({ name: name, label: label, type: type, options: options })
   end
 
   def render_form_input(label:, input_type: 'text', name: nil, input_pattern: nil, input_mode: nil, required: false, input_placeholder: nil)
@@ -60,16 +61,25 @@ module HmisExternalApis::StaticPagesHelper
     end
   end
 
+  def render_section(title:, &block)
+    tag.section do
+      safe_join(
+        [tag.h2(title, class: 'h4'), capture(&block)],
+        "\n"
+      )
+    end
+  end
+
   def render_form_actions
     render partial_path('form/actions')
   end
 
   def render_form_fieldset(legend:, required: false, &block)
     tag.fieldset do
-      safe_join([
-                  tag.legend(legend, class: required && 'required'),
-                  capture(&block),
-                ], "\n")
+      safe_join(
+        [tag.legend(legend, class: required && 'required'), capture(&block)],
+        "\n"
+      )
     end
   end
 
