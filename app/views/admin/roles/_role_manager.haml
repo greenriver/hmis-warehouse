@@ -1,12 +1,12 @@
 .card.roles.d-flex{ data: { controller: 'role-manager'}}
   - @batch = ModelForm.new
-  = simple_form_for @batch, as: :role, url: batch_update_admin_roles_path, method: :patch do |f|
+  = simple_form_for @batch, as: :role, url: url, method: :patch do |f|
     .card-header
       .d-flex
         .user-role.w-25.d-flex.border-right.border-dark
           %h2 User Roles
           .ml-auto
-            = link_to new_admin_role_path, class: 'btn btn-secondary btn-sm' do
+            = link_to path_for_new, class: 'btn btn-secondary btn-sm' do
               %span.icon-plus
               Add Role
         %h2.permission-header.mr-4 Permissions
@@ -50,7 +50,7 @@
       .role-wrapper.w-75{ data: { 'role-manager' => { target: 'inputWrapper', 'form-value' => path_for_patch }}}
         = hidden_field_tag :authenticity_token, form_authenticity_token, class: 'j-authenticity-token'
         - # cache permission calculation
-        - permissions = Role.permissions_by_group
+        - permissions = role_class.permissions_by_group
         .d-flex
           - @roles.each.with_index do |role, i|
             - show_class = if i < 3 then nil else :hide end
@@ -60,4 +60,4 @@
           - @roles.each.with_index do |role, i|
             - show_class = if i < 3 then nil else :hide end
             .role-column{class: show_class, data: { 'role-manager' => { target: 'roleColumn', 'role-value' => role.id }}}
-              = render 'role_column', role: role, permissions: permissions
+              = render 'admin/roles/role_column', role: role, permissions: permissions
