@@ -12,7 +12,7 @@ RSpec.describe 'Applies overrides as expected', type: :model do
       setup(with_overrides: false)
     end
 
-    it 'Has 8 enrollments' do
+    it 'Has 9 enrollments' do
       expect(GrdaWarehouse::Hud::Enrollment.count).to eq(9)
     end
 
@@ -59,7 +59,7 @@ RSpec.describe 'Applies overrides as expected', type: :model do
       setup(with_overrides: true)
     end
 
-    it 'Has 8 enrollments' do
+    it 'Has 9 enrollments' do
       expect(GrdaWarehouse::Hud::Enrollment.count).to eq(9)
     end
 
@@ -146,6 +146,9 @@ RSpec.describe 'Applies overrides as expected', type: :model do
 
       # Single Funder replacement
       create(:import_override, data_source: @data_source, file_name: 'Funder.csv', matched_hud_key: '29', replaces_column: 'Funder', replacement_value: '4')
+
+      # Changed to PH, for checking move-in date translator
+      create(:import_override, data_source: @data_source, file_name: 'Project.csv', matched_hud_key: '506', replaces_column: 'ProjectType', replacement_value: '3')
     end
     import_hmis_csv_fixture(
       'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/import_overrides_test_files',

@@ -25,6 +25,7 @@ module ClaimsReporting::WarehouseReports
         options: {
           start: dates.min.iso8601,
           end: dates.max.iso8601,
+          enforce_one_year_range: false,
         }.merge(report_params),
       )
       @report.save

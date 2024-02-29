@@ -573,14 +573,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       errors = result.dig('data', 'submitForm', 'errors')
       expect(response.status).to eq(200), result.inspect
       expect(errors).to be_empty
-      record = result.dig('data', 'submitForm', 'record')
-      expect(record['inProgress']).to eq(false)
-      e_id = Hmis::Hud::Enrollment.find(record['id']).enrollment_id
-      ca = Hmis::Hud::CustomAssessment.where(enrollment_id: e_id).last
-      expect(ca).not_to be_nil
-      expect(ca.wip).to eq(false)
-      fp = Hmis::Form::FormProcessor.where(custom_assessment: ca).last
-      expect(fp).not_to be_nil
+
+      enrollment_id = result.dig('data', 'submitForm', 'record', 'id')
+      enrollment = Hmis::Hud::Enrollment.find_by(id: enrollment_id)
+      expect(enrollment).to be_present
+      expect(enrollment.in_progress?).to eq(false)
+      expect(enrollment.intake_assessment).to be_present
+      expect(enrollment.intake_assessment.assessment_date).to eq(enrollment.entry_date)
+      expect(enrollment.intake_assessment.wip).to eq(false)
+      expect(enrollment.intake_assessment.form_processor).to be_present
     end
   end
 

@@ -79,6 +79,9 @@ module HudReports::Households
     # see AirTable Issue ID 30
     private def household_chronic_status(hh_id, client_id)
       household_members = households[hh_id]
+      # we couldn't find a household
+      return false unless household_members.present?
+
       hoh = household_members.detect { |hm| hm[:relationship_to_hoh] == 1 }
       current_member = household_members.detect { |hm| hm[:client_id] == client_id }
 

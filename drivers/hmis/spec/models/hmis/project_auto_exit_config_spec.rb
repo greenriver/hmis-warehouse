@@ -24,48 +24,50 @@ RSpec.describe Hmis::ProjectAutoExitConfig, type: :model do
   let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o2, user: u1 }
 
   it 'should select the proper auto exit config for a project' do
-    # Use the most basic config if there's no specific one
-    aec1 = create(:hmis_project_auto_exit_config)
-    expect(Hmis::ProjectAutoExitConfig.default_config).to eq(aec1)
-    expect(Hmis::ProjectAutoExitConfig.configs_for_project(p1)).to be_empty
-    expect(Hmis::ProjectAutoExitConfig.config_for_project(p1)).to eq(aec1)
-
-    aec1.destroy!
+    expect(Hmis::ProjectAutoExitConfig.for_project(p1)).to be_empty
     expect(Hmis::ProjectAutoExitConfig.config_for_project(p1)).to be_nil
 
     # Project type is least specific
     aec2 = create(:hmis_project_auto_exit_config, project_type: p1.project_type)
-    expect(Hmis::ProjectAutoExitConfig.configs_for_project(p1)).to contain_exactly(aec2)
+    expect(Hmis::ProjectAutoExitConfig.for_project(p1)).to contain_exactly(aec2)
     expect(Hmis::ProjectAutoExitConfig.config_for_project(p1)).to eq(aec2)
-    expect(Hmis::ProjectAutoExitConfig.configs_for_project(p2)).to contain_exactly(aec2)
+    expect(Hmis::ProjectAutoExitConfig.for_project(p2)).to contain_exactly(aec2)
     expect(Hmis::ProjectAutoExitConfig.config_for_project(p2)).to eq(aec2)
 
     # Organization is more specific than project type
     aec3 = create(:hmis_project_auto_exit_config, organization_id: o1.id)
     aec4 = create(:hmis_project_auto_exit_config, organization_id: o2.id)
-    expect(Hmis::ProjectAutoExitConfig.configs_for_project(p1)).to contain_exactly(aec2, aec3)
+    expect(Hmis::ProjectAutoExitConfig.for_project(p1)).to contain_exactly(aec2, aec3)
     expect(Hmis::ProjectAutoExitConfig.config_for_project(p1)).to eq(aec3)
-    expect(Hmis::ProjectAutoExitConfig.configs_for_project(p2)).to contain_exactly(aec2, aec4)
+    expect(Hmis::ProjectAutoExitConfig.for_project(p2)).to contain_exactly(aec2, aec4)
     expect(Hmis::ProjectAutoExitConfig.config_for_project(p2)).to eq(aec4)
 
     # Project id is most specific
     aec5 = create(:hmis_project_auto_exit_config, project_id: p1.id)
-    expect(Hmis::ProjectAutoExitConfig.configs_for_project(p1)).to contain_exactly(aec2, aec3, aec5)
+    expect(Hmis::ProjectAutoExitConfig.for_project(p1)).to contain_exactly(aec2, aec3, aec5)
     expect(Hmis::ProjectAutoExitConfig.config_for_project(p1)).to eq(aec5)
-    expect(Hmis::ProjectAutoExitConfig.configs_for_project(p2)).to contain_exactly(aec2, aec4)
+    expect(Hmis::ProjectAutoExitConfig.for_project(p2)).to contain_exactly(aec2, aec4)
     expect(Hmis::ProjectAutoExitConfig.config_for_project(p2)).to eq(aec4)
   end
 
   it 'should throw errors if the auto-exit is not configured properly' do
     expect { Hmis::ProjectAutoExitConfig.create! }.
-      to raise_error(ActiveRecord::RecordInvalid, /config_options must be present/)
+      to raise_error(ActiveRecord::RecordInvalid, /Config options can't be blank/)
     expect { Hmis::ProjectAutoExitConfig.create!(config_options: 'hello world') }.
-      to raise_error(ActiveRecord::RecordInvalid, /config_options must be JSON/)
+      to raise_error(ActiveRecord::RecordInvalid, /Config options must be JSON/)
     expect { Hmis::ProjectAutoExitConfig.create!(config_options: '{"foo": "bar"}') }.
-      to raise_error(ActiveRecord::RecordInvalid, /config_options must contain an integer length_of_absence_days/)
+      to raise_error(ActiveRecord::RecordInvalid, /Length of Absence is required/)
     expect { Hmis::ProjectAutoExitConfig.create!(config_options: '{"length_of_absence_days": "foobar"}') }.
-      to raise_error(ActiveRecord::RecordInvalid, /config_options must contain an integer length_of_absence_days/)
+      to raise_error(ActiveRecord::RecordInvalid, /Length of Absence is required/)
     expect { Hmis::ProjectAutoExitConfig.create!(config_options: '{"length_of_absence_days": 2}') }.
-      to raise_error(ActiveRecord::RecordInvalid, /length_of_absence_days must greater than or equal to 30/)
+      to raise_error(ActiveRecord::RecordInvalid, /Length of Absence must be greater than or equal to 30/)
+  end
+
+  it 'should assign config values even when existing values are present' do
+    aec = Hmis::ProjectAutoExitConfig.create!(project: p1, options: { 'length_of_absence_days': 90, 'foo': 'bar' })
+    aec.length_of_absence_days = 30
+    aec.save!
+    expect(aec.length_of_absence_days).to eq(30)
+    expect(aec.options['foo']).to eq('bar'), 'Other config options were not overwritten'
   end
 end

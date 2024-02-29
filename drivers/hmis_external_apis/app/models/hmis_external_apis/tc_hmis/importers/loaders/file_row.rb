@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
@@ -17,20 +19,18 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       row.values_at(:filename, :row_number).compact.join(':')
     end
 
-    def field_value(label, required: false, id: nil)
+    def field_value_by_id(id, required: false)
       raise "row is nil. looking for field '#{field}' #{caller.inspect}" if row.nil?
 
-      label = label.to_s
-      by_id = row[label] || {}
-      value = nil
-      if id
-        value = by_id[id]
-      else
-        # raise "field '#{label}' has multiple values. You must specify an id" if by_id.many?
+      value = row[:by_id][id]
+      return value if value
+      raise "id '#{id}' is missing from row: #{context} caller: #{caller.inspect}" if required
+    end
 
-        value = by_id.values.first
-      end
+    def field_value(label, required: false)
+      raise "row is nil. looking for field '#{field}' #{caller.inspect}" if row.nil?
 
+      value = row[label.to_s]
       return value if value
       raise "field '#{label}' is missing from row: #{context} caller: #{caller.inspect}" if required
     end
