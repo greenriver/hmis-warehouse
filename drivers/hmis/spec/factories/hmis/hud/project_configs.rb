@@ -6,7 +6,13 @@
 
 FactoryBot.define do
   factory :hmis_project_auto_enter_config, class: 'Hmis::ProjectAutoEnterConfig' do
-    created_at { Date.parse('2019-01-01') }
-    updated_at { Date.parse('2019-01-01') }
+    created_at { Time.current }
+    updated_at { Time.current }
+  end
+
+  factory :hmis_project_auto_exit_config, class: 'Hmis::ProjectAutoExitConfig' do
+    created_at { Time.current }
+    updated_at { Time.current }
+    config_options { { 'length_of_absence_days': 30 }.to_json }
   end
 end
