@@ -228,21 +228,21 @@ class Hmis::Role < ::ApplicationRecord
         administrative: false,
         access: [:viewable],
         category: 'Client Access',
-        sub_category: 'Privacy',
+        sub_category: 'Sensitive Client Data',
       },
       can_view_partial_ssn: {
         description: 'Grants access to view partial SSN',
         administrative: false,
         access: [:viewable],
         category: 'Client Access',
-        sub_category: 'Privacy',
+        sub_category: 'Sensitive Client Data',
       },
       can_view_dob: {
         description: 'Grants access to view clients\' DOB',
         administrative: false,
         access: [:viewable],
         category: 'Client Access',
-        sub_category: 'Privacy',
+        sub_category: 'Sensitive Client Data',
       },
       can_view_hud_chronic_status: {
         description: "Grants access to see Chronic at PIT. Gives you an idea of someones previous enrollments, even ones you can't otherwise see.",
@@ -333,7 +333,7 @@ class Hmis::Role < ::ApplicationRecord
         administrative: false,
         access: [:viewable],
         category: 'Files',
-        sub_category: 'Privacy',
+        sub_category: 'Sensitive Client Data',
       },
       can_audit_clients: {
         description: 'Access to see who has changed a client record.',
