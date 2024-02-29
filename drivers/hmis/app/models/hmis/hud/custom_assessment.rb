@@ -67,6 +67,55 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   scope :annuals, -> { where(data_collection_stage: 5) }
   scope :post_exits, -> { where(data_collection_stage: 6) }
 
+  # export to superset
+  def self.to_superset
+    scope = not_in_progress.joins(:definition)
+
+    cde_scope = scope.
+      joins(custom_data_elements: :data_element_definition).
+      select(
+        cas_t[:data_source_id],
+        cas_t[:EnrollmentID].as('enrollment_id'),
+        cas_t[:PersonalID].as('personal_id'),
+        fd_t[:identifier].as('form_key'),
+        cas_t[:CustomAssessmentID].as('assessment_id'),
+        cded_t[:key].as('field_key'),
+        cded_t[:label].as('field_label'),
+        cded_t[:field_type],
+        cde_t[:value_float],
+        cde_t[:value_integer],
+        cde_t[:value_boolean],
+        cde_t[:value_string],
+        cde_t[:value_text],
+        cde_t[:value_date],
+        # cde_t[:value_json], # do we need this?
+      )
+
+    assessment_date_scope = scope.
+      select(
+        cas_t[:data_source_id],
+        cas_t[:EnrollmentID].as('enrollment_id'),
+        cas_t[:PersonalID].as('personal_id'),
+        fd_t[:identifier].as('form_key'),
+        cas_t[:CustomAssessmentID].as('assessment_id'),
+        Arel.sql('\'assessment_date\' AS "field_key"'),
+        Arel.sql('\'Assessment Date\' AS "field_label"'),
+        Arel.sql('\'date\' AS "field_type"'),
+        Arel.sql('NULL AS value_float'),
+        Arel.sql('NULL AS value_integer'),
+        Arel.sql('NULL AS value_boolean'),
+        Arel.sql('NULL AS value_string'),
+        Arel.sql('NULL AS value_text'),
+        cas_t[:AssessmentDate].as('value_date'),
+      )
+
+    statements = [
+      cde_scope,
+      assessment_date_scope,
+    ].map(&:to_sql)
+    "(#{statements.join(' UNION ALL ')}) ORDER BY enrollment_id, field_key"
+  end
+
   scope :with_role, ->(role) do
     stages = Array.wrap(role).map { |r| Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[r.to_sym] }.compact
     where(data_collection_stage: stages)
