@@ -1,0 +1,35 @@
+- categories = permissions.keys.sort
+- categories.each do |category|
+  - category_data = permissions[category]
+  - category_value = "#{category.gsub(' ', '-').gsub('&', '').downcase}"
+  - category_slug = "#{category_value}_#{role.id}"
+  - content_for "panel_collapse_content_#{category_slug}".to_sym do
+    - sub_categories = category_data.keys.sort
+    - sub_categories.each do |sub_category|
+      %h4= sub_category
+      - perms = category_data[sub_category]
+      - perms.each do |key, permission|
+        - label = permission.try(:[], :title) || key.to_s.humanize
+        - administrative = if permission[:administrative] then 'administrative' else '' end
+        - administrative_data = if permission[:administrative] then { 'role-manager' => { target: 'administrativeInput' }} else {} end
+        .form-check.mb-6{class: administrative, data: administrative_data }
+          - if administrative.present?
+            .mb-2
+              %small
+                %i.icon-lock.icon-sm
+                Administrative Permission
+          - id = key.to_s
+          - name = "role[#{role.id}][#{id}]"
+          - id += "_#{role.id}"
+          - checked = if role.send(key) then 'checked' else nil end
+          %input{name: name, type: 'hidden', value: 0}
+          .c-checkbox.d-flex
+            %input{id: id, name: name, type: 'checkbox', value: 1, checked: checked, data: { 'role-manager' => { target: 'individualPermission', 'role-value' => role.id, 'permission-value' => key }, action: 'role-manager#updateState'}}
+            %label.pl-6.w-100{for: id}
+              = label
+          - if permission[:description]
+            .ml-6
+              %small.form-text= permission[:description]
+
+      -# = f.input key, label: label, hint: permission.try(:[], :description)
+  = render 'common/panel_collapse', id: category_slug, title: category, content: "_#{category_slug}", wrapper_class: '', arrow_icon: 'icon-angle', heading_data: { action: 'role-manager#toggleSection', 'role-manager' => { target: 'permissionCategory', 'category-value' => category_value }}
