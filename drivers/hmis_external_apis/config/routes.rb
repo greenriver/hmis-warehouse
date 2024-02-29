@@ -18,12 +18,9 @@ BostonHmis::Application.routes.draw do
     end
     if Rails.env.development?
       # testing only
-      get '/hmis_external_api/static_pages/*template',
-          to: 'static_pages#show',
-          as: 'hmis_external_static_pages',
-          defaults: { format: 'html' }
-      post '/hmis_external_api/static_pages/*template',
-           to: 'static_pages#create'
+      post '/hmis_external_api/static_pages/presign', as: 'presign_hmis_external_apis_static_page', to: 'static_pages#presign'
+      get '/hmis_external_api/static_pages/*template', as: 'hmis_external_apis_static_page', to: 'static_pages#show', defaults: { format: 'html' }
+      put '/hmis_external_api/static_pages', as: 'create_hmis_external_apis_static_page', to: 'static_pages#create'
     end
   end
 end

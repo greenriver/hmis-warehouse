@@ -117,9 +117,9 @@ module HmisExternalApis::StaticPages
       render_form_group do
         case node['component']
         when 'DROPDOWN'
-          render_form_select(label: node['text'], name: node['link_id'], options: options)
+          render_form_select(label: node['text'], name: node['link_id'], options: options, required: node['required'])
         when 'RADIO_BUTTONS'
-          render_form_radio_group(legend: node['text'], name: node['link_id'], options: options)
+          render_form_radio_group(legend: node['text'], name: node['link_id'], options: options, required: node['required'])
         else
           raise "component #{node['component']} not supported in #{node.inspect}"
         end

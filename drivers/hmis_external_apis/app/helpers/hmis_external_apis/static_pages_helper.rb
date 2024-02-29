@@ -87,11 +87,25 @@ module HmisExternalApis::StaticPagesHelper
     "field-#{@field_id}"
   end
 
+  def render_modal(title:, html_id: next_html_id, blocker: false, &block)
+    content = capture(&block)
+    render partial_path('modal'), content: content, html_id: html_id, title: title, blocker: blocker
+  end
+
   def page_config
+    presign_url = ENV['STATIC_PAGE_S3_PRESIGN_URL']
+    recaptcha_key = ENV['STATIC_PAGE_CAPTCHA_KEY']
+    if Rails.env.development?
+      presign_url ||= presign_hmis_external_apis_static_page_path
+      recaptcha_key ||= '6Ldbm4UpAAAAAAK9h9ujlVDig1nC4DghpOP6WFfQ'
+    end
+
     @page_config ||= HmisExternalApis::StaticPages::Config.new(
       site_title: 'Tarrant County Homeless Coalition',
       site_logo_url: 'https://ahomewithhope.org/wp-content/themes/tchc/assets/images/logo.png',
       site_logo_dimensions: [110, 60],
+      recaptcha_key: recaptcha_key,
+      presign_url: presign_url,
     )
   end
 end

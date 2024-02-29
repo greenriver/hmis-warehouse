@@ -4,6 +4,7 @@
     {
       "type": "GROUP",
       "text": "About You",
+      "link_id": "about_you",
       "item": [
         {
           "link_id": "first_name",
@@ -36,11 +37,13 @@
         },
         {
           "link_id": "client_email",
+          "required": true,
           "type": "STRING",
           "text": "Client Email"
         },
         {
           "link_id": "client_phone_number",
+          "required": true,
           "type": "STRING",
           "text": "Client Phone Number"
         },
@@ -55,9 +58,11 @@
     {
       "type": "GROUP",
       "text": "Overview",
+      "link_id": "overview",
       "item": [
         {
           "type": "DISPLAY",
+          "link_id": "assessment_evaluation_notice",
           "text": "<p>Please note: Assessments will be evaluated for eligibility and completeness. Tenants will be notified or asked for additional requested items by email.</p><p>Tenants MUST NOT have received rental assistance from any other sources for which tenant is requesting at this time.</p>"
         },
         {
@@ -80,6 +85,7 @@
         {
           "type": "DISPLAY",
           "text": "If there is a military veteran in the home, please call Community Actions Partners first at 817-392-5780.",
+          "link_id": "military_veteran_notice",
           "enable_behavior": "ALL",
           "enable_when": {"question": "military_veteran_in_home", "operator": "EQUAL", "answer_code": "yes"}
         },
@@ -163,6 +169,7 @@
     {
       "type": "GROUP",
       "text": "Rental History",
+      "link_id": "rental_history",
       "item": [
         {
           "link_id": "how_many_months_is_your_lease",
@@ -275,19 +282,16 @@
         },
         {
           "link_id": "landlord_name",
-          "required": true,
           "type": "STRING",
           "text": "Landlord Name"
         },
         {
           "link_id": "landlord_phone_number",
-          "required": true,
           "type": "STRING",
           "text": "Landlord Phone Number"
         },
         {
           "link_id": "landlord_email",
-          "required": true,
           "type": "STRING",
           "text": "Landlord Email"
         }
@@ -296,6 +300,7 @@
     {
       "type": "GROUP",
       "text": "Income Details",
+      "link_id": "income details",
       "item": [
         {
           "link_id": "landlord_has_relationship_with_anyone_in_household",
@@ -334,6 +339,7 @@
           "type": "CHOICE",
           "component": "RADIO_BUTTONS",
           "text": "Do you live outside of the following cities: Arlington, Fort Worth, or Grand Prairie?",
+          "required": true,
           "pick_list_options": [
             {
               "code": "yes",

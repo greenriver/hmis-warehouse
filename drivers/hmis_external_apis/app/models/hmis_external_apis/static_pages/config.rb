@@ -5,17 +5,22 @@
 ###
 
 module HmisExternalApis::StaticPages
-  Config = Struct.new(:site_title, :site_logo_url, :site_logo_dimensions, :google_captcha_key, keyword_init: true) do
-    def form_id
-      'main-form'
+  Config = Struct.new(:site_title, :site_logo_url, :site_logo_dimensions, :recaptcha_key, :presign_url, keyword_init: true) do
+    def js_config
+      {
+        recaptchaKey: recaptcha_key,
+        presignUrl: presign_url,
+      }
     end
 
     def csp_content
       [
         "default-src 'self'",
-        "script-src 'https://cdn.jsdelivr.net'",
-        "style-src 'https://cdn.jsdelivr.net'",
-        "font-src 'self' 'https://fonts.gstatic.com'",
+        "script-src 'unsafe-inline' cdn.jsdelivr.net www.google.com code.jquery.com www.gstatic.com",
+        "style-src 'unsafe-inline' cdn.jsdelivr.net",
+        "font-src 'self' fonts.gstatic.com",
+        "img-src www.gstatic.com ahomewithhope.org",
+        "frame-src www.google.com",
       ].join('; ')
     end
   end

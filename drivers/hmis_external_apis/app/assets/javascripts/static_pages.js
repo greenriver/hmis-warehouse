@@ -1,29 +1,39 @@
 // es5 compatible JS for public-facing static pages
 
 $(function () {
-  var captchaKey = appConfig.captchaKey;
-  var formId = appConfig.formId;
-  var presignedUrl = appConfig.presignedUrl
-
-  if (!appConfig.presignedUrl) {
-    return
+  var form = document.querySelector('form');
+  var handleError = function() {
+    $('#spinnerModal').modal('hide');
+    $('#errorModal').modal('show');
+  }
+  var handleSuccess = function() {
+    $('#spinnerModal').modal('hide');
+    form.reset();
+    document.querySelector('main').remove();
+    $('#successModal').modal('show');
   }
 
-  var form = document.getElementById(formId);
-  if (!form || !captchaKey) return;
+  $('.reload-button').on('click', function() {
+    window.location.reload();
+  });
 
-  var submitWithPresign = function (event) {
-    event.preventDefault(); // Prevent the default form submission
+  var captchaKey = appConfig.recaptchaKey;
+  var presignUrl = appConfig.presignUrl
 
+  if (!appConfig.presignUrl) {
+    throw new Error('missing configuration')
+  }
+
+  var submitWithPresign = function () {
     var formData = {};
-    $(event.target).serializeArray().forEach(function (item) {
+    $(form).serializeArray().forEach(function (item) {
       formData[item.name] = item.value;
     });
 
     var jsonData = JSON.stringify(formData);
     // Request a presigned URL
     $.ajax({
-      url: presignedUrl,
+      url: presignUrl,
       type: 'POST',
       contentType: 'application/json',
       data: JSON.stringify({
@@ -38,21 +48,21 @@ $(function () {
           contentType: 'application/json',
           data: jsonData,
           success: function () {
-            console.log('Submission successful');
+            handleSuccess();
           },
           error: function () {
-            console.error('Submission failed');
+            handleError();
           }
         });
       },
       error: function () {
-        console.error('Error requesting presigned URL');
+        handleError();
       }
     });
   }
 
-  form.addEventListener('submit', function (event) {
-    event.preventDefault(); // Prevent the default form submission
+  var submitWithCaptcha = function() {
+    $('#spinnerModal').modal('show');
     grecaptcha.ready(function () {
       grecaptcha.execute(captchaKey, { action: 'submit' }).then(function (token) {
         // Append the token to the form
@@ -63,9 +73,16 @@ $(function () {
         form.appendChild(recaptchaResponse);
 
         // resubmit
-        submitWithPresign(event);
+        submitWithPresign();
       });
     });
+  };
+
+  $('#confirmSubmitModalButton').on('click', submitWithCaptcha);
+
+  form.addEventListener('submit', function (event) {
+    event.preventDefault(); // Prevent the default form submission
+    $('#confirmSubmitModal').modal('show');
   });
 });
 
