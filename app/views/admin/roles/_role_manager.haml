@@ -3,7 +3,7 @@
   = simple_form_for @batch, as: :role, url: url, method: :patch do |f|
     .card-header
       .d-flex
-        .user-role.w-25.d-flex.border-right.border-dark
+        .user-role.w-25.d-flex.border-right.border-dark{style: 'min-width: 350px;'}
           %h2 User Roles
           .ml-auto
             = link_to path_for_new, class: 'btn btn-secondary btn-sm' do
@@ -13,22 +13,24 @@
         .form-change-count.mr-4.my-auto{ data: { 'role-manager' => { target: 'changeCount' }}}
         .mr-auto.my-auto.hide{ data: { 'role-manager' => { target: 'changeButton' }}}= f.submit 'Save Changes', class: 'btn btn-sm'
     .d-flex
-      .w-25
+      .w-25{style: 'min-width: 350px;'}
         .card-body.border-right.border-dark
-          .administrative-permissions.d-flex.mb-4
-            .btn-group.btn-group-toggle{data: {toggle: :buttons}, aria: {label: "Toggle Administrative Permissions"}}
-              %label.btn.btn-secondary.btn-xs.active{ data: {'role-manager' => { target: 'administrativeFilter' }, action: 'click->role-manager#toggleAdmin' }}
-                %input{type: :radio, name: :roles, id: 'on-administrative-permissions', checked: :checked, value: 'show'} Show
-              %label.btn.btn-secondary.btn-xs{ data: {'role-manager' => { target: 'administrativeFilter' }, action: 'click->role-manager#toggleAdmin' }}
-                %input{type: :radio, name: :roles, id: 'off-administrative-permissions', value: 'hide'} Hide
-            .ml-4
-              Administrative Permissions
-            .ml-auto
-              %i.icon-lock
-          %input.form-control.j-table__search.w-100{placeholder: 'Search permissions', data: { 'role-manager' => { target: 'searchInput' }, action: 'keyup->role-manager#searchPermissions'}}
-
+          %label.w-100{for: 'search-roles'} Search
+          %input#search-roles.form-control.j-table__search.w-100{placeholder: 'Search permissions', data: { 'role-manager' => { target: 'searchInput' }, action: 'keyup->role-manager#searchPermissions'}}
+        .administrative-permissions.d-flex.administrative.border-right.border-dark
+          .btn-group.btn-group-toggle{data: {toggle: :buttons}, aria: {label: "Toggle Administrative Permissions"}}
+            %label.btn.btn-secondary.btn-xs.active{ data: {'role-manager' => { target: 'administrativeFilter' }, action: 'click->role-manager#toggleAdmin' }}
+              %input{type: :radio, name: :roles, id: 'on-administrative-permissions', checked: :checked, value: 'show'} Show
+            %label.btn.btn-secondary.btn-xs{ data: {'role-manager' => { target: 'administrativeFilter' }, action: 'click->role-manager#toggleAdmin' }}
+              %input{type: :radio, name: :roles, id: 'off-administrative-permissions', value: 'hide'} Hide
+          .ml-4
+            Administrative Permissions
+          .ml-auto
+            %i.icon-lock
         .list-group.list-group-flush.role-names.border-right.border-dark
+          %h4.mx-auto Show/Hide Roles
           - @roles.each.with_index do |role, i|
+            - role_color_class = "role-color-#{i+1 % 50}"
             - show = nil
             - hide = nil
             - show_class = nil
@@ -39,13 +41,13 @@
             - else
               - hide = :checked
               - hide_class = :active
-            %li.list-group-item.d-flex{style: "background-color: #{role.bg_color}"}
+            %li.list-group-item.d-flex{ class: role_color_class }
               .btn-group.btn-group-toggle{data: {toggle: :buttons}, aria: {label: "Toggle #{role.name} visibility"}}
                 %label.btn.btn-secondary.btn-xs{class: show_class, data: { 'role-manager' => { target: 'roleToggle', 'role-value' => role.id }, action: 'click->role-manager#toggleColumn'}}
                   %input{type: :radio, name: :roles, id: "on-#{role.name.downcase.gsub(/^a-z/, '-')}", checked: show, value: 'show'} Show
                 %label.btn.btn-secondary.btn-xs{class: hide_class, data: { 'role-manager' => { target: 'roleToggle', 'role-value' => role.id }, action: 'click->role-manager#toggleColumn'}}
                   %input{type: :radio, name: :roles, id: "off-#{role.name.downcase.gsub(/^a-z/, '-')}", checked: hide, value: 'hide'} Hide
-              .ml-4{style: "color: #{role.fg_color}"}
+              .ml-4
                 = role.name
       .role-wrapper.w-75{ data: { 'role-manager' => { target: 'inputWrapper', 'form-value' => path_for_patch }}}
         = hidden_field_tag :authenticity_token, form_authenticity_token, class: 'j-authenticity-token'
@@ -53,8 +55,9 @@
         - permissions = role_class.permissions_by_group
         .d-flex
           - @roles.each.with_index do |role, i|
+            - role_color_class = "role-color-#{i+1 % 50}"
             - show_class = if i < 3 then nil else :hide end
             .role-column{class: show_class, data: { 'role-manager' => { target: 'roleColumn', 'role-value' => role.id }}}
-              .role-name-header.role-column.d-flex{style: "background-color: #{role.bg_color}", class: show_class, data: { 'role-manager' => { target: 'roleColumn', 'role-value' => role.id }}}
-                %h3{style: "color: #{role.fg_color}"}= role.name
+              .role-name-header.role-column.d-flex{class: [show_class, role_color_class], data: { 'role-manager' => { target: 'roleColumn', 'role-value' => role.id }}}
+                %h3= role.name
               = render 'admin/roles/role_column', role: role, permissions: permissions

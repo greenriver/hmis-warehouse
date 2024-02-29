@@ -59,6 +59,14 @@
     @include checkbox-checked;
   }
 
+  .c-checkbox input.dirty:checked+label {
+    @include checkbox-checked-dirty;
+  }
+
+  .c-checkbox input.dirty:not(:checked)+label {
+    @include checkbox-not-checked-dirty;
+  }
+
   .c-checkbox input:disabled:checked~label,
   .c-checkbox input.disabled:checked~label,
   .c-checkbox input.disabled:not(:checked)~label,
@@ -72,4 +80,7 @@
       opacity: .75;
     }
   }
+
+  // provides .role-color-1 .. .role-color-50
+  @include many-colors('role-color');
 }

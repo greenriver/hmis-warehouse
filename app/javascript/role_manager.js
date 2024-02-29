@@ -141,6 +141,10 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
     $.each(this.currentState, (key, value) => {
       if (this.initialState[key] != value) {
         changed += 1
+        $(`input[name="${key}"]`).addClass('dirty')
+      }
+      else {
+        $(`input[name="${key}"]`).removeClass('dirty')
       }
     })
     if (changed == 0) {
