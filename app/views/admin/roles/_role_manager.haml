@@ -54,10 +54,7 @@
         .d-flex
           - @roles.each.with_index do |role, i|
             - show_class = if i < 3 then nil else :hide end
-            .role-name-header.role-column.d-flex{style: "background-color: #{role.bg_color}", class: show_class, data: { 'role-manager' => { target: 'roleColumn', 'role-value' => role.id }}}
-              %h3{style: "color: #{role.fg_color}"}= role.name
-        .d-flex
-          - @roles.each.with_index do |role, i|
-            - show_class = if i < 3 then nil else :hide end
             .role-column{class: show_class, data: { 'role-manager' => { target: 'roleColumn', 'role-value' => role.id }}}
+              .role-name-header.role-column.d-flex{style: "background-color: #{role.bg_color}", class: show_class, data: { 'role-manager' => { target: 'roleColumn', 'role-value' => role.id }}}
+                %h3{style: "color: #{role.fg_color}"}= role.name
               = render 'admin/roles/role_column', role: role, permissions: permissions
