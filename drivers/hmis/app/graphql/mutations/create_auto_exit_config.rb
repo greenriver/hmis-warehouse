@@ -13,7 +13,7 @@ module Mutations
 
     def resolve(input:)
       default_create_record(
-        Hmis::AutoExitConfig,
+        Hmis::ProjectAutoExitConfig,
         field_name: :auto_exit_config,
         input: input,
         permissions: [:can_configure_data_collection],
