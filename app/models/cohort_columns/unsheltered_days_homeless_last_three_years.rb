@@ -16,8 +16,12 @@ module CohortColumns
       val.to_i
     end
 
+    def arel_col
+      c_client_t[:unsheltered_days_homeless_last_three_years]
+    end
+
     def value(cohort_client)
-      GrdaWarehouse::Hud::Client.find_by(id: cohort_client.client_id).unsheltered_days_homeless_last_three_years
+      cohort_client.unsheltered_days_homeless_last_three_years
     end
   end
 end
