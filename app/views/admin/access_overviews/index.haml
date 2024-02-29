@@ -1,0 +1,31 @@
+- content_for :title, 'Access Overview'
+.d-flex
+  %h1= content_for :title
+= render 'menus/admin_tabs'
+.access-overview
+  .row
+    .col-sm
+      .well
+        %h3 Building and Using Access Controls
+        %p
+          %strong Access Controls
+          are used to grant users access to data and control the permissions those users have when accessing the granted data.  Access is goverend by the intersection of permissions from the role, users from the associated user group, and information from the collection.
+
+        %p.access-description
+          Each
+          %span.access-control access control
+          consists of one
+          %span.permission-role permission role
+          %span.user-group user group
+          and
+          %span.collection collection.
+
+    .col-sm
+      .well
+        %h3 Common Things Users Do
+        %ul.list-unstyled
+          %li= link_to 'Manage User Roles and Permissions', admin_roles_path
+          %li= link_to 'Manage Users', admin_users_path
+          %li= link_to 'Create Collections', admin_collections_path
+          %li= link_to 'Grant Access to a Report', admin_access_controls_path
+          %li= link_to 'Grant Access to Additional Projects', admin_access_controls_path

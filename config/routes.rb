@@ -775,6 +775,7 @@ Rails.application.routes.draw do
     resources :access_controls do
        post :assign, on: :collection
      end
+    resources :access_overviews, only: [:index]
     resources :user_groups do
       resources :users, only: [:create, :destroy], controller: 'user_groups/users'
     end
