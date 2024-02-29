@@ -16,8 +16,16 @@ module Mutations
       errors.add :config_type, :required if input.config_type.blank?
       return { errors: errors } if errors.any?
 
+      class_name = case input.config_type
+      when 'AUTO_ENTER'
+        Hmis::ProjectAutoEnterConfig
+      when 'AUTO_EXIT'
+        Hmis::AutoExitConfig
+      else raise "Unsupported type: #{input.config_type}"
+      end
+
       default_create_record(
-        input.config_type.constantize,
+        class_name,
         field_name: :project_config,
         input: input,
         permissions: [:can_configure_data_collection],
