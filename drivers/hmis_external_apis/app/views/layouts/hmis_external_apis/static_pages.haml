@@ -9,7 +9,9 @@
       %script{src: "https://www.google.com/recaptcha/api.js?render=#{page_config.google_captcha_key}"}
     %link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous")
     %script(src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous")
-    - # %script(src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous")
+    %script(src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous")
+
+
     :css
       section {
         margin-bottom: 2rem;
@@ -66,94 +68,21 @@
           %img{ alt: page_config.site_title, width: page_config.site_logo_dimensions[0], height: page_config.site_logo_dimensions[1], src: page_config.site_logo_url}
 
     %main.container.p-sm-0
+      %noscript
+        .p-4(style="background-color: #ffcc00;")
+          %strong.mb-2.d-block JavaScript Required
+          %p.m-0 We're sorry, but our website requires JavaScript to function properly. Please enable JavaScript in your browser settings and refresh this page.
+
       .card.p-3= yield
 
   :javascript
     'use strict';
-    $(function() {
-      if (!window.grecaptcha) return;
-      var captchaKey = #{page_config.google_captcha_key.to_json.html_safe};
-      var formId = #{page_config.form_id.to_json.html_safe};
-
-      var form = document.getElementById(formId);
-      if (!form || !captchaKey) return;
-
-      form.addEventListener('submit', function(event) {
-        event.preventDefault(); // Prevent the default form submission
-        grecaptcha.ready(function() {
-          grecaptcha.execute(captchaKey, {action: 'submit'}).then(function(token) {
-            // Append the token to the form
-            var recaptchaResponse = document.createElement('input');
-            recaptchaResponse.type = 'hidden';
-            recaptchaResponse.name = 'recaptcha_response';
-            recaptchaResponse.value = token;
-            form.appendChild(recaptchaResponse);
-
-            // resubmit
-            form.submit();
-          });
-        });
-      });
-    });
-
-    window.addDependentGroup = function(inputName, condValue, targetSelector) {
-      var target = $(targetSelector);
-      var show = function() {
-        target.addClass('visible');
-        target.attr('aria-hidden', "false");
-        target.find('input, select, textarea').prop('disabled', false);
-      }
-      var hide = function() {
-        target.removeClass('visible');
-        target.attr('aria-hidden', "true");
-        target.find('input, select, textarea').prop('disabled', true);
-      }
-
-      $('[name="' + inputName + '"]').change(function() {
-        var el = $(this)
-        var value = el.val();
-        console.info('hi', inputName, value, condValue, el.attr('type'), el.is(':checked'))
-        if (el.prop('type') === 'checkbox') {
-          if (value === condValue) {
-            el.is(':checked') ? show() : hide();
-          }
-        } else {
-          value === condValue ? show() : hide();
-        }
-      });
-      hide();
-    }
-
-    var dateInputMask = function(elm) {
-      elm.addEventListener('keypress', function(e) {
-        // Block if not a number and not a slash
-        if(e.keyCode < 47 || e.keyCode > 57) {
-          e.preventDefault();
-        }
-
-        var len = elm.value.length;
-
-        if(len === 2 || len === 5) {
-          if(e.keyCode == 47) {
-            e.preventDefault();
-          }
-          elm.value += '/';
-        }
-      });
-
-      // Handle paste event
-      elm.addEventListener('input', function(e) {
-        var value = elm.value;
-        // Remove all non-digit characters
-        var cleanedValue = value.replace(/\D+/g, '');
-        // Automatically add slashes
-        var parts = cleanedValue.match(/(\d{0,2})(\d{0,2})(\d{0,4})/).slice(1);
-        elm.value = parts.filter(Boolean).join('/');
-      });
+    window.appConfig = {
+      captchaKey: #{page_config.google_captcha_key.to_json.html_safe},
+      formId: #{page_config.form_id.to_json.html_safe},
+      presignedUrl: 'https://your-api-gateway-url.com/getPresignedUrl'
     };
-
-    var input = document.querySelector('.date-input');
-    dateInputMask(input);
-
-
+  %script(type="text/javascript")
+    'use strict';
+    = File.read(Rails.root.join('drivers/hmis_external_apis/app/assets/javascripts/static_pages.js')).html_safe
   = yield :page_js

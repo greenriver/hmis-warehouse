@@ -1,5 +1,5 @@
 %h1.h3.mb-4= @form_definition['name']
-%form{method: 'post', id: page_config.form_id, novalidate: true}
+%form{method: 'post', id: page_config.form_id}
   - @form_definition['item']&.each do |node|
     = HmisExternalApis::StaticPages::FormGenerator.new(self).render_node(node).html_safe
   = render_form_actions

@@ -99,7 +99,7 @@ module HmisExternalApis::StaticPages
 
     def render_date_node(node)
       render_form_group do
-        render_form_date(label: node['text'], name: node['link_id'], required: node['required'])
+        render_form_date(legend: node['text'], name: node['link_id'], required: node['required'])
       end
     end
 

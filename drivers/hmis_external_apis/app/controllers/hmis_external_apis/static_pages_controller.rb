@@ -16,14 +16,13 @@ class HmisExternalApis::StaticPagesController < ActionController::Base
     # this is intended for development. See PublishStaticFormsJob for production usage
     raise unless Rails.env.development?
 
-    if params[:from_db]
-      page = HmisExternalApis::StaticPages::Form.order(:id).where(name: params[:template]).last!
-      return render(html: page.content.html_safe)
-    end
+    template = params[:template]
+    HmisExternalApis::PublishStaticFormsJob.new.perform(template)
+    page = HmisExternalApis::StaticPages::Form.order(:id).where(name: template).last!
+    return render(html: page.content.html_safe)
 
-    @form_definition = read_definition(params[:template])
-    @renderer =  HmisExternalApis::StaticPages::FormGenerator.new(self)
-
+    #@form_definition = read_definition(params[:template])
+    #@renderer =  HmisExternalApis::StaticPages::FormGenerator.new(self)
     # template = 'hmis_external_apis/static_pages/' + params[:template]
     # render template: template
   end

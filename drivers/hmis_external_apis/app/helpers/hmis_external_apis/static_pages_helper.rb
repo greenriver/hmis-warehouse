@@ -9,20 +9,27 @@ module HmisExternalApis::StaticPagesHelper
     "hmis_external_apis/static_pages/#{partial}"
   end
 
-  def render_form_input(label:, input_type: 'text', name: , input_pattern: nil, input_mode: nil, required: false, input_placeholder: nil, input_class: nil)
-    render partial_path('form/input'), label: label, input_type: input_type, name: name, required: required, input_pattern: input_pattern, html_id: next_html_id, input_mode: input_mode, input_placeholder: input_placeholder, input_class: input_class
+  def render_form_input(label:, input_type: 'text', name: , input_pattern: nil, input_mode: nil, required: false, input_placeholder: nil, input_class: nil, input_html_id: next_html_id)
+    render partial_path('form/input'), label: label, input_type: input_type, name: name, required: required, input_pattern: input_pattern, html_id: input_html_id, input_mode: input_mode, input_placeholder: input_placeholder, input_class: input_class
   end
 
   def render_form_textarea(label:, name: , required: false, rows: 2)
     render partial_path('form/textarea'), label: label, name: name, required: required, rows: rows, html_id: next_html_id
   end
 
-  def render_numeric_input(label:, name: , required: false, input_placeholder: nil, input_pattern: '\d*')
-    render_form_input(label: label, name: name, required: required, input_pattern: input_pattern, input_mode: 'numeric', input_placeholder: input_placeholder)
+  def render_numeric_input(label:, name: , required: false, input_placeholder: nil, input_pattern: '\d*', input_html_id: nil)
+    render_form_input(label: label, name: name, required: required, input_pattern: input_pattern, input_mode: 'numeric', input_placeholder: input_placeholder, input_html_id: input_html_id)
   end
 
   def render_form_date(label:, name: , required: false)
     render_form_input(label: label, name: name, required: required, input_placeholder: 'mm/dd/yyyy', input_class: 'date-input')
+  end
+
+  def render_form_date(legend:, name: nil, required: false)
+    name ||= name_from_label(legend)
+    render_form_fieldset(legend: legend, required: required) do
+      render partial_path('form/date'), legend: legend, required: required, name: name
+    end
   end
 
   def render_form_select(label:, name: , required: false, options:)

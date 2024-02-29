@@ -14,7 +14,7 @@ class HmisExternalApis::PublishStaticFormsJob
   def perform(page_name)
     renderer = HmisExternalApis::StaticPagesController.renderer.new
     form_definition = read_form_definition(page_name)
-    content = renderer.render("hmis_external_apis/static_pages/show", assigns: { form_definition: form_definition})
+    content = renderer.render("hmis_external_apis/static_pages/form", assigns: { form_definition: form_definition})
 
     content_version = key_content(content)
     form = HmisExternalApis::StaticPages::Form.where(name: page_name, content_version: content_version).first_or_initialize
