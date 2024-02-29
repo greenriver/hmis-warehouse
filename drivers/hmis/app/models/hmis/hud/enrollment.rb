@@ -382,6 +382,22 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     Hmis::UnitOccupancy.active(date).where(enrollment: self).first&.unit
   end
 
+  def build_synthetic_intake_assessment
+    assessment = Hmis::Hud::CustomAssessment.new(
+      enrollment: self,
+      client: client,
+      data_source: data_source,
+      assessment_date: entry_date,
+      user: user, # same user that's on the enrollment
+      data_collection_stage: 1, # Intake
+      wip: false,
+    )
+    # Build a FormProcessor. It has no references since no records are created. It is not necessary
+    # to link a Form Definition, because a Form Definition will be selected when/if the form is opened for editing.
+    assessment.build_form_processor
+    assessment
+  end
+
   # When submitting a new_client_enrollment form, we validate the client too, with the same validation contexts
   private def client_is_valid
     return unless client.present?

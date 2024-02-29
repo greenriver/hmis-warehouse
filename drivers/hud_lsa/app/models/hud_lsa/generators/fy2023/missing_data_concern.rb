@@ -32,7 +32,7 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
     {
       project_name: p_t[:ProjectName].to_sql,
       org_name: o_t[:OrganizationName].to_sql,
-      project_type: p_t[:computed_project_type].to_sql,
+      project_type: p_t[:ProjectType].to_sql,
       funder: f_t[:Funder].to_sql,
       id: p_t[:id].to_sql,
       ds_id: p_t[:data_source_id].to_sql,
@@ -57,8 +57,8 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
     missing_data_rows(
       GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.joins(:organization).
       left_outer_joins(:funders).
-      where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types).
-      where(HousingType: nil, housing_type_override: nil).
+      where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types).
+      where(HousingType: nil).
       housing_type_required.
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)), # this is imperfect, but only look at projects with enrollments open during the past three years
     )
@@ -69,9 +69,9 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
       GrdaWarehouse::Hud::ProjectCoc.joins(project: :organization).
       left_outer_joins(project: :funders).
       distinct.
-      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types)).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
-      where(Geocode: nil, geocode_override: nil),
+      where(Geocode: nil),
     )
   end
 
@@ -80,9 +80,9 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
       GrdaWarehouse::Hud::ProjectCoc.joins(project: :organization).
       left_outer_joins(project: :funders).
       distinct.
-      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types)).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
-      where(GeographyType: nil, geography_type_override: nil),
+      where(GeographyType: nil),
     )
   end
 
@@ -91,26 +91,26 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
       GrdaWarehouse::Hud::ProjectCoc.joins(project: :organization).
       left_outer_joins(project: :funders).
       distinct.
-      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types)).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
-      where(Zip: nil, zip_override: nil),
+      where(Zip: nil),
     )
   end
 
   private def operating_start_dates(user)
     missing_data_rows(
       GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.joins(:organization).
-      where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types).
+      where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types).
       left_outer_joins(:funders).
-      where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types).
-      where(OperatingStartDate: nil, operating_start_date_override: nil),
+      where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types).
+      where(OperatingStartDate: nil),
     )
   end
 
   private def invalid_funders(user)
     missing_data_rows(
       GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.joins(:organization).
-      where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types).
+      where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types).
       joins(:funders).
       distinct.
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)).
@@ -123,9 +123,9 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
       GrdaWarehouse::Hud::ProjectCoc.joins(project: :organization).
       left_outer_joins(project: :funders).
       distinct.
-      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types)).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
-      where(CoCCode: nil, hud_coc_code: nil),
+      where(CoCCode: nil),
     )
   end
 
@@ -133,16 +133,11 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
     missing_data_rows(
       GrdaWarehouse::Hud::Project.coc_funded.
       viewable_by(user, permission: :can_view_assigned_reports).
-      where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types).
+      where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types).
       joins(:project_cocs, :inventories, :organization).
       left_outer_joins(:funders).
-      merge(
-        GrdaWarehouse::Hud::ProjectCoc.where(
-          pc_t[:CoCCode].eq(nil).and(pc_t[:hud_coc_code].not_eq(nil)).
-          or(pc_t[:CoCCode].not_eq(nil)),
-        ),
-      ).
-      merge(GrdaWarehouse::Hud::Inventory.where(CoCCode: nil, coc_code_override: nil)).
+      merge(GrdaWarehouse::Hud::ProjectCoc.where(pc_t[:CoCCode].not_eq(nil))).
+      merge(GrdaWarehouse::Hud::Inventory.where(CoCCode: nil)).
       distinct,
     )
   end
@@ -152,7 +147,7 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
       GrdaWarehouse::Hud::Inventory.joins(project: :organization).
       left_outer_joins(project: :funders).
       distinct.
-      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types)).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
       where(HouseholdType: nil),
     )
@@ -163,9 +158,9 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
       GrdaWarehouse::Hud::Inventory.joins(project: :organization).
       left_outer_joins(project: :funders).
       distinct.
-      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types)).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
-      where(InventoryStartDate: nil, inventory_start_date_override: nil),
+      where(InventoryStartDate: nil),
     )
   end
 
@@ -174,7 +169,7 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
       GrdaWarehouse::Hud::HmisParticipation.joins(project: :organization).
       left_outer_joins(project: :funders).
       distinct.
-      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types)).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
       where(HMISParticipationStatusStartDate: nil),
     )
@@ -185,7 +180,7 @@ module HudLsa::Generators::Fy2023::MissingDataConcern
       GrdaWarehouse::Hud::HmisParticipation.joins(project: :organization).
       left_outer_joins(project: :funders).
       distinct.
-      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(computed_project_type: HudLsa::Filters::LsaFilter.relevant_project_types)).
+      merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: :can_view_assigned_reports).coc_funded.hud_residential.where(ProjectType: HudLsa::Filters::LsaFilter.relevant_project_types)).
       where(ProjectID: GrdaWarehouse::Hud::Enrollment.open_during_range(@range).select(:ProjectID)). # this is imperfect, but only look at projects with enrollments open during the past three years
       where(HMISParticipationType: [nil, 99]),
     )

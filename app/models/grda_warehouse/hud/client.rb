@@ -2976,7 +2976,7 @@ module GrdaWarehouse::Hud
         enrollment.last_date_in_program
       else
         enrollments.select do |m|
-          m.computed_project_type == enrollment.computed_project_type &&
+          m.project_type == enrollment.project_type &&
             m.first_date_in_program > enrollment.first_date_in_program
         end.
           sort_by(&:first_date_in_program)&.first&.first_date_in_program || enrollment.last_date_in_program
@@ -2992,7 +2992,7 @@ module GrdaWarehouse::Hud
     private def residential_dates enrollments:
       @non_homeless_types ||= HudUtility2024.residential_project_type_numbers_by_code[:ph]
       @residential_dates ||= enrollments.select do |e|
-        @non_homeless_types.include?(e.computed_project_type)
+        @non_homeless_types.include?(e.project_type)
       end.map do |e|
         # Use select to allow for preloading
         e.service_history_services.select do |s|
@@ -3003,7 +3003,7 @@ module GrdaWarehouse::Hud
 
     private def homeless_dates enrollments:
       @homeless_dates ||= enrollments.select do |e|
-        e.computed_project_type.in?(HudUtility2024.residential_project_type_ids)
+        e.project_type.in?(HudUtility2024.residential_project_type_ids)
       end.map do |e|
         # Use select to allow for preloading
         e.service_history_services.select do |s|
@@ -3020,7 +3020,7 @@ module GrdaWarehouse::Hud
     # If we haven't been in a literally homeless project type (ES, SH, SO) in the last 30 days, this is a new episode
     # You aren't currently housed in PH, and you've had at least a week of being housed in the last 90 days
     def new_episode? enrollments:, enrollment:
-      return false unless HudUtility2024.chronic_project_types.include?(enrollment.computed_project_type)
+      return false unless HudUtility2024.chronic_project_types.include?(enrollment.project_type)
 
       entry_date = enrollment.first_date_in_program
       thirty_days_ago = entry_date - 30.days

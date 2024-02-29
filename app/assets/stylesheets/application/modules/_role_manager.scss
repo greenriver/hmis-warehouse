@@ -1,0 +1,86 @@
+@import '../helpers';
+
+.roles {
+  .card-header {
+    padding: 0;
+    h2 {
+      @include font-bold(18px);
+    }
+  }
+  .user-role {
+    padding: 0.75rem 1.25rem;
+    // border-right: 2px solid black;
+  }
+  // .role-names, .card-body {
+  //   // border-right: 2px solid black;
+  // }
+  .permission-header {
+    padding: 0.75rem 1.25rem;
+  }
+  // .role-list {
+  //   // width: 25%;
+  //   // border-right: 2px solid black;
+  // }
+  // .role-form {
+  //   // width: 75%;
+  // }
+  .role-wrapper {
+    overflow: scroll;
+  }
+  .role-name-header h3 {
+    padding: 1rem;
+    margin: 0 auto;
+    @include font-bold(14px);
+  }
+  .role-column {
+    min-width: 25rem;
+  }
+  .c-card__content {
+    border-radius: 0;
+  }
+  .panel-group {
+    margin-bottom: 0
+  }
+  .administrative {
+    background-color: $gray-015;
+    padding: 1rem;
+  }
+
+  .c-checkbox input:checked~label,
+  .c-checkbox input:not(:checked)~label {
+    @include checkbox-default(20px, false, 3px);
+  }
+
+  .c-checkbox input:not(:checked)~label {
+    @include checkbox-not-checked;
+  }
+
+  .c-checkbox input:checked~label {
+    @include checkbox-checked;
+  }
+
+  .c-checkbox input.dirty:checked+label {
+    @include checkbox-checked-dirty;
+  }
+
+  .c-checkbox input.dirty:not(:checked)+label {
+    @include checkbox-not-checked-dirty;
+  }
+
+  .c-checkbox input:disabled:checked~label,
+  .c-checkbox input.disabled:checked~label,
+  .c-checkbox input.disabled:not(:checked)~label,
+  .c-checkbox input:disabled:not(:checked)~label {
+    background: $input-disabled !important;
+    border-color: $input-disabled !important;
+    pointer-events: none !important;
+    cursor: not-allowed;
+
+    .c-checkbox__check-container {
+      opacity: .75;
+    }
+  }
+
+  // provides .role-color-1 .. .role-color-50
+  @include many-colors('role-color');
+}

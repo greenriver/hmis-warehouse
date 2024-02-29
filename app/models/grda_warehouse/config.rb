@@ -223,7 +223,6 @@ module GrdaWarehouse
         :last_name,
         :eto_api_available,
         :healthcare_available,
-        :project_type_override,
         :release_duration,
         :cas_available_method,
         :cas_flag_method,

@@ -13,6 +13,7 @@ class HmisAdmin::RolesController < ApplicationController
 
   def index
     @roles = role_scope.order(name: :asc)
+    @per_page_js = ['role_manager']
   end
 
   def new
@@ -33,6 +34,20 @@ class HmisAdmin::RolesController < ApplicationController
         return
       end
     end
+  end
+
+  def batch_update
+    begin
+      Hmis::Role.transaction do
+        batch_params[:role].each do |role_id, permissions|
+          role_scope.find(role_id).update!(**permissions)
+        end
+      end
+      flash[:notice] = 'All permissions saved'
+    rescue Exception
+      flash[:error] = 'Error saving permissions'
+    end
+    redirect_to(hmis_admin_roles_path)
   end
 
   def create
@@ -70,6 +85,10 @@ class HmisAdmin::RolesController < ApplicationController
         :name,
         Hmis::Role.permissions,
       )
+  end
+
+  def batch_params
+    params.permit(role: [*Hmis::Role.permissions])
   end
 
   def flash_interpolation_options
