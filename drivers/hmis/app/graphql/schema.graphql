@@ -4774,18 +4774,6 @@ type HmisParticipationsPaginated {
   pagesCount: Int!
 }
 
-enum HmisProjectConfigType {
-  """
-  Auto Enter
-  """
-  AUTO_ENTER
-
-  """
-  Auto Exit
-  """
-  AUTO_EXIT
-}
-
 type Household {
   assessments(filters: AssessmentsForHouseholdFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   householdClients: [HouseholdClient!]!
@@ -8279,7 +8267,7 @@ Project Config
 """
 type ProjectConfig {
   configOptions: JSON
-  configType: HmisProjectConfigType!
+  configType: ProjectConfigType!
   id: ID!
   organization: Organization
   organizationId: ID
@@ -8292,11 +8280,23 @@ type ProjectConfig {
 Project Config Input
 """
 input ProjectConfigInput {
-  configType: HmisProjectConfigType
+  configType: ProjectConfigType
   lengthOfAbsenceDays: Int
   organizationId: ID
   projectId: ID
   projectType: ProjectType
+}
+
+enum ProjectConfigType {
+  """
+  Auto Enter
+  """
+  AUTO_ENTER
+
+  """
+  Auto Exit
+  """
+  AUTO_EXIT
 }
 
 type ProjectConfigsPaginated {

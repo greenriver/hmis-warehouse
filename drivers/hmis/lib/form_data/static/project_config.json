@@ -4,7 +4,7 @@
       "type": "CHOICE",
       "link_id": "configType",
       "text": "Config Type",
-      "pick_list_reference": "HmisProjectConfigType",
+      "pick_list_reference": "ProjectConfigType",
       "mapping": {
         "field_name": "configType"
       },

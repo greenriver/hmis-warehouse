@@ -5,7 +5,7 @@
 
 module Types
   class HmisSchema::Enums::ProjectConfigType < Types::BaseEnum
-    graphql_name 'HmisProjectConfigType'
+    graphql_name 'ProjectConfigType'
 
     def self.get_project_config_type(cls_name)
       stripped_string = cls_name.gsub(/Hmis::Project/, '').gsub(/Config/, '') # Hmis::ProjectExampleOneConfig -> ExampleOne
