@@ -21,6 +21,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
   AUTO_ENTER_CONFIG = 'Hmis::ProjectAutoEnterConfig'.freeze
   TYPE_OPTIONS = [AUTO_EXIT_CONFIG, AUTO_ENTER_CONFIG].freeze
   validates :type, inclusion: { in: TYPE_OPTIONS }
+
   validate :validate_config_options_json
 
   def validate_config_options_json
@@ -57,7 +58,7 @@ class Hmis::ProjectConfig < Hmis::HmisBase
     where(enabled: true)
   end
 
-  def self.config_for_project(project)
+  def self.detect_best_config_for_project(project)
     configs = for_project(project).active
     return unless configs.exists?
 
