@@ -398,7 +398,7 @@ module Types
       raise 'Access denied' unless current_user.can_configure_data_collection?
 
       # Only resolve non-service rules. Service rules are resolved on the service category.
-      resolve_form_rules(Hmis::Form::Instance.not_for_services, **args)
+      resolve_form_rules(Hmis::Form::Instance.all, **args)
     end
 
     field :form_rule, Types::Admin::FormRule, null: true do
