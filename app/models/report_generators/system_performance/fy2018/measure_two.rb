@@ -63,7 +63,7 @@ module ReportGenerators::SystemPerformance::Fy2018
           date: :date,
           first_date_in_program: :first_date_in_program,
           last_date_in_program: :last_date_in_program,
-          project_type: :computed_project_type,
+          project_type: :project_type,
           project_id: :project_id,
           project_name: :project_name,
           household_id: :household_id,
