@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -6193,7 +6193,9 @@ CREATE TABLE public.cohort_clients (
     user_boolean_46 boolean,
     user_boolean_47 boolean,
     user_boolean_48 boolean,
-    user_boolean_49 boolean
+    user_boolean_49 boolean,
+    sheltered_days_homeless_last_three_years integer,
+    unsheltered_days_homeless_last_three_years integer
 );
 
 
@@ -60833,6 +60835,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240218222444'),
 ('20240220171320'),
 ('20240221195839'),
-('20240222152739');
-
-
+('20240222152739'),
+('20240229132014');
