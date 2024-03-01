@@ -6,32 +6,31 @@
 
 module Mutations
   class BulkAssignService < CleanBaseMutation
-    argument :project_id, ID, required: true
-    argument :client_ids, [ID], required: true, description: 'Clients that should receive service. Clients that are unenrolled in the project will be enrolled in the project.'
-    argument :service_type_id, ID, required: true
-    argument :date_provided, GraphQL::Types::ISO8601Date, required: true
-
+    argument :input, Types::HmisSchema::BulkAssignServiceInput, required: true
     field :success, Boolean, null: true # should this return a bumped enrollment lock version?
 
-    def resolve(project_id:, client_ids:, service_type_id:, date_provided:)
-      project = Hmis::Hud::Project.viewable_by(current_user).find(project_id)
+    def resolve(input:)
+      project = Hmis::Hud::Project.viewable_by(current_user).find(input.project_id)
       raise 'unauthorized' unless current_permission?(permission: :can_edit_enrollments, entity: project)
 
-      clients = Hmis::Hud::Client.viewable_by(current_user).where(id: client_ids).preload(:enrollments)
-      raise 'clients not found' unless clients.count == client_ids.uniq.length
+      clients = Hmis::Hud::Client.viewable_by(current_user).where(id: input.client_ids).preload(:enrollments)
+      raise 'clients not found' unless clients.count == input.client_ids.uniq.length
 
-      cst = Hmis::Hud::CustomServiceType.find(service_type_id)
+      cst = Hmis::Hud::CustomServiceType.find(input.service_type_id)
       hud_user_id = Hmis::Hud::User.from_user(current_user).user_id
 
       # Evaluate perm, but don't raise an exception unless the operation actually needs to perform an enrollment
       can_enroll_clients = current_permission?(permission: :can_enroll_clients, entity: project)
 
+      # Determine and validate CoC Code, which is needed for creating new Enrollments
+      coc_code = determine_coc_code(coc_code_arg: input.coc_code, project: project)
+
       Hmis::Hud::Service.transaction do
         services = clients.map do |client|
           # Look for Enrollment at the project that is open on the service date
           enrollment = client.enrollments.
-            open_on_date(date_provided).
-            with_project(project_id).
+            open_on_date(input.date_provided).
+            with_project(project.id).
             order(entry_date: :desc, date_created: :asc).last # Tie-break: newest entry date; oldest record
 
           # If no Enrollment was found, create one
@@ -39,12 +38,13 @@ module Mutations
             enrollment = Hmis::Hud::Enrollment.new(
               client: client,
               project: project,
-              entry_date: date_provided,
+              entry_date: input.date_provided,
               user_id: hud_user_id,
               household_id: Hmis::Hud::Base.generate_uuid,
-              enrollment_coc: project&.project_cocs&.pluck(:CoCCode)&.uniq&.compact&.first, # FIXME handle multiples
+              enrollment_coc: coc_code,
             )
             raise 'unauthorized' unless can_enroll_clients
+            raise 'bulk service assignment generated invalid enrollment' unless enrollment.valid?
 
             # TODO: check Hmis::ProjectAutoEnterConfig to decide whether to save in progress or not
             enrollment.save_in_progress
@@ -54,7 +54,7 @@ module Mutations
             client: client,
             enrollment: enrollment,
             custom_service_type: cst,
-            date_provided: date_provided,
+            date_provided: input.date_provided,
             user_id: hud_user_id,
           )
           if cst.hud_service?
@@ -72,6 +72,17 @@ module Mutations
       end
 
       { success: true }
+    end
+
+    # Determine and validate CoC Code, which is needed for creating new Enrollments
+    def determine_coc_code(coc_code_arg:, project:)
+      # If project has exactly 1 CoC code, always use that
+      return project.uniq_coc_codes.first if project.uniq_coc_codes.size == 1
+
+      raise 'CoC code required for project' unless coc_code_arg
+      raise "Invalid CoC Code #{coc_code_arg} for project" unless project.uniq_coc_codes.include?(coc_code_arg)
+
+      coc_code_arg
     end
   end
 end
