@@ -5,4 +5,5 @@
 ###
 
 class Hmis::ProjectAutoEnterConfig < Hmis::ProjectConfig
+  def config_type = 'AUTO_ENTER'
 end

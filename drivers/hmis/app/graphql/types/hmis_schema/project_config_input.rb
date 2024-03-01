@@ -5,16 +5,17 @@
 ###
 
 module Types
-  class HmisSchema::AutoExitConfigInput < BaseInputObject
-    description 'Auto Exit Config Input'
+  class HmisSchema::ProjectConfigInput < BaseInputObject
+    description 'Project Config Input'
 
+    argument :config_type, HmisSchema::Enums::ProjectConfigType, required: false
     argument :length_of_absence_days, Int, required: false
     argument :project_type, Types::HmisSchema::Enums::ProjectType, required: false
     argument :project_id, ID, required: false
     argument :organization_id, ID, required: false
 
     def to_params
-      to_h
+      to_h.except!(:config_type)
     end
   end
 end

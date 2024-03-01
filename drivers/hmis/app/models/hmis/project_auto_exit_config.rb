@@ -8,6 +8,8 @@ class Hmis::ProjectAutoExitConfig < Hmis::ProjectConfig
   validates :config_options, presence: true
   validate :length_of_absence_days_ge_30
 
+  def config_type = 'AUTO_EXIT'
+
   def length_of_absence_days=(value)
     new_options = { 'length_of_absence_days': value }.stringify_keys
     merged_options = options ? options.merge(new_options) : new_options
