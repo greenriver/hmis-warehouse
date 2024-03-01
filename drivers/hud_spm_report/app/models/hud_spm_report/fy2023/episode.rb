@@ -41,23 +41,28 @@ module HudSpmReport::Fy2023
       limited_bed_nights = calculated_bed_nights.reject { |_, _, date| date.in?(calculated_excluded_dates) }
       return unless limited_bed_nights.present?
 
-      adjusted_bed_nights = add_self_reported(limited_bed_nights, enrollments) if include_self_reported_and_ph
+      adjusted_bed_nights =  if include_self_reported_and_ph
+        add_self_reported(limited_bed_nights, enrollments)
+      else
+        limited_bed_nights
+      end
 
       filtered_bed_nights = filter_episode(adjusted_bed_nights)
       return unless filtered_bed_nights.present?
 
       bed_nights_array = []
       enrollment_links_array = []
-      any_bed_nights_in_report_range = false
-      filtered_bed_nights.each do |enrollment, service_id, date|
-        bed_nights_array << BedNight.new(
-          client_id: client.id,
-          enrollment_id: enrollment.id,
-          service_id: service_id,
-          date: date,
-        )
-        any_bed_nights_in_report_range = true if date.between?(report_start_date, report_end_date)
-      end
+      any_bed_nights_in_report_range = filtered_bed_nights.any? { |_, _, date| date.between?(report_start_date, report_end_date) }
+      # any_bed_nights_in_report_range = false
+      # filtered_bed_nights.each do |enrollment, service_id, date|
+      #   bed_nights_array << BedNight.new(
+      #     client_id: client.id,
+      #     enrollment_id: enrollment.id,
+      #     service_id: service_id,
+      #     date: date,
+      #   )
+      #   any_bed_nights_in_report_range = true if date.between?(report_start_date, report_end_date)
+      # end
 
       enrollment_ids = filtered_bed_nights.map { |enrollment, _, _| enrollment.id }.uniq
       enrollment_ids.each do |enrollment_id|
@@ -87,16 +92,18 @@ module HudSpmReport::Fy2023
       enrollments = enrollments.select do |e|
         # For PH projects, only stays meeting the Identifying Clients Experiencing Literal Homelessness at Project Entry criteria are included in time experiencing homelessness.
         in_project_type = e.project_type.in?(project_types)
-        # Always drop PH that wasn't literally homeless at entry
+        # Always drop PH that wasn't literally homeless at entry or not in report range
         # NOTE: PH is never in the project types, but included because of include_self_reported_and_ph
         if include_self_reported_and_ph && e.project_type.in?(HudUtility2024.project_type_number_from_code(:ph))
-          enrollment_literally_homeless_at_entry(e)
+          enrollment_literally_homeless_at_entry(e) && include_ph_enrollment?(e)
         else
           in_project_type
         end
       end
       enrollments.each do |enrollment|
         if enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:es_nbn))
+          next unless enrollment.enrollment.present? # Skip if the enrollment has disappeared (e.g., a concurrent import deleted it)
+
           # NbN only gets service nights in the report range and within the enrollment period
           first_night = [report_start_date, enrollment.entry_date].max
           last_night = if enrollment.exit_date.present?
@@ -104,6 +111,7 @@ module HudSpmReport::Fy2023
           else
             report_end_date # If no exit, cannot have a bed night after the report period
           end
+
           bed_nights.merge!(
             enrollment.enrollment.services. # Preloaded
               # merge(GrdaWarehouse::Hud::Service.bed_night.between(start_date: report_start_date, end_date: report_end_date)).
@@ -237,6 +245,14 @@ module HudSpmReport::Fy2023
         (enrollment.prior_living_situation.in?(100..199) ||
           (enrollment.previous_street_essh? && enrollment.prior_living_situation.in?(200..299) && enrollment.los_under_threshold?) ||
             (enrollment.previous_street_essh? && enrollment.prior_living_situation.in?(300..499) && enrollment.los_under_threshold?))
+    end
+
+    private def include_ph_enrollment?(enrollment)
+      return false unless enrollment.project_type.in?([2, 3, 9, 10, 13])
+
+      enrollment.entry_date.between?(report_start_date, report_end_date) ||
+        (enrollment.move_in_date.present? && enrollment.move_in_date.between?(report_start_date, report_end_date)) ||
+        (enrollment.move_in_date.blank? && enrollment.exit_date.present? && enrollment.exit_date.between?(report_start_date, report_end_date))
     end
 
     private def report_start_date

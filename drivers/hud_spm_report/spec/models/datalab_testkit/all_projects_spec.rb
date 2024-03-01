@@ -18,28 +18,25 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       puts "Starting SPM Data Lab TestKit #{Time.current}"
       setup
       puts "Setup Done for SPM Data Lab TestKit #{Time.current}"
-      run(default_spm_filter, HudSpmReport::Generators::Fy2023::Generator.questions.keys.grep(/Measure 1/))
-      # run(default_spm_filter, HudSpmReport::Generators::Fy2023::Generator.questions.keys)
+      # run(default_spm_filter, HudSpmReport::Generators::Fy2023::Generator.questions.keys.grep(/Measure 1/))
+      run(default_spm_filter, HudSpmReport::Generators::Fy2023::Generator.questions.keys)
       puts "Finished SPM Run Data Lab TestKit #{Time.current}"
     end
 
-    # https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recQAPyRo2AlC6aIx
-    # https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recRHLm7VsB3RBJiN
-    # https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/reca7kvG5YnWGSjdV
     it 'Measure 1a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         external_column_header: true,
         external_row_label: true,
         question: '1a',
-        skip: [
-          'B1',
-          'D1',
-          'G1',
-          'B2',
-          'D2',
-          'G2',
-        ],
+        # skip: [
+        #   'B1',
+        #   'D1',
+        #   'G1',
+        #   'B2',
+        #   'D2',
+        #   'G2',
+        # ],
       )
     end
 

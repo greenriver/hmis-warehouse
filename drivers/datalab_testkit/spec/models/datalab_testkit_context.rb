@@ -55,7 +55,7 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
         # puts "*** #{file_path} ***"
         import_hmis_csv_fixture(file_path, run_jobs: false, skip_location_cleanup: true)
       end
-      process_imported_fixtures
+      process_imported_fixtures(skip_location_cleanup: true)
       warehouse_fixture.store
       app_fixture.store
     end
