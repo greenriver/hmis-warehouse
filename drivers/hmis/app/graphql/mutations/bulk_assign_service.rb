@@ -7,7 +7,7 @@
 module Mutations
   class BulkAssignService < CleanBaseMutation
     argument :input, Types::HmisSchema::BulkAssignServiceInput, required: true
-    field :success, Boolean, null: true # should this return a bumped enrollment lock version?
+    field :success, Boolean, null: true
 
     def resolve(input:)
       project = Hmis::Hud::Project.viewable_by(current_user).find(input.project_id)
@@ -24,6 +24,9 @@ module Mutations
 
       # Determine and validate CoC Code, which is needed for creating new Enrollments
       coc_code = determine_coc_code(coc_code_arg: input.coc_code, project: project)
+
+      project_has_units = project.units.exists?
+      available_units = project.units.unoccupied_on(input.date_provided).order(updated_at: :desc).to_a
 
       Hmis::Hud::Service.transaction do
         services = clients.map do |client|
@@ -45,6 +48,14 @@ module Mutations
             )
             raise 'unauthorized' unless can_enroll_clients
             raise 'bulk service assignment generated invalid enrollment' unless enrollment.valid?
+
+            # Attempt to assign this enrollment to a unit if this project has units. This is AC-specific for now, and does
+            # not support specifying the unit type. Needs improvement if/when we expand unit capabilities.
+            if project_has_units
+              raise 'cannot enroll client because there are no units available' if available_units.empty?
+
+              enrollment.assign_unit(unit: available_units.pop, start_date: input.date_provided, user: current_user)
+            end
 
             # TODO: check Hmis::ProjectAutoEnterConfig to decide whether to save in progress or not
             enrollment.save_in_progress
