@@ -78,6 +78,13 @@ module
       user.can_access_some_version_of_clients? && ! filter.mask_small_populations
     end
 
+    def can_view_client_disability?(user, disability_id)
+      return user.can_view_hiv_status? if disability_id == 8 # 'HIV/AIDS'
+      return user.can_view_dmh_status? if disability_id == 9 # 'Mental health disorder'
+
+      true
+    end
+
     def self.clear_report_cache
       Rails.cache.delete_matched("#{[name]}*")
     end
@@ -159,7 +166,7 @@ module
     end
 
     private def expiration_length
-      return 3.minutes if Rails.env.development?
+      return 30.seconds if Rails.env.development?
 
       30.minutes
     end

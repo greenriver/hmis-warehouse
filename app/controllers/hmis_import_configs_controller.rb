@@ -8,7 +8,7 @@ class HmisImportConfigsController < ApplicationController
   before_action :require_can_edit_data_sources!
   before_action :require_can_manage_config!
   before_action :set_data_source
-  before_action :set_config, only: [:edit, :update, :destroy]
+  before_action :set_config, only: [:edit, :update, :destroy, :download]
 
   def new
     redirect_to action: :edit if config_exists?
@@ -22,6 +22,21 @@ class HmisImportConfigsController < ApplicationController
       @bucket_objects_list = @config.s3.list_objects(25, prefix: @config.s3_path)
     rescue Aws::S3::Errors::InvalidAccessKeyId, Aws::S3::Errors::AccessDenied, Aws::S3::Errors::SignatureDoesNotMatch, Aws::S3::Errors::NoSuchBucket
       @error = true
+    end
+  end
+
+  def download
+    object = @config.s3.list_objects(prefix: @config.s3_path).detect { |o| o.key == params[:key] }
+
+    if object.nil?
+      flash[:error] = 'File not found'
+      redirect_to edit_data_source_hmis_import_config_path
+    else
+      send_data(
+        @config.s3.get_as_io(key: object.key)&.read,
+        type: @config.s3.get_file_type(key: object.key),
+        filename: object.key,
+      )
     end
   end
 

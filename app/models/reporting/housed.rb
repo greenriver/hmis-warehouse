@@ -20,7 +20,7 @@ module Reporting
     end
 
     scope :rrh, -> do
-      where(project_type: 13)
+      where(project_type: HudUtility2024.performance_reporting[:rrh])
     end
 
     scope :psh, -> do
@@ -28,15 +28,15 @@ module Reporting
     end
 
     scope :es, -> do
-      where(project_type: 1)
+      where(project_type: HudUtility2024.performance_reporting[:es])
     end
 
     scope :th, -> do
-      where(project_type: 2)
+      where(project_type: HudUtility2024.performance_reporting[:th])
     end
 
     scope :sh, -> do
-      where(project_type: 8)
+      where(project_type: HudUtility2024.performance_reporting[:sh])
     end
 
     scope :youth, -> do

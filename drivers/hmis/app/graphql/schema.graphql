@@ -1428,6 +1428,16 @@ enum Component {
   RADIO_BUTTONS_VERTICAL
 
   """
+  Signature input component
+  """
+  SIGNATURE
+
+  """
+  Signature input component
+  """
+  SIGNATURE_GROUP
+
+  """
   SSN input component
   """
   SSN
@@ -4811,6 +4821,36 @@ input HouseholdFilterOptions {
 HUD Household Sorting Options
 """
 enum HouseholdSortOption {
+  """
+  Head of Household Age: Oldest to Youngest
+  """
+  HOH_AGE_OLDEST_TO_YOUNGEST
+
+  """
+  Head of Household Age: Youngest to Oldest
+  """
+  HOH_AGE_YOUNGEST_TO_OLDEST
+
+  """
+  Head of Household First Name: A-Z
+  """
+  HOH_FIRST_NAME_A_TO_Z
+
+  """
+  Head of Household First Name: Z-A
+  """
+  HOH_FIRST_NAME_Z_TO_A
+
+  """
+  Head of Household Last Name: A-Z
+  """
+  HOH_LAST_NAME_A_TO_Z
+
+  """
+  Head of Household Last Name: Z-A
+  """
+  HOH_LAST_NAME_Z_TO_A
+
   """
   Most Recent
   """
@@ -9730,7 +9770,40 @@ input ServiceInput {
 HMIS Service Sorting Options
 """
 enum ServiceSortOption {
+  """
+  Client Age: Oldest to Youngest
+  """
+  AGE_OLDEST_TO_YOUNGEST
+
+  """
+  Client Age: Youngest to Oldest
+  """
+  AGE_YOUNGEST_TO_OLDEST
+
+  """
+  Date service was provided
+  """
   DATE_PROVIDED
+
+  """
+  Client First Name: A-Z
+  """
+  FIRST_NAME_A_TO_Z
+
+  """
+  Client First Name: Z-A
+  """
+  FIRST_NAME_Z_TO_A
+
+  """
+  Client Last Name: A-Z
+  """
+  LAST_NAME_A_TO_Z
+
+  """
+  Client Last Name: Z-A
+  """
+  LAST_NAME_Z_TO_A
 }
 
 """

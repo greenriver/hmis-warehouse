@@ -608,7 +608,10 @@ Rails.application.routes.draw do
     resources :non_hmis_uploads, except: [:update, :destroy, :edit]
     resources :custom_imports, controller: 'data_sources/custom_imports'
     resource :api_config
-    resource :hmis_import_config
+    resource :hmis_import_config do 
+      get :download
+    end
+
   end
   resources :ad_hoc_data_sources do
     resources :uploads, except: [:edit], controller: 'ad_hoc_data_sources/uploads' do
@@ -881,6 +884,7 @@ Rails.application.routes.draw do
       get :health_dashboard
       get :health_team
       get :icon_font
+      get :menu
       get :modals
       get :pagination
       get :public_report

@@ -35,6 +35,7 @@ module
     def detail_scope_from_key(key)
       detail = detail_hash[key]
       return report_scope.none unless detail
+      return report_scope.none if detail[:can_view_details] == false # nil and true should be allowed.
 
       detail[:scope].call.distinct
     end
