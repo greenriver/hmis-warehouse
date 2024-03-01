@@ -113,7 +113,7 @@ module Types
 
     private def custom_assessment_title
       ca = load_ar_scope(scope: Hmis::Hud::CustomAssessment.with_deleted, id: object.item_id)
-      ca&.form_processor&.definition&.title
+      ca ? load_ar_association(object, :definition)&.title : nil
     end
 
     # NOTE: will be nil if this is a 'destroy' event
