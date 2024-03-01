@@ -14,6 +14,8 @@ class CronInstaller
   AMOUNT_OF_JITTER_IN_MINUTES = 10
 
   def run!
+    Rails.logger.info "The current time is #{Time.now} and the current time in zone is #{Time.zone.now}"
+
     entry_number = 0
 
     ScheduledTask.clear!(target_group_name)
