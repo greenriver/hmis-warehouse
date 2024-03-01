@@ -139,7 +139,7 @@ class CronInstaller
           # hour_correction converts to hours and is the opposite sign since
           # we're converting to UTC. If we're 5 hours behind UTC (-5) we need
           # to add 5 hours to get to UTC from our local time.
-          hour_correction = -1 * (Time.now.utc_offset / 60.0 / 60.0).to_i
+          hour_correction = -1 * (Time.zone.now.utc_offset / 60.0 / 60.0).to_i
 
           ((h.to_i + hour_correction) % 24).to_s
         end.join(',')
