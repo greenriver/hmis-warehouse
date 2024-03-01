@@ -5,20 +5,20 @@
 ###
 
 module Mutations
-  class DeleteAutoExitConfig < CleanBaseMutation
+  class DeleteProjectConfig < CleanBaseMutation
     argument :id, ID, required: true
 
-    field :auto_exit_config, Types::HmisSchema::AutoExitConfig, null: true
+    field :project_config, Types::HmisSchema::ProjectConfig, null: true
     field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(id:)
-      record = Hmis::ProjectAutoExitConfig.find(id)
+      record = Hmis::ProjectConfig.find(id)
       raise 'Access denied' unless allowed?(permissions: [:can_configure_data_collection])
 
       record.destroy!
 
       {
-        auto_exit_config: record,
+        project_config: record,
         errors: [],
       }
     end

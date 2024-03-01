@@ -77,6 +77,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   STATIC_FORM_ROLES = [
     :FORM_RULE,
     :AUTO_EXIT_CONFIG,
+    :PROJECT_CONFIG,
     :CLIENT_ALERT,
     :FORM_DEFINITION,
   ].freeze

@@ -1,6 +1,5 @@
 
-@mixin checkbox-default($size: 30px, $round: false) {
-  $border-radius: 5px;
+@mixin checkbox-default($size: 30px, $round: false, $border-radius: 5px) {
   @if ($round == true) { $border-radius: 50%; }
   display: flex;
   align-items: flex-start;

@@ -440,11 +440,11 @@ module Types
       Hmis::Form::Instance.find_by(id: id)
     end
 
-    field :auto_exit_configs, Types::HmisSchema::AutoExitConfig.page_type, null: false
-    def auto_exit_configs
+    field :project_configs, Types::HmisSchema::ProjectConfig.page_type, null: false
+    def project_configs
       raise 'not allowed' unless current_user.can_configure_data_collection?
 
-      Hmis::ProjectAutoExitConfig.all
+      Hmis::ProjectConfig.all
     end
 
     field :client_detail_forms, [Types::HmisSchema::OccurrencePointForm], null: false, description: 'Custom forms for collecting and/or displaying custom details for a Client (outside of the Client demographics form)'

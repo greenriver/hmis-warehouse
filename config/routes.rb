@@ -765,6 +765,7 @@ Rails.application.routes.draw do
     # TODO: START_ACL cleanup after ACL migration
     # resources :roles
     resources :roles do
+      patch :batch_update, on: :collection
       resources :users, only: [:create, :destroy], controller: 'roles/users'
     end
     resources :groups do

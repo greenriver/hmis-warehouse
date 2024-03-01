@@ -14,6 +14,7 @@ module Admin
 
     def index
       @roles = role_scope.order(name: :asc)
+      @per_page_js = ['role_manager']
     end
 
     def new
@@ -35,6 +36,20 @@ module Admin
           return
         end
       end
+    end
+
+    def batch_update
+      begin
+        Role.transaction do
+          batch_params[:role].each do |role_id, permissions|
+            Role.find(role_id).update!(**permissions)
+          end
+        end
+        flash[:notice] = 'All permissions saved'
+      rescue Exception
+        flash[:error] = 'Error saving permissions'
+      end
+      redirect_to(admin_roles_path)
     end
 
     def create
@@ -66,6 +81,10 @@ module Admin
 
     def role_scope
       Role.editable
+    end
+
+    def batch_params
+      params.permit(role: [*Role.permissions(exclude_health: true)])
     end
 
     def role_params
