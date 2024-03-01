@@ -19,7 +19,6 @@ class OauthController < ApplicationController
       first_name: user.first_name,
       last_name: user.last_name,
       email: user.email,
-      roles: user.legacy_roles.map(&:name),
     }
 
     render(json: payload)
