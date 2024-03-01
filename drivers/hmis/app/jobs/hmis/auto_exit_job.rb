@@ -9,7 +9,7 @@ module Hmis
     include NotifierConfig
 
     def self.enabled?
-      Hmis::AutoExitConfig.exists?
+      Hmis::ProjectAutoExitConfig.exists?
     end
 
     def perform
@@ -20,7 +20,7 @@ module Hmis
       auto_exit_count = 0
 
       Hmis::Hud::Project.hmis.each do |project|
-        config = Hmis::AutoExitConfig.config_for_project(project)
+        config = Hmis::ProjectAutoExitConfig.detect_best_config_for_project(project)
         next unless config.present?
         raise "Auto-exit config unusually low: #{config.length_of_absence_days}" if config.length_of_absence_days < 30
 

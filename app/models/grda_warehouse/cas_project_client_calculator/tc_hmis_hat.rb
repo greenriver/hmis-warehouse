@@ -59,6 +59,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         required_number_of_bedrooms: 'Bedrooms required to house household',
         required_minimum_occupancy: 'Number of household members',
         child_in_household: 'Is the client a member of a household with at least one minor child',
+        cas_pregnancy_status: 'Are you currently pregnant?',
       }.freeze
     end
 
@@ -94,6 +95,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         legal_custody: :hat_a9_custody,
         future_custody: :hat_a10_future_custody,
         household_size: :hat_a8_household_size,
+        cas_pregnancy_status: :hat_e9_pregnant,
       }.freeze
     end
     memoize :assessment_keys
@@ -118,6 +120,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :site_case_management_required,
         :ongoing_case_management_required,
         :currently_fleeing,
+        :cas_pregnancy_status,
       ].freeze
     end
     memoize :boolean_lookups
@@ -193,7 +196,10 @@ module GrdaWarehouse::CasProjectClientCalculator
       single_parent = for_boolean(client, :single_parent_child_over_ten)
       custody_now = for_boolean(client, :legal_custody)
       custody_later = for_boolean(client, :future_custody)
+      pregnant = for_boolean(client, :cas_pregnancy_status)
 
+      # Pregnant clients are always considered a family
+      return true if pregnant
       # There is a child, but the parent doesn't, and won't have custody
       return false if single_parent && (!custody_now && !custody_later)
       # Client indicated the household is adult only
