@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HmisExternalApis::StaticPages
+module HmisExternalApis::ExternalForms
   Config = Struct.new(:site_title, :site_logo_url, :site_logo_dimensions, :recaptcha_key, :presign_url, keyword_init: true) do
     def js_config
       {

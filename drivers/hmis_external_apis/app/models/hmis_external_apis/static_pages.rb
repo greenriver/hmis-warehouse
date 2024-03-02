@@ -1,2 +1,0 @@
-module HmisExternalApis::StaticPages
-end

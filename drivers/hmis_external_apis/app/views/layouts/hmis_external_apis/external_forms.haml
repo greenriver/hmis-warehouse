@@ -102,5 +102,5 @@
     %script(type="text/javascript")
       'use strict';
       window.appConfig = #{page_config.js_config.to_json.html_safe};
-      = File.read(Rails.root.join('drivers/hmis_external_apis/app/assets/javascripts/static_pages.js')).html_safe
+      = File.read(Rails.root.join('drivers/hmis_external_apis/app/assets/javascripts/external_forms.js')).html_safe
     = yield :page_js

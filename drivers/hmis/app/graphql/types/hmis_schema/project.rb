@@ -21,7 +21,7 @@ module Types
     include Types::HmisSchema::HasHmisParticipations
     include Types::HmisSchema::HasCeParticipations
     include Types::HmisSchema::HasHudMetadata
-    include Types::HmisSchema::HasStaticFormSubmissions
+    include Types::HmisSchema::HasExternalFormSubmissions
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2024')
@@ -55,7 +55,7 @@ module Types
     project_cocs_field
     funders_field
     units_field
-    static_form_submissions_field
+    external_form_submissions_field
     households_field
     hmis_participations_field
     ce_participations_field

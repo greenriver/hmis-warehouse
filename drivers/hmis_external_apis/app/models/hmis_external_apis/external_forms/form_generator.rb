@@ -6,7 +6,7 @@
 ###
 
 # render html from a from definition
-module HmisExternalApis::StaticPages
+module HmisExternalApis::ExternalForms
   class FormGenerator
     attr_reader :context
     def initialize(context)

@@ -4,9 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module HmisExternalApis::StaticPagesHelper
+module HmisExternalApis::ExternalFormsHelper
   def partial_path(partial)
-    "hmis_external_apis/static_pages/#{partial}"
+    "hmis_external_apis/external_forms/#{partial}"
   end
 
   def render_form_input(label:, input_type: 'text', name: , input_pattern: nil, input_mode: nil, required: false, input_placeholder: nil, input_class: nil, input_html_id: next_html_id)
@@ -93,14 +93,14 @@ module HmisExternalApis::StaticPagesHelper
   end
 
   def page_config
-    presign_url = ENV['STATIC_PAGE_S3_PRESIGN_URL']
-    recaptcha_key = ENV['STATIC_PAGE_CAPTCHA_KEY']
+    presign_url = ENV['EXTERNAL_FORM_S3_PRESIGN_URL']
+    recaptcha_key = ENV['EXTERNAL_FORM_CAPTCHA_KEY']
     if Rails.env.development?
-      presign_url ||= presign_hmis_external_apis_static_page_path
+      presign_url ||= presign_hmis_external_apis_external_form_path
       recaptcha_key ||= '6Ldbm4UpAAAAAAK9h9ujlVDig1nC4DghpOP6WFfQ'
     end
 
-    @page_config ||= HmisExternalApis::StaticPages::Config.new(
+    @page_config ||= HmisExternalApis::ExternalForms::Config.new(
       site_title: 'Tarrant County Homeless Coalition',
       site_logo_url: 'https://ahomewithhope.org/wp-content/themes/tchc/assets/images/logo.png',
       site_logo_dimensions: [110, 60],

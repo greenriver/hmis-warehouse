@@ -5,10 +5,10 @@
 ###
 
 # retrieve and process uploaded form submissions
-class HmisExternalApis::ConsumeStaticFormsJob
+class HmisExternalApis::ConsumeExternalFormSubmissionsJob
   def perform
     download_from_s3.each do |data, metadata|
-      HmisExternalApis::StaticPages::FormSubmission.create!(
+      HmisExternalApis::ExternalForms::Submission.create!(
         form_content_version: data.dig('submission', 'form_version'),
         submitted_at: data['submitted_at'],
         data: data['data'],

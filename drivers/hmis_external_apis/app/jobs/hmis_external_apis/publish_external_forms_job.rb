@@ -6,17 +6,15 @@
 require 'nokogiri'
 
 # render and upload static forms
-# definition = HmisExternalApis::StaticPages::FormDefinition.from_file('tchc/prevention_screening')
-# PublishStaticFormsJob.new.perform(definition.id)
-class HmisExternalApis::PublishStaticFormsJob
+class HmisExternalApis::PublishExternalFormsJob
   include SafeInspectable
 
   def perform(definition_id)
-    definition = HmisExternalApis::StaticPages::FormDefinition.find(definition_id)
+    definition = HmisExternalApis::ExternalForms::FormDefinition.find(definition_id)
     definition.validate_json!
 
-    renderer = HmisExternalApis::StaticPagesController.renderer.new
-    raw_content = renderer.render("hmis_external_apis/static_pages/form", assigns: {form_definition: definition.data})
+    renderer = HmisExternalApis::ExternalFormsController.renderer.new
+    raw_content = renderer.render("hmis_external_apis/external_forms/form", assigns: {form_definition: definition.data})
 
     digest = Digest::MD5.hexdigest(raw_content)
     versioned_content = process_content(definition, raw_content)
@@ -30,6 +28,8 @@ class HmisExternalApis::PublishStaticFormsJob
     definition.save!
     definition
   end
+
+  protected
 
   # prepare form for publication
   def process_content(definition, raw_content)

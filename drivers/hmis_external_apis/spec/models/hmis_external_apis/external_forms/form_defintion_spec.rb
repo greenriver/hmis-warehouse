@@ -6,9 +6,9 @@
 
 require 'rails_helper'
 
-RSpec.describe 'HmisExternalApis::StaticPages::FormDefinition', type: :model do
+RSpec.describe 'HmisExternalApis::ExternalForms::FormDefinition', type: :model do
   subject(:form_definition) do
-    create(:hmis_external_apis_static_pages_form_definition)
+    create(:hmis_external_apis_external_form_definition)
   end
 
   it 'publishing populates the content and key' do

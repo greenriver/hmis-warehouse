@@ -1,7 +1,6 @@
 
 FactoryBot.define do
-  # clients must share a base class to prevent PersonalID Sequence collision
-  factory :hmis_external_apis_static_pages_form_definition, class: 'HmisExternalApis::StaticPages::FormDefinition' do
+  factory :hmis_external_apis_external_form_definition, class: 'HmisExternalApis::ExternalForms::FormDefinition' do
     sequence(:name) { |n| "form_#{n}" }
     sequence(:title) { |n| "Form #{n}" }
     data do

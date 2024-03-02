@@ -7,7 +7,7 @@
 # frozen_string_literal: true
 
 module Types
-  class HmisSchema::StaticFormSubmission < Types::BaseObject
+  class HmisSchema::ExternalFormSubmission < Types::BaseObject
     field :id, ID, null: false
     field :submitted_at, GraphQL::Types::ISO8601DateTime, null: false
     field :spam_score, Float, null: true

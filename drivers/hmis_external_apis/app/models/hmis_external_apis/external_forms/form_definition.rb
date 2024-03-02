@@ -5,15 +5,15 @@
 ###
 
 #
-module HmisExternalApis::StaticPages
+module HmisExternalApis::ExternalForms
   class FormDefinition < ::HmisExternalApis::HmisExternalApisBase
-    self.table_name = 'hmis_static_form_definition'
+    self.table_name = 'hmis_external_form_definitions'
 
-    has_many :submissions, class_name: 'HmisExternalApis::StaticPages::FormSubmission'
+    has_many :submissions, class_name: 'HmisExternalApis::ExternalForms::FormSubmission'
 
     # create or update a from definition from a file. Helpful for development
     def self.from_file(page_name)
-      filename = Rails.root.join("drivers/hmis_external_apis/lib/static_page_forms/#{page_name}.json")
+      filename = Rails.root.join("drivers/hmis_external_apis/lib/external_forms/#{page_name}.json")
       data = JSON.parse(File.read(filename))
 
       definition = where(name: page_name).first_or_initialize
@@ -23,7 +23,7 @@ module HmisExternalApis::StaticPages
     end
 
     def publish!
-      HmisExternalApis::PublishStaticFormsJob.new.perform(id)
+      HmisExternalApis::PublishExternalFormsJob.new.perform(id)
     end
 
     def validate_json!
