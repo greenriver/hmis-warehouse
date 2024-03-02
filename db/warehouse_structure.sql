@@ -6193,7 +6193,9 @@ CREATE TABLE public.cohort_clients (
     user_boolean_46 boolean,
     user_boolean_47 boolean,
     user_boolean_48 boolean,
-    user_boolean_49 boolean
+    user_boolean_49 boolean,
+    sheltered_days_homeless_last_three_years integer,
+    unsheltered_days_homeless_last_three_years integer
 );
 
 
@@ -13338,40 +13340,6 @@ ALTER SEQUENCE public.hmis_assessments_id_seq OWNED BY public.hmis_assessments.i
 
 
 --
--- Name: hmis_auto_exit_configs; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_auto_exit_configs (
-    id bigint NOT NULL,
-    length_of_absence_days integer NOT NULL,
-    project_type integer,
-    organization_id bigint,
-    project_id bigint,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_auto_exit_configs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_auto_exit_configs_id_seq OWNED BY public.hmis_auto_exit_configs.id;
-
-
---
 -- Name: hmis_case_notes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -18543,6 +18511,42 @@ ALTER SEQUENCE public.hmis_import_configs_id_seq OWNED BY public.hmis_import_con
 
 
 --
+-- Name: hmis_project_configs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_project_configs (
+    id bigint NOT NULL,
+    type character varying NOT NULL,
+    enabled boolean DEFAULT true NOT NULL,
+    config_options jsonb,
+    project_type integer,
+    organization_id bigint,
+    project_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_project_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_project_configs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_project_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_project_configs_id_seq OWNED BY public.hmis_project_configs.id;
+
+
+--
 -- Name: hmis_project_unit_type_mappings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -18749,78 +18753,6 @@ CREATE SEQUENCE public.hmis_staff_x_clients_id_seq
 --
 
 ALTER SEQUENCE public.hmis_staff_x_clients_id_seq OWNED BY public.hmis_staff_x_clients.id;
-
-
---
--- Name: hmis_static_form_submissions; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_static_form_submissions (
-    id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    submitted_at timestamp without time zone,
-    spam_score integer,
-    status character varying DEFAULT 'new'::character varying NOT NULL,
-    form_name character varying NOT NULL,
-    form_version character varying NOT NULL,
-    remote_location character varying,
-    data jsonb NOT NULL,
-    notes text
-);
-
-
---
--- Name: hmis_static_form_submissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_static_form_submissions_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_static_form_submissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_static_form_submissions_id_seq OWNED BY public.hmis_static_form_submissions.id;
-
-
---
--- Name: hmis_static_forms; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_static_forms (
-    id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    name character varying NOT NULL,
-    version character varying NOT NULL,
-    fields jsonb NOT NULL,
-    remote_location character varying
-);
-
-
---
--- Name: hmis_static_forms_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_static_forms_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_static_forms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_static_forms_id_seq OWNED BY public.hmis_static_forms.id;
 
 
 --
@@ -27906,13 +27838,6 @@ ALTER TABLE ONLY public.hmis_assessments ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
--- Name: hmis_auto_exit_configs id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_auto_exit_configs ALTER COLUMN id SET DEFAULT nextval('public.hmis_auto_exit_configs_id_seq'::regclass);
-
-
---
 -- Name: hmis_case_notes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -28599,6 +28524,13 @@ ALTER TABLE ONLY public.hmis_import_configs ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: hmis_project_configs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_project_configs ALTER COLUMN id SET DEFAULT nextval('public.hmis_project_configs_id_seq'::regclass);
+
+
+--
 -- Name: hmis_project_unit_type_mappings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -28624,20 +28556,6 @@ ALTER TABLE ONLY public.hmis_staff ALTER COLUMN id SET DEFAULT nextval('public.h
 --
 
 ALTER TABLE ONLY public.hmis_staff_x_clients ALTER COLUMN id SET DEFAULT nextval('public.hmis_staff_x_clients_id_seq'::regclass);
-
-
---
--- Name: hmis_static_form_submissions id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_static_form_submissions ALTER COLUMN id SET DEFAULT nextval('public.hmis_static_form_submissions_id_seq'::regclass);
-
-
---
--- Name: hmis_static_forms id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_static_forms ALTER COLUMN id SET DEFAULT nextval('public.hmis_static_forms_id_seq'::regclass);
 
 
 --
@@ -31711,14 +31629,6 @@ ALTER TABLE ONLY public.hmis_assessments
 
 
 --
--- Name: hmis_auto_exit_configs hmis_auto_exit_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_auto_exit_configs
-    ADD CONSTRAINT hmis_auto_exit_configs_pkey PRIMARY KEY (id);
-
-
---
 -- Name: hmis_case_notes hmis_case_notes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -32503,6 +32413,14 @@ ALTER TABLE ONLY public.hmis_import_configs
 
 
 --
+-- Name: hmis_project_configs hmis_project_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_project_configs
+    ADD CONSTRAINT hmis_project_configs_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_project_unit_type_mappings hmis_project_unit_type_mappings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -32532,22 +32450,6 @@ ALTER TABLE ONLY public.hmis_staff
 
 ALTER TABLE ONLY public.hmis_staff_x_clients
     ADD CONSTRAINT hmis_staff_x_clients_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_static_form_submissions hmis_static_form_submissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_static_form_submissions
-    ADD CONSTRAINT hmis_static_form_submissions_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_static_forms hmis_static_forms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_static_forms
-    ADD CONSTRAINT hmis_static_forms_pkey PRIMARY KEY (id);
 
 
 --
@@ -52301,20 +52203,6 @@ CREATE INDEX index_hmis_assessments_on_site_id ON public.hmis_assessments USING 
 
 
 --
--- Name: index_hmis_auto_exit_configs_on_organization_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_auto_exit_configs_on_organization_id ON public.hmis_auto_exit_configs USING btree (organization_id);
-
-
---
--- Name: index_hmis_auto_exit_configs_on_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_auto_exit_configs_on_project_id ON public.hmis_auto_exit_configs USING btree (project_id);
-
-
---
 -- Name: index_hmis_case_notes_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -53145,6 +53033,20 @@ CREATE INDEX index_hmis_group_viewable_entities_on_entity ON public.hmis_group_v
 --
 
 CREATE INDEX index_hmis_import_configs_on_data_source_id ON public.hmis_import_configs USING btree (data_source_id);
+
+
+--
+-- Name: index_hmis_project_configs_on_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_project_configs_on_organization_id ON public.hmis_project_configs USING btree (organization_id);
+
+
+--
+-- Name: index_hmis_project_configs_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_project_configs_on_project_id ON public.hmis_project_configs USING btree (project_id);
 
 
 --
@@ -60938,6 +60840,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240217192729'),
 ('20240218201801'),
 ('20240218222444'),
-('20240223002628');
+('20240220171320'),
+('20240221195839'),
+('20240222152739'),
+('20240229132014');
 
 
