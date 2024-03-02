@@ -4,7 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-#
 module HmisExternalApis::ExternalForms
   class FormDefinition < ::HmisExternalApis::HmisExternalApisBase
     self.table_name = 'hmis_external_form_definitions'
@@ -18,7 +17,7 @@ module HmisExternalApis::ExternalForms
 
       definition = where(name: page_name).first_or_initialize
       title = data['name']
-      definition.update!( title: title, data: data)
+      definition.update!(title: title, data: data)
       definition
     end
 

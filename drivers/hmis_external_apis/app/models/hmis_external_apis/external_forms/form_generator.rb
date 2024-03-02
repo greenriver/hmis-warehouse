@@ -1,4 +1,3 @@
-
 ###
 # Copyright 2016 - 2024 Green River Data Analysis, LLC
 #
@@ -15,19 +14,19 @@ module HmisExternalApis::ExternalForms
     end
 
     delegate :register_field,
-      :render_form_input,
-      :render_form_textarea,
-      :render_numeric_input,
-      :render_form_date,
-      :render_form_select,
-      :render_form_radio_group,
-      :render_form_actions,
-      :render_form_fieldset,
-      :render_section,
-      :render_form_checkbox,
-      :render_dependent_block,
-      :name_from_label,
-      to: :context
+             :render_form_input,
+             :render_form_textarea,
+             :render_numeric_input,
+             :render_form_date,
+             :render_form_select,
+             :render_form_radio_group,
+             :render_form_actions,
+             :render_form_fieldset,
+             :render_section,
+             :render_form_checkbox,
+             :render_dependent_block,
+             :name_from_label,
+             to: :context
 
     def render_node(node)
       @stack.push(node)
@@ -40,7 +39,7 @@ module HmisExternalApis::ExternalForms
 
     def render_node_by_type(node)
       node_type = node['type']
-      result = case node_type
+      case node_type
       when 'STRING'
         render_input_node(node)
       when 'DATE'
@@ -70,11 +69,11 @@ module HmisExternalApis::ExternalForms
       render_form_group do
         case node['component']
         when 'PHONE'
-          render_form_input(label: node['text'], name: node['link_id'], required: node['required'],input_type: 'tel')
+          render_form_input(label: node['text'], name: node['link_id'], required: node['required'], input_type: 'tel')
         when 'EMAIL'
-          render_form_input(label: node['text'], name: node['link_id'], required: node['required'],input_type: 'email')
+          render_form_input(label: node['text'], name: node['link_id'], required: node['required'], input_type: 'email')
         else
-          render_form_input(label: node['text'], name: node['link_id'], required: node['required'],input_type: 'text')
+          render_form_input(label: node['text'], name: node['link_id'], required: node['required'], input_type: 'text')
         end
       end
     end
@@ -111,8 +110,9 @@ module HmisExternalApis::ExternalForms
 
     def render_choice_node(node)
       raise "missing options in #{node.inspect} " unless node['pick_list_options']
+
       options = node['pick_list_options'].map do |option|
-        {label: option['label'], value: option['code']}
+        { label: option['label'], value: option['code'] }
       end
       render_form_group do
         case node['component']
@@ -138,7 +138,7 @@ module HmisExternalApis::ExternalForms
           end
         end
       else
-        render_section(title: node['text']) do |section|
+        render_section(title: node['text']) do |_section|
           context.safe_join(contents, "\n")
         end
       end
@@ -151,9 +151,8 @@ module HmisExternalApis::ExternalForms
     end
 
     def render_dependent_item_wrapper(node, &block)
-      if node['enable_behavior']
-        return context.render_dependent_block(input_name: node.dig('enable_when', 'question'), input_value: node.dig('enable_when', 'answer_code'), &block)
-      end
+      return context.render_dependent_block(input_name: node.dig('enable_when', 'question'), input_value: node.dig('enable_when', 'answer_code'), &block) if node['enable_behavior']
+
       return context.capture(&block)
     end
   end

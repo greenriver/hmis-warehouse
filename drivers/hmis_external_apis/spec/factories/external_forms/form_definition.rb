@@ -1,4 +1,3 @@
-
 FactoryBot.define do
   factory :hmis_external_apis_external_form_definition, class: 'HmisExternalApis::ExternalForms::FormDefinition' do
     sequence(:name) { |n| "form_#{n}" }

@@ -14,7 +14,7 @@ class HmisExternalApis::PublishExternalFormsJob
     definition.validate_json!
 
     renderer = HmisExternalApis::ExternalFormsController.renderer.new
-    raw_content = renderer.render("hmis_external_apis/external_forms/form", assigns: {form_definition: definition.data})
+    raw_content = renderer.render('hmis_external_apis/external_forms/form', assigns: { form_definition: definition.data })
 
     digest = Digest::MD5.hexdigest(raw_content)
     versioned_content = process_content(definition, raw_content)
@@ -48,7 +48,18 @@ class HmisExternalApis::PublishExternalFormsJob
   end
 
   def upload_to_s3(definition)
-    # TBD upload_to_s3, return location
-    # puts content
+    s3_client.put_object(
+      bucket: ENV.fetch('S3_PUBLIC_BUCKET'),
+      key: definition.page_name,
+      body: definition.content,
+      content_type: 'text/html',
+    )
+  end
+
+  def s3
+    @s3 ||= Aws::S3::Client.new(
+      access_key_id: ENV.fetch('S3_PUBLIC_ACCESS_KEY_ID'),
+      secret_access_key: ENV.fetch('S3_PUBLIC_ACCESS_KEY_SECRET'),
+    )
   end
 end

@@ -7,38 +7,49 @@
 # retrieve and process external form submissions
 class HmisExternalApis::ConsumeExternalFormSubmissionsJob
   def perform
-    download_from_s3.each do |data, metadata|
+    s3.list_objects.each do |object|
+      raw_data = s3.get_as_io(key: object.key)&.read
+      submission_data = parse_json(raw_data)
+      if !submission_data
+        logger_error('invalid JSON content', object_key: object.key)
+        next
+      end
+
       submission = submission_class.transaction do
-        process_submission(data, metadata)
+        process_submission(submission_data, object)
       end
       # if we successfully processed the submission, delete it
-      delete_from_s3(metadata['object_key']) if submission
+      s3.delete(key: object.key) if submission
     end
   end
 
   protected
 
-  def process_submission(raw_data, metadata)
-    object_key = metadata['object_key']
-    submitted_at = DateTime.parse(metadata['submitted_at'])
+  def log_error(message, object_key:)
+    Rails.logger.error("external form submission #{object_key}: #{message}")
+  end
 
-    definition_id = raw_data['form_definition_id'].
+  def process_submission(submission_data, object)
+    definition_id = submission_data['form_definition_id'].
       presence&.then { |value| ProtectedId::Encoder.decode(value) }
     if definition_id.nil?
-      Rails.logger.error("external form submission #{object_key}: missing definition_id")
+      Rails.logger.error("external form submission #{object.key}: missing definition_id")
+      logger_error('missing definition_id', object_key: object.key)
       return nil
     end
 
-    spam_score = raw_data['spam_score'].presence&.to_i
+    spam_score = submission_data['spam_score'].presence&.to_i
 
-    submission = submission_class.create!(
-      submitted_at: submitted_at
+    # there might be a submission already if we processed it but didn't delete it from s3
+    submission = submission_class.where(object_key: object.key).first_or_initialize
+    submission.status ||= 'new'
+
+    submission.attributes = {
+      submitted_at: object.last_modified,
       spam_score: spam_score,
-      status: 'new',
       form_definition_id: definition_id,
-      object_key: object_key,
-      raw_data: raw_data
-    )
+      submission_data: submission_data,
+    }
 
     # TBD setup CDEs
 
@@ -53,12 +64,13 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob
     @s3 ||= GrdaWarehouse::RemoteCredentials::S3.active.where(slug: 'hmis_external_form_submissions').first!.s3
   end
 
-  def download_from_s3
+  # try not to make assumptions about str
+  def parse_json(str)
+    # some preflight sanity checks before we parse
+    return nil unless str.present? && str[0] == '{' && str[-1] == '}' && str.size <= 100_000
 
-    # TBD
-  end
-
-  def delete_from_s3(_object_key)
-    # TBD
+    JSON.parse(str)
+  rescue JSON::ParserError
+    nil
   end
 end

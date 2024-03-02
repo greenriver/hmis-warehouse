@@ -1,10 +1,10 @@
 class AddExternalForms < ActiveRecord::Migration[6.1]
   def change
-    #add_column :hmis_form_definitions, :boolean, :external, default: false, null: false
+    # add_column :hmis_form_definitions, :boolean, :external, default: false, null: false
 
     create_table :hmis_external_form_definitions do |t|
       t.timestamps
-      t.string :name, null: false, index: {unique: true}
+      t.string :name, null: false, index: { unique: true }
       t.string :title, null: false
       t.jsonb :data, null: false
       t.text :content

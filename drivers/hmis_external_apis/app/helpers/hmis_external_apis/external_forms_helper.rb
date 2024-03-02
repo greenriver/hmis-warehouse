@@ -9,20 +9,16 @@ module HmisExternalApis::ExternalFormsHelper
     "hmis_external_apis/external_forms/#{partial}"
   end
 
-  def render_form_input(label:, input_type: 'text', name: , input_pattern: nil, input_mode: nil, required: false, input_placeholder: nil, input_class: nil, input_html_id: next_html_id)
+  def render_form_input(label:, input_type: 'text', name:, input_pattern: nil, input_mode: nil, required: false, input_placeholder: nil, input_class: nil, input_html_id: next_html_id)
     render partial_path('form/input'), label: label, input_type: input_type, name: name, required: required, input_pattern: input_pattern, html_id: input_html_id, input_mode: input_mode, input_placeholder: input_placeholder, input_class: input_class
   end
 
-  def render_form_textarea(label:, name: , required: false, rows: 2)
+  def render_form_textarea(label:, name:, required: false, rows: 2)
     render partial_path('form/textarea'), label: label, name: name, required: required, rows: rows, html_id: next_html_id
   end
 
-  def render_numeric_input(label:, name: , required: false, input_placeholder: nil, input_pattern: '\d*', input_html_id: nil)
+  def render_numeric_input(label:, name:, required: false, input_placeholder: nil, input_pattern: '\d*', input_html_id: nil)
     render_form_input(label: label, name: name, required: required, input_pattern: input_pattern, input_mode: 'numeric', input_placeholder: input_placeholder, input_html_id: input_html_id)
-  end
-
-  def render_form_date(label:, name: , required: false)
-    render_form_input(label: label, name: name, required: required, input_placeholder: 'mm/dd/yyyy', input_class: 'date-input')
   end
 
   def render_form_date(legend:, name: nil, required: false)
@@ -32,11 +28,11 @@ module HmisExternalApis::ExternalFormsHelper
     end
   end
 
-  def render_form_select(label:, name: , required: false, options:)
+  def render_form_select(label:, name:, required: false, options:)
     render partial_path('form/select'), label: label, options: options, name: name, required: required, html_id: next_html_id
   end
 
-  def render_form_radio_group(legend:, name: , required: false, options:, &block)
+  def render_form_radio_group(legend:, name:, required: false, options:, &block)
     render_form_fieldset(legend: legend, required: required) do
       radios = render(partial_path('form/radio_group_options'), options: options, name: name, required: required, html_id: next_html_id)
       extra = capture(&block) if block
@@ -48,7 +44,7 @@ module HmisExternalApis::ExternalFormsHelper
     tag.section do
       safe_join(
         [tag.h2(title, class: 'h4'), capture(&block)],
-        "\n"
+        "\n",
       )
     end
   end
@@ -61,7 +57,7 @@ module HmisExternalApis::ExternalFormsHelper
     tag.fieldset do
       safe_join(
         [tag.legend(legend, class: required && 'required'), capture(&block)],
-        "\n"
+        "\n",
       )
     end
   end
