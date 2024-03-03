@@ -17923,6 +17923,78 @@ ALTER SEQUENCE public.hmis_dqt_inventories_id_seq OWNED BY public.hmis_dqt_inven
 
 
 --
+-- Name: hmis_external_form_publications; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_external_form_publications (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    definition_id bigint NOT NULL,
+    object_key character varying NOT NULL,
+    content_definition jsonb NOT NULL,
+    content text,
+    content_digest character varying
+);
+
+
+--
+-- Name: hmis_external_form_publications_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_external_form_publications_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_external_form_publications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_external_form_publications_id_seq OWNED BY public.hmis_external_form_publications.id;
+
+
+--
+-- Name: hmis_external_form_submissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_external_form_submissions (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    submitted_at timestamp without time zone,
+    spam_score double precision,
+    status character varying DEFAULT 'new'::character varying NOT NULL,
+    definition_id bigint NOT NULL,
+    object_key character varying NOT NULL,
+    raw_data jsonb NOT NULL,
+    notes text
+);
+
+
+--
+-- Name: hmis_external_form_submissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_external_form_submissions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_external_form_submissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_external_form_submissions_id_seq OWNED BY public.hmis_external_form_submissions.id;
+
+
+--
 -- Name: hmis_external_referral_household_members; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -18128,7 +18200,8 @@ CREATE TABLE public.hmis_form_definitions (
     definition jsonb,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    title character varying NOT NULL
+    title character varying NOT NULL,
+    external_form_object_key character varying
 );
 
 
@@ -28447,6 +28520,20 @@ ALTER TABLE ONLY public.hmis_dqt_inventories ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: hmis_external_form_publications id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_form_publications ALTER COLUMN id SET DEFAULT nextval('public.hmis_external_form_publications_id_seq'::regclass);
+
+
+--
+-- Name: hmis_external_form_submissions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_form_submissions ALTER COLUMN id SET DEFAULT nextval('public.hmis_external_form_submissions_id_seq'::regclass);
+
+
+--
 -- Name: hmis_external_referral_household_members id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -32322,6 +32409,22 @@ ALTER TABLE ONLY public.hmis_dqt_goals
 
 ALTER TABLE ONLY public.hmis_dqt_inventories
     ADD CONSTRAINT hmis_dqt_inventories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_external_form_publications hmis_external_form_publications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_form_publications
+    ADD CONSTRAINT hmis_external_form_publications_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_external_form_submissions hmis_external_form_submissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_form_submissions
+    ADD CONSTRAINT hmis_external_form_submissions_pkey PRIMARY KEY (id);
 
 
 --
@@ -60843,6 +60946,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240220171320'),
 ('20240221195839'),
 ('20240222152739'),
+('20240223002628'),
 ('20240229132014');
 
 

@@ -3,13 +3,13 @@
   month_id = next_html_id
   day_id = next_html_id
   year_id = next_html_id
-.form-row(style="max-width: 300px")
+.form-row(style="max-width: 400px")
   %input{type:"hidden", name: name, id: date_id}
   .col-3
     = render_numeric_input(label: 'Month', name: nil, required: required, input_placeholder: 'MM', input_html_id: month_id)
   .col-3
     = render_numeric_input(label: 'Day', name: nil, required: required, input_placeholder: 'DD', input_html_id: day_id)
-  .col-6
+  .col-4
     = render_numeric_input(label: 'Year', name: nil, required: required, input_placeholder: 'YYYY', input_html_id: year_id)
 
 - content_for :page_js do

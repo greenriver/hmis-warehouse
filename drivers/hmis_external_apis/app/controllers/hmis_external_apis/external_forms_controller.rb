@@ -24,9 +24,10 @@ class HmisExternalApis::ExternalFormsController < ActionController::Base
 
   def show
     # to refresh form content
-    # exec rake driver:hmis_external_apis:tc_hmis:seed_external_forms
     object_key = params[:object_key]
     definition = Hmis::Form::Definition.where(external_form_object_key: object_key).first!
+    HmisExternalApis::PublishExternalFormsJob.new.perform(definition.id)
+    definition.reload
     publication = definition.external_form_publications.last!
     return render(html: publication.content.html_safe)
   end

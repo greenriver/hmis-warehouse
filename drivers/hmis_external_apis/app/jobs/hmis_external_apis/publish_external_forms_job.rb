@@ -89,7 +89,7 @@ class HmisExternalApis::PublishExternalFormsJob
   def upload_to_s3(publication)
     bucket_name = ENV['S3_PUBLIC_BUCKET']
     if bucket_name.blank?
-      raise 'missing public bucket for upload' unless Rails.env.development?
+      raise 'missing public bucket for upload' unless Rails.env.development? || Rails.env.test?
 
       return
     end

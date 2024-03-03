@@ -82,7 +82,26 @@ $(function () {
 
   form.addEventListener('submit', function (event) {
     event.preventDefault(); // Prevent the default form submission
-    $('#confirmSubmitModal').modal('show');
+    event.stopPropagation();
+
+    $('.needs-validation').find('input,select,textarea').each(function() {
+      $(this).removeClass('is-valid is-invalid').addClass(this.checkValidity() ? 'is-valid' : 'is-invalid');
+    });
+
+    var invalid = $('.is-invalid');
+    if (invalid.length) {
+      // maybe we should show an alert here "please provide missing required values"
+      // IE compat scroll
+      const y = invalid.get(0).getBoundingClientRect().top + window.scrollY;
+      window.scrollTo(0, y - 120);
+    } else {
+      $('#confirmSubmitModal').modal('show');
+    }
+  });
+
+  $('.needs-validation').find('input,select,textarea').on('focusout', function () {
+      // check element validity and change class
+      $(this).removeClass('is-valid is-invalid').addClass(this.checkValidity() ? 'is-valid' : 'is-invalid');
   });
 });
 
@@ -99,7 +118,7 @@ window.addDependentGroup = function (inputName, condValue, targetSelector) {
     target.find('input, select, textarea').prop('disabled', true);
   }
 
-  $('[name="' + inputName + '"]').change(function () {
+  $('[name="' + inputName + '"]').on('change', function () {
     var el = $(this)
     var value = el.val();
     console.info('hi', inputName, value, condValue, el.attr('type'), el.is(':checked'))

@@ -66,7 +66,7 @@ module HmisExternalApis::ExternalForms
     end
 
     def render_input_node(node)
-      render_form_group do
+      render_form_group(node: node) do
         case node['component']
         when 'PHONE'
           render_form_input(label: node['text'], name: node['link_id'], required: node['required'], input_type: 'tel')
@@ -79,31 +79,31 @@ module HmisExternalApis::ExternalForms
     end
 
     def render_boolean_node(node)
-      render_form_group do
+      render_form_group(node: node) do
         render_form_checkbox(label: node['text'], name: node['link_id'], required: node['required'])
       end
     end
 
     def render_numeric_node(node)
-      render_form_group do
+      render_form_group(node: node) do
         render_numeric_input(label: node['text'], name: node['link_id'], required: node['required'])
       end
     end
 
     def render_text_node(node)
-      render_form_group do
+      render_form_group(node: node) do
         render_form_textarea(label: node['text'], name: node['link_id'], required: node['required'])
       end
     end
 
     def render_date_node(node)
-      render_form_group do
+      render_form_group(node: node) do
         render_form_date(legend: node['text'], name: node['link_id'], required: node['required'])
       end
     end
 
     def render_display_node(node)
-      render_form_group do
+      render_form_group(node: node) do
         context.tag.div(node['text'].html_safe)
       end
     end
@@ -114,7 +114,7 @@ module HmisExternalApis::ExternalForms
       options = node['pick_list_options'].map do |option|
         { label: option['label'], value: option['code'] }
       end
-      render_form_group do
+      render_form_group(node: node) do
         case node['component']
         when 'DROPDOWN'
           render_form_select(label: node['text'], name: node['link_id'], options: options, required: node['required'])
@@ -132,7 +132,7 @@ module HmisExternalApis::ExternalForms
       end
       case node['component']
       when 'INPUT_GROUP'
-        render_form_group do
+        render_form_group(node: node) do
           render_form_fieldset(legend: node['text']) do
             context.safe_join(contents, "\n")
           end
@@ -144,10 +144,10 @@ module HmisExternalApis::ExternalForms
       end
     end
 
-    def render_form_group(&block)
+    def render_form_group(node:, &block)
       return context.capture(&block) if parent_node && parent_node['component'] == 'INPUT_GROUP'
 
-      context.render_form_group(&block)
+      context.render_form_group(needs_validation: node['required'], &block)
     end
 
     def render_dependent_item_wrapper(node, &block)

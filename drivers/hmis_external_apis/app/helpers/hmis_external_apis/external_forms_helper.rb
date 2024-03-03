@@ -62,8 +62,8 @@ module HmisExternalApis::ExternalFormsHelper
     end
   end
 
-  def render_form_group(&block)
-    tag.div(capture(&block), class: 'form-group')
+  def render_form_group(needs_validation: false, &block)
+    tag.div(capture(&block), class: "form-group #{needs_validation ? 'needs-validation' : nil}")
   end
 
   def render_form_checkbox(label:, name: nil, required: false)

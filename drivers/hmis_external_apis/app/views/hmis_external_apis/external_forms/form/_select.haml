@@ -1,5 +1,6 @@
 %label{for:html_id, class: required && 'required'}= label
 %select.form-control{id: html_id, name: name, required: required, autocomplete: "off"}
-  %option{value: ""}= "-- SELECT"
+  %option{value: ""}= "-- Select"
   - options.each do |option|
     %option{value: option[:value]}= option[:label]
+.invalid-feedback This is required
