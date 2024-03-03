@@ -50,10 +50,31 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob
       form_definition_id: definition_id,
       submission_data: submission_data,
     }
-
-    # TBD setup CDEs
+    submission.save!
+    build_cdes(definition, submission)
 
     submission
+  end
+
+  # extract the and build custom data elements from the payload
+  def build_cdes(definition, submission)
+    submission.custom_data_elements.delete_all
+    owner_type = definition.external_form_submission_data_element_owner_type
+    cdes = []
+    Hmis::Hud::CustomDataElementDefinition.for_type(owner_type).each do |cded|
+      value = submission.raw_data[cded.key]
+      next if value.blank?
+
+      cdes << {
+        owner_type: submission.class.sti_name,
+        owner_id: submission.id,
+        value_string: value,
+        data_source_id: cded.data_source_id,
+        data_element_definition_id: cded.id,
+        user_id: cded.user_id,
+      }
+    end
+    Hmis::Hud::CustomDataElement.import!(cdes, validate: false)
   end
 
   def submission_class

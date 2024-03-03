@@ -33,6 +33,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   has_many :instances, foreign_key: :definition_identifier, primary_key: :identifier
   has_many :form_processors
   has_many :custom_service_types, through: :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
+  has_many :external_form_submissions, class_name: 'HmisExternalApis::ExternalForms::FormSubmission', dependent: :restrict_with_exception
+  has_many :external_form_publications, class_name: 'HmisExternalApis::ExternalForms::FormPublication', dependent: :destroy
 
   # Forms that are used for Assessments. These are submitted using SubmitAssessment mutation.
   ASSESSMENT_FORM_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT, :POST_EXIT, :CUSTOM_ASSESSMENT].freeze
@@ -92,6 +94,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :CLIENT_DETAIL,
     # Other/misc forms
     :FILE, # should maybe be considered a data collection feature, but different because its at Client-level (not Project)
+    :EXTERNAL_FORM,
   ].freeze
 
   validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }
@@ -442,5 +445,28 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # if the enrollment and project match
   def project_and_enrollment_match(...)
     instances.map { |i| i.project_and_enrollment_match(...) }.compact.min_by(&:rank)
+  end
+
+  # should use rails attr normalization in rails 7
+  def external_form_object_key=(value)
+    super(value.blank? ? nil : value.strip)
+  end
+
+  def walk_definition_nodes(&block)
+    walk_definition_node(definition, &block)
+  end
+
+  protected def walk_definition_node(node, &block)
+    block.call(node)
+    children = node['item']
+    children&.each { |child| walk_definition_node(child, &block) }
+  end
+
+  # kinda hacky way to associate the form definition with a cded via owner_type
+  def external_form_submission_data_element_owner_type
+    raise unless external_form_object_key
+
+    submission_class_name = HmisExternalApis::ExternalForms::FormSubmission.sti_name
+    "#{submission_class_name}##{identifier}"
   end
 end

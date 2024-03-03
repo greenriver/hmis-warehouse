@@ -6,7 +6,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'HmisExternalApis::ExternalForms::FormDefinition', type: :model do
+RSpec.describe 'HmisExternalApis::ExternalForms::FormPublication', type: :model do
   subject(:form_definition) do
     create(:hmis_external_apis_external_form_definition)
   end

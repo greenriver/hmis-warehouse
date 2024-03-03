@@ -15,6 +15,17 @@ module Types
     field :spam_score, Float, null: true
     field :status, String, null: false # probably should be an enum to new | resolved
     field :notes, String, null: true
-    field :custom_data_elements, [Types::HmisSchema::CustomDataElement], null: false
+    custom_data_elements_field
+
+    def custom_data_elements
+      definition_scope = Hmis::Hud::CustomDataElementDefinition.
+        for_type(definition.external_form_submission_data_element_owner_type)
+
+      resolve_custom_data_elements(object, definition_scope: definition_scope)
+    end
+
+    def definition
+      load_ar_association(object, :definition)
+    end
   end
 end

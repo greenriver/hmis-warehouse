@@ -5,12 +5,13 @@
 ###
 
 class HmisExternalApis::ExternalFormsController < ActionController::Base
+  include ::HmisExternalApis::ExternalFormsHelper
+
   before_action do
-    # this is intended for development. See PublishExternalFormsJob for production usage
+    # Only allow calling the controller directly in development. See PublishExternalFormsJob for production usage
     raise unless Rails.env.development?
   end
 
-  include ::HmisExternalApis::ExternalFormsHelper
   skip_before_action :verify_authenticity_token
 
   layout 'hmis_external_apis/external_forms'
@@ -22,9 +23,12 @@ class HmisExternalApis::ExternalFormsController < ActionController::Base
   end
 
   def show
-    template = params[:template]
-    definition = HmisExternalApis::ExternalForms::FormDefinition.from_file(template).publish!
-    return render(html: definition.content.html_safe)
+    # to refresh form content
+    # exec rake driver:hmis_external_apis:tc_hmis:seed_external_forms
+    object_key = params[:object_key]
+    definition = Hmis::Form::Definition.where(external_form_object_key: object_key).first!
+    publication = definition.external_form_publications.last!
+    return render(html: publication.content.html_safe)
   end
 
   def create
@@ -34,7 +38,7 @@ class HmisExternalApis::ExternalFormsController < ActionController::Base
       submitted_at: Time.current,
       spam_score: 0,
       status: 'new',
-      form_definition_id: decoded_definition_id,
+      definition_id: decoded_definition_id,
       object_key: SecureRandom.uuid,
       raw_data: params.to_unsafe_h,
     )

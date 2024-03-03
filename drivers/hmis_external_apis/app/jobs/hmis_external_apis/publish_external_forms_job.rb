@@ -10,48 +10,94 @@ class HmisExternalApis::PublishExternalFormsJob
   include SafeInspectable
 
   def perform(definition_id)
-    definition = HmisExternalApis::ExternalForms::FormDefinition.find(definition_id)
-    definition.validate_json!
+    definition = Hmis::Form::Definition.find(definition_id)
+    raise unless definition.external_form_object_key.present?
+
+    publication = definition.external_form_publications.new
 
     renderer = HmisExternalApis::ExternalFormsController.renderer.new
-    raw_content = renderer.render('hmis_external_apis/external_forms/form', assigns: { form_definition: definition.data })
+    raw_content = renderer.render('hmis_external_apis/external_forms/form', assigns: { form_definition: definition.definition })
 
-    digest = Digest::MD5.hexdigest(raw_content)
-    versioned_content = process_content(definition, raw_content)
-    object_key = upload_to_s3(definition)
+    publication.object_key = definition.external_form_object_key
+    publication.content_digest = digest = Digest::MD5.hexdigest(raw_content)
+    publication.content = process_content(raw_content, digest: digest, definition_id: definition.id)
+    publication.content_definition = definition.definition
 
-    definition.attributes = {
-      content_digest: digest,
-      content: versioned_content,
-      object_key: object_key,
-    }
-    definition.save!
-    definition
+    update_cdeds(definition)
+
+    upload_to_s3(publication)
+
+    publication.save!
+    publication
   end
 
   protected
 
-  # prepare form for publication
-  def process_content(definition, raw_content)
+  def user_id
+    @user_id ||= Hmis::Hud::User.system_user(data_source_id: data_source_id).id
+  end
+
+  def data_source_id
+    @data_source_id ||= GrdaWarehouse::DataSource.hmis.first.id
+  end
+
+  # construct custom data element definitions from the nodes in the form definition
+  def update_cdeds(definition)
+    owner_type = definition.external_form_submission_data_element_owner_type
+    cded_by_key = Hmis::Hud::CustomDataElementDefinition.for_type(owner_type).index_by(&:key)
+    missing = []
+    definition.walk_definition_nodes do |node|
+      cded_key = node['link_id']
+      attrs = nil
+      case node['type']
+      when 'STRING', 'CHOICE', 'BOOLEAN'
+        # treat everything as a string for now
+        attrs = {
+          owner_type: owner_type,
+          field_type: 'string',
+          key: cded_key,
+          label: cded_key.humanize,
+          repeats: false,
+          UserID: user_id,
+          data_source_id: data_source_id,
+        }
+      end
+      if attrs
+        cded = cded_by_key[cded_key]
+        cded ? cded.update!(attrs) : missing.push(attrs)
+      end
+    end
+    Hmis::Hud::CustomDataElementDefinition.import!(missing, validate: false)
+  end
+
+  # prepare form content for publication
+  def process_content(raw_content, digest:, definition_id:)
     doc = Nokogiri::HTML5(raw_content)
 
     forms = doc.css('form')
     raise 'expected one form' unless forms.one?
 
     form = forms.first
-    form.add_child(%(<input type="hidden" name="form_content_digest" value="#{definition.content_digest}">))
-    protected_definition_id = ProtectedId::Encoder.encode(definition.id)
+    form.add_child(%(<input type="hidden" name="form_content_digest" value="#{digest}">))
+    protected_definition_id = ProtectedId::Encoder.encode(definition_id)
     form.add_child(%(<input type="hidden" name="form_definition_id" value="#{protected_definition_id}">))
 
     doc.xpath('//comment()').each(&:remove)
     doc.to_html
   end
 
-  def upload_to_s3(definition)
-    s3_client.put_object(
-      bucket: ENV.fetch('S3_PUBLIC_BUCKET'),
-      key: definition.page_name,
-      body: definition.content,
+  def upload_to_s3(publication)
+    bucket_name = ENV['S3_PUBLIC_BUCKET']
+    if bucket_name.blank?
+      raise 'missing public bucket for upload' unless Rails.env.development?
+
+      return
+    end
+
+    s3.put_object(
+      bucket: bucket_name,
+      key: publication.object_key,
+      body: publication.content,
       content_type: 'text/html',
     )
   end

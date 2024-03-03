@@ -4,11 +4,10 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# track external publication of a form definition
 module HmisExternalApis::ExternalForms
-  class FormSubmission < ::HmisExternalApis::HmisExternalApisBase
-    self.table_name = 'hmis_external_form_submissions'
+  class FormPublication < ::HmisExternalApis::HmisExternalApisBase
+    self.table_name = 'hmis_external_form_publications'
     belongs_to :definition, class_name: 'Hmis::Form::Definition'
-
-    has_many :custom_data_elements, as: :owner, dependent: :destroy
   end
 end
