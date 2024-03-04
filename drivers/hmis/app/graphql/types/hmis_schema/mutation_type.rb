@@ -61,9 +61,9 @@ module Types
     field :create_form_rule, mutation: Mutations::CreateFormRule
     field :update_form_rule, mutation: Mutations::UpdateFormRule
 
-    field :create_auto_exit_config, mutation: Mutations::CreateAutoExitConfig
-    field :update_auto_exit_config, mutation: Mutations::UpdateAutoExitConfig
-    field :delete_auto_exit_config, mutation: Mutations::DeleteAutoExitConfig
+    field :create_project_config, mutation: Mutations::CreateProjectConfig
+    field :update_project_config, mutation: Mutations::UpdateProjectConfig
+    field :delete_project_config, mutation: Mutations::DeleteProjectConfig
 
     field :create_scan_card_code, mutation: Mutations::CreateScanCardCode
     field :delete_scan_card_code, mutation: Mutations::DeleteScanCardCode
