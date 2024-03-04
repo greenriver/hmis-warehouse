@@ -13,7 +13,8 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
       'changeButton',
       'searchInput',
       'administrativeFilter',
-      'administrativeInput'
+      'administrativeInput',
+      'subCategoryWrapper'
     ]
   }
   // This version of stimulus doesn't seem to support values
@@ -91,11 +92,19 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
       });
       this.individualPermissionTargets.forEach((permission) => {
         const wrapper = $(permission).closest('.form-check')
-        const permission_text = wrapper.text().toLowerCase()
+        const sub_category = $(permission).closest('.sub-category-wrapper').find('.sub-category-title')
+        const permission_text = wrapper.text().toLowerCase() + sub_category.text().toLowerCase()
         if (permission_text.indexOf(search_string) == -1) {
           wrapper.addClass('hide')
         } else {
           wrapper.removeClass('hide')
+        }
+      });
+      this.subCategoryWrapperTargets.forEach((section) => {
+        if($(section).find('.c-checkbox:visible').length > 0) {
+          $(section).removeClass('hide')
+        } else {
+          $(section).addClass('hide')
         }
       });
     } else {
@@ -106,6 +115,7 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
       this.individualPermissionTargets.forEach((permission) => {
         $(permission).closest('.form-check').removeClass('hide')
       })
+      $(this.subCategoryWrapperTargets).removeClass('hide')
     }
   }
 

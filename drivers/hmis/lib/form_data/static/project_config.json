@@ -1,10 +1,15 @@
 {
   "item": [
     {
-      "type": "INTEGER",
-      "link_id": "lengthOfAbsenceDays",
-      "text": "Length of Absence (Days)",
-      "mapping": { "field_name": "lengthOfAbsenceDays" }
+      "type": "CHOICE",
+      "link_id": "configType",
+      "text": "Config Type",
+      "pick_list_reference": "ProjectConfigType",
+      "mapping": {
+        "field_name": "configType"
+      },
+      "component": "DROPDOWN",
+      "required": true
     },
     {
       "type": "CHOICE",
@@ -35,6 +40,23 @@
       "mapping": {
         "field_name": "organizationId"
       }
+    },
+    {
+      "link_id": "lengthOfAbsenceDays",
+      "required": true,
+      "type": "INTEGER",
+      "text": "Length of Absence (Days)",
+      "mapping": {
+        "field_name": "lengthOfAbsenceDays"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "configType",
+          "operator": "EQUAL",
+          "answer_code": "AUTO_EXIT"
+        }
+      ]
     }
   ]
 }
