@@ -10,7 +10,15 @@
   %tbody
     - overrides.each do |override|
       %tr
-        %td= override.file_name
+        %td
+          = override.file_name
+          - projects = override.project
+          - if projects.any?
+            .associated-projects
+              Associated Project
+              %ul
+                - projects.each do |project|
+                  %li= link_to_if can_view_projects?, project.name(current_user, ignore_confidential_status: can_edit_projects?), project_path(project)
         %td= override.replaces_column
         %td= override.describe_with
         %td= override.describe_when
