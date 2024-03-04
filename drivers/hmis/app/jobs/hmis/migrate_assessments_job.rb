@@ -211,7 +211,7 @@ module Hmis
         # Build FormProcessor with IDs to all related records
         assessment.build_form_processor(**value)
 
-        if !assessment.valid? || Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(assessment).any?
+        if !assessment.valid?
           # This check was added because we hit a "Client is invalid", which may have occurred if the client was deleted while the batch was processing?
           Rails.logger.info "Skipping invalid assessment for EnrollmentID: #{assessment.enrollment_id}"
           skipped_invalid_assessments += 1

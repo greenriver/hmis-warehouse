@@ -224,11 +224,11 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
       it 'does not generate an empty intake assessment if there is an existing, invalid one' do
         e2 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, entry_date: 1.week.from_now)
         expect(e2.intake_assessment).to be_nil
-        # Create an assessment where the date is 30 year ago, so it's invalid
-        create(:hmis_income_benefit, data_source: ds1, enrollment: e2, client: c1, data_collection_stage: 1, information_date: 1.week.from_now)
+        create(:hmis_income_benefit, data_source: ds1, enrollment: e2, client: c1, data_collection_stage: 1, information_date: 1.week.ago)
+        c1.destroy! # Deleting the client causes this assessment to be invalid
         Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, generate_empty_intakes: true)
         e2.reload
-        expect(e2.intake_assessment).to be_nil
+        expect(e2.intake_assessment).to be_nil, 'An empty intake assessment should not be generated if the assessment is invalid'
       end
     end
   end
