@@ -69,7 +69,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :enrollment
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
+  belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :enrollments
   belongs_to :household, **hmis_relation(:HouseholdID, 'Household'), inverse_of: :enrollments, optional: true
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
   has_many :custom_data_elements, as: :owner, dependent: :destroy
