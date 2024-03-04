@@ -187,6 +187,9 @@ module Hmis
 
       skipped_invalid_assessments = 0
       skipped_exit_assessments = 0
+      generate_empty_intake_count = 0
+      skipped_intake_enrollment_ids = []
+
       # For each grouping of Enrollment+InformationDate+DataCollectionStage,
       # create a CustomAssessment and a FormProcessor that references the related records
       assessment_records.each do |hash_key, value|
@@ -208,10 +211,11 @@ module Hmis
         # Build FormProcessor with IDs to all related records
         assessment.build_form_processor(**value)
 
-        if !assessment.valid?
+        if !assessment.valid? || Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(assessment).any?
           # This check was added because we hit a "Client is invalid", which may have occurred if the client was deleted while the batch was processing?
           Rails.logger.info "Skipping invalid assessment for EnrollmentID: #{assessment.enrollment_id}"
           skipped_invalid_assessments += 1
+          skipped_intake_enrollment_ids << assessment.enrollment_id if assessment.intake?
         elsif assessment.exit? && value[:exit_id].nil?
           # There appear to be lots of "exit" data-collection-stage records for enrollments that don't have an Exit record.
           # This shouldn't happen anymore because we skip them above
@@ -227,12 +231,19 @@ module Hmis
       # so the UI won't prompt the user to complete intake assessments on these enrollments.
       if generate_empty_intakes && data_collection_stages.include?(1)
         Hmis::Hud::CustomAssessment.transaction do
-          enrollment_scope.each do |e|
-            e.build_synthetic_intake_assessment.save! unless e.intake_assessment
+          enrollments_missing_intakes = enrollment_scope.left_outer_joins(:intake_assessment).
+            where(intake_assessment: { id: nil }).
+            where.not(enrollment_id: skipped_intake_enrollment_ids) # enrollment_ids with intake assessments that were skipped because they were invalid
+
+          generate_empty_intake_count = enrollments_missing_intakes.count
+
+          enrollments_missing_intakes.each do |enrollment|
+            enrollment.build_synthetic_intake_assessment.save!
           end
         end
       end
 
+      Rails.logger.info "Generated #{generate_empty_intake_count} empty intake assessments" if generate_empty_intake_count.positive?
       Rails.logger.info "Skipped creating #{skipped_invalid_assessments} invalid assessments" if skipped_invalid_assessments.positive?
       Rails.logger.info "Skipped creating #{skipped_exit_assessments} exit assessments because the enrollment is open" if skipped_exit_assessments.positive?
     end
