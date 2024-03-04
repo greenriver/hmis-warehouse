@@ -24,7 +24,7 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
   SERVICE_OWNER_TYPES = ['Hmis::Hud::Service', 'Hmis::Hud::CustomService'].freeze
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
+  belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :assessments
   belongs_to :custom_service_type, class_name: 'Hmis::Hud::CustomServiceType', optional: true
   has_many :values, class_name: 'Hmis::Hud::CustomDataElement', inverse_of: :data_element_definition, foreign_key: :data_element_definition_id
 
