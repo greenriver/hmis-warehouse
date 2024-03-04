@@ -35,6 +35,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   has_many :custom_service_types, through: :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
   has_many :external_form_submissions, class_name: 'HmisExternalApis::ExternalForms::FormSubmission', dependent: :restrict_with_exception
   has_many :external_form_publications, class_name: 'HmisExternalApis::ExternalForms::FormPublication', dependent: :destroy
+  has_many :custom_data_element_definitions, class_name: 'Hmis::Hud::CustomDataElementDefinition', dependent: :nullify,
+                                             primary_key: 'identifier', foreign_key: 'form_definition_identifier'
 
   # Forms that are used for Assessments. These are submitted using SubmitAssessment mutation.
   ASSESSMENT_FORM_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT, :POST_EXIT, :CUSTOM_ASSESSMENT].freeze
@@ -460,13 +462,5 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     block.call(node)
     children = node['item']
     children&.each { |child| walk_definition_node(child, &block) }
-  end
-
-  # kinda hacky way to associate the form definition with a cded via owner_type
-  def external_form_submission_data_element_owner_type
-    raise unless external_form_object_key
-
-    submission_class_name = HmisExternalApis::ExternalForms::FormSubmission.sti_name
-    "#{submission_class_name}##{identifier}"
   end
 end

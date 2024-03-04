@@ -43,8 +43,8 @@ class HmisExternalApis::PublishExternalFormsJob
 
   # construct custom data element definitions from the nodes in the form definition
   def update_cdeds(definition)
-    owner_type = definition.external_form_submission_data_element_owner_type
-    cded_by_key = Hmis::Hud::CustomDataElementDefinition.for_type(owner_type).index_by(&:key)
+    owner_type = HmisExternalApis::ExternalForms::FormSubmission.sti_name
+    cded_by_key = definition.custom_data_element_definitions.index_by(&:key)
     missing = []
     definition.walk_definition_nodes do |node|
       cded_key = node['link_id']
@@ -60,6 +60,7 @@ class HmisExternalApis::PublishExternalFormsJob
           repeats: false,
           UserID: user_id,
           data_source_id: data_source_id,
+          form_definition_identifier: definition.identifier,
         }
       end
       if attrs

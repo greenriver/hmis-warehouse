@@ -6,7 +6,7 @@ namespace :tc_hmis do
     path = Rails.root.join('drivers/hmis/lib/form_data/tarrant_county/external_forms')
     Dir.glob("#{path}/*.json") do |file_path|
       file_name = File.basename(file_path, '.json')
-      definition = Hmis::Form::Definition.where(identifier: "tchc#{file_name}").first_or_initialize
+      definition = Hmis::Form::Definition.where(identifier: "tchc_#{file_name}").first_or_initialize
       definition.definition = JSON.parse(File.read(file_path))
       Hmis::Form::Definition.validate_json(definition.definition) { |msg| raise msg }
       definition.role = :EXTERNAL_FORM

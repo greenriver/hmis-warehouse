@@ -64,17 +64,22 @@ $(function () {
   var submitWithCaptcha = function() {
     $('#spinnerModal').modal('show');
     grecaptcha.ready(function () {
-      grecaptcha.execute(captchaKey, { action: 'submit' }).then(function (token) {
-        // Append the token to the form
-        var recaptchaResponse = document.createElement('input');
-        recaptchaResponse.type = 'hidden';
-        recaptchaResponse.name = 'recaptcha_response';
-        recaptchaResponse.value = token;
-        form.appendChild(recaptchaResponse);
+      try {
+        grecaptcha.execute(captchaKey, { action: 'submit' }).then(function (token) {
+          // Append the token to the form
+          var recaptchaResponse = document.createElement('input');
+          recaptchaResponse.type = 'hidden';
+          recaptchaResponse.name = 'recaptcha_response';
+          recaptchaResponse.value = token;
+          form.appendChild(recaptchaResponse);
 
-        // resubmit
+          // resubmit
+          submitWithPresign();
+        });
+      } catch {
+        // recaptcha failure
         submitWithPresign();
-      });
+      }
     });
   };
 
@@ -121,7 +126,6 @@ window.addDependentGroup = function (inputName, condValue, targetSelector) {
   $('[name="' + inputName + '"]').on('change', function () {
     var el = $(this)
     var value = el.val();
-    console.info('hi', inputName, value, condValue, el.attr('type'), el.is(':checked'))
     if (el.prop('type') === 'checkbox') {
       if (value === condValue) {
         el.is(':checked') ? show() : hide();

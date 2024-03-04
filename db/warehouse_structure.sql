@@ -1095,7 +1095,8 @@ CREATE TABLE public."CustomDataElementDefinitions" (
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
-    show_in_summary boolean DEFAULT false NOT NULL
+    show_in_summary boolean DEFAULT false NOT NULL,
+    form_definition_identifier character varying
 );
 
 
@@ -49783,6 +49784,13 @@ CREATE UNIQUE INDEX "index_CustomClientAddress_on_data_source_id_and_EnrollmentI
 --
 
 CREATE INDEX "index_CustomDataElementDefinitions_on_custom_service_type_id" ON public."CustomDataElementDefinitions" USING btree (custom_service_type_id);
+
+
+--
+-- Name: idx_CustomDataElementDefinitions_1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "idx_CustomDataElementDefinitions_1" ON public."CustomDataElementDefinitions" USING btree (form_definition_identifier);
 
 
 --

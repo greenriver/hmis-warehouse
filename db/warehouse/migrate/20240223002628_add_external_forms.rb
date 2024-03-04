@@ -1,7 +1,9 @@
 class AddExternalForms < ActiveRecord::Migration[6.1]
   def change
     add_column :hmis_form_definitions, :external_form_object_key, :string
+    add_column 'CustomDataElementDefinitions', :form_definition_identifier, :string
     safety_assured do
+      add_index 'CustomDataElementDefinitions', :form_definition_identifier, name: 'idx_CustomDataElementDefinitions_1'
       add_index :hmis_form_definitions, [:external_form_object_key], unique: true
     end
 

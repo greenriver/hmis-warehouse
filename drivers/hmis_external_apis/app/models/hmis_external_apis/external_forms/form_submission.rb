@@ -9,6 +9,6 @@ module HmisExternalApis::ExternalForms
     self.table_name = 'hmis_external_form_submissions'
     belongs_to :definition, class_name: 'Hmis::Form::Definition'
 
-    has_many :custom_data_elements, as: :owner, dependent: :destroy
+    has_many :custom_data_elements, as: :owner, dependent: :destroy, class_name: 'Hmis::Hud::CustomDataElement'
   end
 end

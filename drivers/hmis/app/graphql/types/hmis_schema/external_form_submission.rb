@@ -23,10 +23,7 @@ module Types
     custom_data_elements_field
 
     def custom_data_elements
-      definition_scope = Hmis::Hud::CustomDataElementDefinition.
-        for_type(definition.external_form_submission_data_element_owner_type)
-
-      resolve_custom_data_elements(object, definition_scope: definition_scope)
+      resolve_custom_data_elements(object, definition_scope: definition.custom_data_element_definitions)
     end
 
     def definition

@@ -93,11 +93,14 @@ module HmisExternalApis::ExternalFormsHelper
     recaptcha_key = ENV['EXTERNAL_FORM_CAPTCHA_KEY']
     if Rails.env.development?
       presign_url ||= presign_hmis_external_apis_external_form_path
+      # for development on hmis-warehouse.dev.test
       recaptcha_key ||= '6Ldbm4UpAAAAAAK9h9ujlVDig1nC4DghpOP6WFfQ'
     end
 
+    # FIXME move away from this hard-coded configuration
     @page_config ||= HmisExternalApis::ExternalForms::Config.new(
       site_title: 'Tarrant County Homeless Coalition',
+      # FIXME we should host this logo
       site_logo_url: 'https://ahomewithhope.org/wp-content/themes/tchc/assets/images/logo.png',
       site_logo_dimensions: [110, 60],
       recaptcha_key: recaptcha_key,

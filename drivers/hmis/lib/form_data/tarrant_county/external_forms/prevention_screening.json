@@ -67,7 +67,6 @@
         },
         {
           "link_id": "military_veteran_in_home",
-          "required": true,
           "type": "CHOICE",
           "component": "RADIO_BUTTONS",
           "text": "Is there a military veteran in the home?",
