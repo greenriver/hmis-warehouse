@@ -13,13 +13,14 @@
 
         %p.access-description
           Each
-          %span.access-control access control
+          %span.access-control.color-tag<
+            = link_to 'access control', '#', tabindex: '0', data: {container: :body, toggle: :popover, placement: :top, html: true, trigger: :focus, content: "<p>Accss Controls are used to grant users access to data and permissions.  Each access control consists of one Role, one User Group, and one Collection. Access is governed by the intersection of permission from the role, entities from the collection, and users from the user group.</p><p>#{link_to 'Manage Access Controls', admin_access_controls_path}</p>", title: 'Access Control'}
           consists of one
-          %span.permission-role permission role
-          %span.user-group user group
+          %span.permission-role.color-tag<
+            = link_to 'permission role', '#', tabindex: '1', data: {container: :body, toggle: :popover, placement: :top, html: true, trigger: :focus, content: "<p>User groups are used to logically group users who need similar access.  User groups are combined with roles and collections via access controls.  The intersection of role, collection, and user group determines what each person can do and see within the warehouse.</p><p>#{link_to 'Manage Roles', admin_roles_path}</p>", title: 'Permission Roles'}
+          %span.user-group.color-tag user group
           and
-          %span.collection collection.
-
+          %span.collection.color-tag collection.
     .col-sm
       .well
         %h3 Common Things Users Do

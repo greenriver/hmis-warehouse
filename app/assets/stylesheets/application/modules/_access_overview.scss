@@ -4,20 +4,20 @@
   .access-description {
     line-height: 2rem;
   }
-  .access-control {
+  .color-tag {
     padding: 0.25rem 0.5rem;
+    text-decoration: underline;
+  }
+  .access-control {
     background-color: $gray-020;
    }
   .permission-role {
-    padding: 0.25rem 0.5rem;
     background-color: rgba(255, 199, 0, 0.15);;
   }
   .user-group {
-    padding: 0.25rem 0.5rem;
     background-color: rgba(157, 148, 255, 0.15);
   }
   .collection {
-    padding: 0.25rem 0.5rem;
     background-color: rgba(25, 118, 210, 0.1);
   }
 }
