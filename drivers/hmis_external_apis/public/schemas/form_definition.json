@@ -155,8 +155,14 @@
       "additionalProperties": false,
       "properties": {
         "_comment": { "type": "string" },
-        "question": { "type": "string" },
-        "compare_question": { "type": "string" },
+        "question": {
+          "type": "string",
+          "pattern": "^[a-zA-Z_$][a-zA-Z0-9_$]*$"
+        },
+        "compare_question": {
+          "type": "string",
+          "pattern": "^[a-zA-Z_$][a-zA-Z0-9_$]*$"
+        },
         "local_constant": { "type": "string" },
         "operator": { "type": "string" },
         "answer_code": { "type": "string" },
@@ -175,12 +181,18 @@
         "value_code": { "type": "string" },
         "value_number": { "type": "integer" },
         "value_boolean": { "type": "boolean" },
-        "value_question": { "type": "string" },
+        "value_question": {
+          "type": "string",
+          "pattern": "^[a-zA-Z_$][a-zA-Z0-9_$]*$"
+        },
         "autofill_readonly": { "type": "boolean" },
         "autofill_behavior": { "type": "string" },
         "autofill_when": { "type": "array", "items": { "$ref": "#/definitions/enable_when" } },
         "formula": { "type": "string" },
-        "sum_questions": { "type": "array", "items": { "type": "string" } }
+        "sum_questions": { "type": "array", "items": {
+          "type": "string",
+          "pattern": "^[a-zA-Z_$][a-zA-Z0-9_$]*$"
+        } }
       }
     },
     "form_node": {
@@ -222,7 +234,10 @@
             "TEXT"
           ]
         },
-        "link_id": { "type": "string" },
+        "link_id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z_$][a-zA-Z0-9_$]*$"
+        },
         "prefix": { "type": "string" },
         "brief_text": { "type": "string" },
         "text": { "type": "string" },
