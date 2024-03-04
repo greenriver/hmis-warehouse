@@ -22,9 +22,10 @@ module Types
         end
       end
 
-      def resolve_external_form_submissions(scope = object.external_form_submissions)
+      def resolve_external_form_submissions(scope = object.external_form_submissions, filters: nil)
+        raise 'filters tbd' if filters.present?
+
         scope.order(submitted_at: :desc, id: :desc)
-        raise 'testing'
       end
     end
   end

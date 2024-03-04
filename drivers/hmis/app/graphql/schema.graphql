@@ -3731,6 +3731,30 @@ enum ExpelledReason {
   UNKNOWN_DISAPPEARED
 }
 
+type ExternalFormSubmission {
+  customDataElements: [CustomDataElement!]!
+  definition: FormDefinition!
+  id: ID!
+  notes: String
+  spamScore: Float
+  status: String!
+  submittedAt: ISO8601DateTime!
+}
+
+input ExternalFormSubmissionFilterOptions {
+  status: [String!]
+}
+
+type ExternalFormSubmissionsPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [ExternalFormSubmission!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
 """
 External Identifier
 """
@@ -4085,6 +4109,11 @@ enum FormRole {
   Exit
   """
   EXIT
+
+  """
+  External form
+  """
+  EXTERNAL_FORM
 
   """
   File
@@ -8165,6 +8194,7 @@ type Project {
   dateUpdated: ISO8601DateTime
   description: String
   enrollments(filters: EnrollmentsForProjectFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
+  externalFormSubmissions(filters: ExternalFormSubmissionFilterOptions, limit: Int, offset: Int): ExternalFormSubmissionsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
   hasUnits: Boolean!
   hmisParticipations(limit: Int, offset: Int): HmisParticipationsPaginated!
@@ -8904,6 +8934,11 @@ enum RecordFormRole {
   Enrollment
   """
   ENROLLMENT
+
+  """
+  External form
+  """
+  EXTERNAL_FORM
 
   """
   File
