@@ -31,7 +31,7 @@ class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base
   ].freeze
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
-  belongs_to :user, **hmis_relation(:UserID, 'User')
+  belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_one :active_range, class_name: 'Hmis::ActiveRange', as: :entity, dependent: :destroy
   alias_to_underscore [:NameDataQuality, :ContactPointID]
