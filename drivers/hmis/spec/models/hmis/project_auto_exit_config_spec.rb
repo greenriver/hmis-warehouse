@@ -25,29 +25,29 @@ RSpec.describe Hmis::ProjectAutoExitConfig, type: :model do
 
   it 'should select the proper auto exit config for a project' do
     expect(Hmis::ProjectAutoExitConfig.for_project(p1)).to be_empty
-    expect(Hmis::ProjectAutoExitConfig.config_for_project(p1)).to be_nil
+    expect(Hmis::ProjectAutoExitConfig.detect_best_config_for_project(p1)).to be_nil
 
     # Project type is least specific
     aec2 = create(:hmis_project_auto_exit_config, project_type: p1.project_type)
     expect(Hmis::ProjectAutoExitConfig.for_project(p1)).to contain_exactly(aec2)
-    expect(Hmis::ProjectAutoExitConfig.config_for_project(p1)).to eq(aec2)
+    expect(Hmis::ProjectAutoExitConfig.detect_best_config_for_project(p1)).to eq(aec2)
     expect(Hmis::ProjectAutoExitConfig.for_project(p2)).to contain_exactly(aec2)
-    expect(Hmis::ProjectAutoExitConfig.config_for_project(p2)).to eq(aec2)
+    expect(Hmis::ProjectAutoExitConfig.detect_best_config_for_project(p2)).to eq(aec2)
 
     # Organization is more specific than project type
     aec3 = create(:hmis_project_auto_exit_config, organization_id: o1.id)
     aec4 = create(:hmis_project_auto_exit_config, organization_id: o2.id)
     expect(Hmis::ProjectAutoExitConfig.for_project(p1)).to contain_exactly(aec2, aec3)
-    expect(Hmis::ProjectAutoExitConfig.config_for_project(p1)).to eq(aec3)
+    expect(Hmis::ProjectAutoExitConfig.detect_best_config_for_project(p1)).to eq(aec3)
     expect(Hmis::ProjectAutoExitConfig.for_project(p2)).to contain_exactly(aec2, aec4)
-    expect(Hmis::ProjectAutoExitConfig.config_for_project(p2)).to eq(aec4)
+    expect(Hmis::ProjectAutoExitConfig.detect_best_config_for_project(p2)).to eq(aec4)
 
     # Project id is most specific
     aec5 = create(:hmis_project_auto_exit_config, project_id: p1.id)
     expect(Hmis::ProjectAutoExitConfig.for_project(p1)).to contain_exactly(aec2, aec3, aec5)
-    expect(Hmis::ProjectAutoExitConfig.config_for_project(p1)).to eq(aec5)
+    expect(Hmis::ProjectAutoExitConfig.detect_best_config_for_project(p1)).to eq(aec5)
     expect(Hmis::ProjectAutoExitConfig.for_project(p2)).to contain_exactly(aec2, aec4)
-    expect(Hmis::ProjectAutoExitConfig.config_for_project(p2)).to eq(aec4)
+    expect(Hmis::ProjectAutoExitConfig.detect_best_config_for_project(p2)).to eq(aec4)
   end
 
   it 'should throw errors if the auto-exit is not configured properly' do
