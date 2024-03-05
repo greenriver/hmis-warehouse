@@ -69,7 +69,7 @@ module Types
 
     def custom_data_elements
       owner_service = load_ar_association(object, :owner)
-      load_ar_association(owner_service, :custom_data_element_definitions)
+      resolve_custom_data_elements(owner_service)
     end
   end
 end

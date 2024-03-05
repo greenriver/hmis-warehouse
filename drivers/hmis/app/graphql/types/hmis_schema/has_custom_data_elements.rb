@@ -29,13 +29,24 @@ module Types
           end
 
           define_method(name) do
-            # This association, defined in `Hmis::Hud::Concerns::HasCustomDataElements`,
-            # is a has_many through the custom_data_elements relation. That means it will
-            # only load the CustomDataElementDefinitions for which this record has a value.
-            #
-            # TODO CHECK: is this N+1 because of the `distinct` scope on the association?
-            load_ar_association(object, :custom_data_element_definitions)
+            resolve_custom_data_elements(object)
           end
+        end
+      end
+
+      def resolve_custom_data_elements(record)
+        # Load all CustomDataElement values for this record
+        cde_values = load_ar_association(record, :custom_data_elements).group_by(&:data_element_definition_id)
+
+        # Load all CustomDataElementDefinitions that have values for this record
+        cde_definitions = load_ar_association(record, :custom_data_element_definitions)
+
+        # Array of relevant CustomDataElementDefinitions, with value(s)
+        cde_definitions.uniq.map do |cded|
+          OpenStruct.new(
+            **cded.slice(:id, :key, :field_type, :label, :repeats, :show_in_summary),
+            values: cde_values[cded.id],
+          )
         end
       end
     end
