@@ -45,6 +45,7 @@ module Mutations
               user_id: hud_user_id,
               household_id: Hmis::Hud::Base.generate_uuid,
               enrollment_coc: coc_code,
+              relationship_to_hoh: 1, # Head of Household
             )
             raise 'unauthorized' unless can_enroll_clients
             raise 'bulk service assignment generated invalid enrollment' unless enrollment.valid?
@@ -57,8 +58,7 @@ module Mutations
               enrollment.assign_unit(unit: available_units.pop, start_date: input.date_provided, user: current_user)
             end
 
-            # TODO: check Hmis::ProjectAutoEnterConfig to decide whether to save in progress or not
-            enrollment.save_in_progress
+            enrollment.save_new_enrollment!
           end
 
           service = Hmis::Hud::HmisService.new(

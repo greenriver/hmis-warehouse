@@ -287,7 +287,22 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     generate_uuid
   end
 
-  def save_in_progress
+  def save_new_enrollment!
+    raise 'Unexpected: save_new_enrollment called on a persisted enrollment' if persisted?
+
+    if Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(project)
+      # If auto-enter is configured for this project, save as non-WIP and generate an empty intake.
+      save_not_in_progress!
+      build_synthetic_intake_assessment.save!
+    else
+      # Otherwise, save as WIP
+      save_in_progress!
+    end
+  end
+
+  def save_in_progress!
+    # "WIP" Enrollments have a null ProjectID column, so that they don't
+    # get pulled into reporting. The Project database ID is stored in the hmis_wips table.
     saved_project_id = project.id
 
     self.project_id = nil
@@ -301,14 +316,16 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     )
     save!(validate: false)
   end
+  alias save_in_progress save_in_progress!
 
-  def save_not_in_progress
+  def save_not_in_progress!
     transaction do
       self.project_id = project_id || project.project_id
       wip&.destroy
       save!
     end
   end
+  alias save_not_in_progress save_not_in_progress!
 
   def in_progress?
     project_id.nil?

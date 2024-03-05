@@ -83,6 +83,8 @@ module GraphqlHelpers
 
       # If base type is an object, skip it
       next if field_type.respond_to?(:fields)
+      # If field accepts arguments, skip it
+      next if field.arguments.any?
 
       fields << name
     end

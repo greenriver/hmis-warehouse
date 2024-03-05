@@ -319,18 +319,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   describe 'Submitting an Intake assessment in a WIP household' do
-    let!(:hoh_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, user: u1, entry_date: '2000-01-01' }
-    let!(:other_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, user: u1, entry_date: '2000-01-01', household_id: hoh_enrollment.household_id, relationship_to_ho_h: 99 }
+    let!(:hoh_enrollment) { create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, user: u1, entry_date: '2000-01-01' }
+    let!(:other_enrollment) { create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, user: u1, entry_date: '2000-01-01', household_id: hoh_enrollment.household_id, relationship_to_ho_h: 99 }
     let(:assessment_date) { '2005-03-02' }
     let(:definition) { Hmis::Form::Definition.find_by(role: :INTAKE) }
-
-    before(:each) do
-      hoh_enrollment.build_wip(client: hoh_enrollment.client, date: hoh_enrollment.entry_date, project_id: hoh_enrollment.project.id)
-      hoh_enrollment.save_in_progress
-
-      other_enrollment.build_wip(client: other_enrollment.client, date: other_enrollment.entry_date, project_id: other_enrollment.project.id)
-      other_enrollment.save_in_progress
-    end
 
     it 'fails if entering non-HoH member' do
       input = { enrollment_id: other_enrollment.id, form_definition_id: definition.id, **build_minimum_values(definition) }

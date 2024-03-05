@@ -175,7 +175,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
     end
 
     it 'groups intake assessments on WIP enrollments' do
-      e1.save_in_progress
+      e1.save_in_progress!
       a1 = create(:hmis_wip_custom_assessment, data_collection_stage: 1, data_source: ds1, enrollment: e1, client: e1.client)
       a2 = create(:hmis_custom_assessment, data_collection_stage: 1, data_source: ds1, enrollment: e2, client: e2.client)
 
@@ -189,7 +189,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
     end
 
     it 'groups annual assessments by date' do
-      e1.save_in_progress
+      e1.save_in_progress!
       e1_a1 = create(:hmis_custom_assessment, assessment_date: 2.years.ago, data_collection_stage: 5, data_source: ds1, enrollment: e1, client: e1.client)
 
       _e2_a1 = create(:hmis_wip_custom_assessment, assessment_date: 6.months.ago, data_collection_stage: 5, data_source: ds1, enrollment: e2, client: e2.client)

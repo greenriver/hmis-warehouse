@@ -68,7 +68,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       _response, result = post_graphql(input: {}) { query }
       expect(result.dig('data', 'clientSearch', 'nodes')).to contain_exactly(include('id' => client1.id.to_s))
 
-      create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: client3, user: u1).save_in_progress
+      create(:hmis_hud_wip_enrollment, data_source: ds1, project: p1, client: client3, user: u1)
       client3.reload
 
       expect(client3.enrollments).to contain_exactly(satisfy { |e| !e.in_progress? }, satisfy(&:in_progress?))
