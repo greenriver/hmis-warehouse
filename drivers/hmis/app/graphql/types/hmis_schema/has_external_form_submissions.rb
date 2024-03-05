@@ -24,6 +24,7 @@ module Types
 
       def resolve_external_form_submissions(scope = object.external_form_submissions, filters: nil)
         raise 'filters tbd' if filters.present?
+        return [] unless current_user.can_manage_external_form_submissions?
 
         scope.order(submitted_at: :desc, id: :desc)
       end

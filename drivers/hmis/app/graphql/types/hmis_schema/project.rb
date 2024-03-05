@@ -94,6 +94,7 @@ module Types
       can :manage_incoming_referrals
       can :manage_outgoing_referrals
       can :manage_denied_referrals
+      can :manage_external_form_submissions
     end
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
     field :has_units, Boolean, null: false

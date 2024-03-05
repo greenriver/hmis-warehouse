@@ -9,31 +9,8 @@ require 'rails_helper'
 RSpec.describe 'HmisExternalApis::ConsumeExternalFormSubmissionsJob', type: :model do
   let!(:data_source) { create :hmis_data_source }
 
-  let(:json_definition) do
-    <<~JSON
-      {
-        "name": "Test form",
-        "item": [
-          {
-            "type": "GROUP",
-            "link_id": "group_1",
-            "text": "Test group",
-            "item": [
-              {
-                "link_id": "your_name",
-                "required": true,
-                "type": "STRING",
-                "text": "Your Name"
-              }
-            ]
-          }
-        ]
-      }
-    JSON
-  end
-
   let(:form_definition) do
-    create(:hmis_form_definition, external_form_object_key: 'sample_external_form', role: 'EXTERNAL_FORM', definition: JSON.parse(json_definition))
+    create(:hmis_external_form_definition)
   end
 
   let(:s3_client_double) { double('S3Client') }

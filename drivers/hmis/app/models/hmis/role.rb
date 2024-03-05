@@ -391,6 +391,13 @@ class Hmis::Role < ::ApplicationRecord
         category: 'Client Access',
         sub_category: 'Alerts',
       },
+      can_manage_external_form_submissions: {
+        description: 'Grants the ability to manage public form submissions',
+        administrative: false,
+        access: [:editable],
+        category: 'Projects',
+        sub_category: 'Access',
+      },
     }
   end
 end

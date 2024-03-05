@@ -71,5 +71,7 @@ module Types
 
     field :create_client_alert, mutation: Mutations::CreateClientAlert
     field :delete_client_alert, mutation: Mutations::DeleteClientAlert
+
+    field :update_external_form_submission, mutation: Mutations::UpdateExternalFormSubmission
   end
 end

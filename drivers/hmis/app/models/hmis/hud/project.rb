@@ -234,6 +234,15 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     end.compact
   end
 
+  def external_form_submissions
+    instance = Hmis::Form::Instance.with_role(:EXTERNAL_FORM).active.order(updated_at: :desc).detect_best_instance_for_project(project: self)
+    return Hmis::HmisExternalApis::ExternalForms::FormSubmission.none if instance.nil?
+
+    HmisExternalApis::ExternalForms::FormSubmission.
+      joins(:definition).
+      where(definition: { identifier: instance.definition_identifier })
+  end
+
   # Occurrence Point Form Instances that are enabled for this project (e.g. Move In Date form)
   def occurrence_point_form_instances
     # All instances for Occurrence Point forms

@@ -84,7 +84,7 @@ RSpec.describe 'HmisExternalApis::PublishExternalFormsJob', type: :model do
   end
 
   let(:form_definition) do
-    create(:hmis_form_definition, external_form_object_key: 'sample_external_form', role: 'EXTERNAL_FORM', definition: JSON.parse(json_definition))
+    create(:hmis_external_form_definition, definition: JSON.parse(json_definition))
   end
 
   it 'publishing populates the content and key' do

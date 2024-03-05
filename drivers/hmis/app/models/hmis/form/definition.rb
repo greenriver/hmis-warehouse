@@ -74,6 +74,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     # That would mean creating an Instance for this form for each non-Direct Entry program.
     # Maybe less cumbersome than dealing with data access groups, but we'd need that anyway to handle Direct Enrollment permission?
     :REFERRAL_REQUEST,
+    :EXTERNAL_FORM,
   ].freeze
 
   # Static Forms
@@ -96,7 +97,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :CLIENT_DETAIL,
     # Other/misc forms
     :FILE, # should maybe be considered a data collection feature, but different because its at Client-level (not Project)
-    :EXTERNAL_FORM,
   ].freeze
 
   validates :role, inclusion: { in: FORM_ROLES.map(&:to_s) }

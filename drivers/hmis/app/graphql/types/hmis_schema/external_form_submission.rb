@@ -11,13 +11,13 @@ module Types
     include Types::HmisSchema::HasCustomDataElements
 
     available_filter_options do
-      arg :status, [String]
+      arg :status, HmisSchema::Enums::ExternalFormSubmissionStatus
     end
 
     field :id, ID, null: false
     field :submitted_at, GraphQL::Types::ISO8601DateTime, null: false
     field :spam_score, Float, null: true
-    field :status, String, null: false # probably should be an enum to new | resolved
+    field :status, HmisSchema::Enums::ExternalFormSubmissionStatus, null: false
     field :notes, String, null: true
     field :definition, Forms::FormDefinition, null: false
     custom_data_elements_field
