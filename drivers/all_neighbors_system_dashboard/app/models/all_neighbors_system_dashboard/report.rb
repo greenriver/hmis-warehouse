@@ -333,27 +333,27 @@ module AllNeighborsSystemDashboard
         },
         {
           name: 'bar.js',
-          content: -> { File.read(asset_path('bar.js.es6')) },
+          content: -> { File.read(asset_path('bar.js')) },
           type: 'text/javascript',
         },
         {
           name: 'donut.js',
-          content: -> { File.read(asset_path('donut.js.es6')) },
+          content: -> { File.read(asset_path('donut.js')) },
           type: 'text/javascript',
         },
         {
           name: 'filters.js',
-          content: -> { File.read(asset_path('filters.js.es6')) },
+          content: -> { File.read(asset_path('filters.js')) },
           type: 'text/javascript',
         },
         {
           name: 'line.js',
-          content: -> { File.read(asset_path('line.js.es6')) },
+          content: -> { File.read(asset_path('line.js')) },
           type: 'text/javascript',
         },
         {
           name: 'stack.js',
-          content: -> { File.read(asset_path('stack.js.es6')) },
+          content: -> { File.read(asset_path('stack.js')) },
           type: 'text/javascript',
         },
       ]
