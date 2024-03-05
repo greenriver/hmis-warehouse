@@ -43,7 +43,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   has_many :custom_assessments, through: :enrollments
 
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :clients, optional: true
   has_many :income_benefits, through: :enrollments
   has_many :disabilities, through: :enrollments
   has_many :health_and_dvs, through: :enrollments

@@ -20,7 +20,7 @@ module Hmis
       auto_exit_count = 0
 
       Hmis::Hud::Project.hmis.each do |project|
-        config = Hmis::ProjectAutoExitConfig.config_for_project(project)
+        config = Hmis::ProjectAutoExitConfig.detect_best_config_for_project(project)
         next unless config.present?
         raise "Auto-exit config unusually low: #{config.length_of_absence_days}" if config.length_of_absence_days < 30
 

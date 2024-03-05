@@ -13,5 +13,5 @@ class Hmis::Hud::CeParticipation < Hmis::Hud::Base
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :projects
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :projects, optional: true
 end

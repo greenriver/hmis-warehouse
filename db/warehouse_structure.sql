@@ -6193,7 +6193,9 @@ CREATE TABLE public.cohort_clients (
     user_boolean_46 boolean,
     user_boolean_47 boolean,
     user_boolean_48 boolean,
-    user_boolean_49 boolean
+    user_boolean_49 boolean,
+    sheltered_days_homeless_last_three_years integer,
+    unsheltered_days_homeless_last_three_years integer
 );
 
 
@@ -58648,6 +58650,13 @@ CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "Personal
 
 
 --
+-- Name: tt_hh_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX tt_hh_id ON public.service_history_enrollments USING btree (household_id);
+
+
+--
 -- Name: tx_id_ds_id_ft_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60833,6 +60842,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240218222444'),
 ('20240220171320'),
 ('20240221195839'),
-('20240222152739');
+('20240222152739'),
+('20240229132014'),
+('20240304181225');
 
 

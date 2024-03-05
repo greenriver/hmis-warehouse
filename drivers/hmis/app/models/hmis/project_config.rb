@@ -59,10 +59,12 @@ class Hmis::ProjectConfig < Hmis::HmisBase
     where(enabled: true)
   end
 
-  def self.config_for_project(project)
+  def self.detect_best_config_for_project(project)
     configs = for_project(project).active
     return unless configs.exists?
 
+    # Selects the most specific rule that applies. The specificity order is Project > Org > ProjectType, so rules that
+    # apply to a specific project override rules that apply to all projects in an organization, and so on.
     [
       :project_id,
       :organization_id,

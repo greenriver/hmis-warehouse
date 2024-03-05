@@ -98,7 +98,7 @@ module Mutations
           record.client.save! if record.client.changed? # Enrollment form may create or update client
 
           # If this is a brand new Enrollment record, and the project has auto-enter configured, save the enrollment as non-WIP and generate an empty intake assessment
-          if record.new_record? && Hmis::ProjectAutoEnterConfig.config_for_project(record.project)
+          if record.new_record? && Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(record.project)
             # Save the enrollment as non-WIP
             record.save_not_in_progress
             # Save an empty intake assessment. "Auto-entered" enrollments do not require

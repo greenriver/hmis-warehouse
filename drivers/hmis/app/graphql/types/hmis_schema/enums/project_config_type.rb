@@ -5,19 +5,9 @@
 
 module Types
   class HmisSchema::Enums::ProjectConfigType < Types::BaseEnum
-    graphql_name 'HmisProjectConfigType'
+    graphql_name 'ProjectConfigType'
 
-    def self.get_project_config_type(cls_name)
-      stripped_string = cls_name.gsub(/Hmis::Project/, '').gsub(/Config/, '') # Hmis::ProjectExampleOneConfig -> ExampleOne
-      enum_value = stripped_string.underscore.upcase # ExampleOne -> EXAMPLE_ONE
-      human_readable = stripped_string.underscore.humanize.titlecase # ExampleOne -> Example One
-      value enum_value, value: cls_name, description: human_readable
-    end
-
-    def self.mapped_project_config_types = Hmis::ProjectConfig::TYPE_OPTIONS.map do |x|
-      [x, get_project_config_type(x)]
-    end.to_h
-
-    mapped_project_config_types.values
+    value 'AUTO_EXIT', description: 'Auto Exit'
+    value 'AUTO_ENTER', description: 'Auto Enter'
   end
 end

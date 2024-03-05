@@ -4027,6 +4027,11 @@ enum FormRole {
   ANNUAL
 
   """
+  Auto exit config
+  """
+  AUTO_EXIT_CONFIG
+
+  """
   Case note
   """
   CASE_NOTE
@@ -4772,18 +4777,6 @@ type HmisParticipationsPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
-}
-
-enum HmisProjectConfigType {
-  """
-  Auto Enter
-  """
-  AUTO_ENTER
-
-  """
-  Auto Exit
-  """
-  AUTO_EXIT
 }
 
 type Household {
@@ -8279,7 +8272,7 @@ Project Config
 """
 type ProjectConfig {
   configOptions: JSON
-  configType: HmisProjectConfigType!
+  configType: ProjectConfigType!
   id: ID!
   organization: Organization
   organizationId: ID
@@ -8292,11 +8285,23 @@ type ProjectConfig {
 Project Config Input
 """
 input ProjectConfigInput {
-  configType: HmisProjectConfigType
+  configType: ProjectConfigType
   lengthOfAbsenceDays: Int
   organizationId: ID
   projectId: ID
   projectType: ProjectType
+}
+
+enum ProjectConfigType {
+  """
+  Auto Enter
+  """
+  AUTO_ENTER
+
+  """
+  Auto Exit
+  """
+  AUTO_EXIT
 }
 
 type ProjectConfigsPaginated {
@@ -10605,6 +10610,11 @@ enum SexualOrientation {
 Form Roles that are used for non-configurable forms. These types of forms are submitted using custom mutations.
 """
 enum StaticFormRole {
+  """
+  Auto exit config
+  """
+  AUTO_EXIT_CONFIG
+
   """
   Client alert
   """
