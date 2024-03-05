@@ -27,7 +27,7 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
   belongs_to :custom_service_type, class_name: 'Hmis::Hud::CustomServiceType', optional: true
   has_many :values, class_name: 'Hmis::Hud::CustomDataElement', inverse_of: :data_element_definition, foreign_key: :data_element_definition_id
-  belongs_to :form_definition, primary_key: 'identifier', foreign_key: 'form_definition_identifier', class_name: 'Hmis::Form::Definition'
+  belongs_to :form_definition, primary_key: 'identifier', foreign_key: 'form_definition_identifier', class_name: 'Hmis::Form::Definition', optional: true
 
   validate :validate_service_type
 

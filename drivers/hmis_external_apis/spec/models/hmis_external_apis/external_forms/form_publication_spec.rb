@@ -27,7 +27,15 @@ RSpec.describe 'HmisExternalApis::PublishExternalFormsJob', type: :model do
               {
                 "link_id": "display_1",
                 "type": "DISPLAY",
-                "text": "Some informational content here"
+                "text": "Some informational content here",
+                "enable_behavior": "ALL",
+                "enable_when": [
+                  {
+                    "question": "your_name",
+                    "operator": "EQUAL",
+                    "answer_code": "robot"
+                  }
+                ]
               },
               {
                 "link_id": "a_radio_choice",

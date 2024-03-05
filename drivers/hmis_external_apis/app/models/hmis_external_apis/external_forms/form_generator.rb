@@ -151,7 +151,13 @@ module HmisExternalApis::ExternalForms
     end
 
     def render_dependent_item_wrapper(node, &block)
-      return context.render_dependent_block(input_name: node.dig('enable_when', 'question'), input_value: node.dig('enable_when', 'answer_code'), &block) if node['enable_behavior']
+      if node['enable_behavior']
+        raise 'multiple rules not supported' if node.dig('enable_when')&.many?
+
+        input_name = node.dig('enable_when', 0, 'question')
+        input_value = node.dig('enable_when', 0, 'answer_code')
+        return context.render_dependent_block(input_name: input_name, input_value: input_value, &block)
+      end
 
       return context.capture(&block)
     end
