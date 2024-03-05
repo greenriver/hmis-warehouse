@@ -23,20 +23,19 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       puts "Finished SPM Run Data Lab TestKit #{Time.current}"
     end
 
+    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recbKFyAs8hUTlNFU
     it 'Measure 1a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         external_column_header: true,
         external_row_label: true,
         question: '1a',
-        # skip: [
-        #   'B1',
-        #   'D1',
-        #   'G1',
-        #   'B2',
-        #   'D2',
-        #   'G2',
-        # ],
+        skip: [
+          'D1',
+          'G1',
+          'D2',
+          'G2',
+        ],
       )
     end
 

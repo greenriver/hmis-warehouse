@@ -228,10 +228,10 @@ module HudSpmReport::Fy2023
       index += 1 while calculated_bed_nights[index].last < client_start_date
 
       # Then walk back until there is a break
-      index -= 1 while index > 1 && calculated_bed_nights[index - 1].last == calculated_bed_nights[index].last - 1.day
+      index -= 1 while index.positive? && calculated_bed_nights[index - 1].last == calculated_bed_nights[index].last - 1.day
 
       # Finally, return the selected dates
-      calculated_bed_nights[index ..].map
+      calculated_bed_nights[index ..]
     end
 
     private def literally_homeless_at_entry(bed_nights, first_date)
