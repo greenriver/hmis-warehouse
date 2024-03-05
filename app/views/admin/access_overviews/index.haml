@@ -37,3 +37,56 @@
     .col-sm-6
       .well
         %h3 Examples of Access Controls
+        .pl-8.pr-8
+          %ul.nav.nav-tabs{role: :tablist}
+            %li.nav-item
+              %a.nav-link.active{ href: '#coc-administrators', data: { toggle: :tab, target: '#coc-administrators' }, role: :tab, aria: { controls: 'coc-administrators', selected: :true }} CoC Administrators
+            %li.nav-item
+              %a.nav-link{ href: '#report-viewer', data: { toggle: :tab, target: '#report-viewer' }, role: :tab, aria: { controls: 'report-viewer', selected: :true }} Report Viewer
+          .tab-content
+            #coc-administrators.tab-pane.fade.show.active{ aria: { labeledby: 'report-viewer'}}
+              %p In this example, the access control would grant appropriate access for an administrator at the MA-500 CoC.
+              %table.table.access-control-description-table
+                %tr
+                  %th Permission Role
+                  %td
+                    .permission-role
+                      CoC Administrators
+                %tr
+                  %th User Group
+                  %td
+                    .user-group
+                      Administrators at MA-500
+                %tr
+                  %th Collection
+                  %td
+                    .collection
+                      Projects in MA-500
+                %tr
+                  %th Access Control
+                  %td
+                    .access-control
+                      CoC Administrors x Projects in MA-500
+            #report-viewer.tab-pane.fade{ aria: { labeledby: 'report-viewer'}}
+              %p In this example, the access control would grant appropriate rights for reporting.
+              %table.table.access-control-description-table
+                %tr
+                  %th Permission Role
+                  %td
+                    .permission-role
+                      Report Viewers
+                %tr
+                  %th User Group
+                  %td
+                    .user-group
+                      Users at MA-500
+                %tr
+                  %th Collection
+                  %td
+                    .collection
+                      Projects in MA-500
+                %tr
+                  %th Access Control
+                  %td
+                    .access-control
+                      Report Viewers x Projects in MA-500

@@ -27,4 +27,13 @@
       font-size: 1.3rem;
     }
   }
+  .access-control-description-table {
+    .access-control,
+    .permission-role,
+    .user-group,
+    .collection
+     {
+      padding: .75em;
+    }
+  }
 }
