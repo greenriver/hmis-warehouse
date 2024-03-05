@@ -53,7 +53,7 @@ module Mutations
             # Attempt to assign this enrollment to a unit if this project has units. This is AC-specific for now, and does
             # not support specifying the unit type. Needs improvement if/when we expand unit capabilities.
             if project_has_units
-              raise 'cannot enroll client because there are no units available' if available_units.empty?
+              error_out('Failed to enroll client because there are no available units.') if available_units.empty?
 
               enrollment.assign_unit(unit: available_units.pop, start_date: input.date_provided, user: current_user)
             end
@@ -94,6 +94,11 @@ module Mutations
       raise "Invalid CoC Code #{coc_code_arg} for project" unless project.uniq_coc_codes.include?(coc_code_arg)
 
       coc_code_arg
+    end
+
+    def error_out(msg)
+      # error out with user-facing error message
+      raise HmisErrors::ApiError.new(msg, display_message: msg)
     end
   end
 end
