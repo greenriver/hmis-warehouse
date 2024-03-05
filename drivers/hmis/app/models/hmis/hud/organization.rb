@@ -15,7 +15,7 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_many :projects, **hmis_relation(:OrganizationID, 'Project'), dependent: :destroy
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :organizations
-  has_many :custom_data_elements, as: :owner, dependent: :destroy
+
   has_many :group_viewable_entity_projects
   has_many :group_viewable_entities, through: :group_viewable_entity_projects, source: :group_viewable_entity
 
