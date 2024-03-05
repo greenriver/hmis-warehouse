@@ -46,19 +46,19 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
         external_column_header: true,
         external_row_label: true,
         question: '1b',
-        skip: [
-          'B1',
-          'D1',
-          'G1',
-          'B2',
-          'D2',
-          'G2',
-        ],
+        # skip: [
+        #   'B1',
+        #   'D1',
+        #   'G1',
+        #   'B2',
+        #   'D2',
+        #   'G2',
+        # ],
       )
     end
 
     # Almost matches (off by a few)
-    xit 'Measure 2' do
+    it 'Measure 2' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: '2a and 2b',
@@ -70,11 +70,6 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: '3.2',
-        skip: [
-          'C2',
-          'C3',
-          'C5',
-        ],
       )
     end
 
@@ -82,10 +77,10 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: '4.1',
-        skip: [
-          'C2',
-          'C4',
-        ],
+        # skip: [
+        #   'C2',
+        #   'C4',
+        # ],
       )
     end
 
@@ -93,10 +88,10 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: '4.2',
-        skip: [
-          'C2',
-          'C4',
-        ],
+        # skip: [
+        #   'C2',
+        #   'C4',
+        # ],
       )
     end
 
