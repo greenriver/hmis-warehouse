@@ -1,3 +1,4 @@
+- filter_partial = nil unless defined?(filter_partial)
 .pagy-container.mb-4
   != pagy_info(@pagy, item_name: Translation.translate(local_assigns[:item_name] || 'item').pluralize(@pagy.count))
   - if filter_partial.present?
