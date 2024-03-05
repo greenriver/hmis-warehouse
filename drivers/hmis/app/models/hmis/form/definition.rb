@@ -288,17 +288,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     recur_check.call(json)
   end
 
-  def fix_json(json)
-    recur_check = lambda do |item|
-      (item['item'] || []).each do |child_item|
-        child_item.transform_keys! { |k| k.to_s.underscore }
-        recur_check.call(child_item)
-      end
-    end
-
-    recur_check.call(json)
-  end
-
   def self.validate_schema(json)
     schema_path = Rails.root.
       join('drivers/hmis_external_apis/public/schemas/form_definition.json')
