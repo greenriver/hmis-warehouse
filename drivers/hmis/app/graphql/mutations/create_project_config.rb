@@ -20,7 +20,7 @@ module Mutations
       when 'AUTO_ENTER'
         Hmis::ProjectAutoEnterConfig
       when 'AUTO_EXIT'
-        Hmis::AutoExitConfig
+        Hmis::ProjectAutoExitConfig
       else raise "Unsupported type: #{input.config_type}"
       end
 

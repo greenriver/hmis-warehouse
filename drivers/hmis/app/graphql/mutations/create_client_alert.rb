@@ -16,6 +16,7 @@ module Mutations
       errors = HmisErrors::Errors.new
       errors.add :note, :required if input.note.blank?
       errors.add :priority, :required unless input.priority
+      errors.add :expiration_date, :invalid, full_message: 'Expiration date must be in the future.' if input.expiration_date && !input.expiration_date.future?
       return { errors: errors } if errors.any?
 
       if alert.valid?
