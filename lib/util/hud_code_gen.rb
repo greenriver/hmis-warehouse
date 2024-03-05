@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+require 'roo'
 module HudCodeGen
   CODEGEN_FILE_HEADER = '# THIS FILE IS GENERATED, DO NOT EDIT DIRECTLY'.freeze
 
@@ -140,5 +141,109 @@ module HudCodeGen
     map_name = "#{map_name}_options" if map_name == lookup_fn_name
 
     [map_name, lookup_fn_name]
+  end
+
+  def generate_hud_list_json(year, excel_file_path)
+    # Parse the existing JSON data. This will be the base from which we start.
+    json_file_path = "lib/data/#{year}_hud_lists.json"
+    json_data = JSON.parse(File.read(json_file_path))
+
+    # TODO: is there a way to better skip these?
+    ignore_codes = ['List', '*', '(see note)']
+    excel_file = Roo::Excelx.new(excel_file_path)
+
+    # Parse Excel file for list codes
+    excel_data = {}.tap do |codes|
+      # Sheet 0: CSV|DE#|Name|Type|List|Null|Notes|Validate
+      # Pull from this sheet to get the names for each list of codes
+      excel_file.sheet(0).each(code: 'List', name: 'Name') do |row|
+        # Clean data coming in from excel
+        code = clean_json_text(row[:code].to_s)
+        list_name = clean_json_text(row[:name].to_s)
+
+        # Only need rows that have referenced codes - not all data on this sheet utilizes a code list
+        unless code.blank? || ignore_codes.include?(code)
+          codes[code] ||= {}
+          (codes[code][:list_name] ||= []) << list_name
+        end
+      end
+      # Sheet 1: List|Value|Text
+      # This sheet does not have names for the lists, but it may include some that are note referenced in
+      # the first sheet. In this case, bring the code list in with a name "Unknown". These ones will need
+      # to be manually checked and named.
+      excel_file.sheet(1).each(code: 'List', value: 'Value', text: 'Text') do |row|
+        # Clean data coming in from excel
+        code = clean_json_text(row[:code].to_s)
+        value = clean_json_text(row[:value].to_s)
+        text = clean_json_text(row[:text].to_s)
+        value = value.to_i if Integer(value, exception: false)
+
+        # Skip header and blank rows if they exist
+        unless code.blank? || ignore_codes.include?(code)
+          codes[code] ||= { list_name: ['Unknown'] }
+          (codes[code][:values] ||= {})[value] = text
+        end
+      end
+    end
+
+    # Sort the values - they may be coming in with a string sort (e.g. 1, 10, 11, 2, 3 ...)
+    excel_data.each do |node|
+      node.last[:values] = node.last[:values].sort_by { |k, _v| k.to_i }
+    end
+
+    # We now have the codes in the json file and the excel file. We need to merge them together.
+    # This will be done by scanning the JSON file for codes that don't exist in the Excel file
+    # and removing them. Then scanning the Excel file for codes that don't exist in the JSON
+    # file and adding them.
+
+    # List of just the codes in the JSON data
+    json_codes = json_data.collect { |e| e['code'] }
+
+    # Update values for known codes
+    (json_codes & excel_data.keys).each do |e|
+      json_node = json_data.detect { |n| n['code'].eql?(e) }
+      excel_node = excel_data[e]
+      json_node['values'] = []
+      excel_node[:values].each do |v|
+        json_node['values'] << { 'key': v.first, 'description': v.last }
+      end
+    end
+
+    # Remove all json nodes with codes not matching an excel code
+    json_data_clean = json_data.reject { |e| (json_codes - excel_data.keys).include?(e['code']) }
+
+    # Add new from excel that don't exist in the JSON
+    (excel_data.keys - json_codes).each do |e|
+      excel_node = excel_data[e]
+      code_name = excel_node[:list_name].first
+      code_name = 'Unknown' if excel_node[:list_name].count != 1
+      json = {
+        'name' => code_name,
+        'code' => e,
+      }
+      excel_node[:values].each do |v|
+        (json[:values] ||= []) << { 'key': v.first, 'description': v.last }
+      end
+      json_data_clean.push(json)
+    end
+
+    # Pull in Additional JSON Data
+    Dir.glob("lib/data/#{year}_additional_lists/*.json") do |json_file|
+      data = JSON.parse(File.read(json_file))
+      json_data_clean.push(data.first)
+    end
+
+    # Sort the nodes
+    numeric, not_numeric = json_data_clean.partition { |node| node['code'].start_with?(/[0-9]/) } # Separate out codes beginning with numeric and those beginning with alpha
+    numeric.sort_by! { |x| x['code'].scan(/\d+|\D+/).map(&:to_i) } # Sort by numeric portions of each code
+    not_numeric.sort_by { |x| [x['code'].split('.').map(&:ord), x['code']] } # Sort by numeric portions of each code
+    json_data_clean = numeric + not_numeric # Rejoin with alpha codes at the end
+
+    # Output to file
+    File.write(json_file_path, JSON.pretty_generate(json_data_clean))
+  end
+
+  private def clean_json_text(str)
+    str.strip.delete("\u00A0")
   end
 end
