@@ -66,7 +66,8 @@ RSpec.shared_context 'datalab testkit context', shared_context: :metadata do
   end
 
   def report_result
-    ::HudReports::ReportInstance.last
+    # NOTE: SPM runs subsequent DQ reports, but sets @report_result, so we'll use that if available
+    @report_result || ::HudReports::ReportInstance.last
   end
 
   require_relative './table_comparisons'

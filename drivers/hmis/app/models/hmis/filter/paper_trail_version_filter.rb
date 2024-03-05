@@ -9,7 +9,9 @@ class Hmis::Filter::PaperTrailVersionFilter < Hmis::Filter::BaseFilter
     filters = input
     scope = ensure_scope(scope)
     v_t = GrdaWarehouse::Version.arel_table
-    scope = scope.where(v_t[:user_id].in(filters.user).or(v_t[:whodunnit].in(filters.user)).or(v_t[:true_user_id].in(filters.user))) if filters&.user&.present?
+    with_filter(scope, :user) do
+      scope = scope.where(v_t[:user_id].in(filters.user).or(v_t[:whodunnit].in(filters.user)).or(v_t[:true_user_id].in(filters.user)))
+    end
     # FIXME: filtering by `Service` only turns up HUD Services, not Custom Services
     record_types = [
       filters.try(:enrollment_record_type),

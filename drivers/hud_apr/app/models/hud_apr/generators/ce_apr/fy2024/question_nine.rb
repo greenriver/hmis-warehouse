@@ -19,10 +19,6 @@ module HudApr::Generators::CeApr::Fy2024
       }.freeze
     end
 
-    def needs_ce_assessments?
-      true
-    end
-
     def run_question!
       @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
 

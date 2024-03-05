@@ -22,5 +22,6 @@ module Types
     value 'CURRENT_LIVING_SITUATION', 'CurrentLivingSituation'
     value 'YOUTH_EDUCATION_STATUS', 'YouthEducationStatus'
     value 'EMPLOYMENT_EDUCATION', 'EmploymentEducation'
+    value 'EVENT', 'Event'
   end
 end

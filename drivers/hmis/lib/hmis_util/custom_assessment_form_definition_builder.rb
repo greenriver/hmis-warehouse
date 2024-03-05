@@ -198,7 +198,7 @@ class HmisUtil::CustomAssessmentFormDefinitionBuilder
         @_seen.add(score)
 
         label ||= "Score: #{score}"
-        code = "#{cded.key}-#{score}"
+        code = "#{cded.key}_#{score}"
         choice = { code: code, label: label, numeric_value: score, helper_text: help }.compact_blank
 
         self.choices ||= []
@@ -313,7 +313,7 @@ class HmisUtil::CustomAssessmentFormDefinitionBuilder
 
   def register_cded(...)
     cded = Hmis::Hud::CustomDataElementDefinition.new(...)
-    cded.key = "#{@prefix}-#{cded.key}"
+    cded.key = "#{@prefix}_#{cded.key}"
     raise 'must have key' unless cded.key
     raise "already registered key #{cded.key}" if registered_cdeds.key?(cded.key)
 

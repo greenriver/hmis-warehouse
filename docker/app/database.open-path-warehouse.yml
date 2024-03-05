@@ -4,7 +4,7 @@ default: &default
   port: <%= ENV.fetch('DATABASE_PORT') { 5432 }.to_i  %>
   <% if ENV['RAILS_ENV'] == 'production' || ENV['RAILS_ENV'] == 'staging' %>
   sslmode: 'verify-full'
-  sslrootcert: /etc/ssl/certs/rds-combined-ca-bundle.pem
+  sslrootcert: /etc/ssl/certs/us-east-1-bundle.pem
   <% end %>
 
 <%= ENV.fetch('RAILS_ENV') { 'unknown' } %>:

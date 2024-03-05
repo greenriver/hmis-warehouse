@@ -33,6 +33,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   # Note: this is NOT the assessment that created this processor, that's CustomAssessment. Rather this is a
   # Coordinated Entry (CE) Assessment that was created by the processor. The HUD model for CE Assessment is 'Assessment'
   belongs_to :ce_assessment, class_name: 'Hmis::Hud::Assessment', optional: true, autosave: true
+  belongs_to :ce_event, class_name: 'Hmis::Hud::Event', optional: true, autosave: true
 
   validate :hmis_records_are_valid, on: :form_submission
 
@@ -49,32 +50,63 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
     raise 'No definition' unless definition.present?
 
-    # Iterate through each hud_value, processing field-by-field
-    hud_values.each do |key, value|
-      container, field = parse_key(key)
-
-      begin
-        # Validate that field is mapped by the FormDefinition (includes checking custom)
+    # Iterate through each 'container' (eg record type)
+    hud_values_by_container.each do |container, field_name_to_value_h|
+      # Iterate through each submitted value for this container
+      field_name_to_value_h.each do |field, value|
+        # Validate that the field is mapped by the FormDefinition (includes checking custom)
         ensure_submittable_field!(container, field)
 
         # If this key can be identified as a CustomDataElement, set it and continue
         next if container_processor(container)&.process_custom_field(field, value)
 
+        # Process the field value, which will assign the value to the record
         container_processor(container)&.process(field, value)
       rescue StandardError => e
-        Sentry.capture_exception(e)
-        raise $ERROR_INFO, "Error processing field '#{field}': #{e.message}", $ERROR_INFO.backtrace
+        err_with_context = "Error processing field '#{container}.#{field}': #{e.message}"
+        Sentry.capture_exception(StandardError.new(err_with_context))
+        raise $ERROR_INFO, err_with_context, $ERROR_INFO.backtrace
       end
     end
 
-    # Iterate through each used processor to apply metadata and information dates
-    relevant_container_names = hud_values.keys.map { |k| parse_key(k)&.first }.compact.uniq
-    relevant_container_names.each do |container|
-      container_processor(container)&.assign_metadata
-      container_processor(container)&.information_date(custom_assessment.assessment_date) if custom_assessment.present?
+    # Iterate through each container (record type) to apply metadata and information dates
+    hud_values_by_container.keys.each do |container|
+      processor = container_processor(container)
+
+      # If this is an assessment and all fields pertaining to this record type were hidden,
+      # the related record should be destroyed. (For example, a Custom Assessment that conditionally creates a CE Event).
+      if custom_assessment.present? && containers_with_all_fields_hidden.include?(container) && processor.dependent_destroyable?
+        processor.destroy_record
+      else
+        # This related record will be created or updated, so assign the metadata and information date.
+        processor&.assign_metadata
+        processor&.information_date(custom_assessment.assessment_date) if custom_assessment.present?
+      end
     end
 
     owner.enrollment = enrollment_factory if owner.is_a?(Hmis::Hud::CustomAssessment)
+  end
+
+  # Transforms
+  # { 'HealthAndDv.field1' => nil, 'IncomeBenefit.field1' => 3, 'IncomeBenefit.field2' => 4}
+  # into =>
+  # { 'HealthAndDv' => { 'field1' => nil }, 'IncomeBenefit' => { 'field1' => 3, 'field2' => 4 } }
+  def hud_values_by_container
+    @hud_values_by_container ||= {}.tap do |result|
+      hud_values.each do |key, value|
+        container, field_name = parse_key(key)
+        result[container] ||= {}
+        result[container].merge!({ field_name => value })
+      end
+    end
+  end
+
+  # Containers where all the fields for it are hidden. This would indicate
+  # that it's a conditionally collected record on the assessment.
+  def containers_with_all_fields_hidden
+    @containers_with_all_fields_hidden ||= hud_values_by_container.select do |_, value_hash|
+      value_hash.all? { |_, v| v == Hmis::Hud::Processors::Base::HIDDEN_FIELD_VALUE }
+    end.keys.to_set
   end
 
   def parse_key(key)
@@ -90,7 +122,25 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   end
 
   def owner_container_name
-    @owner_container_name ||= owner.class.name.demodulize
+    @owner_container_name ||= case owner
+    when Hmis::Hud::Assessment
+      'CeAssessment' # special case since the container name and class name don't match
+    else
+      owner.class.name.demodulize
+    end
+  end
+
+  def ce_assessment?
+    ce_assessment&.assessment_level.in?([1, 2])
+  end
+
+  def store_assessment_questions!
+    # Rspec test isolation interferes with delayed job transaction
+    if Rails.env.test?
+      ::Hmis::AssessmentQuestionsJob.perform_now(id)
+    else
+      ::Hmis::AssessmentQuestionsJob.perform_later(id)
+    end
   end
 
   def owner_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
@@ -101,11 +151,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     # If this is a form just for collecting CLS, it is the owner
     return owner if owner.is_a? Hmis::Hud::CurrentLivingSituation
 
-    # If this is an assessment, CLS may already exist in relationship to the FormProcessor
     return current_living_situation if current_living_situation.present? || !create
 
-    # If not, create a new CLS
-    self.current_living_situation = enrollment_factory.current_living_situations.build(**common_attributes)
+    self.current_living_situation = enrollment_factory.current_living_situations.build(user_id: custom_assessment&.user_id)
   end
 
   def service_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
@@ -154,7 +202,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       self.exit = enrollment_factory.exit
     else
       self.exit = enrollment_factory.build_exit(
-        personal_id: enrollment_factory.client.personal_id,
         user_id: custom_assessment&.user_id,
       )
     end
@@ -163,13 +210,17 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   def ce_assessment_factory(create: true)
     return owner if owner.is_a? Hmis::Hud::Assessment
 
-    if create
-      self.ce_assessment ||= enrollment_factory.assessments.build(
-        personal_id: enrollment_factory.personal_id,
-        user_id: custom_assessment&.user_id,
-      )
-    end
-    ce_assessment
+    return ce_assessment if ce_assessment.present? || !create
+
+    self.ce_assessment = enrollment_factory.assessments.build(user_id: custom_assessment&.user_id)
+  end
+
+  def ce_event_factory(create: true)
+    return owner if owner.is_a? Hmis::Hud::Event
+
+    return ce_event if ce_event.present? || !create
+
+    self.ce_event = enrollment_factory.events.build(user_id: custom_assessment&.user_id)
   end
 
   def health_and_dv_factory(create: true)
@@ -299,8 +350,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       YouthEducationStatus: Hmis::Hud::Processors::YouthEducationStatusProcessor,
       EmploymentEducation: Hmis::Hud::Processors::EmploymentEducationProcessor,
       CurrentLivingSituation: Hmis::Hud::Processors::CurrentLivingSituationProcessor,
-      Assessment: Hmis::Hud::Processors::CeAssessmentProcessor, # CE Assessment owner
-      CeAssessment: Hmis::Hud::Processors::CeAssessmentProcessor, # Custom Assessment includes CE Assessment
+      CeAssessment: Hmis::Hud::Processors::CeAssessmentProcessor,
       Event: Hmis::Hud::Processors::CeEventProcessor,
       CustomCaseNote: Hmis::Hud::Processors::CustomCaseNoteProcessor,
     }.freeze
@@ -315,6 +365,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       :developmental_disability_factory,
       :chronic_health_condition_factory,
       :ce_assessment_factory,
+      :ce_event_factory,
       :hiv_aids_factory,
       :mental_health_disorder_factory,
       :substance_use_disorder_factory,
@@ -468,6 +519,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     # If it's not found, then this is not a valid submission.
     found_mapping = mapped_form_fields[container]&.include?(field)
 
-    raise "Not a submittable field for Form Definition id #{definition.id} (#{container}.#{field})" unless found_mapping
+    raise "Not a submittable field for Form Definition '#{definition.title}' (ID: #{definition.id})" unless found_mapping
   end
 end

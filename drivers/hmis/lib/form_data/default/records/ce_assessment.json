@@ -10,6 +10,7 @@
           "link_id": "4.19.1",
           "text": "Assessment Date",
           "mapping": {
+            "record_type": "ASSESSMENT",
             "field_name": "assessmentDate"
           },
           "bounds": [
@@ -39,6 +40,7 @@
           "link_id": "4.19.2",
           "text": "Assessment Location",
           "mapping": {
+            "record_type": "ASSESSMENT",
             "field_name": "assessmentLocation"
           },
           "initial": [
@@ -55,6 +57,7 @@
           "pick_list_reference": "AssessmentType",
           "link_id": "4.19.3",
           "mapping": {
+            "record_type": "ASSESSMENT",
             "field_name": "assessmentType"
           }
         },
@@ -65,6 +68,7 @@
           "pick_list_reference": "AssessmentLevel",
           "link_id": "4.19.4",
           "mapping": {
+            "record_type": "ASSESSMENT",
             "field_name": "assessmentLevel"
           }
         },
@@ -75,6 +79,7 @@
           "pick_list_reference": "PrioritizationStatus",
           "link_id": "4.19.7",
           "mapping": {
+            "record_type": "ASSESSMENT",
             "field_name": "prioritizationStatus"
           }
         }

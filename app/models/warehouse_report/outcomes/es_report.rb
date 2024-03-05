@@ -72,7 +72,7 @@ class WarehouseReport::Outcomes::EsReport < WarehouseReport::Outcomes::Base
   end
 
   def project_types
-    [1]
+    HudUtility2024.performance_reporting[:es]
   end
 
   def self.available_subpopulations

@@ -333,7 +333,7 @@ module HudApr::Generators::Shared::Fy2024
             prior_length_of_stay: enrollment.LengthOfStay,
             prior_living_situation: enrollment.LivingSituation,
             project_tracking_method: last_service_history_enrollment.project_tracking_method,
-            project_type: last_service_history_enrollment.computed_project_type,
+            project_type: last_service_history_enrollment.project_type,
             race_multi: source_client.race_multi.sort.join(','),
             relationship_to_hoh: enrollment.RelationshipToHoH,
             sexual_orientation: enrollment.sexual_orientation,
@@ -434,7 +434,8 @@ module HudApr::Generators::Shared::Fy2024
             last_enrollment.client.assessments.select do |assessment|
               assessment.AssessmentDate.present? &&
                 assessment.AssessmentDate.between?(@report.start_date, @report.end_date) &&
-                assessment.enrollment.project.id.in?(@report.project_ids)
+                assessment.enrollment.project.id.in?(@report.project_ids) &&
+                assessment.enrollment.project.participating_in_ce_on?(assessment.AssessmentDate)
             end.each do |assessment|
               assessments << apr_client.hud_report_ce_assessments.build(
                 project_id: assessment.enrollment.project.id,
@@ -447,7 +448,8 @@ module HudApr::Generators::Shared::Fy2024
               # NOTE: even though latest_ce_event may be 90 days after end of reporting period, Q10 is still fully limited by report range.
               event.EventDate.present? &&
                 event.EventDate.between?(@report.start_date, @report.end_date) &&
-                event.enrollment.project.id.in?(@report.project_ids)
+                event.enrollment.project.id.in?(@report.project_ids) &&
+                event.enrollment.project.participating_in_ce_on?(event.EventDate)
             end.each do |event|
               events << apr_client.hud_report_ce_events.build(
                 project_id: event.enrollment.project.id,
@@ -567,7 +569,7 @@ module HudApr::Generators::Shared::Fy2024
           # hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)]
           # If the HoH exited and no one else was designated as the HoH, and the client doesn't have an exit date, use the HoH exit date
           # enrollment.last_date_in_program ||= hoh_enrollment&.last_date_in_program
-          enrolled = case enrollment.computed_project_type
+          enrolled = case enrollment.project_type
           when 3, 13 # PSH/RRH
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) && # Exclude exit date
@@ -582,7 +584,7 @@ module HudApr::Generators::Shared::Fy2024
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program >= pit_date) # Include the exit date
           end
           next false unless enrolled
-          next true if enrollment.computed_project_type != 1 || enrollment.project_tracking_method != 3 # Not ES or ES and not NbN
+          next true if enrollment.project_type != 1 || enrollment.project_tracking_method != 3 # Not ES or ES and not NbN
 
           enrollment.service_history_services.bed_night.on_date(pit_date).exists?
         end.map do |enrollment|
@@ -725,7 +727,7 @@ module HudApr::Generators::Shared::Fy2024
         e.EventDate.present? && e.EventDate.between?(
           start_date_check,
           end_date_check,
-        )
+        ) && e.enrollment.project.participating_in_ce_on?(e.EventDate)
       end
       events_from_project = potential_events.select do |e|
         e.enrollment.project.id == she_enrollment.project.id

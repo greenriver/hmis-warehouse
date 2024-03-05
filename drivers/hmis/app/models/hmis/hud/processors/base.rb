@@ -23,7 +23,7 @@ class Hmis::Hud::Processors::Base
     attribute_name = ar_attribute_name(field)
     attribute_value = attribute_value_for_enum(graphql_enum(field), value)
 
-    @processor.send(factory_name).assign_attributes(attribute_name => attribute_value)
+    @processor.send(factory_name)&.assign_attributes(attribute_name => attribute_value)
   end
 
   def assign_metadata
@@ -35,6 +35,22 @@ class Hmis::Hud::Processors::Base
 
   def information_date(date)
     @processor.send(factory_name, create: false)&.assign_attributes(information_date: date)
+  end
+
+  # Whether this record can be conditionally collected on CustomAssessments
+  def dependent_destroyable?
+    false
+  end
+
+  def destroy_record
+    record = @processor.send(relation_name)
+    return unless record
+
+    if record.persisted?
+      record.mark_for_destruction
+    else
+      @processor.send("#{relation_name}=", nil)
+    end
   end
 
   def ar_attribute_name(field)
@@ -96,6 +112,11 @@ class Hmis::Hud::Processors::Base
 
   # @return [Symbol] the name of the instance factory method on the processor
   def factory_name
+    raise 'Implement in sub-class'
+  end
+
+  # @return [Symbol] the name of the relation to the record on the FormProcessor
+  def relation_name
     raise 'Implement in sub-class'
   end
 
@@ -244,13 +265,15 @@ class Hmis::Hud::Processors::Base
       end
     when 'float'
       case value
-      when Float
+      when Float, Integer
         value
       else
         raise "unexpected value \"#{value}\""
       end
     when 'date'
       case value
+      when String
+        safe_parse_date(value)
       when Date, DateTime
         value.to_date
       else
@@ -268,5 +291,11 @@ class Hmis::Hud::Processors::Base
     else
       raise 'unsupported field type for custom data element'
     end
+  end
+
+  def safe_parse_date(string)
+    Date.strptime(string, '%Y-%m-%d')
+  rescue ArgumentError
+    raise "unexpected value for date \"#{string}\""
   end
 end

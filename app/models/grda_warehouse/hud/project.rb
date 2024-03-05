@@ -23,7 +23,6 @@ module GrdaWarehouse::Hud
 
     include Filterable
 
-    attr_accessor :hud_coc_code, :geocode_override, :geography_type_override, :zip_override
     belongs_to :organization, **hud_assoc(:OrganizationID, 'Organization'), inverse_of: :projects, optional: true
     belongs_to :data_source, inverse_of: :projects
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :projects, optional: true
@@ -76,32 +75,32 @@ module GrdaWarehouse::Hud
       where(ProjectType: HudUtility2024.residential_project_type_ids)
     end
     scope :hud_residential, -> do
-      where(project_type_override.in(HudUtility2024.residential_project_type_ids))
+      where(project_type: HudUtility2024.residential_project_type_ids)
     end
     scope :non_residential, -> do
       where.not(ProjectType: HudUtility2024.residential_project_type_ids)
     end
     scope :hud_non_residential, -> do
-      where.not(project_type_override.in(HudUtility2024.residential_project_type_ids))
+      where.not(project_type: HudUtility2024.residential_project_type_ids)
     end
 
     scope :chronic, -> do
-      where(project_type_override.in(HudUtility2024.chronic_project_types))
+      where(project_type: HudUtility2024.chronic_project_types)
     end
     scope :hud_chronic, -> do
-      where(project_type_override.in(HudUtility2024.chronic_project_types))
+      where(project_type: HudUtility2024.chronic_project_types)
     end
     scope :homeless, -> do
-      where(project_type_override.in(HudUtility2024.homeless_project_types))
+      where(project_type: HudUtility2024.homeless_project_types)
     end
     scope :hud_homeless, -> do
-      where(project_type_override.in(HudUtility2024.chronic_project_types))
+      where(project_type: HudUtility2024.chronic_project_types)
     end
     scope :homeless_sheltered, -> do
-      where(project_type_override.in(HudUtility2024.homeless_sheltered_project_types))
+      where(project_type: HudUtility2024.homeless_sheltered_project_types)
     end
     scope :homeless_unsheltered, -> do
-      where(project_type_override.in(HudUtility2024.homeless_unsheltered_project_types))
+      where(project_type: HudUtility2024.homeless_unsheltered_project_types)
     end
     scope :residential_non_homeless, -> do
       r_non_homeless = HudUtility2024.residential_project_type_ids - HudUtility2024.chronic_project_types
@@ -109,11 +108,11 @@ module GrdaWarehouse::Hud
     end
     scope :hud_residential_non_homeless, -> do
       r_non_homeless = HudUtility2024.residential_project_type_ids - HudUtility2024.chronic_project_types
-      where(project_type_override.in(r_non_homeless))
+      where(project_type: r_non_homeless)
     end
 
     scope :with_hud_project_type, ->(project_types) do
-      where(project_type_override.in(project_types))
+      where(project_type: project_types)
     end
     scope :with_project_type, ->(project_types) do
       where(project_type_column => project_types)
@@ -159,12 +158,11 @@ module GrdaWarehouse::Hud
     end
 
     scope :coc_funded, -> do
-      # hud_continuum_funded overrides ContinuumProject
-      where(
-        arel_table[:ContinuumProject].eq(1).
-        and(arel_table[:hud_continuum_funded].eq(nil)).
-        or(arel_table[:hud_continuum_funded].eq(true)),
-      )
+      where(arel_table[:ContinuumProject].eq(1))
+    end
+
+    scope :continuum_project, -> do
+      coc_funded
     end
 
     scope :enrollments_combined, -> do
@@ -177,8 +175,8 @@ module GrdaWarehouse::Hud
     end
 
     scope :active_during, ->(range) do
-      start_date = cl(p_t[:operating_start_date_override], p_t[:OperatingStartDate])
-      end_date = cl(p_t[:operating_end_date_override], p_t[:OperatingEndDate])
+      start_date = p_t[:OperatingStartDate]
+      end_date = p_t[:OperatingEndDate]
       where(
         end_date.gteq(range.first).or(end_date.eq(nil)).
         and(start_date.lteq(range.last).or(start_date.eq(nil))),
@@ -344,6 +342,8 @@ module GrdaWarehouse::Hud
       scope
     end
 
+    # TODO: This should be removed when all overrides have been removed
+    TodoOrDie('Remove override_columns method and columns from the database', by: '2024-12-01')
     # If any of these are not blank, we'll consider it overridden
     def self.override_columns
       {
@@ -500,19 +500,7 @@ module GrdaWarehouse::Hud
               AND
               #{project_coc_table}.#{quoted_column.call(GrdaWarehouse::Hud::ProjectCoc.paranoia_column)} IS NULL
             WHERE
-              (
-                (
-                  #{project_coc_table}.#{quoted_column[:CoCCode]} IN (#{user.coc_codes.map { |c| quoted_string[c] }.join ','})
-                  AND
-                  (
-                    #{project_coc_table}.#{quoted_column[:hud_coc_code]} IS NULL
-                    OR
-                    #{project_coc_table}.#{quoted_column[:hud_coc_code]} = ''
-                  )
-                )
-                OR
-                #{project_coc_table}.#{quoted_column[:hud_coc_code]} IN (#{user.coc_codes.map { |c| quoted_string[c] }.join ','})
-              )
+              #{project_coc_table}.#{quoted_column[:CoCCode]} IN (#{user.coc_codes.map { |c| quoted_string[c] }.join ','})
               AND
               #{project_table}.#{quoted_column[:id]} = pt.#{quoted_column[:id]}
 
@@ -630,26 +618,11 @@ module GrdaWarehouse::Hud
       [:OrganizationID]
     end
 
-    def self.project_type_override
-      p_t[:computed_project_type]
-      # cl(p_t[:act_as_project_type], p_t[:ProjectType])
-    end
-
-    def compute_project_type
-      act_as_project_type.presence || self.ProjectType
-    end
-
-    # Originally wasn't PH, but is overridden to PH
-    def project_type_overridden_as_ph?
-      @psh_types ||= HudUtility2024.residential_project_type_numbers_by_code[:ph]
-      ! @psh_types.include?(self.ProjectType) &&
-        @psh_types.include?(compute_project_type)
-    end
-
     alias_attribute :name, :ProjectName
 
+    # TODO: this should be replaced with calls to TargetPopulation
     def effective_target_population
-      target_population_override || self.TargetPopulation
+      self.TargetPopulation
     end
 
     def confidential?
@@ -694,7 +667,7 @@ module GrdaWarehouse::Hud
       else
         safe_project_name
       end
-      project_name += " (#{HudUtility2024.project_type_brief(computed_project_type)})" if include_project_type && computed_project_type.present?
+      project_name += " (#{HudUtility2024.project_type_brief(project_type)})" if include_project_type && project_type.present?
 
       project_name
     end
@@ -862,19 +835,24 @@ module GrdaWarehouse::Hud
     end
 
     def self.project_type_column
-      if GrdaWarehouse::Config.get(:project_type_override)
-        :computed_project_type
-      else
-        :ProjectType
-      end
+      :ProjectType
     end
 
+    # TODO: remove this and just use operating start date
     def operating_start_date_to_use
-      operating_start_date_override.presence || self.OperatingStartDate
+      self.OperatingStartDate
     end
 
+    # TODO: remove this and just use operating end date
     def operating_end_date_to_use
-      operating_end_date_override.presence || self.OperatingEndDate
+      self.OperatingEndDate
+    end
+
+    # NOTE: preload ce_participations before calling this
+    def participating_in_ce_on?(date)
+      ce_participations.detect do |ce|
+        ce.ce_participating_on?(date)
+      end.present?
     end
 
     # DEPRECATED_FY2024 no longer used in FY2024

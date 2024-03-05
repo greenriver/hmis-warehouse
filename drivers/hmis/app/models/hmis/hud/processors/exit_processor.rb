@@ -25,6 +25,10 @@ module Hmis::Hud::Processors
       :exit_factory
     end
 
+    def relation_name
+      :exit
+    end
+
     def schema
       Types::HmisSchema::Exit
     end

@@ -82,10 +82,22 @@ class Hmis::Hud::Household < Hmis::Hud::Base
 
   SORT_OPTIONS = [
     :most_recent,
+    :hoh_last_name_a_to_z,
+    :hoh_last_name_z_to_a,
+    :hoh_first_name_a_to_z,
+    :hoh_first_name_z_to_a,
+    :hoh_age_youngest_to_oldest,
+    :hoh_age_oldest_to_youngest,
   ].freeze
 
   SORT_OPTION_DESCRIPTIONS = {
     most_recent: 'Most Recent',
+    hoh_last_name_a_to_z: 'Head of Household Last Name: A-Z',
+    hoh_last_name_z_to_a: 'Head of Household Last Name: Z-A',
+    hoh_first_name_a_to_z: 'Head of Household First Name: A-Z',
+    hoh_first_name_z_to_a: 'Head of Household First Name: Z-A',
+    hoh_age_youngest_to_oldest: 'Head of Household Age: Youngest to Oldest',
+    hoh_age_oldest_to_youngest: 'Head of Household Age: Oldest to Youngest',
   }.freeze
 
   def readonly?
@@ -102,6 +114,30 @@ class Hmis::Hud::Household < Hmis::Hud::Base
         hh_t[:latest_exit].eq(nil).desc,
         earliest_entry: :desc,
       )
+    when :hoh_last_name_a_to_z
+      joins(:enrollments, :clients).
+        merge(Hmis::Hud::Enrollment.heads_of_households).
+        order(c_t[:LastName].asc.nulls_last)
+    when :hoh_last_name_z_to_a
+      joins(:enrollments, :clients).
+        merge(Hmis::Hud::Enrollment.heads_of_households).
+        order(c_t[:LastName].desc.nulls_last)
+    when :hoh_first_name_a_to_z
+      joins(:enrollments, :clients).
+        merge(Hmis::Hud::Enrollment.heads_of_households).
+        order(c_t[:FirstName].asc.nulls_last)
+    when :hoh_first_name_z_to_a
+      joins(:enrollments, :clients).
+        merge(Hmis::Hud::Enrollment.heads_of_households).
+        order(c_t[:FirstName].desc.nulls_last)
+    when :hoh_age_youngest_to_oldest
+      joins(:enrollments, :clients).
+        merge(Hmis::Hud::Enrollment.heads_of_households).
+        order(c_t[:dob].desc.nulls_last)
+    when :hoh_age_oldest_to_youngest
+      joins(:enrollments, :clients).
+        merge(Hmis::Hud::Enrollment.heads_of_households).
+        order(c_t[:dob].asc.nulls_last)
     else
       raise NotImplementedError
     end

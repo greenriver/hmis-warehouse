@@ -70,7 +70,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :enrollment
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
+  belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :enrollments
   belongs_to :household, **hmis_relation(:HouseholdID, 'Household'), inverse_of: :enrollments, optional: true
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
 
@@ -379,6 +379,22 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   def unit_occupied_on(date = Date.current)
     Hmis::UnitOccupancy.active(date).where(enrollment: self).first&.unit
+  end
+
+  def build_synthetic_intake_assessment
+    assessment = Hmis::Hud::CustomAssessment.new(
+      enrollment: self,
+      client: client,
+      data_source: data_source,
+      assessment_date: entry_date,
+      user: user, # same user that's on the enrollment
+      data_collection_stage: 1, # Intake
+      wip: false,
+    )
+    # Build a FormProcessor. It has no references since no records are created. It is not necessary
+    # to link a Form Definition, because a Form Definition will be selected when/if the form is opened for editing.
+    assessment.build_form_processor
+    assessment
   end
 
   # When submitting a new_client_enrollment form, we validate the client too, with the same validation contexts

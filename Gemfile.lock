@@ -47,43 +47,51 @@ GIT
       cantor (~> 1.2.1)
       term-ansicolor (~> 1.3)
 
+GIT
+  remote: https://github.com/jquery-ui-rails/jquery-ui-rails.git
+  revision: 413265e81f790f795239e07e7e25e01429b2f18d
+  tag: v7.0.0
+  specs:
+    jquery-ui-rails (7.0.0)
+      railties (>= 3.2.16)
+
 GEM
   remote: https://rubygems.org/
   specs:
-    actioncable (6.1.7.6)
-      actionpack (= 6.1.7.6)
-      activesupport (= 6.1.7.6)
+    actioncable (6.1.7.7)
+      actionpack (= 6.1.7.7)
+      activesupport (= 6.1.7.7)
       nio4r (~> 2.0)
       websocket-driver (>= 0.6.1)
-    actionmailbox (6.1.7.6)
-      actionpack (= 6.1.7.6)
-      activejob (= 6.1.7.6)
-      activerecord (= 6.1.7.6)
-      activestorage (= 6.1.7.6)
-      activesupport (= 6.1.7.6)
+    actionmailbox (6.1.7.7)
+      actionpack (= 6.1.7.7)
+      activejob (= 6.1.7.7)
+      activerecord (= 6.1.7.7)
+      activestorage (= 6.1.7.7)
+      activesupport (= 6.1.7.7)
       mail (>= 2.7.1)
-    actionmailer (6.1.7.6)
-      actionpack (= 6.1.7.6)
-      actionview (= 6.1.7.6)
-      activejob (= 6.1.7.6)
-      activesupport (= 6.1.7.6)
+    actionmailer (6.1.7.7)
+      actionpack (= 6.1.7.7)
+      actionview (= 6.1.7.7)
+      activejob (= 6.1.7.7)
+      activesupport (= 6.1.7.7)
       mail (~> 2.5, >= 2.5.4)
       rails-dom-testing (~> 2.0)
-    actionpack (6.1.7.6)
-      actionview (= 6.1.7.6)
-      activesupport (= 6.1.7.6)
+    actionpack (6.1.7.7)
+      actionview (= 6.1.7.7)
+      activesupport (= 6.1.7.7)
       rack (~> 2.0, >= 2.0.9)
       rack-test (>= 0.6.3)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.0, >= 1.2.0)
-    actiontext (6.1.7.6)
-      actionpack (= 6.1.7.6)
-      activerecord (= 6.1.7.6)
-      activestorage (= 6.1.7.6)
-      activesupport (= 6.1.7.6)
+    actiontext (6.1.7.7)
+      actionpack (= 6.1.7.7)
+      activerecord (= 6.1.7.7)
+      activestorage (= 6.1.7.7)
+      activesupport (= 6.1.7.7)
       nokogiri (>= 1.8.5)
-    actionview (6.1.7.6)
-      activesupport (= 6.1.7.6)
+    actionview (6.1.7.7)
+      activesupport (= 6.1.7.7)
       builder (~> 3.1)
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
@@ -96,14 +104,14 @@ GEM
       activerecord (>= 5.2, < 7.1.0)
       pg (< 3.0)
     active_record_query_trace (1.8)
-    activejob (6.1.7.6)
-      activesupport (= 6.1.7.6)
+    activejob (6.1.7.7)
+      activesupport (= 6.1.7.7)
       globalid (>= 0.3.6)
-    activemodel (6.1.7.6)
-      activesupport (= 6.1.7.6)
-    activerecord (6.1.7.6)
-      activemodel (= 6.1.7.6)
-      activesupport (= 6.1.7.6)
+    activemodel (6.1.7.7)
+      activesupport (= 6.1.7.7)
+    activerecord (6.1.7.7)
+      activemodel (= 6.1.7.7)
+      activesupport (= 6.1.7.7)
     activerecord-import (1.4.1)
       activerecord (>= 4.2)
     activerecord-postgis-adapter (7.1.1)
@@ -118,14 +126,14 @@ GEM
     activerecord-sqlserver-adapter (6.1.2.1)
       activerecord (~> 6.1.0)
       tiny_tds
-    activestorage (6.1.7.6)
-      actionpack (= 6.1.7.6)
-      activejob (= 6.1.7.6)
-      activerecord (= 6.1.7.6)
-      activesupport (= 6.1.7.6)
+    activestorage (6.1.7.7)
+      actionpack (= 6.1.7.7)
+      activejob (= 6.1.7.7)
+      activerecord (= 6.1.7.7)
+      activesupport (= 6.1.7.7)
       marcel (~> 1.0)
       mini_mime (>= 1.1.0)
-    activesupport (6.1.7.6)
+    activesupport (6.1.7.7)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
@@ -387,7 +395,7 @@ GEM
       devise (~> 4.0)
       railties (< 7.1)
       rotp (~> 6.0)
-    devise_invitable (2.0.5)
+    devise_invitable (2.0.9)
       actionmailer (>= 5.0)
       devise (>= 4.6)
     diff-lcs (1.5.0)
@@ -501,8 +509,6 @@ GEM
       rails-dom-testing (>= 1, < 3)
       railties (>= 4.2.0)
       thor (>= 0.14, < 2.0)
-    jquery-ui-rails (6.0.1)
-      railties (>= 3.2.16)
     jsbundling-rails (1.2.1)
       railties (>= 6.0.0)
     json (2.6.3)
@@ -662,7 +668,7 @@ GEM
       nio4r (~> 2.0)
     pwned (2.0.2)
     racc (1.7.2)
-    rack (2.2.8)
+    rack (2.2.8.1)
     rack-attack (6.5.0)
       rack (>= 1.0, < 3)
     rack-cors (1.1.1)
@@ -673,20 +679,20 @@ GEM
       rack
     rack-test (2.1.0)
       rack (>= 1.3)
-    rails (6.1.7.6)
-      actioncable (= 6.1.7.6)
-      actionmailbox (= 6.1.7.6)
-      actionmailer (= 6.1.7.6)
-      actionpack (= 6.1.7.6)
-      actiontext (= 6.1.7.6)
-      actionview (= 6.1.7.6)
-      activejob (= 6.1.7.6)
-      activemodel (= 6.1.7.6)
-      activerecord (= 6.1.7.6)
-      activestorage (= 6.1.7.6)
-      activesupport (= 6.1.7.6)
+    rails (6.1.7.7)
+      actioncable (= 6.1.7.7)
+      actionmailbox (= 6.1.7.7)
+      actionmailer (= 6.1.7.7)
+      actionpack (= 6.1.7.7)
+      actiontext (= 6.1.7.7)
+      actionview (= 6.1.7.7)
+      activejob (= 6.1.7.7)
+      activemodel (= 6.1.7.7)
+      activerecord (= 6.1.7.7)
+      activestorage (= 6.1.7.7)
+      activesupport (= 6.1.7.7)
       bundler (>= 1.15.0)
-      railties (= 6.1.7.6)
+      railties (= 6.1.7.7)
       sprockets-rails (>= 2.0.0)
     rails-controller-testing (1.0.5)
       actionpack (>= 5.0.1.rc1)
@@ -703,9 +709,9 @@ GEM
     rails-html-sanitizer (1.6.0)
       loofah (~> 2.21)
       nokogiri (~> 1.14)
-    railties (6.1.7.6)
-      actionpack (= 6.1.7.6)
-      activesupport (= 6.1.7.6)
+    railties (6.1.7.7)
+      actionpack (= 6.1.7.7)
+      activesupport (= 6.1.7.7)
       method_source
       rake (>= 12.2)
       thor (~> 1.0)
@@ -949,9 +955,6 @@ GEM
     yabeda-activerecord (0.1.0)
       activerecord (>= 6.0)
       yabeda (~> 0.6)
-    yabeda-graphql (0.2.2)
-      graphql (>= 1.9, < 3)
-      yabeda (~> 0.2)
     yabeda-http_requests (0.2.0)
       sniffer
       yabeda
@@ -977,6 +980,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  actionpack (>= 6.1.7.7)
   active_median
   active_record_distinct_on
   active_record_extended
@@ -1050,11 +1054,11 @@ DEPENDENCIES
   delayed_job_active_record
   deprecation_toolkit
   derailed_benchmarks
-  devise (~> 4)
+  devise (~> 4.8)
   devise-pwned_password
   devise-security
   devise-two-factor
-  devise_invitable (~> 2.0)
+  devise_invitable (~> 2.0.9)
   doorkeeper
   dotenv-rails
   ed25519
@@ -1081,7 +1085,7 @@ DEPENDENCIES
   image_processing
   jquery-minicolors-rails
   jquery-rails
-  jquery-ui-rails
+  jquery-ui-rails!
   jsbundling-rails (~> 1.1)
   json
   json_schemer (~> 2.0.0)
@@ -1122,7 +1126,7 @@ DEPENDENCIES
   progress_bar
   pry-rails
   puma (~> 6.4)
-  rack (>= 2.2.6.3)
+  rack (>= 2.2.8.1)
   rack-attack
   rack-cors
   rack-mini-profiler
@@ -1187,7 +1191,6 @@ DEPENDENCIES
   whenever
   with_advisory_lock
   yabeda-activerecord
-  yabeda-graphql
   yabeda-http_requests
   yabeda-prometheus
   yabeda-puma-plugin

@@ -20,8 +20,19 @@ FactoryBot.define do
     DataCollectionStage { 1 }
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
-    after(:create) do |assessment|
-      assessment.form_processor = create(:hmis_form_processor, custom_assessment: assessment)
+    transient do
+      values { {} }
+      hud_values { {} }
+      definition { nil }
+    end
+    after(:build) do |assessment, evaluator|
+      assessment.form_processor = build(:hmis_form_processor, custom_assessment: assessment, values: evaluator.values, hud_values: evaluator.hud_values)
+      assessment.form_processor.definition = evaluator.definition if evaluator.definition
+    end
+    after(:create) do |assessment, evaluator|
+      assessment.build_form_processor(values: evaluator.values, hud_values: evaluator.hud_values, definition: evaluator.definition)
+      assessment.form_processor.definition ||= build(:hmis_form_definition)
+      assessment.save!
     end
   end
 

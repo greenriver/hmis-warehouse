@@ -52,6 +52,8 @@ ENV GROVER_NO_SANDBOX=true
 ENV CHROMIUM_PATH=/usr/bin/chromium-browser
 
 # Allow tls connection to database with verification
+COPY docker/app/us-east-1-bundle.pem  /etc/ssl/certs/us-east-1-bundle.pem
+# Deprecated and soon to expire
 COPY docker/app/rds-combined-ca-bundle.pem /etc/ssl/certs/rds-combined-ca-bundle.pem
 
 RUN addgroup -g ${GROUP_ID} app-user \
@@ -137,9 +139,10 @@ RUN yarn install --frozen-lockfile \
   && yarn cache clean
 
 COPY --chown=app-user:app-user . ./
+COPY --chown=app-user:app-user sample.irbrc ./.irbrc
 COPY --chown=app-user:app-user docker/app/REVISION ./
 COPY --chown=app-user:app-user docker/app/GIT_BRANCH ./
 COPY --chown=app-user:app-user docker/app/database.open-path-warehouse.yml ./config/database.yml
 
 RUN rm -rf tmp/* \
-  && mkdir -p tmp/pids public/assets
+  && mkdir -p tmp/pids public/assets var

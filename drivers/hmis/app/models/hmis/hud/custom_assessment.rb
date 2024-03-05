@@ -28,7 +28,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   belongs_to :enrollment, **hmis_enrollment_relation, optional: true
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments, optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   has_one :form_processor, class_name: 'Hmis::Form::FormProcessor', dependent: :destroy
@@ -45,6 +45,8 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   has_one :youth_education_status, through: :form_processor
   has_one :employment_education, through: :form_processor
   has_one :current_living_situation, through: :form_processor
+  has_one :ce_assessment, through: :form_processor
+  has_one :ce_event, through: :form_processor
 
   # Alias fields that are not part of the Assessment schema
   alias_to_underscore [:DataCollectionStage]
@@ -134,6 +136,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
         save_in_progress
       else
         save_not_in_progress
+        form_processor.store_assessment_questions! if form_processor.ce_assessment?
       end
 
       unless as_wip
