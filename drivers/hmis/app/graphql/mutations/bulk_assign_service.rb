@@ -6,6 +6,7 @@
 
 module Mutations
   class BulkAssignService < CleanBaseMutation
+    description 'Assign services for a set of Clients. If any client is not enrolled, the client will be enrolled in the project as well.'
     argument :input, Types::HmisSchema::BulkAssignServiceInput, required: true
     field :success, Boolean, null: true
 
@@ -29,7 +30,7 @@ module Mutations
       available_units = project.units.unoccupied_on(input.date_provided).order(updated_at: :desc).to_a
 
       Hmis::Hud::Service.transaction do
-        services = clients.map do |client|
+        clients.each do |client|
           # Look for Enrollment at the project that is open on the service date
           enrollment = client.enrollments.
             open_on_date(input.date_provided).
@@ -61,6 +62,8 @@ module Mutations
             enrollment.save_new_enrollment!
           end
 
+          # Initialize using the HmisService view. Based on the CustomServiceType, the class will initialize
+          # either a Hmis::Hud::Service or Hmis::Hud::CustomService as the `owner`
           service = Hmis::Hud::HmisService.new(
             client: client,
             enrollment: enrollment,
@@ -68,16 +71,13 @@ module Mutations
             date_provided: input.date_provided,
             user_id: hud_user_id,
           )
-          if cst.hud_service?
-            service.owner.assign_attributes(
-              record_type: cst.hud_record_type,
-              type_provided: cst.hud_type_provided,
-            )
-          end
-          service
-        end
 
-        services.each do |service|
+          # If this is a HUD Service, set the HUD RecordType and TypeProvided on the owner
+          service.owner.assign_attributes(record_type: cst.hud_record_type, type_provided: cst.hud_type_provided) if cst.hud_service?
+
+          # Pass form_submission context to validate uniqueness of bed nights per day.
+          # Note: an improvement would be to raise a user-facing error if any service(s) were duplicates for bed nights,
+          # and let other changes save successfully.
           service.owner.save!(context: :form_submission)
         end
       end

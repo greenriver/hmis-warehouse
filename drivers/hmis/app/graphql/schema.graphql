@@ -5673,6 +5673,10 @@ type Mutation {
     """
     input: AddRecentItemInput!
   ): ApplicationUser
+
+  """
+  Assign services for a set of Clients. If any client is not enrolled, the client will be enrolled in the project as well.
+  """
   bulkAssignService(input: BulkAssignServiceInput!): BulkAssignServicePayload
   bulkMergeClients(
     """
