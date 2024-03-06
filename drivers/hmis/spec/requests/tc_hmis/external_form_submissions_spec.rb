@@ -29,7 +29,7 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
       }
     )
   end
-  let(:today) {Date.today}
+  let(:today) { Date.current }
 
   let!(:access_control) do
     create_access_control(hmis_user, p1, with_permission: [:can_manage_external_form_submissions, :can_view_project])
@@ -47,7 +47,7 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
 
   it 'should resolve external form submissions' do
     submission = create(:hmis_external_form_submission, definition: form_definition, submitted_at: today.midnight)
-    filters = {'status' => 'new', submitted_date: today.strftime('%Y-%m-%d')}
+    filters = { 'status' => 'new', submitted_date: today.strftime('%Y-%m-%d') }
     response, result = post_graphql({ id: p1.id, limit: 10, offset: 0, filters: filters }) { query }
     expect(response.status).to eq 200
     expect(result.dig('data', 'project', 'externalFormSubmissions', 'nodes')).to contain_exactly({ 'id' => submission.id.to_s })

@@ -4,8 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: true
-
 module Types
   module HmisSchema
     module HasExternalFormSubmissions
