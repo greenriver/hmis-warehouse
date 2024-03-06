@@ -162,7 +162,7 @@ module Health
       return unless engaged? # Daily HRSNs are not produced until the patient is engaged
 
       previous_status = Health::HousingStatus.as_of(date: housing_status.collected_on - 1.day).first
-      return unless housing_status.positive_for_homelessness? && ! previous_status.positive_for_homelessness? # Only record no -> yes
+      return unless housing_status.positive_for_homelessness? && previous_status.present? && ! previous_status.positive_for_homelessness? # Only record no -> yes
 
       return if Health::QualifyingActivity.find_by(date_of_activity: housing_status.collected_on, activity: :sdoh_positive).present? # Don't duplicate QAs
 
