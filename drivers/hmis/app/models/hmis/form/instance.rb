@@ -110,6 +110,6 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
   end
 
   def to_pick_list_option
-    { code: id, label: definition.title }
+    { code: definition.identifier, label: definition.title }
   end
 end
