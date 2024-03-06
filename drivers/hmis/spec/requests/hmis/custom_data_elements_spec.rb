@@ -117,11 +117,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                                       'label' => cded3.label,
                                       'value' => a_hash_including('valueJson' => cde3.value_json),
                                     ),
-                                    # a_hash_including(
-                                    #   'key' => cded4.key,
-                                    #   'label' => cded4.label,
-                                    #   'value' => nil,
-                                    # ),
                                   ])
       end
     end
@@ -279,7 +274,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq(200), result.inspect
         elements = result.dig('data', 'assessment', 'customDataElements')
 
-        expect(elements.size).to eq(2)
         expect(elements).to contain_exactly(
           # cded with 2 values
           a_hash_including(
