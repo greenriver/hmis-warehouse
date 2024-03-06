@@ -67,6 +67,8 @@ module Types
         open_hoh_enrollments_for_project(project)
       when 'ENROLLMENTS_FOR_CLIENT'
         enrollments_for_client(client, user: user)
+      when 'EXTERNAL_FORM_TYPES_FOR_PROJECT'
+        external_form_types_for_project(project)
       end
     end
 
@@ -396,6 +398,14 @@ module Types
           label: "#{client.brief_name} #{desc} (Entered #{en.entry_date.strftime('%m/%d/%Y')})",
         }
       end
+    end
+
+    def self.external_form_types_for_project(project)
+      return [] unless project.present?
+
+      Hmis::Form::Instance.for_project(project).
+        order(:id).
+        map(&:to_pick_list_option)
     end
 
     def self.enrollments_for_client(client, user:)

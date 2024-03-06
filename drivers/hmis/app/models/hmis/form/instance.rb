@@ -108,4 +108,8 @@ class Hmis::Form::Instance < ::GrdaWarehouseBase
     enrollment_match = Hmis::Form::InstanceEnrollmentMatch.new(instance: self, enrollment: enrollment)
     enrollment_match.valid? ? project_match(project) : nil
   end
+
+  def to_pick_list_option
+    { code: id, label: definition.title }
+  end
 end

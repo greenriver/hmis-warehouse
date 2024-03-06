@@ -6350,6 +6350,11 @@ enum PickListType {
   """
   ENROLLMENTS_FOR_CLIENT
   ENROLLMENT_AUDIT_EVENT_RECORD_TYPES
+
+  """
+  External form types for the project.
+  """
+  EXTERNAL_FORM_TYPES_FOR_PROJECT
   GEOCODE
 
   """
