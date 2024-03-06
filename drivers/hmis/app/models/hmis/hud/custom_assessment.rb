@@ -27,7 +27,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   belongs_to :enrollment, **hmis_enrollment_relation, optional: true
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments, optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   has_many :custom_data_elements, as: :owner, dependent: :destroy

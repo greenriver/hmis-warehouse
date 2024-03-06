@@ -1,0 +1,8 @@
+.toast.hide.position-absolute{ role: :alert, aria: { live: :assertive, atomic: true}, data: { delay: 5000 }, style: 'top: 0; right: 0; min-width: 400px;'}
+  .toast-header
+    %strong.mr-2 Title
+    %i.icon-checkmark.o-color--positive.mr-auto
+    %button.ml-2.mb-1.close{type: :button, data: {dismiss: :toast}, aria: { label: 'Close' }}
+      %span{ aria: { hidden: true }} &times;
+  .toast-body
+    Body
