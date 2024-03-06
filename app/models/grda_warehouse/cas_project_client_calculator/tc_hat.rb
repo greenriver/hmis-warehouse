@@ -82,6 +82,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         site_case_management_required: 'client need site-based case management',
         ongoing_case_management_required: 'client need ongoing housing case management',
         currently_fleeing: 'are you currently fleeing',
+        cas_pregnancy_status: 'Are you currently pregnant?',
       }.freeze
     end
     memoize :boolean_lookups
@@ -106,6 +107,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         site_case_management_required: 'Section D',
         ongoing_case_management_required: 'Section D',
         currently_fleeing: 'Section E',
+        cas_pregnancy_status: 'Section E',
       }
     end
 
@@ -146,6 +148,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :rrh_desired,
         :required_minimum_occupancy,
         :required_number_of_bedrooms,
+        :cas_pregnancy_status,
       ]
     end
 
@@ -174,14 +177,18 @@ module GrdaWarehouse::CasProjectClientCalculator
       youth = client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.downcase&.include?('youth')
 
       question_title = 'Are you a single parent with a child over the age of 10?'
-      single_parent = client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.downcase&.include?('Yes')
+      single_parent = client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.downcase&.include?('yes')
 
       question_title = 'Do you have legal custody'
-      custody_now = client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.downcase&.include?('Yes')
+      custody_now = client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.downcase&.include?('yes')
 
       question_title = 'If you do not have legal custody'
-      custody_later = client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.downcase&.include?('Yes')
+      custody_later = client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.downcase&.include?('yes')
 
+      pregnant = for_boolean(client, :cas_pregnancy_status)
+
+      # Pregnant clients are always considered a family
+      return true if pregnant
       # There is a child, but the parent doesn't, and won't have custody
       return false if single_parent && (!custody_now && !custody_later)
       # Client indicated the household is adult only
@@ -227,7 +234,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       question_title = 'Are you a single parent with'
       relevant_section = client.most_recent_tc_hat_for_destination.
         section_starts_with(section_title)
-      client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.downcase&.include?('Yes')
+      client.most_recent_tc_hat_for_destination.answer_from_section(relevant_section, question_title)&.downcase&.include?('yes')
     end
 
     private def neighborhood_ids_for_cas(client)

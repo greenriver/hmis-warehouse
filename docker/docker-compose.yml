@@ -152,51 +152,6 @@ services:
       yarn:
         condition: service_started
 
-  # Starts a tunnel *from* an external point to the local web service. This
-  # makes your local development environment available on the public internet.
-  # We do this because superset needs to make a tls connection to the warehouse
-  # and self-signed certificates are not allowed.
-  #
-  # To see public url
-  # docker compose exec ngrok cat /ngrok/public_url
-  #
-  # Note: `docker compose up` works, though there will be no output. Use `docker
-  # compose run` to see the output
-  ngrok: &ngrok
-    profiles:
-      - manual
-    network_mode: host
-    tty: true
-    stdin_open: true
-    volumes:
-      - ngrok:/ngrok
-    expose: ['4040']
-    ports: ['4040']
-    environment:
-      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN:-setme_warning_web_app_will_be_available_on_internet}
-      NGROK_API_KEY: ${NGROK_API_KEY:-setme}
-    image: ngrok/ngrok
-    command:
-      - http
-      - https://${FQDN:-hmis-warehouse.dev.test}
-      - --request-header-add=host:${FQDN:-hmis-warehouse.dev.test}
-      - --log=stdout
-      - --log-level=info
-      #- --basic-auth="${NGROK_BASIC_AUTH_USERNAME:-op-dev}:${NGROK_BASIC_AUTH_PASSWORD:-375148e9582f2369475505f2c6f8a5be}"
-
-  # Assumes one ngrok tunnel active
-  # Places the public URL into /ngrok/public_url
-  # This service effectively just introspects the public_url since we can't
-  # specify one without a paid plan.
-  ngrok_public:
-    <<: *ngrok
-    user: root
-    entrypoint: ''
-    command: bash -c 'sleep 3 && rm -f /ngrok/public_url && ngrok api tunnels list --api-key=\$NGROK_API_KEY | grep public_url | cut -d\" -f4 > /ngrok/public_url'
-    depends_on:
-      ngrok:
-        condition: service_started
-
   # To transition from a previous major version to pg13, run ./docker/pg13/upgrade.db
   db_previous:
     build:
@@ -287,53 +242,6 @@ services:
       # upload anything, and the one spec file that uses it seems disabled.
       #- ./tmp/sftp_spec:/home/user/sftp
 
-  # On arm64, you'll need to run this before things work:
-  #   docker run --privileged --rm tonistiigi/binfmt --install amd64
-  #
-  # First time running:
-  #   docker compose run superset /app/pythonpath/init.sh
-  superset: &superset
-    container_name: hmis-warehouse-superset
-    build:
-      context: docker/superset
-    image: op-superset
-    platform: linux/amd64
-    labels:
-      - traefik.enable=${TRAEFIK_ENABLED:-false}
-      - "traefik.http.routers.op-superset.rule=Host(`superset.${FQDN:-hmis-warehouse.dev.test}`)"
-      - "traefik.http.routers.op-superset.tls=true"
-      - "traefik.http.services.op-superset.loadbalancer.server.port=8088"
-    environment:
-      SUPERSET_ADMIN_PASSWORD: admin
-      SUPERSET_SECRET_KEY: superset-secret-key-1234
-      VIRTUAL_HOST: superset.${FQDN:-hmis-warehouse.dev.test}
-      WAREHOUSE_URL: https://${FQDN:-hmis-warehouse.dev.test}
-      VIRTUAL_PORT: 8088
-      SUPERSET_WEBDRIVER_BASEURL: ${SUPERSET_WEBDRIVER_BASEURL:-http://superset:8088/}
-      # These need to come from /oauth/applications in the warehouse
-      # application when logged in as an admin
-      SUPERSET_OAUTH_CLIENT_ID: ${SUPERSET_OAUTH_CLIENT_ID:-setme}
-      SUPERSET_OAUTH_CLIENT_SECRET: ${SUPERSET_OAUTH_CLIENT_SECRET:-setme}
-      SUPERSET_USE_OAUTH: ${SUPERSET_USE_OAUTH:-false}
-      NGROK_BASIC_AUTH_USERNAME: ${NGROK_BASIC_AUTH_USERNAME:-op-dev}
-      NGROK_BASIC_AUTH_PASSWORD: ${NGROK_BASIC_AUTH_PASSWORD:-375148e9582f2369475505f2c6f8a5be}
-    depends_on:
-      db:
-        condition: service_healthy
-      # ngrok:
-      #   condition: service_started
-      # ngrok_public:
-      #   condition: service_completed_successfully
-      superset_init:
-        condition: service_completed_successfully
-      superset_init_2:
-        condition: service_completed_successfully
-    expose:
-      - 8088
-    volumes:
-      - ./docker/superset/op:/app/pythonpath
-      - ngrok:/ngrok
-
   # See config/storage.yml for setup
   minio:
     container_name: s3
@@ -354,36 +262,6 @@ services:
       - 9000:9000
       - 9001:9001 # enable for UI access
     command: server --certs-dir /certs /data
-
-  superset_init:
-    container_name: superset_make_db
-    environment:
-      PGPASSWORD: postgres
-      PGUSER: postgres
-      PGHOST: db
-    image: postgis/postgis:12-3.1-alpine
-    entrypoint: /superset_init_entrypoint.sh
-    command:
-      - ''
-    volumes:
-      - ./docker/superset/superset_init_entrypoint.sh:/superset_init_entrypoint.sh
-    depends_on:
-      db:
-        condition: service_healthy
-
-  superset_init_2:
-    <<: *superset
-    container_name: superset_init_user_and_db_structure
-    entrypoint: ''
-    command: /init.sh
-    volumes:
-      - ./docker/superset/op/init.sh:/init.sh
-      - ./docker/superset/op:/app/pythonpath
-    depends_on:
-      superset_init:
-        condition: service_completed_successfully
-      db:
-        condition: service_healthy
 
 volumes:
   bundle_alpine:

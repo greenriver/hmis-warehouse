@@ -21,6 +21,10 @@
   @include checkbox-checked;
 }
 
+.c-checkbox input:focus+label:before {
+  outline: $link-blue solid 3px;
+}
+
 .c-checkbox input.dirty:checked + label {
   @include checkbox-checked-dirty;
 }
@@ -80,7 +84,7 @@
 
 .c-checkbox input:disabled:checked ~ label,
 .c-checkbox input.disabled:checked ~ label {
-  background: rgba($brand-success-l, .2) !important;
+  background: rgba($brand-info, .2) !important;
   .c-checkbox__check-icon {
     display: block;
   }

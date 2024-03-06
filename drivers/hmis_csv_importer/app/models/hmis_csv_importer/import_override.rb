@@ -96,4 +96,14 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
   def hud_key
     associated_class.hud_key.to_s
   end
+
+  def project
+    return [] unless associated_class.column_names.include?('ProjectID')
+    return [] if matched_hud_key.blank? && replaces_value.blank?
+
+    project_ids = associated_class.where(data_source_id: data_source_id).to_a.select do |row|
+      applies?(row)
+    end.map(&:ProjectID)
+    GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids).to_a
+  end
 end
