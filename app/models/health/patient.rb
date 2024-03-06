@@ -144,23 +144,26 @@ module Health
     def record_housing_status(status, on_date: Date.current)
       return unless status.present?
 
-      housing_status = recent_housing_status
-      housing_status = if housing_status&.collected_on == on_date
+      prior_housing_status = recent_housing_status
+      housing_status = if prior_housing_status&.collected_on == on_date
         # The housing status string is recorded, for detail, but is mostly treated as a boolean
         # Don't overwrite an existing status if the patient would lose homeless status
-        housing_status.update(status: status) if housing_status.positive_for_homelessness?
-        housing_status
+        prior_housing_status.update(status: status) unless prior_housing_status.positive_for_homelessness? && ! status.in?(Health::HousingStatus::HOMELESS_STATUSES)
+        prior_housing_status
       else
         housing_statuses.create(collected_on: on_date, status: status)
       end
 
-      generate_daily_hrsn_qa(housing_status)
+      generate_daily_hrsn_qa(housing_status) if prior_housing_status.present?
       housing_status
     end
 
     private def generate_daily_hrsn_qa(housing_status)
+      return unless engaged? # Daily HRSNs are not produced until the patient is engaged
+
       previous_status = Health::HousingStatus.as_of(date: housing_status.collected_on - 1.day).first
-      return unless housing_status.positive_for_homelessness? && (previous_status.blank? || ! previous_status.positive_for_homelessness?) # Only record no -> yes
+      return unless housing_status.positive_for_homelessness? && ! previous_status.positive_for_homelessness? # Only record no -> yes
+
       return if Health::QualifyingActivity.find_by(date_of_activity: housing_status.collected_on, activity: :sdoh_positive).present? # Don't duplicate QAs
 
       user = User.system_user # Mark created QAs as from the system
