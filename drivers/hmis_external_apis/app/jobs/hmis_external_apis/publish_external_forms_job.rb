@@ -34,7 +34,7 @@ class HmisExternalApis::PublishExternalFormsJob
   protected
 
   def user_id
-    @user_id ||= Hmis::Hud::User.system_user(data_source_id: data_source_id).id
+    @user_id ||= Hmis::Hud::User.system_user(data_source_id: data_source_id).user_id
   end
 
   def data_source_id
