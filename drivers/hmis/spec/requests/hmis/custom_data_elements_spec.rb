@@ -183,19 +183,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    it 'resolves custom data elements on a HUD Service even if they are not set' do
+    it 'does not resolve custom data elements on a HUD Service if they are not set' do
       view_record = Hmis::Hud::HmisService.find_by(owner: hud_service_1)
       response, result = post_graphql(id: view_record.id) { query }
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
         elements = result.dig('data', 'service', 'customDataElements')
-        expect(elements).to match([
-                                    a_hash_including(
-                                      'key' => cded_hud.key,
-                                      'label' => cded_hud.label,
-                                      'value' => nil,
-                                    ),
-                                  ])
+        expect(elements).to be_empty
       end
     end
 
@@ -229,19 +223,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
 
-    it 'resolves custom data elements on a Custom Service even if they are not set' do
+    it 'does not resolve custom data elements on a Custom Service if they are not set' do
       view_record = Hmis::Hud::HmisService.find_by(owner: custom_service_1)
       response, result = post_graphql(id: view_record.id) { query }
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
         elements = result.dig('data', 'service', 'customDataElements')
-        expect(elements).to match([
-                                    a_hash_including(
-                                      'key' => cded_custom.key,
-                                      'label' => cded_custom.label,
-                                      'values' => [],
-                                    ),
-                                  ])
+        expect(elements).to be_empty
       end
     end
 
@@ -284,7 +272,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       create(:hmis_custom_data_element, data_element_definition: cded, owner: a1, data_source: ds1, value_string: 'value 1')
       create(:hmis_custom_data_element, data_element_definition: cded, owner: a1, data_source: ds1, value_string: 'value 2')
       # Create another cded with no values
-      cded2 = create(:hmis_custom_data_element_definition, label: 'Another special field', data_source: ds1, owner_type: 'Hmis::Hud::CustomAssessment')
+      create(:hmis_custom_data_element_definition, label: 'Another special field', data_source: ds1, owner_type: 'Hmis::Hud::CustomAssessment')
 
       response, result = post_graphql(id: a1.id) { query }
       aggregate_failures 'checking response' do
@@ -301,12 +289,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               a_hash_including('valueString' => 'value 2'),
               a_hash_including('valueString' => 'value 1'),
             ),
-          ),
-          # cded2 even though it has no values
-          a_hash_including(
-            'key' => cded2.key,
-            'label' => cded2.label,
-            'value' => nil,
           ),
         )
       end
