@@ -55,7 +55,9 @@ module Types
     project_cocs_field
     funders_field
     units_field
-    external_form_submissions_field
+    external_form_submissions_field do
+      argument :form_definition_identifier, ID, required: true
+    end
     households_field
     hmis_participations_field
     ce_participations_field
@@ -203,7 +205,14 @@ module Types
     end
 
     def external_form_submissions(**args)
-      resolve_external_form_submissions(object.external_form_submissions, **args)
+      instances = Hmis::Form::Instance.with_role(:EXTERNAL_FORM).active.where(entity: object)
+      scope = HmisExternalApis::ExternalForms::FormSubmission.
+        joins(:definition).
+        where(definition: { identifier: instances.select(:definition_identifier) })
+
+      form_definition_identifier = args.delete(:form_definition_identifier)
+      scope = scope.where(definition: { identifier: form_definition_identifier }) if form_definition_identifier
+      resolve_external_form_submissions(scope, **args)
     end
   end
 end

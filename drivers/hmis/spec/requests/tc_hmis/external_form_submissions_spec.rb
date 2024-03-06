@@ -16,11 +16,17 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
         $id: ID!
         $limit: Int = 10
         $offset: Int = 0
+        $formDefinitionIdentifier: ID!
         $filters: ExternalFormSubmissionFilterOptions
       ) {
         project(id: $id) {
           id
-          externalFormSubmissions(limit: $limit, offset: $offset, filters: $filters) {
+          externalFormSubmissions(
+            limit: $limit
+             offset: $offset
+             formDefinitionIdentifier: $formDefinitionIdentifier
+             filters: $filters
+          ) {
             nodes {
               id
             }
@@ -48,7 +54,12 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
   it 'should resolve external form submissions' do
     submission = create(:hmis_external_form_submission, definition: form_definition, submitted_at: today.midnight)
     filters = { 'status' => 'new', submitted_date: today.strftime('%Y-%m-%d') }
-    response, result = post_graphql({ id: p1.id, limit: 10, offset: 0, filters: filters }) { query }
+    variables = {
+      id: p1.id,
+      formDefinitionIdentifier: form_definition.identifier,
+      filters: filters,
+    }
+    response, result = post_graphql(variables) { query }
     expect(response.status).to eq 200
     expect(result.dig('data', 'project', 'externalFormSubmissions', 'nodes')).to contain_exactly({ 'id' => submission.id.to_s })
   end
