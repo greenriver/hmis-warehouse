@@ -236,9 +236,10 @@ module Types
       end,
     )
 
+    # load ALL the services of this type, and find the max date. could this be optimized more?
     def last_service_date(service_type_id:)
-      cst = Hmis::Hud::CustomServiceType.find(service_type_id)
-      if cst.hud_record_type && cst.hud_type_provided
+      cst = load_ar_scope(scope: Hmis::Hud::CustomServiceType.all, id: service_type_id)
+      if cst.hud_service?
         load_ar_association(object, :services).map(&:DateProvided).max
       else
         load_ar_association(object, :custom_services).map(&:DateProvided).max

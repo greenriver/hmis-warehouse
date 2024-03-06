@@ -193,11 +193,15 @@ module Types
     end
 
     def active_enrollment(project_id:, open_on_date:)
-      # TODO: data loader
+      # TODO: data loader. not sure how to make it most efficient. Each client probably doesn't have THAT many enrollments,
+      # but this is fetched for a page of clients. The project_id (and date!) should be "constant with respect to the resolver" so maybe
+      # we can use it in the scope like below? doubt that will work, try it
+      # enrollment = load_ar_association(object, :enrollments, scope: Hmis::Hud::Enrollment.with_project(project_id).open_on_date(open_on_date).order(entry_date: :desc, date_created: :asc))&.last
+
       object.enrollments.
         open_on_date(open_on_date).
         with_project(project_id).
-        order(:entry_date).last
+        order(entry_date: :desc, date_created: :asc).last
     end
 
     def income_benefits(**args)
