@@ -43,45 +43,13 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob
       return nil
     end
 
-    spam_score = raw_data['spam_score'].presence&.to_i
-
-    # there might be a submission already if we processed it but didn't delete it from s3
-    submission = submission_class.where(object_key: object.key).first_or_initialize
-    submission.status ||= 'new'
-
-    submission.attributes = {
-      submitted_at: object.last_modified,
-      spam_score: spam_score,
-      definition_id: definition_id,
-      raw_data: raw_data,
-    }
-    submission.save!
-    build_cdes(definition, submission)
-
+    submission = submission_class.from_raw_data(
+      raw_data,
+      object_key: object.key,
+      last_modified: object.last_modified,
+      form_definition: definition,
+    )
     submission
-  end
-
-  # extract the and build custom data elements from the payload
-  def build_cdes(definition, submission)
-    submission.custom_data_elements.delete_all
-    cdes = []
-    now = Time.current
-    definition.custom_data_element_definitions.each do |cded|
-      value = submission.raw_data[cded.key]
-      next if value.blank?
-
-      cdes << {
-        owner_type: submission.class.sti_name,
-        owner_id: submission.id,
-        value_string: value,
-        data_source_id: cded.data_source_id,
-        data_element_definition_id: cded.id,
-        UserID: cded.user_id,
-        DateCreated: now,
-        DateUpdated: now,
-      }
-    end
-    Hmis::Hud::CustomDataElement.import!(cdes, validate: false)
   end
 
   def submission_class

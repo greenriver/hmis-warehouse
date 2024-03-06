@@ -4,14 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: true
-
 module Types
   class HmisSchema::ExternalFormSubmission < Types::BaseObject
     include Types::HmisSchema::HasCustomDataElements
 
     available_filter_options do
       arg :status, HmisSchema::Enums::ExternalFormSubmissionStatus
+      arg :submitted_date, GraphQL::Types::ISO8601Date
     end
 
     field :id, ID, null: false

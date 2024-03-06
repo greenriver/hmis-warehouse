@@ -44,14 +44,16 @@ class HmisExternalApis::ExternalFormsController < ActionController::Base
   def create
     definition_id = params['form_definition_id']
     decoded_definition_id = definition_id ? ProtectedId::Encoder.decode(definition_id) : nil
-    HmisExternalApis::ExternalForms::FormSubmission.create!(
-      submitted_at: Time.current,
-      spam_score: 0,
-      status: 'new',
-      definition_id: decoded_definition_id,
+
+    definition = Hmis::Form::Definition.find(decoded_definition_id)
+    raw_data = params.to_unsafe_h
+    submission = HmisExternalApis::ExternalForms::FormSubmission.from_raw_data(
+      raw_data,
       object_key: SecureRandom.uuid,
-      raw_data: params.to_unsafe_h,
+      last_modified: Time.current,
+      form_definition: definition,
     )
-    render json: params
+
+    render json: { id: submission.id }
   end
 end

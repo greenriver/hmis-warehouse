@@ -178,7 +178,6 @@
       "item": [
         {
           "link_id": "how_many_months_is_your_lease",
-          "required": true,
           "type": "CHOICE",
           "component": "DROPDOWN",
           "text": "How many months is your lease?",
@@ -207,7 +206,6 @@
         },
         {
           "link_id": "how_many_bedrooms_is_your_unit",
-          "required": true,
           "type": "CHOICE",
           "component": "DROPDOWN",
           "text": "How many bedrooms is your unit?",
