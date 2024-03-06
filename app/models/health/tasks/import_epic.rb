@@ -129,10 +129,11 @@ module Health::Tasks
         end
         status_for_patient.update(status: patient.housing_status)
       end
-      Health::EpicCaseNote.
-        with_housing_status.
-        find_each do |case_note|
-        case_note&.patient&.record_housing_status(case_note.homeless_status, on_date: case_note.contact_date.to_date)
+      Health::EpicCaseNote.with_housing_status.find_each do |case_note|
+        # case_note.patient is a has_many
+        case_note.patient.find_each do |patient|
+          patient.record_housing_status(case_note.homeless_status, on_date: case_note.contact_date.to_date)
+        end
       end
     end
 
