@@ -48,7 +48,7 @@
                 %label.btn.btn-secondary.btn-xs{class: hide_class, data: { 'role-manager' => { target: 'roleToggle', 'role-value' => role.id }, action: 'click->role-manager#toggleColumn'}}
                   %input{type: :radio, name: :roles, id: "off-#{role.name.downcase.gsub(/^a-z/, '-')}", checked: hide, value: 'hide'} Hide
               .ml-4
-                = role.name
+                .edit-role-link= link_to role.name, edit_admin_role_path(role), target: :_blank
       .role-wrapper.w-75{ data: { 'role-manager' => { target: 'inputWrapper', 'form-value' => path_for_patch }}}
         = hidden_field_tag :authenticity_token, form_authenticity_token, class: 'j-authenticity-token'
         - # cache permission calculation
