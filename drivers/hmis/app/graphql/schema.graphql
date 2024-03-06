@@ -8220,7 +8220,7 @@ type Project {
   dateUpdated: ISO8601DateTime
   description: String
   enrollments(filters: EnrollmentsForProjectFilterOptions, limit: Int, offset: Int, sortOrder: EnrollmentSortOption): EnrollmentsPaginated!
-  externalFormSubmissions(filters: ExternalFormSubmissionFilterOptions, limit: Int, offset: Int): ExternalFormSubmissionsPaginated!
+  externalFormSubmissions(filters: ExternalFormSubmissionFilterOptions, formDefinitionIdentifier: ID!, limit: Int, offset: Int): ExternalFormSubmissionsPaginated!
   funders(limit: Int, offset: Int, sortOrder: FunderSortOption): FundersPaginated!
   hasUnits: Boolean!
   hmisParticipations(limit: Int, offset: Int): HmisParticipationsPaginated!
