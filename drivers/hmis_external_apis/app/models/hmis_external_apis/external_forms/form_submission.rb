@@ -10,5 +10,9 @@ module HmisExternalApis::ExternalForms
     belongs_to :definition, class_name: 'Hmis::Form::Definition'
 
     has_many :custom_data_elements, as: :owner, dependent: :destroy, class_name: 'Hmis::Hud::CustomDataElement'
+
+    def self.apply_filters(input)
+      Hmis::Filter::ExternalFormSubmissionFilter.new(input).filter_scope(self)
+    end
   end
 end

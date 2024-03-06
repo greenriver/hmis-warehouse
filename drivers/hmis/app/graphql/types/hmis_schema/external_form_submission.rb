@@ -12,6 +12,7 @@ module Types
 
     available_filter_options do
       arg :status, HmisSchema::Enums::ExternalFormSubmissionStatus
+      arg :submitted_date, GraphQL::Types::ISO8601Date
     end
 
     field :id, ID, null: false

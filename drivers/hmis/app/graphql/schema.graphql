@@ -3748,6 +3748,7 @@ type ExternalFormSubmission {
 
 input ExternalFormSubmissionFilterOptions {
   status: ExternalFormSubmissionStatus
+  submittedDate: ISO8601Date
 }
 
 """

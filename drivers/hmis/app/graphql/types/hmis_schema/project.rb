@@ -201,5 +201,9 @@ module Types
 
       scoped_referral_postings(scope, sort_order: :relevent_status, **args)
     end
+
+    def external_form_submissions(**args)
+      resolve_external_form_submissions(object.external_form_submissions, **args)
+    end
   end
 end
