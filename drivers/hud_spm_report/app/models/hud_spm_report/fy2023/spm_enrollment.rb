@@ -191,6 +191,13 @@ module HudSpmReport::Fy2023
     end
 
     private_class_method def self.start_of_homelessness(filter, household_info, enrollment)
+      # If the HMIS also collects this element on children and unknown-age household members, their data should be used in measure 1b
+      return [enrollment.date_to_street_essh, enrollment.client&.dob].compact.max if enrollment.date_to_street_essh.present?
+
+      # If the HMIS does not collect this element on child household members:
+      # •	The data from the head of household’s response to 3.917 should be propagated to these children for the purposes of measure 1b.
+      # •	This applies to any household member whose age is <= 17 (calculated according to the HMIS Reporting Glossary), regardless of their relationship to the head of household, but not clients of unknown age.
+      # •	Only propagate the head of household’s data to children with the same [project start date] as the head of household.
       age = enrollment.client.age_on([filter.start, enrollment.entry_date].max)
       start_of_homelessness = if age.present? && age <= 17 &&
         enrollment.entry_date == household_info.entry_date
@@ -200,7 +207,7 @@ module HudSpmReport::Fy2023
         enrollment.date_to_street_essh
       end
       # Start of homelessness is never before birth
-      start_of_homelessness = [start_of_homelessness, enrollment.client.dob].max if start_of_homelessness.present? && enrollment.client.dob.present?
+      start_of_homelessness = [start_of_homelessness, enrollment.client&.dob].compact.max if start_of_homelessness.present?
 
       start_of_homelessness
     end

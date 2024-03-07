@@ -37,17 +37,51 @@ module HudSpmReport::Fy2023
       raise 'Client undefined' unless client.present?
 
       calculated_bed_nights = candidate_bed_nights(enrollments, included_project_types, include_self_reported_and_ph)
-      calculated_excluded_dates = excluded_bed_nights(enrollments, excluded_project_types)
-      limited_bed_nights = calculated_bed_nights.reject { |_, _, date| date.in?(calculated_excluded_dates) }
-      return unless limited_bed_nights.present?
+      excluded_dates = excluded_bed_nights(enrollments, excluded_project_types)
+      allowed_bed_nights = calculated_bed_nights.reject { |_, _, date| date.in?(excluded_dates) }
 
-      adjusted_bed_nights =  if include_self_reported_and_ph
-        add_self_reported(limited_bed_nights, enrollments)
+      # when including 3.917 add days before entry from PH projects where entry was from a literally homeless situation
+      # Step 1
+      # c.	Measure 1b:  In addition to the clients identified in a) and b) above, lines 1 and 2 in measure 1b include clients experiencing homelessness in a permanent housing project (project types 3, 9, 10, and 13) during the report year. These stays are defined as those active in any permanent housing project where all of the following are true:
+      # The stay meets the Identifying Clients Experiencing Literal Homelessness at Project Entry criteria
+      # And (
+      # ( [project start date] >= [report start date] and [project start date] <= [report end date] )
+      # Or
+      # ( [housing move-in date] >= [report start date] and [housing move-in date] <= [report end date] )
+      # Or
+      # ( [housing move-in date] is null and [project exit date] >= [report start date] and [project exit date] <= [report end date])
+      pre_entry_inclusion_dates = if include_self_reported_and_ph
+        ph_enrollments = enrollments.select { |enrollment, _, _| enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:ph)) }
+        add_self_reported([], ph_enrollments).reject { |_, _, date| date.in?(excluded_dates) }
       else
-        limited_bed_nights
+        # when not including 3.917
+        []
       end
+      # To be included, in both 1a and 1b you need a homeless enrollment overlapping the range
 
-      filtered_bed_nights = filter_episode(adjusted_bed_nights)
+      # Step 1
+      inclusion_dates = allowed_bed_nights
+      # 1b additionally checks time before entry for PH projects
+      inclusion_dates += pre_entry_inclusion_dates
+      # Throw out any with overlapping housed status
+      # This actually happened above, so we don't need to do this
+      # inclusion_dates.reject! { |_, _, date| date.in?(excluded_dates) }
+      # Step 2 D
+      return unless inclusion_dates.present?
+
+      # Steps 3 and 4
+      filtered_bed_nights = filter_episode(allowed_bed_nights) || []
+      # step 5
+      # 5.	Measure 1b:  For each relevant project stay the client’s response to Data Standards element 3.917.3 –  Approximate date this episode of homelessness started – also represents time the client has experienced homelessness.
+      # Including pre-entry for homeless enrollments
+      # when including 3.917 add days before entry
+      pre_entry_dates = if include_self_reported_and_ph
+        add_self_reported([], enrollments).reject { |_, _, date| date.in?(excluded_dates) }
+      else
+        # when not including 3.917
+        []
+      end
+      filtered_bed_nights += pre_entry_dates
       return unless filtered_bed_nights.present?
 
       bed_nights_array = []
@@ -214,6 +248,14 @@ module HudSpmReport::Fy2023
       bed_nights.values
     end
 
+    # 3.	Utilizing data selected in step 1 and modified in step 2, determine each client’s latest homeless bed night which is >= [report start date] and <= [report end date].  This date becomes that particular client’s [client end date].
+    #   a.	This date should be no later than the end date of the report ([client end date] must be <= [report end date]), in the event a project stay extends past the [report end date].
+    #   b.	For enrollments in entry exit emergency shelters, this date should be one day prior to the client’s exit date, or the [report end date], whichever is earlier.  It cannot be the client’s exit date since that date does not represent a bed night.
+    #   c.	For enrollments in night-by-night emergency shelters, this date must be based on recorded bed nights and not on the client’s start or exit date.
+    #   d.	Measure 1b: Be sure not to include the [housing move-in date] itself, as this date does not represent a night experiencing homelessness.
+    # 4.	For each active client, create a [client start date] which is 365 days prior to the [client end date] going back no further than the [lookback stop date].
+    #   a.	[Client start date] = [client end date] – 365 days.
+    #   b.	A [client start date] will usually be prior to the [report start date].
     # @param bed_nights [[Enrollment, service_id, Date]] Array of candidate bed nights to be processed
     private def filter_episode(calculated_bed_nights)
       return unless calculated_bed_nights.present?
