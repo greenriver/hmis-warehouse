@@ -78,6 +78,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       )
     end
 
+    it 'works on a WIP enrollment' do
+      e1.save_in_progress!
+      _, result = post_graphql(client_id: c1.id, serviceTypeId: bed_night_cst.id) { query }
+      enrollments = result.dig('data', 'client', 'enrollments', 'nodes').map(&:deep_symbolize_keys)
+      expect(enrollments).to contain_exactly(a_hash_including(id: e1.id.to_s, lastServiceDate: be_present, lastBedNightDate: be_present))
+    end
+
     it 'minimizes N+1' do
       30.times do
         create(:hmis_hud_service_bednight, data_source: ds1, client: c1, enrollment: e1)
