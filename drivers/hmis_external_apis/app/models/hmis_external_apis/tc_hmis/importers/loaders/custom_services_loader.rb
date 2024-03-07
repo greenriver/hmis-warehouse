@@ -174,7 +174,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     private def configs
       {
-        'Food Box-Groceries' => {
+        'Food Box - Groceries' => {
           service_type: 'Food Box / Groceries',
           service_fields: {},
           id_prefix: 'food-box',
@@ -183,7 +183,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               key: :service_contact_location,
               cleaner: ->(location) { normalize_location(location) },
             },
-            'Number of pantry bags' => {
+            'Number of Pantry Bags' => {
               key: :food_service_pantry_bags_quantity,
               cleaner: ->(quantity) { quantity.to_i },
             },
@@ -219,7 +219,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               key: :transportation_quantity,
               cleaner: ->(quantity) { quantity.to_i },
             },
-            'Note' => {
+            'Case Notes' => {
               key: :service_notes,
               cleaner: ->(note) { note },
             },
@@ -251,7 +251,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         'Material Goods' => {
           service_type: 'Material Goods / Financial Assistance',
           service_fields: {
-            'Amount' => {
+            'Amount ( If Needed )' => {
               key: :FAAmount,
               cleaner: ->(amount) { amount.to_f },
             },
@@ -263,7 +263,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
                 key: :service_contact_location,
                 cleaner: ->(location) { normalize_location(location) },
               },
-              'Assistance type' => {
+              'Value' => {
                 key: :financial_assistance_type,
                 cleaner: ->(type) { type },
               },
@@ -278,22 +278,22 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           service_type: 'Benefits Contact',
           service_fields: {},
           id_prefix: 'contacts',
-          elements: { # TODO: Confirm ETO field names
+          elements: {
             'Time Spent' => {
               key: :service_time_spent,
               cleaner: ->(time) { parse_duration(time) },
             },
-            'Contact Attempt' => {
+            '.' => { # label in eto is just a period
               key: :service_benefits_contact_attempt,
               cleaner: ->(type) { type },
             },
-            'Case Notes' => {
+            'Notes:' => {
               key: :service_notes,
               cleaner: ->(note) { note },
             },
           },
         },
-        'Benefits Touchpoint' => { # TODO: Confirm ETO field names
+        'Benefits Touchpoint' => {
           service_type: 'Benefits Service',
           service_fields: {},
           id_prefix: 'benefits',
@@ -302,11 +302,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               key: :service_benefits_type,
               cleaner: ->(type) { type },
             },
-            'Time Spent' => {
+            'Time Spent total time spend working with the client in person or on their behalf.' => {
               key: :service_time_spent,
               cleaner: ->(time) { parse_duration(time) },
             },
-            'Case Notes' => {
+            'Note' => {
               key: :service_notes,
               cleaner: ->(note) { note },
             },
@@ -354,11 +354,17 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           service_fields: {},
           id_prefix: 'dh-cm',
           elements: {
-            'Contact Location/Method' => {
+            # FIXME: the full label that comes through from ETO for 'Contact Location/Method' is below. Maybe we can split labels by newline and drop the rest before trying to match?
+            # "Service Location
+
+            # Residential (if the service was provided in the clients home/apartment/ etc)
+            # Non-residential (If the service was provided in any other shelterd place but their home)
+            # Place not meant for habitation (Unsheltered place -under bridge, camp sides, on the streets, outside, etc -)"
+            'Service Location' => { # FIXME
               key: :service_contact_location,
               cleaner: ->(location) { normalize_location(location) },
             },
-            'Type of Contact' => {
+            'Type of Contact (Must correctly classify type of contact)' => {
               key: :service_contact_type,
               cleaner: ->(type) { normalize_contact(type) },
             },
@@ -381,7 +387,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               key: :service_contact_location,
               cleaner: ->(location) { normalize_location(location) },
             },
-            'Tests provided' => {
+            'Value' => {
               key: :service_drug_tests_provided,
               cleaner: ->(tests) { tests.split('|') },
             },
@@ -419,7 +425,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               key: :service_contact_location,
               cleaner: ->(location) { normalize_location(location) },
             },
-            'Time Spent' => {
+            'Time Spend' => {
               key: :service_time_spent,
               cleaner: ->(time) { parse_duration(time) },
             },
@@ -457,7 +463,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               key: :service_contact_location,
               cleaner: ->(location) { normalize_location(location) },
             },
-            'Time Spent' => {
+            'Time Spent on Contact' => {
               key: :service_time_spent,
               cleaner: ->(time) { parse_duration(time) },
             },
@@ -514,7 +520,18 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     private def normalize_location(location)
-      location # TODO
+      return if location&.blank?
+
+      cleaned = location.downcase.gsub(/[^A-Za-z]/, ' ').strip
+      if cleaned.include?('non residential')
+        'Service setting, Non Residential'
+      elsif cleaned.include?('residential')
+        'Service setting, Residential'
+      elsif cleaned.include?('habitation')
+        'Place not meant for habitation'
+      else
+        location
+      end
     end
 
     private def normalize_contact(contact)
