@@ -53,6 +53,19 @@ module HealthThriveAssessment
         interested_in_education?
     end
 
+    after_save :record_housing_status
+
+    def record_housing_status
+      housing_status = if homeless?
+        'Homeless'
+      elsif at_risk?
+        'At Risk'
+      else
+        'Housing with No Supports'
+      end
+      patient&.record_housing_status(housing_status, on_date: completed_on.to_date)
+    end
+
     def positive_for_homelessness?
       homeless?
     end
