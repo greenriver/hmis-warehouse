@@ -149,10 +149,15 @@ RSpec.describe Hmis::Hud::Client, type: :model do
         [{ start_date: 1.year.ago, end_date: 6.months.ago, service_type_id: bed_night_cst.id, project_id: p1.id }, [c1]],
         [{ start_date: 1.year.ago, service_type_id: cst1.id, project_id: p1.id }, [c2]],
       ].each do |args, expected_result|
-        scope = Hmis::Hud::Client.all.with_service_in_range(**args)
+        scope = Hmis::Hud::Client.with_service_in_range(**args)
         expect(scope.count).to eq(expected_result.length)
         expect(scope.pluck(:id)).to eq(expected_result.map(&:id)) if expected_result.any?
       end
+    end
+
+    it 'should include clients that had services at WIP Enrollments' do
+      c1_e1.save_in_progress!
+      expect(Hmis::Hud::Client.with_service_in_range(start_date: 1.year.ago)).to_include(c1)
     end
   end
 end
