@@ -12,7 +12,7 @@
 
 .hidden,
 .hide {
-  display: none;
+  display: none !important;
 }
 
 .d-sm-none {

@@ -399,8 +399,10 @@ module HmisUtil
 
     public def seed_static_forms
       Hmis::Form::Definition::STATIC_FORM_ROLES.each do |role|
-        filename = "#{role.to_s.downcase}.json"
-        file = File.read("#{DATA_DIR}/static/#{filename}")
+        filename = "#{DATA_DIR}/static/#{role.to_s.downcase}.json"
+        next unless File.exist?(filename) # skip deprecated roles
+
+        file = File.read(filename)
         form_definition = JSON.parse(file)
         load_definition(
           form_definition: form_definition,
