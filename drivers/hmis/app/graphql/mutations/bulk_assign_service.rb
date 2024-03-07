@@ -36,7 +36,7 @@ module Mutations
           enrollment = client.enrollments.
             open_on_date(input.date_provided).
             with_project(project.id).
-            order(entry_date: :desc, date_created: :asc).last # Tie-break: newest entry date; oldest record
+            order(entry_date: :desc, id: :asc).last # older entry date preferred
 
           # If no Enrollment was found, create one
           unless enrollment

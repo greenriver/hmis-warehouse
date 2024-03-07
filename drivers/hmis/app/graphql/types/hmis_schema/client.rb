@@ -193,7 +193,7 @@ module Types
     end
 
     # Resolve the active enrollment for this client at the specified project on the specified date.
-    # Include WIP enrollments. If there are multiple enrollments, choose the one with the most recent entry date.
+    # Include WIP enrollments. If there are multiple enrollments, choose the one with the older entry date.
     def active_enrollment(project_id:, open_on_date:)
       load_ar_association(
         object,
