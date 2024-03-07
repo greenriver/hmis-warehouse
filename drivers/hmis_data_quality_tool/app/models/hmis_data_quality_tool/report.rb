@@ -274,7 +274,7 @@ module HmisDataQualityTool
             next unless enrollment.client.present?
 
             # Make sure the age reflects the reporting age
-            she.age = enrollment.client.age_on(report_age_date)
+            she.age = enrollment.client&.age_on(report_age_date)
             households[enrollment.HouseholdID] << she
           end
       end
