@@ -127,6 +127,12 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       "#{config[:id_prefix]}-#{row.field_value(RESPONSE_ID)}"
     end
 
+    def row_question_value(row)
+      # there are new lines in some questions labels. Return just the first line
+      value = row.field_value(QUESTION)
+      value ? value.split("\n").detect(&:present?).strip : nil
+    end
+
     private def create_records(rows)
       log_info('creating custom data elements')
       expected = 0
@@ -139,7 +145,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           config = configs[row_field_value]
           next if config.blank?
 
-          row_field_value = row.field_value(QUESTION)
+          row_field_value = row_question_value(row)
           if config[:service_fields].keys.include?(row_field_value)
             # Count this row as processed, but it doesn't update anything since it is a service field
             actual += 1
