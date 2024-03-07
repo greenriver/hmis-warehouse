@@ -116,6 +116,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       c1.reload
       expect(c1.alerts.size).to eq(1), '1 of the 2 alerts should have been deleted'
     end
+
+    it 'should not create an alert if the expiry date is not in the future' do
+      # Test both a date equal to today, and a date sometime in the past. Both are invalid.
+      [Date.current, Date.current - 2.months].each do |past_date|
+        mutation_input = { clientId: c1.id.to_s, note: 'strawberries', priority: 'high', expirationDate: past_date }
+        response, result = post_graphql(input: mutation_input) { create_alert }
+        expect(response.status).to eq(200), result.inspect
+        expect(result.dig('data', 'createClientAlert', 'clientAlert')).to be_nil, 'Should not create a client alert when expiration date is in the past: ' + past_date.to_s
+        errors = result.dig('data', 'createClientAlert', 'errors')
+        expect(errors.size).to eq(1), 'Should return an error message when expiration date is in the past: ' + past_date.to_s
+        expect(errors[0].dig('attribute')).to eq('expirationDate')
+        expect(errors[0].dig('fullMessage')).to eq('Expiration date must be in the future.')
+      end
+    end
   end
 
   describe 'when the user does not have permission to view client alerts' do
