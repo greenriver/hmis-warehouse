@@ -11,11 +11,12 @@ module Mutations
     field :success, Boolean, null: true
 
     def resolve(input:)
-      project = Hmis::Hud::Project.viewable_by(current_user).find(input.project_id)
+      project = Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)
+      raise 'unauthorized' unless project
       raise 'unauthorized' unless current_permission?(permission: :can_edit_enrollments, entity: project)
 
       clients = Hmis::Hud::Client.viewable_by(current_user).where(id: input.client_ids).preload(:enrollments)
-      raise 'clients not found' unless clients.count == input.client_ids.uniq.length
+      raise 'unauthorized' unless clients.count == input.client_ids.uniq.length
 
       cst = Hmis::Hud::CustomServiceType.find(input.service_type_id)
       hud_user_id = Hmis::Hud::User.from_user(current_user).user_id
@@ -90,7 +91,7 @@ module Mutations
       # If project has exactly 1 CoC code, always use that
       return project.uniq_coc_codes.first if project.uniq_coc_codes.size == 1
 
-      raise 'CoC code required for project' unless coc_code_arg
+      raise 'CoC Code required for project' unless coc_code_arg
       raise "Invalid CoC Code #{coc_code_arg} for project" unless project.uniq_coc_codes.include?(coc_code_arg)
 
       coc_code_arg
