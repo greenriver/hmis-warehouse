@@ -321,7 +321,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   def save_not_in_progress!
     transaction do
       self.project_id = project_id || project.project_id
-      wip&.destroy
+      wip&.destroy!
       save!
     end
   end
