@@ -26,6 +26,7 @@ RSpec.describe Hmis::Hud::Client, type: :model do
       expect(initial_source_hash).not_to eq(c2.reload.source_hash)
     end
   end
+
   describe 'matching_search_term scope' do
     let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1, FirstName: 'Jelly', LastName: 'Bean' }
     let!(:c3) { create :hmis_hud_client, data_source: ds1, user: u1, FirstName: 'Zoo', LastName: 'Jelly' }
@@ -116,6 +117,42 @@ RSpec.describe Hmis::Hud::Client, type: :model do
         to change(client, :enrollments).to([]).
         and change(client, :external_referral_household_members).to([]).
         and change(HmisExternalApis::AcHmis::Referral, :count).to(0)
+    end
+  end
+
+  describe 'with_service_in_range scope' do
+    include_context 'hmis service setup'
+
+    # c1 received a HUD Bed Night Service 8 months ago
+    let!(:c1) { create :hmis_hud_client, data_source: ds1 }
+    let!(:c1_e1) { create :hmis_hud_enrollment, data_source: ds1, client: c1, project: p1, entry_date: 1.year.ago }
+    let!(:c1_e1_s1_hud) { create(:hmis_hud_service_bednight, date_provided: 8.months.ago, data_source: ds1, client: c1, enrollment: c1_e1) }
+
+    # c1 received a HUD Bed Night Service 2 months ago, and a custom service 1 week ago and 8 months ago
+    let!(:c2) { create :hmis_hud_client, data_source: ds1 }
+    let!(:c2_e1) { create :hmis_hud_enrollment, data_source: ds1, client: c2, project: p1, entry_date: 1.year.ago }
+    let!(:c2_e1_s1_hud) { create(:hmis_hud_service_bednight, date_provided: 2.months.ago, data_source: ds1, client: c2, enrollment: c2_e1) }
+    let!(:c2_e1_s2_custom) { create(:hmis_custom_service, date_provided: 1.week.ago, custom_service_type: cst1, data_source: ds1, client: c2, enrollment: c2_e1) }
+    let!(:c2_e1_s3_custom) { create(:hmis_custom_service, date_provided: 8.months.ago, custom_service_type: cst1, data_source: ds1, client: c2, enrollment: c2_e1) }
+
+    let(:bed_night_cst) { Hmis::Hud::CustomServiceType.find_by(hud_record_type: 200) }
+    let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1 }
+
+    it 'should work' do
+      [
+        [{ start_date: 1.year.ago }, [c1, c2]],
+        [{ start_date: 1.year.ago, project_id: p1.id }, [c1, c2]],
+        [{ start_date: 1.year.ago, project_id: p2.id }, []],
+        [{ start_date: 2.weeks.ago }, [c2]],
+        [{ start_date: 1.year.ago, end_date: 6.months.ago }, [c1, c2]], # c1 bed night, c2 custom
+        [{ start_date: 1.year.ago, end_date: 6.months.ago, service_type_id: bed_night_cst.id }, [c1]],
+        [{ start_date: 1.year.ago, end_date: 6.months.ago, service_type_id: bed_night_cst.id, project_id: p1.id }, [c1]],
+        [{ start_date: 1.year.ago, service_type_id: cst1.id, project_id: p1.id }, [c2]],
+      ].each do |args, expected_result|
+        scope = Hmis::Hud::Client.all.with_service_in_range(**args)
+        expect(scope.count).to eq(expected_result.length)
+        expect(scope.pluck(:id)).to eq(expected_result.map(&:id)) if expected_result.any?
+      end
     end
   end
 end

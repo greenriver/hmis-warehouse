@@ -164,8 +164,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     joins(:projects_including_wip).where(p_t[:organization_id].in(hud_org_ids).and(p_t[:data_source_id].eq(ds_ids.first)))
   end
 
-  scope :with_service_in_range, ->(start_date:, end_date: Date.current, project_id: nil, custom_service_type_id: nil) do
-    cst = Hmis::Hud::CustomServiceType.find(custom_service_type_id) if custom_service_type_id
+  scope :with_service_in_range, ->(start_date:, end_date: Date.current, project_id: nil, service_type_id: nil) do
+    cst = Hmis::Hud::CustomServiceType.find(service_type_id) if service_type_id
     if cst&.hud_service?
       # For HUD service type, join directly with the hud service table (optimization)
       service_relation = :services
@@ -175,26 +175,27 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       # For Custom service type, join directly with the custom service table (optimization)
       service_relation = :custom_services
       service_arel = Hmis::Hud::CustomService.arel_table
-      matches_type = cs_t[:custom_service_type_id].eq(custom_service_type_id)
+      matches_type = cs_t[:custom_service_type_id].eq(service_type_id)
     else
       # Service type was not specified, so use the HmisService view which includes both HUD and Custom services
       service_relation = :hmis_services
       service_arel = Hmis::Hud::HmisService.arel_table
-      matches_type = Arel::Nodes::True
     end
 
     # Clients with services rendered
-    scope = joins(enrollments: service_relation)
+    scope = Hmis::Hud::Client.joins(enrollments: service_relation)
 
     # Filter down to only clients with services rendered at the specified project, if applicable. Includes services rendered at WIP Enrollments.
     scope = scope.merge(Hmis::Hud::Enrollment.with_project(project_id)) if project_id
 
     # Filter down by service date range and service type
-    scope.where(
-      service_arel[:date_provided].gteq(start_date).
-      and(service_arel[:date_provided].lteq(end_date)).
-      and(matches_type),
-    ).distinct
+    conditions = [
+      service_arel[:date_provided].gteq(start_date),
+      service_arel[:date_provided].lteq(end_date),
+      matches_type,
+    ].compact.inject(&:and)
+
+    scope.where(conditions).distinct
   end
 
   def build_primary_custom_client_name

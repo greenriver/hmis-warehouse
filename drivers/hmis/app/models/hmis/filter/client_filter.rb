@@ -28,7 +28,7 @@ class Hmis::Filter::ClientFilter < Hmis::Filter::BaseFilter
       scope.with_service_in_range(
         start_date: input.service_in_range.start_date,
         end_date: input.service_in_range.end_date,
-        custom_service_type_id: input.service_in_range.service_type,
+        service_type_id: input.service_in_range.service_type,
         project_id: input.service_in_range.project_id,
       )
     end
