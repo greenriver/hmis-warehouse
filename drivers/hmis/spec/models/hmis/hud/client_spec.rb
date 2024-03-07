@@ -157,7 +157,7 @@ RSpec.describe Hmis::Hud::Client, type: :model do
 
     it 'should include clients that had services at WIP Enrollments' do
       c1_e1.save_in_progress!
-      expect(Hmis::Hud::Client.with_service_in_range(start_date: 1.year.ago)).to_include(c1)
+      expect(Hmis::Hud::Client.with_service_in_range(start_date: 1.year.ago)).to include(c1)
     end
   end
 end
