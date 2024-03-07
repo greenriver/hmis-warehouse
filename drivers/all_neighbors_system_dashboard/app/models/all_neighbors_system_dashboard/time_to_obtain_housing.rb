@@ -70,6 +70,7 @@ module AllNeighborsSystemDashboard
       # values are [id->referral, referral->move-in]
       household_count = 0
       averages = 0
+
       records.each do |row|
         household_count += row['households_count']
         days = case category
@@ -84,7 +85,8 @@ module AllNeighborsSystemDashboard
       end
       return 0 if averages.zero? || household_count.zero?
 
-      averages / household_count
+      # Enforce full division here, we'll round at display time
+      averages.to_f / household_count
     end
 
     def stacked_data
