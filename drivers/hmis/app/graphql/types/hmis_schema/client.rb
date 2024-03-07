@@ -192,16 +192,20 @@ module Types
       resolve_enrollments(scope, **args, dangerous_skip_permission_check: true)
     end
 
+    # Resolve the active enrollment for this client at the specified project on the specified date.
+    # Include WIP enrollments. If there are multiple enrollments, choose the one with the most recent entry date.
     def active_enrollment(project_id:, open_on_date:)
-      # TODO: data loader. not sure how to make it most efficient. Each client probably doesn't have THAT many enrollments,
-      # but this is fetched for a page of clients. The project_id (and date!) should be "constant with respect to the resolver" so maybe
-      # we can use it in the scope like below? doubt that will work, try it
-      # enrollment = load_ar_association(object, :enrollments, scope: Hmis::Hud::Enrollment.with_project(project_id).open_on_date(open_on_date).order(entry_date: :desc, date_created: :asc))&.last
-
-      object.enrollments.
-        open_on_date(open_on_date).
-        with_project(project_id).
-        order(entry_date: :desc, date_created: :asc).last
+      load_ar_association(
+        object,
+        :enrollments,
+        # NOTE: ok to reference these variables in the scope because they are _expected_ to be
+        # constant with respect to the resolver. That is only true because of HOW we use the query (in Bulk Services).
+        # If we were to query for different projects for each client somehow (for example), this could have unexpected behavior.
+        scope: Hmis::Hud::Enrollment.viewable_by(current_user).
+          with_project(project_id).
+          open_on_date(open_on_date).
+          order(entry_date: :desc, id: :asc), # tie-break on id for consistent behavior
+      ).last
     end
 
     def income_benefits(**args)
