@@ -236,16 +236,6 @@ module Types
       end,
     )
 
-    # load ALL the services of this type, and find the max date. could this be optimized more?
-    def last_service_date(service_type_id:)
-      cst = load_ar_scope(scope: Hmis::Hud::CustomServiceType.all, id: service_type_id)
-      if cst.hud_service?
-        load_ar_association(object, :services).map(&:DateProvided).max
-      else
-        load_ar_association(object, :custom_services).map(&:DateProvided).max
-      end
-    end
-
     def audit_history(filters: nil)
       scope = GrdaWarehouse.paper_trail_versions.
         where(enrollment_id: object.id).
@@ -278,10 +268,16 @@ module Types
       Hmis::Reminders::ReminderGenerator.perform(project: project, enrollments: enrollments)
     end
 
-    def last_bed_night_date
-      return unless project.project_type == 1
+    def last_service_date(service_type_id:)
+      load_ar_association(object, :hmis_services).
+        filter { |s| s.custom_service_type_id&.to_s == service_type_id }.
+        max_by(&:DateProvided)&.DateProvided
+    end
 
-      load_ar_association(object, :bed_nights).map(&:date_provided).max
+    def last_bed_night_date
+      load_ar_association(object, :services).
+        filter { |s| s.record_type == 200 }. # Bed Night
+        max_by(&:DateProvided)&.DateProvided
     end
 
     def project
