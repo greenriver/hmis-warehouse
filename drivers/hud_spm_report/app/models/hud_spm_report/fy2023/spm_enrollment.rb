@@ -132,6 +132,9 @@ module HudSpmReport::Fy2023
       enrollments.preload(:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders).find_in_batches do |batch|
         members = []
         batch.each do |enrollment|
+          client = enrollment.client
+          next if client.blank?
+
           current_income_benefits = current_income_benefits(enrollment, filter.end)
           previous_income_benefits = previous_income_benefits(enrollment, current_income_benefits&.information_date, filter.end)
           household_info = household_infos[enrollment.household_id] ||
@@ -143,14 +146,14 @@ module HudSpmReport::Fy2023
           members << {
             report_instance_id: report_instance.id,
 
-            first_name: enrollment.client.first_name,
-            last_name: enrollment.client.last_name,
+            first_name: client.first_name,
+            last_name: client.last_name,
             client_id: enrollment.destination_client.id,
             enrollment_id: enrollment.id,
 
-            personal_id: enrollment.client.personal_id,
+            personal_id: client.personal_id,
             data_source_id: enrollment.data_source_id,
-            age: enrollment.client.age_on([filter.start, enrollment.entry_date].max),
+            age: client.age_on([filter.start, enrollment.entry_date].max),
             start_of_homelessness: start_of_homelessness(filter, household_info, enrollment),
             entry_date: enrollment.entry_date,
             exit_date: enrollment&.exit&.exit_date,

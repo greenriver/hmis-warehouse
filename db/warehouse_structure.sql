@@ -6193,7 +6193,9 @@ CREATE TABLE public.cohort_clients (
     user_boolean_46 boolean,
     user_boolean_47 boolean,
     user_boolean_48 boolean,
-    user_boolean_49 boolean
+    user_boolean_49 boolean,
+    sheltered_days_homeless_last_three_years integer,
+    unsheltered_days_homeless_last_three_years integer
 );
 
 
@@ -18543,6 +18545,42 @@ ALTER SEQUENCE public.hmis_import_configs_id_seq OWNED BY public.hmis_import_con
 
 
 --
+-- Name: hmis_project_configs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_project_configs (
+    id bigint NOT NULL,
+    type character varying NOT NULL,
+    enabled boolean DEFAULT true NOT NULL,
+    config_options jsonb,
+    project_type integer,
+    organization_id bigint,
+    project_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_project_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_project_configs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_project_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_project_configs_id_seq OWNED BY public.hmis_project_configs.id;
+
+
+--
 -- Name: hmis_project_unit_type_mappings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -28527,6 +28565,13 @@ ALTER TABLE ONLY public.hmis_import_configs ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: hmis_project_configs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_project_configs ALTER COLUMN id SET DEFAULT nextval('public.hmis_project_configs_id_seq'::regclass);
+
+
+--
 -- Name: hmis_project_unit_type_mappings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -32414,6 +32459,14 @@ ALTER TABLE ONLY public.hmis_group_viewable_entities
 
 ALTER TABLE ONLY public.hmis_import_configs
     ADD CONSTRAINT hmis_import_configs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_project_configs hmis_project_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_project_configs
+    ADD CONSTRAINT hmis_project_configs_pkey PRIMARY KEY (id);
 
 
 --
@@ -53046,6 +53099,20 @@ CREATE INDEX index_hmis_import_configs_on_data_source_id ON public.hmis_import_c
 
 
 --
+-- Name: index_hmis_project_configs_on_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_project_configs_on_organization_id ON public.hmis_project_configs USING btree (organization_id);
+
+
+--
+-- Name: index_hmis_project_configs_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_project_configs_on_project_id ON public.hmis_project_configs USING btree (project_id);
+
+
+--
 -- Name: index_hmis_project_unit_type_mappings_on_project_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60835,6 +60902,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240208184013'),
 ('20240217192729'),
 ('20240218201801'),
-('20240218222444');
+('20240218222444'),
+('20240220171320'),
+('20240221195839'),
+('20240222152739'),
+('20240229132014'),
+('20240304181225');
 
 

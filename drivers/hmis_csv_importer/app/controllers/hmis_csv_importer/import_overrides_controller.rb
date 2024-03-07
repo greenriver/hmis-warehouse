@@ -18,6 +18,9 @@ class HmisCsvImporter::ImportOverridesController < ApplicationController
   end
 
   def destroy
+    @override = import_override_source.find(params[:id].to_i)
+    @override.destroy
+    respond_with(@override, location: hmis_csv_importer_data_source_import_overrides_path(@data_source))
   end
 
   private def set_data_source
