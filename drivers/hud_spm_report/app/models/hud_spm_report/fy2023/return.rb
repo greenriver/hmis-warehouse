@@ -52,7 +52,7 @@ module HudSpmReport::Fy2023
       client_enrollments = enrollments.where(client_id: client_id)
       self.exit_enrollment = client_enrollments.where(exit_date: report_start_date - 730.days .. report_end_date - 730.days).
         where(destination: HudUtility2024.permanent_destinations).
-        order(exit_date: :asc).
+        order(exit_date: :asc, entry_date: :asc).
         first
       return unless exit_enrollment.present? # If no exit, no return
 
