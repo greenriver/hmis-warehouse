@@ -41,6 +41,8 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
 
     # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recCo8VEaNZ2BhQIr
     # Almost matches (off by a few)
+    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec59oPiPxyysL4nL
+    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recGMWKxKqBJgv221
     it 'Measure 1b' do
       compare_results(
         file_path: result_file_prefix + results_dir,

@@ -33,6 +33,7 @@ module HudSpmReport::Fy2023
       enrollments.first
     end
 
+    # TODO: convert include_self_reported_and_ph to include_self_report_from_project_types so we can be explicit about which types we want to use when looking for time prior to entry
     def compute_episode(enrollments, included_project_types:, excluded_project_types:, include_self_reported_and_ph:)
       raise 'Client undefined' unless client.present?
 
@@ -67,6 +68,7 @@ module HudSpmReport::Fy2023
       # This actually happened above, so we don't need to do this
       # inclusion_dates.reject! { |_, _, date| date.in?(excluded_dates) }
       # Step 2 D
+      # binding.pry if client.PersonalID.to_s == '644272'
       return unless inclusion_dates.present?
 
       # Steps 3 and 4
@@ -229,15 +231,17 @@ module HudSpmReport::Fy2023
 
           # Self-reported dates earlier than the first bed night if present and the first bed night is on or after the lookback date
           start_date = [enrollment.start_of_homelessness, earliest_bed_night].compact.min
-          next unless start_date >= lookback_date && start_date < enrollment.entry_date
+          # b.	For night-by-night based shelter stays, determine the client’s [earliest bed night] dated >= [project start date] and <= [project exit date].  If [earliest bed night] >= [lookback stop date], then every night from [approximate date this episode of homelessness started] up to and including [earliest bed night] should also be considered nights experiencing homelessness. For example, a response of “9/16/2022” with the client’s earliest bed night of 11/15/2022 would effectively include bed nights for 9/16/2022, 9/17/2022, 9/18/2022… up to and including 11/15/2022.  Naturally this does not mean the client was physically present at this specific shelter on these nights, but these dates are nonetheless included in the client’s total time experiencing homelessness.
+          next unless earliest_bed_night >= lookback_date && start_date < enrollment.entry_date
 
           (start_date .. earliest_bed_night).map do |date|
             bed_nights[date] ||= [enrollment, nil, date] # Add the day if not already present
           end
         else
-          # Self-reported dates earlier than the entry date if present and the start is on or after the lookback date
+          # Self-reported dates earlier than the entry date if present and the **project** start is on or after the lookback date
           start_date = [enrollment.start_of_homelessness, enrollment.entry_date].compact.min
-          next unless start_date >= lookback_date && start_date < enrollment.entry_date
+          # a.	For entry-exit based project stays, if the [project start date] is >= [lookback stop date], then every night from [approximate date this episode of homelessness started] up to and including [project start date] should also be considered nights experiencing homelessness, even if response in [approximate date this episode of homelessness started] extends prior to [lookback stop date].  For example, a response in [approximate date this episode of homelessness started] of “2/14/2022” with a [project start date] of 5/15/2022 would cause every night from 2/14/2022 through and including 5/15/2022 to be included in the client’s dataset of nights experiencing homelessness.
+          next unless enrollment.entry_date >= lookback_date && start_date < enrollment.entry_date
 
           (start_date .. enrollment.entry_date).map do |date|
             bed_nights[date] ||= [enrollment, nil, date] # Add the day if not already present
@@ -283,6 +287,7 @@ module HudSpmReport::Fy2023
     private def enrollment_literally_homeless_at_entry(enrollment)
       return true if enrollment.project_type.in?([0, 1, 4, 8])
 
+      # See Identifying Clients Experiencing Literal Homelessness at Project Entry
       enrollment.project_type.in?([2, 3, 9, 10, 13]) &&
         (enrollment.prior_living_situation.in?(100..199) ||
           (enrollment.previous_street_essh? && enrollment.prior_living_situation.in?(200..299) && enrollment.los_under_threshold?) ||
@@ -290,6 +295,7 @@ module HudSpmReport::Fy2023
     end
 
     private def include_ph_enrollment?(enrollment)
+      # See Identifying Clients Experiencing Literal Homelessness at Project Entry
       return false unless enrollment.project_type.in?([2, 3, 9, 10, 13])
 
       enrollment.entry_date.between?(report_start_date, report_end_date) ||

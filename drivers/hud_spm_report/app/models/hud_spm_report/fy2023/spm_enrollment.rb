@@ -177,6 +177,7 @@ module HudSpmReport::Fy2023
             previous_non_employment_income: non_employment_income(previous_income_benefits),
             previous_total_income: total_income(previous_income_benefits),
 
+            # Pending: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec59oPiPxyysL4nL
             days_enrolled: ([enrollment&.exit&.exit_date, filter.end].compact.min - enrollment.entry_date).to_i + 1, # enter and exit on the same day == 1 day
           }
         end
