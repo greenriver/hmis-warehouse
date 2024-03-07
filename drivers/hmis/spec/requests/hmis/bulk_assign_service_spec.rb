@@ -29,6 +29,7 @@ RSpec.describe 'BulkAssignService', type: :request do
 
   let!(:c2) { create :hmis_hud_client, data_source: ds1 }
   let!(:c2_e1) { create :hmis_hud_enrollment, data_source: ds1, client: c2, project: p1, entry_date: 1.week.ago }
+  let!(:c2_e1_dup) { create :hmis_hud_enrollment, data_source: ds1, client: c2, project: p1, entry_date: 6.days.ago }
 
   def perform_mutation(project_id: p1.id, date_provided: Date.current, client_ids: [c1.id, c2.id], service_type_id: bednight_service_type.id, coc_code: nil)
     input = {
@@ -55,7 +56,9 @@ RSpec.describe 'BulkAssignService', type: :request do
       # c2 was not re-enrolled
       and change(c2.enrollments, :count).by(0).
       # c2 was assigned a service on their existing enrollment
-      and change(c2_e1.services, :count).by(1)
+      and change(c2_e1.services, :count).by(1).
+      # c2 dup enrollment not affected
+      and change(c2_e1_dup.services, :count).by(0)
 
     generated_enrollment = c1.enrollments.first
     expect(generated_enrollment.valid?).to eq(true)
@@ -73,7 +76,9 @@ RSpec.describe 'BulkAssignService', type: :request do
       # c2 was not re-enrolled
       and change(c2.enrollments, :count).by(0).
       # c2 was assigned a service on their existing enrollment
-      and change(c2_e1.custom_services, :count).by(1)
+      and change(c2_e1.custom_services, :count).by(1).
+      # c2 dup enrollment not affected
+      and change(c2_e1_dup.custom_services, :count).by(0)
   end
 
   it 'assigns a unit when enrolling a new client, if project is set up with units' do
