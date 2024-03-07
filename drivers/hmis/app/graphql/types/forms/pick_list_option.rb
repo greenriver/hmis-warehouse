@@ -404,7 +404,7 @@ module Types
       return [] unless project.present?
 
       Hmis::Form::Instance.for_project(project).
-        joins(:definition).
+        preload(:definition).
         order(:id).
         map(&:to_pick_list_option)
     end
