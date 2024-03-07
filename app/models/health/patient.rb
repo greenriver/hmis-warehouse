@@ -142,7 +142,7 @@ module Health
     #
     # Note that this is often called in an after_save hook, so care needs to be take not to create cycles
     def record_housing_status(status, on_date: Date.current)
-      return unless status.present?
+      return unless status.present? && on_date.present?
 
       prior_housing_status = recent_housing_status
       housing_status = if prior_housing_status&.collected_on == on_date
