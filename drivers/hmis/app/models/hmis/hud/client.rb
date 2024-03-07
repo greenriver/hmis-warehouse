@@ -186,7 +186,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     # Clients with services rendered
     scope = joins(enrollments: service_relation)
 
-    # Filter down to only clients with services rendered at the specified project, if applicable
+    # Filter down to only clients with services rendered at the specified project, if applicable. Includes services rendered at WIP Enrollments.
     scope = scope.merge(Hmis::Hud::Enrollment.with_project(project_id)) if project_id
 
     # Filter down by service date range and service type
