@@ -5,16 +5,18 @@
 ###
 
 module HmisExternalApis::AcHmis::Importers
-  class CsvTransformer2022to2024 < HudTwentyTwentyTwoToTwentyTwentyFour::CsvTransformer
-    def self.destination_headers(target_class)
-      case [target_class]
-      when [GrdaWarehouse::Hud::Project]
-        super(target_class) + ['Walkin']
-      else
-        super(target_class)
-      end
-    end
-  end
+  # Leaving commented-out in case we need to do something similar for 2024=>2026
+  #
+  # class CsvTransformer2022to2024 < HudTwentyTwentyTwoToTwentyTwentyFour::CsvTransformer
+  #   def self.destination_headers(target_class)
+  #     case [target_class]
+  #     when [GrdaWarehouse::Hud::Project]
+  #       super(target_class) + ['Walkin']
+  #     else
+  #       super(target_class)
+  #     end
+  #   end
+  # end
 
   class ProjectsImporter
     JOB_LOCK_NAME = 'hmis_project_importer'.freeze
@@ -38,19 +40,7 @@ module HmisExternalApis::AcHmis::Importers
       timeout_seconds = 60
       success = false
       Hmis::HmisBase.with_advisory_lock(JOB_LOCK_NAME, timeout_seconds: timeout_seconds) do
-        # transform data files to HUD 2024
-        case infer_hud_version_from_project_cols
-        when '2022'
-          Dir.mktmpdir do |hud_dir|
-            CsvTransformer2022to2024.up(dir, hud_dir)
-            _run(hud_dir)
-          end
-        when '2024'
-          Sentry.capture_message("#{self.class.name} skipping 2024 transformation. Check if the 2024 transform can be removed.")
-          _run(dir)
-        else
-          raise 'could not infer hud version'
-        end
+        _run(dir)
         success = true
       end
       raise "Could not acquire lock within #{timeout_seconds} seconds" unless success
@@ -88,7 +78,6 @@ module HmisExternalApis::AcHmis::Importers
         Hmis::ProjectUnitTypeMapping.freshen_project_units(user: sys_user)
         cleanup_project_dates
         cleanup_dangling_funders
-        apply_project_overrides
       end
       analyze
       finish
@@ -297,26 +286,6 @@ module HmisExternalApis::AcHmis::Importers
       dangling_funders.each(&:destroy!)
     end
 
-    # Apply overrides that can be set in the Warehouse
-    def apply_project_overrides
-      overrides = {
-        project_type: :act_as_project_type,
-        operating_start_date: :operating_start_date_override,
-        operating_end_date: :operating_end_date_override,
-      }
-
-      Hmis::Hud::Project.where(id: @project_result.ids).map do |project|
-        overrides.each do |key, override_key|
-          override = project.send(override_key)
-          next unless override.present?
-
-          project.write_attribute(key, override)
-        end
-
-        project.save!(validate: false) if project.changed?
-      end
-    end
-
     def analyze
       Rails.logger.info 'Analyzing imported tables'
       ProjectsImportAttempt.connection.exec_query('ANALYZE "Funder", "Project", "Organization", "CustomDataElements";')
@@ -460,16 +429,18 @@ module HmisExternalApis::AcHmis::Importers
       @sys_user ||= Hmis::Hud::User.system_user(data_source_id: data_source.id)
     end
 
-    def infer_hud_version_from_project_cols
-      headers = run_in_dir(dir) do
-        records_from_csv('Project.csv', row_limit: 1).first.to_h.keys.to_set
-      end
-      if headers.include?('RRHSubType')
-        '2024'
-      elsif headers.include?('ResidentialAffiliation') || headers.include?('TrackingMethod')
-        '2022'
-      end
-    end
+    # Leaving commented-out in case we need to do something similar for 2024=>2026
+    #
+    # def infer_hud_version_from_project_cols
+    #   headers = run_in_dir(dir) do
+    #     records_from_csv('Project.csv', row_limit: 1).first.to_h.keys.to_set
+    #   end
+    #   if headers.include?('RRHSubType')
+    #     '2024'
+    #   elsif headers.include?('ResidentialAffiliation') || headers.include?('TrackingMethod')
+    #     '2022'
+    #   end
+    # end
 
     # Validate date format 'YYYY-MM-DD'
     def valid_date?(str)

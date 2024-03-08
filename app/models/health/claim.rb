@@ -87,7 +87,7 @@ module Health
       return result
     end
 
-    def build_claims_file # rubocop:disable Metrics/AbcSize
+    def build_claims_file
       @isa_control_number = self.class.next_isa_control_number
       @group_control_number = self.class.next_group_control_number
       @st_control_number = self.class.next_st_control_number
@@ -133,43 +133,23 @@ module Health
           b.N4(*city_state_zip)
           b.DMG 'D8', pr.birthdate&.strftime('%Y%m%d'), pr.gender.presence || 'U'
           b.NM1 'PR', '2', @sender.receiver_name, nil, nil, nil, nil, 'PI', @sender.receiver_id
-          valid_qa = patient_qa.where(hqa_t[:date_of_activity].lteq(max_date)).
+          valid_qas = patient_qa.
+            where(hqa_t[:date_of_activity].lteq(max_date)).
             select { |m| m.procedure_code.present? }
-          # batch services by month
-          valid_qa.group_by { |qa| qa.date_of_activity.strftime('%Y%m') }.each do |_, qas|
-            # puts "QA Count: #{qas.count} in #{group} for patient: #{patient.id}"
-            # Partition QAs by Encounter Type: Encounter for screening (Z13.9) or Encounter for administrative exam (Z02.9)
-            screening_qas, administrative_qas = qas.partition { |qa| qa.activity == 'sdoh_positive' || qa.activity == 'sdoh_negative' }
-
-            # never put more than 20 services in any given claim
-            screening_qas.each_slice(20) do |qa_batch|
-              @lx = 0 # Reset LX for batch
-              b.CLM pr.id, '0', nil, nil, b.composite('11', 'B', '1'), 'Y', 'A', 'Y', 'Y'
+          valid_qas.each do |qa|
+            b.CLM pr.id, '0', nil, nil, b.composite(qa.place_of_service, 'B', '1'), 'Y', 'A', 'Y', 'Y'
+            if qa.screening?
               hi_codes = [b.composite('ABK', 'Z139')] # Encounter for screening, unspecified
-              hi_codes += patient.sdoh_icd10_codes.map { |code| b.composite('ABF', code) } if qas.any? { |qa| qa.activity == 'sdoh_positive' }
+              hi_codes += patient.sdoh_icd10_codes(on_date: qa.date_of_activity).map { |code| b.composite('ABF', code) } if qa.positive_screen?
               diag_ptrs = ('1' .. hi_codes.count.to_s).to_a
-              b.HI(*hi_codes)
-              qa_batch.each do |qa|
-                @lx += 1
-                b.LX @lx
-                b.SV1 b.composite('HC', *qa.procedure_code.split(component_element_separator), *qa.modifiers), '0', 'UN', '1', nil, nil, b.composite(*diag_ptrs)
-                b.DTP '472', 'D8', qa.date_of_activity.strftime('%Y%m%d')
-              end
-            end
-
-            # never put more than 20 services in any given claim
-            administrative_qas.each_slice(20) do |qa_batch|
-              @lx = 0 # Reset LX for batch
-              b.CLM pr.id, '0', nil, nil, b.composite('11', 'B', '1'), 'Y', 'A', 'Y', 'Y'
+            else
               hi_codes = [b.composite('ABK', 'Z029')] # Encounter for administrative examination, unspecified
-              b.HI(*hi_codes)
-                qa_batch.each do |qa|
-                  @lx += 1
-                  b.LX @lx
-                  b.SV1 b.composite('HC', *qa.procedure_code.split(component_element_separator), *qa.modifiers), '0', 'UN', '1', nil, nil, b.composite('1')
-                  b.DTP '472', 'D8', qa.date_of_activity.strftime('%Y%m%d')
-                end
+              diag_ptrs = ['1']
             end
+            b.HI(*hi_codes)
+            b.LX 1
+            b.SV1 b.composite('HC', *qa.procedure_code.split(component_element_separator), *qa.modifiers), '0', 'UN', '1', nil, nil, b.composite(*diag_ptrs)
+            b.DTP '472', 'D8', qa.date_of_activity.strftime('%Y%m%d')
           end
       end
       m = b.machine

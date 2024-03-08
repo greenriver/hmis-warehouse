@@ -3,8 +3,9 @@ source 'https://rubygems.org'
 gem 'rails', '~> 6.1'
 gem 'activesupport', '>= 6.1.7.5' # CVE-2023-38037
 gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'master'
-gem 'rack', '>= 2.2.6.3'
+gem 'rack', '>= 2.2.8.1'
 gem 'rexml'
+gem 'actionpack', '>= 6.1.7.7'
 
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc
@@ -77,8 +78,8 @@ gem 'acts-as-taggable-on', '~> 7.0'
 # FIXME: the hellosign gem is no longer a requirement. This dependency can be dropped pending code pruning
 gem 'hellosign-ruby-sdk', git: 'https://github.com/greenriver/hellosign-ruby-sdk.git'
 
-gem 'devise', '~> 4'
-gem 'devise_invitable', '~> 2.0'
+gem 'devise', '~> 4.8'
+gem 'devise_invitable', '~> 2.0.9'
 gem 'devise-pwned_password'
 gem 'devise-security'
 gem 'devise-two-factor'
@@ -113,7 +114,6 @@ gem 'logstop'
 gem 'yabeda-rails'
 gem 'yabeda-prometheus'
 gem 'yabeda-puma-plugin'
-gem 'yabeda-graphql'
 gem 'yabeda-http_requests'
 gem 'yabeda-activerecord'
 

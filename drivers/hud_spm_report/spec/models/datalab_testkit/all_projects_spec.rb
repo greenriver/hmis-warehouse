@@ -18,12 +18,12 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       puts "Starting SPM Data Lab TestKit #{Time.current}"
       setup
       puts "Setup Done for SPM Data Lab TestKit #{Time.current}"
-      # run(default_spm_filter, HudSpmReport::Generators::Fy2023::Generator.questions.keys.grep(/Measure (3|4|5|7)/))
+      # run(default_spm_filter, HudSpmReport::Generators::Fy2023::Generator.questions.keys.grep(/Measure 1/))
       run(default_spm_filter, HudSpmReport::Generators::Fy2023::Generator.questions.keys)
       puts "Finished SPM Run Data Lab TestKit #{Time.current}"
     end
 
-    # Almost matches (off by a few)
+    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recbKFyAs8hUTlNFU
     it 'Measure 1a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -31,17 +31,18 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
         external_row_label: true,
         question: '1a',
         skip: [
-          'B1',
           'D1',
           'G1',
-          'B2',
           'D2',
           'G2',
         ],
       )
     end
 
+    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recCo8VEaNZ2BhQIr
     # Almost matches (off by a few)
+    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec59oPiPxyysL4nL
+    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/recGMWKxKqBJgv221
     it 'Measure 1b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -59,7 +60,6 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       )
     end
 
-    # Almost matches (off by a few)
     xit 'Measure 2' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -67,16 +67,10 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       )
     end
 
-    # Almost matches (off by a few)
     it 'Measure 3.2' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: '3.2',
-        skip: [
-          'C2',
-          'C3',
-          'C5',
-        ],
       )
     end
 

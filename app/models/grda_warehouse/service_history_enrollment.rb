@@ -28,7 +28,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   has_one :service_history_exit, -> { where(record_type: 'exit') }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id], foreign_key: [:data_source_id, :project_id, :enrollment_group_id, :client_id]
 
   # Find the SHE for the head of household associated with this enrollment's household, if this is for th HoH, it returns itself
-  has_one :service_history_enrollment_for_head_of_household, -> { where(head_of_household: true) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:head_of_household_id, :data_source_id], foreign_key: [:head_of_household_id, :data_source_id], autosave: false
+  has_one :service_history_enrollment_for_head_of_household, -> { where(head_of_household: true) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:head_of_household_id, :project_id, :data_source_id], foreign_key: [:head_of_household_id, :project_id, :data_source_id], autosave: false
   # Find the non HoH SHEs associated with this enrollment's household, if this is not for the HoH, it will contain this enrollment
   has_many :other_household_service_history_enrollments, -> { where(head_of_household: false) }, class_name: 'GrdaWarehouse::ServiceHistoryEnrollment', primary_key: [:data_source_id, :project_id, :household_id], foreign_key: [:data_source_id, :project_id, :household_id], autosave: false
   has_many :household_enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', primary_key: [:data_source_id, :project_id, :household_id], foreign_key: [:data_source_id, :ProjectID, :HouseholdID], autosave: false
@@ -256,12 +256,13 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   # HUD reporting Project Type overlay
+  # Now controlled by import overrides
   scope :hud_project_type, ->(project_types) do
-    where(computed_project_type: project_types)
+    where(project_type: project_types)
   end
 
   scope :in_project_type, ->(project_types) do
-    where(project_type_column => project_types)
+    where(project_type: project_types)
   end
 
   # uses actual Projects.id not ProjectID (which is stored in the table and requires data_source_id)
@@ -434,16 +435,16 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   # 13: Rapid Re-Housing (PH)
   # 14: Coordinated Entry
   def service_type
-    ::HudUtility2024.project_type(computed_project_type)
+    ::HudUtility2024.project_type(project_type)
   end
 
   def service_type_brief
-    ::HudUtility2024.project_type_brief(computed_project_type)
+    ::HudUtility2024.project_type_brief(project_type)
   end
 
   def computed_project_type_group_es
-    pt = computed_project_type
-    pt = 1 if computed_project_type&.zero?
+    pt = project_type
+    pt = 1 if project_type&.zero?
     pt
   end
 
@@ -493,11 +494,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   def self.project_type_column
-    if GrdaWarehouse::Config.get(:project_type_override)
-      :computed_project_type
-    else
-      :project_type
-    end
+    :project_type
   end
 
   def self.available_age_ranges

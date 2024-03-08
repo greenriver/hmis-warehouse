@@ -14,6 +14,17 @@ class OauthController < ApplicationController
   def user
     user = User.find(doorkeeper_token.resource_owner_id)
 
-    render(json: { id: user.id, first_name: user.first_name, last_name: user.last_name, email: user.email })
+    payload = {
+      id: user.id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      # These need to match the human-readable names of the roles available in
+      # the corresponding superset environment. "Admin" for example. Roles
+      # currently only change on login and aren't instantanious.
+      superset_roles: user.superset_roles,
+    }
+
+    render(json: payload)
   end
 end

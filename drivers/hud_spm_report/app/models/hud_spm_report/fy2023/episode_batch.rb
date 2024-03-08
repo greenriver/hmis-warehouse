@@ -64,7 +64,7 @@ module HudSpmReport::Fy2023
         end
       end
       # Import the associations
-      BedNight.import!(bed_nights.flatten)
+      # BedNight.import!(bed_nights.flatten) # Disabled to avoid database growth in production
       EnrollmentLink.import!(enrollment_links.flatten)
     end
   end
