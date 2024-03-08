@@ -85,6 +85,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :PROJECT_CONFIG,
     :CLIENT_ALERT,
     :FORM_DEFINITION,
+    :EXTERNAL_FORM_SUBMISSION_REVIEW,
   ].freeze
 
   # All form roles

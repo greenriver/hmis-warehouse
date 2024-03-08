@@ -3755,7 +3755,7 @@ input ExternalFormSubmissionFilterOptions {
 External Form Submission Input
 """
 input ExternalFormSubmissionInput {
-  note: String
+  notes: String
   spam: Boolean
   status: ExternalFormSubmissionStatus
 }
@@ -4134,6 +4134,11 @@ enum FormRole {
   External form
   """
   EXTERNAL_FORM
+
+  """
+  External form submission review
+  """
+  EXTERNAL_FORM_SUBMISSION_REVIEW
 
   """
   File
@@ -10682,6 +10687,11 @@ enum StaticFormRole {
   Client alert
   """
   CLIENT_ALERT
+
+  """
+  External form submission review
+  """
+  EXTERNAL_FORM_SUBMISSION_REVIEW
 
   """
   Form definition

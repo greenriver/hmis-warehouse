@@ -10,7 +10,7 @@ module Types
 
     argument :status, HmisSchema::Enums::ExternalFormSubmissionStatus, required: false
     argument :spam, Boolean, required: false
-    argument :note, String, required: false
+    argument :notes, String, required: false
 
     def to_params
       to_h
