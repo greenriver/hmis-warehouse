@@ -10027,7 +10027,6 @@ enum ServiceSubTypeProvided {
 }
 
 type ServiceType {
-  bulk: Boolean!
   category: String!
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
@@ -10037,6 +10036,7 @@ type ServiceType {
   hudTypeProvided: ServiceTypeProvided
   id: ID!
   name: String!
+  supportsBulkAssignment: Boolean!
   user: ApplicationUser
 }
 
