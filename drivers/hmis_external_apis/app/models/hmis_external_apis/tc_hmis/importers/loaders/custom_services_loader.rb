@@ -161,8 +161,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       actual = 0
 
       records = [].tap do |cdes|
-        expected += 1
         rows.each do |row|
+          expected += 1
           row_field_value = row.field_value(TOUCHPOINT_NAME)
           config = configs[row_field_value]
           next if config.blank?
