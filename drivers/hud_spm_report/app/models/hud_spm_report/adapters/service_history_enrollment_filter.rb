@@ -14,7 +14,8 @@ module HudSpmReport::Adapters
     include ArelHelper
 
     def initialize(report_instance)
-      @filter = Filters::HudFilterBase.new(user_id: report_instance.user.id).update(report_instance.options)
+      spm_project_types = HudUtility2024.spm_project_type_codes
+      @filter = Filters::HudFilterBase.new(user_id: report_instance.user.id, relevant_project_types: spm_project_types).update(report_instance.options)
       @project_ids = GrdaWarehouse::Hud::Project.where(id: report_instance.project_ids).pluck(:project_id)
     end
 
@@ -23,7 +24,7 @@ module HudSpmReport::Adapters
       report_end_date = @filter.end
       lookback_start_date = report_start_date - 7.years
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
-        joins(:client, :project).
+        joins(:client, :project, enrollment: :client).
         open_between(start_date: lookback_start_date, end_date: report_end_date).
         where(project_id: @project_ids)
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
@@ -22,33 +24,35 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       @table_names = []
     end
 
+    def runnable?
+      clobber ? true : supports_upsert?
+    end
+
     protected
 
     def supports_upsert?
       false
     end
 
-    def runnable?
-      clobber ? true : supports_upsert?
-    end
-
-    DATE_FMT = '%Y-%m-%d'.freeze
+    DATE_FMT = '%Y-%m-%d'
     DATE_RGX = /\A\d{4}-\d{2}-\d{2}\z/
 
     # 'YYYY-MM-DDT00:00:00.0000000'
-    DATE_TIME_FMT = '%Y-%m-%dT%H:%M:%S.%N'.freeze
+    DATE_TIME_FMT = '%Y-%m-%dT%H:%M:%S.%N'
     DATE_TIME_RGX = /\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{7}\z/
 
-    def parse_date(str)
-      return unless str
+    def parse_date(value)
+      return unless value
 
-      case str
+      case value
+      when Date, Time
+        value
       when DATE_RGX
-        Date.strptime(str, DATE_FMT)
+        Date.strptime(value, DATE_FMT)
       when DATE_TIME_RGX
-        DateTime.strptime(str, DATE_TIME_FMT)
+        DateTime.strptime(value, DATE_TIME_FMT)
       else
-        raise ArgumentError, "Invalid date or date-time format: '#{str}'"
+        raise ArgumentError, "Invalid date or date-time format: '#{value}'"
       end
     end
 
@@ -106,6 +110,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         true
       when /^(n|no)$/i
         false
+      when '.'
+        # for element 12180 in the HAT, the dot appears to mean 'true'
+        true
       when nil
         nil
       else
@@ -171,7 +178,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def log_processed_result(name: nil, expected:, actual:)
       name ||= model_class.name
       rate = expected.zero? ? 0 : (actual.to_f / expected).round(3)
-      log_info("processed #{name}: #{actual} of #{expected} records (#{(1.0 - rate) * 100}% skipped)")
+      log_info("processed #{name}: #{actual} of #{expected} records (#{((1.0 - rate) * 100).round(2)}% skipped)")
     end
   end
 end

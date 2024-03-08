@@ -22,6 +22,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     private def process_file(filename)
+      create_service_types
       rows = @reader.rows(filename: filename, header_row_number: 2, field_id_row_number: nil)
       clobber_records(rows) if clobber
 
@@ -31,6 +32,19 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
       cdes = create_records(rows)
       ar_import(cde_class, cdes)
+    end
+
+    private def create_service_types
+      # service types should already exist on production
+      return unless Rails.env.development?
+
+      category = Hmis::Hud::CustomServiceCategory.order(:id).last
+      configs.values.each do |value|
+        Hmis::Hud::CustomServiceType.where(data_source_id: data_source.id).where(name: value.fetch(:service_type)).first_or_create! do |st|
+          st.UserID = system_hud_user.id
+          st.custom_service_category_id = category.id
+        end
+      end
     end
 
     private def clobber_records(rows)
@@ -86,7 +100,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             next
           end
 
-          row_field_value = row.field_value(ENROLLMENT_ID)
+          row_field_value = row_enrollment_id(row)
+          next if row_field_value.blank? # enrollment id is blank
+
           enrollment = enrollments[row_field_value]
           if enrollment.blank?
             log_skipped_row(row, field: ENROLLMENT_ID)
@@ -114,7 +130,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           service_field = config[:service_fields][row.field_value(QUESTION)]
           next unless service_field.present? # Don't log this, if there is a problem, we will find it in create_records
 
-          value = service_field[:cleaner].call(row.field_value(ANSWER))
+          row_value = row.field_value(ANSWER)
+          value = row_value ? service_field[:cleaner].call(row_value) : nil
 
           services[response_id][service_field[:key]] = value
         end
@@ -125,6 +142,17 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     private def generate_service_id(config, row)
       "#{config[:id_prefix]}-#{row.field_value(RESPONSE_ID)}"
+    end
+
+    def row_question_value(row)
+      # there are new lines in some questions labels. Return just the first line
+      value = row.field_value(QUESTION)
+      value ? value.split("\n").detect(&:present?).strip : nil
+    end
+
+    def row_enrollment_id(row)
+      # sometimes the enrollment id has braces or other extra chars
+      row.field_value(ENROLLMENT_ID)&.gsub(/[^-a-z0-9]/i, '')
     end
 
     private def create_records(rows)
@@ -139,7 +167,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           config = configs[row_field_value]
           next if config.blank?
 
-          row_field_value = row.field_value(QUESTION)
+          row_field_value = row_question_value(row)
           if config[:service_fields].keys.include?(row_field_value)
             # Count this row as processed, but it doesn't update anything since it is a service field
             actual += 1
@@ -162,7 +190,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           actual += 1
 
           key = element[:key]
-          answer = element[:cleaner].call(row.field_value(ANSWER))
+          row_value = row.field_value(ANSWER)
+          answer = row_value ? element[:cleaner].call(row_value) : nil
           Array.wrap(answer).each do |value|
             cdes << cde_helper.new_cde_record(value: value, owner_type: service_class.name, owner_id: service.id, definition_key: key)
           end
@@ -174,7 +203,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     private def configs
       {
-        'Food Box-Groceries' => {
+        'Food Box - Groceries' => {
           service_type: 'Food Box / Groceries',
           service_fields: {},
           id_prefix: 'food-box',
@@ -183,7 +212,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               key: :service_contact_location,
               cleaner: ->(location) { normalize_location(location) },
             },
-            'Number of pantry bags' => {
+            'Number of Pantry Bags' => {
               key: :food_service_pantry_bags_quantity,
               cleaner: ->(quantity) { quantity.to_i },
             },
@@ -219,7 +248,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               key: :transportation_quantity,
               cleaner: ->(quantity) { quantity.to_i },
             },
-            'Note' => {
+            'Case Notes' => {
               key: :service_notes,
               cleaner: ->(note) { note },
             },
@@ -251,7 +280,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         'Material Goods' => {
           service_type: 'Material Goods / Financial Assistance',
           service_fields: {
-            'Amount' => {
+            'Amount ( If Needed )' => {
               key: :FAAmount,
               cleaner: ->(amount) { amount.to_f },
             },
@@ -263,7 +292,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
                 key: :service_contact_location,
                 cleaner: ->(location) { normalize_location(location) },
               },
-              'Assistance type' => {
+              'Value' => {
                 key: :financial_assistance_type,
                 cleaner: ->(type) { type },
               },
@@ -278,22 +307,22 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           service_type: 'Benefits Contact',
           service_fields: {},
           id_prefix: 'contacts',
-          elements: { # TODO: Confirm ETO field names
+          elements: {
             'Time Spent' => {
               key: :service_time_spent,
               cleaner: ->(time) { parse_duration(time) },
             },
-            'Contact Attempt' => {
+            '.' => { # label in eto is just a period
               key: :service_benefits_contact_attempt,
               cleaner: ->(type) { type },
             },
-            'Case Notes' => {
+            'Notes:' => {
               key: :service_notes,
               cleaner: ->(note) { note },
             },
           },
         },
-        'Benefits Touchpoint' => { # TODO: Confirm ETO field names
+        'Benefits Touchpoint' => {
           service_type: 'Benefits Service',
           service_fields: {},
           id_prefix: 'benefits',
@@ -302,11 +331,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               key: :service_benefits_type,
               cleaner: ->(type) { type },
             },
-            'Time Spent' => {
+            'Time Spent total time spend working with the client in person or on their behalf.' => {
               key: :service_time_spent,
               cleaner: ->(time) { parse_duration(time) },
             },
-            'Case Notes' => {
+            'Note' => {
               key: :service_notes,
               cleaner: ->(note) { note },
             },
@@ -324,7 +353,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           id_prefix: 'lunch',
           elements: {},
         },
-        '1A-SA Dinner' => {
+        '1-SA Dinner' => {
           service_type: 'Dinner',
           service_fields: {},
           id_prefix: 'dinner',
@@ -354,11 +383,17 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           service_fields: {},
           id_prefix: 'dh-cm',
           elements: {
-            'Contact Location/Method' => {
+            # FIXME: the full label that comes through from ETO for 'Contact Location/Method' is below. Maybe we can split labels by newline and drop the rest before trying to match?
+            # "Service Location
+
+            # Residential (if the service was provided in the clients home/apartment/ etc)
+            # Non-residential (If the service was provided in any other shelterd place but their home)
+            # Place not meant for habitation (Unsheltered place -under bridge, camp sides, on the streets, outside, etc -)"
+            'Service Location' => { # FIXME
               key: :service_contact_location,
               cleaner: ->(location) { normalize_location(location) },
             },
-            'Type of Contact' => {
+            'Type of Contact (Must correctly classify type of contact)' => {
               key: :service_contact_type,
               cleaner: ->(type) { normalize_contact(type) },
             },
@@ -381,7 +416,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               key: :service_contact_location,
               cleaner: ->(location) { normalize_location(location) },
             },
-            'Tests provided' => {
+            'Value' => {
               key: :service_drug_tests_provided,
               cleaner: ->(tests) { tests.split('|') },
             },
@@ -419,7 +454,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               key: :service_contact_location,
               cleaner: ->(location) { normalize_location(location) },
             },
-            'Time Spent' => {
+            'Time Spend' => {
               key: :service_time_spent,
               cleaner: ->(time) { parse_duration(time) },
             },
@@ -457,7 +492,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               key: :service_contact_location,
               cleaner: ->(location) { normalize_location(location) },
             },
-            'Time Spent' => {
+            'Time Spent on Contact' => {
               key: :service_time_spent,
               cleaner: ->(time) { parse_duration(time) },
             },
@@ -514,7 +549,18 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     private def normalize_location(location)
-      location # TODO
+      return if location&.blank?
+
+      cleaned = location.downcase.gsub(/[^A-Za-z]/, ' ').strip
+      if cleaned.include?('non residential')
+        'Service setting, Non Residential'
+      elsif cleaned.include?('residential')
+        'Service setting, Residential'
+      elsif cleaned.include?('habitation')
+        'Place not meant for habitation'
+      else
+        location
+      end
     end
 
     private def normalize_contact(contact)

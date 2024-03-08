@@ -1929,6 +1929,14 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           and change { assessment.reload.ce_event.event }.to(1) # value updated
       end
 
+      it 'should find the CE event related record' do
+        process_assessment
+        related_records = assessment.form_processor.related_records
+        expect(related_records.length).to eq(2)
+        expect(related_records).to include(e1)
+        expect(related_records).to include(assessment.ce_event)
+      end
+
       describe 'and all CE Event fields are hidden:' do
         before(:each) do
           assessment.form_processor.hud_values = {
@@ -2073,6 +2081,20 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(assessment.ce_assessment).to be_present
       expect(assessment.ce_assessment.assessment_date).to eq(assessment_date)
       expect(assessment.ce_assessment.assessment_location).to eq('foo')
+    end
+
+    it 'should send non-HMIS values to AssessmentQuestions' do
+      # note: definition is loaded in test environment because it is in the form_data/test/ directory
+      definition = Hmis::Form::Definition.find_by(identifier: 'housing_needs_assessment')
+      create(:hmis_custom_data_element_definition, key: 'assessment_question', owner_type: 'Hmis::Hud::CustomAssessment')
+      hud_values.merge!({ 'assessment_question' => 'answer' })
+
+      assessment = build(:hmis_wip_custom_assessment, client: c1, enrollment: e1, data_source: ds1, user: u1)
+      process_record(record: assessment, hud_values: hud_values, user: hmis_user, definition: definition)
+      assessment.form_processor.store_assessment_questions!
+
+      expect(assessment.ce_assessment.assessment_questions.count).to eq(1)
+      expect(assessment.ce_assessment.assessment_questions.find_by(assessment_question: 'assessment_question').assessment_answer).to eq('answer')
     end
   end
 end

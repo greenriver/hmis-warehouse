@@ -31,7 +31,7 @@ class WarehouseReport::BedUtilization < OpenStruct
             id: project.id,
             name: project.name(filter.user),
             organization_name: project.organization.OrganizationName,
-            project_type: project.compute_project_type,
+            project_type: project.project_type,
             clients: average(client_count(project)).round,
             beds: average_inventory_count(project, :BedInventory),
             bed_utilization: 0,
