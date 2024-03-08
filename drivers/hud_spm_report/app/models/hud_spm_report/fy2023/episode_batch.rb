@@ -22,6 +22,8 @@ module HudSpmReport::Fy2023
       enrollment_links_per_episode = []
       client_ids.each do |client_id|
         client = enrollments_for_clients[client_id].first.client
+        next unless client.present?
+
         episode_calculations = HudSpmReport::Fy2023::Episode.new(client: client, report: @report, filter: @filter).
           compute_episode(
             enrollments_for_clients[client_id],
