@@ -148,7 +148,7 @@ module
     def client_columns
       [
         c_t[:id],
-        c_t[:PersonalID],
+        ex_t[:PersonalID],
         c_t[:FirstName],
         c_t[:LastName],
         c_t[:DOB],
