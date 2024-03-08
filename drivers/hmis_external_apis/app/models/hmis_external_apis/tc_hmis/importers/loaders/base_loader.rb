@@ -34,11 +34,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       false
     end
 
-    DATE_FMT = '%Y-%m-%d'
+    DATE_FMT = '%Y-%m-%d'.freeze
     DATE_RGX = /\A\d{4}-\d{2}-\d{2}\z/
 
     # 'YYYY-MM-DDT00:00:00.0000000'
-    DATE_TIME_FMT = '%Y-%m-%dT%H:%M:%S.%N'
+    DATE_TIME_FMT = '%Y-%m-%dT%H:%M:%S.%N'.freeze
     DATE_TIME_RGX = /\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{7}\z/
 
     def parse_date(value)
@@ -53,23 +53,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         DateTime.strptime(value, DATE_TIME_FMT)
       else
         raise ArgumentError, "Invalid date or date-time format: '#{value}'"
-      end
-    end
-
-    MINUTES_RGX = /\d+/
-    HOURS_MINUTES_RGX = /(\d*):(\d{2})/
-    def parse_duration(str)
-      return unless str
-
-      str.strip!
-      case str
-      when MINUTES_RGX
-        str.to_i
-      when HOURS_MINUTES_RGX
-        match = str.match(HOURS_MINUTES_RGX)
-        match[1] * 60 + match[2]
-      else
-        raise ArgumentError, "Invalid duration format: '#{str}'"
       end
     end
 
