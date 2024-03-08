@@ -122,7 +122,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def create_form_processor_records(rows)
       ce_assessments_by_date_and_enrollment_id = {}
       if ce_assessment_level
-        ce_assessments_by_date_and_enrollment_id = Hmis::Hud::Assessment.
+        ce_assessments_by_date_and_enrollment_id = Hmis::Hud::Assessment.hmis.
           where(AssessmentLevel: ce_assessment_level).
           order(DateUpdated: :asc, id: :asc). # order ensures we use the most recent one if there are duplicates on the same day
           pluck(:AssessmentDate, :EnrollmentID, :id).
