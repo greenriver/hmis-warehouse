@@ -270,7 +270,7 @@ module Types
       return [] unless project.present?
 
       service_types = project.available_service_types
-      service_types = service_types.where(bulk: true) if bulk_only
+      service_types = service_types.where(supports_bulk_assignment: true) if bulk_only
 
       options = service_types.preload(:custom_service_category).to_a.
         map(&:to_pick_list_option).
