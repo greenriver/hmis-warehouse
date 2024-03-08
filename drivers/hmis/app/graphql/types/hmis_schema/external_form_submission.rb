@@ -15,7 +15,7 @@ module Types
 
     field :id, ID, null: false
     field :submitted_at, GraphQL::Types::ISO8601DateTime, null: false
-    field :spam_score, Float, null: true
+    field :spam, Boolean, null: true
     field :status, HmisSchema::Enums::ExternalFormSubmissionStatus, null: false
     field :notes, String, null: true
     field :definition, Forms::FormDefinition, null: false

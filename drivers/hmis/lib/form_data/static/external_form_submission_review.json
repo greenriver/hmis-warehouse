@@ -17,6 +17,15 @@
       "mapping": {
         "field_name": "reviewed"
       }
+    },
+    {
+      "link_id": "spam",
+      "type": "BOOLEAN",
+      "component": "CHECKBOX",
+      "text": "Spam",
+      "mapping": {
+        "field_name": "spam"
+      }
     }
   ]
 }

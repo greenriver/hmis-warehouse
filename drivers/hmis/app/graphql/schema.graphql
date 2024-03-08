@@ -3741,7 +3741,7 @@ type ExternalFormSubmission {
   definition: FormDefinition!
   id: ID!
   notes: String
-  spamScore: Float
+  spam: Boolean
   status: ExternalFormSubmissionStatus!
   submittedAt: ISO8601DateTime!
 }

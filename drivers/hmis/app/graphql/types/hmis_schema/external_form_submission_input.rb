@@ -13,7 +13,11 @@ module Types
     argument :notes, String, required: false
 
     def to_params
-      to_h
+      {
+        status: status,
+        notes: notes,
+        spam_score: spam ? 0 : 1,
+      }
     end
   end
 end
