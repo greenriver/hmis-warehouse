@@ -22,7 +22,8 @@ module Types
     custom_data_elements_field
 
     def custom_data_elements
-      resolve_custom_data_elements(object, definition_scope: definition.custom_data_element_definitions)
+      cdeds = load_ar_association(definition, :custom_data_element_definitions, scope: Hmis::Hud::CustomDataElementDefinition.order(:key))
+      resolve_custom_data_elements(object, definition_scope: cdeds)
     end
 
     def definition

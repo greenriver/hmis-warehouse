@@ -32,6 +32,7 @@ module Types
             resolve_custom_data_elements(object)
           end
 
+          # returns CustomDataElementDefinitions. The resolver then calls back to parent to get the cde value
           define_method(:resolve_custom_data_elements) do |record, definition_scope: nil|
             # Always resolve all _available_ custom element types for this record type,
             # (even if they have no value), so that they can be shown as empty if missing.

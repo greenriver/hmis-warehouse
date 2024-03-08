@@ -5,6 +5,6 @@ FactoryBot.define do
     status { 'new' }
     spam_score { 1.0 }
     sequence(:object_key)
-    raw_data { { test: 'value' } }
+    raw_data { { 'your_name' => 'value' } }
   end
 end

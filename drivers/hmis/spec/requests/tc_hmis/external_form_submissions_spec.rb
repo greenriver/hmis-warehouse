@@ -29,6 +29,9 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
           ) {
             nodes {
               id
+              customDataElements {
+                key
+              }
             }
           }
         }
@@ -43,6 +46,8 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
 
   let!(:form_definition) do
     fd = create(:hmis_external_form_definition)
+    HmisExternalApis::PublishExternalFormsJob.new.perform(fd.id)
+    fd.reload
     Hmis::Form::Instance.create!(definition: fd, entity: p1, active: true)
     fd
   end
@@ -53,6 +58,7 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
 
   it 'should resolve external form submissions' do
     submission = create(:hmis_external_form_submission, definition: form_definition, submitted_at: today.midnight)
+    submission.process_custom_data_elements!(form_definition: form_definition)
     filters = { 'status' => 'new', submitted_date: today.strftime('%Y-%m-%d') }
     variables = {
       id: p1.id,
@@ -61,6 +67,10 @@ RSpec.describe 'External Referral Form Submissions', type: :request do
     }
     response, result = post_graphql(variables) { query }
     expect(response.status).to eq 200
-    expect(result.dig('data', 'project', 'externalFormSubmissions', 'nodes')).to contain_exactly({ 'id' => submission.id.to_s })
+    expected = {
+      'id' => submission.id.to_s,
+      'customDataElements' => [{ 'key' => 'your_name' }],
+    }
+    expect(result.dig('data', 'project', 'externalFormSubmissions', 'nodes')).to contain_exactly(expected)
   end
 end
