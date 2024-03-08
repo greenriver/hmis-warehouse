@@ -22,6 +22,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     private def process_file(filename)
+      create_service_types
       rows = @reader.rows(filename: filename, header_row_number: 2, field_id_row_number: nil)
       clobber_records(rows) if clobber
 
@@ -31,6 +32,19 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
       cdes = create_records(rows)
       ar_import(cde_class, cdes)
+    end
+
+    private def create_service_types
+      # service types should already exist on production
+      return unless Rails.env.development?
+
+      category = Hmis::Hud::CustomServiceCategory.order(:id).last
+      configs.values.each do |value|
+        Hmis::Hud::CustomServiceType.where(data_source_id: data_source.id).where(name: value.fetch(:service_type)).first_or_create! do |st|
+          st.UserID = system_hud_user.id
+          st.custom_service_category_id = category.id
+        end
+      end
     end
 
     private def clobber_records(rows)
@@ -86,7 +100,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             next
           end
 
-          row_field_value = row.field_value(ENROLLMENT_ID)
+          row_field_value = row_enrollment_id(row)
+          next if row_field_value.blank? # enrollment id is blank
+
           enrollment = enrollments[row_field_value]
           if enrollment.blank?
             log_skipped_row(row, field: ENROLLMENT_ID)
@@ -114,7 +130,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           service_field = config[:service_fields][row.field_value(QUESTION)]
           next unless service_field.present? # Don't log this, if there is a problem, we will find it in create_records
 
-          value = service_field[:cleaner].call(row.field_value(ANSWER))
+          row_value = row.field_value(ANSWER)
+          value = row_value ? service_field[:cleaner].call(row_value) : nil
 
           services[response_id][service_field[:key]] = value
         end
@@ -131,6 +148,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       # there are new lines in some questions labels. Return just the first line
       value = row.field_value(QUESTION)
       value ? value.split("\n").detect(&:present?).strip : nil
+    end
+
+    def row_enrollment_id(row)
+      # sometimes the enrollment id has braces or other extra chars
+      row.field_value(ENROLLMENT_ID)&.gsub(/[^-a-z0-9]/i, '')
     end
 
     private def create_records(rows)
@@ -168,7 +190,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           actual += 1
 
           key = element[:key]
-          answer = element[:cleaner].call(row.field_value(ANSWER))
+          row_value = row.field_value(ANSWER)
+          answer = row_value ? element[:cleaner].call(row_value) : nil
           Array.wrap(answer).each do |value|
             cdes << cde_helper.new_cde_record(value: value, owner_type: service_class.name, owner_id: service.id, definition_key: key)
           end
@@ -330,7 +353,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           id_prefix: 'lunch',
           elements: {},
         },
-        '1A-SA Dinner' => {
+        '1-SA Dinner' => {
           service_type: 'Dinner',
           service_fields: {},
           id_prefix: 'dinner',
