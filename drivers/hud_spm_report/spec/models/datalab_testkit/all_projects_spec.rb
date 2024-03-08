@@ -175,11 +175,6 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: '7a.1',
-        skip: [
-          'C2',
-          'C3',
-          'C4',
-        ],
       )
     end
 
@@ -201,11 +196,6 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: '7b.2',
-        skip: [
-          'C2',
-          'C3',
-          'C4',
-        ],
       )
     end
   else
