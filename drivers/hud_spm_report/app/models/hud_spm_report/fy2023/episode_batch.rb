@@ -7,7 +7,7 @@
 module HudSpmReport::Fy2023
   class EpisodeBatch
     def initialize(enrollments, included_project_types, excluded_project_types, include_self_reported_and_ph, report)
-      @enrollments = enrollments
+      @enrollments = enrollments # are SpmEnrollment
       @included_project_types = included_project_types
       @excluded_project_types = excluded_project_types
       @include_self_reported_and_ph = include_self_reported_and_ph
@@ -16,12 +16,31 @@ module HudSpmReport::Fy2023
     end
 
     def calculate_batch(client_ids)
-      enrollments_for_clients = @enrollments.where(client_id: client_ids).preload(:client, enrollment: :services).group_by(&:client_id)
+      # Original preload which loads ALL services
+      # enrollments_for_clients = @enrollments.where(client_id: client_ids).preload(:client, enrollment: :services).group_by(&:client_id)
+
+      # Same as the preload using includes/references so we can limit the scope of services included
+      # s_t = GrdaWarehouse::Hud::Service.arel_table
+      # enrollments_for_clients = @enrollments.where(client_id: client_ids).preload(:client).
+      #   includes(enrollment: :services).
+      #   references(enrollment: :services).
+      #   where(s_t[:DateProvided].eq(nil).or(s_t[:DateProvided].between(@filter.start .. @filter.end))).
+      #   group_by(&:client_id)
+
+      # One possible solution (poisoning the preload scope)
+      spm_enrollments = @enrollments.where(client_id: client_ids).preload(:client, enrollment: [:project, :client])
+      source_enrollments = spm_enrollments.map(&:enrollment)
+      scope = GrdaWarehouse::Hud::Service.bed_night.between(start_date: @filter.start, end_date: @filter.end)
+      # Inject the services scope into the preload
+      ::ActiveRecord::Associations::Preloader.new.preload(source_enrollments, :services, scope)
+      source_enrollments.each { |record| record.public_send(:services) }
+      enrollments_for_clients = spm_enrollments.group_by(&:client_id)
+
       episodes = []
       bed_nights_per_episode = []
       enrollment_links_per_episode = []
       client_ids.each do |client_id|
-        client = enrollments_for_clients[client_id].first.client
+        client = enrollments_for_clients[client_id]&.first&.client
         next unless client.present?
 
         episode_calculations = HudSpmReport::Fy2023::Episode.new(client: client, report: @report, filter: @filter).

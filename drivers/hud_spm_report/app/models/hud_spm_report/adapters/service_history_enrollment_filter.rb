@@ -32,7 +32,38 @@ module HudSpmReport::Adapters
       scope = filter_for_cocs(scope)
       scope = @filter.apply_client_level_restrictions(scope)
 
-      GrdaWarehouse::Hud::Enrollment.where(id: scope.joins(:enrollment).select(e_t[:id]))
+      GrdaWarehouse::Hud::Enrollment.where(id: scope.joins(:enrollment).select(e_t[:id])).select(*enrollment_columns)
+    end
+
+    # Limited columns to avoid pulling more data from the database than necessary
+    def enrollment_columns
+      [
+        :id,
+        :EnrollmentID,
+        :PersonalID,
+        :ProjectID,
+        :EntryDate,
+        :HouseholdID,
+        :RelationshipToHoH,
+        :EnrollmentCoC,
+        :LivingSituation,
+        :RentalSubsidyType,
+        :LengthOfStay,
+        :LOSUnderThreshold,
+        :PreviousStreetESSH,
+        :DateToStreetESSH,
+        :TimesHomelessPastThreeYears,
+        :MonthsHomelessPastThreeYears,
+        :DisablingCondition,
+        :DateOfEngagement,
+        :MoveInDate,
+        :DateCreated,
+        :DateUpdated,
+        :UserID,
+        :DateDeleted,
+        :ExportID,
+        :data_source_id,
+      ].freeze
     end
   end
 end
