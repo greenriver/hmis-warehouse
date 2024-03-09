@@ -56,6 +56,23 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       end
     end
 
+    MINUTES_RGX = /\d+/
+    HOURS_MINUTES_RGX = /(\d*):(\d{2})/
+    def parse_duration(str)
+      return unless str
+
+      str.strip!
+      case str
+      when MINUTES_RGX
+        str.to_i
+      when HOURS_MINUTES_RGX
+        match = str.match(HOURS_MINUTES_RGX)
+        match[1] * 60 + match[2]
+      else
+        raise ArgumentError, "Invalid duration format: '#{str}'"
+      end
+    end
+
     def system_user_id
       system_hud_user.user_id
     end

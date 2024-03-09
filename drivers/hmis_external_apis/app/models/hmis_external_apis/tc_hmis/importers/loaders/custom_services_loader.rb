@@ -483,69 +483,75 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             },
           },
         },
-        'Substance Abuse Individual' => {
-          service_type: 'Substance Abuse Individual',
+        'Substance Abuse Individual' => substance_abuse_config,
+        'Substance Abuse Group' => substance_abuse_config,
+      }.freeze
+    end
+
+    # several services user this same config, they are imported to the same service
+    def substance_abuse_config
+      {
+        service_type: 'Substance Abuse Individual',
+        service_fields: {},
+        id_prefix: 'substance-abuse',
+        elements: {
+          'Contact Location/Method' => {
+            key: :service_contact_location,
+            cleaner: ->(location) { normalize_location(location) },
+          },
+          'Time Spent on Contact' => {
+            key: :service_time_spent,
+            cleaner: ->(time) { parse_duration(time) },
+          },
+          'Case Notes' => {
+            key: :service_notes,
+            cleaner: ->(note) { note },
+          },
+        },
+        'Support Groups (Tenant Support Services)' => {
+          service_type: 'Tenant Support Group',
           service_fields: {},
-          id_prefix: 'substance-abuse',
+          id_prefix: 'tenant',
+          elements: {
+            'Service Location' => {
+              key: :service_location_text,
+              cleaner: ->(service_location) { service_location },
+            },
+            'Time Spent' => {
+              key: :service_time_spent,
+              cleaner: ->(time) { parse_duration(time) },
+            },
+          },
+        },
+        'Case Management/Case Management notes' => {
+          service_type: 'When We Love',
+          service_fields: {
+            'Assistance Amount' => {
+              key: :FAAmount,
+              cleaner: ->(amount) { amount.to_f },
+            },
+          },
+          id_prefix: 'cm-notes',
           elements: {
             'Contact Location/Method' => {
               key: :service_contact_location,
               cleaner: ->(location) { normalize_location(location) },
             },
-            'Time Spent on Contact' => {
+            'Time Spent' => {
               key: :service_time_spent,
               cleaner: ->(time) { parse_duration(time) },
             },
-            'Case Notes' => {
-              key: :service_notes,
-              cleaner: ->(note) { note },
+            'Type of Contact' => {
+              key: :service_contact_type,
+              cleaner: ->(type) { normalize_contact(type) },
             },
-          },
-          'Support Groups (Tenant Support Services)' => {
-            service_type: 'Tenant Support Group',
-            service_fields: {},
-            id_prefix: 'tenant',
-            elements: {
-              'Service Location' => {
-                key: :service_location_text,
-                cleaner: ->(service_location) { service_location },
-              },
-              'Time Spent' => {
-                key: :service_time_spent,
-                cleaner: ->(time) { parse_duration(time) },
-              },
-            },
-          },
-          'Case Management/Case Management notes' => {
-            service_type: 'When We Love',
-            service_fields: {
-              'Assistance Amount' => {
-                key: :FAAmount,
-                cleaner: ->(amount) { amount.to_f },
-              },
-            },
-            id_prefix: 'cm-notes',
-            elements: {
-              'Contact Location/Method' => {
-                key: :service_contact_location,
-                cleaner: ->(location) { normalize_location(location) },
-              },
-              'Time Spent' => {
-                key: :service_time_spent,
-                cleaner: ->(time) { parse_duration(time) },
-              },
-              'Type of Contact' => {
-                key: :service_contact_type,
-                cleaner: ->(type) { normalize_contact(type) },
-              },
-              'When We Love Services Provided' => {
-                key: :services_provided_when_we_love,
-                cleaner: ->(services) { services.split('|') },
-              },
+            'When We Love Services Provided' => {
+              key: :services_provided_when_we_love,
+              cleaner: ->(services) { services.split('|') },
             },
           },
         },
-      }.freeze
+      }.dup.freeze
     end
 
     private def normalize_location(location)

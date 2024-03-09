@@ -64,6 +64,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       end
       assessment_ids.compact!
 
+      # deleting custom assessment deletes the form processor. This is safe because the processor doesn't
+      # cascade further so additional records are left intact
       scope = model_class.where(data_source_id: data_source.id).where(CustomAssessmentID: assessment_ids)
       scope.preload(:custom_data_elements).find_each do |assessment|
         assessment.custom_data_elements.delete_all # delete should really destroy
