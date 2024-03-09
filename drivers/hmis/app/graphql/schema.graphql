@@ -4219,6 +4219,8 @@ input FormRuleFilterOptions {
   definition: ID
   formType: [FormRole!]
   projectType: [ProjectType!]
+  serviceCategory: ID
+  serviceType: ID
   systemForm: [SystemStatus!]
 }
 
@@ -4230,6 +4232,8 @@ input FormRuleInput {
   otherFunder: String
   projectId: ID
   projectType: ProjectType
+  serviceCategoryId: ID
+  serviceTypeId: ID
 }
 
 enum FormRuleSortOption {
@@ -10036,6 +10040,11 @@ type ServiceType {
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
+
+  """
+  Definitions that are specified for this service type
+  """
+  formDefinitions: [FormDefinition!]!
   formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
   hud: Boolean!
   hudRecordType: RecordType

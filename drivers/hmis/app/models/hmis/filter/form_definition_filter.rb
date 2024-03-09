@@ -14,7 +14,7 @@ class Hmis::Filter::FormDefinitionFilter < Hmis::Filter::BaseFilter
   protected
 
   def with_search_term(scope)
-    search_term = input.search_term.strip
+    search_term = input.search_term&.strip
     return scope unless search_term.present?
 
     field = Arel::Nodes::NamedFunction.new('CONCAT_WS', [fd_t[:title], fd_t[:identifier], fd_t[:role]])

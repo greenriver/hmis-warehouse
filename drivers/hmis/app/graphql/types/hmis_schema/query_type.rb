@@ -381,7 +381,7 @@ module Types
 
       scope = Hmis::Hud::CustomServiceType.all
       scope = scope.apply_filters(filters) if filters
-      scope.order(updated_at: :desc)
+      scope.order(:name)
     end
 
     field :form_definition, Types::Forms::FormDefinition, null: true do
@@ -411,7 +411,6 @@ module Types
     def form_rules(**args)
       raise 'Access denied' unless current_user.can_configure_data_collection?
 
-      # Only resolve non-service rules. Service rules are resolved on the service category.
       resolve_form_rules(Hmis::Form::Instance.all, **args)
     end
 
