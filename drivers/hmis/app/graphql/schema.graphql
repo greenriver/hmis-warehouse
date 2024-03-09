@@ -8628,6 +8628,7 @@ type Query {
   Service type lookup
   """
   serviceType(id: ID!): ServiceType
+  serviceTypes(filters: ServiceTypeFilterOptions, limit: Int, offset: Int): ServiceTypesPaginated!
   staticFormDefinition(role: StaticFormRole!): FormDefinition!
 
   """
@@ -10043,6 +10044,11 @@ type ServiceType {
   name: String!
   supportsBulkAssignment: Boolean!
   user: ApplicationUser
+}
+
+input ServiceTypeFilterOptions {
+  includeHudServices: Boolean
+  searchTerm: String
 }
 
 """

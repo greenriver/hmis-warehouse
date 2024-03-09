@@ -12,6 +12,13 @@ module Types
     include Types::Admin::HasFormRules
 
     graphql_name 'ServiceType'
+
+    available_filter_options do
+      arg :search_term, String
+      arg :include_hud_services, Boolean
+      # ADD: category
+    end
+
     field :id, ID, null: false
     field :name, String, null: false
     field :hud, Boolean, null: false, method: :hud_service?

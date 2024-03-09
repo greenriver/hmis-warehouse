@@ -373,6 +373,17 @@ module Types
       Hmis::Hud::CustomServiceCategory.all
     end
 
+    field :service_types, Types::HmisSchema::ServiceType.page_type, null: false do
+      filters_argument HmisSchema::ServiceType
+    end
+    def service_types(filters: nil)
+      raise 'Access denied' unless current_user.can_configure_data_collection?
+
+      scope = Hmis::Hud::CustomServiceType.all
+      scope = scope.apply_filters(filters) if filters
+      scope.order(updated_at: :desc)
+    end
+
     field :form_definition, Types::Forms::FormDefinition, null: true do
       argument :id, ID, required: true
     end

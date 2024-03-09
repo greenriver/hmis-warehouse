@@ -21,6 +21,12 @@ class Hmis::Hud::CustomServiceType < Hmis::Hud::Base
   validates :name, uniqueness: { scope: [:custom_service_category] }
   validates_with Hmis::Hud::Validators::CustomServiceTypeValidator
 
+  scope :hud_service_types, -> { where.not(hud_record_type: nil) }
+
+  def self.apply_filters(input)
+    Hmis::Filter::ServiceTypeFilter.new(input).filter_scope(self)
+  end
+
   def hud_service?
     hud_record_type.present?
   end
