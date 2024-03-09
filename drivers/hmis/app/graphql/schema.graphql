@@ -3862,6 +3862,10 @@ type FormDefinition {
   title: String!
 }
 
+input FormDefinitionFilterOptions {
+  searchTerm: String
+}
+
 type FormDefinitionForJsonResult {
   definition: FormDefinitionJson
   errors: [String!]!
@@ -8546,7 +8550,7 @@ type Query {
   esgFundingReport(clientIds: [ID!]!): [EsgFundingService!]!
   file(id: ID!): File
   formDefinition(id: ID!): FormDefinition
-  formDefinitions(limit: Int, offset: Int): FormDefinitionsPaginated!
+  formDefinitions(filters: FormDefinitionFilterOptions, limit: Int, offset: Int): FormDefinitionsPaginated!
   formRule(id: ID!): FormRule
   formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
 

@@ -248,6 +248,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     where(identifier: instance_scope.pluck(:definition_identifier))
   end
 
+  def self.apply_filters(input)
+    Hmis::Filter::FormDefinitionFilter.new(input).filter_scope(self)
+  end
+
   def self.find_definition_for_role(role, project: nil, version: nil)
     scope = Hmis::Form::Definition.all
     if project.present?

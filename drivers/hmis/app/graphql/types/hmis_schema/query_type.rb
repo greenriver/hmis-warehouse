@@ -385,12 +385,15 @@ module Types
       Hmis::Form::Definition.find(id)
     end
 
-    field :form_definitions, Types::Forms::FormDefinition.page_type, null: false
-    def form_definitions
+    field :form_definitions, Types::Forms::FormDefinition.page_type, null: false do
+      filters_argument Forms::FormDefinition
+    end
+    def form_definitions(filters:)
       raise 'Access denied' unless current_user.can_configure_data_collection?
 
-      # TODO: add ability to sort and filter definitions
-      Hmis::Form::Definition.non_static.order(updated_at: :desc)
+      scope = Hmis::Form::Definition.non_static
+      scope = scope.apply_filters(filters) if filters
+      scope.order(updated_at: :desc)
     end
 
     form_rules_field
