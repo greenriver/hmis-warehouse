@@ -18,7 +18,7 @@ module HudSpmReport::Fy2023
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
 
     attr_accessor :report # FIXME?
-    attr_writer :filter
+    attr_writer :filter, :services
 
     def self.detail_headers
       client_columns = ['client_id', 'enrollment.first_name', 'enrollment.last_name', 'enrollment.personal_id']
@@ -148,15 +148,17 @@ module HudSpmReport::Fy2023
             report_end_date # If no exit, cannot have a bed night after the report period
           end
 
-          bed_nights.merge!(
-            enrollment.enrollment.services. # Preloaded
-              # merge(GrdaWarehouse::Hud::Service.bed_night.between(start_date: report_start_date, end_date: report_end_date)).
-              # pluck(s_t[:id], s_t[:record_type], s_t[:date_provided]).
-              map do |service|
-                date = service.date_provided
-                next unless service.record_type == HudUtility2024.record_type('Bed Night', true) && date.between?(first_night, last_night)
+          # services shape `{ [EnrollmentID, PersonalID, data_source_id] => [2022-01-01, 2022-01-02] }`
+          # services are already filtered to bed nights
+          enrollment_services = @services[[enrollment.enrollment.EnrollmentID, enrollment.personal_id, enrollment.data_source_id]]
+          next bed_nights unless enrollment_services.present?
 
-                [enrollment, service.id, date]
+          bed_nights.merge!(
+            enrollment_services.
+              map.with_index do |date, i|
+                next unless date.between?(first_night, last_night)
+
+                [enrollment, i, date]
               end.compact.group_by(&:last).
               transform_values { |v| Array.wrap(v).last }, # Unique by date
           )
@@ -224,9 +226,14 @@ module HudSpmReport::Fy2023
           else
             report_end_date # If no exit, cannot have a bed night after the report period
           end
-          earliest_bed_night = enrollment.enrollment.services.select do |service|
-            service.record_type == HudUtility2024.record_type('Bed Night', true) && service.date_provided.between?(first_night, last_night)
-          end.min_by(&:date_provided)&.date_provided
+          # services shape `{ [EnrollmentID, PersonalID, data_source_id] => [2022-01-01, 2022-01-02] }`
+          # services are already filtered to bed nights
+          enrollment_services = @services[[enrollment.enrollment.EnrollmentID, enrollment.personal_id, enrollment.data_source_id]]
+          next unless enrollment_services.present?
+
+          earliest_bed_night = enrollment_services.select do |date|
+            date.between?(first_night, last_night)
+          end.min
           next unless earliest_bed_night.present?
 
           # Self-reported dates earlier than the first bed night if present and the first bed night is on or after the lookback date

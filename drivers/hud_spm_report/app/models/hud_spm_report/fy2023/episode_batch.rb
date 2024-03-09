@@ -27,14 +27,26 @@ module HudSpmReport::Fy2023
       #   where(s_t[:DateProvided].eq(nil).or(s_t[:DateProvided].between(@filter.start .. @filter.end))).
       #   group_by(&:client_id)
 
-      # One possible solution (poisoning the preload scope)
-      spm_enrollments = @enrollments.where(client_id: client_ids).preload(:client, enrollment: [:project, :client])
-      source_enrollments = spm_enrollments.map(&:enrollment)
-      scope = GrdaWarehouse::Hud::Service.bed_night.between(start_date: @filter.start, end_date: @filter.end)
-      # Inject the services scope into the preload
-      ::ActiveRecord::Associations::Preloader.new.preload(source_enrollments, :services, scope)
-      source_enrollments.each { |record| record.public_send(:services) }
-      enrollments_for_clients = spm_enrollments.group_by(&:client_id)
+      # # One possible solution (poisoning the preload scope)
+      # spm_enrollments = @enrollments.where(client_id: client_ids).preload(:client, enrollment: [:project, :client])
+      # source_enrollments = spm_enrollments.map(&:enrollment)
+      # scope = GrdaWarehouse::Hud::Service.bed_night.between(start_date: @filter.start, end_date: @filter.end)
+      # # Inject the services scope into the preload
+      # ::ActiveRecord::Associations::Preloader.new.preload(source_enrollments, :services, scope)
+      # source_enrollments.each { |record| record.public_send(:services) }
+      # enrollments_for_clients = spm_enrollments.group_by(&:client_id)
+
+      # Services are really expensive to preload, for unknown reasons, however, the overall set of information we need is fairly small
+      enrollments_for_clients = @enrollments.where(client_id: client_ids).preload(:client, :enrollment).group_by(&:client_id)
+      batch_personal_ids = enrollments_for_clients.values.flatten.map(&:personal_id).uniq
+      # Load all bed nights for these clients regardless of enrollment; we'll look them up as necessary
+      # Bednights are indexed on `[EnrollmentID, PersonalID, data_source_id]`
+      batch_services = GrdaWarehouse::Hud::Service.bed_night.
+        between(start_date: @filter.start, end_date: @filter.end).
+        where(PersonalID: batch_personal_ids). # impose some basic limit so we don't load the entire set of services
+        pluck(:EnrollmentID, :PersonalID, :data_source_id, :DateProvided).
+        group_by { |r| r.shift(3) }.
+        transform_values(&:flatten)
 
       episodes = []
       bed_nights_per_episode = []
@@ -43,7 +55,7 @@ module HudSpmReport::Fy2023
         client = enrollments_for_clients[client_id]&.first&.client
         next unless client.present?
 
-        episode_calculations = HudSpmReport::Fy2023::Episode.new(client: client, report: @report, filter: @filter).
+        episode_calculations = HudSpmReport::Fy2023::Episode.new(client: client, report: @report, filter: @filter, services: batch_services).
           compute_episode(
             enrollments_for_clients[client_id],
             included_project_types: @included_project_types,
@@ -68,16 +80,17 @@ module HudSpmReport::Fy2023
     end
 
     # The associations seem to make imports run one at a time, so, they are passed separately in parallel arrays
-    private def save_episodes!(episodes, bed_nights, enrollment_links)
+    private def save_episodes!(episodes, _bed_nights, enrollment_links)
       # Import the episodes
       results = Episode.import!(episodes)
       # Attach the associations to their episode
       results.ids.each_with_index do |id, index|
-        bn_for_episode = bed_nights[index]
-        bed_nights[index] = bn_for_episode.map do |bn|
-          bn.episode_id = id
-          bn
-        end
+        # Disabled to avoid database growth in production (see BedNight.import! below)
+        # bn_for_episode = bed_nights[index]
+        # bed_nights[index] = bn_for_episode.map do |bn|
+        #   bn.episode_id = id
+        #   bn
+        # end
         el_for_episode = enrollment_links[index]
         enrollment_links[index] = el_for_episode.map do |el|
           el.episode_id = id
