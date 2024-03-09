@@ -129,7 +129,7 @@ module HudSpmReport::Fy2023
       filter = ::Filters::HudFilterBase.new(user_id: report_instance.user.id).update(report_instance.options)
       enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).enrollments
       household_infos = household(enrollments)
-      enrollments.preload(:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders).find_in_batches(batch_size: 2_000) do |batch|
+      enrollments.preload(:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders).find_in_batches(batch_size: 500) do |batch|
         members = []
         batch.each do |enrollment|
           client = enrollment.client

@@ -14,9 +14,10 @@ module HudSpmReport::Adapters
     include ArelHelper
 
     def initialize(report_instance)
-      spm_project_types = HudUtility2024.spm_project_type_codes
+      spm_project_types = HudUtility2024.spm_project_type_numbers
       @filter = Filters::HudFilterBase.new(user_id: report_instance.user.id, relevant_project_types: spm_project_types).update(report_instance.options)
-      @project_ids = GrdaWarehouse::Hud::Project.where(id: report_instance.project_ids).pluck(:project_id)
+      # Enforce the spm project types in addition to chosen project ids
+      @project_ids = GrdaWarehouse::Hud::Project.where(ProjectType: spm_project_types, id: report_instance.project_ids).pluck(:id)
     end
 
     def enrollments
@@ -26,7 +27,7 @@ module HudSpmReport::Adapters
       scope = GrdaWarehouse::ServiceHistoryEnrollment.
         joins(:client, :project, enrollment: :client).
         open_between(start_date: lookback_start_date, end_date: report_end_date).
-        where(project_id: @project_ids)
+        where(p_t[:id].in(@project_ids))
 
       # ATTN: coc filter is needed for testkit
       scope = filter_for_cocs(scope)

@@ -184,7 +184,7 @@ module HudSpmReport::Generators::Fy2023
       batch_calculator = HudSpmReport::Fy2023::EpisodeBatch.new(enrollments, included_project_types, excluded_project_types, include_self_reported_and_ph, @report)
 
       client_ids = enrollments.pluck(:client_id).uniq
-      client_ids.each_slice(2_000) do |slice|
+      client_ids.each_slice(500) do |slice|
         episodes = batch_calculator.calculate_batch(slice)
         next unless episodes.present?
 
