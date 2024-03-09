@@ -38,6 +38,7 @@ module Types
     available_filter_options do
       arg :project, [ID]
       arg :organization, [ID]
+      arg :service_in_range, Types::HmisSchema::ServiceRangeFilter
     end
 
     description 'HUD Client'
@@ -80,6 +81,12 @@ module Types
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
     field :hud_chronic, Boolean, null: true
+
+    field :active_enrollment, Types::HmisSchema::Enrollment, null: true do
+      argument :project_id, ID, required: true
+      argument :open_on_date, GraphQL::Types::ISO8601Date, required: true
+    end
+
     enrollments_field filter_args: { omit: [:search_term, :bed_night_on_date], type_name: 'EnrollmentsForClient' } do
       # Option to include enrollments that the user has "limited" access to
       argument :include_enrollments_with_limited_access, Boolean, required: false
@@ -183,6 +190,22 @@ module Types
       has_some_detailed_access = current_permission?(permission: :can_view_enrollment_details, entity: object)
       scope = object.enrollments.viewable_by(current_user, include_limited_access_enrollments: has_some_detailed_access)
       resolve_enrollments(scope, **args, dangerous_skip_permission_check: true)
+    end
+
+    # Resolve the active enrollment for this client at the specified project on the specified date.
+    # Include WIP enrollments. If there are multiple enrollments, choose the one with the older entry date.
+    def active_enrollment(project_id:, open_on_date:)
+      load_ar_association(
+        object,
+        :enrollments,
+        # NOTE: ok to reference these variables in the scope because they are _expected_ to be
+        # constant with respect to the resolver. That is only true because of HOW we use the query (in Bulk Services).
+        # If we were to query for different projects for each client somehow (for example), this could have unexpected behavior.
+        scope: Hmis::Hud::Enrollment.viewable_by(current_user).
+          with_project(project_id).
+          open_on_date(open_on_date).
+          order(entry_date: :desc, id: :asc), # tie-break on id for consistent behavior
+      ).last
     end
 
     def income_benefits(**args)

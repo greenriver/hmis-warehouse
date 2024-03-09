@@ -52,5 +52,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def form_definition
       Hmis::Form::Definition.where(identifier: 'tc-diversion-crisis-assessment').first!
     end
+
+    def ce_assessment_level
+      1 # AssessmentLevel: 1 (crisis needs assessment)
+    end
   end
 end

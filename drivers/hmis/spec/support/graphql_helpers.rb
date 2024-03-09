@@ -83,6 +83,8 @@ module GraphqlHelpers
 
       # If base type is an object, skip it
       next if field_type.respond_to?(:fields)
+      # If field accepts arguments, skip it
+      next if field.arguments.any?
 
       fields << name
     end
@@ -116,6 +118,6 @@ module GraphqlHelpers
     error_message = result.dig('errors', 0, 'message')
     expect(response.status).to eq(500), result.inspect
     expect(error_message).to be_present
-    expect(error_message).to eq(message) if message.present?
+    expect(error_message).to match(/#{message}/) if message.present?
   end
 end

@@ -140,7 +140,7 @@ module Health
             b.CLM pr.id, '0', nil, nil, b.composite(qa.place_of_service, 'B', '1'), 'Y', 'A', 'Y', 'Y'
             if qa.screening?
               hi_codes = [b.composite('ABK', 'Z139')] # Encounter for screening, unspecified
-              hi_codes += patient.sdoh_icd10_codes.map { |code| b.composite('ABF', code) } if qa.positive_screen?
+              hi_codes += patient.sdoh_icd10_codes(on_date: qa.date_of_activity).map { |code| b.composite('ABF', code) } if qa.positive_screen?
               diag_ptrs = ('1' .. hi_codes.count.to_s).to_a
             else
               hi_codes = [b.composite('ABK', 'Z029')] # Encounter for administrative examination, unspecified

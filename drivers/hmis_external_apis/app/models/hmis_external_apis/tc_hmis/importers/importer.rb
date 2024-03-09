@@ -17,7 +17,11 @@ module HmisExternalApis::TcHmis::Importers
 
     def initialize(dir:, clobber:, log_file: ENV['TC_HMIS_IMPORT_LOG_FILE'])
       self.data_source = HmisExternalApis::TcHmis.data_source
+      raise "data source doesn't exist" unless data_source
+
       self.dir = dir
+      raise "directory doesn't exist" unless Dir.exist?(dir)
+
       self.clobber = clobber
       self.table_names = []
       self.log_file = log_file

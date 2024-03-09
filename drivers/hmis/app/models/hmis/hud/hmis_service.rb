@@ -96,7 +96,7 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   private def initialize_owner
     raise 'Cannot initialize HmisService without a CustomServiceType' unless custom_service_type.present?
 
-    attrs = [:enrollment_id, :personal_id, :user_id, :data_source_id].map { |k| [k, send(k)] }.to_h
+    attrs = [:enrollment_id, :personal_id, :user_id, :data_source_id, :date_provided].map { |k| [k, send(k)] }.to_h
     if custom_service_type.hud_service?
       self.owner = Hmis::Hud::Service.new(**attrs)
     else
