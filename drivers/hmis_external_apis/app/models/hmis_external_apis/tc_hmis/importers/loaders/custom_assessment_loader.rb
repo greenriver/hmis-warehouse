@@ -219,8 +219,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def row_enrollment_id(row)
-      # sometimes the enrollment id has braces or other extra chars
-      row.field_value(ENROLLMENT_ID_COL)&.gsub(/[^-a-z0-9]/i, '')
+      normalize_uuid(row.field_value(ENROLLMENT_ID_COL))
     end
 
     def model_class

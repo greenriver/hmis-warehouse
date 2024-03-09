@@ -55,6 +55,7 @@ module HmisExternalApis::TcHmis::Importers
           log_file: log_file,
         )
         run_loader(loader)
+        GC.start
       end
 
       analyze_tables

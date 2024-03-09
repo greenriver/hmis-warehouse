@@ -9,7 +9,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     FILENAME_PATTERN = 'Services *.xlsx'.freeze
 
     TOUCHPOINT_NAME = 'TouchPoint Name'.freeze
-    RESPONSE_ID = 'Response Unique ID_Form ID'.freeze
+    RESPONSE_ID = 'Response ID'.freeze
     ENROLLMENT_ID = 'Unique Enrollment Identifier'.freeze
     DATE_PROVIDED = 'Date take New Format'.freeze
     QUESTION = 'Question'.freeze
@@ -151,8 +151,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def row_enrollment_id(row)
-      # sometimes the enrollment id has braces or other extra chars
-      row.field_value(ENROLLMENT_ID)&.gsub(/[^-a-z0-9]/i, '')
+      normalize_uuid(row.field_value(ENROLLMENT_ID))
     end
 
     private def create_records(rows)
