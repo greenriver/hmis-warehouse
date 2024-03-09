@@ -56,6 +56,7 @@ module Health
       return unless patient.present?
 
       assessment = thrive_assessment.presence || build_thrive_assessment(patient_id: patient.id, user_id: 0)
+      assessment.completed_on = thrive_updated_at # Only completed THRIVEs are sent from EPIC
 
       @any_answer = false
       @any_decline = false
