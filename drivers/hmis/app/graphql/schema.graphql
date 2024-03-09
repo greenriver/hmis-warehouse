@@ -10035,6 +10035,7 @@ type ServiceType {
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
+  formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
   hud: Boolean!
   hudRecordType: RecordType
   hudTypeProvided: ServiceTypeProvided
