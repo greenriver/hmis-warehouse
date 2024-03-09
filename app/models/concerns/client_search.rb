@@ -51,6 +51,14 @@ module ClientSearch
           )
           where = conditions.reduce(:or)
         end
+      elsif /household:[[[:alnum:]]-]+/.match(text)
+        household_id = text.gsub('household:', '')
+        client_ids = GrdaWarehouse::Hud::Enrollment.where(HouseholdID: household_id).joins(:client).pluck(sa[:id])
+        where = sa[:id].in(client_ids)
+      elsif /enrollment:[\d-]+/.match(text)
+        enrollment_id = text.gsub('enrollment:', '')
+        client_ids = GrdaWarehouse::Hud::Enrollment.where(id: enrollment_id).joins(:client).pluck(sa[:id])
+        where = sa[:id].in(client_ids)
       else
         # NOTE: per discussion with Gig, only numeric IDs are in use at this time, commenting this out for now
         ## At this point, term could be an alpha-numeric ID or a human name. To avoid having to combine fuzzy name
