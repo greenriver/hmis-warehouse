@@ -55,5 +55,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       values = values.map { |value| value ? 'Signed in ETO' : nil } if cded_key =~ /signature/i
       values
     end
+
+    def form_definition_identifier
+      'critical-document-case-management'
+    end
   end
 end

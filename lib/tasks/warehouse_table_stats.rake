@@ -39,7 +39,7 @@ namespace :warehouse_table_stats do
       end
     end
 
-    csv = CSV.generate do |csv|
+    result = CSV.generate do |csv|
       headers = results.first.keys
       # Use the keys of the first hash as headers
       csv << headers
@@ -48,6 +48,6 @@ namespace :warehouse_table_stats do
         csv << hash.values_at(*headers)
       end
     end
-    puts csv
+    puts result
   end
 end

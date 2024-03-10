@@ -93,8 +93,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       "hat-eto-#{response_id}"
     end
 
-    def form_definition
-      Hmis::Form::Definition.where(identifier: 'tc-hat').first!
+    def form_definition_identifier
+      'tarrant-hat'
     end
 
     def ce_assessment_level

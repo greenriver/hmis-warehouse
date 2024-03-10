@@ -39,7 +39,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       seen_element_ids = Set.new
 
       required_keys = [:label, :key, :repeats, :field_type]
-      all_keys = (required_keys + [:element_id]).to_set
+      all_keys = (required_keys + [:element_id, :ignore_type]).to_set
       cded_configs.each do |item|
         # Check for required keys
         raise "Missing required keys in #{item.inspect}" unless required_keys.all? { |k| item.key?(k) }
@@ -153,6 +153,15 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         }
       end
       ar_import(processor_model, records)
+    end
+
+    def form_definition
+      @form_definition ||= Hmis::Form::Definition.where(identifier: form_definition_identifier).first_or_create! do |definition|
+        definition.title = form_definition_identifier.humanize
+        definition.status = 'draft'
+        definition.version = 0
+        definition.role = 'FORM_DEFINITION'
+      end
     end
 
     def create_cde_records(rows)

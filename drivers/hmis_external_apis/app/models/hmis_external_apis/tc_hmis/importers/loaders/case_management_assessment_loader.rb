@@ -65,5 +65,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       response_id = row.field_value(RESPONSE_ID_COL)
       "cma-eto-#{response_id}"
     end
+
+    def form_definition_identifier
+      'case-management-note-assessment'
+    end
   end
 end

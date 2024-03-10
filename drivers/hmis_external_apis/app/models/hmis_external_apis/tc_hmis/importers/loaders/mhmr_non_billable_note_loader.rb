@@ -66,5 +66,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         values
       end
     end
+
+    def form_definition_identifier
+      'mhmr-non-billable-note'
+    end
   end
 end

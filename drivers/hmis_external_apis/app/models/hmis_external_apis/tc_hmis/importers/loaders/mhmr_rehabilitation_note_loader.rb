@@ -69,5 +69,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         values
       end
     end
+
+    def form_definition_identifier
+      'mhmr-rehabilitation-note'
+    end
   end
 end

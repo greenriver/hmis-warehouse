@@ -15,7 +15,7 @@ module HmisExternalApis::TcHmis::Importers
 
     attr_accessor :data_source, :dir, :extra_columns, :clobber, :table_names, :log_file
 
-    def initialize(dir:, clobber:, log_file: ENV['TC_HMIS_IMPORT_LOG_FILE'])
+    def initialize(dir:, clobber: true, log_file: ENV['TC_HMIS_IMPORT_LOG_FILE'])
       self.data_source = HmisExternalApis::TcHmis.data_source
       raise "data source doesn't exist" unless data_source
 

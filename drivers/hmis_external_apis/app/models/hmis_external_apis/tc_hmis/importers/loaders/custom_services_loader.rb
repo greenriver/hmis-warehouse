@@ -34,15 +34,20 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       ar_import(cde_class, cdes)
     end
 
+    private def placeholder_service_category
+      @placeholder_service_category ||= Hmis::Hud::CustomServiceCategory.where(data_source: data_source, name: 'placeholder service category').first_or_create! do |cat|
+        cat.UserID = system_hud_user.id
+      end
+    end
+
     private def create_service_types
       # service types should already exist on production
       return unless Rails.env.development?
 
-      category = Hmis::Hud::CustomServiceCategory.order(:id).last
       configs.values.each do |value|
         Hmis::Hud::CustomServiceType.where(data_source_id: data_source.id).where(name: value.fetch(:service_type)).first_or_create! do |st|
           st.UserID = system_hud_user.id
-          st.custom_service_category_id = category.id
+          st.custom_service_category_id = placeholder_service_category.id
         end
       end
     end

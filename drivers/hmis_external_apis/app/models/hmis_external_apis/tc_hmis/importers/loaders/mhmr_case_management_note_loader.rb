@@ -84,5 +84,13 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         values
       end
     end
+
+    def yn_boolean(value)
+      value == 'Other assistance provided:' ? true : super
+    end
+
+    def form_definition_identifier
+      'mhmr-case-management-note'
+    end
   end
 end
