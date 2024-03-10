@@ -42,8 +42,6 @@ module HmisExternalApis::TcHmis::Importers
         Loaders::CustomClientDemographicsLoader,
         Loaders::NavigationNotesLoader,
         Loaders::DiversionAssessmentLoader,
-        # This importer was not needed
-        # Loaders::EhvApplicationLoader,
       ]
 
       # disable paper trail to improve importer performance

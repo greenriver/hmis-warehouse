@@ -9,13 +9,23 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     FILENAME_PATTERN = 'Services *.xlsx'.freeze
 
     TOUCHPOINT_NAME = 'TouchPoint Name'.freeze
-    RESPONSE_ID = 'Response ID'.freeze
+    RESPONSE_ID = 'Response Unique ID_Form ID'.freeze
     ENROLLMENT_ID = 'Unique Enrollment Identifier'.freeze
     DATE_PROVIDED = 'Date take New Format'.freeze
     QUESTION = 'Question'.freeze
     ANSWER = 'Answer'.freeze
 
+    def runnable?
+      super && @reader.glob(FILENAME_PATTERN).any?
+    end
+
     def perform
+      if clobber
+        @reader.glob(FILENAME_PATTERN).each do |filename|
+          rows = @reader.rows(filename: filename, header_row_number: 2, field_id_row_number: nil)
+          clobber_records(rows)
+        end
+      end
       @reader.glob(FILENAME_PATTERN).each do |filename|
         process_file(filename)
       end
@@ -24,7 +34,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     private def process_file(filename)
       create_service_types
       rows = @reader.rows(filename: filename, header_row_number: 2, field_id_row_number: nil)
-      clobber_records(rows) if clobber
 
       # services is an instance variable because it holds state that is updated by ar_import, and is needed in create_records
       @services = create_services(rows)
@@ -184,10 +193,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             next
           end
 
-          response_id = row.field_value(RESPONSE_ID)
+          response_id = row.field_value(RESPONSE_ID, required: true)
           service = @services[response_id]
           if service.blank?
-            log_info("Missing service for response id #{response_id}!")
             log_skipped_row(row, field: RESPONSE_ID)
             next
           end
