@@ -231,8 +231,15 @@ module HudSpmReport::Generators::Fy2023
 
     private def generate_dq(project_types)
       dq_filter = filter
-      # Don't include project types if they were excluded from the filter
-      dq_filter.relevant_project_types = project_types & filter.project_type_ids if filter.project_type_ids.any?
+      # limit DQ report to projects in the appropriate project types that were in this SPM
+      project_ids = GrdaWarehouse::Hud::Project.where(ProjectType: project_types, id: @report.project_ids).pluck(:id)
+      # Clear out other mechanisms of setting projects
+      dq_filter.relevant_project_types = []
+      dq_filter.project_type_codes = []
+      dq_filter.project_type_numbers = []
+      dq_filter.project_group_ids = []
+      dq_filter.data_source_ids = []
+      dq_filter.project_ids = project_ids
 
       generator = HudApr::Generators::Dq::Fy2024::Generator
       report = ::HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: ['Question 1', 'Question 4'])
