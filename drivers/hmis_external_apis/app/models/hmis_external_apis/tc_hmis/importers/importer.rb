@@ -75,7 +75,7 @@ module HmisExternalApis::TcHmis::Importers
         return
       end
 
-      Rails.logger.info "#{importer_name} running #{loader.class.name}"
+      Rails.logger.info "#{importer_name} running #{loader.class.name} at #{Time.current.to_s(:db)}"
       loader.perform
       self.table_names += loader.table_names
     end
