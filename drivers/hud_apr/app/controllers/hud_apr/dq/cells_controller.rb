@@ -7,6 +7,7 @@
 module HudApr::Dq
   class CellsController < HudApr::CellsController
     include DqConcern
+    before_action :generator
     before_action :set_report
     before_action :set_question
 

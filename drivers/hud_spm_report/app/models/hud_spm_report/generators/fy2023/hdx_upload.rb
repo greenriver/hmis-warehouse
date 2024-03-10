@@ -213,26 +213,39 @@ module HudSpmReport::Generators::Fy2023
     def dq(section, table_name, cell_name)
       return unless RailsDrivers.loaded.include?(:hud_apr)
 
+      @attempted ||= Set.new
+      @reports ||= {}
+
+      # prevent retrying reports that don't have any projects
+      return '' if @attempted.include?(section) && @reports[section].nil?
+
       dq_report = case section
       when :essh
-        @essh_report ||= generate_dq(HudUtility2024.residential_project_type_numbers_by_codes(:es, :sh))
+        @reports[section] ||= generate_dq(HudUtility2024.residential_project_type_numbers_by_codes(:es, :sh))
       when :th
-        @th_report ||= generate_dq(HudUtility2024.residential_project_type_numbers_by_codes(:th))
+        @reports[section] ||= generate_dq(HudUtility2024.residential_project_type_numbers_by_codes(:th))
       when :pshoph
-        @psoph_report ||= generate_dq(HudUtility2024.residential_project_type_numbers_by_codes(:psh, :oph))
+        @reports[section] ||= generate_dq(HudUtility2024.residential_project_type_numbers_by_codes(:psh, :oph))
       when :rrh
-        @rrh_report ||= generate_dq(HudUtility2024.residential_project_type_numbers_by_codes(:rrh))
+        @reports[section] ||= generate_dq(HudUtility2024.residential_project_type_numbers_by_codes(:rrh))
       when :so
-        @so_report ||= generate_dq(HudUtility2024.residential_project_type_numbers_by_codes(:so))
+        @reports[section] ||= generate_dq(HudUtility2024.residential_project_type_numbers_by_codes(:so))
       end
 
+      # prevent retrying reports that don't have any projects
+      @attempted << section
       dq_report&.answer(question: table_name, cell: cell_name)&.summary || ''
     end
 
     private def generate_dq(project_types)
-      dq_filter = filter
+      dq_filter = filter.deep_dup
+      # The DQ version differs from the SPM version
+      dq_filter.report_version = :fy2024
+
       # limit DQ report to projects in the appropriate project types that were in this SPM
       project_ids = GrdaWarehouse::Hud::Project.where(ProjectType: project_types, id: @report.project_ids).pluck(:id)
+      return unless project_ids.any?
+
       # Clear out other mechanisms of setting projects
       dq_filter.relevant_project_types = []
       dq_filter.project_type_codes = []
@@ -242,7 +255,7 @@ module HudSpmReport::Generators::Fy2023
       dq_filter.project_ids = project_ids
 
       generator = HudApr::Generators::Dq::Fy2024::Generator
-      report = ::HudReports::ReportInstance.from_filter(filter, generator.title, build_for_questions: ['Question 1', 'Question 4'])
+      report = ::HudReports::ReportInstance.from_filter(dq_filter, generator.title, build_for_questions: ['Question 1', 'Question 4'])
       generator.new(report).run!(email: false, manual: false)
 
       report
