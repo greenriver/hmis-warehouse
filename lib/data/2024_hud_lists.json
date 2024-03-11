@@ -2574,7 +2574,7 @@
     ]
   },
   {
-    "name": "Unknown",
+    "name": "CurrentLivingSituation",
     "code": "3.12.1",
     "values": [
       {
@@ -4294,6 +4294,32 @@
     ]
   },
   {
+    "name": "HOPWAFinancialAssistance",
+    "code": "W2.2",
+    "values": [
+      {
+        "key": 1,
+        "description": "Rental assistance"
+      },
+      {
+        "key": 2,
+        "description": "Security deposits"
+      },
+      {
+        "key": 3,
+        "description": "Utility deposits"
+      },
+      {
+        "key": 4,
+        "description": "Utility payments"
+      },
+      {
+        "key": 7,
+        "description": "Mortgage assistance"
+      }
+    ]
+  },
+  {
     "name": "SSVFSubType3",
     "code": "V2.A",
     "values": [
@@ -5168,6 +5194,60 @@
     ]
   },
   {
+    "name": "VoucherTracking",
+    "code": "V8.2",
+    "values": [
+      {
+        "key": 1,
+        "description": "Referral package forwarded to PHA"
+      },
+      {
+        "key": 2,
+        "description": "Voucher denied by PHA"
+      },
+      {
+        "key": 3,
+        "description": "Voucher issued by PHA"
+      },
+      {
+        "key": 4,
+        "description": "Voucher revoked or expired"
+      },
+      {
+        "key": 5,
+        "description": "Voucher in use - veteran moved into housing"
+      },
+      {
+        "key": 6,
+        "description": "Voucher was ported locally"
+      },
+      {
+        "key": 7,
+        "description": "Voucher was administratively absorbed by new PHA"
+      },
+      {
+        "key": 8,
+        "description": "Voucher was converted to Housing Choice Voucher"
+      },
+      {
+        "key": 9,
+        "description": "Veteran exited - voucher was returned"
+      },
+      {
+        "key": 10,
+        "description": "Veteran exited - family maintained the voucher"
+      },
+      {
+        "key": 11,
+        "description": "Veteran exited - prior to ever receiving a voucher"
+      },
+      {
+        "key": 12,
+        "description": "Other"
+      }
+    ]
+  },
+  {
     "name": "CmExitReason",
     "code": "V9.1",
     "values": [
@@ -5446,86 +5526,6 @@
       {
         "key": 12,
         "description": "Without an on-going subsidy"
-      }
-    ]
-  },
-  {
-    "name": "Unknown",
-    "code": "V8.2",
-    "values": [
-      {
-        "key": 1,
-        "description": "Referral package forwarded to PHA"
-      },
-      {
-        "key": 2,
-        "description": "Voucher denied by PHA"
-      },
-      {
-        "key": 3,
-        "description": "Voucher issued by PHA"
-      },
-      {
-        "key": 4,
-        "description": "Voucher revoked or expired"
-      },
-      {
-        "key": 5,
-        "description": "Voucher in use - veteran moved into housing"
-      },
-      {
-        "key": 6,
-        "description": "Voucher was ported locally"
-      },
-      {
-        "key": 7,
-        "description": "Voucher was administratively absorbed by new PHA"
-      },
-      {
-        "key": 8,
-        "description": "Voucher was converted to Housing Choice Voucher"
-      },
-      {
-        "key": 9,
-        "description": "Veteran exited - voucher was returned"
-      },
-      {
-        "key": 10,
-        "description": "Veteran exited - family maintained the voucher"
-      },
-      {
-        "key": 11,
-        "description": "Veteran exited - prior to ever receiving a voucher"
-      },
-      {
-        "key": 12,
-        "description": "Other"
-      }
-    ]
-  },
-  {
-    "name": "Unknown",
-    "code": "W2.2",
-    "values": [
-      {
-        "key": 1,
-        "description": "Rental assistance"
-      },
-      {
-        "key": 2,
-        "description": "Security deposits"
-      },
-      {
-        "key": 3,
-        "description": "Utility deposits"
-      },
-      {
-        "key": 4,
-        "description": "Utility payments"
-      },
-      {
-        "key": 7,
-        "description": "Mortgage assistance"
       }
     ]
   },
