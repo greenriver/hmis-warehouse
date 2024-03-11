@@ -4219,8 +4219,6 @@ input FormRuleFilterOptions {
   definition: ID
   formType: [FormRole!]
   projectType: [ProjectType!]
-  serviceCategory: ID
-  serviceType: ID
   systemForm: [SystemStatus!]
 }
 
@@ -10045,7 +10043,6 @@ type ServiceType {
   Definitions that are specified for this service type
   """
   formDefinitions: [FormDefinition!]!
-  formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
   hud: Boolean!
   hudRecordType: RecordType
   hudTypeProvided: ServiceTypeProvided

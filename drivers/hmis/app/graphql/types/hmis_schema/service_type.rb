@@ -9,7 +9,6 @@
 module Types
   class HmisSchema::ServiceType < Types::BaseObject
     include Types::HmisSchema::HasHudMetadata
-    include Types::Admin::HasFormRules
 
     graphql_name 'ServiceType'
 
@@ -26,8 +25,8 @@ module Types
     field :hud_record_type, HmisSchema::Enums::Hud::RecordType, null: true
     field :hud_type_provided, HmisSchema::Enums::ServiceTypeProvided, null: true
     field :category, String, null: false
-    form_rules_field
     field :form_definitions, [Forms::FormDefinition], null: false, description: 'Definitions that are specified for this service type'
+
     # object is a Hmis::Hud::CustomServiceType
 
     def category
@@ -38,13 +37,6 @@ module Types
       return unless object.hud_service?
 
       [object.hud_record_type, object.hud_type_provided].join(':')
-    end
-
-    def form_rules(**args)
-      raise 'unauthorized' unless current_user.can_configure_data_collection?
-
-      scope = Hmis::Form::Instance.for_service_type(object.id)
-      resolve_form_rules(scope, **args)
     end
 
     def form_definitions

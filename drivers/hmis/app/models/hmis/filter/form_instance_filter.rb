@@ -14,8 +14,6 @@ class Hmis::Filter::FormInstanceFilter < Hmis::Filter::BaseFilter
       yield_self(&method(:for_project)).
       yield_self(&method(:with_active_status)).
       yield_self(&method(:with_system_status)).
-      yield_self(&method(:for_service_type)).
-      yield_self(&method(:for_service_category)).
       yield_self(&method(:clean_scope))
   end
 
@@ -47,18 +45,6 @@ class Hmis::Filter::FormInstanceFilter < Hmis::Filter::BaseFilter
       return scope.none unless project
 
       scope.for_project_through_entities(project)
-    end
-  end
-
-  def for_service_type(scope)
-    with_filter(scope, :service_type) do
-      scope.for_service_type(input.service_type)
-    end
-  end
-
-  def for_service_category(scope)
-    with_filter(scope, :service_category) do
-      scope.for_service_category(input.service_category)
     end
   end
 

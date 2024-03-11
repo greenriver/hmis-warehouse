@@ -18,8 +18,6 @@ module Types
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
       arg :applied_to_project, ID
       arg :definition, ID
-      arg :service_type, ID
-      arg :service_category, ID
     end
 
     field :id, ID, null: false
