@@ -254,7 +254,7 @@ module ClientAccessControl
     end
 
     def add_project_for_week(projects:, project:, she:, user:)
-      project_type = project.project_type_to_use
+      project_type = project&.project_type_to_use
       projects[she.id] ||= {
         project_id: project.id.to_s,
         project_name: project.name(user),
