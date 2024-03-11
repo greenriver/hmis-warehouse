@@ -51,11 +51,11 @@ module ClientSearch
           )
           where = conditions.reduce(:or)
         end
-      elsif text =~ /\Ahousehold:([-[:alnum:]]+)\z/
+      elsif text =~ /\Ahousehold:\s?([-[:alnum:]]+)\z/
         household_id = Regexp.last_match[1].gsub('-', '')
         client_ids = GrdaWarehouse::Hud::Enrollment.where(HouseholdID: household_id).joins(:client).pluck(sa[:id])
         where = sa[:id].in(client_ids)
-      elsif text =~ /\Aenrollment:([\d]+)\z/
+      elsif text =~ /\Aenrollment:\s?([\d]+)\z/
         enrollment_id = Regexp.last_match[1]
         client_ids = GrdaWarehouse::Hud::Enrollment.where(id: enrollment_id).joins(:client).pluck(sa[:id])
         where = sa[:id].in(client_ids)
