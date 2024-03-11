@@ -33,6 +33,7 @@ module HmisExternalApis::TcHmis::Importers
         Loaders::SpdatLoader,
         Loaders::HatLoader,
         Loaders::UhaLoader,
+        Loaders::CustomServicesLoader,
         Loaders::CriticalDocumentsCmLoader,
         Loaders::CaseManagementAssessmentLoader,
         Loaders::MhmrCaseManagementNoteLoader,
