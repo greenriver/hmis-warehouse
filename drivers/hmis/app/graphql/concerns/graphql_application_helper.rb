@@ -44,17 +44,17 @@ module GraphqlApplicationHelper
   # Include WIP enrollments. If there are multiple enrollments, choose the one with the older entry date.
   #
   # This is in this module because its shared between query and mutation code.
-  #
-  # !!WARNING!!: project_id and open_on_date are expected to be constant with respect to the resolved.
-  # Will have unexpected behavior if project_id/open_on_date are dynamic in the query.
   def load_open_enrollment_for_client(client, project_id:, open_on_date:)
-    load_ar_association(
+    # Load all visible enrollments for the client
+    enrollments = load_ar_association(
       client,
       :enrollments,
-      scope: Hmis::Hud::Enrollment.viewable_by(current_user).
-        with_project(project_id).
-        open_on_date(open_on_date).
-        order(entry_date: :desc, id: :asc), # tie-break on id for consistent behavior
-    ).last
+      scope: Hmis::Hud::Enrollment.viewable_by(current_user).preload(:client_project, :exit),
+    )
+
+    # Filter down by project and date
+    enrollments.filter do |en|
+      en.open_on_date?(open_on_date) && en.client_project.project_id.to_s == project_id
+    end.min_by { |e| [e.entry_date, e.id] }
   end
 end
