@@ -1,48 +1,17 @@
 module GraphqlMutationHelper
   extend ActiveSupport::Concern
-  include GraphqlApplicationHelper
 
-  def self.date_string_argument(name, description, **kwargs)
-    argument name, String, description, validates: { format: { with: /\d{4}-\d{2}-\d{2}/ } }, **kwargs
-  end
+  # This method checks to see if we have the permissions to perform the operation we're doing
+  def allowed?(record: nil, permissions: nil, authorize: nil)
+    # Default to true because if we didn't provide any permissions to check and no authorize proc, then we assume the action does not require authorization
+    allowed = true
 
-  # Override to create custom errors
-  def create_errors(_record, _input)
-    []
-  end
+    # If a record is present, it will check permissions_for? that record, otherwise it will check for global permissions
+    allowed = record ? current_user.permissions_for?(record, *permissions) : current_user.permissions?(*permissions) if permissions.present?
+    # If we provided an authorize proc, then use that to check permissions
+    allowed = authorize.call(record, current_user) if authorize.present?
 
-  # Default CRUD Create functionality
-  def default_create_record(cls, field_name:, id_field_name: nil, input:, exclude_default_fields: false, **auth_args)
-    return { errors: [HmisErrors::Error.new(field_name, :not_allowed)] } unless allowed?(**auth_args)
-
-    params = input.to_params
-
-    unless exclude_default_fields
-      params = params.merge(
-        data_source_id: hmis_user.data_source_id,
-        user_id: hmis_user.user_id,
-      )
-    end
-
-    params[id_field_name] = Hmis::Hud::Base.generate_uuid if id_field_name.present?
-
-    record = cls.new(params)
-
-    # check permissions_for here
-
-    errors = create_errors(record, input)
-
-    if record.valid?
-      record.save!
-    else
-      errors = record.errors
-      record = nil
-    end
-
-    {
-      field_name => record,
-      errors: errors,
-    }
+    allowed
   end
 
   # Default CRUD Delete functionality

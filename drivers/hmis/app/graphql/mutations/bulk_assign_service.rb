@@ -33,13 +33,15 @@ module Mutations
       Hmis::Hud::Service.transaction do
         clients.each do |client|
           # Look for Enrollment at the project that is open on the service date
-          enrollment = client.enrollments.
-            open_on_date(input.date_provided).
-            with_project(project.id).
-            order(entry_date: :desc, id: :asc).last # older entry date preferred
+          enrollment = load_open_enrollment_for_client(
+            client,
+            project_id: project.id,
+            open_on_date: input.date_provided,
+          )
 
           # If no Enrollment was found, create one
           unless enrollment
+            # fixme use data loader
             enrollment = Hmis::Hud::Enrollment.new(
               client: client,
               project: project,

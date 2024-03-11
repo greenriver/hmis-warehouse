@@ -192,20 +192,12 @@ module Types
       resolve_enrollments(scope, **args, dangerous_skip_permission_check: true)
     end
 
-    # Resolve the active enrollment for this client at the specified project on the specified date.
-    # Include WIP enrollments. If there are multiple enrollments, choose the one with the older entry date.
     def active_enrollment(project_id:, open_on_date:)
-      load_ar_association(
+      load_open_enrollment_for_client(
         object,
-        :enrollments,
-        # NOTE: ok to reference these variables in the scope because they are _expected_ to be
-        # constant with respect to the resolver. That is only true because of HOW we use the query (in Bulk Services).
-        # If we were to query for different projects for each client somehow (for example), this could have unexpected behavior.
-        scope: Hmis::Hud::Enrollment.viewable_by(current_user).
-          with_project(project_id).
-          open_on_date(open_on_date).
-          order(entry_date: :desc, id: :asc), # tie-break on id for consistent behavior
-      ).last
+        project_id: project_id,
+        open_on_date: open_on_date,
+      )
     end
 
     def income_benefits(**args)
