@@ -760,7 +760,10 @@ Rails.application.routes.draw do
       post :confirm
     end
 
-    resources :collections
+    resources :collections do
+      get :entities, on: :collection
+      patch :entities, on: :collection
+    end
 
     # TODO: START_ACL cleanup after ACL migration
     # resources :roles

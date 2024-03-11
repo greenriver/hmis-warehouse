@@ -1,6 +1,15 @@
 .row
-  .col-12
-    = f.input :name, disabled: @collection.must_exist?
+  .col-6
+    - if @collection.persisted?
+      = @collection.describe_type
+    - else
+      = f.input :collection_type, collection: Collection.available_collection_types, as: :select_two, required: true, inlude_blank: false
 .row
-  .col-12
-    = render 'viewable_entities', f: f
+  .col-6
+    = f.input :name, disabled: @collection.must_exist?
+    = f.input :description
+
+- if @collection.collection_type.present?
+  .row
+    .col-12
+      = render 'viewable_entities', f: f

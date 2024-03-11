@@ -1,0 +1,20 @@
+%h2 Projects Included (#{@collection.overall_project_count})
+.row
+  .col-sm
+    .card
+      .card-header.border-bottom
+        %h3 Data Sources
+        = link_to 'Add / Remove', entities_admin_collections_path(@collection), class: ['btn', 'btn-primary', 'btn-sm']
+      .card-body
+        .border-bottom
+          = @collection.project_count_from('Data Sources')
+        - if @collection.data_sources.exists?
+          - @collection.data_sources.each do |ds|
+            - slug = "ds_#{ds.id}"
+            - title = "#{ds.name} (#{ds.projects.size})"
+            - content_for "panel_collapse_content_#{slug}".to_sym do
+              - ds.projects.each do |project|
+                .project= project.ProjectName
+            = render 'common/panel_collapse', id: slug, title: title, content: "_#{slug}", wrapper_class: '', arrow_icon: 'icon-angle'
+        - else
+          .none-found No Data Sources

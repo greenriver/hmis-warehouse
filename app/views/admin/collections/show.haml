@@ -1,0 +1,43 @@
+- title = "Manage Collection: #{@collection.name}"
+- content_for :title, title
+
+= content_for :crumbs do
+  = link_to admin_collections_path do
+    &laquo; Manage Collections
+
+.o-page
+  .o-page__title
+    %h1= content_for :title
+
+.well
+  .row
+    .col-sm
+      %ul.list-unstyled
+        %li
+          %strong Collection Type:
+          = @collection.describe_type
+        %li
+          %strong Collection Name:
+          = @collection.name
+    .col-sm
+      .description-label
+        %strong Description
+      .description-text
+        - if @collection.description.present?
+          = @collection.description
+        - else
+          %i.text-muted
+            None Provided
+    .col-sm
+      .text-right
+        = link_to edit_admin_collection_path(@collection), class: ['btn', 'btn-sm', 'btn-secondary'] do
+          %i.icon-pencil
+          Edit
+- if @collection.collection_type.present?
+  - if @collection.collection_type == 'Projects'
+    = render 'projects'
+- elsif ! @collection.must_exist?
+  %p<
+    Legacy collection entities can be edited on the
+    = link_to 'Edit page', edit_admin_collection_path(@collection)
+    \.

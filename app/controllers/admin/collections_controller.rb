@@ -7,12 +7,15 @@
 module Admin
   class CollectionsController < ApplicationController
     before_action :require_can_edit_collections!
-    before_action :set_collection, only: [:edit, :update, :destroy]
+    before_action :set_collection, only: [:show, :edit, :update, :destroy]
     before_action :set_entities, only: [:new, :edit, :create, :update]
 
     def index
       @collections = collection_scope.order(:name)
       @pagy, @collections = pagy(@collections)
+    end
+
+    def show
     end
 
     def new
@@ -24,7 +27,7 @@ module Admin
       @collection.update(collection_params)
       @collection.set_viewables(viewable_params)
       @collection.save
-      respond_with(@collection, location: admin_collections_path)
+      respond_with(@collection, location: admin_collection_path(@collection))
     end
 
     def edit
@@ -50,6 +53,8 @@ module Admin
     private def collection_params
       params.require(:collection).permit(
         :name,
+        :description,
+        :collection_type,
         coc_codes: [],
       ).tap do |result|
         result[:coc_codes] ||= []

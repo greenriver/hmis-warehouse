@@ -80,6 +80,32 @@ class Collection < ApplicationRecord
     user_id.blank?
   end
 
+  def describe_type
+    return 'Any' if collection_type.blank?
+
+    collection_type
+  end
+
+  def self.available_collection_types
+    [
+      'Projects',
+      'Project Groups',
+      'Reports',
+      'Cohorts',
+    ].freeze
+  end
+
+  def overall_project_count
+    projects.count
+  end
+
+  def project_count_from(type)
+    case type
+    when 'Data Sources'
+      data_sources.count
+    end
+  end
+
   def add(users)
     self.users = (self.users + Array.wrap(users)).uniq
   end

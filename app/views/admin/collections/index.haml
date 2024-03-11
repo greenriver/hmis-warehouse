@@ -7,11 +7,13 @@
     = render partial: 'menus/admin_tabs'
   .alert.alert-info
     %i.icon-warning.mr-4
-    %p Collections can be used to assign access to particular sets of data.  Users are assigned groups and inherit data access from the group.  Roles are then assigned to users to grant access to sections of the warehouse.  When used in combination a user can be given access to a sub-set of warehouse data within a specified limited context.
-  .text-right
-    = link_to new_admin_collection_path, class: 'btn btn-primary mb-2' do
-      %span.icon-plus
-      Add Collection
+    %p
+      %strong Collections can be used to assign access to particular sets of data.
+      Users are assigned groups and inherit data access from the group.  Roles are then assigned to users to grant access to sections of the warehouse.  When used in combination a user can be given access to a sub-set of warehouse data within a specified limited context.
+
+  = link_to new_admin_collection_path, class: 'btn btn-primary mb-2' do
+    %span.icon-plus
+    Add a Collection
   - if @pagy.count.positive?
     = render 'common/pagination_top', item_name: 'group'
     .table-responsive
@@ -19,19 +21,27 @@
         %thead
           %tr
             %th Name
+            %th Type
+            %th Description
             %th.text-center Access Controls
             %th.text-center
               System Collection
               %i.icon-info{data: {toggle: :tooltip, title: 'System collections are automatically maintained, and cannot be removed.'}}
-            %th
+            %th Action
         %tbody
           - @collections.each do |collection|
             %tr
-              %td= link_to collection.name, edit_admin_collection_path(collection)
+              %td= link_to collection.name, admin_collection_path(collection)
+              %td= collection.describe_type
+              %td= collection.description
               %td.text-center= collection.access_controls.count
               %td.text-center= checkmark(collection.must_exist?, style: :svg)
               %td
-                - unless collection.access_controls.count.positive? || collection.must_exist?
+                - if collection.access_controls.count.positive? || collection.must_exist?
+                  .btn.btn-disabled.disabled.btn-sm
+                    %span.icon-cross
+                    Delete
+                - else
                   = link_to admin_collection_path(collection),  method: :delete, data: {confirm: "Would you really like to delete the collection #{collection.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do
                     %span.icon-cross
                     Delete
