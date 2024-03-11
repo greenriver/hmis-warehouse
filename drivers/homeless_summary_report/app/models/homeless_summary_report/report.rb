@@ -450,6 +450,8 @@ module HomelessSummaryReport
             spm_members = answer_members(report[:report], *cell)
             spm_members.each do |spm_member|
               hud_client = spm_member.client
+              next unless hud_client.present?
+
               detail_variant_name = "spm_#{household_category}__all"
               client_id = hud_client.id
               report_client = report_clients[client_id] || Client.new_with_default_values
