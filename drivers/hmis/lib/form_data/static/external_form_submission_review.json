@@ -22,7 +22,7 @@
       "link_id": "spam",
       "type": "BOOLEAN",
       "component": "CHECKBOX",
-      "text": "Spam",
+      "text": "Mark spam",
       "mapping": {
         "field_name": "spam"
       }
