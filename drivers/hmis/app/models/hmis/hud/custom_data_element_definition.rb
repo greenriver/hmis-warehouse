@@ -28,7 +28,7 @@ class Hmis::Hud::CustomDataElementDefinition < Hmis::Hud::Base
   belongs_to :custom_service_type, class_name: 'Hmis::Hud::CustomServiceType', optional: true
   has_many :values, class_name: 'Hmis::Hud::CustomDataElement', inverse_of: :data_element_definition, foreign_key: :data_element_definition_id
 
-  validate :validate_service_type
+  # validate :validate_service_type
 
   scope :for_type, ->(owner_type) do
     where(owner_type: owner_type)

@@ -85,3 +85,39 @@ task seed_e2e: [:environment, 'log:info_to_stdout'] do
   # Find or create ACL
   Hmis::AccessControl.where(role: role, access_group: access_group, user_group: user_group).first_or_create!
 end
+
+# rake driver:hmis:generate_custom_data_elements           # save CustomDataElements for all forms
+# rake driver:hmis:generate_custom_data_elements[SERVICE]  # save CustomDataElements for one role
+desc 'Generate Custom Data Elements by introspecting Form Definitions'
+task :generate_custom_data_elements, [:role] => [:environment, 'log:info_to_stdout'] do |_task, args|
+  role = args.role
+  custom_data_element_definitions = []
+  seen_keys = Set.new
+
+  definition_scope = Hmis::Form::Definition.non_static
+  definition_scope = definition_scope.with_role(role) if role.present?
+  puts "#{definition_scope.size} forms to process: #{definition_scope.map(&:identifier).join(', ')}"
+
+  definition_scope.order(:id).each do |definition|
+    # Skip any CDEDs that have already been processed
+    new_cdeds = definition.introspect_custom_data_elements.reject { |cded| seen_keys.include?(cded.key) }
+
+    # Add to seen_keys
+    new_cdeds.map(&:key).each { |key| seen_keys.add(key) }
+
+    custom_data_element_definitions << new_cdeds
+  end
+
+  custom_data_element_definitions.flatten!
+
+  new_cdeds = custom_data_element_definitions.reject(&:persisted?)
+  existing_cdeds = custom_data_element_definitions.select(&:persisted?)
+
+  Hmis::Hud::CustomDataElementDefinition.transaction do
+    existing_cdeds.each(&:save!)
+    new_cdeds.each(&:save!)
+  end
+
+  puts "Saved #{existing_cdeds.size} EXISTING keys: #{existing_cdeds.size > 50 ? 'truncated' : existing_cdeds.map(&:key)}"
+  puts "Saved #{new_cdeds.size} NEW keys: #{new_cdeds.map(&:key)}"
+end

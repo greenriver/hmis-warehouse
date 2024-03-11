@@ -443,4 +443,65 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   def project_and_enrollment_match(...)
     instances.map { |i| i.project_and_enrollment_match(...) }.compact.min_by(&:rank)
   end
+
+  # Find and/or initialize CustomDataElements that are collected by this form. Eventually this should be done as part of the
+  # Form Editor admin tool. For now, it is called by a rake task manually.
+  def introspect_custom_data_elements
+    owner_type = if ASSESSMENT_FORM_ROLES.include?(role.to_sym)
+      Hmis::Hud::CustomAssessment
+    else
+      FORM_ROLE_CONFIG.dig(role.to_sym, :owner_class)
+    end
+    raise "unable to determine owner class for form role: #{role}" unless owner_type
+
+    data_source = GrdaWarehouse::DataSource.hmis.first
+    hud_user_id = Hmis::Hud::User.system_user(data_source_id: data_source.id).UserID
+
+    cded_records = []
+    recur_traverse = lambda do |items|
+      items.each do |item|
+        # if item has children, recur into them first
+        recur_traverse.call(item.item) if item.item
+
+        # skip unless custom_field_key specified for this item
+        key = item.mapping&.custom_field_key
+        next unless key
+
+        # find CDED if it exists, or initialize a new one with defaults
+        cded = Hmis::Hud::CustomDataElementDefinition.where(key: key).first_or_initialize(
+          label: item.readonly_text || item.brief_text || item.text || key.humanize,
+          data_source_id: data_source.id,
+          UserID: hud_user_id,
+        )
+
+        field_type = case item.type
+        when 'STRING', 'TEXT', 'CHOICE', 'TIME_OF_DAY', 'OPEN_CHOICE'
+          'string'
+        when 'BOOLEAN'
+          'boolean'
+        when 'DATE'
+          'date'
+        when 'INTEGER'
+          'integer'
+        when 'CURRENCY'
+          'float'
+        when 'DISPLAY', 'GROUP'
+          raise "unexpected: custom_field_key on non-question item. form: #{identifier}, link_id: #{item.link_id}, key: #{key}"
+        else
+          # nil
+          raise "unable to determine cded type for #{item&.type} (#{key})"
+        end
+
+        # always update these values because they need to match the form in order for submission to work
+        cded.owner_type = owner_type
+        cded.field_type = field_type
+        cded.repeats = item.repeats || false
+
+        cded_records << cded
+      end
+    end
+
+    recur_traverse.call(definition_struct.item)
+    cded_records
+  end
 end
