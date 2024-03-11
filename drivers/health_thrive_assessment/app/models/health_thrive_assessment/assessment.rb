@@ -56,6 +56,9 @@ module HealthThriveAssessment
     after_save :record_housing_status
 
     def record_housing_status
+      # If we don't have a patient, or the assessment hasn't been completed, don't record the change
+      return unless patient.present? && completed?
+
       housing_status = if homeless?
         'Homeless'
       elsif at_risk?
@@ -63,7 +66,7 @@ module HealthThriveAssessment
       else
         'Housing with No Supports'
       end
-      patient&.record_housing_status(housing_status, on_date: completed_on.to_date)
+      patient.record_housing_status(housing_status, on_date: completed_on.to_date)
     end
 
     def positive_for_homelessness?
