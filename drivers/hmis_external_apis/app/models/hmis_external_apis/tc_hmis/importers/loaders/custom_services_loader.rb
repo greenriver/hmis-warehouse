@@ -33,7 +33,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     private def process_file(filename)
       create_service_types
-      rows = @reader.rows(filename: filename, header_row_number: 2, field_id_row_number: nil)
+      rows = @reader.rows(filename: filename, header_row_number: 2, field_id_row_number: nil).to_a
+      extrapolate_missing_enrollment_ids(rows)
 
       # services is an instance variable because it holds state that is updated by ar_import, and is needed in create_records
       @services = create_services(rows)
@@ -85,45 +86,67 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       cdes.delete_all
     end
 
+    def extrapolate_missing_enrollment_ids(rows)
+      # it would be better if we had project identifier instead of name
+      program_name_map = Hmis::Hud::Project.
+        where(data_source: data_source).
+        pluck(:ProjectName, :ProjectID).to_h
+
+      missing = {}
+      rows.each do |row|
+        next if row_enrollment_id(row)
+
+        personal_id = normalize_uuid(row.field_value('Participant Enterprise Identifier'))
+        date = parse_date(row.field_value(DATE_PROVIDED))
+        project_id = program_name_map[row.field_value('Program Name')]
+
+        next unless personal_id && date && project_id
+
+        missing[personal_id] ||= []
+        missing[personal_id] << [date, project_id, row]
+      end
+
+      Hmis::Hud::Client.where(data_source: data_source, personal_id: missing.keys).preload(enrollments: :exit).find_each do |client|
+        missing[client.personal_id].each do |date, project_id, row|
+          match = client.enrollments.detect { |e| e.project_id == project_id && (e.EntryDate <= date && (e.exit&.ExitDate.blank? || e.exit.ExitDate > date)) }
+          puts "assigning enrollment #{match.enrollment_id} to #{row.context}" if match
+          row.row[ENROLLMENT_ID] = match.enrollment_id if match
+        end
+      end
+    end
+
     private def create_services(rows)
       log_info('creating services')
-      expected = 0
-      actual = 0
+      expected = Set.new
 
       enrollments = Hmis::Hud::Enrollment.where(data_source_id: data_source.id).index_by(&:enrollment_id)
       service_type_ids = Hmis::Hud::CustomServiceType.where(data_source_id: data_source.id).pluck(:name, :id).to_h
 
       result = {}.tap do |services|
         rows.each do |row|
-          expected += 1
+          response_id = row.field_value(RESPONSE_ID, required: true)
+          expected.add(response_id)
 
-          row_field_value = row.field_value(TOUCHPOINT_NAME)
+          row_field_value = row.field_value(TOUCHPOINT_NAME, required: true)
           config = configs[row_field_value]
           if config.blank?
             log_skipped_row(row, field: TOUCHPOINT_NAME)
             next
           end
 
-          response_id = row.field_value(RESPONSE_ID)
-
           service_type = config[:service_type]
           service_type_id = service_type_ids[service_type]
           if service_type_id.blank?
             log_info("Service type configuration error: can't find #{service_type}!")
-            log_skipped_row(row, field: :service_type)
             next
           end
 
           row_field_value = row_enrollment_id(row)
-          next if row_field_value.blank? # enrollment id is blank
-
-          enrollment = enrollments[row_field_value]
+          enrollment = row_field_value ? enrollments[row_field_value] : nil
           if enrollment.blank?
             log_skipped_row(row, field: ENROLLMENT_ID)
             next
           end
-
-          actual += 1
 
           services[response_id] ||= service_class.new(
             CustomServiceID: generate_service_id(config, row),
@@ -150,7 +173,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           services[response_id][service_field[:key]] = value
         end
       end
-      log_processed_result(name: 'create services', expected: expected, actual: actual)
+      log_processed_result(name: 'create services', expected: expected.size, actual: result.size)
       result
     end
 
@@ -195,10 +218,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
           response_id = row.field_value(RESPONSE_ID, required: true)
           service = @services[response_id]
-          if service.blank?
-            log_skipped_row(row, field: RESPONSE_ID)
-            next
-          end
+          next if service.blank?
+
           actual += 1
 
           key = element[:key]
