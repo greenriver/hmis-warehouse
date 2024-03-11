@@ -761,8 +761,8 @@ Rails.application.routes.draw do
     end
 
     resources :collections do
-      get :entities, on: :collection
-      patch :entities, on: :collection
+      get :entities, on: :member
+      patch :entities, on: :member
     end
 
     # TODO: START_ACL cleanup after ACL migration

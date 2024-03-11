@@ -95,6 +95,29 @@ class Collection < ApplicationRecord
     ].freeze
   end
 
+  def clean_entity_type(key)
+    entity_types.keys.detect { |e| e == key.to_sym } || entity_types.keys.first
+  end
+
+  def entity_title(key)
+    entity_types[key.to_sym] || key
+  end
+
+  def partial_for(key)
+    "admin/collections/entities/#{clean_entity_type(key)}"
+  end
+
+  def entity_types
+    {
+      data_sources: 'Data Sources',
+      organizations: 'Organizations',
+      projects: 'Projects',
+      project_groups: 'Project Groups',
+      reports: 'Reports',
+      cohorts: 'Cohorts',
+    }.freeze
+  end
+
   def overall_project_count
     projects.count
   end

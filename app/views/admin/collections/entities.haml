@@ -1,0 +1,5 @@
+- entity_type = @collection.clean_entity_type(params[:entities])
+- title = "Manage: #{@collection.entity_title(entity_type)}"
+- content_for :modal_title, title
+= simple_form_for @collection, url: entities_admin_collection_path(@collection, entities: entity_type), method: :patch do |f|
+  = render @collection.partial_for(entity_type), entity_type: entity_type

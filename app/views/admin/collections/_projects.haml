@@ -4,7 +4,7 @@
     .card
       .card-header.border-bottom
         %h3 Data Sources
-        = link_to 'Add / Remove', entities_admin_collections_path(@collection), class: ['btn', 'btn-primary', 'btn-sm']
+        = link_to 'Add / Remove', entities_admin_collection_path(@collection, entities: :data_sources), class: ['btn', 'btn-primary', 'btn-sm']
       .card-body
         .border-bottom
           = @collection.project_count_from('Data Sources')

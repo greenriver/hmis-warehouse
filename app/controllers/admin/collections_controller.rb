@@ -7,7 +7,7 @@
 module Admin
   class CollectionsController < ApplicationController
     before_action :require_can_edit_collections!
-    before_action :set_collection, only: [:show, :edit, :update, :destroy]
+    before_action :set_collection, only: [:show, :edit, :update, :destroy, :entities]
     before_action :set_entities, only: [:new, :edit, :create, :update]
 
     def index
@@ -44,6 +44,9 @@ module Admin
     def destroy
       @collection.destroy
       redirect_to({ action: :index }, notice: "Collection #{@collection.name} removed.")
+    end
+
+    def entities
     end
 
     private def collection_scope
