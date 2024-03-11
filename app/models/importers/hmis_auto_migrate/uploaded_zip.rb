@@ -15,7 +15,8 @@ module Importers::HmisAutoMigrate
       deidentified: false,
       allowed_projects: false,
       file_path: 'tmp/hmis_import',
-      file_password: nil
+      file_password: nil,
+      project_cleanup: true
     )
       setup_notifier('HMIS Upload AutoMigrate Importer')
       @data_source_id = data_source_id
@@ -25,6 +26,7 @@ module Importers::HmisAutoMigrate
       @file_path = file_path
       @local_path = Dir.mktmpdir([file_path, @data_source_id.to_s])
       @file_password = file_password
+      @project_cleanup = project_cleanup
       @post_processor = if @allowed_projects
         ->(_) { replace_original_upload_file }
       else

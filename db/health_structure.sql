@@ -3636,6 +3636,39 @@ ALTER SEQUENCE public.hl7_value_set_codes_id_seq OWNED BY public.hl7_value_set_c
 
 
 --
+-- Name: housing_statuses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.housing_statuses (
+    id bigint NOT NULL,
+    patient_id bigint,
+    collected_on date,
+    status character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: housing_statuses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.housing_statuses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: housing_statuses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.housing_statuses_id_seq OWNED BY public.housing_statuses.id;
+
+
+--
 -- Name: hrsn_screenings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -6315,6 +6348,13 @@ ALTER TABLE ONLY public.hl7_value_set_codes ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: housing_statuses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.housing_statuses ALTER COLUMN id SET DEFAULT nextval('public.housing_statuses_id_seq'::regclass);
+
+
+--
 -- Name: hrsn_screenings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -7200,6 +7240,14 @@ ALTER TABLE ONLY public.health_qa_factory_factories
 
 ALTER TABLE ONLY public.hl7_value_set_codes
     ADD CONSTRAINT hl7_value_set_codes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: housing_statuses housing_statuses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.housing_statuses
+    ADD CONSTRAINT housing_statuses_pkey PRIMARY KEY (id);
 
 
 --
@@ -8260,6 +8308,13 @@ CREATE INDEX index_health_qa_factory_factories_on_patient_id ON public.health_qa
 
 
 --
+-- Name: index_housing_statuses_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_housing_statuses_on_patient_id ON public.housing_statuses USING btree (patient_id);
+
+
+--
 -- Name: index_hrsn_screenings_on_instrument; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -9219,6 +9274,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230726171015'),
 ('20230807201621'),
 ('20230814153918'),
-('20230816173812');
+('20230816173812'),
+('20240126184731');
 
 

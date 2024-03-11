@@ -5,7 +5,9 @@ RSpec.describe Health::Claim, type: :model do
   let!(:patient) { create(:patient) }
   let!(:ssm) { create(:ssm, patient_id: patient.id, housing_score: 1) }
   let!(:qa1) { create(:qualifying_activity, patient_id: patient.id, date_of_activity: Date.current, force_payable: true) }
-  let!(:qa2) { create(:qualifying_activity, patient_id: patient.id, date_of_activity: Date.current, activity: :sdoh_positive, force_payable: true) }
+  # QA2 is generated, so we retrieve it
+  # 2024-03-06 do not produce an SDoH QA if there is not previous housing status. so qa2 is nil
+  let!(:qa2) { Health::QualifyingActivity.find_by(date_of_activity: Date.current, activity: :sdoh_positive) }
   let!(:qa3) { create(:qualifying_activity, patient_id: patient.id, date_of_activity: Date.yesterday, force_payable: true) }
   let!(:qa4) { create(:qualifying_activity, patient_id: patient.id, date_of_activity: Date.yesterday, activity: :sdoh_positive, force_payable: true) }
   let!(:qa5) { create(:qualifying_activity, patient_id: patient.id, date_of_activity: Date.yesterday, mode_of_contact: :phone_call, force_payable: true) }

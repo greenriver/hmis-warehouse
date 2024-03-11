@@ -31,6 +31,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     protected
 
+    def ce_assessment_level
+      nil
+    end
+
     def validate_cde_configs
       seen_element_ids = Set.new
 
@@ -114,7 +118,17 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     # create synthetic form processors for imported touchpoints
+    # also link form processors to CE assessments if ce_assessment_level is present
     def create_form_processor_records(rows)
+      ce_assessments_by_date_and_enrollment_id = {}
+      if ce_assessment_level
+        ce_assessments_by_date_and_enrollment_id = Hmis::Hud::Assessment.hmis.
+          where(AssessmentLevel: ce_assessment_level).
+          order(DateUpdated: :asc, id: :asc). # order ensures we use the most recent one if there are duplicates on the same day
+          pluck(:AssessmentDate, :EnrollmentID, :id).
+          to_h { |ary| [[ary[0], ary[1]], ary[2]] }
+      end
+
       owner_id_by_row_id = model_class.where(data_source: data_source).pluck(:CustomAssessmentID, :id).to_h
       processor_model = Hmis::Form::FormProcessor
       records = []
@@ -122,9 +136,18 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         assessment_id = owner_id_by_row_id[row_assessment_id(row)]
         next unless assessment_id
 
+        ce_assessment_id = nil
+        if ce_assessment_level
+          ce_assessment_key = [row_assessment_date(row)&.to_date, row_enrollment_id(row)]
+          ce_assessment_id = ce_assessments_by_date_and_enrollment_id[ce_assessment_key] if ce_assessment_key.all?(&:present?)
+
+          log_info "#{row.context} could not locate a matching CE Assessment on date:\"#{ce_assessment_key[0]}\" for enrollment #{ce_assessment_key[1]}" if ce_assessment_id.nil?
+        end
+
         records << {
           custom_assessment_id: assessment_id,
           definition_id: form_definition.id,
+          ce_assessment_id: ce_assessment_id,
         }
       end
       ar_import(processor_model, records)
