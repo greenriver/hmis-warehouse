@@ -17,12 +17,11 @@ class Hmis::ProjectConfig < Hmis::HmisBase
     errors.add(:base, 'Specify exactly one of project, organization, and project type')
   end
 
-  def config_type = self.class.name
-
   AUTO_EXIT_CONFIG = 'Hmis::ProjectAutoExitConfig'.freeze
   AUTO_ENTER_CONFIG = 'Hmis::ProjectAutoEnterConfig'.freeze
   TYPE_OPTIONS = [AUTO_EXIT_CONFIG, AUTO_ENTER_CONFIG].freeze
   validates :type, inclusion: { in: TYPE_OPTIONS }
+
   validate :validate_config_options_json
 
   def validate_config_options_json
