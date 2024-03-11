@@ -148,7 +148,7 @@ module HudCodeGen
     json_file_path = "lib/data/#{year}_hud_lists.json"
     json_data = JSON.parse(File.read(json_file_path))
 
-    # TODO: is there a way to better skip these?
+    # Some codes are irrelevant to this transformation, we'll ignore them based on string comparison
     ignore_codes = ['List', '*', '(see note)']
     excel_file = Roo::Excelx.new(excel_file_path)
 
@@ -156,21 +156,30 @@ module HudCodeGen
     excel_data = {}.tap do |codes|
       # Sheet 0: CSV|DE#|Name|Type|List|Null|Notes|Validate
       # Pull from this sheet to get the names for each list of codes
+
+      # Verify headers in the sheet being processed match what is expected
+      raise 'Unexpected Sheet Headers' unless excel_file.sheet(0).row(1).eql?(['CSV', 'DE#', 'Name', 'Type', 'List', 'Null', 'Notes', 'Validate'])
+
       excel_file.sheet(0).each(code: 'List', name: 'Name') do |row|
         # Clean data coming in from excel
         code = clean_json_text(row[:code].to_s)
         list_name = clean_json_text(row[:name].to_s)
 
         # Only need rows that have referenced codes - not all data on this sheet utilizes a code list
-        unless code.blank? || ignore_codes.include?(code)
-          codes[code] ||= {}
-          (codes[code][:list_name] ||= []) << list_name
-        end
+        next if code.blank? || ignore_codes.include?(code)
+
+        codes[code] ||= { list_name: [] }
+        codes[code][:list_name] ||= []
+        codes[code][:list_name] << list_name
       end
       # Sheet 1: List|Value|Text
-      # This sheet does not have names for the lists, but it may include some that are note referenced in
+      # This sheet does not have names for the lists, but it may include some that are not referenced in
       # the first sheet. In this case, bring the code list in with a name "Unknown". These ones will need
       # to be manually checked and named.
+
+      # Verify headers in the sheet being processed match what is expected
+      raise 'Unexpected Sheet Headers' unless excel_file.sheet(1).row(1).eql?(['List', 'Value', 'Text'])
+
       excel_file.sheet(1).each(code: 'List', value: 'Value', text: 'Text') do |row|
         # Clean data coming in from excel
         code = clean_json_text(row[:code].to_s)
@@ -179,10 +188,11 @@ module HudCodeGen
         value = value.to_i if Integer(value, exception: false)
 
         # Skip header and blank rows if they exist
-        unless code.blank? || ignore_codes.include?(code)
-          codes[code] ||= { list_name: ['Unknown'] }
-          (codes[code][:values] ||= {})[value] = text
-        end
+        next if code.blank? || ignore_codes.include?(code)
+
+        codes[code] ||= { list_name: ['Unknown'], values: {} }
+        codes[code][:values] ||= {}
+        codes[code][:values][value] = text
       end
     end
 
@@ -244,6 +254,9 @@ module HudCodeGen
   end
 
   private def clean_json_text(str)
-    str.strip.delete("\u00A0")
+    str = str.strip.delete("\u00A0").
+      gsub(/\u2019/, "'"). # replace the character U+2019 "’" could be confused with the ASCII character U+0027 "'",
+      gsub(/\u2013/, '-')  # replace the character U+2013 "–" with the ASCII character U+002d "-"
+    str
   end
 end
