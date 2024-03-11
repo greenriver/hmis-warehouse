@@ -217,6 +217,7 @@ module HudSpmReport::Generators::Fy2023
       @reports ||= {}
 
       # prevent retrying reports that don't have any projects
+      # Return a string to indicate this cell has been processed
       return '' if @attempted.include?(section) && @reports[section].nil?
 
       dq_report = case section

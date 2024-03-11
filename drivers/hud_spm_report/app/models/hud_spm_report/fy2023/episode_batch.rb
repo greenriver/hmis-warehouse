@@ -80,6 +80,8 @@ module HudSpmReport::Fy2023
     end
 
     # The associations seem to make imports run one at a time, so, they are passed separately in parallel arrays
+    # NOTE: `_bed_nights` are not currently in use in the UI, but might want to be enabled sometime in the future
+    # to expose supporting data
     private def save_episodes!(episodes, _bed_nights, enrollment_links)
       # Import the episodes
       results = Episode.import!(episodes)

@@ -158,6 +158,8 @@ module HudSpmReport::Fy2023
               map.with_index do |date, i|
                 next unless date.between?(first_night, last_night)
 
+                # return a triple [enrollment, id, date], using the index in place of the id so we don't need to load
+                # it from the DB (middle item needs to be unique within the enrollment)
                 [enrollment, i, date]
               end.compact.group_by(&:last).
               transform_values { |v| Array.wrap(v).last }, # Unique by date
