@@ -239,6 +239,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     ].each do |desc, input, match|
       it "should search custom client names by #{desc}" do
         response, result = post_graphql(input: input) { query }
+
+        sleep(0.01) # sleep for some funky test failures(?)
         aggregate_failures 'checking response' do
           expect(response.status).to eq(200), result.inspect
           clients = result.dig('data', 'clientSearch', 'nodes')
