@@ -17,7 +17,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :organization, **hmis_relation(:OrganizationID, 'Organization')
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :projects
+  belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :projects
 
   # Affiliations to residential projects. This should only be present if this project is SSO or RRH Services Only.
   has_many :affiliations, **hmis_relation(:ProjectID, 'Affiliation'), inverse_of: :project

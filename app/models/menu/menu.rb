@@ -21,17 +21,17 @@ class Menu::Menu
       menu << health_menu
       menu << data_menu
       menu << warehouse_admin_menu
-      menu << hmis_admin_menu
       menu << health_admin_menu
-      hmis_menu.each do |item|
-        menu << item
-      end
+      menu << hmis_admin_menu
       menu << support_menu
       links_menu.each do |item|
         menu << item
       end
       menu << style_guide_menu unless Rails.env.production?
       menu << account_menu
+      hmis_menu.each do |item|
+        menu << item
+      end
     end
   end
 
@@ -523,10 +523,10 @@ class Menu::Menu
     GrdaWarehouse::DataSource.hmis.distinct.map do |hmis_ds|
       Menu::Item.new(
         user: user,
-        visible: ->(_user) { HmisEnforcement.hmis_enabled? },
+        visible: ->(user) { user.any_hmis_access? },
         path: "//#{hmis_ds.hmis}",
-        title: Translation.translate('HMIS'),
-        icon: 'icon-house',
+        title: Translation.translate('Open HMIS'),
+        icon: 'icon-link-ext',
         target: :_blank,
       )
     end

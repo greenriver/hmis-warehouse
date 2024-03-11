@@ -22,6 +22,8 @@ module HudSpmReport::Fy2023
       enrollment_links_per_episode = []
       client_ids.each do |client_id|
         client = enrollments_for_clients[client_id].first.client
+        next unless client.present?
+
         episode_calculations = HudSpmReport::Fy2023::Episode.new(client: client, report: @report, filter: @filter).
           compute_episode(
             enrollments_for_clients[client_id],
@@ -64,7 +66,7 @@ module HudSpmReport::Fy2023
         end
       end
       # Import the associations
-      BedNight.import!(bed_nights.flatten)
+      # BedNight.import!(bed_nights.flatten) # Disabled to avoid database growth in production
       EnrollmentLink.import!(enrollment_links.flatten)
     end
   end
