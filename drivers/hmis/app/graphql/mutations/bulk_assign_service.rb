@@ -41,7 +41,6 @@ module Mutations
 
           # If no Enrollment was found, create one
           unless enrollment
-            # fixme use data loader
             enrollment = Hmis::Hud::Enrollment.new(
               client: client,
               project: project,
