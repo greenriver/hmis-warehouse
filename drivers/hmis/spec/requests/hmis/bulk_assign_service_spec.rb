@@ -116,26 +116,26 @@ RSpec.describe 'BulkAssignService', type: :request do
   describe 'failure scenarios' do
     it 'fails if user lacks can_view_project' do
       remove_permissions(access_control, :can_view_project)
-      expect_gql_error(perform_mutation, message: 'access denied')
+      expect_access_denied perform_mutation
     end
 
     it 'fails if user lacks can_edit_enrollments' do
       remove_permissions(access_control, :can_edit_enrollments)
-      expect_gql_error(perform_mutation, message: 'access denied')
+      expect_access_denied perform_mutation
     end
 
     it 'fails if user lacks can_view_clients' do
       remove_permissions(access_control, :can_view_clients)
-      expect_gql_error(perform_mutation, message: 'access denied')
+      expect_access_denied perform_mutation
     end
 
     it 'fails if user lacks can_enroll_clients' do
       remove_permissions(access_control, :can_enroll_clients)
-      expect_gql_error(perform_mutation, message: 'access denied')
+      expect_access_denied perform_mutation
     end
 
     it 'fails if client ids are not found' do
-      expect_gql_error(perform_mutation(client_ids: [c1.id, '23423']), message: 'access denied')
+      expect_access_denied perform_mutation(client_ids: [c1.id, '23423'])
     end
 
     it 'fails if project has units and they are all occupied' do
