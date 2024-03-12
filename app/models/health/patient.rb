@@ -142,7 +142,7 @@ module Health
     #
     # Note that this is often called in an after_save hook, so care needs to be take not to create cycles
     def record_housing_status(status, on_date: Date.current)
-      return unless status.present?
+      return unless status.present? && on_date.present?
 
       prior_housing_status = recent_housing_status
       housing_status = if prior_housing_status&.collected_on == on_date
@@ -154,7 +154,7 @@ module Health
         housing_statuses.create(collected_on: on_date, status: status)
       end
 
-      generate_daily_hrsn_qa(housing_status) if prior_housing_status.present?
+      generate_daily_hrsn_qa(housing_status) if prior_housing_status.present? && on_date > '2024-03-01'.to_date
       housing_status
     end
 
@@ -165,6 +165,7 @@ module Health
       return unless housing_status.positive_for_homelessness? && previous_status.present? && ! previous_status.positive_for_homelessness? # Only record no -> yes
 
       return if Health::QualifyingActivity.find_by(date_of_activity: housing_status.collected_on, activity: :sdoh_positive).present? # Don't duplicate QAs
+      return if housing_status.collected_on < Health::QualifyingActivityV2::EFFECTIVE_DATE_RANGE.first # SDoH QAs added in CP 2.0
 
       user = User.system_user # Mark created QAs as from the system
       ::Health::QualifyingActivity.create!(
