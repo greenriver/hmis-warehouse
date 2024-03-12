@@ -19,6 +19,14 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       super && @reader.glob(FILENAME_PATTERN).any?
     end
 
+    def row_date_provided(row)
+      parse_date(row.field_value(DATE_PROVIDED))
+    end
+
+    def row_personal_id(row)
+      normalize_uuid(row.field_value('Participant Enterprise Identifier'))
+    end
+
     def perform
       if clobber
         @reader.glob(FILENAME_PATTERN).each do |filename|
@@ -34,7 +42,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     private def process_file(filename)
       create_service_types
       rows = @reader.rows(filename: filename, header_row_number: 2, field_id_row_number: nil).to_a
-      extrapolate_missing_enrollment_ids(rows)
+      extrapolate_missing_enrollment_ids(rows, enrollment_id_field: ENROLLMENT_ID)
 
       # services is an instance variable because it holds state that is updated by ar_import, and is needed in create_records
       @services = create_services(rows)
@@ -42,12 +50,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
       cdes = create_records(rows)
       ar_import(cde_class, cdes)
-    end
-
-    private def placeholder_service_category
-      @placeholder_service_category ||= Hmis::Hud::CustomServiceCategory.where(data_source: data_source, name: 'placeholder service category').first_or_create! do |cat|
-        cat.UserID = system_hud_user.id
-      end
     end
 
     private def create_service_types
@@ -84,35 +86,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
       cdes = cde_class.where(owner_type: service_class.name, owner_id: rails_service_ids)
       cdes.delete_all
-    end
-
-    def extrapolate_missing_enrollment_ids(rows)
-      # it would be better if we had project identifier instead of name
-      program_name_map = Hmis::Hud::Project.
-        where(data_source: data_source).
-        pluck(:ProjectName, :ProjectID).to_h
-
-      missing = {}
-      rows.each do |row|
-        next if row_enrollment_id(row)
-
-        personal_id = normalize_uuid(row.field_value('Participant Enterprise Identifier'))
-        date = parse_date(row.field_value(DATE_PROVIDED))
-        project_id = program_name_map[row.field_value('Program Name')]
-
-        next unless personal_id && date && project_id
-
-        missing[personal_id] ||= []
-        missing[personal_id] << [date, project_id, row]
-      end
-
-      Hmis::Hud::Client.where(data_source: data_source, personal_id: missing.keys).preload(enrollments: :exit).find_each do |client|
-        missing[client.personal_id].each do |date, project_id, row|
-          match = client.enrollments.detect { |e| e.project_id == project_id && (e.EntryDate <= date && (e.exit&.ExitDate.blank? || e.exit.ExitDate > date)) }
-          puts "assigning enrollment #{match.enrollment_id} to #{row.context}" if match
-          row.row[ENROLLMENT_ID] = match.enrollment_id if match
-        end
-      end
     end
 
     private def create_services(rows)
@@ -153,7 +126,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             EnrollmentID: enrollment.EnrollmentID,
             PersonalID: enrollment.PersonalID,
             UserID: system_hud_user.id,
-            DateProvided: parse_date(row.field_value(DATE_PROVIDED)),
+            DateProvided: row_date_provided(row),
             data_source_id: data_source.id,
             custom_service_type_id: service_type_id,
             service_name: service_type,

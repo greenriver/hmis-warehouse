@@ -158,6 +158,42 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       self.class.name
     end
 
+    def placeholder_service_category
+      @placeholder_service_category ||= Hmis::Hud::CustomServiceCategory.where(data_source: data_source, name: 'placeholder service category').first_or_create! do |cat|
+        cat.UserID = system_hud_user.id
+      end
+    end
+
+    def extrapolate_missing_enrollment_ids(rows, enrollment_id_field:)
+      raise 'array expected' unless rows.is_a?(Array)
+
+      # it would be better if we had project identifier instead of name
+      program_name_map = Hmis::Hud::Project.
+        where(data_source: data_source).
+        pluck(:ProjectName, :ProjectID).to_h
+
+      missing = {}
+      rows.each do |row|
+        next if row_enrollment_id(row)
+
+        personal_id = row_personal_id(row)
+        date = row_date_provided(row)
+        project_id = program_name_map[row.field_value('Program Name')]
+
+        next unless personal_id && date && project_id
+
+        missing[personal_id] ||= []
+        missing[personal_id] << [date, project_id, row]
+      end
+
+      Hmis::Hud::Client.where(data_source: data_source, personal_id: missing.keys).preload(enrollments: :exit).find_each do |client|
+        missing[client.personal_id].each do |date, project_id, row|
+          match = client.enrollments.detect { |e| e.project_id == project_id && (e.EntryDate <= date && (e.exit&.ExitDate.blank? || e.exit.ExitDate > date)) }
+          row.row[enrollment_id_field] = match.enrollment_id if match
+        end
+      end
+    end
+
     # some record sets can't be bulk inserted. Disabling paper trial reduces runtime when
     # we have to fallback to individual inserts
     def without_paper_trail
