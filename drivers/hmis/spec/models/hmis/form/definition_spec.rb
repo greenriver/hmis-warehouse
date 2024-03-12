@@ -129,6 +129,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     it 'should error if form has active instance' do
       expect(fd1.instances).to contain_exactly(fi1)
 
+      # not allowed because this form might be actively in use
       expect { fd1.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
     end
 
@@ -136,6 +137,23 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       fi1.update(active: false)
       expect(fd1.instances).to contain_exactly(fi1)
 
+      # not allowed because historical data may use this form
+      expect { fd1.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
+    end
+
+    # Note: Maybe in the future we want to support deleting old versions of FormDefinitions.
+    # For now we restrict deleting the FormDefinition if there is ANY Form Instance referencing it via `identifier.`
+    it 'should error if form has instances, even if there are newer versions of this form' do
+      new_fd_version = fd1.dup
+      new_fd_version.version = fd1.version + 1
+      new_fd_version.save!
+
+      # the form instance points to both form definitions, by identifier
+      expect(fi1.definition_identifier).to eq(fd1.identifier)
+      expect(fi1.definition_identifier).to eq(new_fd_version.identifier)
+
+      # cant delete either form because the newer one is in use
+      expect { new_fd_version.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
       expect { fd1.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
     end
 
