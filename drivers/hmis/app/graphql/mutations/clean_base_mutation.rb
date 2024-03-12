@@ -7,7 +7,9 @@
 # avoid pollution from relay
 module Mutations
   class CleanBaseMutation < GraphQL::Schema::Mutation
-    include ::GraphqlMutationHelper
+    include GraphqlApplicationHelper
+    include GraphqlMutationHelper
+
     field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def current_user

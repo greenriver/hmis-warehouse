@@ -151,7 +151,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should warn if WIP enrollment' do
-    e3.save_in_progress
+    e3.save_in_progress!
     response, result = post_graphql(input: test_input.merge(confirmed: false)) { mutation }
 
     aggregate_failures 'checking response' do
