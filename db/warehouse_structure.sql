@@ -17158,7 +17158,8 @@ CREATE TABLE public.hmis_form_definitions (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     title character varying NOT NULL,
-    external_form_object_key character varying
+    external_form_object_key character varying,
+    deleted_at timestamp without time zone
 );
 
 
@@ -60933,6 +60934,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240223002628'),
 ('20240228192937'),
 ('20240229132014'),
-('20240304181225');
+('20240304181225'),
+('20240312153543');
 
 
