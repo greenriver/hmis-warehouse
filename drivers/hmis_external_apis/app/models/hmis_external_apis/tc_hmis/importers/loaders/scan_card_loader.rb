@@ -27,7 +27,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def perform
-      Hmis::ScanCardCode.with_deleted.each(&:really_destroy!) if clobber
+      Hmis::ScanCardCode.with_deleted.delete_all if clobber
 
       actual = 0
       expected = 0
@@ -36,11 +36,16 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
       rows = reader.rows(filename: filename)
       rows.each do |row|
+        expected += 1
+
         case_number = row.field_value_by_id('Case Number')
         next unless case_number && case_number.length > 1
-        next unless case_number.starts_with?('P') # not expected, file should already filter them out
 
-        expected += 1
+        if !case_number.starts_with?('P')
+          # not expected, the report should already filter them out
+          log_skipped_row(row, field: 'Case Number')
+          next
+        end
 
         personal_id = normalize_uuid(row.field_value_by_id('Participant Enterprise Identifier'))
         next unless personal_id
