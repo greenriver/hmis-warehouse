@@ -265,7 +265,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   end
 
   def uniq_coc_codes
-    @uniq_coc_codes ||= project_cocs.pluck(:CoCCode).uniq.compact_blank
+    @uniq_coc_codes ||= project_cocs.pluck(:CoCCode).uniq.compact_blank.sort
   end
 
   include RailsDrivers::Extensions
