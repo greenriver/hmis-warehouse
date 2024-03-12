@@ -208,8 +208,7 @@ module Types
       instances = Hmis::Form::Instance.with_role(:EXTERNAL_FORM).active.where(entity: object)
       scope = HmisExternalApis::ExternalForms::FormSubmission.
         joins(:definition).
-        where(definition: { identifier: instances.select(:definition_identifier) }).
-        order(submitted_at: :desc)
+        where(definition: { identifier: instances.select(:definition_identifier) })
 
       form_definition_identifier = args.delete(:form_definition_identifier)
       scope = scope.where(definition: { identifier: form_definition_identifier }) if form_definition_identifier
