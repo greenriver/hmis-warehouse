@@ -18,7 +18,7 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       puts "Starting SPM Data Lab TestKit #{Time.current}"
       setup
       puts "Setup Done for SPM Data Lab TestKit #{Time.current}"
-      # run(default_spm_filter, HudSpmReport::Generators::Fy2023::Generator.questions.keys.grep(/Measure 1/))
+      # run(default_spm_filter, HudSpmReport::Generators::Fy2023::Generator.questions.keys.grep(/Measure 2/))
       run(default_spm_filter, HudSpmReport::Generators::Fy2023::Generator.questions.keys)
       puts "Finished SPM Run Data Lab TestKit #{Time.current}"
     end
@@ -60,10 +60,12 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       )
     end
 
+    # Pending https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec6i2GNIRlWPOF1K
     xit 'Measure 2' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: '2a and 2b',
+        # counts of clients in B2 E2 G2 match
       )
     end
 
@@ -175,11 +177,6 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: '7a.1',
-        skip: [
-          'C2',
-          'C3',
-          'C4',
-        ],
       )
     end
 
@@ -201,11 +198,6 @@ RSpec.describe 'Datalab Testkit SPM All-Projects', type: :model do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: '7b.2',
-        skip: [
-          'C2',
-          'C3',
-          'C4',
-        ],
       )
     end
   else

@@ -31,13 +31,12 @@ window.App.WarehouseReports.PerformanceDashboards.HorizontalBar = class Horizont
 
   _build_chart() {
     if ($(this.chart_selector).length > 0) {
-      const self = this
+      const self = this;
       this.options = $(this.chart_selector).data('chart').options;
       this.categories = $(this.chart_selector).data('chart').categories;
       if (this.truncate_labels > 0) {
         // this.categories = this.categories.map(c => c.substring(0, this.truncate_labels))
         this.categories = this.categories.map(c => {
-          separator = ' '
           if (c.length <= this.truncate_labels) return c;
           return c.substr(0, c.lastIndexOf(' ', this.truncate_labels)) + '...';
         })
