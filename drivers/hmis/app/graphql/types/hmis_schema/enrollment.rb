@@ -89,6 +89,9 @@ module Types
     summary_field :move_in_date, GraphQL::Types::ISO8601Date, null: true
     summary_field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
 
+    field :last_service_date, GraphQL::Types::ISO8601Date, null: true do
+      argument :service_type_id, ID, required: true
+    end
     # Override permission requirement for the access object. This is necessary so the frontend
     # knows whether its safe to link to the full enrollment dashboard for a given enrollment.
     access_field permissions: nil do
@@ -265,10 +268,16 @@ module Types
       Hmis::Reminders::ReminderGenerator.perform(project: project, enrollments: enrollments)
     end
 
-    def last_bed_night_date
-      return unless project.project_type == 1
+    def last_service_date(service_type_id:)
+      load_ar_association(object, :hmis_services).
+        filter { |s| s.custom_service_type_id&.to_s == service_type_id }.
+        max_by(&:DateProvided)&.DateProvided
+    end
 
-      load_ar_association(object, :bed_nights).map(&:date_provided).max
+    def last_bed_night_date
+      load_ar_association(object, :services).
+        filter { |s| s.record_type == 200 }. # Bed Night
+        max_by(&:DateProvided)&.DateProvided
     end
 
     def project
