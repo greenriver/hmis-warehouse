@@ -71,7 +71,7 @@ module HealthQaFactory
         )
       end
 
-      return if Health::QualifyingActivity.find_by(date_of_activity: qa.date_of_activity, activity: qa.activity).present? # Don't duplicate QAs
+      return if ::Health::QualifyingActivity.find_by(date_of_activity: qa.date_of_activity, activity: qa.activity).present? # Don't duplicate QAs
 
       qa.save
 

@@ -68,6 +68,14 @@ module HudApr::Dq::DqConcern
       super
     end
 
+    def generator
+      @generator ||= possible_generator_classes[report_version]
+    end
+
+    private def set_question
+      @question = generator.valid_question_number(params[:question] || params[:id])
+    end
+
     def available_report_versions
       {
         'FY 2020' => { slug: :fy2020, active: false },
