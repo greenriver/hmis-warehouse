@@ -25,13 +25,19 @@
 #     User-facing title of the form definition
 class Hmis::Form::Definition < ::GrdaWarehouseBase
   self.table_name = :hmis_form_definitions
+  acts_as_paranoid
+
+  # There is no need to track the JSON blob, because form should be immutable once they are managed through the Form Editor config tool.
+  # When changes are needed, they will be applied to a duplicated Hmis::Form::Definition with a bumped `version`.
+  has_paper_trail skip: [:definition] # skip controls whether paper_trail will save that field with the version record
+
   include Hmis::Hud::Concerns::HasEnums
 
   # convenience attr for passing graphql args
   attr_accessor :filter_context
 
-  has_many :instances, foreign_key: :definition_identifier, primary_key: :identifier
-  has_many :form_processors
+  has_many :instances, foreign_key: :definition_identifier, primary_key: :identifier, dependent: :restrict_with_exception
+  has_many :form_processors, dependent: :restrict_with_exception
   has_many :custom_service_types, through: :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
 
   # Forms that are used for Assessments. These are submitted using SubmitAssessment mutation.
