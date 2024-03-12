@@ -167,5 +167,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       rate = expected.zero? ? 0 : (actual.to_f / expected).round(3)
       log_info("processed #{name}: #{actual} of #{expected} records (#{((1.0 - rate) * 100).round(2)}% skipped)")
     end
+
+    def normalize_uuid(str)
+      str&.gsub(/[^a-z0-9]/i, '')&.upcase
+    end
   end
 end

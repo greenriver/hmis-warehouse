@@ -42,7 +42,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
         expected += 1
 
-        personal_id = row.field_value_by_id('Participant Enterprise Identifier')&.gsub(/-/, '')
+        personal_id = normalize_uuid(row.field_value_by_id('Participant Enterprise Identifier'))
         next unless personal_id
 
         # Couldn't find a match for this PersonalID. Log and skip.
