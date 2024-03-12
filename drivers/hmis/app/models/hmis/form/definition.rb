@@ -29,7 +29,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   # There is no need to track the JSON blob, because form should be immutable once they are managed through the Form Editor config tool.
   # When changes are needed, they will be applied to a duplicated Hmis::Form::Definition with a bumped `version`.
-  has_paper_trail skip: [:definition] # skip controls whether paper_trail will save that field with the version record
+  has_paper_trail(
+    version: :paper_version, # dont conflict with `version` column. will this break something? https://github.com/paper-trail-gem/paper_trail#6-extensibility
+    skip: [:definition], # skip controls whether paper_trail will save that field with the version record
+  )
 
   include Hmis::Hud::Concerns::HasEnums
 

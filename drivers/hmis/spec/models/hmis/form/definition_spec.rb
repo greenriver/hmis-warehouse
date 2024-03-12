@@ -124,4 +124,35 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       expect(Hmis::Form::Definition.find_definition_for_service_type(cst1, project: p3)).to eq(fd2)
     end
   end
+
+  describe 'deletion' do
+    it 'should error if form has active instance' do
+      expect(fd1.instances).to contain_exactly(fi1)
+
+      expect { fd1.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
+    end
+
+    it 'should error if form has inactive instance' do
+      fi1.update(active: false)
+      expect(fd1.instances).to contain_exactly(fi1)
+
+      expect { fd1.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
+    end
+
+    it 'should succeed if form has no instances' do
+      fi1.delete
+      expect(fd1.instances).to be_empty
+
+      fd1.destroy!
+
+      expect(fd1.deleted_at).to be_present
+    end
+
+    it 'should error if there are form processors linked to this form' do
+      assessment = create(:hmis_custom_assessment, data_source: ds1, definition: fd1)
+      expect(fd1.form_processors).to contain_exactly(assessment.form_processor)
+
+      expect { fd1.destroy! }.to raise_error(ActiveRecord::DeleteRestrictionError)
+    end
+  end
 end
