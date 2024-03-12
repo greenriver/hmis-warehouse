@@ -29,7 +29,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def perform
       Hmis::ScanCardCode.with_deleted.each(&:really_destroy!) if clobber
 
-      # random_personal_ids = Hmis::Hud::Client.hmis.pluck(:personal_id).first(100)
       actual = 0
       expected = 0
       scan_cards = []
@@ -37,12 +36,13 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
       rows = reader.rows(filename: filename)
       rows.each do |row|
-        expected += 1
-        case_number = row.field_value('Case Number')
+        case_number = row.field_value_by_id('Case Number')
         next unless case_number && case_number.length > 1
         next unless case_number.starts_with?('P') # not expected, file should already filter them out
 
-        personal_id = row.field_value('Participant Enterprise Identifier')&.gsub(/-/, '')
+        expected += 1
+
+        personal_id = row.field_value_by_id('Participant Enterprise Identifier')&.gsub(/-/, '')
         next unless personal_id
 
         # Couldn't find a match for this PersonalID. Log and skip.
@@ -53,14 +53,14 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         end
 
         # If we already generated a ScanCardCode with this code, skip. Scan card codes must be unique.
-        if unique_codes.includes?(case_number)
+        if unique_codes.include?(case_number)
           log_info "#{row.context} code is not unique \"#{case_number}\""
           next
         end
 
         actual += 1
         unique_codes.add(case_number)
-        timestamp = parse_date(row.field_value('Date Last Updated')) || @now
+        timestamp = parse_date(row.field_value_by_id('Date Last Updated')) || @now
         scan_cards << Hmis::ScanCardCode.new(
           client_id: client_id,
           value: case_number,
