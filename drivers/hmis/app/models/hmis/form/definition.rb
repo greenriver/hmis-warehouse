@@ -494,7 +494,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
         when 'CURRENCY'
           'float'
         when 'DISPLAY', 'GROUP'
-          raise "unexpected: custom_field_key on non-question item. form: #{identifier}, link_id: #{item.link_id}, key: #{key}"
+          puts "Skipping unexpected custom_field_key on non-question item. Unable to determine type. form: #{identifier}, link_id: #{item.link_id}, key: #{key}"
+          next
         else
           # nil
           raise "unable to determine cded type for #{item&.type} (#{key})"

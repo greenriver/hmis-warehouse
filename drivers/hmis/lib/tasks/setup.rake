@@ -124,7 +124,7 @@ task :generate_custom_data_elements, [:role, :dry_run] => [:environment, 'log:in
     puts "Found #{existing_cdeds.size} EXISTING keys"
     puts "Found #{new_cdeds.size} NEW keys"
     new_cdeds.each do |r|
-      puts "   Key: #{r.key}, Field Types: #{r.field_type}, Label: #{r.label}, Owner: #{r.owner_type}"
+      puts "   #{r.owner_type}; #{r.key}; #{r.field_type}; #{r.label}"
     end
     puts 'Exiting without saving.'
     next
