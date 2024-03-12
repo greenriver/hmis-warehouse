@@ -46,10 +46,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       enrollment.update(household_id: assessment1.enrollment.household_id, project_id: project.project_id)
 
       # Save enrollment as WIP
-      if role == :INTAKE
-        enrollment.build_wip(client: enrollment.client, date: enrollment.entry_date, project_id: project.id)
-        enrollment.save_in_progress
-      end
+      enrollment.save_in_progress! if role == :INTAKE
 
       definition = Hmis::Form::Definition.find_by(role: role)
       raise "No definition for role #{role}" unless definition.present?
