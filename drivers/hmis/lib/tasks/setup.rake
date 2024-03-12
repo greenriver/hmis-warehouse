@@ -86,7 +86,7 @@ task seed_e2e: [:environment, 'log:info_to_stdout'] do
   Hmis::AccessControl.where(role: role, access_group: access_group, user_group: user_group).first_or_create!
 end
 
-# rake driver:hmis:generate_custom_data_elements[ALL,true] # dry-run generate CustomDataElements for all forms (dont save changes)
+# rake driver:hmis:generate_custom_data_elements[ALL,true] # dry-run generate CustomDataElements for all forms (no save)
 # rake driver:hmis:generate_custom_data_elements[ALL]      # save CustomDataElements for all forms
 # rake driver:hmis:generate_custom_data_elements[SERVICE]  # save CustomDataElements for one role
 desc 'Generate Custom Data Elements by introspecting Form Definitions'
@@ -102,7 +102,7 @@ task :generate_custom_data_elements, [:role, :dry_run] => [:environment, 'log:in
 
   definition_scope = Hmis::Form::Definition.non_static
   definition_scope = definition_scope.with_role(role) if role != 'ALL'
-  puts "#{definition_scope.size} forms to process: #{definition_scope.map(&:identifier).join(', ')}"
+  puts "#{definition_scope.size} forms to process: #{definition_scope.map(&:identifier).join(', ')}\n\n"
 
   definition_scope.order(:id).each do |definition|
     # Skip any CDEDs that have already been processed
@@ -125,6 +125,7 @@ task :generate_custom_data_elements, [:role, :dry_run] => [:environment, 'log:in
     new_cdeds.each do |r|
       puts "   Key: #{r.key}, Field Types: #{r.field_type}, Label: #{r.label}, Owner: #{r.owner_type}"
     end
+    puts "Exiting without saving."
     next
   end
 
