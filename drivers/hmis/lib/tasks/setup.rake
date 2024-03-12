@@ -87,6 +87,7 @@ task seed_e2e: [:environment, 'log:info_to_stdout'] do
 end
 
 # rake driver:hmis:generate_custom_data_elements[ALL,true] # dry-run generate CustomDataElements for all forms (no save)
+# rake driver:hmis:generate_custom_data_elements[CUSTOM_ASSESSMENT,true]
 # rake driver:hmis:generate_custom_data_elements[ALL]      # save CustomDataElements for all forms
 # rake driver:hmis:generate_custom_data_elements[SERVICE]  # save CustomDataElements for one role
 desc 'Generate Custom Data Elements by introspecting Form Definitions'

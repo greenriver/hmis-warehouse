@@ -478,7 +478,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
         # find CDED if it exists, or initialize a new one with defaults
         cded = Hmis::Hud::CustomDataElementDefinition.where(key: key).first_or_initialize(
-          label: item.readonly_text || item.brief_text || item.text || key.humanize,
           data_source_id: data_source.id,
           UserID: hud_user_id,
         )
@@ -505,6 +504,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
         cded.owner_type = owner_type
         cded.field_type = field_type
         cded.repeats = item.repeats || false
+        # set label for CustomDataElementDefinition based on item properties
+        cded.label = ActionView::Base.full_sanitizer.sanitize(item.readonly_text || item.brief_text || item.text || key.humanize)
 
         cded_records << cded
       end
