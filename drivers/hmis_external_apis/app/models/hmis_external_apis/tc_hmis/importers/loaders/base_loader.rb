@@ -28,6 +28,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       clobber ? true : supports_upsert?
     end
 
+    def filename
+      raise 'define filename in subclass'
+    end
+
     protected
 
     def supports_upsert?
