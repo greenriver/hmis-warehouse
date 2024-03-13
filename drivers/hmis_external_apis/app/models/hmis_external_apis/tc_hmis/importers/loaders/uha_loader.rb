@@ -271,8 +271,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       values
     end
 
-    def form_definition
-      Hmis::Form::Definition.where(identifier: 'tc-uha').first!
+    def form_definition_identifier
+      'universal-housing-assessment'
     end
   end
 end
