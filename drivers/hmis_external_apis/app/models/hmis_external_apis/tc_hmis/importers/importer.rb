@@ -15,7 +15,7 @@ module HmisExternalApis::TcHmis::Importers
 
     attr_accessor :data_source, :dir, :extra_columns, :clobber, :table_names, :log_file
 
-    def initialize(dir:, clobber:, log_file: ENV['TC_HMIS_IMPORT_LOG_FILE'])
+    def initialize(dir:, clobber: true, log_file: ENV['TC_HMIS_IMPORT_LOG_FILE'])
       self.data_source = HmisExternalApis::TcHmis.data_source
       raise "data source doesn't exist" unless data_source
 
@@ -35,6 +35,9 @@ module HmisExternalApis::TcHmis::Importers
         Loaders::HatLoader,
         Loaders::UhaLoader,
         Loaders::CustomServicesLoader,
+        Loaders::LunchServicesLoader,
+        Loaders::BreakfastServicesLoader,
+        Loaders::DinnerServicesLoader,
         Loaders::CriticalDocumentsCmLoader,
         Loaders::CaseManagementAssessmentLoader,
         Loaders::MhmrCaseManagementNoteLoader,
@@ -43,8 +46,6 @@ module HmisExternalApis::TcHmis::Importers
         Loaders::CustomClientDemographicsLoader,
         Loaders::NavigationNotesLoader,
         Loaders::DiversionAssessmentLoader,
-        # This importer was not needed
-        # Loaders::EhvApplicationLoader,
       ]
 
       # disable paper trail to improve importer performance
@@ -56,6 +57,7 @@ module HmisExternalApis::TcHmis::Importers
           log_file: log_file,
         )
         run_loader(loader)
+        GC.start
       end
 
       analyze_tables
@@ -75,7 +77,7 @@ module HmisExternalApis::TcHmis::Importers
         return
       end
 
-      Rails.logger.info "#{importer_name} running #{loader.class.name}"
+      Rails.logger.info "#{importer_name} running #{loader.class.name} at #{Time.current.to_s(:db)}"
       loader.perform
       self.table_names += loader.table_names
     end

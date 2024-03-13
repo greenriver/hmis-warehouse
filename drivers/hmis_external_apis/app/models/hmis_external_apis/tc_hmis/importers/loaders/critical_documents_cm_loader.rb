@@ -27,7 +27,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       { key: 'cdcm_obtainment_plan_4', label: '4.', field_type: 'string', repeats: false },
       { key: 'cdcm_obtainment_plan_5', label: '5.', field_type: 'string', repeats: false },
       { key: 'cdcm_note', label: 'Case Notes', field_type: 'string', repeats: false },
-      { key: 'cdcm_signature_cd_specialist', label: 'Critical Document Specialist', field_type: 'string', repeats: false },
+      { element_id: 2982, key: 'cdcm_signature_cd_specialist', label: 'Critical Document Specialist', field_type: 'string', repeats: false },
       { key: 'cdcm_signature_client', label: 'Client Signature', field_type: 'string', repeats: false },
     ].freeze
 
@@ -54,6 +54,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       values = super(row, config)
       values = values.map { |value| value ? 'Signed in ETO' : nil } if cded_key =~ /signature/i
       values
+    end
+
+    def form_definition_identifier
+      'critical-document-case-management'
     end
   end
 end
