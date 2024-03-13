@@ -242,6 +242,7 @@ class Menu::Menu
       title: Translation.translate('Warehouse Admin'),
       icon: 'icon-cog',
       id: 'warehouse-administration',
+      match_pattern_terminator: '.*',
     )
 
     menu.add_child(warehouse_access_menu)

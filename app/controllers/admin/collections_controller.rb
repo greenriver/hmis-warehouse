@@ -82,6 +82,8 @@ module Admin
             ids[entity_type] << id if checked == '1'
           end
         else
+          next if entity_type == :coc_codes
+
           ids[entity_type] = @collection.send(entity_type).map(&:id)
         end
       end
