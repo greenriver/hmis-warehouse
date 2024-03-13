@@ -198,7 +198,6 @@ module Hmis
 
       skipped_invalid_assessments = 0
       skipped_exit_assessments = 0
-      generate_empty_intake_count = 0
       skipped_intake_enrollment_ids = []
 
       # For each grouping of Enrollment+InformationDate+DataCollectionStage,
@@ -238,37 +237,42 @@ module Hmis
         end
       end
 
-      # If there weren't any related records, then no intake assessment would have been created by this point.
-      # This script provides the option generate_empty_intakes to create empty intake assessments,
-      # so the UI won't prompt the user to complete intake assessments on these enrollments.
-      if generate_empty_intakes && data_collection_stages.include?(1)
-        Hmis::Hud::CustomAssessment.transaction do
-          enrollments_missing_intakes = enrollment_batch.left_outer_joins(:intake_assessment).
-            where(intake_assessment: { id: nil }).
-            where.not(enrollment_id: skipped_intake_enrollment_ids) # enrollment_ids with intake assessments that were skipped because they were invalid
+      Rails.logger.info "Importing #{assessments_to_import.size} assessments..."
+      ar_import(assessments_to_import)
 
-          generate_empty_intake_count = enrollments_missing_intakes.count
-          assessments_to_import.push(*enrollments_missing_intakes.map(&:build_synthetic_intake_assessment))
-        end
-      end
+      Rails.logger.info "Skipped creating #{skipped_invalid_assessments} invalid assessments" if skipped_invalid_assessments.positive?
+      Rails.logger.info "Skipped creating #{skipped_exit_assessments} exit assessments because the enrollment is open" if skipped_exit_assessments.positive?
+
+      return unless data_collection_stages.include?(1) && generate_empty_intakes
+
+      # For INTAKE assessments:
+      # If generate_empty_intakes option is set, then generate empty intake assessments for any enrollment in the batch
+      # that is missing an intake. This wouild occur if the enrollment didn't have any related records with DataCollectionStage:1.
+      enrollments_missing_intakes = enrollment_batch.left_outer_joins(:intake_assessment).
+        where(intake_assessment: { id: nil }).
+        where.not(enrollment_id: skipped_intake_enrollment_ids) # enrollment_ids with intake assessments that were skipped because they were invalid
+
+      empty_intakes = enrollments_missing_intakes.map(&:build_synthetic_intake_assessment)
+
+      Rails.logger.info "Importing #{enrollments_missing_intakes.count} empty intake assessments"
+      ar_import(empty_intakes)
+    end
+
+    private
+
+    def ar_import(assessments)
+      return unless assessments.any?
 
       options = {
         batch_size: 1_000,
         validate: false, # already validated
         recursive: true, # so FormProcessor gets saved
       }
-      result = Hmis::Hud::CustomAssessment.import(assessments_to_import, options)
-      if result.failed_instances.present?
-        msg = "Aborting, failed to import assessments in batch: #{result.failed_instances}"
-        raise msg
-      end
+      result = Hmis::Hud::CustomAssessment.import(assessments, options)
+      return unless result.failed_instances.present?
 
-      Rails.logger.info "Generated #{generate_empty_intake_count} empty intake assessments" if generate_empty_intake_count.positive?
-      Rails.logger.info "Skipped creating #{skipped_invalid_assessments} invalid assessments" if skipped_invalid_assessments.positive?
-      Rails.logger.info "Skipped creating #{skipped_exit_assessments} exit assessments because the enrollment is open" if skipped_exit_assessments.positive?
+      raise "Aborting, failed to import assessments in batch: #{result.failed_instances}"
     end
-
-    private
 
     # "values" has shape  {:id=>[6, 7], :user_id=>["548", "548"], :date_updated=>[yesterday, today]}
     # returns a modified version with duplicates removed, like: {:id=>[7], :user_id=>["548"], :date_updated=>[today]}

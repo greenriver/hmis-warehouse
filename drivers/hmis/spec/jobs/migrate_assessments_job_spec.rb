@@ -132,7 +132,7 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
       end
 
       it 'ignores records tied to wip enrollments' do
-        e1.save_in_progress!
+        e1.save_in_progress
         expect do
           Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id)
         end.to change(e1.custom_assessments, :count).by(0)
@@ -160,6 +160,10 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
         expect(e2.intake_assessment.in_progress?).to eq(false)
         expect(e2.intake_assessment.assessment_date).to eq(e2.entry_date)
         expect(e2.intake_assessment.form_processor).not_to be_nil
+
+        # e1 should still only have 1 intake assessment, with the records present
+        expect(e1.custom_assessments.where(data_collection_stage: 1).count).to eq(1)
+        expect(e1.intake_assessment.form_processor.health_and_dv).to be_present
       end
 
       it 'works even if enrollment has a bad UserID' do
