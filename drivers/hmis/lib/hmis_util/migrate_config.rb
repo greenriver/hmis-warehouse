@@ -1,12 +1,13 @@
 module HmisUtil
-  # Class to help with migration HMIS Configuration between environments
+  # This utility class can be used for migrating HMIS Configuration between environments. (Staging=>Production, for example.)
   #
   # !!! Use with caution !!!! The import process can generate messiness, use with care and review the config file before importing.
   # The import process does not clear out existing Form Instances, it just adds new rules on top of what's there.
   #
   # Usage:
-  #   HmisUtil::MigrateConfig.new.write_config(filename)
-  #   HmisUtil::MigrateConfig.new.load_config(filename)
+  #   1. Download file:   HmisUtil::MigrateConfig.new.write_config(filename)
+  #   2. (Move file to other environment)
+  #   3. Import file:     HmisUtil::MigrateConfig.new.load_config(filename)
   class MigrateConfig
     # Defaults to only export service and custom assessment since that's all we need currently, but could
     # be expended to include client form and other customizable forms.
