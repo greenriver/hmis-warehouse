@@ -67,7 +67,6 @@ module Hmis
       total = full_enrollment_scope.count
       Rails.logger.info "#{total} Enrollments to process"
 
-      # Note: joining with project drops WIP enrollments. That should be fine since they won't have assessment records yet.
       full_enrollment_scope.in_batches(of: 5_000) do |batch|
         # Build entry/exit assessments
         build_assessments(
@@ -108,6 +107,7 @@ module Hmis
     end
 
     def full_enrollment_scope
+      # Note: joining with project drops WIP enrollments. That should be fine since they won't have assessment records yet.
       @full_enrollment_scope ||= Hmis::Hud::Enrollment.joins(:project).merge(project_scope)
     end
 
