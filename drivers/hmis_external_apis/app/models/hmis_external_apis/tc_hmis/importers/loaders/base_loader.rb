@@ -134,7 +134,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def cde_helper
-      @cde_helper ||= CustomDataElementHelper.new(data_source: data_source, system_user: system_user, today: today)
+      @cde_helper ||= CustomDataElementHelper.new(data_source_id: data_source.id, system_user_id: system_user.id, today: today)
     end
 
     def loader_name

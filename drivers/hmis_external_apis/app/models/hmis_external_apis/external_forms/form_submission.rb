@@ -38,24 +38,28 @@ module HmisExternalApis::ExternalForms
       submission
     end
 
+    def cde_helper(data_source_id:, system_user_id:)
+      @cde_helper ||= HmisExternalApis::TcHmis::Importers::Loaders::CustomDataElementHelper.new(
+        data_source_id: data_source_id,
+        system_user_id: system_user_id,
+        today: Time.current,
+      )
+    end
+
     def process_custom_data_elements!(form_definition:)
       custom_data_elements.delete_all
       cdes = []
-      now = Time.current
       form_definition.custom_data_element_definitions.each do |cded|
         value = raw_data[cded.key]
         next if value.blank?
 
-        cdes << {
+        helper = cde_helper(data_source_id: cded.data_source_id, system_user_id: cded.user_id)
+        cdes << helper.new_cde_record(
+          value: value,
           owner_type: self.class.sti_name,
           owner_id: id,
-          value_string: value,
-          data_source_id: cded.data_source_id,
-          data_element_definition_id: cded.id,
-          UserID: cded.user_id,
-          DateCreated: now,
-          DateUpdated: now,
-        }
+          definition: cded,
+        )
       end
       return if cdes.empty?
 

@@ -6,17 +6,17 @@
 
 module HmisExternalApis::TcHmis::Importers::Loaders
   class CustomDataElementHelper
-    attr_accessor :data_source, :system_user, :today
+    attr_accessor :data_source_id, :system_user_id, :today
 
-    def initialize(data_source:, system_user:, today:)
-      self.data_source = data_source
-      self.system_user = system_user
+    def initialize(data_source_id:, system_user_id:, today:)
+      self.data_source_id = data_source_id
+      self.system_user_id = system_user_id
       self.today = today
       @cache = {}
     end
 
     def cdeds
-      Hmis::Hud::CustomDataElementDefinition.where(data_source_id: data_source.id)
+      Hmis::Hud::CustomDataElementDefinition.where(data_source_id: data_source_id)
     end
 
     def find_or_create_cded(owner_type:, key:, field_type: nil, repeats: nil, label: nil)
@@ -36,21 +36,23 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       cded.repeats = repeats unless repeats.nil?
       cded.repeats = false if cded.repeats.nil?
 
-      cded.user_id ||= system_user.id
+      cded.user_id ||= system_user_id
       cded.save!
       cded
     end
 
-    def new_cde_record(value:, owner_type:, owner_id:, definition_key:, date_created: today)
-      definition = find_or_create_cded(owner_type: owner_type, key: definition_key)
+    def new_cde_record(value:, owner_type:, owner_id:, definition: nil, definition_key: nil, date_created: today)
+      raise 'either definition or definition_key must be provided' unless definition || definition_key
+
+      definition ||= find_or_create_cded(owner_type: owner_type, key: definition_key)
       {
         owner_type: owner_type,
         owner_id: owner_id,
         data_element_definition_id: definition.id,
         DateCreated: date_created,
         DateUpdated: date_created,
-        data_source_id: data_source.id,
-        UserID: system_user.id,
+        data_source_id: data_source_id,
+        UserID: system_user_id,
       }.merge(cde_value_fields(definition, value))
     end
 
