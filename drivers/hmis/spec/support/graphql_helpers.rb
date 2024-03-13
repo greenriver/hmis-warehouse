@@ -120,4 +120,9 @@ module GraphqlHelpers
     expect(error_message).to be_present
     expect(error_message).to match(/#{message}/) if message.present?
   end
+
+  def expect_access_denied(arr)
+    # expect default message from access_denied! helper
+    expect_gql_error(arr, message: 'access denied')
+  end
 end

@@ -29,6 +29,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # CAUTION: enrollment.project accessor is overridden below
   belongs_to :project, **hmis_relation(:ProjectID, 'Project'), optional: true
+  has_one :client_project, **hmis_relation(:EnrollmentID)
+
   has_one :exit, **hmis_enrollment_relation('Exit'), inverse_of: :enrollment, dependent: :destroy
 
   # HUD services
@@ -401,11 +403,12 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   def build_synthetic_intake_assessment
     assessment = Hmis::Hud::CustomAssessment.new(
-      enrollment: self,
-      client: client,
-      data_source: data_source,
+      CustomAssessmentID: Hmis::Hud::Base.generate_uuid,
+      enrollment_id: enrollment_id,
+      personal_id: personal_id,
       assessment_date: entry_date,
-      user: user, # same user that's on the enrollment
+      user_id: user_id || Hmis::Hud::User.system_user(data_source_id: data_source_id)&.user_id,
+      data_source_id: data_source_id,
       data_collection_stage: 1, # Intake
       wip: false,
     )

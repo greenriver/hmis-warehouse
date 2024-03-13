@@ -15,7 +15,25 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     QUESTION = 'Question'.freeze
     ANSWER = 'Answer'.freeze
 
+    def runnable?
+      super && @reader.glob(FILENAME_PATTERN).any?
+    end
+
+    def row_date_provided(row)
+      parse_date(row.field_value(DATE_PROVIDED))
+    end
+
+    def row_personal_id(row)
+      normalize_uuid(row.field_value('Participant Enterprise Identifier'))
+    end
+
     def perform
+      if clobber
+        @reader.glob(FILENAME_PATTERN).each do |filename|
+          rows = @reader.rows(filename: filename, header_row_number: 2, field_id_row_number: nil)
+          clobber_records(rows)
+        end
+      end
       @reader.glob(FILENAME_PATTERN).each do |filename|
         process_file(filename)
       end
@@ -23,8 +41,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     private def process_file(filename)
       create_service_types
-      rows = @reader.rows(filename: filename, header_row_number: 2, field_id_row_number: nil)
-      clobber_records(rows) if clobber
+      rows = @reader.rows(filename: filename, header_row_number: 2, field_id_row_number: nil).to_a
+      extrapolate_missing_enrollment_ids(rows, enrollment_id_field: ENROLLMENT_ID)
 
       # services is an instance variable because it holds state that is updated by ar_import, and is needed in create_records
       @services = create_services(rows)
@@ -38,11 +56,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       # service types should already exist on production
       return unless Rails.env.development?
 
-      category = Hmis::Hud::CustomServiceCategory.order(:id).last
       configs.values.each do |value|
         Hmis::Hud::CustomServiceType.where(data_source_id: data_source.id).where(name: value.fetch(:service_type)).first_or_create! do |st|
           st.UserID = system_hud_user.id
-          st.custom_service_category_id = category.id
+          st.custom_service_category_id = placeholder_service_category.id
         end
       end
     end
@@ -73,50 +90,43 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     private def create_services(rows)
       log_info('creating services')
-      expected = 0
-      actual = 0
+      expected = Set.new
 
       enrollments = Hmis::Hud::Enrollment.where(data_source_id: data_source.id).index_by(&:enrollment_id)
       service_type_ids = Hmis::Hud::CustomServiceType.where(data_source_id: data_source.id).pluck(:name, :id).to_h
 
       result = {}.tap do |services|
         rows.each do |row|
-          expected += 1
+          response_id = row.field_value(RESPONSE_ID, required: true)
+          expected.add(response_id)
 
-          row_field_value = row.field_value(TOUCHPOINT_NAME)
+          row_field_value = row.field_value(TOUCHPOINT_NAME, required: true)
           config = configs[row_field_value]
           if config.blank?
             log_skipped_row(row, field: TOUCHPOINT_NAME)
             next
           end
 
-          response_id = row.field_value(RESPONSE_ID)
-
           service_type = config[:service_type]
           service_type_id = service_type_ids[service_type]
           if service_type_id.blank?
             log_info("Service type configuration error: can't find #{service_type}!")
-            log_skipped_row(row, field: :service_type)
             next
           end
 
           row_field_value = row_enrollment_id(row)
-          next if row_field_value.blank? # enrollment id is blank
-
-          enrollment = enrollments[row_field_value]
+          enrollment = row_field_value ? enrollments[row_field_value] : nil
           if enrollment.blank?
             log_skipped_row(row, field: ENROLLMENT_ID)
             next
           end
-
-          actual += 1
 
           services[response_id] ||= service_class.new(
             CustomServiceID: generate_service_id(config, row),
             EnrollmentID: enrollment.EnrollmentID,
             PersonalID: enrollment.PersonalID,
             UserID: system_hud_user.id,
-            DateProvided: parse_date(row.field_value(DATE_PROVIDED)),
+            DateProvided: row_date_provided(row),
             data_source_id: data_source.id,
             custom_service_type_id: service_type_id,
             service_name: service_type,
@@ -136,7 +146,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           services[response_id][service_field[:key]] = value
         end
       end
-      log_processed_result(name: 'create services', expected: expected, actual: actual)
+      log_processed_result(name: 'create services', expected: expected.size, actual: result.size)
       result
     end
 
@@ -151,8 +161,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def row_enrollment_id(row)
-      # sometimes the enrollment id has braces or other extra chars
-      row.field_value(ENROLLMENT_ID)&.gsub(/[^-a-z0-9]/i, '')
+      normalize_uuid(row.field_value(ENROLLMENT_ID))
     end
 
     private def create_records(rows)
@@ -180,13 +189,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             next
           end
 
-          response_id = row.field_value(RESPONSE_ID)
+          response_id = row.field_value(RESPONSE_ID, required: true)
           service = @services[response_id]
-          if service.blank?
-            log_info("Missing service for response id #{response_id}!")
-            log_skipped_row(row, field: RESPONSE_ID)
-            next
-          end
+          next if service.blank?
+
           actual += 1
 
           key = element[:key]
@@ -427,7 +433,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           },
         },
         'Individual TBSS' => {
-          service_type: 'Individual TBSS',
+          service_type: 'TBSS',
           service_fields: {},
           id_prefix: 'tbss',
           elements: {
@@ -483,69 +489,75 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             },
           },
         },
-        'Substance Abuse Individual' => {
-          service_type: 'Substance Abuse Individual',
+        'Substance Abuse Individual' => substance_abuse_config,
+        'Substance Abuse Group' => substance_abuse_config,
+      }.freeze
+    end
+
+    # several services user this same config, they are imported to the same service
+    def substance_abuse_config
+      {
+        service_type: 'Substance Abuse',
+        service_fields: {},
+        id_prefix: 'substance-abuse',
+        elements: {
+          'Contact Location/Method' => {
+            key: :service_contact_location,
+            cleaner: ->(location) { normalize_location(location) },
+          },
+          'Time Spent on Contact' => {
+            key: :service_time_spent,
+            cleaner: ->(time) { parse_duration(time) },
+          },
+          'Case Notes' => {
+            key: :service_notes,
+            cleaner: ->(note) { note },
+          },
+        },
+        'Support Groups (Tenant Support Services)' => {
+          service_type: 'Tenant Support Group',
           service_fields: {},
-          id_prefix: 'substance-abuse',
+          id_prefix: 'tenant',
+          elements: {
+            'Service Location' => {
+              key: :service_location_text,
+              cleaner: ->(service_location) { service_location },
+            },
+            'Time Spent' => {
+              key: :service_time_spent,
+              cleaner: ->(time) { parse_duration(time) },
+            },
+          },
+        },
+        'Case Management/Case Management notes' => {
+          service_type: 'When We Love',
+          service_fields: {
+            'Assistance Amount' => {
+              key: :FAAmount,
+              cleaner: ->(amount) { amount.to_f },
+            },
+          },
+          id_prefix: 'cm-notes',
           elements: {
             'Contact Location/Method' => {
               key: :service_contact_location,
               cleaner: ->(location) { normalize_location(location) },
             },
-            'Time Spent on Contact' => {
+            'Time Spent' => {
               key: :service_time_spent,
               cleaner: ->(time) { parse_duration(time) },
             },
-            'Case Notes' => {
-              key: :service_notes,
-              cleaner: ->(note) { note },
+            'Type of Contact' => {
+              key: :service_contact_type,
+              cleaner: ->(type) { normalize_contact(type) },
             },
-          },
-          'Support Groups (Tenant Support Services)' => {
-            service_type: 'Tenant Support Group',
-            service_fields: {},
-            id_prefix: 'tenant',
-            elements: {
-              'Service Location' => {
-                key: :service_location_text,
-                cleaner: ->(service_location) { service_location },
-              },
-              'Time Spent' => {
-                key: :service_time_spent,
-                cleaner: ->(time) { parse_duration(time) },
-              },
-            },
-          },
-          'Case Management/Case Management notes' => {
-            service_type: 'When We Love',
-            service_fields: {
-              'Assistance Amount' => {
-                key: :FAAmount,
-                cleaner: ->(amount) { amount.to_f },
-              },
-            },
-            id_prefix: 'cm-notes',
-            elements: {
-              'Contact Location/Method' => {
-                key: :service_contact_location,
-                cleaner: ->(location) { normalize_location(location) },
-              },
-              'Time Spent' => {
-                key: :service_time_spent,
-                cleaner: ->(time) { parse_duration(time) },
-              },
-              'Type of Contact' => {
-                key: :service_contact_type,
-                cleaner: ->(type) { normalize_contact(type) },
-              },
-              'When We Love Services Provided' => {
-                key: :services_provided_when_we_love,
-                cleaner: ->(services) { services.split('|') },
-              },
+            'When We Love Services Provided' => {
+              key: :services_provided_when_we_love,
+              cleaner: ->(services) { services.split('|') },
             },
           },
         },
-      }.freeze
+      }.dup.freeze
     end
 
     private def normalize_location(location)

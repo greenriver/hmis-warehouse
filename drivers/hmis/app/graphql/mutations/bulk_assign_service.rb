@@ -12,11 +12,11 @@ module Mutations
 
     def resolve(input:)
       project = Hmis::Hud::Project.viewable_by(current_user).find_by(id: input.project_id)
-      raise 'unauthorized' unless project
-      raise 'unauthorized' unless current_permission?(permission: :can_edit_enrollments, entity: project)
+      access_denied! unless project
+      access_denied! unless current_permission?(permission: :can_edit_enrollments, entity: project)
 
       clients = Hmis::Hud::Client.viewable_by(current_user).where(id: input.client_ids).preload(:enrollments)
-      raise 'unauthorized' unless clients.count == input.client_ids.uniq.length
+      access_denied! unless clients.count == input.client_ids.uniq.length
 
       cst = Hmis::Hud::CustomServiceType.find(input.service_type_id)
       hud_user_id = Hmis::Hud::User.from_user(current_user).user_id
@@ -33,10 +33,11 @@ module Mutations
       Hmis::Hud::Service.transaction do
         clients.each do |client|
           # Look for Enrollment at the project that is open on the service date
-          enrollment = client.enrollments.
-            open_on_date(input.date_provided).
-            with_project(project.id).
-            order(entry_date: :desc, id: :asc).last # older entry date preferred
+          enrollment = load_open_enrollment_for_client(
+            client,
+            project_id: project.id,
+            open_on_date: input.date_provided,
+          )
 
           # If no Enrollment was found, create one
           unless enrollment
@@ -49,7 +50,7 @@ module Mutations
               enrollment_coc: coc_code,
               relationship_to_hoh: 1, # Head of Household
             )
-            raise 'unauthorized' unless can_enroll_clients
+            access_denied! unless can_enroll_clients
             raise 'bulk service assignment generated invalid enrollment' unless enrollment.valid?
 
             # Attempt to assign this enrollment to a unit if this project has units. This is AC-specific for now, and does
