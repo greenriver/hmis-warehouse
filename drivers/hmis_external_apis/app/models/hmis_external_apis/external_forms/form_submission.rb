@@ -33,7 +33,7 @@ module HmisExternalApis::ExternalForms
         definition_id: form_definition.id,
         raw_data: raw_data,
       }
-      self.class.transaction do
+      FormSubmission.transaction do
         submission.save!
         submission.process_custom_data_elements!(form_definition: form_definition)
       end
