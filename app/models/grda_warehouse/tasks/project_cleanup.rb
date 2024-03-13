@@ -53,42 +53,38 @@ module GrdaWarehouse::Tasks
     end
 
     def should_update_type? project
-      project_override_changed = (project.act_as_project_type.present? && project.act_as_project_type != project.computed_project_type) || (project.act_as_project_type.blank? && project.ProjectType != project.computed_project_type)
-
       sh_project_types_for_check = sh_project_types(project)
       project_types_match_sh_types = true
       # If SHE only has one set of project types, that's generally good, just confirm they match the project's types
       if sh_project_types_for_check.count == 1
-        (project_type, computed_project_type) = sh_project_types_for_check.first
-        project_types_match_sh_types = project.ProjectType == project_type && project.computed_project_type == computed_project_type
+        project_types_match_sh_types = project.ProjectType == sh_project_types_for_check.first
       end
       # If SHE has more than one set of project types, we'll need to rebuild
       project_type_changed_in_source = sh_project_types_for_check.count > 1
-      project_type_changed_in_source || project_override_changed || ! project_types_match_sh_types
+      project_type_changed_in_source || ! project_types_match_sh_types
     end
 
+    # Fix any SHE with incorrect project types
     def fix_project_type(project)
-      blank_initial_computed_project_type = project.computed_project_type.blank?
-      debug_log("Updating type for #{project.ProjectName} << #{project.organization&.OrganizationName || 'unknown'} in #{project.data_source.short_name}... current ProjectType: #{project.ProjectType} acts_as: #{project.act_as_project_type} project types in Service History:  #{sh_project_types(project).inspect}") unless blank_initial_computed_project_type
-      computed_project_type = project.compute_project_type
+      debug_log("Updating type for #{project.ProjectName} << #{project.organization&.OrganizationName || 'unknown'} in #{project.data_source.short_name}... current ProjectType: #{project.ProjectType} project types in Service History:  #{sh_project_types(project).inspect}")
+
       # Force a rebuild of all related enrollments
       project_source.transaction do
         project.enrollments.invalidate_processing!
-        project.update(computed_project_type: computed_project_type)
         # Fix the SHE with record_type "first"
         service_history_enrollment_source.where(
           project_id: project.ProjectID,
           data_source_id: project.data_source_id,
-        ).update_all(computed_project_type: computed_project_type, project_type: project.ProjectType)
+        ).update_all(project_type: project.ProjectType)
       end
-      debug_log("done invalidating enrollments for #{project.ProjectName}") unless blank_initial_computed_project_type
+      debug_log("done invalidating enrollments for #{project.ProjectName}")
     end
 
     def sh_project_types project
       service_history_enrollment_source.
         where(data_source_id: project.data_source_id, project_id: project.ProjectID).
         distinct.
-        pluck(:project_type, :computed_project_type)
+        pluck(:project_type)
     end
 
     def should_update_name? project
@@ -113,7 +109,7 @@ module GrdaWarehouse::Tasks
 
     # Just check the last two years for discrepancies to speed checking
     private def homeless_status_correct?(project)
-      if HudUtility2024.homeless_project_types.include?(project.computed_project_type)
+      if HudUtility2024.homeless_project_types.include?(project.project_type)
         # ES, SO, SH, TH
         any_non_homeless_history = service_history_service_source.
           where(date: 2.years.ago..Date.current).
@@ -142,7 +138,7 @@ module GrdaWarehouse::Tasks
 
     # Just check the last two years for discrepancies to speed checking
     private def literally_homeless_status_correct?(project)
-      if HudUtility2024.chronic_project_types.include?(project.computed_project_type)
+      if HudUtility2024.chronic_project_types.include?(project.project_type)
         # ES, SO, SH
         any_non_literally_homeless_history = service_history_service_source.
           where(date: 2.years.ago..Date.current).

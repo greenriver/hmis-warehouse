@@ -39,18 +39,10 @@ class ProjectsController < ApplicationController
 
   private def project_params
     params.require(:project).permit(
-      :act_as_project_type,
-      :hud_continuum_funded,
-      :housing_type_override,
-      :uses_move_in_date,
       :confidential,
-      :operating_start_date_override,
       :active_homeless_status_override,
       :include_in_days_homeless_override,
       :extrapolate_contacts,
-      :hmis_participating_project_override,
-      :operating_end_date_override,
-      :target_population_override,
     )
   end
 

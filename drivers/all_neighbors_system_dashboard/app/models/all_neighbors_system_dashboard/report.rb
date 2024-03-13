@@ -160,7 +160,7 @@ module AllNeighborsSystemDashboard
             return_date: return_dates[enrollment.id],
             project_id: enrollment.project.id,
             project_name: enrollment.project.name, # get from project directly to handle project confidentiality
-            project_type: enrollment.computed_project_type,
+            project_type: enrollment.project_type,
           )
         end
         Enrollment.import!(report_enrollments.values)
@@ -333,27 +333,27 @@ module AllNeighborsSystemDashboard
         },
         {
           name: 'bar.js',
-          content: -> { File.read(asset_path('bar.js.es6')) },
+          content: -> { File.read(asset_path('bar.js')) },
           type: 'text/javascript',
         },
         {
           name: 'donut.js',
-          content: -> { File.read(asset_path('donut.js.es6')) },
+          content: -> { File.read(asset_path('donut.js')) },
           type: 'text/javascript',
         },
         {
           name: 'filters.js',
-          content: -> { File.read(asset_path('filters.js.es6')) },
+          content: -> { File.read(asset_path('filters.js')) },
           type: 'text/javascript',
         },
         {
           name: 'line.js',
-          content: -> { File.read(asset_path('line.js.es6')) },
+          content: -> { File.read(asset_path('line.js')) },
           type: 'text/javascript',
         },
         {
           name: 'stack.js',
-          content: -> { File.read(asset_path('stack.js.es6')) },
+          content: -> { File.read(asset_path('stack.js')) },
           type: 'text/javascript',
         },
       ]

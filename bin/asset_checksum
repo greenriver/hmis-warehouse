@@ -16,7 +16,6 @@ fi
 ASSETS_BUCKET_NAME=openpath-ecs-assets UPDATE_ONLY=false bundle exec ./bin/sync_app_assets.rb > asset.checksum.log 2>&1
 
 # NOTE: enabling this will print out a list of files that will be included in the checksum
-# Also NOTE: if you are having trouble getting the checksum to match, you may want to rebuild the pre-cache image
 # tar -cf - --sort=name `# Force sorting` \
 #   --mtime='UTC 2019-01-01' `# Normalize modified time.` \
 #   --group=0 `# Normalize group owner.` \
@@ -31,7 +30,7 @@ ASSETS_BUCKET_NAME=openpath-ecs-assets UPDATE_ONLY=false bundle exec ./bin/sync_
 # Use tar to create a content hash of the assets folder and the client secrets.
 # The below flags are intended to strip or normalize all metadata so that we're only hashing on contents.
 # This has been adapted from several different StackOverflow suggestions for no-metadata tarring.
-# NOTE: you can force a checksum change by updateing assets/version.js
+# NOTE: you can force a checksum change by updating assets/version.js
 tar -cf - --sort=name `# Force sorting` \
   --mtime='UTC 2019-01-01' `# Normalize modified time.` \
   --group=0 `# Normalize group owner.` \
