@@ -22,6 +22,15 @@ module HmisDataCleanup
       end
     end
 
+    # Set the EnrollmentCoC field for all HMIS Enrollments.
+    # This could eventually be updated to learn the CoC based on the Project's ProjectCoC record. We don't need that yet since
+    # we are dealing with a single-CoC installation at the time of writing this.
+    def self.update_all_enrollment_cocs!(coc_code)
+      without_papertrail_or_timestamps do
+        Hmis::Hud::Enrollment.hmis.update_all(EnrollmentCoC: coc_code)
+      end
+    end
+
     # Assign Household ID where missing
     #
     # Note: If this gets to be a large number, an upsert is probably worth doing.
