@@ -433,7 +433,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           },
         },
         'Individual TBSS' => {
-          service_type: 'Individual TBSS',
+          service_type: 'TBSS',
           service_fields: {},
           id_prefix: 'tbss',
           elements: {
@@ -497,7 +497,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     # several services user this same config, they are imported to the same service
     def substance_abuse_config
       {
-        service_type: 'Substance Abuse Individual',
+        service_type: 'Substance Abuse',
         service_fields: {},
         id_prefix: 'substance-abuse',
         elements: {
