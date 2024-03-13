@@ -6,12 +6,18 @@
 
 module MaReports::CsgEngage
   class Income < Base
-    attr_accessor :income_benefit
+    attr_accessor :amount, :description, :income_source, :payer_name
 
-    def initialize(income_benefit)
-      @income_benefit = income_benefit
+    def initialize(amount: 0, description: nil, income_source: nil, payer_name: nil)
+      @amount = ActiveSupport::NumberHelper.number_to_delimited(amount)
+      @description = description
+      @income_source = income_source
+      @payer_name = payer_name
     end
 
-    field('Test') { 'TODO' }
+    field('Amount', method: :amount)
+    field('Description', method: :description)
+    field('IncomeSource', method: :income_source)
+    field('PayerName', method: :payer_name)
   end
 end

@@ -853,7 +853,10 @@ CREATE TABLE public.hmis_roles (
     can_audit_clients boolean DEFAULT false NOT NULL,
     can_delete_clients boolean DEFAULT false NOT NULL,
     can_delete_assessments boolean DEFAULT false NOT NULL,
+<<<<<<< HEAD
     can_view_unenrolled_clients boolean DEFAULT false,
+=======
+>>>>>>> cf1d11c9a7 (WIP)
     can_manage_inventory boolean DEFAULT false,
     can_manage_incoming_referrals boolean DEFAULT false,
     can_manage_outgoing_referrals boolean DEFAULT false,
@@ -862,6 +865,10 @@ CREATE TABLE public.hmis_roles (
     can_view_open_enrollment_summary boolean DEFAULT false,
     can_view_project boolean DEFAULT false,
     can_view_hud_chronic_status boolean DEFAULT false,
+<<<<<<< HEAD
+=======
+    can_view_limited_enrollment_details boolean DEFAULT false,
+>>>>>>> cf1d11c9a7 (WIP)
     can_merge_clients boolean DEFAULT false,
     can_split_households boolean DEFAULT false,
     can_transfer_enrollments boolean DEFAULT false,
@@ -1720,7 +1727,10 @@ CREATE TABLE public.roles (
     can_view_confidential_project_names boolean DEFAULT false,
     can_report_on_confidential_projects boolean DEFAULT false,
     can_view_chronic_tab boolean DEFAULT false,
+<<<<<<< HEAD
     can_edit_assigned_project_groups boolean DEFAULT false,
+=======
+>>>>>>> cf1d11c9a7 (WIP)
     can_configure_cohorts boolean DEFAULT false,
     can_add_cohort_clients boolean DEFAULT false,
     can_manage_cohort_data boolean DEFAULT false,
@@ -1732,13 +1742,19 @@ CREATE TABLE public.roles (
     can_view_cohort_client_changes_report boolean DEFAULT false,
     can_approve_careplan boolean DEFAULT false,
     can_manage_inbound_api_configurations boolean DEFAULT false,
+    can_edit_theme boolean DEFAULT false,
     can_view_client_enrollments_with_roi boolean DEFAULT false,
     can_search_clients_with_roi boolean DEFAULT false,
     can_see_confidential_files boolean DEFAULT false,
+<<<<<<< HEAD
     can_edit_theme boolean DEFAULT false,
     system boolean DEFAULT false NOT NULL,
     can_edit_collections boolean DEFAULT false,
     can_publish_reports boolean DEFAULT false,
+=======
+    can_publish_reports boolean DEFAULT false,
+    system boolean DEFAULT false NOT NULL,
+>>>>>>> cf1d11c9a7 (WIP)
     deleted_at timestamp without time zone,
     can_edit_own_client_notes boolean DEFAULT false
 );
@@ -4271,7 +4287,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230418170053'),
 ('20230420195221'),
 ('20230424123118'),
-('20230426170051'),
 ('20230429102609'),
 ('20230429112926'),
 ('20230429112954'),

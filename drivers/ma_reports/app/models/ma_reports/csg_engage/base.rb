@@ -50,11 +50,14 @@ module MaReports::CsgEngage
 
     def serialize_fields(fields_to_use)
       fields_to_use.map do |field|
+        value = serialize_value(respond_to?(field[:method]) ? send(field[:method]) : nil)
+        next unless value.present?
+
         [
           field[:name],
           serialize_value(respond_to?(field[:method]) ? send(field[:method]) : nil),
         ]
-      end.to_h
+      end.compact.to_h
     end
 
     def serialize_value(value)

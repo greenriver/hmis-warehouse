@@ -14,9 +14,9 @@ module MaReports::CsgEngage
       @action = action
     end
 
-    field 'AgencyID'
-    field 'Data Type'
-    field 'Action'
+    field('AgencyID') { 999 }
+    field('Data Type') { 'Households' }
+    field('Action') { 'Import' }
 
     field('Programs') do
       result = []
@@ -29,7 +29,7 @@ module MaReports::CsgEngage
     private
 
     def project_scope
-      GrdaWarehouse::Hud::Project.all.limit(1)
+      GrdaWarehouse::Hud::Project.all.preload(:enrollments).limit(1)
     end
   end
 end

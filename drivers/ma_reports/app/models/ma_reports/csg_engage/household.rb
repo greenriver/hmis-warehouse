@@ -13,10 +13,10 @@ module MaReports::CsgEngage
     end
 
     field('Household Identifier') { hoh_enrollment.household_id }
-    field('Temporary Family Number') { household_identifier }
-    field('Annual Household Income') do
-      GrdaWarehouse::Hud::IncomeBenefit.where(personal_id: enrollments_scope.pluck(:personal_id)).sum(:total_monthly_income) * 12
-    end
+    # field('Temporary Family Number') { household_identifier }
+    # field('Annual Household Income') do
+    #   GrdaWarehouse::Hud::IncomeBenefit.where(personal_id: enrollments_scope.pluck(:personal_id)).sum(:total_monthly_income) * 12
+    # end
 
     subfield('Address') do
       field('Apartment')
@@ -74,15 +74,15 @@ module MaReports::CsgEngage
       field('ZipPlus4')
     end
 
-    # field('Household Members') do
-    #   result = []
-    #   number = 1
-    #   enrollments_scope.order(:personal_id).find_each do |enrollment|
-    #     result << MaReports::CsgEngage::HouseholdMember.new(enrollment, number)
-    #     number += 1
-    #   end
-    #   result
-    # end
+    field('Household Members') do
+      result = []
+      number = 1
+      enrollments_scope.order(:personal_id).find_each do |enrollment|
+        result << MaReports::CsgEngage::HouseholdMember.new(enrollment, number)
+        number += 1
+      end
+      result
+    end
 
     private
 
@@ -90,11 +90,11 @@ module MaReports::CsgEngage
       GrdaWarehouse::Hud::Enrollment.where(
         project_id: hoh_enrollment.project_id,
         household_id: hoh_enrollment.household_id,
-      ).preload(client: [:income_benefits]).preload(:services)
+      ).preload(:income_benefits, :services)
     end
 
     def coc
-      hoh_enrollment.project.project_cocs.first
+      @coc ||= hoh_enrollment.project.project_cocs.first
     end
   end
 end

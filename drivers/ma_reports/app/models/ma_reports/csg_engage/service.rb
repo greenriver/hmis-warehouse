@@ -12,6 +12,28 @@ module MaReports::CsgEngage
       @service = service
     end
 
-    field('Test') { 'TODO' }
+    field('CaseWorker')
+    field('CheckAmount')
+    field('CheckDate')
+    field('CheckNumber')
+    field('DollarsExpended')
+    field('NoEndDate')
+    field('Note')
+    field('PayAmount')
+    field('PayDate')
+    field('PayFiscalYear')
+    field('PayFundingSource')
+    field('PayHasPayment')
+    field('PayNote1')
+    field('PayNote2')
+    field('PayPayeeAddress1')
+    field('PayPayeeAddress2')
+    field('PayPayeeAddress3')
+    field('PayPayeeName')
+    field('ServiceDateTimeBegin')
+    field('ServiceDateTimeEnd')
+    field('ServiceProvided')
+    field('ServiceReviewDate')
+    field('UnitsOfService')
   end
 end
