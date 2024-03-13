@@ -30,6 +30,7 @@ module HmisExternalApis::TcHmis::Importers
     def perform
       start
       loaders = [
+        Loaders::ScanCardLoader,
         Loaders::SpdatLoader,
         Loaders::HatLoader,
         Loaders::UhaLoader,
