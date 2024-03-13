@@ -8,11 +8,13 @@
   %p
     %strong User Groups should be used to logically group users who need similar access.
     User Groups are combined with Roles and Collections via Access Controls.  The intersection of Role, Collection, and User Group determines what each person can do and see within the warehouse.
-.mb-4
-  = link_to new_admin_user_group_path, class: 'btn btn-primary ml-auto' do
+.mb-4.d-flex
+  = link_to new_admin_user_group_path, class: 'btn btn-primary' do
     %span.icon-plus
     Add User Group
-
+  .w-50.ml-auto
+    - @prompt = 'Search user groups...'
+    = render 'search_form'
 - if @pagy.count.positive?
   = render 'common/pagination_top', item_name: 'user_group'
   .table-responsive

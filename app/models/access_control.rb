@@ -60,21 +60,25 @@ class AccessControl < ApplicationRecord
   scope :filtered, ->(filter_params) do
     return current_scope unless filter_params
 
-    user_scope = current_scope
-    user_group_scope = current_scope
-    role_scope = current_scope
-    entity_group_scope = current_scope
+    ids = []
+    if filter_params[:user_id].present?
+      user_scope = UserGroup.with_user_id(filter_params[:user_id].to_i)
+      ids += joins(:user_group).
+        merge(user_scope).pluck(:id)
+    end
+    if filter_params[:user_group_id].present?
+      user_group_scope = where(user_group_id: filter_params[:user_group_id].to_i)
+      ids += user_group_scope.pluck(:id)
+    end
+    if filter_params[:role_id].present?
+      role_scope = where(role_id: filter_params[:role_id].to_i)
+      ids += role_scope.pluck(:id)
+    end
+    if filter_params[:collection_id].present?
+      entity_group_scope = where(collection_id: filter_params[:collection_id].to_i)
+      ids += entity_group_scope.pluck(:id)
+    end
 
-    user_scope = UserGroup.with_user_id(filter_params[:user_id].to_i) if filter_params[:user_id].present?
-    user_group_scope = where(user_group_id: filter_params[:user_group_id].to_i) if filter_params[:user_group_id].present?
-    role_scope = where(role_id: filter_params[:role_id].to_i) if filter_params[:role_id].present?
-    entity_group_scope = where(collection_id: filter_params[:collection_id].to_i) if filter_params[:collection_id].present?
-
-    ids = joins(:user_group).
-      merge(user_scope).
-      merge(user_group_scope).
-      merge(role_scope).
-      merge(entity_group_scope).pluck(:id)
     where(id: ids)
   end
 

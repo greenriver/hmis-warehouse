@@ -16,7 +16,13 @@
 
               - @collection.public_send(entity_type).each do |entity|
                 - if entity_type == :projects
-                  .project.pl-4.mb-4= entity.ProjectName
+                  .d-flex
+                    .project-duplicate-warning
+                      - additional_sources = @collection.project_duplicated(entity.id, entity_type)
+                      - if additional_sources.present?
+                        %span{data: { toggle: :tooltip, title: "Additional Sources <br /> #{additional_sources}", html: :true }}
+                          %i.icon-warning
+                    .project.pl-4.mb-4= entity.ProjectName
                 - elsif entity_type == :coc_codes
                   .project.pl-4.mb-4= entity
                 - else
@@ -24,7 +30,13 @@
                   - title = "#{entity.name} (#{number_with_delimiter(entity.projects.size)})"
                   - content_for "panel_collapse_content_#{slug}".to_sym do
                     - entity.projects.each do |project|
-                      .project= project.ProjectName
+                      .d-flex
+                        .project-duplicate-warning
+                          - additional_sources = @collection.project_duplicated(project.id, entity_type)
+                          - if additional_sources.present?
+                            %span{data: { toggle: :tooltip, title: "Additional Sources <br /> #{additional_sources}", html: :true }}
+                              %i.icon-warning
+                        .project= project.ProjectName
                   = render 'common/panel_collapse', id: slug, title: title, content: "_#{slug}", wrapper_class: '', arrow_icon: 'icon-angle'
           - else
             .none-found.border-0 No #{entity_title}

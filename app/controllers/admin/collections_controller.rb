@@ -13,6 +13,7 @@ module Admin
 
     def index
       @collections = collection_scope.order(:name)
+      @collections = @collections.text_search(params[:q]) if params[:q].present?
       @pagy, @collections = pagy(@collections)
     end
 

@@ -11,9 +11,13 @@
       %strong Collections can be used to assign access to particular sets of data.
       Users are assigned groups and inherit data access from the group.  Roles are then assigned to users to grant access to sections of the warehouse.  When used in combination a user can be given access to a sub-set of warehouse data within a specified limited context.
 
-  = link_to new_admin_collection_path, class: 'btn btn-primary mb-2' do
-    %span.icon-plus
-    Add a Collection
+  .d-flex
+    = link_to new_admin_collection_path, class: 'btn btn-primary mb-2 mr-auto' do
+      %span.icon-plus
+      Add a Collection
+    .w-50.ml-auto
+      - @prompt = 'Search user groups...'
+      = render 'search_form'
   - if @pagy.count.positive?
     = render 'common/pagination_top', item_name: 'group'
     .table-responsive

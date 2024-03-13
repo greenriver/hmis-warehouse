@@ -68,6 +68,16 @@ class Collection < ApplicationRecord
     )
   end
 
+  def self.text_search(text)
+    return none unless text.present?
+
+    query = "%#{text}%"
+    where(
+      arel_table[:name].matches(query).
+      or(arel_table[:description].matches(query)),
+    )
+  end
+
   def name
     if user_id.blank?
       super
@@ -154,6 +164,51 @@ class Collection < ApplicationRecord
 
   def overall_project_count
     projects.count
+  end
+
+  def project_duplicated(project_id, entity_type)
+    return unless project_overlap[project_id].present?
+
+    project_overlap[project_id].map do |et, sources|
+      next if et == entity_type # ignore ourselves
+      next unless sources.present?
+
+      "#{entity_title(et)}: #{sources.join(', ')}"
+    end.compact.join('<br />')
+  end
+
+  private def project_overlap
+    @project_overlap ||= {}.tap do |po|
+      data_sources.each do |entity|
+        entity.projects.pluck(:id).each do |p_id|
+          po[p_id] ||= { data_sources: [], organizations: [], project_access_groups: [], coc_codes: [], projects: [] }
+          po[p_id][:data_sources] << entity.name
+        end
+      end
+      organizations.each do |entity|
+        entity.projects.pluck(:id).each do |p_id|
+          po[p_id] ||= { data_sources: [], organizations: [], project_access_groups: [], coc_codes: [], projects: [] }
+          po[p_id][:organizations] << entity.name
+        end
+      end
+      project_groups.each do |entity|
+        entity.projects.pluck(:id).each do |p_id|
+          po[p_id] ||= { data_sources: [], organizations: [], project_access_groups: [], coc_codes: [], projects: [] }
+          po[p_id][:organizations] << entity.name
+        end
+      end
+      coc_codes.each do |code|
+        GrdaWarehouse::Hud::Project.in_coc(coc_code: code).pluck(:id).each do |p_id|
+          po[p_id] ||= { data_sources: [], organizations: [], project_access_groups: [], coc_codes: [], projects: [] }
+          po[p_id][:coc_codes] << code
+        end
+      end
+      projects.each do |entity|
+        p_id = entity.id
+        po[p_id] ||= { data_sources: [], organizations: [], project_access_groups: [], coc_codes: [], projects: [] }
+        po[p_id][:projects] << entity.name
+      end
+    end
   end
 
   def project_count_from(type)

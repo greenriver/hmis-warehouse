@@ -9,6 +9,12 @@
     margin-bottom: 0;
   }
 
+  .project-duplicate-warning {
+    width: 1rem;
+    margin-left: 1rem;
+    color: $brand-warning;
+  }
+
   .c-card .c-card__content {
     border-width: 0;
   }
