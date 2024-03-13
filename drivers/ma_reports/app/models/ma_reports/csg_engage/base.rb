@@ -13,19 +13,46 @@ module MaReports::CsgEngage
         @fields ||= []
       end
 
-      def field(name, label: nil, &block)
-        fields << { method: name, label: label.present? ? label : name.to_s.titleize }
+      def field(name, method: nil, subfield: nil, &block)
+        method_name = method || (name.is_a?(Symbol) ? name : convert_to_symbol(name))
+        fields << {
+          method: method_name,
+          subfield: subfield || @subfield_name,
+          name: name.is_a?(Symbol) ? name.to_s.titleize : name,
+        }
 
-        define_method(name) { instance_eval(&block) } if block_given?
+        define_method(method_name) { instance_eval(&block) } if block_given?
+      end
+
+      def subfield(name, &block)
+        @subfield_name = name
+        instance_eval(&block)
+        @subfield_name = nil
+      end
+
+      private
+
+      def convert_to_symbol(string)
+        string.underscore.gsub(/\W+/, '_').to_sym
       end
     end
 
     def serialize
-      self.class.fields.map do |field|
-        puts field[:label]
+      base_fields = self.class.fields
+
+      {
+        **serialize_fields(base_fields.reject { |f| f[:subfield]&.present? }),
+        **base_fields.pluck(:subfield).uniq.compact.map do |field|
+          [field, serialize_fields(base_fields.select { |f| f[:subfield] == field })]
+        end.to_h,
+      }
+    end
+
+    def serialize_fields(fields_to_use)
+      fields_to_use.map do |field|
         [
-          field[:label],
-          serialize_value(send(field[:method])),
+          field[:name],
+          serialize_value(respond_to?(field[:method]) ? send(field[:method]) : nil),
         ]
       end.to_h
     end
@@ -47,6 +74,10 @@ module MaReports::CsgEngage
 
     def households_scope
       project.enrollments.heads_of_households
+    end
+
+    def convert_to_symbol(string)
+      self.class.convert_to_symbol(string)
     end
   end
 end

@@ -12,6 +12,6 @@ module MaReports::CsgEngage
       @service = service
     end
 
-    field(:test) { 'TODO' }
+    field('Test') { 'TODO' }
   end
 end

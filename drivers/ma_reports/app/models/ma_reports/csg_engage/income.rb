@@ -12,6 +12,6 @@ module MaReports::CsgEngage
       @income_benefit = income_benefit
     end
 
-    field(:test) { 'TODO' }
+    field('Test') { 'TODO' }
   end
 end

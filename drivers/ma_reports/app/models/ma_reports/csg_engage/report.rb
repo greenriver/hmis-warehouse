@@ -14,11 +14,11 @@ module MaReports::CsgEngage
       @action = action
     end
 
-    field :agency_id
-    field :data_type
-    field :action
+    field 'AgencyID'
+    field 'Data Type'
+    field 'Action'
 
-    field(:programs) do
+    field('Programs') do
       result = []
       project_scope.find_each do |project|
         result << MaReports::CsgEngage::Program.new(project)
