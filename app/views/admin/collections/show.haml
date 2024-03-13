@@ -33,11 +33,12 @@
         = link_to edit_admin_collection_path(@collection), class: ['btn', 'btn-sm', 'btn-secondary'] do
           %i.icon-pencil
           Edit
-- if @collection.collection_type.present?
-  - if @collection.collection_type == 'Projects'
-    = render 'projects'
-- elsif ! @collection.must_exist?
-  %p<
-    Legacy collection entities can be edited on the
-    = link_to 'Edit page', edit_admin_collection_path(@collection)
-    \.
+.collections
+  - if @collection.collection_type.present?
+    - if @collection.collection_type == 'Projects'
+      = render 'projects'
+  - elsif ! @collection.must_exist?
+    %p<
+      Legacy collection entities can be edited on the
+      = link_to 'Edit page', edit_admin_collection_path(@collection)
+      \.

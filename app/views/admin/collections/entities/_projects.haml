@@ -1,0 +1,21 @@
+%table.table.datatable.border.collections
+  %thead
+    %tr
+      %th
+      %th Name
+      %th Data Source / Organization
+  %tbody
+    - @entities[:collection].each do |org_name, entities|
+      - entities.each do |entity|
+        - id = ['collection', entity_type, entity.id].join('_')
+        - name = "collection[#{entity_type}][#{entity.id}]"
+        - checked = @entities[:selected].include?(entity.id)
+        %tr
+          %td
+            .form-check
+              %input{name: name, type: 'hidden', value: 0}
+                .c-checkbox.d-flex
+                  %input{ id: id, name: name, type: 'checkbox', value: 1, checked: checked }
+                  %label{for: id}
+          %td= entity.name
+          %td= org_name

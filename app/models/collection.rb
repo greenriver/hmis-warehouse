@@ -111,11 +111,41 @@ class Collection < ApplicationRecord
     {
       data_sources: 'Data Sources',
       organizations: 'Organizations',
+      project_access_groups: 'Project Groups', # access to projects through project groups
+      # coc_codes: 'CoC Codes',
       projects: 'Projects',
-      project_groups: 'Project Groups',
       reports: 'Reports',
       cohorts: 'Cohorts',
+      project_groups: 'Project Groups', # access to project groups
     }.freeze
+  end
+
+  def relevant_entity_types
+    return entity_types if collection_type.blank?
+
+    relevant_types = case collection_type
+    when 'Projects'
+      [
+        :data_sources,
+        :organizations,
+        :project_access_groups,
+        :coc_codes,
+        :projects,
+      ]
+    when 'Project Groups'
+      [
+        :project_groups,
+      ]
+    when 'Reports'
+      [
+        :reports,
+      ]
+    when 'Cohorts'
+      [
+        :cohorts,
+      ]
+    end
+    entity_types.slice(*relevant_types)
   end
 
   def overall_project_count
@@ -123,9 +153,15 @@ class Collection < ApplicationRecord
   end
 
   def project_count_from(type)
-    case type
-    when 'Data Sources'
-      data_sources.count
+    case type.to_sym
+    when :data_sources, :organizations, :project_access_groups
+      public_send(type).map { |entity_type| entity_type.projects.size }.sum
+    when :projects
+      projects.count
+    when :coc_codes
+      raise 'FIXME'
+    else
+      0
     end
   end
 

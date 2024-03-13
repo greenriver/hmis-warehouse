@@ -1,20 +1,26 @@
 %h2 Projects Included (#{@collection.overall_project_count})
 .row
-  .col-sm
-    .card
-      .card-header.border-bottom
-        %h3 Data Sources
-        = link_to 'Add / Remove', entities_admin_collection_path(@collection, entities: :data_sources), class: ['btn', 'btn-primary', 'btn-sm']
-      .card-body
-        .border-bottom
-          = @collection.project_count_from('Data Sources')
-        - if @collection.data_sources.exists?
-          - @collection.data_sources.each do |ds|
-            - slug = "ds_#{ds.id}"
-            - title = "#{ds.name} (#{ds.projects.size})"
-            - content_for "panel_collapse_content_#{slug}".to_sym do
-              - ds.projects.each do |project|
-                .project= project.ProjectName
-            = render 'common/panel_collapse', id: slug, title: title, content: "_#{slug}", wrapper_class: '', arrow_icon: 'icon-angle'
-        - else
-          .none-found No Data Sources
+  - @collection.relevant_entity_types.each do |entity_type, entity_title|
+    .col-sm
+      .card
+        .card-header.border-bottom
+          %h3= entity_title
+          = link_to 'Add / Remove', entities_admin_collection_path(@collection, entities: entity_type), class: ['btn', 'btn-primary', 'btn-sm'], data: { loads_in_ajax_modal: true }
+        .card-body
+          - if @collection.public_send(entity_type).exists?
+            .card-body-negate-padding
+              .border-bottom.mb-4.px-4.pb-4
+                = pluralize(number_with_delimiter(@collection.project_count_from(entity_type)), 'Project')
+
+              - @collection.public_send(entity_type).each do |entity|
+                - if entity_type == :projects
+                  .project.pl-4.mb-4= entity.ProjectName
+                - else
+                  - slug = "#{entity_type}_#{entity.id}"
+                  - title = "#{entity.name} (#{number_with_delimiter(entity.projects.size)})"
+                  - content_for "panel_collapse_content_#{slug}".to_sym do
+                    - entity.projects.each do |project|
+                      .project= project.ProjectName
+                  = render 'common/panel_collapse', id: slug, title: title, content: "_#{slug}", wrapper_class: '', arrow_icon: 'icon-angle'
+          - else
+            .none-found.border-0 No #{entity_title}

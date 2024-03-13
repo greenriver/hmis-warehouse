@@ -1,0 +1,55 @@
+@import '../helpers';
+
+.collections {
+  tr:has(input:checked) td {
+    background-color: rgba(117, 85, 159, 0.2);
+  }
+
+  .panel-group {
+    margin-bottom: 0;
+  }
+
+  .c-card .c-card__content {
+    border-width: 0;
+  }
+
+  .c-card__content .project {
+    margin-bottom: 1rem;
+    padding-left: 1rem;
+  }
+
+  .c-checkbox input:checked~label,
+  .c-checkbox input:not(:checked)~label {
+    @include checkbox-default(20px, false, 3px);
+  }
+
+  .c-checkbox input:not(:checked)~label {
+    @include checkbox-not-checked;
+  }
+
+  .c-checkbox input:checked~label {
+    @include checkbox-checked;
+  }
+
+  .c-checkbox input.dirty:checked+label {
+    @include checkbox-checked-dirty;
+  }
+
+  .c-checkbox input.dirty:not(:checked)+label {
+    @include checkbox-not-checked-dirty;
+  }
+
+  .c-checkbox input:disabled:checked~label,
+  .c-checkbox input.disabled:checked~label,
+  .c-checkbox input.disabled:not(:checked)~label,
+  .c-checkbox input:disabled:not(:checked)~label {
+    background: $input-disabled !important;
+    border-color: $input-disabled !important;
+    pointer-events: none !important;
+    cursor: not-allowed;
+
+    .c-checkbox__check-container {
+      opacity: .75;
+    }
+  }
+}

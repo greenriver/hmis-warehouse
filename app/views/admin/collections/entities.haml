@@ -1,5 +1,29 @@
 - entity_type = @collection.clean_entity_type(params[:entities])
 - title = "Manage: #{@collection.entity_title(entity_type)}"
 - content_for :modal_title, title
-= simple_form_for @collection, url: entities_admin_collection_path(@collection, entities: entity_type), method: :patch do |f|
-  = render @collection.partial_for(entity_type), entity_type: entity_type
+.d-flex.mb-4
+  .mr-4.w-50
+    .input-group
+      %input.w-50#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
+      %span.input-group-append
+        %button.btn.btn-secondary Search
+= simple_form_for @collection, url: bulk_entities_admin_collection_path(@collection, entities: entity_type), method: :patch do |f|
+  .overflow-auto{ style: 'max-height: 600px;'}
+    = render @collection.partial_for(entity_type), f: f, entity_type: entity_type
+  .pt-4.d-flex
+    .ml-auto= link_to 'Cancel', admin_collection_path(@collection), class: ['btn', 'btn-secondary']
+    .ml-4= f.submit 'Save', class: ['btn', 'btn-primary', 'jSubmit']
+
+= content_for :page_js do
+  :javascript
+    table = $('.datatable').DataTable({
+      paging: false,
+      "dom": 'lrtip'
+    });
+    $('#table_search').keyup(function(){
+      table.search($(this).val()).draw();
+    });
+    // Make sure all items are visible before submitting
+    $('body').on('click', '.jSubmit', function(e){
+      table.search('').draw();
+    })
