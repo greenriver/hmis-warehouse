@@ -73,5 +73,6 @@ module Types
     field :delete_client_alert, mutation: Mutations::DeleteClientAlert
 
     field :update_external_form_submission, mutation: Mutations::UpdateExternalFormSubmission
+    field :delete_external_form_submission, mutation: Mutations::DeleteExternalFormSubmission
   end
 end
