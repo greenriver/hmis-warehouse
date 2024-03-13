@@ -35,8 +35,7 @@
           Edit
 .collections
   - if @collection.collection_type.present?
-    - if @collection.collection_type == 'Projects'
-      = render 'projects'
+    = render @collection.collection_type.downcase.gsub(' ', '_')
   - elsif ! @collection.must_exist?
     %p<
       Legacy collection entities can be edited on the

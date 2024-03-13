@@ -36,10 +36,11 @@ module Admin
 
     def update
       @collection.update(collection_params)
-      @collection.set_viewables(viewable_params)
+      # Only update viewbles on legacy collections
+      @collection.set_viewables(viewable_params) if @collection.legacy?
       @collection.save
 
-      redirect_to({ action: :index }, notice: "Collection #{@collection.name} updated.")
+      redirect_to({ action: :show }, notice: "Collection #{@collection.name} updated.")
     end
 
     def destroy
@@ -58,8 +59,8 @@ module Admin
         @projects
       when :project_access_groups
         @project_access_groups
-      when :cocs
-        @cocs
+      when :coc_codes
+        @coc_codes
       when :reports
         @reports
       when :cohorts
@@ -77,13 +78,18 @@ module Admin
         # Prevent unsetting other entity types
         if entity_type.to_s == params[:entities]
           values.each do |id, checked|
-            ids[entity_type] << id.to_i if checked == '1'
+            id = id.to_i unless entity_type == :coc_codes
+            ids[entity_type] << id if checked == '1'
           end
         else
           ids[entity_type] = @collection.send(entity_type).map(&:id)
         end
       end
-      @collection.set_viewables(ids.with_indifferent_access)
+      if params[:entities].to_sym == :coc_codes
+        @collection.update(coc_codes: ids[:coc_codes].uniq)
+      else
+        @collection.set_viewables(ids.with_indifferent_access)
+      end
       redirect_to({ action: :show }, notice: "Collection #{@collection.name} updated.")
     end
 
@@ -116,7 +122,7 @@ module Admin
 
     private def bulk_entities_params
       params.require(:collection).permit(
-        # TODO: coc_codes
+        coc_codes: {},
         data_sources: {},
         organizations: {},
         projects: {},
@@ -194,6 +200,18 @@ module Admin
         label: 'CoC Codes',
         selected: @collection&.coc_codes || [],
         collection: GrdaWarehouse::Hud::ProjectCoc.distinct.distinct.order(:CoCCode).pluck(:CoCCode).compact,
+        placeholder: 'CoC',
+        multiple: true,
+        input_html: {
+          class: 'jUserViewable jCocCodes',
+          name: 'collection[coc_codes][]',
+        },
+      }
+
+      @coc_codes = {
+        label: 'CoC Codes',
+        selected: @collection&.coc_codes || [],
+        collection: GrdaWarehouse::Hud::ProjectCoc.distinct.distinct.order(:CoCCode).pluck(:CoCCode).compact.map { |coc| [HudUtility2024.coc_name(coc), coc] },
         placeholder: 'CoC',
         multiple: true,
         input_html: {

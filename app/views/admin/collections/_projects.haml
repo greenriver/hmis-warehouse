@@ -5,9 +5,11 @@
       .card
         .card-header.border-bottom
           %h3= entity_title
-          = link_to 'Add / Remove', entities_admin_collection_path(@collection, entities: entity_type), class: ['btn', 'btn-primary', 'btn-sm'], data: { loads_in_ajax_modal: true }
+          - unless @collection.entities_locked?
+            = link_to 'Add / Remove', entities_admin_collection_path(@collection, entities: entity_type), class: ['btn', 'btn-primary', 'btn-sm'], data: { loads_in_ajax_modal: true }
         .card-body
-          - if @collection.public_send(entity_type).exists?
+          - any = if entity_type.to_s == 'coc_codes' then @collection.coc_codes.present? else @collection.public_send(entity_type).exists? end
+          - if any
             .card-body-negate-padding
               .border-bottom.mb-4.px-4.pb-4
                 = pluralize(number_with_delimiter(@collection.project_count_from(entity_type)), 'Project')
@@ -15,6 +17,8 @@
               - @collection.public_send(entity_type).each do |entity|
                 - if entity_type == :projects
                   .project.pl-4.mb-4= entity.ProjectName
+                - elsif entity_type == :coc_codes
+                  .project.pl-4.mb-4= entity
                 - else
                   - slug = "#{entity_type}_#{entity.id}"
                   - title = "#{entity.name} (#{number_with_delimiter(entity.projects.size)})"

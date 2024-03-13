@@ -12,7 +12,7 @@
         - id = ['collection', entity_type, entity.id].join('_')
         - name = "collection[#{entity_type}][#{entity.id}]"
         - checked = @entities[:selected].include?(entity.id)
-        %tr
+        %tr.jClickRow
           %td
             .form-check
               %input{name: name, type: 'hidden', value: 0}

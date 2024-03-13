@@ -3,9 +3,6 @@
     %tr
       %th
       %th Name
-      %th Client Records
-      %th Project Count
-      %th Last Import
   %tbody
     - @entities[:collection].each do |entity|
       - id = ['collection', entity_type, entity.id].join('_')
@@ -19,6 +16,3 @@
                 %input{ id: id, name: name, type: 'checkbox', value: 1, checked: checked }
                 %label{for: id}
         %td= entity.name
-        %td= number_with_delimiter(entity.clients.count)
-        %td= number_with_delimiter(entity.projects.count)
-        %td= entity.import_logs.maximum(:completed_at)&.localtime

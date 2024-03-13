@@ -80,6 +80,10 @@ class Collection < ApplicationRecord
     user_id.blank?
   end
 
+  def legacy?
+    collection_type.blank?
+  end
+
   def describe_type
     return 'Any' if collection_type.blank?
 
@@ -112,7 +116,7 @@ class Collection < ApplicationRecord
       data_sources: 'Data Sources',
       organizations: 'Organizations',
       project_access_groups: 'Project Groups', # access to projects through project groups
-      # coc_codes: 'CoC Codes',
+      coc_codes: 'CoC Codes',
       projects: 'Projects',
       reports: 'Reports',
       cohorts: 'Cohorts',
@@ -159,7 +163,7 @@ class Collection < ApplicationRecord
     when :projects
       projects.count
     when :coc_codes
-      raise 'FIXME'
+      GrdaWarehouse::Hud::Project.in_coc(coc_code: coc_codes).distinct.count
     else
       0
     end
