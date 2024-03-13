@@ -24,7 +24,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p2, client: c1, relationship_to_ho_h: 1, household_id: '1', user: u1 }
   let!(:e3) do
     e = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1, household_id: '1', user: u1
-    e.save_in_progress
+    e.save_in_progress!
     e
   end
   let!(:c2) { create :hmis_hud_client, dob: Date.current - 1.year, data_source: ds1, user: u1 }

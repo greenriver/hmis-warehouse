@@ -88,8 +88,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       end
     end
 
-    def form_definition
-      Hmis::Form::Definition.where(identifier: 'tc-spdat').first!
+    def form_definition_identifier
+      'SPDAT'
     end
   end
 end

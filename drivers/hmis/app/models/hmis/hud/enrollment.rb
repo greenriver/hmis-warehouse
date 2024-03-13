@@ -30,6 +30,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # CAUTION: enrollment.project accessor is overridden below
   belongs_to :project, **hmis_relation(:ProjectID, 'Project'), optional: true
+  has_one :client_project, **hmis_relation(:EnrollmentID)
+
   has_one :exit, **hmis_enrollment_relation('Exit'), inverse_of: :enrollment, dependent: :destroy
 
   # HUD services
@@ -189,7 +191,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   scope :with_project, ->(project_ids) do
-    with_projects_where(p_t[:id].in(project_ids))
+    with_projects_where(p_t[:id].in(Array.wrap(project_ids)))
   end
 
   scope :in_age_group, ->(start_age: 0, end_age: nil) do
@@ -286,7 +288,22 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     generate_uuid
   end
 
-  def save_in_progress
+  def save_new_enrollment!
+    raise 'Unexpected: save_new_enrollment called on a persisted enrollment' if persisted?
+
+    if Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(project)
+      # If auto-enter is configured for this project, save as non-WIP and generate an empty intake.
+      save_not_in_progress!
+      build_synthetic_intake_assessment.save!
+    else
+      # Otherwise, save as WIP
+      save_in_progress!
+    end
+  end
+
+  def save_in_progress!
+    # "WIP" Enrollments have a null ProjectID column, so that they don't
+    # get pulled into reporting. The Project database ID is stored in the hmis_wips table.
     saved_project_id = project.id
 
     self.project_id = nil
@@ -300,14 +317,16 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     )
     save!(validate: false)
   end
+  alias save_in_progress save_in_progress!
 
-  def save_not_in_progress
+  def save_not_in_progress!
     transaction do
       self.project_id = project_id || project.project_id
-      wip&.destroy
+      wip&.destroy!
       save!
     end
   end
+  alias save_not_in_progress save_not_in_progress!
 
   def in_progress?
     project_id.nil?
@@ -383,11 +402,12 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   def build_synthetic_intake_assessment
     assessment = Hmis::Hud::CustomAssessment.new(
-      enrollment: self,
-      client: client,
-      data_source: data_source,
+      CustomAssessmentID: Hmis::Hud::Base.generate_uuid,
+      enrollment_id: enrollment_id,
+      personal_id: personal_id,
       assessment_date: entry_date,
-      user: user, # same user that's on the enrollment
+      user_id: user_id || Hmis::Hud::User.system_user(data_source_id: data_source_id)&.user_id,
+      data_source_id: data_source_id,
       data_collection_stage: 1, # Intake
       wip: false,
     )
