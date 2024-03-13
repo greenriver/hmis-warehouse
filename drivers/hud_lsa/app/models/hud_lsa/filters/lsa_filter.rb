@@ -25,6 +25,7 @@ module HudLsa::Filters
 
       self.start = pit_date
       self.end = pit_date + 1.day
+      self
     end
 
     def params_for_display
