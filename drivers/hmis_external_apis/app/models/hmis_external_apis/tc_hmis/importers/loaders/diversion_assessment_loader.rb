@@ -49,8 +49,12 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       "dca-eto-#{response_id}"
     end
 
-    def form_definition
-      Hmis::Form::Definition.where(identifier: 'tc-diversion-crisis-assessment').first!
+    def form_definition_identifier
+      'diversion-crisis-assessment'
+    end
+
+    def ce_assessment_level
+      1 # AssessmentLevel: 1 (crisis needs assessment)
     end
   end
 end

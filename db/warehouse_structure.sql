@@ -1315,7 +1315,8 @@ CREATE TABLE public."CustomServiceTypes" (
     data_source_id integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    supports_bulk_assignment boolean DEFAULT false NOT NULL
 );
 
 
@@ -1345,6 +1346,13 @@ COMMENT ON COLUMN public."CustomServiceTypes".hud_record_type IS 'Only applicabl
 --
 
 COMMENT ON COLUMN public."CustomServiceTypes".hud_type_provided IS 'Only applicable if this is a HUD service';
+
+
+--
+-- Name: COLUMN "CustomServiceTypes".supports_bulk_assignment; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomServiceTypes".supports_bulk_assignment IS 'whether to support bulk service assignment for this type in the hmis application';
 
 
 --
@@ -18162,7 +18170,8 @@ CREATE TABLE public.hmis_form_definitions (
     definition jsonb,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    title character varying NOT NULL
+    title character varying NOT NULL,
+    deleted_at timestamp without time zone
 );
 
 
@@ -60906,7 +60915,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240220171320'),
 ('20240221195839'),
 ('20240222152739'),
+('20240228192937'),
 ('20240229132014'),
-('20240304181225');
+('20240304181225'),
+('20240312153543');
 
 

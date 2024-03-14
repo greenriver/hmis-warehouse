@@ -91,9 +91,10 @@ module Types
         definition_id = item_attributes['data_element_definition_id']
         custom_data_element_labels_by_id[definition_id] || 'Custom Data Element'
       when 'Hmis::Hud::CustomAssessment'
-        # Try to label Assessment by name (eg "Exit Assessment")
-        # This would need adjustment to support naming fully custom assessments (eg "SPDAT Assessment")
-        HudUtility2024.assessment_name_by_data_collection_stage[item_attributes['DataCollectionStage']] || 'Assessment'
+        # Label Assessment by name (eg "Exit Assessment")
+        HudUtility2024.assessment_name_by_data_collection_stage[item_attributes['DataCollectionStage']] ||
+          custom_assessment_title ||
+          'Assessment'
       else
         object.item_type.demodulize.gsub(/^Custom(Client)?/, '').
           underscore.humanize.titleize
@@ -108,6 +109,11 @@ module Types
       else
         object.item_type.demodulize.gsub(/^Custom/, '')
       end
+    end
+
+    private def custom_assessment_title
+      ca = load_ar_scope(scope: Hmis::Hud::CustomAssessment.with_deleted, id: object.item_id)
+      ca ? load_ar_association(ca, :definition)&.title : nil
     end
 
     # NOTE: will be nil if this is a 'destroy' event

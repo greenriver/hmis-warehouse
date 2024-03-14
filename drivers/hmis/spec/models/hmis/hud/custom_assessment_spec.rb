@@ -15,30 +15,19 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
     cleanup_test_environment
   end
 
-  describe 'in progress assessments' do
+  describe 'destroying WIP assessment' do
     let!(:assessment) { create(:hmis_wip_custom_assessment) }
 
-    it 'cleans up dependent processor after destroy' do
-      assessment.reload
-      expect(assessment.wip).to eq(true)
+    it 'cleans up dependent processor' do
+      assessment.destroy!
 
-      assessment.destroy
-      assessment.reload
-      expect(assessment.form_processor).not_to be_present
-    end
-  end
-
-  describe 'submitted assessments' do
-    let!(:assessment) { create(:hmis_custom_assessment) }
-
-    before(:each) do
-      assessment.save_not_in_progress
+      expect(assessment.reload).to be_deleted
+      expect(assessment.form_processor).to be_nil
     end
 
-    it 'preserve shared data after destroy' do
-      assessment.destroy
+    it 'preserves shared data' do
+      assessment.destroy!
       assessment.reload
-
       [
         :enrollment,
         :client,
@@ -46,6 +35,51 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
       ].each do |assoc|
         expect(assessment.send(assoc)).to be_present, "expected #{assoc} to be present"
       end
+    end
+  end
+
+  describe 'destroying submitted assessments' do
+    let!(:assessment) { create(:hmis_custom_assessment) }
+
+    it 'cleans up dependent processor' do
+      assessment.destroy!
+
+      expect(assessment.reload).to be_deleted
+      expect(assessment.form_processor).to be_nil
+    end
+
+    it 'preserves shared data' do
+      assessment.destroy!
+      assessment.reload
+      [
+        :enrollment,
+        :client,
+        :user,
+      ].each do |assoc|
+        expect(assessment.send(assoc)).to be_present, "expected #{assoc} to be present"
+      end
+    end
+
+    it 'preserves records linked through FormProcessor' do
+      health_and_dv = create(:hmis_health_and_dv, **assessment.slice(:data_source, :client, :enrollment, :user))
+      assessment.form_processor.update(health_and_dv: health_and_dv)
+      expect(assessment.health_and_dv).to eq(health_and_dv)
+
+      assessment.destroy!
+
+      expect(assessment.reload).to be_deleted
+      expect(health_and_dv.reload).not_to be_deleted
+    end
+
+    it 'soft-deletes associated CustomDataElements' do
+      cded = create(:hmis_custom_data_element_definition, data_source: assessment.data_source, owner_type: 'Hmis::Hud::CustomAssessment')
+      cde_value = create(:hmis_custom_data_element, owner: assessment, data_element_definition: cded, data_source: assessment.data_source, owner_type: 'Hmis::Hud::CustomAssessment')
+      expect(assessment.custom_data_elements).to contain_exactly(cde_value)
+
+      assessment.destroy!
+
+      expect(cde_value.reload).to be_deleted
+      expect(cde_value.date_deleted).to be_present
     end
   end
 
@@ -175,7 +209,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
     end
 
     it 'groups intake assessments on WIP enrollments' do
-      e1.save_in_progress
+      e1.save_in_progress!
       a1 = create(:hmis_wip_custom_assessment, data_collection_stage: 1, data_source: ds1, enrollment: e1, client: e1.client)
       a2 = create(:hmis_custom_assessment, data_collection_stage: 1, data_source: ds1, enrollment: e2, client: e2.client)
 
@@ -189,7 +223,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
     end
 
     it 'groups annual assessments by date' do
-      e1.save_in_progress
+      e1.save_in_progress!
       e1_a1 = create(:hmis_custom_assessment, assessment_date: 2.years.ago, data_collection_stage: 5, data_source: ds1, enrollment: e1, client: e1.client)
 
       _e2_a1 = create(:hmis_wip_custom_assessment, assessment_date: 6.months.ago, data_collection_stage: 5, data_source: ds1, enrollment: e2, client: e2.client)
