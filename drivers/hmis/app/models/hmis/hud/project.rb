@@ -172,6 +172,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     operating_end_date >= Date.current
   end
 
+  def name
+    project_name
+  end
+
   def households_including_wip
     # correlated subquery for performance
     cp_t = Hmis::Hud::ClientProject.arel_table

@@ -163,7 +163,21 @@ class Collection < ApplicationRecord
   end
 
   def overall_project_count
-    projects.count
+    @overall_project_count ||= Set.new.tap do |ids|
+      ids << projects.pluck(:id)
+      data_sources.each do |ds|
+        ids << ds.projects.pluck(:id)
+      end
+      organizations.each do |o|
+        ids << o.projects.pluck(:id)
+      end
+      project_access_groups.each do |pa|
+        ids << pa.projects.pluck(:id)
+      end
+      coc_codes.each do |code|
+        ids << GrdaWarehouse::Hud::Project.in_coc(coc_code: code).pluck(:id)
+      end
+    end.count
   end
 
   def project_duplicated(project_id, entity_type)

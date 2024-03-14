@@ -53,10 +53,14 @@ BostonHmis::Application.routes.draw do
     end
 
     namespace :hmis_admin do
+      resources :access_overviews, only: [:index]
       resources :roles do
         patch :batch_update, on: :collection
       end
-      resources :groups
+      resources :groups do
+        get :entities, on: :member
+        patch :bulk_entities, on: :member
+      end
       resources :user_groups do
         resources :users, only: [:create, :destroy], controller: 'user_groups/users'
       end

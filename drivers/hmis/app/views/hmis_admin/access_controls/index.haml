@@ -5,13 +5,13 @@
 .alert.alert-info
   %i.icon-warning.mr-4
   %p Access Controls are used to grant users access to HMIS data with specific permissions. Each Access Control consists of one User Group, one Role, and one Collection. Each user in the Access Controls inherits data access from the Collection, permissions from the Role, and applies those permissions to the collection of data for everyone in the User Group.
-.text-right
-  = link_to new_hmis_admin_access_control_path, class: 'btn btn-primary mb-2' do
-    %span.icon-plus
-    Create a new Access Control
-= render 'filter'
+
+= link_to new_hmis_admin_access_control_path, class: 'btn btn-primary mb-2' do
+  %span.icon-plus
+  Create a new Access Control
+
+= render 'common/pagination_top', item_name: 'access control list', filter_partial: 'filter'
 - if @pagy.count.positive?
-  = render 'common/pagination_top', item_name: 'access control list'
   .table-responsive
     %table.table.table-striped
       %thead

@@ -12,6 +12,7 @@ class HmisAdmin::UserGroupsController < ApplicationController
 
   def index
     @user_groups = user_group_scope.order(:name)
+    @user_groups = @user_groups.text_search(params[:q]) if params[:q].present?
     @pagy, @user_groups = pagy(@user_groups)
   end
 

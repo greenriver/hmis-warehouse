@@ -4,11 +4,16 @@
 
 .alert.alert-info
   %i.icon-warning.mr-4
-  %p User Groups are a set of users who should all have similar abilities within HMIS.  Access Controls can then use User Groups to assign those permissions.
-.text-right
-  = link_to new_hmis_admin_user_group_path, class: 'btn btn-primary mb-2' do
+  %p
+    %strong User Groups are a set of users who should all have similar abilities within HMIS.
+    User Groups are combined with Roles and Collections via Access Controls.  The intersection of Role, Collection, and User Group determines what each person can do and see within HMIS.
+.d-flex.mb-2
+  = link_to new_hmis_admin_user_group_path, class: 'btn btn-primary mr-auto' do
     %span.icon-plus
     Add a User Group
+  .w-50.ml-auto
+    - @prompt = 'Search user groups...'
+    = render 'search_form'
 - if @pagy.count.positive?
   = render 'common/pagination_top', item_name: 'user group'
   .table-responsive

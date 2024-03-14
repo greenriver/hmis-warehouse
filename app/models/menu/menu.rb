@@ -502,10 +502,51 @@ class Menu::Menu
     menu = Menu::Item.new(
       user: user,
       title: Translation.translate('HMIS Admin'),
+      match_pattern_terminator: '.*',
     )
     # If we don't have the ENV for HMIS, the path isn't available
     # Checking enforcement outside keeps it from throwing an error
     if HmisEnforcement.hmis_enabled?
+      menu.add_child(
+        Menu::Item.new(
+          user: user,
+          visible: ->(_user) { context.hmis_admin_visible? },
+          path: hmis_admin_access_overviews_path,
+          title: Translation.translate('Overview'),
+        ),
+      )
+      menu.add_child(
+        Menu::Item.new(
+          user: user,
+          visible: ->(_user) { context.hmis_admin_visible? },
+          path: hmis_admin_access_controls_path,
+          title: Translation.translate('Access Controls'),
+        ),
+      )
+      menu.add_child(
+        Menu::Item.new(
+          user: user,
+          visible: ->(_user) { context.hmis_admin_visible? },
+          path: hmis_admin_roles_path,
+          title: Translation.translate('Roles & Permissions'),
+        ),
+      )
+      menu.add_child(
+        Menu::Item.new(
+          user: user,
+          visible: ->(_user) { context.hmis_admin_visible? },
+          path: hmis_admin_user_groups_path,
+          title: Translation.translate('User Groups'),
+        ),
+      )
+      menu.add_child(
+        Menu::Item.new(
+          user: user,
+          visible: ->(_user) { context.hmis_admin_visible? },
+          path: hmis_admin_groups_path,
+          title: Translation.translate('Collections'),
+        ),
+      )
       menu.add_child(
         Menu::Item.new(
           user: user,

@@ -43,6 +43,16 @@ class Hmis::AccessGroup < ApplicationRecord
     )
   end
 
+  def self.text_search(text)
+    return none unless text.present?
+
+    query = "%#{text}%"
+    where(
+      arel_table[:name].matches(query).
+      or(arel_table[:description].matches(query)),
+    )
+  end
+
   # For compatibility, doesn't actually do anything here
   def coc_codes
     []
@@ -112,6 +122,95 @@ class Hmis::AccessGroup < ApplicationRecord
       else
         []
       end
+    end
+  end
+
+  def clean_entity_type(key)
+    entity_types.keys.detect { |e| e == key.to_sym } || entity_types.keys.first
+  end
+
+  def entity_title(key)
+    entity_types[key.to_sym] || key
+  end
+
+  def partial_for(key)
+    "hmis_admin/groups/entities/#{clean_entity_type(key)}"
+  end
+
+  def entity_types
+    {
+      data_sources: 'Data Sources',
+      organizations: 'Organizations',
+      projects: 'Projects',
+    }.freeze
+  end
+
+  def relevant_entity_types
+    return entity_types if collection_type.blank?
+
+    relevant_types = [
+      :data_sources,
+      :organizations,
+      :projects,
+    ]
+    entity_types.slice(*relevant_types)
+  end
+
+  def overall_project_count
+    @overall_project_count ||= Set.new.tap do |ids|
+      ids << projects.pluck(:id)
+      data_sources.each do |ds|
+        ids << ds.projects.pluck(:id)
+      end
+      organizations.each do |o|
+        ids << o.projects.pluck(:id)
+      end
+    end.count
+  end
+
+  def project_duplicated(project_id, entity_type)
+    return unless project_overlap[project_id].present?
+
+    project_overlap[project_id].map do |et, sources|
+      next if et == entity_type # ignore ourselves
+      next unless sources.present?
+
+      "#{entity_title(et)}: #{sources.join(', ')}"
+    end.compact.join('<br />')
+  end
+
+  private def project_overlap
+    @project_overlap ||= {}.tap do |po|
+      data_sources.each do |entity|
+        entity.projects.pluck(:id).each do |p_id|
+          po[p_id] ||= { data_sources: [], organizations: [], project_access_groups: [], coc_codes: [], projects: [] }
+          po[p_id][:data_sources] << entity.name
+        end
+      end
+      organizations.each do |entity|
+        entity.projects.pluck(:id).each do |p_id|
+          po[p_id] ||= { data_sources: [], organizations: [], project_access_groups: [], coc_codes: [], projects: [] }
+          po[p_id][:organizations] << entity.name
+        end
+      end
+      projects.each do |entity|
+        p_id = entity.id
+        po[p_id] ||= { data_sources: [], organizations: [], project_access_groups: [], coc_codes: [], projects: [] }
+        po[p_id][:projects] << entity.name
+      end
+    end
+  end
+
+  def project_count_from(type)
+    case type.to_sym
+    when :data_sources, :organizations, :project_access_groups
+      public_send(type).map { |entity_type| entity_type.projects.size }.sum
+    when :projects
+      projects.count
+    when :coc_codes
+      GrdaWarehouse::Hud::Project.in_coc(coc_code: coc_codes).distinct.count
+    else
+      0
     end
   end
 
