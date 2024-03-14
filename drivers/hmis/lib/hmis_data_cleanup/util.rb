@@ -149,17 +149,19 @@ module HmisDataCleanup
 
     # Write a file summarizing the Enrollment and Assessment counts for each project. This is helpful to review
     # prior to a final data migration, to spot any unexpected values, and/or allow fixing issues in the external system prior to migration.
-    def self.write_project_enrollment_summary(filename: 'hmis_project_summary.csv')
+    def self.write_project_enrollment_summary(filename: "hmis_project_summary_#{Date.current.strftime('%Y-%m-%d')}.csv")
       open_projects = Hmis::Hud::Project.hmis.open_on_date.pluck(:id)
 
-      rows = Hmis::Hud::Project.hmis.map do |project|
+      rows = Hmis::Hud::Project.hmis.preload(:organization).map do |project|
         project_assessments = Hmis::Hud::CustomAssessment.joins(:enrollment).merge(project.enrollments).distinct
 
         num_empty_intakes = project_assessments.intakes.joins(:form_processor).where(form_processor: { health_and_dv_id: nil, income_benefit_id: nil, physical_disability_id: nil, developmental_disability_id: nil, chronic_health_condition_id: nil, hiv_aids_id: nil, mental_health_disorder_id: nil, substance_use_disorder_id: nil }).count
 
         {
-          ProjectID: project.project_id,
-          ProjectName: project.project_name,
+          OrganizationID: project.organization.OrganizationID,
+          OrganizationName: project.organization.OrganizationName,
+          ProjectID: project.ProjectID,
+          ProjectName: project.ProjectName,
           ProjectType: HudUtility2024.project_type_briefs[project.project_type],
           ProjectStatus: open_projects.include?(project.id) ? 'open' : 'closed', # project status
           HMISParticipationStatus: project.hmis_participations.where(HMISParticipationType: 1).exists? ? 'participating' : 'non-participating / unknown',
