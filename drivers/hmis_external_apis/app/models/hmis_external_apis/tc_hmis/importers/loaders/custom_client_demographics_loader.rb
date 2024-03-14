@@ -69,6 +69,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           )
         end
 
+        # FIXME: cell phones being imported as float strings, eg "1112223333.0" unable to reproduce locally
         update_contact_points(row, personal_id, row.field_value('Cell Phone'), row.field_value('Email'), timestamp)
 
         update_client_address(row, personal_id, row.field_value('Address Line 1'), row.field_value('Address Line 2'), row.field_value('Zipcode'), timestamp)
