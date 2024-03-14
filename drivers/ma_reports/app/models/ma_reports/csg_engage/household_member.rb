@@ -160,11 +160,11 @@ module MaReports::CsgEngage
     end
 
     def gender_fields
-      client.attributes.slice(*HudUtility2024.gender_id_to_field_name.except(:GenderNone).values.uniq.map(&:to_s))
+      client.attributes.slice(*HudUtility2024.gender_id_to_field_name.values.reject { |v| v == :GenderNone }.uniq.map(&:to_s))
     end
 
     def race_fields
-      client.attributes.slice(*HudUtility2024.race_id_to_field_name.except(:RaceNone).values.uniq.map(&:to_s))
+      client.attributes.slice(*HudUtility2024.race_id_to_field_name.values.reject { |v| v == :RaceNone }.uniq.map(&:to_s))
     end
 
     def latest_income_benefit
