@@ -15,6 +15,10 @@ RSpec.describe Health::Claim, type: :model do
     create(:qualifying_activity, patient_id: patient.id, date_of_activity: Date.yesterday, mode_of_contact: :phone_call,
                                  reached_client: :collateral, reached_client_collateral_contact: 'who', force_payable: true)
   end
+  let!(:qa7) do
+    create(:qualifying_activity, patient_id: patient.id, date_of_activity: Date.today, mode_of_contact: :phone_call,
+                                 reached_client: :no, force_payable: true)
+  end
   let!(:claim) { create :health_claim }
 
   before(:each) do
@@ -24,5 +28,8 @@ RSpec.describe Health::Claim, type: :model do
   it 'smoke test' do
     claim.build_claims_file
     claim.convert_claims_to_text
+    # binding.pry # 'puts claim.convert_claims_to_text' to bench check
   end
+
+  # TODO: automate the claims file introspection rather than bench checks
 end
