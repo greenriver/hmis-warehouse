@@ -147,7 +147,46 @@ module HmisDataCleanup
       end
     end
 
-    def self.write_project_unit_summary(filename: 'hmis_project_summary.csv')
+    # Write a file summarizing the Enrollment and Assessment counts for each project. This is helpful to review
+    # prior to a final data migration, to spot any unexpected values, and/or allow fixing issues in the external system prior to migration.
+    def self.write_project_enrollment_summary(filename: "hmis_project_summary_#{Date.current.strftime('%Y-%m-%d')}.csv")
+      open_projects = Hmis::Hud::Project.hmis.open_on_date.pluck(:id)
+
+      rows = Hmis::Hud::Project.hmis.preload(:organization).map do |project|
+        project_assessments = Hmis::Hud::CustomAssessment.joins(:enrollment).merge(project.enrollments).distinct
+
+        num_empty_intakes = project_assessments.intakes.joins(:form_processor).where(form_processor: { health_and_dv_id: nil, income_benefit_id: nil, physical_disability_id: nil, developmental_disability_id: nil, chronic_health_condition_id: nil, hiv_aids_id: nil, mental_health_disorder_id: nil, substance_use_disorder_id: nil }).count
+
+        {
+          OrganizationID: project.organization.OrganizationID,
+          OrganizationName: project.organization.OrganizationName,
+          ProjectID: project.ProjectID,
+          ProjectName: project.ProjectName,
+          ProjectType: HudUtility2024.project_type_briefs[project.project_type],
+          ProjectStatus: open_projects.include?(project.id) ? 'open' : 'closed', # project status
+          HMISParticipationStatus: project.hmis_participations.where(HMISParticipationType: 1).exists? ? 'participating' : 'non-participating / unknown',
+          TotalEnrollmentCount: project.enrollments.count, # num enrollments
+          TotalHouseholdCount: project.enrollments.pluck(:household_id).uniq.size, # num households
+          OpenEnrollmentCount: project.enrollments.open_on_date.count, # num open enrollments
+          ExitedEnrollmentCount: project.enrollments.exited.count, # num exited enrollments
+          IntakeAssessmentCount: project_assessments.intakes.count, # num intakes
+          EmptyIntakeAssessmentCount: num_empty_intakes, # num "empty" intakes
+          UpdateAssessmentCount: project_assessments.where(data_collection_stage: 2).count, # num updates
+          AnnualAssessmentCount: project_assessments.where(data_collection_stage: 5).count, # num annuals
+          ExitAssessmentCount: project_assessments.where(data_collection_stage: 3).count, # num exits
+          PostExitAssessmentCount: project_assessments.where(data_collection_stage: 6).count, # num post-exits
+        }
+      end
+
+      CSV.open(filename, 'wb+', write_headers: true, headers: rows.first.keys.map(&:to_s).map(&:titleize)) do |writer|
+        rows.each do |row|
+          writer << row.values
+        end
+      end
+    end
+
+    # Write a file summarizing the Unit and Referral assignments per project
+    def self.write_project_unit_summary(filename: 'hmis_project_unit_summary.csv')
       direct_entry_cded = Hmis::Hud::CustomDataElementDefinition.find_by(key: :direct_entry)
       project_pk_to_walkin_status = direct_entry_cded.values.pluck(:owner_id, :value_boolean).to_h if direct_entry_cded
 
@@ -196,6 +235,8 @@ module HmisDataCleanup
       end
     end
 
+    # Write a file with all potential duplicates in HMIS. This uses the same logic as the "Review Potential Duplicates" page on the Admin
+    # client merge screen in HMIS. Reviewing a CSV can be helpful prior to migration if there are lots of dups and bulk merge is needed.
     def self.write_potential_duplicates(filename: 'hmis_client_potential_duplicates.csv', variant: 'all', full_name: true)
       Rails.logger.info("Finding potential duplicates (variant: #{variant})")
 
