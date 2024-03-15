@@ -36,6 +36,10 @@ module Types
     field :bulk_assign_service, mutation: Mutations::BulkAssignService
     field :bulk_remove_service, mutation: Mutations::BulkRemoveService
 
+    field :create_service_category, mutation: Mutations::CreateServiceCategory
+    field :delete_service_category, mutation: Mutations::DeleteServiceCategory
+    field :rename_service_category, mutation: Mutations::RenameServiceCategory
+
     field :save_assessment, mutation: Mutations::SaveAssessment
     field :submit_assessment, mutation: Mutations::SubmitAssessment
     field :delete_assessment, mutation: Mutations::DeleteAssessment
