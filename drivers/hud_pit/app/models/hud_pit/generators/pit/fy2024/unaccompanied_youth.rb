@@ -6,7 +6,7 @@
 
 module HudPit::Generators::Pit::Fy2024
   class UnaccompaniedYouth < Base
-    QUESTION_NUMBER = 'Unaccompanied Youth'.freeze
+    QUESTION_NUMBER = 'Unaccompanied Youth Households'.freeze
 
     def self.filter_pending_associations(pending_associations)
       pending_associations.select do |_, row|

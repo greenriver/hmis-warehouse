@@ -6,7 +6,7 @@
 
 module HudPit::Generators::Pit::Fy2024
   class VeteranAdultAndChild < Base
-    QUESTION_NUMBER = 'Veteran Households with at least one Adult & one Child'.freeze
+    QUESTION_NUMBER = 'Adult & Child Veteran Households (at least one adult and one child)'.freeze
 
     def self.filter_pending_associations(pending_associations)
       pending_associations.select { |_, row| row[:hoh_veteran] && row[:household_type].to_s == 'adults_and_children' }

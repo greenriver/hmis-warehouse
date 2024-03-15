@@ -6,7 +6,7 @@
 
 module HudPit::Generators::Pit::Fy2024
   class Children < Base
-    QUESTION_NUMBER = 'Households with only Children'.freeze
+    QUESTION_NUMBER = 'Child Only'.freeze
 
     def self.filter_pending_associations(pending_associations)
       pending_associations.select { |_, row| row[:household_type].to_s == 'children_only' }
@@ -64,7 +64,7 @@ module HudPit::Generators::Pit::Fy2024
       table_name = QUESTION_NUMBER
       metadata = {
         header_row: [
-          'Persons in Households with only Children',
+          'Persons in households with only Children',
           'Emergency',
           'Transitional',
           'Safe Haven',

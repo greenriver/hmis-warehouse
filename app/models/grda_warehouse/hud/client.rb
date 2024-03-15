@@ -2016,9 +2016,11 @@ module GrdaWarehouse::Hud
 
       race_fields_minus_latin = race_fields.reject { |x| x.include?('HispanicLatinaeo') }
 
-      return 'Hispanic/Latina/e/o (only)' if race_fields_minus_latin.count.zero?
+      return 'Hispanic/Latina/e/o (only)' if race_fields_minus_latin.count.zero? && race_fields.include?('HispanicLatinaeo')
 
+      # if the race fields didn't include latinx add "only", otherwise note that the client also falls into the latinx category
       suffix = race_fields == race_fields_minus_latin ? ' (only)' : ' & Hispanic/Latina/e/o'
+      # if latinx wasn't one of the races, and there were more than two races, the client will be in the multi-racial category
       suffix = ' (all other)' if race_fields == race_fields_minus_latin && race_fields_minus_latin.count > 1
 
       return 'Multi-Racial' + suffix if race_fields_minus_latin.count > 1

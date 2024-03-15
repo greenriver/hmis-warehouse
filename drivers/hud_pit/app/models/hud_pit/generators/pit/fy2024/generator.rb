@@ -51,7 +51,7 @@ module  HudPit::Generators::Pit::Fy2024
       # Make sure we take advantage of the additive nature of HUD report filters
       @filter.project_ids = @report.project_ids
 
-      scope = scope.merge(@filter.apply(GrdaWarehouse::ServiceHistoryEnrollment.all))
+      scope = scope.merge(@filter.apply(GrdaWarehouse::ServiceHistoryEnrollment.entry))
 
       scope.select(:id)
     end
