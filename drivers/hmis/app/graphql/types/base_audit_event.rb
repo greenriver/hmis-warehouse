@@ -46,12 +46,26 @@ module Types
     field :user, Application::User, null: true
     field :true_user, Application::User, null: true
     field :object_changes, Types::JsonObject, null: true, description: 'Format is { field: { fieldName: "GQL field name", displayName: "Human readable name", values: [old, new] } }'
+    field :client_id, String, null: true
+    field :client_name, String, null: true
+    field :enrollment_id, String, null: true
+    field :project_id, String, null: true
+    field :project_name, String, null: true
     # TODO: add impersonation user / true user, and display it in the interface
 
     available_filter_options do
       arg :enrollment_record_type, [ID]
       arg :client_record_type, [ID]
       arg :user, [ID]
+    end
+
+    def client_name
+      client = load_ar_association(object, :hmis_client)
+      client&.full_name
+    end
+
+    def project_name
+      load_ar_association(object, :hmis_project)&.project_name
     end
 
     # User-friendly display name for item_type
@@ -77,9 +91,10 @@ module Types
         definition_id = item_attributes['data_element_definition_id']
         custom_data_element_labels_by_id[definition_id] || 'Custom Data Element'
       when 'Hmis::Hud::CustomAssessment'
-        # Try to label Assessment by name (eg "Exit Assessment")
-        # This would need adjustment to support naming fully custom assessments (eg "SPDAT Assessment")
-        HudUtility2024.assessment_name_by_data_collection_stage[item_attributes['DataCollectionStage']] || 'Assessment'
+        # Label Assessment by name (eg "Exit Assessment")
+        HudUtility2024.assessment_name_by_data_collection_stage[item_attributes['DataCollectionStage']] ||
+          custom_assessment_title ||
+          'Assessment'
       else
         object.item_type.demodulize.gsub(/^Custom(Client)?/, '').
           underscore.humanize.titleize
@@ -94,6 +109,11 @@ module Types
       else
         object.item_type.demodulize.gsub(/^Custom/, '')
       end
+    end
+
+    private def custom_assessment_title
+      ca = load_ar_scope(scope: Hmis::Hud::CustomAssessment.with_deleted, id: object.item_id)
+      ca ? load_ar_association(ca, :definition)&.title : nil
     end
 
     # NOTE: will be nil if this is a 'destroy' event

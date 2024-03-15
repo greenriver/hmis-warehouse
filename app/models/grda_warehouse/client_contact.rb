@@ -18,6 +18,7 @@ module GrdaWarehouse
           'Case Manager',
           'Rapid Re-Housing Case Manager',
           'Secondary Case Manager',
+          'Assessor',
         ],
       )
     end

@@ -92,10 +92,10 @@ class AwsS3
       objects += batch.contents
     end
 
-    objects
-      .sort_by(&:last_modified)
-      .reverse!
-      &.first(max_keys)
+    objects.
+      sort_by(&:last_modified).
+      reverse!&.
+      first(max_keys)
   end
 
   def fetch(file_name:, prefix: nil, target_path:)
@@ -106,6 +106,10 @@ class AwsS3
     end
     file = @bucket.object(file_path)
     file.get(response_target: target_path)
+  end
+
+  def get_file_type(key:)
+    @bucket.object(key)&.content_type
   end
 
   def get_as_io(key:)

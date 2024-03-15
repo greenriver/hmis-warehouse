@@ -4,6 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# CE Assessment
 class Hmis::Hud::Assessment < Hmis::Hud::Base
   self.table_name = :Assessment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
@@ -21,7 +22,7 @@ class Hmis::Hud::Assessment < Hmis::Hud::Base
 
   belongs_to :enrollment, **hmis_enrollment_relation, optional: true
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments, optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_many :assessment_questions, **hmis_relation(:AssessmentID, 'AssessmentQuestion'), dependent: :destroy
   has_many :assessment_results, **hmis_relation(:AssessmentID, 'AssessmentResult'), dependent: :destroy

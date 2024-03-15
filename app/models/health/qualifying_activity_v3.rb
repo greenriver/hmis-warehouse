@@ -38,8 +38,18 @@ module Health
         },
         phone_call: {
           title: 'Phone call',
-          code: '93',
+          # code: '93',
           weight: 10,
+          dynamic_code: ->(qa) do
+            case qa.reached_client&.to_sym
+            when :yes # Phone calls with clients are telehealth
+              '93'
+            when :collateral # With collaterals are indirect
+              'U3'
+            else # Otherwise
+              'U3'
+            end
+          end,
         },
         email: {
           title: 'Email',
@@ -48,8 +58,18 @@ module Health
         },
         video_call: {
           title: 'Video call',
-          code: '95',
+          # code: '95',
           weight: 30,
+          dynamic_code: ->(qa) do
+            case qa.reached_client&.to_sym
+            when :yes # Video calls with clients are telehealth
+              '95'
+            when :collateral # With collaterals are indirect
+              'U3'
+            else # Otherwise
+              'U3'
+            end
+          end,
         },
         text_message: {
           title: 'Text messaging',
@@ -216,6 +236,20 @@ module Health
       return reasons.uniq if @qa.activity == 'pctp_signed'
 
       reasons.uniq
+    end
+
+    def place_of_service
+      return '02' if telehealth? # Location other than enrollee's home
+
+      super
+    end
+
+    private def telehealth?
+      # Calls are only considered telehealth is the client is reached
+      # Calls w/ collaterals are still coded as U3
+      # For missed calls, if they are marked with a telehealth POS, MH flags them for
+      # for the POS instead of their not being a contact, and this is confusing
+      @qa.mode_of_contact&.to_sym.in?([:phone_call, :video_call]) && @qa.reached_client.to_sym == :yes
     end
   end
 end

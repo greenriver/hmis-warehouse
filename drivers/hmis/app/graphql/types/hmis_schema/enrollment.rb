@@ -8,6 +8,8 @@
 
 module Types
   class HmisSchema::Enrollment < Types::BaseObject
+    EXCLUDED_KEYS_FOR_AUDIT = ['owner_type', 'enrollment_address_type', 'wip'].freeze
+
     include Types::HmisSchema::HasEvents
     include Types::HmisSchema::HasServices
     include Types::HmisSchema::HasAssessments
@@ -208,7 +210,7 @@ module Types
     audit_history_field(
       :audit_history,
       # Fields should match our DB casing, consult schema to determine appropriate casing
-      excluded_keys: ['owner_type', 'enrollment_address_type', 'wip'],
+      excluded_keys: Types::HmisSchema::Enrollment::EXCLUDED_KEYS_FOR_AUDIT,
       filter_args: { omit: [:client_record_type], type_name: 'EnrollmentAuditEvent' },
       # Transformation for Disability response type
       transform_changes: ->(version, changes) do

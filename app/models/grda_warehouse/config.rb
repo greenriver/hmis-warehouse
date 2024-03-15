@@ -143,6 +143,7 @@ module GrdaWarehouse
       {
         'Boston Pathways' => 'GrdaWarehouse::CasProjectClientCalculator::Boston',
         'Tarrant HAT' => 'GrdaWarehouse::CasProjectClientCalculator::TcHat',
+        'Tarrant HMIS HAT' => 'GrdaWarehouse::CasProjectClientCalculator::TcHmisHat',
         'Housing Forward' => 'GrdaWarehouse::CasProjectClientCalculator::Mdha',
         'Default' => 'GrdaWarehouse::CasProjectClientCalculator::Default',
       }
@@ -172,8 +173,8 @@ module GrdaWarehouse
       get(:pii_encryption_type).to_sym.in?([:none])
     end
 
-    def self.currrent_health_emergency_tracing_title
-      available_health_emergency_tracings.invert[get(:health_emergency_tracing).to_sym] || ''
+    def self.current_health_emergency_tracing_title
+      available_health_emergency_tracings.invert[get(:health_emergency_tracing)&.to_sym] || ''
     end
 
     def self.current_health_emergency_title
@@ -222,7 +223,6 @@ module GrdaWarehouse
         :last_name,
         :eto_api_available,
         :healthcare_available,
-        :project_type_override,
         :release_duration,
         :cas_available_method,
         :cas_flag_method,

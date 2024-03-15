@@ -467,7 +467,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     it 'should error if creating household without hoh' do
       input = merge_hud_values(
         test_input,
-        'relationshipToHoh' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2),
+        'relationshipToHoH' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2),
       )
       expect_error_message(input, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.first_member_hoh_full_message)
     end
@@ -477,7 +477,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       input = merge_hud_values(
         test_input.merge(client_id: e2.client.id),
         'householdId' => e1.household_id,
-        'relationshipToHoh' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2),
+        'relationshipToHoH' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2),
       )
       expect_error_message(input, exact: false, fullMessage: Hmis::Hud::Validators::EnrollmentValidator.duplicate_member_full_message)
     end
@@ -488,7 +488,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       input = merge_hud_values(
         test_input.merge(client_id: e2.client.id),
         'householdId' => e1.household_id,
-        'relationshipToHoh' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2),
+        'relationshipToHoH' => Types::HmisSchema::Enums::Hud::RelationshipToHoH.key_for(2),
       )
       response, result = post_graphql(input: { input: input }) { mutation }
       errors = result.dig('data', 'submitForm', 'errors')
@@ -553,25 +553,35 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       e1.reload
       expect(e1.in_progress?).to eq(false)
     end
+  end
 
-    it 'should save new client record' do
-      input = test_input.merge(hud_values: { 'Enrollment.entryDate' => Date.yesterday.strftime('%Y-%m-%d'),
-                                             'Enrollment.relationshipToHoH' => 'SELF_HEAD_OF_HOUSEHOLD',
-                                             'Client.firstName' => 'First',
-                                             'Client.lastName' => 'Last',
-                                             'Client.nameDataQuality' => 'FULL_NAME_REPORTED',
-                                             'Client.dob' => nil,
-                                             'Client.dobDataQuality' => nil,
-                                             'Client.ssn' => nil,
-                                             'Client.ssnDataQuality' => nil,
-                                             'Client.race' => [],
-                                             'Client.gender' => [],
-                                             'Client.pronouns' => [],
-                                             'Client.veteranStatus' => nil })
-      record, _errors = submit_enrollment_form(input.merge)
-      en = Hmis::Hud::Enrollment.find(record['id'])
-      expect(en).to be_present
-      expect(en.client.first_name).to eq('First')
+  describe 'SubmitForm for Enrollment on project with ProjectAutoEnterConfig' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :ENROLLMENT) }
+    let!(:aec) { create :hmis_project_auto_enter_config, project: p1 }
+    let(:test_input) do
+      {
+        form_definition_id: definition.id,
+        **completed_form_values_for_role(:ENROLLMENT),
+        project_id: p1.id,
+        client_id: c1.id,
+        confirmed: false,
+      }
+    end
+
+    it 'should save new enrollment without WIP status' do
+      response, result = post_graphql(input: { input: test_input }) { mutation }
+      errors = result.dig('data', 'submitForm', 'errors')
+      expect(response.status).to eq(200), result.inspect
+      expect(errors).to be_empty
+
+      enrollment_id = result.dig('data', 'submitForm', 'record', 'id')
+      enrollment = Hmis::Hud::Enrollment.find_by(id: enrollment_id)
+      expect(enrollment).to be_present
+      expect(enrollment.in_progress?).to eq(false)
+      expect(enrollment.intake_assessment).to be_present
+      expect(enrollment.intake_assessment.assessment_date).to eq(enrollment.entry_date)
+      expect(enrollment.intake_assessment.wip).to eq(false)
+      expect(enrollment.intake_assessment.form_processor).to be_present
     end
   end
 
@@ -605,7 +615,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       enrollment = Hmis::Hud::Enrollment.find(record['id'])
       expect(enrollment.client).to be_present
-      expect(enrollment.client.names.size).to eq(1)
+      expect(enrollment.client.first_name).to eq('First')
     end
 
     it 'validates client (invalid field)' do

@@ -132,10 +132,11 @@ module HudSpmReport::Generators::Fy2023
 
     private def report_columns
       {
+        # TODO: can days_to_return really be 0, or should it start with 1?
         C: [:D, a_t[:days_to_return].between(0..180)],
         E: [:F, a_t[:days_to_return].between(181..365)],
         G: [:H, a_t[:days_to_return].between(366..730)],
-        I: [:J, a_t[:return_enrollment_id].not_eq(nil)],
+        I: [:J, a_t[:days_to_return].between(0..730)],
       }.freeze
     end
 

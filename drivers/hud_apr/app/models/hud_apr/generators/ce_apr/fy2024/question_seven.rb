@@ -9,10 +9,6 @@ module HudApr::Generators::CeApr::Fy2024
     include HudApr::Generators::CeApr::Fy2024::QuestionConcern
     QUESTION_TABLE_NUMBERS = ['Q7a'].freeze
 
-    def needs_ce_assessments?
-      true
-    end
-
     def run_question!
       @report.start(QUESTION_NUMBER, QUESTION_TABLE_NUMBERS)
 

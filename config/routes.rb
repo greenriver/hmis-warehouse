@@ -203,7 +203,6 @@ Rails.application.routes.draw do
     resources :youth_intake_export, only: [:index, :create]
     resources :youth_activity, only: [:index]
     resources :incomes, only: [:index]
-    resources :project_type_reconciliation, only: [:index]
     resources :missing_projects, only: [:index]
     resources :dob_entry_same, only: [:index]
     resources :non_alpha_names, only: [:index]
@@ -608,7 +607,10 @@ Rails.application.routes.draw do
     resources :non_hmis_uploads, except: [:update, :destroy, :edit]
     resources :custom_imports, controller: 'data_sources/custom_imports'
     resource :api_config
-    resource :hmis_import_config
+    resource :hmis_import_config do
+      get :download
+    end
+
   end
   resources :ad_hoc_data_sources do
     resources :uploads, except: [:edit], controller: 'ad_hoc_data_sources/uploads' do
@@ -627,10 +629,6 @@ Rails.application.routes.draw do
       get :answers, on: :member
     end
   end
-
-  resources :inventories, only: [:edit, :update]
-  resources :geography, only: [:edit, :update]
-  resources :project_cocs, only: [:edit, :update]
 
   resources :project_groups, except: [:show] do
     get :maintenance, on: :collection
@@ -767,6 +765,7 @@ Rails.application.routes.draw do
     # TODO: START_ACL cleanup after ACL migration
     # resources :roles
     resources :roles do
+      patch :batch_update, on: :collection
       resources :users, only: [:create, :destroy], controller: 'roles/users'
     end
     resources :groups do
@@ -881,6 +880,7 @@ Rails.application.routes.draw do
       get :health_dashboard
       get :health_team
       get :icon_font
+      get :menu
       get :modals
       get :pagination
       get :public_report

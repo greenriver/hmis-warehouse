@@ -604,27 +604,27 @@ module PerformanceMetrics
         # NOTE: SPM has a 2 year look-back so they may not be in the enrolled clients
         spm_report = run_spm
         # M2 B7 is TOTAL Returns to Homeless - Number of Returns in 2 Years
-        spm_returners = answer_members(spm_report, '2', 'I7') # HudSpmReport::Fy2023::Return
+        spm_returners = answer_members(spm_report, '2a and 2b', 'I7') # HudSpmReport::Fy2023::Return
         # M2 I7 is Total Number of Persons who Exited to a Permanent Housing Destination (2 Years Prior)
-        spm_leavers = answer_members(spm_report, '2', 'B7') # HudSpmReport::Fy2023::Return
+        spm_leavers = answer_members(spm_report, '2a and 2b', 'B7') # HudSpmReport::Fy2023::Return
         # 1A D2 is Average LOT Experiencing Homelessness ES, SH, and TH
         spm_episodes = answer_members(spm_report, '1a', 'D2') # HudSpmReport::Fy2023::Episode
 
-        spm_leavers.each do |client_id, spm_client|
+        spm_leavers.each do |client_id, spm_return|
           days_in_es = nil
           days_to_return = nil
 
           spm_returner = spm_returners[client_id]
           spm_leaver = spm_leavers.keys.include?(client_id)
           if spm_returner
-            days_in_es = spm_episodes[client_id].days_homeless
-            days_to_return = spm_returner.days_to_return
+            days_in_es = spm_episodes[client_id]&.days_homeless
+            days_to_return = spm_returner&.days_to_return
           end
           report_client = report_clients[client_id] || Client.new
           report_client.assign_attributes(
             client_id: client_id,
-            first_name: spm_client.first_name,
-            last_name: spm_client.last_name,
+            first_name: spm_return.client.first_name,
+            last_name: spm_return.client.last_name,
             report_id: id,
             "#{period}_period_days_in_es" => days_in_es,
             "#{period}_period_days_to_return" => days_to_return,

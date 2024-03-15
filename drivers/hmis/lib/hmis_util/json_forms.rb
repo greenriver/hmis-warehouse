@@ -26,10 +26,14 @@ module HmisUtil
     protected
 
     def env_key
-      return ENV['CLIENT'] if ENV['CLIENT'].present?
-
-      # default to QA environment in development to get forms with all possible questions enabled
-      'qa_hmis' if Rails.env.development?
+      @env_key ||= if Rails.env.test?
+        'test'
+      elsif ENV['CLIENT'].present?
+        ENV['CLIENT']
+      elsif Rails.env.development?
+        # default to QA environment in development to get forms with all possible questions enabled
+        'qa_hmis'
+      end
     end
 
     def fragment_map
@@ -395,8 +399,10 @@ module HmisUtil
 
     public def seed_static_forms
       Hmis::Form::Definition::STATIC_FORM_ROLES.each do |role|
-        filename = "#{role.to_s.downcase}.json"
-        file = File.read("#{DATA_DIR}/static/#{filename}")
+        filename = "#{DATA_DIR}/static/#{role.to_s.downcase}.json"
+        next unless File.exist?(filename) # skip deprecated roles
+
+        file = File.read(filename)
         form_definition = JSON.parse(file)
         load_definition(
           form_definition: form_definition,

@@ -331,6 +331,8 @@ module GrdaWarehouse
         ::CohortColumns::DateDocumentReady.new,
         ::CohortColumns::DaysHomelessLastThreeYears.new,
         ::CohortColumns::DaysLiterallyHomelessLastThreeYears.new,
+        ::CohortColumns::ShelteredDaysHomelessLastThreeYears.new,
+        ::CohortColumns::UnshelteredDaysHomelessLastThreeYears.new,
         ::CohortColumns::EnrolledHomelessShelter.new,
         ::CohortColumns::EnrolledHomelessUnsheltered.new,
         ::CohortColumns::EnrolledPermanentHousing.new,
@@ -568,6 +570,8 @@ module GrdaWarehouse
             days_homeless_plus_overrides: days_homeless_plus_overrides(cc.client),
             individual_in_most_recent_homeless_enrollment: individual_in_most_recent_homeless_enrollment(cc.client),
             most_recent_date_to_street: most_recent_date_to_street(cc.client),
+            sheltered_days_homeless_last_three_years: sheltered_days_homeless_last_three_years(cc.client),
+            unsheltered_days_homeless_last_three_years: unsheltered_days_homeless_last_three_years(cc.client),
           )
           rows << cc
         end
@@ -586,6 +590,8 @@ module GrdaWarehouse
               :days_homeless_plus_overrides,
               :individual_in_most_recent_homeless_enrollment,
               :most_recent_date_to_street,
+              :sheltered_days_homeless_last_three_years,
+              :unsheltered_days_homeless_last_three_years,
             ],
           },
         )
@@ -601,6 +607,14 @@ module GrdaWarehouse
 
       # TODO, make this work on a batch of clients
       # Convert GrdaWarehouse::WarehouseClientsProcessed.homeless_counts to accept client_ids and a date
+    end
+
+    private def sheltered_days_homeless_last_three_years(client)
+      client.sheltered_days_homeless_last_three_years
+    end
+
+    private def unsheltered_days_homeless_last_three_years(client)
+      client.unsheltered_days_homeless_last_three_years
     end
 
     private def days_homeless_last_three_years(client)

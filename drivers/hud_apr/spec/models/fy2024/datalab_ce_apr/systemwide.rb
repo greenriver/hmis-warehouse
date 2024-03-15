@@ -13,15 +13,22 @@ RSpec.shared_context 'datalab systemwide ce apr', shared_context: :metadata do
       run(generator, project_ids_filter(project_ids))
     end
 
+    # TODO: make this align
     xit 'Q4a' do
-      question = 'Q4a'
-      goals = goals(
+      # question = 'Q4a'
+      # goals = goals(
+      #   file_path: result_file_prefix + results_dir,
+      #   question: question,
+      #   external_column_header: false,
+      # )
+      # compare_columns(goal: goals, question: question, column_names: ['C', 'D'])
+      compare_results(
         file_path: result_file_prefix + results_dir,
-        question: question,
+        question: 'Q4a',
       )
-      compare_columns(goal: goals, question: question, column_names: ['C', 'D'])
     end
 
+    # TODO: Off by a few
     xit 'Q5a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -29,6 +36,7 @@ RSpec.shared_context 'datalab systemwide ce apr', shared_context: :metadata do
       )
     end
 
+    # TODO: Off by a few
     xit 'Q6a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -36,6 +44,7 @@ RSpec.shared_context 'datalab systemwide ce apr', shared_context: :metadata do
       )
     end
 
+    # TODO: Off by a few
     xit 'Q7a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -43,6 +52,7 @@ RSpec.shared_context 'datalab systemwide ce apr', shared_context: :metadata do
       )
     end
 
+    # TODO: Off by a few
     xit 'Q8a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -50,6 +60,7 @@ RSpec.shared_context 'datalab systemwide ce apr', shared_context: :metadata do
       )
     end
 
+    # TODO: Off by a few
     xit 'Q9a' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -57,6 +68,7 @@ RSpec.shared_context 'datalab systemwide ce apr', shared_context: :metadata do
       )
     end
 
+    # TODO: Off by a few
     xit 'Q9b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -64,6 +76,7 @@ RSpec.shared_context 'datalab systemwide ce apr', shared_context: :metadata do
       )
     end
 
+    # TODO: Off by a few
     xit 'Q9c' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -71,6 +84,7 @@ RSpec.shared_context 'datalab systemwide ce apr', shared_context: :metadata do
       )
     end
 
+    # TODO: Off by a few
     xit 'Q9d' do
       compare_results(
         file_path: result_file_prefix + results_dir,
@@ -78,6 +92,7 @@ RSpec.shared_context 'datalab systemwide ce apr', shared_context: :metadata do
       )
     end
 
+    # TODO: Off by a few
     xit 'Q10' do
       compare_results(
         file_path: result_file_prefix + results_dir,

@@ -13,5 +13,9 @@ module Hmis::Hud::Processors
     def schema
       Types::HmisSchema::EmploymentEducation
     end
+
+    def relation_name
+      :employment_education
+    end
   end
 end

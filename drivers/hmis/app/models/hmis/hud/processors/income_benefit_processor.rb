@@ -24,6 +24,10 @@ module Hmis::Hud::Processors
       :income_benefit_factory
     end
 
+    def relation_name
+      :income_benefit
+    end
+
     def schema
       Types::HmisSchema::IncomeBenefit
     end

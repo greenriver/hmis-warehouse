@@ -90,7 +90,6 @@ module AllNeighborsSystemDashboard
         :enrollment,
         :client,
         :project,
-        :service_history_enrollment_for_head_of_household,
       ).find_in_batches do |batch|
         report_enrollments = {}
         ce_infos = ce_infos_for_batch(filter, batch)
@@ -99,26 +98,31 @@ module AllNeighborsSystemDashboard
 
         batch.each do |enrollment|
           source_enrollment = enrollment.enrollment
-          hoh_enrollment = enrollment.service_history_enrollment_for_head_of_household&.enrollment || source_enrollment
+          hoh_enrollment = hoh(source_enrollment)
           ce_info = ce_infos[enrollment.id]
           # Latest CE Event that occurred on or before enrollment.entry_date
           # this would be the referral to housing (or the identification that someone needed housing)
           max_event = ce_info&.ce_event&.select { |e| e.event_date <= enrollment.entry_date }&.max_by(&:event_date)
           # inherit move_in_date from hoh enrollment
-          move_in_date = enrollment.move_in_date || hoh_enrollment.move_in_date
+          move_in_date = enrollment.move_in_date || hoh_enrollment[:move_in_date]
           # invalidate move_in_date if it's after the report end_date
           move_in_date = nil if move_in_date.present? && move_in_date > filter.end_date
 
           exit_type = exit_type(filter, enrollment)
+          exit_date = exit_date(filter, enrollment)
           diversion_enrollment = enrollment.project.id.in?(filter.secondary_project_ids)
 
           placed_date = if diversion_enrollment && exit_type == 'Permanent'
-            exit_date(filter, enrollment)
+            exit_date
           elsif enrollment.project.ph?
             move_in_date
           end
           # Exclude any client who doesn't have a placement
           next unless placed_date.present?
+
+          # Adjust the placed date to be inside the enrolment, pre-entry moves to entry date, post exit, moves to exit date
+          placed_date = enrollment.entry_date if placed_date < enrollment.entry_date
+          placed_date = exit_date if exit_date.present? && placed_date > exit_date
 
           # Exclude any records where the placement occurred outside of the report range
           next unless placed_date.in?(filter.range)
@@ -132,12 +136,12 @@ module AllNeighborsSystemDashboard
             report_id: id,
             destination_client_id: enrollment.client_id,
             household_id: enrollment.household_id,
-            household_type: household_type(enrollment),
-            prior_living_situation_category: prior_living_situation_category(hoh_enrollment),
+            household_type: household_type(source_enrollment),
+            prior_living_situation_category: prior_living_situation_category(hoh_enrollment[:living_situation]),
             enrollment_id: source_enrollment.enrollment_id,
             entry_date: enrollment.first_date_in_program,
             move_in_date: move_in_date,
-            exit_date: exit_date(filter, enrollment),
+            exit_date: exit_date,
             placed_date: placed_date,
             adjusted_exit_date: adjusted_exit_date(filter, enrollment),
             exit_type: exit_type,
@@ -156,7 +160,7 @@ module AllNeighborsSystemDashboard
             return_date: return_dates[enrollment.id],
             project_id: enrollment.project.id,
             project_name: enrollment.project.name, # get from project directly to handle project confidentiality
-            project_type: enrollment.computed_project_type,
+            project_type: enrollment.project_type,
           )
         end
         Enrollment.import!(report_enrollments.values)
@@ -254,7 +258,7 @@ module AllNeighborsSystemDashboard
 
     def enrollment_scope
       GrdaWarehouse::ServiceHistoryEnrollment.
-        joins(:enrollment, :client).
+        joins(:client, :project, enrollment: :client).
         entry.
         open_between(start_date: filter.start_date, end_date: filter.end_date).
         in_project(
@@ -329,27 +333,27 @@ module AllNeighborsSystemDashboard
         },
         {
           name: 'bar.js',
-          content: -> { File.read(asset_path('bar.js.es6')) },
+          content: -> { File.read(asset_path('bar.js')) },
           type: 'text/javascript',
         },
         {
           name: 'donut.js',
-          content: -> { File.read(asset_path('donut.js.es6')) },
+          content: -> { File.read(asset_path('donut.js')) },
           type: 'text/javascript',
         },
         {
           name: 'filters.js',
-          content: -> { File.read(asset_path('filters.js.es6')) },
+          content: -> { File.read(asset_path('filters.js')) },
           type: 'text/javascript',
         },
         {
           name: 'line.js',
-          content: -> { File.read(asset_path('line.js.es6')) },
+          content: -> { File.read(asset_path('line.js')) },
           type: 'text/javascript',
         },
         {
           name: 'stack.js',
-          content: -> { File.read(asset_path('stack.js.es6')) },
+          content: -> { File.read(asset_path('stack.js')) },
           type: 'text/javascript',
         },
       ]

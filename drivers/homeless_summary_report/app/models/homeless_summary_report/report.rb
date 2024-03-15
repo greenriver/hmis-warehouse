@@ -450,6 +450,8 @@ module HomelessSummaryReport
             spm_members = answer_members(report[:report], *cell)
             spm_members.each do |spm_member|
               hud_client = spm_member.client
+              next unless hud_client.present?
+
               detail_variant_name = "spm_#{household_category}__all"
               client_id = hud_client.id
               report_client = report_clients[client_id] || Client.new_with_default_values
@@ -685,8 +687,8 @@ module HomelessSummaryReport
           calculations: [:count, :average, :median],
         },
         m2_reentry_days: {
-          cells: [['2', 'B7']],
-          value_accessor: ->(_spm_return) { spm_episode.days_to_return },
+          cells: [['2a and 2b', 'B7']],
+          value_accessor: ->(spm_return) { spm_return.days_to_return },
           title: 'Re-Entering Homelessness',
         },
         m7a1_destination: {

@@ -10,6 +10,7 @@
           "link_id": "4.20.1",
           "text": "Event Date",
           "mapping": {
+            "record_type": "EVENT",
             "field_name": "eventDate"
           },
           "bounds": [
@@ -39,7 +40,10 @@
           "text": "Event Type",
           "pick_list_reference": "CE_EVENTS",
           "link_id": "4.20.2",
-          "mapping": { "field_name": "event" }
+          "mapping": {
+            "record_type": "EVENT",
+            "field_name": "event"
+          }
         },
         {
           "type": "CHOICE",
@@ -47,7 +51,10 @@
           "text": "Client housed/re-housed in a safe alternative",
           "pick_list_reference": "NoYesMissing",
           "link_id": "4.20.A",
-          "mapping": { "field_name": "probSolDivRrResult" },
+          "mapping": {
+            "record_type": "EVENT",
+            "field_name": "probSolDivRrResult"
+          },
           "enable_when": [
             {
               "question": "4.20.2",
@@ -62,7 +69,10 @@
           "text": "Enrolled in Aftercare project",
           "pick_list_reference": "NoYesMissing",
           "link_id": "4.20.B",
-          "mapping": { "field_name": "referralCaseManageAfter" },
+          "mapping": {
+            "record_type": "EVENT",
+            "field_name": "referralCaseManageAfter"
+          },
           "enable_when": [
             {
               "question": "4.20.2",
@@ -76,7 +86,10 @@
           "required": false,
           "link_id": "4.20.C",
           "text": "Location of Crisis Housing or Permanent Housing Referral",
-          "mapping": { "field_name": "locationCrisisOrPhHousing" },
+          "mapping": {
+            "record_type": "EVENT",
+            "field_name": "locationCrisisOrPhHousing"
+          },
           "enable_behavior": "ANY",
           "enable_when": [
             {
@@ -118,7 +131,10 @@
           "pick_list_reference": "ReferralResult",
           "component": "RADIO_BUTTONS_VERTICAL",
           "link_id": "4.20.D",
-          "mapping": { "field_name": "referralResult" },
+          "mapping": {
+            "record_type": "EVENT",
+            "field_name": "referralResult"
+          },
           "enable_behavior": "ANY",
           "enable_when": [
             {
@@ -169,6 +185,7 @@
           "link_id": "4.20.E",
           "text": "Result Date",
           "mapping": {
+            "record_type": "EVENT",
             "field_name": "resultDate"
           },
           "enable_when": [

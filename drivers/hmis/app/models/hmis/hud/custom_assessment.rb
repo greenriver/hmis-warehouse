@@ -27,7 +27,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   belongs_to :enrollment, **hmis_enrollment_relation, optional: true
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments, optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
   has_many :custom_data_elements, as: :owner, dependent: :destroy
@@ -46,6 +46,8 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   has_one :youth_education_status, through: :form_processor
   has_one :employment_education, through: :form_processor
   has_one :current_living_situation, through: :form_processor
+  has_one :ce_assessment, through: :form_processor
+  has_one :ce_event, through: :form_processor
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
@@ -137,6 +139,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
         save_in_progress
       else
         save_not_in_progress
+        form_processor.store_assessment_questions! if form_processor.ce_assessment?
       end
 
       unless as_wip

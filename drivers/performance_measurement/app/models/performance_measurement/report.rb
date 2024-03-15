@@ -421,7 +421,7 @@ module PerformanceMeasurement
         # Episode
         # universe membership has spm_enrollments which have hud enrollments
         scope.preload(universe_membership: { enrollments: { enrollment: :project } })
-      when '2'
+      when '2a and 2b'
         # Return
         scope.preload(universe_membership: { exit_enrollment: { enrollment: :project } })
       else
@@ -1204,7 +1204,7 @@ module PerformanceMeasurement
           ],
         },
         {
-          cells: [['2', 'B7']],
+          cells: [['2a and 2b', 'B7']],
           title: 'Returned to Homelessness Within 6 months',
           measure: :m2,
           history_source: :m2_history,

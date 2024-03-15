@@ -134,6 +134,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(log.header_client_id).to eq(headers['X-Hmis-Client-Id'])
     expect(log.header_enrollment_id).to eq(headers['X-Hmis-Enrollment-Id'])
     expect(log.header_project_id).to eq(headers['X-Hmis-Project-Id'])
+    expect(log.response_time).to be > 0
+    expect(log.response_time).to be < 2
   end
 
   def check_project_fields(log, project_id:, client_id:)

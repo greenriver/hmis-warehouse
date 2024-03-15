@@ -31,6 +31,7 @@ class AppResourceMonitor::Report
     {
       'postgres_database_stats' => AppResourceMonitor::PostgresInspector.flat_map(&:database_stats),
       'postgres_table_stats' => AppResourceMonitor::PostgresInspector.flat_map(&:table_stats),
+      'postgres_toast_stats' => AppResourceMonitor::PostgresInspector.flat_map(&:toast_stats),
       'postgres_index_stats' => AppResourceMonitor::PostgresInspector.flat_map(&:index_stats),
       'app_record_stats' => AppResourceMonitor::AppInspector.utilization_stats,
       'app_activity' => AppResourceMonitor::AppInspector.activity_stats(range: ((now - 1.day)...now)),
@@ -46,9 +47,9 @@ class AppResourceMonitor::Report
 
     ::CSV.open(filename.to_s, 'w') do |csv|
       headers = records.first.keys
-      csv << headers
+      csv << headers + ['timestamp']
       records.each do |record|
-        csv << record.values_at(*headers)
+        csv << record.values_at(*headers) + [now.to_s(:db)]
       end
     end
   end

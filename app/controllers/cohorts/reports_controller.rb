@@ -10,6 +10,7 @@ module Cohorts
     before_action :set_cohort
 
     def show
+      @excel_export = GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport.new
       start = report_params[:range].try(:[], :start) || 1.month.ago.to_date
       end_date = report_params[:range].try(:[], :end) || Date.tomorrow
       @range = ::Filters::DateRange.new(start: start, end: end_date)

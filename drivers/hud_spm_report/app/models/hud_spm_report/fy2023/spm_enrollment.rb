@@ -129,28 +129,31 @@ module HudSpmReport::Fy2023
       filter = ::Filters::HudFilterBase.new(user_id: report_instance.user.id).update(report_instance.options)
       enrollments = HudSpmReport::Adapters::ServiceHistoryEnrollmentFilter.new(report_instance).enrollments
       household_infos = household(enrollments)
-      enrollments.preload(:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders).find_in_batches do |batch|
+      enrollments.preload(:client, :destination_client, :exit, :income_benefits_at_exit, :income_benefits_at_entry, :income_benefits, project: :funders).find_in_batches(batch_size: 500) do |batch|
         members = []
         batch.each do |enrollment|
+          client = enrollment.client
+          next if client.blank?
+
           current_income_benefits = current_income_benefits(enrollment, filter.end)
           previous_income_benefits = previous_income_benefits(enrollment, current_income_benefits&.information_date, filter.end)
           household_info = household_infos[enrollment.household_id] ||
             HomelessnessInfo.new(
               start_of_homelessness: enrollment.date_to_street_essh,
               entry_date: enrollment.entry_date,
-              move_in_date: enrollment.move_in_date,
+              move_in_date: enrollment_own_move_in_date(enrollment),
             ) # If there is no HoH, use the enrollment
           members << {
             report_instance_id: report_instance.id,
 
-            first_name: enrollment.client.first_name,
-            last_name: enrollment.client.last_name,
+            first_name: client.first_name,
+            last_name: client.last_name,
             client_id: enrollment.destination_client.id,
             enrollment_id: enrollment.id,
 
-            personal_id: enrollment.client.personal_id,
+            personal_id: client.personal_id,
             data_source_id: enrollment.data_source_id,
-            age: enrollment.client.age_on([filter.start, enrollment.entry_date].max),
+            age: client.age_on([filter.start, enrollment.entry_date].max),
             start_of_homelessness: start_of_homelessness(filter, household_info, enrollment),
             entry_date: enrollment.entry_date,
             exit_date: enrollment&.exit&.exit_date,
@@ -174,7 +177,8 @@ module HudSpmReport::Fy2023
             previous_non_employment_income: non_employment_income(previous_income_benefits),
             previous_total_income: total_income(previous_income_benefits),
 
-            days_enrolled: ([enrollment&.exit&.exit_date, filter.end].compact.min - enrollment.entry_date).to_i,
+            # Pending: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec59oPiPxyysL4nL
+            days_enrolled: ([enrollment&.exit&.exit_date, filter.end].compact.min - enrollment.entry_date).to_i + 1, # enter and exit on the same day == 1 day
           }
         end
         import!(members)
@@ -191,6 +195,13 @@ module HudSpmReport::Fy2023
     end
 
     private_class_method def self.start_of_homelessness(filter, household_info, enrollment)
+      # If the HMIS also collects this element on children and unknown-age household members, their data should be used in measure 1b
+      return [enrollment.date_to_street_essh, enrollment.client&.dob].compact.max if enrollment.date_to_street_essh.present?
+
+      # If the HMIS does not collect this element on child household members:
+      # •	The data from the head of household’s response to 3.917 should be propagated to these children for the purposes of measure 1b.
+      # •	This applies to any household member whose age is <= 17 (calculated according to the HMIS Reporting Glossary), regardless of their relationship to the head of household, but not clients of unknown age.
+      # •	Only propagate the head of household’s data to children with the same [project start date] as the head of household.
       age = enrollment.client.age_on([filter.start, enrollment.entry_date].max)
       start_of_homelessness = if age.present? && age <= 17 &&
         enrollment.entry_date == household_info.entry_date
@@ -200,7 +211,7 @@ module HudSpmReport::Fy2023
         enrollment.date_to_street_essh
       end
       # Start of homelessness is never before birth
-      start_of_homelessness = [start_of_homelessness, enrollment.client.dob].max if start_of_homelessness.present? && enrollment.client.dob.present?
+      start_of_homelessness = [start_of_homelessness, enrollment.client&.dob].compact.max if start_of_homelessness.present?
 
       start_of_homelessness
     end
@@ -302,7 +313,7 @@ module HudSpmReport::Fy2023
       SQL
     end
 
-    def self.enrollment_own_move_in_date(enrollment)
+    private_class_method def self.enrollment_own_move_in_date(enrollment)
       return nil unless enrollment.move_in_date
 
       enrollment.move_in_date >= enrollment.entry_date ? enrollment.move_in_date : nil

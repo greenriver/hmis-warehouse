@@ -9,7 +9,7 @@ module Hmis
     include NotifierConfig
 
     def self.enabled?
-      Hmis::AutoExitConfig.exists?
+      Hmis::ProjectAutoExitConfig.exists?
     end
 
     def perform
@@ -20,7 +20,7 @@ module Hmis
       auto_exit_count = 0
 
       Hmis::Hud::Project.hmis.each do |project|
-        config = Hmis::AutoExitConfig.config_for_project(project)
+        config = Hmis::ProjectAutoExitConfig.detect_best_config_for_project(project)
         next unless config.present?
         raise "Auto-exit config unusually low: #{config.length_of_absence_days}" if config.length_of_absence_days < 30
 
@@ -83,6 +83,11 @@ module Hmis
       )
       assessment.build_form_processor(exit: exit_record)
       assessment.save!
+
+      # Release the unit that was assigned to this Enrollment (if applicable)
+      enrollment.release_unit!(exit_date, user: system_user)
+      # Close referral in External LINK system (if applicable)
+      enrollment.close_referral!(current_user: system_user)
     end
 
     def contact_date_for_entity(entity)
@@ -98,6 +103,10 @@ module Hmis
       else
         raise "Unknown entity '#{entity.class}'"
       end
+    end
+
+    def system_user
+      @system_user ||= Hmis::User.system_user
     end
   end
 end

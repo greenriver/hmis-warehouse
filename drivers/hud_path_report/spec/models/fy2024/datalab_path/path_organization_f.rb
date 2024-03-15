@@ -17,7 +17,6 @@ RSpec.shared_context 'path organization f', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q8-Q16',
-        csv_name: 'Q8_16.csv',
       )
       # Previous: https://airtable.com/appFAz3WpgFmIJMm6/shr8TvO6KfAZ3mOJd/tblYhwasMJptw5fjj/viw7VMUmDdyDL70a7/rec4ABXImQDXgWZCe
       # (appears the test kit includes Exit Date in the active calculation.) Guidance provided, exit date should always be included (B2, B11)
@@ -44,7 +43,6 @@ RSpec.shared_context 'path organization f', shared_context: :metadata do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q19-Q24',
-        csv_name: 'Q19_24.csv',
       )
     end
 

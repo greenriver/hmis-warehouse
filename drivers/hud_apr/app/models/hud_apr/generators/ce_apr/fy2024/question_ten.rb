@@ -16,10 +16,6 @@ module HudApr::Generators::CeApr::Fy2024
       }.freeze
     end
 
-    def needs_ce_assessments?
-      true
-    end
-
     def self.filter_universe_members(associations)
       # Include all clients in Q10 universe
       associations

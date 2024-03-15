@@ -3,10 +3,60 @@
 
 - all_data = AllNeighborsSystemDashboard::HousingTotalPlacementsData.new(@report)
 - grouped_by_date = {donut: {}, line: {}}
-.row
+- dates = all_data.line_data[:project_types].detect { |m| m[:project_type] == params[:project_type] }[:count_levels].detect { |m| m[:count_level] == params[:count_level] }[params[:group]].first
+- months = dates.map(&:first).map(&:to_date)
+- start_date = if params.dig(:debug, :date) then months.detect { |m| m == params.dig(:debug, :date).to_date } end
+- start_date ||= dates.first.first.to_date
+- end_date = start_date.end_of_month
+- enrollments = @report.enrollments.placed_in_range(start_date .. end_date).to_a
+= simple_form_for :debug, method: :get do |f|
+  = hidden_field_tag :project_type, params[:project_type]
+  = hidden_field_tag :count_level, params[:count_level]
+  = hidden_field_tag :group, params[:group]
+  .row
+    .col-sm-3
+      = f.input :date, collection: months, include_blank: false, selected: start_date, label: false
+    .col-sm-3
+      = f.submit 'Update'
+%h2 Placments between #{start_date} & #{end_date}
+- if enrollments.present?
+  - headers = enrollments.first.debug_column_names.values
+  .d-flex.mb-4
+    .mr-4
+      .input-group
+        %input#table_search.form-control{autofocus: true, type: :text, placeholder: 'Search...'}
+        %span.input-group-append
+          %button.btn.btn-secondary Search
+
+  %table.table.table-sm.table-bordered.mb-0.datatable
+    %thead.thead-dark
+      %tr
+        - headers.each do |label|
+          %th= label
+    %tbody.thead-dark
+      - enrollments.each do |en|
+        %tr
+          - en.debug_attributes.each do |key, value|
+            %td
+              - if key.to_s == 'destination_client_id'
+                = link_to(value, appropriate_client_path(value))
+              - else
+                = value
+  = content_for :page_js do
+    :javascript
+      table = $('.datatable').DataTable({
+        paging: false,
+        "dom": 'lrtip'
+      });
+      $('#table_search').keyup(function(){
+        table.search($(this).val()).draw() ;
+      })
+- else
+  %p No Placements between #{start_date} & #{end_date}
+
+.row.mt-12
   .col
     %h2 Housing Placements Line Chart
-    - dates = all_data.line_data[:project_types].detect { |m| m[:project_type] == params[:project_type] }[:count_levels].detect { |m| m[:count_level] == params[:count_level] }[params[:group]].first
     %p
       Final monthly count
       = dates.map(&:last).last
