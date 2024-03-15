@@ -40,6 +40,10 @@ module Types
     field :delete_service_category, mutation: Mutations::DeleteServiceCategory
     field :rename_service_category, mutation: Mutations::RenameServiceCategory
 
+    field :create_service_type, mutation: Mutations::CreateServiceTypeType
+    field :delete_service_type, mutation: Mutations::DeleteServiceTypeType
+    field :rename_service_type, mutation: Mutations::RenameServiceTypeType
+
     field :save_assessment, mutation: Mutations::SaveAssessment
     field :submit_assessment, mutation: Mutations::SubmitAssessment
     field :delete_assessment, mutation: Mutations::DeleteAssessment
