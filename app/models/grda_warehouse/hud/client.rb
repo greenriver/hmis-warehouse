@@ -2003,11 +2003,27 @@ module GrdaWarehouse::Hud
       HudUtility2024.race_none(self.RaceNone)
     end
 
+    def pit_gender
+      gm = gender_multi.map { |k| ::HudUtility2024.gender(k) }
+      return 'GenderNone' if gm.count.zero?
+      return 'More Than One Gender' if gm.count > 1
+
+      return HudUtility2024.gender(gm.first)
+    end
+
     def pit_race
       return 'RaceNone' if race_fields.count.zero?
-      return 'MultiRacial' if race_fields.count > 1
 
-      race_fields.first
+      race_fields_minus_latin = race_fields.reject { |x| x.include?('HispanicLatinaeo') }
+
+      return 'Hispanic/Latina/e/o (only)' if race_fields_minus_latin.count.zero?
+
+      suffix = race_fields == race_fields_minus_latin ? ' (only)' : ' & Hispanic/Latina/e/o'
+      suffix = ' (all other)' if race_fields == race_fields_minus_latin && race_fields_minus_latin.count > 1
+
+      return 'Multi-Racial' + suffix if race_fields_minus_latin.count > 1
+
+      return HudUtility2024.race(race_fields_minus_latin.first) + suffix
     end
 
     # call this on GrdaWarehouse::Hud::Client.new() instead of self, to take

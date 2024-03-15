@@ -73,7 +73,17 @@ module  HudPit::Generators::Pit::Fy2024
     end
 
     def self.questions
-      [].map do |q|
+      [
+        HudPit::Generators::Pit::Fy2024::AdultAndChild,
+        HudPit::Generators::Pit::Fy2024::Children,
+        HudPit::Generators::Pit::Fy2024::Adults,
+        HudPit::Generators::Pit::Fy2024::AdditionalHomelessPopulations,
+        HudPit::Generators::Pit::Fy2024::UnaccompaniedYouth,
+        HudPit::Generators::Pit::Fy2024::ParentingYouth,
+        HudPit::Generators::Pit::Fy2024::VeteranAdultAndChild,
+        HudPit::Generators::Pit::Fy2024::VeteranAdults,
+        HudPit::Generators::Pit::Fy2024::Projects,
+      ].map do |q|
         [q.question_number, q]
       end.to_h.freeze
     end

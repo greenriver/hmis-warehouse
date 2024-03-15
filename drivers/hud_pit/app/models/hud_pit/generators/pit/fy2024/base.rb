@@ -92,9 +92,10 @@ module HudPit::Generators::Pit::Fy2024
           household_ages = ages_for(hh_id, @generator.filter.on)
           household_type = household_types[hh_id]
           # https://files.hudexchange.info/resources/documents/Reporting-Gender-for-the-PIT-Count.pdf
-          more_than_one_gender = pit_client_universe.more_than_one_gender(source_client)
+          more_than_one_gender = HudPit::Fy2024::PitClient.more_than_one_gender(source_client)
+          pit_gender = source_client.pit_gender
           # Only count clients once (where one category is Multiple Races)
-          pit_race = pit_client_universe.pit_race(source_client)
+          pit_race = source_client.pit_race
           processed_source_clients << source_client.id
           # NOTE: member is a hash with string keys
           hoh_veteran = household_member_data(last_service_history_enrollment).detect do |member|
@@ -130,12 +131,13 @@ module HudPit::Generators::Pit::Fy2024
             questioning: source_client.Questioning,
             gender_none: source_client.GenderNone,
             pit_race: pit_race,
+            pit_gender: pit_gender,
             am_ind_ak_native: source_client.AmIndAKNative,
             asian: source_client.Asian,
             black_af_american: source_client.BlackAfAmerican,
             native_hi_other_pacific: source_client.NativeHIPacific,
             white: source_client.White,
-            mid_east_n_african: source.MidEastNAfrican,
+            mid_east_n_african: source_client.MidEastNAfrican,
             race_none: source_client.RaceNone,
             veteran: source_client.VeteranStatus,
             chronically_homeless: enrollment.chronically_homeless_at_start?(date: @generator.filter.on),
@@ -191,8 +193,8 @@ module HudPit::Generators::Pit::Fy2024
       HudPit::Fy2024::PitClient
     end
 
-    private def clients_with_enrollments(batch)
-      enrollment_scope.
+    private def clients_with_enrollments(batch, scope: enrollment_scope, **)
+      scope.
         where(client_id: batch.map(&:id)).
         order(first_date_in_program: :asc).
         group_by(&:client_id)
@@ -242,6 +244,186 @@ module HudPit::Generators::Pit::Fy2024
 
     private def sub_calculations
       {
+        households: {
+          title: 'Total Number of Households',
+          query: hoh_clause,
+        },
+        clients: {
+          title: 'Total Number of Persons',
+          query: Arel.sql('1=1'),
+        },
+        veterans: {
+          title: 'Total Number of Veterans',
+          query: a_t[:veteran].eq(1),
+        },
+        children: {
+          title: 'Number of Persons (under age 18)',
+          query: child_clause,
+        },
+        youth: {
+          title: 'Number of Persons (18 - 24)',
+          query: age_ranges['18-24'],
+        },
+        age_25_34: {
+          title: 'Number of Persons (25 - 34)',
+          query: age_ranges['25-34'],
+        },
+        age_35_44: {
+          title: 'Number of Persons (35 - 44)',
+          query: age_ranges['35-44'],
+        },
+        age_45_54: {
+          title: 'Number of Persons (45 - 54)',
+          query: age_ranges['45-54'],
+        },
+        age_55_64: {
+          title: 'Number of Persons (55 - 64)',
+          query: age_ranges['55-64'],
+        },
+        age_over_64: {
+          title: 'Number of Persons (over age 64)',
+          query: age_ranges['65+'],
+        },
+        youth_hoh: {
+          title: 'Number of parenting youth (age 18 to 24)',
+          query: hoh_clause.and(age_ranges['18-24']),
+        },
+        child_hoh: {
+          title: 'Number of parenting youth (under age 18)',
+          query: hoh_clause.and(child_clause),
+        },
+        hoh_for_youth: { # note because the question is already limited to youth households, this is just here to provide the title
+          title: 'Number of parenting youth (youth parents only)',
+          query: hoh_clause,
+        },
+        children_of_youth_parents: {
+          title: 'Total Children in Parenting Youth Households',
+          query: a_t[:head_of_household].eq(false).and(child_clause),
+        },
+        children_of_18_to_24_parents: {
+          title: 'Children in households with parenting youth age 18 to 24 (children under age 18 with parents age 18 to 24)',
+          query: a_t[:head_of_household].eq(false).and(child_clause).and(a_t[:hoh_age].in(18..24)),
+        },
+        children_of_0_to_18_parents: {
+          title: 'Children in households with parenting youth under age 18 (children under age 18 with parents under 18)',
+          query: a_t[:head_of_household].eq(false).and(child_clause).and(a_t[:hoh_age].in(0..17)),
+        },
+        woman: {
+          title: 'Woman (Girl, if child)',
+          query: a_t[:pit_gender].eq('Woman (Girl, if child)'),
+        },
+        man: {
+          title: 'Man (Boy, if child)',
+          query: a_t[:pit_gender].eq('Man (Boy, if child)'),
+        },
+        culturally_specific_identity: {
+          title: 'Culturally Specific Identity (e.g., Two-Spirit)',
+          query: a_t[:pit_gender].eq('Culturally Specific Identity (e.g., Two-Spirit)'),
+        },
+        transgender: {
+          title: 'Transgender',
+          query: a_t[:pit_gender].eq('Transgender'),
+        },
+        non_binary: {
+          title: 'Non-Binary',
+          query: a_t[:pit_gender].eq('Non-Binary'),
+        },
+        questioning: {
+          title: 'Questioning',
+          query: a_t[:pit_gender].eq('Questioning'),
+        },
+        different_identity: {
+          title: 'Different Identity',
+          query: a_t[:pit_gender].eq('Different Identity'),
+        },
+        more_than_one_gender: {
+          title: 'More Than One Gender',
+          query: a_t[:pit_gender].eq('More Than One Gender'),
+        },
+        native_ak: {
+          title: 'American Indian, Alaska Native, or Indigenous (only)',
+          query: a_t[:pit_race].eq('American Indian, Alaska Native, or Indigenous (only)'),
+        },
+        native_ak_latino: {
+          title: 'American Indian, Alaska Native, or Indigenous & Hispanic/Latina/e/o',
+          query: a_t[:pit_race].eq('American Indian, Alaska Native, or Indigenous & Hispanic/Latina/e/o'),
+        },
+        asian: {
+          title: 'Asian or Asian American (only)',
+          query: a_t[:pit_race].eq('Asian or Asian American (only)'),
+        },
+        asian_latino: {
+          title: 'Asian or Asian American & Hispanic/Latina/e/o',
+          query: a_t[:pit_race].eq('Asian or Asian American & Hispanic/Latina/e/o'),
+        },
+        black_af_american: {
+          title: 'Black, African American, or African (only)',
+          query: a_t[:pit_race].eq('Black, African American, or African (only)'),
+        },
+        black_af_american_latino: {
+          title: 'Black, African American, or African & Hispanic/Latina/e/o',
+          query: a_t[:pit_race].eq('Black, African American, or African & Hispanic/Latina/e/o'),
+        },
+        latino_only: {
+          title: 'Hispanic/Latina/e/o (only)',
+          query: a_t[:pit_race].eq('Hispanic/Latina/e/o (only)'),
+        },
+        mid_east_na: {
+          title: 'Middle Eastern or North African (only)',
+          query: a_t[:pit_race].eq('Middle Eastern or North African (only)'),
+        },
+        mid_east_na_latino: {
+          title: 'Middle Eastern or North African & Hispanic/Latina/e/o',
+          query: a_t[:pit_race].eq('Middle Eastern or North African & Hispanic/Latina/e/o'),
+        },
+        native_pi: {
+          title: 'Native Hawaiian or Pacific Islander (only)',
+          query: a_t[:pit_race].eq('Native Hawaiian or Pacific Islander (only)'),
+        },
+        native_pi_latino: {
+          title: 'Native Hawaiian or Pacific Islander & Hispanic/Latina/e/o',
+          query: a_t[:pit_race].eq('Native Hawaiian or Pacific Islander & Hispanic/Latina/e/o'),
+        },
+        white: {
+          title: 'White (only)',
+          query: a_t[:pit_race].eq('White (only)'),
+        },
+        white_latino: {
+          title: 'White & Hispanic/Latina/e/o',
+          query: a_t[:pit_race].eq('White & Hispanic/Latina/e/o'),
+        },
+        multi_racial: {
+          title: 'Multi-Racial (all other)',
+          query: a_t[:pit_race].eq('Multi-Racial (all other)'),
+        },
+        multi_racial_latino: {
+          title: 'Multi-Racial & Hispanic/Latina/e/o',
+          query: a_t[:pit_race].eq('Multi-Racial & Hispanic/Latina/e/o'),
+        },
+        chronic_households: {
+          title: 'Chronically Homeless: Total number of households',
+          query: a_t[:chronically_homeless].eq(true).and(hoh_clause),
+        },
+        chronic_clients: {
+          title: 'Chronically Homeless: Total number of persons',
+          query: a_t[:chronically_homeless_household].eq(true),
+        },
+        adults_with_mental_illness: {
+          title: 'Adults with a Serious Mental Illness',
+          query: a_t[:mental_illness].eq(true),
+        },
+        adults_with_substance_use: {
+          title: 'Adults with a Substance Use Disorder',
+          query: a_t[:substance_use].eq(true),
+        },
+        adults_with_hiv: {
+          title: 'Adults with HIV/AIDS',
+          query: a_t[:hiv_aids].eq(true),
+        },
+        adult_dv_survivors: {
+          title: 'Adult Survivors of Domestic Violence (optional)',
+          query: a_t[:domestic_violence].eq(true),
+        },
       }
     end
 
@@ -253,6 +435,18 @@ module HudPit::Generators::Pit::Fy2024
 
     private def row_limits
       {}
+    end
+
+    def label_for(key)
+      field_labels.fetch(key)
+    end
+
+    def field_labels
+      {
+        dkptr: 'Client Doesn’t Know/Prefers Not to Answer',
+        info_missing: 'Information Missing',
+        data_not_collected: 'Data Not Collected',
+      }
     end
 
     private def populate_table(table_name, metadata)
