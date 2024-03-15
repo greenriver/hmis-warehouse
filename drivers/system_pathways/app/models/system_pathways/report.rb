@@ -422,7 +422,7 @@ module SystemPathways
               stay_length: stay_length,
               disabling_condition: en.enrollment.disabling_condition,
               relationship_to_hoh: en.enrollment.relationship_to_hoh,
-              chronic_at_entry: chronic_member[:chronic_status].present?,
+              chronic_at_entry: chronic_member.present? && chronic_member[:chronic_status].present?,
               household_id: household_id,
               household_type: household_type,
               final_enrollment: i == accepted_enrollments.count - 1,
