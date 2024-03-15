@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# Adapter class for resolving CustomDataElementDefinition ("cded") and CustomDataElements.
+# Adapter class for resolving a set of CustomDataElements along with their CustomDataElementDefinition ("cded").
 # Resolved as Types::HmisSchema::CustomDataElement
 module Hmis::Hud
   GraphqlCdeValueAdapter = Struct.new(:definition, :custom_data_elements, keyword_init: true) do
