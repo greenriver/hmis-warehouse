@@ -8,6 +8,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   include ::HmisStructure::Enrollment
   include ::Hmis::Hud::Concerns::Shared
   include ::HudConcerns::Enrollment
+  include ::Hmis::Hud::Concerns::HasCustomDataElements
   include ::Hmis::Hud::Concerns::ServiceHistoryQueuer
 
   self.table_name = :Enrollment
@@ -74,7 +75,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :enrollments
   belongs_to :household, **hmis_relation(:HouseholdID, 'Household'), inverse_of: :enrollments, optional: true
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
-  has_many :custom_data_elements, as: :owner, dependent: :destroy
 
   # Unit occupancy
   # All unit occupancies, including historical
@@ -82,7 +82,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :active_unit_occupancy, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
 
-  accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
   accepts_nested_attributes_for :move_in_addresses, allow_destroy: true
 
   validates_with Hmis::Hud::Validators::EnrollmentValidator

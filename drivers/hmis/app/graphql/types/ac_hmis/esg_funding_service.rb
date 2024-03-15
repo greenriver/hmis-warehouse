@@ -28,14 +28,6 @@ module Types
 
     custom_data_elements_field
 
-    def custom_data_elements
-      definition_scope = Hmis::Hud::CustomDataElementDefinition.
-        for_type(object.class.name).
-        for_service_type(object.custom_service_type_id)
-
-      resolve_custom_data_elements(object, definition_scope: definition_scope)
-    end
-
     def project_id
       object.project.project_id
     end
