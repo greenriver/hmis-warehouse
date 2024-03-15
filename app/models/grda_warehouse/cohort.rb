@@ -183,7 +183,7 @@ module GrdaWarehouse
                 :most_recent_pathways_or_rrh_assessment,
                 :most_recent_2023_pathways_assessment,
                 :most_recent_2023_transfer_assessment,
-                most_recent_ce_assessment: :assessment_questions,
+                most_recent_ce_assessment: { assessment_questions: :lookup },
               ],
             },
           ],
