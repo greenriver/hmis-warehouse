@@ -43,9 +43,9 @@ module Types
 
         # Array of relevant CustomDataElementDefinitions, with value(s)
         cde_definitions.uniq.map do |cded|
-          OpenStruct.new(
-            **cded.slice(:id, :key, :field_type, :label, :repeats, :show_in_summary),
-            values: cde_values[cded.id],
+          Hmis::Hud::GraphqlCdeValueAdapter.new(
+            definition: cded,
+            custom_data_elements: cde_values[cded.id] || [],
           )
         end
       end

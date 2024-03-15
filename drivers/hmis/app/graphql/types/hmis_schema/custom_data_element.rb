@@ -17,31 +17,10 @@ module Types
     field :value, HmisSchema::CustomDataElementValue, null: true
     field :values, [HmisSchema::CustomDataElementValue], null: true
 
-    # object is an OpenStruct, see HasCustomDataElements concern for shape
-
-    # Unique ID based on values
-    def id
-      [object.id, *object.values.map(&:id)].join(':')
-    end
-
-    # If this custom element allows multiple values, 'values' is set (repeats: true)
-    def values
-      object.repeats ? object.values : nil
-    end
-
-    # If this custom element only allows one value, 'value' is set
-    def value
-      object.repeats ? nil : object.values&.first
-    end
+    # object is a Hmis::Hud::GraphqlCdeValueAdapter
 
     def activity_log_object_identity
       object.id
-    end
-
-    def display_hooks
-      hooks = []
-      hooks << 'TABLE_SUMMARY' if object.show_in_summary
-      hooks
     end
   end
 end
