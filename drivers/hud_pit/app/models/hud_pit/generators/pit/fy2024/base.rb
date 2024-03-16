@@ -78,7 +78,7 @@ module HudPit::Generators::Pit::Fy2024
           disabilities_latest = disabilities.select { |d| d.InformationDate == max_disability_date }
 
           dv_record = enrollment.health_and_dvs.
-            select { |h| h.InformationDate <= @generator.filter.on && !h.DomesticViolenceVictim.nil? }.
+            select { |h| h.InformationDate <= @generator.filter.on && !h.DomesticViolenceSurvivor.nil? }.
             max_by(&:InformationDate)
 
           if processed_source_clients.include?(source_client.id)
@@ -144,7 +144,7 @@ module HudPit::Generators::Pit::Fy2024
             chronically_homeless_household: hoh_enrollment&.chronically_homeless_at_start?(date: @generator.filter.on),
             substance_use: disabilities_latest.detect(&:substance?)&.DisabilityResponse&.present?,
             substance_use_indefinite_impairing: disabilities_latest.detect { |d| d.indefinite_and_impairs? && d.substance? }&.DisabilityResponse.present?,
-            domestic_violence: dv_record&.DomesticViolenceVictim,
+            domestic_violence: dv_record&.DomesticViolenceSurvivor,
             domestic_violence_currently_fleeing: dv_record&.CurrentlyFleeing,
             hiv_aids: disabilities_latest.detect(&:hiv?)&.DisabilityResponse&.present?,
             mental_illness: disabilities_latest.detect(&:mental?)&.DisabilityResponse&.present?,
@@ -182,10 +182,10 @@ module HudPit::Generators::Pit::Fy2024
       # ES > SH > TH > SO ([0, 1], 8, 2, 4)
       # if there isn't one of these, move on
       # reverse so we get the most-recent enrollment
-      last_service_history_enrollment ||= enrollments.reverse_each.detect { |en| en.computed_project_type.in?(PROJECT_TYPES[:es]) }
-      last_service_history_enrollment ||= enrollments.reverse_each.detect { |en| en.computed_project_type == PROJECT_TYPES[:sh] }
-      last_service_history_enrollment ||= enrollments.reverse_each.detect { |en| en.computed_project_type == PROJECT_TYPES[:th] }
-      last_service_history_enrollment ||= enrollments.reverse_each.detect { |en| en.computed_project_type == PROJECT_TYPES[:so] }
+      last_service_history_enrollment ||= enrollments.reverse_each.detect { |en| en.project_type.in?(PROJECT_TYPES[:es]) }
+      last_service_history_enrollment ||= enrollments.reverse_each.detect { |en| en.project_type == PROJECT_TYPES[:sh] }
+      last_service_history_enrollment ||= enrollments.reverse_each.detect { |en| en.project_type == PROJECT_TYPES[:th] }
+      last_service_history_enrollment ||= enrollments.reverse_each.detect { |en| en.project_type == PROJECT_TYPES[:so] }
       last_service_history_enrollment
     end
 
