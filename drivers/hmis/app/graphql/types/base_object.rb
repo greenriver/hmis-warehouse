@@ -6,6 +6,8 @@
 
 module Types
   class BaseObject < GraphQL::Schema::Object
+    include GraphqlApplicationHelper
+
     class_attribute :should_skip_activity_log, default: false
     def self.skip_activity_log
       self.should_skip_activity_log = true
@@ -14,10 +16,6 @@ module Types
     edge_type_class(Types::BaseEdge)
     connection_type_class(Types::BaseConnection)
     field_class Types::BaseField
-
-    def current_user
-      context[:current_user]
-    end
 
     def self.page_type
       @page_type ||= BasePaginated.build(self)
@@ -36,20 +34,6 @@ module Types
 
     def self.audit_event_type(**args)
       @audit_event_type ||= BaseAuditEvent.build(self, **args)
-    end
-
-    # Use data loader to load an ActiveRecord association.
-    # Note: 'scope' is intended for ordering or to modify the default
-    # association in a way that is constant with respect to the resolver,
-    # for example `scope: FooBar.order(:name)`. It is NOT used to filter down results.
-    def load_ar_association(object, association, scope: nil)
-      raise "object must be an ApplicationRecord, got #{object.class.name}" unless object.is_a?(ApplicationRecord)
-
-      dataloader.with(Sources::ActiveRecordAssociation, association, scope).load(object)
-    end
-
-    def load_ar_scope(scope:, id:)
-      dataloader.with(Sources::ActiveRecordScope, scope).load(id)
     end
 
     def load_last_user_from_versions(object)
@@ -104,14 +88,6 @@ module Types
         datetime: GraphQL::Types::ISO8601DateTime,
         date: GraphQL::Types::ISO8601Date,
       }.freeze
-    end
-
-    # Does the current user have the given permission on entity?
-    #
-    # @param permission [Symbol] :can_do_foo
-    # @param entity [#record] Client, project, etc
-    def current_permission?(permission:, entity:)
-      GraphqlPermissionChecker.current_permission_for_context?(context, permission: permission, entity: entity)
     end
 
     # How should we log this field access? Return nil to skip. Override as needed
