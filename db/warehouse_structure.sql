@@ -1315,7 +1315,8 @@ CREATE TABLE public."CustomServiceTypes" (
     data_source_id integer,
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
-    "DateDeleted" timestamp without time zone
+    "DateDeleted" timestamp without time zone,
+    supports_bulk_assignment boolean DEFAULT false NOT NULL
 );
 
 
@@ -1345,6 +1346,13 @@ COMMENT ON COLUMN public."CustomServiceTypes".hud_record_type IS 'Only applicabl
 --
 
 COMMENT ON COLUMN public."CustomServiceTypes".hud_type_provided IS 'Only applicable if this is a HUD service';
+
+
+--
+-- Name: COLUMN "CustomServiceTypes".supports_bulk_assignment; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomServiceTypes".supports_bulk_assignment IS 'whether to support bulk service assignment for this type in the hmis application';
 
 
 --
@@ -13340,6 +13348,40 @@ ALTER SEQUENCE public.hmis_assessments_id_seq OWNED BY public.hmis_assessments.i
 
 
 --
+-- Name: hmis_auto_exit_configs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_auto_exit_configs (
+    id bigint NOT NULL,
+    length_of_absence_days integer NOT NULL,
+    project_type integer,
+    organization_id bigint,
+    project_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_auto_exit_configs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_auto_exit_configs_id_seq OWNED BY public.hmis_auto_exit_configs.id;
+
+
+--
 -- Name: hmis_case_notes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -18128,7 +18170,8 @@ CREATE TABLE public.hmis_form_definitions (
     definition jsonb,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    title character varying NOT NULL
+    title character varying NOT NULL,
+    deleted_at timestamp without time zone
 );
 
 
@@ -20205,7 +20248,12 @@ CREATE TABLE public.hud_report_pit_clients (
     deleted_at timestamp without time zone,
     personal_id character varying,
     hoh_age integer,
-    household_member_count integer
+    household_member_count integer,
+    culturally_specific integer,
+    different_identity integer,
+    non_binary integer,
+    more_than_one_gender boolean,
+    mid_east_n_african integer
 );
 
 
@@ -27838,6 +27886,13 @@ ALTER TABLE ONLY public.hmis_assessments ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: hmis_auto_exit_configs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_auto_exit_configs ALTER COLUMN id SET DEFAULT nextval('public.hmis_auto_exit_configs_id_seq'::regclass);
+
+
+--
 -- Name: hmis_case_notes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -31626,6 +31681,14 @@ ALTER TABLE ONLY public.hmis_assessment_details
 
 ALTER TABLE ONLY public.hmis_assessments
     ADD CONSTRAINT hmis_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_auto_exit_configs hmis_auto_exit_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_auto_exit_configs
+    ADD CONSTRAINT hmis_auto_exit_configs_pkey PRIMARY KEY (id);
 
 
 --
@@ -52203,6 +52266,20 @@ CREATE INDEX index_hmis_assessments_on_site_id ON public.hmis_assessments USING 
 
 
 --
+-- Name: index_hmis_auto_exit_configs_on_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_auto_exit_configs_on_organization_id ON public.hmis_auto_exit_configs USING btree (organization_id);
+
+
+--
+-- Name: index_hmis_auto_exit_configs_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_auto_exit_configs_on_project_id ON public.hmis_auto_exit_configs USING btree (project_id);
+
+
+--
 -- Name: index_hmis_case_notes_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60820,6 +60897,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231226194235'),
 ('20240102155413'),
 ('20240102205532'),
+('20240104155138'),
 ('20240105222927'),
 ('20240110135132'),
 ('20240113025936'),
@@ -60843,6 +60921,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240220171320'),
 ('20240221195839'),
 ('20240222152739'),
-('20240229132014');
+('20240228192937'),
+('20240229132014'),
+('20240304181225'),
+('20240312153543');
 
 

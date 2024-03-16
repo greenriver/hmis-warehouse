@@ -60,7 +60,7 @@ module Hmis::Hud::Processors
       end
 
       # If Project only operates in one CoC, return that CoC
-      project_cocs = enrollment.project&.project_cocs&.pluck(:CoCCode)&.uniq&.compact || []
+      project_cocs = enrollment.project&.uniq_coc_codes || []
       return project_cocs.first if project_cocs.size == 1
 
       nil

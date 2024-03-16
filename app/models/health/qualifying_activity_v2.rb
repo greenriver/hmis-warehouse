@@ -235,8 +235,11 @@ module Health
     end
 
     private def telehealth?
-      # Treat contact as telehealth unless a collateral is reached (so, no a failed contact is still telehealth)
-      @qa.mode_of_contact&.to_sym.in?([:video_call]) && @qa.reached_client.to_sym != :collateral
+      # Video calls are only considered telehealth is the client is reached
+      # Calls w/ collaterals are still coded as U3
+      # For missed calls, if they are marked with a telehealth POS, MH flags them for
+      # for the POS instead of their not being a contact, and this is confusing
+      @qa.mode_of_contact&.to_sym.in?([:video_call]) && @qa.reached_client.to_sym == :yes
     end
   end
 end

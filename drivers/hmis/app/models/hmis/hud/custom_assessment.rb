@@ -22,15 +22,14 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
+  include ::Hmis::Hud::Concerns::HasCustomDataElements
 
   SORT_OPTIONS = [:assessment_date, :date_updated].freeze
 
   belongs_to :enrollment, **hmis_enrollment_relation, optional: true
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments, optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
-
-  has_many :custom_data_elements, as: :owner, dependent: :destroy
 
   has_one :form_processor, class_name: 'Hmis::Form::FormProcessor', dependent: :destroy
   has_one :definition, through: :form_processor
@@ -48,8 +47,6 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   has_one :current_living_situation, through: :form_processor
   has_one :ce_assessment, through: :form_processor
   has_one :ce_event, through: :form_processor
-
-  accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
   # Alias fields that are not part of the Assessment schema
   alias_to_underscore [:DataCollectionStage]
@@ -147,7 +144,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
         enrollment.save!
         enrollment.touch # Update even if no changes to Enrollment
         # Move Enrollment out of WIP if this is a submitted intake
-        enrollment.save_not_in_progress if intake?
+        enrollment.save_not_in_progress! if intake?
         # If this is an exit, release the unit
         enrollment.release_unit!(enrollment.exit_date, user: current_user) if exit?
         # Accept referral in LINK if submitted intake (HoH)
