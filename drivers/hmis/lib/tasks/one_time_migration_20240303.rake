@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
-desc 'One time data migration to transform link_ids into valid JS identifiers'
+desc 'One time data migration to transform link_ids into valid identifiers'
 # rails driver:hmis:migrate_hmis_link_ids
 task migrate_hmis_link_ids: [:environment] do
   Hmis::Form::Definition.transaction do
     OneTimeMigration20230303.new.perform
-    byebug
-    raise ActiveRecord::Rollback
+    # raise ActiveRecord::Rollback
   end
 end
 
@@ -27,32 +26,31 @@ class OneTimeMigration20230303
 
   def update_form_definitions
     Hmis::Form::Definition.find_each do |definition|
+      next unless definition.valid?
+
       seen = Set.new
       walk_nodes(definition.definition) do |node|
-        puts node.keys.inspect
+        next unless  node['link_id'].present?
+
         link_id = node['link_id']
         node['link_id'] = transform_identifier(link_id) if link_id
         raise "duplicate link_id for #{link_id}" if node['link_id'].in?(seen)
 
         seen.add(node['link_id'])
 
+        # try to find any question id references in the item definition
         node['enable_when']&.each do |props|
-          props['question']&.tap do |value|
-            props['question'] = transform_identifier(value)
-          end
-          props['compare_question']&.tap do |value|
-            props['compare_question'] = transform_identifier(value)
-          end
+          props['question'] = transform_identifier(props['question']) if props['question']
+          props['compare_question'] = transform_identifier(props['compare_question']) if props['compare_question']
         end
 
-        #node['autofill_values']&.tap do |props|
-        #  props['value_question']&.tap do |value|
-        #    props['value_question'] = transform_identifier(value)
-        #  end
-        #  props['sum_questions']&.tap do |values|
-        #    props['sum_questions'] = values.map { |value| transform_identifier(value) }
-        #  end
-        #end
+        node['autofill_values']&.each do |props|
+          props['value_question'] = transform_identifier(props['value_question']) if props['value_question']
+          props['sum_questions']&.map! { |value| transform_identifier(value) }
+          props['autofill_when']&.each do |child_props|
+            child_props['question'] = transform_identifier(child_props['question'])
+          end
+        end
       end
       definition.save!
     end
@@ -71,15 +69,18 @@ class OneTimeMigration20230303
     return value if valid_identifier?(value)
 
     value = value.strip
-    # prefix leading number
-    value = value =~ /\A[0-9]/ ? "Q#{value}" : value
-    # replace dashes with a single underscore
-    value = value.gsub('-', '_')
-    # replace dots with a double_underscore
-    value = value.gsub('.', '__')
+    # value is just a number
+    value = value =~ /\A[0-9]+\z/ ? "q_#{value}" : value
+    # leading number with a period seems to be HUD ref numbers like "2.02.6"
+    value = value =~ /\A[^a-z]+\./i ? "hud_#{value}" : value
+    # camelize hyphenated strings or spaces
+    value = value.gsub(/(-| )+([a-z])/) { Regexp.last_match(2).upcase }
+    # replace dots and lingering hyphens with an underscore
+    value = value.gsub(/[-.]/, '_')
 
     raise "failed to transform link id #{original_value}" unless valid_identifier?(value)
 
+    # puts "transform: #{[original_value, value].join(" => ")}"
     value
   end
 
