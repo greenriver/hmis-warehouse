@@ -20248,7 +20248,12 @@ CREATE TABLE public.hud_report_pit_clients (
     deleted_at timestamp without time zone,
     personal_id character varying,
     hoh_age integer,
-    household_member_count integer
+    household_member_count integer,
+    culturally_specific integer,
+    different_identity integer,
+    non_binary integer,
+    more_than_one_gender boolean,
+    mid_east_n_african integer
 );
 
 
@@ -60892,6 +60897,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20231226194235'),
 ('20240102155413'),
 ('20240102205532'),
+('20240104155138'),
 ('20240105222927'),
 ('20240110135132'),
 ('20240113025936'),

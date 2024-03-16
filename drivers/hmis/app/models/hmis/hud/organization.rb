@@ -9,16 +9,15 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
   self.sequence_name = "public.\"#{table_name}_id_seq\""
   has_paper_trail
   include ::HmisStructure::Organization
+  include ::Hmis::Hud::Concerns::HasCustomDataElements
   include ::Hmis::Hud::Concerns::Shared
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_many :projects, **hmis_relation(:OrganizationID, 'Project'), dependent: :destroy
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :organizations
-  has_many :custom_data_elements, as: :owner, dependent: :destroy
+
   has_many :group_viewable_entity_projects
   has_many :group_viewable_entities, through: :group_viewable_entity_projects, source: :group_viewable_entity
-
-  accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
   validates_with Hmis::Hud::Validators::OrganizationValidator
 
