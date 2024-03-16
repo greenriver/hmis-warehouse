@@ -153,8 +153,8 @@ module HudPit::Generators::Pit::Fy2024
             project_name: last_service_history_enrollment.project_name,
             project_id: last_service_history_enrollment.project.id,
             project_hmis_pit_count: last_service_history_enrollment.project.PITCount,
-            entry_date: last_service_history_enrollment.first_date_in_program,
-            exit_date: last_service_history_enrollment.last_date_in_program,
+            entry_date: last_service_history_enrollment.entry_date,
+            exit_date: last_service_history_enrollment.exit_date,
           }
           pending_associations[client] = report_client_universe.new(options)
         end
