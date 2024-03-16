@@ -48,7 +48,8 @@ class OneTimeMigration20230303
           props['value_question'] = transform_identifier(props['value_question']) if props['value_question']
           props['sum_questions']&.map! { |value| transform_identifier(value) }
           props['autofill_when']&.each do |child_props|
-            child_props['question'] = transform_identifier(child_props['question'])
+            child_props['question'] = transform_identifier(child_props['question']) if child_props['question']
+            child_props['compare_question'] = transform_identifier(child_props['compare_question']) if child_props['compare_question']
           end
         end
       end
