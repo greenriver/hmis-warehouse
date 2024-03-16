@@ -100,8 +100,8 @@ module HmisExternalApis::ExternalFormsHelper
     # FIXME move away from this hard-coded configuration
     @page_config ||= HmisExternalApis::ExternalForms::Config.new(
       site_title: 'Tarrant County Homeless Coalition',
-      # FIXME we should host this logo
-      site_logo_url: 'https://ahomewithhope.org/wp-content/themes/tchc/assets/images/logo.png',
+      # FIXME: find a better home for the logo asset
+      site_logo_url: 'https://openpath-developer-public.s3.amazonaws.com/development/external_forms/logo.png',
       site_logo_dimensions: [110, 60],
       recaptcha_key: recaptcha_key,
       presign_url: presign_url,

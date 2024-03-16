@@ -19,7 +19,7 @@ module HmisExternalApis::ExternalForms
         "script-src 'unsafe-inline' cdn.jsdelivr.net www.google.com code.jquery.com www.gstatic.com",
         "style-src 'unsafe-inline' cdn.jsdelivr.net",
         "font-src 'self' fonts.gstatic.com",
-        'img-src www.gstatic.com ahomewithhope.org www.w3.org data:',
+        'img-src www.gstatic.com www.w3.org data:',
         'frame-src www.google.com',
       ].join('; ')
     end

@@ -2,51 +2,56 @@
 
 $(function () {
   var form = document.querySelector('form');
-  var handleError = function() {
+  var handleError = function () {
     $('#spinnerModal').modal('hide');
     $('#errorModal').modal('show');
   }
-  var handleSuccess = function() {
+  var handleSuccess = function () {
     $('#spinnerModal').modal('hide');
     form.reset();
     document.querySelector('main').remove();
     $('#successModal').modal('show');
   }
 
-  $('.reload-button').on('click', function() {
+  $('.reload-button').on('click', function () {
     window.location.reload();
   });
 
   var captchaKey = appConfig.recaptchaKey;
-  var presignUrl = appConfig.presignUrl
+  var presignUrl = appConfig.presignUrl;
 
   if (!appConfig.presignUrl) {
     throw new Error('missing configuration')
   }
 
-  var submitWithPresign = function () {
+  var toJsonFile= function (formData) {
+    const content = JSON.stringify(formData);
+    // fixme - should support ie11
+    return new Blob([content], { type: 'application/json' });
+  }
+
+  var submitWithPresign = function (captchaToken) {
     var formData = {};
     $(form).serializeArray().forEach(function (item) {
       formData[item.name] = item.value;
     });
 
-    var jsonData = JSON.stringify(formData);
     // Request a presigned URL
     $.ajax({
       url: presignUrl,
       type: 'POST',
       contentType: 'application/json',
-      data: JSON.stringify({
-        fileName: 'formData.json',
-        fileType: 'application/json'
-      }),
+      data: JSON.stringify({ captchaToken: captchaToken }),
       success: function (data) {
         // Submit the JSON data to the presigned URL
         $.ajax({
-          url: data.url,
+          url: data.presignedUrl,
           type: 'PUT',
-          contentType: 'application/json',
-          data: jsonData,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          processData: false,
+          data: toJsonFile(toJsonFile),
           success: function () {
             handleSuccess();
           },
@@ -61,24 +66,17 @@ $(function () {
     });
   }
 
-  var submitWithCaptcha = function() {
+  var submitWithCaptcha = function () {
     $('#spinnerModal').modal('show');
     grecaptcha.ready(function () {
       try {
         grecaptcha.execute(captchaKey, { action: 'submit' }).then(function (token) {
-          // Append the token to the form
-          var recaptchaResponse = document.createElement('input');
-          recaptchaResponse.type = 'hidden';
-          recaptchaResponse.name = 'recaptcha_response';
-          recaptchaResponse.value = token;
-          form.appendChild(recaptchaResponse);
-
           // resubmit
-          submitWithPresign();
+          submitWithPresign(token);
         });
       } catch {
         // recaptcha failure
-        submitWithPresign();
+        submitWithPresign(null);
       }
     });
   };
@@ -89,7 +87,7 @@ $(function () {
     event.preventDefault(); // Prevent the default form submission
     event.stopPropagation();
 
-    $('.needs-validation').find('input,select,textarea').each(function() {
+    $('.needs-validation').find('input,select,textarea').each(function () {
       $(this).removeClass('is-valid is-invalid').addClass(this.checkValidity() ? 'is-valid' : 'is-invalid');
     });
 
@@ -105,8 +103,8 @@ $(function () {
   });
 
   $('.needs-validation').find('input,select,textarea').on('focusout', function () {
-      // check element validity and change class
-      $(this).removeClass('is-valid is-invalid').addClass(this.checkValidity() ? 'is-valid' : 'is-invalid');
+    // check element validity and change class
+    $(this).removeClass('is-valid is-invalid').addClass(this.checkValidity() ? 'is-valid' : 'is-invalid');
   });
 });
 
