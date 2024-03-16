@@ -489,31 +489,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             },
           },
         },
-        'Substance Abuse Individual' => substance_abuse_config,
-        'Substance Abuse Group' => substance_abuse_config,
-      }.freeze
-    end
-
-    # several services user this same config, they are imported to the same service
-    def substance_abuse_config
-      {
-        service_type: 'Substance Abuse',
-        service_fields: {},
-        id_prefix: 'substance-abuse',
-        elements: {
-          'Contact Location/Method' => {
-            key: :service_contact_location,
-            cleaner: ->(location) { normalize_location(location) },
-          },
-          'Time Spent on Contact' => {
-            key: :service_time_spent,
-            cleaner: ->(time) { parse_duration(time) },
-          },
-          'Case Notes' => {
-            key: :service_notes,
-            cleaner: ->(note) { note },
-          },
-        },
         'Support Groups (Tenant Support Services)' => {
           service_type: 'Tenant Support Group',
           service_fields: {},
@@ -555,6 +530,31 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               key: :services_provided_when_we_love,
               cleaner: ->(services) { services.split('|') },
             },
+          },
+        },
+        'Substance Abuse Individual' => substance_abuse_config,
+        'Substance Abuse Group' => substance_abuse_config,
+      }.freeze
+    end
+
+    # several services user this same config, they are imported to the same service
+    def substance_abuse_config
+      {
+        service_type: 'Substance Abuse',
+        service_fields: {},
+        id_prefix: 'substance-abuse',
+        elements: {
+          'Contact Location/Method' => {
+            key: :service_contact_location,
+            cleaner: ->(location) { normalize_location(location) },
+          },
+          'Time Spent on Contact' => {
+            key: :service_time_spent,
+            cleaner: ->(time) { parse_duration(time) },
+          },
+          'Case Notes' => {
+            key: :service_notes,
+            cleaner: ->(note) { note },
           },
         },
       }.dup.freeze
