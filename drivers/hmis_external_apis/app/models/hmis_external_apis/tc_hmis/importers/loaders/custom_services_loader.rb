@@ -74,7 +74,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           ids << generate_service_id(config, row) # Collect only the services in the file to be clobbered
         end
       end
-      services = service_class.where(CustomServiceID: custom_service_ids, data_source: data_source.id)
+      services = service_class.where(CustomServiceID: custom_service_ids, data_source_id: data_source.id)
 
       rails_service_ids = Set.new.tap do |ids|
         services.find_each do |service|
