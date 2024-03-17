@@ -169,12 +169,15 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       expected = 0
       actual = 0
 
+      seen = Set.new
       records = [].tap do |cdes|
         rows.each do |row|
           expected += 1
           row_field_value = row.field_value(TOUCHPOINT_NAME)
           config = configs[row_field_value]
           next if config.blank?
+
+          seen.add(row_field_value)
 
           row_field_value = row_question_value(row)
           if config[:service_fields].keys.include?(row_field_value)
@@ -204,6 +207,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         end
       end
       log_processed_result(name: 'create cdes', expected: expected, actual: actual)
+      missed = configs.keys - seen.to_a
+      log_info("did not find any values for #{missed.size} of #{configs.size} touchpoints: #{missed.sort.join(', ')}") if missed.any?
       records
     end
 
@@ -347,24 +352,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             },
           },
         },
-        '1A-SA Breakfast' => {
-          service_type: 'Breakfast',
-          service_fields: {},
-          id_prefix: 'breakfast',
-          elements: {},
-        },
-        '1A-SA Lunch' => {
-          service_type: 'Lunch',
-          service_fields: {},
-          id_prefix: 'lunch',
-          elements: {},
-        },
-        '1-SA Dinner' => {
-          service_type: 'Dinner',
-          service_fields: {},
-          id_prefix: 'dinner',
-          elements: {},
-        },
         'Budgeting/Financial Planning' => {
           service_type: 'Budgeting/Financial Planning',
           service_fields: {},
@@ -489,31 +476,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             },
           },
         },
-        'Substance Abuse Individual' => substance_abuse_config,
-        'Substance Abuse Group' => substance_abuse_config,
-      }.freeze
-    end
-
-    # several services user this same config, they are imported to the same service
-    def substance_abuse_config
-      {
-        service_type: 'Substance Abuse',
-        service_fields: {},
-        id_prefix: 'substance-abuse',
-        elements: {
-          'Contact Location/Method' => {
-            key: :service_contact_location,
-            cleaner: ->(location) { normalize_location(location) },
-          },
-          'Time Spent on Contact' => {
-            key: :service_time_spent,
-            cleaner: ->(time) { parse_duration(time) },
-          },
-          'Case Notes' => {
-            key: :service_notes,
-            cleaner: ->(note) { note },
-          },
-        },
         'Support Groups (Tenant Support Services)' => {
           service_type: 'Tenant Support Group',
           service_fields: {},
@@ -555,6 +517,31 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               key: :services_provided_when_we_love,
               cleaner: ->(services) { services.split('|') },
             },
+          },
+        },
+        'Substance Abuse Individual' => substance_abuse_config,
+        'Substance Abuse Group' => substance_abuse_config,
+      }.freeze
+    end
+
+    # several services user this same config, they are imported to the same service
+    def substance_abuse_config
+      {
+        service_type: 'Substance Abuse',
+        service_fields: {},
+        id_prefix: 'substance-abuse',
+        elements: {
+          'Contact Location/Method' => {
+            key: :service_contact_location,
+            cleaner: ->(location) { normalize_location(location) },
+          },
+          'Time Spent on Contact' => {
+            key: :service_time_spent,
+            cleaner: ->(time) { parse_duration(time) },
+          },
+          'Case Notes' => {
+            key: :service_notes,
+            cleaner: ->(note) { note },
           },
         },
       }.dup.freeze
