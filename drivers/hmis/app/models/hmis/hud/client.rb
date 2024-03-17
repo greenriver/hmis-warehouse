@@ -115,11 +115,15 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   scope :with_access, ->(user, *permissions, **kwargs) do
     pids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id)
 
-    unenrolled_ids = user.permissions?(*permissions, **kwargs) ? unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user)).pluck(:id) : []
-    enrolled_ids = joins(:projects).where(p_t[:id].in(pids)).pluck(:id)
-    wip_ids = joins(:wip).where(wip_t[:project_id].in(pids)).pluck(:id)
+    scopes = []
+    scopes << unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user)) if user.permissions?(*permissions, **kwargs)
+    scopes += [
+      joins(:projects).where(p_t[:id].in(pids)),
+      joins(:wip).where(wip_t[:project_id].in(pids)),
+    ]
+    sql = scopes.map { |s| s.select(c_t[:id].to_sql).to_sql }.join(' UNION ALL ')
 
-    where(id: unenrolled_ids + enrolled_ids + wip_ids)
+    where("#{c_t[:id].to_sql} IN (#{sql})")
   end
 
   scope :visible_to, ->(user) do
