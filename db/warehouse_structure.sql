@@ -843,7 +843,8 @@ CREATE TABLE public."CustomAssessments" (
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
     wip boolean DEFAULT false NOT NULL,
-    lock_version integer DEFAULT 0 NOT NULL
+    lock_version integer DEFAULT 0 NOT NULL,
+    form_definition_identifier character varying
 );
 
 
@@ -49711,6 +49712,13 @@ CREATE INDEX "index_CurrentLivingSituation_on_pending_date_deleted" ON public."C
 
 
 --
+-- Name: index_CustomAssessments_on_definition_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomAssessments_on_definition_identifier" ON public."CustomAssessments" USING btree (form_definition_identifier);
+
+
+--
 -- Name: index_CustomCaseNote_on_EnrollmentID; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -60924,6 +60932,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240228192937'),
 ('20240229132014'),
 ('20240304181225'),
-('20240312153543');
-
-
+('20240312153543'),
+('20240317153543');

@@ -30,6 +30,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments, optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+  belongs_to :form_definition, primary_key: 'identifier', foreign_key: 'form_definition_identifier', class_name: 'Hmis::Form::Definition', optional: true
 
   has_one :form_processor, class_name: 'Hmis::Form::FormProcessor', dependent: :destroy
   has_one :definition, through: :form_processor
@@ -164,6 +165,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
       user_id: user.user_id,
       assessment_date: assessment_date,
       data_collection_stage: Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[form_definition.role.to_sym] || 99,
+      form_definition_identifier: form_definition.identifier,
       **enrollment.slice(:data_source_id, :personal_id, :enrollment_id),
     )
     new_assessment.build_form_processor(definition: form_definition)
