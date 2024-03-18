@@ -67,16 +67,9 @@ module Types
       load_ar_association(object, :client)
     end
 
-    # Custom data elements are linked to the underlying record (Hmis::Hud::Service or Hmis::Hud::CustomService)
-    # So we pass the record to the resolver.
     def custom_data_elements
       owner_service = load_ar_association(object, :owner)
-
-      definition_scope = Hmis::Hud::CustomDataElementDefinition.
-        for_type(owner_service.class.sti_name).
-        for_service_type(object.custom_service_type_id)
-
-      resolve_custom_data_elements(owner_service, definition_scope: definition_scope)
+      resolve_custom_data_elements(owner_service)
     end
   end
 end

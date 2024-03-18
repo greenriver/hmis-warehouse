@@ -58,6 +58,7 @@ module Importers::HmisAutoMigrate
         deidentified: deidentified,
         limit_projects: @allowed_projects,
         post_processor: @post_processor,
+        project_cleanup: @project_cleanup,
       )
 
       loader.import!(log)

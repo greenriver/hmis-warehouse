@@ -59,4 +59,22 @@ RSpec.describe 'User Audit History Query', type: :request do
       expect(records[0]['recordName']).to eq('Client')
     end
   end
+
+  context 'user who created a custom assessment' do
+    before(:each) do
+      fd = create(:hmis_form_definition, identifier: 'custom-service-def2', role: 'CUSTOM_ASSESSMENT', title: 'A very custom assessment')
+      fp = create(:hmis_form_processor, definition: fd)
+
+      PaperTrail.request(controller_info: { true_user_id: hmis_user.id }) do
+        a = create(:hmis_custom_assessment, data_collection_stage: 7, data_source: ds1, enrollment: e1)
+        a.form_processor = fp
+        a.definition = fd
+        a.save!
+      end
+    end
+    it 'should return audit history with custom assessment title' do
+      records = run_query(id: hmis_user.id)
+      expect(records.pluck('recordName')).to include('A very custom assessment')
+    end
+  end
 end

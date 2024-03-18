@@ -68,7 +68,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       _response, result = post_graphql(input: {}) { query }
       expect(result.dig('data', 'clientSearch', 'nodes')).to contain_exactly(include('id' => client1.id.to_s))
 
-      create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: client3, user: u1).save_in_progress
+      create(:hmis_hud_wip_enrollment, data_source: ds1, project: p1, client: client3, user: u1)
       client3.reload
 
       expect(client3.enrollments).to contain_exactly(satisfy { |e| !e.in_progress? }, satisfy(&:in_progress?))
@@ -120,60 +120,85 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       create(:hmis_warehouse_client, destination_id: 5555, data_source: client.data_source, source: client)
     end
 
+    let!(:e1) { create(:hmis_hud_enrollment, client: client, data_source: ds1, project: p1) }
+    let!(:e2_wip) { create(:hmis_hud_wip_enrollment, client: client, data_source: ds1, project: p1) }
+    let!(:e3_other_hhm) { create(:hmis_hud_enrollment, data_source: ds1, project: p1, household_id: e1.household_id) }
+    let!(:e4) { create(:hmis_hud_enrollment, household_id: '999', client: client, data_source: ds1, project: p1) }
+
     let!(:scan_code) { create(:hmis_scan_card_code, client: client, value: 'P1234') }
     let!(:deactivated_scan_code) { create(:hmis_scan_card_code, client: client, value: 'P5678', deleted_at: Time.current - 2.days) }
     let!(:expired_scan_code) { create(:hmis_scan_card_code, client: client, value: 'P6666', expires_at: Date.current - 2.days) }
     let!(:other_scan_code) { create(:hmis_scan_card_code, value: 'P9999') }
 
-    [
-      # TEXT SEARCHES
-      *[
-        ['text: first name', 'william', true],
-        ['text: last name', 'smith', true],
-        ['text: last, first', 'smith, william', true],
-        ['text: first last', 'william smith', true],
-        ['text: partial names', 'wi sm', true],
-        ['text: wrong name and not match', 'x x', false],
-        ['text: personal id', 'db422f5fff0b8f1c9a4b81f01b00fdb4', true],
-        ['text: wrong personal id and not match', '00000000000000000000000000000000', false],
-        ['text: ssn', '123-45-6789', true],
-        ['text: wrong ssn and not match', '000-00-0000', false],
-        ['text: dob', '12/01/1999', true],
-        ['text: wrong dob and not match', '12/01/2000', false],
-        ['text: warehouse id', '5555', true],
-        ['text: scan card code', 'P1234', true],
-        ['text: deactivated scan card code', 'P5678', false],
-        ['text: expired scan card code', 'P6666', false],
-        ['text: scan card code for another client', 'P9999', false],
-      ].map { |desc, text, match| [desc, { text_search: text }, match] },
-      # OTHER FILTERS
-      ['personal id', { personal_id: 'db422f5fff0b8f1c9a4b81f01b00fdb4' }, true],
-      ['wrong personal id and not match', { personal_id: '00000000000000000000000000000000' }, false],
-      ['warehouse id', { warehouse_id: '5555' }, true],
-      ['wrong warehouse id', { warehouse_id: '5556' }, false],
-      ['first name', { first_name: 'William' }, true],
-      # TODO: Test nickname match
-      # TODO: Test metaphone match
-      ['wrong first name and not match', { first_name: 'Dave' }, false],
-      ['last name', { last_name: 'Smith' }, true],
-      # TODO: Test nickname match
-      # TODO: Test metaphone match
-      ['wrong last name and not match', { last_name: 'Jones' }, false],
-      ['last 4 of ssn', { ssn_serial: '6789' }, true],
-      ['wrong last 4 of ssn and not match', { ssn_serial: '0000' }, false],
-      ['dob d/m/yyyy', { dob: '1/12/1999' }, true],
-      ['dob yyyy-mm-dd', { dob: '1999-12-01' }, true],
-      ['wrong dob and not match', { dob: '2000-12-01' }, false],
-      # TODO: Projects filter
-      # TODO: Organizations filter
-    ].each do |desc, input, match|
-      it "should search by #{desc}" do
+    it 'should search' do
+      [
+        # TEXT SEARCHES
+        *[
+          ['text: first name', 'william', true],
+          ['text: last name', 'smith', true],
+          ['text: last, first', 'smith, william', true],
+          ['text: first last', 'william smith', true],
+          ['text: partial names', 'wi sm', true],
+          ['text: wrong name and not match', 'x x', false],
+          ['text: personal id', 'db422f5fff0b8f1c9a4b81f01b00fdb4', true],
+          ['text: wrong personal id and not match', '00000000000000000000000000000000', false],
+          ['text: ssn', '123-45-6789', true],
+          ['text: wrong ssn and not match', '000-00-0000', false],
+          ['text: dob', '12/01/1999', true],
+          ['text: wrong dob and not match', '12/01/2000', false],
+          ['text: warehouse id', '5555', true],
+          ['text: scan card code', 'P1234', true],
+          ['text: deactivated scan card code', 'P5678', false],
+          ['text: expired scan card code', 'P6666', false],
+          ['text: scan card code for another client', 'P9999', false],
+          ['text: enrollment id', "enrollment:#{e1.id}", true],
+          ['text: enrollment id with extra space', " enrollment:#{e1.id} ", true],
+          ['text: enrollment id with extra space after colon', "enrollment: #{e1.id} ", true],
+          ['text: WIP enrollment id', "enrollment:#{e2_wip.id}", true],
+          ['text: enrollment id without correct prefix', e1.id, false],
+          ['text: wrong enrollment id', 'enrollment:123', false],
+          ['text: wrong enrollment id (other hhm\'s id)', "enrollment:#{e3_other_hhm.id}", false],
+          ['text: non-numeric enrollment id', 'enrollment:123ABC', false],
+          ['text: household id', "household:#{e1.household_id}", true],
+          ['text: household id with extra dashes', "household:#{e1.household_id.insert(-9, '-')}", true],
+          ['text: household id with extra space', " household:#{e1.household_id} ", true],
+          ['text: household id with extra space after colon', "household: #{e1.household_id} ", true],
+          ['text: numeric household id', 'household:999', true],
+          ['text: WIP household id', "household:#{e2_wip.household_id}", true],
+          ['text: household id without correct prefix', e1.household_id, false],
+          ['text: wrong household id', 'householdid:notreal', false],
+        ].map { |desc, text, match| [desc, { text_search: text.to_s }, match] },
+        # OTHER FILTERS
+        ['personal id', { personal_id: client.personal_id }, true],
+        ['wrong personal id and not match', { personal_id: '00000000000000000000000000000000' }, false],
+        ['warehouse id', { warehouse_id: '5555' }, true],
+        ['wrong warehouse id', { warehouse_id: '5556' }, false],
+        ['first name', { first_name: 'William' }, true],
+        # TODO: Test nickname match
+        # TODO: Test metaphone match
+        ['wrong first name and not match', { first_name: 'Dave' }, false],
+        ['last name', { last_name: 'Smith' }, true],
+        # TODO: Test nickname match
+        # TODO: Test metaphone match
+        ['wrong last name and not match', { last_name: 'Jones' }, false],
+        ['last 4 of ssn', { ssn_serial: '6789' }, true],
+        ['wrong last 4 of ssn and not match', { ssn_serial: '0000' }, false],
+        ['dob d/m/yyyy', { dob: '1/12/1999' }, true],
+        ['dob yyyy-mm-dd', { dob: '1999-12-01' }, true],
+        ['wrong dob and not match', { dob: '2000-12-01' }, false],
+        # TODO: Projects filter
+        # TODO: Organizations filter
+      ].each do |desc, input, match|
         response, result = post_graphql(input: input) { query }
-        aggregate_failures 'checking response' do
-          expect(response.status).to eq(200), result.inspect
+        aggregate_failures "checking #{desc}" do
+          expect(response.status).to eq(200), "Failed: '#{desc}' #{result.inspect}"
           clients = result.dig('data', 'clientSearch', 'nodes')
           matcher = include({ 'id' => client.id.to_s })
-          match ? expect(clients).to(matcher) : expect(clients).not_to(matcher)
+          if match
+            expect(clients).to matcher, "Failed: '#{desc}'"
+          else
+            expect(clients).not_to matcher, "Failed: '#{desc}'"
+          end
         end
       end
     end
@@ -214,6 +239,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     ].each do |desc, input, match|
       it "should search custom client names by #{desc}" do
         response, result = post_graphql(input: input) { query }
+
+        sleep(0.01) # sleep for some funky test failures(?)
         aggregate_failures 'checking response' do
           expect(response.status).to eq(200), result.inspect
           clients = result.dig('data', 'clientSearch', 'nodes')

@@ -27,6 +27,7 @@ module Types
     value 'ALL_SERVICE_TYPES'
     value 'ALL_SERVICE_CATEGORIES'
     value 'AVAILABLE_SERVICE_TYPES'
+    value 'AVAILABLE_BULK_SERVICE_TYPES'
     value 'SUB_TYPE_PROVIDED_3'
     value 'SUB_TYPE_PROVIDED_4'
     value 'SUB_TYPE_PROVIDED_5'

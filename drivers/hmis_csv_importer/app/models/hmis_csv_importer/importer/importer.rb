@@ -39,7 +39,8 @@ module HmisCsvImporter::Importer
       loader_id:,
       data_source_id:,
       debug: true,
-      deidentified: false
+      deidentified: false,
+      project_cleanup: true
     )
       setup_notifier('HMIS CSV Importer')
       @loader_log = HmisCsvImporter::Loader::LoaderLog.find(loader_id.to_i)
@@ -48,6 +49,7 @@ module HmisCsvImporter::Importer
       @updated_source_client_ids = []
 
       @deidentified = deidentified
+      @project_cleanup = project_cleanup
       self.importer_log = setup_import
       importable_files.each_key do |file_name|
         setup_summary(file_name)
@@ -807,7 +809,7 @@ module HmisCsvImporter::Importer
       project_ids = GrdaWarehouse::Hud::Project.
         where(data_source_id: @data_source.id, ProjectID: involved_project_ids).
         pluck(:id)
-      GrdaWarehouse::Tasks::ProjectCleanup.new(project_ids: project_ids.uniq).run!
+      GrdaWarehouse::Tasks::ProjectCleanup.new(project_ids: project_ids.uniq).run! if @project_cleanup
 
       # Clean up any dangling enrollments for updated clients
       updated_client_ids = GrdaWarehouse::Hud::Client.
