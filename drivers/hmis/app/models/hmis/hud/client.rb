@@ -8,6 +8,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   extend OrderAsSpecified
   include ::HmisStructure::Client
   include ::Hmis::Hud::Concerns::Shared
+  include ::Hmis::Hud::Concerns::HasCustomDataElements
   include ::HudConcerns::Client
   include ::HudChronicDefinition
   include ClientSearch
@@ -56,7 +57,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
   has_many :services, through: :enrollments # HUD Services only
   has_many :custom_services, through: :enrollments # Custom Services only
-  has_many :custom_data_elements, as: :owner, dependent: :destroy
+
   has_many :client_projects
   has_many :projects_including_wip, through: :client_projects, source: :project
 
@@ -69,7 +70,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # Merge Audits for merges from this client into another client
   has_many :reverse_merge_audits, -> { distinct }, through: :reverse_merge_histories, source: :client_merge_audit
 
-  accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
   accepts_nested_attributes_for :names, allow_destroy: true
   accepts_nested_attributes_for :addresses, allow_destroy: true
   accepts_nested_attributes_for :contact_points, allow_destroy: true

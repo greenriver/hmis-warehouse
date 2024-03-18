@@ -10,14 +10,12 @@ class Hmis::Hud::Inventory < Hmis::Hud::Base
   include ::HmisStructure::Inventory
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::ProjectRelated
+  include ::Hmis::Hud::Concerns::HasCustomDataElements
   validates_with Hmis::Hud::Validators::InventoryValidator
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true
-  has_many :custom_data_elements, as: :owner, dependent: :destroy
-
-  accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
   SORT_OPTIONS = [:start_date].freeze
 

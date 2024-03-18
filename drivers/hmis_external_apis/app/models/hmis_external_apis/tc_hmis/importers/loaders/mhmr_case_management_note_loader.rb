@@ -33,7 +33,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       { key: 'mhmr_plan_to_proceed_resolution', label: 'Resolution of current need presented (explain):', field_type: 'string', repeats: false },
       { key: 'mhmr_progress_towards_goals', label: 'Progress lack of progress narrative', field_type: 'string', repeats: false },
       { key: 'mhmr_no_show', label: 'No show', field_type: 'string', repeats: false },
-      { key: 'mhmr_staff_signature', label: 'Staff Signature / Credentials / ID#:', field_type: 'string', repeats: false },
     ].freeze
 
     def filename
