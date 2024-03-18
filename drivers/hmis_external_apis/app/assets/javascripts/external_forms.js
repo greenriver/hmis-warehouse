@@ -52,7 +52,7 @@ $(function () {
           },
           processData: false,
           contentType: false,
-          data: toJsonFile(formData),
+          data: toJsonFile(Object.assign(formData, {captcha_score: data.captchaScore})),
           success: function () {
             handleSuccess();
           },
@@ -75,7 +75,8 @@ $(function () {
           // resubmit
           submitWithPresign(token);
         });
-      } catch {
+      } catch (error){
+        if (console && console.error) console.error(error)
         // recaptcha failure
         submitWithPresign(null);
       }
