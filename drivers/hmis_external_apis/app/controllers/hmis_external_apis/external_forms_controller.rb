@@ -19,7 +19,7 @@ class HmisExternalApis::ExternalFormsController < ActionController::Base
   content_security_policy false
 
   def presign
-    render json: { url: create_hmis_external_apis_external_form_path }
+    render json: { presignedUrl: create_hmis_external_apis_external_form_path }
   end
 
   def show

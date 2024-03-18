@@ -51,7 +51,8 @@ $(function () {
             'Content-Type': 'application/json',
           },
           processData: false,
-          data: toJsonFile(toJsonFile),
+          contentType: false,
+          data: toJsonFile(formData),
           success: function () {
             handleSuccess();
           },
