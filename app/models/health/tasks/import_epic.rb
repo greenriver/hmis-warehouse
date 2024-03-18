@@ -123,11 +123,18 @@ module Health::Tasks
       Health::EpicPatient.
         where.not(housing_status: nil).where.not(housing_status_timestamp: nil).
         find_each do |patient|
-          status_for_patient = patient.epic_housing_statuses.where(collected_on: patient.housing_status_timestamp.to_date).first_or_create do |status|
-            status.status = patient.housing_status
-          end
-          status_for_patient.update(status: patient.housing_status)
+        patient&.patient&.record_housing_status(patient.housing_status, on_date: patient.housing_status_timestamp.to_date)
+        status_for_patient = patient.epic_housing_statuses.where(collected_on: patient.housing_status_timestamp.to_date).first_or_create do |status|
+          status.status = patient.housing_status
         end
+        status_for_patient.update(status: patient.housing_status)
+      end
+      Health::EpicCaseNote.with_housing_status.find_each do |case_note|
+        # case_note.patient is a has_many
+        case_note.patient.find_each do |patient|
+          patient.record_housing_status(case_note.homeless_status, on_date: case_note.contact_date.to_date)
+        end
+      end
     end
 
     # keep pilot patients in sync with epic export, we keep this just in case there are any patients left that

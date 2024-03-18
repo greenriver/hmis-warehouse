@@ -11,7 +11,7 @@ class Hmis::Hud::CustomServiceType < Hmis::Hud::Base
   has_paper_trail
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
-  belongs_to :user, **hmis_relation(:UserID, 'User')
+  belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true
   belongs_to :custom_service_category
   has_many :custom_services
 

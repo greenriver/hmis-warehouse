@@ -52,7 +52,7 @@ module HudSpmReport::Fy2023
       client_enrollments = enrollments.where(client_id: client_id)
       self.exit_enrollment = client_enrollments.where(exit_date: report_start_date - 730.days .. report_end_date - 730.days).
         where(destination: HudUtility2024.permanent_destinations).
-        order(exit_date: :asc).
+        order(exit_date: :asc, entry_date: :asc).
         first
       return unless exit_enrollment.present? # If no exit, no return
 
@@ -62,6 +62,9 @@ module HudSpmReport::Fy2023
 
       candidate_returns = client_enrollments.where(entry_date: exit_date..).order(entry_date: :asc)
       self.return_enrollment = candidate_returns.detect do |enrollment|
+        # Can't match yourself
+        next false if enrollment.id == exit_enrollment.id
+
         enrollment.project_type.in?(HudUtility2024.homeless_project_type_numbers) ||
           (enrollment.project_type.in?(HudUtility2024.project_type_number_from_code(:ph)) &&
             enrollment.entry_date > exit_date + 14.days &&

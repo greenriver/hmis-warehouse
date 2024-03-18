@@ -7,10 +7,11 @@
 # frozen_string_literal: true
 
 module Types
-  class HmisSchema::AutoExitConfig < Types::BaseObject
-    description 'Auto Exit Config'
+  class HmisSchema::ProjectConfig < Types::BaseObject
+    description 'Project Config'
     field :id, ID, null: false
-    field :length_of_absence_days, Int, null: false
+    field :config_type, Types::HmisSchema::Enums::ProjectConfigType, null: false
+    field :config_options, GraphQL::Types::JSON, null: true
     field :project_type, Types::HmisSchema::Enums::ProjectType, null: true
     field :project_id, ID, null: true
     field :project, HmisSchema::Project, null: true
