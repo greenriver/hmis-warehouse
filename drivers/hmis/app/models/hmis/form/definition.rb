@@ -461,14 +461,16 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # Form Editor admin tool. For now, it is called by a rake task manually.
   def introspect_custom_data_element_definitions(set_definition_identifier: false)
     owner_type = if ASSESSMENT_FORM_ROLES.include?(role.to_sym)
-      Hmis::Hud::CustomAssessment
+      Hmis::Hud::CustomAssessment.sti_name
     else
-      FORM_ROLE_CONFIG.dig(role.to_sym, :owner_class)
+      FORM_ROLE_CONFIG.dig(role.to_sym, :owner_class)&.sti_name
     end
     raise "unable to determine owner class for form role: #{role}" unless owner_type
 
-    data_source = GrdaWarehouse::DataSource.hmis.first
+    data_source = GrdaWarehouse::DataSource.hmis.first # TODO: needs adjustment to support multiple data sources
     hud_user_id = Hmis::Hud::User.system_user(data_source_id: data_source.id).UserID
+    cded_scope = Hmis::Hud::CustomDataElementDefinition.where(owner_type: owner_type, data_source: data_source)
+    cdeds_by_key = cded_scope.index_by(&:key)
 
     cded_records = []
     recur_traverse = lambda do |items|
@@ -481,10 +483,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
         next unless key
 
         # find CDED if it exists, or initialize a new one with defaults
-        cded = Hmis::Hud::CustomDataElementDefinition.where(key: key).first_or_initialize(
-          data_source_id: data_source.id,
-          UserID: hud_user_id,
-        )
+        cded = cdeds_by_key[key] || cded_scope.new(key: key, UserID: hud_user_id)
 
         field_type = case item.type
         when 'STRING', 'TEXT', 'CHOICE', 'TIME_OF_DAY', 'OPEN_CHOICE'

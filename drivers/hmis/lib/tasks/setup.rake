@@ -106,13 +106,13 @@ task :generate_custom_data_elements, [:role, :dry_run] => [:environment, 'log:in
   puts "#{definition_scope.size} forms to process: #{definition_scope.map(&:identifier).join(', ')}\n\n"
 
   definition_scope.order(:id).each do |definition|
-    # Skip any CDEDs that have already been processed
-    new_cdeds = definition.introspect_custom_data_elements.reject { |cded| seen_keys.include?(cded.key) }
+    definition.introspect_custom_data_element_definitions.each do |cded|
+      unique_key = [cded.owner_type, cded.key]
+      next if seen_keys.include?(unique_key) # Already processed, skip
 
-    # Add to seen_keys
-    new_cdeds.map(&:key).each { |key| seen_keys.add(key) }
-
-    custom_data_element_definitions << new_cdeds
+      seen_keys.add(unique_key)
+      custom_data_element_definitions << cded
+    end
   end
 
   custom_data_element_definitions.flatten!
