@@ -228,26 +228,33 @@ module AllNeighborsSystemDashboard
         enrollments_by_hoh = ce_project_enrollments.
           distinct.
           preload(:client).
-          group_by { |enrollment| [enrollment.client.personal_id, enrollment.data_source_id] }
+          group_by(&:client_id) # Use destination ID to allow lookup across source clients
 
         # Find the events for HoHs associated with the CE project enrollments above.
         # Due to the possibility of finding enrollments with the same id from other data sources, this may pull
         # more events than required, but they will end up in unused groups.
         ce_events = GrdaWarehouse::Hud::Event.
-          where(enrollment_id: ce_project_enrollments.pluck(:enrollment_group_id), event: SERVICE_CODE_IDS, event_date: filter.range).
+          where(
+            enrollment_id: ce_project_enrollments.pluck(:enrollment_group_id),
+            event: SERVICE_CODE_IDS,
+            event_date: filter.range,
+          ).
+          joins(client: :warehouse_client_source).
+          preload(client: :warehouse_client_source).
           order(event_date: :asc).
-          group_by { |event| [event.personal_id, event.data_source_id] }
+          group_by { |event| event.client.warehouse_client_source.destination_id } # Use destination ID to allow lookup across source clients
 
         {}.tap do |h|
           batch.each do |housing_enrollment|
-            ce_enrollment = enrollments_by_hoh[[housing_enrollment.head_of_household_id, housing_enrollment.data_source_id]]&.
+            hoh_destination_id = housing_enrollment.client_head_of_household&.warehouse_client_source&.destination_id || housing_enrollment.client_id
+            ce_enrollment = enrollments_by_hoh[hoh_destination_id]&.
               select { |enrollment| enrollment.entry_date <= housing_enrollment.entry_date }&.
               first
             next unless ce_enrollment&.enrollment.present? && ce_enrollment&.client.present?
 
             h[housing_enrollment.id] = OpenStruct.new(
               entry_date: ce_enrollment&.entry_date,
-              ce_event: ce_events[[ce_enrollment.client.personal_id, ce_enrollment.enrollment.data_source_id]],
+              ce_event: ce_events[hoh_destination_id],
             )
           end
         end
