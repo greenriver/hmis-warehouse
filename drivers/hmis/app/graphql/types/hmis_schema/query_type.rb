@@ -381,7 +381,7 @@ module Types
 
       scope = Hmis::Hud::CustomServiceType.all
       scope = scope.apply_filters(filters) if filters
-      scope.order(:name)
+      scope.order(:name, :id)
     end
 
     field :form_definition, Types::Forms::FormDefinition, null: true do
