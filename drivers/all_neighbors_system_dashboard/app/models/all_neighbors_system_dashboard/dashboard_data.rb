@@ -29,6 +29,13 @@ module AllNeighborsSystemDashboard
         placed_in_range(@report.filter.range)
     end
 
+    # Returns are only counted for people who were housed, and exited
+    # For PH this means the client has a move-in-date and exit date,
+    # For Diversion this means the client has an exit date
+    private def returned_total_scope
+      housed_total_scope.where.not(exit_date: nil, return_date: nil)
+    end
+
     def years
       (@start_date.year .. @end_date.year).to_a
     end

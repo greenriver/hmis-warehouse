@@ -64,6 +64,7 @@ class AllNeighborsSystemDashboardStack {
   }
 
   getDataConfig() {
+    console.log('here', this.config)
     return {
       x: "x",
       order: null,
@@ -468,7 +469,6 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
     }
     return {...superConfig, ...config}
   }
-
 }
 
 // Returns to homelessness group stack with label on the left
@@ -514,3 +514,7 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
     return {...superConfig, ...config}
   }
 }
+globalThis.AllNeighborsSystemDashboardStack = AllNeighborsSystemDashboardStack;
+globalThis.AllNeighborsSystemDashboardUPVerticalStack = AllNeighborsSystemDashboardUPVerticalStack;
+globalThis.AllNeighborsSystemDashboardTTOHStack = AllNeighborsSystemDashboardTTOHStack;
+globalThis.AllNeighborsSystemDashboardRTHStack = AllNeighborsSystemDashboardRTHStack;

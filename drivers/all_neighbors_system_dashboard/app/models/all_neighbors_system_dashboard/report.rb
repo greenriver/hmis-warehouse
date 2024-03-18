@@ -78,10 +78,11 @@ module AllNeighborsSystemDashboard
 
     def cache_calculated_data
       AllNeighborsSystemDashboard::Header.cache_data(self)
-      AllNeighborsSystemDashboard::HousingTotalPlacementsData.cache_data(self)
-      AllNeighborsSystemDashboard::TimeToObtainHousing.cache_data(self)
+      # FIXME: re-enable
+      # AllNeighborsSystemDashboard::HousingTotalPlacementsData.cache_data(self)
+      # AllNeighborsSystemDashboard::TimeToObtainHousing.cache_data(self)
+      AllNeighborsSystemDashboard::ReturnsToHomelessness.cache_data(self)
       # Disabled until these tabs come back to speed up report runtime
-      # AllNeighborsSystemDashboard::ReturnsToHomelessness.cache_data(self)
       # AllNeighborsSystemDashboard::UnhousedPopulation.cache_data(self)
     end
 
@@ -334,27 +335,27 @@ module AllNeighborsSystemDashboard
         },
         {
           name: 'bar.js',
-          content: -> { File.read(asset_path('bar.js')) },
+          content: -> { File.read(asset_path('all_neighbors_system_dashboard_bar.js')) },
           type: 'text/javascript',
         },
         {
           name: 'donut.js',
-          content: -> { File.read(asset_path('donut.js')) },
+          content: -> { File.read(asset_path('all_neighbors_system_dashboard_donut.js')) },
           type: 'text/javascript',
         },
         {
           name: 'filters.js',
-          content: -> { File.read(asset_path('filters.js')) },
+          content: -> { File.read(asset_path('all_neighbors_system_dashboard_filters.js')) },
           type: 'text/javascript',
         },
         {
           name: 'line.js',
-          content: -> { File.read(asset_path('line.js')) },
+          content: -> { File.read(asset_path('all_neighbors_system_dashboard_line.js')) },
           type: 'text/javascript',
         },
         {
           name: 'stack.js',
-          content: -> { File.read(asset_path('stack.js')) },
+          content: -> { File.read(asset_path('all_neighbors_system_dashboard_stack.js')) },
           type: 'text/javascript',
         },
       ]
@@ -366,7 +367,7 @@ module AllNeighborsSystemDashboard
     end
 
     private def asset_path(asset)
-      Rails.root.join('app', 'assets', 'javascripts', 'warehouse_reports', 'all_neighbors_system_dashboard', asset)
+      Rails.root.join('app', 'assets', 'builds', asset)
     end
   end
 end
