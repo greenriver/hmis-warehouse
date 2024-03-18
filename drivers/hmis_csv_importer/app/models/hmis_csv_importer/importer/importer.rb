@@ -39,7 +39,8 @@ module HmisCsvImporter::Importer
       loader_id:,
       data_source_id:,
       debug: true,
-      deidentified: false
+      deidentified: false,
+      project_cleanup: true
     )
       setup_notifier('HMIS CSV Importer')
       @loader_log = HmisCsvImporter::Loader::LoaderLog.find(loader_id.to_i)
@@ -48,6 +49,7 @@ module HmisCsvImporter::Importer
       @updated_source_client_ids = []
 
       @deidentified = deidentified
+      @project_cleanup = project_cleanup
       self.importer_log = setup_import
       importable_files.each_key do |file_name|
         setup_summary(file_name)
@@ -155,6 +157,8 @@ module HmisCsvImporter::Importer
         batch = []
         failures = []
         row_failures = []
+        # Set any import overrides for this class and data source so we avoid going back to the db
+        klass.import_overrides = import_overrides_for(file_name, @data_source.id)
         scope.find_each(batch_size: SELECT_BATCH_SIZE) do |source|
           row_failures = []
 
@@ -195,6 +199,11 @@ module HmisCsvImporter::Importer
       Rails.logger.debug do
         " Pre-processed #{klass.table_name} #{hash_as_log_str({ importer_log_id: importer_log_id, processed: records }.merge(stats))}"
       end
+    end
+
+    private def import_overrides_for(file_name, data_source_id)
+      HmisCsvImporter::ImportOverride.where(file_name: file_name, data_source_id: data_source_id).to_a.
+        sort_by { |o| [o.specificity, o.id] } # least specific will run first
     end
 
     private def run_row_validations(klass, row, filename, importer_log)
@@ -800,10 +809,7 @@ module HmisCsvImporter::Importer
       project_ids = GrdaWarehouse::Hud::Project.
         where(data_source_id: @data_source.id, ProjectID: involved_project_ids).
         pluck(:id)
-      project_ids += GrdaWarehouse::Hud::Project.
-        where(computed_project_type: nil).
-        pluck(:id)
-      GrdaWarehouse::Tasks::ProjectCleanup.new(project_ids: project_ids.uniq).run!
+      GrdaWarehouse::Tasks::ProjectCleanup.new(project_ids: project_ids.uniq).run! if @project_cleanup
 
       # Clean up any dangling enrollments for updated clients
       updated_client_ids = GrdaWarehouse::Hud::Client.

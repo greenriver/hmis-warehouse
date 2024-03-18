@@ -20,6 +20,10 @@ module HudSpmReport
       :fy2023
     end
 
+    private def relevant_project_types
+      HudUtility2024.spm_project_type_numbers
+    end
+
     def cell_value(cell, path)
       if path.to_s.include?('.')
         path_parts = path.to_s.split('.')

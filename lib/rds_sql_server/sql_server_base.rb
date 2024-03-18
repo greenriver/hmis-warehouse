@@ -1,7 +1,7 @@
 class SqlServerBase < ActiveRecord::Base
   begin
     rds = Rds.new
-    cert_path = ENV['RDS_CERT_PATH'].presence || '/etc/ssl/certs/rds-combined-ca-bundle.pem'
+    cert_path = ENV['RDS_CERT_PATH'].presence || '/etc/ssl/certs/us-east-1-bundle.pem'
 
     conf = {
       'adapter' => 'sqlserver',

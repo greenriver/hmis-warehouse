@@ -91,7 +91,7 @@ other_db: &other_db
 
 ssl: &ssl
   sslmode: <%= ENV.fetch('DATABASE_SSLMODE') { 'verify-full' } %>
-  sslrootcert: /etc/ssl/certs/rds-combined-ca-bundle.pem
+  sslrootcert: /etc/ssl/certs/us-east-1-bundle.pem
 
 # unrolled from ENV['RAILS_ENV']
 development:
@@ -99,7 +99,7 @@ development:
     database: <%= ENV['DATABASE_APP_DB'] %>
     <<: *default_app_db
   <<: *other_db
-  
+
 staging:
   primary:
     database: <%= ENV['DATABASE_APP_DB'] %>
@@ -118,7 +118,7 @@ development_cas:
   primary:
     database: <%= ENV['DATABASE_CAS_DB'] %>
     <<: *default_app_db
-    
+
 staging_cas:
   primary:
     database: <%= ENV['DATABASE_CAS_DB'] %>
@@ -150,4 +150,3 @@ test:
   reporting:
     <<: *default_reporting_db
     database: <%= ENV['REPORTING_DATABASE_DB_TEST'] %>
-  

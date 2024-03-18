@@ -120,7 +120,8 @@ module HudSpmReport::Generators::Fy2023
         :m1b1,
         included_project_types: HudUtility2024.project_type_number_from_code(:es) +
           HudUtility2024.project_type_number_from_code(:sh),
-        excluded_project_types: HudUtility2024.project_type_number_from_code(:th),
+        excluded_project_types: HudUtility2024.project_type_number_from_code(:th) +
+          HudUtility2024.project_type_number_from_code(:ph),
         include_self_reported_and_ph: true,
       )
 
@@ -144,7 +145,7 @@ module HudSpmReport::Generators::Fy2023
         included_project_types: HudUtility2024.project_type_number_from_code(:es) +
           HudUtility2024.project_type_number_from_code(:sh) +
           HudUtility2024.project_type_number_from_code(:th),
-        excluded_project_types: [],
+        excluded_project_types: HudUtility2024.project_type_number_from_code(:ph),
         include_self_reported_and_ph: true,
       )
 

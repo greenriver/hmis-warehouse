@@ -17,7 +17,11 @@ module HmisExternalApis::TcHmis::Importers
 
     def initialize(dir:, clobber:, log_file: ENV['TC_HMIS_IMPORT_LOG_FILE'])
       self.data_source = HmisExternalApis::TcHmis.data_source
+      raise "data source doesn't exist" unless data_source
+
       self.dir = dir
+      raise "directory doesn't exist" unless Dir.exist?(dir)
+
       self.clobber = clobber
       self.table_names = []
       self.log_file = log_file
@@ -29,6 +33,16 @@ module HmisExternalApis::TcHmis::Importers
         Loaders::SpdatLoader,
         Loaders::HatLoader,
         Loaders::UhaLoader,
+        Loaders::CriticalDocumentsCmLoader,
+        Loaders::CaseManagementAssessmentLoader,
+        Loaders::MhmrCaseManagementNoteLoader,
+        Loaders::MhmrNonBillableNoteLoader,
+        Loaders::MhmrRehabilitationNoteLoader,
+        Loaders::CustomClientDemographicsLoader,
+        Loaders::NavigationNotesLoader,
+        Loaders::DiversionAssessmentLoader,
+        # This importer was not needed
+        # Loaders::EhvApplicationLoader,
       ]
 
       # disable paper trail to improve importer performance
@@ -43,6 +57,7 @@ module HmisExternalApis::TcHmis::Importers
       end
 
       analyze_tables
+      true
     rescue StandardError => e
       # this might be swallowing the exception
       @notifier.ping("Failure in #{importer_name}") # , { exception: e })
