@@ -257,6 +257,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     where(identifier: instance_scope.pluck(:definition_identifier))
   end
 
+  def self.apply_filters(input)
+    Hmis::Filter::FormDefinitionFilter.new(input).filter_scope(self)
+  end
+
   def self.find_definition_for_role(role, project: nil, version: nil)
     scope = Hmis::Form::Definition.all
     if project.present?
@@ -453,9 +457,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     instances.map { |i| i.project_and_enrollment_match(...) }.compact.min_by(&:rank)
   end
 
-  # Find and/or initialize CustomDataElements that are collected by this form. Eventually this should be done as part of the
+  # Find and/or initialize CustomDataElementDefinitions that are collected by this form. Eventually this should be done as part of the
   # Form Editor admin tool. For now, it is called by a rake task manually.
-  def introspect_custom_data_elements
+  def introspect_custom_data_element_definitions(set_definition_identifier: false)
     owner_type = if ASSESSMENT_FORM_ROLES.include?(role.to_sym)
       Hmis::Hud::CustomAssessment
     else
@@ -501,12 +505,16 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
           raise "unable to determine cded type for #{item&.type} (#{key})"
         end
 
-        # always update these values because they need to match the form in order for submission to work
+        # Infer CDED attributes based on Item
         cded.owner_type = owner_type
         cded.field_type = field_type
         cded.repeats = item.repeats || false
-        # set label for CustomDataElementDefinition based on item properties
+
+        # Infer label for CustomDataElementDefinition based on various labels
         cded.label = ActionView::Base.full_sanitizer.sanitize(item.readonly_text || item.brief_text || item.text || key.humanize)
+
+        # If specified, set the definition identifier to specify that this CustomDataElementDefinition is ONLY collected by this form type.
+        cded.definition_identifier = identifier if set_definition_identifier
 
         cded_records << cded
       end

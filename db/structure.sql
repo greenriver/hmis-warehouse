@@ -59,7 +59,8 @@ CREATE TABLE public.access_controls (
     user_group_id bigint,
     deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    description text
 );
 
 
@@ -555,7 +556,9 @@ CREATE TABLE public.collections (
     must_exist boolean DEFAULT false NOT NULL,
     deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    description text,
+    collection_type character varying
 );
 
 
@@ -945,7 +948,8 @@ CREATE TABLE public.hmis_access_controls (
     deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    user_group_id bigint
+    user_group_id bigint,
+    description text
 );
 
 
@@ -977,7 +981,9 @@ CREATE TABLE public.hmis_access_groups (
     name character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    description text,
+    collection_type character varying
 );
 
 
@@ -1290,7 +1296,8 @@ CREATE TABLE public.hmis_user_groups (
     name character varying,
     deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    description text
 );
 
 
@@ -3065,7 +3072,8 @@ CREATE TABLE public.user_groups (
     deleted_at timestamp without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    system boolean DEFAULT false NOT NULL
+    system boolean DEFAULT false NOT NULL,
+    description text
 );
 
 
@@ -5247,6 +5255,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240123160215'),
 ('20240124173020'),
 ('20240212150622'),
-('20240301173438');
+('20240301173438'),
+('20240311135958'),
+('20240313161801'),
+('20240313162012');
 
 

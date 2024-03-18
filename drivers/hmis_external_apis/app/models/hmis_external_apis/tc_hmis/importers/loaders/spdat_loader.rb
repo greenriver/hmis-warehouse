@@ -9,7 +9,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     ASSESSMENT_DATE_COL = 'Date Taken'.freeze
 
     CDED_CONFIGS = [
-      { label: 'Date Taken', key: 'spdat_date_taken', repeats: false, field_type: 'date' },
       { label: 'Which SPDAT is this?', key: 'spdat_assessment_event', repeats: false, field_type: 'string' },
       { label: 'Travel Time', key: 'spdat_travel_time_minutes', repeats: false, field_type: 'integer' },
       { label: 'Time Spent', key: 'spdat_time_spent_minutes', repeats: false, field_type: 'integer' },
@@ -88,8 +87,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       end
     end
 
-    def form_definition
-      Hmis::Form::Definition.where(identifier: 'tc-spdat').first!
+    def form_definition_identifier
+      'SPDAT'
     end
   end
 end
