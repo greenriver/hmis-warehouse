@@ -123,7 +123,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     ]
     sql = scopes.map { |s| s.select(c_t[:id].to_sql).to_sql }.join(' UNION ALL ')
 
-    where("#{c_t[:id].to_sql} IN (#{sql})")
+    where(c_t[:id].in(Arel.sql(sql)))
   end
 
   scope :visible_to, ->(user) do
