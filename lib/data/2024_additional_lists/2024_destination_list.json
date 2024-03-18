@@ -1,0 +1,124 @@
+[
+  {
+    "name": "Destination",
+    "code": "3.12",
+    "values": [
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 17,
+        "description": "Other"
+      },
+      {
+        "key": 24,
+        "description": "Deceased"
+      },
+      {
+        "key": 30,
+        "description": "No exit interview completed"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      },
+      {
+        "key": 101,
+        "description": "Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or Host Home shelter"
+      },
+      {
+        "key": 116,
+        "description": "Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)"
+      },
+      {
+        "key": 118,
+        "description": "Safe Haven"
+      },
+      {
+        "key": 204,
+        "description": "Psychiatric hospital or other psychiatric facility"
+      },
+      {
+        "key": 205,
+        "description": "Substance abuse treatment facility or detox center"
+      },
+      {
+        "key": 206,
+        "description": "Hospital or other residential non-psychiatric medical facility"
+      },
+      {
+        "key": 207,
+        "description": "Jail, prison or juvenile detention facility"
+      },
+      {
+        "key": 215,
+        "description": "Foster care home or foster care group home"
+      },
+      {
+        "key": 225,
+        "description": "Long-term care facility or nursing home"
+      },
+      {
+        "key": 302,
+        "description": "Transitional housing for homeless persons (including homeless youth)"
+      },
+      {
+        "key": 312,
+        "description": "Staying or living with family, temporary tenure (e.g. room, apartment or house)"
+      },
+      {
+        "key": 313,
+        "description": "Staying or living with friends, temporary tenure (e.g. room apartment or house)"
+      },
+      {
+        "key": 314,
+        "description": "Hotel or motel paid for without emergency shelter voucher"
+      },
+      {
+        "key": 327,
+        "description": "Moved from one HOPWA funded project to HOPWA TH"
+      },
+      {
+        "key": 329,
+        "description": "Residential project or halfway house with no homeless criteria"
+      },
+      {
+        "key": 332,
+        "description": "Host Home (non-crisis)"
+      },
+      {
+        "key": 410,
+        "description": "Rental by client, no ongoing housing subsidy"
+      },
+      {
+        "key": 411,
+        "description": "Owned by client, no ongoing housing subsidy"
+      },
+      {
+        "key": 421,
+        "description": "Owned by client, with ongoing housing subsidy"
+      },
+      {
+        "key": 422,
+        "description": "Staying or living with family, permanent tenure"
+      },
+      {
+        "key": 423,
+        "description": "Staying or living with friends, permanent tenure"
+      },
+      {
+        "key": 426,
+        "description": "Moved from one HOPWA funded project to HOPWA PH"
+      },
+      {
+        "key": 435,
+        "description": "Rental by client, with ongoing housing subsidy"
+      }
+    ]
+  }
+]

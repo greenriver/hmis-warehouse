@@ -1,0 +1,28 @@
+[
+  {
+    "name": "AdHocYesNo",
+    "code": "ad_hoc_yes_no",
+    "values": [
+      {
+        "key": 0,
+        "description": "No"
+      },
+      {
+        "key": 1,
+        "description": "Yes"
+      },
+      {
+        "key": 8,
+        "description": "Don't Know"
+      },
+      {
+        "key": 9,
+        "description": "Prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  }
+]

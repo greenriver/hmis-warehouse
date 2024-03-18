@@ -13,6 +13,12 @@ namespace :code do
     puts "Modified #{@modified} #{'record'.pluralize(@modified)}"
   end
 
+  # rails code:generate_hud_list_json\["2024","lib/data/CSV Specifications Machine-Readable_FY2024.xlsx"\]
+  desc 'Generate HUD list json file'
+  task :generate_hud_list_json, [:year, :csv_file_path] => [:environment, 'log:info_to_stdout'] do |_task, args|
+    HudCodeGen.generate_hud_list_json(args.year.to_i, args.csv_file_path)
+  end
+
   desc 'Generate HUD list mapping module'
   task generate_hud_lists: [:environment, 'log:info_to_stdout'] do
     filenames = []

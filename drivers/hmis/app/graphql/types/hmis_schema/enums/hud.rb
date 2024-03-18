@@ -62,16 +62,10 @@ module Types::HmisSchema::Enums::Hud
     hud_enum HudUtility2024.no_yes_options
   end
 
-  class TargetPopulation < Types::BaseEnum
-    description '2.02.7'
-    graphql_name 'TargetPopulation'
-    hud_enum HudUtility2024.target_populations
-  end
-
-  class HOPWAMedAssistedLivingFac < Types::BaseEnum
-    description '2.02.8'
-    graphql_name 'HOPWAMedAssistedLivingFac'
-    hud_enum HudUtility2024.hopwa_med_assisted_living_facs
+  class RRHSubType < Types::BaseEnum
+    description '2.02.A'
+    graphql_name 'RRHSubType'
+    hud_enum HudUtility2024.rrh_sub_types
   end
 
   class HousingType < Types::BaseEnum
@@ -92,10 +86,28 @@ module Types::HmisSchema::Enums::Hud
     hud_enum HudUtility2024.project_type_briefs
   end
 
-  class RRHSubType < Types::BaseEnum
-    description '2.02.A'
-    graphql_name 'RRHSubType'
-    hud_enum HudUtility2024.rrh_sub_types
+  class TargetPopulation < Types::BaseEnum
+    description '2.02.7'
+    graphql_name 'TargetPopulation'
+    hud_enum HudUtility2024.target_populations
+  end
+
+  class HOPWAMedAssistedLivingFac < Types::BaseEnum
+    description '2.02.8'
+    graphql_name 'HOPWAMedAssistedLivingFac'
+    hud_enum HudUtility2024.hopwa_med_assisted_living_facs
+  end
+
+  class CoCCodes < Types::BaseEnum
+    description '2.03.1'
+    graphql_name 'CoCCodes'
+    hud_enum HudUtility2024.coc_codes_options
+  end
+
+  class GeographyType < Types::BaseEnum
+    description '2.03.4'
+    graphql_name 'GeographyType'
+    hud_enum HudUtility2024.geography_types
   end
 
   class FundingSource < Types::BaseEnum
@@ -122,18 +134,6 @@ module Types::HmisSchema::Enums::Hud
     hud_enum HudUtility2024.availabilities
   end
 
-  class CoCCodes < Types::BaseEnum
-    description '2.03.1'
-    graphql_name 'CoCCodes'
-    hud_enum HudUtility2024.coc_codes_options
-  end
-
-  class GeographyType < Types::BaseEnum
-    description '2.03.4'
-    graphql_name 'GeographyType'
-    hud_enum HudUtility2024.geography_types
-  end
-
   class HMISParticipationType < Types::BaseEnum
     description '2.08.1'
     graphql_name 'HMISParticipationType'
@@ -144,18 +144,6 @@ module Types::HmisSchema::Enums::Hud
     description '3.01.5'
     graphql_name 'NameDataQuality'
     hud_enum HudUtility2024.name_data_quality_options
-  end
-
-  class Destination < Types::BaseEnum
-    description '3.12'
-    graphql_name 'Destination'
-    hud_enum HudUtility2024.destinations
-  end
-
-  class RelationshipToHoH < Types::BaseEnum
-    description '3.15.1'
-    graphql_name 'RelationshipToHoH'
-    hud_enum HudUtility2024.relationships_to_hoh
   end
 
   class SSNDataQuality < Types::BaseEnum
@@ -170,22 +158,10 @@ module Types::HmisSchema::Enums::Hud
     hud_enum HudUtility2024.dob_data_quality_options
   end
 
-  class TimesHomelessPastThreeYears < Types::BaseEnum
-    description '3.917.4'
-    graphql_name 'TimesHomelessPastThreeYears'
-    hud_enum HudUtility2024.times_homeless_options
-  end
-
-  class CurrentLivingSituation < Types::BaseEnum
-    description '4.12'
-    graphql_name 'CurrentLivingSituationOptions'
-    hud_enum HudUtility2024.current_living_situations
-  end
-
-  class PriorLivingSituation < Types::BaseEnum
-    description '3.917'
-    graphql_name 'PriorLivingSituation'
-    hud_enum HudUtility2024.prior_living_situations
+  class Destination < Types::BaseEnum
+    description '3.12'
+    graphql_name 'Destination'
+    hud_enum HudUtility2024.destinations
   end
 
   class RentalSubsidyType < Types::BaseEnum
@@ -194,10 +170,34 @@ module Types::HmisSchema::Enums::Hud
     hud_enum HudUtility2024.rental_subsidy_types
   end
 
+  class CurrentLivingSituation < Types::BaseEnum
+    description '3.12.1'
+    graphql_name 'CurrentLivingSituationOptions'
+    hud_enum HudUtility2024.current_living_situations
+  end
+
+  class RelationshipToHoH < Types::BaseEnum
+    description '3.15.1'
+    graphql_name 'RelationshipToHoH'
+    hud_enum HudUtility2024.relationships_to_hoh
+  end
+
+  class PriorLivingSituation < Types::BaseEnum
+    description '3.917'
+    graphql_name 'PriorLivingSituation'
+    hud_enum HudUtility2024.prior_living_situations
+  end
+
   class ResidencePriorLengthOfStay < Types::BaseEnum
     description '3.917.2'
     graphql_name 'ResidencePriorLengthOfStay'
     hud_enum HudUtility2024.length_of_stays
+  end
+
+  class TimesHomelessPastThreeYears < Types::BaseEnum
+    description '3.917.4'
+    graphql_name 'TimesHomelessPastThreeYears'
+    hud_enum HudUtility2024.times_homeless_options
   end
 
   class MonthsHomelessPastThreeYears < Types::BaseEnum
@@ -230,18 +230,6 @@ module Types::HmisSchema::Enums::Hud
     hud_enum HudUtility2024.bed_night_options
   end
 
-  class RHYServices < Types::BaseEnum
-    description 'R14.2'
-    graphql_name 'RHYServices'
-    hud_enum HudUtility2024.rhy_services_options
-  end
-
-  class SSVFFinancialAssistance < Types::BaseEnum
-    description 'V3.3'
-    graphql_name 'SSVFFinancialAssistance'
-    hud_enum HudUtility2024.ssvf_financial_assistance_options
-  end
-
   class AssessmentType < Types::BaseEnum
     description '4.19.3'
     graphql_name 'AssessmentType'
@@ -260,28 +248,40 @@ module Types::HmisSchema::Enums::Hud
     hud_enum HudUtility2024.prioritization_statuses
   end
 
-  class EventType < Types::BaseEnum
-    description '4.20.2'
-    graphql_name 'EventType'
-    hud_enum HudUtility2024.events
-  end
-
   class ReferralResult < Types::BaseEnum
     description '4.20.D'
     graphql_name 'ReferralResult'
     hud_enum HudUtility2024.referral_results
   end
 
-  class EarlyExitReason < Types::BaseEnum
-    description 'R17.A'
-    graphql_name 'EarlyExitReason'
-    hud_enum HudUtility2024.early_exit_reasons
+  class EventType < Types::BaseEnum
+    description '4.20.2'
+    graphql_name 'EventType'
+    hud_enum HudUtility2024.events
   end
 
   class DataCollectionStage < Types::BaseEnum
     description '5.03.1'
     graphql_name 'DataCollectionStage'
     hud_enum HudUtility2024.data_collection_stages
+  end
+
+  class RHYServices < Types::BaseEnum
+    description 'R14.2'
+    graphql_name 'RHYServices'
+    hud_enum HudUtility2024.rhy_services_options
+  end
+
+  class SSVFFinancialAssistance < Types::BaseEnum
+    description 'V3.3'
+    graphql_name 'SSVFFinancialAssistance'
+    hud_enum HudUtility2024.ssvf_financial_assistance_options
+  end
+
+  class EarlyExitReason < Types::BaseEnum
+    description 'R17.A'
+    graphql_name 'EarlyExitReason'
+    hud_enum HudUtility2024.early_exit_reasons
   end
 
   class MovingOnAssistance < Types::BaseEnum
@@ -435,7 +435,7 @@ module Types::HmisSchema::Enums::Hud
   end
 
   class HOPWAFinancialAssistance < Types::BaseEnum
-    description 'V2.3'
+    description 'W2.2'
     graphql_name 'HOPWAFinancialAssistance'
     hud_enum HudUtility2024.hopwa_financial_assistance_options
   end
@@ -468,12 +468,6 @@ module Types::HmisSchema::Enums::Hud
     description 'V6.1'
     graphql_name 'VamcStationNumber'
     hud_enum HudUtility2024.vamc_station_numbers
-  end
-
-  class NoPointsYes < Types::BaseEnum
-    description 'V7.1'
-    graphql_name 'NoPointsYes'
-    hud_enum HudUtility2024.no_points_yes_options
   end
 
   class TimeToHousingLoss < Types::BaseEnum
@@ -513,7 +507,7 @@ module Types::HmisSchema::Enums::Hud
   end
 
   class VoucherTracking < Types::BaseEnum
-    description 'V8.1'
+    description 'V8.2'
     graphql_name 'VoucherTracking'
     hud_enum HudUtility2024.voucher_tracking_options
   end
@@ -560,18 +554,6 @@ module Types::HmisSchema::Enums::Hud
     hud_enum HudUtility2024.subsidy_informations
   end
 
-  class SubsidyInformationA < Types::BaseEnum
-    description 'W5.A'
-    graphql_name 'SubsidyInformationA'
-    hud_enum HudUtility2024.subsidy_information_as
-  end
-
-  class SubsidyInformationB < Types::BaseEnum
-    description 'W5.B'
-    graphql_name 'SubsidyInformationB'
-    hud_enum HudUtility2024.subsidy_information_bs
-  end
-
   class AdHocYesNo < Types::BaseEnum
     description 'ad_hoc_yes_no'
     graphql_name 'AdHocYesNo'
@@ -582,5 +564,11 @@ module Types::HmisSchema::Enums::Hud
     description 'C4.A'
     graphql_name 'PreferredLanguage'
     hud_enum HudUtility2024.preferred_languages
+  end
+
+  class SubsidyInformationB < Types::BaseEnum
+    description 'W5.B'
+    graphql_name 'SubsidyInformationB'
+    hud_enum HudUtility2024.subsidy_information_bs
   end
 end

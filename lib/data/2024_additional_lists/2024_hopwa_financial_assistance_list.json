@@ -1,0 +1,28 @@
+[
+  {
+    "name": "HOPWAFinancialAssistance",
+    "code": "V2.3",
+    "values": [
+      {
+        "key": 1,
+        "description": "Rental assistance"
+      },
+      {
+        "key": 2,
+        "description": "Security deposits"
+      },
+      {
+        "key": 3,
+        "description": "Utility deposits"
+      },
+      {
+        "key": 4,
+        "description": "Utility payments"
+      },
+      {
+        "key": 7,
+        "description": "Mortgage assistance"
+      }
+    ]
+  }
+]

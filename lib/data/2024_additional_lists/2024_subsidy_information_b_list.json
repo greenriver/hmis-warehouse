@@ -1,0 +1,16 @@
+[
+  {
+    "name": "SubsidyInformationB",
+    "code": "W5.B",
+    "values": [
+      {
+        "key": 11,
+        "description": "With on-going subsidy"
+      },
+      {
+        "key": 12,
+        "description": "Without an on-going subsidy"
+      }
+    ]
+  }
+]

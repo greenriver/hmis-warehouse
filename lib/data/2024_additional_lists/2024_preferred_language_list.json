@@ -1,0 +1,1333 @@
+[
+  {
+    "name": "PreferredLanguage",
+    "code": "C4.A",
+    "_comment": "Full list from HUD C4 2024 Supplement. Includes some fixes to spelling errors, and renaming Rundi=>Kirundi, preferred spelling requested for customer.",
+    "values": [
+      {
+        "key": 100,
+        "description": "Acholi"
+      },
+      {
+        "key": 101,
+        "description": "Afar"
+      },
+      {
+        "key": 102,
+        "description": "Afrikaans"
+      },
+      {
+        "key": 103,
+        "description": "Ahtna"
+      },
+      {
+        "key": 104,
+        "description": "Akan"
+      },
+      {
+        "key": 105,
+        "description": "Akateko"
+      },
+      {
+        "key": 106,
+        "description": "Akuzipigestun / St. Lawrence Island Yupik (aka Siberian Yupik)"
+      },
+      {
+        "key": 107,
+        "description": "Albanian"
+      },
+      {
+        "key": 108,
+        "description": "Algonquian"
+      },
+      {
+        "key": 109,
+        "description": "Alutiiq"
+      },
+      {
+        "key": 110,
+        "description": "American Sign Language"
+      },
+      {
+        "key": 111,
+        "description": "Amharic"
+      },
+      {
+        "key": 112,
+        "description": "Anuak"
+      },
+      {
+        "key": 113,
+        "description": "Apache"
+      },
+      {
+        "key": 114,
+        "description": "Arabic"
+      },
+      {
+        "key": 115,
+        "description": "Armenian"
+      },
+      {
+        "key": 116,
+        "description": "Assyrian"
+      },
+      {
+        "key": 117,
+        "description": "Atnakenaege’ / Ahtna"
+      },
+      {
+        "key": 118,
+        "description": "Aymara"
+      },
+      {
+        "key": 119,
+        "description": "Azerbaijani"
+      },
+      {
+        "key": 120,
+        "description": "Bahasa"
+      },
+      {
+        "key": 121,
+        "description": "Bahdini"
+      },
+      {
+        "key": 122,
+        "description": "Bajuni"
+      },
+      {
+        "key": 123,
+        "description": "Bambara"
+      },
+      {
+        "key": 124,
+        "description": "Bantu"
+      },
+      {
+        "key": 125,
+        "description": "Barese"
+      },
+      {
+        "key": 126,
+        "description": "Basque"
+      },
+      {
+        "key": 127,
+        "description": "Bassa"
+      },
+      {
+        "key": 128,
+        "description": "Belorussian"
+      },
+      {
+        "key": 129,
+        "description": "Bemba"
+      },
+      {
+        "key": 130,
+        "description": "Benaadir"
+      },
+      {
+        "key": 131,
+        "description": "Bengali"
+      },
+      {
+        "key": 132,
+        "description": "Berber"
+      },
+      {
+        "key": 133,
+        "description": "Black American Sign Language"
+      },
+      {
+        "key": 134,
+        "description": "Bosnian"
+      },
+      {
+        "key": 135,
+        "description": "Bravanese"
+      },
+      {
+        "key": 136,
+        "description": "Bulgarian"
+      },
+      {
+        "key": 137,
+        "description": "Burmese"
+      },
+      {
+        "key": 138,
+        "description": "Cambodian"
+      },
+      {
+        "key": 139,
+        "description": "Cantonese"
+      },
+      {
+        "key": 140,
+        "description": "Cape Verdean Creole"
+      },
+      {
+        "key": 141,
+        "description": "Catalan"
+      },
+      {
+        "key": 142,
+        "description": "Cebuano"
+      },
+      {
+        "key": 143,
+        "description": "Central Alaskan Yup’ik / Yugtun"
+      },
+      {
+        "key": 144,
+        "description": "Chaldean"
+      },
+      {
+        "key": 145,
+        "description": "Chamorro"
+      },
+      {
+        "key": 146,
+        "description": "Chaochow"
+      },
+      {
+        "key": 147,
+        "description": "Cherokee"
+      },
+      {
+        "key": 148,
+        "description": "Chinese"
+      },
+      {
+        "key": 149,
+        "description": "Chipewyan"
+      },
+      {
+        "key": 150,
+        "description": "Choctaw"
+      },
+      {
+        "key": 151,
+        "description": "Chuukese"
+      },
+      {
+        "key": 152,
+        "description": "Cree"
+      },
+      {
+        "key": 153,
+        "description": "Croatian"
+      },
+      {
+        "key": 154,
+        "description": "Czech"
+      },
+      {
+        "key": 155,
+        "description": "Dakota"
+      },
+      {
+        "key": 156,
+        "description": "Danish"
+      },
+      {
+        "key": 157,
+        "description": "Dari"
+      },
+      {
+        "key": 158,
+        "description": "Deg Xinag"
+      },
+      {
+        "key": 159,
+        "description": "Dena'inaq' / Dena'ina"
+      },
+      {
+        "key": 160,
+        "description": "Denaakk'e / Koyukon"
+      },
+      {
+        "key": 161,
+        "description": "Dewoin"
+      },
+      {
+        "key": 162,
+        "description": "Dinak'i / Upper Kuskokwim"
+      },
+      {
+        "key": 163,
+        "description": "Dinjii Zhuh K'yaa / Gwich'in"
+      },
+      {
+        "key": 164,
+        "description": "Dinka"
+      },
+      {
+        "key": 165,
+        "description": "Doogh Qinaq / Holikachuk"
+      },
+      {
+        "key": 166,
+        "description": "Duala"
+      },
+      {
+        "key": 167,
+        "description": "Dutch"
+      },
+      {
+        "key": 168,
+        "description": "Dzongkha"
+      },
+      {
+        "key": 169,
+        "description": "Edo"
+      },
+      {
+        "key": 170,
+        "description": "Ekegusli"
+      },
+      {
+        "key": 171,
+        "description": "English"
+      },
+      {
+        "key": 172,
+        "description": "Estonian"
+      },
+      {
+        "key": 173,
+        "description": "Ewe"
+      },
+      {
+        "key": 174,
+        "description": "Eyak"
+      },
+      {
+        "key": 175,
+        "description": "Farsi"
+      },
+      {
+        "key": 176,
+        "description": "Fijian"
+      },
+      {
+        "key": 177,
+        "description": "Filipino"
+      },
+      {
+        "key": 178,
+        "description": "Finnish"
+      },
+      {
+        "key": 179,
+        "description": "Flemish"
+      },
+      {
+        "key": 180,
+        "description": "French"
+      },
+      {
+        "key": 181,
+        "description": "French Cajun"
+      },
+      {
+        "key": 182,
+        "description": "French Canadian"
+      },
+      {
+        "key": 183,
+        "description": "French Creole"
+      },
+      {
+        "key": 184,
+        "description": "French Haitian"
+      },
+      {
+        "key": 185,
+        "description": "Fukienese"
+      },
+      {
+        "key": 186,
+        "description": "Fulani"
+      },
+      {
+        "key": 187,
+        "description": "Fuzhou"
+      },
+      {
+        "key": 188,
+        "description": "Ga"
+      },
+      {
+        "key": 189,
+        "description": "Gaddang"
+      },
+      {
+        "key": 190,
+        "description": "Gaelic"
+      },
+      {
+        "key": 191,
+        "description": "Garre"
+      },
+      {
+        "key": 192,
+        "description": "Gen"
+      },
+      {
+        "key": 193,
+        "description": "Georgian"
+      },
+      {
+        "key": 194,
+        "description": "German"
+      },
+      {
+        "key": 195,
+        "description": "Gheg"
+      },
+      {
+        "key": 196,
+        "description": "Gokana"
+      },
+      {
+        "key": 197,
+        "description": "Greek"
+      },
+      {
+        "key": 198,
+        "description": "Gujarati"
+      },
+      {
+        "key": 199,
+        "description": "Gulay"
+      },
+      {
+        "key": 200,
+        "description": "Gullah"
+      },
+      {
+        "key": 201,
+        "description": "Gurani"
+      },
+      {
+        "key": 202,
+        "description": "Gwich'in"
+      },
+      {
+        "key": 203,
+        "description": "Haida"
+      },
+      {
+        "key": 204,
+        "description": "Haitian"
+      },
+      {
+        "key": 205,
+        "description": "Haitian Creole"
+      },
+      {
+        "key": 206,
+        "description": "Hakka"
+      },
+      {
+        "key": 207,
+        "description": "Häl golan / Hän"
+      },
+      {
+        "key": 208,
+        "description": "Hassaniyya"
+      },
+      {
+        "key": 209,
+        "description": "Hausa"
+      },
+      {
+        "key": 210,
+        "description": "Hawai'i Sign Language"
+      },
+      {
+        "key": 211,
+        "description": "Hawaiian"
+      },
+      {
+        "key": 212,
+        "description": "Hebrew"
+      },
+      {
+        "key": 213,
+        "description": "Hiligaynon"
+      },
+      {
+        "key": 214,
+        "description": "Hindi"
+      },
+      {
+        "key": 215,
+        "description": "Hindko"
+      },
+      {
+        "key": 216,
+        "description": "Hmong"
+      },
+      {
+        "key": 217,
+        "description": "Hokkien"
+      },
+      {
+        "key": 218,
+        "description": "Holikachuk"
+      },
+      {
+        "key": 219,
+        "description": "Hopi"
+      },
+      {
+        "key": 220,
+        "description": "Huanese"
+      },
+      {
+        "key": 221,
+        "description": "Hungarian"
+      },
+      {
+        "key": 222,
+        "description": "Ibanag"
+      },
+      {
+        "key": 223,
+        "description": "Icelandic"
+      },
+      {
+        "key": 224,
+        "description": "Igbo"
+      },
+      {
+        "key": 225,
+        "description": "Ilocano"
+      },
+      {
+        "key": 226,
+        "description": "Indonesian"
+      },
+      {
+        "key": 227,
+        "description": "Inuktitut"
+      },
+      {
+        "key": 228,
+        "description": "Inupiatun / Inupiaq"
+      },
+      {
+        "key": 229,
+        "description": "Italian"
+      },
+      {
+        "key": 230,
+        "description": "Jakartanese"
+      },
+      {
+        "key": 231,
+        "description": "Jamaican Patois"
+      },
+      {
+        "key": 232,
+        "description": "Japanese"
+      },
+      {
+        "key": 233,
+        "description": "Jarai"
+      },
+      {
+        "key": 234,
+        "description": "Javanese"
+      },
+      {
+        "key": 235,
+        "description": "Jingpho"
+      },
+      {
+        "key": 236,
+        "description": "Jinyu"
+      },
+      {
+        "key": 237,
+        "description": "Juba Arabic"
+      },
+      {
+        "key": 238,
+        "description": "Jula"
+      },
+      {
+        "key": 239,
+        "description": "Kaba"
+      },
+      {
+        "key": 240,
+        "description": "Kamba"
+      },
+      {
+        "key": 241,
+        "description": "Kam Muang"
+      },
+      {
+        "key": 242,
+        "description": "Kanjobal"
+      },
+      {
+        "key": 243,
+        "description": "Kannada"
+      },
+      {
+        "key": 244,
+        "description": "Karen"
+      },
+      {
+        "key": 245,
+        "description": "Kashmiri"
+      },
+      {
+        "key": 246,
+        "description": "Kayah"
+      },
+      {
+        "key": 247,
+        "description": "Kazakh"
+      },
+      {
+        "key": 248,
+        "description": "Keresan"
+      },
+      {
+        "key": 249,
+        "description": "Keresan Sign Language"
+      },
+      {
+        "key": 250,
+        "description": "Kham"
+      },
+      {
+        "key": 251,
+        "description": "Khana"
+      },
+      {
+        "key": 252,
+        "description": "Khmer"
+      },
+      {
+        "key": 253,
+        "description": "K'iche'"
+      },
+      {
+        "key": 254,
+        "description": "Kikuyu"
+      },
+      {
+        "key": 255,
+        "description": "Kimiiru"
+      },
+      {
+        "key": 256,
+        "description": "Kinyarwanda"
+      },
+      {
+        "key": 257,
+        "description": "Kiowa"
+      },
+      {
+        "key": 258,
+        "description": "Koho"
+      },
+      {
+        "key": 259,
+        "description": "Korean"
+      },
+      {
+        "key": 260,
+        "description": "Koyukon"
+      },
+      {
+        "key": 261,
+        "description": "Krahn"
+      },
+      {
+        "key": 262,
+        "description": "Krio"
+      },
+      {
+        "key": 263,
+        "description": "Kunama"
+      },
+      {
+        "key": 264,
+        "description": "Kurmanji"
+      },
+      {
+        "key": 265,
+        "description": "Kyrgyz"
+      },
+      {
+        "key": 266,
+        "description": "Lakota"
+      },
+      {
+        "key": 267,
+        "description": "Laotian"
+      },
+      {
+        "key": 268,
+        "description": "Latvian"
+      },
+      {
+        "key": 269,
+        "description": "Liberian Pidgin English"
+      },
+      {
+        "key": 270,
+        "description": "Lingala"
+      },
+      {
+        "key": 271,
+        "description": "Lingít / Tlingit"
+      },
+      {
+        "key": 272,
+        "description": "Lithuanian"
+      },
+      {
+        "key": 273,
+        "description": "Lombard"
+      },
+      {
+        "key": 274,
+        "description": "Luba-Kasai"
+      },
+      {
+        "key": 275,
+        "description": "Luganda"
+      },
+      {
+        "key": 276,
+        "description": "Luo"
+      },
+      {
+        "key": 277,
+        "description": "Maay"
+      },
+      {
+        "key": 278,
+        "description": "Macedonian"
+      },
+      {
+        "key": 279,
+        "description": "Malay"
+      },
+      {
+        "key": 280,
+        "description": "Malayalam"
+      },
+      {
+        "key": 281,
+        "description": "Maltese"
+      },
+      {
+        "key": 282,
+        "description": "Mam"
+      },
+      {
+        "key": 283,
+        "description": "Mandarin"
+      },
+      {
+        "key": 284,
+        "description": "Mandinka"
+      },
+      {
+        "key": 285,
+        "description": "Maninka"
+      },
+      {
+        "key": 286,
+        "description": "Manobo"
+      },
+      {
+        "key": 287,
+        "description": "Marathi"
+      },
+      {
+        "key": 288,
+        "description": "Marka"
+      },
+      {
+        "key": 289,
+        "description": "Marshallese"
+      },
+      {
+        "key": 290,
+        "description": "Masalit"
+      },
+      {
+        "key": 291,
+        "description": "Mbay"
+      },
+      {
+        "key": 292,
+        "description": "Mien"
+      },
+      {
+        "key": 293,
+        "description": "Mirpuri"
+      },
+      {
+        "key": 294,
+        "description": "Mixteco"
+      },
+      {
+        "key": 295,
+        "description": "Mizo"
+      },
+      {
+        "key": 296,
+        "description": "Mnong"
+      },
+      {
+        "key": 297,
+        "description": "Mongolian"
+      },
+      {
+        "key": 298,
+        "description": "Montenegrin"
+      },
+      {
+        "key": 299,
+        "description": "Moroccan Arabic"
+      },
+      {
+        "key": 300,
+        "description": "Mortlockese"
+      },
+      {
+        "key": 301,
+        "description": "Muscogee"
+      },
+      {
+        "key": 302,
+        "description": "Napoletano"
+      },
+      {
+        "key": 303,
+        "description": "Navajo"
+      },
+      {
+        "key": 304,
+        "description": "Navajo Family Sign"
+      },
+      {
+        "key": 305,
+        "description": "Ndebele"
+      },
+      {
+        "key": 306,
+        "description": "Neapolitan"
+      },
+      {
+        "key": 307,
+        "description": "Nee’aandeg’ / Tanacross"
+      },
+      {
+        "key": 308,
+        "description": "Nepali"
+      },
+      {
+        "key": 309,
+        "description": "Ngambay"
+      },
+      {
+        "key": 310,
+        "description": "Nigerian Pidgin"
+      },
+      {
+        "key": 311,
+        "description": "Northern Sotho"
+      },
+      {
+        "key": 312,
+        "description": "Norwegian"
+      },
+      {
+        "key": 313,
+        "description": "Nuer"
+      },
+      {
+        "key": 314,
+        "description": "Nupe"
+      },
+      {
+        "key": 315,
+        "description": "Nyanja"
+      },
+      {
+        "key": 316,
+        "description": "Nyoro"
+      },
+      {
+        "key": 317,
+        "description": "O'odham"
+      },
+      {
+        "key": 318,
+        "description": "Ojibwe"
+      },
+      {
+        "key": 319,
+        "description": "Oromo"
+      },
+      {
+        "key": 320,
+        "description": "Pampangan"
+      },
+      {
+        "key": 321,
+        "description": "Papiamento"
+      },
+      {
+        "key": 322,
+        "description": "Pashto"
+      },
+      {
+        "key": 323,
+        "description": "Pennsylvania Dutch"
+      },
+      {
+        "key": 324,
+        "description": "Persian"
+      },
+      {
+        "key": 325,
+        "description": "Plains Sign Language"
+      },
+      {
+        "key": 326,
+        "description": "Plateau Sign Language"
+      },
+      {
+        "key": 327,
+        "description": "Plautdietsch"
+      },
+      {
+        "key": 328,
+        "description": "Pohnpeian"
+      },
+      {
+        "key": 329,
+        "description": "Polish"
+      },
+      {
+        "key": 330,
+        "description": "Portuguese"
+      },
+      {
+        "key": 331,
+        "description": "Portuguese Brazilian"
+      },
+      {
+        "key": 332,
+        "description": "Portuguese Cape Verdean"
+      },
+      {
+        "key": 333,
+        "description": "Portuguese Creole"
+      },
+      {
+        "key": 334,
+        "description": "Puerto Rican Sign Language"
+      },
+      {
+        "key": 335,
+        "description": "Pugliese"
+      },
+      {
+        "key": 336,
+        "description": "Pulaar"
+      },
+      {
+        "key": 337,
+        "description": "Punjabi"
+      },
+      {
+        "key": 338,
+        "description": "Putian"
+      },
+      {
+        "key": 339,
+        "description": "Quechua"
+      },
+      {
+        "key": 340,
+        "description": "Quichua"
+      },
+      {
+        "key": 341,
+        "description": "Rade"
+      },
+      {
+        "key": 342,
+        "description": "Rakhine"
+      },
+      {
+        "key": 343,
+        "description": "Rohingya"
+      },
+      {
+        "key": 344,
+        "description": "Romanian"
+      },
+      {
+        "key": 345,
+        "description": "Kirundi"
+      },
+      {
+        "key": 346,
+        "description": "Russian"
+      },
+      {
+        "key": 347,
+        "description": "Samoan"
+      },
+      {
+        "key": 348,
+        "description": "Samoan Sign Language"
+      },
+      {
+        "key": 349,
+        "description": "Sango"
+      },
+      {
+        "key": 350,
+        "description": "Seraiki"
+      },
+      {
+        "key": 351,
+        "description": "Serbian"
+      },
+      {
+        "key": 352,
+        "description": "Shanghainese"
+      },
+      {
+        "key": 353,
+        "description": "Shona"
+      },
+      {
+        "key": 354,
+        "description": "Sichuan Yi"
+      },
+      {
+        "key": 355,
+        "description": "Sicilian"
+      },
+      {
+        "key": 356,
+        "description": "Sindhi"
+      },
+      {
+        "key": 357,
+        "description": "Sinhalese"
+      },
+      {
+        "key": 358,
+        "description": "Sioux"
+      },
+      {
+        "key": 359,
+        "description": "Slovak"
+      },
+      {
+        "key": 360,
+        "description": "Slovenian"
+      },
+      {
+        "key": 361,
+        "description": "Sm’algyax / (Coast) Tsimshian"
+      },
+      {
+        "key": 362,
+        "description": "Soga"
+      },
+      {
+        "key": 363,
+        "description": "Somali"
+      },
+      {
+        "key": 364,
+        "description": "Soninke"
+      },
+      {
+        "key": 365,
+        "description": "Sorani"
+      },
+      {
+        "key": 366,
+        "description": "Sothern Sotho"
+      },
+      {
+        "key": 367,
+        "description": "Spanish"
+      },
+      {
+        "key": 368,
+        "description": "Spanish Creole"
+      },
+      {
+        "key": 369,
+        "description": "Sudanese Arabic"
+      },
+      {
+        "key": 370,
+        "description": "Sugpiaq / Alutiiq"
+      },
+      {
+        "key": 371,
+        "description": "Sunda"
+      },
+      {
+        "key": 372,
+        "description": "Susu"
+      },
+      {
+        "key": 373,
+        "description": "Swahili"
+      },
+      {
+        "key": 374,
+        "description": "Swati"
+      },
+      {
+        "key": 375,
+        "description": "Swedish"
+      },
+      {
+        "key": 376,
+        "description": "Sylhetti"
+      },
+      {
+        "key": 377,
+        "description": "Tagalog"
+      },
+      {
+        "key": 378,
+        "description": "Taiwanese"
+      },
+      {
+        "key": 379,
+        "description": "Tajik"
+      },
+      {
+        "key": 380,
+        "description": "Tamil"
+      },
+      {
+        "key": 381,
+        "description": "Tanacross"
+      },
+      {
+        "key": 382,
+        "description": "Tanana"
+      },
+      {
+        "key": 383,
+        "description": "Telugu"
+      },
+      {
+        "key": 384,
+        "description": "Thai"
+      },
+      {
+        "key": 385,
+        "description": "Tibetan"
+      },
+      {
+        "key": 386,
+        "description": "Tigre"
+      },
+      {
+        "key": 387,
+        "description": "Tigrigna"
+      },
+      {
+        "key": 388,
+        "description": "Tlingit"
+      },
+      {
+        "key": 389,
+        "description": "Toishanese"
+      },
+      {
+        "key": 390,
+        "description": "Tongan"
+      },
+      {
+        "key": 391,
+        "description": "Tooro"
+      },
+      {
+        "key": 392,
+        "description": "Trique"
+      },
+      {
+        "key": 393,
+        "description": "Tsimshian"
+      },
+      {
+        "key": 394,
+        "description": "Tsonga"
+      },
+      {
+        "key": 395,
+        "description": "Tswana"
+      },
+      {
+        "key": 396,
+        "description": "Turkish"
+      },
+      {
+        "key": 397,
+        "description": "Turkmen"
+      },
+      {
+        "key": 398,
+        "description": "Twi"
+      },
+      {
+        "key": 399,
+        "description": "Tzotzil"
+      },
+      {
+        "key": 400,
+        "description": "Ukrainian"
+      },
+      {
+        "key": 401,
+        "description": "Unangam Tunuu / Aleutian Aleut"
+      },
+      {
+        "key": 402,
+        "description": "Upper Kuskokwim"
+      },
+      {
+        "key": 403,
+        "description": "Urdu"
+      },
+      {
+        "key": 404,
+        "description": "Uyghur"
+      },
+      {
+        "key": 405,
+        "description": "Uzbek"
+      },
+      {
+        "key": 406,
+        "description": "Venda"
+      },
+      {
+        "key": 407,
+        "description": "Vietnamese"
+      },
+      {
+        "key": 408,
+        "description": "Visayan"
+      },
+      {
+        "key": 409,
+        "description": "Welsh"
+      },
+      {
+        "key": 410,
+        "description": "Wodaabe"
+      },
+      {
+        "key": 411,
+        "description": "Wolof"
+      },
+      {
+        "key": 412,
+        "description": "Wuzhou"
+      },
+      {
+        "key": 413,
+        "description": "Xaat Kíl / Haida"
+      },
+      {
+        "key": 414,
+        "description": "Xhosa"
+      },
+      {
+        "key": 415,
+        "description": "Xiang"
+      },
+      {
+        "key": 416,
+        "description": "Yemeni Arabic"
+      },
+      {
+        "key": 417,
+        "description": "Yiddish"
+      },
+      {
+        "key": 418,
+        "description": "Yoruba"
+      },
+      {
+        "key": 419,
+        "description": "Yunnanese"
+      },
+      {
+        "key": 420,
+        "description": "Yupik"
+      },
+      {
+        "key": 421,
+        "description": "Zapoteco"
+      },
+      {
+        "key": 422,
+        "description": "Zarma"
+      },
+      {
+        "key": 423,
+        "description": "Zo"
+      },
+      {
+        "key": 424,
+        "description": "Zulu"
+      },
+      {
+        "key": 425,
+        "description": "Zuni"
+      },
+      {
+        "key": 426,
+        "description": "Zyphe"
+      },
+      {
+        "key": 21,
+        "description": "Different preferred language"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  }
+]

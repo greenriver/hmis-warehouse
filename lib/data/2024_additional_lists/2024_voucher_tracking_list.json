@@ -1,0 +1,56 @@
+[
+  {
+    "name": "VoucherTracking",
+    "code": "V8.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "Referral package forwarded to PHA"
+      },
+      {
+        "key": 2,
+        "description": "Voucher denied by PHA"
+      },
+      {
+        "key": 3,
+        "description": "Voucher issued by PHA"
+      },
+      {
+        "key": 4,
+        "description": "Voucher revoked or expired"
+      },
+      {
+        "key": 5,
+        "description": "Voucher in use - veteran moved into housing"
+      },
+      {
+        "key": 6,
+        "description": "Voucher was ported locally"
+      },
+      {
+        "key": 7,
+        "description": "Voucher was administratively absorbed by new PHA"
+      },
+      {
+        "key": 8,
+        "description": "Voucher was converted to Housing Choice Voucher"
+      },
+      {
+        "key": 9,
+        "description": "Veteran exited - voucher was returned"
+      },
+      {
+        "key": 10,
+        "description": "Veteran exited - family maintained the voucher"
+      },
+      {
+        "key": 11,
+        "description": "Veteran exited - prior to ever receiving a voucher"
+      },
+      {
+        "key": 12,
+        "description": "Other"
+      }
+    ]
+  }
+]

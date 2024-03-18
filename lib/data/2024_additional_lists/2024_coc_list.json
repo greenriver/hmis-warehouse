@@ -1,0 +1,1560 @@
+[
+  {
+    "name": "CoCCodes",
+    "code": "2.03.1",
+    "values": [
+      {
+        "key": "AK-500",
+        "description": "Anchorage CoC"
+      },
+      {
+        "key": "AK-501",
+        "description": "Alaska Balance of State CoC"
+      },
+      {
+        "key": "AL-500",
+        "description": "Birmingham/Jefferson, St. Clair, Shelby Counties CoC"
+      },
+      {
+        "key": "AL-501",
+        "description": "Mobile City & County/Baldwin County CoC"
+      },
+      {
+        "key": "AL-502",
+        "description": "Florence/Northwest Alabama CoC"
+      },
+      {
+        "key": "AL-503",
+        "description": "Huntsville/North Alabama CoC"
+      },
+      {
+        "key": "AL-504",
+        "description": "Montgomery City & County CoC"
+      },
+      {
+        "key": "AL-505",
+        "description": "Gadsden/Northeast Alabama CoC"
+      },
+      {
+        "key": "AL-506",
+        "description": "Tuscaloosa City & County CoC"
+      },
+      {
+        "key": "AL-507",
+        "description": "Alabama Balance of State CoC"
+      },
+      {
+        "key": "AR-500",
+        "description": "Little Rock/Central Arkansas CoC"
+      },
+      {
+        "key": "AR-501",
+        "description": "Fayetteville/Northwest Arkansas CoC"
+      },
+      {
+        "key": "AR-503",
+        "description": "Arkansas Balance of State CoC"
+      },
+      {
+        "key": "AR-505",
+        "description": "Southeast Arkansas CoC"
+      },
+      {
+        "key": "AR-508",
+        "description": "Fort Smith CoC"
+      },
+      {
+        "key": "AS-500",
+        "description": "American Samoa CoC"
+      },
+      {
+        "key": "AZ-500",
+        "description": "Arizona Balance of State CoC"
+      },
+      {
+        "key": "AZ-501",
+        "description": "Tucson/Pima County CoC"
+      },
+      {
+        "key": "AZ-502",
+        "description": "Phoenix, Mesa/Maricopa County CoC"
+      },
+      {
+        "key": "CA-500",
+        "description": "San Jose/Santa Clara City & County CoC"
+      },
+      {
+        "key": "CA-501",
+        "description": "San Francisco CoC"
+      },
+      {
+        "key": "CA-502",
+        "description": "Oakland, Berkeley/Alameda County CoC"
+      },
+      {
+        "key": "CA-503",
+        "description": "Sacramento City & County CoC"
+      },
+      {
+        "key": "CA-504",
+        "description": "Santa Rosa, Petaluma/Sonoma County CoC"
+      },
+      {
+        "key": "CA-505",
+        "description": "Contra Costa County CoC"
+      },
+      {
+        "key": "CA-506",
+        "description": "Salinas/Monterey, San Benito Counties CoC"
+      },
+      {
+        "key": "CA-507",
+        "description": "Marin County CoC"
+      },
+      {
+        "key": "CA-508",
+        "description": "Watsonville/Santa Cruz City & County CoC"
+      },
+      {
+        "key": "CA-509",
+        "description": "Mendocino County CoC"
+      },
+      {
+        "key": "CA-510",
+        "description": "Turlock, Modesto/Stanislaus County CoC"
+      },
+      {
+        "key": "CA-511",
+        "description": "Stockton/San Joaquin County CoC "
+      },
+      {
+        "key": "CA-512",
+        "description": "Daly City/San Mateo County CoC"
+      },
+      {
+        "key": "CA-513",
+        "description": "Visalia/Kings, Tulare Counties CoC "
+      },
+      {
+        "key": "CA-514",
+        "description": "Fresno City & County/Madera County CoC"
+      },
+      {
+        "key": "CA-515",
+        "description": "Roseville, Rocklin/Placer County"
+      },
+      {
+        "key": "CA-516",
+        "description": "Redding/Shasta Siskiyou, Lassen, Plumas, Del Norte, Modoc, Sierra Counties CoC"
+      },
+      {
+        "key": "CA-517",
+        "description": "Napa City & County CoC"
+      },
+      {
+        "key": "CA-518",
+        "description": "Vallejo/Solano County CoC"
+      },
+      {
+        "key": "CA-519",
+        "description": "Chico, Paradise/Butte County CoC "
+      },
+      {
+        "key": "CA-520",
+        "description": "Merced City & County CoC"
+      },
+      {
+        "key": "CA-521",
+        "description": "Davis, Woodland/Yolo County CoC "
+      },
+      {
+        "key": "CA-522",
+        "description": "Humboldt County CoC"
+      },
+      {
+        "key": "CA-523",
+        "description": "Colusa, Glen, Trinity Counties CoC "
+      },
+      {
+        "key": "CA-524",
+        "description": "Yuba City & County/Sutter County CoC"
+      },
+      {
+        "key": "CA-525",
+        "description": "El Dorado County CoC"
+      },
+      {
+        "key": "CA-526",
+        "description": "Amador, Calaveras, Mariposa, Tuolumne Counties CoC"
+      },
+      {
+        "key": "CA-527",
+        "description": "Tehama County CoC"
+      },
+      {
+        "key": "CA-529",
+        "description": "Lake County CoC"
+      },
+      {
+        "key": "CA-530",
+        "description": "Alpine, Inyo, Mono Counties CoC"
+      },
+      {
+        "key": "CA-531",
+        "description": "Nevada County CoC"
+      },
+      {
+        "key": "CA-600",
+        "description": "Los Angeles City & County CoC"
+      },
+      {
+        "key": "CA-601",
+        "description": "San Diego City and County CoC"
+      },
+      {
+        "key": "CA-602",
+        "description": "Santa Ana, Anaheim/Orange County CoC "
+      },
+      {
+        "key": "CA-603",
+        "description": "Santa Maria/Santa Barbara County CoC"
+      },
+      {
+        "key": "CA-604",
+        "description": "Bakersfield/Kern County CoC"
+      },
+      {
+        "key": "CA-606",
+        "description": "Long Beach CoC"
+      },
+      {
+        "key": "CA-607",
+        "description": "Pasadena CoC"
+      },
+      {
+        "key": "CA-608",
+        "description": "Riverside City & County CoC"
+      },
+      {
+        "key": "CA-609",
+        "description": "San Bernardino City & County CoC "
+      },
+      {
+        "key": "CA-611",
+        "description": "Oxnard, San Buenaventura/Ventura County CoC"
+      },
+      {
+        "key": "CA-612",
+        "description": "Glendale CoC"
+      },
+      {
+        "key": "CA-613",
+        "description": "Imperial County CoC  "
+      },
+      {
+        "key": "CA-614",
+        "description": "San Luis Obispo County CoC"
+      },
+      {
+        "key": "CO-500",
+        "description": "Colorado Balance of State CoC "
+      },
+      {
+        "key": "CO-503",
+        "description": "Metropolitan Denver CoC"
+      },
+      {
+        "key": "CO-504",
+        "description": "Colorado Springs/El Paso County CoC"
+      },
+      {
+        "key": "CO-505",
+        "description": "Fort Collins, Greeley, Loveland/Larimer, Weld Counties CoC "
+      },
+      {
+        "key": "CT-503",
+        "description": "Bridgeport, Stamford, Norwalk, Danbury/Fairfield County CoC"
+      },
+      {
+        "key": "CT-505",
+        "description": "Connecticut Balance of State CoC"
+      },
+      {
+        "key": "DC-500",
+        "description": "District of Columbia CoC"
+      },
+      {
+        "key": "DE-500",
+        "description": "Delaware Statewide CoC  "
+      },
+      {
+        "key": "FL-500",
+        "description": "Sarasota, Bradenton/Manatee, Sarasota Counties CoC "
+      },
+      {
+        "key": "FL-501",
+        "description": "Tampa/Hillsborough County CoC"
+      },
+      {
+        "key": "FL-502",
+        "description": "St. Petersburg, Clearwater, Largo/Pinellas County CoC "
+      },
+      {
+        "key": "FL-503",
+        "description": "Lakeland/Polk County CoC"
+      },
+      {
+        "key": "FL-504",
+        "description": "Deltona, Daytona Beach/Volusia, Flagler Counties CoC "
+      },
+      {
+        "key": "FL-505",
+        "description": "Fort Walton Beach/Okaloosa, Walton Counties CoC"
+      },
+      {
+        "key": "FL-506",
+        "description": "Tallahassee/Leon County CoC"
+      },
+      {
+        "key": "FL-507",
+        "description": "Orlando/Orange, Osceola, Seminole Counties CoC"
+      },
+      {
+        "key": "FL-508",
+        "description": "Gainesville/Alachua, Putnam Counties CoC "
+      },
+      {
+        "key": "FL-509",
+        "description": "Fort Pierce/St. Lucie, Indian River, Martin Counties CoC"
+      },
+      {
+        "key": "FL-510",
+        "description": "Jacksonville-Duval, Clay Counties CoC "
+      },
+      {
+        "key": "FL-511",
+        "description": "Pensacola/Escambia, Santa Rosa Counties CoC"
+      },
+      {
+        "key": "FL-512",
+        "description": "St. Johns County CoC"
+      },
+      {
+        "key": "FL-513",
+        "description": "Palm Bay, Melbourne/Brevard County CoC"
+      },
+      {
+        "key": "FL-514",
+        "description": "Ocala/Marion County CoC"
+      },
+      {
+        "key": "FL-515",
+        "description": "Panama City/Bay, Jackson Counties CoC"
+      },
+      {
+        "key": "FL-517",
+        "description": "Hendry, Hardee, Highlands Counties CoC"
+      },
+      {
+        "key": "FL-518",
+        "description": "Columbia, Hamilton, Lafayette, Suwannee Counties CoC"
+      },
+      {
+        "key": "FL-519",
+        "description": "Pasco County CoC"
+      },
+      {
+        "key": "FL-520",
+        "description": "Citrus, Hernando, Lake, Sumter Counties CoC"
+      },
+      {
+        "key": "FL-600",
+        "description": "Miami-Dade County CoC"
+      },
+      {
+        "key": "FL-601",
+        "description": "Ft Lauderdale/Broward County CoC"
+      },
+      {
+        "key": "FL-602",
+        "description": "Charlotte County CoC"
+      },
+      {
+        "key": "FL-603",
+        "description": "Ft Myers, Cape Coral/Lee County CoC"
+      },
+      {
+        "key": "FL-604",
+        "description": "Monroe County CoC "
+      },
+      {
+        "key": "FL-605",
+        "description": "West Palm Beach/Palm Beach County CoC"
+      },
+      {
+        "key": "FL-606",
+        "description": "Naples/Collier County CoC"
+      },
+      {
+        "key": "GA-500",
+        "description": "Atlanta CoC"
+      },
+      {
+        "key": "GA-501",
+        "description": "Georgia Balance of State CoC"
+      },
+      {
+        "key": "GA-502",
+        "description": "Fulton County CoC"
+      },
+      {
+        "key": "GA-503",
+        "description": "Athens-Clarke County CoC"
+      },
+      {
+        "key": "GA-504",
+        "description": "Augusta-Richmond County CoC "
+      },
+      {
+        "key": "GA-505",
+        "description": "Columbus-Muscogee/Russell County CoC"
+      },
+      {
+        "key": "GA-506",
+        "description": "Marietta/Cobb County CoC "
+      },
+      {
+        "key": "GA-507",
+        "description": "Savannah/Chatham County CoC"
+      },
+      {
+        "key": "GA-508",
+        "description": "DeKalb County CoC"
+      },
+      {
+        "key": "GU-500",
+        "description": "Guam CoC"
+      },
+      {
+        "key": "HI-500",
+        "description": "Hawaii Balance of State CoC"
+      },
+      {
+        "key": "HI-501",
+        "description": "Honolulu City and County CoC"
+      },
+      {
+        "key": "IA-500",
+        "description": "Sioux City/Dakota, Woodbury Counties CoC"
+      },
+      {
+        "key": "IA-501",
+        "description": "Iowa Balance of State CoC"
+      },
+      {
+        "key": "IA-502",
+        "description": "Des Moines/Polk County CoC"
+      },
+      {
+        "key": "ID-500",
+        "description": "Boise/Ada County CoC"
+      },
+      {
+        "key": "ID-501",
+        "description": "Idaho Balance of State CoC"
+      },
+      {
+        "key": "IL-500",
+        "description": "McHenry County CoC"
+      },
+      {
+        "key": "IL-501",
+        "description": "Rockford/DeKalb, Winnebago, Boone Counties CoC"
+      },
+      {
+        "key": "IL-502",
+        "description": "Waukegan, North Chicago/Lake County CoC"
+      },
+      {
+        "key": "IL-503",
+        "description": "Champaign, Urbana, Rantoul/Champaign County CoC"
+      },
+      {
+        "key": "IL-504",
+        "description": "Madison County CoC"
+      },
+      {
+        "key": "IL-506",
+        "description": "Joliet, Bolingbrook/Will County CoC"
+      },
+      {
+        "key": "IL-507",
+        "description": "Peoria, Pekin/Fulton, Tazewell, Peoria, Woodford Counties CoC "
+      },
+      {
+        "key": "IL-508",
+        "description": "East St. Louis, Belleville/St. Clair County CoC"
+      },
+      {
+        "key": "IL-510",
+        "description": "Chicago CoC"
+      },
+      {
+        "key": "IL-511",
+        "description": "Cook County CoC"
+      },
+      {
+        "key": "IL-512",
+        "description": "Bloomington/Central Illinois CoC"
+      },
+      {
+        "key": "IL-513",
+        "description": "Springfield/Sangamon County CoC"
+      },
+      {
+        "key": "IL-514",
+        "description": "DuPage County CoC"
+      },
+      {
+        "key": "IL-515",
+        "description": "South Central Illinois CoC"
+      },
+      {
+        "key": "IL-516",
+        "description": "Decatur/Macon County CoC"
+      },
+      {
+        "key": "IL-517",
+        "description": "Aurora, Elgin/Kane County CoC"
+      },
+      {
+        "key": "IL-518",
+        "description": "Rock Island, Moline/Northwestern Illinois CoC"
+      },
+      {
+        "key": "IL-519",
+        "description": "West Central Illinois CoC"
+      },
+      {
+        "key": "IL-520",
+        "description": "Southern Illinois CoC"
+      },
+      {
+        "key": "IN-502",
+        "description": "Indiana Balance of State CoC"
+      },
+      {
+        "key": "IN-503",
+        "description": "Indianapolis CoC"
+      },
+      {
+        "key": "KS-502",
+        "description": "Wichita/Sedgwick County CoC"
+      },
+      {
+        "key": "KS-503",
+        "description": "Topeka/Shawnee County CoC "
+      },
+      {
+        "key": "KS-505",
+        "description": "Overland Park, Shawnee/Johnson County CoC"
+      },
+      {
+        "key": "KS-507",
+        "description": "Kansas Balance of State CoC"
+      },
+      {
+        "key": "KY-500",
+        "description": "Kentucky Balance of State CoC"
+      },
+      {
+        "key": "KY-501",
+        "description": "Louisville-Jefferson County CoC"
+      },
+      {
+        "key": "KY-502",
+        "description": "Lexington-Fayette County CoC"
+      },
+      {
+        "key": "LA-500",
+        "description": "Lafayette/Acadiana Regional CoC"
+      },
+      {
+        "key": "LA-502",
+        "description": "Shreveport, Bossier/Northwest Louisiana CoC"
+      },
+      {
+        "key": "LA-503",
+        "description": "New Orleans/Jefferson Parish CoC"
+      },
+      {
+        "key": "LA-505",
+        "description": "Monroe/Northeast Louisiana CoC"
+      },
+      {
+        "key": "LA-506",
+        "description": "Slidell/Southeast Louisiana CoC"
+      },
+      {
+        "key": "LA-507",
+        "description": "Alexandria/Central Louisiana CoC"
+      },
+      {
+        "key": "LA-509",
+        "description": "Louisiana Balance of State CoC"
+      },
+      {
+        "key": "MA-500",
+        "description": "Boston CoC"
+      },
+      {
+        "key": "MA-502",
+        "description": "Lynn CoC"
+      },
+      {
+        "key": "MA-503",
+        "description": "Cape Cod Islands CoC"
+      },
+      {
+        "key": "MA-504",
+        "description": "Springfield/Hampden County CoC"
+      },
+      {
+        "key": "MA-505",
+        "description": "New Bedford CoC"
+      },
+      {
+        "key": "MA-506",
+        "description": "Worcester City & County CoC"
+      },
+      {
+        "key": "MA-507",
+        "description": "Pittsfield/Berkshire, Franklin, Hampshire Counties CoC"
+      },
+      {
+        "key": "MA-509",
+        "description": "Cambridge CoC"
+      },
+      {
+        "key": "MA-511",
+        "description": "Quincy, Brockton, Weymouth, Plymouth City and County CoC"
+      },
+      {
+        "key": "MA-515",
+        "description": "Fall River CoC"
+      },
+      {
+        "key": "MA-516",
+        "description": "Massachusetts Balance of State CoC"
+      },
+      {
+        "key": "MA-519",
+        "description": "Attleboro, Taunton/Bristol County CoC  "
+      },
+      {
+        "key": "MD-501",
+        "description": "Baltimore CoC "
+      },
+      {
+        "key": "MD-503",
+        "description": "Annapolis/Anne Arundel County CoC"
+      },
+      {
+        "key": "MD-504",
+        "description": "Howard County CoC"
+      },
+      {
+        "key": "MD-505",
+        "description": "Baltimore County CoC"
+      },
+      {
+        "key": "MD-506",
+        "description": "Carroll County CoC"
+      },
+      {
+        "key": "MD-509",
+        "description": "Frederick City & County CoC"
+      },
+      {
+        "key": "MD-511",
+        "description": "Mid-Shore Regional CoC"
+      },
+      {
+        "key": "MD-513",
+        "description": "Wicomico, Somerset, Worcester Counties CoC"
+      },
+      {
+        "key": "MD-514",
+        "description": "Maryland Balance of Sate"
+      },
+      {
+        "key": "MD-600",
+        "description": "Prince George's County CoC"
+      },
+      {
+        "key": "MD-601",
+        "description": "Montgomery County CoC"
+      },
+      {
+        "key": "ME-500",
+        "description": "Maine Statewide CoC"
+      },
+      {
+        "key": "MI-500",
+        "description": "Michigan Balance of State CoC"
+      },
+      {
+        "key": "MI-501",
+        "description": "Detroit CoC"
+      },
+      {
+        "key": "MI-502",
+        "description": "Dearborn, Dearborn Heights, Westland/Wayne County CoC"
+      },
+      {
+        "key": "MI-503",
+        "description": "St. Clair Shores, Warren/Macomb County CoC"
+      },
+      {
+        "key": "MI-504",
+        "description": "Pontiac, Royal Oak/Oakland County CoC"
+      },
+      {
+        "key": "MI-505",
+        "description": "Flint/Genesee County CoC"
+      },
+      {
+        "key": "MI-506",
+        "description": "Grand Rapids, Wyoming/Kent County CoC"
+      },
+      {
+        "key": "MI-507",
+        "description": "Portage, Kalamazoo City & County CoC"
+      },
+      {
+        "key": "MI-508",
+        "description": "Lansing, East Lansing/Ingham County CoC"
+      },
+      {
+        "key": "MI-509",
+        "description": "Washtenaw County CoC"
+      },
+      {
+        "key": "MI-510",
+        "description": "Saginaw City & County CoC"
+      },
+      {
+        "key": "MI-511",
+        "description": "Lenawee County CoC"
+      },
+      {
+        "key": "MI-512",
+        "description": "Grand Traverse, Antrim, Leelanau Counties CoC"
+      },
+      {
+        "key": "MI-514",
+        "description": "Battle Creek/Calhoun County CoC"
+      },
+      {
+        "key": "MI-515",
+        "description": "Monroe City & County CoC"
+      },
+      {
+        "key": "MI-516",
+        "description": "Norton Shores, Muskegon City & County CoC"
+      },
+      {
+        "key": "MI-517",
+        "description": "Jackson City & County CoC"
+      },
+      {
+        "key": "MI-518",
+        "description": "Livingston County CoC"
+      },
+      {
+        "key": "MI-519",
+        "description": "Holland/Ottawa County CoC"
+      },
+      {
+        "key": "MI-523",
+        "description": "Eaton County CoC"
+      },
+      {
+        "key": "MN-500",
+        "description": "Minneapolis/Hennepin County CoC"
+      },
+      {
+        "key": "MN-501",
+        "description": "St. Paul/Ramsey County CoC"
+      },
+      {
+        "key": "MN-502",
+        "description": "Rochester/Southeast Minnesota CoC"
+      },
+      {
+        "key": "MN-503",
+        "description": "Dakota, Anoka, Washington, Scott, Carver Counties CoC"
+      },
+      {
+        "key": "MN-504",
+        "description": "Northeast Minnesota CoC"
+      },
+      {
+        "key": "MN-505",
+        "description": "St. Cloud/Central Minnesota CoC"
+      },
+      {
+        "key": "MN-506",
+        "description": "Northwest Minnesota CoC"
+      },
+      {
+        "key": "MN-508",
+        "description": "Moorhead/West Central Minnesota CoC"
+      },
+      {
+        "key": "MN-509",
+        "description": "Duluth/St. Louis County CoC"
+      },
+      {
+        "key": "MN-511",
+        "description": "Southwest Minnesota CoC"
+      },
+      {
+        "key": "MO-500",
+        "description": "St. Louis County CoC"
+      },
+      {
+        "key": "MO-501",
+        "description": "St. Louis CoC"
+      },
+      {
+        "key": "MO-503",
+        "description": "St. Charles, Lincoln, Warren Counties CoC"
+      },
+      {
+        "key": "MO-600",
+        "description": "Springfield/Greene, Christian, Webster Counties CoC"
+      },
+      {
+        "key": "MO-602",
+        "description": "Joplin/Jasper, Newton Counties CoC"
+      },
+      {
+        "key": "MO-603",
+        "description": "St. Joseph/Andrew, Buchanan, DeKalb Counties CoC"
+      },
+      {
+        "key": "MO-604",
+        "description": "Kansas City (MO&KS), Independence, Lee’s Summit/Jackson, Wyandotte Counties CoC"
+      },
+      {
+        "key": "MO-606",
+        "description": "Missouri Balance of State CoC"
+      },
+      {
+        "key": "MP-500",
+        "description": "Northern Mariana Islands CoC"
+      },
+      {
+        "key": "MS-500",
+        "description": "Jackson/Rankin, Madison Counties CoC"
+      },
+      {
+        "key": "MS-501",
+        "description": "Mississippi Balance of State CoC"
+      },
+      {
+        "key": "MS-503",
+        "description": "Gulf Port/Gulf Coast Regional CoC"
+      },
+      {
+        "key": "MT-500",
+        "description": "Montana Statewide CoC"
+      },
+      {
+        "key": "NC-500",
+        "description": "Winston-Salem/Forsyth County CoC"
+      },
+      {
+        "key": "NC-501",
+        "description": "Asheville/Buncombe County CoC"
+      },
+      {
+        "key": "NC-502",
+        "description": "Durham City & County CoC"
+      },
+      {
+        "key": "NC-503",
+        "description": "North Carolina Balance of State CoC"
+      },
+      {
+        "key": "NC-504",
+        "description": "Greensboro, High Point/Guilford County CoC"
+      },
+      {
+        "key": "NC-505",
+        "description": "Charlotte/Mecklenburg County CoC"
+      },
+      {
+        "key": "NC-506",
+        "description": "Wilmington/Brunswick, New Hanover, Pender Counties CoC"
+      },
+      {
+        "key": "NC-507",
+        "description": "Raleigh/Wake County CoC"
+      },
+      {
+        "key": "NC-509",
+        "description": "Gastonia/Cleveland, Gaston, Lincoln Counties CoC"
+      },
+      {
+        "key": "NC-511",
+        "description": "Fayetteville/Cumberland County CoC"
+      },
+      {
+        "key": "NC-513",
+        "description": "Chapel Hill/Orange County CoC"
+      },
+      {
+        "key": "NC-516",
+        "description": "Northwest North Carolina CoC"
+      },
+      {
+        "key": "ND-500",
+        "description": "North Dakota Statewide CoC"
+      },
+      {
+        "key": "NE-500",
+        "description": "Nebraska Balance of State CoC"
+      },
+      {
+        "key": "NE-501",
+        "description": "Omaha, Council Bluffs CoC"
+      },
+      {
+        "key": "NE-502",
+        "description": "Lincoln CoC"
+      },
+      {
+        "key": "NH-500",
+        "description": "New Hampshire Balance of State CoC"
+      },
+      {
+        "key": "NH-501",
+        "description": "Manchester CoC"
+      },
+      {
+        "key": "NH-502",
+        "description": "Nashua/Hillsborough County CoC"
+      },
+      {
+        "key": "NJ-500",
+        "description": "Atlantic City & County CoC"
+      },
+      {
+        "key": "NJ-501",
+        "description": "Bergen County CoC"
+      },
+      {
+        "key": "NJ-502",
+        "description": "Burlington County CoC"
+      },
+      {
+        "key": "NJ-503",
+        "description": "Camden City & County/Gloucester, Cape May, Cumberland Counties CoC"
+      },
+      {
+        "key": "NJ-504",
+        "description": "Newark/Essex County CoC"
+      },
+      {
+        "key": "NJ-506",
+        "description": "Jersey City, Bayonne/Hudson County CoC"
+      },
+      {
+        "key": "NJ-507",
+        "description": "New Brunswick/Middlesex County CoC"
+      },
+      {
+        "key": "NJ-508",
+        "description": "Monmouth County CoC"
+      },
+      {
+        "key": "NJ-509",
+        "description": "Morris County CoC"
+      },
+      {
+        "key": "NJ-510",
+        "description": "Lakewood Township/Ocean County CoC"
+      },
+      {
+        "key": "NJ-511",
+        "description": "Paterson/Passaic County CoC"
+      },
+      {
+        "key": "NJ-512",
+        "description": "Salem County CoC"
+      },
+      {
+        "key": "NJ-513",
+        "description": "Somerset County CoC"
+      },
+      {
+        "key": "NJ-514",
+        "description": "Trenton/Mercer County CoC"
+      },
+      {
+        "key": "NJ-515",
+        "description": "Elizabeth/Union County CoC"
+      },
+      {
+        "key": "NJ-516",
+        "description": "Warren, Sussex, Hunterdon Counties CoC"
+      },
+      {
+        "key": "NM-500",
+        "description": "Albuquerque CoC"
+      },
+      {
+        "key": "NM-501",
+        "description": "New Mexico Balance of State CoC"
+      },
+      {
+        "key": "NV-500",
+        "description": "Las Vegas/Clark County CoC"
+      },
+      {
+        "key": "NV-501",
+        "description": "Reno, Sparks/Washoe County CoC"
+      },
+      {
+        "key": "NV-502",
+        "description": "Nevada Balance of State CoC"
+      },
+      {
+        "key": "NY-500",
+        "description": "Rochester, Irondequoit, Greece/Monroe County CoC"
+      },
+      {
+        "key": "NY-501",
+        "description": "Elmira/Steuben, Allegany, Livingston, Chemung, Schuyler Counties CoC"
+      },
+      {
+        "key": "NY-503",
+        "description": "Albany City & County CoC"
+      },
+      {
+        "key": "NY-505",
+        "description": "Syracuse, Auburn/Onondaga, Oswego, Cayuga Counties CoC"
+      },
+      {
+        "key": "NY-507",
+        "description": "Schenectady City & County CoC"
+      },
+      {
+        "key": "NY-508",
+        "description": "Buffalo, Niagara Falls/Erie, Niagara, Orleans, Genesee, Wyoming Counties CoC"
+      },
+      {
+        "key": "NY-510",
+        "description": "Ithaca/Tompkins County CoC"
+      },
+      {
+        "key": "NY-511",
+        "description": "Binghamton, Union Town/Broome, Otsego, Chenango, Delaware, Cortland, Tioga Counties CoC"
+      },
+      {
+        "key": "NY-512",
+        "description": "Troy/Rensselaer County CoC"
+      },
+      {
+        "key": "NY-513",
+        "description": "Wayne, Ontario, Seneca, Yates Counties CoC"
+      },
+      {
+        "key": "NY-514",
+        "description": "Jamestown, Dunkirk/Chautauqua County CoC"
+      },
+      {
+        "key": "NY-518",
+        "description": "Utica, Rome/Oneida, Madison Counties CoC"
+      },
+      {
+        "key": "NY-519",
+        "description": "Columbia, Greene Counties CoC"
+      },
+      {
+        "key": "NY-520",
+        "description": "Franklin, Essex Counties CoC"
+      },
+      {
+        "key": "NY-522",
+        "description": "Jefferson, Lewis, St. Lawrence Counties CoC"
+      },
+      {
+        "key": "NY-523",
+        "description": "Glens Falls, Saratoga Springs/Saratoga, Washington, Warren, Hamilton Counties CoC"
+      },
+      {
+        "key": "NY-525",
+        "description": "New York Balance of State CoC"
+      },
+      {
+        "key": "NY-600",
+        "description": "New York City CoC"
+      },
+      {
+        "key": "NY-601",
+        "description": "Poughkeepsie/Dutchess County CoC"
+      },
+      {
+        "key": "NY-602",
+        "description": "Newburgh, Middletown/Orange County CoC"
+      },
+      {
+        "key": "NY-603",
+        "description": "Nassau, Suffolk Counties CoC"
+      },
+      {
+        "key": "NY-604",
+        "description": "Yonkers, Mount Vernon/Westchester County CoC"
+      },
+      {
+        "key": "NY-606",
+        "description": "Rockland County CoC"
+      },
+      {
+        "key": "NY-608",
+        "description": "Kingston/Ulster County CoC"
+      },
+      {
+        "key": "OH-500",
+        "description": "Cincinnati/Hamilton County CoC"
+      },
+      {
+        "key": "OH-501",
+        "description": "Toledo/Lucas County CoC"
+      },
+      {
+        "key": "OH-502",
+        "description": "Cleveland/Cuyahoga County CoC"
+      },
+      {
+        "key": "OH-503",
+        "description": "Columbus/Franklin County CoC"
+      },
+      {
+        "key": "OH-504",
+        "description": "Youngstown/Mahoning County CoC"
+      },
+      {
+        "key": "OH-505",
+        "description": "Dayton, Kettering/Montgomery County CoC"
+      },
+      {
+        "key": "OH-506",
+        "description": "Akron, Barberton/Summit County CoC"
+      },
+      {
+        "key": "OH-507",
+        "description": "Ohio Balance of State CoC"
+      },
+      {
+        "key": "OH-508",
+        "description": "Canton, Massillon, Alliance/Stark County CoC"
+      },
+      {
+        "key": "OK-500",
+        "description": "North Central Oklahoma CoC"
+      },
+      {
+        "key": "OK-501",
+        "description": "Tulsa City & County CoC"
+      },
+      {
+        "key": "OK-502",
+        "description": "Oklahoma City CoC"
+      },
+      {
+        "key": "OK-503",
+        "description": "Oklahoma Balance of State CoC"
+      },
+      {
+        "key": "OK-504",
+        "description": "Norman/Cleveland County CoC"
+      },
+      {
+        "key": "OK-505",
+        "description": "Northeast Oklahoma CoC"
+      },
+      {
+        "key": "OK-506",
+        "description": "Southwest Oklahoma Regional CoC"
+      },
+      {
+        "key": "OK-507",
+        "description": "Southeastern Oklahoma Regional CoC"
+      },
+      {
+        "key": "OR-500",
+        "description": "Eugene, Springfield/Lane County CoC"
+      },
+      {
+        "key": "OR-501",
+        "description": "Portland, Gresham/Multnomah County CoC"
+      },
+      {
+        "key": "OR-502",
+        "description": "Medford, Ashland/Jackson County CoC"
+      },
+      {
+        "key": "OR-503",
+        "description": "Central Oregon CoC"
+      },
+      {
+        "key": "OR-504",
+        "description": "Salem/Marion, Polk Counties CoC"
+      },
+      {
+        "key": "OR-505",
+        "description": "Oregon Balance of State CoC"
+      },
+      {
+        "key": "OR-506",
+        "description": "Hillsboro, Beaverton/Washington County CoC"
+      },
+      {
+        "key": "OR-507",
+        "description": "Clackamas County CoC"
+      },
+      {
+        "key": "PA-500",
+        "description": "Philadelphia CoC"
+      },
+      {
+        "key": "PA-501",
+        "description": "Harrisburg/Dauphin County CoC"
+      },
+      {
+        "key": "PA-502",
+        "description": "Upper Darby, Chester, Haverford/Delaware County CoC"
+      },
+      {
+        "key": "PA-503",
+        "description": "Wilkes-Barre, Hazleton/ Luzerne County CoC"
+      },
+      {
+        "key": "PA-504",
+        "description": "Lower Merion, Norristown, Abington/Montgomery County CoC"
+      },
+      {
+        "key": "PA-505",
+        "description": "Chester County CoC"
+      },
+      {
+        "key": "PA-506",
+        "description": "Reading/Berks County CoC"
+      },
+      {
+        "key": "PA-508",
+        "description": "Scranton/Lackawanna County CoC"
+      },
+      {
+        "key": "PA-509",
+        "description": "Eastern Pennsylvania CoC"
+      },
+      {
+        "key": "PA-510",
+        "description": "Lancaster City & County CoC"
+      },
+      {
+        "key": "PA-511",
+        "description": "Bristol, Bensalem/Bucks County CoC"
+      },
+      {
+        "key": "PA-512",
+        "description": "York City & County CoC"
+      },
+      {
+        "key": "PA-600",
+        "description": "Pittsburgh, McKeesport, Penn Hills/Allegheny County CoC"
+      },
+      {
+        "key": "PA-601",
+        "description": "Western Pennsylvania CoC"
+      },
+      {
+        "key": "PA-603",
+        "description": "Beaver County CoC"
+      },
+      {
+        "key": "PA-605",
+        "description": "Erie City & County CoC"
+      },
+      {
+        "key": "PR-502",
+        "description": "Puerto Rico Balance of Commonwealth CoC"
+      },
+      {
+        "key": "PR-503",
+        "description": "South-Southeast Puerto Rico CoC"
+      },
+      {
+        "key": "RI-500",
+        "description": "Rhode Island Statewide CoC"
+      },
+      {
+        "key": "SC-500",
+        "description": "Charleston/Low Country CoC"
+      },
+      {
+        "key": "SC-501",
+        "description": "Greenville, Anderson, Spartanburg/Upstate CoC"
+      },
+      {
+        "key": "SC-502",
+        "description": "Columbia/Midlands CoC"
+      },
+      {
+        "key": "SC-503",
+        "description": "Sumter City & County CoC"
+      },
+      {
+        "key": "SD-500",
+        "description": "South Dakota Statewide CoC"
+      },
+      {
+        "key": "TN-500",
+        "description": "Chattanooga/Southeast Tennessee CoC"
+      },
+      {
+        "key": "TN-501",
+        "description": "Memphis/Shelby County CoC"
+      },
+      {
+        "key": "TN-502",
+        "description": "Knoxville/Knox County CoC"
+      },
+      {
+        "key": "TN-503",
+        "description": "Central Tennessee CoC"
+      },
+      {
+        "key": "TN-504",
+        "description": "Nashville-Davidson County CoC"
+      },
+      {
+        "key": "TN-506",
+        "description": "Upper Cumberland CoC"
+      },
+      {
+        "key": "TN-507",
+        "description": "Jackson/West Tennessee CoC"
+      },
+      {
+        "key": "TN-509",
+        "description": "Appalachian Regional CoC"
+      },
+      {
+        "key": "TN-510",
+        "description": "Murfreesboro/Rutherford County CoC"
+      },
+      {
+        "key": "TN-512",
+        "description": "Morristown/Blount, Sevier, Campbell, Cocke Counties CoC"
+      },
+      {
+        "key": "TX-500",
+        "description": "San Antonio/Bexar County CoC"
+      },
+      {
+        "key": "TX-503",
+        "description": "Austin/Travis County CoC"
+      },
+      {
+        "key": "TX-600",
+        "description": "Dallas City & County, Irving CoC"
+      },
+      {
+        "key": "TX-601",
+        "description": "Fort Worth, Arlington/Tarrant County CoC"
+      },
+      {
+        "key": "TX-603",
+        "description": "El Paso City & County CoC"
+      },
+      {
+        "key": "TX-604",
+        "description": "Waco/McLennan County CoC"
+      },
+      {
+        "key": "TX-607",
+        "description": "Texas Balance of State CoC"
+      },
+      {
+        "key": "TX-611",
+        "description": "Amarillo CoC"
+      },
+      {
+        "key": "TX-624",
+        "description": "Wichita Falls/Wise, Palo Pinto, Wichita, Archer Counties CoC"
+      },
+      {
+        "key": "TX-700",
+        "description": "Houston, Pasadena, Conroe/Harris, Ft. Bend, Montgomery Counties CoC"
+      },
+      {
+        "key": "TX-701",
+        "description": "Bryan, College Station/Brazos Valley CoC"
+      },
+      {
+        "key": "UT-500",
+        "description": "Salt Lake City & County CoC"
+      },
+      {
+        "key": "UT-503",
+        "description": "Utah Balance of State CoC"
+      },
+      {
+        "key": "UT-504",
+        "description": "Provo/Mountainland CoC"
+      },
+      {
+        "key": "VA-500",
+        "description": "Richmond/Henrico, Chesterfield, Hanover Counties CoC"
+      },
+      {
+        "key": "VA-501",
+        "description": "Norfolk, Chesapeake, Suffolk/Isle of Wight, Southampton Counties CoC"
+      },
+      {
+        "key": "VA-502",
+        "description": "Roanoke City & County, Salem CoC"
+      },
+      {
+        "key": "VA-503",
+        "description": "Virginia Beach CoC"
+      },
+      {
+        "key": "VA-504",
+        "description": "Charlottesville CoC"
+      },
+      {
+        "key": "VA-505",
+        "description": "Newport News, Hampton/Virginia Peninsula CoC"
+      },
+      {
+        "key": "VA-507",
+        "description": "Portsmouth CoC"
+      },
+      {
+        "key": "VA-508",
+        "description": "Lynchburg CoC"
+      },
+      {
+        "key": "VA-513",
+        "description": "Harrisonburg, Winchester/Western Virginia CoC"
+      },
+      {
+        "key": "VA-514",
+        "description": "Fredericksburg/Spotsylvania, Stafford Counties CoC"
+      },
+      {
+        "key": "VA-521",
+        "description": "Virginia Balance of State CoC"
+      },
+      {
+        "key": "VA-600",
+        "description": "Arlington County CoC"
+      },
+      {
+        "key": "VA-601",
+        "description": "Fairfax County CoC"
+      },
+      {
+        "key": "VA-602",
+        "description": "Loudoun County CoC"
+      },
+      {
+        "key": "VA-603",
+        "description": "Alexandria CoC"
+      },
+      {
+        "key": "VA-604",
+        "description": "Prince William County CoC"
+      },
+      {
+        "key": "VI-500",
+        "description": "Virgin Islands CoC"
+      },
+      {
+        "key": "VT-500",
+        "description": "Vermont Balance of State CoC"
+      },
+      {
+        "key": "VT-501",
+        "description": "Burlington/Chittenden County CoC"
+      },
+      {
+        "key": "WA-500",
+        "description": "Seattle/King County CoC"
+      },
+      {
+        "key": "WA-501",
+        "description": "Washington Balance of State CoC"
+      },
+      {
+        "key": "WA-502",
+        "description": "Spokane City & County CoC"
+      },
+      {
+        "key": "WA-503",
+        "description": "Tacoma, Lakewood/Pierce County CoC"
+      },
+      {
+        "key": "WA-504",
+        "description": "Everett/Snohomish County CoC"
+      },
+      {
+        "key": "WA-508",
+        "description": "Vancouver/Clark County CoC"
+      },
+      {
+        "key": "WI-500",
+        "description": "Wisconsin Balance of State CoC"
+      },
+      {
+        "key": "WI-501",
+        "description": "Milwaukee City & County CoC"
+      },
+      {
+        "key": "WI-502",
+        "description": "Racine City & County CoC"
+      },
+      {
+        "key": "WI-503",
+        "description": "Madison/Dane County CoC"
+      },
+      {
+        "key": "WV-500",
+        "description": "Wheeling, Weirton Area CoC"
+      },
+      {
+        "key": "WV-501",
+        "description": "Huntington/Cabell, Wayne Counties CoC"
+      },
+      {
+        "key": "WV-503",
+        "description": "Charleston/Kanawha, Putnam, Boone, Clay Counties CoC"
+      },
+      {
+        "key": "WV-508",
+        "description": "West Virginia Balance of State CoC"
+      },
+      {
+        "key": "WY-500",
+        "description": "Wyoming Statewide CoC"
+      }
+    ]
+  }
+]

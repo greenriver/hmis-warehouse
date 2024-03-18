@@ -1,0 +1,48 @@
+[
+  {
+    "name": "Gender",
+    "code": "3.6.1",
+    "values": [
+      {
+        "key": 0,
+        "description": "Woman (Girl, if child)"
+      },
+      {
+        "key": 1,
+        "description": "Man (Boy, if child)"
+      },
+      {
+        "key": 2,
+        "description": "Culturally Specific Identity (e.g., Two-Spirit)"
+      },
+      {
+        "key": 4,
+        "description": "Non-Binary"
+      },
+      {
+        "key": 5,
+        "description": "Transgender"
+      },
+      {
+        "key": 6,
+        "description": "Questioning"
+      },
+      {
+        "key": 3,
+        "description": "Different Identity"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  }
+]
