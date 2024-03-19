@@ -24,14 +24,16 @@
         %tr
           %th Collection Name
           %th Description
-          %th Collection Access
+          -# %th Collection Summary
+          %th # Projects Included
           %th
       %tbody
         - @groups.each do |group|
           %tr
             %td= link_to group.name, hmis_admin_group_path(group)
             %td= group.description
-            %td= group.summary_descriptions.join(', ')
+            -# %td= group.summary_descriptions.join(', ')
+            %td= "#{group.overall_project_count} projects"
             %td
               - unless group.access_controls.count.positive?
                 = link_to hmis_admin_group_path(group),  method: :delete, data: {confirm: "Would you really like to delete the group #{group.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do

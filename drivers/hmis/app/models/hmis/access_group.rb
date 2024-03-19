@@ -158,12 +158,12 @@ class Hmis::AccessGroup < ApplicationRecord
 
   def overall_project_count
     @overall_project_count ||= Set.new.tap do |ids|
-      ids << projects.pluck(:id)
+      ids.merge projects.pluck(:id)
       data_sources.each do |ds|
-        ids << ds.projects.pluck(:id)
+        ids.merge ds.projects.pluck(:id)
       end
       organizations.each do |o|
-        ids << o.projects.pluck(:id)
+        ids.merge o.projects.pluck(:id)
       end
     end.count
   end
