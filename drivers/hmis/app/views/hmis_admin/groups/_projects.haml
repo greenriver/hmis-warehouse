@@ -16,11 +16,7 @@
               - @group.public_send(entity_type).each do |entity|
                 - if entity_type == :projects
                   .d-flex
-                    .project-duplicate-warning
-                      - additional_sources = @group.project_duplicated(entity.id, entity_type)
-                      - if additional_sources.present?
-                        %span{data: { toggle: :tooltip, title: "Additional Sources <br /> #{additional_sources}", html: :true }}
-                          %i.icon-warning
+                    = render 'admin/collections/duplicate_project_message', additional_sources: @group.project_duplicated(entity.id, entity_type)
                     .project.pl-4.mb-4= entity.ProjectName
                 - elsif entity_type == :coc_codes
                   .project.pl-4.mb-4= entity
@@ -30,11 +26,7 @@
                   - content_for "panel_collapse_content_#{slug}".to_sym do
                     - entity.projects.each do |project|
                       .d-flex
-                        .project-duplicate-warning
-                          - additional_sources = @group.project_duplicated(project.id, entity_type)
-                          - if additional_sources.present?
-                            %span{data: { toggle: :tooltip, title: "Additional Sources <br /> #{additional_sources}", html: :true }}
-                              %i.icon-warning
+                        = render 'admin/collections/duplicate_project_message', additional_sources: @group.project_duplicated(project.id, entity_type)
                         .project= project.ProjectName
                   = render 'common/panel_collapse', id: slug, title: title, content: "_#{slug}", wrapper_class: '', arrow_icon: 'icon-angle'
           - else

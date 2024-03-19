@@ -1,13 +1,14 @@
-- content_for :title, 'HMIS Group Administration'
-%h1= content_for :title
+- content_for :title, 'HMIS User Group Administration'
+.d-flex.mb-2
+  %h1= content_for :title
 = render 'hmis_admin/tabs', active_tab: :user_groups
 
-.alert.alert-info
+.alert.alert-info.mb-4.font-weight-normal
   %i.icon-warning.mr-4
   %p
     %strong User Groups are a set of users who should all have similar abilities within HMIS.
     User Groups are combined with Roles and Collections via Access Controls.  The intersection of Role, Collection, and User Group determines what each person can do and see within HMIS.
-.d-flex.mb-2
+.d-flex.mb-4
   = link_to new_hmis_admin_user_group_path, class: 'btn btn-primary mr-auto' do
     %span.icon-plus
     Add a User Group
@@ -20,7 +21,7 @@
     %table.table.table-striped
       %thead
         %tr
-          %th Group Name
+          %th User Group Name
           %th.text-center Users
           %th
       %tbody

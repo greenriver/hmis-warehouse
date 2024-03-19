@@ -502,12 +502,18 @@ class Menu::Menu
     menu = Menu::Item.new(
       user: user,
       title: Translation.translate('HMIS Admin'),
+      icon: 'icon-cog',
       match_pattern_terminator: '.*',
     )
     # If we don't have the ENV for HMIS, the path isn't available
     # Checking enforcement outside keeps it from throwing an error
     if HmisEnforcement.hmis_enabled?
-      menu.add_child(
+      access_menu = Menu::Item.new(
+        user: user,
+        title: 'Access',
+        id: 'hmis-access',
+      )
+      access_menu.add_child(
         Menu::Item.new(
           user: user,
           visible: ->(_user) { context.hmis_admin_visible? },
@@ -515,39 +521,7 @@ class Menu::Menu
           title: Translation.translate('Overview'),
         ),
       )
-      menu.add_child(
-        Menu::Item.new(
-          user: user,
-          visible: ->(_user) { context.hmis_admin_visible? },
-          path: hmis_admin_access_controls_path,
-          title: Translation.translate('Access Controls'),
-        ),
-      )
-      menu.add_child(
-        Menu::Item.new(
-          user: user,
-          visible: ->(_user) { context.hmis_admin_visible? },
-          path: hmis_admin_roles_path,
-          title: Translation.translate('Roles & Permissions'),
-        ),
-      )
-      menu.add_child(
-        Menu::Item.new(
-          user: user,
-          visible: ->(_user) { context.hmis_admin_visible? },
-          path: hmis_admin_user_groups_path,
-          title: Translation.translate('User Groups'),
-        ),
-      )
-      menu.add_child(
-        Menu::Item.new(
-          user: user,
-          visible: ->(_user) { context.hmis_admin_visible? },
-          path: hmis_admin_groups_path,
-          title: Translation.translate('Collections'),
-        ),
-      )
-      menu.add_child(
+      access_menu.add_child(
         Menu::Item.new(
           user: user,
           visible: ->(_user) { context.hmis_admin_visible? },
@@ -555,6 +529,39 @@ class Menu::Menu
           title: Translation.translate('Users'),
         ),
       )
+      access_menu.add_child(
+        Menu::Item.new(
+          user: user,
+          visible: ->(_user) { context.hmis_admin_visible? },
+          path: hmis_admin_user_groups_path,
+          title: Translation.translate('User Groups'),
+        ),
+      )
+      access_menu.add_child(
+        Menu::Item.new(
+          user: user,
+          visible: ->(_user) { context.hmis_admin_visible? },
+          path: hmis_admin_roles_path,
+          title: Translation.translate('Roles & Permissions'),
+        ),
+      )
+      access_menu.add_child(
+        Menu::Item.new(
+          user: user,
+          visible: ->(_user) { context.hmis_admin_visible? },
+          path: hmis_admin_groups_path,
+          title: Translation.translate('Collections'),
+        ),
+      )
+      access_menu.add_child(
+        Menu::Item.new(
+          user: user,
+          visible: ->(_user) { context.hmis_admin_visible? },
+          path: hmis_admin_access_controls_path,
+          title: Translation.translate('Access Controls'),
+        ),
+      )
+      menu.add_child(access_menu)
     end
 
     menu
