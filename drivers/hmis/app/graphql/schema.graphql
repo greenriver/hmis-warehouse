@@ -3914,6 +3914,10 @@ type FormDefinition {
   title: String!
 }
 
+input FormDefinitionFilterOptions {
+  searchTerm: String
+}
+
 type FormDefinitionForJsonResult {
   definition: FormDefinitionJson
   errors: [String!]!
@@ -4288,6 +4292,8 @@ input FormRuleInput {
   otherFunder: String
   projectId: ID
   projectType: ProjectType
+  serviceCategoryId: ID
+  serviceTypeId: ID
 }
 
 enum FormRuleSortOption {
@@ -8617,7 +8623,7 @@ type Query {
   esgFundingReport(clientIds: [ID!]!): [EsgFundingService!]!
   file(id: ID!): File
   formDefinition(id: ID!): FormDefinition
-  formDefinitions(limit: Int, offset: Int): FormDefinitionsPaginated!
+  formDefinitions(filters: FormDefinitionFilterOptions, limit: Int, offset: Int): FormDefinitionsPaginated!
   formRule(id: ID!): FormRule
   formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
 
@@ -8695,6 +8701,7 @@ type Query {
   Service type lookup
   """
   serviceType(id: ID!): ServiceType
+  serviceTypes(filters: ServiceTypeFilterOptions, limit: Int, offset: Int): ServiceTypesPaginated!
   staticFormDefinition(role: StaticFormRole!): FormDefinition!
 
   """
@@ -10108,6 +10115,11 @@ type ServiceType {
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
+
+  """
+  Definitions that are specified for this service type
+  """
+  formDefinitions: [FormDefinition!]!
   hud: Boolean!
   hudRecordType: RecordType
   hudTypeProvided: ServiceTypeProvided
@@ -10115,6 +10127,11 @@ type ServiceType {
   name: String!
   supportsBulkAssignment: Boolean!
   user: ApplicationUser
+}
+
+input ServiceTypeFilterOptions {
+  includeHudServices: Boolean
+  searchTerm: String
 }
 
 """
