@@ -15,6 +15,19 @@ module HudLsa::Filters
       [coc_code]
     end
 
+    # If a single day for the PIT has been selected, set the start and end dates from the 'on' date
+    def update(filters)
+      super
+
+      filters = filters.to_h.with_indifferent_access
+      pit_date = filters.dig(:on)&.to_date
+      return unless pit_date.present?
+
+      self.start = pit_date
+      self.end = pit_date + 1.day
+      self
+    end
+
     def params_for_display
       params = known_params.flat_map do |k|
         if k.is_a?(Hash)

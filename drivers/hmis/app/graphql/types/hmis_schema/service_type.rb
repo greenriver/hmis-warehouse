@@ -44,7 +44,7 @@ module Types
 
       definitions_for_type = load_ar_association(object, :definitions)
       definitions_for_category = load_ar_association(category_record, :definitions)
-      (definitions_for_type + definitions_for_category).uniq
+      (definitions_for_type + definitions_for_category).uniq.sort_by(&:id)
     end
 
     protected def category_record

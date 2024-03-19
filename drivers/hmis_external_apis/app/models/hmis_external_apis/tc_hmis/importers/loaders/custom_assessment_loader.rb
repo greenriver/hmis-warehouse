@@ -109,7 +109,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           PersonalID: personal_id,
           UserID: system_hud_user.id,
           AssessmentDate: row_assessment_date(row),
-          DataCollectionStage: 2,
+          DataCollectionStage: 99,
           wip: false,
           DateCreated: today,
           DateUpdated: today,
@@ -192,8 +192,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
       total =  cded_configs.size
       missed = cded_configs.map { |c| c.fetch(:key) }.reject { |k| k.in?(seen) }
-      log_info("saw CDE values for #{seen.size} of #{total} fields")
-      log_info("missed CDE values for #{missed.size} of #{total} fields: #{missed.sort.join(', ')}") if missed.any?
+
+      # Indicates that no imported rows in the sheet had a value for this column
+      log_info("did not find any CDE values for #{missed.size} of #{total} fields: #{missed.sort.join(', ')}") if missed.any?
     end
 
     def cde_values(row, config, required: false)
