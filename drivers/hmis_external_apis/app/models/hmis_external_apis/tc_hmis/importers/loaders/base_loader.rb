@@ -110,9 +110,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     def yn_boolean(str)
       case str
-      when /^(y|yes)$/i
+      when /^(t|y|yes)$/i
         true
-      when /^(n|no)$/i
+      when /^(f|n|no)$/i
         false
       when '.'
         # for element 12180 in the HAT, the dot appears to mean 'true'

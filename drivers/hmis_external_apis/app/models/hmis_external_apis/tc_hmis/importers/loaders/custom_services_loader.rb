@@ -100,8 +100,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           response_id = row.field_value(RESPONSE_ID, required: true)
           expected.add(response_id)
 
-          row_field_value = row.field_value(TOUCHPOINT_NAME, required: true)
-          config = configs[row_field_value]
+          touch_point_name = row.field_value(TOUCHPOINT_NAME, required: true)
+          config = configs[touch_point_name]
           if config.blank?
             log_skipped_row(row, field: TOUCHPOINT_NAME)
             next
@@ -117,7 +117,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           row_field_value = row_enrollment_id(row)
           enrollment = row_field_value ? enrollments[row_field_value] : nil
           if enrollment.blank?
-            log_skipped_row(row, field: ENROLLMENT_ID)
+            log_skipped_row(row, field: ENROLLMENT_ID, prefix: touch_point_name)
             next
           end
 
@@ -173,11 +173,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       records = [].tap do |cdes|
         rows.each do |row|
           expected += 1
-          row_field_value = row.field_value(TOUCHPOINT_NAME)
-          config = configs[row_field_value]
+          touch_point_name = row.field_value(TOUCHPOINT_NAME)
+          config = configs[touch_point_name]
           next if config.blank?
 
-          seen.add(row_field_value)
+          seen.add(touch_point_name)
 
           row_field_value = row_question_value(row)
           if config[:service_fields].keys.include?(row_field_value)
@@ -188,7 +188,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
           element = config[:elements][row_field_value]
           if element.blank?
-            log_skipped_row(row, field: QUESTION)
+            log_skipped_row(row, field: QUESTION, prefix: touch_point_name)
             next
           end
 
@@ -202,6 +202,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           row_value = row.field_value(ANSWER)
           answer = row_value ? element[:cleaner].call(row_value) : nil
           Array.wrap(answer).each do |value|
+            # FIXME we should set field_type for some of these
             cdes << cde_helper.new_cde_record(value: value, owner_type: service_class.name, owner_id: service.id, definition_key: key)
           end
         end
@@ -467,6 +468,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               cleaner: ->(location) { normalize_location(location) },
             },
             'Value' => {
+              # field type should be a boolean, can we set that?
               key: :medication_supervision_value,
               cleaner: ->(value) { yn_boolean(value) },
             },
