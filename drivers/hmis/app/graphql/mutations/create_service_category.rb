@@ -11,7 +11,7 @@ module Mutations
     field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(name:)
-      raise 'not allowed' unless current_user.can_configure_data_collection?
+      raise 'access denied' unless current_user.can_configure_data_collection?
 
       service_category = Hmis::Hud::CustomServiceCategory.new(
         name: name,

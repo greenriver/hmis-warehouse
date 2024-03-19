@@ -11,7 +11,7 @@ module Mutations
     field :service_type, Types::HmisSchema::ServiceType, null: true
 
     def resolve(id:, name:)
-      raise 'not allowed' unless current_user.can_configure_data_collection?
+      raise 'access denied' unless current_user.can_configure_data_collection?
 
       service_type = Hmis::Hud::CustomServiceType.find_by(id: id)
       raise HmisErrors::ApiError, 'Invalid service type ID' unless service_type
