@@ -4,14 +4,14 @@
 #
 
 module Mutations
-  class CreateServiceCategory < BaseMutation
+  class CreateServiceCategory < CleanBaseMutation
     argument :name, String, required: true
 
     field :service_category, Types::HmisSchema::ServiceCategory, null: true
     field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(name:)
-      raise 'access denied' unless current_user.can_configure_data_collection?
+      access_denied! unless current_user.can_configure_data_collection?
 
       service_category = Hmis::Hud::CustomServiceCategory.new(
         name: name,

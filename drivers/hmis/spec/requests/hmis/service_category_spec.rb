@@ -24,7 +24,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:create_service_category) do
     <<~GRAPHQL
       mutation CreateServiceCategory($name: String!) {
-        createServiceCategory(input: {name: $name}) {
+        createServiceCategory(name: $name) {
           serviceCategory {
             id
             name
@@ -42,7 +42,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:rename_service_category) do
     <<~GRAPHQL
       mutation RenameServiceCategory($id: ID!, $name: String!) {
-        renameServiceCategory(input: { id: $id, name: $name }) {
+        renameServiceCategory(id: $id, name: $name) {
           serviceCategory {
             id
             name
@@ -56,7 +56,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:delete_service_category) do
     <<~GRAPHQL
       mutation DeleteServiceCategory($id: ID!) {
-        deleteServiceCategory(input: { id: $id }) {
+        deleteServiceCategory(id: $id) {
           serviceCategory {
             id
           }

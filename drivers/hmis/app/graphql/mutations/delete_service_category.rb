@@ -4,19 +4,18 @@
 #
 
 module Mutations
-  class DeleteServiceCategory < BaseMutation
+  class DeleteServiceCategory < CleanBaseMutation
     argument :id, ID, required: true
 
     field :service_category, Types::HmisSchema::ServiceCategory, null: true
 
     def resolve(id:)
-      raise 'access denied' unless current_user.can_configure_data_collection?
+      access_denied! unless current_user.can_configure_data_collection?
 
-      service_category = Hmis::Hud::CustomServiceCategory.find_by(id: id)
-      raise HmisErrors::ApiError, 'Invalid service category ID' unless service_category
+      service_category = Hmis::Hud::CustomServiceCategory.find(id)
 
-      is_empty = service_category.service_types.count == 0
-      raise HmisErrors::ApiError, 'Cannot delete a service category that has service types' unless is_empty
+      # TODO: Eventually this should be a user-facing ValidationError returned in the {errors:} object
+      raise 'Cannot delete a service category that has service types' if service_category.service_types.exists?
 
       default_delete_record(
         record: service_category,

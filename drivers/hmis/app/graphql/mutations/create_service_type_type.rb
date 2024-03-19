@@ -4,14 +4,14 @@
 #
 
 module Mutations
-  class CreateServiceTypeType < BaseMutation
+  class CreateServiceTypeType < CleanBaseMutation
     argument :input, Types::HmisSchema::ServiceTypeInput, required: true
 
     field :service_type, Types::HmisSchema::ServiceType, null: true
     field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(input:)
-      raise 'access denied' unless current_user.can_configure_data_collection?
+      access_denied! unless current_user.can_configure_data_collection?
 
       service_type = Hmis::Hud::CustomServiceType.new(
         **input.to_params,

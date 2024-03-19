@@ -10,8 +10,6 @@ module Types
 
     argument :name, String, required: true
     argument :custom_service_category_id, ID, required: true
-    argument :hud_record_type, ID, required: false
-    argument :hud_type_provided, ID, required: false
     argument :supports_bulk_assignment, Boolean, required: false
 
     def to_params

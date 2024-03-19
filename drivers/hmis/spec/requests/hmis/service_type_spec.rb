@@ -23,7 +23,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:create_service_type) do
     <<~GRAPHQL
-      mutation CreateServiceType($input: CreateServiceTypeInput!) {
+      mutation CreateServiceType($input: ServiceTypeInput!) {
         createServiceType(input: $input) {
           serviceType {
             id
@@ -39,7 +39,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:rename_service_type) do
     <<~GRAPHQL
       mutation RenameServiceType($id: ID!, $name: String!) {
-        renameServiceType(input: { id: $id, name: $name }) {
+        renameServiceType(id: $id, name: $name) {
           serviceType {
             id,
             name
@@ -53,7 +53,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:delete_service_type) do
     <<~GRAPHQL
       mutation DeleteServiceType($id: ID!) {
-        deleteServiceType(input: { id: $id }) {
+        deleteServiceType(id: $id) {
           serviceType {
             id
           }
@@ -70,7 +70,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'should successfully create a service type' do
       mutation_input = { customServiceCategoryId: c1.id, name: 'A new type' }
-      response, result = post_graphql(input: { input: mutation_input }) { create_service_type }
+      response, result = post_graphql(input: mutation_input) { create_service_type }
       expect(response.status).to eq(200), result.inspect
       service_type_id = result.dig('data', 'createServiceType', 'serviceType', 'id')
       expect(service_type_id).not_to be_nil
@@ -113,7 +113,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'should throw an error when trying to create a service type' do
       mutation_input = { customServiceCategoryId: c1.id, name: 'A new type' }
-      expect_access_denied(post_graphql(input: { input: mutation_input }) { create_service_type })
+      expect_access_denied(post_graphql(input: mutation_input) { create_service_type })
     end
   end
 end

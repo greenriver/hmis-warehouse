@@ -4,18 +4,16 @@
 #
 
 module Mutations
-  class RenameServiceCategory < BaseMutation
+  class RenameServiceCategory < CleanBaseMutation
     argument :id, ID, required: true
     argument :name, String, required: true
 
     field :service_category, Types::HmisSchema::ServiceCategory, null: true
 
     def resolve(id:, name:)
-      raise 'access denied' unless current_user.can_configure_data_collection?
+      access_denied! unless current_user.can_configure_data_collection?
 
-      service_category = Hmis::Hud::CustomServiceCategory.find_by(id: id)
-      raise HmisErrors::ApiError, 'Invalid service category ID' unless service_category
-
+      service_category = Hmis::Hud::CustomServiceCategory.find(id)
       service_category.name = name
       service_category.save!
 
