@@ -39,7 +39,7 @@ $(function () {
     // Request a presigned URL
     $.ajax({
       url: presignUrl,
-      type: 'POST',
+      type: 'GET',
       contentType: 'application/json',
       data: JSON.stringify({ captchaToken: captchaToken }),
       success: function (data) {
