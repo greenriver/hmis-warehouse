@@ -4,7 +4,9 @@
 #
 
 module Mutations
-  class CreateServiceTypeType < CleanBaseMutation
+  class CreateServiceType < CleanBaseMutation
+    graphql_name 'CreateServiceType'
+
     argument :input, Types::HmisSchema::ServiceTypeInput, required: true
 
     field :service_type, Types::HmisSchema::ServiceType, null: true

@@ -4,7 +4,8 @@
 #
 
 module Mutations
-  class DeleteServiceTypeType < CleanBaseMutation
+  class DeleteServiceType < CleanBaseMutation
+    graphql_name 'DeleteServiceType'
     argument :id, ID, required: true
 
     field :service_type, Types::HmisSchema::ServiceType, null: true

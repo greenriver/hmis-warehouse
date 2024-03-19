@@ -4,7 +4,9 @@
 #
 
 module Mutations
-  class RenameServiceTypeType < CleanBaseMutation
+  class RenameServiceType < CleanBaseMutation
+    graphql_name 'RenameServiceType'
+
     argument :id, ID, required: true
     argument :name, String, required: true
 
