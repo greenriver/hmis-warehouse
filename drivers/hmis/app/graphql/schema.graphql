@@ -4277,6 +4277,16 @@ enum FormRole {
   SERVICE
 
   """
+  Service category
+  """
+  SERVICE_CATEGORY
+
+  """
+  Service type
+  """
+  SERVICE_TYPE
+
+  """
   Update
   """
   UPDATE
@@ -10869,6 +10879,16 @@ enum StaticFormRole {
   Project config
   """
   PROJECT_CONFIG
+
+  """
+  Service category
+  """
+  SERVICE_CATEGORY
+
+  """
+  Service type
+  """
+  SERVICE_TYPE
 }
 
 """

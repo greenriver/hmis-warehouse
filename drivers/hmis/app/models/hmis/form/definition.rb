@@ -89,6 +89,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :PROJECT_CONFIG,
     :CLIENT_ALERT,
     :FORM_DEFINITION,
+    :SERVICE_TYPE,
+    :SERVICE_CATEGORY,
   ].freeze
 
   # All form roles
