@@ -6,9 +6,7 @@
   - all_data = AllNeighborsSystemDashboard::ReturnsToHomelessness.new(@report)
   - start_date = @report.filter.start_date
   - end_date = @report.filter.end_date
-- retuns_data = all_data.retuns_data
-- retuns_ids = retuns_data.map { |d| chart_id(tab[:id], d[:id]) }
-- retuns_filter_label_ids = retuns_data.map { |d| filter_label_id(tab[:id], d[:id]) }
+- returns_data = all_data.returns_data
 - debug = params[:debug].present? || Rails.env.development?
 
 %h2{class: css_namespace('all', 'tab_name')}= tab[:name]
@@ -29,7 +27,16 @@
   .well
     = link_to 'Debug page ->', debug_all_neighbors_system_dashboard_warehouse_reports_report_path(@report, {project_type: 'All', count_level: 'Individuals', group: 'monthly_counts'})
 
-= render 'donuts', tab: tab, donut_data: retuns_data, filter_label: 'date_range'
+.border.my-7
+  .pt-6.px-5.border-bottom
+    .d-flex.justify-content-between
+      %h3 Returns to Homelessness within 12 months
+      %small * after exiting to permanent destination
+    %div{id: chart_id(tab[:id], 'bar')}
+-# = debug returns_data
+-# = console
+
+-# = render 'donuts', tab: tab, donut_data: returns_data, filter_label: 'date_range'
 
 .mb-12.pb-12
 
@@ -37,24 +44,22 @@
 - content_for :page_js do
   :javascript
     $(document).ready(function() {
-      console.debug('Housing Placement -----------------')
-      var retunsData = #{retuns_data.to_json.html_safe}
-      var retunsIds = #{retuns_ids.to_json.html_safe}
-      var retunsFilterLabelIds = #{retuns_filter_label_ids.to_json.html_safe}
+      console.debug('Returns To Homelessness -----------------')
+      var data = #{returns_data.to_json.html_safe}
 
-      var charts = [].concat(retunsData.map(function(d, i) {
-        return {
-          chart: AllNeighborsSystemDashboardDonut,
-          data: d,
-          selector: '#'+retunsIds[i],
+      var chart_selector = "#{chart_id(tab[:id], 'bar')}";
+      console.debug(data, chart_selector)
+
+      var charts = [
+        {
+          chart: AllNeighborsSystemDashboardRTHStack,
+          data: data,
+          selector: '#' + chart_selector,
           options: {
-            countLevelLabelSelector: '#'+retunsFilterLabelIds[i],
-            legend: {
-              selector: '#'+retunsIds[i]+'_legend'
-            }
+            legend: {selector: '#'+ chart_selector +'_legend'},
           }
         }
-      }))
+      ]
 
       var filterConfig = [
         {
@@ -66,6 +71,11 @@
           name: 'countLevel',
           type: 'select',
           selector: '##{filter_id(tab[:id], 'count_level')}'
+        },
+        {
+          name: 'demographics',
+          type: 'select',
+          selector: '##{filter_id(tab[:id], 'demographics')}'
         },
         {
           name: 'dateRange',
@@ -82,6 +92,10 @@
         {
           name: 'countLevel',
           selector: '.#{filter_label_id(tab[:id], 'count_level')}'
+        },
+        {
+          name: 'demographics',
+          selector: '.#{filter_label_id(tab[:id], 'demographic')}'
         },
         {
           name: 'dateRange',

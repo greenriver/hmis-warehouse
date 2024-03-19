@@ -8,7 +8,7 @@ module AllNeighborsSystemDashboard
   class ReturnsToHomelessness < DashboardData
     def self.cache_data(report)
       instance = new(report)
-      instance.retuns_data
+      instance.returns_data
     end
 
     # Date should be the first of the month, range will extend through the month
@@ -54,8 +54,8 @@ module AllNeighborsSystemDashboard
       project_type_data = project_types.map do |project_type|
         count_level_data = count_levels.map do |count_level|
           case type
-          when :retuns
-            monthly_counts = retuns(
+          when :returns
+            monthly_counts = returns(
               options.merge(project_type: project_type, count_level: count_level),
               # Count clients only once per-day
               count_item: count_one_client_per_date_arel.to_sql,
@@ -111,69 +111,91 @@ module AllNeighborsSystemDashboard
     end
 
     # Example format of options: {:types=>["Diversion", "Permanent Supportive Housing", "Rapid Rehousing"], :colors=>["#E6B70F", "#B2803F", "#1865AB"], :project_type=>"All", :count_level=>"Individuals"}
-    def retuns(options, count_item:, **)
+    def returns(options, count_item:, **)
       project_type = options[:project_type] || options[:homelessness_status]
       options[:types].map do |type|
         {
           name: type,
           series: date_range.map do |date|
-            # FIXME: this needs to calculate and return both returns and exits
-            scope = returned_total_scope.select(count_item)
-            scope = filter_for_type(scope, project_type)
-            scope = filter_for_type(scope, type)
-            scope = filter_for_count_level(scope, options[:count_level])
-            scope = filter_for_date(scope, date)
-            count = mask_small_populations(scope.count, mask: @report.mask_small_populations?)
-            count = options[:hide_others_when_not_all] && project_type != 'All' && type != project_type ? 0 : count
+            placed_scope = housed_total_scope.select(count_item)
+            placed_scope = filter_for_type(placed_scope, project_type)
+            placed_scope = filter_for_type(placed_scope, type)
+            placed_scope = filter_for_count_level(placed_scope, options[:count_level])
+            placed_scope = filter_for_date(placed_scope, date)
+            placed_count = mask_small_populations(placed_scope.count, mask: @report.mask_small_populations?)
+            placed_count = options[:hide_others_when_not_all] && project_type != 'All' && type != project_type ? 0 : placed_count
+
+            return_scope = returned_total_scope.select(count_item)
+            return_scope = filter_for_type(return_scope, project_type)
+            return_scope = filter_for_type(return_scope, type)
+            return_scope = filter_for_count_level(return_scope, options[:count_level])
+            return_scope = filter_for_date(return_scope, date)
+            return_count = mask_small_populations(return_scope.count, mask: @report.mask_small_populations?)
+            return_count = options[:hide_others_when_not_all] && project_type != 'All' && type != project_type ? 0 : return_count
+
             {
               date: date.strftime('%Y-%-m-%-d'),
-              values: [count],
+              values: [placed_count, return_count],
             }
           end,
         }
       end
     end
 
-    def retuns_data
-      [
-        data(
-          'Project Type',
-          'project_type',
-          :retuns,
-          options: {
-            hide_others_when_not_all: true,
-            types: project_types,
-            colors: project_type_colors,
-          },
-        ),
-        data(
-          'Household Type',
-          'household_type',
-          :retuns,
-          options: {
-            types: household_types,
-            colors: household_type_colors,
-          },
-        ),
-        data(
-          'Age',
-          'age',
-          :retuns,
-          options: {
-            types: demographic_age,
-            colors: demographic_age_colors,
-          },
-        ),
-        data(
-          'Gender',
-          'gender',
-          :retuns,
-          options: {
-            types: demographic_gender,
-            colors: demographic_gender_colors,
-          },
-        ),
-      ]
+    # {
+    #   {
+    #     projectType: 'All',
+    #     countLevel: 'Individuals',
+    #     demographics: 'All',
+    #   } => {
+    #     config: {
+    #       names: ['Placements', 'Returns'],
+    #       colors: ['#336770', '#E6B70F'],
+    #       label_colors: ['#ffffff', '#000000'],
+    #     },
+    #     series: [
+    #       {
+    #         date: '2020-01-01',
+    #         values: [10, 3],
+    #       },
+    #       {
+    #         date: '2020-02-01',
+    #         values: [12, 2],
+    #       },
+    #     ],
+    #   },
+    # }
+    def returns_data
+      {}.tap do |data|
+        project_types.each do |project_type|
+          count_levels.each do |count_level|
+            (['All'] + demographics).each do |demo|
+              key = {
+                projectType: project_type,
+                countLevel: count_level,
+                demographics: demo,
+              }
+              data[key] = {
+                config: {
+                  names: ['Placements', 'Returns'],
+                  colors: ['#336770', '#E6B70F'],
+                  label_colors: ['#ffffff', '#000000'],
+                },
+                series: [
+                  {
+                    date: '2020-01-01',
+                    values: [10, 3],
+                  },
+                  {
+                    date: '2020-02-01',
+                    values: [12, 2],
+                  },
+                ],
+              }
+            end
+          end
+        end
+      end
     end
   end
 end

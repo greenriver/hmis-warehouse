@@ -20,12 +20,16 @@ class AllNeighborsSystemDashboardStack {
     this.cohort = (this.countLevel.cohorts || []).filter((d) => d.cohort === this.state.cohort)[0] || {}
     this.householdType = (this.project.household_types || []).filter((d) => d.household_type === this.state.householdType)[0] || {}
     this.demographic = (this.householdType.demographics || this.data.demographics || []).filter((d) => d.demographic === this.state.demographics)[0] || {}
-    this.config = this.project.config || this.homelessnessStatus.config || this.demographic.config || this.cohort.config || this.data.config || {}
+    this.config = this.project.config || this.homelessnessStatus.config || this.demographic.config || this.cohort.config || this.data.config || this.getActiveConfig()
     this.series = this.cohort.series || this.homelessnessStatus.series || this.demographic.series || this.countLevel.series || this.data.series || []
   }
 
   test() {
     console.debug(this)
+  }
+
+  getActiveConfig() {
+    return {}
   }
 
   inDateRange(dateString, range) {
@@ -64,7 +68,6 @@ class AllNeighborsSystemDashboardStack {
   }
 
   getDataConfig() {
-    console.log('here', this.config)
     return {
       x: "x",
       order: null,
@@ -475,6 +478,39 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
 class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardStack {
   constructor(data, initialState, selector, options) {
     super(data, initialState, selector, options)
+  }
+
+  getActiveConfig() {
+    console.debug(this.state, this.data)
+    [this.data].filter((d) => {
+      console.debug(d, this.state)
+    })
+    return {}
+  }
+
+  getDataConfig() {
+    return {
+      x: "x",
+      order: null,
+      columns: [
+        this.getColumn('x'),
+      ].concat(this.config.keys.map((d) => this.getColumn(d))),
+      type: "bar",
+      colors: this.config.colors,
+      names: this.config.names,
+      groups: [this.config.keys],
+      labels: {
+        show: true,
+        centered: true,
+        colors: this.config.label_colors,
+        format: (v, id, i, j) => {
+          return d3.format(",")(v);
+        },
+      },
+      stack: {
+        normalize: false,
+      }
+    }
   }
 
   getConfig() {
