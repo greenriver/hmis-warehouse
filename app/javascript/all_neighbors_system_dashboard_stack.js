@@ -21,7 +21,7 @@ class AllNeighborsSystemDashboardStack {
     this.householdType = (this.project.household_types || []).filter((d) => d.household_type === this.state.householdType)[0] || {}
     this.demographic = (this.householdType.demographics || this.data.demographics || []).filter((d) => d.demographic === this.state.demographics)[0] || {}
     this.config = this.project.config || this.homelessnessStatus.config || this.demographic.config || this.cohort.config || this.data.config || this.getActiveConfig()
-    this.series = this.cohort.series || this.homelessnessStatus.series || this.demographic.series || this.countLevel.series || this.data.series || []
+    this.series = this.cohort.series || this.homelessnessStatus.series || this.demographic.series || this.countLevel.series || this.data.series || this.getActiveSeries()
   }
 
   test() {
@@ -37,6 +37,7 @@ class AllNeighborsSystemDashboardStack {
     //ruby date month is 1 based while js date month is 0
     const date = Date.parse(new Date(year, month-1, day))
     const [s, e] = range
+    // console.log('comparing dates', new Date(date), new Date(s), new Date(e))
     return date >= s && date <= e
   }
 
@@ -481,20 +482,46 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
   }
 
   getActiveConfig() {
-    console.debug(this.state, this.data)
-    [this.data].filter((d) => {
-      console.debug(d, this.state)
+    console.log(this.getActiveSet())
+    // this.data is an array of arrays, the key is in position 0, data in position 1
+    return this.getActiveSet()[1].config
+  }
+
+  getActiveSeries() {
+    console.log(this.getActiveSet())
+    // this.data is an array of arrays, the key is in position 0, data in position 1
+    return this.getActiveSet()[1].series
+  }
+
+  getActiveSet() {
+    let activeSet = this.data.filter((d) => {
+      let equal = true
+      if (this.state.projectType != d[0].projectType) {
+        equal = false
+      }
+      if (this.state.countLevel != d[0].countLevel) {
+        equal = false
+      }
+      if (this.state.demographics != d[0].demographics) {
+        equal = false
+      }
+      if(equal){
+        console.log(d)
+      }
+      return equal
     })
-    return {}
+    return activeSet[0]
   }
 
   getDataConfig() {
+    console.log('this.series', this.series)
+    const columns = this.getActiveConfig().names.map((n, i) => {
+      const col = this.getColumn(n, i)
+      return col
+    })
     return {
-      x: "x",
       order: null,
-      columns: [
-        this.getColumn('x'),
-      ].concat(this.config.keys.map((d) => this.getColumn(d))),
+      columns: columns,
       type: "bar",
       colors: this.config.colors,
       names: this.config.names,
@@ -511,6 +538,20 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
         normalize: false,
       }
     }
+  }
+
+  getColumn(name, index) {
+    let col = [name]
+
+    // find data that overlaps the filter date range
+    const filtered = this.series.filter((n) => {
+      return this.inDateRange(n.date, this.state.dateRange)
+    })
+    const monthly_counts = filtered.map((s) => {
+      return s.values[index]
+    })
+    col.push(d3.sum(monthly_counts))
+    return col
   }
 
   getConfig() {

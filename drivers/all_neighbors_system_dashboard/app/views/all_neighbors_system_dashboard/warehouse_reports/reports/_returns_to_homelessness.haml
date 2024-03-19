@@ -33,7 +33,7 @@
       %h3 Returns to Homelessness within 12 months
       %small * after exiting to permanent destination
     %div{id: chart_id(tab[:id], 'bar')}
--# = debug returns_data
+= debug returns_data.to_json
 -# = console
 
 -# = render 'donuts', tab: tab, donut_data: returns_data, filter_label: 'date_range'
@@ -46,9 +46,7 @@
     $(document).ready(function() {
       console.debug('Returns To Homelessness -----------------')
       var data = #{returns_data.to_json.html_safe}
-
       var chart_selector = "#{chart_id(tab[:id], 'bar')}";
-      console.debug(data, chart_selector)
 
       var charts = [
         {

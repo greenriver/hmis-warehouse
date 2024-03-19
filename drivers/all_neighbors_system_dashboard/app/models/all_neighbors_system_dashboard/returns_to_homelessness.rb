@@ -166,7 +166,7 @@ module AllNeighborsSystemDashboard
     #   },
     # }
     def returns_data
-      {}.tap do |data|
+      [].tap do |data|
         project_types.each do |project_type|
           count_levels.each do |count_level|
             (['All'] + demographics).each do |demo|
@@ -175,23 +175,26 @@ module AllNeighborsSystemDashboard
                 countLevel: count_level,
                 demographics: demo,
               }
-              data[key] = {
-                config: {
-                  names: ['Placements', 'Returns'],
-                  colors: ['#336770', '#E6B70F'],
-                  label_colors: ['#ffffff', '#000000'],
+              data << [
+                key,
+                {
+                  config: {
+                    names: ['Placements', 'Returns'],
+                    colors: ['#336770', '#E6B70F'],
+                    label_colors: ['#ffffff', '#000000'],
+                  },
+                  series: [
+                    {
+                      date: '2020-05-01',
+                      values: [(10..15).to_a.sample, (0..5).to_a.sample],
+                    },
+                    {
+                      date: '2020-06-01',
+                      values: [(10..25).to_a.sample, (0..8).to_a.sample],
+                    },
+                  ],
                 },
-                series: [
-                  {
-                    date: '2020-01-01',
-                    values: [10, 3],
-                  },
-                  {
-                    date: '2020-02-01',
-                    values: [12, 2],
-                  },
-                ],
-              }
+              ]
             end
           end
         end
