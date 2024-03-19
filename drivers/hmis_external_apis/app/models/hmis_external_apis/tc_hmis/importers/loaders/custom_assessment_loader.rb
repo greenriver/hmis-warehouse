@@ -31,11 +31,15 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     protected
 
+    def ce_assessment_level
+      nil
+    end
+
     def validate_cde_configs
       seen_element_ids = Set.new
 
       required_keys = [:label, :key, :repeats, :field_type]
-      all_keys = (required_keys + [:element_id]).to_set
+      all_keys = (required_keys + [:element_id, :ignore_type]).to_set
       cded_configs.each do |item|
         # Check for required keys
         raise "Missing required keys in #{item.inspect}" unless required_keys.all? { |k| item.key?(k) }
@@ -60,8 +64,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       end
       assessment_ids.compact!
 
+      # deleting custom assessment deletes the form processor. This is safe because the processor doesn't
+      # cascade further so additional records are left intact
       scope = model_class.where(data_source_id: data_source.id).where(CustomAssessmentID: assessment_ids)
-      scope.preload(:custom_data_elements).find_each do |assessment|
+      scope.find_each do |assessment|
         assessment.custom_data_elements.delete_all # delete should really destroy
         assessment.really_destroy!
       end
@@ -103,7 +109,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           PersonalID: personal_id,
           UserID: system_hud_user.id,
           AssessmentDate: row_assessment_date(row),
-          DataCollectionStage: 2,
+          DataCollectionStage: 99,
           wip: false,
           DateCreated: today,
           DateUpdated: today,
@@ -114,7 +120,17 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     # create synthetic form processors for imported touchpoints
+    # also link form processors to CE assessments if ce_assessment_level is present
     def create_form_processor_records(rows)
+      ce_assessments_by_date_and_enrollment_id = {}
+      if ce_assessment_level
+        ce_assessments_by_date_and_enrollment_id = Hmis::Hud::Assessment.hmis.
+          where(AssessmentLevel: ce_assessment_level).
+          order(DateUpdated: :asc, id: :asc). # order ensures we use the most recent one if there are duplicates on the same day
+          pluck(:AssessmentDate, :EnrollmentID, :id).
+          to_h { |ary| [[ary[0], ary[1]], ary[2]] }
+      end
+
       owner_id_by_row_id = model_class.where(data_source: data_source).pluck(:CustomAssessmentID, :id).to_h
       processor_model = Hmis::Form::FormProcessor
       records = []
@@ -122,12 +138,30 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         assessment_id = owner_id_by_row_id[row_assessment_id(row)]
         next unless assessment_id
 
+        ce_assessment_id = nil
+        if ce_assessment_level
+          ce_assessment_key = [row_assessment_date(row)&.to_date, row_enrollment_id(row)]
+          ce_assessment_id = ce_assessments_by_date_and_enrollment_id[ce_assessment_key] if ce_assessment_key.all?(&:present?)
+
+          log_info "#{row.context} could not locate a matching CE Assessment on date:\"#{ce_assessment_key[0]}\" for enrollment #{ce_assessment_key[1]}" if ce_assessment_id.nil?
+        end
+
         records << {
           custom_assessment_id: assessment_id,
           definition_id: form_definition.id,
+          ce_assessment_id: ce_assessment_id,
         }
       end
       ar_import(processor_model, records)
+    end
+
+    def form_definition
+      @form_definition ||= Hmis::Form::Definition.where(identifier: form_definition_identifier).first_or_create! do |definition|
+        definition.title = form_definition_identifier.humanize
+        definition.status = 'draft'
+        definition.version = 0
+        definition.role = 'FORM_DEFINITION'
+      end
     end
 
     def create_cde_records(rows)
@@ -158,8 +192,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
       total =  cded_configs.size
       missed = cded_configs.map { |c| c.fetch(:key) }.reject { |k| k.in?(seen) }
-      log_info("saw CDE values for #{seen.size} of #{total} fields")
-      log_info("missed CDE values for #{missed.size} of #{total} fields: #{missed.sort.join(', ')}") if missed.any?
+
+      # Indicates that no imported rows in the sheet had a value for this column
+      log_info("did not find any CDE values for #{missed.size} of #{total} fields: #{missed.sort.join(', ')}") if missed.any?
     end
 
     def cde_values(row, config, required: false)
@@ -194,8 +229,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def row_enrollment_id(row)
-      # sometimes the enrollment id has braces or other extra chars
-      row.field_value(ENROLLMENT_ID_COL)&.gsub(/[^-a-z0-9]/i, '')
+      normalize_uuid(row.field_value(ENROLLMENT_ID_COL))
     end
 
     def model_class

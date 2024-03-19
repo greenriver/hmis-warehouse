@@ -49,7 +49,6 @@ module HealthQaFactory
       return unless screener.present?
 
       user = User.find(careplan.reviewed_by_ccm_id)
-
       qa = ::Health::QualifyingActivity.new(
         source_type: screener.class.name,
         source_id: screener.id,
@@ -71,6 +70,9 @@ module HealthQaFactory
           follow_up: 'Patient SDoH Screening Negative',
         )
       end
+
+      return if ::Health::QualifyingActivity.find_by(date_of_activity: qa.date_of_activity, activity: qa.activity).present? # Don't duplicate QAs
+
       qa.save
 
       qa

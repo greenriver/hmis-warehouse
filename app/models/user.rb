@@ -179,6 +179,12 @@ class User < ApplicationRecord
     Hmis::User.find(id)&.tap { |u| u.update(hmis_data_source_id: data_source.id) }
   end
 
+  def any_hmis_access?
+    return false unless HmisEnforcement.hmis_enabled?
+
+    Hmis::UserGroupMember.where(user_id: id).exists? # belongs to any HMIS user groups
+  end
+
   # list any cohort this user has some level of access to
   def cohorts
     GrdaWarehouse::Cohort.where(id: ids_for_relations(:cohort_ids))

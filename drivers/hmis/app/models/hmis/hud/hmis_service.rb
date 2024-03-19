@@ -16,7 +16,7 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
 
   belongs_to :enrollment, **hmis_enrollment_relation, optional: true
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :services
+  belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :services
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :owner, polymorphic: true # Service or CustomService
   belongs_to :custom_service_type
@@ -96,7 +96,7 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   private def initialize_owner
     raise 'Cannot initialize HmisService without a CustomServiceType' unless custom_service_type.present?
 
-    attrs = [:enrollment_id, :personal_id, :user_id, :data_source_id].map { |k| [k, send(k)] }.to_h
+    attrs = [:enrollment_id, :personal_id, :user_id, :data_source_id, :date_provided].map { |k| [k, send(k)] }.to_h
     if custom_service_type.hud_service?
       self.owner = Hmis::Hud::Service.new(**attrs)
     else

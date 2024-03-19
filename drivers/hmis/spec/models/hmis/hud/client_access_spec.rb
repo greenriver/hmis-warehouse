@@ -30,7 +30,7 @@ RSpec.describe Hmis::Hud::Client, type: :model do
   let!(:client_at_p2) do
     # Client with WIP enrollment at p2
     client = create(:hmis_hud_client, data_source: ds1, with_enrollment_at: p2)
-    client.enrollments.first.save_in_progress
+    client.enrollments.first.save_in_progress!
     client
   end
 

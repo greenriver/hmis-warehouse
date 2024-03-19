@@ -130,6 +130,64 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
         expect(e1.intake_assessment).to eq(entry_assessment)
         expect(e1.intake_assessment.form_processor).to eq(old_form_processor)
       end
+
+      it 'ignores records tied to wip enrollments' do
+        e1.save_in_progress
+        expect do
+          Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id)
+        end.to change(e1.custom_assessments, :count).by(0)
+      end
+
+      it 'clobbers existing HUD assessments without clobbering fully custom assessments' do
+        intake_assessment = create(:hmis_custom_assessment, data_collection_stage: 1, assessment_date: 1.month.ago, enrollment: e1, data_source: ds1, client: c1)
+        annual_assessment = create(:hmis_custom_assessment, data_collection_stage: 5, assessment_date: 1.day.ago, enrollment: e1, data_source: ds1, client: c1)
+        fully_custom_assessment = create(:hmis_custom_assessment, data_collection_stage: 99, assessment_date: 2.days.ago, enrollment: e1, data_source: ds1, client: c1)
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, clobber: true)
+        expect { intake_assessment.reload }.to raise_error(ActiveRecord::RecordNotFound, /Couldn't find Hmis::Hud::CustomAssessment/)
+        expect { annual_assessment.reload }.to raise_error(ActiveRecord::RecordNotFound, /Couldn't find Hmis::Hud::CustomAssessment/)
+        fully_custom_assessment.reload
+        expect(fully_custom_assessment.enrollment).to eq(e1)
+      end
+    end
+
+    describe 'when generate_empty_intakes: true' do
+      it 'generates a synthetic intake for a non-wip enrollment with no records' do
+        e2 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c1)
+        expect(e2.intake_assessment).to be_nil
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, generate_empty_intakes: true)
+        e2.reload
+        expect(e2.intake_assessment).not_to be_nil
+        expect(e2.intake_assessment.in_progress?).to eq(false)
+        expect(e2.intake_assessment.assessment_date).to eq(e2.entry_date)
+        expect(e2.intake_assessment.form_processor).not_to be_nil
+
+        # e1 should still only have 1 intake assessment, with the records present
+        expect(e1.custom_assessments.where(data_collection_stage: 1).count).to eq(1)
+        expect(e1.intake_assessment.form_processor.health_and_dv).to be_present
+      end
+
+      it 'works even if enrollment has a bad UserID' do
+        enrollment = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, UserID: 'a-non-existent-user-id')
+
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, generate_empty_intakes: true)
+        expect(enrollment.reload.intake_assessment).to be_present
+      end
+
+      it 'works even if enrollment is missing UserID' do
+        enrollment = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c1)
+        enrollment.UserID = nil
+        enrollment.save!(validate: false)
+
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, generate_empty_intakes: true)
+        expect(enrollment.reload.intake_assessment).to be_present
+      end
+
+      it 'does not generate for wip enrollment' do
+        enrollment = create(:hmis_hud_wip_enrollment, data_source: ds1, project: p1, client: c1)
+
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, generate_empty_intakes: true)
+        expect(enrollment.reload.intake_assessment).to be_nil
+      end
     end
 
     describe 'bad data' do
@@ -198,6 +256,16 @@ RSpec.describe Hmis::MigrateAssessmentsJob, type: :model do
 
         expect(e1.custom_assessments.exits.count).to eq(1)
         expect(e1.custom_assessments.exits.first.form_processor.health_and_dv).to eq(health_and_dv)
+      end
+
+      it 'does not generate an empty intake assessment if there is an existing, invalid one' do
+        e2 = create(:hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, entry_date: 1.week.from_now)
+        expect(e2.intake_assessment).to be_nil
+        create(:hmis_income_benefit, data_source: ds1, enrollment: e2, client: c1, data_collection_stage: 1, information_date: 1.week.ago)
+        c1.destroy! # Deleting the client causes this assessment to be invalid
+        Hmis::MigrateAssessmentsJob.perform_now(data_source_id: ds1.id, generate_empty_intakes: true)
+        e2.reload
+        expect(e2.intake_assessment).to be_nil, 'An empty intake assessment should not be generated if the assessment is invalid'
       end
     end
   end

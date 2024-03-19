@@ -29,6 +29,8 @@ module HmisExternalApis::ExternalForms
              to: :context
 
     def render_node(node)
+      # can turn off required fields for easier testing
+      # node['required'] = false
       @stack.push(node)
       result = render_dependent_item_wrapper(node) do
         render_node_by_type(node)

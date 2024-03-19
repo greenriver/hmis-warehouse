@@ -13,9 +13,8 @@ module Hmis
     include Hmis::Concerns::HmisArelHelper
     include NotifierConfig
 
-    # TODO: Add option to specify creating all Intake Assessments, even if there are no Entry-stage records. The intake may still have information such as the DisablingCondition on the Enrollment.
     # TODO(maybe): Add option to create Exit Assessment if there are Exit-stage records, even if there is no Exit record. Enrollment would remain open but the exit assessment would exist. This could have other unintended side effects.
-    attr_accessor :data_source_id, :soft_delete_datetime, :delete_dangling_records, :preferred_source_hash, :project_ids
+    attr_accessor :data_source_id, :soft_delete_datetime, :delete_dangling_records, :preferred_source_hash, :project_ids, :generate_empty_intakes
 
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
 
@@ -44,7 +43,7 @@ module Hmis
     #  - DateCreated = earliest creation date of related records
     #  - DateUpdated = latest update date of related records
     #  - UserID = UserID from the related record that was most recently updated
-    def perform(data_source_id:, project_ids: nil, clobber: false, delete_dangling_records: false, preferred_source_hash: nil)
+    def perform(data_source_id:, project_ids: nil, clobber: false, delete_dangling_records: false, preferred_source_hash: nil, generate_empty_intakes: false)
       setup_notifier('Migrate HMIS Assessments')
 
       self.data_source_id = data_source_id
@@ -52,23 +51,34 @@ module Hmis
       self.soft_delete_datetime = Time.current
       self.delete_dangling_records = delete_dangling_records
       self.preferred_source_hash = preferred_source_hash
+      self.generate_empty_intakes = generate_empty_intakes
       raise 'Not an HMIS Data source' if ::GrdaWarehouse::DataSource.find(data_source_id).hmis.nil?
 
-      # Deletes the CustomAssessment and FormProcessor, but not the underlying data. It DOES delete Custom Data Elements tied to CustomAssessment.
-      Hmis::Hud::CustomAssessment.joins(:project).merge(project_scope).each(&:really_destroy!) if clobber
+      debug_log "MigrateAssessmentsJob starting at #{Time.current.to_s(:db)}"
 
-      # Note: joining with project drops WIP enrollments. That should be fine since they won't have assessment records yet.
-      Hmis::Hud::Enrollment.joins(:project).merge(project_scope).in_batches(of: 5_000) do |batch|
+      # Deletes the CustomAssessment and FormProcessor, but not the underlying data. It DOES delete Custom Data Elements tied to CustomAssessment.
+      if clobber
+        Hmis::Hud::CustomAssessment.
+          joins(:project).merge(project_scope).
+          where(data_collection_stage: HudUtility2024.data_collection_stages.keys). # Only clobber HUD assessments, not fully custom assessments
+          each(&:really_destroy!)
+      end
+
+      total = full_enrollment_scope.count
+      Rails.logger.info "#{total} Enrollments to process"
+
+      full_enrollment_scope.in_batches(of: 5_000) do |batch|
         # Build entry/exit assessments
         build_assessments(
-          enrollment_scope: batch,
+          enrollment_batch: batch,
           data_collection_stages: ENTRY_EXIT,
           unique_by_information_date: false,
           data_source_id: data_source_id,
         )
+
         # Build other hud assessments
         build_assessments(
-          enrollment_scope: batch,
+          enrollment_batch: batch,
           data_collection_stages: NON_ENTRY_EXIT,
           unique_by_information_date: true,
           data_source_id: data_source_id,
@@ -83,6 +93,7 @@ module Hmis
         end
       end
 
+      debug_log "MigrateAssessmentsJob completed at #{Time.current.to_s(:db)}"
       log_assessment_summary
     end
 
@@ -95,12 +106,17 @@ module Hmis
       records_to_delete[klass].concat(ids)
     end
 
-    def build_assessments(enrollment_scope:, data_collection_stages:, unique_by_information_date:, data_source_id:)
+    def full_enrollment_scope
+      # Note: joining with project drops WIP enrollments. That should be fine since they won't have assessment records yet.
+      @full_enrollment_scope ||= Hmis::Hud::Enrollment.joins(:project).merge(project_scope)
+    end
+
+    def build_assessments(enrollment_batch:, data_collection_stages:, unique_by_information_date:, data_source_id:)
       # Get "hash keys" for exiting assessments
       key_cols = [:enrollment_id, :personal_id, :data_collection_stage]
       key_cols << :assessment_date if unique_by_information_date
       keys_matching_existing_assessments = Hmis::Hud::CustomAssessment.joins(:enrollment).
-        merge(enrollment_scope).
+        merge(enrollment_batch).
         pluck(*key_cols)
 
       # Key fields that will be used to group records
@@ -108,7 +124,7 @@ module Hmis
       key_fields << :information_date if unique_by_information_date
 
       # EnrollmentIDs of exited enrollments
-      exited_enrollment_ids = enrollment_scope.joins(:exit).pluck(:enrollment_id).to_set
+      exited_enrollment_ids = enrollment_batch.joins(:exit).pluck(:enrollment_id).to_set
 
       # Count of records that are skipped because they should already be tied to an assessment
       skipped_records = 0
@@ -128,7 +144,7 @@ module Hmis
         result_aggregations = result_fields.map { |f| nf('json_agg', [klass.arel_table[f]]).to_sql }
 
         scope = is_exit ? klass : klass.where(data_collection_stage: data_collection_stages)
-        scope.joins(:enrollment).merge(enrollment_scope).
+        scope.joins(:enrollment).merge(enrollment_batch).
           group(*group_by_fields).
           pluck(*group_by_fields, *result_aggregations).
           each do |arr|
@@ -182,8 +198,11 @@ module Hmis
 
       skipped_invalid_assessments = 0
       skipped_exit_assessments = 0
+      skipped_intake_enrollment_ids = []
+
       # For each grouping of Enrollment+InformationDate+DataCollectionStage,
       # create a CustomAssessment and a FormProcessor that references the related records
+      assessments_to_import = []
       assessment_records.each do |hash_key, value|
         key = key_fields.zip(hash_key).to_h
         uniq_attributes = {
@@ -207,21 +226,53 @@ module Hmis
           # This check was added because we hit a "Client is invalid", which may have occurred if the client was deleted while the batch was processing?
           Rails.logger.info "Skipping invalid assessment for EnrollmentID: #{assessment.enrollment_id}"
           skipped_invalid_assessments += 1
+          skipped_intake_enrollment_ids << assessment.enrollment_id if assessment.intake?
         elsif assessment.exit? && value[:exit_id].nil?
           # There appear to be lots of "exit" data-collection-stage records for enrollments that don't have an Exit record.
           # This shouldn't happen anymore because we skip them above
           Rails.logger.info "Skipping Exit Assessment for open enrollment. EnrollmentID: #{assessment.enrollment_id}"
           skipped_exit_assessments += 1
         else
-          assessment.save!
+          assessments_to_import << assessment
         end
       end
 
+      Rails.logger.info "Importing #{assessments_to_import.size} assessments..."
+      ar_import(assessments_to_import)
+
       Rails.logger.info "Skipped creating #{skipped_invalid_assessments} invalid assessments" if skipped_invalid_assessments.positive?
       Rails.logger.info "Skipped creating #{skipped_exit_assessments} exit assessments because the enrollment is open" if skipped_exit_assessments.positive?
+
+      return unless data_collection_stages.include?(1) && generate_empty_intakes
+
+      # For INTAKE assessments:
+      # If generate_empty_intakes option is set, then generate empty intake assessments for any enrollment in the batch
+      # that is missing an intake. This wouild occur if the enrollment didn't have any related records with DataCollectionStage:1.
+      enrollments_missing_intakes = enrollment_batch.left_outer_joins(:intake_assessment).
+        where(intake_assessment: { id: nil }).
+        where.not(enrollment_id: skipped_intake_enrollment_ids) # enrollment_ids with intake assessments that were skipped because they were invalid
+
+      empty_intakes = enrollments_missing_intakes.map(&:build_synthetic_intake_assessment)
+
+      Rails.logger.info "Importing #{enrollments_missing_intakes.count} empty intake assessments"
+      ar_import(empty_intakes)
     end
 
     private
+
+    def ar_import(assessments)
+      return unless assessments.any?
+
+      options = {
+        batch_size: 1_000,
+        validate: false, # already validated
+        recursive: true, # so FormProcessor gets saved
+      }
+      result = Hmis::Hud::CustomAssessment.import(assessments, options)
+      return unless result.failed_instances.present?
+
+      raise "Aborting, failed to import assessments in batch: #{result.failed_instances}"
+    end
 
     # "values" has shape  {:id=>[6, 7], :user_id=>["548", "548"], :date_updated=>[yesterday, today]}
     # returns a modified version with duplicates removed, like: {:id=>[7], :user_id=>["548"], :date_updated=>[today]}
@@ -329,14 +380,12 @@ module Hmis
     end
 
     def log_assessment_summary
-      enrollment_scope = Hmis::Hud::Enrollment.joins(:project).merge(project_scope)
       assessment_scope = Hmis::Hud::CustomAssessment.joins(:project).merge(project_scope)
+      open_enrollment_assessment_scope = Hmis::Hud::CustomAssessment.joins(:enrollment).merge(full_enrollment_scope.open_on_date)
 
-      open_enrollment_assessment_scope = Hmis::Hud::CustomAssessment.joins(:enrollment).merge(enrollment_scope.open_on_date)
-
-      num_enrollments = enrollment_scope.size
-      num_open_enrollments = enrollment_scope.open_on_date.size
-      num_exited_enrollments = enrollment_scope.exited.size
+      num_enrollments = full_enrollment_scope.count
+      num_open_enrollments = full_enrollment_scope.open_on_date.count
+      num_exited_enrollments = full_enrollment_scope.exited.count
 
       msgs = []
       msgs << summarize(assessment_scope.intakes.size, num_enrollments, msg: 'of enrollments have intake assessments')
