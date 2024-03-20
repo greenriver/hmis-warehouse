@@ -8,8 +8,7 @@ module HmisExternalApis::ExternalForms
   class FormSubmission < ::HmisExternalApis::HmisExternalApisBase
     self.table_name = 'hmis_external_form_submissions'
     belongs_to :definition, class_name: 'Hmis::Form::Definition'
-
-    has_many :custom_data_elements, as: :owner, dependent: :destroy, class_name: 'Hmis::Hud::CustomDataElement'
+    include ::Hmis::Hud::Concerns::HasCustomDataElements
 
     def spam
       # The recaptcha spam score is a float between 0 (likely spam) and 1.0 (likely real)

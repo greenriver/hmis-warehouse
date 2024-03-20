@@ -39,11 +39,7 @@ module Types
         cde_values = load_ar_association(record, :custom_data_elements).group_by(&:data_element_definition_id)
 
         # Load all CustomDataElementDefinitions that have values for this record
-        if record.respond_to?(:definition)
-          cde_definitions = load_ar_association(record.definition, :custom_data_element_definitions)
-        else
-          cde_definitions = load_ar_association(record, :custom_data_element_definitions)
-        end
+        cde_definitions = load_ar_association(record, :custom_data_element_definitions)
 
         # Array of relevant CustomDataElementDefinitions, with value(s)
         cde_definitions.uniq.map do |cded|

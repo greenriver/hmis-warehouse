@@ -8,7 +8,7 @@ module Hmis::Hud::Concerns::HasCustomDataElements
   extend ActiveSupport::Concern
 
   included do
-    has_many :custom_data_elements, as: :owner, dependent: :destroy
+    has_many :custom_data_elements, as: :owner, dependent: :destroy, class_name: 'Hmis::Hud::CustomDataElement'
     # All the CDEDs that have values for this record. Note it will retun non-distinct scope for any types that have multiple values.
     has_many :custom_data_element_definitions, through: :custom_data_elements, source: :data_element_definition
 
