@@ -13,7 +13,6 @@ module Types
     field :field_type, HmisSchema::Enums::CustomDataElementType, null: false
     field :label, String, null: false
     field :repeats, Boolean, null: false
-    field :display_hooks, [HmisSchema::Enums::DisplayHook], null: false, description: 'Where to display the custom field in the application'
     field :value, HmisSchema::CustomDataElementValue, null: true
     field :values, [HmisSchema::CustomDataElementValue], null: true
 
@@ -21,12 +20,6 @@ module Types
 
     def activity_log_object_identity
       object.id
-    end
-
-    def display_hooks
-      hooks = []
-      hooks << 'TABLE_SUMMARY' if object.show_in_summary
-      hooks
     end
   end
 end
