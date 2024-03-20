@@ -11,7 +11,7 @@ class AllNeighborsSystemDashboardFilters {
   }
 
   test() {
-    console.log(this)
+    console.debug(this)
   }
 
   initTabChange() {

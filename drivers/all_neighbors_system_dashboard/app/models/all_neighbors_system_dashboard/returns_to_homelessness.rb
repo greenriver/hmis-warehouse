@@ -45,55 +45,6 @@ module AllNeighborsSystemDashboard
       )
     end
 
-    def data(title, id, type, options: {})
-      keys = (options[:types] || []).map { |key| to_key(key) }
-      identifier = "#{@report.cache_key}/#{cache_key(id, type, options)}/#{__method__}"
-      existing = @report.datasets.find_by(identifier: identifier)
-      return existing.data.with_indifferent_access if existing.present?
-
-      project_type_data = project_types.map do |project_type|
-        count_level_data = count_levels.map do |count_level|
-          case type
-          when :returns
-            monthly_counts = returns(
-              options.merge(project_type: project_type, count_level: count_level),
-              # Count clients only once per-day
-              count_item: count_one_client_per_date_arel.to_sql,
-            )
-          else
-            raise "Unknown type: #{type}"
-          end
-          {
-            count_level: count_level,
-            series: monthly_counts,
-          }
-        end
-
-        {
-          project_type: project_type,
-          config: {
-            keys: keys,
-            names: keys.map.with_index { |key, i| [key, (options[:types])[i]] }.to_h,
-            colors: keys.map.with_index { |key, i| [key, options[:colors][i]] }.to_h,
-            label_colors: keys.map.with_index { |key, i| [key, label_color(options[:colors][i])] }.to_h,
-          },
-          count_levels: count_level_data,
-        }
-      end
-
-      data = {
-        title: title,
-        id: id,
-        project_types: project_type_data,
-      }
-
-      @report.datasets.create!(
-        identifier: identifier,
-        data: data,
-      )
-      data
-    end
-
     private def aggregate(series)
       total_count = 0
       series.map do |date, counts|
@@ -125,7 +76,7 @@ module AllNeighborsSystemDashboard
           placed_count
         end
         counts_for_returns = options[:types].map do |type|
-          return_scope = returned_total_scope.select(count_item)
+          return_scope = returned_total_scope.select(Enrollment.arel_table[:return_date])
           return_scope = filter_for_type(return_scope, project_type)
           return_scope = filter_for_type(return_scope, type)
           return_scope = filter_for_count_level(return_scope, options[:count_level])
@@ -189,13 +140,16 @@ module AllNeighborsSystemDashboard
               when 'Household Type'
                 household_types
               end
+              names = ['Placements', 'Returns']
+              colors = ['#336770', '#E6B70F']
+              label_colors = names.zip(colors).to_h.transform_values { |v| label_color(v) }
               data << [
                 key,
                 {
                   config: {
-                    names: ['Placements', 'Returns'],
-                    colors: ['#336770', '#E6B70F'],
-                    label_colors: ['#ffffff', '#000000'],
+                    names: names,
+                    colors: colors,
+                    label_colors: label_colors,
                     axis: {
                       x: {
                         type: 'category',

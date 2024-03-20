@@ -531,9 +531,6 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
   // });
 
   getDataConfig() {
-    console.log('this.series', this.series)
-    console.log('active_config', this.getActiveConfig())
-
     const categories = this.getActiveConfig().axis.x.categories
 
     const columns = this.getActiveConfig().names.map((name, i) => {
@@ -583,39 +580,65 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
   getConfig() {
     const fitLabels = this.fitLabels
     const superConfig = super.getConfig()
-    const superNormalizeDataLabels = super.normalizeDataLabels
-    const data = this.data
-    const demographic = this.demographic
+    const normalizeDataLabels = this.normalizeDataLabels
     const config = {
+      size: {
+        width: $(this.selector).width(),
+        height: this.config.axis.x.categories.length * 120,
+      },
       padding: {
-        left: 150,
+        left: 250,
         top: 0,
-        right: 200,
+        right: 100,
         bottom: 0,
       },
+      bar: {
+        width: 40,
+      },
       onrendered: function() {
-        superNormalizeDataLabels(this)
+        normalizeDataLabels(this)
         const selector = this.internal.config.bindto
         let container = d3.select(`${selector} .bb-main`)
-        container.selectAll(`.bb-text__custom-total`)
-          .data([demographic.exited_household_count, demographic.returned_household_count])
-          .join(
-            (enter) => enter.append('text').attr('class', 'bb-text__custom-total'),
-            (update) => update,
-            (exit) => exit.remove()
-          )
-          .text((d) => `${d3.format(',')(d)} Households`)
-          .attr('x', (d) => this.internal.scale.y(100))
-          .attr('y', (d, i) => this.internal.scale.x(i))
-          .attr('transform', 'translate(30, 6)')
         fitLabels(this)
+      },
+      tooltip: {
+        contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
+          const index = d[0].index
+          const title = this.series[index].name
+          const swatches = d.map((n) => {
+            const swatch = `<svg class="chart-legend-item-swatch-prs1 mb-2" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color(n.id)}"/></svg>`;
+            const swatchLabel = `<div class="d-flex justify-content-start align-items-center"><div style="width:20px;padding-right:10px;">${swatch}</div><div class="pl-2">${n.name}</div></div>`;
+            return `<tr><td>${swatchLabel}</td><td>${d3.format(',')(n.value)}</dt></tr>`
+          })
+          let html = "<table class='bb-tooltip'>"
+          html += "<thead>"
+          html += `<tr><th colspan="3">Returns to Homelessness</th></tr>`
+          html += `<tr><td>Category</td><td>Count</td></tr>`
+          html += "</thead>"
+          html += "<tbody>"
+          html += swatches.join('')
+          html += "</tbody>"
+          html += "</table>"
+          return html
+        }
       }
     }
     if(this.options.legend) {
       config.legend = this.getColumnLegend(this.options.legend.selector)
     }
-    console.log('hiere', superConfig)
     return {...superConfig, ...config}
+  }
+
+  getColumnLegend(bindto) {
+    return {
+      contents: {
+        bindto: bindto,
+        template: (title, color) => {
+          const swatch = `<svg class="mt-1 chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
+          return `<div class="col-xs-12 col-md-3 mb-4 d-flex">${swatch}<div class="chart-legend-item-label-prs1">${title}</div></div>`;
+        },
+      },
+    }
   }
 
   getAxisConfig() {
@@ -632,6 +655,26 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
         show: false,
       }
     }
+  }
+
+  normalizeDataLabels(chart) {
+    // is there a better way to do this with billboard config?
+    const selector = chart.internal.config.bindto
+    chart.data().forEach((d, i) => {
+      d.values.forEach((v, vi) => {
+        const text = $(`${selector} .bb-texts-${d.id.replaceAll('_', '-')} .bb-text-${v.x}`)
+        let label = ''
+        if(i == 1) {
+          const placements = chart.data()[0].values[vi].value
+          const returns = v.value
+          const ratio = returns/placements
+          label = d3.format(",")(returns) + ' (' + d3.format(".0%")(ratio) + ')'
+        } else {
+          label = d3.format(",")(v.value)
+        }
+        text.text(label)
+      })
+    })
   }
 }
 globalThis.AllNeighborsSystemDashboardStack = AllNeighborsSystemDashboardStack;
