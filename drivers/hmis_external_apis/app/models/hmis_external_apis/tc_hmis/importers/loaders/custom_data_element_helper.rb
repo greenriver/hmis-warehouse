@@ -51,7 +51,26 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         DateUpdated: date_created,
         data_source_id: data_source.id,
         UserID: system_user.id,
-      }.merge(HmisExternalApis::ExternalForms::FormSubmission.cde_value_fields(definition, value))
+      }.merge(cde_value_fields(definition, value))
+    end
+
+    VALUE_FIELDS = [
+      'float',
+      'integer',
+      'boolean',
+      'string',
+      'text',
+      'date',
+      'json',
+    ].map { |v| [v, "value_#{v}"] }
+
+    # note, we need to set all fields- bulk insert becomes unhappy if the columns are not uniform
+    def cde_value_fields(definition, value)
+      result = {}
+      VALUE_FIELDS.map do |field_type, field_name|
+        result[field_name] = field_type == definition.field_type ? value : nil
+      end
+      result
     end
   end
 end
