@@ -23764,6 +23764,44 @@ ALTER SEQUENCE public.secure_files_id_seq OWNED BY public.secure_files.id;
 
 
 --
+-- Name: service_history_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.service_history_services_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: service_history_services_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.service_history_services_id_seq OWNED BY public.service_history_services_was_for_inheritance.id;
+
+
+--
+-- Name: service_history_services; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.service_history_services (
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+)
+PARTITION BY RANGE (date);
+
+
+--
 -- Name: service_history; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -23855,44 +23893,6 @@ CREATE SEQUENCE public.service_history_enrollments_id_seq
 --
 
 ALTER SEQUENCE public.service_history_enrollments_id_seq OWNED BY public.service_history_enrollments.id;
-
-
---
--- Name: service_history_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.service_history_services_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: service_history_services_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.service_history_services_id_seq OWNED BY public.service_history_services_was_for_inheritance.id;
-
-
---
--- Name: service_history_services; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.service_history_services (
-    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
-    age smallint,
-    service_type smallint,
-    client_id integer,
-    project_type smallint,
-    homeless boolean,
-    literally_homeless boolean
-)
-PARTITION BY RANGE (date);
 
 
 --
@@ -24811,8 +24811,6 @@ CREATE TABLE public.service_history_services_2050 (
     homeless boolean,
     literally_homeless boolean
 );
-
-
 
 
 --
@@ -34067,14 +34065,6 @@ ALTER TABLE ONLY public.service_history_services_2049
 
 ALTER TABLE ONLY public.service_history_services_2050
     ADD CONSTRAINT service_history_services_2050_pkey PRIMARY KEY (id, date);
-
-
---
--- Name: service_history_services_blackman service_history_services_blackman_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_blackman
-    ADD CONSTRAINT service_history_services_blackman_pkey PRIMARY KEY (id);
 
 
 --

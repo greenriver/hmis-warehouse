@@ -45,6 +45,8 @@ class ServiceHistoryServicesPartitioning < ActiveRecord::Migration[6.1]
       new_plan = execute(test_query).to_a.map(&:values).join("\n")
       puts "\nOriginal Plan:\n#{original_plan}\n\n"
       puts "New Plan (look at cost):\n#{new_plan}"
+
+      service_history_view
     end
   end
 
@@ -77,6 +79,84 @@ class ServiceHistoryServicesPartitioning < ActiveRecord::Migration[6.1]
         # This shouldn't be possible. Just being extra careful.
         raise "For some reason service_history_services_delete_me wasn't empty!!!!"
       end
+
+      service_history_view
     end
+  end
+
+  def service_history_view
+    execute("DROP VIEW public.service_history")
+
+    execute(<<~SQL)
+      CREATE VIEW public.service_history AS
+       SELECT service_history_services.id,
+          service_history_services.client_id,
+          service_history_enrollments.data_source_id,
+          service_history_services.date,
+          service_history_enrollments.first_date_in_program,
+          service_history_enrollments.last_date_in_program,
+          service_history_enrollments.enrollment_group_id,
+          service_history_enrollments.project_id,
+          service_history_services.age,
+          service_history_enrollments.destination,
+          service_history_enrollments.head_of_household_id,
+          service_history_enrollments.household_id,
+          service_history_enrollments.project_name,
+          service_history_services.project_type,
+          service_history_enrollments.project_tracking_method,
+          service_history_enrollments.organization_id,
+          service_history_services.record_type,
+          service_history_enrollments.housing_status_at_entry,
+          service_history_enrollments.housing_status_at_exit,
+          service_history_services.service_type,
+          service_history_enrollments.computed_project_type,
+          service_history_enrollments.presented_as_individual,
+          service_history_enrollments.other_clients_over_25,
+          service_history_enrollments.other_clients_under_18,
+          service_history_enrollments.other_clients_between_18_and_25,
+          service_history_enrollments.unaccompanied_youth,
+          service_history_enrollments.parenting_youth,
+          service_history_enrollments.parenting_juvenile,
+          service_history_enrollments.children_only,
+          service_history_enrollments.individual_adult,
+          service_history_enrollments.individual_elder,
+          service_history_enrollments.head_of_household
+         FROM (public.service_history_services
+           JOIN public.service_history_enrollments ON ((service_history_services.service_history_enrollment_id = service_history_enrollments.id)))
+      UNION
+       SELECT service_history_enrollments.id,
+          service_history_enrollments.client_id,
+          service_history_enrollments.data_source_id,
+          service_history_enrollments.date,
+          service_history_enrollments.first_date_in_program,
+          service_history_enrollments.last_date_in_program,
+          service_history_enrollments.enrollment_group_id,
+          service_history_enrollments.project_id,
+          service_history_enrollments.age,
+          service_history_enrollments.destination,
+          service_history_enrollments.head_of_household_id,
+          service_history_enrollments.household_id,
+          service_history_enrollments.project_name,
+          service_history_enrollments.project_type,
+          service_history_enrollments.project_tracking_method,
+          service_history_enrollments.organization_id,
+          service_history_enrollments.record_type,
+          service_history_enrollments.housing_status_at_entry,
+          service_history_enrollments.housing_status_at_exit,
+          service_history_enrollments.service_type,
+          service_history_enrollments.computed_project_type,
+          service_history_enrollments.presented_as_individual,
+          service_history_enrollments.other_clients_over_25,
+          service_history_enrollments.other_clients_under_18,
+          service_history_enrollments.other_clients_between_18_and_25,
+          service_history_enrollments.unaccompanied_youth,
+          service_history_enrollments.parenting_youth,
+          service_history_enrollments.parenting_juvenile,
+          service_history_enrollments.children_only,
+          service_history_enrollments.individual_adult,
+          service_history_enrollments.individual_elder,
+          service_history_enrollments.head_of_household
+         FROM public.service_history_enrollments;
+    SQL
   end
 end
