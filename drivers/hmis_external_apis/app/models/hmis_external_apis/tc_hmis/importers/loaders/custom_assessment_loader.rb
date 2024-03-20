@@ -107,7 +107,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           CustomAssessmentID: row_assessment_id(row),
           EnrollmentID: enrollment_id,
           PersonalID: personal_id,
-          UserID: system_hud_user.id,
+          UserID: system_hud_user.user_id,
           AssessmentDate: row_assessment_date(row),
           DataCollectionStage: 99,
           wip: false,
