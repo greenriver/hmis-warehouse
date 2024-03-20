@@ -41,6 +41,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     private def process_file(filename)
       create_service_types
+      create_cdeds
       rows = @reader.rows(filename: filename, header_row_number: 2, field_id_row_number: nil).to_a
       extrapolate_missing_enrollment_ids(rows, enrollment_id_field: ENROLLMENT_ID)
 
@@ -58,8 +59,21 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
       configs.values.each do |value|
         Hmis::Hud::CustomServiceType.where(data_source_id: data_source.id).where(name: value.fetch(:service_type)).first_or_create! do |st|
-          st.UserID = system_hud_user.id
+          st.UserID = system_hud_user.user_id
           st.custom_service_category_id = placeholder_service_category.id
+        end
+      end
+    end
+
+    private def create_cdeds
+      configs.each_value do |config|
+        config[:elements].each_value do |element_config|
+          cde_helper.find_or_create_cded(
+            owner_type: service_class.name,
+            key: element_config.fetch(:key),
+            field_type: element_config.fetch(:field_type, 'string'),
+            repeats: nil,
+          )
         end
       end
     end
@@ -125,7 +139,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             CustomServiceID: generate_service_id(config, row),
             EnrollmentID: enrollment.EnrollmentID,
             PersonalID: enrollment.PersonalID,
-            UserID: system_hud_user.id,
+            UserID: system_hud_user.user_id,
             DateProvided: row_date_provided(row),
             data_source_id: data_source.id,
             custom_service_type_id: service_type_id,
@@ -140,13 +154,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           service_field = config[:service_fields][row.field_value(QUESTION)]
           next unless service_field.present? # Don't log this, if there is a problem, we will find it in create_records
 
-          row_value = row.field_value(ANSWER)
-          value = nil
-          if row_value
-            value = service_field[:cleaner] ? service_field[:cleaner].call(row_value) : row_value
-          end
-
-          services[response_id][service_field[:key]] = value
+          services[response_id][service_field[:key]] = cleaned_row_answer(row, service_field)
         end
       end
       log_processed_result(name: 'create services', expected: expected.size, actual: result.size)
@@ -155,6 +163,13 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     private def generate_service_id(config, row)
       "#{config[:id_prefix]}-#{row.field_value(RESPONSE_ID)}"
+    end
+
+    def cleaned_row_answer(row, service_field)
+      row_value = row.field_value(ANSWER)
+      return nil unless row_value
+
+      service_field[:cleaner] ? service_field[:cleaner].call(row_value) : row_value
     end
 
     def row_question_value(row)
@@ -202,10 +217,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           actual += 1
 
           key = element[:key]
-          row_value = row.field_value(ANSWER)
-          answer = row_value ? element[:cleaner].call(row_value) : nil
+          answer = cleaned_row_answer(row, element)
           Array.wrap(answer).each do |value|
-            # FIXME we should set field_type for some of these
             cdes << cde_helper.new_cde_record(value: value, owner_type: service_class.name, owner_id: service.id, definition_key: key)
           end
         end
@@ -230,10 +243,12 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             'Number of Pantry Bags' => {
               key: :food_service_pantry_bags_quantity,
               cleaner: ->(quantity) { quantity.to_i },
+              field_type: :integer,
             },
             'Number of people in the household' => {
               key: :food_service_household_size,
               cleaner: ->(size) { size.to_i },
+              field_type: :integer,
             },
             'Case Notes' => {
               key: :service_note,
@@ -246,6 +261,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             'Cost' => {
               key: :FAAmount,
               cleaner: ->(amount) { amount.to_f },
+              field_type: :float,
             },
           },
           id_prefix: 'transport',
@@ -260,6 +276,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             'Quantity' => {
               key: :transportation_quantity,
               cleaner: ->(quantity) { quantity.to_i },
+              field_type: :integer,
             },
             'Case Notes' => {
               key: :service_note,
@@ -278,10 +295,12 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             'Items' => {
               key: :baby_supplies_items,
               cleaner: ->(items) { items.split('|') },
+              repeats: true,
             },
             'Quantity' => {
               key: :baby_supplies_quantity,
               cleaner: ->(quantity) { quantity.to_i },
+              field_type: :integer,
             },
             'Case Notes' => {
               key: :service_note,
@@ -298,17 +317,15 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           },
           id_prefix: 'goods',
           elements: {
-            elements: {
-              'Contact Location/Method' => {
-                key: :service_contact_location,
-                cleaner: ->(location) { normalize_location(location) },
-              },
-              'Value' => {
-                key: :financial_assistance_type,
-              },
-              'Case Notes' => {
-                key: :service_note,
-              },
+            'Contact Location/Method' => {
+              key: :service_contact_location,
+              cleaner: ->(location) { normalize_location(location) },
+            },
+            'Value' => {
+              key: :financial_assistance_type,
+            },
+            'Case Notes' => {
+              key: :service_note,
             },
           },
         },
@@ -320,6 +337,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             'Time Spent' => {
               key: :service_time_spent,
               cleaner: ->(time) { parse_duration(time) },
+              field_type: :integer,
             },
             '.' => { # label in eto is just a period
               key: :service_benefits_contact_attempt,
@@ -340,15 +358,19 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             'Time Spent total time spend working with the client in person or on their behalf.' => {
               key: :service_time_spent,
               cleaner: ->(time) { parse_duration(time) },
+              field_type: :integer,
             },
             'Monthly SSI/SSDI Payment/Retirement' => {
               key: :service_benefits_ssi,
+              field_type: :float,
             },
             'Lump Payment' => {
               key: :service_lump_payment,
+              field_type: :float,
             },
             'SNAPS Amount' => {
               key: :service_snaps_amount,
+              field_type: :float,
             },
             'Note' => {
               key: :service_note,
@@ -393,6 +415,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             'Time Spent' => {
               key: :service_time_spent,
               cleaner: ->(time) { parse_duration(time) },
+              field_type: :integer,
             },
             'Case Notes' => {
               key: :service_note,
@@ -411,6 +434,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             'Value' => {
               key: :service_drug_tests_provided,
               cleaner: ->(tests) { tests.split('|') },
+              repeats: true,
             },
             'Case Notes' => {
               key: :service_note,
@@ -447,6 +471,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             'Time Spend' => {
               key: :service_time_spent,
               cleaner: ->(time) { parse_duration(time) },
+              field_type: :integer,
             },
             'Case Notes' => {
               key: :service_note,
@@ -466,6 +491,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               # field type should be a boolean, can we set that?
               key: :medication_supervision_value,
               cleaner: ->(value) { yn_boolean(value) },
+              field_type: :boolean,
             },
             'Case Notes' => {
               key: :service_note,
@@ -483,6 +509,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             'Time Spent' => {
               key: :service_time_spent,
               cleaner: ->(time) { parse_duration(time) },
+              field_type: :integer,
             },
           },
         },
@@ -503,6 +530,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             'Time Spent' => {
               key: :service_time_spent,
               cleaner: ->(time) { parse_duration(time) },
+              field_type: :integer,
             },
             'Type of Contact' => {
               key: :service_contact_type,
@@ -511,6 +539,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             'When We Love Services Provided' => {
               key: :services_provided_when_we_love,
               cleaner: ->(services) { services.split('|') },
+              repeats: true,
             },
             'Case Notes' => {
               key: :service_note,
@@ -536,6 +565,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           'Time Spent on Contact' => {
             key: :service_time_spent,
             cleaner: ->(time) { parse_duration(time) },
+            field_type: :integer,
           },
           'Case Notes' => {
             key: :service_note,
