@@ -303,10 +303,10 @@ class SeedMaker
     end
   end
 
-  # These tables are partitioned and need to have triggers and functions that
-  # schema loading doesn't include.  This will ensure that they exist on each deploy
+  # These tables are partitioned with inheritance and need to have triggers and
+  # functions that schema loading doesn't include.  This will ensure that they
+  # exist on each deploy
   def ensure_db_triggers_and_functions
-    GrdaWarehouse::ServiceHistoryService.ensure_triggers
     Reporting::MonthlyReports::Base.ensure_triggers
   end
 
