@@ -72,7 +72,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             owner_type: service_class.name,
             key: element_config.fetch(:key),
             field_type: element_config.fetch(:field_type, 'string'),
-            repeats: nil,
+            repeats: element_config[:repeats],
           )
         end
       end
