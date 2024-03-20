@@ -73,12 +73,11 @@ class ServiceHistoryServicesPartitioning < ActiveRecord::Migration[6.1]
       execute %(ALTER TABLE service_history_services_was_for_inheritance RENAME TO service_history_services)
 
       results = execute(%(select count(*) AS cnt FROM service_history_services_delete_me))
-      if results.to_a.first['cnt'] == 0
-        execute(%(DROP TABLE service_history_services_delete_me))
-      else
-        # This shouldn't be possible. Just being extra careful.
-        raise "For some reason service_history_services_delete_me wasn't empty!!!!"
-      end
+
+      # This shouldn't be possible. Just being extra careful.
+      raise "For some reason service_history_services_delete_me wasn't empty!!!!" unless results.to_a.first['cnt'] == 0
+
+      execute(%(DROP TABLE service_history_services_delete_me))
 
       service_history_view
     end
