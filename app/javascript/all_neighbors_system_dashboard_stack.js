@@ -482,13 +482,11 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
   }
 
   getActiveConfig() {
-    console.log(this.getActiveSet())
     // this.data is an array of arrays, the key is in position 0, data in position 1
     return this.getActiveSet()[1].config
   }
 
   getActiveSeries() {
-    console.log(this.getActiveSet())
     // this.data is an array of arrays, the key is in position 0, data in position 1
     return this.getActiveSet()[1].series
   }
@@ -505,19 +503,41 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
       if (this.state.demographics != d[0].demographics) {
         equal = false
       }
-      if(equal){
-        console.log(d)
-      }
       return equal
     })
     return activeSet[0]
   }
 
+  // var chart = bb.generate({
+  //   data: {
+  //     columns: [
+  //       ["Placements", 30, 200, 100],
+  //       ["Returns", 10, 20, 15]
+  //     ],
+  //     type: "bar", // for ESM specify as: line()
+  //   },
+  //   axis: {
+  //     rotated: true,
+  //     x: {
+  //       type: "category",
+  //       categories: [
+  //         "Adult only",
+  //         "Adult & Child",
+  //         "Child Only",
+  //       ],
+  //     }
+  //   },
+  //   bindto: "#categoryAxis"
+  // });
+
   getDataConfig() {
     console.log('this.series', this.series)
-    const columns = this.getActiveConfig().names.map((n, i) => {
-      const col = this.getColumn(n, i)
-      return col
+    console.log('active_config', this.getActiveConfig())
+
+    const categories = this.getActiveConfig().axis.x.categories
+
+    const columns = this.getActiveConfig().names.map((name, i) => {
+      return this.getColumn(name, i, categories)
     })
     return {
       order: null,
@@ -525,7 +545,6 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
       type: "bar",
       colors: this.config.colors,
       names: this.config.names,
-      groups: [this.config.keys],
       labels: {
         show: true,
         centered: true,
@@ -540,18 +559,25 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
     }
   }
 
-  getColumn(name, index) {
+  // Given an array of categories, and the index of the array in the values set
+  // collect sums for each category in the date range
+  // return an array of [name, category_1_sum, category_2_sum, ...]
+  getColumn(name, index, categories) {
     let col = [name]
 
     // find data that overlaps the filter date range
     const filtered = this.series.filter((n) => {
       return this.inDateRange(n.date, this.state.dateRange)
     })
-    const monthly_counts = filtered.map((s) => {
+    const monthly_counts_for_name = filtered.map((s) => {
       return s.values[index]
     })
-    col.push(d3.sum(monthly_counts))
-    return col
+
+    const monthly_counts = categories.map((_, cat_index) => {
+      // Gather up all of the returns or placements for the given category
+      return d3.sum(monthly_counts_for_name.map((counts) => counts[cat_index]))
+    })
+    return col.concat(monthly_counts)
   }
 
   getConfig() {
@@ -588,7 +614,24 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
     if(this.options.legend) {
       config.legend = this.getColumnLegend(this.options.legend.selector)
     }
+    console.log('hiere', superConfig)
     return {...superConfig, ...config}
+  }
+
+  getAxisConfig() {
+    return {
+      rotated: true,
+      x: {
+        type: "category",
+        categories: this.getActiveConfig().axis.x.categories,
+        tick: {
+          width: this.padding.left,
+        }
+      },
+      y: {
+        show: false,
+      }
+    }
   }
 }
 globalThis.AllNeighborsSystemDashboardStack = AllNeighborsSystemDashboardStack;

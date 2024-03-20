@@ -110,39 +110,41 @@ module AllNeighborsSystemDashboard
       scope.placed_in_range(range)
     end
 
-    # Example format of options: {:types=>["Diversion", "Permanent Supportive Housing", "Rapid Rehousing"], :colors=>["#E6B70F", "#B2803F", "#1865AB"], :project_type=>"All", :count_level=>"Individuals"}
+    # Example format of options: {:types=>['Adult Only', 'Adults and Children', 'Unknown Household Type'], :colors=>["#E6B70F", "#B2803F", "#1865AB"], :project_type=>"All", :count_level=>"Individuals"}
     def returns(options, count_item:, **)
       project_type = options[:project_type] || options[:homelessness_status]
-      options[:types].map do |type|
+      dates = date_range.map do |date|
+        counts_for_placed = options[:types].map do |type|
+          placed_scope = housed_total_scope.select(count_item)
+          placed_scope = filter_for_type(placed_scope, project_type)
+          placed_scope = filter_for_type(placed_scope, type)
+          placed_scope = filter_for_count_level(placed_scope, options[:count_level])
+          placed_scope = filter_for_date(placed_scope, date)
+          placed_count = mask_small_populations(placed_scope.count, mask: @report.mask_small_populations?)
+          placed_count = options[:hide_others_when_not_all] && project_type != 'All' && type != project_type ? 0 : placed_count
+          placed_count
+        end
+        counts_for_returns = options[:types].map do |type|
+          return_scope = returned_total_scope.select(count_item)
+          return_scope = filter_for_type(return_scope, project_type)
+          return_scope = filter_for_type(return_scope, type)
+          return_scope = filter_for_count_level(return_scope, options[:count_level])
+          return_scope = filter_for_date(return_scope, date)
+          return_count = mask_small_populations(return_scope.count, mask: @report.mask_small_populations?)
+          return_count = options[:hide_others_when_not_all] && project_type != 'All' && type != project_type ? 0 : return_count
+          return_count
+        end
         {
-          name: type,
-          series: date_range.map do |date|
-            placed_scope = housed_total_scope.select(count_item)
-            placed_scope = filter_for_type(placed_scope, project_type)
-            placed_scope = filter_for_type(placed_scope, type)
-            placed_scope = filter_for_count_level(placed_scope, options[:count_level])
-            placed_scope = filter_for_date(placed_scope, date)
-            placed_count = mask_small_populations(placed_scope.count, mask: @report.mask_small_populations?)
-            placed_count = options[:hide_others_when_not_all] && project_type != 'All' && type != project_type ? 0 : placed_count
-
-            return_scope = returned_total_scope.select(count_item)
-            return_scope = filter_for_type(return_scope, project_type)
-            return_scope = filter_for_type(return_scope, type)
-            return_scope = filter_for_count_level(return_scope, options[:count_level])
-            return_scope = filter_for_date(return_scope, date)
-            return_count = mask_small_populations(return_scope.count, mask: @report.mask_small_populations?)
-            return_count = options[:hide_others_when_not_all] && project_type != 'All' && type != project_type ? 0 : return_count
-
-            {
-              date: date.strftime('%Y-%-m-%-d'),
-              values: [placed_count, return_count],
-            }
-          end,
+          date: date.strftime('%Y-%-m-%-d'),
+          values: [
+            counts_for_placed,
+            counts_for_returns,
+          ],
         }
       end
+      dates
     end
 
-    # {
     #   {
     #     projectType: 'All',
     #     countLevel: 'Individuals',
@@ -175,6 +177,18 @@ module AllNeighborsSystemDashboard
                 countLevel: count_level,
                 demographics: demo,
               }
+              categories = case demo
+              when 'All'
+                ['All']
+              when 'Race'
+                demographic_race
+              when 'Age'
+                demographic_age
+              when 'Gender'
+                demographic_gender
+              when 'Household Type'
+                household_types
+              end
               data << [
                 key,
                 {
@@ -182,17 +196,14 @@ module AllNeighborsSystemDashboard
                     names: ['Placements', 'Returns'],
                     colors: ['#336770', '#E6B70F'],
                     label_colors: ['#ffffff', '#000000'],
+                    axis: {
+                      x: {
+                        type: 'category',
+                        categories: categories,
+                      },
+                    },
                   },
-                  series: [
-                    {
-                      date: '2020-05-01',
-                      values: [(10..15).to_a.sample, (0..5).to_a.sample],
-                    },
-                    {
-                      date: '2020-06-01',
-                      values: [(10..25).to_a.sample, (0..8).to_a.sample],
-                    },
-                  ],
+                  series: returns({ types: categories, project_type: project_type, count_level: count_level }, count_item: count_one_client_per_date_arel),
                 },
               ]
             end
