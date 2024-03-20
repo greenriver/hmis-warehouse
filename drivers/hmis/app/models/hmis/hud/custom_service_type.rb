@@ -21,6 +21,7 @@ class Hmis::Hud::CustomServiceType < Hmis::Hud::Base
 
   validates :hud_record_type, uniqueness: { scope: [:hud_type_provided] }, allow_nil: true
   validates :name, uniqueness: { scope: [:custom_service_category] }
+  validates_presence_of :name, allow_blank: false
   validates_with Hmis::Hud::Validators::CustomServiceTypeValidator
 
   scope :custom, -> { where(hud_record_type: nil) }
