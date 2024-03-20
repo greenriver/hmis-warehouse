@@ -119,7 +119,11 @@ module AllNeighborsSystemDashboard
     #   },
     # }
     def returns_data
-      [].tap do |data|
+      identifier = "#{@report.cache_key}/#{cache_key('returns', 'returns', {})}/#{__method__}"
+      existing = @report.datasets.find_by(identifier: identifier)
+      return existing.data if existing.present?
+
+      r_data = [].tap do |data|
         project_types.each do |project_type|
           count_levels.each do |count_level|
             (['All'] + demographics).each do |demo|
@@ -164,6 +168,12 @@ module AllNeighborsSystemDashboard
           end
         end
       end
+
+      @report.datasets.create!(
+        identifier: identifier,
+        data: r_data,
+      )
+      r_data
     end
   end
 end

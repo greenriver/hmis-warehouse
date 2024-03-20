@@ -78,9 +78,8 @@ module AllNeighborsSystemDashboard
 
     def cache_calculated_data
       AllNeighborsSystemDashboard::Header.cache_data(self)
-      # FIXME: re-enable
-      # AllNeighborsSystemDashboard::HousingTotalPlacementsData.cache_data(self)
-      # AllNeighborsSystemDashboard::TimeToObtainHousing.cache_data(self)
+      AllNeighborsSystemDashboard::HousingTotalPlacementsData.cache_data(self)
+      AllNeighborsSystemDashboard::TimeToObtainHousing.cache_data(self)
       AllNeighborsSystemDashboard::ReturnsToHomelessness.cache_data(self)
       # Disabled until these tabs come back to speed up report runtime
       # AllNeighborsSystemDashboard::UnhousedPopulation.cache_data(self)

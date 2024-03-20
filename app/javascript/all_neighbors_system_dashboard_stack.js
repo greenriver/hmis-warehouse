@@ -597,14 +597,11 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
       },
       onrendered: function() {
         normalizeDataLabels(this)
-        const selector = this.internal.config.bindto
-        let container = d3.select(`${selector} .bb-main`)
         fitLabels(this)
       },
       tooltip: {
         contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
           const index = d[0].index
-          const title = this.series[index].name
           const swatches = d.map((n) => {
             const swatch = `<svg class="chart-legend-item-swatch-prs1 mb-2" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color(n.id)}"/></svg>`;
             const swatchLabel = `<div class="d-flex justify-content-start align-items-center"><div style="width:20px;padding-right:10px;">${swatch}</div><div class="pl-2">${n.name}</div></div>`;
