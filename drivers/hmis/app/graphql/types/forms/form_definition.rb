@@ -13,6 +13,12 @@ module Types
 
     include Types::Admin::HasFormRules
 
+    available_filter_options do
+      arg :search_term, String
+      # ADD: role
+      # ADD: status
+    end
+
     field :id, ID, null: false
     field :cache_key, ID, null: false
     field :identifier, String, null: false
