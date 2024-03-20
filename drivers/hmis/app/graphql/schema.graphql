@@ -10115,8 +10115,8 @@ input ServiceTypeFilterOptions {
 Create service type input
 """
 input ServiceTypeInput {
-  customServiceCategoryId: ID!
   name: String!
+  serviceCategoryId: ID!
   supportsBulkAssignment: Boolean
 }
 

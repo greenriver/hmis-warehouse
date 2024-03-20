@@ -69,7 +69,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:access_control) { create_access_control(hmis_user, p1) }
 
     it 'should successfully create a service type' do
-      mutation_input = { customServiceCategoryId: c1.id, name: 'A new type' }
+      mutation_input = { serviceCategoryId: c1.id, name: 'A new type' }
       response, result = post_graphql(input: mutation_input) { create_service_type }
       expect(response.status).to eq(200), result.inspect
       service_type_id = result.dig('data', 'createServiceType', 'serviceType', 'id')
@@ -112,7 +112,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let!(:access_control) { create_access_control(hmis_user, p1, without_permission: [:can_configure_data_collection]) }
 
     it 'should throw an error when trying to create a service type' do
-      mutation_input = { customServiceCategoryId: c1.id, name: 'A new type' }
+      mutation_input = { serviceCategoryId: c1.id, name: 'A new type' }
       expect_access_denied(post_graphql(input: mutation_input) { create_service_type })
     end
   end

@@ -9,11 +9,13 @@ module Types
     description 'Create service type input'
 
     argument :name, String, required: true
-    argument :custom_service_category_id, ID, required: true
+    argument :service_category_id, ID, required: true
     argument :supports_bulk_assignment, Boolean, required: false
 
     def to_params
-      to_h
+      result = to_h.except(:service_category_id)
+      result[:custom_service_category_id] = service_category_id
+      result
     end
   end
 end
