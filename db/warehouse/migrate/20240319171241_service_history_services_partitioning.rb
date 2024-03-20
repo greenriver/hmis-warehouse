@@ -1,6 +1,7 @@
 # Future migration needs:
 #
 #   - drop of old parent table
+#   - drop of triggers
 #
 #   This all might look scary, but we never drop any of the sub-tables
 
