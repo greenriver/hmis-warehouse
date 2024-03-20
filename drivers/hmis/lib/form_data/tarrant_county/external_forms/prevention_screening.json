@@ -250,7 +250,10 @@
               "code": "other",
               "label": "Other"
             }
-          ]
+          ],
+          "mapping": {
+            "custom_field_key": "tchc_prevention_screening_how_many_months_is_your_lease"
+          }
         },
         {
           "link_id": "how_many_bedrooms_is_your_unit",
