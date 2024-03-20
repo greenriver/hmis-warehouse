@@ -29,7 +29,7 @@ class Hmis::Form::InstanceEnrollmentMatch
     when ALL_MATCH
       true
     when HOH_AND_ADULTS_MATCH
-      enrollment.head_of_household? && enrollment.adult?
+      enrollment.head_of_household? || enrollment.adult?
     when HOH_MATCH
       enrollment.head_of_household?
     when ALL_VETERANS_MATCH
