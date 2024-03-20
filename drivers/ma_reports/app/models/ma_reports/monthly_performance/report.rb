@@ -47,7 +47,7 @@ module MaReports::MonthlyPerformance
       [
         :start,
         :end,
-        :project_ids,
+        :project_type_codes,
         :age_ranges,
         :household_type,
         :hoh_only,
