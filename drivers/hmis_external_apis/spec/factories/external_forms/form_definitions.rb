@@ -18,7 +18,10 @@ FactoryBot.define do
                   "link_id": "your_name",
                   "required": true,
                   "type": "STRING",
-                  "text": "Your Name"
+                  "text": "Your Name",
+                  "mapping": {
+                    "custom_field_key": "your_name"
+                  }
                 }
               ]
             }
