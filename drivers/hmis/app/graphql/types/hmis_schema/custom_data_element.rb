@@ -22,5 +22,11 @@ module Types
     def activity_log_object_identity
       object.id
     end
+
+    def display_hooks
+      hooks = []
+      hooks << 'TABLE_SUMMARY' if object.show_in_summary
+      hooks
+    end
   end
 end
