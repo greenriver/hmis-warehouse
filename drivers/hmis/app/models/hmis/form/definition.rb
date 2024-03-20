@@ -472,6 +472,18 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     super(value.blank? ? nil : value.strip)
   end
 
+  def walk_definition_nodes(&block)
+    definition_struct.item&.each do |node|
+      walk_definition_node(node, &block)
+    end
+  end
+
+  protected def walk_definition_node(node, &block)
+    # if item has children, recur into them first
+    node.item&.each { |child| walk_definition_node(child, &block) }
+    block.call(node)
+  end
+
   # Find and/or initialize CustomDataElementDefinitions that are collected by this form. Eventually this should be done as part of the
   # Form Editor admin tool. For now, it is called by a rake task manually.
   def introspect_custom_data_element_definitions(set_definition_identifier: false)
