@@ -6,6 +6,8 @@
 require 'nokogiri'
 
 # render and upload static forms
+#
+# currently this needs to be run manually
 class HmisExternalApis::PublishExternalFormsJob
   include SafeInspectable
 
