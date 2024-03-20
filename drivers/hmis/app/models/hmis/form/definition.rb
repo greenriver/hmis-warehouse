@@ -191,6 +191,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       owner_class: Hmis::Hud::Client,
       permission: :can_edit_clients,
     },
+    EXTERNAL_FORM: {
+      owner_class: HmisExternalApis::ExternalForms::FormSubmission,
+      permission: :can_manage_external_form_submissions,
+    },
   }.freeze
 
   # HUD-defined numeric representation of Data Collection Stage for each HUD Assessment
@@ -519,7 +523,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
         cded.label = ActionView::Base.full_sanitizer.sanitize(item.readonly_text || item.brief_text || item.text || key.humanize)
 
         # If specified, set the definition identifier to specify that this CustomDataElementDefinition is ONLY collected by this form type.
-        cded.definition_identifier = identifier if set_definition_identifier
+        cded.form_definition_identifier = identifier if set_definition_identifier
 
         cded_records << cded
       end
@@ -532,15 +536,5 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # should use rails attr normalization in rails 7
   def external_form_object_key=(value)
     super(value.blank? ? nil : value.strip)
-  end
-
-  def walk_definition_nodes(&block)
-    walk_definition_node(definition, &block)
-  end
-
-  protected def walk_definition_node(node, &block)
-    block.call(node)
-    children = node['item']
-    children&.each { |child| walk_definition_node(child, &block) }
   end
 end

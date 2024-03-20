@@ -43,30 +43,9 @@ class HmisExternalApis::PublishExternalFormsJob
 
   # construct custom data element definitions from the nodes in the form definition
   def update_cdeds(definition)
-    owner_type = HmisExternalApis::ExternalForms::FormSubmission.sti_name
-    cded_by_key = definition.custom_data_element_definitions.index_by(&:key)
-    missing = []
-    definition.walk_definition_nodes do |node|
-      cded_key = node['link_id']
-      next unless ['STRING', 'CHOICE', 'BOOLEAN', 'INTEGER', 'TEXT', 'DATE'].include?((node['type']))
-
-      field_type = node['type'].downcase || 'string'
-      field_type = 'string' if field_type == 'choice'
-
-      attrs = {
-        owner_type: owner_type,
-        field_type: field_type,
-        key: cded_key,
-        label: cded_key.humanize,
-        repeats: false,
-        UserID: user_id,
-        data_source_id: data_source_id,
-        form_definition_identifier: definition.identifier,
-      }
-      cded = cded_by_key[cded_key]
-      cded ? cded.update!(attrs) : missing.push(attrs)
+    Hmis::Hud::CustomDataElementDefinition.transaction do
+      definition.introspect_custom_data_element_definitions(set_definition_identifier: true).each(&:save!)
     end
-    Hmis::Hud::CustomDataElementDefinition.import!(missing, validate: false)
   end
 
   # prepare form content for publication

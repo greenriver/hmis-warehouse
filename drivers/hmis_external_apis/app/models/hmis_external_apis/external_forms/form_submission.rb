@@ -33,19 +33,28 @@ module HmisExternalApis::ExternalForms
         definition_id: form_definition.id,
         raw_data: raw_data,
       }
-      FormSubmission.transaction do
-        submission.save!
-        submission.process_custom_data_elements!(form_definition: form_definition)
-      end
+      submission.save!
+      submission.process_custom_data_elements!(form_definition: form_definition)
       submission
     end
 
-    def cde_helper(data_source_id:, system_user_id:)
-      @cde_helper ||= HmisExternalApis::TcHmis::Importers::Loaders::CustomDataElementHelper.new(
-        data_source_id: data_source_id,
-        system_user_id: system_user_id,
-        today: Time.current,
-      )
+    VALUE_FIELDS = [
+      'float',
+      'integer',
+      'boolean',
+      'string',
+      'text',
+      'date',
+      'json',
+    ].map { |v| [v, "value_#{v}"] }
+
+    # note, we need to set all fields- bulk insert becomes unhappy if the columns are not uniform
+    def self.cde_value_fields(definition, value)
+      result = {}
+      VALUE_FIELDS.map do |field_type, field_name|
+        result[field_name] = field_type == definition.field_type ? value : nil
+      end
+      result
     end
 
     def process_custom_data_elements!(form_definition:)
@@ -55,13 +64,15 @@ module HmisExternalApis::ExternalForms
         value = raw_data[cded.key]
         next if value.blank?
 
-        helper = cde_helper(data_source_id: cded.data_source_id, system_user_id: cded.user_id)
-        cdes << helper.new_cde_record(
-          value: value,
+        cdes << {
           owner_type: self.class.sti_name,
           owner_id: id,
-          definition: cded,
-        )
+          data_element_definition_id: cded.id,
+          DateCreated: Date.today,
+          DateUpdated: Date.today,
+          data_source_id: cded.data_source_id,
+          UserID: cded.user_id,
+        }.merge(HmisExternalApis::ExternalForms::FormSubmission.cde_value_fields(cded, value))
       end
       return if cdes.empty?
 
