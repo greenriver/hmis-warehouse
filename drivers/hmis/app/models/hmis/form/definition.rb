@@ -467,6 +467,11 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     instances.map { |i| i.project_and_enrollment_match(...) }.compact.min_by(&:rank)
   end
 
+  # should use rails attr normalization in rails 7
+  def external_form_object_key=(value)
+    super(value.blank? ? nil : value.strip)
+  end
+
   # Find and/or initialize CustomDataElementDefinitions that are collected by this form. Eventually this should be done as part of the
   # Form Editor admin tool. For now, it is called by a rake task manually.
   def introspect_custom_data_element_definitions(set_definition_identifier: false)
@@ -483,58 +488,47 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     cdeds_by_key = cded_scope.index_by(&:key)
 
     cded_records = []
-    recur_traverse = lambda do |items|
-      items.each do |item|
-        # if item has children, recur into them first
-        recur_traverse.call(item.item) if item.item
+    walk_definition_nodes do |item|
+      # skip unless custom_field_key specified for this item
+      key = item.mapping&.custom_field_key
+      next unless key
 
-        # skip unless custom_field_key specified for this item
-        key = item.mapping&.custom_field_key
-        next unless key
+      # find CDED if it exists, or initialize a new one with defaults
+      cded = cdeds_by_key[key] || cded_scope.new(key: key, UserID: hud_user_id)
 
-        # find CDED if it exists, or initialize a new one with defaults
-        cded = cdeds_by_key[key] || cded_scope.new(key: key, UserID: hud_user_id)
-
-        field_type = case item.type
-        when 'STRING', 'TEXT', 'CHOICE', 'TIME_OF_DAY', 'OPEN_CHOICE'
-          'string'
-        when 'BOOLEAN'
-          'boolean'
-        when 'DATE'
-          'date'
-        when 'INTEGER'
-          'integer'
-        when 'CURRENCY'
-          'float'
-        when 'DISPLAY', 'GROUP'
-          puts "Skipping unexpected custom_field_key on non-question item. Unable to determine type. form: #{identifier}, link_id: #{item.link_id}, key: #{key}"
-          next
-        else
-          # nil
-          raise "unable to determine cded type for #{item&.type} (#{key})"
-        end
-
-        # Infer CDED attributes based on Item
-        cded.owner_type = owner_type
-        cded.field_type = field_type
-        cded.repeats = item.repeats || false
-
-        # Infer label for CustomDataElementDefinition based on various labels
-        cded.label = ActionView::Base.full_sanitizer.sanitize(item.readonly_text || item.brief_text || item.text || key.humanize)
-
-        # If specified, set the definition identifier to specify that this CustomDataElementDefinition is ONLY collected by this form type.
-        cded.form_definition_identifier = identifier if set_definition_identifier
-
-        cded_records << cded
+      field_type = case item.type
+      when 'STRING', 'TEXT', 'CHOICE', 'TIME_OF_DAY', 'OPEN_CHOICE'
+        'string'
+      when 'BOOLEAN'
+        'boolean'
+      when 'DATE'
+        'date'
+      when 'INTEGER'
+        'integer'
+      when 'CURRENCY'
+        'float'
+      when 'DISPLAY', 'GROUP'
+        puts "Skipping unexpected custom_field_key on non-question item. Unable to determine type. form: #{identifier}, link_id: #{item.link_id}, key: #{key}"
+        next
+      else
+        # nil
+        raise "unable to determine cded type for #{item&.type} (#{key})"
       end
+
+      # Infer CDED attributes based on Item
+      cded.owner_type = owner_type
+      cded.field_type = field_type
+      cded.repeats = item.repeats || false
+
+      # Infer label for CustomDataElementDefinition based on various labels
+      cded.label = ActionView::Base.full_sanitizer.sanitize(item.readonly_text || item.brief_text || item.text || key.humanize)
+
+      # If specified, set the definition identifier to specify that this CustomDataElementDefinition is ONLY collected by this form type.
+      cded.form_definition_identifier = identifier if set_definition_identifier
+
+      cded_records << cded
     end
 
-    recur_traverse.call(definition_struct.item)
     cded_records
-  end
-
-  # should use rails attr normalization in rails 7
-  def external_form_object_key=(value)
-    super(value.blank? ? nil : value.strip)
   end
 end
