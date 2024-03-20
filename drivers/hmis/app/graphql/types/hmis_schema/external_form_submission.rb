@@ -21,16 +21,6 @@ module Types
     field :definition, Forms::FormDefinition, null: false
     custom_data_elements_field
 
-    def custom_data_elements
-      load_ar_association(
-        definition,
-        :custom_data_element_definitions,
-        scope: Hmis::Hud::CustomDataElementDefinition.
-          for_type(object.class.sti_name).
-          order(:key),
-      )
-    end
-
     def definition
       load_ar_association(object, :definition)
     end
