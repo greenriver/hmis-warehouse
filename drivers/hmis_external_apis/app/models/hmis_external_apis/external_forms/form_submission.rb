@@ -60,6 +60,7 @@ module HmisExternalApis::ExternalForms
     def process_custom_data_elements!(form_definition:)
       custom_data_elements.delete_all
       cdes = []
+      now = Time.current
       form_definition.custom_data_element_definitions.each do |cded|
         value = raw_data[cded.key]
         next if value.blank?
@@ -67,11 +68,11 @@ module HmisExternalApis::ExternalForms
         cdes << {
           owner_type: self.class.sti_name,
           owner_id: id,
-          data_element_definition_id: cded.id,
-          DateCreated: Date.today,
-          DateUpdated: Date.today,
           data_source_id: cded.data_source_id,
+          data_element_definition_id: cded.id,
           UserID: cded.user_id,
+          DateCreated: now,
+          DateUpdated: now,
         }.merge(HmisExternalApis::ExternalForms::FormSubmission.cde_value_fields(cded, value))
       end
       return if cdes.empty?
