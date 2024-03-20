@@ -19,9 +19,7 @@ FactoryBot.define do
                   "required": true,
                   "type": "STRING",
                   "text": "Your Name",
-                  "mapping": {
-                    "custom_field_key": "your_name"
-                  }
+                  "mapping": {"custom_field_key": "your_name"}
                 }
               ]
             }

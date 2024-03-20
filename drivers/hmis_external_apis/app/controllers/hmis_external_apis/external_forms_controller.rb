@@ -19,7 +19,7 @@ class HmisExternalApis::ExternalFormsController < ActionController::Base
   content_security_policy false
 
   def presign
-    render json: { presignedUrl: create_hmis_external_apis_external_form_path, captchaScore: '1.0'}
+    render json: { presignedUrl: create_hmis_external_apis_external_form_path, captchaScore: '1.0' }
   end
 
   def show
@@ -42,11 +42,10 @@ class HmisExternalApis::ExternalFormsController < ActionController::Base
   end
 
   def create
-    definition_id = params['form_definition_id']
+    raw_data = params['external_form'].to_unsafe_h # rails artifact params are nested
+    definition_id = raw_data['form_definition_id']
     decoded_definition_id = definition_id ? ProtectedId::Encoder.decode(definition_id) : nil
-
     definition = Hmis::Form::Definition.find(decoded_definition_id)
-    raw_data = params.to_unsafe_h
     submission = HmisExternalApis::ExternalForms::FormSubmission.from_raw_data(
       raw_data,
       object_key: SecureRandom.uuid,

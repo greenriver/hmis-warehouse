@@ -20,6 +20,7 @@ RSpec.describe 'HmisExternalApis::PublishExternalFormsJob', type: :model do
             "item": [
               {
                 "link_id": "your_name",
+                "mapping": {"custom_field_key": "your_name"},
                 "required": true,
                 "type": "STRING",
                 "text": "Your Name"
@@ -39,6 +40,7 @@ RSpec.describe 'HmisExternalApis::PublishExternalFormsJob', type: :model do
               },
               {
                 "link_id": "a_radio_choice",
+                "mapping": {"custom_field_key": "a_radio_choice"},
                 "required": true,
                 "type": "CHOICE",
                 "component": "RADIO_BUTTONS",
@@ -56,6 +58,7 @@ RSpec.describe 'HmisExternalApis::PublishExternalFormsJob', type: :model do
               },
               {
                 "link_id": "a_select_choice",
+                "mapping": {"custom_field_key": "a_select_choice"},
                 "type": "CHOICE",
                 "component": "DROPDOWN",
                 "text": "How many tests?",
@@ -72,6 +75,7 @@ RSpec.describe 'HmisExternalApis::PublishExternalFormsJob', type: :model do
               },
               {
                 "link_id": "a_checkbox",
+                "mapping": {"custom_field_key": "a_checkbox"},
                 "type": "BOOLEAN",
                 "component": "CHECKBOX",
                 "text": "I understand that this is a test"

@@ -71,36 +71,36 @@ module HmisExternalApis::ExternalForms
       render_form_group(node: node) do
         case node['component']
         when 'PHONE'
-          render_form_input(label: node['text'], name: node['link_id'], required: node['required'], input_type: 'tel')
+          render_form_input(label: node['text'], name: node_name(node), required: node['required'], input_type: 'tel')
         when 'EMAIL'
-          render_form_input(label: node['text'], name: node['link_id'], required: node['required'], input_type: 'email')
+          render_form_input(label: node['text'], name: node_name(node), required: node['required'], input_type: 'email')
         else
-          render_form_input(label: node['text'], name: node['link_id'], required: node['required'], input_type: 'text')
+          render_form_input(label: node['text'], name: node_name(node), required: node['required'], input_type: 'text')
         end
       end
     end
 
     def render_boolean_node(node)
       render_form_group(node: node) do
-        render_form_checkbox(label: node['text'], name: node['link_id'], required: node['required'])
+        render_form_checkbox(label: node['text'], name: node_name(node), required: node['required'])
       end
     end
 
     def render_numeric_node(node)
       render_form_group(node: node) do
-        render_numeric_input(label: node['text'], name: node['link_id'], required: node['required'])
+        render_numeric_input(label: node['text'], name: node_name(node), required: node['required'])
       end
     end
 
     def render_text_node(node)
       render_form_group(node: node) do
-        render_form_textarea(label: node['text'], name: node['link_id'], required: node['required'])
+        render_form_textarea(label: node['text'], name: node_name(node), required: node['required'])
       end
     end
 
     def render_date_node(node)
       render_form_group(node: node) do
-        render_form_date(legend: node['text'], name: node['link_id'], required: node['required'])
+        render_form_date(legend: node['text'], name: node_name(node), required: node['required'])
       end
     end
 
@@ -119,9 +119,9 @@ module HmisExternalApis::ExternalForms
       render_form_group(node: node) do
         case node['component']
         when 'DROPDOWN'
-          render_form_select(label: node['text'], name: node['link_id'], options: options, required: node['required'])
+          render_form_select(label: node['text'], name: node_name(node), options: options, required: node['required'])
         when 'RADIO_BUTTONS'
-          render_form_radio_group(legend: node['text'], name: node['link_id'], options: options, required: node['required'])
+          render_form_radio_group(legend: node['text'], name: node_name(node), options: options, required: node['required'])
         else
           raise "component #{node['component']} not supported in #{node.inspect}"
         end
@@ -162,6 +162,13 @@ module HmisExternalApis::ExternalForms
       end
 
       return context.capture(&block)
+    end
+
+    def node_name(node)
+      value = node.dig('mapping', 'custom_field_key')
+      raise "node #{node['link_id']} is missing mapping.custom_field_key" unless value
+
+      value
     end
   end
 end
