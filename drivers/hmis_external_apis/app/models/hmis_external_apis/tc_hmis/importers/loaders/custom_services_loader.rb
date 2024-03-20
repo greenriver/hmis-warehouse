@@ -141,7 +141,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           next unless service_field.present? # Don't log this, if there is a problem, we will find it in create_records
 
           row_value = row.field_value(ANSWER)
-          value = row_value ? service_field[:cleaner].call(row_value) : nil
+          value = nil
+          if row_value
+            value = service_field[:cleaner] ? service_field[:cleaner].call(row_value) : row_value
+          end
 
           services[response_id][service_field[:key]] = value
         end
@@ -233,8 +236,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               cleaner: ->(size) { size.to_i },
             },
             'Case Notes' => {
-              key: :service_notes,
-              cleaner: ->(note) { note },
+              key: :service_note,
             },
           },
         },
@@ -254,15 +256,13 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             },
             'Value' => {
               key: :transportation_type,
-              cleaner: ->(type) { type },
             },
             'Quantity' => {
               key: :transportation_quantity,
               cleaner: ->(quantity) { quantity.to_i },
             },
             'Case Notes' => {
-              key: :service_notes,
-              cleaner: ->(note) { note },
+              key: :service_note,
             },
           },
         },
@@ -284,8 +284,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               cleaner: ->(quantity) { quantity.to_i },
             },
             'Case Notes' => {
-              key: :service_notes,
-              cleaner: ->(note) { note },
+              key: :service_note,
             },
           },
         },
@@ -306,11 +305,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               },
               'Value' => {
                 key: :financial_assistance_type,
-                cleaner: ->(type) { type },
               },
               'Case Notes' => {
-                key: :service_notes,
-                cleaner: ->(note) { note },
+                key: :service_note,
               },
             },
           },
@@ -326,11 +323,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             },
             '.' => { # label in eto is just a period
               key: :service_benefits_contact_attempt,
-              cleaner: ->(type) { type },
             },
             'Notes:' => {
-              key: :service_notes,
-              cleaner: ->(note) { note },
+              key: :service_note,
             },
           },
         },
@@ -341,15 +336,22 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           elements: {
             'Service' => {
               key: :service_benefits_type,
-              cleaner: ->(type) { type },
             },
             'Time Spent total time spend working with the client in person or on their behalf.' => {
               key: :service_time_spent,
               cleaner: ->(time) { parse_duration(time) },
             },
+            'Monthly SSI/SSDI Payment/Retirement' => {
+              key: :service_benefits_ssi,
+            },
+            'Lump Payment' => {
+              key: :service_lump_payment,
+            },
+            'SNAPS Amount' => {
+              key: :service_snaps_amount,
+            },
             'Note' => {
-              key: :service_notes,
-              cleaner: ->(note) { note },
+              key: :service_note,
             },
           },
         },
@@ -367,8 +369,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               cleaner: ->(type) { normalize_contact(type) },
             },
             'Case Notes' => {
-              key: :service_notes,
-              cleaner: ->(note) { note },
+              key: :service_note,
             },
           },
         },
@@ -377,11 +378,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           service_fields: {},
           id_prefix: 'dh-cm',
           elements: {
-            # FIXME: the full label that comes through from ETO for 'Contact Location/Method' is below. Maybe we can split labels by newline and drop the rest before trying to match?
             # "Service Location
-
             # Residential (if the service was provided in the clients home/apartment/ etc)
-            # Non-residential (If the service was provided in any other shelterd place but their home)
+            # Non-residential (If the service was provided in any other sheltered place but their home)
             # Place not meant for habitation (Unsheltered place -under bridge, camp sides, on the streets, outside, etc -)"
             'Service Location' => { # FIXME
               key: :service_contact_location,
@@ -396,8 +395,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               cleaner: ->(time) { parse_duration(time) },
             },
             'Case Notes' => {
-              key: :service_notes,
-              cleaner: ->(note) { note },
+              key: :service_note,
             },
           },
         },
@@ -415,8 +413,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               cleaner: ->(tests) { tests.split('|') },
             },
             'Case Notes' => {
-              key: :service_notes,
-              cleaner: ->(note) { note },
+              key: :service_note,
             },
           },
         },
@@ -434,8 +431,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               cleaner: ->(time) { parse_duration(time) },
             },
             'Case Notes' => {
-              key: :service_notes,
-              cleaner: ->(note) { note },
+              key: :service_note,
             },
           },
         },
@@ -453,8 +449,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               cleaner: ->(time) { parse_duration(time) },
             },
             'Case Notes' => {
-              key: :service_notes,
-              cleaner: ->(note) { note },
+              key: :service_note,
             },
           },
         },
@@ -473,8 +468,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               cleaner: ->(value) { yn_boolean(value) },
             },
             'Case Notes' => {
-              key: :service_notes,
-              cleaner: ->(note) { note },
+              key: :service_note,
             },
           },
         },
@@ -485,7 +479,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           elements: {
             'Service Location' => {
               key: :service_location_text,
-              cleaner: ->(service_location) { service_location },
             },
             'Time Spent' => {
               key: :service_time_spent,
@@ -519,6 +512,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               key: :services_provided_when_we_love,
               cleaner: ->(services) { services.split('|') },
             },
+            'Case Notes' => {
+              key: :service_note,
+            },
           },
         },
         'Substance Abuse Individual' => substance_abuse_config,
@@ -542,8 +538,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             cleaner: ->(time) { parse_duration(time) },
           },
           'Case Notes' => {
-            key: :service_notes,
-            cleaner: ->(note) { note },
+            key: :service_note,
           },
         },
       }.dup.freeze
