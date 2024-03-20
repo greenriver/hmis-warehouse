@@ -12,7 +12,7 @@
           "type": "STRING",
           "text": "First Name",
           "mapping": {
-            "custom_field_key": "tchc-prevention-1"
+            "custom_field_key": "tchc_prevention_screening_first_name"
           }
         },
         {
@@ -21,7 +21,7 @@
           "type": "STRING",
           "text": "Last Name",
           "mapping": {
-            "custom_field_key": "tchc-prevention-2"
+            "custom_field_key": "tchc_prevention_screening_last_name"
           }
         },
         {
@@ -30,7 +30,7 @@
           "type": "STRING",
           "text": "Address & Apartment Number",
           "mapping": {
-            "custom_field_key": "tchc-prevention-3"
+            "custom_field_key": "tchc_prevention_screening_address_apartment_number"
           }
         },
         {
@@ -39,7 +39,7 @@
           "type": "STRING",
           "text": "City",
           "mapping": {
-            "custom_field_key": "tchc-prevention-4"
+            "custom_field_key": "tchc_prevention_screening_city"
           }
         },
         {
@@ -47,7 +47,7 @@
           "type": "STRING",
           "text": "Zip Code",
           "mapping": {
-            "custom_field_key": "tchc-prevention-5"
+            "custom_field_key": "tchc_prevention_screening_zip_code"
           }
         },
         {
@@ -56,7 +56,7 @@
           "type": "STRING",
           "text": "Client Email",
           "mapping": {
-            "custom_field_key": "tchc-prevention-6"
+            "custom_field_key": "tchc_prevention_screening_client_email"
           }
         },
         {
@@ -65,7 +65,7 @@
           "type": "STRING",
           "text": "Client Phone Number",
           "mapping": {
-            "custom_field_key": "tchc-prevention-7"
+            "custom_field_key": "tchc_prevention_screening_client_phone_number"
           }
         },
         {
@@ -74,7 +74,7 @@
           "type": "DATE",
           "text": "Date of Birth",
           "mapping": {
-            "custom_field_key": "tchc-prevention-8"
+            "custom_field_key": "tchc_prevention_screening_dob"
           }
         }
       ]
@@ -105,7 +105,7 @@
             }
           ],
           "mapping": {
-            "custom_field_key": "tchc-prevention-9"
+            "custom_field_key": "tchc_prevention_screening_military_veteran_in_home"
           }
         },
         {
@@ -121,7 +121,7 @@
             }
           ],
           "mapping": {
-            "custom_field_key": "tchc-prevention-10"
+            "custom_field_key": "tchc_prevention_screening_military_veteran_notice"
           }
         },
         {
@@ -140,7 +140,7 @@
             }
           ],
           "mapping": {
-            "custom_field_key": "tchc-prevention-11"
+            "custom_field_key": "tchc_prevention_screening_received_rental_assistance_in_last_three_years"
           }
         },
         {
@@ -159,7 +159,7 @@
             }
           ],
           "mapping": {
-            "custom_field_key": "tchc-prevention-12"
+            "custom_field_key": "tchc_prevention_screening_received_texas_rent_relief_or_erap"
           }
         },
         {
@@ -178,7 +178,7 @@
             }
           ],
           "mapping": {
-            "custom_field_key": "tchc-prevention-13"
+            "custom_field_key": "tchc_prevention_screening_lives_in_unit_with_assisted_by_federal_funding"
           }
         },
         {
@@ -187,7 +187,7 @@
           "component": "CHECKBOX",
           "text": "I understand that my information will be cross referenced with other agencies that may have provided rental assistance to my household within the last 3 years",
           "mapping": {
-            "custom_field_key": "tchc-prevention-14"
+            "custom_field_key": "tchc_prevention_screening_understanding_of_cross_reference"
           }
         },
         {
@@ -195,7 +195,7 @@
           "type": "TEXT",
           "text": "Please explain current Household \"Crisis\" that has resulted in the non-Payment of rent for your household this month.",
           "mapping": {
-            "custom_field_key": "tchc-prevention-15"
+            "custom_field_key": "tchc_prevention_screening_explanation_of_non_payment_of_rent"
           }
         },
         {
@@ -214,7 +214,7 @@
             }
           ],
           "mapping": {
-            "custom_field_key": "tchc-prevention-16"
+            "custom_field_key": "tchc_prevention_screening_has_been_literally_homeless"
           }
         }
       ]
@@ -284,7 +284,7 @@
             }
           ],
           "mapping": {
-            "custom_field_key": "tchc-prevention-17"
+            "custom_field_key": "tchc_prevention_screening_how_many_bedrooms_is_your_unit"
           }
         },
         {
@@ -303,7 +303,7 @@
             }
           ],
           "mapping": {
-            "custom_field_key": "tchc-prevention-18"
+            "custom_field_key": "tchc_prevention_screening_have_you_received_a_3_daynotice_to_vacate"
           }
         },
         {
@@ -322,7 +322,7 @@
             }
           ],
           "mapping": {
-            "custom_field_key": "tchc-prevention-19"
+            "custom_field_key": "tchc_prevention_screening_have_you_been_served_with_eviction_court_date"
           }
         },
         {
@@ -330,7 +330,7 @@
           "type": "INTEGER",
           "text": "How many people on the lease are over 18 years old?",
           "mapping": {
-            "custom_field_key": "tchc-prevention-20"
+            "custom_field_key": "tchc_prevention_screening_how_many_people_on_lease_are_over_18yo"
           }
         },
         {
@@ -338,7 +338,7 @@
           "type": "INTEGER",
           "text": "How much is your base rent? (This does NOT include utilities or other incidentals.)",
           "mapping": {
-            "custom_field_key": "tchc-prevention-21"
+            "custom_field_key": "tchc_prevention_screening_monthly_rent_amount"
           }
         },
         {
@@ -346,7 +346,7 @@
           "type": "INTEGER",
           "text": "As of today, how much do you owe on your rent?",
           "mapping": {
-            "custom_field_key": "tchc-prevention-22"
+            "custom_field_key": "tchc_prevention_screening_amount_of_rent_owed"
           }
         },
         {
@@ -354,7 +354,7 @@
           "type": "STRING",
           "text": "Landlord Name",
           "mapping": {
-            "custom_field_key": "tchc-prevention-23"
+            "custom_field_key": "tchc_prevention_screening_landlord_name"
           }
         },
         {
@@ -362,7 +362,7 @@
           "type": "STRING",
           "text": "Landlord Phone Number",
           "mapping": {
-            "custom_field_key": "tchc-prevention-24"
+            "custom_field_key": "tchc_prevention_screening_landlord_phone_number"
           }
         },
         {
@@ -370,7 +370,7 @@
           "type": "STRING",
           "text": "Landlord Email",
           "mapping": {
-            "custom_field_key": "tchc-prevention-25"
+            "custom_field_key": "tchc_prevention_screening_landlord_email"
           }
         }
       ]
@@ -396,7 +396,7 @@
             }
           ],
           "mapping": {
-            "custom_field_key": "tchc-prevention-26"
+            "custom_field_key": "tchc_prevention_screening_landlord_has_relationship_with_anyone_in_household"
           }
         },
         {
@@ -415,7 +415,7 @@
             }
           ],
           "mapping": {
-            "custom_field_key": "tchc-prevention-27"
+            "custom_field_key": "tchc_prevention_screening_has_anyone_assisted_with_rent_in_past_12_months"
           }
         },
         {
@@ -435,7 +435,7 @@
             }
           ],
           "mapping": {
-            "custom_field_key": "tchc-prevention-28"
+            "custom_field_key": "tchc_prevention_screening_resident_of_arlington_fort_worth_or_grand_prairie"
           }
         },
         {
@@ -443,7 +443,7 @@
           "type": "INTEGER",
           "text": "What is the GROSS Income per pay period or Monthly Income for household members over age 18?",
           "mapping": {
-            "custom_field_key": "tchc-prevention-29"
+            "custom_field_key": "tchc_prevention_screening_household_member_gross_income_per_pay_period_or_monthly"
           }
         },
         {
@@ -458,7 +458,7 @@
               "component": "CHECKBOX",
               "text": "SSI",
               "mapping": {
-                "custom_field_key": "tchc-prevention-30"
+                "custom_field_key": "tchc_prevention_screening_in_past_30_days_had_income_from_ssi"
               }
             },
             {
@@ -467,7 +467,7 @@
               "component": "CHECKBOX",
               "text": "SSDI",
               "mapping": {
-                "custom_field_key": "tchc-prevention-31"
+                "custom_field_key": "tchc_prevention_screening_in_past_30_days_had_income_from_ssdi"
               }
             },
             {
@@ -476,7 +476,7 @@
               "component": "CHECKBOX",
               "text": "Veteran's Benefits",
               "mapping": {
-                "custom_field_key": "tchc-prevention-32"
+                "custom_field_key": "tchc_prevention_screening_in_past_30_days_had_income_from_veterans_benefits"
               }
             },
             {
@@ -485,7 +485,7 @@
               "component": "CHECKBOX",
               "text": "Food Stamps",
               "mapping": {
-                "custom_field_key": "tchc-prevention-33"
+                "custom_field_key": "tchc_prevention_screening_in_past_30_days_had_income_from_food_stamps"
               }
             },
             {
@@ -494,7 +494,7 @@
               "component": "CHECKBOX",
               "text": "Child Support",
               "mapping": {
-                "custom_field_key": "tchc-prevention-34"
+                "custom_field_key": "tchc_prevention_screening_in_past_30_days_had_income_from_child_support"
               }
             },
             {
@@ -503,7 +503,7 @@
               "component": "CHECKBOX",
               "text": "Unemployment",
               "mapping": {
-                "custom_field_key": "tchc-prevention-35"
+                "custom_field_key": "tchc_prevention_screening_in_past_30_days_had_income_from_unemployment"
               }
             }
           ]
@@ -524,7 +524,7 @@
             }
           ],
           "mapping": {
-            "custom_field_key": "tchc-prevention-36"
+            "custom_field_key": "tchc_prevention_screening_lost_employment_or_income_in_last_30_days"
           }
         },
         {
@@ -543,7 +543,7 @@
             }
           ],
           "mapping": {
-            "custom_field_key": "tchc-prevention-37"
+            "custom_field_key": "tchc_prevention_screening_household_member_notified_of_income_or_state_benefits"
           }
         }
       ]
