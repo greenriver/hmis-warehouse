@@ -11,6 +11,7 @@ module Types
     field :id, ID, null: false
     field :key, String, null: false
     field :field_type, HmisSchema::Enums::CustomDataElementType, null: false
+    field :display_hooks, [HmisSchema::Enums::DisplayHook], null: false, description: 'Where to display the custom field in the application'
     field :label, String, null: false
     field :repeats, Boolean, null: false
     field :value, HmisSchema::CustomDataElementValue, null: true
