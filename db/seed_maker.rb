@@ -408,6 +408,6 @@ class SeedMaker
     maintain_system_groups
     populate_internal_system_choices
     GrdaWarehouse::SystemColor.ensure_colors
-    Translation::maintain_keys
+    Translation.maintain_keys
   end
 end
