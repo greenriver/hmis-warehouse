@@ -400,11 +400,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           service_fields: {},
           id_prefix: 'dh-cm',
           elements: {
-            # "Service Location
-            # Residential (if the service was provided in the clients home/apartment/ etc)
-            # Non-residential (If the service was provided in any other sheltered place but their home)
-            # Place not meant for habitation (Unsheltered place -under bridge, camp sides, on the streets, outside, etc -)"
-            'Service Location' => { # FIXME
+            'Service Location' => {
               key: :service_contact_location,
               cleaner: ->(location) { normalize_location(location) },
             },
@@ -488,7 +484,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               cleaner: ->(location) { normalize_location(location) },
             },
             'Value' => {
-              # field type should be a boolean, can we set that?
               key: :medication_supervision_value,
               cleaner: ->(value) { yn_boolean(value) },
               field_type: :boolean,
@@ -523,7 +518,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           },
           id_prefix: 'cm-notes',
           elements: {
-            'Contact Location/Method' => {
+            'Service Location' => {
               key: :service_contact_location,
               cleaner: ->(location) { normalize_location(location) },
             },
@@ -536,7 +531,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               key: :service_contact_type,
               cleaner: ->(type) { normalize_contact(type) },
             },
-            'When We Love Services Provided' => {
+            'When We Love: Services Provided' => {
               key: :services_provided_when_we_love,
               cleaner: ->(services) { services.split('|') },
               repeats: true,

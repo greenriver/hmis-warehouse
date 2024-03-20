@@ -161,9 +161,9 @@ module HmisExternalApis::AcHmis::Importers::Loaders
       self.class.name.to_s
     end
 
-    def log_skipped_row(row, field:, prefix: nil)
+    def log_skipped_row(row, field:)
       value = row_value(row, field: field)
-      log_info "#{row.context} #{prefix || ''} could not resolve \"#{field}\":\"#{value}\""
+      log_info "#{row.context} could not resolve \"#{field}\":\"#{value}\""
     end
 
     def log_processed_result(name: nil, expected:, actual:)
