@@ -8,8 +8,7 @@ module HmisExternalApis::ExternalForms
   class FormSubmission < ::HmisExternalApis::HmisExternalApisBase
     self.table_name = 'hmis_external_form_submissions'
     belongs_to :definition, class_name: 'Hmis::Form::Definition'
-
-    has_many :custom_data_elements, as: :owner, dependent: :destroy, class_name: 'Hmis::Hud::CustomDataElement'
+    include ::Hmis::Hud::Concerns::HasCustomDataElements
 
     def spam
       # The recaptcha spam score is a float between 0 (likely spam) and 1.0 (likely real)
@@ -38,6 +37,25 @@ module HmisExternalApis::ExternalForms
       submission
     end
 
+    VALUE_FIELDS = [
+      'float',
+      'integer',
+      'boolean',
+      'string',
+      'text',
+      'date',
+      'json',
+    ].map { |v| [v, "value_#{v}"] }
+
+    # note, we need to set all fields- bulk insert becomes unhappy if the columns are not uniform
+    def self.cde_value_fields(definition, value)
+      result = {}
+      VALUE_FIELDS.map do |field_type, field_name|
+        result[field_name] = field_type == definition.field_type ? value : nil
+      end
+      result
+    end
+
     def process_custom_data_elements!(form_definition:)
       custom_data_elements.delete_all
       cdes = []
@@ -49,13 +67,12 @@ module HmisExternalApis::ExternalForms
         cdes << {
           owner_type: self.class.sti_name,
           owner_id: id,
-          value_string: value,
           data_source_id: cded.data_source_id,
           data_element_definition_id: cded.id,
           UserID: cded.user_id,
           DateCreated: now,
           DateUpdated: now,
-        }
+        }.merge(HmisExternalApis::ExternalForms::FormSubmission.cde_value_fields(cded, value))
       end
       return if cdes.empty?
 

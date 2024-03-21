@@ -191,6 +191,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       owner_class: Hmis::Hud::Client,
       permission: :can_edit_clients,
     },
+    EXTERNAL_FORM: {
+      owner_class: HmisExternalApis::ExternalForms::FormSubmission,
+      permission: :can_manage_external_form_submissions,
+    },
   }.freeze
 
   # HUD-defined numeric representation of Data Collection Stage for each HUD Assessment
@@ -469,7 +473,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def walk_definition_nodes(&block)
-    definition_struct.item&.each do |node|
+    definition_struct&.item&.each do |node|
       walk_definition_node(node, &block)
     end
   end
@@ -532,7 +536,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       cded.label = ActionView::Base.full_sanitizer.sanitize(item.readonly_text || item.brief_text || item.text || key.humanize)
 
       # If specified, set the definition identifier to specify that this CustomDataElementDefinition is ONLY collected by this form type.
-      cded.definition_identifier = identifier if set_definition_identifier
+      cded.form_definition_identifier = identifier if set_definition_identifier
 
       cded_records << cded
     end
