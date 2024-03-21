@@ -32,6 +32,10 @@ class AllNeighborsSystemDashboardStack {
     return {}
   }
 
+  getActiveSeries() {
+    return {};
+  }
+
   inDateRange(dateString, range) {
     const [year, month, day] = dateString.split('-')
     //ruby date month is 1 based while js date month is 0
