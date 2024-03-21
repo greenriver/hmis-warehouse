@@ -33,7 +33,7 @@ module AllNeighborsSystemDashboard
     # For PH this means the client has a move-in-date and exit date,
     # For Diversion this means the client has an exit date
     private def returned_total_scope
-      housed_total_scope.where.not(exit_date: nil, return_date: nil)
+      housed_total_scope.where.not(exit_date: nil).where.not(return_date: nil)
     end
 
     def years
@@ -236,6 +236,12 @@ module AllNeighborsSystemDashboard
         current_date += 1.month
       end
       date_range
+    end
+
+    def bucketed_project_type(enrollment)
+      return 'Diversion' if enrollment.project_id.in?(@report.filter.secondary_project_ids) && enrollment.destination.in?(@report.class::POSITIVE_DIVERSION_DESTINATIONS)
+      return 'Permanent Supportive Housing' if enrollment.project_type.in?([3, 10])
+      return 'Rapid Rehousing' if enrollment.project_type.in?([9, 13])
     end
 
     private def filter_for_type(scope, type)

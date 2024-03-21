@@ -22,13 +22,9 @@ module AllNeighborsSystemDashboard
     end
 
     def project_types_with_data
-      # FIXME: needs to be based on the data available
-      project_types
-      # raise 'hi'
-      # @project_types_with_data ||= line_data[:project_types].
-      #   # Reject any project types where we have NO data
-      #   reject { |m| m[:count_levels].flatten.map { |n| n[:monthly_counts] }.flatten(2).map(&:last)&.all?(0) }.
-      #   map { |m| m[:project_type] }
+      ['All'] + returned_total_scope.find_each.map do |enrollment|
+        bucketed_project_type(enrollment)
+      end.uniq
     end
 
     # Count once per client per day
