@@ -6,8 +6,7 @@
       "text": "User Notes",
       "mapping": {
         "field_name": "notes"
-      },
-      "required": true
+      }
     },
     {
       "link_id": "reviewed",

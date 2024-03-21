@@ -87,7 +87,8 @@
         {
           "type": "DISPLAY",
           "link_id": "assessment_evaluation_notice",
-          "text": "<p>Please note: Assessments will be evaluated for eligibility and completeness. Tenants will be notified or asked for additional requested items by email.</p><p>Tenants MUST NOT have received rental assistance from any other sources for which tenant is requesting at this time.</p>"
+          "text": "<p>Please note: Assessments will be evaluated for eligibility and completeness. Tenants will be notified or asked for additional requested items by email.</p><p>Tenants MUST NOT have received rental assistance from any other sources for which tenant is requesting at this time.</p>",
+          "readonly_text": ""
         },
         {
           "link_id": "military_veteran_in_home",
@@ -115,14 +116,11 @@
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "military_veteran_in_home",
+              "question": "tchc_prevention_screening_military_veteran_in_home",
               "operator": "EQUAL",
               "answer_code": "yes"
             }
-          ],
-          "mapping": {
-            "custom_field_key": "tchc_prevention_screening_military_veteran_notice"
-          }
+          ]
         },
         {
           "link_id": "received_rental_assistance_in_last_three_years",
@@ -330,7 +328,7 @@
         },
         {
           "link_id": "how_many_people_on_lease_are_over_18yo",
-          "type": "INTEGER",
+          "type": "STRING",
           "text": "How many people on the lease are over 18 years old?",
           "mapping": {
             "custom_field_key": "tchc_prevention_screening_how_many_people_on_lease_are_over_18yo"
@@ -338,7 +336,7 @@
         },
         {
           "link_id": "monthly_rent_amount",
-          "type": "INTEGER",
+          "type": "STRING",
           "text": "How much is your base rent? (This does NOT include utilities or other incidentals.)",
           "mapping": {
             "custom_field_key": "tchc_prevention_screening_monthly_rent_amount"
@@ -346,7 +344,7 @@
         },
         {
           "link_id": "amount_of_rent_owed",
-          "type": "INTEGER",
+          "type": "STRING",
           "text": "As of today, how much do you owe on your rent?",
           "mapping": {
             "custom_field_key": "tchc_prevention_screening_amount_of_rent_owed"
@@ -443,7 +441,7 @@
         },
         {
           "link_id": "household_member_gross_income_per_pay_period_or_monthly",
-          "type": "INTEGER",
+          "type": "STRING",
           "text": "What is the GROSS Income per pay period or Monthly Income for household members over age 18?",
           "mapping": {
             "custom_field_key": "tchc_prevention_screening_household_member_gross_income_per_pay_period_or_monthly"

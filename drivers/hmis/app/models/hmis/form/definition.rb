@@ -473,7 +473,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def walk_definition_nodes(&block)
-    definition_struct.item&.each do |node|
+    definition_struct&.item&.each do |node|
       walk_definition_node(node, &block)
     end
   end
