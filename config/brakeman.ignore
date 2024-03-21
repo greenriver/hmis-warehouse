@@ -1291,6 +1291,29 @@
       "note": ""
     },
     {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "608768d8d06f61fc8f52cd432a83ee4f1b2ec096b8bab3913f38b4cc7c80ffdf",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "drivers/hmis/app/models/hmis/hud/client.rb",
+      "line": 126,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "where(\"#{c_t[:id].to_sql} IN (#{[unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user)), joins(:projects).where(p_t[:id].in(Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id))), joins(:wip).where(wip_t[:project_id].in(Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id)))].map do\n s.select(c_t[:id].to_sql).to_sql\n end.join(\" UNION ALL \")})\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Hmis::Hud::Client",
+        "method": null
+      },
+      "user_input": "Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id)",
+      "confidence": "High",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "615f7900b129c22f4d71c443ead85e0694fc30435dfdc15e52ec03a94d2a3057",
@@ -2418,7 +2441,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/homeless_summary_report/app/models/homeless_summary_report/report.rb",
-      "line": 961,
+      "line": 963,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "clients.send(variant).send(\"spm_#{field}\").average(\"spm_#{field}\")",
       "render_path": null,
@@ -3495,6 +3518,6 @@
       "note": ""
     }
   ],
-  "updated": "2024-03-05 15:12:46 +0000",
+  "updated": "2024-03-17 23:49:45 +0000",
   "brakeman_version": "5.4.1"
 }

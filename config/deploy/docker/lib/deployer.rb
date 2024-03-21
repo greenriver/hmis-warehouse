@@ -4,6 +4,7 @@ require 'English'
 require_relative 'roll_out'
 require_relative 'aws_sdk_helpers'
 require_relative 'asset_compiler'
+require_relative 'blue_green'
 
 class Deployer
   include AwsSdkHelpers::Helpers
@@ -332,10 +333,16 @@ class Deployer
   def _target_group_arn
     return @target_group_arn unless @target_group_arn.nil?
 
-    results = elbv2.describe_target_groups
+    if ENV['USE_LEGACY_TARGET_GROUP_ARN_BEHAVIOR'] == 'true'
+      results = elbv2.describe_target_groups
 
-    @target_group_arn = results.target_groups.find do |tg|
-      tg.target_group_name == target_group_name
-    end.target_group_arn
+      @target_group_arn = results.target_groups.find do |tg|
+        tg.target_group_name == target_group_name
+      end.target_group_arn
+    else
+      bg = BlueGreen.new(target_group_name)
+      bg.check!
+      @target_group_arn = bg.target_group_to_deploy_to.target_group_arn
+    end
   end
 end
