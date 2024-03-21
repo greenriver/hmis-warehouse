@@ -11,8 +11,7 @@ class Hmis::AppSettingsController < Hmis::BaseController
   def show
     okta_enabled = ENV['HMIS_OKTA_CLIENT_ID'].present? && ENV['OKTA_DOMAIN'].present?
 
-    hmis_logo = ENV['HMIS_LOGO']
-    logo = hmis_logo && !hmis_logo.blank? ? hmis_logo : ENV['LOGO'] # prefer HMIS_LOGO if provided, otherwise LOGO
+    logo = ENV['HMIS_LOGO']&.presence || ENV['LOGO']&.presence # prefer HMIS_LOGO if provided, otherwise LOGO
     if logo.present?
       logo_path = SerializedAsset.exists?(logo) ? SerializedAsset.get_src(logo) : "theme/logo/#{logo}"
     end
