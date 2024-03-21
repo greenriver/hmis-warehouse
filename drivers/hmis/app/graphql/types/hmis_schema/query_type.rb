@@ -396,6 +396,15 @@ module Types
       Hmis::Form::Definition.find(id)
     end
 
+    field :external_form_definition, Types::Forms::FormDefinition, null: true do
+      argument :identifier, String, required: true
+    end
+    def external_form_definition(identifier:)
+      raise 'Access denied' unless current_user.can_manage_external_form_submissions?
+
+      Hmis::Form::Definition.find_by(role: 'EXTERNAL_FORM', identifier: identifier)
+    end
+
     field :form_definitions, Types::Forms::FormDefinition.page_type, null: false do
       filters_argument Forms::FormDefinition
     end
