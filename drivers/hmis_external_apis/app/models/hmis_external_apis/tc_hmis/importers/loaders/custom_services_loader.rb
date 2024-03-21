@@ -508,7 +508,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             },
           },
         },
-        'Case Management/Case Management notes' => {
+        'Case Management/ Case Management Notes' => {
           service_type: 'When We Love',
           service_fields: {
             'Assistance Amount' => {
