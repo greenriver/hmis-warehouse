@@ -584,7 +584,7 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
     const config = {
       size: {
         width: $(this.selector).width(),
-        height: this.config.axis.x.categories.length * 120,
+        height: this.config.axis.x.categories.length * 130,
       },
       padding: {
         left: 250,
@@ -594,6 +594,7 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
       },
       bar: {
         width: 40,
+        padding: 5,
       },
       onrendered: function() {
         normalizeDataLabels(this)

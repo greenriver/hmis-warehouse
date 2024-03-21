@@ -145,14 +145,14 @@ module AllNeighborsSystemDashboard
                 household_types
               end
               names = ['Placements', 'Returns']
-              colors = ['#336770', '#E6B70F']
+              colors = ['#336770', '#884D01']
               label_colors = names.zip(colors).to_h.transform_values { |v| label_color(v) }
               data << [
                 key,
                 {
                   config: {
                     names: names,
-                    colors: colors,
+                    colors: names.zip(colors).to_h,
                     label_colors: label_colors,
                     axis: {
                       x: {
