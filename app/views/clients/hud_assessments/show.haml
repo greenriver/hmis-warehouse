@@ -20,9 +20,9 @@
         %dt Prioritization Status
         %dd= HudUtility2024.prioritization_status @assessment.PrioritizationStatus
         %dt Created
-        %dd= HudUtility2024.prioritization_status @assessment.DateCreated
+        %dd= @assessment.DateCreated
         %dt Updated
-        %dd= HudUtility2024.prioritization_status @assessment.DateUpdated
+        %dd= @assessment.DateUpdated
     - if @assessment.assessment_results.any?
       .assessment-results.ml-8
         %h3 Assessment Results

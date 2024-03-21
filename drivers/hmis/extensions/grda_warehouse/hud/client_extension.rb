@@ -10,6 +10,8 @@ module Hmis::GrdaWarehouse::Hud
 
     included do
       has_many :custom_client_addresses, **Hmis::Hud::Base.hmis_relation(:PersonalID, 'CustomClientAddress'), inverse_of: :client
+      has_many :hmis_custom_assessments, through: :enrollments
+      has_many :hmis_source_custom_assessments, through: :source_enrollments, source: :hmis_custom_assessments
 
       def as_hmis
         Hmis::Hud::Client.find(id)

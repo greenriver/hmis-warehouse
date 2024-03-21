@@ -59,6 +59,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :services, through: :enrollments_including_wip
   has_many :custom_services, through: :enrollments_including_wip
 
+  has_one :warehouse_project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :id, primary_key: :id
+
   accepts_nested_attributes_for :affiliations, allow_destroy: true
 
   # FIXME: joining services through enrollments confounds postgres. On larger projects, the query might take many

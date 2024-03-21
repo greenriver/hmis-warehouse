@@ -397,6 +397,10 @@ module ApplicationHelper
     HmisEnforcement.hmis_admin_visible?(current_user)
   end
 
+  def url_for_hmis(data_source, path)
+    "//#{data_source.hmis}/#{path}"
+  end
+
   def omni_auth_providers
     if ENV['OKTA_DOMAIN'].present?
       [['Okta', '/users/auth/okta']]

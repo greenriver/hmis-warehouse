@@ -1,0 +1,40 @@
+- title = @assessment.form_processor.definition.title
+- content_for :modal_title, title
+= content_for :crumbs do
+  = link_to appropriate_client_path(@client) do
+    &laquo; Client
+
+- related_ce_assessment = GrdaWarehouse::Hud::Assessment.find_by(id: @assessment.form_processor&.ce_assessment_id)
+.well
+  .d-flex
+    .assessment
+      %h3 Assessment Details
+      %dl
+        %dt Project
+        %dd= @assessment.enrollment.project.warehouse_project.name(current_user)
+        %dt Assessment Date
+        %dd= @assessment.AssessmentDate
+        - if related_ce_assessment.present?
+          %dt Assessment Level
+          %dd= HudUtility2024.assessment_level related_ce_assessment.AssessmentLevel
+          %dt Assessment Type
+          %dd= HudUtility2024.assessment_type related_ce_assessment.AssessmentType
+          %dt Prioritization Status
+          %dd= HudUtility2024.prioritization_status related_ce_assessment.PrioritizationStatus
+        %dt Created
+        %dd= @assessment.DateCreated
+        %dt Updated
+        %dd= @assessment.DateUpdated
+- if @assessment.custom_data_elements.any?
+  %h2 Questions
+  .well
+    - @assessment.custom_data_elements.each do |cde|
+      - cded = cde.data_element_definition
+      - label = cded.label
+      - key = cded.key # <== this is what is referenced as custom_Field_key in the form def
+      - value = cde.value # this is a function, it will read value_string,value_date etc.
+      %dl
+        %dt= label
+        %dd= value
+- else
+  .none-found No questions provided.

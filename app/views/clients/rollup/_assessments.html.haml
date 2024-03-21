@@ -5,8 +5,18 @@
 - if RailsDrivers.loaded.include?(:eccovia_data)
   - eccovia_assessments = @client.source_eccovia_assessments
 - if @client.source_assessments.exists?
-  - ce_assessments = @client.source_assessments.preload(:assessment_questions).to_a.group_by(&:name)
-- if hmis_forms.any? || eccovia_assessments.any? || ce_assessments.any?
+  - ce_assessments = @client.source_assessments.preload(:assessment_questions).to_a
+- custom_hmis_assessments = []
+- if HmisEnforcement.hmis_enabled?
+  - custom_hmis_assessments = @client.hmis_source_custom_assessments.order(assessment_date: :desc).preload(:user, enrollment: [:data_source, { project: :warehouse_project }], form_processor: :definition).to_a
+  -# remove any CE assessments for which we have a matching HMIS custom assessment.  The custom assessment will give better fidelity
+  -# we'll add back the ce assessment details on the show page
+  - custom_hmis_assessments.each do |assessment|
+    - ce_assessments.delete_if { |ce| ce.id == assessment.form_processor.ce_assessment_id }
+  - custom_hmis_assessments = custom_hmis_assessments.group_by { |a| a.form_processor.definition.title }
+
+- ce_assessments = ce_assessments.group_by(&:name)
+- if hmis_forms.any? || eccovia_assessments.any? || ce_assessments.any? || custom_hmis_assessments.any?
   - if hmis_forms.any?
     %table.table
       %thead
@@ -83,6 +93,40 @@
               %td= assessment.AssessmentDate
               %td= HudUtility2024.prioritization_status assessment.PrioritizationStatus
               %td= assessment.user&.name
+              %td.zero-width
+  - if custom_hmis_assessments.any?
+    %table.table
+      %thead
+        %tr
+          %th Assessment Name
+          %th Project
+          %th Collection Date
+          %th Staff
+          %th View in HMIS
+          %th
+      %tbody
+        - custom_hmis_assessments.each_with_index do |(name, (assessment, *assessments)), i|
+          - any_buttons = assessments.any?
+          - cz = "assessment_type_#{i}"
+          %tr{ class: ( 'assessment__new-type' if any_buttons )}
+            %td= link_to name, hmis_client_client_assessment_path(@client, assessment), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
+            %td= assessment.enrollment.project.warehouse_project.name(current_user)
+            %td= assessment.AssessmentDate
+            %td= assessment.user&.name
+            - path = "client/#{assessment.enrollment.client.id}/enrollments/#{assessment.enrollment.id}/assessments/#{assessment.id}"
+            %td= link_to 'HMIS', url_for_hmis(assessment.enrollment.data_source, path), target: :_blank
+            %td.zero-width
+              - if any_buttons
+                %a.btn.btn-secondary.btn-xs.btn-icon-only.jAssessmentTypeToggle{ href: '#', data: { class: cz } }
+                  %span.icon-plus
+          - assessments.each do |assessment|
+            %tr{ class: cz, style: 'display:none;' }
+              %td= link_to name, hmis_client_client_assessment_path(@client, assessment), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
+              %td= assessment.enrollment.project.warehouse_project.name(current_user)
+              %td= assessment.AssessmentDate
+              %td= assessment.user&.name
+              - path = "client/#{assessment.enrollment.client.id}/enrollments/#{assessment.enrollment.id}/assessments/#{assessment.id}"
+              %td= link_to 'HMIS', url_for_hmis(assessment.enrollment.data_source, path), target: :_blank
               %td.zero-width
 
 - else
