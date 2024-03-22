@@ -5,8 +5,18 @@
 - if RailsDrivers.loaded.include?(:eccovia_data)
   - eccovia_assessments = @client.source_eccovia_assessments
 - if @client.source_assessments.exists?
-  - ce_assessments = @client.source_assessments.preload(:assessment_questions).to_a.group_by(&:name)
-- if hmis_forms.any? || eccovia_assessments.any? || ce_assessments.any?
+  - ce_assessments = @client.source_assessments.preload(:assessment_questions).to_a
+- custom_hmis_assessments = []
+- if HmisEnforcement.hmis_enabled?
+  - custom_hmis_assessments = @client.hmis_source_custom_assessments.order(assessment_date: :desc).preload(:user, enrollment: [:data_source, { project: :warehouse_project }], form_processor: :definition).to_a
+  -# remove any CE assessments for which we have a matching HMIS custom assessment.  The custom assessment will give better fidelity
+  -# we'll add back the ce assessment details on the show page
+  - custom_hmis_assessments.each do |assessment|
+    - ce_assessments.delete_if { |ce| ce.id == assessment.form_processor.ce_assessment_id }
+  - custom_hmis_assessments = custom_hmis_assessments.group_by(&:title)
+
+- ce_assessments = ce_assessments.group_by(&:name)
+- if hmis_forms.any? || eccovia_assessments.any? || ce_assessments.any? || custom_hmis_assessments.any?
   - if hmis_forms.any?
     %table.table
       %thead
@@ -67,7 +77,7 @@
           - any_buttons = assessments.any?
           - cz = "assessment_type_#{i}"
           %tr{ class: ( 'assessment__new-type' if any_buttons )}
-            %td= link_to name, client_hud_assessment_path(@client, assessment), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
+            %td= link_to_if can_view_enrollment_details_tab?, name, client_hud_assessment_path(@client, assessment), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
             %td= HudUtility2024.assessment_type assessment.AssessmentType
             %td= assessment.AssessmentDate
             %td= HudUtility2024.prioritization_status assessment.PrioritizationStatus
@@ -78,12 +88,14 @@
                   %span.icon-plus
           - assessments.each do |assessment|
             %tr{ class: cz, style: 'display:none;' }
-              %td= link_to name, client_hud_assessment_path(@client, assessment), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
+              %td= link_to_if can_view_enrollment_details_tab? name, client_hud_assessment_path(@client, assessment), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
               %td= HudUtility2024.assessment_type assessment.AssessmentType
               %td= assessment.AssessmentDate
               %td= HudUtility2024.prioritization_status assessment.PrioritizationStatus
               %td= assessment.user&.name
               %td.zero-width
+  - if custom_hmis_assessments.any?
+    = render 'hmis_client/assessments/table', custom_hmis_assessments: custom_hmis_assessments
 
 - else
   .no-data
