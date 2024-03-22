@@ -36,7 +36,7 @@
               %td= collection.describe_type
               %td= collection.description
               %td.text-center= collection.access_controls.count
-              %td.text-center= checkmark(collection.must_exist?, style: :svg)
+              %td.text-center= checkmark(collection.must_exist? || collection.entities_locked?, style: :svg)
               %td
                 - if collection.access_controls.count.positive? || collection.must_exist?
                   .btn.btn-disabled.disabled.btn-sm

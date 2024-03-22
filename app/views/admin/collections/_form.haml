@@ -9,8 +9,8 @@
         %p Collections that affect more than one type of entity have been deprecated.  You should adjust the included entities to cover only one category, Projects, Cohorts, Reports, or Project Groups, and then update the Collection type to match.  After setting the collection type, you will be unable to adjust entities in other categories.
 .row
   .col-6
-    = f.input :name, disabled: @collection.must_exist?
-    = f.input :description
+    = f.input :name, disabled: @collection.entities_locked?
+    = f.input :description, disabled: @collection.entities_locked?
 
 - if @collection.legacy? && @collection.persisted?
   .row
