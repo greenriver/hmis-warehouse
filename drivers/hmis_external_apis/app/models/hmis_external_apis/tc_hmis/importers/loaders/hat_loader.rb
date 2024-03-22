@@ -96,5 +96,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def form_definition
       Hmis::Form::Definition.where(identifier: 'tc-hat').first!
     end
+
+    def ce_assessment_level
+      2 # AssessmentLevel 2 (housing needs assessment)
+    end
   end
 end

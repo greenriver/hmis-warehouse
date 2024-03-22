@@ -384,11 +384,12 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   def build_synthetic_intake_assessment
     assessment = Hmis::Hud::CustomAssessment.new(
-      enrollment: self,
-      client: client,
-      data_source: data_source,
+      CustomAssessmentID: Hmis::Hud::Base.generate_uuid,
+      enrollment_id: enrollment_id,
+      personal_id: personal_id,
       assessment_date: entry_date,
-      user: user, # same user that's on the enrollment
+      user_id: user_id || Hmis::Hud::User.system_user(data_source_id: data_source_id)&.user_id,
+      data_source_id: data_source_id,
       data_collection_stage: 1, # Intake
       wip: false,
     )
