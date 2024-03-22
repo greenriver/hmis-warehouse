@@ -21,7 +21,7 @@ class HmisExternalApis::TcHmis::Importers::SyntheticCeAssessmentsForCustomAssess
 
   protected
 
-  def create_synthetic_ce_event(custom_assessment, default_attrs)
+  def create_synthetic_ce_assessment(custom_assessment, default_attrs)
     project = custom_assessment.enrollment.project
     dup_attrs = custom_assessment.attributes.slice(
       'EnrollmentID',
