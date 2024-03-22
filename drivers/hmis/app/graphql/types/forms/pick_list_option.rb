@@ -400,9 +400,10 @@ module Types
       return [] unless project.present?
 
       Hmis::Form::Instance.for_project(project).
+        with_role(:EXTERNAL_FORM).
         preload(:definition).
         order(:id).
-        map(&:to_pick_list_option)
+        map(&:to_pick_list_option).uniq
     end
 
     def self.enrollments_for_client(client, user:)
