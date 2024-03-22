@@ -56,6 +56,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   # Households in this Project, NOT including WIP Enrollments
   has_many :households, through: :enrollments
 
+  # NOTE: These are not performant, because they go through the WIP view. Don't use them in the application.
+  has_many :custom_assessments, through: :enrollments_including_wip
   has_many :services, through: :enrollments_including_wip
   has_many :custom_services, through: :enrollments_including_wip
 
