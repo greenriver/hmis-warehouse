@@ -1,4 +1,4 @@
-- content_for :title, 'Access Overview'
+- content_for :title, 'Getting Started'
 .d-flex
   %h1= content_for :title
 = render 'menus/admin_tabs'
@@ -26,13 +26,12 @@
             \.
     .col-sm
       .well
-        %h3 Common Things Users Do
+        %h3 Quick Actions
         %ul.list-unstyled
           %li= link_to 'Manage User Roles and Permissions', admin_roles_path
-          %li= link_to 'Manage Users', admin_users_path
+          %li= link_to 'Manage User Accounts', admin_users_path
           %li= link_to 'Create Collections', admin_collections_path
-          %li= link_to 'Grant Access to a Report', admin_access_controls_path
-          %li= link_to 'Grant Access to Additional Projects', admin_access_controls_path
+          %li= link_to 'Grant Access to a Report or Additional Projects', admin_access_controls_path
   .row
     .col-sm-6
       .well

@@ -261,15 +261,23 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_edit_roles? },
+        visible: ->(user) { user.can_edit_roles? && User.anyone_using_acls? },
         path: admin_access_overviews_path,
-        title: 'Overview',
+        title: 'Getting Started',
       ),
     )
     menu.add_child(
       Menu::Item.new(
         user: user,
         visible: ->(user) { user.can_edit_users? },
+        path: admin_users_path,
+        title: 'Users',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_edit_users? && User.anyone_using_acls? },
         path: admin_access_controls_path,
         title: 'Access Controls',
       ),
@@ -285,7 +293,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_edit_users? },
+        visible: ->(user) { user.can_edit_users? && User.anyone_using_acls? },
         path: admin_user_groups_path,
         title: 'User Groups',
       ),
@@ -293,20 +301,11 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_edit_collections? },
+        visible: ->(user) { user.can_edit_collections? && User.anyone_using_acls? },
         path: admin_collections_path,
         title: 'Collections',
       ),
     )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { user.can_edit_users? },
-        path: admin_users_path,
-        title: 'Users',
-      ),
-    )
-
     menu
   end
 
@@ -512,7 +511,7 @@ class Menu::Menu
           user: user,
           visible: ->(_user) { context.hmis_admin_visible? },
           path: hmis_admin_access_overviews_path,
-          title: Translation.translate('Overview'),
+          title: Translation.translate('Getting Started'),
         ),
       )
       menu.add_child(
