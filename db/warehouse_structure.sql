@@ -20169,7 +20169,9 @@ CREATE TABLE public.hud_report_path_clients (
     destination_client_id integer,
     personal_id character varying,
     race_multi character varying,
-    newly_enrolled_client boolean DEFAULT false
+    newly_enrolled_client boolean DEFAULT false,
+    cmh_service_provided boolean DEFAULT false NOT NULL,
+    cmh_referral_provided_and_attained boolean DEFAULT false NOT NULL
 );
 
 
@@ -62524,6 +62526,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240304181225'),
 ('20240312153543'),
 ('20240319171241'),
-('20240320134450');
+('20240320134450'),
+('20240320190835');
 
 
