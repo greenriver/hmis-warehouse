@@ -82,7 +82,7 @@ module HmisCsvTwentyTwentyTwo::Exporter
       # Not PH, no need to change
       return false unless existing_project_type.in?(psh_types)
 
-      last_loaded_project_type = row.project.loaded_items_2022.last&.ProjectType
+      last_loaded_project_type = row.project.loaded_items_2022.last&.ProjectType&.to_i
       # If we don't have a previous CSV version, we can't determine if it's been overridden
       return false if last_loaded_project_type.blank?
 

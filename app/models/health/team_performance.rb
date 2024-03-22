@@ -58,7 +58,7 @@ module Health
             initial_intake_overdue: initial_intake_overdue.select { |id| id.in?(patient_ids) },
             intake_renewal_due: intake_renewal_due.select { |id| id.in?(patient_ids) },
             intake_renewal_overdue: intake_renewal_overdue.select { |id| id.in?(patient_ids) },
-            without_required_wellcare_visit: patient_ids - with_required_wellcare_visit,
+            without_required_wellcare_visit: [], # patient_ids - with_required_wellcare_visit,
           },
         )
       end.compact
@@ -165,12 +165,20 @@ module Health
 
     def with_required_wellcare_visit
       anchor = [@range.last, Date.current].min
-      @with_required_wellcare_visit ||= ClaimsReporting::MedicalClaim.
-        annual_well_care_visits.
-        service_in(anchor - WELLCARE_WINDOW... anchor).
-        joins(:patient).
-        where(hp_t[:id].in(patient_ids)).
-        pluck(hp_t[:id]).uniq
+      @with_required_wellcare_visit ||=
+        begin
+          set = Set.new
+          patient_ids.each_slice(100).each do |patient_id_slice|
+            set << ClaimsReporting::MedicalClaim.
+              annual_well_care_visits.
+              service_in(anchor - WELLCARE_WINDOW... anchor).
+              joins(:patient).
+              where(hp_t[:id].in(patient_id_slice)).
+              pluck(hp_t[:id])
+          end
+
+          set.to_a
+        end
     end
   end
 end

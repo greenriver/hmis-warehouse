@@ -82,10 +82,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           EnrollmentID: enrollment_id,
           PersonalID: personal_id,
           DateProvided: date_provided,
-          UserID: system_hud_user.id,
+          UserID: system_hud_user.user_id,
           data_source_id: data_source.id,
           custom_service_type_id: service_type.id,
-          service_name: service_type,
+          service_name: service_type.name,
           DateCreated: today,
           DateUpdated: today,
           FAAmount: nil,
@@ -98,8 +98,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def create_service_type
-      Hmis::Hud::CustomServiceType.where(data_source: data_source).where(name: service_type_name).first_or_create! do |st|
-        st.UserID = system_hud_user.id
+      service_name = service_type_name.split(' ').last # drop 1A-SA prefix
+      Hmis::Hud::CustomServiceType.where(data_source: data_source).where(name: service_name).first_or_create! do |st|
+        st.UserID = system_hud_user.user_id
         st.custom_service_category_id = placeholder_service_category.id
       end
     end
