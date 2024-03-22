@@ -12,7 +12,7 @@ class HmisExternalApis::TcHmis::Importers::SyntheticCeAssessmentsForCustomAssess
       prepared.find_each do |custom_assessment|
         next if custom_assessment.form_processor.ce_assessment
 
-        create_synthetic_ce_event(custom_assessment, default_attrs)
+        create_synthetic_ce_assessment(custom_assessment, default_attrs)
         total += 1
       end
     end
