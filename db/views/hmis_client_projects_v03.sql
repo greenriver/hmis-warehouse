@@ -34,5 +34,7 @@ UNION
     AND "Enrollment"."id" = "hmis_wips"."source_id"
   WHERE
     "hmis_wips"."source_type" = 'Hmis::Hud::Enrollment'
-  AND "hmis_wips"."deleted_at" IS NULL
+    -- The below line is the only change from v02 to v03.
+    -- We need this since we added the acts_as_paranoid gem to the Hmis::Wip model
+    AND "hmis_wips"."deleted_at" IS NULL
 )
