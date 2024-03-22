@@ -13,7 +13,7 @@
   -# we'll add back the ce assessment details on the show page
   - custom_hmis_assessments.each do |assessment|
     - ce_assessments.delete_if { |ce| ce.id == assessment.form_processor.ce_assessment_id }
-  - custom_hmis_assessments = custom_hmis_assessments.group_by { |a| a.form_processor.definition.title }
+  - custom_hmis_assessments = custom_hmis_assessments.group_by(&:title)
 
 - ce_assessments = ce_assessments.group_by(&:name)
 - if hmis_forms.any? || eccovia_assessments.any? || ce_assessments.any? || custom_hmis_assessments.any?
@@ -77,7 +77,7 @@
           - any_buttons = assessments.any?
           - cz = "assessment_type_#{i}"
           %tr{ class: ( 'assessment__new-type' if any_buttons )}
-            %td= link_to name, client_hud_assessment_path(@client, assessment), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
+            %td= link_to_if can_view_enrollment_details_tab?, name, client_hud_assessment_path(@client, assessment), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
             %td= HudUtility2024.assessment_type assessment.AssessmentType
             %td= assessment.AssessmentDate
             %td= HudUtility2024.prioritization_status assessment.PrioritizationStatus

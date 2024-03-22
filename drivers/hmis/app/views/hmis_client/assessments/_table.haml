@@ -12,7 +12,7 @@
       - any_buttons = assessments.any?
       - cz = "assessment_type_#{i}"
       %tr{ class: ( 'assessment__new-type' if any_buttons )}
-        %td= link_to name, hmis_client_client_assessment_path(@client, assessment), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
+        %td= link_to_if can_view_enrollment_details_tab?, name, hmis_client_client_assessment_path(@client, assessment), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
         %td= assessment.enrollment.project.warehouse_project.name(current_user)
         %td= assessment.AssessmentDate
         %td= assessment.user&.name
