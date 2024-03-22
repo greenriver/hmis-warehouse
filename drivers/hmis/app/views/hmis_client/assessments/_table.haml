@@ -1,0 +1,37 @@
+%table.table
+  %thead
+    %tr
+      %th Assessment Name
+      %th Project
+      %th Collection Date
+      %th Staff
+      %th Source
+      %th
+  %tbody
+    - custom_hmis_assessments.each_with_index do |(name, (assessment, *assessments)), i|
+      - any_buttons = assessments.any?
+      - cz = "assessment_type_#{i}"
+      %tr{ class: ( 'assessment__new-type' if any_buttons )}
+        %td= link_to_if can_view_enrollment_details_tab?, name, hmis_client_client_assessment_path(@client, assessment), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
+        %td= assessment.enrollment.project.warehouse_project.name(current_user)
+        %td= assessment.AssessmentDate
+        %td= assessment.user&.name
+        %td
+          = link_to assessment.data_source.hmis_url_for(assessment), target: :_blank do
+            Open in HMIS
+            %i.icon-link-ext
+        %td.zero-width
+          - if any_buttons
+            %a.btn.btn-secondary.btn-xs.btn-icon-only.jAssessmentTypeToggle{ href: '#', data: { class: cz } }
+              %span.icon-plus
+      - assessments.each do |assessment|
+        %tr{ class: cz, style: 'display:none;' }
+          %td= link_to_if can_view_enrollment_details_tab?, name, hmis_client_client_assessment_path(@client, assessment), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
+          %td= assessment.enrollment.project.warehouse_project.name(current_user)
+          %td= assessment.AssessmentDate
+          %td= assessment.user&.name
+          %td
+            = link_to assessment.data_source.hmis_url_for(assessment), target: :_blank do
+              Open in HMIS
+              %i.icon-link-ext
+          %td.zero-width

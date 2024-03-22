@@ -29,7 +29,8 @@ class Hmis::Form::InstanceEnrollmentMatch
     when ALL_MATCH
       true
     when HOH_AND_ADULTS_MATCH
-      enrollment.head_of_household? && enrollment.adult?
+      # HoH and Adults means that the form should be collected for the HoH AND and any adults in the household
+      enrollment.head_of_household? || enrollment.adult?
     when HOH_MATCH
       enrollment.head_of_household?
     when ALL_VETERANS_MATCH

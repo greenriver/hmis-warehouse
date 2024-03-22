@@ -42,7 +42,7 @@ class Hmis::EnrollmentAssessmentEligibilityList
     # Exit/Update/Annual can only be added to open enrollment
     roles << EXIT_ROLE unless assessment_started?(EXIT_ROLE)
     roles += [UPDATE_ROLE, ANNUAL_ROLE] unless assessment_submitted?(EXIT_ROLE)
-    roles << POST_EXIT_ROLE if assessment_submitted?(EXIT_ROLE) && !assessment_started?(POST_EXIT_ROLE) && enrollment.head_of_household?
+    roles << POST_EXIT_ROLE if assessment_submitted?(EXIT_ROLE) && !assessment_started?(POST_EXIT_ROLE)
     roles << CUSTOM_ASSESSMENT
 
     filtered_definitions(roles).each do |definition|
