@@ -6,7 +6,7 @@
 
 # retrieve and process external form submissions
 class HmisExternalApis::ConsumeExternalFormSubmissionsJob
-  def perform
+  def perform(encryption_key:)
     s3.list_objects.each do |object|
       raw_data_string = s3.get_as_io(key: object.key)&.read
       raw_data = raw_data_string ? parse_json(raw_data_string) : nil
@@ -16,7 +16,7 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob
       end
 
       submission = submission_class.transaction do
-        process_submission(raw_data, object)
+        process_submission(raw_data, object, encryption_key: encryption_key)
       end
       # if we successfully processed the submission, delete it
       s3.delete(key: object.key) if submission
@@ -29,7 +29,7 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob
     Rails.logger.error("external form submission #{object_key}: #{message}")
   end
 
-  def process_submission(raw_data, object)
+  def process_submission(raw_data, object, encryption_key:)
     definition_id = raw_data['form_definition_id'].
       presence&.then { |value| ProtectedId::Encoder.decode(value) }
     if definition_id.nil?
@@ -43,10 +43,18 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob
       return nil
     end
 
+    spam_score = begin
+      decrypt(encryption_key, raw_data['captcha_score'])&.to_f
+    rescue StandardError => e
+      log_error("decryption failed #{e.message}", object_key: object.key)
+      nil
+    end
+
     submission = submission_class.from_raw_data(
       raw_data,
       object_key: object.key,
       last_modified: object.last_modified,
+      spam_score: spam_score,
       form_definition: definition,
     )
     submission
@@ -68,5 +76,25 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob
     JSON.parse(str)
   rescue JSON::ParserError
     nil
+  end
+
+  # decrypt combined_hex using secret key_hex. openssl lib has an unusual api
+  # @param [String] key_hex is the secret key, must be 32 bytes
+  # @param [String] combined_hex is the 16 byte IV concatenated with the ciphertext
+  def decrypt(key_hex, combined_hex)
+    return unless key_hex && combined_hex && combined_hex.is_a?(String) && combined_hex.length > 32
+
+    cipher = OpenSSL::Cipher.new('aes-256-cbc')
+    cipher.decrypt
+    cipher.key = [key_hex].pack('H*') # Convert key hex to binary
+
+    # The IV is the first 32 hex characters (16 bytes), cipher text follows
+    iv_hex = combined_hex[0...32] # Extract the IV from the first 32 hex chars
+    encrypted_data_hex = combined_hex[32..] # The rest is the encrypted data
+
+    cipher.iv = [iv_hex].pack('H*') # Convert IV hex to binary
+
+    encrypted_data = [encrypted_data_hex].pack('H*') # Convert encrypted data hex to binary
+    cipher.update(encrypted_data) + cipher.final
   end
 end
