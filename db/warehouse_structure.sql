@@ -18493,7 +18493,7 @@ CREATE VIEW public.hmis_households AS
              LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
              JOIN public.hmis_wips ON (((hmis_wips.source_id = "Enrollment".id) AND ((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text))))
              JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = hmis_wips.project_id))))
-          WHERE (("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment"."ProjectID" IS NULL))
+          WHERE (("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment"."ProjectID" IS NULL) AND (hmis_wips.deleted_at IS NULL))
         )
  SELECT concat(tmp1."HouseholdID", ':', tmp1."ProjectID", ':', tmp1.data_source_id) AS id,
     tmp1."HouseholdID",
@@ -62528,4 +62528,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240319171241'),
 ('20240320134450'),
 ('20240320190835'),
-('20240322153133');
+('20240322153133'),
+('20240322183410');
