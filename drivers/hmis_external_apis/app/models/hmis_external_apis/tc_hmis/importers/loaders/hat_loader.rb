@@ -100,5 +100,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def ce_assessment_level
       2 # AssessmentLevel 2 (housing needs assessment)
     end
+
+    def ce_assessment_level
+      2 # AssessmentLevel 2 (housing needs assessment)
+    end
   end
 end
