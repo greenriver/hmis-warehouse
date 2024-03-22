@@ -305,7 +305,9 @@ module HudPathReport::Generators::Fy2024
 
     private def active_in_path(enrollment)
       return true if enrollment.current_living_situations.between(start_date: @report.start_date, end_date: @report.end_date).exists?
+      # engagement date must fall within the report AND the enrollment to be valid
       return true if enrollment.DateOfEngagement&.between?([@report.start_date, enrollment.EntryDate].max, [@report.end_date, enrollment.exit&.ExitDate].compact.min)
+      # path status date must fall within the report AND the enrollment to be valid
       return true if enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus&.between?([@report.start_date, enrollment.EntryDate].max, [@report.end_date, enrollment.exit&.ExitDate].compact.min)
       return true if enrollment.services.path_service.between(start_date: @report.start_date, end_date: @report.end_date).exists?
       return true if enrollment.real_exit_date&.between?(@report.start_date, @report.end_date)
@@ -355,7 +357,7 @@ module HudPathReport::Generators::Fy2024
 
     private def cmh_service_provided(enrollment)
       enrollment.services.path_service.between(start_date: @report.start_date, end_date: @report.end_date).
-        pluck(Arel.sql(s_t[:TypeProvided].to_sql)).include?(4)
+        pluck(:TypeProvided).include?(4)
     end
 
     private def path_referrals(enrollment)
@@ -365,7 +367,7 @@ module HudPathReport::Generators::Fy2024
 
     private def cmh_referral_provided_and_attained(enrollment)
       enrollment.services.path_referral.between(start_date: @report.start_date, end_date: @report.end_date).
-        pluck(Arel.sql(sql_array(s_t[:TypeProvided], s_t[:ReferralOutcome]))).include?([1, 1])
+        pluck(:TypeProvided, :ReferralOutcome).include?([1, 1])
     end
 
     private def report_client_universe
