@@ -31,7 +31,7 @@
         - hmis_forms.each_with_index do |(type, (form, *rest)), i|
           - cz = "assessment_type_#{i}"
           %tr{ class: ( 'assessment__new-type' if any_buttons )}
-            %td= link_to_if can_view_enrollment_details_tab?, type, assessment_client_path(id: form.id), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
+            %td= link_to type, assessment_client_path(id: form.id), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
             %td= form.collected_at.to_date
             %td= form.collection_location
             %td= form.staff
@@ -41,7 +41,7 @@
                   %span.icon-plus
           - rest.each do |form|
             %tr{ class: cz, style: 'display:none;' }
-              %td= link_to_if can_view_enrollment_details_tab?, type, assessment_client_path(id: form.id), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
+              %td= link_to type, assessment_client_path(id: form.id), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
               %td= form.collected_at.to_date
               %td= form.collection_location
               %td= form.staff
@@ -77,7 +77,7 @@
           - any_buttons = assessments.any?
           - cz = "assessment_type_#{i}"
           %tr{ class: ( 'assessment__new-type' if any_buttons )}
-            %td= link_to name, client_hud_assessment_path(@client, assessment), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
+            %td= link_to_if can_view_enrollment_details_tab?, name, client_hud_assessment_path(@client, assessment), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
             %td= HudUtility2024.assessment_type assessment.AssessmentType
             %td= assessment.AssessmentDate
             %td= HudUtility2024.prioritization_status assessment.PrioritizationStatus
@@ -88,7 +88,7 @@
                   %span.icon-plus
           - assessments.each do |assessment|
             %tr{ class: cz, style: 'display:none;' }
-              %td= link_to name, client_hud_assessment_path(@client, assessment), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
+              %td= link_to_if can_view_enrollment_details_tab?, name, client_hud_assessment_path(@client, assessment), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
               %td= HudUtility2024.assessment_type assessment.AssessmentType
               %td= assessment.AssessmentDate
               %td= HudUtility2024.prioritization_status assessment.PrioritizationStatus
