@@ -8659,6 +8659,7 @@ type Query {
   """
   enrollment(id: ID!): Enrollment
   esgFundingReport(clientIds: [ID!]!): [EsgFundingService!]!
+  externalFormDefinition(identifier: String!): FormDefinition
   file(id: ID!): File
   formDefinition(id: ID!): FormDefinition
   formDefinitions(filters: FormDefinitionFilterOptions, limit: Int, offset: Int): FormDefinitionsPaginated!
