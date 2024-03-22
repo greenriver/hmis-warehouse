@@ -44,7 +44,7 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob
     end
 
     spam_score = begin
-      decrypt(encryption_key, raw_data['captcha_score'])&.to_f
+      encryption_key.decrypt(raw_data['captcha_score'])&.to_f
     rescue StandardError => e
       log_error("decryption failed #{e.message}", object_key: object.key)
       nil
@@ -76,25 +76,5 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob
     JSON.parse(str)
   rescue JSON::ParserError
     nil
-  end
-
-  # decrypt combined_hex using secret key_hex. openssl lib has an unusual api
-  # @param [String] key_hex is the secret key, must be 32 bytes
-  # @param [String] combined_hex is the 16 byte IV concatenated with the ciphertext
-  def decrypt(key_hex, combined_hex)
-    return unless key_hex && combined_hex && combined_hex.is_a?(String) && combined_hex.length > 32
-
-    cipher = OpenSSL::Cipher.new('aes-256-cbc')
-    cipher.decrypt
-    cipher.key = [key_hex].pack('H*') # Convert key hex to binary
-
-    # The IV is the first 32 hex characters (16 bytes), cipher text follows
-    iv_hex = combined_hex[0...32] # Extract the IV from the first 32 hex chars
-    encrypted_data_hex = combined_hex[32..] # The rest is the encrypted data
-
-    cipher.iv = [iv_hex].pack('H*') # Convert IV hex to binary
-
-    encrypted_data = [encrypted_data_hex].pack('H*') # Convert encrypted data hex to binary
-    cipher.update(encrypted_data) + cipher.final
   end
 end

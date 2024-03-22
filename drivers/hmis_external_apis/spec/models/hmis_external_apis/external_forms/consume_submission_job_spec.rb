@@ -17,8 +17,13 @@ RSpec.describe 'HmisExternalApis::ConsumeExternalFormSubmissionsJob', type: :mod
   let(:s3_object_double) { double('S3Object', key: '1234', last_modified: 1.minute.ago) }
   let(:encryption_key) do
     aes_key = OpenSSL::Random.random_bytes(32)
-    aes_key.unpack1('H*')
+
+    GrdaWarehouse::RemoteCredentials::SymmetricEncryptionKey.where(slug: 'external_forms_shared_key').first_or_create! do |record|
+      record.algorithm = 'aes-256-cbc'
+      record.key_hex = aes_key.unpack1('H*')
+    end
   end
+
   let(:captcha_score) { 0.65 }
 
   let(:submission_document) do
@@ -39,10 +44,10 @@ RSpec.describe 'HmisExternalApis::ConsumeExternalFormSubmissionsJob', type: :mod
   end
 
   # emulate lambda behavior
-  def encrypt(key_hex, plain_text)
+  def encrypt(creds, plain_text)
     cipher = OpenSSL::Cipher.new('aes-256-cbc')
     cipher.encrypt
-    cipher.key = [key_hex].pack('H*') # Convert hex to binary
+    cipher.key = [creds.key_hex].pack('H*') # Convert hex to binary
 
     iv = cipher.random_iv
 
