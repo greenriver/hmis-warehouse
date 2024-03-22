@@ -402,7 +402,7 @@ module Types
     def external_form_definition(identifier:)
       raise 'Access denied' unless current_user.can_manage_external_form_submissions?
 
-      Hmis::Form::Definition.find_by(role: 'EXTERNAL_FORM', identifier: identifier)
+      Hmis::Form::Definition.with_role(:EXTERNAL_FORM).where(identifier: identifier).order(version: :desc).first
     end
 
     field :form_definitions, Types::Forms::FormDefinition.page_type, null: false do
