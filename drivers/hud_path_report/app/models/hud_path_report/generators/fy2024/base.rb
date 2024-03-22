@@ -333,6 +333,8 @@ module HudPathReport::Generators::Fy2024
     end
 
     private def path_contact_dates(client)
+      # According to "Determining Which Clients to Include" instructions - Using use data from each client’s latest
+      # project stay (the stay with the latest 3.10 [project start date]) during the reporting date range.
       enrollment = last_active_enrollment(client)
       contacts = []
 
