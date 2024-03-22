@@ -95,39 +95,7 @@
               %td= assessment.user&.name
               %td.zero-width
   - if custom_hmis_assessments.any?
-    %table.table
-      %thead
-        %tr
-          %th Assessment Name
-          %th Project
-          %th Collection Date
-          %th Staff
-          %th View in HMIS
-          %th
-      %tbody
-        - custom_hmis_assessments.each_with_index do |(name, (assessment, *assessments)), i|
-          - any_buttons = assessments.any?
-          - cz = "assessment_type_#{i}"
-          %tr{ class: ( 'assessment__new-type' if any_buttons )}
-            %td= link_to name, hmis_client_client_assessment_path(@client, assessment), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
-            %td= assessment.enrollment.project.warehouse_project.name(current_user)
-            %td= assessment.AssessmentDate
-            %td= assessment.user&.name
-            - path = "client/#{assessment.enrollment.client.id}/enrollments/#{assessment.enrollment.id}/assessments/#{assessment.id}"
-            %td= link_to 'HMIS', url_for_hmis(assessment.enrollment.data_source, path), target: :_blank
-            %td.zero-width
-              - if any_buttons
-                %a.btn.btn-secondary.btn-xs.btn-icon-only.jAssessmentTypeToggle{ href: '#', data: { class: cz } }
-                  %span.icon-plus
-          - assessments.each do |assessment|
-            %tr{ class: cz, style: 'display:none;' }
-              %td= link_to name, hmis_client_client_assessment_path(@client, assessment), class: 'btn btn-primary btn-muted btn-xs', data: { loads_in_pjax_modal: true }
-              %td= assessment.enrollment.project.warehouse_project.name(current_user)
-              %td= assessment.AssessmentDate
-              %td= assessment.user&.name
-              - path = "client/#{assessment.enrollment.client.id}/enrollments/#{assessment.enrollment.id}/assessments/#{assessment.id}"
-              %td= link_to 'HMIS', url_for_hmis(assessment.enrollment.data_source, path), target: :_blank
-              %td.zero-width
+    = render 'hmis_client/assessments/table', custom_hmis_assessments: custom_hmis_assessments
 
 - else
   .no-data
