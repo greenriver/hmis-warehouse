@@ -106,6 +106,10 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     wip
   end
 
+  def hud_assessment?
+    HudUtility2024.data_collection_stages.keys.include?(data_collection_stage)
+  end
+
   def intake?
     data_collection_stage == 1
   end
@@ -124,6 +128,14 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   def update?
     data_collection_stage == 2
+  end
+
+  def title
+    title = HudUtility2024.assessment_name_by_data_collection_stage[data_collection_stage]
+    # TODO(#187248703): replace with `definition.title` via definition_identifier column once that relationship exists
+    title ||= form_processor&.definition&.title
+    title ||= 'Custom Assessment'
+    title
   end
 
   def save_submitted_assessment!(current_user:, as_wip: false)
