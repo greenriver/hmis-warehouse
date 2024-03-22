@@ -221,6 +221,8 @@ module HudPathReport::Generators::Fy2024
             contacts: path_contact_dates(client),
             services: path_services(enrollment),
             referrals: path_referrals(enrollment),
+            cmh_service_provided: cmh_service_provided(enrollment),
+            cmh_referral_provided_and_attained: cmh_referral_provided_and_attained(enrollment),
             income_from_any_source_entry: enrollment.income_benefits_at_entry&.IncomeFromAnySource || 99,
             incomes_at_entry: income_sources(enrollment.income_benefits_at_entry),
             income_from_any_source_exit: enrollment.income_benefits_at_exit&.IncomeFromAnySource || 99,
@@ -303,8 +305,8 @@ module HudPathReport::Generators::Fy2024
 
     private def active_in_path(enrollment)
       return true if enrollment.current_living_situations.between(start_date: @report.start_date, end_date: @report.end_date).exists?
-      return true if enrollment.DateOfEngagement&.between?(@report.start_date, @report.end_date)
-      return true if enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus&.between?(@report.start_date, @report.end_date)
+      return true if enrollment.DateOfEngagement&.between?([@report.start_date, enrollment.EntryDate].max, [@report.end_date, enrollment.exit&.ExitDate].compact.min)
+      return true if enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus&.between?([@report.start_date, enrollment.EntryDate].max, [@report.end_date, enrollment.exit&.ExitDate].compact.min)
       return true if enrollment.services.path_service.between(start_date: @report.start_date, end_date: @report.end_date).exists?
       return true if enrollment.real_exit_date&.between?(@report.start_date, @report.end_date)
 
@@ -331,15 +333,16 @@ module HudPathReport::Generators::Fy2024
     end
 
     private def path_contact_dates(client)
+      enrollment = last_active_enrollment(client)
       contacts = []
-      enrollments(client).each do |enrollment|
-        next unless active_in_path(enrollment) && enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus&.between?(@report.start_date, @report.end_date)
 
-        contacts += enrollment.current_living_situations.between(start_date: @report.start_date, end_date: @report.end_date).pluck(:InformationDate)
-        contacts += [enrollment.DateOfEngagement] if enrollment.DateOfEngagement.present? && enrollment.DateOfEngagement.between?(@report.start_date, @report.end_date) && ! contacts.include?(enrollment.DateOfEngagement)
-        contacts += [enrollment.DateOfPATHStatus] if enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus.between?(@report.start_date, @report.end_date) && ! contacts.include?(enrollment.DateOfPATHStatus)
-        contacts += enrollment.services.path_service.between(start_date: @report.start_date, end_date: @report.end_date).pluck(:DateProvided).uniq.reject { |d| d.in?(contacts) }
-      end
+      min_date = [@report.start_date, enrollment.EntryDate].max
+      max_date = [@report.end_date, enrollment.exit&.ExitDate].compact.min
+
+      contacts += enrollment.current_living_situations.between(start_date: min_date, end_date: max_date).pluck(:InformationDate)
+      contacts += [enrollment.DateOfEngagement] if enrollment.DateOfEngagement.present? && enrollment.DateOfEngagement.between?(min_date, max_date) && ! contacts.include?(enrollment.DateOfEngagement)
+      contacts += [enrollment.DateOfPATHStatus] if enrollment.ClientEnrolledInPATH == 1 && enrollment.DateOfPATHStatus.between?(min_date, max_date) && ! contacts.include?(enrollment.DateOfPATHStatus)
+      contacts += enrollment.services.path_service.between(start_date: min_date, end_date: max_date).pluck(:DateProvided).uniq.reject { |d| d.in?(contacts) }
       contacts
     end
 
@@ -348,9 +351,19 @@ module HudPathReport::Generators::Fy2024
         group(:DateProvided).pluck(:DateProvided, Arel.sql(array_agg(s_t[:TypeProvided]).to_sql)).to_h
     end
 
+    private def cmh_service_provided(enrollment)
+      enrollment.services.path_service.between(start_date: @report.start_date, end_date: @report.end_date).
+        pluck(Arel.sql(s_t[:TypeProvided].to_sql)).include?(4)
+    end
+
     private def path_referrals(enrollment)
       enrollment.services.path_referral.between(start_date: @report.start_date, end_date: @report.end_date).
         group(:DateProvided).pluck(:DateProvided, Arel.sql(array_agg(sql_array(s_t[:TypeProvided], s_t[:ReferralOutcome])).to_sql)).to_h
+    end
+
+    private def cmh_referral_provided_and_attained(enrollment)
+      enrollment.services.path_referral.between(start_date: @report.start_date, end_date: @report.end_date).
+        pluck(Arel.sql(sql_array(s_t[:TypeProvided], s_t[:ReferralOutcome]))).include?([1, 1])
     end
 
     private def report_client_universe
