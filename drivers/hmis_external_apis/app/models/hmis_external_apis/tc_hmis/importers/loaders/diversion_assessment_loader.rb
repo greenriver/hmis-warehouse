@@ -56,5 +56,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def ce_assessment_level
       1 # AssessmentLevel: 1 (crisis needs assessment)
     end
+
+    def ce_assessment_level
+      1 # AssessmentLevel: 1 (crisis needs assessment)
+    end
   end
 end
