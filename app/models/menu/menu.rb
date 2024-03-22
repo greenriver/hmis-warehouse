@@ -269,7 +269,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_edit_users? },
+        visible: ->(user) { user.can_edit_users? && User.anyone_using_acls? },
         path: admin_users_path,
         title: 'Users',
       ),
@@ -277,15 +277,7 @@ class Menu::Menu
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_edit_users? && User.anyone_using_acls? },
-        path: admin_access_controls_path,
-        title: 'Access Controls',
-      ),
-    )
-    menu.add_child(
-      Menu::Item.new(
-        user: user,
-        visible: ->(user) { user.can_edit_roles? },
+        visible: ->(user) { user.can_edit_roles? && User.anyone_using_acls? },
         path: admin_roles_path,
         title: 'Roles & Permissions',
       ),
@@ -306,14 +298,38 @@ class Menu::Menu
         title: 'Collections',
       ),
     )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_edit_users? && User.anyone_using_acls? },
+        path: admin_access_controls_path,
+        title: 'Access Controls',
+      ),
+    )
     menu
   end
 
   def legacy_access_menu
     menu = Menu::Item.new(
       user: user,
-      title: 'Access (non-ACL)',
+      title: 'Access (Legacy)',
       id: 'legacy-user-access',
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_edit_users? },
+        path: admin_users_path,
+        title: 'Users',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_edit_roles? },
+        path: admin_roles_path,
+        title: 'Roles & Permissions',
+      ),
     )
     menu.add_child(
       Menu::Item.new(

@@ -4,9 +4,16 @@
     %table.table.table-striped
       %thead
         %tr
-          %th User Group
-          %th Role
-          %th Collection
+          %th
+            .div.mb-1 User Group
+            %i.font-weight-light Who is receiving access?
+          %th
+            .div.mb-1 Role
+            %i.font-weight-light Which permissions are they receiving?
+          %th
+            .div.mb-1 Collection
+            %i.font-weight-light Which items are the permissions being applied to?
+          %th
           %th
       %tbody
         - @access_controls.each do |acl|
@@ -15,18 +22,17 @@
             %td= link_to_if can_edit_roles? && !acl.role.system?, acl.role.name, edit_admin_role_path(acl.role), target: :_blank
             %td= link_to_if can_edit_collections? && !acl.collection.system?, acl.collection.name, edit_admin_collection_path(acl.collection), target: :_blank
 
-            %td
+            %td.nobr
               -# Don't let use delete or edit a fully system Access Control
               -# In the future, we may just want to hide this row
               - unless acl.system?
-                .float-right
-                  = link_to edit_admin_access_control_path(acl), class: ['btn', 'btn-sm', 'btn-secondary'] do
-                    %span.icon-pencil
-                    Edit Access Control List
+                = link_to edit_admin_access_control_path(acl), class: ['btn', 'btn-sm', 'btn-secondary'] do
+                  %span.icon-pencil
+                  Edit Access Control List
 
-                  = link_to admin_access_control_path(acl),  method: :delete, data: {confirm: "Would you really like to delete the access control for collection '#{acl.collection.name}', role '#{acl.role.name}', and user group #{acl.user_group.name}?"}, class: ['btn', 'btn-sm', 'btn-danger', 'ml-2'] do
-                    %span.icon-cross
-                    Delete
+                = link_to admin_access_control_path(acl),  method: :delete, data: {confirm: "Would you really like to delete the access control for collection '#{acl.collection.name}', role '#{acl.role.name}', and user group #{acl.user_group.name}?"}, class: ['btn', 'btn-sm', 'btn-danger', 'ml-2'] do
+                  %span.icon-cross
+                  Delete
   = render 'common/pagination_bottom', item_name: 'access control'
 - else
   .none-found No access controls.

@@ -1,15 +1,7 @@
 .row
   .col-sm-6
-    = f.input :name
+    = f.input :name, label: 'User Group Name', hint: 'Descriptive name for user group, e.g. "Blue Mountain Shelter: Providers"'
 
     = f.input :user_ids, as: :select_two, label_method: :name, collection: User.active.not_system, label: 'Users', input_html: { multiple: true }
   .col-sm-6
-    .well.mt-6
-      %p
-        It is often helpful to name this group for the agency where the people included in the group work and their role in that agency.  Some examples:
-        %strong "Blue Mountain Shelter: Providers", "Teal House: Report Runners", or "Administrators: MA-500".
-        Using the pattern
-        %strong "Agency Name: User Function"
-        will group user groups together by agency, inverting that to
-        %strong "Function: Agency"
-        will group user groups by function.
+    = render 'admin/user_groups/helper_text'

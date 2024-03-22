@@ -8,22 +8,12 @@
 .o-page
   .o-page__title
     %h1= content_for :title
+= render 'admin/user_groups/description', entity_type: 'HMIS'
 .row
-  .col-sm-12.col-md-10.align-items-start
-    .alert.alert-info.align-items-start
-      .alert__content.font-weight-normal
-        %p It is often helpful to name this group based on the agency where the users work, and their role in that agency.
-        %p
-          For example:
-          %ul
-            %li.font-italic Green Mountain Shelter: Providers
-            %li.font-italic Green Mountain Shelter: Site Managers
-            %li.font-italic CoC Admins
+  .col-sm-6.align-items-start
     = simple_form_for @user_group, as: :user_group, url: hmis_admin_user_groups_path do |f|
-      = f.error_notification
-      .form-inputs
-        .row
-          .col-8
-            = f.input :name, label: 'User Group Name', hint: 'Descriptive name for user group, e.g. "Green Mountain Shelter: Providers"'
+      = render 'form', f: f
       .form_actions.mt-4
-        = f.button :submit, value: 'Create User Group'
+      = f.button :submit, value: 'Create User Group'
+  .col-sm-6
+    = render 'admin/user_groups/helper_text'

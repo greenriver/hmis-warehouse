@@ -1,11 +1,10 @@
 - content_for :title, 'HMIS Access Control Administration'
-%h1= content_for :title
+.o-page
+  .o-page__title
+    %h1= content_for :title
 = render 'hmis_admin/tabs', active_tab: :access_controls
 
-.alert.alert-info
-  %i.icon-warning.mr-4
-  %p Access Controls are used to grant users access to HMIS data with specific permissions. Each Access Control consists of one User Group, one Role, and one Collection. Each user in the Access Controls inherits data access from the Collection, permissions from the Role, and applies those permissions to the collection of data for everyone in the User Group.
-
+= render 'admin/access_controls/description', entity_type: 'HMIS'
 = link_to new_hmis_admin_access_control_path, class: 'btn btn-primary mb-2' do
   %span.icon-plus
   Create a new Access Control

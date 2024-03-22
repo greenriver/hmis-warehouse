@@ -8,7 +8,7 @@
 .o-page
   .o-page__title
     %h1= content_for :title
-
+= render 'admin/collections/description', entity_type: 'warehouse'
 = simple_form_for @collection, url: admin_collection_path do |f|
   = f.error_notification
   .form-inputs

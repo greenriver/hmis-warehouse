@@ -8,12 +8,12 @@
 .o-page
   .o-page__title
     %h1= content_for :title
-
+= render 'admin/user_groups/description', entity_type: 'HMIS'
 .row
-  .col-sm-12.col-md-8
+  .col-sm-6
     = simple_form_for @user_group, as: :user_group, url: hmis_admin_user_group_path do |f|
-      = f.error_notification
-      = f.input :name, label: 'User Group Name', hint: 'Descriptive name for user group, e.g. "Green Mountain Shelter: Providers"'
-      = f.input :user_ids, as: :select_two, label_method: :name, collection: User.active.not_system, label: 'Users', input_html: { multiple: true }
+      = render 'form', f: f
       .form_actions.mt-4
         = f.button :submit, value: 'Update User Group'
+  .col-sm-6
+    = render 'admin/user_groups/helper_text'
