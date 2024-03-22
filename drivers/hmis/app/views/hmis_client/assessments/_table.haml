@@ -5,7 +5,7 @@
       %th Project
       %th Collection Date
       %th Staff
-      %th View in HMIS
+      %th Source
       %th
   %tbody
     - custom_hmis_assessments.each_with_index do |(name, (assessment, *assessments)), i|
@@ -16,7 +16,10 @@
         %td= assessment.enrollment.project.warehouse_project.name(current_user)
         %td= assessment.AssessmentDate
         %td= assessment.user&.name
-        %td= link_to 'HMIS', assessment.data_source.hmis_url_for(assessment), target: :_blank
+        %td
+          = link_to assessment.data_source.hmis_url_for(assessment), target: :_blank do
+            Open in HMIS
+            %i.icon-link-ext
         %td.zero-width
           - if any_buttons
             %a.btn.btn-secondary.btn-xs.btn-icon-only.jAssessmentTypeToggle{ href: '#', data: { class: cz } }
@@ -27,5 +30,8 @@
           %td= assessment.enrollment.project.warehouse_project.name(current_user)
           %td= assessment.AssessmentDate
           %td= assessment.user&.name
-          %td= link_to 'HMIS', assessment.data_source.hmis_url_for(assessment), target: :_blank
+          %td
+            = link_to assessment.data_source.hmis_url_for(assessment), target: :_blank do
+              Open in HMIS
+              %i.icon-link-ext
           %td.zero-width
