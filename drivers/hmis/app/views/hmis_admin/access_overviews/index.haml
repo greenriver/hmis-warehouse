@@ -26,12 +26,13 @@
             \.
     .col-sm
       .well
-        %h3 Quick Actions
+        %h3 Manage Access
         %ul.list-unstyled
-          %li= link_to 'Manage User Roles and Permissions', hmis_admin_roles_path
           %li= link_to 'Manage User Accounts', hmis_admin_users_path
+          %li= link_to 'Manage User Roles and Permissions', hmis_admin_roles_path
           %li= link_to 'Create Collections', hmis_admin_groups_path
-          %li= link_to 'Grant Access to a Report or Additional Projects', hmis_admin_access_controls_path
+          %li= link_to 'Manage Access Controls', hmis_admin_access_controls_path
+
   .row
     .col-sm-6
       .well

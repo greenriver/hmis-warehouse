@@ -1,4 +1,4 @@
-- title = "Edit Group #{@user_group.name}"
+- title = "Edit User Group #{@user_group.name}"
 - content_for :title, title
 
 = content_for :crumbs do
@@ -9,28 +9,11 @@
   .o-page__title
     %h1= content_for :title
 
-%h3.mt-2 Add/Remove Members
-= render 'users/user_members_table', item: @user_group, path_to_add_users: hmis_admin_user_group_users_path(@user_group), path_to_delete_item: hmis_admin_user_group_path(@user_group), delete_user_lambda: ->(user) { hmis_admin_user_group_user_path(@user_group, user) }
-
-%h3.mt-12 Change Group Name
 .row
-  .col
-    .well
-      = simple_form_for @user_group, as: :user_group, url: hmis_admin_user_group_path do |f|
-        = f.error_notification
-        .d-flex.align-items-center
-          .form-inputs.mt-4.mr-4
-            = f.input :name, label: 'User Group Name'
-
-          .form_actions.mt-4
-            = f.button :submit, value: 'Save Group Name', class: 'btn btn-secondary btn-sm'
-  .col
-    .well
-      %p
-        It is often helpful to name this group for the agency where the people included in the group work and their role in that agency.  Some examples:
-        %strong "Blue Mountain Shelter: Providers", "Teal House: Report Runners", or "Administrators: MA-500".
-        Using the pattern
-        %strong "Agency Name: User Function"
-        will group user groups together by agency, inverting that to
-        %strong "Function: Agency"
-        will group user groups by function.
+  .col-sm-12.col-md-8
+    = simple_form_for @user_group, as: :user_group, url: hmis_admin_user_group_path do |f|
+      = f.error_notification
+      = f.input :name, label: 'User Group Name', hint: 'Descriptive name for user group, e.g. "Green Mountain Shelter: Providers"'
+      = f.input :user_ids, as: :select_two, label_method: :name, collection: User.active.not_system, label: 'Users', input_html: { multiple: true }
+      .form_actions.mt-4
+        = f.button :submit, value: 'Update User Group'

@@ -16,12 +16,12 @@
     - @prompt = 'Search user groups...'
     = render 'search_form'
 - if @pagy.count.positive?
-  = render 'common/pagination_top', item_name: 'user_group'
+  = render 'common/pagination_top', item_name: 'user group'
   .table-responsive
     %table.table.table-striped
       %thead
         %tr
-          %th User Group
+          %th User Group Name
           %th Users
           %th
       %tbody
@@ -35,6 +35,6 @@
                   = link_to admin_user_group_path(group),  method: :delete, data: {confirm: "Would you really like to delete #{group.name}?"}, class: ['btn', 'btn-sm', 'btn-danger', 'ml-2'] do
                     %span.icon-cross
                     Delete Group
-  = render 'common/pagination_bottom', item_name: 'user_group'
+  = render 'common/pagination_bottom', item_name: 'user group'
 - else
   .none-found No user groups.
