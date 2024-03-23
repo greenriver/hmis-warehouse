@@ -6,7 +6,7 @@
 
 module GrdaWarehouse
   class RemoteCredentials::SymmetricEncryptionKey < GrdaWarehouse::RemoteCredential
-    # FIXME: we have a peculiar convention of repurposing the attributes of the remote credential class. Needs refactor
+    # FIXME: we have a convention of repurposing the attributes of the remote credential class. Needs refactor
     alias_attribute :algorithm, :username
     alias_attribute :key_hex, :encrypted_password
 
