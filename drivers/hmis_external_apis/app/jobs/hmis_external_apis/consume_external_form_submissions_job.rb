@@ -6,7 +6,7 @@
 
 # retrieve and process external form submissions
 class HmisExternalApis::ConsumeExternalFormSubmissionsJob
-  def perform
+  def perform(encryption_key:)
     s3.list_objects.each do |object|
       raw_data_string = s3.get_as_io(key: object.key)&.read
       raw_data = raw_data_string ? parse_json(raw_data_string) : nil
@@ -16,7 +16,7 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob
       end
 
       submission = submission_class.transaction do
-        process_submission(raw_data, object)
+        process_submission(raw_data, object, encryption_key: encryption_key)
       end
       # if we successfully processed the submission, delete it
       s3.delete(key: object.key) if submission
@@ -29,7 +29,7 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob
     Rails.logger.error("external form submission #{object_key}: #{message}")
   end
 
-  def process_submission(raw_data, object)
+  def process_submission(raw_data, object, encryption_key:)
     definition_id = raw_data['form_definition_id'].
       presence&.then { |value| ProtectedId::Encoder.decode(value) }
     if definition_id.nil?
@@ -43,10 +43,18 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob
       return nil
     end
 
+    spam_score = begin
+      encryption_key.decrypt(raw_data['captcha_score'])&.to_f
+    rescue StandardError => e
+      log_error("decryption failed #{e.message}", object_key: object.key)
+      nil
+    end
+
     submission = submission_class.from_raw_data(
       raw_data,
       object_key: object.key,
       last_modified: object.last_modified,
+      spam_score: spam_score,
       form_definition: definition,
     )
     submission

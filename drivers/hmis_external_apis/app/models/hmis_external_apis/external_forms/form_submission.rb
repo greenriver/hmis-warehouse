@@ -20,15 +20,14 @@ module HmisExternalApis::ExternalForms
       Hmis::Filter::ExternalFormSubmissionFilter.new(input).filter_scope(self)
     end
 
-    def self.from_raw_data(raw_data, object_key:, last_modified:, form_definition:)
+    def self.from_raw_data(raw_data, object_key:, last_modified:, form_definition:, spam_score: nil)
       # there might be a submission already if we processed it but didn't delete it from s3
       submission = where(object_key: object_key).first_or_initialize
       submission.status ||= 'new'
+      submission.spam_score ||= spam_score
 
-      spam_score = raw_data['spam_score'].presence&.to_i
       submission.attributes = {
         submitted_at: last_modified,
-        spam_score: spam_score,
         definition_id: form_definition.id,
         raw_data: raw_data,
       }
