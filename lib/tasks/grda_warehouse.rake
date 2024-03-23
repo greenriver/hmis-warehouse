@@ -320,6 +320,12 @@ namespace :grda_warehouse do
       Rake::Task['driver:hmis_external_apis:export:ac_clients'].invoke
     end
 
+    if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && RailsDrivers.loaded.include?(:hmis_external_apis)
+      HmisExternalApis::ConsumeExternalFormSubmissionsJob.new.perform(
+        encryption_key: HmisExternalApis::ExternalForms.external_forms_shared_key,
+      )
+    end
+
     stats_collector = AppResourceMonitor::CollectStatsJob.new
     AppResourceMonitor::CollectStatsJob.perform_later if stats_collector.should_enqueue?
 
