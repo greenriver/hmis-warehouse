@@ -56,8 +56,12 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   # Households in this Project, NOT including WIP Enrollments
   has_many :households, through: :enrollments
 
+  # NOTE: These are not performant, because they go through the WIP view. Don't use them in the application.
+  has_many :custom_assessments, through: :enrollments_including_wip
   has_many :services, through: :enrollments_including_wip
   has_many :custom_services, through: :enrollments_including_wip
+
+  has_one :warehouse_project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :id, primary_key: :id
 
   accepts_nested_attributes_for :affiliations, allow_destroy: true
 

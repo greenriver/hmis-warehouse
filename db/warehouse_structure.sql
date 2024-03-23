@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -13608,7 +13608,7 @@ UNION
     "Enrollment".data_source_id
    FROM (public.hmis_wips
      JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".id = hmis_wips.source_id))))
-  WHERE ((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text);
+  WHERE (((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text) AND (hmis_wips.deleted_at IS NULL));
 
 
 --
@@ -20243,7 +20243,9 @@ CREATE TABLE public.hud_report_path_clients (
     destination_client_id integer,
     personal_id character varying,
     race_multi character varying,
-    newly_enrolled_client boolean DEFAULT false
+    newly_enrolled_client boolean DEFAULT false,
+    cmh_service_provided boolean DEFAULT false NOT NULL,
+    cmh_referral_provided_and_attained boolean DEFAULT false NOT NULL
 );
 
 
@@ -62636,6 +62638,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240304181225'),
 ('20240312153543'),
 ('20240319171241'),
-('20240320134450');
-
-
+('20240320134450'),
+('20240320190835'),
+('20240322153133');
