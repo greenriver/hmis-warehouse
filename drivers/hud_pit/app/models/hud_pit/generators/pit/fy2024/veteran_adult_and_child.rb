@@ -54,8 +54,8 @@ module HudPit::Generators::Pit::Fy2024
         :native_pi_latino,
         :white,
         :white_latino,
-        :multi_racial,
         :multi_racial_latino,
+        :multi_racial,
         :chronic_households,
         :chronic_clients,
       ]

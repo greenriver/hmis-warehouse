@@ -1,6 +1,53 @@
 {
   "item": [
     {
+      "type": "GROUP",
+      "link_id": "service_type_group",
+      "enable_when": [
+        {
+          "local_constant": "$formRole",
+          "operator": "EQUAL",
+          "answer_code": "SERVICE"
+        }
+      ],
+      "item": [
+        {
+          "link_id": "form_rule_service_type",
+          "type": "CHOICE",
+          "text": "Service Type",
+          "pick_list_reference": "ALL_SERVICE_TYPES",
+          "mapping": {
+            "field_name": "serviceTypeId"
+          },
+          "disabled_display": "PROTECTED",
+          "enable_when": [
+            {
+              "question": "form_rule_service_category",
+              "operator": "EXISTS",
+              "answer_boolean": false
+            }
+          ]
+        },
+        {
+          "link_id": "form_rule_service_category",
+          "type": "CHOICE",
+          "text": "Service Category",
+          "pick_list_reference": "ALL_SERVICE_CATEGORIES",
+          "mapping": {
+            "field_name": "serviceCategoryId"
+          },
+          "disabled_display": "PROTECTED",
+          "enable_when": [
+            {
+              "question": "form_rule_service_type",
+              "operator": "EXISTS",
+              "answer_boolean": false
+            }
+          ]
+        }
+      ]
+    },
+    {
       "link_id": "form-rule-instruction",
       "type": "DISPLAY",
       "text": "Enter one or more applicability condition for this rule. Conditions will be AND-ed. For example, selecting Project Type 'Street Outreach' and Funder 'HHS Path' means that the rule should match projects that match both conditions."
@@ -78,7 +125,13 @@
       "pick_list_reference": "ActiveStatus",
       "mapping": {
         "field_name": "activeStatus"
-      }
+      },
+      "initial": [
+        {
+          "initial_behavior": "IF_EMPTY",
+          "value_code": "ACTIVE"
+        }
+      ]
     }
   ]
 }

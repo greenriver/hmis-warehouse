@@ -69,7 +69,7 @@ def setup_data
   columns = project.class.hmis_structure(version: '2024').keys.map(&:to_s)
   attributes = project.attributes.slice(*columns)
   attributes.merge!(
-    'ProjectType' => 1,
+    'ProjectType' => '1',
     'data_source_id' => project.data_source_id,
     'loaded_at' => DateTime.current - 1.days,
     'loader_id' => 1,

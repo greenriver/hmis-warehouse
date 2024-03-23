@@ -13,6 +13,8 @@ module Types
     argument :project_id, ID, required: false
     argument :data_collected_about, Types::Forms::Enums::DataCollectedAbout, required: false
     argument :active_status, Types::HmisSchema::Enums::ActiveStatus, required: false
+    argument :service_type_id, ID, required: false
+    argument :service_category_id, ID, required: false
 
     def to_attributes
       attrs = {
@@ -21,6 +23,8 @@ module Types
         other_funder: other_funder,
         data_collected_about: data_collected_about,
         active: active_status == 'ACTIVE',
+        custom_service_type_id: service_type_id,
+        custom_service_category_id: service_category_id,
       }
       attrs[:entity] = if project_id
         Hmis::Hud::Project.viewable_by(current_user).find(project_id)

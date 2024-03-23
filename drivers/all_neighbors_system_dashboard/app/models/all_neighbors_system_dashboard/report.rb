@@ -90,6 +90,7 @@ module AllNeighborsSystemDashboard
         :enrollment,
         :client,
         :project,
+        client_head_of_household: :warehouse_client_source,
       ).find_in_batches do |batch|
         report_enrollments = {}
         ce_infos = ce_infos_for_batch(filter, batch)

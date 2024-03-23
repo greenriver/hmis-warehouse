@@ -5,6 +5,8 @@
 ###
 
 module Mutations
+  # Generally, use CleanBaseMutation instead of this since we don't need Relay.
+  # We may clean up the old BaseMutation later
   class BaseMutation < GraphQL::Schema::RelayClassicMutation
     include GraphqlApplicationHelper
     include GraphqlMutationHelper

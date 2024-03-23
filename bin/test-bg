@@ -1,0 +1,52 @@
+#!/usr/bin/env ruby
+
+# Runs with
+# Get target_group_name from secrets yaml
+# aws-vault exec $VAULT_PROFILE -- docker compose run --no-deps --entrypoint='' --rm web bundle exec rails runner ./bin/test-bg
+# aws-vault exec $VAULT_PROFILE -- docker compose run --no-deps --entrypoint='' --rm web bundle exec rails runner ./bin/test-bg
+
+require_relative '../config/deploy/docker/lib/blue_green'
+
+ENV['RAILS_LOG_TO_STDOUT'] = 'true'
+
+class BlueGreenTest
+  attr_accessor :results
+
+  def initialize
+    self.results = {}
+  end
+
+  def test_sample
+    secrets = YAML.load_file("config/deploy/docker/assets/secret.deploy.values.yml", aliases: true)
+    target_group_names = secrets.dig('warehouse').values.map { |x| x.first && x.first[:target_group_name] }.compact
+
+    sample = target_group_names.sample(3)
+    sample << 'qa-warehouse-staging-ecs'
+    sample << 'qa-hmis-fe-hmis-staging-ecs'
+    sample.uniq!
+
+    sample.each do |target_group_name|
+      test_one(target_group_name)
+    end
+
+    ap(results)
+  end
+
+  def test_one(target_group_name)
+    bg = BlueGreen.new(target_group_name)
+    bg.check!
+
+    results.merge!(
+      {
+        target_group_name => {
+          chossen: bg.target_group_to_deploy_to.target_group_arn,
+          preview: bg.preview_target_group&.target_group_arn,
+          stable: bg.stable_target_group.target_group_arn,
+          bg_listener_rules: bg.listener_rules_summary,
+        },
+      },
+    )
+  end
+end
+
+BlueGreenTest.new.test_sample

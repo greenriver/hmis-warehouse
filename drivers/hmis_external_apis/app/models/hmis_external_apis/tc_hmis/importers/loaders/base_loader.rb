@@ -110,9 +110,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     def yn_boolean(str)
       case str
-      when /^(y|yes)$/i
+      when /^(t|y|yes)$/i
         true
-      when /^(n|no)$/i
+      when /^(f|n|no)$/i
         false
       when '.'
         # for element 12180 in the HAT, the dot appears to mean 'true'
@@ -164,7 +164,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     def placeholder_service_category
       @placeholder_service_category ||= Hmis::Hud::CustomServiceCategory.where(data_source: data_source, name: 'placeholder service category').first_or_create! do |cat|
-        cat.UserID = system_hud_user.id
+        cat.UserID = system_hud_user.user_id
       end
     end
 
@@ -210,9 +210,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       end
     end
 
-    def log_skipped_row(row, field:)
+    def log_skipped_row(row, field:, prefix: nil)
       value = row.field_value(field)
-      log_info "#{row.context} could not resolve \"#{field}\":\"#{value}\""
+      log_info "#{row.context} #{prefix} could not resolve \"#{field}\":\"#{value}\""
     end
 
     def log_processed_result(name: nil, expected:, actual:)

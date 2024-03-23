@@ -37,7 +37,7 @@ module Health
     scope :recent, -> { order(signature_on: :desc).limit(1) }
     scope :reviewed, -> { where.not(reviewed_by_id: nil) }
     scope :valid, -> do
-      parent_ids = Health::ReleaseFormFile.where.not(parent_id: nil).pluck(:parent_id)
+      parent_ids = Health::ReleaseFormFile.where.not(parent_id: nil).select(:parent_id)
       where.not(file_location: [nil, '']).
         or(where(id: parent_ids))
     end

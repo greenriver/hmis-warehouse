@@ -8364,6 +8364,13 @@ CREATE INDEX index_loaded_ed_ip_visits_on_updated_at ON public.loaded_ed_ip_visi
 
 
 --
+-- Name: index_medications_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_medications_on_patient_id ON public.medications USING btree (patient_id);
+
+
+--
 -- Name: index_member_status_report_patients_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -9275,6 +9282,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230807201621'),
 ('20230814153918'),
 ('20230816173812'),
-('20240126184731');
+('20240126184731'),
+('20240318191704');
 
 
