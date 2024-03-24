@@ -113,71 +113,71 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   validates :identifier, uniqueness: { scope: :version }
 
   ENROLLMENT_CONFIG = {
-    owner_class: Hmis::Hud::Enrollment,
+    owner_class: 'Hmis::Hud::Enrollment',
     permission: :can_edit_enrollments,
   }.freeze
 
   # Configuration for SubmitForm
   FORM_ROLE_CONFIG = {
     SERVICE: {
-      owner_class: Hmis::Hud::HmisService,
+      owner_class: 'Hmis::Hud::HmisService',
       permission: :can_edit_enrollments,
     },
     PROJECT: {
-      owner_class: Hmis::Hud::Project,
+      owner_class: 'Hmis::Hud::Project',
       permission: :can_edit_project_details,
     },
     ORGANIZATION: {
-      owner_class: Hmis::Hud::Organization,
+      owner_class: 'Hmis::Hud::Organization',
       permission: :can_edit_organization,
     },
     CLIENT: {
-      owner_class: Hmis::Hud::Client,
+      owner_class: 'Hmis::Hud::Client',
       permission: :can_edit_clients,
     },
     FUNDER: {
-      owner_class: Hmis::Hud::Funder,
+      owner_class: 'Hmis::Hud::Funder',
       permission: :can_edit_project_details,
     },
     INVENTORY: {
-      owner_class: Hmis::Hud::Inventory,
+      owner_class: 'Hmis::Hud::Inventory',
       permission: :can_edit_project_details,
     },
     PROJECT_COC: {
-      owner_class: Hmis::Hud::ProjectCoc,
+      owner_class: 'Hmis::Hud::ProjectCoc',
       permission: :can_edit_project_details,
     },
     HMIS_PARTICIPATION: {
-      owner_class: Hmis::Hud::HmisParticipation,
+      owner_class: 'Hmis::Hud::HmisParticipation',
       permission: :can_edit_project_details,
     },
     CE_PARTICIPATION: {
-      owner_class: Hmis::Hud::CeParticipation,
+      owner_class: 'Hmis::Hud::CeParticipation',
       permission: :can_edit_project_details,
     },
     CE_ASSESSMENT: {
-      owner_class: Hmis::Hud::Assessment,
+      owner_class: 'Hmis::Hud::Assessment',
       permission: :can_edit_enrollments,
     },
     CE_EVENT: {
-      owner_class: Hmis::Hud::Event,
+      owner_class: 'Hmis::Hud::Event',
       permission: :can_edit_enrollments,
     },
     CASE_NOTE: {
-      owner_class: Hmis::Hud::CustomCaseNote,
+      owner_class: 'Hmis::Hud::CustomCaseNote',
       permission: :can_edit_enrollments,
     },
     FILE: {
-      owner_class: Hmis::File,
+      owner_class: 'Hmis::File',
       permission: [:can_manage_any_client_files, :can_manage_own_client_files],
-      authorize: Hmis::File.authorize_proc,
+      authorize: ->(entity_base, user) { Hmis::File.authorize_proc.call(entity_base, user) },
     },
     REFERRAL_REQUEST: {
-      owner_class: HmisExternalApis::AcHmis::ReferralRequest,
+      owner_class: 'HmisExternalApis::AcHmis::ReferralRequest',
       permission: :can_manage_incoming_referrals,
     },
     CURRENT_LIVING_SITUATION: {
-      owner_class: Hmis::Hud::CurrentLivingSituation,
+      owner_class: 'Hmis::Hud::CurrentLivingSituation',
       permission: :can_edit_enrollments,
     },
     OCCURRENCE_POINT: ENROLLMENT_CONFIG,
@@ -188,11 +188,11 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       permission: [:can_edit_clients, :can_edit_enrollments],
     },
     CLIENT_DETAIL: {
-      owner_class: Hmis::Hud::Client,
+      owner_class: 'Hmis::Hud::Client',
       permission: :can_edit_clients,
     },
     EXTERNAL_FORM: {
-      owner_class: HmisExternalApis::ExternalForms::FormSubmission,
+      owner_class: 'HmisExternalApis::ExternalForms::FormSubmission',
       permission: :can_manage_external_form_submissions,
     },
   }.freeze
@@ -332,7 +332,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   def owner_class
     return unless FORM_ROLE_CONFIG[role.to_sym].present?
 
-    FORM_ROLE_CONFIG[role.to_sym][:owner_class]
+    FORM_ROLE_CONFIG[role.to_sym][:owner_class].constantize
   end
 
   def record_editing_permissions
