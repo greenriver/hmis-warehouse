@@ -11,7 +11,7 @@ class Hmis::Form::DefinitionItemFilter
   end
 
   attr_accessor :definition, :project, :project_funders, :active_date
-  def initialize(definition:, project:, project_funders:, active_date: )
+  def initialize(definition:, project:, project_funders:, active_date:)
     self.definition = definition
     self.project = project
     self.project_funders = project_funders
