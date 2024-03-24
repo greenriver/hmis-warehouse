@@ -35,10 +35,10 @@ class AppResourceMonitor::Report
       'postgres_index_stats' => AppResourceMonitor::PostgresInspector.flat_map(&:index_stats),
       'app_record_stats' => AppResourceMonitor::AppInspector.utilization_stats,
       'app_activity' => AppResourceMonitor::AppInspector.activity_stats(range: ((now - 1.day)...now)),
-      'client_references' => AppResourceMonitor::HudReferencesInspector.client_references,
-      'enrollment_references' => AppResourceMonitor::HudReferencesInspector.enrollment_references,
-      'project_references' => AppResourceMonitor::HudReferencesInspector.project_references,
-      'duplicate_ids' => AppResourceMonitor::HudReferencesInspector.duplicate_ids,
+      'hud_client_references' => AppResourceMonitor::HudReferencesInspector.client_references,
+      'hud_enrollment_references' => AppResourceMonitor::HudReferencesInspector.enrollment_references,
+      'hud_project_references' => AppResourceMonitor::HudReferencesInspector.project_references,
+      'duplicate_hud_ids' => AppResourceMonitor::HudReferencesInspector.duplicate_ids,
     }
   end
 
