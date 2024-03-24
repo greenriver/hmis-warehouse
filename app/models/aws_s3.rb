@@ -149,4 +149,8 @@ class AwsS3
       put(file_name: file, prefix: prefix)
     end
   end
+
+  def delete(key:)
+    s3_client.delete_object(bucket: bucket_name, key: key)
+  end
 end
