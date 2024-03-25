@@ -60,17 +60,19 @@ task :form_definition_psde_alignment_report, [:start_date] => :environment do |_
       link_ids = collect_link_ids(item_tree).to_set
       {
         project_id: project.id,
+        organization_name: project.organization.organization_name,
+        project_name: project.project_name,
 
         income_and_sources_link_id: 'income-and-sources'.in?(link_ids),
         non_cash_benefits_link_id: 'non-cash-benefits'.in?(link_ids),
         health_insurance_link_id: 'health-insurance'.in?(link_ids),
         disability_table_link_id: 'disability-table'.in?(link_ids),
-        disability_table_r4_link_id: 'disability-table-r4'.in?(link_ids),
+        disability_table_8_link_id: 'disability-table-r4'.in?(link_ids), # hiv/aids
         health_and_dvs_link_id: '4.11'.in?(link_ids),
 
         income_benefits_count: filter_scope(project.income_benefits).count,
         disability_count: filter_scope(project.disabilities.where.not(DisabilityType: [nil, 8])).count,
-        disability_r4_count: filter_scope(project.disabilities.where(DisabilityType: 8)).count,
+        disability_8_count: filter_scope(project.disabilities.where(DisabilityType: 8)).count, # hiv/aids
         health_and_dvs_count: filter_scope(project.health_and_dvs).count,
       }
     end
