@@ -490,7 +490,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     owner_type = if ASSESSMENT_FORM_ROLES.include?(role.to_sym)
       Hmis::Hud::CustomAssessment.sti_name
     else
-      FORM_ROLE_CONFIG.dig(role.to_sym, :owner_class)&.sti_name
+      FORM_ROLE_CONFIG.dig(role.to_sym, :owner_class)
     end
     raise "unable to determine owner class for form role: #{role}" unless owner_type
 

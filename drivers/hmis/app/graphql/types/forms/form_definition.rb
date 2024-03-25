@@ -36,7 +36,7 @@ module Types
     # we might need to apply filter. Probably the filtering should get moved to it's own
     # class down the road
     def definition
-      Hmis::Form::DefinitionItemGraphqlAdapter.perform(
+      Hmis::Form::DefinitionItemFilter.perform(
         definition: object.definition,
         project: project,
         project_funders: project_funders,
