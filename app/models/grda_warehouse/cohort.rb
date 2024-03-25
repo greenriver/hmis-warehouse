@@ -144,6 +144,14 @@ module GrdaWarehouse
       end
     end
 
+    def deleted_clients_tab?(population)
+      return true if population.to_s == 'deleted' # backwards compatibility
+
+      tab = cohort_tabs.find_by(name: population)
+      # If the source of the clients on this tab looks for deleted clients
+      tab.base_scope == 'only_deleted'
+    end
+
     private def active_tab(user, population)
       tab = cohort_tabs.find_by(name: population)
       return tab if tab&.show_for?(user)
