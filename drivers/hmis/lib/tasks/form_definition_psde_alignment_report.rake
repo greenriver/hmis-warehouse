@@ -13,15 +13,16 @@ task :form_definition_psde_alignment_report, [:start_date] => :environment do |_
       # use warehouse project model which has direct associations to income_benefits, disabilities, etc
       projects = GrdaWarehouse::Hud::Project.where(data_source: data_source)
       rows = projects.map do |project|
-        project_row(project)
+        row = project_row(project)
+        check_psdes(row)
       end
 
-      puts print_csv(rows)
+      puts to_csv(rows)
     end
 
     protected
 
-    def print_csv(records)
+    def to_csv(records)
       CSV.generate do |csv|
         headers = records.first.keys
         csv << headers
@@ -29,6 +30,27 @@ task :form_definition_psde_alignment_report, [:start_date] => :environment do |_
           csv << record.values_at(*headers)
         end
       end
+    end
+
+    def check_psdes(row)
+      [
+        [:income_and_sources_link_id, :income_benefits_count],
+        [:non_cash_benefits_link_id, :income_benefits_count],
+        [:health_insurance_link_id, :income_benefits_count],
+        [:disability_table_link_id, :disability_count],
+        [:disability_table_r4_link_id, :disability_r4_count],
+        [:health_and_dvs_link_id, :health_and_dvs_count],
+      ].each do |link_id_field, count_field|
+        error_field = link_id_field.to_s.gsub(/_link_id\z/, '_error')
+        if row.fetch(count_field).zero?
+          # no relevant psdes
+          row[error_field] = false
+        else
+          # if relevant psdes, there's an error if the link id is not present
+          row[error_field] = !row[link_id_field]
+        end
+      end
+      row
     end
 
     def project_row(project)
