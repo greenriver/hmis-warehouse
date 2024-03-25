@@ -14,15 +14,15 @@
         %p.access-description
           Each
           %span.access-control.color-tag<
-            = link_to 'access control', '#', tabindex: '0', data: {container: '.access-overview', toggle: :popover, placement: :top, html: true, trigger: :focus, content: "<p>Accss Controls are used to grant users access to data and permissions.  Each access control consists of one Role, one User Group, and one Collection. Access is governed by the intersection of permission from the role, entities from the collection, and users from the user group.</p><p>#{link_to 'Manage Access Controls', admin_access_controls_path}</p>", title: 'Access Control'}
+            = link_to 'access control', '#', tabindex: '0', data: {container: '.access-overview', toggle: :popover, placement: :top, html: true, trigger: :focus, content: "<p>Access Controls are used to grant users access to data and permissions.  Each access control consists of one Role, one User Group, and one Collection. Access is governed by the intersection of permission from the role, entities from the collection, and users from the user group.</p><p>#{link_to 'Manage Access Controls', admin_access_controls_path}</p>", title: 'Access Control<div class="float-right close jClosePopover cursor-pointer"><i class="icon icon-cross"></i></div>'}
           consists of one
           %span.permission-role.color-tag<
-            = link_to 'permission role', '#', tabindex: '1', data: {container: '.access-overview', toggle: :popover, placement: :top, html: true, trigger: :focus, content: "<p>User groups are used to logically group users who need similar access.  User groups are combined with roles and collections via access controls.  The intersection of role, collection, and user group determines what each person can do and see within HMIS.</p><p>#{link_to 'Manage Roles', admin_roles_path}</p>", title: 'Permission Role'}
+            = link_to 'permission role', '#', tabindex: '1', data: {container: '.access-overview', toggle: :popover, placement: :top, html: true, trigger: :focus, content: "<p>Roles contain permissions which govern what a user can access or accomplish with the application.  The intersection of role, collection, and user group determines what each person can do and see within HMIS.</p><p>#{link_to 'Manage Roles', admin_roles_path}</p>", title: 'Permission Role<div class="float-right close jClosePopover cursor-pointer"><i class="icon icon-cross"></i></div>'}
           %span.user-group.color-tag<
-            = link_to 'user group', '#', tabindex: '1', data: {container: '.access-overview', toggle: :popover, placement: :top, html: true, trigger: :focus, content: "<p>User groups are used to logically group users who need similar access.  User groups are combined with roles and collections via access controls.  The interesction of role, collection, and user group, determins what each person can do and see within HMIS.</p><p>#{link_to 'Manage User Groups', admin_user_groups_path}</p>", title: 'User Group'}
+            = link_to 'user group', '#', tabindex: '1', data: {container: '.access-overview', toggle: :popover, placement: :top, html: true, trigger: :focus, content: "<p>User groups are used to logically group users who need similar access.  User groups are combined with roles and collections via access controls.  The intersection of role, collection, and user group, determines what each person can do and see within HMIS.</p><p>#{link_to 'Manage User Groups', admin_user_groups_path}</p>", title: 'User Group<div class="float-right close jClosePopover cursor-pointer"><i class="icon icon-cross"></i></div>'}
           and
           %span.collection.color-tag<
-            = link_to 'collection', '#', tabindex: '1', data: {container: '.access-overview', toggle: :popover, placement: :top, html: true, trigger: :focus, content: "<p>Collections are used to assign access to particular sets of data.  Users inherit data access from the collection. groups are combined with roles and collections via access controls.  The interesction of role, collection, and user group, determins what each person can do and see within HMIS.</p><p>#{link_to 'Manage Collections', admin_collections_path}</p>", title: 'Collection'}
+            = link_to 'collection', '#', tabindex: '1', data: {container: '.access-overview', toggle: :popover, placement: :top, html: true, trigger: :focus, content: "<p>Collections are used to assign access to particular sets of data.  Users inherit data access from the collection. groups are combined with roles and collections via access controls.  The intersection of role, collection, and user group, determines what each person can do and see within HMIS.</p><p>#{link_to 'Manage Collections', admin_collections_path}</p>", title: 'Collection<div class="float-right close jClosePopover"><i class="icon icon-cross cursor-pointer"></i></div>'}
             \.
     .col-sm
       .well
@@ -30,7 +30,7 @@
         %ul.list-unstyled
           %li= link_to 'Manage User Accounts', hmis_admin_users_path
           %li= link_to 'Manage User Roles and Permissions', hmis_admin_roles_path
-          %li= link_to 'Create Collections', hmis_admin_groups_path
+          %li= link_to 'Manage Collections', hmis_admin_groups_path
           %li= link_to 'Manage Access Controls', hmis_admin_access_controls_path
 
   .row
@@ -90,3 +90,8 @@
                   %td
                     .access-control
                       Teal House Projects x Providers
+= content_for :page_js do
+  :javascript
+    $('body').on('click', '.jClosePopover', function(e){
+      $(e.target).closest('.popover').popover('hide')
+    });
