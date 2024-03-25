@@ -8,6 +8,7 @@
 .o-page
   .o-page__title
     %h1= content_for :title
+= render 'admin/collections/description', entity_type: 'warehouse'
 .row
   .col-sm-12
     = simple_form_for @collection, url: admin_collections_path do |f|
@@ -16,4 +17,4 @@
         = render 'form', f: f
 
       .form_actions.mt-4
-        = f.button :submit, value: 'Create Collection'
+        = f.button :submit, value: 'Create Collection and Choose Entities'
