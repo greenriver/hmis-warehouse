@@ -30,8 +30,8 @@ module MaReports::CsgEngage
     field('PayPayeeAddress2')
     field('PayPayeeAddress3')
     field('PayPayeeName')
-    field('ServiceDateTimeBegin')
-    field('ServiceDateTimeEnd')
+    field('ServiceDateTimeBegin') { service.DateProvided&.strftime('%m/%d/%Y') }
+    field('ServiceDateTimeEnd') { nil }
     field('ServiceProvided')
     field('ServiceReviewDate')
     field('UnitsOfService')

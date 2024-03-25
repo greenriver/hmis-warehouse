@@ -50,7 +50,6 @@ RSpec.describe MaReports::CsgEngage::Report, type: :model do
                 'CSBG Data' => include(
                   'Number in House' => 1,
                 ),
-                'Other Address' => be_empty,
               ),
             ),
           ),

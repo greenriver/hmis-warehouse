@@ -13,10 +13,6 @@ module MaReports::CsgEngage
     end
 
     field('Household Identifier') { hoh_enrollment.household_id }
-    # field('Temporary Family Number') { household_identifier }
-    # field('Annual Household Income') do
-    #   GrdaWarehouse::Hud::IncomeBenefit.where(personal_id: enrollments_scope.pluck(:personal_id)).sum(:total_monthly_income) * 12
-    # end
 
     subfield('Address') do
       field('Apartment')
@@ -56,23 +52,23 @@ module MaReports::CsgEngage
       field('SeasonalFarmer')
     end
 
-    subfield('Other Address') do
-      field('Apartment')
-      field('CareOf')
-      field('CityTown')
-      field('Floor')
-      field('HouseNumber')
-      field('SecondaryDesignator')
-      field('SecondaryNumber')
-      field('State')
-      field('StreetName')
-      field('StreetPostDirection')
-      field('StreetPreDirection')
-      field('StreetSuffix')
-      field('UseForMailings')
-      field('ZipCode')
-      field('ZipPlus4')
-    end
+    # subfield('Other Address') do
+    #   field('Apartment')
+    #   field('CareOf')
+    #   field('CityTown')
+    #   field('Floor')
+    #   field('HouseNumber')
+    #   field('SecondaryDesignator')
+    #   field('SecondaryNumber')
+    #   field('State')
+    #   field('StreetName')
+    #   field('StreetPostDirection')
+    #   field('StreetPreDirection')
+    #   field('StreetSuffix')
+    #   field('UseForMailings')
+    #   field('ZipCode')
+    #   field('ZipPlus4')
+    # end
 
     field('Household Members') do
       result = []
