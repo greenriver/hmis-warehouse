@@ -38,7 +38,7 @@ task :form_definition_psde_alignment_report, [:start_date] => :environment do |_
         [:non_cash_benefits_link_id, :income_benefits_count],
         [:health_insurance_link_id, :income_benefits_count],
         [:disability_table_link_id, :disability_count],
-        [:disability_table_r4_link_id, :disability_r4_count],
+        [:disability_table_8_link_id, :disability_8_count],
         [:health_and_dvs_link_id, :health_and_dvs_count],
       ].each do |link_id_field, count_field|
         error_field = link_id_field.to_s.gsub(/_link_id\z/, '_error')
