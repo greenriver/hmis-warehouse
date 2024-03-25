@@ -11,6 +11,7 @@ module Admin
 
     def index
       @groups = user_group_scope.order(:name)
+      @groups = @groups.text_search(params[:q]) if params[:q].present?
       @pagy, @groups = pagy(@groups)
     end
 

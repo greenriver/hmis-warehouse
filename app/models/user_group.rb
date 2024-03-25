@@ -38,6 +38,16 @@ class UserGroup < ApplicationRecord
     group
   end
 
+  def self.text_search(text)
+    return none unless text.present?
+
+    query = "%#{text}%"
+    where(
+      arel_table[:name].matches(query).
+      or(arel_table[:description].matches(query)),
+    )
+  end
+
   def add(users)
     # Force individual queries for paper_trail
     Array.wrap(users).uniq.each do |user|
