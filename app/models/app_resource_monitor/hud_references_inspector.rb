@@ -22,33 +22,30 @@ class AppResourceMonitor::HudReferencesInspector
     new.duplicate_ids
   end
 
-  def duplicate_ids
+  def hud_models
+    Rails.application.eager_load!
+    seen = Set.new
+    results = []
     [
-      Hmis::Hud::Affiliation,
-      Hmis::Hud::Assessment,
-      Hmis::Hud::CeParticipation,
-      Hmis::Hud::Client,
-      Hmis::Hud::CurrentLivingSituation,
-      Hmis::Hud::CustomAssessment,
-      Hmis::Hud::CustomCaseNote,
-      Hmis::Hud::CustomClientAddress,
-      Hmis::Hud::CustomClientContactPoint,
-      Hmis::Hud::CustomClientName,
-      Hmis::Hud::CustomService,
-      Hmis::Hud::Disability,
-      Hmis::Hud::EmploymentEducation,
-      Hmis::Hud::Enrollment,
-      Hmis::Hud::Event,
-      Hmis::Hud::Exit,
-      Hmis::Hud::Funder,
-      Hmis::Hud::HealthAndDv,
-      Hmis::Hud::HmisParticipation,
-      Hmis::Hud::IncomeBenefit,
-      Hmis::Hud::Inventory,
-      Hmis::Hud::ProjectCoc,
-      Hmis::Hud::Service,
-      Hmis::Hud::YouthEducationStatus,
-    ].flat_map do |model|
+      GrdaWarehouse::Hud::Base,
+      Hmis::Hud::Base,
+    ].each do |base_class|
+      base_class.descendants.each do |klass|
+        table_name = klass.table_name
+        next unless table_name
+        next if table_name.in?(seen)
+        next unless klass.try(:hud_key)
+        next unless klass.reflect_on_association(:data_source)
+
+        seen.add(table_name)
+        results << klass
+      end
+    end
+    results
+  end
+
+  def duplicate_ids
+    hud_models.flat_map do |model|
       arel_table = model.arel_table
       hud_key = arel_table[model.hud_key]
       data_sources.map do |data_source|
@@ -63,26 +60,7 @@ class AppResourceMonitor::HudReferencesInspector
   end
 
   def client_references
-    # models that reference a client via (PersonalID)
-    [
-      Hmis::Hud::Assessment,
-      Hmis::Hud::CurrentLivingSituation,
-      Hmis::Hud::CustomAssessment,
-      Hmis::Hud::CustomCaseNote,
-      Hmis::Hud::CustomClientAddress,
-      Hmis::Hud::CustomClientContactPoint,
-      Hmis::Hud::CustomClientName,
-      Hmis::Hud::CustomService,
-      Hmis::Hud::Disability,
-      Hmis::Hud::EmploymentEducation,
-      Hmis::Hud::Enrollment,
-      Hmis::Hud::Event,
-      Hmis::Hud::Exit,
-      Hmis::Hud::HealthAndDv,
-      Hmis::Hud::IncomeBenefit,
-      Hmis::Hud::Service,
-      Hmis::Hud::YouthEducationStatus,
-    ].flat_map do |model|
+    hud_models.filter(&:references_hud_client?).flat_map do |model|
       data_sources.map do |data_source|
         scope = model.where(data_source: data_source)
         {
@@ -95,16 +73,7 @@ class AppResourceMonitor::HudReferencesInspector
   end
 
   def project_references
-    # models that reference a project via (ProjectID)
-    [
-      Hmis::Hud::Affiliation,
-      Hmis::Hud::CeParticipation,
-      Hmis::Hud::Enrollment,
-      Hmis::Hud::Funder,
-      Hmis::Hud::HmisParticipation,
-      Hmis::Hud::Inventory,
-      Hmis::Hud::ProjectCoc,
-    ].flat_map do |model|
+    hud_models.filter(&:references_hud_project?).flat_map do |model|
       data_sources.map do |data_source|
         scope = model.where(data_source: data_source)
         {
@@ -117,22 +86,7 @@ class AppResourceMonitor::HudReferencesInspector
   end
 
   def enrollment_references
-    # models that reference an enrollment via (EnrollmentID)
-    [
-      Hmis::Hud::Assessment,
-      Hmis::Hud::CurrentLivingSituation,
-      Hmis::Hud::CustomAssessment,
-      Hmis::Hud::CustomCaseNote,
-      Hmis::Hud::CustomService,
-      Hmis::Hud::Disability,
-      Hmis::Hud::EmploymentEducation,
-      Hmis::Hud::Event,
-      Hmis::Hud::Exit,
-      Hmis::Hud::HealthAndDv,
-      Hmis::Hud::IncomeBenefit,
-      Hmis::Hud::Service,
-      Hmis::Hud::YouthEducationStatus,
-    ].flat_map do |model|
+    hud_models.filter(&:references_hud_enrollment?).flat_map do |model|
       arel_table = model.arel_table
       # to detect mismatched enrollment/client ids, we join using only EnrollmentID / data_source
       q_table_name = model.connection.quote_table_name(model.table_name)
