@@ -72,3 +72,4 @@ class AllNeighborsSystemDashboardQuarters {
       )
   }
 }
+globalThis.AllNeighborsSystemDashboardQuarters = AllNeighborsSystemDashboardQuarters;

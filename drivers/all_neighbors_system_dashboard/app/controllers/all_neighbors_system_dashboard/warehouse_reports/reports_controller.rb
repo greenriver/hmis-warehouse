@@ -47,6 +47,14 @@ module AllNeighborsSystemDashboard::WarehouseReports
     end
 
     def show
+      @per_page_js = [
+        'all_neighbors_system_dashboard_filters',
+        'all_neighbors_system_dashboard_stack',
+        'all_neighbors_system_dashboard_quarters',
+        'all_neighbors_system_dashboard_line',
+        'all_neighbors_system_dashboard_donut',
+        'all_neighbors_system_dashboard_bar',
+      ]
       respond_to do |format|
         format.html {}
         # format.xlsx do

@@ -101,7 +101,7 @@ module AllNeighborsSystemDashboard
         'race_list',
         'ce_entry_date',
         'ce_referral_date',
-        # 'return_date',
+        'return_date',
       ].map do |col|
         [
           col,

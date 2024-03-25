@@ -296,16 +296,11 @@ module AllNeighborsSystemDashboard
         end
       end
 
-      # To be a candidate for return, the entry must be at last 14 days after the exit, unless the
-      # exit is from PH, in which case there doesn't need to be a gap.
+      # To be a candidate for return, the entry must be on or after the exit
+      # This differs from the definition in the SPM, which requires a gap for some situations
       # Additionally, the re-entry must be within 365 days of the exit
       private def candidate_for_return?(housed_exit_date, enrollment)
-        re_entry_window_start = if enrollment.project_type.in?(HudUtility2024.residential_project_type_numbers_by_code[:ph])
-          housed_exit_date
-        else
-          housed_exit_date + 14.days
-        end
-        re_entry_window = (re_entry_window_start .. housed_exit_date + 1.years)
+        re_entry_window = (housed_exit_date .. housed_exit_date + 1.years)
         enrollment.entry_date.in?(re_entry_window)
       end
     end
