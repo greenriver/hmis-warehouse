@@ -21,7 +21,6 @@ module UserPermissions
         :can_view_or_search_clients,
         :can_view_or_search_clients_or_window, # TODO: START_ACL remove after ACL migration is complete
         :can_access_some_client_search,
-        :can_view_enrollment_details_tab,
         :window_file_access,
         :can_access_vspdat_list,
         :can_create_or_modify_vspdat,
@@ -84,10 +83,6 @@ module UserPermissions
       can_view_clients? || can_search_window?
     end
     # END_ACL
-
-    def can_view_enrollment_details_tab
-      can_view_clients? || can_view_enrollment_details?
-    end
 
     # TODO: START_ACL remove after ACL migration is complete
     def can_access_window_search

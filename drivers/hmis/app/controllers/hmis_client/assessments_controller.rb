@@ -8,7 +8,7 @@ class HmisClient::AssessmentsController < ApplicationController
   include AjaxModalRails::Controller
   include ClientDependentControllers
 
-  before_action :require_can_view_enrollment_details_tab!
+  before_action :require_can_view_enrollment_details!
   before_action :client
   before_action :assessment
 
