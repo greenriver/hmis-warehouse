@@ -1,16 +1,24 @@
-%h3 Filter Access Controls
-.well
-  = simple_form_for :filter, method: :get do |f|
-    .row
-      .col
-        = f.input :user_id, as: :select_two, collection: User.active.not_system.order(:first_name, :last_name), selected: params.dig(:filter, :user_id).to_i, required: false, include_blank: 'Any user'
-      .col
-        = f.input :user_group_id, as: :select_two, collection: UserGroup.all.order(:name), selected: params.dig(:filter, :user_group_id).to_i, required: false, include_blank: 'Any user group'
-      .col
-        = f.input :collection_id, as: :select_two, collection: Collection.all.order(:name), selected: params.dig(:filter, :collection_id).to_i, required: false, include_blank: 'Any collection'
-      .col
-        = f.input :role_id, as: :select_two, collection: Role.homeless.order(:name), selected: params.dig(:filter, :role_id).to_i, required: false, include_blank: 'Any role'
-    .d-flex
-      = link_to 'Reset Filter', admin_access_controls_path, class: 'btn btn-secondary mr-auto'
-      .ml-auto
-        = f.button :submit, value: 'Update Filter'
+- filter_class = if @active_filter then 'client__filter-active' else 'client__filter' end
+.dropdown.o-filtration{class: filter_class}
+  %button.btn.btn-secondary.dropdown-toggle{ type: 'button', data: { toggle: 'dropdown' }, aria: { haspopup: 'true', expanded: 'false' }}
+    %span Filter
+    %span.caret
+  .o-filtration__container.dropdown-menu.dropdown-menu-right.options
+    .o-filtration__header
+      %h3.client__filter-header Filter Access Controls
+
+    = simple_form_for :filter, method: :get do |f|
+      .o-filtration__option.row
+        .col-12
+          = f.input :user_id, as: :select_two, collection: User.active.not_system.order(:first_name, :last_name), selected: params.dig(:filter, :user_id).to_i, required: false, include_blank: 'Any user'
+        .col-12
+          = f.input :user_group_id, as: :select_two, collection: UserGroup.where(id: AccessControl.select(:user_group_id)).order(:name), selected: params.dig(:filter, :user_group_id).to_i, required: false, include_blank: 'Any user group'
+        .col-12
+          = f.input :collection_id, as: :select_two, collection: Collection.where(id: AccessControl.select(:collection_id)).order(:name), selected: params.dig(:filter, :collection_id).to_i, required: false, include_blank: 'Any collection'
+        .col-12
+          = f.input :role_id, as: :select_two, collection: Role.where(id: AccessControl.select(:role_id)).order(:name), selected: params.dig(:filter, :role_id).to_i, required: false, include_blank: 'Any role'
+
+      .o-filtration__actions.form__actions.d-flex
+        = link_to 'Reset Filter', admin_access_controls_path, class: 'btn btn-secondary mr-auto'
+        .ml-auto
+          = f.button :submit, value: 'Update Filter'
