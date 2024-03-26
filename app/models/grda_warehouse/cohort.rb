@@ -149,7 +149,7 @@ module GrdaWarehouse
 
       tab = cohort_tabs.find_by(name: population)
       # If the source of the clients on this tab looks for deleted clients
-      tab.base_scope == 'only_deleted'
+      tab&.base_scope == 'only_deleted'
     end
 
     private def active_tab(user, population)
