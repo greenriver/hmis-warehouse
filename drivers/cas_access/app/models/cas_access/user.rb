@@ -39,5 +39,9 @@ module CasAccess
     def agency_name
       agency&.name
     end
+
+    def unique_role_names
+      user_roles.map { |ur| ur.role.name }.uniq
+    end
   end
 end

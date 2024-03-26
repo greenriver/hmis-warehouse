@@ -9,6 +9,9 @@ For each user the list includes:
 * email
 * phone
 * agency
+* roles 
+* status (active/inactive)
+* last login date
 
 In the user admin interface there is:
 
