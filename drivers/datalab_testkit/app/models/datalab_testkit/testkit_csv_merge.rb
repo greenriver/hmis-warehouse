@@ -44,7 +44,7 @@ module DatalabTestkit
       source_table.each do |row|
         next if dups.include?(row[0])
 
-        row['ExportID'] = export_id(row)
+        row['ExportID'] = 'MERGED-ID'
         destination_table << row.values_at
       end
 
@@ -53,10 +53,6 @@ module DatalabTestkit
           csv << row
         end
       end
-    end
-
-    def export_id(row)
-      @export_id ||= "MERGED-ID-#{row['ExportID']}"
     end
   end
 end

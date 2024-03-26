@@ -54,7 +54,7 @@ module Cohorts
 
       @visible_columns = [CohortColumns::Meta.new]
       @visible_columns += @cohort.visible_columns(user: current_user)
-      delete_column = if @cohort.deleted_clients_tab?(params[:population])
+      delete_column = if params[:population] == 'deleted'
         CohortColumns::Delete.new(title: 'Restore')
       else
         CohortColumns::Delete.new
