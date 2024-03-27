@@ -70,7 +70,7 @@ module Filters
         ids_with_enrollments = GrdaWarehouse::Hud::Project.
           where(id: effective_project_ids).
           joins(:enrollments).
-          merge(GrdaWarehouse::Hud::Enrollemnt.open_during_range(effective_range)).
+          merge(GrdaWarehouse::Hud::Enrollment.open_during_range(effective_range)).
           distinct.
           pluck(:id)
         ids_for_open_projects = GrdaWarehouse::Hud::Project.
