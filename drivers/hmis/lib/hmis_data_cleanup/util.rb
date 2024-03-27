@@ -17,8 +17,18 @@ module HmisDataCleanup
     # Remove all ExportIDs from HMIS Enrollments.
     # This should be done after an HMIS migration, otherwise ServiceHistoryService generation will behave incorrectly
     def self.clear_enrollment_export_ids!
-      without_papertrail_or_timestamps do
-        Hmis::Hud::Enrollment.hmis.update_all(ExportID: nil)
+      Hmis::Hud::Enrollment.hmis.where.not(ExportID: nil).find_in_batches(batch_size: 5_000) do |batch|
+        batch.each { |enrollment| enrollment.ExportID = nil }
+
+        result = Hmis::Hud::Enrollment.import(
+          batch,
+          validate: false,
+          timestamps: false,
+          on_duplicate_key_update: { conflict_target: [:id], columns: [:ExportID] },
+        )
+        raise "Failed: #{result.failed_instances}" if result.failed_instances.present?
+
+        Rails.logger.info "Nullified ExportID on #{result.ids.count} Enrollments"
       end
     end
 
@@ -27,43 +37,38 @@ module HmisDataCleanup
     # we are dealing with a single-CoC installation at the time of writing this.
     def self.update_all_enrollment_cocs!(coc_code)
       without_papertrail_or_timestamps do
-        Hmis::Hud::Enrollment.hmis.update_all(EnrollmentCoC: coc_code)
+        rows_affected = Hmis::Hud::Enrollment.hmis.where.not(EnrollmentCoC: coc_code).update_all(EnrollmentCoC: coc_code)
+        Rails.logger.info "Updated EnrollmentCoC on #{rows_affected} enrollments"
       end
     end
 
     # Assign Household ID where missing
-    #
-    # Note: If this gets to be a large number, an upsert is probably worth doing.
-    # We could `scope.find_in_batches` and then enrollment.assign_attributes and finally "import" the batch with a conflict key of id.
     def self.assign_missing_household_ids!
-      scope = Hmis::Hud::Enrollment.hmis.where(household_id: nil)
-      Rails.logger.info "Assigning household id to #{scope.size} enrollments"
-      scope.each do |enrollment|
-        hh_id = Hmis::Hud::Base.generate_uuid
-        without_papertrail_or_timestamps do
-          enrollment.update_columns(household_id: hh_id) # skips callbacks
-        end
+      Hmis::Hud::Enrollment.hmis.where(household_id: [nil, '']).find_in_batches do |batch|
+        batch.each { |enrollment| enrollment.HouseholdID = Hmis::Hud::Base.generate_uuid }
+
+        result = Hmis::Hud::Enrollment.import(
+          batch,
+          validate: false,
+          timestamps: false,
+          on_duplicate_key_update: { conflict_target: [:id], columns: [:HouseholdID] },
+        )
+        raise "Failed: #{result.failed_instances}" if result.failed_instances.present?
+
+        Rails.logger.info "Assigned HouseholdID to #{result.ids.count} Enrollments"
       end
     end
 
     # Find any single-member households that do not have a HoH, and make that person the HoH
     def self.make_sole_member_hoh!
-      single_member_households = Hmis::Hud::Enrollment.hmis.
-        group(:household_id).
-        having(nf('COUNT', [:HouseholdID]).eq(1)).
-        pluck(:household_id)
-
-      num = Hmis::Hud::Enrollment.hmis.
-        where(household_id: single_member_households).
-        where.not(relationship_to_hoh: 1).size
-
-      Rails.logger.info "Assigning HoH to #{num} single-member households"
-
       without_papertrail_or_timestamps do
-        Hmis::Hud::Enrollment.hmis.
-          where(household_id: single_member_households).
+        rows_affected = Hmis::Hud::Enrollment.hmis.
+          group(:household_id).
+          having(nf('COUNT', [:HouseholdID]).eq(1)).
           where.not(relationship_to_hoh: 1).
           update_all(relationship_to_hoh: 1) # skips callbacks
+
+        Rails.logger.info "Set HoH in #{rows_affected} single-member households"
       end
     end
 
