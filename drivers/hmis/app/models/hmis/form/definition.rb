@@ -39,6 +39,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # convenience attr for passing graphql args
   attr_accessor :filter_context
 
+  has_many :custom_assessments, class_name: 'Hmis::Hud::CustomAssessment', dependent: :restrict_with_exception,
+                                primary_key: 'identifier', foreign_key: 'form_definition_identifier'
   has_many :instances, foreign_key: :definition_identifier, primary_key: :identifier, dependent: :restrict_with_exception
   has_many :form_processors, dependent: :restrict_with_exception
   has_many :custom_service_types, through: :instances, foreign_key: :identifier, primary_key: :form_definition_identifier

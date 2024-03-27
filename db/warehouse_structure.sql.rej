@@ -1,0 +1,11 @@
+--- db/warehouse_structure.sql
++++ db/warehouse_structure.sql
+@@ -60932,6 +60940,5 @@ INSERT INTO "schema_migrations" (version) VALUES
+ ('20240228192937'),
+ ('20240229132014'),
+ ('20240304181225'),
+-('20240312153543');
+-
+-
++('20240312153543'),
++('20240317153543');
