@@ -398,11 +398,10 @@ module ApplicationHelper
   end
 
   def omni_auth_providers
-    if ENV['OKTA_DOMAIN'].present?
-      [['Okta', '/users/auth/okta']]
-    else
-      []
-    end
+    providers = []
+    providers << ['Okta', '/users/auth/okta'] if ENV['OKTA_DOMAIN'].present?
+    providers << [ENV['IDP_HUMAN_NAME'], user_openid_connect_omniauth_authorize_path] if ENV['IDP_NAME'].present?
+    providers
   end
 
   def foreground_color(bg_color)

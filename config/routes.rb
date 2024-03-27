@@ -27,6 +27,9 @@ Rails.application.routes.draw do
     if ENV['OKTA_DOMAIN'].present?
       get "/users/auth/okta/callback" => "users/omniauth_callbacks#okta" if ENV['OKTA_CLIENT_ID']
     end
+    if ENV['OKTA_DOMAIN'].present?
+      get "/users/auth/okta/callback" => "users/omniauth_callbacks#okta" if ENV['IDP_NAME'].present?
+    end
   end
 
   namespace :users do
