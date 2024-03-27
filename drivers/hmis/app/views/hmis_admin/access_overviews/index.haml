@@ -9,12 +9,12 @@
         %h3 Building and Using Access Controls
         %p
           %strong Access Controls
-          are used to grant users access to data and control the permissions those users have when accessing the granted data.  Access is goverend by the intersection of permissions from the role, users from the associated user group, and information from the collection.
+          are used to grant users access to data, and control the permissions those users have when accessing the granted data.  Access is governed by the intersection of permissions from the role, users from the associated user group, and information from the collection.
 
         %p.access-description
           Each
           %span.access-control.color-tag<
-            = link_to 'access control', '#', tabindex: '0', data: {container: '.access-overview', toggle: :popover, placement: :top, html: true, trigger: :focus, content: "<p>Access Controls are used to grant users access to data and permissions.  Each access control consists of one Role, one User Group, and one Collection. Access is governed by the intersection of permission from the role, entities from the collection, and users from the user group.</p><p>#{link_to 'Manage Access Controls', admin_access_controls_path}</p>", title: 'Access Control<div class="float-right close jClosePopover cursor-pointer"><i class="icon icon-cross"></i></div>'}
+            = link_to 'access control', '#', tabindex: '0', data: {container: '.access-overview', toggle: :popover, placement: :top, html: true, trigger: :focus, content: "<p>Access Controls are used to grant users access to data, and permissions.  Each access control consists of one Role, one User Group, and one Collection. Access is governed by the intersection of permission from the role, entities from the collection, and users from the user group.</p><p>#{link_to 'Manage Access Controls', admin_access_controls_path}</p>", title: 'Access Control<div class="float-right close jClosePopover cursor-pointer"><i class="icon icon-cross"></i></div>'}
           consists of one
           %span.permission-role.color-tag<
             = link_to 'permission role', '#', tabindex: '1', data: {container: '.access-overview', toggle: :popover, placement: :top, html: true, trigger: :focus, content: "<p>Roles contain permissions which govern what a user can access or accomplish with the application.  The intersection of role, collection, and user group determines what each person can do and see within HMIS.</p><p>#{link_to 'Manage Roles', admin_roles_path}</p>", title: 'Permission Role<div class="float-right close jClosePopover cursor-pointer"><i class="icon icon-cross"></i></div>'}
