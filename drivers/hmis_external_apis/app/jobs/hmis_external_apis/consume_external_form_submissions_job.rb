@@ -7,6 +7,8 @@
 # retrieve and process external form submissions
 class HmisExternalApis::ConsumeExternalFormSubmissionsJob
   def perform(encryption_key:)
+    return unless cred # RemoteCredential with slug hmis_external_form_submissions is not present or not active
+
     s3.list_objects.each do |object|
       raw_data_string = s3.get_as_io(key: object.key)&.read
       raw_data = raw_data_string ? parse_json(raw_data_string) : nil
@@ -64,8 +66,12 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob
     HmisExternalApis::ExternalForms::FormSubmission
   end
 
+  def cred
+    @cred ||= GrdaWarehouse::RemoteCredentials::S3.active.where(slug: 'hmis_external_form_submissions').first
+  end
+
   def s3
-    @s3 ||= GrdaWarehouse::RemoteCredentials::S3.active.where(slug: 'hmis_external_form_submissions').first!.s3
+    @s3 ||= cred.s3
   end
 
   # str should be a json document but it is user supplied and could be anything
