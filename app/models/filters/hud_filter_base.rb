@@ -65,17 +65,17 @@ module Filters
     # Looking for both of these will enable reporting on non-HMIS participating projects open during
     # the report range, and will allow the data quality checks for enrollments that are open
     # outside of the operating end dates
-    def effective_project_ids_during_range
+    def effective_project_ids_during_range(effective_range)
       @effective_project_ids_during_range ||= begin
         ids_with_enrollments = GrdaWarehouse::Hud::Project.
           where(id: effective_project_ids).
           joins(:enrollments).
-          merge(GrdaWarehouse::Hud::Enrollemnt.open_during_range(range)).
+          merge(GrdaWarehouse::Hud::Enrollemnt.open_during_range(effective_range)).
           distinct.
           pluck(:id)
         ids_for_open_projects = GrdaWarehouse::Hud::Project.
           where(id: effective_project_ids).
-          active_during(range).
+          active_during(effective_range).
           pluck(:id)
         (ids_with_enrollments + ids_for_open_projects).uniq
       end

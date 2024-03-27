@@ -119,7 +119,7 @@ module HudLsa::Generators::Fy2023
     # Any structural failures that will cause the run to fail should be caught here
     private def preflight_passes?
       issues = missing_data(user).except(:show_missing_data)
-      issue_project_ids = issues.values.flatten.map { |r| r[:id] }.uniq & filter.effective_project_ids
+      issue_project_ids = issues.values.flatten.map { |r| r[:id] }.uniq & filter.effective_project_ids_during_range(lookback_stop_date .. filter.end)
       return true if issue_project_ids.empty?
 
       # Prevent report.complete_report from hiding the error
@@ -140,7 +140,7 @@ module HudLsa::Generators::Fy2023
       load 'lib/rds_sql_server/lsa/fy2023/lsa_queries.rb'
       rep = LsaSqlServer::LSAQueries.new
       rep.test_run = test?
-      rep.project_ids = filter.effective_project_ids
+      rep.project_ids = filter.effective_project_ids_during_range(lookback_stop_date .. filter.end)
 
       # some setup
       if test?
@@ -193,8 +193,8 @@ module HudLsa::Generators::Fy2023
           ).
           # where project_ids contains the effective project ids, and effective contains the project ids
           # (equivalency without sort)
-          where('project_ids @> ?', filter.effective_project_ids.to_json).
-          where('project_ids <@ ?', filter.effective_project_ids.to_json).
+          where('project_ids @> ?', filter.effective_project_ids_during_range(lookback_stop_date .. filter.end).to_json).
+          where('project_ids <@ ?', filter.effective_project_ids_during_range(lookback_stop_date .. filter.end).to_json).
           where.not(file: nil)&.first
         if existing_export.present?
           @hmis_export = existing_export
@@ -207,7 +207,7 @@ module HudLsa::Generators::Fy2023
         version: '2024',
         start_date: lookback_stop_date,
         end_date: filter.end,
-        projects: filter.effective_project_ids_during_range,
+        projects: filter.effective_project_ids_during_range(lookback_stop_date .. filter.end),
         coc_codes: filter.coc_code,
         period_type: 3,
         directive: 2,
