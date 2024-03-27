@@ -8,8 +8,6 @@ RSpec.feature 'Enrollment/household management', type: :system do
   let!(:ds1) { create(:hmis_data_source, hmis: 'localhost') }
   let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Quentin', last_name: 'Coldwater' }
   let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Alice', last_name: 'Quinn' }
-  let!(:unit1) { create :hmis_unit, project: p1, user: user, name: 'unit 1' }
-  let!(:unit2) { create :hmis_unit, project: p1, user: user, name: 'unit 2' }
   let!(:access_control) { create_access_control(hmis_user, p1) }
   # need with_coc so enrollment isn't blocked by CoC prompt
   let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, with_coc: true }
@@ -19,16 +17,14 @@ RSpec.feature 'Enrollment/household management', type: :system do
   context 'An active project' do
     before(:each) do
       sign_in(hmis_user)
-      # click_link 'Open Path HMIS'
       click_link 'Projects'
       click_link p1.project_name
       click_link 'Enrollments'
     end
 
-    def submit_enrollment_form(entry_date:, relationship_to_hoh: 'Self (HoH)', unit: nil)
-      fill_in 'Entry Date', with: entry_date.strftime('%m/%d/%Y')
+    def submit_enrollment_form(entry_date:, relationship_to_hoh: 'Self (HoH)')
+      mui_date_select 'Entry Date', date: entry_date
       mui_select relationship_to_hoh, from: 'Relationship to HoH'
-      mui_select unit.name, from: 'Unit' if unit
       click_button 'Enroll'
     end
 
@@ -61,7 +57,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
       click_button('Enroll Client')
       entry_date = today - 2.days
       expect do
-        submit_enrollment_form(entry_date: entry_date, unit: unit1)
+        submit_enrollment_form(entry_date: entry_date)
       end.to change(c1.enrollments, :count).by(1)
       assert_text(c1.brief_name)
 
@@ -135,7 +131,7 @@ RSpec.feature 'Enrollment/household management', type: :system do
         click_link 'Add Enrollment'
         search_for_client(c1)
         click_button('Enroll Client')
-        submit_enrollment_form(entry_date: entry_date, unit: unit1)
+        submit_enrollment_form(entry_date: entry_date)
 
         # now we have to go back and find the enrollment again to see prev members
         click_link 'Enrollments', match: :first

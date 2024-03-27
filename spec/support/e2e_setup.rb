@@ -38,6 +38,13 @@ RSpec.shared_context 'SystemSpecHelper' do
     end
   end
 
+  def mui_radio_choose(choice, from:)
+    scroll_to("[aria-label='#{from}']")
+    within("[aria-label='#{from}']") do
+      choose(choice)
+    end
+  end
+
   def mui_select(choice, from:)
     label = find('label', text: from)
     scroll_to(label, align: :center)
@@ -46,6 +53,20 @@ RSpec.shared_context 'SystemSpecHelper' do
     # find("##{id}").click
     find("[id='#{id}']").click
     find('li[role=option]', text: choice).click
+  end
+
+  def mui_table_select(choice, row:, column:)
+    row_label = find('td', text: row)
+    scroll_to(row_label, align: :center)
+    column_label = find('th', text: column)
+    find("[aria-labelledby='#{row_label['id']} #{column_label['id']}']").click
+    find('li[role=option]', text: choice).click
+  end
+
+  def mui_date_select(label, date:)
+    field = find("[aria-label='#{label}']")
+    field.click
+    field.native.send_keys(:left, :left, :backspace, date.strftime('%m/%d/%Y'))
   end
 
   def with_hidden
