@@ -1,5 +1,10 @@
 name: Build, Scan, and Lint Images
 
+# If scanning fails, you can delete the cache and have it rebuild from scratch.
+# This _may_ fix the vulnerability.  Delete the caches prefixed with Linux-buildx-warehouse,
+# specifically, if you look in the failed action at the Cache Docker Layers step, the
+# layer listed under `Cache restored from key:`
+# https://github.com/greenriver/hmis-warehouse/actions/caches?query=linux-buildx
 on:
   push:
     branches:

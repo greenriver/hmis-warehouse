@@ -17,6 +17,7 @@ class Admin::AccessControlsController < ApplicationController
       order(r_t[:name].asc, collection_t[:name].asc).
       filtered(params[:filter])
     @pagy, @access_controls = pagy(@access_controls)
+    @active_filter = filter_params[:filter]&.values&.any?(&:present?)
   end
 
   def new
@@ -53,6 +54,17 @@ class Admin::AccessControlsController < ApplicationController
 
   private def access_control_scope
     AccessControl.all
+  end
+
+  private def filter_params
+    params.permit(
+      filter: [
+        :user_group_id,
+        :collection_id,
+        :role_id,
+        :user_id,
+      ],
+    )
   end
 
   private def access_control_params

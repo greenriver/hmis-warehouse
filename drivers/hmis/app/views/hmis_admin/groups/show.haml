@@ -1,0 +1,34 @@
+- title = "Manage Collection: #{@group.name}"
+- content_for :title, title
+
+= content_for :crumbs do
+  = link_to hmis_admin_groups_path do
+    &laquo; Manage Collections
+
+.o-page
+  .o-page__title
+    %h1= content_for :title
+
+.well
+  .row
+    .col-sm
+      %ul.list-unstyled
+        %li
+          %strong Collection Name:
+          = @group.name
+    .col-sm
+      .description-label
+        %strong Description
+      .description-text
+        - if @group.description.present?
+          = @group.description
+        - else
+          %i.text-muted
+            None Provided
+    .col-sm
+      .text-right
+        = link_to edit_hmis_admin_group_path(@group), class: ['btn', 'btn-sm', 'btn-secondary'] do
+          %i.icon-pencil
+          Edit
+.collections
+  = render 'projects'

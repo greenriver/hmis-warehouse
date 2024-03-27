@@ -8,6 +8,7 @@
 .o-page
   .o-page__title
     %h1= content_for :title
+= render 'admin/collections/description', entity_type: 'HMIS'
 .row
   .col-sm-12
     = simple_form_for @group, as: :access_group, url: hmis_admin_groups_path do |f|

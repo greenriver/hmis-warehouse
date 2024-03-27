@@ -50,4 +50,8 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
       label: organization_name,
     }
   end
+
+  def name
+    organization_name
+  end
 end

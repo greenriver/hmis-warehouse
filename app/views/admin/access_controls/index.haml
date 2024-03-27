@@ -1,17 +1,11 @@
 - content_for :title, 'Access Control Administration'
 .d-flex
   %h1= content_for :title
+= render 'menus/admin_tabs'
+
+= render 'admin/access_controls/description', entity_type: 'warehouse'
+.mb-4
   = link_to new_admin_access_control_path, class: 'btn btn-primary ml-auto' do
     %span.icon-plus
     Create a new Access Control
-= render 'menus/admin_tabs'
-
-.alert.alert-info
-  %i.icon-warning.mr-4
-  %p Access Controls are used to grant users access to data and permissions. Each Access Control consists of one Collection, one Role, and one User Group. Access is governed by the intersection of permission from the role, entities from the collection, and users from the user group.
-
-= render 'filter'
-- if @pagy.count.positive?
-  = render 'table'
-- else
-  .none-found No access controls.
+= render 'table'

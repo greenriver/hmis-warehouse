@@ -1,0 +1,4 @@
+- if additional_sources.present?
+  .project-duplicate-warning
+    %span{data: { toggle: :tooltip, placement: :left, title: "Already specified by another source: <br /> #{additional_sources}", html: :true }}
+      %i.icon-info

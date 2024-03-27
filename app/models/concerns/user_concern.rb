@@ -143,6 +143,10 @@ module UserConcern
       }
     end
 
+    def self.anyone_using_acls?
+      where(permission_context: 'acls').exists?
+    end
+
     # scope :admin, -> { includes(:roles).where(roles: {name: :admin}) }
     # scope :dnd_staff, -> { includes(:roles).where(roles: {name: :dnd_staff}) }
 

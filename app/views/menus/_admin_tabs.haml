@@ -1,4 +1,5 @@
-- if can_see_admin_menu?
+-# disabled in favor of new menu system
+- if can_see_admin_menu? && false
   %ul.nav.nav-tabs
     - if can_edit_users?
       - on_user_pages = current_page?(admin_users_path) || current_page?(admin_inactive_users_path) || current_page?(admin_account_requests_path)

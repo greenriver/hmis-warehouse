@@ -5,7 +5,9 @@
 
 .o-page
   .o-page__title
-    %h1= content_for :title
+    .d-flex
+      %h1= content_for :title
+= render 'admin/user_groups/description', entity_type: 'warehouse'
 = simple_form_for @group, as: :user_group, url: admin_user_groups_path do |f|
   = f.error_notification
   = render 'form', f: f

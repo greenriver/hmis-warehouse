@@ -1,0 +1,20 @@
+%h2 Cohorts Included (#{@collection.cohorts.count})
+.row
+  - @collection.relevant_entity_types.each do |entity_type, entity_title|
+    .col-sm-4
+      .card
+        .card-header.border-bottom
+          %h3= entity_title
+          - unless @collection.entities_locked?
+            = link_to 'Add / Remove', entities_admin_collection_path(@collection, entities: entity_type), class: ['btn', 'btn-primary', 'btn-sm'], data: { loads_in_ajax_modal: true }
+        .card-body
+          - if @collection.public_send(entity_type).exists?
+            .card-body-negate-padding
+              .border-bottom.mb-4.px-4.pb-4
+                = pluralize(number_with_delimiter(@collection.public_send(entity_type).count), 'Cohort')
+
+              - @collection.public_send(entity_type).each do |entity|
+                .project.pl-4.mb-4= entity.name
+
+          - else
+            .none-found.border-0 No #{entity_title}

@@ -6,6 +6,7 @@
 .o-page
   .o-page__title
     %h1= content_for :title
+= render 'admin/access_controls/description', entity_type: 'HMIS'
 .row
   .col-sm-12
     = simple_form_for @access_control, as: :access_control, url: hmis_admin_access_controls_path do |f|

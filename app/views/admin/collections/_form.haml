@@ -1,6 +1,18 @@
 .row
-  .col-12
-    = f.input :name, disabled: @collection.must_exist?
+  .col-6
+    - if @collection.persisted? && ! @collection.legacy?
+      %h3 Collection Type:
+      %p= @collection.describe_type
+    - else
+      = f.input :collection_type, collection: Collection.available_collection_types, as: :select_two, required: true, inlude_blank: false
+      - if @collection.legacy? && @collection.persisted?
+        %p Collections that affect more than one type of entity have been deprecated.  You should adjust the included entities to cover only one category, Projects, Cohorts, Reports, or Project Groups, and then update the Collection type to match.  After setting the collection type, you will be unable to adjust entities in other categories.
 .row
-  .col-12
-    = render 'viewable_entities', f: f
+  .col-6
+    = f.input :name, disabled: @collection.entities_locked?
+    = f.input :description, disabled: @collection.entities_locked?
+
+- if @collection.legacy? && @collection.persisted?
+  .row
+    .col-12
+      = render 'viewable_entities', f: f

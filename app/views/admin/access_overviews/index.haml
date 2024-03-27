@@ -1,0 +1,98 @@
+- content_for :title, 'Getting Started'
+.d-flex
+  %h1= content_for :title
+= render 'menus/admin_tabs'
+.access-overview
+  .row
+    .col-sm
+      .well
+        %h3 Building and Using Access Controls
+        %p
+          %strong Access Controls
+          are used to grant users access to data, and control the permissions those users have when accessing the granted data.  Access is governed by the intersection of permissions from the role, users from the associated user group, and information from the collection.
+
+        %p.access-description
+          Each
+          %span.access-control.color-tag<
+            = link_to 'access control', '#', tabindex: '0', data: {container: '.access-overview', toggle: :popover, placement: :top, html: true, trigger: :focus, content: "<p>Access Controls are used to grant users access to data, and permissions.  Each access control consists of one Role, one User Group, and one Collection. Access is governed by the intersection of permission from the role, entities from the collection, and users from the user group.</p><p>#{link_to 'Manage Access Controls', admin_access_controls_path}</p>", title: 'Access Control<div class="float-right close jClosePopover cursor-pointer"><i class="icon icon-cross"></i></div>'}
+          consists of one
+          %span.permission-role.color-tag<
+            = link_to 'permission role', '#', tabindex: '1', data: {container: '.access-overview', toggle: :popover, placement: :top, html: true, trigger: :focus, content: "<p>Roles contain permissions which govern what a user can access or accomplish with the application.  The intersection of role, collection, and user group determines what each person can do and see within the warehouse.</p><p>#{link_to 'Manage Roles', admin_roles_path}</p>", title: 'Permission Role<div class="float-right close jClosePopover cursor-pointer"><i class="icon icon-cross"></i></div>'}
+          %span.user-group.color-tag<
+            = link_to 'user group', '#', tabindex: '2', data: {container: '.access-overview', toggle: :popover, placement: :top, html: true, trigger: :focus, content: "<p>User groups are used to logically group users who need similar access.  User groups are combined with roles and collections via access controls.  The intersection of role, collection, and user group, determines what each person can do and see within the warehouse.</p><p>#{link_to 'Manage User Groups', admin_user_groups_path}</p>", title: 'User Group<div class="float-right close jClosePopover cursor-pointer"><i class="icon icon-cross"></i></div>'}
+          and
+          %span.collection.color-tag<
+            = link_to 'collection', '#', tabindex: '3', data: {container: '.access-overview', toggle: :popover, placement: :top, html: true, trigger: :focus, content: "<p>Collections are used to assign access to particular sets of data.  Users inherit data access from the collection. groups are combined with roles and collections via access controls.  The intersection of role, collection, and user group, determines what each person can do and see within the warehouse.</p><p>#{link_to 'Manage Collections', admin_collections_path}</p>", title: 'Collection<div class="float-right close jClosePopover cursor-pointer"><i class="icon icon-cross"></i></div>'}
+            \.
+    .col-sm
+      .well
+        %h3 Quick Actions
+        %ul.list-unstyled
+          %li= link_to 'Manage User Roles and Permissions', admin_roles_path
+          %li= link_to 'Manage User Accounts', admin_users_path
+          %li= link_to 'Manage Collections', admin_collections_path
+          %li= link_to 'Grant Access to a Report or Additional Projects through Access Controls', admin_access_controls_path
+          %li= link_to 'Setup User Groups', admin_user_groups_path
+  .row
+    .col-sm-6
+      .well
+        %h3 Examples of Access Controls
+        .pl-8.pr-8
+          %ul.nav.nav-tabs{role: :tablist}
+            %li.nav-item
+              %a.nav-link.active{ href: '#coc-administrators', data: { toggle: :tab, target: '#coc-administrators' }, role: :tab, aria: { controls: 'coc-administrators', selected: :true }} CoC Administrators
+            %li.nav-item
+              %a.nav-link{ href: '#report-viewer', data: { toggle: :tab, target: '#report-viewer' }, role: :tab, aria: { controls: 'report-viewer', selected: :true }} Report Viewer
+          .tab-content
+            #coc-administrators.tab-pane.fade.show.active{ aria: { labeledby: 'report-viewer'}}
+              %p In this example, the access control would grant appropriate access for an administrator at the MA-500 CoC.
+              %table.table.access-control-description-table
+                %tr
+                  %th Permission Role
+                  %td
+                    .permission-role
+                      CoC Administrators
+                %tr
+                  %th User Group
+                  %td
+                    .user-group
+                      Administrators at MA-500
+                %tr
+                  %th Collection
+                  %td
+                    .collection
+                      Projects in MA-500
+                %tr
+                  %th Access Control
+                  %td
+                    .access-control
+                      CoC Administrors x Projects in MA-500
+            #report-viewer.tab-pane.fade{ aria: { labeledby: 'report-viewer'}}
+              %p In this example, the access control would grant appropriate rights for reporting.
+              %table.table.access-control-description-table
+                %tr
+                  %th Permission Role
+                  %td
+                    .permission-role
+                      Report Viewers
+                %tr
+                  %th User Group
+                  %td
+                    .user-group
+                      Users at MA-500
+                %tr
+                  %th Collection
+                  %td
+                    .collection
+                      Projects in MA-500
+                %tr
+                  %th Access Control
+                  %td
+                    .access-control
+                      Report Viewers x Projects in MA-500
+
+= content_for :page_js do
+  :javascript
+    $('body').on('click', '.jClosePopover', function(e){
+      $(e.target).closest('.popover').popover('hide')
+    });
