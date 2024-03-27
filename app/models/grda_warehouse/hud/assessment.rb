@@ -94,8 +94,10 @@ module GrdaWarehouse::Hud
     end
 
     # provide a more specific name when appropriate
+    # You'll probably want to preload(assessment_questions: :lookup)
     def name
-      return 'Pathways' if pathways?
+      name_from_questions = assessment_questions.detect(&:assessment_name)
+      return name_from_questions.assessment_name if name_from_questions.present?
 
       HudUtility2024.assessment_level self.AssessmentLevel
     end

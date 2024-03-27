@@ -1,0 +1,31 @@
+:ruby
+  date_id = next_html_id
+  month_id = next_html_id
+  day_id = next_html_id
+  year_id = next_html_id
+.form-row(style="max-width: 400px")
+  %input{type:"hidden", name: name, id: date_id}
+  .col-3
+    = render_numeric_input(label: 'Month', name: nil, required: required, input_placeholder: 'MM', input_html_id: month_id)
+  .col-3
+    = render_numeric_input(label: 'Day', name: nil, required: required, input_placeholder: 'DD', input_html_id: day_id)
+  .col-4
+    = render_numeric_input(label: 'Year', name: nil, required: required, input_placeholder: 'YYYY', input_html_id: year_id)
+
+- content_for :page_js do
+  :javascript
+    'use strict';
+    $(function() {
+      var month ='#' + #{month_id.to_json.html_safe};
+      var day ='#' + #{day_id.to_json.html_safe};
+      var year ='#' + #{year_id.to_json.html_safe};
+      var date ='#' + #{date_id.to_json.html_safe};
+      $([month, day, year].join(', ')).change(function() {
+        var parts = [
+          $(month).val().padStart(2, '0'),
+          $(day).val().padStart(2, '0'),
+          $(year).val()
+        ]
+        $(date).val(parts.join('/'));
+      });
+    });

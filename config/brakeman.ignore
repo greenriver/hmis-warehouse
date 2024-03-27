@@ -1120,6 +1120,29 @@
       "note": ""
     },
     {
+      "warning_type": "File Access",
+      "warning_code": 16,
+      "fingerprint": "53aa3829d816d01fd6d87f4eeca10b2fa2ef40bd2bdbb6e64d899f543b7c6097",
+      "check_name": "FileAccess",
+      "message": "Parameter value used in file name",
+      "file": "drivers/hmis_external_apis/app/controllers/hmis_external_apis/external_forms_controller.rb",
+      "line": 32,
+      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
+      "code": "File.read(Rails.root.join(\"drivers/hmis/lib/form_data/tarrant_county/external_forms/#{File.basename(params[:object_key])}.json\"))",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "HmisExternalApis::ExternalFormsController",
+        "method": "show"
+      },
+      "user_input": "params[:object_key]",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "5499b637b8348aa1e36c39c76eedd901c66563518a8514361499efb75c9b0b43",
@@ -3263,6 +3286,28 @@
       "confidence": "Medium",
       "cwe_id": [
         89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Cross-Site Scripting",
+      "warning_code": 2,
+      "fingerprint": "f32a91544ec2960cf67499214f9dd41072818f5c4c0d756d32c389c908bb7426",
+      "check_name": "CrossSiteScripting",
+      "message": "Unescaped model attribute",
+      "file": "drivers/hmis_external_apis/app/views/hmis_external_apis/external_forms/form.haml",
+      "line": 4,
+      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
+      "code": "HmisExternalApis::ExternalForms::FormGenerator.new(self).render_node(node)",
+      "render_path": null,
+      "location": {
+        "type": "template",
+        "template": "hmis_external_apis/external_forms/form"
+      },
+      "user_input": null,
+      "confidence": "High",
+      "cwe_id": [
+        79
       ],
       "note": ""
     },

@@ -6,13 +6,18 @@
 
 module Admin
   class CollectionsController < ApplicationController
+    include AjaxModalRails::Controller
     before_action :require_can_edit_collections!
-    before_action :set_collection, only: [:edit, :update, :destroy]
-    before_action :set_entities, only: [:new, :edit, :create, :update]
+    before_action :set_collection, only: [:show, :edit, :update, :destroy, :entities, :bulk_entities]
+    before_action :set_entities, only: [:new, :edit, :create, :update, :entities]
 
     def index
       @collections = collection_scope.order(:name)
+      @collections = @collections.text_search(params[:q]) if params[:q].present?
       @pagy, @collections = pagy(@collections)
+    end
+
+    def show
     end
 
     def new
@@ -24,7 +29,7 @@ module Admin
       @collection.update(collection_params)
       @collection.set_viewables(viewable_params)
       @collection.save
-      respond_with(@collection, location: admin_collections_path)
+      respond_with(@collection, location: admin_collection_path(@collection))
     end
 
     def edit
@@ -32,15 +37,63 @@ module Admin
 
     def update
       @collection.update(collection_params)
-      @collection.set_viewables(viewable_params)
+      # Only update viewbles on legacy collections
+      @collection.set_viewables(viewable_params) if @collection.legacy?
       @collection.save
 
-      redirect_to({ action: :index }, notice: "Collection #{@collection.name} updated.")
+      redirect_to({ action: :show }, notice: "Collection #{@collection.name} updated.")
     end
 
     def destroy
       @collection.destroy
       redirect_to({ action: :index }, notice: "Collection #{@collection.name} removed.")
+    end
+
+    def entities
+      @modal_size = :lg
+      @entities = case params[:entities]&.to_sym
+      when :data_sources
+        @data_sources
+      when :organizations
+        @organizations
+      when :projects
+        @projects
+      when :project_access_groups
+        @project_access_groups
+      when :coc_codes
+        @coc_codes
+      when :reports
+        @reports
+      when :cohorts
+        @cohorts
+      when :project_groups
+        @project_groups
+      end
+    end
+
+    def bulk_entities
+      ids = {}
+      @collection.entity_types.keys.each do |entity_type|
+        values = bulk_entities_params.to_h.with_indifferent_access[entity_type]
+        ids[entity_type] ||= []
+        # Prevent unsetting other entity types
+        if entity_type.to_s == params[:entities]
+          values.each do |id, checked|
+            id = id.to_i unless entity_type == :coc_codes
+            ids[entity_type] << id if checked == '1'
+          end
+        else
+          next if entity_type == :coc_codes
+
+          ids[entity_type] = @collection.send(entity_type).map(&:id)
+        end
+      end
+      if params[:entities].to_sym == :coc_codes
+        @collection.update(coc_codes: ids[:coc_codes].uniq)
+      else
+        @collection.set_viewables(ids.with_indifferent_access)
+      end
+      redirect_to({ action: :show }, notice: "Collection #{@collection.name} updated.")
     end
 
     private def collection_scope
@@ -50,6 +103,8 @@ module Admin
     private def collection_params
       params.require(:collection).permit(
         :name,
+        :description,
+        :collection_type,
         coc_codes: [],
       ).tap do |result|
         result[:coc_codes] ||= []
@@ -65,6 +120,19 @@ module Admin
         reports: [],
         cohorts: [],
         project_groups: [],
+      )
+    end
+
+    private def bulk_entities_params
+      params.require(:collection).permit(
+        coc_codes: {},
+        data_sources: {},
+        organizations: {},
+        projects: {},
+        project_access_groups: {},
+        reports: {},
+        cohorts: {},
+        project_groups: {},
       )
     end
 
@@ -121,9 +189,7 @@ module Admin
 
       @project_access_groups = {
         selected: @collection&.project_access_groups&.map(&:id) || [],
-        collection: GrdaWarehouse::ProjectAccessGroup.
-          order(:name).
-          pluck(:name, :id),
+        collection: GrdaWarehouse::ProjectAccessGroup.order(:name),
         id: :project_access_groups,
         placeholder: 'Project Group',
         multiple: true,
@@ -137,6 +203,18 @@ module Admin
         label: 'CoC Codes',
         selected: @collection&.coc_codes || [],
         collection: GrdaWarehouse::Hud::ProjectCoc.distinct.distinct.order(:CoCCode).pluck(:CoCCode).compact,
+        placeholder: 'CoC',
+        multiple: true,
+        input_html: {
+          class: 'jUserViewable jCocCodes',
+          name: 'collection[coc_codes][]',
+        },
+      }
+
+      @coc_codes = {
+        label: 'CoC Codes',
+        selected: @collection&.coc_codes || [],
+        collection: GrdaWarehouse::Hud::ProjectCoc.distinct.distinct.order(:CoCCode).pluck(:CoCCode).compact.map { |coc| [HudUtility2024.coc_name(coc), coc] },
         placeholder: 'CoC',
         multiple: true,
         input_html: {
@@ -168,9 +246,7 @@ module Admin
 
       @project_groups = {
         selected: @collection&.project_groups&.map(&:id) || [],
-        collection: GrdaWarehouse::ProjectGroup.
-          order(:name).
-          pluck(:name, :id),
+        collection: GrdaWarehouse::ProjectGroup.order(:name),
         placeholder: 'Project Group',
         multiple: true,
         input_html: {
