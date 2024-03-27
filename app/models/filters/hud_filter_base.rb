@@ -59,6 +59,16 @@ module Filters
       @effective_project_ids.uniq.reject(&:blank?)
     end
 
+    # Limit the effective project ids to only those with enrollments that overlap the report range
+    def effective_project_ids_with_ongoing_enrollments
+      @effective_project_ids_with_ongoing_enrollments ||= GrdaWarehouse::Hud::Project.
+        where(id: effective_project_ids).
+        joins(:enrollments).
+        merge(GrdaWarehouse::Hud::Enrollemnt.open_during_range(range)).
+        distinct.
+        pluck(:id)
+    end
+
     def apply(scope, except: [])
       # @filter is required for these to work
       @filter = self

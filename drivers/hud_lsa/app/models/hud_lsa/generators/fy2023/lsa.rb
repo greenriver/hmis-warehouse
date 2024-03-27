@@ -207,7 +207,7 @@ module HudLsa::Generators::Fy2023
         version: '2024',
         start_date: lookback_stop_date,
         end_date: filter.end,
-        projects: filter.effective_project_ids,
+        projects: filter.effective_project_ids_with_ongoing_enrollments,
         coc_codes: filter.coc_code,
         period_type: 3,
         directive: 2,
