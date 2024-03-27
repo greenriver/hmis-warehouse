@@ -310,9 +310,11 @@ class Menu::Menu
   end
 
   def legacy_access_menu
+    title = 'Access'
+    title += ' (Legacy)' if User.anyone_using_acls?
     menu = Menu::Item.new(
       user: user,
-      title: 'Access (Legacy)',
+      title: title,
       id: 'legacy-user-access',
     )
     menu.add_child(
