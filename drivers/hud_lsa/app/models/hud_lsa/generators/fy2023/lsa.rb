@@ -119,7 +119,7 @@ module HudLsa::Generators::Fy2023
     # Any structural failures that will cause the run to fail should be caught here
     private def preflight_passes?
       issues = missing_data(user).except(:show_missing_data)
-      issue_project_ids = issues.values.flatten.map { |r| r[:id] }.uniq & filter.effective_project_ids
+      issue_project_ids = issues.values.flatten.map { |r| r[:id] }.uniq & filter.effective_project_ids_during_range(export_date_range)
       return true if issue_project_ids.empty?
 
       # Prevent report.complete_report from hiding the error
@@ -140,7 +140,7 @@ module HudLsa::Generators::Fy2023
       load 'lib/rds_sql_server/lsa/fy2023/lsa_queries.rb'
       rep = LsaSqlServer::LSAQueries.new
       rep.test_run = test?
-      rep.project_ids = filter.effective_project_ids
+      rep.project_ids = filter.effective_project_ids_during_range(export_date_range)
 
       # some setup
       if test?
@@ -169,6 +169,16 @@ module HudLsa::Generators::Fy2023
       create_summary_result(summary: summary.fetch_summary)
     end
 
+    private def export_date_range
+      # Special case for HIC.  This will generally be a 1 day run,
+      # but check for a slightly larger range since the LSA will almost always be a year.
+      # When running the HIC, we don't want the full look-back because it will include
+      # projects that were not operating during the report range, and thus shouldn't be included in the HIC
+      return filter.range if filter.range.count < 5
+
+      lookback_stop_date .. filter.end
+    end
+
     def create_hmis_csv_export
       return if test?
 
@@ -184,7 +194,7 @@ module HudLsa::Generators::Fy2023
         existing_export = GrdaWarehouse::HmisExport.order(created_at: :desc).limit(1).
           where(
             created_at: Time.zone.now.beginning_of_day..Time.zone.now.end_of_day,
-            start_date: lookback_stop_date,
+            start_date: export_date_range.first,
             version: 2024,
             period_type: 3,
             directive: 2,
@@ -193,8 +203,8 @@ module HudLsa::Generators::Fy2023
           ).
           # where project_ids contains the effective project ids, and effective contains the project ids
           # (equivalency without sort)
-          where('project_ids @> ?', filter.effective_project_ids.to_json).
-          where('project_ids <@ ?', filter.effective_project_ids.to_json).
+          where('project_ids @> ?', filter.effective_project_ids_during_range(export_date_range).to_json).
+          where('project_ids <@ ?', filter.effective_project_ids_during_range(export_date_range).to_json).
           where.not(file: nil)&.first
         if existing_export.present?
           @hmis_export = existing_export
@@ -205,9 +215,9 @@ module HudLsa::Generators::Fy2023
 
       @hmis_export = HmisCsvTwentyTwentyFour::Exporter::Base.new(
         version: '2024',
-        start_date: lookback_stop_date,
-        end_date: filter.end,
-        projects: filter.effective_project_ids,
+        start_date: export_date_range.first,
+        end_date: export_date_range.last,
+        projects: filter.effective_project_ids_during_range(export_date_range),
         coc_codes: filter.coc_code,
         period_type: 3,
         directive: 2,
