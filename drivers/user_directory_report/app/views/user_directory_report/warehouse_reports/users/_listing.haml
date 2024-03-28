@@ -1,4 +1,6 @@
 - if @pagy.count.positive?
+  .text-right.mb-4
+    = render 'report_downloads/report_download', export: @pdf_export, excel_export: @excel_export, excel_download_path: nil
   = render 'common/pagination_top', item_name: 'user'
   .card.warehouse-reports__user-directory
     %table.table.table-fixed.table-striped

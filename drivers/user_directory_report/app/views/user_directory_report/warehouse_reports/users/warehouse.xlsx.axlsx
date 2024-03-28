@@ -1,0 +1,26 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "Warehouse Users"[0,30]) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row([
+    'Name',
+    'Email',
+    'Phone',
+    'Agency',
+    'Roles',
+    'Status',
+    'Last Login',
+  ], :style => title)
+  @users.each do |user|
+    sheet.add_row(
+      [
+        user.name,
+        user.email,
+        user.phone_for_directory,
+        user.agency_name,
+        user.unique_role_names.sort,
+        user.active ? 'Active': 'Inactive',
+        user.last_sign_in_at
+      ]
+    )
+  end
+end

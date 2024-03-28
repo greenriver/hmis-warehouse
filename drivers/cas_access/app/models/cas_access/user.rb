@@ -43,5 +43,16 @@ module CasAccess
     def unique_role_names
       user_roles.map { |ur| ur.role.name }.uniq
     end
+
+    def self.text_search(text)
+      return none unless text.present?
+
+      query = "%#{text}%"
+      where(
+        arel_table[:last_name].matches(query).
+        or(arel_table[:first_name].matches(query)).
+        or(arel_table[:email].matches(query)),
+      )
+    end
   end
 end
