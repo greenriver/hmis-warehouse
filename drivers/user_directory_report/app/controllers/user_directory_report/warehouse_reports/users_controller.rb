@@ -17,7 +17,14 @@ module UserDirectoryReport::WarehouseReports
       @users = _users(User)
       @pagy, @users = pagy(@users)
       @user_source = 'warehouse'
-      render :report
+      @excel_export = UserDirectoryReport::DocumentExports::WarehouseUserDirectoryExcelExport.new
+      respond_to do |format|
+        format.html { @pagy, @users = pagy(@users) }
+        format.xlsx do
+          filename = "Warehouse User Directory Report - #{Time.current.to_s(:db)}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
     end
 
     def cas
@@ -26,9 +33,15 @@ module UserDirectoryReport::WarehouseReports
       else
         @users = []
       end
-      @pagy, @users = pagy(@users)
       @user_source = 'cas'
-      render :report
+      @excel_export = UserDirectoryReport::DocumentExports::CasUserDirectoryExcelExport.new
+      respond_to do |format|
+        format.html { @pagy, @users = pagy(@users) }
+        format.xlsx do
+          filename = "CAS User Directory Report - #{Time.current.to_s(:db)}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
     end
 
     def nav_link_classes(link_type, user_source)
