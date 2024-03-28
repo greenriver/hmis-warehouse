@@ -187,7 +187,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         row.row[enrollment_id_field] = nil
         cleared += 1
       end
-      logger.info("Cleared #{cleared} invalid enrollment ids")
+      log_info("Cleared #{cleared} invalid enrollment ids")
     end
 
     def extrapolate_missing_enrollment_ids(rows, enrollment_id_field:)
@@ -222,7 +222,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           matched += 1
         end
       end
-      logger.info("Extrapolation matched #{matched} of #{missing.size} missing enrollment ids")
+      log_info("Extrapolation matched #{matched} of #{missing.values.map(&:size).sum} missing enrollment ids")
     end
 
     # some record sets can't be bulk inserted. Disabling paper trial reduces runtime when

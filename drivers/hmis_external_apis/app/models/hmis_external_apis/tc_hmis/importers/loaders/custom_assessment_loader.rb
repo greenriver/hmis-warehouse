@@ -34,6 +34,16 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     protected
 
+    # for extrapolate_missing_enrollment_ids
+    def row_personal_id(row)
+      normalize_uuid(row.field_value('Participant Enterprise Identifier'))
+    end
+
+    # for extrapolate_missing_enrollment_ids
+    def row_date_provided(row)
+      parse_date(row_assessment_date(row))
+    end
+
     def ce_assessment_level
       nil
     end
@@ -107,7 +117,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
         assessment_date = row_assessment_date(row)
         # derived "last updated" timestamp for 9am on AssessmentDate
-        last_updated_timestamp = assessment_date.beginning_of_day.to_datetime + 9.hours
+        last_updated_timestamp = parse_date(assessment_date).beginning_of_day.to_datetime + 9.hours
         {
           data_source_id: data_source.id,
           CustomAssessmentID: row_assessment_id(row),
