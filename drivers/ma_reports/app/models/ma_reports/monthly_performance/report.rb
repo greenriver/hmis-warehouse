@@ -49,6 +49,8 @@ module MaReports::MonthlyPerformance
         :end,
         :project_type_codes,
         :age_ranges,
+        :genders,
+        :races,
         :household_type,
         :hoh_only,
         :sub_population,
