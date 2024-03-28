@@ -29,15 +29,6 @@ RSpec.shared_context 'SystemSpecHelper' do
     find_field(id, type: :hidden).set(value)
   end
 
-  def mui_choose(choice, from:)
-    label = find('label', text: from)
-    scroll_to(label, align: :center)
-    id = label['id']
-    within("[aria-labelledby='#{id}']") do
-      choose(choice)
-    end
-  end
-
   def mui_radio_choose(choice, from:)
     scroll_to("[aria-label='#{from}']")
     within("[aria-label='#{from}']") do
@@ -65,7 +56,9 @@ RSpec.shared_context 'SystemSpecHelper' do
 
   def mui_date_select(label, date:)
     field = find("[aria-label='#{label}']")
+    scroll_to(field, align: :center)
     field.click
+    # This key sequence is a bit silly, but Capybara's field.set and field.fill_in don't work for MUI datepicker
     field.native.send_keys(:left, :left, :backspace, date.strftime('%m/%d/%Y'))
   end
 
