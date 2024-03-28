@@ -275,13 +275,14 @@ module SystemPathways
     def allowed_states
       {
         # Transition order is defined by array
-        # ES (1), SH (8), TH (2), SO (4), PH - RRH (13), PH - PSH (3), PH - PH (9), PH - OPH (10)
+        # ES - Entry/Exit (0), ES - NBN (1), SH (8), TH (2), SO (4), PH - RRH (13), PH - PSH (3), PH - PH (9), PH - OPH (10)
         # NOTE: we're treating ES Entry/Exit (0) as ES NBN (1)
-        nil => [1, 8, 2, 4, 13, 3, 9, 10],
+        nil => [0, 1, 8, 2, 4, 13, 3, 9, 10],
+        0 => [2, 3, 9, 10, 13],
         1 => [2, 3, 9, 10, 13],
         2 => [3, 9, 10, 13],
         3 => [],
-        4 => [1, 2, 3, 8, 9, 10, 13],
+        4 => [0, 1, 2, 3, 8, 9, 10, 13],
         8 => [2, 3, 9, 10, 13],
         9 => [],
         10 => [],
@@ -294,14 +295,14 @@ module SystemPathways
 
       enrollment = subsequent_enrollments.first
       # If the next enrollment is in the allowed categories
-      if allowed_states[current_project_type].include?(enrollment.computed_project_type_group_es)
+      if allowed_states[current_project_type].include?(enrollment.project_type)
         # Push it into the accepted batch
         accepted_enrollments << enrollment
         # and return if it is a "final" enrollment
         return accepted_enrollments if enrollment.exit_date.blank? || HudUtility2024.destination_type(enrollment.destination) == 'Permanent'
 
         # otherwise move on to the next
-        accept_enrollments(subsequent_enrollments.drop(1), enrollment.computed_project_type_group_es, accepted_enrollments)
+        accept_enrollments(subsequent_enrollments.drop(1), enrollment.project_type, accepted_enrollments)
       else
         # if it's not in the acceptable types, just move on to the next one
         accept_enrollments(subsequent_enrollments.drop(1), current_project_type, accepted_enrollments)
@@ -329,7 +330,7 @@ module SystemPathways
             reject(&:ce?). # remove CE, we only use it for filtering
             # move the most-recently exited or open enrollments to the end
             sort_by { |en| en.exit_date || Date.tomorrow }.
-            group_by(&:computed_project_type_group_es).
+            group_by(&:project_type).
             # keep only the last enrollment in each category
             transform_values(&:last).
             values
@@ -384,7 +385,7 @@ module SystemPathways
             destination_institutional: HudUtility2024.destination_type(final_enrollment.destination) == 'Institutional',
             destination_other: HudUtility2024.destination_type(final_enrollment.destination) == 'Other',
             destination_permanent: HudUtility2024.destination_type(final_enrollment.destination) == 'Permanent',
-            returned_project_type: returned_enrollment&.computed_project_type_group_es,
+            returned_project_type: returned_enrollment&.project_type,
             returned_project_name: returned_enrollment&.project&.name,
             returned_project_entry_date: returned_enrollment&.entry_date,
             returned_project_enrollment_id: returned_enrollment&.enrollment&.id,
@@ -395,7 +396,7 @@ module SystemPathways
 
           accepted_enrollments.each.with_index do |en, i|
             from_project_type = nil
-            from_project_type = accepted_enrollments[i - 1].computed_project_type_group_es if i.positive?
+            from_project_type = accepted_enrollments[i - 1].project_type if i.positive?
             stay_length = (en.entry_date .. [en.exit_date, filter.end].compact.min).count
             household_id = get_hh_id(en)
             household_type = household_makeup(household_id, date)
@@ -410,7 +411,7 @@ module SystemPathways
               from_project_type: from_project_type,
               project_id: en.project&.id,
               enrollment_id: en.enrollment&.id,
-              project_type: en.computed_project_type_group_es,
+              project_type: en.project_type,
               destination: en.destination || 99,
               project_name: en.project.name,
               entry_date: en.entry_date,
@@ -421,7 +422,7 @@ module SystemPathways
               stay_length: stay_length,
               disabling_condition: en.enrollment.disabling_condition,
               relationship_to_hoh: en.enrollment.relationship_to_hoh,
-              chronic_at_entry: chronic_member[:chronic_status].present?,
+              chronic_at_entry: chronic_member.try(:[], :chronic_status).present?,
               household_id: household_id,
               household_type: household_type,
               final_enrollment: i == accepted_enrollments.count - 1,

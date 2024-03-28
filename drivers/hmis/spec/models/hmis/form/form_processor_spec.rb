@@ -594,7 +594,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment.save_not_in_progress
 
       old_entry_date = assessment.enrollment.entry_date
-      new_entry_date = '2024-03-14'
+      new_entry_date = 1.week.ago.strftime('%Y-%m-%d')
       expect(old_entry_date).not_to be_nil
 
       assessment.reload.form_processor.hud_values = {
@@ -1346,6 +1346,38 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect do
         process_record(record: p1, hud_values: hud_values, user: hmis_user, save: false, definition: definition)
       end.to raise_error(RuntimeError, /Project.confidential.*Not a submittable field/)
+    end
+
+    # affiliations are processed in a special case in ProjectProcessor
+    it 'adds/removes records for affiliated projects' do
+      p2 = create(:hmis_hud_project, data_source: ds1, organization: o1)
+      p3 = create(:hmis_hud_project, data_source: ds1, organization: o1)
+      p4 = create(:hmis_hud_project, data_source: ds1, organization: o1)
+
+      hud_values = empty_hud_values.merge(
+        'residentialAffiliation' => 'YES',
+        'residentialAffiliationProjectIds' => [p2.id.to_s, p3.id.to_s],
+      )
+      process_record(record: p1, hud_values: hud_values, user: hmis_user, definition: definition)
+      expect(p1.residential_affiliation).to eq(1)
+      expect(p1.residential_projects).to contain_exactly(p2, p3), 'add new affiliations'
+
+      # Re-process with 1 affiliation removed and 1 added
+      hud_values = empty_hud_values.merge(
+        'residentialAffiliation' => 'YES',
+        'residentialAffiliationProjectIds' => [p2.id.to_s, p4.id.to_s],
+      )
+      process_record(record: p1, hud_values: hud_values, user: hmis_user, definition: definition)
+      expect(p1.reload.residential_projects).to contain_exactly(p2, p4), 'add and remove affiliations'
+
+      # Re-process with all affiliations removed
+      hud_values = empty_hud_values.merge(
+        'residentialAffiliation' => 'NO',
+        'residentialAffiliationProjectIds' => HIDDEN,
+      )
+      process_record(record: p1, hud_values: hud_values, user: hmis_user, definition: definition)
+      expect(p1.reload.residential_affiliation).to eq(0)
+      expect(p1.residential_projects).to be_empty, 'remove all affiliations'
     end
   end
 

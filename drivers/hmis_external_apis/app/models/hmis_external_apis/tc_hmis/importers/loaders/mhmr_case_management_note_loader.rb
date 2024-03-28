@@ -33,7 +33,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       { key: 'mhmr_plan_to_proceed_resolution', label: 'Resolution of current need presented (explain):', field_type: 'string', repeats: false },
       { key: 'mhmr_progress_towards_goals', label: 'Progress lack of progress narrative', field_type: 'string', repeats: false },
       { key: 'mhmr_no_show', label: 'No show', field_type: 'string', repeats: false },
-      { key: 'mhmr_staff_signature', label: 'Staff Signature / Credentials / ID#:', field_type: 'string', repeats: false },
     ].freeze
 
     def filename
@@ -41,21 +40,31 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def cded_configs
-      CDED_CONFIGS +
-        (1..6).map do |i|
-          [
-            { key: "mhmr_service_code_location_#{i}", label: "Location Row #{i}", field_type: 'string', repeats: false },
-            { key: "mhmr_service_code_activity_code_#{i}", label: "Activity Code Row #{i}", field_type: 'string', repeats: false },
-            { key: "mhmr_service_code_project_no_#{i}", label: "Project Number Row #{i}", field_type: 'string', repeats: false },
-            { key: "mhmr_service_code_start_time_#{i}", label: "Start/Stop Time Row #{i}", field_type: 'string', repeats: false },
-            { key: "mhmr_service_code_stop_time_#{i}", label: "Start/Stop Time Row #{i}", field_type: 'string', repeats: false },
-            { key: "mhmr_service_code_recipient_#{i}", label: "Recipient Row #{i}", field_type: 'string', repeats: false },
-            { key: "mhmr_service_code_attendance_#{i}", label: "Attendance Row #{i}", field_type: 'string', repeats: false },
-            { key: "mhmr_service_code_num_recipients_#{i}", label: "Number of Recipients Row #{i}", field_type: 'string', repeats: false },
-            { key: "mhmr_service_code_recipient_time_#{i}", label: "Recipient Time Row #{i}", field_type: 'string', repeats: false },
-            { key: "mhmr_service_code_lof_#{i}", label: "LOF Row #{i}", field_type: 'string', repeats: false },
-          ]
-        end.flatten
+      tabular_cols = (1..6).flat_map do |i|
+        [
+          { key: "mhmr_service_code_location_#{i}", label: "Location Code Row #{i}", field_type: 'string', repeats: false },
+          { key: "mhmr_service_code_activity_code_#{i}", label: "Activity Code Row #{i}", field_type: 'string', repeats: false },
+          { key: "mhmr_service_code_project_no_#{i}", label: "Project Number Row #{i}", field_type: 'string', repeats: false },
+          { key: "mhmr_service_code_start_time_#{i}", label: "Start / Stop Time Row #{i}", field_type: 'string', repeats: false },
+          { key: "mhmr_service_code_stop_time_#{i}",  label: "Start / Stop Time Row #{i}", field_type: 'string', repeats: false },
+          { key: "mhmr_service_code_recipient_#{i}", label: "Recipient Row #{i}", field_type: 'string', repeats: false },
+          { key: "mhmr_service_code_attendance_#{i}", label: "Attendance Row #{i}", field_type: 'string', repeats: false },
+          { key: "mhmr_service_code_num_recipients_#{i}", label: "Number of Recipients Row #{i}", field_type: 'string', repeats: false },
+          { key: "mhmr_service_code_recipient_time_#{i}", label: "Recipient Time Row #{i}", field_type: 'string', repeats: false },
+          { key: "mhmr_service_code_lof_#{i}", label: "LOF Row #{i}", field_type: 'string', repeats: false },
+        ]
+      end
+      # Lof row 2 appears mis labeled, assign element ids to disambiguate
+      tabular_cols.each do |config|
+        case config[:key]
+        when 'mhmr_service_code_lof_1'
+          config[:element_id] = 3180
+        when 'mhmr_service_code_lof_2'
+          config[:element_id] = 3197
+        end
+      end
+
+      CDED_CONFIGS + tabular_cols
     end
 
     def row_assessment_date(row)
@@ -83,6 +92,14 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       else
         values
       end
+    end
+
+    def yn_boolean(value)
+      value == 'Other assistance provided:' ? true : super
+    end
+
+    def form_definition_identifier
+      'mhmr-case-management-note'
     end
   end
 end

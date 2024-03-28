@@ -38,6 +38,7 @@ module Types
     available_filter_options do
       arg :project, [ID]
       arg :organization, [ID]
+      arg :service_in_range, Types::HmisSchema::ServiceRangeFilter
     end
 
     description 'HUD Client'
@@ -80,6 +81,12 @@ module Types
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
     field :hud_chronic, Boolean, null: true
+
+    field :active_enrollment, Types::HmisSchema::Enrollment, null: true do
+      argument :project_id, ID, required: true
+      argument :open_on_date, GraphQL::Types::ISO8601Date, required: true
+    end
+
     enrollments_field filter_args: { omit: [:search_term, :bed_night_on_date], type_name: 'EnrollmentsForClient' } do
       # Option to include enrollments that the user has "limited" access to
       argument :include_enrollments_with_limited_access, Boolean, required: false
@@ -183,6 +190,14 @@ module Types
       has_some_detailed_access = current_permission?(permission: :can_view_enrollment_details, entity: object)
       scope = object.enrollments.viewable_by(current_user, include_limited_access_enrollments: has_some_detailed_access)
       resolve_enrollments(scope, **args, dangerous_skip_permission_check: true)
+    end
+
+    def active_enrollment(project_id:, open_on_date:)
+      load_open_enrollment_for_client(
+        object,
+        project_id: project_id,
+        open_on_date: open_on_date,
+      )
     end
 
     def income_benefits(**args)
