@@ -39,7 +39,7 @@ module MaReports::MonthlyPerformance
         white: HudUtility2024.race('White'),
         hispanic_latinaeo: HudUtility2024.race('HispanicLatinaeo'),
         mid_east_n_african: HudUtility2024.race('MidEastNAfrican'),
-        Man: 'Man',
+        man: 'Man',
         woman: 'Woman',
         culturally_specific: 'Culturally Specific Identity (e.g., Two-Spirit)',
         different_identity: 'Different Identity',
