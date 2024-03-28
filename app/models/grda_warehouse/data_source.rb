@@ -553,7 +553,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     hmis.present?
   end
 
-  def hmis_url_for(entity)
+  def hmis_url_for(entity, user: nil)
     return unless hmis?
     return unless entity&.data_source_id == id
 
@@ -573,6 +573,33 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
     # For any other Enrollment-related record, link to the enrollment page
     url ||= "#{base}/client/#{entity.client&.id}/enrollments/#{entity.enrollment&.id}" if entity.respond_to?(:enrollment) && entity.respond_to?(:client)
+
+    # If we don't have the HMIS driver we probably aren't here, but we need to check for the next section
+    # If we don't have a user, just return the URl (backwards compatibility)
+    return url if user.blank? || ! HmisEnforcement.hmis_enabled?
+
+    # If we have a user, check for access (on the HMIS side)
+    hmis_entity = if entity.respond_to?(:as_hmis)
+      entity.as_hmis(force_reload: false)
+    else
+      entity
+    end
+    hmis_user = user.related_hmis_user(self)
+
+    known_permissions = {
+      'GrdaWarehouse::Hud::Project' => [:can_view_project],
+      # 'GrdaWarehouse::Hud::Organization' => [:can_view_organization],
+      'GrdaWarehouse::Hud::Client' => [:can_view_clients],
+      'Hmis::Hud::Enrollment' => [:can_view_projects, :can_view_enrollment_details],
+      'Hmis::Hud::CustomAssessment' => [:can_view_projects, :can_view_enrollment_details],
+    }
+
+    perms = known_permissions[entity.class.name]
+    # If we can't determine if we can see this in HMIS, just go ahead and show the link,
+    # HMIS will handle access
+    return url if perms.blank?
+    # If we can see this in HMIS, don't bother linking to it
+    return nil unless hmis_user.permissions_for?(hmis_entity, perms, mode: :all)
 
     url
   end

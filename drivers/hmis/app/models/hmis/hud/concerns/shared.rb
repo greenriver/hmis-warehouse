@@ -17,8 +17,15 @@ module Hmis::Hud::Concerns::Shared
       joins(:data_source).merge(GrdaWarehouse::DataSource.hmis)
     end
 
-    def as_warehouse
-      "GrdaWarehouse::Hud::#{self.class.name.demodulize}".constantize.find(id)
+    # Most likely you don't need the extra db call issued with a reload
+    # leaving it as the default behavior for now to preserve backwards compatibility
+    def as_warehouse(force_reload: true)
+      warehouse_class = "GrdaWarehouse::Hud::#{self.class.name.demodulize}".constantize
+      columns = self.class.column_names - warehouse_class.ignored_columns
+      warehouse_entity = warehouse_class.new(attributes.slice(*columns))
+      return warehouse_entity unless force_reload
+
+      warehouse_entity.reload
     end
 
     def self.hud_class_names
