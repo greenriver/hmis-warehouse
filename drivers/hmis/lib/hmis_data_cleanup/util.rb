@@ -405,6 +405,35 @@ module HmisDataCleanup
       end
     end
 
+    # Write a CSV with all the Enrollments that were deleted in a given date range.
+    # This can be useful to keep a record after an Import that deleted lots of records.
+    def write_deleted_enrollments_in_range(range, filename = "#{Date.current.strftime('%Y-%m-%d')}_deleted_enrollments_in_range.csv")
+      project_names = Hmis::Hud::Project.hmis.pluck(:ProjectID, :ProjectName).to_h
+      org_names = Hmis::Hud::Project.hmis.joins(:organization).pluck(:ProjectID, Hmis::Hud::Organization.arel_table[:OrganizationName]).to_h
+
+      rows = []
+      Hmis::Hud::Enrollment.hmis.only_deleted.where(DateDeleted: range).in_batches(of: 5_000) do |batch|
+        puts 'Processing...'
+        batch.each do |enrollment|
+          rows << {
+            Organization: org_names[enrollment.ProjectID],
+            Project: project_names[enrollment.ProjectID],
+            **enrollment.slice(:ProjectID, :EnrollmentID, :PersonalID, :HouseholdID, :ExportID, :id),
+            EntryDate: enrollment.EntryDate&.strftime('%Y-%m-%d'),
+            DateDeleted: enrollment.DateDeleted.strftime('%Y-%m-%dT%H%M '),
+          }.stringify_keys
+        end
+      end
+
+      CSV.open(filename, 'wb+', write_headers: true, headers: rows.first.keys) do |writer|
+        rows.each do |row|
+          writer << row.values
+        end
+      end
+
+      # s3.put(file_name: filename, prefix: 'initial-migration')
+    end
+
     # Method for restoring enrollments that were deleted in an import.
     # Probably needs to be called in batches, depending on the size of the enrollment scope.
     def restore_deleted_enrollments!(enrollments_to_restore, conflict_set: nil, dry_run: false)

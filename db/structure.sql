@@ -1169,7 +1169,8 @@ CREATE TABLE public.hmis_roles (
     can_configure_data_collection boolean DEFAULT false,
     can_manage_scan_cards boolean DEFAULT false,
     can_view_client_alerts boolean DEFAULT false,
-    can_manage_client_alerts boolean DEFAULT false
+    can_manage_client_alerts boolean DEFAULT false,
+    can_manage_external_form_submissions boolean DEFAULT false
 );
 
 
@@ -5256,6 +5257,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240124173020'),
 ('20240212150622'),
 ('20240301173438'),
+('20240305160215'),
 ('20240311135958'),
 ('20240313161801'),
 ('20240313162012');

@@ -60,7 +60,7 @@ module HudPathReport::Generators::Fy2024
         [new_and_active_clients, a_t[:reason_not_enrolled].eq(3)],
         [new_and_active_clients, a_t[:enrolled_client].eq(true)],
         [active_and_enrolled_clients, all_members],
-        [active_and_enrolled_clients, received_service(4)],
+        [active_and_enrolled_clients, a_t[:cmh_service_provided].eq(true).or(a_t[:cmh_referral_provided_and_attained].eq(true))],
       ].each_with_index do |(scope, query), index|
         next if scope.nil?
 

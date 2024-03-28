@@ -13,16 +13,26 @@ module HasRecentItems
       self.class.recent_item_types
     end
 
-    def recent_items
-      viewable_recent_item_links.order(updated_at: :desc).preload(:item).map(&:item).compact
+    def recent_items(limit: 10)
+      items = recent_item_types.values.flat_map do |klass|
+        viewable_recent_items(klass, limit: limit)
+      end
+      items.sort_by { |item, date| [date, item.id] }.map(&:first).reverse!.take(limit)
     end
 
-    def viewable_recent_item_links
-      ids = recent_item_types.values.map do |item_class|
-        recent_item_links.where(item_type: item_class.name, item_id: item_class.viewable_by(self).pluck(:id)).pluck(:id)
-      end.flatten
+    # @returns [item, last_updated]
+    protected def viewable_recent_items(item_klass, limit:)
+      links_by_item = recent_item_links.
+        where(item_type: item_klass.sti_name).
+        order(updated_at: :desc).
+        limit(limit).
+        to_a.index_by(&:item_id)
 
-      recent_item_links.where(id: ids)
+      # restrict by visibility
+      item_klass.viewable_by(self).where(id: links_by_item.keys).map do |item|
+        link = links_by_item.fetch(item.id)
+        [item, link.updated_at]
+      end
     end
 
     def add_recent_item(item)

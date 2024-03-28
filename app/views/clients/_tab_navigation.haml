@@ -29,7 +29,7 @@
     hmis.merge!({
       enrollment_details_client_path(@client) => {
         title: 'Enrollment Details',
-        permission: can_view_enrollment_details_tab? && show_demographic,
+        permission: can_view_enrollment_details? && show_demographic,
       },
       client_history_path(@client) => {
         title: 'History',
