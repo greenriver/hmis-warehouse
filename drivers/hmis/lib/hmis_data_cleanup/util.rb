@@ -73,7 +73,7 @@ module HmisDataCleanup
     end
 
     # Fix any instances of enrollment-related records where the PersonalID does nots match the Enrollment's PersonalIDs
-    def self.fix_incorrect_personal_id_references!(classes: nil)
+    def self.fix_incorrect_personal_id_references!(classes: nil, dry_run: false)
       classes&.each do |klass|
         raise "Invalid class: #{klass.name}" unless Hmis::Hud::Enrollment.hmis_enrollment_related_classes.include?(klass)
       end
@@ -84,6 +84,16 @@ module HmisDataCleanup
       Hmis::Hud::Base.transaction do
         classes.each do |klass|
           Rails.logger.info "[#{klass.name}] Processing"
+
+          if dry_run
+            records_needing_update = klass.where(data_source_id: data_source_id).
+              left_outer_joins(:enrollment).
+              where(GrdaWarehouse::Hud::Enrollment.arel_table[:id].eq(nil)).
+              count
+
+            Rails.logger.info "[#{klass.name}] #{records_needing_update} records with bad PersonalID"
+            next
+          end
 
           klass.where(data_source_id: data_source_id).left_outer_joins(:enrollment).
             where(GrdaWarehouse::Hud::Enrollment.arel_table[:id].eq(nil)).

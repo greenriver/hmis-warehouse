@@ -6,9 +6,9 @@
 
 FactoryBot.define do
   factory :hmis_hud_exit, class: 'Hmis::Hud::Exit', parent: :hmis_base_factory do
+    client { association :hmis_hud_client, data_source: data_source }
+    enrollment { association :hmis_hud_enrollment, data_source: data_source, client: client }
     sequence(:ExitID, 50)
-    sequence(:EnrollmentID, 20)
-    sequence(:PersonalID, 30)
     sequence(:ExitDate) do |n|
       dates = [
         Date.yesterday,

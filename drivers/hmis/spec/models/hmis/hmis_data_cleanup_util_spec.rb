@@ -121,6 +121,8 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     end
 
     it 'works for all record types' do
+      expect(records_with_bad_references.map(&:PersonalID).uniq).to contain_exactly('not-real')
+
       HmisDataCleanup::Util.fix_incorrect_personal_id_references!
       records_with_bad_references.each(&:reload)
       expect(records_with_bad_references.map(&:PersonalID).uniq).to contain_exactly(e1.personal_id)
@@ -128,6 +130,12 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
 
     it 'leaves no trace' do
       expect_leaves_non_hmis_data_alone { HmisDataCleanup::Util.fix_incorrect_personal_id_references! }
+    end
+
+    it 'dry run does nothing' do
+      HmisDataCleanup::Util.fix_incorrect_personal_id_references!(dry_run: true)
+      records_with_bad_references.each(&:reload)
+      expect(records_with_bad_references.map(&:PersonalID).uniq).to contain_exactly('not-real')
     end
   end
 
