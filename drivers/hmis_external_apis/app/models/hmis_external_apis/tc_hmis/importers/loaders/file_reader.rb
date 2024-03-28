@@ -13,10 +13,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       @dir = dir
     end
 
-    def glob(pattern)
-      Dir.glob("#{dir}/#{pattern}").map { |n| File.basename(n) }
-    end
-
     def file_present?(filename)
       File.exist?("#{dir}/#{filename}")
     end

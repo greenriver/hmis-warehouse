@@ -14,10 +14,6 @@ module HudLsa
       report
     end
 
-    def new_hic
-      report
-    end
-
     def create
       if @filter.valid?
         @report = report_class.from_filter(@filter, report_name, build_for_questions: generator.questions.keys)

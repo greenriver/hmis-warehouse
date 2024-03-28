@@ -442,6 +442,12 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     ::HudUtility2024.project_type_brief(project_type)
   end
 
+  def computed_project_type_group_es
+    pt = project_type
+    pt = 1 if project_type&.zero?
+    pt
+  end
+
   def start_time
     date
   end
