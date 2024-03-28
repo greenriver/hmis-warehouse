@@ -13,14 +13,24 @@ RSpec.describe 'HmisExternalApis::ConsumeExternalFormSubmissionsJob', type: :mod
     create(:hmis_external_form_definition)
   end
 
+  let!(:s3_cred) do
+    GrdaWarehouse::RemoteCredentials::S3.where(slug: 'hmis_external_form_submissions').first_or_create! do |record|
+      record.bucket = 'external-forms'
+      record.region = 'us-east-1'
+      record.username = ''
+      record.encrypted_password = ''
+      record.active = true
+    end
+  end
+
   let(:s3_client_double) { double('S3Client') }
   let(:s3_object_double) { double('S3Object', key: '1234', last_modified: 1.minute.ago) }
-  let(:encryption_key) do
-    aes_key = OpenSSL::Random.random_bytes(32)
-
-    GrdaWarehouse::RemoteCredentials::SymmetricEncryptionKey.where(slug: 'external_forms_shared_key').first_or_create! do |record|
+  let!(:encryption_key) do
+    GrdaWarehouse::RemoteCredentials::SymmetricEncryptionKey.where(slug: 'hmis_external_forms_shared_key').first_or_create! do |record|
       record.algorithm = 'aes-256-cbc'
+      aes_key = OpenSSL::Random.random_bytes(32)
       record.key_hex = aes_key.unpack1('H*')
+      record.active = true
     end
   end
 
@@ -36,8 +46,6 @@ RSpec.describe 'HmisExternalApis::ConsumeExternalFormSubmissionsJob', type: :mod
   end
 
   before do
-    allow_any_instance_of(HmisExternalApis::ConsumeExternalFormSubmissionsJob).to receive(:s3).and_return(s3_client_double)
-
     allow(s3_client_double).to receive(:list_objects).and_return([s3_object_double])
     allow(s3_client_double).to receive(:delete).with(key: anything).and_return(true)
     allow(s3_client_double).to receive(:get_as_io).with(key: anything).and_return(StringIO.new(submission_document))
@@ -58,10 +66,12 @@ RSpec.describe 'HmisExternalApis::ConsumeExternalFormSubmissionsJob', type: :mod
   end
 
   it 'consumes submissions' do
+    allow_any_instance_of(GrdaWarehouse::RemoteCredentials::S3).to receive(:s3).and_return(s3_client_double)
+
     HmisExternalApis::PublishExternalFormsJob.new.perform(form_definition.id)
     submission_scope = form_definition.external_form_submissions
     expect do
-      HmisExternalApis::ConsumeExternalFormSubmissionsJob.new.perform(encryption_key: encryption_key)
+      HmisExternalApis::ConsumeExternalFormSubmissionsJob.new.perform
     end.to change(submission_scope, :count).by(1)
 
     expect(s3_client_double).to have_received(:list_objects)
