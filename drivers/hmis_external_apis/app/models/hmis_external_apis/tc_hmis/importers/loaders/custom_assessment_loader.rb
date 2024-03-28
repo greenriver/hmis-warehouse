@@ -39,7 +39,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       seen_element_ids = Set.new
 
       required_keys = [:label, :key, :repeats, :field_type]
-      all_keys = (required_keys + [:element_id, :ignore_type]).to_set
+      all_keys = (required_keys + [:element_id]).to_set
       cded_configs.each do |item|
         # Check for required keys
         raise "Missing required keys in #{item.inspect}" unless required_keys.all? { |k| item.key?(k) }
@@ -64,10 +64,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       end
       assessment_ids.compact!
 
-      # deleting custom assessment deletes the form processor. This is safe because the processor doesn't
-      # cascade further so additional records are left intact
       scope = model_class.where(data_source_id: data_source.id).where(CustomAssessmentID: assessment_ids)
-      scope.find_each do |assessment|
+      scope.preload(:custom_data_elements).find_each do |assessment|
         assessment.custom_data_elements.delete_all # delete should really destroy
         assessment.really_destroy!
       end
@@ -110,9 +108,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           CustomAssessmentID: row_assessment_id(row),
           EnrollmentID: enrollment_id,
           PersonalID: personal_id,
-          UserID: system_hud_user.user_id,
+          UserID: system_hud_user.id,
           AssessmentDate: row_assessment_date(row),
-          DataCollectionStage: 99,
+          DataCollectionStage: 2,
           wip: false,
           DateCreated: last_updated_timestamp,
           DateUpdated: last_updated_timestamp,
@@ -158,15 +156,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       ar_import(processor_model, records)
     end
 
-    def form_definition
-      @form_definition ||= Hmis::Form::Definition.where(identifier: form_definition_identifier).first_or_create! do |definition|
-        definition.title = form_definition_identifier.humanize
-        definition.status = 'draft'
-        definition.version = 0
-        definition.role = 'FORM_DEFINITION'
-      end
-    end
-
     def create_cde_records(rows)
       owner_id_by_assessment_id = model_class.where(data_source: data_source).pluck(:CustomAssessmentID, :id).to_h
 
@@ -195,9 +184,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
       total =  cded_configs.size
       missed = cded_configs.map { |c| c.fetch(:key) }.reject { |k| k.in?(seen) }
-
-      # Indicates that no imported rows in the sheet had a value for this column
-      log_info("did not find any CDE values for #{missed.size} of #{total} fields: #{missed.sort.join(', ')}") if missed.any?
+      log_info("saw CDE values for #{seen.size} of #{total} fields")
+      log_info("missed CDE values for #{missed.size} of #{total} fields: #{missed.sort.join(', ')}") if missed.any?
     end
 
     def cde_values(row, config, required: false)
@@ -232,7 +220,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def row_enrollment_id(row)
-      normalize_uuid(row.field_value(ENROLLMENT_ID_COL))
+      # sometimes the enrollment id has braces or other extra chars
+      row.field_value(ENROLLMENT_ID_COL)&.gsub(/[^-a-z0-9]/i, '')
     end
 
     def model_class

@@ -296,7 +296,7 @@ module Health
         'HMIS_DISABILITY' => disabled_client?(patient.client) ? 'Y' : 'N',
         'HOUSING_STATUS' => most_recent_housing_status(patient.id),
         'CAREPLAN_SIGNED_WITHIN_122_DAYS' => with_careplans_in_122_days?(patient, as: :text),
-        # 'SDH_RISK_SCORE' => sdh_risk_score(patient),
+        'SDH_RISK_SCORE' => sdh_risk_score(patient),
       }
     end
   end

@@ -12,8 +12,6 @@ module Mutations
     field :errors, [Types::HmisSchema::ValidationError], null: false, resolver: Resolvers::ValidationErrors
 
     def resolve(input:)
-      access_denied! unless current_user.can_configure_data_collection?
-
       errors = HmisErrors::Errors.new
       errors.add :config_type, :required if input.config_type.blank?
       return { errors: errors } if errors.any?
@@ -26,18 +24,13 @@ module Mutations
       else raise "Unsupported type: #{input.config_type}"
       end
 
-      record = class_name.new(input.to_params)
-      if record.valid?
-        record.save!
-      else
-        errors = record.errors
-        record = nil
-      end
-
-      {
-        project_config: record,
-        errors: errors,
-      }
+      default_create_record(
+        class_name,
+        field_name: :project_config,
+        input: input,
+        permissions: [:can_configure_data_collection],
+        exclude_default_fields: true,
+      )
     end
   end
 end

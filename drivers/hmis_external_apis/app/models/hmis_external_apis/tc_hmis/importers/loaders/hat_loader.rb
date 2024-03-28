@@ -21,7 +21,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       { key: 'hat_a13_suitable_housing_intervention', label: '[STAFF RESPONSE] What type of housing intervention would be more suitable for this client, if known?', repeats: true, field_type: 'string' },
       { key: 'hat_b1_strength', label: 'Strengths (Check all that apply.)', repeats: true, field_type: 'string' },
       { key: 'hat_b2_challenge', label: 'Possible challenges for housing placement options (Check all that apply)', repeats: true, field_type: 'string' },
-      { key: 'hat_b3_lifetime_sex_offender', label: 'Is the client a Lifetime Sex Offendor?', repeats: false, field_type: 'boolean' },
+      { key: 'hat_b3_lifetime_sex_offendor', label: 'Is the client a Lifetime Sex Offendor?', repeats: false, field_type: 'boolean' },
       { key: 'hat_b4_has_state_id_license', label: 'Does the client have a State ID/Drivers License?', repeats: false, field_type: 'boolean' },
       { key: 'hat_b5_has_birth_certificate', label: 'Does the client have a Birth Certificate?', repeats: false, field_type: 'boolean' },
       { key: 'hat_b6_has_social_security_card', label: 'Does the client have a Social Security Card?', repeats: false, field_type: 'boolean' },
@@ -93,12 +93,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       "hat-eto-#{response_id}"
     end
 
-    def form_definition_identifier
-      'tarrant-hat'
-    end
-
-    def ce_assessment_level
-      2 # AssessmentLevel 2 (housing needs assessment)
+    def form_definition
+      Hmis::Form::Definition.where(identifier: 'tc-hat').first!
     end
 
     def ce_assessment_level

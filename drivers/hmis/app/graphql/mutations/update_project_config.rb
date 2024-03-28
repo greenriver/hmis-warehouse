@@ -14,7 +14,7 @@ module Mutations
 
     def resolve(id:, input:)
       record = Hmis::ProjectConfig.find(id)
-      access_denied! unless current_user.can_configure_data_collection?
+      raise 'Access denied' unless allowed?(permissions: [:can_configure_data_collection])
 
       record.assign_attributes(**input.to_params)
 

@@ -31,7 +31,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       cded.field_type ||= 'string'
 
       cded.label = label if label
-      cded.label ||= key.to_s.humanize
+      cded.label ||= key.humanize
 
       cded.repeats = repeats unless repeats.nil?
       cded.repeats = false if cded.repeats.nil?

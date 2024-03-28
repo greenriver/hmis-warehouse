@@ -16,17 +16,21 @@ module Types
       Hmis::Hud::Organization.hmis_configuration(version: '2024')
     end
 
-    field :id, ID, null: false
-    field :hud_id, ID, null: false, method: :organization_id
-    field :organization_name, String, null: false
+    hud_field :id, ID, null: false
+    field :hud_id, ID, null: false
+    hud_field :organization_name
     projects_field :projects, filter_args: { omit: [:organization], type_name: 'ProjectsForEnrollment' }
-    field :victim_service_provider, HmisSchema::Enums::Hud::NoYesMissing, null: false, default_value: 99
+    hud_field :victim_service_provider, HmisSchema::Enums::Hud::NoYesMissing
     field :description, String, null: true
     field :contact_information, String, null: true
     custom_data_elements_field
     access_field do
       can :delete_organization
       can :edit_organization
+    end
+
+    def hud_id
+      object.organization_id
     end
 
     def projects(**args)

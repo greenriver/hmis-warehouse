@@ -32,10 +32,8 @@ renewals are due 365 days after their previous PCTP was sent to their PCP.
 The number of patients where it has been more than 365 days since their previous PCTP was sent to the 
 
 **No annual well care visits in 12 months**:
-Currently disabled, well care visit data is expected to be received from ACOs in the coming months.
+Patients that did not have a comprehensive well-care visit with a PCP or an OB/GYN practitioner in the past 12 months.
+Such visits are identified by paid claims, as specified by the Mathematica Annual Well-Care Visits Measure calculation.
 
-[//]: # (Patients that did not have a comprehensive well-care visit with a PCP or an OB/GYN practitioner in the past 12 months.)
-[//]: # (Such visits are identified by paid claims, as specified by the Mathematica Annual Well-Care Visits Measure calculation.)
-
-[//]: # (*NOTE:* Claims data is approximately 3 months out of date, so any annual well care visits that occured in the past 3)
-[//]: # (months may not be included.)
+*NOTE:* Claims data is approximately 3 months out of date, so any annual well care visits that occured in the past 3
+months may not be included.

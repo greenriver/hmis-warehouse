@@ -36,6 +36,6 @@ FactoryBot.define do
   end
 
   factory :hmis_hud_wip_enrollment, parent: :hmis_hud_enrollment do
-    after(:create, &:save_in_progress!)
+    after(:create, &:save_in_progress)
   end
 end

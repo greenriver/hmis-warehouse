@@ -138,7 +138,6 @@ module
     def client_headers
       [
         'Client ID',
-        'Personal ID',
         'First Name',
         'Last Name',
         'DOB',
@@ -148,7 +147,6 @@ module
     def client_columns
       [
         c_t[:id],
-        ex_t[:PersonalID],
         c_t[:FirstName],
         c_t[:LastName],
         c_t[:DOB],

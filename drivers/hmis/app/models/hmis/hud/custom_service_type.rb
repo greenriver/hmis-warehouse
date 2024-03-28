@@ -14,8 +14,6 @@ class Hmis::Hud::CustomServiceType < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true
   belongs_to :custom_service_category
   has_many :custom_services
-  has_many :form_instances, class_name: 'Hmis::Form::Instance'
-  has_many :definitions, through: :form_instances
 
   alias_attribute :category, :custom_service_category
 
@@ -23,12 +21,6 @@ class Hmis::Hud::CustomServiceType < Hmis::Hud::Base
   validates :name, uniqueness: { scope: [:custom_service_category] }
   validates_presence_of :name, allow_blank: false
   validates_with Hmis::Hud::Validators::CustomServiceTypeValidator
-
-  scope :custom, -> { where(hud_record_type: nil) }
-
-  def self.apply_filters(input)
-    Hmis::Filter::ServiceTypeFilter.new(input).filter_scope(self)
-  end
 
   def hud_service?
     hud_record_type.present?

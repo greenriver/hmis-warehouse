@@ -7,8 +7,6 @@
 class Hmis::Hud::Project < Hmis::Hud::Base
   include ::HmisStructure::Project
   include ::Hmis::Hud::Concerns::Shared
-  include ::Hmis::Hud::Concerns::HasCustomDataElements
-  include ::Hmis::Hud::Concerns::HasCustomDataElements
   include ActiveModel::Dirty
 
   has_paper_trail(meta: { project_id: :id })
@@ -46,6 +44,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project, dependent: :destroy
   has_many :units, -> { active }, dependent: :destroy
   has_many :unit_type_mappings, dependent: :destroy, class_name: 'Hmis::ProjectUnitTypeMapping'
+  has_many :custom_data_elements, as: :owner, dependent: :destroy
 
   has_many :client_projects
   has_many :clients_including_wip, through: :client_projects, source: :client
@@ -54,6 +53,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :group_viewable_entity_projects
   has_many :group_viewable_entities, through: :group_viewable_entity_projects, source: :group_viewable_entity
 
+  accepts_nested_attributes_for :custom_data_elements, :affiliations, allow_destroy: true
+
   # Households in this Project, NOT including WIP Enrollments
   has_many :households, through: :enrollments
 
@@ -61,8 +62,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :custom_assessments, through: :enrollments_including_wip
   has_many :services, through: :enrollments_including_wip
   has_many :custom_services, through: :enrollments_including_wip
-
-  accepts_nested_attributes_for :affiliations, allow_destroy: true
 
   # FIXME: joining services through enrollments confounds postgres. On larger projects, the query might take many
   # minutes. It needs optimization; for now we use a class method instead of a AR association
@@ -245,21 +244,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     end.compact
   end
 
-  # Service types that are collected in this project. They are collected if they have an active form definition and instance.
-  def available_service_types
-    # Find form rules for services that are applicable to this project
-    ids = Hmis::Form::Instance.for_services.
-      for_project_through_entities(self).
-      joins(:definition).
-      where(fd_t[:role].eq(:SERVICE)).
-      pluck(:custom_service_type_id, :custom_service_category_id)
-
-    type_matches = cst_t[:id].in(ids.map(&:first))
-    category_matches = cst_t[:custom_service_category_id].in(ids.map(&:last))
-
-    Hmis::Hud::CustomServiceType.where(type_matches.or(category_matches))
-  end
-
   # Occurrence Point Form Instances that are enabled for this project (e.g. Move In Date form)
   def occurrence_point_form_instances
     # All instances for Occurrence Point forms
@@ -273,10 +257,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
       scope = base_scope.where(definition_identifier: identifier).order(updated_at: :desc)
       scope.detect_best_instance_for_project(project: self)
     end.compact
-  end
-
-  def uniq_coc_codes
-    @uniq_coc_codes ||= project_cocs.pluck(:CoCCode).uniq.compact_blank.sort
   end
 
   include RailsDrivers::Extensions

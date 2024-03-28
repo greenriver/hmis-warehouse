@@ -11,9 +11,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     # Based on the the data Gig extracted from the form definition
     CDED_CONFIGS = [
       { key: 'cma_a1_contact_type', label: 'Type of Contact', field_type: 'string', repeats: false },
-      { element_id: 574, key: 'cma_a2_service_location', label: 'Service Location', field_type: 'string', repeats: false },
+      { key: 'cma_a2_service_location', label: 'Service Location', field_type: 'string', repeats: false },
       { key: 'cma_a4_time_spent', label: 'Time Spent', field_type: 'integer', repeats: false },
-      { element_id: 2564, key: 'cma_a5_day_night_team', label: "(Only Outreach Programs)\nDay and Night Team:", field_type: 'string', repeats: false },
+      { key: 'cma_a5_day_night_team', label: "(Only Outreach Programs)\nDay and Night Team:", field_type: 'string', repeats: false },
       { key: 'cma_a6_diverted', label: 'Were you able to divert the client?', field_type: 'boolean', repeats: false },
       { key: 'cma_a13_case_note', label: 'Case Notes', field_type: 'string', repeats: false },
       { key: 'cma_a20_cm_checklist', label: 'Housed Client Case Management Check list', field_type: 'boolean', repeats: false },
@@ -64,10 +64,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def row_assessment_id(row)
       response_id = row.field_value(RESPONSE_ID_COL)
       "cma-eto-#{response_id}"
-    end
-
-    def form_definition_identifier
-      'case-management-note-assessment'
     end
   end
 end

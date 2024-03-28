@@ -10,7 +10,6 @@ module Hmis::GrdaWarehouse
 
     included do
       has_many :custom_data_element_definitions, class_name: 'Hmis::Hud::CustomDataElementDefinition'
-      has_many :custom_service_types, class_name: 'Hmis::Hud::CustomServiceType'
     end
   end
 end

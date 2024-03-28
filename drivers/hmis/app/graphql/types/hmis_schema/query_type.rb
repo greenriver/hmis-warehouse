@@ -373,28 +373,6 @@ module Types
       Hmis::Hud::CustomServiceCategory.all
     end
 
-    field :service_types, Types::HmisSchema::ServiceType.page_type, null: false do
-      filters_argument HmisSchema::ServiceType
-    end
-    def service_types(filters: nil)
-      raise 'Access denied' unless current_user.can_configure_data_collection?
-
-      scope = Hmis::Hud::CustomServiceType.all
-      scope = scope.apply_filters(filters) if filters
-      scope.order(:name, :id)
-    end
-
-    field :service_types, Types::HmisSchema::ServiceType.page_type, null: false do
-      filters_argument HmisSchema::ServiceType
-    end
-    def service_types(filters: nil)
-      raise 'Access denied' unless current_user.can_configure_data_collection?
-
-      scope = Hmis::Hud::CustomServiceType.all
-      scope = scope.apply_filters(filters) if filters
-      scope.order(:name, :id)
-    end
-
     field :form_definition, Types::Forms::FormDefinition, null: true do
       argument :id, ID, required: true
     end
@@ -407,22 +385,20 @@ module Types
       Hmis::Form::Definition.find(id)
     end
 
-    field :form_definitions, Types::Forms::FormDefinition.page_type, null: false do
-      filters_argument Forms::FormDefinition
-    end
-    def form_definitions(filters:)
+    field :form_definitions, Types::Forms::FormDefinition.page_type, null: false
+    def form_definitions
       raise 'Access denied' unless current_user.can_configure_data_collection?
 
-      scope = Hmis::Form::Definition.non_static
-      scope = scope.apply_filters(filters) if filters
-      scope.order(updated_at: :desc)
+      # TODO: add ability to sort and filter definitions
+      Hmis::Form::Definition.non_static.order(updated_at: :desc)
     end
 
     form_rules_field
     def form_rules(**args)
       raise 'Access denied' unless current_user.can_configure_data_collection?
 
-      resolve_form_rules(Hmis::Form::Instance.all, **args)
+      # Only resolve non-service rules. Service rules are resolved on the service category.
+      resolve_form_rules(Hmis::Form::Instance.not_for_services, **args)
     end
 
     field :form_rule, Types::Admin::FormRule, null: true do

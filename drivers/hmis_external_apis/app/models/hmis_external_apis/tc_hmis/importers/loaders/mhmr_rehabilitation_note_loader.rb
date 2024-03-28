@@ -40,8 +40,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             { key: "mhmr_service_code_location_#{i}", label: "Location Row #{i}", field_type: 'string', repeats: false },
             { key: "mhmr_service_code_activity_code_#{i}", label: "Activity Code Row #{i}", field_type: 'string', repeats: false },
             { key: "mhmr_service_code_project_no_#{i}", label: "Project Number Row #{i}", field_type: 'string', repeats: false },
-            { key: "mhmr_service_code_start_time_#{i}", label: "Start / Stop Time Row #{i}", field_type: 'string', repeats: false },
-            { key: "mhmr_service_code_stop_time_#{i}", label: "Start / Stop Time Row #{i}", field_type: 'string', repeats: false },
+            { key: "mhmr_service_code_start_time_#{i}", label: "Start/Stop Time Row #{i}", field_type: 'string', repeats: false },
+            { key: "mhmr_service_code_stop_time_#{i}", label: "Start/Stop Time Row #{i}", field_type: 'string', repeats: false },
           ]
         end.flatten
     end
@@ -68,10 +68,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       else
         values
       end
-    end
-
-    def form_definition_identifier
-      'mhmr-rehabilitation-note'
     end
   end
 end
