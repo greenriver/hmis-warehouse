@@ -72,7 +72,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     invalid_enrollment_ids = enrollments.with_invalid_references.pluck(e_t[:enrollment_id])
     Hmis::Hud::HmisService.joins(:project).
       where(Hmis::Hud::Project.arel_table[:id].eq(id)).
-      where(Hmis::Hud::HmisService.arel_table[:EnrollmentID].not_in(invalid_enrollment_ids))
+      where(Hmis::Hud::HmisService.arel_table[:EnrollmentID].not_in(invalid_enrollment_ids)).
+      joins(:client)
   end
 
   has_and_belongs_to_many :project_groups,
