@@ -5,7 +5,7 @@
 ###
 
 FactoryBot.define do
-  factory :hmis_hud_exit, class: 'Hmis::Hud::Exit' do
+  factory :hmis_hud_exit, class: 'Hmis::Hud::Exit', parent: :hmis_base_factory do
     sequence(:ExitID, 50)
     sequence(:EnrollmentID, 20)
     sequence(:PersonalID, 30)
@@ -20,7 +20,6 @@ FactoryBot.define do
       dates[n % 5].to_date
     end
     destination { 1 }
-    user { association :hmis_hud_user, data_source: data_source }
 
     after(:build) do |exit|
       next unless exit.enrollment.present?

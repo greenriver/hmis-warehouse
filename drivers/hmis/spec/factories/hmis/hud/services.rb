@@ -5,9 +5,7 @@
 ###
 
 FactoryBot.define do
-  factory :hmis_hud_service, class: 'Hmis::Hud::Service' do
-    data_source { association :hmis_data_source }
-    user { association :hmis_hud_user, data_source: data_source }
+  factory :hmis_hud_service, class: 'Hmis::Hud::Service', parent: :hmis_base_factory do
     client { association :hmis_hud_client, data_source: data_source }
     enrollment { association :hmis_hud_enrollment, data_source: data_source, client: client }
     sequence(:ServicesID, 500)
