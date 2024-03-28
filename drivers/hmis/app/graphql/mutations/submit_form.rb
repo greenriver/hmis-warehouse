@@ -95,21 +95,16 @@ module Mutations
         when HmisExternalApis::AcHmis::ReferralRequest
           HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(record)
         when Hmis::Hud::Enrollment
-          record.client.save! if record.client.changed? # Enrollment form may create or update client
+          enrollment = record
+          # Enrollment form may create or update client, so we need to save that
+          enrollment.client.save! if enrollment.client.changed?
 
-          # If this is a brand new Enrollment record, and the project has auto-enter configured, save the enrollment as non-WIP and generate an empty intake assessment
-          if record.new_record? && Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(record.project)
-            # Save the enrollment as non-WIP
-            record.save_not_in_progress
-            # Save an empty intake assessment. "Auto-entered" enrollments do not require
-            # an intake. We save an empty one so that the user doesn't get
-            # reminders about performing the intake.
-            intake_assessment = record.build_synthetic_intake_assessment
-            intake_assessment.save!
-          elsif record.new_record? || record.in_progress?
-            record.save_in_progress
+          if enrollment.new_record?
+            enrollment.save_new_enrollment!
+          elsif enrollment.in_progress?
+            enrollment.save_in_progress!
           else
-            record.save!
+            enrollment.save!
           end
         else
           record.save!

@@ -8,6 +8,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   include ::HmisStructure::Enrollment
   include ::Hmis::Hud::Concerns::Shared
   include ::HudConcerns::Enrollment
+  include ::Hmis::Hud::Concerns::HasCustomDataElements
   include ::Hmis::Hud::Concerns::ServiceHistoryQueuer
 
   self.table_name = :Enrollment
@@ -29,6 +30,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   # CAUTION: enrollment.project accessor is overridden below
   belongs_to :project, **hmis_relation(:ProjectID, 'Project'), optional: true
+  has_one :client_project, **hmis_relation(:EnrollmentID)
+
   has_one :exit, **hmis_enrollment_relation('Exit'), inverse_of: :enrollment, dependent: :destroy
 
   # HUD services
@@ -72,7 +75,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :enrollments
   belongs_to :household, **hmis_relation(:HouseholdID, 'Household'), inverse_of: :enrollments, optional: true
   has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
-  has_many :custom_data_elements, as: :owner, dependent: :destroy
 
   # Unit occupancy
   # All unit occupancies, including historical
@@ -80,7 +82,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :active_unit_occupancy, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
 
-  accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
   accepts_nested_attributes_for :move_in_addresses, allow_destroy: true
 
   validates_with Hmis::Hud::Validators::EnrollmentValidator
@@ -190,7 +191,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   scope :with_project, ->(project_ids) do
-    with_projects_where(p_t[:id].in(project_ids))
+    with_projects_where(p_t[:id].in(Array.wrap(project_ids)))
   end
 
   scope :in_age_group, ->(start_age: 0, end_age: nil) do
@@ -287,7 +288,22 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     generate_uuid
   end
 
-  def save_in_progress
+  def save_new_enrollment!
+    raise 'Unexpected: save_new_enrollment called on a persisted enrollment' if persisted?
+
+    if Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(project)
+      # If auto-enter is configured for this project, save as non-WIP and generate an empty intake.
+      save_not_in_progress!
+      build_synthetic_intake_assessment.save!
+    else
+      # Otherwise, save as WIP
+      save_in_progress!
+    end
+  end
+
+  def save_in_progress!
+    # "WIP" Enrollments have a null ProjectID column, so that they don't
+    # get pulled into reporting. The Project database ID is stored in the hmis_wips table.
     saved_project_id = project.id
 
     self.project_id = nil
@@ -301,14 +317,16 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     )
     save!(validate: false)
   end
+  alias save_in_progress save_in_progress!
 
-  def save_not_in_progress
+  def save_not_in_progress!
     transaction do
       self.project_id = project_id || project.project_id
-      wip&.destroy
+      wip&.destroy!
       save!
     end
   end
+  alias save_not_in_progress save_not_in_progress!
 
   def in_progress?
     project_id.nil?
