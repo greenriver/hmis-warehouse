@@ -554,7 +554,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
   end
 
   def hmis_url_for(entity, user: nil)
-    return unless hmis?
+    return unless hmis? && HmisEnforcement.hmis_enabled?
     return unless entity&.data_source_id == id
 
     base = "https://#{hmis}"
@@ -576,7 +576,7 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
     # If we don't have the HMIS driver we probably aren't here, but we need to check for the next section
     # If we don't have a user, just return the URl (backwards compatibility)
-    return url if user.blank? || ! HmisEnforcement.hmis_enabled?
+    return url if user.blank?
 
     # If we have a user, check for access (on the HMIS side)
     hmis_entity = if entity.respond_to?(:as_hmis)
