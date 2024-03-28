@@ -3717,7 +3717,12 @@ CREATE TABLE public.import_configs (
     destination character varying,
     data_source_name character varying,
     protocol character varying,
-    kind character varying
+    kind character varying,
+    encryption_key_name character varying,
+    encrypted_passphrase character varying,
+    encrypted_passphrase_iv character varying,
+    encrypted_secret_key character varying,
+    encrypted_secret_key_iv character varying
 );
 
 
@@ -9283,6 +9288,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230814153918'),
 ('20230816173812'),
 ('20240126184731'),
-('20240318191704');
+('20240318191704'),
+('20240327144840');
 
 

@@ -80,7 +80,7 @@ RUN apk update \
      chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
      lftp postgresql tmux postgis geos geos-dev proj proj-dev proj-util zip expect \
      shared-mime-info \
-     tar p7zip vim \
+     tar p7zip vim gpg gpg-agent \
   && rm -rf /var/cache/apk/* \
   && ln -s libproj.so.21.1.2 /usr/lib/libproj.so.20
 

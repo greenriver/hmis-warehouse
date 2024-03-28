@@ -451,6 +451,8 @@ GEM
       mail (>= 2.2.1)
     gmail_xoauth (0.4.2)
       oauth (>= 0.3.6)
+    gpgme (2.0.24)
+      mini_portile2 (~> 2.7)
     graphiql-rails (1.8.0)
       railties
       sprockets-rails
@@ -1074,6 +1076,7 @@ DEPENDENCIES
   geocoder
   get_process_mem
   gmail
+  gpgme
   graphiql-rails
   graphql (~> 2.0)
   grover
@@ -1197,4 +1200,4 @@ DEPENDENCIES
   yabeda-rails
 
 BUNDLED WITH
-   2.5.5
+   2.5.7
