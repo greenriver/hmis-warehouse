@@ -60,6 +60,56 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     end
   end
 
+  context 'assign_missing_household_ids' do
+    it 'works' do
+      GrdaWarehouse::Hud::Enrollment.update_all(HouseholdID: nil)
+
+      HmisDataCleanup::Util.assign_missing_household_ids!
+
+      # all HMIS records have Household IDs
+      expect(GrdaWarehouse::Hud::Enrollment.where(data_source: hmis_ds).where(HouseholdID: nil).exists?).to be false
+      # non-HMIS records dont
+      expect(GrdaWarehouse::Hud::Enrollment.where.not(data_source: hmis_ds).where(HouseholdID: nil).exists?).to be true
+    end
+
+    it 'leaves no trace' do
+      GrdaWarehouse::Hud::Enrollment.update_all(HouseholdID: nil)
+      expect_leaves_non_hmis_data_alone do
+        HmisDataCleanup::Util.clear_enrollment_export_ids!
+      end
+    end
+  end
+
+  context 'make_sole_member_hoh' do
+    it 'works' do
+      e1.update(relationship_to_hoh: 99, household_id: 'multi-member-household')
+      e2.update(relationship_to_hoh: 99, household_id: 'multi-member-household')
+      e3.update(relationship_to_hoh: 99, household_id: 'individual-household') # should be updated
+      # binding.pry
+
+      # Hmis::Hud::Enrollment.hmis.group(:household_id).having(nf('COUNT', [:HouseholdID]).eq(1)).where.not(relationship_to_hoh: 1).select(:id)
+      HmisDataCleanup::Util.make_sole_member_hoh!
+
+      expect(e1.reload.relationship_to_hoh).to eq(99)
+      expect(e2.reload.relationship_to_hoh).to eq(99)
+      expect(e3.reload.relationship_to_hoh).to eq(1)
+    end
+
+    it 'doesnt touch non-HMIS enrollments' do
+      GrdaWarehouse::Hud::Enrollment.update_all(relationship_to_hoh: 99)
+      expect do
+        HmisDataCleanup::Util.make_sole_member_hoh!
+      end.to change(GrdaWarehouse::Hud::Enrollment.where.not(data_source: hmis_ds).heads_of_households, :count).by(0)
+    end
+
+    it 'leaves no trace' do
+      GrdaWarehouse::Hud::Enrollment.update_all(relationship_to_hoh: 99)
+      expect_leaves_non_hmis_data_alone do
+        HmisDataCleanup::Util.make_sole_member_hoh!
+      end
+    end
+  end
+
   context 'fix_incorrect_personal_id_references' do
     let!(:records_with_bad_references) do
       records = []
@@ -146,7 +196,4 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
       end
     end
   end
-  # TODO test assign_missing_household_ids!
-  # TODO test make_sole_member_hoh!!
-  # TODO test all others
 end

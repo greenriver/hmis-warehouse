@@ -61,10 +61,13 @@ module HmisDataCleanup
 
     # Find any single-member households that do not have a HoH, and make that person the HoH
     def self.make_sole_member_hoh!
+      single_member_households = Hmis::Hud::Enrollment.hmis.where.not(household_id: nil).
+        group(:household_id).
+        having(nf('COUNT', [:HouseholdID]).eq(1)).
+        select(:household_id)
+
       without_papertrail_or_timestamps do
-        rows_affected = Hmis::Hud::Enrollment.hmis.
-          group(:household_id).
-          having(nf('COUNT', [:HouseholdID]).eq(1)).
+        rows_affected = Hmis::Hud::Enrollment.hmis.where(household_id: single_member_households).
           where.not(relationship_to_hoh: 1).
           update_all(relationship_to_hoh: 1) # skips callbacks
 
