@@ -11,10 +11,11 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
   let!(:hmis_ds) { create :hmis_data_source }
   let!(:o1) { create :hmis_hud_organization, data_source: hmis_ds }
   let!(:p1) { create :hmis_hud_project, data_source: hmis_ds, organization: o1 }
-  let!(:e1) { create :hmis_hud_enrollment, DateCreated: 5.years.ago, DateUpdated: 5.years.ago, data_source: hmis_ds, project: p1 }
-  let!(:e2) { create :hmis_hud_enrollment, DateCreated: 5.years.ago, DateUpdated: 5.years.ago, data_source: hmis_ds, project: p1 }
-  let!(:e3) { create :hmis_hud_enrollment, DateCreated: 5.years.ago, DateUpdated: 5.years.ago, data_source: hmis_ds }
-  let!(:e4) { create :hmis_hud_enrollment, DateCreated: 5.years.ago, DateUpdated: 5.years.ago, data_source: hmis_ds }
+  let(:last_year) { 1.year.ago }
+  let!(:e1) { create :hmis_hud_enrollment, DateCreated: last_year, DateUpdated: last_year, data_source: hmis_ds, project: p1 }
+  let!(:e2) { create :hmis_hud_enrollment, DateCreated: last_year, DateUpdated: last_year, data_source: hmis_ds, project: p1 }
+  let!(:e3) { create :hmis_hud_enrollment, DateCreated: last_year, DateUpdated: last_year, data_source: hmis_ds }
+  let!(:e4) { create :hmis_hud_enrollment, DateCreated: last_year, DateUpdated: last_year, data_source: hmis_ds }
 
   before(:all) do
     # create cruft in other data sources
@@ -23,7 +24,7 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
       proj = create(:hud_project, data_source_id: ds.id)
       client = create(:grda_warehouse_hud_client, data_source_id: ds.id)
       5.times do
-        create(:grda_warehouse_hud_enrollment, data_source_id: ds.id, client: client, project: proj, DateCreated: 5.years.ago, DateUpdated: 5.years.ago)
+        create(:grda_warehouse_hud_enrollment, data_source_id: ds.id, client: client, project: proj, DateCreated: 1.year.ago, DateUpdated: 1.year.ago)
       end
     end
   end
@@ -117,8 +118,8 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
         data_source: hmis_ds,
         enrollment: e1,
         PersonalID: 'not-real',
-        DateCreated: 5.years.ago,
-        DateUpdated: 5.years.ago,
+        DateCreated: last_year,
+        DateUpdated: last_year,
       }
       records << create(:hmis_hud_service, :skip_validate, **shared_attributes)
       records << create(:hmis_income_benefit, :skip_validate, **shared_attributes)
@@ -141,8 +142,8 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
         data_source: hmis_ds,
         enrollment: e1,
         client: e1.client,
-        DateCreated: 5.years.ago,
-        DateUpdated: 5.years.ago,
+        DateCreated: last_year,
+        DateUpdated: last_year,
       }
       records << create(:hmis_hud_service, **shared_attributes)
       records << create(:hmis_income_benefit, **shared_attributes)
@@ -160,8 +161,8 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     end
 
     it 'works for services' do
-      bad_service = create(:hmis_hud_service, :skip_validate, enrollment: e1, PersonalID: 'unmatched-id', DateCreated: 5.years.ago, DateUpdated: 5.years.ago, data_source: hmis_ds)
-      good_service = create(:hmis_hud_service, :skip_validate, enrollment: e1, DateCreated: 5.years.ago, DateUpdated: 5.years.ago, data_source: hmis_ds)
+      bad_service = create(:hmis_hud_service, :skip_validate, enrollment: e1, PersonalID: 'unmatched-id', data_source: hmis_ds)
+      good_service = create(:hmis_hud_service, :skip_validate, enrollment: e1, data_source: hmis_ds)
 
       HmisDataCleanup::Util.fix_incorrect_personal_id_references!(classes: [Hmis::Hud::Service])
       [bad_service, good_service].each(&:reload)
@@ -173,9 +174,31 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     it 'works for all record types' do
       expect(records_with_bad_references.map(&:PersonalID).uniq).to contain_exactly('not-real')
 
-      HmisDataCleanup::Util.fix_incorrect_personal_id_references!
+      expect do
+        HmisDataCleanup::Util.fix_incorrect_personal_id_references!
+
+        # no new records should have been created during the upsert
+      end.to change(GrdaWarehouse::Hud::Disability, :count).by(0).
+        and change(GrdaWarehouse::Hud::EmploymentEducation, :count).by(0).
+        and change(GrdaWarehouse::Hud::Exit, :count).by(0).
+        and change(GrdaWarehouse::Hud::HealthAndDv, :count).by(0).
+        and change(GrdaWarehouse::Hud::IncomeBenefit, :count).by(0).
+        and change(GrdaWarehouse::Hud::Service, :count).by(0).
+        and change(GrdaWarehouse::Hud::CurrentLivingSituation, :count).by(0).
+        and change(GrdaWarehouse::Hud::Assessment, :count).by(0).
+        and change(GrdaWarehouse::Hud::AssessmentQuestion, :count).by(0).
+        and change(GrdaWarehouse::Hud::AssessmentResult, :count).by(0).
+        and change(GrdaWarehouse::Hud::Event, :count).by(0).
+        and change(GrdaWarehouse::Hud::YouthEducationStatus, :count).by(0)
+
       records_with_bad_references.each(&:reload)
       expect(records_with_bad_references.map(&:PersonalID).uniq).to contain_exactly(e1.personal_id)
+
+      # DateUpdated didn't change
+      expect(records_with_bad_references.map(&:DateUpdated).uniq.map(&:to_date)).to contain_exactly(last_year.to_date)
+      expect(records_with_bad_references.map(&:DateCreated).uniq.map(&:to_date)).to contain_exactly(last_year.to_date)
+      expect(records_with_good_references.map(&:DateUpdated).uniq.map(&:to_date)).to contain_exactly(last_year.to_date)
+      expect(records_with_good_references.map(&:DateCreated).uniq.map(&:to_date)).to contain_exactly(last_year.to_date)
     end
 
     it 'leaves no trace' do

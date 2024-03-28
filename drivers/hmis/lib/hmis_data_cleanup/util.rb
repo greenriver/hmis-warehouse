@@ -45,10 +45,16 @@ module HmisDataCleanup
     # Assign Household ID where missing
     def self.assign_missing_household_ids!
       Hmis::Hud::Enrollment.hmis.where(household_id: [nil, '']).find_in_batches do |batch|
-        batch.each { |enrollment| enrollment.HouseholdID = Hmis::Hud::Base.generate_uuid }
+        values = []
+        batch.each do |enrollment|
+          values << {
+            id: enrollment.id,
+            HouseholdID: Digest::MD5.hexdigest([enrollment.EnrollmentID, enrollment.PersonalID, enrollment.ProjectID].join('__')),
+          }
+        end
 
         result = Hmis::Hud::Enrollment.import(
-          batch,
+          values,
           validate: false,
           timestamps: false,
           on_duplicate_key_update: { conflict_target: [:id], columns: [:HouseholdID] },
@@ -75,7 +81,7 @@ module HmisDataCleanup
       end
     end
 
-    # Fix any instances of enrollment-related records where the PersonalID does nots match the Enrollment's PersonalIDs
+    # Fix any instances of enrollment-related records where the PersonalID does not match the Enrollment's PersonalIDs
     def self.fix_incorrect_personal_id_references!(classes: nil, dry_run: false)
       classes&.each do |klass|
         raise "Invalid class: #{klass.name}" unless Hmis::Hud::Enrollment.hmis_enrollment_related_classes.include?(klass)
@@ -109,12 +115,27 @@ module HmisDataCleanup
               EnrollmentID: batch.map(&:EnrollmentID),
             ).pluck(:EnrollmentID, :PersonalID).to_h
 
-            # values = []
+            values = []
             batch.each do |record|
               real_personal_id = eid_to_pid[record.EnrollmentID]
-              next unless real_personal_id
+              next unless real_personal_id # enrollment not found, so we cant update the PersonalID
+              next if record.PersonalID == real_personal_id # this shouldn't be true, but check anyway
 
-              record.update_columns(PersonalID: real_personal_id)
+              record.PersonalID = real_personal_id
+              values << record
+            end
+
+            if values.any?
+              result = klass.import(
+                values,
+                validate: false,
+                timestamps: false,
+                on_duplicate_key_update: { conflict_target: [:id], columns: [:PersonalID] },
+              )
+
+              raise "Failed: #{result.failed_instances}" if result.failed_instances.present?
+
+              Rails.logger.info "[#{klass.name}] updated #{result.ids.count} records"
             end
           end
         end
