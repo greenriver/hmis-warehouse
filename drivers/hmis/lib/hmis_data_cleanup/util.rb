@@ -72,6 +72,41 @@ module HmisDataCleanup
       end
     end
 
+    # UNTESTED!!!
+    def self.fix_bad_personal_id_references_on_services!
+      data_source_id = GrdaWarehouse::DataSource.hmis.first.id
+      # Find and fix Services where the PersonalID does not match the PersonalID on the referenced Enrollment
+      # We may want to expand this to other Enrollment-related record types
+      GrdaWarehouse::Hud::Service.where(data_source_id: data_source_id).left_outer_joins(:enrollment).
+        where(GrdaWarehouse::Hud::Enrollment.arel_table[:id].eq(nil)).
+        find_in_batches do |batch|
+        # map {EnrollmentID=>PersonalID} for each enrollment referenced by this batch of services
+        eid_to_pid = GrdaWarehouse::Hud::Enrollment.where(
+          data_source_id: data_source_id,
+          EnrollmentID: batch.pluck(:EnrollmentID),
+        ).pluck(:EnrollmentID, :PersonalID).to_h
+
+        # update PersonalID on each Service
+        batch.each do |service|
+          real_personal_id = eid_to_pid[service.EnrollmentID]
+          unless real_personal_id
+            puts "Enrollment not found: Service##{service.id}, EnrollmentID##{service.EnrollmentID}"
+            next
+          end
+
+          service.PersonalID = real_personal_id
+        end
+        result = GrdaWarehouse::Hud::Service.import(
+          batch,
+          validate: false,
+          timestamps: false,
+          on_duplicate_key_update: { conflict_target: [:id], columns: [:PersonalID] },
+        )
+
+        raise "Failed: #{result.failed_instances}" if result.failed_instances.present?
+      end
+    end
+
     def self.delete_duplicate_bed_nights!
       duplicates = Hmis::Hud::Service.hmis.where(record_type: 200).
         where.not(date_provided: nil).
