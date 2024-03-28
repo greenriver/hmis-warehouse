@@ -14,23 +14,24 @@ RSpec.feature 'Enrollment/household management', type: :system do
 
   let(:today) { Date.current }
 
-  context 'An active project' do
+  def submit_enrollment_form(entry_date:, relationship_to_hoh: 'Self (HoH)', coc_code: nil)
+    mui_date_select 'Entry Date', date: entry_date
+    mui_select relationship_to_hoh, from: 'Relationship to HoH'
+    mui_select coc_code, from: 'Enrollment CoC' if coc_code
+    click_button 'Enroll'
+  end
+
+  def search_for_client(client)
+    fill_in 'Search Clients', with: client.last_name
+    click_button 'Search'
+  end
+
+  context 'An active project with CoC' do
     before(:each) do
       sign_in(hmis_user)
       click_link 'Projects'
       click_link p1.project_name
       click_link 'Enrollments'
-    end
-
-    def submit_enrollment_form(entry_date:, relationship_to_hoh: 'Self (HoH)')
-      mui_date_select 'Entry Date', date: entry_date
-      mui_select relationship_to_hoh, from: 'Relationship to HoH'
-      click_button 'Enroll'
-    end
-
-    def search_for_client(client)
-      fill_in 'Search Clients', with: client.last_name
-      click_button 'Search'
     end
 
     def make_household(household_id: Hmis::Hud::Base.generate_uuid, enrollment_factory:)
@@ -156,6 +157,28 @@ RSpec.feature 'Enrollment/household management', type: :system do
         assert_text(c2.brief_name)
         assert_text('Add to Household')
       end
+    end
+  end
+
+  context 'An active project with multiple CoCs' do
+    let!(:pc1) { create :hmis_hud_project_coc, data_source: ds1, project: p1, coc_code: 'CO-500', user: u1 }
+
+    before(:each) do
+      sign_in(hmis_user)
+      click_link 'Projects'
+      click_link p1.project_name
+      click_link 'Enrollments'
+    end
+
+    it 'can enroll a household member' do
+      click_link 'Add Enrollment'
+      search_for_client(c1)
+      click_button('Enroll Client')
+      entry_date = today - 2.days
+      expect do
+        submit_enrollment_form(entry_date: entry_date, coc_code: pc1.coc_code)
+      end.to change(c1.enrollments, :count).by(1)
+      assert_text(c1.brief_name)
     end
   end
 end
