@@ -45,16 +45,12 @@ module HmisDataCleanup
     # Assign Household ID where missing
     def self.assign_missing_household_ids!
       Hmis::Hud::Enrollment.hmis.where(household_id: [nil, '']).find_in_batches do |batch|
-        values = []
         batch.each do |enrollment|
-          values << {
-            id: enrollment.id,
-            HouseholdID: Digest::MD5.hexdigest([enrollment.EnrollmentID, enrollment.PersonalID, enrollment.ProjectID].join('__')),
-          }
+          enrollment.HouseholdID = Digest::MD5.hexdigest([enrollment.EnrollmentID, enrollment.PersonalID, enrollment.ProjectID].join('__'))
         end
 
         result = Hmis::Hud::Enrollment.import(
-          values,
+          batch,
           validate: false,
           timestamps: false,
           on_duplicate_key_update: { conflict_target: [:id], columns: [:HouseholdID] },
