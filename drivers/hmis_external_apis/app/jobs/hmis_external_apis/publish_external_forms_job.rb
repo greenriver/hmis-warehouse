@@ -67,25 +67,21 @@ class HmisExternalApis::PublishExternalFormsJob
   end
 
   def upload_to_s3(publication)
-    bucket_name = ENV['S3_PUBLIC_BUCKET']
-    if bucket_name.blank?
-      raise 'missing public bucket for upload' unless Rails.env.development? || Rails.env.test?
+    return if Rails.env.development? || Rails.env.test?
 
-      return
-    end
-
-    s3.put_object(
-      bucket: bucket_name,
-      key: publication.object_key,
+    # use bucket/object rather than AwsS3 methods here since we want to publish the form without access restrictions.
+    # Maybe this could be DRYed up in the future if we find more use cases
+    s3 = AwsS3.new(region: 'us-east-1', bucket_name: bucket_name)
+    object = s3.bucket.object(publication.object_key)
+    object.put(
       body: publication.content,
+      acl: 'public-read',
+      content_disposition: 'inline',
       content_type: 'text/html',
     )
   end
 
   def s3
-    @s3 ||= Aws::S3::Client.new(
-      access_key_id: ENV.fetch('S3_PUBLIC_ACCESS_KEY_ID'),
-      secret_access_key: ENV.fetch('S3_PUBLIC_ACCESS_KEY_SECRET'),
-    )
+    @s3 ||= GrdaWarehouse::RemoteCredentials::S3.for_active_slug('public_bucket').s3
   end
 end
