@@ -168,6 +168,28 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       end
     end
 
+    def clear_invalid_enrollment_ids(rows, enrollment_id_field:)
+      raise 'array expected' unless rows.is_a?(Array)
+
+      row_enrollment_ids = rows.map { |row| row_enrollment_id(row) }.compact
+      valid_enrollment_ids = Hmis::Hud::Enrollment.
+        where(data_source: data_source).
+        where(EnrollmentID: row_enrollment_ids).
+        pluck(:EnrollmentID).to_set
+
+      cleared = 0
+      rows.each do |row|
+        enrollment_id = row_enrollment_id(row)
+        next unless enrollment_id # ignore if missing
+        next if enrollment_id.in?(valid_enrollment_ids) # ignore if valid
+
+        # if the row references an enrollment_id that does not exist, remove the row enrollment_id
+        row.row[enrollment_id_field] = nil
+        cleared += 1
+      end
+      logger.info("Cleared #{cleared} invalid enrollment ids")
+    end
+
     def extrapolate_missing_enrollment_ids(rows, enrollment_id_field:)
       raise 'array expected' unless rows.is_a?(Array)
 
@@ -190,12 +212,17 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         missing[personal_id] << [date, project_id, row]
       end
 
+      matched = 0
       Hmis::Hud::Client.where(data_source: data_source, personal_id: missing.keys).preload(enrollments: :exit).find_each do |client|
         missing[client.personal_id].each do |date, project_id, row|
           match = client.enrollments.detect { |e| e.project_id == project_id && (e.EntryDate <= date && (e.exit&.ExitDate.blank? || e.exit.ExitDate > date)) }
-          row.row[enrollment_id_field] = match.enrollment_id if match
+          next unless match
+
+          row.row[enrollment_id_field] = match.enrollment_id
+          matched += 1
         end
       end
+      logger.info("Extrapolation matched #{matched} of #{missing.size} missing enrollment ids")
     end
 
     # some record sets can't be bulk inserted. Disabling paper trial reduces runtime when

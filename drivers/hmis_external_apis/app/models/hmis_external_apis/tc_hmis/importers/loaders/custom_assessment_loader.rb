@@ -12,8 +12,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     def perform
       validate_cde_configs
-      rows = reader.rows(filename: filename)
+      rows = reader.rows(filename: filename).to_a
       clobber_records(rows) if clobber
+
+      clear_invalid_enrollment_ids(rows, enrollment_id_field: ENROLLMENT_ID_COL)
+      extrapolate_missing_enrollment_ids(rows, enrollment_id_field: ENROLLMENT_ID_COL)
 
       create_assessment_records(rows)
       create_form_processor_records(rows)
