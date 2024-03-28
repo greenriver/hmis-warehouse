@@ -73,6 +73,17 @@ RSpec.feature 'Enrollment/household management', type: :system do
       assert_text(c2.brief_name)
     end
 
+    it 'shows error when the user tries to submit an invalid date' do
+      click_link 'Add Enrollment'
+      search_for_client(c1)
+      click_button('Enroll Client')
+      entry_date = today + 2.days # invalid date - in the future
+      submit_enrollment_form(entry_date: entry_date)
+      assert_text('Please fix outstanding errors')
+      assert_text('Entry date cannot be in the future')
+      expect(c1.enrollments.count).to eq(0)
+    end
+
     context 'with wip household' do
       before(:each) do
         make_household(enrollment_factory: :hmis_hud_wip_enrollment)
