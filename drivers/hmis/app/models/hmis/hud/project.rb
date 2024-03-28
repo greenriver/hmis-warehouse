@@ -56,8 +56,12 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   # Households in this Project, NOT including WIP Enrollments
   has_many :households, through: :enrollments
 
+  # NOTE: These are not performant, because they go through the WIP view. Don't use them in the application.
+  has_many :custom_assessments, through: :enrollments_including_wip
   has_many :services, through: :enrollments_including_wip
   has_many :custom_services, through: :enrollments_including_wip
+
+  has_one :warehouse_project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :id, primary_key: :id
 
   accepts_nested_attributes_for :affiliations, allow_destroy: true
 
@@ -65,7 +69,11 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   # minutes. It needs optimization; for now we use a class method instead of a AR association
   # has_many :hmis_services, through: :enrollments_including_wip
   def hmis_services
-    Hmis::Hud::HmisService.joins(:project).where(Hmis::Hud::Project.arel_table[:id].eq(id))
+    invalid_enrollment_ids = enrollments.with_invalid_references.pluck(e_t[:enrollment_id])
+    Hmis::Hud::HmisService.joins(:project).
+      where(Hmis::Hud::Project.arel_table[:id].eq(id)).
+      where(Hmis::Hud::HmisService.arel_table[:EnrollmentID].not_in(invalid_enrollment_ids)).
+      joins(:client)
   end
 
   has_and_belongs_to_many :project_groups,

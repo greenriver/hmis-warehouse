@@ -22,6 +22,14 @@
               {
                 "code": "Involuntary Termination"
               }
+            ],
+            "enable_behavior": "ALL",
+            "enable_when": [
+              {
+                "question": "3.12",
+                "operator": "NOT_EQUAL",
+                "answer_code": "DECEASED"
+              }
             ]
           },
           {
@@ -44,9 +52,6 @@
             "pick_list_options": [
               {
                 "code": "Achieved housing stability"
-              },
-              {
-                "code": "Deceased"
               },
               {
                 "code": "No longer interested in participating in program"
@@ -106,17 +111,10 @@
           {
             "type": "GROUP",
             "link_id": "exit-reason-other-group",
-            "enable_behavior": "ANY",
             "enable_when": [
               {
-                "question": "voluntary-exit-reason",
-                "operator": "EQUAL",
-                "answer_code": "Other"
-              },
-              {
-                "question": "involuntary-exit-reason",
-                "operator": "EQUAL",
-                "answer_code": "Other"
+                "question": "exit-reason",
+                "operator": "EXISTS"
               }
             ],
             "item": [
@@ -128,7 +126,20 @@
                 "mapping": {
                   "record_type": "EXIT",
                   "custom_field_key": "reason_for_exit_other"
-                }
+                },
+                "enable_behavior": "ANY",
+                "enable_when": [
+                  {
+                    "question": "voluntary-exit-reason",
+                    "operator": "EQUAL",
+                    "answer_code": "Other"
+                  },
+                  {
+                    "question": "involuntary-exit-reason",
+                    "operator": "EQUAL",
+                    "answer_code": "Other"
+                  }
+                ]
               }
             ]
           }

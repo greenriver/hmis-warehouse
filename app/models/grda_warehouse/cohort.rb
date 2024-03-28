@@ -144,6 +144,14 @@ module GrdaWarehouse
       end
     end
 
+    def deleted_clients_tab?(population)
+      return true if population.to_s == 'deleted' # backwards compatibility
+
+      tab = cohort_tabs.find_by(name: population)
+      # If the source of the clients on this tab looks for deleted clients
+      tab&.base_scope == 'only_deleted'
+    end
+
     private def active_tab(user, population)
       tab = cohort_tabs.find_by(name: population)
       return tab if tab&.show_for?(user)
@@ -183,6 +191,7 @@ module GrdaWarehouse
                 :most_recent_pathways_or_rrh_assessment,
                 :most_recent_2023_pathways_assessment,
                 :most_recent_2023_transfer_assessment,
+                most_recent_ce_assessment: { assessment_questions: :lookup },
               ],
             },
           ],
@@ -388,6 +397,8 @@ module GrdaWarehouse
         ::CohortColumns::MostRecentDateToStreet.new,
         ::CohortColumns::DaysHomelessPathways.new,
         ::CohortColumns::MostRecentClsSheltered.new,
+        ::CohortColumns::CeAssessmentDate.new,
+        ::CohortColumns::CeAssessmentName.new,
         ::CohortColumns::UserString1.new,
         ::CohortColumns::UserString2.new,
         ::CohortColumns::UserString3.new,

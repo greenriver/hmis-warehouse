@@ -9,26 +9,55 @@ module WarehouseReports
     include ArelHelper
 
     queue_as ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)
+    WAIT_MINUTES = 10
 
     # NOTE: instances of report_class must provide `title`, `url`, and `run_and_save!` methods
     # `title` should return a string suitable for an email subject
     # `run_and_save!` should run whatever calculations are necessary and save the results
     # `url` must provide a link to the individual report
     def perform(user_id:, report_class:, report_id:)
-      klass = allowed_reports[report_class]
-      if klass
-        report = klass.find_by(id: report_id)
-        # Occassionally people delete the report before it actually runs
-        return unless report.present?
+      lock_obtained = HudReports::ReportInstance.with_advisory_lock(advisory_lock_name(report_class), timeout_seconds: 0) do
+        report_completed = false
+        klass = allowed_reports[report_class]
+        if klass
+          report = klass.find_by(id: report_id)
+          # Occassionally people delete the report before it actually runs
+          return unless report.present?
 
-        report.run_and_save!
+          report_completed = report.run_and_save!
 
-        NotifyUser.report_completed(user_id, report).deliver_later
-      else
-        setup_notifier('Generic Report Runner')
-        msg = "Unable to run report, #{report_class} is not included in the allowed list of reports."
-        @notifier.ping(msg) if @send_notifications
+          NotifyUser.report_completed(user_id, report).deliver_later
+        else
+          setup_notifier('Generic Report Runner')
+          msg = "Unable to run report, #{report_class} is not included in the allowed list of reports."
+          @notifier.ping(msg) if @send_notifications
+        end
+        report_completed
       end
+      return if lock_obtained
+
+      requeue_job(report_class)
+    end
+
+    private def advisory_lock_name(report_class)
+      "generic_report_#{report_class}"
+    end
+
+    private def requeue_job(class_name)
+      # Re-queue this repot before processing if another report is running for the same class
+      # This should help prevent tying up delayed job workers when someone kicks off a dozen of the same report.
+      a_t = Delayed::Job.arel_table
+      job_object = Delayed::Job.where(a_t[:handler].matches("%job_id: #{job_id}%").or(a_t[:id].eq(job_id))).first
+      return unless job_object
+
+      Rails.logger.info("Report: #{class_name} already running...re-queuing job for #{WAIT_MINUTES} minutes from now")
+      new_job = job_object.dup
+      new_job.update(
+        locked_at: nil,
+        locked_by: nil,
+        run_at: Time.current + WAIT_MINUTES.minutes,
+        attempts: 0,
+      )
     end
 
     def allowed_reports

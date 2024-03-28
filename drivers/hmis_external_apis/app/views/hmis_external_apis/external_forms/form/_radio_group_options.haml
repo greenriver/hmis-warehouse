@@ -1,0 +1,8 @@
+- options.each_with_index do |option, idx|
+  - label, value = option.values_at(:label, :value)
+  - input_id = "#{html_id}-#{idx}"
+  .form-check
+    %input.form-check-input{type: "radio", name: name, id: input_id, value: value, required: required}
+    %label.form-check-label{for: input_id}= label
+    - if option == options.last
+      .invalid-feedback This is required

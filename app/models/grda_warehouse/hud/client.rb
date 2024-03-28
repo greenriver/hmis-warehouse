@@ -42,6 +42,16 @@ module GrdaWarehouse::Hud
     has_one :ce_assessment, -> do
       merge(GrdaWarehouse::CoordinatedEntryAssessment::Base.active)
     end, class_name: 'GrdaWarehouse::CoordinatedEntryAssessment::Base', inverse_of: :client
+
+    # operates on source_clients only
+    has_one :most_recent_ce_assessment, -> do
+      one_for_column(
+        :AssessmentDate,
+        source_arel_table: as_t,
+        group_on: [:PersonalID, :data_source_id],
+      )
+    end, **hud_assoc(:PersonalID, 'Assessment')
+
     # operates on source_clients only
     has_one :most_recent_pathways_or_rrh_assessment, -> do
       one_for_column(

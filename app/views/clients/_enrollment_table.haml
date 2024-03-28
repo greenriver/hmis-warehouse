@@ -77,7 +77,7 @@
           - elsif e[:project_type_id].in?(HudUtility2024.project_types_with_move_in_dates)
             - title += ";<br /><b>Move-in Date:</b> No move-in date"
           %span{data: { toggle: :tooltip, title: title.html_safe, html: 'true' }}
-            - include_link = current_user.can_view_enrollment_details_tab?
+            - include_link = current_user.can_view_enrollment_details?
             = link_to_if include_link, e[:entry_date], client_enrollment_path(@client.id, e[:hmis_id])
           - if e[:chronically_homeless_at_start]
             %i.icon-passport{data: {toggle: :tooltip, title: 'Chronic at entry'}}

@@ -21,6 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
       - id: dependencies
         name: Set up dependencies
         run: |
@@ -40,14 +41,17 @@ jobs:
             lftp postgresql postgis geos geos-dev \
             shared-mime-info
           gem install bundler --version=2.4.6
+
       - id: gems
         name: Install gems
         run: |
           bundle config set --local without 'production staging'
           bundle install --jobs 4 --retry 3
+
       - name: Get changed files
         id: changed-files
-        uses: masesgroup/retrieve-changed-files@v2
+        uses: masesgroup/retrieve-changed-files@v3
+
       - id: rubocop
         name: Run Rubocop
         run: |

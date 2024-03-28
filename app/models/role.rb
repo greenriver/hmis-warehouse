@@ -527,7 +527,7 @@ class Role < ApplicationRecord
         sub_category: 'Privacy',
       },
       can_view_enrollment_details: {
-        description: 'Access to the enrollment details tab.  Users with Can View Clients get this automatically.',
+        description: 'Grants access to the enrollment details tab. Includes all related records such as Assessments, Services, Current Living Situations, and more.',
         administrative: false,
         category: 'Client Extras',
         sub_category: 'General Client Access',

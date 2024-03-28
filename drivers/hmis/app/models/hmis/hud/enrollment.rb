@@ -239,6 +239,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     end
   end
 
+  scope :with_invalid_references, -> {
+    left_outer_joins(:client).where(c_t[:id].eq(nil))
+  }
+
   after_create :warehouse_trigger_processing
   after_update :warehouse_trigger_processing
 

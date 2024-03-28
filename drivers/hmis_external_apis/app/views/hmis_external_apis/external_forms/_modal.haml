@@ -1,0 +1,10 @@
+- label_id = next_html_id
+.modal{ tabindex: "-1", role: "dialog", id: html_id, "aria-labelledby" => label_id, data: {keyboard: blocker ? 'false' : 'true', backdrop: blocker ? 'static' : 'true'} }
+  .modal-dialog{ role: "document" }
+    .modal-content
+      .modal-header
+        %h5.modal-title{id: label_id}= title
+        - if !blocker
+          %button.close{ type: "button", "data-dismiss" => "modal", "aria-label" => "Close" }
+            %span{ "aria-hidden" => "true" } &times;
+      = content

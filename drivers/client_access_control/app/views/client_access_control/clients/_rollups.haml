@@ -17,7 +17,7 @@
     %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :other_enrollments}}
       %header
         %h1.h3 Other Enrollments
-    - if GrdaWarehouse::Config.get(:eto_api_available) || RailsDrivers.loaded.include?(:eccovia_data) && @client.source_eccovia_case_managers.exists? || @client.source_assessments.pathways_or_rrh.exists?
+    - if HmisEnforcement.hmis_enabled? || GrdaWarehouse::Config.get(:eto_api_available) || RailsDrivers.loaded.include?(:eccovia_data) && @client.source_eccovia_case_managers.exists? || @client.source_assessments.pathways_or_rrh.exists?
       %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :assessments}}
         %header
           %h1.h3 Assessments

@@ -145,6 +145,21 @@ RSpec.describe Hmis::MergeClientsJob, type: :model do
     end
   end
 
+  context 'when merged client has enrollment' do
+    let!(:o1) { create :hmis_hud_organization, data_source: data_source, user: user }
+    let!(:p1) { create(:hmis_hud_project, data_source: data_source, organization: o1) }
+    let!(:e1) { create(:hmis_hud_wip_enrollment, client: client2, project: p1, data_source: data_source) }
+
+    # This is a regression test for a bug where deleted rows in hmis_wips were still returned by project.enrollments_including_wip.
+    # The bug was fixed by selecting only non-deleted rows in the hmis_client_projects view.
+    it 'does not result in duplicate enrollment records' do
+      e1.save_not_in_progress!
+      expect(p1.enrollments_including_wip.count).to eq(1)
+      Hmis::MergeClientsJob.perform_now(client_ids: [client1.id, client2.id], actor_id: actor.id)
+      expect(p1.enrollments_including_wip.count).to eq(1), 'it should not show dupes'
+    end
+  end
+
   context 'with duplicate mci_ids' do
     let(:mci_id_value) { 'test-123' }
     let!(:external_id_client_1) { create :mci_external_id, source: client1, remote_credential: mci_cred, value: mci_id_value }

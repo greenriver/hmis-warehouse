@@ -27,4 +27,4 @@ This workflow iterates through every client (for both environments). It uses a [
 
 When a container spins up, the Docker entrypoint script generates an asset_checksum and pulls down the assets from S3. If the assets don't exist yet, the script will wait (`bin/wait_for_compiled_assets.rb`) and check again every 60 seconds. Note that this will happen in the deploy container before any of the application containers are spun up, meaning that you should be able to catch missing assets before the deploy goes through.
 
-**NOTE:** If you make a change in the remote client theme files, you will need to ensure that the GitHub Actions workflow runs at least once to pick up that change. Otherwise the checksum generated in the entrypoint won't match the last stored checksum and the waiting will never finish.
+**NOTE:** If you make a change in the remote client theme files, you will need to ensure that the GitHub Actions workflow runs at least once to pick up that change. Otherwise the checksum generated in the entrypoint won't match the last stored checksum and the waiting will never finish. Bump the version in `app/assets/version.js` to force the assets to rebuild.

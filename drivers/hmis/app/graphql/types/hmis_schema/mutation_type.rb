@@ -32,9 +32,16 @@ module Types
     field :delete_units, mutation: Mutations::DeleteUnits
 
     field :delete_service, mutation: Mutations::DeleteService
-    field :update_bed_nights, mutation: Mutations::UpdateBedNights, deprecation_reason: 'Moved to BulkAssignService'
     field :bulk_assign_service, mutation: Mutations::BulkAssignService
     field :bulk_remove_service, mutation: Mutations::BulkRemoveService
+
+    field :create_service_category, mutation: Mutations::CreateServiceCategory
+    field :delete_service_category, mutation: Mutations::DeleteServiceCategory
+    field :rename_service_category, mutation: Mutations::RenameServiceCategory
+
+    field :create_service_type, mutation: Mutations::CreateServiceType
+    field :delete_service_type, mutation: Mutations::DeleteServiceType
+    field :rename_service_type, mutation: Mutations::RenameServiceType
 
     field :save_assessment, mutation: Mutations::SaveAssessment
     field :submit_assessment, mutation: Mutations::SubmitAssessment
@@ -72,5 +79,8 @@ module Types
 
     field :create_client_alert, mutation: Mutations::CreateClientAlert
     field :delete_client_alert, mutation: Mutations::DeleteClientAlert
+
+    field :update_external_form_submission, mutation: Mutations::UpdateExternalFormSubmission
+    field :delete_external_form_submission, mutation: Mutations::DeleteExternalFormSubmission
   end
 end

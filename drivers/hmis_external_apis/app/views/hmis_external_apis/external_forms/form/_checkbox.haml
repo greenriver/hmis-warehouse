@@ -1,0 +1,6 @@
+%input.form-check-input{type: "hidden", name: name, value: '0'}
+.form-check.mb-1
+  %input.form-check-input{type: "checkbox", name: name, id: html_id, value: '1', required: required}
+  %label.form-check-label{for: html_id}= label
+- if local_assigns.key?(:footer)
+  = footer

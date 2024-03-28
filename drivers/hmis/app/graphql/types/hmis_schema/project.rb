@@ -21,6 +21,7 @@ module Types
     include Types::HmisSchema::HasHmisParticipations
     include Types::HmisSchema::HasCeParticipations
     include Types::HmisSchema::HasHudMetadata
+    include Types::HmisSchema::HasExternalFormSubmissions
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2024')
@@ -54,6 +55,9 @@ module Types
     project_cocs_field
     funders_field
     units_field
+    external_form_submissions_field do
+      argument :form_definition_identifier, ID, required: true
+    end
     households_field
     hmis_participations_field
     ce_participations_field
@@ -92,6 +96,7 @@ module Types
       can :manage_incoming_referrals
       can :manage_outgoing_referrals
       can :manage_denied_referrals
+      can :manage_external_form_submissions
     end
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
     field :has_units, Boolean, null: false
@@ -198,6 +203,17 @@ module Types
         where(arel.e_t[:ProjectID].eq(object.ProjectID))
 
       scoped_referral_postings(scope, sort_order: :relevent_status, **args)
+    end
+
+    def external_form_submissions(**args)
+      instances = Hmis::Form::Instance.with_role(:EXTERNAL_FORM).active.where(entity: object)
+      scope = HmisExternalApis::ExternalForms::FormSubmission.
+        joins(:definition).
+        where(definition: { identifier: instances.select(:definition_identifier) })
+
+      form_definition_identifier = args.delete(:form_definition_identifier)
+      scope = scope.where(definition: { identifier: form_definition_identifier }) if form_definition_identifier
+      resolve_external_form_submissions(scope, **args)
     end
   end
 end

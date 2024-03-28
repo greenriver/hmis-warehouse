@@ -135,6 +135,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             next
           end
 
+          date_provided = row_date_provided(row)
+          # derived "last updated" timestamp for 9am on DateProvided
+          last_updated_timestamp = date_provided.beginning_of_day.to_datetime + 9.hours
           services[response_id] ||= service_class.new(
             CustomServiceID: generate_service_id(config, row),
             EnrollmentID: enrollment.EnrollmentID,
@@ -144,8 +147,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             data_source_id: data_source.id,
             custom_service_type_id: service_type_id,
             service_name: service_type,
-            DateCreated: today,
-            DateUpdated: today,
+            DateCreated: last_updated_timestamp,
+            DateUpdated: last_updated_timestamp,
             FAAmount: nil,
             FAStartDate: nil,
             FAEndDate: nil,

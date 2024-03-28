@@ -63,5 +63,11 @@ BostonHmis::Application.routes.draw do
       resources :access_controls
       resources :users, only: [:index, :edit, :update]
     end
+
+    namespace :hmis_client do
+      resources :clients, only: [:none] do
+        resources :assessments, only: [:show]
+      end
+    end
   end
 end

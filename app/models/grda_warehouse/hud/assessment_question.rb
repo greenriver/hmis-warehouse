@@ -82,5 +82,36 @@ module GrdaWarehouse::Hud
         'Pathways 2024',
       ]
     end
+
+    private def pathways_question?
+      assessment_question == 'c_housing_assessment_name'
+    end
+
+    def assessment_name
+      return 'Pathways 2024' if pathways_2024?
+      return 'Pathways 2021' if pathways_2021?
+      return 'RRH-PSH Transfer' if transfer_2021?
+
+      # unknown from assessment questions
+      nil
+    end
+
+    def pathways_2024?
+      return nil unless pathways_question?
+
+      lookup&.response_text == 'Pathways 2024'
+    end
+
+    def pathways_2021?
+      return nil unless pathways_question?
+
+      lookup&.response_text == 'Pathways'
+    end
+
+    def transfer_2021?
+      return nil unless pathways_question?
+
+      lookup&.response_text == 'RRH-PSH Transfer'
+    end
   end
 end

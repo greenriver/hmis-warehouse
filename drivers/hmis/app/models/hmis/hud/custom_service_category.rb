@@ -16,6 +16,8 @@ class Hmis::Hud::CustomServiceCategory < Hmis::Hud::Base
   has_many :form_instances, class_name: 'Hmis::Form::Instance'
   has_many :definitions, through: :form_instances
 
+  validates_presence_of :name, allow_blank: false
+
   def to_pick_list_option
     {
       code: id.to_s,
