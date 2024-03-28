@@ -38,8 +38,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       "nav-eto-#{response_id}"
     end
 
-    def form_definition_identifier
-      'navigation-notes'
+    def form_definition
+      Hmis::Form::Definition.where(identifier: 'tc-nav-notes').first!
     end
   end
 end

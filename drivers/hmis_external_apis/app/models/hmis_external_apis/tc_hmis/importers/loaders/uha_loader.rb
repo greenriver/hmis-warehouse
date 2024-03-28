@@ -19,7 +19,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         { element_id: 12281, label: 'County', key: 'uha_alt_mail_address_county', repeats: false, field_type: 'string' },
         { element_id: 12282, label: 'Zip Code', key: 'uha_alt_mail_zip_code', repeats: false, field_type: 'string' },
         { element_id: 12283, label: 'Alternate Phone Number', key: 'uha_alt_phone', repeats: false, field_type: 'string' },
-        { element_id: 12284, label: 'Disabled', key: 'uha_disabled', repeats: false, field_type: 'boolean' },
         { element_id: 12285, label: 'Marital Satus:', key: 'uha_marital_status', repeats: false, field_type: 'string' },
         { element_id: 12286, label: 'Citizenship: Are you and all family members a U.S. Citizen or have eligible immigration status?', key: 'uha_key_12286', repeats: false, field_type: 'boolean' },
         { element_id: 12287, label: 'If you answered No, list the person(s) who are not eligible or a U.S. Citizen:', key: 'uha_key_12287', repeats: false, field_type: 'string' },
@@ -272,8 +271,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       values
     end
 
-    def form_definition_identifier
-      'universal-housing-assessment'
+    def form_definition
+      Hmis::Form::Definition.where(identifier: 'tc-uha').first!
     end
   end
 end

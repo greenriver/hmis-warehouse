@@ -28,10 +28,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       clobber ? true : supports_upsert?
     end
 
-    def filename
-      raise 'define filename in subclass'
-    end
-
     protected
 
     def supports_upsert?
@@ -57,23 +53,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         DateTime.strptime(value, DATE_TIME_FMT)
       else
         raise ArgumentError, "Invalid date or date-time format: '#{value}'"
-      end
-    end
-
-    MINUTES_RGX = /\d+/
-    HOURS_MINUTES_RGX = /(\d*):(\d{2})/
-    def parse_duration(str)
-      return unless str
-
-      str.strip!
-      case str
-      when MINUTES_RGX
-        str.to_i
-      when HOURS_MINUTES_RGX
-        match = str.match(HOURS_MINUTES_RGX)
-        match[1] * 60 + match[2]
-      else
-        raise ArgumentError, "Invalid duration format: '#{str}'"
       end
     end
 
@@ -110,9 +89,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     def yn_boolean(str)
       case str
-      when /^(t|y|yes)$/i
+      when /^(y|yes)$/i
         true
-      when /^(f|n|no)$/i
+      when /^(n|no)$/i
         false
       when '.'
         # for element 12180 in the HAT, the dot appears to mean 'true'
@@ -162,42 +141,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       self.class.name
     end
 
-    def placeholder_service_category
-      @placeholder_service_category ||= Hmis::Hud::CustomServiceCategory.where(data_source: data_source, name: 'placeholder service category').first_or_create! do |cat|
-        cat.UserID = system_hud_user.user_id
-      end
-    end
-
-    def extrapolate_missing_enrollment_ids(rows, enrollment_id_field:)
-      raise 'array expected' unless rows.is_a?(Array)
-
-      # it would be better if we had project identifier instead of name
-      program_name_map = Hmis::Hud::Project.
-        where(data_source: data_source).
-        pluck(:ProjectName, :ProjectID).to_h
-
-      missing = {}
-      rows.each do |row|
-        next if row_enrollment_id(row)
-
-        personal_id = row_personal_id(row)
-        date = row_date_provided(row)
-        project_id = program_name_map[row.field_value('Program Name')]
-
-        next unless personal_id && date && project_id
-
-        missing[personal_id] ||= []
-        missing[personal_id] << [date, project_id, row]
-      end
-
-      Hmis::Hud::Client.where(data_source: data_source, personal_id: missing.keys).preload(enrollments: :exit).find_each do |client|
-        missing[client.personal_id].each do |date, project_id, row|
-          match = client.enrollments.detect { |e| e.project_id == project_id && (e.EntryDate <= date && (e.exit&.ExitDate.blank? || e.exit.ExitDate > date)) }
-          row.row[enrollment_id_field] = match.enrollment_id if match
-        end
-      end
-    end
-
     # some record sets can't be bulk inserted. Disabling paper trial reduces runtime when
     # we have to fallback to individual inserts
     def without_paper_trail
@@ -210,19 +153,15 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       end
     end
 
-    def log_skipped_row(row, field:, prefix: nil)
+    def log_skipped_row(row, field:)
       value = row.field_value(field)
-      log_info "#{row.context} #{prefix} could not resolve \"#{field}\":\"#{value}\""
+      log_info "#{row.context} could not resolve \"#{field}\":\"#{value}\""
     end
 
     def log_processed_result(name: nil, expected:, actual:)
       name ||= model_class.name
       rate = expected.zero? ? 0 : (actual.to_f / expected).round(3)
       log_info("processed #{name}: #{actual} of #{expected} records (#{((1.0 - rate) * 100).round(2)}% skipped)")
-    end
-
-    def normalize_uuid(str)
-      str&.gsub(/[^a-z0-9]/i, '')&.upcase
     end
   end
 end

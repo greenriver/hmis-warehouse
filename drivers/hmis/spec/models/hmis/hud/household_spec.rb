@@ -46,7 +46,7 @@ RSpec.describe Hmis::Hud::Household, type: :model do
     end
 
     it 'should handle enrollment limit correctly' do
-      e2.save_in_progress!
+      e2.save_in_progress
 
       expect(Hmis::Hud::Household.in_progress).to contain_exactly(e2.household)
       expect(Hmis::Hud::Household.not_in_progress).to contain_exactly(e1.household)

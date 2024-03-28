@@ -8,7 +8,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   extend OrderAsSpecified
   include ::HmisStructure::Client
   include ::Hmis::Hud::Concerns::Shared
-  include ::Hmis::Hud::Concerns::HasCustomDataElements
   include ::HudConcerns::Client
   include ::HudChronicDefinition
   include ClientSearch
@@ -55,9 +54,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :client
   has_many :current_living_situations, through: :enrollments
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
-  has_many :services, through: :enrollments # HUD Services only
-  has_many :custom_services, through: :enrollments # Custom Services only
-
+  has_many :custom_data_elements, as: :owner, dependent: :destroy
   has_many :client_projects
   has_many :projects_including_wip, through: :client_projects, source: :project
 
@@ -70,6 +67,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # Merge Audits for merges from this client into another client
   has_many :reverse_merge_audits, -> { distinct }, through: :reverse_merge_histories, source: :client_merge_audit
 
+  accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
   accepts_nested_attributes_for :names, allow_destroy: true
   accepts_nested_attributes_for :addresses, allow_destroy: true
   accepts_nested_attributes_for :contact_points, allow_destroy: true
@@ -162,40 +160,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     raise 'orgs are in multiple data sources' if ds_ids.size > 1
 
     joins(:projects_including_wip).where(p_t[:organization_id].in(hud_org_ids).and(p_t[:data_source_id].eq(ds_ids.first)))
-  end
-
-  scope :with_service_in_range, ->(start_date:, end_date: Date.current, project_id: nil, service_type_id: nil) do
-    cst = Hmis::Hud::CustomServiceType.find(service_type_id) if service_type_id
-    if cst&.hud_service?
-      # For HUD service type, join directly with the hud service table (optimization)
-      service_relation = :services
-      service_arel = Hmis::Hud::Service.arel_table
-      matches_type = s_t[:record_type].eq(cst.hud_record_type).and(s_t[:type_provided].eq(cst.hud_type_provided))
-    elsif cst
-      # For Custom service type, join directly with the custom service table (optimization)
-      service_relation = :custom_services
-      service_arel = Hmis::Hud::CustomService.arel_table
-      matches_type = cs_t[:custom_service_type_id].eq(service_type_id)
-    else
-      # Service type was not specified, so use the HmisService view which includes both HUD and Custom services
-      service_relation = :hmis_services
-      service_arel = Hmis::Hud::HmisService.arel_table
-    end
-
-    # Clients with services rendered
-    scope = Hmis::Hud::Client.joins(enrollments: service_relation)
-
-    # Filter down to only clients with services rendered at the specified project, if applicable. Includes services rendered at WIP Enrollments.
-    scope = scope.merge(Hmis::Hud::Enrollment.with_project(project_id)) if project_id
-
-    # Filter down by service date range and service type
-    conditions = [
-      service_arel[:date_provided].gteq(start_date),
-      service_arel[:date_provided].lteq(end_date),
-      matches_type,
-    ].compact.inject(&:and)
-
-    scope.where(conditions).distinct
   end
 
   def build_primary_custom_client_name

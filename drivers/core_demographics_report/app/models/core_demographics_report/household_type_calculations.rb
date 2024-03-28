@@ -141,9 +141,7 @@ module
     end
 
     private def set_household_counts(household_scope, coc_code = base_count_sym)
-      scope = household_scope.joins(enrollment: :client).preload(:client, enrollment: :client).distinct
-      scope = scope.in_coc(coc_code: coc_code) unless coc_code.to_sym == base_count_sym
-      scope.find_each(batch_size: 1_000) do |enrollment|
+      household_scope.joins(enrollment: :client).preload(:client, enrollment: :client).distinct.find_each(batch_size: 1_000) do |enrollment|
         date = [enrollment.entry_date, filter.start_date].max
         age = GrdaWarehouse::Hud::Client.age(date: date, dob: enrollment.client&.DOB&.to_date)
         en = {

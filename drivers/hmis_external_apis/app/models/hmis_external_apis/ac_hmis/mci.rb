@@ -85,7 +85,7 @@ module HmisExternalApis::AcHmis
       endpoint = 'clients/v1/api/clients/newclient'
       result = conn.post(endpoint, payload).then { |r| handle_error(r) }
 
-      # Store MCI ID for client
+      # Store MCI ID for clientØ
       external_id = create_external_id(
         source: client,
         value: result.parsed_body,

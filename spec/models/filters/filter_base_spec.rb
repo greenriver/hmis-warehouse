@@ -89,16 +89,5 @@ RSpec.describe Filters::FilterBase, type: :model do
       expect(filter.effective_project_ids).not_to include es_project.id
       expect(filter.effective_project_ids).not_to include psh_project.id
     end
-
-    it 'includes and excludes projects based on operating start and end dates' do
-      psh_project.update(OperatingStartDate: '2020-01-01', OperatingEndDate: '2020-02-01')
-      es_project.update(OperatingStartDate: '2020-01-01', OperatingEndDate: '2021-01-05')
-      filter_params = {
-        project_type_codes: [:ph, :es],
-      }
-      filter = Filters::HudFilterBase.new(user_id: user.id).update(filter_params)
-      expect(filter.effective_project_ids_during_range('2021-01-01'.to_date .. '2021-02-01'.to_date)).not_to include psh_project.id
-      expect(filter.effective_project_ids_during_range('2021-01-01'.to_date .. '2021-02-01'.to_date)).to include es_project.id
-    end
   end
 end

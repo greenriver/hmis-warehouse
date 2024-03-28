@@ -53,10 +53,10 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
         exit.update!(exit_date: exit_date)
       end
 
-      conflict = enrollment.
-        client.enrollments.
-        with_conflicting_dates(project: enrollment.project, range: range_start..range_end).
-        any?
+      conflict = enrollment
+        .client.enrollments
+        .with_conflicting_dates(project: enrollment.project, range: range_start..range_end)
+        .any?
       expect(conflict).to eq(expect_conflict), "#{message} should #{expect_conflict ? 'conflict' : 'not conflict'}"
     end
   end
@@ -65,7 +65,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
     let!(:enrollment) { build(:hmis_hud_enrollment) }
     before(:each) do
       enrollment.build_wip(client: enrollment.client, date: enrollment.entry_date)
-      enrollment.save_in_progress!
+      enrollment.save_in_progress
     end
 
     it 'clean up dependent wip after destroy' do
@@ -92,7 +92,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       create(:hmis_employment_education, data_source: enrollment.data_source, enrollment: enrollment)
       create(:hmis_youth_education_status, data_source: enrollment.data_source, enrollment: enrollment)
 
-      enrollment.save_not_in_progress!
+      enrollment.save_not_in_progress
     end
 
     it 'preserve shared data after destroy' do
@@ -165,7 +165,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
 
         # make e2 WIP
         e2.build_wip(client: e2.client, date: e2.entry_date)
-        e2.save_in_progress!
+        e2.save_in_progress
       end
 
       it 'household with one entered (e1) and one WIP with no intake assessment (e2)' do

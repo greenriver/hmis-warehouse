@@ -105,13 +105,16 @@ module SystemPathways::WarehouseReports
       elsif @target.in?(@chart.destination_lookup.keys)
         # Looking at Project Type -> Destination transition
         source_project_number = HudUtility2024.project_type_number(@source)
+        source_project_number = 1 if source_project_number&.zero? || @source == 'ES'
         target_group = @chart.destination_lookup[@target]
         @clients = @chart.transition_clients(source_project_number, target_group).distinct
         @source_title = @source
         @details_title = "#{@source} → #{@target}"
       else
         target_project_number = HudUtility2024.project_type_number(@target)
+        target_project_number = 1 if target_project_number&.zero?
         source_project_number = HudUtility2024.project_type_number(@source)
+        source_project_number = 1 if source_project_number&.zero?
         @clients = @chart.transition_clients(source_project_number, target_project_number).distinct
         @source_title = if @source.present?
           @source

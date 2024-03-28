@@ -3,8 +3,8 @@
 
 %header.mb-3.d-flex
   %h1= content_for :title
-  -# .ml-auto
-  -#   = link_to "Generate New Full #{generator.short_name}", path_for_new, class: 'btn btn-secondary'
+  .ml-auto
+    = link_to "Generate New Full #{generator.short_name}", path_for_new, class: 'btn btn-secondary'
 - if @show_recent
   .well
     .d-flex

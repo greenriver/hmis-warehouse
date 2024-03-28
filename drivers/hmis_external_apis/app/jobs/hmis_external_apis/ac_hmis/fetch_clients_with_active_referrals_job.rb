@@ -15,13 +15,7 @@ module HmisExternalApis::AcHmis
       setup_notifier('Fetch clients with active referrals in LINK')
 
       # Fetch MCI IDs for clients with active referrals in LINK
-      begin
-        mci_ids = link.active_referral_mci_ids.parsed_body
-      rescue StandardError
-        # LinkApi class already logs the error details to Sentry
-        debug_msg('Stopping, LINK API call failed')
-        return
-      end
+      mci_ids = link.active_referral_mci_ids.parsed_body
       debug_msg "Fetched #{mci_ids.uniq.size} MCI IDs with active referrals from LINK"
 
       client_ids = HmisExternalApis::ExternalId.where(

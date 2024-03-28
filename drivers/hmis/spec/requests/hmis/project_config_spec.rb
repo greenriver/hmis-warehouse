@@ -68,7 +68,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'should throw an error when trying to create a project config' do
       mutation_input = { config_type: 'AUTO_ENTER', project_type: 'ES_ENTRY_EXIT' }
-      expect_access_denied(post_graphql(input: mutation_input) { create_project_config })
+      _response, result = post_graphql(input: mutation_input) { create_project_config }
+      errors = result.dig('data', 'createProjectConfig', 'errors')
+      expect(errors.size).to eq(1)
+      expect(errors[0]['message']).to eq('operation not allowed')
     end
   end
 end

@@ -37,10 +37,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       reader.file_present?(filename)
     end
 
-    def row_personal_id(row)
-      normalize_uuid(row.field_value('Participant Enterprise Identifier'))
-    end
-
     def perform
       rows = @reader.rows(filename: filename, header_row_number: 4, field_id_row_number: nil)
 
@@ -50,7 +46,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       expected = 0
       rows.each do |row|
         expected += 1
-        personal_id = row_personal_id(row)
+        personal_id = row.field_value('Participant Enterprise Identifier')
         timestamp = parse_date(row.field_value('Date Last Updated'))
         next unless row_id(row)
 
@@ -104,7 +100,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     private def clobber_records(rows)
-      personal_ids = rows.map { |row| row_personal_id(row) }.compact_blank.uniq
+      personal_ids = rows.map { |row| row.field_value('Participant Enterprise Identifier') }.compact_blank.uniq
       demographic_element_ids = @element_definitions.values.map(&:id)
       relevant_cdes = cde_source.where(
         owner_type: 'Hmis::Hud::Client',

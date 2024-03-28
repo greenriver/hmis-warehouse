@@ -32,8 +32,8 @@ FactoryBot.define do
     user { association :hmis_hud_user, data_source: data_source }
     custom_service_category { association :hmis_custom_service_category, data_source: data_source }
     name { 'Housing moving assistance' }
-    hud_record_type { 141 } # PATH Service
-    hud_type_provided { 9 } # Housing moving assistance
+    hud_record_type { 141 }
+    hud_type_provided { 9 }
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
   end

@@ -17,12 +17,4 @@ FactoryBot.define do
     RecordType { 200 }
     TypeProvided { 200 }
   end
-
-  factory :hmis_hud_service_bednight, parent: :hmis_hud_service do
-  end
-
-  factory :hmis_hud_service_path, parent: :hmis_hud_service do
-    record_type { 141 } # PATH Service
-    type_provided { 9 } # Housing moving assistance
-  end
 end

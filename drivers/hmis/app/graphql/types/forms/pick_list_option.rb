@@ -57,8 +57,6 @@ module Types
         Hmis::Hud::Organization.viewable_by(user).sort_by_option(:name).map(&:to_pick_list_option)
       when 'AVAILABLE_SERVICE_TYPES'
         available_service_types_picklist(project)
-      when 'AVAILABLE_BULK_SERVICE_TYPES'
-        available_service_types_picklist(project, bulk_only: true)
       when 'POSSIBLE_UNIT_TYPES_FOR_PROJECT'
         possible_unit_types_for_project(project)
       when 'AVAILABLE_UNIT_TYPES'
@@ -266,13 +264,19 @@ module Types
       options
     end
 
-    def self.available_service_types_picklist(project, bulk_only: false)
+    def self.available_service_types_picklist(project)
       return [] unless project.present?
 
-      service_types = project.available_service_types
-      service_types = service_types.where(supports_bulk_assignment: true) if bulk_only
+      # Find services that have form definitions specified in this project
+      ids = Hmis::Form::Instance.for_services.
+        for_project_through_entities(project).
+        joins(:definition).
+        where(fd_t[:role].eq(:SERVICE)).
+        pluck(:custom_service_type_id, :custom_service_category_id)
 
-      options = service_types.preload(:custom_service_category).to_a.
+      options = Hmis::Hud::CustomServiceType.where(cst_t[:id].in(ids.map(&:first)).
+          or(cst_t[:custom_service_category_id].in(ids.map(&:last)))).
+        preload(:custom_service_category).to_a.
         map(&:to_pick_list_option).
         sort_by { |obj| obj[:group_label] + obj[:label] }
 
