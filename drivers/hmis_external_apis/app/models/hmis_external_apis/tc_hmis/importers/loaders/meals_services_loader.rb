@@ -77,10 +77,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         end
 
         actual += 1
-
-        # derived "last updated" timestamp for 9am on DateProvided
-        last_updated_timestamp = date_provided.beginning_of_day.to_datetime + 9.hours
-
         values << {
           CustomServiceID: service_id,
           EnrollmentID: enrollment_id,
@@ -90,8 +86,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           data_source_id: data_source.id,
           custom_service_type_id: service_type.id,
           service_name: service_type.name,
-          DateCreated: last_updated_timestamp,
-          DateUpdated: last_updated_timestamp,
+          DateCreated: today,
+          DateUpdated: today,
           FAAmount: nil,
           FAStartDate: nil,
           FAEndDate: nil,

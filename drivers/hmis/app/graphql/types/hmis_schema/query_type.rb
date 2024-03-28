@@ -384,6 +384,17 @@ module Types
       scope.order(:name, :id)
     end
 
+    field :service_types, Types::HmisSchema::ServiceType.page_type, null: false do
+      filters_argument HmisSchema::ServiceType
+    end
+    def service_types(filters: nil)
+      raise 'Access denied' unless current_user.can_configure_data_collection?
+
+      scope = Hmis::Hud::CustomServiceType.all
+      scope = scope.apply_filters(filters) if filters
+      scope.order(:name, :id)
+    end
+
     field :form_definition, Types::Forms::FormDefinition, null: true do
       argument :id, ID, required: true
     end
@@ -394,15 +405,6 @@ module Types
       raise 'Access denied' unless current_user.can_configure_data_collection?
 
       Hmis::Form::Definition.find(id)
-    end
-
-    field :external_form_definition, Types::Forms::FormDefinition, null: true do
-      argument :identifier, String, required: true
-    end
-    def external_form_definition(identifier:)
-      raise 'Access denied' unless current_user.can_manage_external_form_submissions?
-
-      Hmis::Form::Definition.with_role(:EXTERNAL_FORM).where(identifier: identifier).order(version: :desc).first
     end
 
     field :form_definitions, Types::Forms::FormDefinition.page_type, null: false do

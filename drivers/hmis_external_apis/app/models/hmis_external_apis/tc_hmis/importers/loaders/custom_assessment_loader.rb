@@ -111,7 +111,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           EnrollmentID: enrollment_id,
           PersonalID: personal_id,
           UserID: system_hud_user.user_id,
-          AssessmentDate: assessment_date,
+          AssessmentDate: row_assessment_date(row),
           DataCollectionStage: 99,
           wip: false,
           DateCreated: last_updated_timestamp,

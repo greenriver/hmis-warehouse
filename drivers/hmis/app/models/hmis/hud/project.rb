@@ -8,6 +8,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   include ::HmisStructure::Project
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::HasCustomDataElements
+  include ::Hmis::Hud::Concerns::HasCustomDataElements
   include ActiveModel::Dirty
 
   has_paper_trail(meta: { project_id: :id })
@@ -60,8 +61,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :custom_assessments, through: :enrollments_including_wip
   has_many :services, through: :enrollments_including_wip
   has_many :custom_services, through: :enrollments_including_wip
-
-  has_one :warehouse_project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :id, primary_key: :id
 
   accepts_nested_attributes_for :affiliations, allow_destroy: true
 
