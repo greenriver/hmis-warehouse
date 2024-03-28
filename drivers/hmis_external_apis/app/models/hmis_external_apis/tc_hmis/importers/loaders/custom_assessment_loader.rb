@@ -102,17 +102,20 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         end
         actual += 1
 
+        assessment_date = row_assessment_date(row)
+        # derived "last updated" timestamp for 9am on AssessmentDate
+        last_updated_timestamp = assessment_date.beginning_of_day.to_datetime + 9.hours
         {
           data_source_id: data_source.id,
           CustomAssessmentID: row_assessment_id(row),
           EnrollmentID: enrollment_id,
           PersonalID: personal_id,
           UserID: system_hud_user.user_id,
-          AssessmentDate: row_assessment_date(row),
+          AssessmentDate: assessment_date,
           DataCollectionStage: 99,
           wip: false,
-          DateCreated: today,
-          DateUpdated: today,
+          DateCreated: last_updated_timestamp,
+          DateUpdated: last_updated_timestamp,
         }
       end
       log_processed_result(expected: expected, actual: actual)
