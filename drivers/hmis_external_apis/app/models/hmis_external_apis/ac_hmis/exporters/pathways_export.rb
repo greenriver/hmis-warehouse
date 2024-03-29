@@ -6,8 +6,6 @@
 
 module HmisExternalApis::AcHmis::Exporters
   class PathwaysExport
-    attr_accessor :output
-
     PATHWAY_KEYS = [
       'client_pathway_1',
       'client_pathway_2',
@@ -19,11 +17,6 @@ module HmisExternalApis::AcHmis::Exporters
       'client_pathway_2_narrative',
       'client_pathway_3_narrative',
     ].freeze
-
-    def initialize(output = StringIO.new)
-      require 'csv'
-      self.output = output
-    end
 
     def run!
       Rails.logger.info 'Generating content of pathways export'
@@ -92,24 +85,6 @@ module HmisExternalApis::AcHmis::Exporters
       ]
     end
 
-    private def write_row(row)
-      output << CSV.generate_line(row, **csv_config)
-    end
-
-    private def csv_config
-      {
-        write_converters: ->(value, _) {
-          if value.instance_of?(Date)
-            value.strftime('%Y-%m-%d')
-          elsif value.respond_to?(:strftime)
-            value.strftime('%Y-%m-%d %H:%M:%S')
-          else
-            value
-          end
-        },
-      }
-    end
-
     private def pathway_cded_key_to_id
       @pathway_cded_key_to_id ||= Hmis::Hud::CustomDataElementDefinition.where(key: PATHWAY_KEYS).pluck(:key, :id).to_h
     end
@@ -122,10 +97,6 @@ module HmisExternalApis::AcHmis::Exporters
 
     private def clients_with_pathways
       @clients_with_pathways ||= Hmis::Hud::Client.where(id: pathways_by_client_id.keys).preload(:warehouse_client_source)
-    end
-
-    private def data_source
-      @data_source ||= HmisExternalApis::AcHmis.data_source
     end
   end
 end

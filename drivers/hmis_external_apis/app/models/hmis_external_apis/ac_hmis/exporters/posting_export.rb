@@ -6,13 +6,6 @@
 
 module HmisExternalApis::AcHmis::Exporters
   class PostingExport
-    attr_accessor :output
-
-    def initialize(output = StringIO.new)
-      require 'csv'
-      self.output = output
-    end
-
     def run!
       Rails.logger.info 'Generating content of posting export'
 
@@ -50,18 +43,10 @@ module HmisExternalApis::AcHmis::Exporters
       ['PersonalID', 'EnrollmentID', 'EntityPostingID', 'AssignedDate']
     end
 
-    def write_row(row)
-      output << CSV.generate_line(row)
-    end
-
     def postings
       HmisExternalApis::AcHmis::ReferralPosting.from_link.
         where(status: ['accepted_status', 'closed_status']).
         preload(hoh_enrollment: [client: [:warehouse_client_source]])
-    end
-
-    def data_source
-      @data_source ||= HmisExternalApis::AcHmis.data_source
     end
   end
 end

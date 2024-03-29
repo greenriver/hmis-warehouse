@@ -5,12 +5,7 @@
 
 module HmisExternalApis::AcHmis::Exporters
   class CdedExport
-    attr_accessor :output
-
-    def initialize(output = StringIO.new)
-      require 'csv'
-      self.output = output
-    end
+    include ::HmisExternalApis::AcHmis::Exporters::CsvExporter
 
     def run!
       Rails.logger.info 'Generating CDED report'
@@ -39,16 +34,8 @@ module HmisExternalApis::AcHmis::Exporters
       ]
     end
 
-    def write_row(row)
-      output << CSV.generate_line(row)
-    end
-
     def cdeds
       @cdeds ||= Hmis::Hud::CustomDataElementDefinition.where(data_source: data_source)
-    end
-
-    def data_source
-      @data_source ||= HmisExternalApis::AcHmis.data_source
     end
   end
 end
