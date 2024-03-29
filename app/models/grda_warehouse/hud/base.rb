@@ -16,19 +16,13 @@ module GrdaWarehouse::Hud
     end
 
     # This will return an equivalent record in the HMIS format
-    # Note: because there is at least one ignored column on the Warehouse side
-    # If you want the exact HMIS version, you will want the default behavior which
-    # forces a reload of the object from the db.  If you just need the right shape,
-    # you can skip the db call
-    def as_hmis(force_reload: true)
+    # Note: this will incur a db call.  Without it, permissions
+    # refuse to function.
+    def as_hmis
       return self unless HmisEnforcement.hmis_enabled?
 
       hmis_class = "Hmis::Hud::#{self.class.name.demodulize}".constantize
-      columns = self.class.column_names - hmis_class.ignored_columns
-      hmis_entity = hmis_class.new(attributes.slice(*columns))
-      return hmis_entity unless force_reload
-
-      hmis_entity.reload
+      hmis_class.find(id)
     end
   end
 end

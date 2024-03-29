@@ -580,26 +580,26 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
     # If we have a user, check for access (on the HMIS side)
     hmis_entity = if entity.respond_to?(:as_hmis)
-      entity.as_hmis(force_reload: false)
+      entity.as_hmis
     else
       entity
     end
     hmis_user = user.related_hmis_user(self)
 
     known_permissions = {
-      'GrdaWarehouse::Hud::Project' => [:can_view_project],
-      # 'GrdaWarehouse::Hud::Organization' => [:can_view_organization],
-      'GrdaWarehouse::Hud::Client' => [:can_view_clients],
+      'Hmis::Hud::Project' => [:can_view_project],
+      # 'Hmis::Hud::Organization' => [:can_view_organization],
+      'Hmis::Hud::Client' => [:can_view_clients],
       'Hmis::Hud::Enrollment' => [:can_view_projects, :can_view_enrollment_details],
       'Hmis::Hud::CustomAssessment' => [:can_view_projects, :can_view_enrollment_details],
     }
 
-    perms = known_permissions[entity.class.name]
+    perms = known_permissions[hmis_entity.class.name]
     # If we can't determine if we can see this in HMIS, just go ahead and show the link,
     # HMIS will handle access
     return url if perms.blank?
     # If we can see this in HMIS, don't bother linking to it
-    return nil unless hmis_user.permissions_for?(hmis_entity, perms, mode: :all)
+    return nil unless hmis_user.permissions_for?(hmis_entity, *perms, mode: :all)
 
     url
   end
