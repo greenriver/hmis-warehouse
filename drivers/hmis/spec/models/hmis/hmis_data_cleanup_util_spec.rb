@@ -9,6 +9,15 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.describe HmisDataCleanup::Util, type: :model do
   let!(:hmis_ds) { create :hmis_data_source }
+  let(:today) { Date.current }
+  let(:yesterday) { today - 1.day }
+  let(:default_enrollment_attrs) do
+    {
+      data_source: hmis_ds,
+      date_updated: yesterday,
+      date_created: yesterday,
+    }
+  end
   let!(:o1) { create :hmis_hud_organization, data_source: hmis_ds }
   let!(:p1) { create :hmis_hud_project, data_source: hmis_ds, organization: o1 }
   let(:last_year) { 1.year.ago }
@@ -46,9 +55,13 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
       # DateUpdated should not be changed on any records in any data source
       and(
         not_change do
-          hmis_hud_classes.flat_map do |scope|
-            scope.where(DateUpdated: 5.minutes.ago..).count
-          end
+          # {'Exit" => 1, 'Service' => 2, etc}
+          hmis_hud_classes.map do |scope|
+            [
+              scope.name.demodulize,
+              scope.where(DateUpdated: 5.minutes.ago..).count,
+            ]
+          end.to_h
         end,
       )
   end
@@ -207,6 +220,90 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
       end
 
       expect(e1.reload.enrollment_coc).to eq('KY-600')
+    end
+  end
+
+  context 'with duplicate bed nights' do
+    before(:each) do
+      # canary records
+      create(:hmis_hud_service_bednight, date_provided: yesterday, client: e2.client, enrollment: e2, **default_enrollment_attrs)
+      create(:hmis_hud_service_bednight, date_provided: yesterday, client: e1.client, enrollment: e1, **default_enrollment_attrs)
+      create(:hmis_hud_service_bednight, date_provided: today, client: e1.client, enrollment: e1, **default_enrollment_attrs)
+    end
+    let(:duplicate) do
+      create(:hmis_hud_service_bednight, date_provided: today, client: e1.client, enrollment: e1, **default_enrollment_attrs)
+    end
+
+    it 'deletes duplicates' do
+      expect { HmisDataCleanup::Util.delete_duplicate_bed_nights! }.to(
+        [
+          change { Hmis::Hud::Service.where(id: duplicate.id).count }.to(0),
+          change { Hmis::Hud::Service.count }.by(-1),
+        ].reduce(&:and),
+      )
+    end
+
+    it 'has no side-effects' do
+      expect_leaves_non_hmis_data_alone do
+        HmisDataCleanup::Util.delete_duplicate_bed_nights!
+      end
+    end
+  end
+
+  context 'with duplicate exits' do
+    before(:each) do
+      # canary records
+      create(:hmis_base_hud_exit, exit_date: yesterday, client: e2.client, enrollment: e2, **default_enrollment_attrs)
+      create(:hmis_base_hud_exit, exit_date: yesterday, client: e1.client, enrollment: e1, **default_enrollment_attrs)
+    end
+    let(:duplicate) do
+      create(:hmis_base_hud_exit, exit_date: today, client: e1.client, enrollment: e1, **default_enrollment_attrs)
+    end
+
+    it 'deletes duplicates' do
+      expect { HmisDataCleanup::Util.delete_duplicate_exit_records! }.to(
+        [
+          change { Hmis::Hud::Exit.where(id: duplicate.id).count }.to(0),
+          change { Hmis::Hud::Exit.count }.by(-1),
+        ].reduce(&:and),
+      )
+    end
+
+    it 'has no side-effects' do
+      expect_leaves_non_hmis_data_alone do
+        HmisDataCleanup::Util.delete_duplicate_exit_records!
+      end
+    end
+  end
+
+  context 'with missing total monthly income' do
+    let(:income_attrs) do
+      [:EarnedAmount, :UnemploymentAmount, :SSIAmount, :SSDIAmount, :VADisabilityServiceAmount, :VADisabilityNonServiceAmount, :PrivateDisabilityAmount, :WorkersCompAmount, :TANFAmount, :GAAmount, :SocSecRetirementAmount, :PensionAmount, :ChildSupportAmount, :AlimonyAmount, :OtherIncomeAmount].map.with_index do |field, idx|
+        [field, 2**(idx + 1)] # Sidon sequence
+      end.to_h
+    end
+    before(:each) do
+      # canary records
+      create(:hmis_income_benefit, enrollment: e1, client: e1.client, **default_enrollment_attrs)
+    end
+    let(:missing) do
+      create(:hmis_income_benefit, :skip_validate, income_from_any_source: 1, total_monthly_income: nil, enrollment: e1, client: e1.client, **income_attrs, **default_enrollment_attrs)
+    end
+
+    it 'sums total income correctly' do
+      expected_total = income_attrs.values.sum
+      expect { HmisDataCleanup::Util.fix_missing_monthly_total_income! }.to(
+        [
+          change { Hmis::Hud::IncomeBenefit.find(missing.id).total_monthly_income.to_i }.to(expected_total),
+          not_change { Hmis::Hud::IncomeBenefit.where.not(id: missing.id).order(:id).map(&:attributes) },
+        ].reduce(&:and),
+      )
+    end
+
+    it 'has no side-effects' do
+      expect_leaves_non_hmis_data_alone do
+        HmisDataCleanup::Util.fix_missing_monthly_total_income!
+      end
     end
   end
 end
