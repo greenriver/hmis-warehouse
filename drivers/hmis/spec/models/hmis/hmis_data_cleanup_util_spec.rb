@@ -29,42 +29,48 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     end
   end
 
+  let(:hmis_hud_classes) { Hmis::Hud::Project.hmis_classes.excluding(Hmis::Hud::Export) }
+
   def expect_leaves_non_hmis_data_alone(&block)
     expect do
       yield block
-    end.to change(GrdaWarehouse::Hud::Enrollment, :count).by(0).
-      and change(GrdaWarehouse::Version, :count).by(0).
-      # none of the utils should set timestamps on any records
-      and change(GrdaWarehouse::Hud::Enrollment.where(DateUpdated: 5.minutes.ago..), :count).by(0).
-      and change(GrdaWarehouse::Hud::Service.where(DateUpdated: 5.minutes.ago..), :count).by(0).
-      and change(GrdaWarehouse::Hud::CurrentLivingSituation.where(DateUpdated: 5.minutes.ago..), :count).by(0).
-      and change(GrdaWarehouse::Hud::Client.where(DateUpdated: 5.minutes.ago..), :count).by(0)
+    end.to not_change(GrdaWarehouse::Version, :count).
+      and(
+        not_change do
+          hmis_hud_classes.flat_map do |scope|
+            scope.order(:id).where.not(data_source: hmis_ds).map(&:attributes)
+          end
+        end,
+      ).
+      and(
+        not_change do
+          hmis_hud_classes.flat_map do |scope|
+            scope.where(DateUpdated: 5.minutes.ago..).count
+          end
+        end,
+      )
   end
 
-  context 'clear_enrollment_export_ids' do
-    it 'works' do
-      GrdaWarehouse::Hud::Enrollment.update_all(ExportID: 'XYZ')
+  context 'enrollment with export ids' do
+    before(:each)  { GrdaWarehouse::Hud::Enrollment.update_all(ExportID: 'XYZ') }
 
-      old_timestamp = e1.date_updated
+    it 'clears the exports' do
       HmisDataCleanup::Util.clear_enrollment_export_ids!
 
-      expect(e1.date_updated).to eq(old_timestamp)
       expect(GrdaWarehouse::Hud::Enrollment.where(data_source: hmis_ds).where.not(ExportID: nil).exists?).to be false
       expect(GrdaWarehouse::Hud::Enrollment.where.not(data_source: hmis_ds).where(ExportID: nil).exists?).to be false
     end
 
-    it 'leaves no trace' do
-      GrdaWarehouse::Hud::Enrollment.update_all(ExportID: 'XYZ')
+    it 'does not make unexpected changes' do
       expect_leaves_non_hmis_data_alone do
         HmisDataCleanup::Util.clear_enrollment_export_ids!
       end
     end
   end
 
-  context 'assign_missing_household_ids' do
-    it 'works' do
-      GrdaWarehouse::Hud::Enrollment.update_all(HouseholdID: nil)
-
+  context 'enrollments without HouseholdIDs' do
+    before(:each) { GrdaWarehouse::Hud::Enrollment.update_all(HouseholdID: nil) }
+    it 'assigns HouseholdIDs to HMIS records' do
       HmisDataCleanup::Util.assign_missing_household_ids!
 
       # all HMIS records have Household IDs
@@ -73,22 +79,24 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
       expect(GrdaWarehouse::Hud::Enrollment.where.not(data_source: hmis_ds).where(HouseholdID: nil).exists?).to be true
     end
 
-    it 'leaves no trace' do
-      GrdaWarehouse::Hud::Enrollment.update_all(HouseholdID: nil)
+    it 'does not make unexpected changes' do
       expect_leaves_non_hmis_data_alone do
         HmisDataCleanup::Util.clear_enrollment_export_ids!
       end
     end
   end
 
-  context 'make_sole_member_hoh' do
-    it 'works' do
+  context 'single-person households with no HoH' do
+    before(:each) do
       e1.update(relationship_to_hoh: 99, household_id: 'multi-member-household')
       e2.update(relationship_to_hoh: 99, household_id: 'multi-member-household')
       e3.update(relationship_to_hoh: 99, household_id: 'individual-household') # should be updated
-      # binding.pry
 
-      # Hmis::Hud::Enrollment.hmis.group(:household_id).having(nf('COUNT', [:HouseholdID]).eq(1)).where.not(relationship_to_hoh: 1).select(:id)
+      # cruft in other data sources that shouldn't be touched
+      GrdaWarehouse::Hud::Enrollment.where.not(data_source: hmis_ds).update_all(relationship_to_hoh: 99)
+    end
+
+    it 'assigns HoH' do
       HmisDataCleanup::Util.make_sole_member_hoh!
 
       expect(e1.reload.relationship_to_hoh).to eq(99)
@@ -96,22 +104,14 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
       expect(e3.reload.relationship_to_hoh).to eq(1)
     end
 
-    it 'doesnt touch non-HMIS enrollments' do
-      GrdaWarehouse::Hud::Enrollment.update_all(relationship_to_hoh: 99)
-      expect do
-        HmisDataCleanup::Util.make_sole_member_hoh!
-      end.to change(GrdaWarehouse::Hud::Enrollment.where.not(data_source: hmis_ds).heads_of_households, :count).by(0)
-    end
-
-    it 'leaves no trace' do
-      GrdaWarehouse::Hud::Enrollment.update_all(relationship_to_hoh: 99)
+    it 'does not make unexpected changes' do
       expect_leaves_non_hmis_data_alone do
         HmisDataCleanup::Util.make_sole_member_hoh!
       end
     end
   end
 
-  context 'fix_incorrect_personal_id_references' do
+  context 'records with incorrect PersonalID references' do
     let!(:records_with_bad_references) do
       records = []
       shared_attributes = {
@@ -174,49 +174,37 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     it 'works for all record types' do
       expect(records_with_bad_references.map(&:PersonalID).uniq).to contain_exactly('not-real')
 
-      expect do
-        HmisDataCleanup::Util.fix_incorrect_personal_id_references!
-
-        # no new records should have been created during the upsert
-      end.to change(GrdaWarehouse::Hud::Disability, :count).by(0).
-        and change(GrdaWarehouse::Hud::EmploymentEducation, :count).by(0).
-        and change(GrdaWarehouse::Hud::Exit, :count).by(0).
-        and change(GrdaWarehouse::Hud::HealthAndDv, :count).by(0).
-        and change(GrdaWarehouse::Hud::IncomeBenefit, :count).by(0).
-        and change(GrdaWarehouse::Hud::Service, :count).by(0).
-        and change(GrdaWarehouse::Hud::CurrentLivingSituation, :count).by(0).
-        and change(GrdaWarehouse::Hud::Assessment, :count).by(0).
-        and change(GrdaWarehouse::Hud::AssessmentQuestion, :count).by(0).
-        and change(GrdaWarehouse::Hud::AssessmentResult, :count).by(0).
-        and change(GrdaWarehouse::Hud::Event, :count).by(0).
-        and change(GrdaWarehouse::Hud::YouthEducationStatus, :count).by(0)
+      HmisDataCleanup::Util.fix_incorrect_personal_id_references!
 
       records_with_bad_references.each(&:reload)
       expect(records_with_bad_references.map(&:PersonalID).uniq).to contain_exactly(e1.personal_id)
-
-      # DateUpdated didn't change
-      expect(records_with_bad_references.map(&:DateUpdated).uniq.map(&:to_date)).to contain_exactly(last_year.to_date)
-      expect(records_with_bad_references.map(&:DateCreated).uniq.map(&:to_date)).to contain_exactly(last_year.to_date)
-      expect(records_with_good_references.map(&:DateUpdated).uniq.map(&:to_date)).to contain_exactly(last_year.to_date)
-      expect(records_with_good_references.map(&:DateCreated).uniq.map(&:to_date)).to contain_exactly(last_year.to_date)
     end
 
-    it 'leaves no trace' do
-      expect_leaves_non_hmis_data_alone { HmisDataCleanup::Util.fix_incorrect_personal_id_references! }
+    it 'does not make unexpected changes' do
+      expect_leaves_non_hmis_data_alone do
+        HmisDataCleanup::Util.fix_incorrect_personal_id_references!
+      end
     end
 
     it 'dry run does nothing' do
       HmisDataCleanup::Util.fix_incorrect_personal_id_references!(dry_run: true)
+
       records_with_bad_references.each(&:reload)
       expect(records_with_bad_references.map(&:PersonalID).uniq).to contain_exactly('not-real')
     end
   end
 
-  context 'all utilities' do
-    it 'leave non-HMIS data untouched' do
+  context 'enrollments with incorrect EnrollmentCoCs' do
+    before(:each) do
+      e1.update(enrollment_coc: 'MA-500')
+      e2.update(enrollment_coc: 'KY-600')
+    end
+    it 'updates cocs' do
       expect_leaves_non_hmis_data_alone do
-        HmisDataCleanup::Util.update_all_enrollment_cocs!('KY-100')
+        HmisDataCleanup::Util.update_all_enrollment_cocs!('KY-600')
       end
+
+      expect(e1.enrollment_coc).to eq('KY-600')
     end
   end
 end
