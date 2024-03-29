@@ -62,14 +62,15 @@ module AllNeighborsSystemDashboard
       project_type = options[:project_type] || options[:homelessness_status]
       dates = date_range.map do |date|
         counts_for_placed = options[:types].map do |type|
-          placed_scope = housed_total_scope.select(count_item)
-          placed_scope = filter_for_type(placed_scope, project_type)
-          placed_scope = filter_for_type(placed_scope, type)
-          placed_scope = filter_for_count_level(placed_scope, options[:count_level])
-          placed_scope = filter_for_date(placed_scope, date)
-          placed_count = mask_small_populations(placed_scope.count, mask: @report.mask_small_populations?)
-          placed_count = options[:hide_others_when_not_all] && project_type != 'All' && type != project_type ? 0 : placed_count
-          placed_count
+          # denominator is everyone who was placed AND subsequently exited
+          placed_and_exited_scope = housed_total_scope.where.not(exit_date: nil).select(count_item)
+          placed_and_exited_scope = filter_for_type(placed_and_exited_scope, project_type)
+          placed_and_exited_scope = filter_for_type(placed_and_exited_scope, type)
+          placed_and_exited_scope = filter_for_count_level(placed_and_exited_scope, options[:count_level])
+          placed_and_exited_scope = filter_for_date(placed_and_exited_scope, date)
+          placed_and_exited_count = mask_small_populations(placed_and_exited_scope.count, mask: @report.mask_small_populations?)
+          placed_and_exited_count = options[:hide_others_when_not_all] && project_type != 'All' && type != project_type ? 0 : placed_and_exited_count
+          placed_and_exited_count
         end
         counts_for_returns = options[:types].map do |type|
           return_scope = returned_total_scope.select(Enrollment.arel_table[:return_date])
@@ -140,9 +141,11 @@ module AllNeighborsSystemDashboard
               when 'Household Type'
                 household_types
               end
-              names = ['Placements', 'Returns']
+              names = ['Housed, completed program', 'Returns']
               colors = ['#336770', '#884D01']
-              label_colors = names.zip(colors).to_h.transform_values { |v| label_color(v) }
+              # for right now, we're moving the chart labels off the bar so we can always show them
+              # label_colors = names.zip(colors).to_h.transform_values { |v| label_color(v) }
+              label_colors = names.zip(colors).to_h.transform_values { |_| label_color('#FFFFFF') }
               data << [
                 key,
                 {

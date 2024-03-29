@@ -1,5 +1,8 @@
 %ul.nav.nav-tabs.justify-content-between.w-100.ml-0.mr-0{role: 'tablist', class: css_namespace('all', 'tabs')}
   - tabs.each_with_index do |tab, i|
+    -# TODO: feature flag so we can test returns to homelessness without exposing them in production
+    - next if tab[:id].to_s == 'returns_to_homelessness' && ! params[:debug].present?
+
     %li.nav-item
       - link_classes = ['nav-link']
       - if i == 0

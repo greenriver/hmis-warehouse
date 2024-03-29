@@ -515,7 +515,7 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
   // var chart = bb.generate({
   //   data: {
   //     columns: [
-  //       ["Placements", 30, 200, 100],
+  //       ["Housed, completed program", 30, 200, 100],
   //       ["Returns", 10, 20, 15]
   //     ],
   //     type: "bar", // for ESM specify as: line()
@@ -548,7 +548,7 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
       names: this.config.names,
       labels: {
         show: true,
-        centered: true,
+        centered: false,
         colors: this.config.label_colors,
         format: (v, id, i, j) => {
           return d3.format(",")(v);
@@ -582,7 +582,7 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
   }
 
   getConfig() {
-    const fitLabels = this.fitLabels
+    // const fitLabels = this.fitLabels
     const superConfig = super.getConfig()
     const normalizeDataLabels = this.normalizeDataLabels
     const config = {
@@ -602,7 +602,7 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
       },
       onrendered: function() {
         normalizeDataLabels(this)
-        fitLabels(this)
+        // fitLabels(this)
       },
       tooltip: {
         contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
