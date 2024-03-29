@@ -21,6 +21,7 @@ module HmisExternalApis::AcHmis
         when 'project_crosswalk' then project_crosswalk
         when 'move_in_addresses' then move_in_address_export
         when 'postings' then posting_export
+        when 'custom_fields' then custom_fields_export
         when 'pathways' then pathways_export
         else
           raise "invalid item to upload: #{mode}"
@@ -118,6 +119,30 @@ module HmisExternalApis::AcHmis
           OpenStruct.new(
             name: 'Postings.csv',
             io: export.output,
+          ),
+        ],
+      )
+
+      uploader.run!
+    end
+
+    def custom_fields_export
+      cded_export = HmisExternalApis::AcHmis::Exporters::CdedExport.new
+      cded_export.run!
+
+      cde_export = HmisExternalApis::AcHmis::Exporters::CdeExport.new
+      cde_export.run!
+
+      uploader = Exporters::DataWarehouseUploader.new(
+        filename_format: '%Y-%m-%d-custom-fields.zip',
+        io_streams: [
+          OpenStruct.new(
+            name: 'CustomFieldDefinitions.csv',
+            io: cded_export.output,
+          ),
+          OpenStruct.new(
+            name: 'CustomFieldValues.csv',
+            io: cde_export.output,
           ),
         ],
       )
