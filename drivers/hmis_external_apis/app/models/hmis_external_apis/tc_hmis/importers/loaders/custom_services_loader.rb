@@ -43,6 +43,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       create_service_types
       create_cdeds
       rows = @reader.rows(filename: filename, header_row_number: 2, field_id_row_number: nil).to_a
+      clear_invalid_enrollment_ids(rows, enrollment_id_field: ENROLLMENT_ID)
       extrapolate_missing_enrollment_ids(rows, enrollment_id_field: ENROLLMENT_ID)
 
       # services is an instance variable because it holds state that is updated by ar_import, and is needed in create_records
