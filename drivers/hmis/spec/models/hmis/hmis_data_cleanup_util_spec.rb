@@ -35,6 +35,7 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     expect do
       yield block
     end.to not_change(GrdaWarehouse::Version, :count).
+      # Data in non-HMIS data sources should not be changed
       and(
         not_change do
           hmis_hud_classes.flat_map do |scope|
@@ -42,6 +43,7 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
           end
         end,
       ).
+      # DateUpdated should not be changed on any records in any data source
       and(
         not_change do
           hmis_hud_classes.flat_map do |scope|
@@ -204,7 +206,7 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
         HmisDataCleanup::Util.update_all_enrollment_cocs!('KY-600')
       end
 
-      expect(e1.enrollment_coc).to eq('KY-600')
+      expect(e1.reload.enrollment_coc).to eq('KY-600')
     end
   end
 end
