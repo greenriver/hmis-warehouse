@@ -670,7 +670,10 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
           const placements = chart.data()[0].values[vi].value
           const returns = v.value
           const ratio = returns/placements
-          label = d3.format(",")(returns) + ' (' + d3.format(".0%")(ratio) + ')'
+          label = d3.format(",")(returns)
+          if(returns > 0) {
+           label += ' (' + d3.format(".0%")(ratio) + ')'
+          }
         } else {
           label = d3.format(",")(v.value)
         }
