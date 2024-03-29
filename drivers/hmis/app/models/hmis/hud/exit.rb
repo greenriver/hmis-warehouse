@@ -34,7 +34,7 @@ class Hmis::Hud::Exit < Hmis::Hud::Base
   end
 
   private def warehouse_trigger_processing
-    return unless warehouse_columns_changed?
+    return unless enrollment && warehouse_columns_changed?
 
     enrollment.invalidate_processing!
     queue_service_history_processing!
