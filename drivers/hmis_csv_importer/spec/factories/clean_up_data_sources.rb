@@ -87,4 +87,15 @@ FactoryBot.define do
     short_name { 'Move In' }
     source_type { :sftp }
   end
+
+  factory :fix_blank_household_ids, class: 'GrdaWarehouse::DataSource' do
+    name { 'Fix blank household ids' }
+    short_name { 'Household IDs' }
+    source_type { :sftp }
+    import_cleanups do
+      {
+        'HouseholdID': ['HmisCsvImporter::HmisCsvCleanup::FixBlankHouseholdIds'],
+      }
+    end
+  end
 end

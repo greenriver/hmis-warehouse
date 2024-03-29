@@ -1,0 +1,30 @@
+{
+  "item": [
+    {
+      "type": "TEXT",
+      "link_id": "notes",
+      "text": "User Notes",
+      "mapping": {
+        "field_name": "notes"
+      }
+    },
+    {
+      "link_id": "reviewed",
+      "type": "BOOLEAN",
+      "component": "CHECKBOX",
+      "text": "Mark reviewed",
+      "mapping": {
+        "field_name": "reviewed"
+      }
+    },
+    {
+      "link_id": "spam",
+      "type": "BOOLEAN",
+      "component": "CHECKBOX",
+      "text": "Mark spam",
+      "mapping": {
+        "field_name": "spam"
+      }
+    }
+  ]
+}

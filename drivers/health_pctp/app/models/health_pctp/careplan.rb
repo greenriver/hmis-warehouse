@@ -54,6 +54,7 @@ module HealthPctp
     scope :editable, -> { where(sent_to_pcp_on: nil) }
 
     alias_attribute :completed_at, :patient_signed_on
+    alias_attribute :completed_on, :patient_signed_on
     alias_attribute :careplan_sent_on, :sent_to_pcp_on
 
     attr_accessor :review_by_ccm_complete

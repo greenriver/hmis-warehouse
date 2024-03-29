@@ -55,4 +55,16 @@ class GrdaWarehouseBase < ApplicationRecord
       value
     end
   end
+
+  def self.references_hud_client?
+    columns_hash.key?('PersonalID') && !!reflect_on_association(:client)
+  end
+
+  def self.references_hud_enrollment?
+    columns_hash.key?('EnrollmentID') && !!reflect_on_association(:enrollment)
+  end
+
+  def self.references_hud_project?
+    columns_hash.key?('ProjectID') && !!reflect_on_association(:project)
+  end
 end

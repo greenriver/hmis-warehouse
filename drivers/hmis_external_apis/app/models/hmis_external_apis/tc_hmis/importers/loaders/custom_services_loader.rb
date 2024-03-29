@@ -43,6 +43,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       create_service_types
       create_cdeds
       rows = @reader.rows(filename: filename, header_row_number: 2, field_id_row_number: nil).to_a
+      clear_invalid_enrollment_ids(rows, enrollment_id_field: ENROLLMENT_ID)
       extrapolate_missing_enrollment_ids(rows, enrollment_id_field: ENROLLMENT_ID)
 
       # services is an instance variable because it holds state that is updated by ar_import, and is needed in create_records
@@ -135,6 +136,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             next
           end
 
+          date_provided = row_date_provided(row)
+          # derived "last updated" timestamp for 9am on DateProvided
+          last_updated_timestamp = date_provided.beginning_of_day.to_datetime + 9.hours
           services[response_id] ||= service_class.new(
             CustomServiceID: generate_service_id(config, row),
             EnrollmentID: enrollment.EnrollmentID,
@@ -144,8 +148,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             data_source_id: data_source.id,
             custom_service_type_id: service_type_id,
             service_name: service_type,
-            DateCreated: today,
-            DateUpdated: today,
+            DateCreated: last_updated_timestamp,
+            DateUpdated: last_updated_timestamp,
             FAAmount: nil,
             FAStartDate: nil,
             FAEndDate: nil,

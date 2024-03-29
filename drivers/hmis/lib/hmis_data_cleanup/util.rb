@@ -18,7 +18,8 @@ module HmisDataCleanup
     # This should be done after an HMIS migration, otherwise ServiceHistoryService generation will behave incorrectly
     def self.clear_enrollment_export_ids!
       without_papertrail_or_timestamps do
-        Hmis::Hud::Enrollment.hmis.update_all(ExportID: nil)
+        rows_affected = Hmis::Hud::Enrollment.hmis.where.not(ExportID: nil).update_all(ExportID: nil)
+        Rails.logger.info "Nullified ExportID on #{rows_affected} Enrollments"
       end
     end
 
@@ -27,43 +28,104 @@ module HmisDataCleanup
     # we are dealing with a single-CoC installation at the time of writing this.
     def self.update_all_enrollment_cocs!(coc_code)
       without_papertrail_or_timestamps do
-        Hmis::Hud::Enrollment.hmis.update_all(EnrollmentCoC: coc_code)
+        rows_affected = Hmis::Hud::Enrollment.hmis.where.not(EnrollmentCoC: coc_code).update_all(EnrollmentCoC: coc_code)
+        Rails.logger.info "Updated EnrollmentCoC on #{rows_affected} enrollments"
       end
     end
 
     # Assign Household ID where missing
-    #
-    # Note: If this gets to be a large number, an upsert is probably worth doing.
-    # We could `scope.find_in_batches` and then enrollment.assign_attributes and finally "import" the batch with a conflict key of id.
     def self.assign_missing_household_ids!
-      scope = Hmis::Hud::Enrollment.hmis.where(household_id: nil)
-      Rails.logger.info "Assigning household id to #{scope.size} enrollments"
-      scope.each do |enrollment|
-        hh_id = Hmis::Hud::Base.generate_uuid
-        without_papertrail_or_timestamps do
-          enrollment.update_columns(household_id: hh_id) # skips callbacks
+      Hmis::Hud::Enrollment.hmis.where(household_id: [nil, '']).find_in_batches do |batch|
+        batch.each do |enrollment|
+          enrollment.HouseholdID = Digest::MD5.hexdigest([enrollment.EnrollmentID, enrollment.PersonalID, enrollment.ProjectID].join('__'))
         end
+
+        result = Hmis::Hud::Enrollment.import(
+          batch,
+          validate: false,
+          timestamps: false,
+          on_duplicate_key_update: { conflict_target: [:id], columns: [:HouseholdID] },
+        )
+        raise "Failed: #{result.failed_instances}" if result.failed_instances.present?
+
+        Rails.logger.info "Assigned HouseholdID to #{result.ids.count} Enrollments"
       end
     end
 
     # Find any single-member households that do not have a HoH, and make that person the HoH
     def self.make_sole_member_hoh!
-      single_member_households = Hmis::Hud::Enrollment.hmis.
+      single_member_households = Hmis::Hud::Enrollment.hmis.where.not(household_id: nil).
         group(:household_id).
         having(nf('COUNT', [:HouseholdID]).eq(1)).
-        pluck(:household_id)
-
-      num = Hmis::Hud::Enrollment.hmis.
-        where(household_id: single_member_households).
-        where.not(relationship_to_hoh: 1).size
-
-      Rails.logger.info "Assigning HoH to #{num} single-member households"
+        select(:household_id)
 
       without_papertrail_or_timestamps do
-        Hmis::Hud::Enrollment.hmis.
-          where(household_id: single_member_households).
+        rows_affected = Hmis::Hud::Enrollment.hmis.where(household_id: single_member_households).
           where.not(relationship_to_hoh: 1).
           update_all(relationship_to_hoh: 1) # skips callbacks
+
+        Rails.logger.info "Set HoH in #{rows_affected} single-member households"
+      end
+    end
+
+    # Fix any instances of enrollment-related records where the PersonalID does not match the Enrollment's PersonalIDs
+    def self.fix_incorrect_personal_id_references!(classes: nil, dry_run: false)
+      classes&.each do |klass|
+        raise "Invalid class: #{klass.name}" unless Hmis::Hud::Enrollment.hmis_enrollment_related_classes.include?(klass)
+      end
+
+      classes ||= Hmis::Hud::Enrollment.hmis_enrollment_related_classes
+      data_source_id = GrdaWarehouse::DataSource.hmis.first.id
+
+      Hmis::Hud::Base.transaction do
+        classes.each do |klass|
+          Rails.logger.info "[#{klass.name}] Processing"
+
+          if dry_run
+            records_needing_update = klass.where(data_source_id: data_source_id).
+              left_outer_joins(:enrollment).
+              where(GrdaWarehouse::Hud::Enrollment.arel_table[:id].eq(nil)).
+              count
+
+            Rails.logger.info "[#{klass.name}] #{records_needing_update} records with bad PersonalID"
+            next
+          end
+
+          klass.where(data_source_id: data_source_id).left_outer_joins(:enrollment).
+            where(GrdaWarehouse::Hud::Enrollment.arel_table[:id].eq(nil)).
+            find_in_batches do |batch|
+            Rails.logger.info "[#{klass.name}] Processing batch"
+
+            # map {EnrollmentID=>PersonalID} for each enrollment referenced by this batch of records
+            eid_to_pid = GrdaWarehouse::Hud::Enrollment.where(
+              data_source_id: data_source_id,
+              EnrollmentID: batch.map(&:EnrollmentID),
+            ).pluck(:EnrollmentID, :PersonalID).to_h
+
+            values = []
+            batch.each do |record|
+              real_personal_id = eid_to_pid[record.EnrollmentID]
+              next unless real_personal_id # enrollment not found, so we cant update the PersonalID
+              next if record.PersonalID == real_personal_id # this shouldn't be true, but check anyway
+
+              record.PersonalID = real_personal_id
+              values << record
+            end
+
+            if values.any?
+              result = klass.import(
+                values,
+                validate: false,
+                timestamps: false,
+                on_duplicate_key_update: { conflict_target: [:id], columns: [:PersonalID] },
+              )
+
+              raise "Failed: #{result.failed_instances}" if result.failed_instances.present?
+
+              Rails.logger.info "[#{klass.name}] updated #{result.ids.count} records"
+            end
+          end
+        end
       end
     end
 
@@ -403,6 +465,35 @@ module HmisDataCleanup
       else
         Rails.logger.info "WARNING: #{remaining_dangling} dangling records remain"
       end
+    end
+
+    # Write a CSV with all the Enrollments that were deleted in a given date range.
+    # This can be useful to keep a record after an Import that deleted lots of records.
+    def write_deleted_enrollments_in_range(range, filename = "#{Date.current.strftime('%Y-%m-%d')}_deleted_enrollments_in_range.csv")
+      project_names = Hmis::Hud::Project.hmis.pluck(:ProjectID, :ProjectName).to_h
+      org_names = Hmis::Hud::Project.hmis.joins(:organization).pluck(:ProjectID, Hmis::Hud::Organization.arel_table[:OrganizationName]).to_h
+
+      rows = []
+      Hmis::Hud::Enrollment.hmis.only_deleted.where(DateDeleted: range).in_batches(of: 5_000) do |batch|
+        puts 'Processing...'
+        batch.each do |enrollment|
+          rows << {
+            Organization: org_names[enrollment.ProjectID],
+            Project: project_names[enrollment.ProjectID],
+            **enrollment.slice(:ProjectID, :EnrollmentID, :PersonalID, :HouseholdID, :ExportID, :id),
+            EntryDate: enrollment.EntryDate&.strftime('%Y-%m-%d'),
+            DateDeleted: enrollment.DateDeleted.strftime('%Y-%m-%dT%H%M '),
+          }.stringify_keys
+        end
+      end
+
+      CSV.open(filename, 'wb+', write_headers: true, headers: rows.first.keys) do |writer|
+        rows.each do |row|
+          writer << row.values
+        end
+      end
+
+      # s3.put(file_name: filename, prefix: 'initial-migration')
     end
 
     # Method for restoring enrollments that were deleted in an import.
