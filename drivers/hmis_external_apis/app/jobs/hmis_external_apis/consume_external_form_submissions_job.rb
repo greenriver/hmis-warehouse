@@ -6,7 +6,12 @@
 
 # retrieve and process external form submissions
 class HmisExternalApis::ConsumeExternalFormSubmissionsJob
-  def perform(encryption_key:)
+  def perform
+    s3 = GrdaWarehouse::RemoteCredentials::S3.for_active_slug('hmis_external_form_submissions')&.s3
+    encryption_key = GrdaWarehouse::RemoteCredentials::SymmetricEncryptionKey.for_active_slug('hmis_external_forms_shared_key')
+
+    return unless s3 && encryption_key
+
     s3.list_objects.each do |object|
       raw_data_string = s3.get_as_io(key: object.key)&.read
       raw_data = raw_data_string ? parse_json(raw_data_string) : nil
@@ -62,10 +67,6 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob
 
   def submission_class
     HmisExternalApis::ExternalForms::FormSubmission
-  end
-
-  def s3
-    @s3 ||= GrdaWarehouse::RemoteCredentials::S3.active.where(slug: 'hmis_external_form_submissions').first!.s3
   end
 
   # str should be a json document but it is user supplied and could be anything

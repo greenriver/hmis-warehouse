@@ -7,6 +7,7 @@
 require 'aws-sdk-s3'
 class AwsS3
   attr_accessor :region, :bucket_name, :access_key_id, :secret_access_key, :client
+  attr_reader :bucket
   def initialize(
     region: nil,
     bucket_name:,

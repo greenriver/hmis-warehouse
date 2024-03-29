@@ -14,6 +14,10 @@ module GrdaWarehouse
       where(active: true)
     end
 
+    def self.for_active_slug(slug)
+      active.where(slug: slug).first
+    end
+
     include RailsDrivers::Extensions
   end
 end
