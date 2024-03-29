@@ -17,18 +17,9 @@ module HmisDataCleanup
     # Remove all ExportIDs from HMIS Enrollments.
     # This should be done after an HMIS migration, otherwise ServiceHistoryService generation will behave incorrectly
     def self.clear_enrollment_export_ids!
-      Hmis::Hud::Enrollment.hmis.where.not(ExportID: nil).find_in_batches(batch_size: 5_000) do |batch|
-        batch.each { |enrollment| enrollment.ExportID = nil }
-
-        result = Hmis::Hud::Enrollment.import(
-          batch,
-          validate: false,
-          timestamps: false,
-          on_duplicate_key_update: { conflict_target: [:id], columns: [:ExportID] },
-        )
-        raise "Failed: #{result.failed_instances}" if result.failed_instances.present?
-
-        Rails.logger.info "Nullified ExportID on #{result.ids.count} Enrollments"
+      without_papertrail_or_timestamps do
+        rows_affected = Hmis::Hud::Enrollment.hmis.where.not(ExportID: nil).update_all(ExportID: nil)
+        Rails.logger.info "Nullified ExportID on #{rows_affected} Enrollments"
       end
     end
 
