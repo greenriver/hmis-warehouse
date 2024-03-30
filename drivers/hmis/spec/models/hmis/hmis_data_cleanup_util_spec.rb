@@ -230,7 +230,7 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
       create(:hmis_hud_service_bednight, date_provided: yesterday, client: e1.client, enrollment: e1, **default_enrollment_attrs)
       create(:hmis_hud_service_bednight, date_provided: today, client: e1.client, enrollment: e1, **default_enrollment_attrs)
     end
-    let(:duplicate) do
+    let!(:duplicate) do
       create(:hmis_hud_service_bednight, date_provided: today, client: e1.client, enrollment: e1, **default_enrollment_attrs)
     end
 
@@ -256,7 +256,7 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
       create(:hmis_base_hud_exit, exit_date: yesterday, client: e2.client, enrollment: e2, **default_enrollment_attrs)
       create(:hmis_base_hud_exit, exit_date: yesterday, client: e1.client, enrollment: e1, **default_enrollment_attrs)
     end
-    let(:duplicate) do
+    let!(:duplicate) do
       create(:hmis_base_hud_exit, exit_date: today, client: e1.client, enrollment: e1, **default_enrollment_attrs)
     end
 

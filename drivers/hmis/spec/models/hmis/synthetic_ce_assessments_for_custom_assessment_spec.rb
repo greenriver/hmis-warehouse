@@ -42,7 +42,6 @@ RSpec.describe 'HmisExternalApis::TcHmis::Importers::SyntheticCeAssessmentsForCu
       [custom_assessment, custom_assessment_with_ce, canary].each(&:reload)
     end.to(
       [
-        # makes a new CE assessment
         change { Hmis::Hud::Assessment.count }.by(1),
         change { Hmis::Form::FormProcessor.where(ce_assessment: nil).count }.by(-1),
         not_change { [custom_assessment_with_ce, canary].map { |r| r.form_processor.custom_assessment&.attributes } },
