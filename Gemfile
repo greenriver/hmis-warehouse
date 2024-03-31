@@ -1,7 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~> 6.1'
-gem 'activesupport', '>= 6.1.7.5' # CVE-2023-38037
+gem 'rails', '~> 7.0.8.1'
 gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'master'
 gem 'rack', '>= 2.2.8.1'
 gem 'rexml'
@@ -16,7 +15,7 @@ gem 'rubyzip', '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'rails-html-sanitizer', '>= 1.4.4' # >= 1.4.4 due to CVE-2022-23519
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
-gem 'composite_primary_keys', '=13.0.3'
+gem 'composite_primary_keys', '~> 14.0.9'
 gem 'pg'
 gem 'activerecord-sqlserver-adapter'
 gem 'activerecord-import'
@@ -69,10 +68,7 @@ gem 'image_processing'
 gem 'ruby-filemagic' unless ENV['SKIP_FILEMAGIC'].to_s == 'true'
 gem 'mini_magick'
 gem 'mimemagic'
-# there are no obvious breaking changes but
-# since there are no tests for this
-# it should be tested manually
-gem 'acts-as-taggable-on', '~> 7.0'
+gem 'acts-as-taggable-on', '~> 9.0.1'
 # gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
 #
 # FIXME: the hellosign gem is no longer a requirement. This dependency can be dropped pending code pruning
