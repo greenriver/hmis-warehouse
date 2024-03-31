@@ -1,0 +1,18 @@
+%table.table.datatable.border.collections
+  %thead
+    %tr
+      %th
+      %th Name
+  %tbody
+    - @entities[:collection].each do |entity_name, entity_id|
+      - id = ['collection', entity_type, entity_id].join('_')
+      - name = "collection[#{entity_type}][#{entity_id}]"
+      - checked = @entities[:selected].include?(entity_id)
+      %tr.jClickRow
+        %td
+          .form-check
+            %input{name: name, type: 'hidden', value: 0}
+              .c-checkbox.d-flex
+                %input{ id: id, name: name, type: 'checkbox', value: 1, checked: checked }
+                %label{for: id}
+        %td= entity_name
