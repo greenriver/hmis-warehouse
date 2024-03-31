@@ -80,4 +80,24 @@ RSpec.describe 'Client Audit History Query', type: :request do
       expect(records.dig(0, 'recordName')).to eq('Exit')
     end
   end
+
+  context 'enrollment with custom assessment' do
+    let(:form_definition) { create(:hmis_form_definition) }
+    let!(:custom_assessment) do
+      create(:hmis_custom_assessment, definition: form_definition, enrollment: e1, client: e1.client, data_source: ds1, data_collection_stage: 99)
+    end
+    shared_examples 'assesses correct title' do
+      it 'shows the correct assessment title' do
+        records = run_query(id: e1.id, filters: { enrollment_record_type: ['Hmis::Hud::CustomAssessment'] })
+        expect(records.dig(0, 'recordName')).to eq(form_definition.title)
+      end
+    end
+
+    include_examples 'assesses correct title'
+
+    context 'deleted' do
+      before(:each) { custom_assessment.destroy! }
+      include_examples 'assesses correct title'
+    end
+  end
 end
