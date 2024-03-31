@@ -30,8 +30,10 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments, optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
-  # a better name would be "form_definition"
-  belongs_to :definition, primary_key: 'identifier', foreign_key: 'form_definition_identifier', class_name: 'Hmis::Form::Definition', optional: true
+  # WARNING: use form_processor.definition instead to get the specific version of the form definition
+  belongs_to :definition,
+             -> { from('(SELECT DISTINCT ON (identifier) * FROM hmis_form_definitions ORDER BY identifier, version DESC) as hmis_form_definitions') },
+             primary_key: 'identifier', foreign_key: 'form_definition_identifier', class_name: 'Hmis::Form::Definition', optional: true
 
   has_one :form_processor, class_name: 'Hmis::Form::FormProcessor', dependent: :destroy
   has_one :health_and_dv, through: :form_processor
