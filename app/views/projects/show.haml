@@ -117,7 +117,7 @@
 - if overrides.any?
   %p The following import overrides are in effect for this project.
   .mb-4.card
-    = render 'hmis_csv_importer/import_overrides/table', overrides: overrides, data_source: @project.data_source, editable: false
+    = render 'hmis_csv_importer/import_overrides/table', overrides: overrides, data_source: @project.data_source, editable: false, show_associated_project: true
 - if @show_census
   = render 'census'
 = render 'funders', funders: @project.funders
