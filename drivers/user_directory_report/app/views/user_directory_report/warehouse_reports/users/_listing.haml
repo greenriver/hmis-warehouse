@@ -20,7 +20,10 @@
             %td= user.email
             %td= user.phone_for_directory
             %td= user.agency_name
-            %td= user.unique_role_names.sort
+            %td 
+              - user.unique_role_names.sort.each do |name| 
+                .role-name= name
+              
             %td= user.active ? 'Active': 'Inactive'
             %td= user.last_sign_in_at
   = render 'common/pagination_bottom', item_name: 'user'

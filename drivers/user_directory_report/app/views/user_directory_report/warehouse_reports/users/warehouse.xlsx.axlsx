@@ -17,7 +17,7 @@ wb.add_worksheet(name: "Warehouse Users"[0,30]) do |sheet|
         user.email,
         user.phone_for_directory,
         user.agency_name,
-        user.unique_role_names.sort,
+        user.unique_role_names&.sort&.join('; '),
         user.active ? 'Active': 'Inactive',
         user.last_sign_in_at
       ]
