@@ -28,8 +28,11 @@ module Admin
       @collection = collection_scope.new
       @collection.update(collection_params)
       @collection.set_viewables(viewable_params)
-      @collection.save
-      respond_with(@collection, location: admin_collection_path(@collection))
+      if @collection.persisted?
+        respond_with(@collection, location: admin_collection_path(@collection))
+      else
+        respond_with(@collection, location: admin_collections_path)
+      end
     end
 
     def edit

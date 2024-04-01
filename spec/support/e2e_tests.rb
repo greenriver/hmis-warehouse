@@ -3,6 +3,7 @@
 require 'capybara'
 require 'capybara/cuprite'
 
+# See documentation in: spec/support/E2E_README.md
 # credit:
 # https://evilmartians.com/chronicles/system-of-a-test-setting-up-end-to-end-rails-testing
 # https://github.com/ParamagicDev/evil_systems
