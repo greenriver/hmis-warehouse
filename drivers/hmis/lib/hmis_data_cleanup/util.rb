@@ -113,6 +113,7 @@ module HmisDataCleanup
             end
 
             if values.any?
+              Rails.logger.info "[#{klass.name}] change batch: #{values.map { |r| [r.id, r.PersonalID_was, r.PersonalID] }.inspect}"
               result = klass.import(
                 values,
                 validate: false,
