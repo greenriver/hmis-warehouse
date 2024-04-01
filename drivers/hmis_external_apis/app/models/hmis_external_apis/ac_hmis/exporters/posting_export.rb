@@ -6,6 +6,8 @@
 
 module HmisExternalApis::AcHmis::Exporters
   class PostingExport
+    include ::HmisExternalApis::AcHmis::Exporters::CsvExporter
+
     def run!
       Rails.logger.info 'Generating content of posting export'
 

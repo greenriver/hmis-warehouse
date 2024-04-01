@@ -6,6 +6,8 @@
 
 module HmisExternalApis::AcHmis::Exporters
   class PathwaysExport
+    include ::HmisExternalApis::AcHmis::Exporters::CsvExporter
+
     PATHWAY_KEYS = [
       'client_pathway_1',
       'client_pathway_2',
