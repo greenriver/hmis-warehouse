@@ -11,6 +11,8 @@ require 'zip'
 
 module ClaimsReporting
   class Importer
+    include NotifierConfig
+
     attr_reader :import
 
     def default_credentials
@@ -41,7 +43,7 @@ module ClaimsReporting
       nil
     end
 
-    DEFAULT_NAMING_CONVENTION = /(?<prefix>.*)_?(?<m>[a-z]{3})_(?<y>\d{4})\.zip\Z/i.freeze
+    DEFAULT_NAMING_CONVENTION = /(?<prefix>.*)_?(?<m>[a-z]{3})_(?<y>\d{4})\.zip\Z/i
 
     private def using_sftp(credentials)
       credentials ||= default_credentials
@@ -128,8 +130,14 @@ module ClaimsReporting
         )
         results.select do |r|
           if redo_past_imports || r[:last_successful_import_id].blank?
-            @import = nil # paranoia, reset this since we are looping
-            import_from_health_sftp(r[:path], credentials: credentials)
+            begin
+              @import = nil # paranoia, reset this since we are looping
+              import_from_health_sftp(r[:path], credentials: credentials)
+            rescue RuntimeError => e
+              error_message = "Error importing #{r}: #{e.message}"
+              send_single_notification(error_message, 'ClaimsImporter')
+              false
+            end
           else
             Rails.logger.debug { "Skipping #{r}" }
             false
