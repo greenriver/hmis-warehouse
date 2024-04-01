@@ -140,7 +140,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         tb_cleared_date: 'TB Clear Date',
         tb_expiration_date: 'TB Exp. Date',
         tb_flagged_date: 'TB Flagged Date',
-        emergency_contact_name: 'Emergency Contact Name_4538',
+        emergency_contact_name: 'Emergency Contact Name_4540',
         emergency_contact_number: 'Emergency Contact Number_4541',
         sexual_orientation: 'Sexual Orientation',
       }.freeze
