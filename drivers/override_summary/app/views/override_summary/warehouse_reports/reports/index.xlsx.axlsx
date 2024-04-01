@@ -14,33 +14,36 @@ wb_styles.add_style(
   },
 )
 wb.add_worksheet(name: @report.title) do |sheet|
-  sheet.add_row(['Organization', 'Project', 'Overriden Item', 'Column', 'HMIS Value', 'Override Value', 'URL'], style: th_style)
+  sheet.add_row(['Organization', 'Project', 'Item', 'Replaces', 'With', 'When', 'URL'], style: th_style)
   @report.data.each do |organization_name, projects|
     projects.each do |project_name, data|
       data[:projects].each do |object|
-        object.class.override_columns.each do |override, hmis|
-          overridden_value = object.send(override)
-          next if overridden_value.blank?
-
-          sheet.add_row([organization_name, project_name, 'Project', hmis, object.send(hmis), overridden_value, project_url(object)])
+        object.import_overrides.each do |override|
+          sheet.add_row([organization_name, project_name, override.file_name, override.replaces_column, override.describe_with, override.describe_when, project_url(data[:project])])
         end
       end
 
       data[:inventories].each do |object|
-        object.class.override_columns.each do |override, hmis|
-          overridden_value = object.send(override)
-          next if overridden_value.blank?
-
-          sheet.add_row([organization_name, project_name, 'Inventory', hmis, object.send(hmis), overridden_value, edit_inventory_url(object)])
+        object.import_overrides.each do |override|
+          sheet.add_row([organization_name, project_name, override.file_name, override.replaces_column, override.describe_with, override.describe_when, project_url(data[:project])])
         end
       end
 
       data[:project_cocs].each do |object|
-        object.class.override_columns.each do |override, hmis|
-          overridden_value = object.send(override)
-          next if overridden_value.blank?
+        object.import_overrides.each do |override|
+          sheet.add_row([organization_name, project_name, override.file_name, override.replaces_column, override.describe_with, override.describe_when, project_url(data[:project])])
+        end
+      end
 
-          sheet.add_row([organization_name, project_name, 'Project CoC', hmis, object.send(hmis), overridden_value, edit_project_coc_url(object)])
+      data[:funders].each do |object|
+        object.import_overrides.each do |override|
+          sheet.add_row([organization_name, project_name, override.file_name, override.replaces_column, override.describe_with, override.describe_when, project_url(data[:project])])
+        end
+      end
+
+      data[:affiliations].each do |object|
+        object.import_overrides.each do |override|
+          sheet.add_row([organization_name, project_name, override.file_name, override.replaces_column, override.describe_with, override.describe_when, project_url(data[:project])])
         end
       end
     end

@@ -13,7 +13,7 @@
         %td
           = override.file_name
           - projects = override.project
-          - if projects.any?
+          - if projects.any? && show_associated_project
             .associated-projects
               Associated Project
               %ul
