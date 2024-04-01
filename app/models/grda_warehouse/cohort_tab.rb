@@ -11,6 +11,10 @@ module GrdaWarehouse
 
     belongs_to :cohort
 
+    scope :deleted_client_tabs, -> do
+      where(base_scope: :only_deleted)
+    end
+
     def show_for?(user)
       return true if permissions.empty?
 
