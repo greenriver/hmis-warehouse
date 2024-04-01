@@ -10,7 +10,7 @@ For each user the list includes:
 * phone
 * agency
 * roles 
-* status (active/inactive)
+* matches (active/inactive)
 * last login date
 
 In the user admin interface there is:

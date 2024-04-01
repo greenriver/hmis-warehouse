@@ -221,6 +221,8 @@ class User < ApplicationRecord
   end
 
   def unique_role_names
-    legacy_roles.map(&:name).uniq
+    return legacy_roles.map(&:name).uniq unless using_acls?
+
+    roles.map(&:name).uniq
   end
 end
