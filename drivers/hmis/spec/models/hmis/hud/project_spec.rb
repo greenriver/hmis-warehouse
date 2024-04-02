@@ -158,7 +158,7 @@ RSpec.describe Hmis::Hud::Project, type: :model do
       expect(selected_instance).to eq(expected)
     end
 
-    it 'does not return inactive serviec types' do
+    it 'does not return inactive service types' do
       instance = create(:hmis_form_instance, role: role, entity: nil, custom_service_type: cst)
       pick_list_options = Types::Forms::PickListOption.available_service_types_picklist(project)
       expect(pick_list_options.size).to eq(1)
