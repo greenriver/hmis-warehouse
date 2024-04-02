@@ -31,14 +31,6 @@ GIT
     pg_fixtures (0.1.0)
 
 GIT
-  remote: https://github.com/greenriver/rails_drivers.git
-  revision: 1fe347c169348fdee8df874ec571c7ce69dd783f
-  branch: rails-7
-  specs:
-    rails_drivers (1.2.0)
-      rails (>= 5.2)
-
-GIT
   remote: https://github.com/greenriver/stupidedi.git
   revision: 9e1b9896b371078d439e72505165082b898cd00a
   branch: master
@@ -54,6 +46,12 @@ GIT
   specs:
     jquery-ui-rails (7.0.0)
       railties (>= 3.2.16)
+
+PATH
+  remote: /usr/local/bundle/tmp/rails_drivers
+  specs:
+    rails_drivers (1.2.0)
+      rails (>= 5.2)
 
 GEM
   remote: https://rubygems.org/
@@ -160,7 +158,7 @@ GEM
     anyway_config (2.6.3)
       ruby-next-core (~> 1.0)
     ast (2.4.2)
-    attr_encrypted (3.1.0)
+    attr_encrypted (4.0.0)
       encryptor (~> 3.0.0)
     attribute_normalizer (1.2.0)
     authtrail (0.5.0)
@@ -1038,7 +1036,7 @@ DEPENDENCIES
   ajax_modal_rails (~> 1.0)
   amazing_print
   ansi
-  attr_encrypted (~> 3.1.0)
+  attr_encrypted (~> 4.0.0)
   attribute_normalizer
   authtrail
   autoprefixer-rails (~> 10.3.3)

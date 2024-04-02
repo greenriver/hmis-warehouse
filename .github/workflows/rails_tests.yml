@@ -155,6 +155,10 @@ jobs:
           cp .rspec.sample .rspec
           cp config/database.yml.ci config/database.yml
 
+      - name: Checking class loader
+        run: |
+          bundle exec rails zeitwerk:check
+
       - name: Prepare test db
         run: |
           pg_isready -h postgres -U postgres
