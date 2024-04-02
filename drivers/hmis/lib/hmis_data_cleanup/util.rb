@@ -113,6 +113,7 @@ module HmisDataCleanup
             end
 
             if values.any?
+              Rails.logger.info "[#{klass.name}] change batch: #{values.map { |r| [r.id, r.PersonalID_was, r.PersonalID] }.inspect}"
               result = klass.import(
                 values,
                 validate: false,
@@ -152,38 +153,6 @@ module HmisDataCleanup
       Rails.logger.info "Deleting #{ids_to_delete.size} duplicate Exits"
 
       GrdaWarehouse::Hud::Exit.where(id: ids_to_delete).update_all(DateDeleted: Time.current, source_hash: nil)
-    end
-
-    # Transform all-uppercase client names to camel-cased client names
-    # WARNING! Doesn't skips callbacks. Should probably be modified if we ever need to use this again.
-    def self.humanize_client_names!
-      name_fields = [:first_name, :middle_name, :last_name, :name_suffix]
-      scope = Hmis::Hud::Client.hmis.where('"Client"."FirstName" = upper("Client"."FirstName")')
-      # scope = Hmis::Hud::Client.hmis
-      scope.in_batches(of: 5_000) do |batch|
-        Rails.logger.info 'Next batch..'
-        values = []
-        batch.pluck(:id, *name_fields).each do |id_and_names|
-          id = id_and_names.first
-          names_arr = id_and_names.drop(1)
-          names = name_fields.zip(names_arr).to_h.compact_blank
-          next unless names.any?
-
-          # puts "old: #{names.values.join(' ')}"
-          names = names.transform_values { |s| s.downcase.gsub(/(\s+\w)|(^\w)/, &:upcase) }
-          # puts "new: #{names.values.join(' ')}"
-          names[:id] = id
-          values << names
-        end
-
-        grouped_clients = values.index_by { |client| client[:id] }
-
-        # without papertrail so it doesn't show up in Client Audit History
-        without_papertrail_or_timestamps do
-          Hmis::Hud::Client.update(grouped_clients.keys, grouped_clients.values)
-          Rails.logger.info "Updated #{grouped_clients.size} clients"
-        end
-      end
     end
 
     # Change ProjectID of a project. Useful in staging environment if need a project ID to match prod.

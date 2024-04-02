@@ -5,10 +5,15 @@
 ###
 
 FactoryBot.define do
-  factory :hmis_hud_exit, class: 'Hmis::Hud::Exit', parent: :hmis_base_factory do
+  factory :hmis_base_hud_exit, class: 'Hmis::Hud::Exit', parent: :hmis_base_factory do
     client { association :hmis_hud_client, data_source: data_source }
     enrollment { association :hmis_hud_enrollment, data_source: data_source, client: client }
     sequence(:ExitID, 50)
+    destination { 1 }
+    exit_date { Date.today }
+  end
+
+  factory :hmis_hud_exit, class: 'Hmis::Hud::Exit', parent: :hmis_base_hud_exit do
     sequence(:ExitDate) do |n|
       dates = [
         Date.yesterday,
@@ -19,7 +24,6 @@ FactoryBot.define do
       ]
       dates[n % 5].to_date
     end
-    destination { 1 }
 
     after(:build) do |exit|
       next unless exit.enrollment.present?

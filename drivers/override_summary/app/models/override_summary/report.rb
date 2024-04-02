@@ -45,11 +45,13 @@ module OverrideSummary
           project_name = project.name_and_type(ignore_confidential_status: true)
           organization_name = project.organization.OrganizationName
           by_project[organization_name] ||= {}
-          by_project[organization_name][project_name] ||= {}
+          by_project[organization_name][project_name] ||= { project: project }
           by_project[organization_name][project_name][:projects] ||= []
           by_project[organization_name][project_name][:projects] << project if projects.key?(project.id)
           by_project[organization_name][project_name][:inventories] = inventories[project] || []
           by_project[organization_name][project_name][:project_cocs] = project_cocs[project] || []
+          by_project[organization_name][project_name][:funders] = funders[project] || []
+          by_project[organization_name][project_name][:affiliations] = affiliations[project] || []
         end
       end
     end
@@ -105,7 +107,7 @@ module OverrideSummary
     end
 
     private def all_projects
-      @all_projects = (projects.values + project_cocs.keys + inventories.keys).uniq.sort_by do |p|
+      @all_projects = (projects.values + project_cocs.keys + inventories.keys + funders.keys + affiliations.keys).uniq.sort_by do |p|
         [
           p.organization.OrganizationName,
           p.ProjectName,
@@ -114,22 +116,41 @@ module OverrideSummary
     end
 
     private def projects
-      @projects ||= GrdaWarehouse::Hud::Project.overridden.
+      @projects ||= GrdaWarehouse::Hud::Project.
+        joins(:import_overrides).
         merge(report_scope).
-        preload(:organization).
+        preload(:organization, :import_overrides).
         index_by(&:id)
     end
 
     private def project_cocs
-      @project_cocs ||= GrdaWarehouse::Hud::ProjectCoc.overridden.
-        joins(:project).
+      @project_cocs ||= GrdaWarehouse::Hud::ProjectCoc.
+        preload(:import_overrides).
+        joins(:project, :import_overrides).
         merge(report_scope).
         group_by(&:project)
     end
 
     private def inventories
-      @inventories ||= GrdaWarehouse::Hud::Inventory.overridden.
-        joins(:project).
+      @inventories ||= GrdaWarehouse::Hud::Inventory.
+        preload(:import_overrides).
+        joins(:project, :import_overrides).
+        merge(report_scope).
+        group_by(&:project)
+    end
+
+    private def funders
+      @funders ||= GrdaWarehouse::Hud::Funder.
+        preload(:import_overrides).
+        joins(:project, :import_overrides).
+        merge(report_scope).
+        group_by(&:project)
+    end
+
+    private def affiliations
+      @affiliations ||= GrdaWarehouse::Hud::Affiliation.
+        preload(:import_overrides).
+        joins(:project, :import_overrides).
         merge(report_scope).
         group_by(&:project)
     end
