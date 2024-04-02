@@ -58,7 +58,7 @@ module Health
             initial_intake_overdue: initial_intake_overdue.select { |p_id| p_id.in?(patient_ids) },
             intake_renewal_due: intake_renewal_due.select { |p_id| p_id.in?(patient_ids) },
             intake_renewal_overdue: intake_renewal_overdue.select { |p_id| p_id.in?(patient_ids) },
-            without_required_wellcare_visit: [], # patient_ids - with_required_wellcare_visit,
+            without_required_wellcare_visit: patient_ids - with_required_wellcare_visit,
           },
         )
       end.compact
