@@ -45,6 +45,7 @@ module Types
       # filter_args: { type_name: 'UserAuditEvent' },
       filter_args: { type_name: 'UserAuditEvent', omit: [:user] },
       field_permissions: Types::HmisSchema::Client::FIELD_PERMISSIONS_FOR_AUDIT,
+      object_permissions: Types::HmisSchema::Client::OBJECT_PERMISSIONS_FOR_AUDIT,
     )
 
     EXCLUDED_RECORD_TYPES_FOR_AUDIT = ['Hmis::Wip'].freeze

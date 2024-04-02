@@ -17,6 +17,7 @@ module Types
           description = nil,
           association_name: :versions,
           field_permissions: {},
+          object_permissions: {},
           excluded_keys: nil,
           transform_changes: nil,
           filter_args: {},
@@ -24,7 +25,7 @@ module Types
           &block
         )
           default_field_options = {
-            type: audit_event_type(field_permissions: field_permissions, excluded_keys: excluded_keys, transform_changes: transform_changes).page_type,
+            type: audit_event_type(field_permissions: field_permissions, object_permissions: object_permissions, excluded_keys: excluded_keys, transform_changes: transform_changes).page_type,
             null: false,
             description: description,
           }

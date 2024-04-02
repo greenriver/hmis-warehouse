@@ -94,4 +94,23 @@ RSpec.describe 'User Audit History Query', type: :request do
       expect(records[0].dig('objectChanges', 'firstName', 'values')).to eq('changed'), 'Should see that it was changed but not the actual values'
     end
   end
+
+  context 'user who does not have permission to see client contact info' do
+    let!(:access_control) do
+      create_access_control(hmis_user, ds1, without_permission: :can_view_client_contact_info)
+    end
+    before(:each) do
+      PaperTrail.request(controller_info: { true_user_id: hmis_user.id }) do
+        create(:hmis_hud_custom_client_contact_point, client: c1, data_source: ds1)
+      end
+    end
+    it 'should return client with masked contact info' do
+      records = run_query(id: hmis_user.id)
+      expect(records.size).to eq(1)
+      expect(records[0]['event']).to eq('create')
+      expect(records[0].dig('objectChanges', 'use', 'values')).to eq('changed')
+      expect(records[0].dig('objectChanges', 'system', 'values')).to eq('changed')
+      expect(records[0].dig('objectChanges', 'value', 'values')).to eq('changed')
+    end
+  end
 end
