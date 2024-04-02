@@ -157,6 +157,17 @@ RSpec.describe Hmis::Hud::Project, type: :model do
       expected = create(:hmis_form_instance, role: role, entity: nil, custom_service_type: cst)
       expect(selected_instance).to eq(expected)
     end
+
+    it 'does not return inactive serviec types' do
+      instance = create(:hmis_form_instance, role: role, entity: nil, custom_service_type: cst)
+      pick_list_options = Types::Forms::PickListOption.available_service_types_picklist(project)
+      expect(pick_list_options.size).to eq(1)
+      expect(pick_list_options[0][:label]).to eq('Custom Type')
+      instance.active = false
+      instance.save
+      pick_list_options = Types::Forms::PickListOption.available_service_types_picklist(project)
+      expect(pick_list_options).to be_empty
+    end
   end
 
   describe 'occurrence_point_form_instances' do

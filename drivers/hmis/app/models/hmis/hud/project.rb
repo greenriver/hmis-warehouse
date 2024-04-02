@@ -246,6 +246,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   def available_service_types
     # Find form rules for services that are applicable to this project
     ids = Hmis::Form::Instance.for_services.
+      active.
       for_project_through_entities(self).
       joins(:definition).
       where(fd_t[:role].eq(:SERVICE)).
