@@ -164,7 +164,7 @@ RSpec.describe Hmis::Hud::Project, type: :model do
       expect(pick_list_options.size).to eq(1)
       expect(pick_list_options[0][:label]).to eq('Custom Type')
       instance.active = false
-      instance.save
+      instance.save!
       pick_list_options = Types::Forms::PickListOption.available_service_types_picklist(project)
       expect(pick_list_options).to be_empty
     end
