@@ -6,10 +6,7 @@
 
 class Hmis::Filter::OrganizationFilter < Hmis::Filter::BaseFilter
   def filter_scope(scope)
-    scope = ensure_scope(scope)
-    scope.
-      yield_self(&method(:with_search_term)).
-      yield_self(&method(:clean_scope))
+    ensure_scope(scope)
   end
 
   protected
