@@ -54,7 +54,7 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CdeExport, type: :model do
       expect do
         subject.run!
         expect(subject.send(:cdes).length).to eq(2)
-      end.to make_database_queries(count: 5)
+      end.to make_database_queries(count: 4)
     end
   end
 

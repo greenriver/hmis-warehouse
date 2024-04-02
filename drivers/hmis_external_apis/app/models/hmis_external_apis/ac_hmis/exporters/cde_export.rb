@@ -19,7 +19,7 @@ module HmisExternalApis::AcHmis::Exporters
           cde.id,
           cde.data_element_definition.key,
           cde.data_element_definition.owner_type.demodulize,
-          cde.owner.id,
+          cde.owner_id,
           cde.value,
           cde.date_created,
           cde.date_updated,
@@ -45,8 +45,7 @@ module HmisExternalApis::AcHmis::Exporters
     def cdes
       @cdes ||= Hmis::Hud::CustomDataElement.
         where(data_source: data_source).
-        preload(:data_element_definition).
-        preload(:owner)
+        preload(:data_element_definition)
     end
   end
 end
