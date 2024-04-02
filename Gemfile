@@ -1,7 +1,8 @@
 source 'https://rubygems.org'
 
 gem 'rails', '~> 7.0.8.1'
-gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'master'
+gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'rails-7'
+# gem 'rails_drivers', path: '/usr/local/bundle/tmp/rails_drivers'
 gem 'rack', '>= 2.2.8.1'
 gem 'rexml'
 gem 'actionpack', '>= 6.1.7.7'

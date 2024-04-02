@@ -32,8 +32,8 @@ GIT
 
 GIT
   remote: https://github.com/greenriver/rails_drivers.git
-  revision: 9ae472566aab064be43dbc355d4b5bb611c6d360
-  branch: master
+  revision: 1fe347c169348fdee8df874ec571c7ce69dd783f
+  branch: rails-7
   specs:
     rails_drivers (1.2.0)
       rails (>= 5.2)
