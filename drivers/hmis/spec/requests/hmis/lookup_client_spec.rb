@@ -159,6 +159,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(result.dig('data', 'client', 'names')).to contain_exactly(include('first' => c1.first_name, 'last' => c1.last_name))
   end
 
+  it 'should return masked name if not allowed to see name' do
+    remove_permissions(access_control, :can_view_client_name)
+    _response, result = post_graphql(id: c1.id) { query }
+    expect(result.dig('data', 'client', 'names')).to contain_exactly(include('first' => "Client <#{c1.id}>", 'last' => nil))
+  end
+
   it 'should return null DOB if not allowed to see DOB' do
     remove_permissions(access_control, :can_view_dob)
     _response, result = post_graphql(id: c1.id) { query }

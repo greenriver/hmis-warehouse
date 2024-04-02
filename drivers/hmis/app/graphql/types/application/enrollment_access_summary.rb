@@ -34,6 +34,8 @@ module Types
     end
 
     def client_name
+      return client&.masked_name unless current_permission?(permission: :can_view_client_name, entity: client)
+
       client&.brief_name
     end
 

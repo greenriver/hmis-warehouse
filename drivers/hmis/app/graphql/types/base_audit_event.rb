@@ -28,6 +28,9 @@ module Types
         define_method(:authorize_field) do |record, key|
           return true unless field_permissions[key].present?
 
+          # If no record provided, then it's a deleted record, so check general permissions
+          return current_user.permission?(*Array.wrap(field_permissions[key])) unless record
+
           # Check if user has permission to view audit history for this particular field (for example SSN/DOB on Client)
           current_user.permissions_for?(record, *Array.wrap(field_permissions[key]))
         end
@@ -61,6 +64,8 @@ module Types
 
     def client_name
       client = load_ar_association(object, :hmis_client)
+      return client&.masked_name unless current_permission?(permission: :can_view_client_name, entity: client)
+
       client&.full_name
     end
 
@@ -181,7 +186,7 @@ module Types
         next if values.map { |v| v == 99 ? nil : v }.compact.empty?
 
         # hide certain changes (SSN/DOB) if unauthorized
-        values = 'changed' if changed_record && !authorize_field(changed_record, key)
+        values = 'changed' unless authorize_field(changed_record, key)
 
         [
           field_name,

@@ -8,6 +8,19 @@
 
 module Types
   class HmisSchema::Client < Types::BaseObject
+    FIELD_PERMISSIONS_FOR_AUDIT = {
+      'SSN' => :can_view_full_ssn,
+      'DOB' => :can_view_dob,
+      'first' => :can_view_client_name, # from ClientName object
+      'middle' => :can_view_client_name,
+      'last' => :can_view_client_name,
+      'suffix' => :can_view_client_name,
+      'FirstName' => :can_view_client_name, # from Client object
+      'MiddleName' => :can_view_client_name,
+      'LastName' => :can_view_client_name,
+      'NameSuffix' => :can_view_client_name,
+    }.freeze
+
     include Types::HmisSchema::HasEnrollments
     include Types::HmisSchema::HasServices
     include Types::HmisSchema::HasIncomeBenefits
@@ -105,10 +118,7 @@ module Types
     scan_card_codes_field
     field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false
     audit_history_field(
-      field_permissions: {
-        'SSN' => :can_view_full_ssn,
-        'DOB' => :can_view_dob,
-      },
+      field_permissions: Types::HmisSchema::Client::FIELD_PERMISSIONS_FOR_AUDIT,
       excluded_keys: ['owner_type'],
       filter_args: { omit: [:enrollment_record_type], type_name: 'ClientAuditEvent' },
       # Transform race and gender fields
@@ -271,7 +281,31 @@ module Types
       object.dob if current_permission?(permission: :can_view_dob, entity: object)
     end
 
+    def first_name
+      return object.masked_name unless current_permission?(permission: :can_view_client_name, entity: object)
+
+      object.first_name
+    end
+
+    def middle_name
+      object.middle_name if current_permission?(permission: :can_view_client_name, entity: object)
+    end
+
+    def last_name
+      object.last_name if current_permission?(permission: :can_view_client_name, entity: object)
+    end
+
+    def name_suffix
+      object.name_suffix if current_permission?(permission: :can_view_client_name, entity: object)
+    end
+
     def names
+      unless current_permission?(permission: :can_view_client_name, entity: object)
+        return [
+          object.names.new(first: object.masked_name),
+        ]
+      end
+
       names = load_ar_association(object, :names)
       return names unless names.empty?
 

@@ -220,6 +220,13 @@ class Hmis::Role < ::ApplicationRecord
         category: 'Client Access',
         sub_category: 'Access',
       },
+      can_view_client_name: {
+        description: 'Access to view Client Name.',
+        administrative: false,
+        access: [:viewable],
+        category: 'Client Access',
+        sub_category: 'Sensitive Client Data',
+      },
       can_view_full_ssn: {
         administrative: false,
         access: [:viewable],
