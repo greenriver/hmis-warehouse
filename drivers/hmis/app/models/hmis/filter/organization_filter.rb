@@ -6,7 +6,8 @@
 
 class Hmis::Filter::OrganizationFilter < Hmis::Filter::BaseFilter
   def filter_scope(scope)
-    ensure_scope(scope)
+    scope = ensure_scope(scope)
+    with_search_term(scope)
   end
 
   protected
