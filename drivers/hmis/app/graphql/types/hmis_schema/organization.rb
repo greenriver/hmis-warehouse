@@ -16,6 +16,10 @@ module Types
       Hmis::Hud::Organization.hmis_configuration(version: '2024')
     end
 
+    available_filter_options do
+      arg :search_term, String
+    end
+
     field :id, ID, null: false
     field :hud_id, ID, null: false, method: :organization_id
     field :organization_name, String, null: false
