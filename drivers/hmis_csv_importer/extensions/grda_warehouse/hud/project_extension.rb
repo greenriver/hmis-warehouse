@@ -11,6 +11,7 @@ module HmisCsvImporter::GrdaWarehouse::Hud
     included do
       has_many :imported_items_2022, class_name: '::HmisCsvTwentyTwentyTwo::Importer::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id]
       has_many :loaded_items_2022, class_name: '::HmisCsvTwentyTwentyTwo::Loader::Project', primary_key: [:ProjectID, :data_source_id], foreign_key: [:ProjectID, :data_source_id]
+      has_many :import_overrides, class_name: 'HmisCsvImporter::ImportOverride', primary_key: [hud_key, :data_source_id], foreign_key: [:matched_hud_key, :data_source_id]
 
       def convert_to_aggregated!
         existing = HmisCsvImporter::Aggregated::Enrollment.where(data_source_id: data_source_id, ProjectID: self.ProjectID).exists?

@@ -36,6 +36,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             { key: "mhmr_service_code_project_no_#{i}", label: "Project Number Row #{i}", field_type: 'string', repeats: false },
             { key: "mhmr_service_code_start_time_#{i}", label: "Start / Stop Time Row #{i}", field_type: 'string', repeats: false },
             { key: "mhmr_service_code_stop_time_#{i}", label: "Start / Stop Time Row #{i}", field_type: 'string', repeats: false },
+            { key: "mhmr_service_code_recipient_#{i}", label: "Recipient Row #{i}", field_type: 'string', repeats: false },
+            { key: "mhmr_service_code_attendance_#{i}", label: "Attendance Row #{i}", field_type: 'string', repeats: false },
+            { key: "mhmr_service_code_num_recipients_#{i}", label: "Number of Recipients Row #{i}", field_type: 'string', repeats: false },
+            { key: "mhmr_service_code_recipient_time_#{i}", label: "Recipient Time Row #{i}", field_type: 'string', repeats: false },
+            { key: "mhmr_service_code_lof_#{i}", label: "LOF Row #{i}", field_type: 'string', repeats: false },
           ]
         end.flatten
     end
@@ -69,6 +74,42 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     def form_definition_identifier
       'mhmr-non-billable-note'
+    end
+
+    # Method to transform time string ("01:30AM") to minutes since midnight (90)
+    # This isn't used here yet, but should be incorporated if the MHMR loaders are used again.
+    # (Or, use this code to data-fix after they are used).
+    #
+    # Relevant for the following CDEDs:
+    # 'mhmr_service_code_start_time_1',
+    # 'mhmr_service_code_start_time_2',
+    # 'mhmr_service_code_start_time_3',
+    # 'mhmr_service_code_start_time_4',
+    # 'mhmr_service_code_start_time_5',
+    # 'mhmr_service_code_start_time_6',
+    # 'mhmr_service_code_stop_time_1',
+    # 'mhmr_service_code_stop_time_2',
+    # 'mhmr_service_code_stop_time_3',
+    # 'mhmr_service_code_stop_time_4',
+    # 'mhmr_service_code_stop_time_5',
+    # 'mhmr_service_code_stop_time_6',
+    # 'mhmr_service_end_time',
+    # 'mhmr_service_start_time',
+    def transform_time_of_day(time_of_day_str)
+      # https://stackoverflow.com/a/32466925/18803965
+      times = { '12 AM' => 0 }.merge!(1.upto(11).collect { |n| { "#{n} AM" => n } }.reduce({}, :merge)).merge!({ '12 PM' => 12 }).merge!(1.upto(11).collect { |n| { "#{n} PM" => n + 12 } }.reduce({}, :merge))
+      # {"12 AM"=>0, "1 AM"=>1, "2 AM"=>2, "3 AM"=>3, "4 AM"=>4, "5 AM"=>5, "6 AM"=>6, "7 AM"=>7, "8 AM"=>8, "9 AM"=>9, "10 AM"=>10, "11 AM"=>11, "12 PM"=>12, "1 PM"=>13, "2 PM"=>14, "3 PM"=>15, "4 PM"=>16, "5 PM"=>17, "6 PM"=>18, "7 PM"=>19, "8 PM"=>20, "9 PM"=>21, "10 PM"=>22, "11 PM"=>23}
+
+      str = time_of_day_str # "01:09PM"
+      return time_of_day_str if str&.size != 7 || !['AM', 'PM'].include?(str.last(2))
+
+      hours = str.split(':').first.to_i
+      minutes = str.split(':').last.first(2).to_i
+      am_pm = str.last(2)
+      hours_since_midnight = times["#{hours} #{am_pm}"]
+      minutes_since_midnight = (hours_since_midnight * 60) + minutes
+
+      minutes_since_midnight
     end
   end
 end
