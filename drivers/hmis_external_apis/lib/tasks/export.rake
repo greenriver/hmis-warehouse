@@ -12,6 +12,7 @@ namespace :export do
       'project_crosswalk',
       'move_in_addresses',
       'postings',
+      'custom_fields',
       'pathways',
     ].each do |export_mode|
       HmisExternalApis::AcHmis::DataWarehouseUploadJob.perform_later(export_mode)
