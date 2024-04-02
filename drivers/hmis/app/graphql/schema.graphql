@@ -789,6 +789,7 @@ type ClientAccess {
   canViewAnyFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
   canViewClientAlerts: Boolean!
+  canViewClientName: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!

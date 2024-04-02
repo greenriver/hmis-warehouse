@@ -160,6 +160,7 @@ module Types
     access_field do
       can :view_partial_ssn
       can :view_full_ssn
+      can :view_client_name
       can :view_dob
       can :view_enrollment_details
       can :edit_enrollments
