@@ -6253,6 +6253,10 @@ type OrganizationAccess {
   id: ID!
 }
 
+input OrganizationFilterOptions {
+  searchTerm: String
+}
+
 """
 HUD Organization Sorting Options
 """
@@ -8681,7 +8685,7 @@ type Query {
   Organization lookup
   """
   organization(id: ID!): Organization
-  organizations(limit: Int, offset: Int, sortOrder: OrganizationSortOption): OrganizationsPaginated!
+  organizations(filters: OrganizationFilterOptions, limit: Int, offset: Int, sortOrder: OrganizationSortOption): OrganizationsPaginated!
   parsedFormDefinition(input: String!): FormDefinitionForJsonResult
 
   """
