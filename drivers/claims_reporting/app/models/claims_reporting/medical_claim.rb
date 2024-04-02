@@ -487,6 +487,8 @@ module ClaimsReporting
         151,cde_cos_subcategory,Most granular categorization of COS. Contains the most detailed description of the service performed on the claim.,50,string,-
         152,ind_mco_aco_cvd_svc,"Y/N flag indicating ACO/MCO covered vs ACO/MCO non-covered services (e.g., wrap services)",50,string,-
         153,cde_ndc,The National Drug Code used to identify the drug. Applies to paid Outpatient and Professional claims.,48,string,-
+        154,pcc_repricing_fee_flag,Unknown,50,string,-
+        155,cde_enc_rec_ind,Unknown,50,string,-
       CSV
     end
   end
