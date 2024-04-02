@@ -205,7 +205,7 @@ module HmisDataCleanup
         end
       end
 
-      enrollments_to_delete.each(&:really_destroy!)
+      GrdaWarehouse::Hud::Enrollment.with_deleted.where(id: enrollments_to_delete.map(&:id)).delete_all
     end
 
     # Change ProjectID of a project. Useful in staging environment if need a project ID to match prod.
