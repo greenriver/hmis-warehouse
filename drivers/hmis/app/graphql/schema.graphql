@@ -8775,6 +8775,7 @@ type QueryAccess {
   canViewAnyConfidentialClientFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
   canViewClientAlerts: Boolean!
+  canViewClientContactInfo: Boolean!
   canViewClientName: Boolean!
   canViewClients: Boolean!
   canViewDob: Boolean!
