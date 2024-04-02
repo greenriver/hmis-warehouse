@@ -14,8 +14,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       { element_id: 8487, label: 'Type of Client Interaction', key: 'nav_notes_interaction_type', repeats: false, field_type: 'string' },
       { element_id: 10586, label: 'Services Rendered', key: 'nav_notes_services_rendered', repeats: true, field_type: 'string' },
       { element_id: 10587, label: 'Other Services', key: 'nav_notes_other_services', repeats: false, field_type: 'string' },
-      { element_id: 10588, label: 'Primary Point of Contact for Housing match', key: 'nav_notes_primary_contact', repeats: false, field_type: 'string' },
-      { element_id: 10675, label: 'Where you able to divert the client?', key: 'nav_notes_diverted', repeats: false, field_type: 'string' },
+      { element_id: 10588, label: 'Primary Point of Contact for Housing match', key: 'nav_notes_primary_contact', repeats: false, field_type: 'boolean' },
+      { element_id: 10675, label: 'Were you able to divert the client?', key: 'nav_notes_diverted', repeats: false, field_type: 'boolean' },
     ].freeze
 
     def filename
