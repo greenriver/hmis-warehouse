@@ -111,6 +111,14 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           log_skipped_row(row, field: ENROLLMENT_ID_COL)
           next # early return
         end
+
+        assessment_hud_key = row_assessment_id(row)
+        if existing_assessment_hud_keys.include?(assessment_hud_key)
+          # should only happen if clobber:false
+          log_info "Skipping CustomAssessmentID that has already been imported: #{assessment_hud_key}"
+          next
+        end
+
         actual += 1
 
         assessment_date = row_assessment_date(row)
@@ -118,7 +126,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         last_updated_timestamp = parse_date(assessment_date).beginning_of_day.to_datetime + 9.hours
         {
           data_source_id: data_source.id,
-          CustomAssessmentID: row_assessment_id(row),
+          CustomAssessmentID: assessment_hud_key,
           EnrollmentID: enrollment_id,
           PersonalID: personal_id,
           UserID: system_hud_user.id,
@@ -151,6 +159,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       rows.each do |row|
         assessment_id = owner_id_by_row_id[row_assessment_id(row)]
         next unless assessment_id
+        next if existing_assessment_hud_keys.include?(assessment_hud_key) # already imported
 
         ce_assessment_id = nil
         if ce_assessment_level
@@ -167,6 +176,23 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         }
       end
       ar_import(processor_model, records)
+    end
+
+    def form_definition
+      @form_definition ||= Hmis::Form::Definition.where(identifier: form_definition_identifier).first_or_create! do |definition|
+        definition.title = form_definition_identifier.humanize
+        definition.status = 'draft'
+        definition.version = 0
+        definition.role = 'FORM_DEFINITION'
+      end
+    end
+
+    def existing_assessment_hud_keys
+      fp_t = Hmis::Form::FormProcessor.arel_table
+
+      @existing_assessment_hud_keys ||= Hmis::Hud::CustomAssessment.joins(:form_processor).
+        where(fp_t[:definition_id].eq(form_definition.id)).
+        pluck(:CustomAssessmentID).to_set
     end
 
     def create_cde_records(rows)
