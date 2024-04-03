@@ -30,7 +30,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:f1) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag] }
   let!(:f2) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag], confidential: true }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
-  let!(:photo) { create :client_file }
+  let!(:photo_tag) { create :available_file_tag, consent_form: false, name: 'Client Headshot' }
+  let!(:photo) { create :client_file, client: c1.as_warehouse, tags: [photo_tag] }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
   let(:query) do
@@ -128,9 +129,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       # build a version history
       PaperTrail.request(whodunnit: user.id) { c1.update!(first_name: 'test1') }
       PaperTrail.request(whodunnit: user2.id) { c1.update!(first_name: 'test2') }
-      photo.tag_list.add('Client Headshot')
-      photo.save!
-      photo.reload
     end
 
     it 'should return the most recent user' do
@@ -144,6 +142,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   it 'should return client if viewable' do
     response, result = post_graphql(id: c1.id) { query }
     expect(response.status).to eq 200
+    expect(result.dig('data', 'client', 'image')).not_to be_nil
     expect(result.dig('data', 'client')).to include(
       'id' => c1.id.to_s,
       'ssn' => c1.ssn,
