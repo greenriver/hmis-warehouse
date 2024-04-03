@@ -161,7 +161,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       rows.each do |row|
         assessment_id = owner_id_by_row_id[row_assessment_id(row)]
         next unless assessment_id
-        next if @existing_assessment_hud_keys.include?(assessment_hud_key) # already imported
+        next if existing_assessment_hud_keys.include?(assessment_hud_key) # already imported
 
         ce_assessment_id = nil
         if ce_assessment_level
