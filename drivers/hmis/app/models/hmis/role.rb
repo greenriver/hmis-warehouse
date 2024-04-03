@@ -227,6 +227,13 @@ class Hmis::Role < ::ApplicationRecord
         category: 'Client Access',
         sub_category: 'Sensitive Client Data',
       },
+      can_view_client_contact_info: {
+        description: 'Access to view client contact info: addresses, phone numbers, emails.',
+        administrative: false,
+        access: [:viewable],
+        category: 'Client Access',
+        sub_category: 'Sensitive Client Data',
+      },
       can_view_full_ssn: {
         administrative: false,
         access: [:viewable],

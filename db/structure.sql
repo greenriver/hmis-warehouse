@@ -874,7 +874,8 @@ CREATE TABLE public.hmis_roles (
     can_view_client_alerts boolean DEFAULT false,
     can_manage_client_alerts boolean DEFAULT false,
     can_manage_external_form_submissions boolean DEFAULT false,
-    can_view_client_name boolean DEFAULT false
+    can_view_client_name boolean DEFAULT false,
+    can_view_client_contact_info boolean DEFAULT false
 );
 
 
@@ -4322,6 +4323,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240311135958'),
 ('20240313161801'),
 ('20240313162012'),
-('20240401132430');
+('20240401132430'),
+('20240402161400');
 
 

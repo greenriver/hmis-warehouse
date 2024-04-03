@@ -6,7 +6,7 @@
 
 module Types
   class BaseAuditEvent < BaseObject
-    def self.build(node_class, field_permissions: nil, excluded_keys: nil, transform_changes: nil)
+    def self.build(node_class, field_permissions: nil, object_permissions: nil, excluded_keys: nil, transform_changes: nil)
       dynamic_name = "#{node_class.graphql_name}AuditEvent"
       klass = Class.new(self) do
         graphql_name(dynamic_name)
@@ -33,6 +33,16 @@ module Types
 
           # Check if user has permission to view audit history for this particular field (for example SSN/DOB on Client)
           current_user.permissions_for?(record, *Array.wrap(field_permissions[key]))
+        end
+
+        define_method(:authorize_object) do |item_type, record|
+          return true unless object_permissions
+
+          return true unless object_permissions[item_type].present?
+
+          return current_user.permission?(*Array.wrap(object_permissions[item_type])) unless record
+
+          return current_user.permission_for?(record, *Array.wrap(object_permissions[item_type]))
         end
       end
 
@@ -187,6 +197,9 @@ module Types
 
         # hide certain changes (SSN/DOB) if unauthorized
         values = 'changed' unless authorize_field(changed_record, key)
+
+        # hide all changes on certain objects (address, phone) if unauthorized
+        values = 'changed' unless authorize_object(object.item_type, changed_record)
 
         [
           field_name,
