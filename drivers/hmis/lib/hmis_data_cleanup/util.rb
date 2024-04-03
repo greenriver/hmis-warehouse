@@ -61,10 +61,10 @@ module HmisDataCleanup
       hh_id_to_enrollments = Hmis::Hud::Enrollment.hmis.where(household_id: hh_ids).group_by(&:household_id)
 
       hh_id_to_enrollments.each do |hh_id, enrollments|
-        puts "Processing HouseholdID #{hh_id}..."
+        Rails.logger.info "Processing HouseholdID #{hh_id}..."
         enrollments.group_by(&:project_id).each do |project_id, enrollments_in_project|
           id = Hmis::Hud::Base.generate_uuid
-          puts "[HouseholdID #{hh_id}][ProjectID #{project_id}] Reassigning Enrollments with ids: [#{enrollments_in_project.map(&:id).join(',')}] to new HouseholdID (#{id})"
+          Rails.logger.info "[HouseholdID #{hh_id}][ProjectID #{project_id}] Reassigning Enrollments with ids: [#{enrollments_in_project.map(&:id).join(',')}] to new HouseholdID (#{id})"
           enrollments_in_project.each { |en| en.update_columns(household_id: id) }
         end
       end
@@ -186,26 +186,31 @@ module HmisDataCleanup
         having('count(*) >1').
         select('"Enrollment"."EnrollmentID", array_agg("Enrollment"."id") as enrollment_ids')
 
-      enrollments_by_id = Hmis::Hud::Enrollment.with_deleted.
-        where(id: result.map(&:enrollment_ids).flatten).index_by(&:id)
+      result.in_groups_of(500) do |group|
+        batch = group.compact
+        Rails.logger.info 'Processing batch'
+        enrollments_by_id = Hmis::Hud::Enrollment.with_deleted.
+          where(id: batch.map(&:enrollment_ids).flatten).index_by(&:id)
 
-      enrollments_to_delete = []
-      result.each do |res|
-        # processing duplicates for res.EnrollmentID
-        enrollments = res.enrollment_ids.map { |id| enrollments_by_id[id] }
-        raise 'not found' if enrollments.any?(&:nil?)
+        enrollments_to_delete = []
+        batch.each do |res|
+          # processing duplicates for res.EnrollmentID
+          enrollments = res.enrollment_ids.map { |id| enrollments_by_id[id] }
+          raise 'not found' if enrollments.any?(&:nil?)
 
-        # if any are NOT deleted, hard-delete all the deleted ones
-        if enrollments.any? { |e| e.DateDeleted.nil? }
-          enrollments_to_delete.push(*enrollments.select { |e| e.DateDeleted.present? })
-        else
-          # otherwise they are all deleted, so keep 1 of them
-          to_keep = enrollments.max_by(&:DateUpdated)
-          enrollments_to_delete.push(*enrollments.reject { |e| e.id == to_keep.id })
+          # if any are NOT deleted, hard-delete all the deleted ones
+          if enrollments.any? { |e| e.DateDeleted.nil? }
+            enrollments_to_delete.push(*enrollments.select { |e| e.DateDeleted.present? })
+          else
+            # otherwise they are all deleted, so keep 1 of them
+            to_keep = enrollments.max_by(&:DateUpdated)
+            enrollments_to_delete.push(*enrollments.reject { |e| e.id == to_keep.id })
+          end
         end
-      end
 
-      GrdaWarehouse::Hud::Enrollment.with_deleted.where(id: enrollments_to_delete.map(&:id)).delete_all
+        Rails.logger.info "Deleting duplicate ids: #{enrollments_to_delete.inspect}"
+        GrdaWarehouse::Hud::Enrollment.with_deleted.where(id: enrollments_to_delete.map(&:id)).delete_all
+      end
     end
 
     # Change ProjectID of a project. Useful in staging environment if need a project ID to match prod.
@@ -497,7 +502,7 @@ module HmisDataCleanup
 
       rows = []
       Hmis::Hud::Enrollment.hmis.only_deleted.where(DateDeleted: range).in_batches(of: 5_000) do |batch|
-        puts 'Processing...'
+        Rails.logger.info 'Processing...'
         batch.each do |enrollment|
           rows << {
             Organization: org_names[enrollment.ProjectID],

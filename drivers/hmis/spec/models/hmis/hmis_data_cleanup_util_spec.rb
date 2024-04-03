@@ -106,9 +106,9 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
 
   context 'single-person households with no HoH' do
     before(:each) do
-      e1.update(relationship_to_hoh: 99, household_id: 'multi-member-household')
-      e2.update(relationship_to_hoh: 99, household_id: 'multi-member-household')
-      e3.update(relationship_to_hoh: 99, household_id: 'individual-household') # should be updated
+      e1.update!(relationship_to_hoh: 99, household_id: 'multi-member-household')
+      e2.update!(relationship_to_hoh: 99, household_id: 'multi-member-household')
+      e3.update!(relationship_to_hoh: 99, household_id: 'individual-household') # should be updated
 
       # cruft in other data sources that shouldn't be touched
       GrdaWarehouse::Hud::Enrollment.where.not(data_source: hmis_ds).update_all(relationship_to_hoh: 99)
@@ -214,8 +214,8 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
 
   context 'enrollments with incorrect EnrollmentCoCs' do
     before(:each) do
-      e1.update(enrollment_coc: 'MA-500')
-      e2.update(enrollment_coc: 'KY-600')
+      e1.update!(enrollment_coc: 'MA-500')
+      e2.update!(enrollment_coc: 'KY-600')
     end
     it 'updates cocs' do
       expect_leaves_non_hmis_data_alone do
@@ -313,9 +313,9 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
   context 'with household ids duplicated across projects' do
     before(:each) do
       p2 = create(:hmis_hud_project, data_source: hmis_ds, organization: o1)
-      e1.update(household_id: 'ABCDEF', project: p1)
-      e2.update(household_id: 'ABCDEF', project: p2)
-      e3.update(household_id: 'ABCDEF', project: p2)
+      e1.update!(household_id: 'ABCDEF', project: p1)
+      e2.update!(household_id: 'ABCDEF', project: p2)
+      e3.update!(household_id: 'ABCDEF', project: p2)
     end
 
     it 'reassigns household IDs correctly' do
@@ -342,16 +342,16 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
   context 'with duplicate deleted EnrollmentIDs' do
     let(:dup_key) { 'ABCDEF' }
     before(:each) do
-      e1.update(EnrollmentID: dup_key, DateDeleted: 1.week.ago, project: p1)
-      e2.update(EnrollmentID: dup_key, DateDeleted: nil, project: p1)
-      e3.update(EnrollmentID: dup_key, DateDeleted: 1.week.ago, project: p1)
+      e1.update!(EnrollmentID: dup_key, DateDeleted: 1.week.ago, project: p1)
+      e2.update!(EnrollmentID: dup_key, DateDeleted: nil, project: p1)
+      e3.update!(EnrollmentID: dup_key, DateDeleted: 1.week.ago, project: p1)
 
       # duplicate in a different project
       p2 = create(:hmis_hud_project, data_source: hmis_ds, organization: o1)
-      e4.update(EnrollmentID: dup_key, DateDeleted: 1.week.ago, project: p2)
+      e4.update!(EnrollmentID: dup_key, DateDeleted: 1.week.ago, project: p2)
 
       # duplicate in a different data source
-      other_enrollments.first.update(EnrollmentID: dup_key)
+      other_enrollments.first.update!(EnrollmentID: dup_key)
     end
 
     it 'hard-deletes duplicate enrollments' do
@@ -370,7 +370,7 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     end
 
     it 'keeps 1 deleted enrollment if ALL the dups are deleted' do
-      e2.update(DateDeleted: 2.days.ago)
+      e2.update!(DateDeleted: 2.days.ago)
 
       expect { HmisDataCleanup::Util.hard_delete_duplicate_deleted_enrollments! }.to(
         [
