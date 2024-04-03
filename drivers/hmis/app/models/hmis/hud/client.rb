@@ -180,6 +180,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     )
   end
 
+  def masked_name
+    "Client #{id}"
+  end
+
   def enrolled?
     enrollments.any?
   end
