@@ -8,21 +8,6 @@
 
 module Types
   class HmisSchema::Client < Types::BaseObject
-    FIELD_PERMISSIONS_FOR_AUDIT = {
-      'SSN' => :can_view_full_ssn,
-      'DOB' => :can_view_dob,
-      'FirstName' => :can_view_client_name,
-      'MiddleName' => :can_view_client_name,
-      'LastName' => :can_view_client_name,
-      'NameSuffix' => :can_view_client_name,
-    }.freeze
-
-    OBJECT_PERMISSIONS_FOR_AUDIT = {
-      'Hmis::Hud::CustomClientName' => :can_view_client_name,
-      'Hmis::Hud::CustomClientContactPoint' => :can_view_client_contact_info,
-      'Hmis::Hud::CustomClientAddress' => :can_view_client_contact_info,
-    }.freeze
-
     include Types::HmisSchema::HasEnrollments
     include Types::HmisSchema::HasServices
     include Types::HmisSchema::HasIncomeBenefits
@@ -120,8 +105,6 @@ module Types
     scan_card_codes_field
     field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false
     audit_history_field(
-      field_permissions: Types::HmisSchema::Client::FIELD_PERMISSIONS_FOR_AUDIT,
-      object_permissions: Types::HmisSchema::Client::OBJECT_PERMISSIONS_FOR_AUDIT,
       excluded_keys: ['owner_type'],
       filter_args: { omit: [:enrollment_record_type], type_name: 'ClientAuditEvent' },
       # Transform race and gender fields

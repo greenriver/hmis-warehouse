@@ -181,7 +181,7 @@ class Hmis::Role < ::ApplicationRecord
         sub_category: 'Users',
       },
       can_audit_users: {
-        description: 'View audit trail of each HMIS activity for each user. Includes changes that they made, as well as Client records that they accessed.',
+        description: 'View audit trail of each HMIS activity for each user. Includes changes that they made, as well as Client records that they accessed. This permission allows the user to view changes to any client details, including DOB, SSN, and name, even if they don\'t have the specific permissions to view those fields on the Client.',
         administrative: true,
         access: [:viewable],
         category: 'Administration',
@@ -346,7 +346,7 @@ class Hmis::Role < ::ApplicationRecord
         sub_category: 'Access',
       },
       can_audit_clients: {
-        description: 'View audit history for client on the Client Dashboard',
+        description: 'View audit history for client on the Client Dashboard.  This permission allows the user to view changes to any client details, including DOB, SSN, and name, even if they don\'t have the specific permissions to view those fields on the Client.',
         administrative: true,
         access: [:viewable],
         category: 'Client Access',

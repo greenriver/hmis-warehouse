@@ -44,8 +44,6 @@ module Types
       excluded_keys: Types::HmisSchema::Enrollment::EXCLUDED_KEYS_FOR_AUDIT,
       # filter_args: { type_name: 'UserAuditEvent' },
       filter_args: { type_name: 'UserAuditEvent', omit: [:user] },
-      field_permissions: Types::HmisSchema::Client::FIELD_PERMISSIONS_FOR_AUDIT,
-      object_permissions: Types::HmisSchema::Client::OBJECT_PERMISSIONS_FOR_AUDIT,
     )
 
     EXCLUDED_RECORD_TYPES_FOR_AUDIT = ['Hmis::Wip'].freeze
