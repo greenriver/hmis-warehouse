@@ -30,6 +30,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:f1) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag] }
   let!(:f2) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag], confidential: true }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
+  let!(:photo) { create :client_file }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
   let(:query) do
@@ -61,6 +62,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             id
             first
             last
+          }
+          image {
+            id
+            contentType
+            base64
           }
           files {
             nodes {
@@ -122,6 +128,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       # build a version history
       PaperTrail.request(whodunnit: user.id) { c1.update!(first_name: 'test1') }
       PaperTrail.request(whodunnit: user2.id) { c1.update!(first_name: 'test2') }
+      photo.tag_list.add('Client Headshot')
+      photo.save!
+      photo.reload
     end
 
     it 'should return the most recent user' do
@@ -146,6 +155,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       'addresses' => [{ 'line1' => '999 Test Ave' }],
       'phoneNumbers' => [{ 'value' => '5554567891', 'use' => 'home', 'system' => 'phone' }],
       'emailAddresses' => [{ 'value' => 'email@e.mail', 'use' => 'home', 'system' => 'email' }],
+      'image' => {
+        # TODO @MARTHA ???
+      },
     )
   end
 

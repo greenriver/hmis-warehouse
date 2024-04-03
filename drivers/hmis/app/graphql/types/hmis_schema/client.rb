@@ -147,6 +147,7 @@ module Types
       can :view_partial_ssn
       can :view_full_ssn
       can :view_client_name
+      can :view_client_photo
       can :view_dob
       can :view_enrollment_details
       can :edit_enrollments
@@ -240,6 +241,8 @@ module Types
     end
 
     def image
+      return unless current_permission?(permission: :can_view_client_photo, entity: object)
+
       files = load_ar_association(object, :client_files, scope: GrdaWarehouse::ClientFile.client_photos.newest_first)
       file = files.first&.client_file
       file&.download ? file : nil
