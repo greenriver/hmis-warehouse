@@ -496,6 +496,26 @@ module HmisDataCleanup
       # s3.put(file_name: filename, prefix: 'initial-migration')
     end
 
+    def self.write_duplicate_custom_assessments(file_name: "#{Date.current.strftime('%Y-%m-%d')}_duplicate_custom_assessments.txt")
+      data_source = GrdaWarehouse::DataSource.hmis.first.id
+      dupes = HmisDataCleanup::DuplicateRecordsReport.new.duplicate_custom_assessments(data_source)
+      File.open(file_name, 'w') do |file|
+        dupes.each do |row|
+          file.puts row.join(',')
+        end
+      end
+    end
+
+    def self.write_duplicate_custom_services(file_name: "#{Date.current.strftime('%Y-%m-%d')}_duplicate_custom_services.txt")
+      data_source = GrdaWarehouse::DataSource.hmis.first.id
+      dupes = HmisDataCleanup::DuplicateRecordsReport.new.duplicate_custom_services(data_source)
+      File.open(file_name, 'w') do |file|
+        dupes.each do |row|
+          file.puts row.join(',')
+        end
+      end
+    end
+
     # Method for restoring enrollments that were deleted in an import.
     # Probably needs to be called in batches, depending on the size of the enrollment scope.
     def restore_deleted_enrollments!(enrollments_to_restore, conflict_set: nil, dry_run: false)
