@@ -31,7 +31,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:f2) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag], confidential: true }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
   let!(:photo_tag) { create :available_file_tag, consent_form: false, name: 'Client Headshot' }
-  let!(:photo) { create :client_file, client: c1.as_warehouse, tags: [photo_tag] }
+  let!(:photo) { create :client_file, client: c1.as_warehouse, name: 'Client Headshot Cache', tags: [photo_tag] }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
   let(:query) do
@@ -137,6 +137,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(result.dig('data', 'client', 'user', 'id')).to eq user2.id.to_s
       expect(result.dig('data', 'client', 'user', 'name')).to eq [user2.first_name, user2.last_name].join(' ')
     end
+  end
+
+  it 'should tag the photo correctly' do
+    expect(photo.tag_list).to include(photo_tag.id.to_s)
+    expect(GrdaWarehouse::ClientFile.client_photos).not_to be_empty
   end
 
   it 'should return client if viewable' do
