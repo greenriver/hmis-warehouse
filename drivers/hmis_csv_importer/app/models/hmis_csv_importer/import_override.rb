@@ -14,6 +14,13 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     order(:file_name, :matched_hud_key)
   end
 
+  def self.file_name_keys
+    available_classes.map do |file_name, data|
+      model = data[:model]
+      [file_name, { key: model.hud_key, columns: model.hmis_configuration(version: '2024').keys.map(&:to_s).sort - [model.hud_key] }]
+    end.to_h
+  end
+
   def self.available_classes
     Importers::HmisAutoMigrate.available_migrations.values.last.constantize::TRANSFORM_TYPES
   end
@@ -41,7 +48,7 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     # We either have the right HUD Key, or the right source value, or both
     # or we weren't looking for anything specific
     # Just replace the data
-    row[replaces_column] = replacement_value
+    row[replaces_column] = replacement_value == ':NULL:' ? nil : replacement_value
 
     row
   end
@@ -78,7 +85,7 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
   end
 
   def describe_with
-    replacement_value
+    replacement_value == ':NULL:' ? nil : replacement_value
   end
 
   def describe_when
