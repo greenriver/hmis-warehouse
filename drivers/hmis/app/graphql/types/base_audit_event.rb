@@ -54,8 +54,6 @@ module Types
 
     def client_name
       client = load_ar_association(object, :hmis_client)
-      return client&.masked_name unless current_permission?(permission: :can_view_client_name, entity: client)
-
       client&.full_name
     end
 
