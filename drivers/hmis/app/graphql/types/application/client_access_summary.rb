@@ -14,8 +14,7 @@ module Types
     field :client_name, String, null: true
 
     def client_name
-      return client&.masked_name unless current_permission?(permission: :can_view_client_name, entity: client)
-
+      # not checking for name permission access, because can_audit_users is required here
       client&.brief_name
     end
 
