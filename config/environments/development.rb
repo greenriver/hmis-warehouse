@@ -38,7 +38,7 @@ Rails.application.configure do
 
     cache_ssl = (ENV.fetch('CACHE_SSL') { 'false' }) == 'true'
     cache_namespace = "#{ENV.fetch('CLIENT')}-#{Rails.env}-hmis"
-    redis_config = Rails.application.config_for(:cache_store).merge({ expires_in: 5.minutes, raise_errors: false, ssl: cache_ssl, namespace: cache_namespace })
+    redis_config = Rails.application.config_for(:cache_store).merge({ expires_in: 5.minutes, race_condition_ttl: 1.minute, ssl: cache_ssl, namespace: cache_namespace })
     config.cache_store = :redis_cache_store, redis_config
   end
 
