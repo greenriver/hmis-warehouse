@@ -41,7 +41,8 @@ $(function () {
       url: presignUrl,
       type: 'GET',
       contentType: 'application/json',
-      data: JSON.stringify({ captchaToken: captchaToken }),
+      data: { captchaToken: captchaToken },
+      dataType: 'json', // needed because the server responds with content-type text/plain instead of json
       success: function (data) {
         // Submit the JSON data to the presigned URL
         $.ajax({

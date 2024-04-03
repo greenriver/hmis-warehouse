@@ -47,9 +47,10 @@ set -e
 # Clone the specific branch from the repository
 git clone --depth 1 --branch "$BRANCH_NAME" "$REPO_URL" .
 
+CWD=$(pwd)
 yarn config set ignore-engines true
-yarn install
-yarn build
+yarn --cwd $CWD install
+yarn --cwd $CWD build
 
 # unset fails on exit
 set +e
@@ -58,7 +59,7 @@ set +e
 HOSTNAME=`hostname`
 
 # Start in the background
-SERVER_HTTPS=false HMIS_SERVER_URL="http://localhost:4444" HMIS_HOST=$HOSTNAME yarn preview &
+SERVER_HTTPS=false HMIS_SERVER_URL="http://localhost:4444" HMIS_HOST=$HOSTNAME yarn --cwd $CWD preview &
 SERVER_PID=$!
 sleep 5
 
