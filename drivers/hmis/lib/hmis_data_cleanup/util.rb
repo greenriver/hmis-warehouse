@@ -209,7 +209,7 @@ module HmisDataCleanup
         end
 
         Rails.logger.info "Deleting duplicate ids: #{enrollments_to_delete.inspect}"
-        GrdaWarehouse::Hud::Enrollment.with_deleted.where(id: enrollments_to_delete.map(&:id)).delete_all
+        GrdaWarehouse::Hud::Enrollment.only_deleted.where(id: enrollments_to_delete.map(&:id)).delete_all
       end
     end
 
