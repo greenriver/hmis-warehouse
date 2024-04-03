@@ -221,7 +221,7 @@ class Hmis::Role < ::ApplicationRecord
         sub_category: 'Access',
       },
       can_view_client_name: {
-        description: 'Access to view Client Name.',
+        description: 'Access to view client names',
         administrative: false,
         access: [:viewable],
         category: 'Client Access',
