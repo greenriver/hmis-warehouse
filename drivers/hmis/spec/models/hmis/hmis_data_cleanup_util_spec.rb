@@ -209,6 +209,54 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     end
   end
 
+  context 'with duplicate custom assessments' do
+    let(:form_definition) { create(:hmis_form_definition) }
+    let(:cded) { create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomAssessment') }
+    let!(:today) { Date.current }
+
+    let!(:not_dupe) do
+      create(:hmis_custom_assessment, client: e1.client, enrollment: e1, AssessmentDate: today, definition: form_definition).tap do |ca|
+        create(:hmis_custom_data_element, data_element_definition: cded, owner: ca, value_string: 'test1')
+      end
+    end
+    let!(:dupes) do
+      2.times.map do
+        create(:hmis_custom_assessment, client: e1.client, enrollment: e1, AssessmentDate: today, definition: form_definition) do |ca|
+          create(:hmis_custom_data_element, data_element_definition: cded, owner: ca, value_string: 'test2')
+        end
+      end
+    end
+
+    it 'identifies duplicates' do
+      results = HmisDataCleanup::DuplicateRecordsReport.new.duplicate_custom_assessments(hmis_ds)
+      expect(results).to contain_exactly(dupes.map(&:id))
+    end
+  end
+
+  context 'with duplicate custom services' do
+    let(:custom_service_type) { create(:hmis_custom_service_type) }
+    let(:cded) { create(:hmis_custom_data_element_definition, owner_type: 'Hmis::Hud::CustomService') }
+    let!(:today) { Date.current }
+
+    let!(:not_dupe) do
+      create(:hmis_custom_service, client: e1.client, enrollment: e1, DateProvided: today, custom_service_type: custom_service_type).tap do |cs|
+        create(:hmis_custom_data_element, data_element_definition: cded, owner: cs, value_string: 'test1')
+      end
+    end
+    let!(:dupes) do
+      2.times.map do
+        create(:hmis_custom_service, client: e1.client, enrollment: e1, DateProvided: today, custom_service_type: custom_service_type) do |cs|
+          create(:hmis_custom_data_element, data_element_definition: cded, owner: cs, value_string: 'test2')
+        end
+      end
+    end
+
+    it 'identifies duplicates' do
+      results = HmisDataCleanup::DuplicateRecordsReport.new.duplicate_custom_services(hmis_ds)
+      expect(results).to contain_exactly(dupes.map(&:id))
+    end
+  end
+
   context 'enrollments with incorrect EnrollmentCoCs' do
     before(:each) do
       e1.update(enrollment_coc: 'MA-500')
