@@ -269,35 +269,36 @@ module Types
     end
 
     def first_name
-      return object.masked_name unless current_permission?(permission: :can_view_client_name, entity: object)
+      return object.masked_name unless can_view_name
 
       object.first_name
     end
 
     def middle_name
-      object.middle_name if current_permission?(permission: :can_view_client_name, entity: object)
+      object.middle_name if can_view_name
     end
 
     def last_name
-      object.last_name if current_permission?(permission: :can_view_client_name, entity: object)
+      object.last_name if can_view_name
     end
 
     def name_suffix
-      object.name_suffix if current_permission?(permission: :can_view_client_name, entity: object)
+      object.name_suffix if can_view_name
     end
 
     def names
-      unless current_permission?(permission: :can_view_client_name, entity: object)
-        return [
-          object.names.new(first: object.masked_name),
-        ]
-      end
+      # initialize a dummy CustomClientName with masked name
+      return [object.names.new(first: object.masked_name)] unless can_view_name
 
       names = load_ar_association(object, :names)
       return names unless names.empty?
 
       # If client has no CustomClientNames, construct one based on the HUD Client name fields
       [object.build_primary_custom_client_name]
+    end
+
+    private def can_view_name
+      current_permission?(permission: :can_view_client_name, entity: object)
     end
 
     def contact_points
