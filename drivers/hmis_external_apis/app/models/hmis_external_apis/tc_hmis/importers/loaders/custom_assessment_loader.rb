@@ -115,7 +115,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         end
 
         assessment_hud_key = row_assessment_id(row)
-        if @existing_assessment_hud_keys.include?(assessment_hud_key)
+        if existing_assessment_hud_keys.include?(assessment_hud_key)
           # should only happen if clobber:false
           log_info "Skipping CustomAssessmentID that has already been imported: #{assessment_hud_key}"
           next
