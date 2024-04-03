@@ -17,6 +17,7 @@
           %th Bed Inventory
           %th CoC Code
           %th
+          %th{style: "width: 12em"}
 
       %tbody
         - inventories.all.each do |inventory|
@@ -24,6 +25,8 @@
             %td
               - if can_see_raw_hmis_data? && !inventory.manual_entry?
                 = link_to 'HMIS', source_datum_path(inventory.id, type: 'Inventory'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
+              - if HmisCsvImporter::ImportOverride.any_apply?(inventory)
+                %i.icon-info{data: {toggle: :tooltip, title: "Overrides Active"}}
             %td= inventory.InventoryID
             %td= HudUtility2024.availability(inventory.Availability)
             %td
@@ -42,5 +45,10 @@
                   = link_to manual_hmis_data_inventory_path(inventory), method: :delete, class: 'btn btn-sm btn-secondary btn-danger mb-1', data: {confirm: 'Do you really want to remove this manually entered Inventory'}  do
                     %i.icon-cross
                     Remove
+            %td
+              %div.show-on-row-hover
+                = link_to new_hmis_csv_importer_data_source_import_override_path(inventory.data_source.id, file_type: 'Inventory.csv', hmis_value: inventory.InventoryID), class: 'btn btn-sm btn-secondary' do
+                  %i.icon-plus
+                  Add Override
   - else
     %h4.text-center No inventory

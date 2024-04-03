@@ -15,12 +15,15 @@
           %th Grant ID
           - if RailsDrivers.loaded.include?(:manual_hmis_data)
             %th
+          %th{style: "width: 12em"}
       %tbody
         - funders.each do |funder|
           %tr
             %td
               - if can_see_raw_hmis_data? && !funder.manual_entry?
                 = link_to 'HMIS', source_datum_path(funder.id, type: 'Funder'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
+              - if HmisCsvImporter::ImportOverride.any_apply?(funder)
+                %i.icon-info{data: {toggle: :tooltip, title: "Overrides Active"}}
             %td= funder.FunderID
             %td
               = HudUtility2024.funding_source funder.Funder.to_i
@@ -36,5 +39,10 @@
                   Remove
             - else
               %td
+            %td
+              %div.show-on-row-hover                
+                = link_to new_hmis_csv_importer_data_source_import_override_path(funder.data_source.id, file_type: 'Funder.csv', hmis_value: funder.FunderID), class: 'btn btn-sm btn-secondary' do
+                  %i.icon-plus
+                  Add Override
   - else
     %h4.text-center No funding sources

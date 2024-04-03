@@ -39,6 +39,11 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     ]
   end
 
+  def self.any_apply?(row)
+    overrides = HmisCsvImporter::ImportOverride.where(data_source: row.data_source).sorted.select { |override| override.applies?(row) }
+    overrides.any?
+  end
+
   # Accepts either an object based on GrdaWarehouse::Hud::Base, or a has of attributes with string keys
   # Returns same object with overides applied
   # NOTE: this does not save the object

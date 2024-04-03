@@ -16,12 +16,15 @@
           %th Geocode
           %th Geography Type
           %th
+          %th{style: "width: 12em"}
       %tbody
         - project_cocs.all.each do |p_coc|
           %tr
             %td
               - if can_see_raw_hmis_data? && !p_coc.manual_entry?
                 = link_to 'HMIS', source_datum_path(p_coc.id, type: 'ProjectCoC'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
+              - if HmisCsvImporter::ImportOverride.any_apply?(p_coc)
+                %i.icon-info{data: {toggle: :tooltip, title: "Overrides Active"}}
             %td= p_coc.ProjectCoCID
             %td
               = p_coc.CoCCode
@@ -40,5 +43,10 @@
                   = link_to manual_hmis_data_project_coc_path(p_coc), method: :delete, class: 'btn btn-sm btn-secondary btn-danger mb-1', data: {confirm: 'Do you really want to remove this manually entered Inventory'}  do
                     %i.icon-cross
                     Remove
+            %td
+              %div.show-on-row-hover
+                = link_to new_hmis_csv_importer_data_source_import_override_path(p_coc.data_source.id, file_type: 'ProjectCoC.csv', hmis_value: p_coc.ProjectCoCID), class: 'btn btn-sm btn-secondary' do
+                  %i.icon-plus
+                  Add Override
   - else
     %h4.text-center No sites
