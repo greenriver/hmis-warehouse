@@ -31,3 +31,14 @@ module CarrierWave
     end
   end
 end
+# FIX for CVE-2024-29034
+CarrierWave::SanitizedFile.class_eval do
+  def content_type
+    return @content_type if @content_type
+    if @file.respond_to?(:content_type) and @file.content_type
+      @content_type = Marcel::MimeType.for(declared_type: @file.content_type.to_s.chomp)
+    elsif path
+      @content_type = ::MIME::Types.type_for(path).first.to_s
+    end
+  end
+end
