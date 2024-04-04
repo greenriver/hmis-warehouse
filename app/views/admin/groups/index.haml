@@ -36,5 +36,11 @@
                     %span.icon-cross
                     Delete
     = render 'common/pagination_bottom', item_name: 'group'
+    -# START_ACL remove this after permission migration is complete
+    -# Placing this here since Groups will be removed after a full transition to Access Controls
+    -# this download is only useful prior to the transtion
+    .mt-4
+      = link_to 'Download Access Summary', download_admin_groups_path(format: :xlsx), class: 'btn btn-secondary'
+    -# END_ACL
   - else
     .none-found No groups found.
