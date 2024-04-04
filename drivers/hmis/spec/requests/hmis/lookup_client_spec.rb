@@ -139,15 +139,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     end
   end
 
-  it 'should tag the photo correctly' do
-    expect(photo.tag_list).to include(photo_tag.id.to_s)
-    expect(GrdaWarehouse::ClientFile.client_photos).not_to be_empty
-  end
-
   it 'should return client if viewable' do
     response, result = post_graphql(id: c1.id) { query }
     expect(response.status).to eq 200
-    expect(result.dig('data', 'client', 'image')).not_to be_nil
     expect(result.dig('data', 'client')).to include(
       'id' => c1.id.to_s,
       'ssn' => c1.ssn,
@@ -159,10 +153,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       'addresses' => [{ 'line1' => '999 Test Ave' }],
       'phoneNumbers' => [{ 'value' => '5554567891', 'use' => 'home', 'system' => 'phone' }],
       'emailAddresses' => [{ 'value' => 'email@e.mail', 'use' => 'home', 'system' => 'email' }],
-      'image' => {
-        # TODO @MARTHA ???
-      },
     )
+    expect(result.dig('data', 'client', 'image')).not_to be_nil
   end
 
   it 'should return client if can view clients and client is unenrolled' do

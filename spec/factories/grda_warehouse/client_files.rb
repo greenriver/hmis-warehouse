@@ -11,7 +11,7 @@ FactoryBot.define do
     visible_in_window { true }
 
     before(:create) do |file, evaluator|
-      file.tag_list = evaluator.tags.map(&:id)
+      file.tag_list = evaluator.tags.map(&:name)
     end
   end
 
