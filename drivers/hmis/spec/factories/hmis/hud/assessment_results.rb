@@ -5,11 +5,9 @@
 ###
 
 FactoryBot.define do
-  factory :hmis_assessment_result, class: 'Hmis::Hud::AssessmentResult' do
+  factory :hmis_assessment_result, class: 'Hmis::Hud::AssessmentResult', parent: :hmis_base_factory do
     sequence(:AssessmentResultID, 500)
-    data_source { association :hmis_data_source }
     assessment { association :hmis_hud_assessment, data_source: data_source }
-    user { association :hmis_hud_user, data_source: data_source }
     client { association :hmis_hud_client, data_source: data_source }
     enrollment { association :hmis_hud_enrollment, data_source: data_source, client: client }
     assessment_result_type { 'Result Type' }

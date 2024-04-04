@@ -14,6 +14,8 @@
     = render 'boston'
   - elsif GrdaWarehouse::Config.get(:cas_calculator) == 'GrdaWarehouse::CasProjectClientCalculator::TcHat'
     = render 'tc_hat'
+  - elsif GrdaWarehouse::Config.get(:cas_calculator) == 'GrdaWarehouse::CasProjectClientCalculator::TcHmisHat'
+    = render 'tc_hat'
   - elsif GrdaWarehouse::Config.get(:cas_calculator) == 'GrdaWarehouse::CasProjectClientCalculator::Mdha'
     = render 'mdha'
   - else
