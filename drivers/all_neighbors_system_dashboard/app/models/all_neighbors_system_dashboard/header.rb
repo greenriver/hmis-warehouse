@@ -61,8 +61,17 @@ module AllNeighborsSystemDashboard
     def returned_percent
       return 0 if housed_count.zero?
 
-      percent = ((returned_total_scope.select(Enrollment.arel_table[:return_date]).count / housed_count.to_f) * 100).round
+      percent = ((returned_total_scope.select(Enrollment.arel_table[:return_date]).count / housed_and_exited_count.to_f) * 100).round
       "#{percent}%"
+    end
+
+    def housed_and_exited_count
+      @housed_and_exited_count ||= begin
+        scope = housed_total_scope.where.not(exit_date: nil)
+        # Enforce the same project limits as the subsequent charts
+        scope = filter_for_type(scope, 'All')
+        scope.select(:destination_client_id).count
+      end
     end
   end
 end
