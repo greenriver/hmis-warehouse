@@ -16,7 +16,7 @@
           %td= service.project.name
           %td= service.enrollment.entry_date
           %td= service.date_provided
-          %td= service.service_type.custom_service_category.name == service.service_name ? service.service_name : "#{service.service_type.custom_service_category.name} - #{service.service_name}"
+          %td= service.display_name
           %td.text-right
             - if @client.hmis_source_visible_by?(current_user)
               = link_to 'HMIS', source_datum_path(service.enrollment.id, type: 'Enrollment'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'

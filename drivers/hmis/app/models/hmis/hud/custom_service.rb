@@ -38,6 +38,12 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
     date_provided.between?(range.begin, range.end)
   end
 
+  def display_name
+    return service_name if service_type.custom_service_category.name == service_name
+
+    "#{service_type.custom_service_category.name} - #{service_name}"
+  end
+
   private def set_service_name
     return if service_name.present?
 
