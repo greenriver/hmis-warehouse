@@ -14,6 +14,13 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     order(:file_name, :matched_hud_key)
   end
 
+  def self.file_name_keys
+    available_classes.map do |file_name, data|
+      model = data[:model]
+      [file_name, { key: model.hud_key, columns: model.hmis_configuration(version: '2024').keys.map(&:to_s).sort - [model.hud_key] }]
+    end.to_h
+  end
+
   def self.available_classes
     Importers::HmisAutoMigrate.available_migrations.values.last.constantize::TRANSFORM_TYPES
   end
@@ -32,6 +39,19 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     ]
   end
 
+  # Accepts an object or hash representing the item that might be overridden
+  # and an optional set of overrides to check.
+  # If you are checking many rows at a time, you may want to pass in the overrides
+  # so that you can calculate them only once.
+  def self.any_apply?(row, overrides = nil)
+    overrides ||= HmisCsvImporter::ImportOverride.
+      where(data_source: row.data_source).
+      sorted
+
+    applied_overrides = overrides.to_a.select { |override| override.applies?(row) }
+    applied_overrides.any?
+  end
+
   # Accepts either an object based on GrdaWarehouse::Hud::Base, or a has of attributes with string keys
   # Returns same object with overides applied
   # NOTE: this does not save the object
@@ -41,7 +61,7 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     # We either have the right HUD Key, or the right source value, or both
     # or we weren't looking for anything specific
     # Just replace the data
-    row[replaces_column] = replacement_value
+    row[replaces_column] = replacement_value == ':NULL:' ? nil : replacement_value
 
     row
   end
@@ -77,8 +97,20 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     end
   end
 
+  def describe_apply
+    # build a more human readable description of the override when applied.
+    with_clause = describe_with
+    with_clause = 'removed' if with_clause.nil?
+    with_clause = 'replaced with ' + with_clause unless describe_with.nil?
+
+    when_clause = 'where ' + describe_when
+    when_clause = 'for all associated records' if describe_when == 'always'
+
+    "#{replaces_column} has been #{with_clause} #{when_clause}."
+  end
+
   def describe_with
-    replacement_value
+    replacement_value == ':NULL:' ? nil : replacement_value
   end
 
   def describe_when
@@ -105,5 +137,12 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
       applies?(row)
     end.map(&:ProjectID)
     GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids).to_a
+  end
+
+  def apply_to_warehouse
+    scope = associated_class.where(data_source_id: data_source_id)
+    scope = scope.where(associated_class.hud_key => matched_hud_key) if matched_hud_key.present?
+    scope = scope.where(replaces_column => replaces_value) if replaces_value.present?
+    scope.update_all(replaces_column => replacement_value)
   end
 end
