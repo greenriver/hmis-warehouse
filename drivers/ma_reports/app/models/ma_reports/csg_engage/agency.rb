@@ -5,16 +5,8 @@
 ###
 
 module MaReports::CsgEngage
-  class Expense < Base
-    attr_accessor :base
-
-    def initialize(base)
-      @base = base
-    end
-
-    field('Annually')
-    field('Code')
-    field('Description')
-    field('PayeeName')
+  class Agency < GrdaWarehouseBase
+    self.table_name = :csg_engage_agencies
+    has_many :program_mappings, class_name: 'MaReports::CsgEngage::ProgramMapping'
   end
 end

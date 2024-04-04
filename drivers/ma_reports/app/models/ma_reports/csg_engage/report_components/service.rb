@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module MaReports::CsgEngage
+module MaReports::CsgEngage::ReportComponents
   class Service < Base
     attr_accessor :service
 

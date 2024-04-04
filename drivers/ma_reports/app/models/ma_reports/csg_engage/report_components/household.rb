@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module MaReports::CsgEngage
+module MaReports::CsgEngage::ReportComponents
   class Household < Base
     attr_accessor :hoh_enrollment
 
@@ -24,7 +24,8 @@ module MaReports::CsgEngage
       field('EmergencyContactName')
       field('EmergencyContactPhone')
       field('Floor')
-      field('Homeless (not Household Type)') { boolean_string(hoh_enrollment.living_situation == 1) }
+      # field('Homeless (not Household Type)') { boolean_string(hoh_enrollment.living_situation == 1) }
+      field('Homeless (not Household Type)')
       field('HomePhone')
       field('House #')
       field('SecondaryNumber')
@@ -42,9 +43,13 @@ module MaReports::CsgEngage
       field('Employee')
       field('Extra-Sensitive')
       field('Farmer')
-      field('FoodStamps')
+      field('FoodStamps') do
+        @enrollments_scope.any? { |enrollment| enrollment.income_benefits.max_by(&:information_date)&.SNAP == 1 }
+      end
       field('Household Type')
-      field('Housing Subsidy Type')
+      field('Housing Subsidy Type') do
+        # TODO: Mapping work
+      end
       field('Housing Type')
       field('HousingType', method: :housing_type_2)
       field('MigrantFarmer')
@@ -74,7 +79,7 @@ module MaReports::CsgEngage
       result = []
       number = 1
       enrollments_scope.order(:personal_id).find_each do |enrollment|
-        result << MaReports::CsgEngage::HouseholdMember.new(enrollment, number)
+        result << MaReports::CsgEngage::ReportComponents::HouseholdMember.new(enrollment, number)
         number += 1
       end
       result
@@ -83,7 +88,7 @@ module MaReports::CsgEngage
     private
 
     def enrollments_scope
-      GrdaWarehouse::Hud::Enrollment.where(
+      @enrollments_scope ||= GrdaWarehouse::Hud::Enrollment.where(
         project_id: hoh_enrollment.project_id,
         household_id: hoh_enrollment.household_id,
       ).preload(:income_benefits, :services)

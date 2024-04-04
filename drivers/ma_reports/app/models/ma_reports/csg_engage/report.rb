@@ -5,30 +5,22 @@
 ###
 
 module MaReports::CsgEngage
-  class Report < Base
-    attr_accessor :agency_id, :project_scope
+  class Report < GrdaWarehouseBase
+    self.table_name = :csg_engage_reports
 
-    def initialize(project_scope, agency_id: 35)
-      @agency_id = agency_id
-      @project_scope = project_scope
+    def self.build_from_scope(program_mapping_scope = ProgramMapping.all)
+      create(project_ids: program_mapping_scope.pluck(:project_id))
     end
 
-    field('AgencyID') { @agency_id }
-    field('Data Type') { 'Households' }
-    field('Action') { 'Import' }
-
-    field('Programs') do
-      report_project_scope.map do |project|
-        MaReports::CsgEngage::Program.new(project)
-      end
+    def program_mappings
+      MaReports::CsgEngage::ReportComponents::Report.preloaded_program_mappings(ProgramMapping.where(project_id: project_ids))
     end
 
-    private
+    def run
+      update(started_at: Time.zone.now, failed_at: nil, completed_at: nil)
 
-    def report_project_scope
-      project_scope.
-        preload(:project_cocs).
-        preload(enrollments: [:income_benefits, :services])
+      # TODO: Handle external calls
+      program_mappings.map { |pm| MaReports::CsgEngage::ReportComponents::Report.new(pm) }
     end
   end
 end

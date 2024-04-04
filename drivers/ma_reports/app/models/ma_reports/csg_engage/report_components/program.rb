@@ -4,27 +4,31 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module MaReports::CsgEngage
+module MaReports::CsgEngage::ReportComponents
   class Program < Base
-    attr_accessor :project
+    attr_accessor :program_mapping
 
-    def initialize(project)
-      @project = project
+    def initialize(program_mapping)
+      @program_mapping = program_mapping
       @now = DateTime.current
     end
 
-    field('Program Name') { project.project_name }
-    field('Import Keyword') { project.project_id }
+    field('Program Name') { program_mapping.csg_engage_name }
+    field('Import Keyword') { program_mapping.csg_engage_import_keyword }
 
     field('Households') do
       result = []
       households_scope.find_each do |enrollment|
-        result << MaReports::CsgEngage::Household.new(enrollment)
+        result << MaReports::CsgEngage::ReportComponents::Household.new(enrollment)
       end
       result
     end
 
     private
+
+    def project
+      @project ||= program_mapping.project
+    end
 
     def households_scope
       project.enrollments.heads_of_households.preload(project: [:project_cocs])

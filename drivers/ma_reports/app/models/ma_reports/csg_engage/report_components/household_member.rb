@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module MaReports::CsgEngage
+module MaReports::CsgEngage::ReportComponents
   class HouseholdMember < Base
     attr_accessor :enrollment, :number
 
@@ -32,8 +32,8 @@ module MaReports::CsgEngage
       field('MI') { client.middle_name&.first }
       field('MobilePhone')
       field('Preferred Contact Method')
-      field('Race 1/Ethnicity 1', method: :race_ethnicity)
-      field('Race 2/Ethnicity 2')
+      field('Race 1/Ethnicity 1', method: :race_ethnicity_1)
+      field('Race 2/Ethnicity 2', method: :race_ethnicity_2)
       field('SocialSecurity') { client.ssn }
       field('Suffix') { client.name_suffix }
     end
@@ -48,11 +48,13 @@ module MaReports::CsgEngage
       end
       field('Education Level')
       field('EITC')
-      field('Health Insurance Source')
+      field('Health Insurance Source') do
+        # TODO: Make mapping
+      end
       field('In School, age 0-24')
       field('Insurance') { boolean_string(latest_income_benefit&.InsuranceFromAnySource == 1) }
       field('InsuranceSecondary')
-      field('Military Status')
+      field('Military Status') { client.veteran_status == 1 ? '1' : nil }
       field('Non-Cash Benefits - ACA Subsidy')
       field('Non-Cash Benefits - Childcare Voucher')
       field('Non-Cash Benefits - LIHEAP')
@@ -87,8 +89,8 @@ module MaReports::CsgEngage
       ].map do |field, amount_field, attrs|
         next unless latest_income_benefit.send(field) == 1
 
-        MaReports::CsgEngage::Income.new(
-          amount: latest_income_benefit.send(amount_field),
+        MaReports::CsgEngage::ReportComponents::Income.new(
+          amount: latest_income_benefit.send(amount_field).to_i * 12,
           **attrs,
         )
       end.compact
@@ -98,7 +100,7 @@ module MaReports::CsgEngage
 
     field('Services') do
       enrollment.services.map do |service|
-        MaReports::CsgEngage::Service.new(service)
+        MaReports::CsgEngage::ReportComponents::Service.new(service)
       end
     end
 
@@ -117,9 +119,38 @@ module MaReports::CsgEngage
       end
     end
 
-    def race_ethnicity
-      positive_fields = race_fields.select { |k, v| k != 'HispanicLatinaeo' && v == 1 }.keys
+    def race_ethnicity_1
+      race_fields = defined_race_fields
+      if race_fields.count == 2
+        map_race_ethnicity([race_fields.first])
+      else
+        map_race_ethnicity(race_fields)
+      end
+    end
 
+    def race_ethnicity_2
+      race_fields = defined_race_fields
+      map_race_ethnicity([race_fields.second]) if race_fields.count == 2
+    end
+
+    private
+
+    def ethnicity_code(not_latino_value, latino_value, unknown_value)
+      case client.HispanicLatinaeo
+      when 1
+        latino_value
+      when 0
+        not_latino_value
+      else
+        unknown_value
+      end
+    end
+
+    def defined_race_fields
+      race_fields.select { |k, v| k != 'HispanicLatinaeo' && v == 1 }.keys.sort
+    end
+
+    def map_race_ethnicity(positive_fields)
       if positive_fields == ['AmIndAKNative']
         ethnicity_code('A', 'B', 'R')
       elsif positive_fields == ['Asian']
@@ -139,19 +170,6 @@ module MaReports::CsgEngage
       # Unknown race
       else
         ethnicity_code('O', 'P', 'W')
-      end
-    end
-
-    private
-
-    def ethnicity_code(not_latino_value, latino_value, unknown_value)
-      case client.HispanicLatinaeo
-      when 1
-        latino_value
-      when 0
-        not_latino_value
-      else
-        unknown_value
       end
     end
 

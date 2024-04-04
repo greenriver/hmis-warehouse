@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module MaReports::CsgEngage
+module MaReports::CsgEngage::ReportComponents
   class Base
     class << self
       attr_writer :fields
@@ -61,7 +61,7 @@ module MaReports::CsgEngage
     end
 
     def serialize_value(value)
-      value = value.serialize if value.is_a?(MaReports::CsgEngage::Base)
+      value = value.serialize if value.is_a?(MaReports::CsgEngage::ReportComponents::Base)
       value = value.map { |v| serialize_value(v) } if value.is_a?(Array)
       value
     end

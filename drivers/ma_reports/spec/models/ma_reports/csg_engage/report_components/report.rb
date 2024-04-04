@@ -6,7 +6,7 @@
 
 require 'rails_helper'
 
-RSpec.describe MaReports::CsgEngage::Report, type: :model do
+RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
   before(:all) do
     cleanup_test_environment
   end
@@ -19,21 +19,24 @@ RSpec.describe MaReports::CsgEngage::Report, type: :model do
   let!(:o1) { create :hud_organization, data_source: ds }
   let!(:p1) { create :hud_project, data_source: ds, organization: o1 }
   let!(:e1) { create :hud_enrollment, data_source: ds, project: p1, client: c1, relationship_to_hoh: 1, household_id: '123' }
+  let!(:coc1) { create :hud_project_coc, data_source: ds, project_id: p1.project_id, state: 'MA' }
+  let(:a) { create :csg_engage_agency }
+  let(:pm) { create :csg_engage_program_mapping, project: p1, agency: a }
 
   describe 'structure tests' do
     it 'should have the right structure' do
-      report = MaReports::CsgEngage::Report.new(GrdaWarehouse::Hud::Project.where(id: p1.id), agency_id: 999)
+      report = MaReports::CsgEngage::ReportComponents::Report.new(pm)
       result = nil
       expect { result = report.serialize }.not_to raise_error
 
       expect(result).to include(
-        'AgencyID' => 999,
+        'AgencyID' => a.csg_engage_agency_id,
         'Data Type' => 'Households',
         'Action' => 'Import',
         'Programs' => contain_exactly(
           include(
-            'Program Name' => p1.project_name,
-            'Import Keyword' => p1.project_id,
+            'Program Name' => pm.csg_engage_name,
+            'Import Keyword' => pm.csg_engage_import_keyword,
             'Households' => contain_exactly(
               include(
                 'Household Identifier' => e1.household_id,
@@ -73,7 +76,7 @@ RSpec.describe MaReports::CsgEngage::Report, type: :model do
       ].each do |attrs, expected|
         it "should have the right value (#{expected}) for values: #{attrs}" do
           c1.update!(**HudUtility2024.gender_id_to_field_name.values.uniq.map { |v| [v, 0] }.to_h, **attrs)
-          result = MaReports::CsgEngage::Report.new(GrdaWarehouse::Hud::Project.where(id: p1.id)).serialize
+          result = MaReports::CsgEngage::ReportComponents::Report.new(pm).serialize
           expect(result.dig('Programs', 0, 'Households', 0, 'Household Members', 0, 'Household Member', 'Gender')).to eq(expected)
         end
       end
@@ -99,7 +102,7 @@ RSpec.describe MaReports::CsgEngage::Report, type: :model do
         ].each do |latino_val, expected|
           it "should have the right value (#{expected}) for ethnicity #{latino_val} and race: #{attrs}" do
             c1.update!(**HudUtility2024.race_id_to_field_name.values.uniq.map { |v| [v, 0] }.to_h, **attrs, HispanicLatinaeo: latino_val)
-            result = MaReports::CsgEngage::Report.new(GrdaWarehouse::Hud::Project.where(id: p1.id)).serialize
+            result = MaReports::CsgEngage::ReportComponents::Report.new(pm).serialize
             expect(result.dig('Programs', 0, 'Households', 0, 'Household Members', 0, 'Household Member', 'Race 1/Ethnicity 1')).to eq(expected)
           end
         end
