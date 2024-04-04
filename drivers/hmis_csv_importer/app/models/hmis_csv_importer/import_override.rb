@@ -89,6 +89,18 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     end
   end
 
+  def describe_apply
+    # build a more human readable description of the override when applied.
+    with_clause = describe_with
+    with_clause = 'removed' if with_clause.nil?
+    with_clause = 'replaced with ' + with_clause unless describe_with.nil?
+
+    when_clause = 'where ' + describe_when
+    when_clause = 'for all associated records' if describe_when == 'always'
+
+    "#{replaces_column} has been #{with_clause} #{when_clause}."
+  end
+
   def describe_with
     replacement_value == ':NULL:' ? nil : replacement_value
   end
@@ -117,5 +129,12 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
       applies?(row)
     end.map(&:ProjectID)
     GrdaWarehouse::Hud::Project.where(data_source_id: data_source_id, ProjectID: project_ids).to_a
+  end
+
+  def apply_to_warehouse
+    scope = associated_class.where(data_source_id: data_source_id)
+    scope = scope.where(associated_class.hud_key => matched_hud_key) if matched_hud_key.present?
+    scope = scope.where(replaces_column => replaces_value) if replaces_value.present?
+    scope.update_all(replaces_column => replacement_value)
   end
 end
