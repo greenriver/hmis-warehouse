@@ -26,7 +26,7 @@
         %td= override.describe_when
         - if defined?(can_apply_override) && can_apply_override
           %td
-            = link_to apply_hmis_csv_importer_data_source_import_override_path(data_source, override), method: :patch, class: 'btn btn-sm btn-info', data: { confirm: 'Are you sure you want to?'} do
+            = link_to apply_hmis_csv_importer_data_source_import_override_path(data_source, override), method: :patch, class: 'btn btn-sm btn-info', data: { confirm: "Are you sure you want to apply this override?  It will immediately update the matched warehouse records so that #{override.replaces_column} is set to #{override.describe_with}."} do
               Apply to Warehouse
         - if editable
           %td

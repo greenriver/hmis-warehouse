@@ -33,7 +33,6 @@
         - if can_edit_projects?
           %th Edit
         %th
-        %th{style: "width: 12em"}
     %tbody
       - org.projects.each do |project|
         = render 'project', project: project, org: org

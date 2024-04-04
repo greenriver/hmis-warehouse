@@ -9,7 +9,6 @@
     %table.table.table-sm.table-striped.mb-0
       %thead
         %tr
-          %th
           %th InventoryID
           %th Availability
           %th Dates
@@ -17,16 +16,12 @@
           %th Bed Inventory
           %th CoC Code
           %th
-          %th{style: "width: 12em"}
-
+          %th
+          %th
       %tbody
         - inventories.all.each do |inventory|
           %tr
-            %td
-              - if can_see_raw_hmis_data? && !inventory.manual_entry?
-                = link_to 'HMIS', source_datum_path(inventory.id, type: 'Inventory'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
-              - if HmisCsvImporter::ImportOverride.any_apply?(inventory)
-                %i.icon-info{data: {toggle: :tooltip, title: "Overrides Active"}}
+
             %td= inventory.InventoryID
             %td= HudUtility2024.availability(inventory.Availability)
             %td
@@ -34,8 +29,7 @@
                 = "#{inventory.computed_start_date} - #{inventory.computed_end_date || 'ongoing'}"
             %td= inventory.UnitInventory
             %td= inventory.BedInventory
-            %td
-              = inventory.CoCCode
+            %td= inventory.CoCCode
             %td
               - if can_edit_projects?
                 - if inventory.manual_entry? && RailsDrivers.loaded.include?(:manual_hmis_data)
@@ -46,9 +40,15 @@
                     %i.icon-cross
                     Remove
             %td
-              %div.show-on-row-hover
-                = link_to new_hmis_csv_importer_data_source_import_override_path(inventory.data_source.id, file_type: 'Inventory.csv', hmis_value: inventory.InventoryID), class: 'btn btn-sm btn-secondary' do
-                  %i.icon-plus
-                  Add Override
+              .show-on-row-hover-wrapper.ml-4
+                .show-on-row-hover
+                  = link_to new_hmis_csv_importer_data_source_import_override_path(inventory.data_source.id, file_type: 'Inventory.csv', hmis_value: inventory.InventoryID), class: 'btn btn-sm btn-secondary' do
+                    %i.icon-plus
+                    Add Override
+            %td
+              - if can_see_raw_hmis_data? && !inventory.manual_entry?
+                = link_to 'HMIS', source_datum_path(inventory.id, type: 'Inventory'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis my-1'
+              - if HmisCsvImporter::ImportOverride.any_apply?(inventory)
+                %i.icon-info{data: {toggle: :tooltip, title: "Overrides Active"}}
   - else
     %h4.text-center No inventory
