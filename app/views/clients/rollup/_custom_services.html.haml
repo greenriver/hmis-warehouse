@@ -1,0 +1,13 @@
+:ruby
+  custom_services = @client.custom_services.
+    joins(enrollment: :client).
+    joins(custom_service_type: :custom_service_category).
+    merge(GrdaWarehouse::Hud::Enrollment.visible_to(current_user)).
+    preload( :enrollment, :project, :client, :custom_service_type ).
+    preload(custom_service_type: :custom_service_category).
+    order(date_provided: :desc)
+- if custom_services.any?
+  = render 'hmis_client/services/table', custom_services: custom_services
+- else
+  .no-data
+    No Custom Services on file

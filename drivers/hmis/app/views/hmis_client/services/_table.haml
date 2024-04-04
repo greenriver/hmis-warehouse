@@ -1,0 +1,27 @@
+.table-responsive
+  %table.table
+    %thead
+      %tr
+        %th
+        %th Project
+        %th Entry Date
+        %th Service Date Provided
+        %th Service Name
+        %th
+    %tbody
+      - custom_services.each do |service|
+        %tr
+          %td
+            .ds{class: "ds-color-#{service.data_source_id}"}= ds_short_name_for(service.client.id)
+          %td= service.project.name
+          %td= service.enrollment.entry_date
+          %td= service.date_provided
+          %td= service.service_type.custom_service_category.name == service.service_name ? service.service_name : "#{service.service_type.custom_service_category.name} - #{service.service_name}"
+          %td.text-right
+            - if @client.hmis_source_visible_by?(current_user)
+              = link_to 'HMIS', source_datum_path(service.client.id, type: 'Client'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
+              .text-teeny.font-weight-light
+                .text-nowrap
+                  Created: #{service.DateCreated}
+                .text-nowrap
+                  Updated: #{service.DateUpdated}
