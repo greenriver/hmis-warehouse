@@ -35,15 +35,16 @@
                     %i.icon-cross
                     Remove
             %td
-              .show-on-row-hover-wrapper.ml-4
-                .show-on-row-hover
-                  = link_to new_hmis_csv_importer_data_source_import_override_path(p_coc.data_source.id, file_type: 'ProjectCoC.csv', hmis_value: p_coc.ProjectCoCID), class: 'btn btn-sm btn-secondary' do
-                    %i.icon-plus
-                    Add Override
+              - if RailsDrivers.loaded.include?(:hmis_csv_importer)
+                .show-on-row-hover-wrapper.ml-4
+                  .show-on-row-hover
+                    = link_to new_hmis_csv_importer_data_source_import_override_path(p_coc.data_source.id, file_type: 'ProjectCoC.csv', hmis_value: p_coc.ProjectCoCID), class: 'btn btn-sm btn-secondary' do
+                      %i.icon-plus
+                      Add Override
             %td
               - if can_see_raw_hmis_data? && !p_coc.manual_entry?
                 = link_to 'HMIS', source_datum_path(p_coc.id, type: 'ProjectCoC'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis my-1'
-              - if HmisCsvImporter::ImportOverride.any_apply?(p_coc)
+              - if RailsDrivers.loaded.include?(:hmis_csv_importer) && HmisCsvImporter::ImportOverride.any_apply?(p_coc)
                 %i.icon-info{data: {toggle: :tooltip, title: "Overrides Active"}}
   - else
     %h4.text-center No sites

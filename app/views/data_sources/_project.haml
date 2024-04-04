@@ -15,11 +15,12 @@
         .d-flex
           = link_to edit_project_path(project), class: ['btn', 'btn-sm', 'btn-secondary', 'btn-icon-only', 'my-1'] do
             %i.icon-pencil
-          .show-on-row-hover-wrapper.ml-4
-            .show-on-row-hover
-              = link_to new_hmis_csv_importer_data_source_import_override_path(project.data_source.id, file_type: 'Project.csv', hmis_value: project.ProjectID), class: 'btn btn-sm btn-secondary' do
-                %i.icon-plus
-                Add Override
+          - if RailsDrivers.loaded.include?(:hmis_csv_importer)
+            .show-on-row-hover-wrapper.ml-4
+              .show-on-row-hover
+                = link_to new_hmis_csv_importer_data_source_import_override_path(project.data_source.id, file_type: 'Project.csv', hmis_value: project.ProjectID), class: 'btn btn-sm btn-secondary' do
+                  %i.icon-plus
+                  Add Override
     %td
       - if can_see_raw_hmis_data?
         = link_to 'HMIS', source_datum_path(project.id, type: 'Project'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
