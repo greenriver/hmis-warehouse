@@ -39,9 +39,17 @@ class HmisCsvImporter::ImportOverride < GrdaWarehouseBase
     ]
   end
 
-  def self.any_apply?(row)
-    overrides = HmisCsvImporter::ImportOverride.where(data_source: row.data_source).sorted.select { |override| override.applies?(row) }
-    overrides.any?
+  # Accepts an object or hash representing the item that might be overridden
+  # and an optional set of overrides to check.
+  # If you are checking many rows at a time, you may want to pass in the overrides
+  # so that you can calculate them only once.
+  def self.any_apply?(row, overrides = nil)
+    overrides ||= HmisCsvImporter::ImportOverride.
+      where(data_source: row.data_source).
+      sorted
+
+    applied_overrides = overrides.to_a.select { |override| override.applies?(row) }
+    applied_overrides.any?
   end
 
   # Accepts either an object based on GrdaWarehouse::Hud::Base, or a has of attributes with string keys
