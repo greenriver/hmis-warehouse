@@ -9,6 +9,15 @@ require_relative '../../support/hmis_base_setup'
 
 RSpec.describe HmisDataCleanup::Util, type: :model do
   let!(:hmis_ds) { create :hmis_data_source }
+  let(:today) { Date.current }
+  let(:yesterday) { today - 1.day }
+  let(:default_enrollment_attrs) do
+    {
+      data_source: hmis_ds,
+      date_updated: yesterday,
+      date_created: yesterday,
+    }
+  end
   let!(:o1) { create :hmis_hud_organization, data_source: hmis_ds }
   let!(:p1) { create :hmis_hud_project, data_source: hmis_ds, organization: o1 }
   let(:last_year) { 1.year.ago }
@@ -17,16 +26,19 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
   let!(:e3) { create :hmis_hud_enrollment, DateCreated: last_year, DateUpdated: last_year, data_source: hmis_ds }
   let!(:e4) { create :hmis_hud_enrollment, DateCreated: last_year, DateUpdated: last_year, data_source: hmis_ds }
 
-  before(:all) do
+  let!(:other_dest_ds) { create(:destination_data_source) }
+  let!(:other_source_ds) { create(:source_data_source) }
+  let!(:other_enrollments) do
+    other_enrollments = []
     # create cruft in other data sources
-    [:destination_data_source, :source_data_source].each do |ds_factory|
-      ds = create(ds_factory)
+    [other_dest_ds, other_source_ds].each do |ds|
       proj = create(:hud_project, data_source_id: ds.id)
       client = create(:grda_warehouse_hud_client, data_source_id: ds.id)
       5.times do
-        create(:grda_warehouse_hud_enrollment, data_source_id: ds.id, client: client, project: proj, DateCreated: 1.year.ago, DateUpdated: 1.year.ago)
+        other_enrollments << create(:grda_warehouse_hud_enrollment, data_source_id: ds.id, client: client, project: proj, DateCreated: 1.year.ago, DateUpdated: 1.year.ago)
       end
     end
+    other_enrollments
   end
 
   let(:hmis_hud_classes) { Hmis::Hud::Project.hmis_classes.excluding(Hmis::Hud::Export) }
@@ -39,16 +51,20 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
       and(
         not_change do
           hmis_hud_classes.flat_map do |scope|
-            scope.order(:id).where.not(data_source: hmis_ds).map(&:attributes)
+            scope.order(:id).with_deleted.where.not(data_source: hmis_ds).map(&:attributes)
           end
         end,
       ).
       # DateUpdated should not be changed on any records in any data source
       and(
         not_change do
-          hmis_hud_classes.flat_map do |scope|
-            scope.where(DateUpdated: 5.minutes.ago..).count
-          end
+          # {'Exit" => 1, 'Service' => 2, etc}
+          hmis_hud_classes.map do |scope|
+            [
+              scope.name.demodulize,
+              scope.where(DateUpdated: 5.minutes.ago..).count,
+            ]
+          end.to_h
         end,
       )
   end
@@ -90,9 +106,9 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
 
   context 'single-person households with no HoH' do
     before(:each) do
-      e1.update(relationship_to_hoh: 99, household_id: 'multi-member-household')
-      e2.update(relationship_to_hoh: 99, household_id: 'multi-member-household')
-      e3.update(relationship_to_hoh: 99, household_id: 'individual-household') # should be updated
+      e1.update!(relationship_to_hoh: 99, household_id: 'multi-member-household')
+      e2.update!(relationship_to_hoh: 99, household_id: 'multi-member-household')
+      e3.update!(relationship_to_hoh: 99, household_id: 'individual-household') # should be updated
 
       # cruft in other data sources that shouldn't be touched
       GrdaWarehouse::Hud::Enrollment.where.not(data_source: hmis_ds).update_all(relationship_to_hoh: 99)
@@ -246,8 +262,8 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
 
   context 'enrollments with incorrect EnrollmentCoCs' do
     before(:each) do
-      e1.update(enrollment_coc: 'MA-500')
-      e2.update(enrollment_coc: 'KY-600')
+      e1.update!(enrollment_coc: 'MA-500')
+      e2.update!(enrollment_coc: 'KY-600')
     end
     it 'updates cocs' do
       expect_leaves_non_hmis_data_alone do
@@ -255,6 +271,170 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
       end
 
       expect(e1.reload.enrollment_coc).to eq('KY-600')
+    end
+  end
+
+  context 'with duplicate bed nights' do
+    before(:each) do
+      # canary records
+      create(:hmis_hud_service_bednight, date_provided: yesterday, client: e2.client, enrollment: e2, **default_enrollment_attrs)
+      create(:hmis_hud_service_bednight, date_provided: yesterday, client: e1.client, enrollment: e1, **default_enrollment_attrs)
+      create(:hmis_hud_service_bednight, date_provided: today, client: e1.client, enrollment: e1, **default_enrollment_attrs)
+    end
+    let!(:duplicate) do
+      create(:hmis_hud_service_bednight, date_provided: today, client: e1.client, enrollment: e1, **default_enrollment_attrs)
+    end
+
+    it 'deletes duplicates' do
+      expect { HmisDataCleanup::Util.delete_duplicate_bed_nights! }.to(
+        [
+          change { Hmis::Hud::Service.where(id: duplicate.id).count }.to(0),
+          change { Hmis::Hud::Service.count }.by(-1),
+        ].reduce(&:and),
+      )
+    end
+
+    it 'has no side-effects' do
+      expect_leaves_non_hmis_data_alone do
+        HmisDataCleanup::Util.delete_duplicate_bed_nights!
+      end
+    end
+  end
+
+  context 'with duplicate exits' do
+    before(:each) do
+      # canary records
+      create(:hmis_base_hud_exit, exit_date: yesterday, client: e2.client, enrollment: e2, **default_enrollment_attrs)
+      create(:hmis_base_hud_exit, exit_date: yesterday, client: e1.client, enrollment: e1, **default_enrollment_attrs)
+    end
+    let!(:duplicate) do
+      create(:hmis_base_hud_exit, exit_date: today, client: e1.client, enrollment: e1, **default_enrollment_attrs)
+    end
+
+    it 'deletes duplicates' do
+      expect { HmisDataCleanup::Util.delete_duplicate_exit_records! }.to(
+        [
+          change { Hmis::Hud::Exit.where(id: duplicate.id).count }.to(0),
+          change { Hmis::Hud::Exit.count }.by(-1),
+        ].reduce(&:and),
+      )
+    end
+
+    it 'has no side-effects' do
+      expect_leaves_non_hmis_data_alone do
+        HmisDataCleanup::Util.delete_duplicate_exit_records!
+      end
+    end
+  end
+
+  context 'with missing total monthly income' do
+    let(:income_attrs) do
+      [:EarnedAmount, :UnemploymentAmount, :SSIAmount, :SSDIAmount, :VADisabilityServiceAmount, :VADisabilityNonServiceAmount, :PrivateDisabilityAmount, :WorkersCompAmount, :TANFAmount, :GAAmount, :SocSecRetirementAmount, :PensionAmount, :ChildSupportAmount, :AlimonyAmount, :OtherIncomeAmount].map.with_index do |field, idx|
+        [field, 2**(idx + 1)] # Sidon sequence
+      end.to_h
+    end
+    before(:each) do
+      # canary records
+      create(:hmis_income_benefit, enrollment: e1, client: e1.client, **default_enrollment_attrs)
+    end
+    let(:missing) do
+      create(:hmis_income_benefit, :skip_validate, income_from_any_source: 1, total_monthly_income: nil, enrollment: e1, client: e1.client, **income_attrs, **default_enrollment_attrs)
+    end
+
+    it 'sums total income correctly' do
+      expected_total = income_attrs.values.sum
+      expect { HmisDataCleanup::Util.fix_missing_monthly_total_income! }.to(
+        [
+          change { Hmis::Hud::IncomeBenefit.find(missing.id).total_monthly_income.to_i }.to(expected_total),
+          not_change { Hmis::Hud::IncomeBenefit.where.not(id: missing.id).order(:id).map(&:attributes) },
+        ].reduce(&:and),
+      )
+    end
+
+    it 'has no side-effects' do
+      expect_leaves_non_hmis_data_alone do
+        HmisDataCleanup::Util.fix_missing_monthly_total_income!
+      end
+    end
+  end
+
+  context 'with household ids duplicated across projects' do
+    before(:each) do
+      p2 = create(:hmis_hud_project, data_source: hmis_ds, organization: o1)
+      e1.update!(household_id: 'ABCDEF', project: p1)
+      e2.update!(household_id: 'ABCDEF', project: p2)
+      e3.update!(household_id: 'ABCDEF', project: p2)
+    end
+
+    it 'reassigns household IDs correctly' do
+      expect { HmisDataCleanup::Util.reassign_duplicate_household_ids! }.to(
+        [
+          change { Hmis::Hud::Enrollment.find(e1.id).household_id },
+          change { Hmis::Hud::Enrollment.find(e2.id).household_id },
+          change { Hmis::Hud::Enrollment.find(e3.id).household_id },
+        ].reduce(&:and),
+      )
+
+      [e1, e2, e3].map(&:reload)
+      expect(e1.household_id).not_to eq(e2.household_id)
+      expect(e2.household_id).to eq(e3.household_id), 'household remains intact'
+    end
+
+    it 'has no side-effects' do
+      expect_leaves_non_hmis_data_alone do
+        HmisDataCleanup::Util.reassign_duplicate_household_ids!
+      end
+    end
+  end
+
+  context 'with duplicate deleted EnrollmentIDs' do
+    let(:dup_key) { 'ABCDEF' }
+    before(:each) do
+      e1.update!(EnrollmentID: dup_key, DateDeleted: 1.week.ago, project: p1)
+      e2.update!(EnrollmentID: dup_key, DateDeleted: nil, project: p1)
+      e3.update!(EnrollmentID: dup_key, DateDeleted: 1.week.ago, project: p1)
+
+      # duplicate in a different project
+      p2 = create(:hmis_hud_project, data_source: hmis_ds, organization: o1)
+      e4.update!(EnrollmentID: dup_key, DateDeleted: 1.week.ago, project: p2)
+
+      # duplicate in a different data source
+      other_enrollments.first.update!(EnrollmentID: dup_key)
+    end
+
+    it 'hard-deletes duplicate enrollments' do
+      expect(GrdaWarehouse::Hud::Enrollment.with_deleted.where(EnrollmentID: dup_key).count).to eq(5)
+
+      expect { HmisDataCleanup::Util.hard_delete_duplicate_deleted_enrollments! }.to(
+        [
+          change { GrdaWarehouse::Hud::Enrollment.only_deleted.count }.by(-2),
+          not_change { GrdaWarehouse::Hud::Enrollment.count },
+          change { Hmis::Hud::Enrollment.hmis.only_deleted.where(EnrollmentID: dup_key).count }.to(1), # the one in another project
+        ].reduce(&:and),
+      )
+
+      expect(GrdaWarehouse::Hud::Enrollment.with_deleted.where(id: [e1.id, e3.id])).to be_empty
+      expect(e2.reload).to be_present
+    end
+
+    it 'keeps 1 deleted enrollment if ALL the dups are deleted' do
+      e2.update!(DateDeleted: 2.days.ago)
+
+      expect { HmisDataCleanup::Util.hard_delete_duplicate_deleted_enrollments! }.to(
+        [
+          change { GrdaWarehouse::Hud::Enrollment.only_deleted.count }.by(-2),
+          not_change { GrdaWarehouse::Hud::Enrollment.count },
+        ].reduce(&:and),
+      )
+
+      expect(GrdaWarehouse::Hud::Enrollment.with_deleted.where(id: [e1.id, e3.id])).to be_empty
+      expect(e2.reload).to be_present
+    end
+
+    it 'has no side-effects' do
+      expect_leaves_non_hmis_data_alone do
+        HmisDataCleanup::Util.hard_delete_duplicate_deleted_enrollments!
+      end
     end
   end
 end

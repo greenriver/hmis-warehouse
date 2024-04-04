@@ -9,28 +9,22 @@
     %table.table.table-sm.table-striped.mb-0
       %thead
         %tr
-          %th
           %th ProjectCoCID
           %th CoC Code
           %th Zipcode
           %th Geocode
           %th Geography Type
           %th
+          %th
+          %th
       %tbody
         - project_cocs.all.each do |p_coc|
           %tr
-            %td
-              - if can_see_raw_hmis_data? && !p_coc.manual_entry?
-                = link_to 'HMIS', source_datum_path(p_coc.id, type: 'ProjectCoC'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
             %td= p_coc.ProjectCoCID
-            %td
-              = p_coc.CoCCode
-            %td
-              = p_coc.Zip
-            %td
-              = p_coc.Geocode
-            %td
-              = HudUtility2024.geography_type p_coc.GeographyType
+            %td= p_coc.CoCCode
+            %td= p_coc.Zip
+            %td= p_coc.Geocode
+            %td= HudUtility2024.geography_type p_coc.GeographyType
             %td
               - if can_edit_projects?
                 - if p_coc.manual_entry? && RailsDrivers.loaded.include?(:manual_hmis_data)
@@ -40,5 +34,17 @@
                   = link_to manual_hmis_data_project_coc_path(p_coc), method: :delete, class: 'btn btn-sm btn-secondary btn-danger mb-1', data: {confirm: 'Do you really want to remove this manually entered Inventory'}  do
                     %i.icon-cross
                     Remove
+            %td
+              - if RailsDrivers.loaded.include?(:hmis_csv_importer)
+                .show-on-row-hover-wrapper.ml-4
+                  .show-on-row-hover
+                    = link_to new_hmis_csv_importer_data_source_import_override_path(p_coc.data_source.id, file_type: 'ProjectCoC.csv', hmis_value: p_coc.ProjectCoCID), class: 'btn btn-sm btn-secondary' do
+                      %i.icon-plus
+                      Add Override
+            %td
+              - if can_see_raw_hmis_data? && !p_coc.manual_entry?
+                = link_to 'HMIS', source_datum_path(p_coc.id, type: 'ProjectCoC'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis my-1'
+              - if RailsDrivers.loaded.include?(:hmis_csv_importer) && HmisCsvImporter::ImportOverride.any_apply?(p_coc)
+                %i.icon-info{data: {toggle: :tooltip, title: "Overrides Active"}}
   - else
     %h4.text-center No sites

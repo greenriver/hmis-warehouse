@@ -52,6 +52,24 @@ module HmisDataCleanup
       end
     end
 
+    # Reassign household IDs that are duplicated across projects.
+    def self.reassign_duplicate_household_ids!
+      hh_ids = Hmis::Hud::Enrollment.hmis.group(:household_id).
+        having('count(distinct "Enrollment"."ProjectID") > 1').
+        pluck(:HouseholdID)
+
+      hh_id_to_enrollments = Hmis::Hud::Enrollment.hmis.where(household_id: hh_ids).group_by(&:household_id)
+
+      hh_id_to_enrollments.each do |hh_id, enrollments|
+        Rails.logger.info "Processing HouseholdID #{hh_id}..."
+        enrollments.group_by(&:project_id).each do |project_id, enrollments_in_project|
+          id = Hmis::Hud::Base.generate_uuid
+          Rails.logger.info "[HouseholdID #{hh_id}][ProjectID #{project_id}] Reassigning Enrollments with ids: [#{enrollments_in_project.map(&:id).join(',')}] to new HouseholdID (#{id})"
+          enrollments_in_project.each { |en| en.update_columns(household_id: id) }
+        end
+      end
+    end
+
     # Find any single-member households that do not have a HoH, and make that person the HoH
     def self.make_sole_member_hoh!
       single_member_households = Hmis::Hud::Enrollment.hmis.where.not(household_id: nil).
@@ -113,6 +131,7 @@ module HmisDataCleanup
             end
 
             if values.any?
+              Rails.logger.info "[#{klass.name}] change batch: #{values.map { |r| [r.id, r.PersonalID_was, r.PersonalID] }.inspect}"
               result = klass.import(
                 values,
                 validate: false,
@@ -154,35 +173,43 @@ module HmisDataCleanup
       GrdaWarehouse::Hud::Exit.where(id: ids_to_delete).update_all(DateDeleted: Time.current, source_hash: nil)
     end
 
-    # Transform all-uppercase client names to camel-cased client names
-    # WARNING! Doesn't skips callbacks. Should probably be modified if we ever need to use this again.
-    def self.humanize_client_names!
-      name_fields = [:first_name, :middle_name, :last_name, :name_suffix]
-      scope = Hmis::Hud::Client.hmis.where('"Client"."FirstName" = upper("Client"."FirstName")')
-      # scope = Hmis::Hud::Client.hmis
-      scope.in_batches(of: 5_000) do |batch|
-        Rails.logger.info 'Next batch..'
-        values = []
-        batch.pluck(:id, *name_fields).each do |id_and_names|
-          id = id_and_names.first
-          names_arr = id_and_names.drop(1)
-          names = name_fields.zip(names_arr).to_h.compact_blank
-          next unless names.any?
+    # This cleanup routine was added because duplicate EnrollmentIDs were leading to uniqueness violation constraints
+    # when Client records were merged.
+    #
+    # 1) Hard-delete deleted enrollments where there is any NON-deleted Enrollment that shares an EnrollmentID
+    # 2) Hard-delete deleted all but 1 enrollment where there is a set of deleted Enrollments that share an EnrollmentID
+    def self.hard_delete_duplicate_deleted_enrollments!
+      data_source_id = GrdaWarehouse::DataSource.hmis.first.id
+      result = GrdaWarehouse::Hud::Enrollment.with_deleted.
+        where(data_source_id: data_source_id).
+        group(:EnrollmentID, :ProjectID).
+        having('count(*) >1').
+        select('"Enrollment"."EnrollmentID", array_agg("Enrollment"."id") as enrollment_ids')
 
-          # puts "old: #{names.values.join(' ')}"
-          names = names.transform_values { |s| s.downcase.gsub(/(\s+\w)|(^\w)/, &:upcase) }
-          # puts "new: #{names.values.join(' ')}"
-          names[:id] = id
-          values << names
+      result.in_groups_of(500) do |group|
+        batch = group.compact
+        Rails.logger.info 'Processing batch'
+        enrollments_by_id = Hmis::Hud::Enrollment.with_deleted.
+          where(id: batch.map(&:enrollment_ids).flatten).index_by(&:id)
+
+        enrollments_to_delete = []
+        batch.each do |res|
+          # processing duplicates for res.EnrollmentID
+          enrollments = res.enrollment_ids.map { |id| enrollments_by_id[id] }
+          raise 'not found' if enrollments.any?(&:nil?)
+
+          # if any are NOT deleted, hard-delete all the deleted ones
+          if enrollments.any? { |e| e.DateDeleted.nil? }
+            enrollments_to_delete.push(*enrollments.select { |e| e.DateDeleted.present? })
+          else
+            # otherwise they are all deleted, so keep 1 of them
+            to_keep = enrollments.max_by(&:DateUpdated)
+            enrollments_to_delete.push(*enrollments.reject { |e| e.id == to_keep.id })
+          end
         end
 
-        grouped_clients = values.index_by { |client| client[:id] }
-
-        # without papertrail so it doesn't show up in Client Audit History
-        without_papertrail_or_timestamps do
-          Hmis::Hud::Client.update(grouped_clients.keys, grouped_clients.values)
-          Rails.logger.info "Updated #{grouped_clients.size} clients"
-        end
+        Rails.logger.info "Deleting duplicate ids: #{enrollments_to_delete.inspect}"
+        GrdaWarehouse::Hud::Enrollment.only_deleted.where(id: enrollments_to_delete.map(&:id)).delete_all
       end
     end
 
@@ -475,7 +502,7 @@ module HmisDataCleanup
 
       rows = []
       Hmis::Hud::Enrollment.hmis.only_deleted.where(DateDeleted: range).in_batches(of: 5_000) do |batch|
-        puts 'Processing...'
+        Rails.logger.info 'Processing...'
         batch.each do |enrollment|
           rows << {
             Organization: org_names[enrollment.ProjectID],

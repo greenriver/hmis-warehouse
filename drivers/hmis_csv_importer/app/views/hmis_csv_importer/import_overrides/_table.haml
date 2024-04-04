@@ -5,6 +5,8 @@
       %th Replaces
       %th With
       %th When
+      - if defined?(can_apply_override) && can_apply_override
+        %th
       - if editable
         %th
   %tbody
@@ -22,6 +24,10 @@
         %td= override.replaces_column
         %td= override.describe_with
         %td= override.describe_when
+        - if defined?(can_apply_override) && can_apply_override
+          %td
+            = link_to apply_hmis_csv_importer_data_source_import_override_path(data_source, override), method: :patch, class: 'btn btn-sm btn-info', data: { confirm: "Are you sure you want to apply this override?  It will immediately update the matched warehouse records so that #{override.replaces_column} is set to #{override.describe_with}."} do
+              Apply to Warehouse
         - if editable
           %td
             = link_to hmis_csv_importer_data_source_import_override_path(data_source, override), method: :delete, class: 'btn btn-sm btn-icon-only btn-danger', data: { confirm: "Really delete override for #{override.replaces_column}?"} do

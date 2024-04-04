@@ -5,22 +5,32 @@
     %table.table.table-sm.table-striped.mb-0
       %thead
         %tr
-          %th
           %th CEParticipationID
           %th Access Point
           %th Start Date
           %th End Date
+          %th
+          %th
 
       %tbody
         - ce_participations.each do |ce_participation|
           %tr
-            %td
-              - if can_see_raw_hmis_data?
-                = link_to 'HMIS', source_datum_path(ce_participation.id, type: 'CEParticipation'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
             %td= ce_participation.CEParticipationID
             %td= HudUtility2024.no_yes(ce_participation.AccessPoint)
             %td= ce_participation.CEParticipationStatusStartDate
             %td= ce_participation.CEParticipationStatusEndDate
+            %td
+              - if RailsDrivers.loaded.include?(:hmis_csv_importer)
+                .show-on-row-hover-wrapper.ml-4
+                  .show-on-row-hover
+                    = link_to new_hmis_csv_importer_data_source_import_override_path(ce_participation.data_source.id, file_type: 'CEParticipation.csv', hmis_value: ce_participation.CEParticipationID), class: 'btn btn-sm btn-secondary' do
+                      %i.icon-plus
+                      Add Override
+            %td
+              - if can_see_raw_hmis_data?
+                = link_to 'HMIS', source_datum_path(ce_participation.id, type: 'CEParticipation'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis my-1'
+              - if RailsDrivers.loaded.include?(:hmis_csv_importer) && HmisCsvImporter::ImportOverride.any_apply?(ce_participation)
+                %i.icon-info{data: {toggle: :tooltip, title: "Overrides Active"}}
 
   - else
     %h4.text-center No CE Participation Records
