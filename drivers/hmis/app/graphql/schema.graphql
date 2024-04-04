@@ -11227,7 +11227,6 @@ input UpdateClientImageInput {
   """
   clientMutationId: String
   imageBlobId: ID!
-  lockVersion: Int
 }
 
 """
