@@ -192,6 +192,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(result.dig('data', 'client', 'names')).to contain_exactly(include('first' => "Client #{c1.id}", 'last' => nil))
   end
 
+  it 'should return no client photo if not allowed to see photos' do
+    remove_permissions(access_control, :can_view_client_photo)
+    _response, result = post_graphql(id: c1.id) { query }
+    expect(result.dig('data', 'client', 'image')).to be_nil
+  end
+
   it 'should return null DOB if not allowed to see DOB' do
     remove_permissions(access_control, :can_view_dob)
     _response, result = post_graphql(id: c1.id) { query }

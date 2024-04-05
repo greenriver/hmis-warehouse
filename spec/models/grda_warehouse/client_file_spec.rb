@@ -4,11 +4,9 @@ RSpec.describe GrdaWarehouse::ClientFile, type: :model do
   describe 'Creating a client file' do
     let!(:consent_tag) { create :available_file_tag, consent_form: true, name: 'Consent Form', full_release: true }
     let!(:other_tag) { create :available_file_tag, consent_form: false, name: 'Other Tag' }
-    let!(:photo_tag) { create :available_file_tag, consent_form: false, name: 'Client Headshot' }
     let!(:file) { create :client_file, effective_date: 5.days.ago }
     let!(:second_file) { create :client_file, effective_date: 3.days.ago, client: file.client }
     let!(:third_file) { create :client_file, effective_date: 1.days.ago, client: file.client }
-    let!(:photo_file) { create :client_file, effective_date: 1.days.ago, client: file.client }
     let!(:config) { create :config }
 
     before :each do
