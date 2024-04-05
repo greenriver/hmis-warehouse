@@ -17,8 +17,12 @@ module Hmis::Hud::Concerns::Shared
       joins(:data_source).merge(GrdaWarehouse::DataSource.hmis)
     end
 
+    # This will return an equivalent record in the GrdaWarehouse format
+    # Note: this will incur a db call.  Without it, permissions
+    # refuse to function.
     def as_warehouse
-      "GrdaWarehouse::Hud::#{self.class.name.demodulize}".constantize.find(id)
+      warehouse_class = "GrdaWarehouse::Hud::#{self.class.name.demodulize}".constantize
+      warehouse_class.find(id)
     end
 
     def self.enrollment_related_hud_class_names
