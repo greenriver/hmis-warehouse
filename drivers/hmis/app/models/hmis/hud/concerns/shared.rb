@@ -25,33 +25,45 @@ module Hmis::Hud::Concerns::Shared
       warehouse_class.find(id)
     end
 
-    def self.hud_class_names
+    def self.enrollment_related_hud_class_names
       [
-        'Export',
-        'Organization',
-        'Project',
-        'Client',
         'Disability',
         'EmploymentEducation',
-        'Enrollment',
-        'HmisParticipation',
-        'CeParticipation',
         'Exit',
-        'Funder',
         'HealthAndDv',
         'IncomeBenefit',
-        'Inventory',
-        'ProjectCoc',
-        'Affiliation',
         'Service',
         'CurrentLivingSituation',
         'Assessment',
         'AssessmentQuestion',
         'AssessmentResult',
         'Event',
-        'User',
         'YouthEducationStatus',
       ].freeze
+    end
+
+    def self.hud_class_names
+      [
+        *enrollment_related_hud_class_names,
+        'Export',
+        'Organization',
+        'Project',
+        'Client',
+        'Enrollment',
+        'HmisParticipation',
+        'CeParticipation',
+        'Funder',
+        'Inventory',
+        'ProjectCoc',
+        'Affiliation',
+        'User',
+      ].freeze
+    end
+
+    def self.hmis_enrollment_related_classes
+      enrollment_related_hud_class_names.map do |name|
+        "Hmis::Hud::#{name}".constantize
+      end
     end
 
     def self.hmis_classes

@@ -6,12 +6,7 @@
 
 module HmisExternalApis::AcHmis::Exporters
   class MoveInAddressExport
-    attr_accessor :output
-
-    def initialize(output = StringIO.new)
-      require 'csv'
-      self.output = output
-    end
+    include ::HmisExternalApis::AcHmis::Exporters::CsvExporter
 
     def run!
       Rails.logger.info 'Generating content of Move-in Address export'
@@ -46,10 +41,6 @@ module HmisExternalApis::AcHmis::Exporters
       ['PersonalID', 'EnrollmentID', 'AddressLine1', 'AddressLine2', 'City', 'State', 'ZipCode']
     end
 
-    def write_row(row)
-      output << CSV.generate_line(row)
-    end
-
     def move_in_addresses
       Hmis::Hud::CustomClientAddress.where(data_source: data_source).
         move_in.
@@ -57,10 +48,6 @@ module HmisExternalApis::AcHmis::Exporters
         merge(Hmis::Hud::Enrollment.not_in_progress).
         preload(:enrollment, client: :warehouse_client_source).
         distinct
-    end
-
-    def data_source
-      @data_source ||= HmisExternalApis::AcHmis.data_source
     end
   end
 end

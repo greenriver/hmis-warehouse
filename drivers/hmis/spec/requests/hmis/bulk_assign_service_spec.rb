@@ -156,5 +156,11 @@ RSpec.describe 'BulkAssignService', type: :request do
 
       expect_gql_error(perform_mutation(coc_code: 'MA-100'), message: 'Invalid CoC Code')
     end
+
+    it 'fails if client has an overlapping enrollment' do
+      create(:hmis_hud_enrollment, data_source: ds1, client: c1, project: p1, entry_date: Date.current)
+
+      expect_gql_error(perform_mutation(date_provided: 6.days.ago, client_ids: [c1.id]))
+    end
   end
 end

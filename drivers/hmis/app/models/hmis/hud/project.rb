@@ -69,11 +69,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   # minutes. It needs optimization; for now we use a class method instead of a AR association
   # has_many :hmis_services, through: :enrollments_including_wip
   def hmis_services
-    invalid_enrollment_ids = enrollments.with_invalid_references.pluck(e_t[:enrollment_id])
-    Hmis::Hud::HmisService.joins(:project).
-      where(Hmis::Hud::Project.arel_table[:id].eq(id)).
-      where(Hmis::Hud::HmisService.arel_table[:EnrollmentID].not_in(invalid_enrollment_ids)).
-      joins(:client)
+    Hmis::Hud::HmisService.joins(:project).where(Hmis::Hud::Project.arel_table[:id].eq(id))
   end
 
   has_and_belongs_to_many :project_groups,
@@ -180,6 +176,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     operating_end_date >= Date.current
   end
 
+  def name
+    project_name
+  end
+
   def households_including_wip
     # correlated subquery for performance
     cp_t = Hmis::Hud::ClientProject.arel_table
@@ -246,6 +246,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   def available_service_types
     # Find form rules for services that are applicable to this project
     ids = Hmis::Form::Instance.for_services.
+      active.
       for_project_through_entities(self).
       joins(:definition).
       where(fd_t[:role].eq(:SERVICE)).

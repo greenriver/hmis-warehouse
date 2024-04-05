@@ -32,7 +32,7 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   after_commit :warehouse_trigger_processing
 
   private def warehouse_trigger_processing
-    return unless warehouse_columns_changed?
+    return unless enrollment && warehouse_columns_changed?
 
     # NOTE: we only really need to do this for bed-nights at the moment, but this is future-proofing against
     # pre-processing all services

@@ -1,4 +1,4 @@
-- title = "Edit Group #{@user_group.name}"
+- title = "Edit User Group #{@user_group.name}"
 - content_for :title, title
 
 = content_for :crumbs do
@@ -8,17 +8,12 @@
 .o-page
   .o-page__title
     %h1= content_for :title
-
-.h3.mt-2 Add/Remove Members
-= render 'users/user_members_table', item: @user_group, path_to_add_users: hmis_admin_user_group_users_path(@user_group), path_to_delete_item: hmis_admin_user_group_path(@user_group), delete_user_lambda: ->(user) { hmis_admin_user_group_user_path(@user_group, user) }
-
-.h3.mt-12 Change Group Name
-.card.pl-4.pr-4.mt-2{style: 'max-width: 600px;'}
-  = simple_form_for @user_group, as: :user_group, url: hmis_admin_user_group_path do |f|
-    = f.error_notification
-    .d-flex.align-items-center
-      .form-inputs.mt-4.mr-4
-        = f.input :name, label: 'User Group Name'
-
+= render 'admin/user_groups/description', entity_type: 'HMIS'
+.row
+  .col-sm-6
+    = simple_form_for @user_group, as: :user_group, url: hmis_admin_user_group_path do |f|
+      = render 'form', f: f
       .form_actions.mt-4
-        = f.button :submit, value: 'Save Group Name', class: 'btn btn-secondary btn-sm'
+        = f.button :submit, value: 'Update User Group'
+  .col-sm-6
+    = render 'admin/user_groups/helper_text'

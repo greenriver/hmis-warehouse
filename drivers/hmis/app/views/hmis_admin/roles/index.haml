@@ -2,5 +2,4 @@
 .d-flex
   %h1= content_for :title
 = render 'hmis_admin/tabs', active_tab: :roles
-= render 'admin/roles/role_manager', path_for_patch: hmis_admin_roles_path, url: batch_update_hmis_admin_roles_path, role_class: Hmis::Role, path_for_new: new_hmis_admin_role_path
--# = render 'admin/roles/table_form', path_for_new: new_hmis_admin_role_path, path_for_patch: hmis_admin_roles_path, role_class: Hmis::Role
+= render 'admin/roles/role_manager', path_for_patch: hmis_admin_roles_path, url: batch_update_hmis_admin_roles_path, role_class: Hmis::Role, path_for_new: new_hmis_admin_role_path, path_for_edit: :edit_hmis_admin_role_path

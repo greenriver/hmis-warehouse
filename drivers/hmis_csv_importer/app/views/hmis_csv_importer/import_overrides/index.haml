@@ -9,7 +9,7 @@
     Add Override
 - if @overrides.any?
   .card.mb-4
-    = render 'table', overrides: @overrides, data_source: @data_source, editable: true
+    = render 'table', overrides: @overrides, data_source: @data_source, editable: true, show_associated_project: true, can_apply_override: true
 
 - else
   .none-found

@@ -12,6 +12,7 @@ class HmisAdmin::UsersController < ApplicationController
 
   def index
     @users = user_scope.order(last_name: :asc, first_name: :asc)
+    @users = @users.text_search(params[:q]) if params[:q].present?
   end
 
   def edit

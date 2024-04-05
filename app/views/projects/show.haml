@@ -1,3 +1,10 @@
+:css
+  .show-on-row-hover {
+    display: none
+  }
+  tr:hover .show-on-row-hover {
+    display: block;
+  }
 = render 'breadcrumbs'
 -# confidentiality status ignored because page is not visible to users who can't see confidential project names
 - content_for :title, "#{@project.name(ignore_confidential_status: true)} at #{@project.organization.name(ignore_confidential_status: true)}"
@@ -117,7 +124,7 @@
 - if overrides.any?
   %p The following import overrides are in effect for this project.
   .mb-4.card
-    = render 'hmis_csv_importer/import_overrides/table', overrides: overrides, data_source: @project.data_source, editable: false
+    = render 'hmis_csv_importer/import_overrides/table', overrides: overrides, data_source: @project.data_source, editable: false, show_associated_project: false
 - if @show_census
   = render 'census'
 = render 'funders', funders: @project.funders
