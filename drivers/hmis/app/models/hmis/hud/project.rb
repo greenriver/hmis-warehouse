@@ -67,8 +67,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     Hmis::Hud::CustomAssessment.joins(:enrollment).left_outer_joins(enrollment: :wip).
       where(Hmis::Hud::Enrollment.arel_table[:project_id].eq(project_id)).
       or(Hmis::Hud::CustomAssessment.joins(:enrollment).left_outer_joins(enrollment: :wip).
-        where(Hmis::Wip.arel_table[:project_id].eq(id))).
-      order(assessment_date: :desc)
+        where(Hmis::Wip.arel_table[:project_id].eq(id)))
   end
 
   has_one :warehouse_project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :id, primary_key: :id
