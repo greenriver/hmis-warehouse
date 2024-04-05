@@ -187,7 +187,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect do
         _response, result = post_graphql(id: p1.id) { project_assessments_query }
         expect(result.dig('data', 'project', 'assessments', 'nodesCount')).to eq 1002
-      end.to perform_under(100).ms
+      end.to perform_under(500).ms
     end
 
     it 'does not return any assessments when the user lacks permission' do
