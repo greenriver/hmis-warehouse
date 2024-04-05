@@ -131,7 +131,7 @@ module AllNeighborsSystemDashboard
               }
               categories = case demo
               when 'All'
-                ['All']
+                []
               when 'Race'
                 demographic_race
               when 'Age'
@@ -141,6 +141,9 @@ module AllNeighborsSystemDashboard
               when 'Household Type'
                 household_types
               end
+              # always include the All category
+              categories = ['All'] + categories
+
               names = ['Housed, completed program', 'Returns']
               colors = ['#336770', '#884D01']
               # for right now, we're moving the chart labels off the bar so we can always show them
