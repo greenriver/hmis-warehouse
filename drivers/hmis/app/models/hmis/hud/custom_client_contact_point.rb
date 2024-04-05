@@ -44,7 +44,14 @@ class Hmis::Hud::CustomClientContactPoint < Hmis::Hud::Base
     joins(:client).merge(Hmis::Hud::Client.viewable_by(user))
   end
 
+  scope :with_value, -> { where.not(value: [nil, '']) }
   scope :phones, -> { where(system: :phone) }
+
+  scope :home_phones, -> { phones.where(use: :home) }
+  scope :mobile_phones, -> { phones.where(use: :mobile) }
+  scope :work_or_school_phones, -> { phones.where(use: [:work, :school]) }
+  scope :other_or_unknown_phones, -> { phones.where.not(use: [:home, :mobile, :work, :school]) }
+
   scope :emails, -> { where(system: :email) }
 
   def self.hud_key
