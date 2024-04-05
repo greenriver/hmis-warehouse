@@ -170,8 +170,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(response.status).to eq 200
       records = result.dig('data', 'project', 'assessments', 'nodes')
       expect(records.size).to eq(2)
-      expect(records[0]['inProgress']).to be_falsy
-      expect(records[1]['inProgress']).to be_truthy
+      expect(records.pluck('inProgress')).to contain_exactly(true, false)
     end
 
     it 'resolves assessments in a reasonable amount of time' do
