@@ -97,11 +97,23 @@ module BostonHmis
     config.location_processors = []
     config.queued_tasks = {}
 
+    # reference
+    # https://guides.rubyonrails.org/v7.0/configuring.html#rails-railtie-initializer
+    # reference https://github.com/rails/rails/blob/7-0-stable/railties/lib/rails/engine.rb
     # Load initializers for drivers
-    initializer :load_additional_config_initializers, before: :load_config_initializers do
-      additional_initializers_path = Rails.root.join('drivers', '**', 'config', 'initializers', '**', '*.rb')
-      Dir.glob(additional_initializers_path).sort.each do |initializer|
+    initializer :load_driver_initializers, after: :load_config_initializers do
+      path = Rails.root.join('drivers', '**', 'config', 'initializers', '**', '*.rb')
+      Dir.glob(path).sort.each do |initializer|
         load(initializer)
+      end
+    end
+
+    initializer :add_additional_view_paths, after: :add_view_paths do
+      ActiveSupport.on_load(:action_controller) do
+        Dir['drivers/*'].each do |driver|
+          puts "#{driver}/app/views"
+          prepend_view_path("#{driver}/app/views") if respond_to?(:prepend_view_path)
+        end
       end
     end
   end

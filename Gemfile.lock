@@ -31,6 +31,14 @@ GIT
     pg_fixtures (0.1.0)
 
 GIT
+  remote: https://github.com/greenriver/rails_drivers.git
+  revision: c1e1a6ad6aae0d0b7ede2a828ae8facb3133a680
+  branch: rails-7
+  specs:
+    rails_drivers (1.2.0)
+      rails (>= 5.2)
+
+GIT
   remote: https://github.com/greenriver/stupidedi.git
   revision: 9e1b9896b371078d439e72505165082b898cd00a
   branch: master
@@ -46,12 +54,6 @@ GIT
   specs:
     jquery-ui-rails (7.0.0)
       railties (>= 3.2.16)
-
-PATH
-  remote: /usr/local/bundle/tmp/rails_drivers
-  specs:
-    rails_drivers (1.2.0)
-      rails (>= 5.2)
 
 GEM
   remote: https://rubygems.org/
@@ -1212,6 +1214,7 @@ DEPENDENCIES
   soundex
   spring
   sprockets (~> 4.0)
+  sprockets-rails
   sshkit
   stackprof
   strong_migrations
