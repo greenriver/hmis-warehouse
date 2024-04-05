@@ -1,8 +1,8 @@
 source 'https://rubygems.org'
 
 gem 'rails', '~> 7.0.8.1'
-#gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'rails-7'
-gem 'rails_drivers', path: '/usr/local/bundle/tmp/rails_drivers'
+gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'rails-7'
+# gem 'rails_drivers', path: '/usr/local/bundle/tmp/rails_drivers'
 gem 'rack', '>= 2.2.8.1'
 gem 'rexml'
 gem 'actionpack', '>= 6.1.7.7'
@@ -132,6 +132,7 @@ gem 'coffee-rails'
 gem 'handlebars_assets'
 gem 'execjs'
 gem 'sprockets', '~> 4.0'
+gem "sprockets-rails"
 gem 'babel-transpiler'
 # gem 'sprockets-es6'
 gem 'jquery-ui-rails', github: 'jquery-ui-rails/jquery-ui-rails', tag: 'v7.0.0'
