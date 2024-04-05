@@ -12,7 +12,7 @@ require_relative '../lib/util/id_protector'
 module BostonHmis
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.0
+    config.load_defaults 6.1
     # config.autoloader = :classic
     config.autoload_paths << Rails.root.join('lib', 'devise')
 
