@@ -18,8 +18,7 @@ module Mutations
       raise HmisErrors::ApiError, 'Access denied' unless current_user.permissions_for?(client, :can_edit_clients)
 
       client.image_blob_id = image_blob_id
-      client.save!
-      client = client.reload
+      client.save_image_blob_as_client_headshot!
 
       {
         client: client,
