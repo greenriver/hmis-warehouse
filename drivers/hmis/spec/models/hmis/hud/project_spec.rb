@@ -17,6 +17,7 @@ RSpec.describe Hmis::Hud::Project, type: :model do
   end
 
   let!(:project) { create :hmis_hud_project }
+  let!(:enrollment) { create(:hmis_hud_enrollment, project: project, data_source: project.data_source) }
   before(:each) do
     create(:hmis_hud_enrollment, project: project, data_source: project.data_source)
     create(:hmis_hud_project_coc, project: project, data_source: project.data_source)
@@ -195,6 +196,17 @@ RSpec.describe Hmis::Hud::Project, type: :model do
       doe_org = create(:hmis_form_instance, role: role, entity: project.organization, definition_identifier: doe_default.definition_identifier)
 
       expect(selected_instances).to contain_exactly(mid_project, doe_org)
+    end
+  end
+
+  describe 'project custom_assessments' do
+    let!(:a1) { create(:hmis_custom_assessment, enrollment: enrollment, client: enrollment.client) }
+    let!(:a2) { create(:hmis_wip_custom_assessment, enrollment: enrollment, client: enrollment.client) }
+
+    it 'should only make 1 db query when querying for custom assessments' do
+      expect do
+        expect(project.custom_assessments.count).to eq(2), 'should return both WIP and non-WIP assessment'
+      end.to make_database_queries(count: 1)
     end
   end
 end

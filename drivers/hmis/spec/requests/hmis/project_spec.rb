@@ -34,6 +34,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:referral_request) do
     create(:hmis_external_api_ac_hmis_referral_request, project: p1)
   end
+  let!(:e1) { create(:hmis_hud_enrollment, project: p1, data_source: p1.data_source) }
+  let!(:a1) { create(:hmis_custom_assessment, enrollment: e1, client: e1.client) }
+  let!(:a2) { create(:hmis_wip_custom_assessment, enrollment: e1, client: e1.client) }
 
   describe 'project query' do
     before(:each) do
@@ -121,6 +124,76 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       hmis_user.access_controls.first.role.update(can_delete_project: true)
       _res, result = post_graphql(id: p1.id) { query }
       expect(result.dig('data', 'project', 'access')).to include('canDeleteProject' => true)
+    end
+  end
+
+  describe 'project assessments query' do
+    before(:each) do
+      hmis_login(user)
+    end
+
+    let(:project_assessments_query) do
+      <<~GRAPHQL
+        query GetProjectAssessments(
+          $id: ID!
+          $limit: Int = 10
+          $offset: Int = 0
+        ) {
+          project(id: $id) {
+            assessments(
+              limit: $limit
+              offset: $offset
+            ) {
+              offset
+              limit
+              nodesCount
+              nodes {
+                id
+                inProgress
+                role
+                definition {
+                  title
+                }
+                enrollment {
+                  entryDate
+                  exitDate
+                }
+              }
+            }
+          }
+        }
+      GRAPHQL
+    end
+
+    it 'resolves both WIP and non-WIP assessments on the project' do
+      response, result = post_graphql(id: p1.id) { project_assessments_query }
+      expect(response.status).to eq 200
+      records = result.dig('data', 'project', 'assessments', 'nodes')
+      expect(records.size).to eq(2)
+      expect(records[0]['inProgress']).to be_falsy
+      expect(records[1]['inProgress']).to be_truthy
+    end
+
+    it 'resolves assessments in a reasonable amount of time' do
+      100.times.map do
+        c = create :hmis_hud_client_complete, data_source: ds1, user: u1
+        e = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c, user: u1
+        5.times.map do
+          create :hmis_wip_custom_assessment, enrollment: e, client: c
+          create :hmis_custom_assessment, enrollment: e, client: c
+        end
+      end
+
+      expect do
+        _response, result = post_graphql(id: p1.id) { project_assessments_query }
+        expect(result.dig('data', 'project', 'assessments', 'nodesCount')).to eq 1002
+      end.to perform_under(100).ms
+    end
+
+    it 'does not return any assessments when the user lacks permission' do
+      remove_permissions(access_control, :can_view_enrollment_details)
+      _response, result = post_graphql(id: p1.id) { project_assessments_query }
+      expect(result.dig('data', 'project', 'assessments', 'nodesCount')).to eq 0
     end
   end
 end

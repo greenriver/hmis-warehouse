@@ -8280,6 +8280,7 @@ type Project {
   access: ProjectAccess!
   active: Boolean!
   affiliatedProjects: [Project!]!
+  assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   ceParticipations(limit: Int, offset: Int): CeParticipationsPaginated!
   contactInformation: String
   continuumProject: NoYes

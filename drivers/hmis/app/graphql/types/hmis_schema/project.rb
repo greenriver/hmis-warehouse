@@ -22,6 +22,7 @@ module Types
     include Types::HmisSchema::HasCeParticipations
     include Types::HmisSchema::HasHudMetadata
     include Types::HmisSchema::HasExternalFormSubmissions
+    include Types::HmisSchema::HasAssessments
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2024')
@@ -61,6 +62,7 @@ module Types
     households_field
     hmis_participations_field
     ce_participations_field
+    assessments_field
     services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForProject' }
     hud_field :operating_start_date, null: true
     hud_field :operating_end_date
@@ -114,6 +116,10 @@ module Types
       raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
 
       resolve_enrollments(object.enrollments_including_wip, dangerous_skip_permission_check: true, **args)
+    end
+
+    def assessments(**args)
+      resolve_assessments(object.custom_assessments, **args)
     end
 
     def organization
