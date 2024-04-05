@@ -19,7 +19,7 @@
           %td= service.display_name
           %td.text-right
             - if @client.hmis_source_visible_by?(current_user)
-              = link_to 'HMIS', source_datum_path(service.enrollment.id, type: 'Enrollment'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
+              = link_to 'HMIS', "https://#{service.enrollment.data_source.hmis}/client/#{service.enrollment.client.id}/enrollments/#{service.enrollment.id}/services", class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
               .text-teeny.font-weight-light
                 .text-nowrap
                   Created: #{service.DateCreated}

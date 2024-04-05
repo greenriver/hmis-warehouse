@@ -22,6 +22,7 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
   belongs_to :custom_service_type
   alias_attribute :service_type, :custom_service_type
   has_one :organization, through: :project
+  has_one :custom_service_category, through: :custom_service_type
 
   before_validation :set_service_name
   validates_with Hmis::Hud::Validators::CustomServiceValidator
@@ -39,9 +40,9 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
   end
 
   def display_name
-    return service_name if service_type.custom_service_category.name == service_name
+    return service_type.name if custom_service_category.name == service_type.name
 
-    "#{service_type.custom_service_category.name} - #{service_name}"
+    "#{custom_service_category.name} - #{service_type.name}"
   end
 
   private def set_service_name
