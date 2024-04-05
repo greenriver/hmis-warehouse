@@ -12,7 +12,7 @@ require_relative '../lib/util/id_protector'
 module BostonHmis
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 6.1
+    config.load_defaults 7.0
     # config.autoloader = :classic
     config.autoload_paths << Rails.root.join('lib', 'devise')
 
@@ -96,5 +96,13 @@ module BostonHmis
     config.help_links = []
     config.location_processors = []
     config.queued_tasks = {}
+
+    # Load initializers for drivers
+    initializer :load_additional_config_initializers, before: :load_config_initializers do
+      additional_initializers_path = Rails.root.join('drivers', '**', 'config', 'initializers', '**', '*.rb')
+      Dir.glob(additional_initializers_path).sort.each do |initializer|
+        load(initializer)
+      end
+    end
   end
 end
