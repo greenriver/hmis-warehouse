@@ -6,7 +6,7 @@
 
 module Types
   class BaseAuditEvent < BaseObject
-    def self.build(node_class, field_permissions: nil, excluded_keys: nil, transform_changes: nil)
+    def self.build(node_class, excluded_keys: nil, transform_changes: nil)
       dynamic_name = "#{node_class.graphql_name}AuditEvent"
       klass = Class.new(self) do
         graphql_name(dynamic_name)
@@ -23,13 +23,6 @@ module Types
           return transform_changes.call(object, changes) if transform_changes.present?
 
           changes
-        end
-
-        define_method(:authorize_field) do |record, key|
-          return true unless field_permissions[key].present?
-
-          # Check if user has permission to view audit history for this particular field (for example SSN/DOB on Client)
-          current_user.permissions_for?(record, *Array.wrap(field_permissions[key]))
         end
       end
 
@@ -179,9 +172,6 @@ module Types
 
         # Skip if changes are empty, or if the change is `nil=>99` or `99=>nil`. This is not meaningful to show in the UI.
         next if values.map { |v| v == 99 ? nil : v }.compact.empty?
-
-        # hide certain changes (SSN/DOB) if unauthorized
-        values = 'changed' if changed_record && !authorize_field(changed_record, key)
 
         [
           field_name,
