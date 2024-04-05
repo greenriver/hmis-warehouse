@@ -23,6 +23,13 @@ class HmisCsvImporter::ImportOverridesController < ApplicationController
     respond_with(@override, location: hmis_csv_importer_data_source_import_overrides_path(@data_source))
   end
 
+  def apply
+    @override = import_override_source.find(params[:id].to_i)
+    number_rows_affected = @override.apply_to_warehouse
+    flash[:alert] = "#{@override.describe_apply} (#{number_rows_affected} records affected)"
+    redirect_to hmis_csv_importer_data_source_import_overrides_path(@data_source)
+  end
+
   private def set_data_source
     @data_source = GrdaWarehouse::DataSource.find(params[:data_source_id])
     @data_source = ActiveRecord::RecordNotFound unless @data_source.directly_viewable_by?(current_user, permission: :can_upload_hud_zips)
