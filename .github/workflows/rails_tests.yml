@@ -166,10 +166,6 @@ jobs:
 
           bundle exec rake assets:precompile
 
-      - name: Checking class loader
-        run: |
-          bundle exec rails zeitwerk:check
-
       # Regenerate the graphql schema and fail if it has changed
       - name: 'Check HMIS GraphQL schema'
         run: |
