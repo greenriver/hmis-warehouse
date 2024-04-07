@@ -779,14 +779,14 @@ GEM
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
     rexml (3.2.6)
-    rgeo (3.0.1)
+    rgeo (2.4.0)
     rgeo-activerecord (7.0.1)
       activerecord (>= 5.0)
       rgeo (>= 1.0.0)
     rgeo-geojson (2.1.1)
       rgeo (>= 1.0.0)
-    rgeo-proj4 (4.0.0)
-      rgeo (~> 3.0.0)
+    rgeo-proj4 (3.1.1)
+      rgeo (~> 2.0)
     roo (2.10.1)
       nokogiri (~> 1)
       rubyzip (>= 1.3.0, < 3.0.0)
@@ -1184,7 +1184,7 @@ DEPENDENCIES
   responders
   rest-client (~> 2.0)
   rexml
-  rgeo
+  rgeo (~> 2.4.0)
   rgeo-geojson
   rgeo-proj4
   roo

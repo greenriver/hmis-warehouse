@@ -36,7 +36,7 @@ gem 'census_api', github: 'greenriver/census_api'
 gem 'activerecord-postgis-adapter'
 gem 'ffi'
 gem 'ffi-geos'
-gem 'rgeo'
+gem 'rgeo', '~> 2.4.0'
 gem 'rgeo-geojson'
 gem 'rgeo-proj4'
 
