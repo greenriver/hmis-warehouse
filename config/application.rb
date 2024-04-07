@@ -2,6 +2,10 @@ require_relative 'boot'
 
 require 'rails/all'
 require 'active_record_extended'
+# same as config.active_support.disable_to_s_conversion = true. Set this here because our drivers railtie loads before
+# the application config block
+ENV['RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION'] = "true"
+
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
