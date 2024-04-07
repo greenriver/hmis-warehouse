@@ -34,6 +34,7 @@ module Types
     end
 
     def client_name
+      # not checking for name permission access, because can_audit_users is required here
       client&.brief_name
     end
 

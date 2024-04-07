@@ -55,3 +55,6 @@ If everything worked as designed your site should now be available at [https://h
 
 ## Loading Data
 At this point, you'll probably want to [load some sample HMIS data](developer_data.md).
+
+## Running E2E Tests
+See [spec/support/E2E_README.md](../spec/support/E2E_README.md).

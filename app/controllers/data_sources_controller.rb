@@ -27,8 +27,13 @@ class DataSourcesController < ApplicationController
     @readonly = ! (can_edit_data_sources? || can_edit_projects?)
     p_t = GrdaWarehouse::Hud::Project.arel_table
     o_t = GrdaWarehouse::Hud::Organization.arel_table
+    if RailsDrivers.loaded.include?(:hmis_csv_importer)
+      @overrides = HmisCsvImporter::ImportOverride.
+        where(data_source: @data_source).
+        sorted
+    end
     @organizations = @data_source.organizations.
-      eager_load(:projects).
+      eager_load(:data_source, projects: :data_source).
       merge(
         GrdaWarehouse::Hud::Project.viewable_by(
           current_user,
