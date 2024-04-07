@@ -79,7 +79,7 @@ gem 'devise', '~> 4.8'
 gem 'devise_invitable', '~> 2.0.9'
 gem 'devise-pwned_password'
 gem 'devise-security'
-gem 'devise-two-factor'
+gem 'devise-two-factor', '~> 4.1.1'
 gem 'rack-cors'
 gem 'doorkeeper'
 
