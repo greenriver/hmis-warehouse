@@ -155,10 +155,6 @@ jobs:
           cp .rspec.sample .rspec
           cp config/database.yml.ci config/database.yml
 
-      - name: Checking class loader
-        run: |
-          bundle exec rails zeitwerk:check
-
       - name: Prepare test db
         run: |
           pg_isready -h postgres -U postgres
@@ -169,6 +165,10 @@ jobs:
           chmod 600 ~/.pgpass
 
           bundle exec rake assets:precompile
+
+      - name: Checking class loader
+        run: |
+          bundle exec rails zeitwerk:check
 
       # Regenerate the graphql schema and fail if it has changed
       - name: 'Check HMIS GraphQL schema'
