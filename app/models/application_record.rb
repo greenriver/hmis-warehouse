@@ -20,15 +20,4 @@ class ApplicationRecord < ActiveRecord::Base
     singleton_class.undef_method name
     scope name, body, &block
   end
-
-  def locking_enabled?
-    @locking_disabled ? false : super
-  end
-
-  def with_locking_disabled
-    @locking_disabled = true
-    yield
-  ensure
-    @locking_disabled = false
-  end
 end
