@@ -49,7 +49,9 @@ module HudConcerns::Enrollment
 
     def invalidate_processing!
       # use update_columns to avoid stale object errors when this method is called from Service after_commit hooks
-      update_columns(processed_as: nil, processed_hash: nil)
+      with_locking_disabled do
+        update_columns(processed_as: nil, processed_hash: nil)
+      end
     end
   end
 end
