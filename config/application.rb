@@ -15,9 +15,11 @@ require_relative '../lib/util/id_protector'
 module BostonHmis
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 6.1
-    # config.autoloader = :classic
+    config.load_defaults 7.0
     config.autoload_paths << Rails.root.join('lib', 'devise')
+
+    TodoOrDie('Remove support for rails 6.1 cookies, change cookies_serializer to :json', by: '2024-12-01')
+    config.action_dispatch.cookies_serializer = :hybrid
 
     # ActionCable
     config.action_cable.mount_path = '/cable'
