@@ -382,6 +382,8 @@ CREATE TABLE public.app_config_properties (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
  );
+
+CREATE SEQUENCE public.app_config_properties_id_seq AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 ALTER SEQUENCE public.app_config_properties_id_seq OWNED BY public.app_config_properties.id;
 ALTER TABLE ONLY public.app_config_properties ALTER COLUMN id SET DEFAULT nextval('public.app_config_properties_id_seq'::regclass);
 ALTER TABLE ONLY public.app_config_properties ADD CONSTRAINT app_config_properties_pkey PRIMARY KEY (id);
