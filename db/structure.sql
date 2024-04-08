@@ -375,6 +375,17 @@ CREATE SEQUENCE public.agencies_id_seq
 
 ALTER SEQUENCE public.agencies_id_seq OWNED BY public.agencies.id;
 
+CREATE TABLE public.app_config_properties (
+    id bigint NOT NULL,
+    key character varying NOT NULL,
+    value jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+ );
+ALTER SEQUENCE public.app_config_properties_id_seq OWNED BY public.app_config_properties.id;
+ALTER TABLE ONLY public.app_config_properties ALTER COLUMN id SET DEFAULT nextval('public.app_config_properties_id_seq'::regclass);
+ALTER TABLE ONLY public.app_config_properties ADD CONSTRAINT app_config_properties_pkey PRIMARY KEY (id);
+CREATE UNIQUE INDEX index_app_config_properties_on_key ON public.app_config_properties USING btree (key);
 
 --
 -- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
@@ -4324,6 +4335,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240313161801'),
 ('20240313162012'),
 ('20240401132430'),
-('20240402161400');
-
-
+('20240402161400'),
+('20240404162012');
