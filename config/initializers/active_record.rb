@@ -7,6 +7,7 @@ if Rails.env.test?
       yield
     end
   end
+
   module ActiveRecordConnectionAdaptersLockPatch
     def initialize(...)
       super

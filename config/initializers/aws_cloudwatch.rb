@@ -10,8 +10,8 @@ Rails.configuration.to_prepare do
     end
 
     begin
-      task_meta = Net::HTTP.get( URI( "#{ENV['ECS_CONTAINER_METADATA_URI_V4']}/task" ) )
-      task_arn  = JSON.parse(task_meta)["TaskARN"]
+      task_meta = Net::HTTP.get(URI("#{ENV['ECS_CONTAINER_METADATA_URI_V4']}/task"))
+      task_arn  = JSON.parse(task_meta)['TaskARN']
       task_id   = task_arn.split('/').last
     rescue StandardError => e
       Rails.logger.error 'Something broke when querying ENV for the ECS task id.'
