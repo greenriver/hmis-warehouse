@@ -70,9 +70,9 @@
             - title = "#{pluralize(scope.size, 'Patient')} with Intake Renewal Overdue"
             =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
           %td.text-right
-            -# - scope = entity.without_required_wellcare_visit
-            -# - title = "#{pluralize(scope.size, 'Patient')} without Required Well Care Visit"
-            -# =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
+            - scope = entity.without_required_wellcare_visit
+            - title = "#{pluralize(scope.size, 'Patient')} without Required Well Care Visit"
+            =render 'warehouse_reports/health/agency_performance/table_cell', permission: permission, entity_slug: entity_slug, scope: scope, title: title, detail_path: detail_path
 
     - if entities.size > 1
       %tfoot
