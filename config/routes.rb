@@ -773,6 +773,7 @@ Rails.application.routes.draw do
     end
     resources :groups do
        resources :users, only: [:create, :destroy], controller: 'groups/users'
+       get :download, on: :collection
     end
     # END_ACL
     resources :access_controls do

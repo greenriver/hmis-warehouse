@@ -1,0 +1,121 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: 'Users') do |sheet|
+  sheet.add_row(['First Name', 'Last Name', 'Email', 'Agency', 'Role', 'Account Created', 'Last Login', 'Active'])
+  User.joins(:legacy_roles, :agency).find_each do |user|
+    user.legacy_roles.each do |role|
+      sheet.add_row(
+        [
+          user.first_name,
+          user.last_name,
+          user.email,
+          user.agency.name,
+          role.name,
+          user.created_at,
+          user.last_sign_in_at,
+          user.active_for_authentication? ? 'Y' : 'N',
+        ],
+      )
+    end
+  end
+end
+
+wb.add_worksheet(name: 'Roles') do |sheet|
+  permissions = Role.permissions_with_descriptions
+  labels = permissions.map { |key, permission| permission.try(:[], :title) || key.to_s.humanize }
+  sheet.add_row(['Role ID', 'Role Name'] + labels)
+  Role.find_each do |role|
+    active_permissions = permissions.keys.map { |perm| role.send(perm) ? 'X' : '' }
+    sheet.add_row([role.id, role.name] + active_permissions)
+  end
+end
+
+wb.add_worksheet(name: 'Agencies') do |sheet|
+  sheet.add_row(['ID', 'Agency Name'])
+  Agency.find_each do |agency|
+    sheet.add_row([agency.id, agency.name])
+  end
+end
+
+wb.add_worksheet(name: 'Projects') do |sheet|
+  sheet.add_row(['ID', 'HMIS Project ID', 'Project Name', 'Organization Name', 'Data Source Name'])
+  GrdaWarehouse::Hud::Project.preload(:organization, :data_source).find_each do |project|
+    sheet.add_row(
+      [
+        project.id,
+        project.ProjectID,
+        project.ProjectName,
+        project.organization&.OrganizationName,
+        project.data_source.name,
+      ],
+    )
+  end
+end
+
+wb.add_worksheet(name: 'Organizations') do |sheet|
+  sheet.add_row(['ID', 'HMIS Organization ID', 'Organization Name', 'Data Source Name'])
+  GrdaWarehouse::Hud::Organization.preload(:data_source).find_each do |organization|
+    sheet.add_row(
+      [
+        organization.id,
+        organization.OrganizationID,
+        organization.OrganizationName,
+        organization.data_source.name,
+      ],
+    )
+  end
+end
+
+wb.add_worksheet(name: 'Data Sources') do |sheet|
+  sheet.add_row(['ID', 'Data Source Name'])
+  GrdaWarehouse::DataSource.find_each do |ds|
+    sheet.add_row(
+      [
+        ds.id,
+        ds.name,
+      ],
+    )
+  end
+end
+
+wb.add_worksheet(name: 'Project Groups') do |sheet|
+  sheet.add_row(['ID', 'Project Group Name', 'Project Name'])
+  GrdaWarehouse::ProjectGroup.preload(:projects).find_each do |pg|
+    pg.projects.each do |project|
+      sheet.add_row(
+        [
+          pg.id,
+          pg.name,
+          project.ProjectName,
+        ],
+      )
+    end
+  end
+end
+
+wb.add_worksheet(name: 'CoC Codes') do |sheet|
+  sheet.add_row(['CoC Code'])
+  GrdaWarehouse::Hud::ProjectCoc.distinct.pluck(:CoCCode).each do |code|
+    sheet.add_row([code])
+  end
+end
+
+wb.add_worksheet(name: 'Cohorts') do |sheet|
+  sheet.add_row(['ID', 'Cohort Name', 'Active', 'System Cohort'])
+  GrdaWarehouse::Cohort.find_each do |cohort|
+    sheet.add_row(
+      [
+        cohort.id,
+        cohort.name,
+        cohort.active_cohort ? 'Y' : 'N',
+        cohort.system_cohort ? 'Y' : 'N',
+      ],
+    )
+  end
+end
+
+wb.add_worksheet(name: 'Reports') do |sheet|
+  sheet.add_row(['Report Name'])
+  GrdaWarehouse::WarehouseReports::ReportDefinition.enabled.pluck(:name).each do |report_name|
+    sheet.add_row([report_name])
+  end
+end
