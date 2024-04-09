@@ -234,6 +234,13 @@ class Hmis::Role < ::ApplicationRecord
         category: 'Client Access',
         sub_category: 'Sensitive Client Data',
       },
+      can_view_client_photo: {
+        description: 'Access to view client photo.',
+        administrative: false,
+        access: [:viewable],
+        category: 'Client Access',
+        sub_category: 'Sensitive Client Data',
+      },
       can_view_full_ssn: {
         administrative: false,
         access: [:viewable],
