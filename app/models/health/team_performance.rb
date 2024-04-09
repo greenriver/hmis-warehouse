@@ -155,12 +155,12 @@ module Health
 
     def intake_renewal_due
       date = [@range.last, Date.current].min
-      Health::Patient.where(id: Health::Patient.needs_renewal(on: date).pluck(:id) - Health::Patient.overdue_for_renewal(on: date).pluck(:id))
+      Health::Patient.where(id: Health::Patient.needs_renewal(on: date).pluck(:id) - Health::Patient.overdue_for_renewal(on: date).pluck(:id)).pluck(:id)
     end
 
     def intake_renewal_overdue
       date = [@range.last, Date.current].min
-      Health::Patient.overdue_for_renewal(on: date)
+      Health::Patient.overdue_for_renewal(on: date).pluck(:id)
     end
 
     def with_required_wellcare_visit
