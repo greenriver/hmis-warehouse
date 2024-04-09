@@ -17,7 +17,6 @@ RSpec.describe Hmis::Hud::Project, type: :model do
   end
 
   let!(:project) { create :hmis_hud_project }
-  let!(:enrollment) { create(:hmis_hud_enrollment, project: project, data_source: project.data_source) }
   before(:each) do
     create(:hmis_hud_enrollment, project: project, data_source: project.data_source)
     create(:hmis_hud_project_coc, project: project, data_source: project.data_source)
