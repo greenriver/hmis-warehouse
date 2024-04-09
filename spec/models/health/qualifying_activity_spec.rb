@@ -151,7 +151,8 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       end
     end
 
-    it 'adds a PCTP-signed QA on a re-enrollment' do
+    xit 'adds a PCTP-signed QA on a re-enrollment' do
+      # 4/3/24 - re-enrollment QAs are disabled pending dicussion
       enrollment_start_date = @referral.enrollment_start_date
       careplan = create(
         :cp2_careplan,

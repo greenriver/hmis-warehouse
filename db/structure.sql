@@ -881,14 +881,15 @@ CREATE TABLE public.hmis_roles (
     can_view_limited_enrollment_details boolean DEFAULT false,
     can_impersonate_users boolean DEFAULT false,
     can_audit_users boolean DEFAULT false,
-    can_configure_data_collection boolean DEFAULT false,
     can_audit_enrollments boolean DEFAULT false,
-    can_manage_scan_cards boolean DEFAULT false,
+    can_configure_data_collection boolean DEFAULT false,
     can_view_client_alerts boolean DEFAULT false,
     can_manage_client_alerts boolean DEFAULT false,
+    can_manage_scan_cards boolean DEFAULT false,
     can_manage_external_form_submissions boolean DEFAULT false,
-    can_view_client_name boolean DEFAULT false,
-    can_view_client_contact_info boolean DEFAULT false
+    can_view_client_contact_info boolean DEFAULT false,
+    can_view_client_photo boolean DEFAULT false,
+    can_view_client_name boolean DEFAULT false
 );
 
 
@@ -4331,6 +4332,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240123160215'),
 ('20240124173020'),
 ('20240212150622'),
+('20240229184109'),
 ('20240301173438'),
 ('20240305160215'),
 ('20240311135958'),
@@ -4338,4 +4340,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240313162012'),
 ('20240401132430'),
 ('20240402161400'),
-('20240404162012');
+('20240404162012'),
+('20240402204100');
