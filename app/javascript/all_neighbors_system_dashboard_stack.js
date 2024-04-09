@@ -41,7 +41,6 @@ class AllNeighborsSystemDashboardStack {
     //ruby date month is 1 based while js date month is 0
     const date = Date.parse(new Date(year, month-1, day))
     const [s, e] = range
-    // console.log('comparing dates', new Date(date), new Date(s), new Date(e))
     return date >= s && date <= e
   }
 
@@ -582,7 +581,6 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
   }
 
   getConfig() {
-    // const fitLabels = this.fitLabels
     const superConfig = super.getConfig()
     const normalizeDataLabels = this.normalizeDataLabels
     const config = {
