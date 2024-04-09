@@ -760,6 +760,7 @@ type ClientAccess {
   canViewAnyNonconfidentialClientFiles: Boolean!
   canViewClientAlerts: Boolean!
   canViewClientName: Boolean!
+  canViewClientPhoto: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
@@ -8736,6 +8737,7 @@ type QueryAccess {
   canViewClientAlerts: Boolean!
   canViewClientContactInfo: Boolean!
   canViewClientName: Boolean!
+  canViewClientPhoto: Boolean!
   canViewClients: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
