@@ -91,6 +91,20 @@ RSpec.describe 'HmisExternalApis::PublishExternalFormsJob', type: :model do
     create(:hmis_external_form_definition, definition: JSON.parse(json_definition))
   end
 
+  before(:each) do
+    {
+      site_logo_alt: 'test site alt',
+      site_logo_url: 'logo.html',
+      site_logo_width: 100,
+      site_logo_height: 100,
+      recaptcha_key: 'fakekey',
+      presign_url: 'http://example.com',
+      csp_content: ["default-src 'self'"],
+    }.each do |key, value|
+      AppConfigProperty.create!(key: "external_forms/#{key}", value: value)
+    end
+  end
+
   it 'publishing populates the content and key' do
     publication_scope = form_definition.external_form_publications
     expect do
