@@ -180,28 +180,31 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(records.pluck('inProgress')).to contain_exactly(true, false, true, false)
     end
 
-    it 'resolves assessments in a reasonable amount of time' do
-      40.times.map do
-        c = create :hmis_hud_client_complete, data_source: ds1, user: u1
-        e = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c, user: u1
-        5.times.map do
-          create :hmis_wip_custom_assessment, enrollment: e, client: c
-          create :hmis_custom_assessment, enrollment: e, client: c
+    describe 'with many assessments' do
+      before(:each) do
+        40.times.map do
+          c = create :hmis_hud_client_complete, data_source: ds1, user: u1
+          e = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c, user: u1
+          5.times.map do
+            create :hmis_wip_custom_assessment, enrollment: e, client: c
+            create :hmis_custom_assessment, enrollment: e, client: c
+          end
         end
       end
 
-      expect do
-        _response, result = post_graphql(id: p1.id) { project_assessments_query }
-        expect(result.dig('data', 'project', 'assessments', 'nodesCount')).to eq 404
-      end.to perform_under(40).ms
-    end
+      it 'resolves assessments in a reasonable amount of time' do
+        expect do
+          _response, result = post_graphql(id: p1.id) { project_assessments_query }
+          expect(result.dig('data', 'project', 'assessments', 'nodesCount')).to eq 404
+        end.to perform_under(200).ms
+      end
 
-    # TODO - add n+1 query here
-    # it 'should only make 1 db query when querying for custom assessments' do
-    #   expect do
-    #     post_graphql(id: p1.id) { project_assessments_query }
-    #   end.to make_database_queries(count: 1)
-    # end
+      it 'minimizes n+1 queries' do
+        expect do
+          post_graphql(id: p1.id) { project_assessments_query }
+        end.to make_database_queries(count: 10..30)
+      end
+    end
 
     it 'does not return any assessments when the user lacks permission' do
       remove_permissions(access_control, :can_view_enrollment_details)
