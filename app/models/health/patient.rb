@@ -602,22 +602,22 @@ module Health
     end
 
     def reenroll!(referral)
-      # Create a "Care Plan Complete QA" if the patient has an unexpired care plan as of the enrollment start date
-      return unless pctp_careplans.completed_within(referral.enrollment_start_date - 1.year ..).exists?
-
-      user = User.setup_system_user
-      qualifying_activities.create(
-        activity: :pctp_signed,
-        date_of_activity: referral.enrollment_start_date,
-
-        user_id: user.id,
-        user_full_name: user.name,
-        source: referral,
-        follow_up: 'None',
-        mode_of_contact: :other,
-        mode_of_contact_other: 'MassHealth re-enrollment',
-        reached_client: :yes,
-      )
+      # # Create a "Care Plan Complete QA" if the patient has an unexpired care plan as of the enrollment start date
+      # return unless pctp_careplans.completed_within(referral.enrollment_start_date - 1.year ..).exists?
+      #
+      # user = User.setup_system_user
+      # qualifying_activities.create(
+      #   activity: :pctp_signed,
+      #   date_of_activity: referral.enrollment_start_date,
+      #
+      #   user_id: user.id,
+      #   user_full_name: user.name,
+      #   source: referral,
+      #   follow_up: 'None',
+      #   mode_of_contact: :other,
+      #   mode_of_contact_other: 'MassHealth re-enrollment',
+      #   reached_client: :yes,
+      # )
     end
 
     def age(on_date:)
