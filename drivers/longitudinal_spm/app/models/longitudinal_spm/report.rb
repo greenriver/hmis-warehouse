@@ -138,6 +138,9 @@ module LongitudinalSpm
     def spm_describe(measure_or_table, cell = nil, row_col = :row)
       return spm_generator.describe_table(measure_or_table) if cell.blank?
 
+      # Don't break terribly if the SPM version has changed
+      return '' unless spms.first.hud_spm.report_name == 'System Performance Measures - FY 2023'
+
       @sample_spm ||= spms.first.hud_spm # Just find one of the SPMs so we can get metadata
       row = cell.gsub(/\D/, '').to_i - 2 # cells are 1 based, rows 0 based and the first row is ignored
       return @sample_spm.answer(question: measure_or_table).metadata['row_labels'][row] if row_col == :row
@@ -160,6 +163,17 @@ module LongitudinalSpm
     end
 
     def spm_measures
+      # if we're running the report, return the current version
+      return spm_measures_2023 unless spms.present?
+      # If we're looking at the 2023 version
+      return spm_measures_2023 if HudSpmReport::Generators::Fy2023::Generator.title == spms.first.hud_spm.report_name
+      # If we're looking at the 2020 version
+      return spm_measures_2020 if HudSpmReport::Generators::Fy2020::Generator.title == spms.first.hud_spm.report_name
+
+      raise 'Unknown SPM VERSION'
+    end
+
+    private def spm_measures_2023
       {
         'Measure 1' => {
           '1a' => [
@@ -173,6 +187,42 @@ module LongitudinalSpm
         },
         'Measure 2' => {
           '2a and 2b' => [
+            'J2',
+            'J3',
+            'J4',
+            'J5',
+            'J6',
+            'J7',
+          ],
+        },
+        'Measure 7' => {
+          '7a.1' => [
+            'C5',
+          ],
+          '7b.1' => [
+            'C4',
+          ],
+          '7b.2' => [
+            'C4',
+          ],
+        },
+      }.freeze
+    end
+
+    private def spm_measures_2020
+      {
+        'Measure 1' => {
+          '1a' => [
+            'E2',
+            'E3',
+          ],
+          '1b' => [
+            'E2',
+            'E3',
+          ],
+        },
+        'Measure 2' => {
+          '2' => [
             'J2',
             'J3',
             'J4',
