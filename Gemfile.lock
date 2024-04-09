@@ -473,9 +473,8 @@ GEM
     grover (1.1.7)
       combine_pdf (~> 1.0)
       nokogiri (~> 1.0)
-    haml (6.3.0)
-      temple (>= 0.8.2)
-      thor
+    haml (5.2.2)
+      temple (>= 0.8.0)
       tilt
     haml-rails (2.1.0)
       actionpack (>= 5.1)
@@ -1120,6 +1119,7 @@ DEPENDENCIES
   graphiql-rails
   graphql (~> 2.0)
   grover
+  haml (~> 5.2.2)
   haml-rails
   handlebars_assets
   hellosign-ruby-sdk!

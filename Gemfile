@@ -45,6 +45,7 @@ gem 'charlock_holmes', require: false
 gem 'bootsnap'
 gem 'bcrypt'
 gem 'haml-rails'
+gem 'haml', '~> 5.2.2' # pinned to v5, v6 was not escaping correctly
 gem 'sassc-rails'
 gem 'autoprefixer-rails', '~> 10.3.3' # pinned until we can update to Bootstrap 5.3 or later
 gem 'kaminari'
