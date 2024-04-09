@@ -34,9 +34,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:referral_request) do
     create(:hmis_external_api_ac_hmis_referral_request, project: p1)
   end
+
+  # both WIP and non-WIP assessments on a non-WIP enrollment
   let!(:e1) { create(:hmis_hud_enrollment, project: p1, data_source: p1.data_source) }
   let!(:a1) { create(:hmis_custom_assessment, enrollment: e1, client: e1.client) }
   let!(:a2) { create(:hmis_wip_custom_assessment, enrollment: e1, client: e1.client) }
+
+  # both WIP and non-WIP assessments on a WIP enrollment
+  let!(:e2) { create(:hmis_hud_wip_enrollment, project: p1, data_source: p1.data_source) }
+  let!(:a3) { create(:hmis_wip_custom_assessment, enrollment: e2, client: e2.client) }
+  let!(:a4) { create(:hmis_custom_assessment, enrollment: e2, client: e2.client) }
 
   describe 'project query' do
     before(:each) do
@@ -169,12 +176,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       response, result = post_graphql(id: p1.id) { project_assessments_query }
       expect(response.status).to eq 200
       records = result.dig('data', 'project', 'assessments', 'nodes')
-      expect(records.size).to eq(2)
-      expect(records.pluck('inProgress')).to contain_exactly(true, false)
+      expect(records.size).to eq(4)
+      expect(records.pluck('inProgress')).to contain_exactly(true, false, true, false)
     end
 
     it 'resolves assessments in a reasonable amount of time' do
-      100.times.map do
+      40.times.map do
         c = create :hmis_hud_client_complete, data_source: ds1, user: u1
         e = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c, user: u1
         5.times.map do
@@ -185,9 +192,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       expect do
         _response, result = post_graphql(id: p1.id) { project_assessments_query }
-        expect(result.dig('data', 'project', 'assessments', 'nodesCount')).to eq 1002
-      end.to perform_under(500).ms
+        expect(result.dig('data', 'project', 'assessments', 'nodesCount')).to eq 404
+      end.to perform_under(40).ms
     end
+
+    # TODO - add n+1 query here
+    # it 'should only make 1 db query when querying for custom assessments' do
+    #   expect do
+    #     post_graphql(id: p1.id) { project_assessments_query }
+    #   end.to make_database_queries(count: 1)
+    # end
 
     it 'does not return any assessments when the user lacks permission' do
       remove_permissions(access_control, :can_view_enrollment_details)
