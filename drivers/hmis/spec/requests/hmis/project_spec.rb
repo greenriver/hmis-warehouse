@@ -177,7 +177,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(response.status).to eq 200
       records = result.dig('data', 'project', 'assessments', 'nodes')
       expect(records.size).to eq(4)
-      expect(records.pluck('inProgress')).to contain_exactly(true, false, true, false)
+      expect(records.pluck('id')).to contain_exactly(a1.id.to_s, a2.id.to_s, a3.id.to_s, a4.id.to_s)
     end
 
     describe 'with many assessments' do
