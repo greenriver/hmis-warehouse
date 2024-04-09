@@ -208,8 +208,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'does not return any assessments when the user lacks permission' do
       remove_permissions(access_control, :can_view_enrollment_details)
-      _response, result = post_graphql(id: p1.id) { project_assessments_query }
-      expect(result.dig('data', 'project', 'assessments', 'nodesCount')).to eq 0
+      response, result = post_graphql(id: p1.id) { project_assessments_query }
+      expect(response.status).to eq 500
+      expect(result.dig('errors')[0]['message']).to eq 'access denied'
     end
   end
 end

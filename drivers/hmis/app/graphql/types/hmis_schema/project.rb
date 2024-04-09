@@ -112,14 +112,15 @@ module Types
     end
 
     def enrollments(**args)
-      # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
-      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
+      check_enrollment_details_access
 
       resolve_enrollments(object.enrollments_including_wip, dangerous_skip_permission_check: true, **args)
     end
 
     def assessments(**args)
-      resolve_assessments(object.custom_assessments, **args)
+      check_enrollment_details_access
+
+      resolve_assessments(object.custom_assessments, dangerous_skip_permission_check: true, **args)
     end
 
     def organization
@@ -131,8 +132,7 @@ module Types
     end
 
     def services(**args)
-      # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
-      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
+      check_enrollment_details_access
 
       resolve_services(**args, dangerous_skip_permission_check: true)
     end
@@ -175,8 +175,7 @@ module Types
     end
 
     def households(**args)
-      # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
-      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
+      check_enrollment_details_access
 
       resolve_households(object.households_including_wip, **args, dangerous_skip_permission_check: true)
     end
@@ -220,6 +219,13 @@ module Types
       form_definition_identifier = args.delete(:form_definition_identifier)
       scope = scope.where(definition: { identifier: form_definition_identifier }) if form_definition_identifier
       resolve_external_form_submissions(scope, **args)
+    end
+
+    private def check_enrollment_details_access
+      # For resolving several associations, we want to skip permission checks that use the viewable_by scope, both for
+      # performance reasons, and so that we throw an error instead of returning an empty list.
+      # After this check it's OK to use `dangerous_skip_permission_check`
+      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
     end
   end
 end
