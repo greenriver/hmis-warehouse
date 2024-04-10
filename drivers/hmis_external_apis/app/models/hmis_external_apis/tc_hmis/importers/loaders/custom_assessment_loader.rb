@@ -32,6 +32,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       super && reader.file_present?(filename)
     end
 
+    def supports_upsert?
+      true
+    end
+
     protected
 
     # for extrapolate_missing_enrollment_ids
@@ -159,9 +163,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       processor_model = Hmis::Form::FormProcessor
       records = []
       rows.each do |row|
-        assessment_id = owner_id_by_row_id[row_assessment_id(row)]
-        next unless assessment_id
+        assessment_hud_key = row_assessment_id(row)
         next if existing_assessment_hud_keys.include?(assessment_hud_key) # already imported
+
+        assessment_id = owner_id_by_row_id[assessment_hud_key]
+        next unless assessment_id
 
         ce_assessment_id = nil
         if ce_assessment_level
@@ -203,7 +209,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       seen = Set.new
       cdes = []
       rows.each do |row|
-        owner_id = owner_id_by_assessment_id[row_assessment_id(row)]
+        assessment_hud_key = row_assessment_id(row)
+        next if existing_assessment_hud_keys.include?(assessment_hud_key) # already imported
+
+        owner_id = owner_id_by_assessment_id[assessment_hud_key]
         next unless owner_id
 
         cded_configs.each do |config|
