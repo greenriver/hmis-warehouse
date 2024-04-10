@@ -66,14 +66,14 @@ module HmisExternalApis::AcHmis::Importers
       sanity_check
       ProjectsImportAttempt.transaction do
         run_in_dir(hud_dir) do
-          upsert_hud_file(file: 'Organization.csv', klass: GrdaWarehouse::Hud::Organization, hud_key: 'OrganizationID')
+          upsert_hud_file(file: 'Organization.csv', klass: GrdaWarehouse::Hud::Organization)
           upsert_projects
           upsert_walkins # import flag indicating which projects accept walk-ins
-          upsert_hud_file(file: 'Funder.csv', klass: GrdaWarehouse::Hud::Funder, hud_key: 'FunderID')
-          upsert_hud_file(file: 'Inventory.csv', klass: GrdaWarehouse::Hud::Inventory, hud_key: 'InventoryID')
-          upsert_hud_file(file: 'ProjectCoC.csv', klass: GrdaWarehouse::Hud::ProjectCoc, hud_key: 'ProjectCoCID')
-          upsert_hud_file(file: 'HMISParticipation.csv', klass: GrdaWarehouse::Hud::HmisParticipation, hud_key: 'HMISParticipationID')
-          upsert_hud_file(file: 'CEParticipation.csv', klass: GrdaWarehouse::Hud::CeParticipation, hud_key: 'CEParticipationID')
+          upsert_hud_file(file: 'Funder.csv', klass: GrdaWarehouse::Hud::Funder)
+          upsert_hud_file(file: 'Inventory.csv', klass: GrdaWarehouse::Hud::Inventory)
+          upsert_hud_file(file: 'ProjectCoC.csv', klass: GrdaWarehouse::Hud::ProjectCoc)
+          upsert_hud_file(file: 'HMISParticipation.csv', klass: GrdaWarehouse::Hud::HmisParticipation)
+          upsert_hud_file(file: 'CEParticipation.csv', klass: GrdaWarehouse::Hud::CeParticipation)
         end
         run_in_dir(dir) do
           upsert_project_unit_type_mappings
@@ -126,7 +126,10 @@ module HmisExternalApis::AcHmis::Importers
       raise AbortImportException, msg
     end
 
-    def upsert_hud_file(file:, klass:, hud_key:)
+    def upsert_hud_file(file:, klass:)
+      hud_key = klass.hud_key&.to_s
+      raise 'hud_key not found' unless hud_key
+
       check_columns(
         file: file,
         expected_columns: klass.hmis_configuration(version: '2024').keys.map(&:to_s),
