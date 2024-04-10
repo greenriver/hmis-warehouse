@@ -10,6 +10,7 @@ module Hmis::GrdaWarehouse::Hud
 
     included do
       has_many :custom_services, **Hmis::Hud::Base.hmis_enrollment_relation('CustomService'), inverse_of: :enrollment
+      has_many :hmis_custom_assessments, **Hmis::Hud::Base.hmis_enrollment_relation('CustomAssessment'), inverse_of: :enrollment
     end
   end
 end

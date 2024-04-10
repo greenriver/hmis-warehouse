@@ -53,6 +53,9 @@ module Mutations
             access_denied! unless can_enroll_clients
             raise 'bulk service assignment generated invalid enrollment' unless enrollment.valid?
 
+            entry_date_errors = Hmis::Hud::Validators::EnrollmentValidator.validate_entry_date(enrollment)
+            error_out(entry_date_errors.first.full_message) unless entry_date_errors.empty?
+
             # Attempt to assign this enrollment to a unit if this project has units. This is AC-specific for now, and does
             # not support specifying the unit type. Needs improvement if/when we expand unit capabilities.
             if project_has_units

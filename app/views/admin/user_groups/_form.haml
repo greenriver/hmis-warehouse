@@ -1,4 +1,7 @@
 .row
-  .col-8
-    = f.input :name
+  .col-sm-6
+    = f.input :name, label: 'User Group Name', hint: 'Descriptive name for user group, e.g. "Blue Mountain Shelter: Providers"'
+
     = f.input :user_ids, as: :select_two, label_method: :name, collection: User.active.not_system, label: 'Users', input_html: { multiple: true }
+  .col-sm-6
+    = render 'admin/user_groups/helper_text'

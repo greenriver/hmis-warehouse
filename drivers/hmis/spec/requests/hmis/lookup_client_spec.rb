@@ -22,11 +22,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   before(:each) do
     hmis_login(user)
     c1.update({ dob: Date.current - 18.years, ssn: '123456789' })
+    create(:hmis_hud_custom_client_contact_point, client: c1, data_source: ds1)
+    create(:hmis_hud_custom_client_contact_point, value: 'email@e.mail', system: 'email', client: c1, data_source: ds1)
+    create(:hmis_hud_custom_client_address, data_source: ds1, client: c1, line1: '999 Test Ave')
   end
 
   let!(:f1) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag] }
   let!(:f2) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag], confidential: true }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
+  let!(:photo_tag) { create :available_file_tag, consent_form: false, name: 'Client Headshot' }
+  let!(:photo) { create :client_file, client: c1.as_warehouse, name: 'Client Headshot Cache', tags: [photo_tag] }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
   let(:query) do
@@ -41,10 +46,28 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             id
             name
           }
+          addresses {
+            line1
+          }
+          phoneNumbers {
+            value
+            use
+            system
+          }
+          emailAddresses {
+            value
+            use
+            system
+          }
           names {
             id
             first
             last
+          }
+          image {
+            id
+            contentType
+            base64
           }
           files {
             nodes {
@@ -127,7 +150,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       'files' => {
         'nodes' => include(include('id' => f1.id.to_s), include('id' => f2.id.to_s)),
       },
+      'addresses' => [{ 'line1' => '999 Test Ave' }],
+      'phoneNumbers' => [{ 'value' => '5554567891', 'use' => 'home', 'system' => 'phone' }],
+      'emailAddresses' => [{ 'value' => 'email@e.mail', 'use' => 'home', 'system' => 'email' }],
     )
+    expect(result.dig('data', 'client', 'image')).not_to be_nil
   end
 
   it 'should return client if can view clients and client is unenrolled' do
@@ -159,6 +186,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(result.dig('data', 'client', 'names')).to contain_exactly(include('first' => c1.first_name, 'last' => c1.last_name))
   end
 
+  it 'should return masked name if not allowed to see name' do
+    remove_permissions(access_control, :can_view_client_name)
+    _response, result = post_graphql(id: c1.id) { query }
+    expect(result.dig('data', 'client', 'names')).to contain_exactly(include('first' => "Client #{c1.id}", 'last' => nil))
+  end
+
+  it 'should return no client photo if not allowed to see photos' do
+    remove_permissions(access_control, :can_view_client_photo)
+    _response, result = post_graphql(id: c1.id) { query }
+    expect(result.dig('data', 'client', 'image')).to be_nil
+  end
+
   it 'should return null DOB if not allowed to see DOB' do
     remove_permissions(access_control, :can_view_dob)
     _response, result = post_graphql(id: c1.id) { query }
@@ -171,10 +210,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(result.dig('data', 'client')).to include('ssn' => nil)
   end
 
-  it 'should return null SSN if not allowed to see SSN' do
+  it 'should return partial SSN if allowed to see partial but not full SSN' do
     remove_permissions(access_control, :can_view_full_ssn)
     _response, result = post_graphql(id: c1.id) { query }
     expect(result.dig('data', 'client')).to include('ssn' => 'XXXXX6789')
+  end
+
+  it 'should return null address, email, and phone if not allowed to see contact info' do
+    remove_permissions(access_control, :can_view_client_contact_info)
+    _response, result = post_graphql(id: c1.id) { query }
+    expect(result.dig('data', 'client', 'addresses')).to be_empty
+    expect(result.dig('data', 'client', 'phoneNumbers')).to be_empty
+    expect(result.dig('data', 'client', 'emailAddresses')).to be_empty
   end
 
   it 'should return no files if not allowed to see any' do

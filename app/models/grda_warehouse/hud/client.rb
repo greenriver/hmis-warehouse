@@ -42,6 +42,16 @@ module GrdaWarehouse::Hud
     has_one :ce_assessment, -> do
       merge(GrdaWarehouse::CoordinatedEntryAssessment::Base.active)
     end, class_name: 'GrdaWarehouse::CoordinatedEntryAssessment::Base', inverse_of: :client
+
+    # operates on source_clients only
+    has_one :most_recent_ce_assessment, -> do
+      one_for_column(
+        :AssessmentDate,
+        source_arel_table: as_t,
+        group_on: [:PersonalID, :data_source_id],
+      )
+    end, **hud_assoc(:PersonalID, 'Assessment')
+
     # operates on source_clients only
     has_one :most_recent_pathways_or_rrh_assessment, -> do
       one_for_column(
@@ -1418,32 +1428,30 @@ module GrdaWarehouse::Hud
     end
 
     def email
-      return unless hmis_client_response.present?
-
-      data = hmis_client_response['Email']
-      return data if data
-      return unless hmis_client.processed_fields
-
-      hmis_client.processed_fields['email']
+      # Look for value from OP HMIS
+      value = most_recent_email_hmis if HmisEnforcement.hmis_enabled?
+      # Look for value from other HMIS integrations
+      value ||= hmis_client_response['Email'] if hmis_client_response.present?
+      value ||= hmis_client.processed_fields['email'] if hmis_client&.processed_fields
+      value
     end
 
     def home_phone
-      return unless hmis_client_response.present?
-
-      hmis_client_response['HomePhone']
+      value = most_recent_home_phone_hmis if HmisEnforcement.hmis_enabled?
+      value ||= hmis_client_response['HomePhone'] if hmis_client_response.present?
+      value
     end
 
     def cell_phone
-      return unless hmis_client_response.present?
-
-      data = hmis_client_response['CellPhone']
-      return data if data
-      return unless hmis_client.processed_fields
-
-      hmis_client.processed_fields['phone']
+      value = most_recent_cell_or_other_phone_hmis if HmisEnforcement.hmis_enabled?
+      value ||= hmis_client_response['CellPhone'] if hmis_client_response.present?
+      value ||= hmis_client.processed_fields['phone'] if hmis_client&.processed_fields
+      value
     end
 
     def work_phone
+      value = most_recent_work_or_school_phone_hmis if HmisEnforcement.hmis_enabled?
+      return value if value
       return unless hmis_client_response.present?
 
       work_phone = hmis_client_response['WorkPhone']

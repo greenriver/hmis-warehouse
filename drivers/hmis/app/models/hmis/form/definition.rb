@@ -42,6 +42,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   has_many :instances, foreign_key: :definition_identifier, primary_key: :identifier, dependent: :restrict_with_exception
   has_many :form_processors, dependent: :restrict_with_exception
   has_many :custom_service_types, through: :instances, foreign_key: :identifier, primary_key: :form_definition_identifier
+  has_many :external_form_submissions, class_name: 'HmisExternalApis::ExternalForms::FormSubmission', dependent: :restrict_with_exception
+  has_many :external_form_publications, class_name: 'HmisExternalApis::ExternalForms::FormPublication', dependent: :destroy
+  has_many :custom_data_element_definitions, class_name: 'Hmis::Hud::CustomDataElementDefinition', dependent: :nullify,
+                                             primary_key: 'identifier', foreign_key: 'form_definition_identifier'
 
   # Forms that are used for Assessments. These are submitted using SubmitAssessment mutation.
   ASSESSMENT_FORM_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT, :POST_EXIT, :CUSTOM_ASSESSMENT].freeze
@@ -79,6 +83,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     # That would mean creating an Instance for this form for each non-Direct Entry program.
     # Maybe less cumbersome than dealing with data access groups, but we'd need that anyway to handle Direct Enrollment permission?
     :REFERRAL_REQUEST,
+    :EXTERNAL_FORM,
   ].freeze
 
   # Static Forms
@@ -89,6 +94,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :PROJECT_CONFIG,
     :CLIENT_ALERT,
     :FORM_DEFINITION,
+    :EXTERNAL_FORM_SUBMISSION_REVIEW,
   ].freeze
 
   # All form roles
@@ -107,71 +113,71 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   validates :identifier, uniqueness: { scope: :version }
 
   ENROLLMENT_CONFIG = {
-    owner_class: Hmis::Hud::Enrollment,
+    owner_class: 'Hmis::Hud::Enrollment',
     permission: :can_edit_enrollments,
   }.freeze
 
   # Configuration for SubmitForm
   FORM_ROLE_CONFIG = {
     SERVICE: {
-      owner_class: Hmis::Hud::HmisService,
+      owner_class: 'Hmis::Hud::HmisService',
       permission: :can_edit_enrollments,
     },
     PROJECT: {
-      owner_class: Hmis::Hud::Project,
+      owner_class: 'Hmis::Hud::Project',
       permission: :can_edit_project_details,
     },
     ORGANIZATION: {
-      owner_class: Hmis::Hud::Organization,
+      owner_class: 'Hmis::Hud::Organization',
       permission: :can_edit_organization,
     },
     CLIENT: {
-      owner_class: Hmis::Hud::Client,
+      owner_class: 'Hmis::Hud::Client',
       permission: :can_edit_clients,
     },
     FUNDER: {
-      owner_class: Hmis::Hud::Funder,
+      owner_class: 'Hmis::Hud::Funder',
       permission: :can_edit_project_details,
     },
     INVENTORY: {
-      owner_class: Hmis::Hud::Inventory,
+      owner_class: 'Hmis::Hud::Inventory',
       permission: :can_edit_project_details,
     },
     PROJECT_COC: {
-      owner_class: Hmis::Hud::ProjectCoc,
+      owner_class: 'Hmis::Hud::ProjectCoc',
       permission: :can_edit_project_details,
     },
     HMIS_PARTICIPATION: {
-      owner_class: Hmis::Hud::HmisParticipation,
+      owner_class: 'Hmis::Hud::HmisParticipation',
       permission: :can_edit_project_details,
     },
     CE_PARTICIPATION: {
-      owner_class: Hmis::Hud::CeParticipation,
+      owner_class: 'Hmis::Hud::CeParticipation',
       permission: :can_edit_project_details,
     },
     CE_ASSESSMENT: {
-      owner_class: Hmis::Hud::Assessment,
+      owner_class: 'Hmis::Hud::Assessment',
       permission: :can_edit_enrollments,
     },
     CE_EVENT: {
-      owner_class: Hmis::Hud::Event,
+      owner_class: 'Hmis::Hud::Event',
       permission: :can_edit_enrollments,
     },
     CASE_NOTE: {
-      owner_class: Hmis::Hud::CustomCaseNote,
+      owner_class: 'Hmis::Hud::CustomCaseNote',
       permission: :can_edit_enrollments,
     },
     FILE: {
-      owner_class: Hmis::File,
+      owner_class: 'Hmis::File',
       permission: [:can_manage_any_client_files, :can_manage_own_client_files],
-      authorize: Hmis::File.authorize_proc,
+      authorize: ->(entity_base, user) { Hmis::File.authorize_proc.call(entity_base, user) },
     },
     REFERRAL_REQUEST: {
-      owner_class: HmisExternalApis::AcHmis::ReferralRequest,
+      owner_class: 'HmisExternalApis::AcHmis::ReferralRequest',
       permission: :can_manage_incoming_referrals,
     },
     CURRENT_LIVING_SITUATION: {
-      owner_class: Hmis::Hud::CurrentLivingSituation,
+      owner_class: 'Hmis::Hud::CurrentLivingSituation',
       permission: :can_edit_enrollments,
     },
     OCCURRENCE_POINT: ENROLLMENT_CONFIG,
@@ -182,8 +188,12 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       permission: [:can_edit_clients, :can_edit_enrollments],
     },
     CLIENT_DETAIL: {
-      owner_class: Hmis::Hud::Client,
+      owner_class: 'Hmis::Hud::Client',
       permission: :can_edit_clients,
+    },
+    EXTERNAL_FORM: {
+      owner_class: 'HmisExternalApis::ExternalForms::FormSubmission',
+      permission: :can_manage_external_form_submissions,
     },
   }.freeze
 
@@ -257,6 +267,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     where(identifier: instance_scope.pluck(:definition_identifier))
   end
 
+  def self.apply_filters(input)
+    Hmis::Filter::FormDefinitionFilter.new(input).filter_scope(self)
+  end
+
   def self.find_definition_for_role(role, project: nil, version: nil)
     scope = Hmis::Form::Definition.all
     if project.present?
@@ -318,7 +332,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   def owner_class
     return unless FORM_ROLE_CONFIG[role.to_sym].present?
 
-    FORM_ROLE_CONFIG[role.to_sym][:owner_class]
+    FORM_ROLE_CONFIG[role.to_sym][:owner_class].constantize
   end
 
   def record_editing_permissions
@@ -451,5 +465,82 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   # if the enrollment and project match
   def project_and_enrollment_match(...)
     instances.map { |i| i.project_and_enrollment_match(...) }.compact.min_by(&:rank)
+  end
+
+  # should use rails attr normalization in rails 7
+  def external_form_object_key=(value)
+    super(value.blank? ? nil : value.strip)
+  end
+
+  def walk_definition_nodes(&block)
+    definition_struct&.item&.each do |node|
+      walk_definition_node(node, &block)
+    end
+  end
+
+  protected def walk_definition_node(node, &block)
+    # if item has children, recur into them first
+    node.item&.each { |child| walk_definition_node(child, &block) }
+    block.call(node)
+  end
+
+  # Find and/or initialize CustomDataElementDefinitions that are collected by this form. Eventually this should be done as part of the
+  # Form Editor admin tool. For now, it is called by a rake task manually.
+  def introspect_custom_data_element_definitions(set_definition_identifier: false)
+    owner_type = if ASSESSMENT_FORM_ROLES.include?(role.to_sym)
+      Hmis::Hud::CustomAssessment.sti_name
+    else
+      FORM_ROLE_CONFIG.dig(role.to_sym, :owner_class)
+    end
+    raise "unable to determine owner class for form role: #{role}" unless owner_type
+
+    data_source = GrdaWarehouse::DataSource.hmis.first # TODO: needs adjustment to support multiple data sources
+    hud_user_id = Hmis::Hud::User.system_user(data_source_id: data_source.id).UserID
+    cded_scope = Hmis::Hud::CustomDataElementDefinition.where(owner_type: owner_type, data_source: data_source)
+    cdeds_by_key = cded_scope.index_by(&:key)
+
+    cded_records = []
+    walk_definition_nodes do |item|
+      # skip unless custom_field_key specified for this item
+      key = item.mapping&.custom_field_key
+      next unless key
+
+      # find CDED if it exists, or initialize a new one with defaults
+      cded = cdeds_by_key[key] || cded_scope.new(key: key, UserID: hud_user_id)
+
+      field_type = case item.type
+      when 'STRING', 'TEXT', 'CHOICE', 'TIME_OF_DAY', 'OPEN_CHOICE'
+        'string'
+      when 'BOOLEAN'
+        'boolean'
+      when 'DATE'
+        'date'
+      when 'INTEGER'
+        'integer'
+      when 'CURRENCY'
+        'float'
+      when 'DISPLAY', 'GROUP'
+        puts "Skipping unexpected custom_field_key on non-question item. Unable to determine type. form: #{identifier}, link_id: #{item.link_id}, key: #{key}"
+        next
+      else
+        # nil
+        raise "unable to determine cded type for #{item&.type} (#{key})"
+      end
+
+      # Infer CDED attributes based on Item
+      cded.owner_type = owner_type
+      cded.field_type = field_type
+      cded.repeats = item.repeats || false
+
+      # Infer label for CustomDataElementDefinition based on various labels
+      cded.label = ActionView::Base.full_sanitizer.sanitize(item.readonly_text || item.brief_text || item.text || key.humanize)
+
+      # If specified, set the definition identifier to specify that this CustomDataElementDefinition is ONLY collected by this form type.
+      cded.form_definition_identifier = identifier if set_definition_identifier
+
+      cded_records << cded
+    end
+
+    cded_records
   end
 end

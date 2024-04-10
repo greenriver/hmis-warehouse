@@ -1,8 +1,9 @@
 = render 'breadcrumbs'
-
-%h1 Edit Access Control #{@access_control.id}
-
-.row.mt-10
+.o-page
+  .o-page__title
+    %h1 Edit Access Control #{@access_control.id}
+= render 'admin/access_controls/description', entity_type: 'HMIS'
+.row
   .col-sm-8
     %h2 Update Access Control Definition
     = simple_form_for @access_control, as: :access_control, url: hmis_admin_access_control_path do |f|

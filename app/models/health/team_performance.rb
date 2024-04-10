@@ -155,22 +155,30 @@ module Health
 
     def intake_renewal_due
       date = [@range.last, Date.current].min
-      Health::Patient.where(id: Health::Patient.needs_renewal(on: date).pluck(:id) - Health::Patient.overdue_for_renewal(on: date).pluck(:id))
+      Health::Patient.where(id: Health::Patient.needs_renewal(on: date).pluck(:id) - Health::Patient.overdue_for_renewal(on: date).pluck(:id)).pluck(:id)
     end
 
     def intake_renewal_overdue
       date = [@range.last, Date.current].min
-      Health::Patient.overdue_for_renewal(on: date)
+      Health::Patient.overdue_for_renewal(on: date).pluck(:id)
     end
 
     def with_required_wellcare_visit
       anchor = [@range.last, Date.current].min
-      @with_required_wellcare_visit ||= ClaimsReporting::MedicalClaim.
-        annual_well_care_visits.
-        service_in(anchor - WELLCARE_WINDOW... anchor).
-        joins(:patient).
-        where(hp_t[:id].in(patient_ids)).
-        pluck(hp_t[:id]).uniq
+      @with_required_wellcare_visit ||=
+        begin
+          set = Set.new
+          patient_ids.each_slice(100).each do |patient_id_slice|
+            set << ClaimsReporting::MedicalClaim.
+              annual_well_care_visits.
+              service_in(anchor - WELLCARE_WINDOW... anchor).
+              joins(:patient).
+              where(hp_t[:id].in(patient_id_slice)).
+              pluck(hp_t[:id])
+          end
+
+          set.to_a
+        end
     end
   end
 end

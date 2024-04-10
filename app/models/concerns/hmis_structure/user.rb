@@ -11,6 +11,10 @@ module HmisStructure::User
   included do
     self.hud_key = :UserID
     acts_as_paranoid(column: :DateDeleted) unless included_modules.include?(Paranoia)
+
+    def name
+      "#{user_first_name} #{user_last_name}"
+    end
   end
 
   module ClassMethods

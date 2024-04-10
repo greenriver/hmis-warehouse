@@ -28,7 +28,6 @@ class AppResourceMonitor::CollectStatsJob < ::BaseJob
 
     prefix = [active_config.path, [ENV.fetch('CLIENT'), Rails.env].map(&:strip).join('-')].join('/')
     AppResourceMonitor::Report.new.export_to_csv do |directory_name|
-      puts prefix
       active_config.s3.upload_directory(directory_name: directory_name, prefix: prefix)
     end
   end

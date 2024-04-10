@@ -1,0 +1,108 @@
+!!!
+%html(lang='en')
+  %head
+    - if page_config.csp_content
+      %meta{"http-equiv" => "Content-Security-Policy", content: page_config.csp_content}
+    %meta(content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport")
+
+    %title= @page_title
+    - if page_config.recaptcha_key
+      %script{src: "https://www.google.com/recaptcha/api.js?render=#{page_config.recaptcha_key}"}
+    %link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous")
+    %script(src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous")
+    %script(src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js" integrity="sha384-+sLIOodYLS7CIrQpBjl+C7nPvqq+FbNUBDunl/OZv93DB7Ln/533i8e/mZXLi/P+" crossorigin="anonymous")
+    :css
+      section {
+        margin-bottom: 2rem;
+      }
+      .form-group {
+        margin-bottom: 1.25rem;
+      }
+      .form-group > .required:after, fieldset > .required:after {
+        content: " *";
+        color: red;
+        font-weight: 100;
+      }
+      legend {
+        font-size: 16px;
+        font-weight: normal;
+      }
+      main.container {
+        max-width: 540px;
+        margin-bottom: 4rem;
+      }
+      .dependent-form-group > .form-group {
+        padding-left : 1.25rem;
+        border-left: 5px solid #eee;
+      }
+      @media (max-width: 540px) {
+        main.container {
+          padding-left: 0;
+          padding-right: 0;
+        }
+      }
+      .fade-effect {
+        position: absolute;
+        overflow: hidden;
+        max-height: 0;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.5s ease;
+      }
+      .fade-effect.visible {
+        position: relative;
+        opacity: 1;
+        visibility: visible;
+        max-height: 2000px; /* Adjust as necessary to fit content */
+      }
+      /* override primary color for contrast */
+      .btn-primary.btn-primary {
+        background-color: #0071bc;
+        border-color: #0071bc;
+      }
+
+  %body.bg-light
+    %nav.sticky-top.navbar-light.border-bottom.bg-white.mb-4.shadow-sm
+      .container
+        .nav-brand.py-2
+          %img{ alt: page_config.site_logo_alt, width: page_config.site_logo_width, height: page_config.site_logo_height, src: page_config.site_logo_url}
+
+    %main.container.p-sm-0
+      %noscript
+        .p-4(style="background-color: #ffcc00;")
+          %strong.mb-2.d-block JavaScript Required
+          %p.m-0 We're sorry, but our website requires JavaScript to function properly. Please enable JavaScript in your browser settings and refresh this page.
+      .card.p-3= yield
+
+    = render_modal(html_id: 'confirmSubmitModal', title: 'Are You Ready to Submit?') do
+      .modal-body
+        %p Please take a moment to double-check your entries. Submit the form when you're ready.
+      .modal-footer
+        %button.mr-3.btn.btn-outline-primary{ type: "button", "data-dismiss" => "modal" } Go Back
+        %button#confirmSubmitModalButton.btn.btn-primary{ type: "button", "data-dismiss" => "modal" } Yes, Submit Now
+
+    = render_modal(html_id: 'spinnerModal', title: 'Loading', blocker: true) do
+      .modal-body
+        .d-flex
+          .mr-4
+            .spinner-border.text-secondary(aria-hidden="true")
+          %p We are processing your submission, this should only take a few seconds.
+
+    = render_modal(html_id: 'successModal', title: 'Success', blocker: true) do
+      .modal-body
+        %p You've successfully submitted the form
+      .modal-footer
+        %button.btn.btn-primary.reload-button{ type: "button" } Continue
+
+    = render_modal(html_id: 'errorModal', title: 'Error') do
+      .modal-body
+        %p There was an error processing your form. Please make sure your connection to the internet is working.
+      .modal-footer
+        %button.mr-3.btn.btn-outline-danger.reload-button{ type: "button" } Reset the form
+        %button.btn.btn-outline-primary{ type: "button", "data-dismiss" => "modal" } Close
+
+    %script(type="text/javascript")
+      'use strict';
+      window.appConfig = #{page_config.js_config.to_json.html_safe};
+      = File.read(Rails.root.join('drivers/hmis_external_apis/app/assets/javascripts/external_forms.js')).html_safe
+    = yield :page_js

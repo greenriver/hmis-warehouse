@@ -8,14 +8,14 @@
 .o-page
   .o-page__title
     %h1= content_for :title
-
+= render 'admin/collections/description', entity_type: 'warehouse'
 = simple_form_for @collection, url: admin_collection_path do |f|
   = f.error_notification
   .form-inputs
     = render 'form', f: f
   - unless @collection.entities_locked?
     .form_actions.mt-4
-      = f.button :submit, value: 'Update Group'
+      = f.button :submit, value: 'Update Collection'
 
 .mt-4
   = render 'users/user_members_table', item: @collection, path_to_add_users: nil, path_to_delete_item: admin_collection_path(@collection), delete_user_lambda: nil

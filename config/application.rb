@@ -96,5 +96,11 @@ module BostonHmis
     config.help_links = []
     config.location_processors = []
     config.queued_tasks = {}
+
+    # FIX for service history services change
+    config.queued_tasks[:service_history_services_materialized_rebuild_and_process] = -> do
+      GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!
+      GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts
+    end
   end
 end

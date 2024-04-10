@@ -760,7 +760,10 @@ Rails.application.routes.draw do
       post :confirm
     end
 
-    resources :collections
+    resources :collections do
+      get :entities, on: :member
+      patch :bulk_entities, on: :member
+    end
 
     # TODO: START_ACL cleanup after ACL migration
     # resources :roles
@@ -770,11 +773,13 @@ Rails.application.routes.draw do
     end
     resources :groups do
        resources :users, only: [:create, :destroy], controller: 'groups/users'
+       get :download, on: :collection
     end
     # END_ACL
     resources :access_controls do
        post :assign, on: :collection
      end
+    resources :access_overviews, only: [:index]
     resources :user_groups do
       resources :users, only: [:create, :destroy], controller: 'user_groups/users'
     end

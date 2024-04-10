@@ -70,12 +70,12 @@ module Health
 
           save!
         else
-          error_message = "set_calculated! with blank file contents. id: #{id}, user_id: #{user_id}, client_id: #{client_id}"
-          send_single_notification(error_message, 'HealthFile')
+          error_message = "Health::Healthfile#set_calculated! with blank file contents. id: #{id}, user_id: #{user_id}, client_id: #{client_id}"
+          Rails.logger.error(error_message)
         end
       else
-        error_message = "set_calculated! without upload. id: #{id}, user_id: #{user_id}, client_id: #{client_id}"
-        send_single_notification(error_message, 'HealthFile')
+        error_message = "Health::Healthfile#set_calculated! without upload. id: #{id}, user_id: #{user_id}, client_id: #{client_id}"
+        Rails.logger.error(error_message)
       end
     end
   end

@@ -1,0 +1,33 @@
+%h2 Projects Included (#{@group.overall_project_count})
+.row
+  - @group.relevant_entity_types.each do |entity_type, entity_title|
+    .col-sm
+      .card
+        .card-header.border-bottom
+          %h3= entity_title
+          = link_to 'Add / Remove', entities_hmis_admin_group_path(@group, entities: entity_type), class: ['btn', 'btn-primary', 'btn-sm'], data: { loads_in_ajax_modal: true }
+        .card-body
+          - any = if entity_type.to_s == 'coc_codes' then @group.coc_codes.present? else @group.public_send(entity_type).exists? end
+          - if any
+            .card-body-negate-padding
+              .border-bottom.mb-4.px-4.pb-4
+                = pluralize(number_with_delimiter(@group.project_count_from(entity_type)), 'Project')
+
+              - @group.public_send(entity_type).each do |entity|
+                - if entity_type == :projects
+                  .d-flex
+                    = render 'admin/collections/duplicate_project_message', additional_sources: @group.project_duplicated(entity.id, entity_type)
+                    .project.pl-4.mb-4= entity.ProjectName
+                - elsif entity_type == :coc_codes
+                  .project.pl-4.mb-4= entity
+                - else
+                  - slug = "#{entity_type}_#{entity.id}"
+                  - title = "#{entity.name} (#{number_with_delimiter(entity.projects.size)})"
+                  - content_for "panel_collapse_content_#{slug}".to_sym do
+                    - entity.projects.each do |project|
+                      .d-flex
+                        = render 'admin/collections/duplicate_project_message', additional_sources: @group.project_duplicated(project.id, entity_type)
+                        .project= project.ProjectName
+                  = render 'common/panel_collapse', id: slug, title: title, content: "_#{slug}", wrapper_class: '', arrow_icon: 'icon-angle'
+          - else
+            .none-found.border-0 No #{entity_title}

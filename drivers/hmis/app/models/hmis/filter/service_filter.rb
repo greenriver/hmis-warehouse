@@ -12,8 +12,7 @@ class Hmis::Filter::ServiceFilter < Hmis::Filter::BaseFilter
       yield_self(&method(:with_service_category)).
       yield_self(&method(:with_service_type)).
       yield_self(&method(:with_project_type)).
-      yield_self(&method(:with_project)).
-      yield_self(&method(:clean_scope))
+      yield_self(&method(:with_project))
   end
 
   protected

@@ -5,22 +5,30 @@
     %table.table.table-sm.table-striped.mb-0
       %thead
         %tr
-          %th
           %th HMISParticipationID
           %th Start Date
           %th End Date
           %th Participation Type
-
+          %th
+          %th
       %tbody
         - hmis_participations.each do |hmis_participation|
           %tr
-            %td
-              - if can_see_raw_hmis_data?
-                = link_to 'HMIS', source_datum_path(hmis_participation.id, type: 'HMISParticipation'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis'
             %td= hmis_participation.HMISParticipationID
             %td= hmis_participation.HMISParticipationStatusStartDate
             %td= hmis_participation.HMISParticipationStatusEndDate
             %td= HudUtility2024.hmis_participation_type(hmis_participation.HMISParticipationType)
-
+            %td
+              - if RailsDrivers.loaded.include?(:hmis_csv_importer)
+                .show-on-row-hover-wrapper.ml-4
+                  .show-on-row-hover
+                    = link_to new_hmis_csv_importer_data_source_import_override_path(hmis_participation.data_source.id, file_type: 'HMISParticipation.csv', hmis_value: hmis_participation.HMISParticipationID), class: 'btn btn-sm btn-secondary' do
+                      %i.icon-plus
+                      Add Override
+            %td
+              - if can_see_raw_hmis_data?
+                = link_to 'HMIS', source_datum_path(hmis_participation.id, type: 'HMISParticipation'), class: 'btn btn-xs btn-secondary btn-muted btn-hmis my-1'
+              - if RailsDrivers.loaded.include?(:hmis_csv_importer) && HmisCsvImporter::ImportOverride.any_apply?(hmis_participation)
+                %i.icon-info{data: {toggle: :tooltip, title: "Overrides Active"}}
   - else
     %h4.text-center No HMIS Participation Records
