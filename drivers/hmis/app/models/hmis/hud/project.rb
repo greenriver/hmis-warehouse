@@ -57,9 +57,18 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :households, through: :enrollments
 
   # NOTE: These are not performant, because they go through the WIP view. Don't use them in the application.
-  has_many :custom_assessments, through: :enrollments_including_wip
   has_many :services, through: :enrollments_including_wip
   has_many :custom_services, through: :enrollments_including_wip
+
+  # For now, use a class method instead of an AR association for custom assessments rather than joining thru the
+  # not-very-performant view.
+  # has_many :custom_assessments, through: :enrollments_including_wip
+  def custom_assessments
+    Hmis::Hud::CustomAssessment.joins(:enrollment).left_outer_joins(enrollment: :wip).
+      where(Hmis::Hud::Enrollment.arel_table[:project_id].eq(project_id)).
+      or(Hmis::Hud::CustomAssessment.joins(:enrollment).left_outer_joins(enrollment: :wip).
+        where(Hmis::Wip.arel_table[:project_id].eq(id)))
+  end
 
   has_one :warehouse_project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :id, primary_key: :id
 

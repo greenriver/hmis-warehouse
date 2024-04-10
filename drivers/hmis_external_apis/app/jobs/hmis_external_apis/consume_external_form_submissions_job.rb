@@ -35,8 +35,11 @@ class HmisExternalApis::ConsumeExternalFormSubmissionsJob
   end
 
   def process_submission(raw_data, object, encryption_key:)
-    definition_id = raw_data['form_definition_id'].
-      presence&.then { |value| ProtectedId::Encoder.decode(value) }
+    definition_id = begin
+      raw_data['form_definition_id'].presence&.then { |value| ProtectedId::Encoder.decode(value) }
+    rescue OpenSSL::Cipher::CipherError => e
+      log_error("form id decode failed: #{e.message}", object_key: object.key)
+    end
     if definition_id.nil?
       log_error('missing definition_id', object_key: object.key)
       return nil
