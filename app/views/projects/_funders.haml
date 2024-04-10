@@ -22,13 +22,13 @@
             %td= HudUtility2024.funding_source funder.Funder.to_i
             %td= funder.GrantID
             %td
-            - if funder.manual_entry? && RailsDrivers.loaded.include?(:manual_hmis_data)
-              = link_to edit_manual_hmis_data_funder_path(funder), class: 'btn btn-sm btn-secondary mr-2 mb-1', data: {loads_in_pjax_modal: true} do
-                %i.icon-pencil
-                Edit
-              = link_to manual_hmis_data_funder_path(funder), method: :delete, class: 'btn btn-sm btn-secondary btn-danger mb-1', data: {confirm: 'Do you really want to remove this manually entered Funder'}  do
-                %i.icon-cross
-                Remove
+              - if funder.manual_entry? && RailsDrivers.loaded.include?(:manual_hmis_data)
+                = link_to edit_manual_hmis_data_funder_path(funder), class: 'btn btn-sm btn-secondary mr-2 mb-1', data: {loads_in_pjax_modal: true} do
+                  %i.icon-pencil
+                  Edit
+                = link_to manual_hmis_data_funder_path(funder), method: :delete, class: 'btn btn-sm btn-secondary btn-danger mb-1', data: {confirm: 'Do you really want to remove this manually entered Funder'}  do
+                  %i.icon-cross
+                  Remove
             %td
               - if RailsDrivers.loaded.include?(:hmis_csv_importer)
                 .show-on-row-hover-wrapper.ml-4
