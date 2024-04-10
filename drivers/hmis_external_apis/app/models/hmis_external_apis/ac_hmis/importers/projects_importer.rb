@@ -66,11 +66,14 @@ module HmisExternalApis::AcHmis::Importers
       sanity_check
       ProjectsImportAttempt.transaction do
         run_in_dir(hud_dir) do
-          upsert_funders
-          upsert_orgs
+          upsert_hud_file(file: 'Organization.csv', klass: GrdaWarehouse::Hud::Organization, hud_key: 'OrganizationID')
           upsert_projects
-          upsert_walkins
-          upsert_inventory
+          upsert_walkins # import flag indicating which projects accept walk-ins
+          upsert_hud_file(file: 'Funder.csv', klass: GrdaWarehouse::Hud::Funder, hud_key: 'FunderID')
+          upsert_hud_file(file: 'Inventory.csv', klass: GrdaWarehouse::Hud::Inventory, hud_key: 'InventoryID')
+          upsert_hud_file(file: 'ProjectCoC.csv', klass: GrdaWarehouse::Hud::ProjectCoc, hud_key: 'ProjectCoCID')
+          upsert_hud_file(file: 'HMISParticipation.csv', klass: GrdaWarehouse::Hud::HmisParticipation, hud_key: 'HMISParticipationID')
+          upsert_hud_file(file: 'CEParticipation.csv', klass: GrdaWarehouse::Hud::CeParticipation, hud_key: 'CEParticipationID')
         end
         run_in_dir(dir) do
           upsert_project_unit_type_mappings
@@ -98,10 +101,18 @@ module HmisExternalApis::AcHmis::Importers
     def sanity_check
       msg = []
 
-      msg << 'Funder.csv was not present.' unless File.exist?("#{dir}/Funder.csv")
-      msg << 'Organization.csv was not present.' unless File.exist?("#{dir}/Organization.csv")
-      msg << 'Project.csv was not present.' unless File.exist?("#{dir}/Project.csv")
-      msg << 'Inventory.csv was not present.' unless File.exist?("#{dir}/Inventory.csv")
+      [
+        'Funder.csv',
+        'Organization.csv',
+        'Project.csv',
+        'Inventory.csv',
+        'ProjectCoC.csv',
+        'HmisParticipation.csv',
+        'CeParticipation.csv',
+        'ProjectUnitTypes.csv',
+      ].each do |file|
+        msg << "#{file} was not present." unless File.exist?("#{dir}/#{file}")
+      end
 
       return unless msg.present?
 
@@ -115,38 +126,21 @@ module HmisExternalApis::AcHmis::Importers
       raise AbortImportException, msg
     end
 
-    def upsert_funders
-      file = 'Funder.csv'
-
+    def upsert_hud_file(file:, klass:, hud_key:)
       check_columns(
         file: file,
-        expected_columns: GrdaWarehouse::Hud::Funder.hmis_configuration(version: '2024').keys.map(&:to_s),
-        critical_columns: ['FunderID'],
-      )
-
-      generic_upsert(
-        file: 'Funder.csv',
-        conflict_target: ['"FunderID"', 'data_source_id'],
-        klass: GrdaWarehouse::Hud::Funder,
-      )
-    end
-
-    def upsert_orgs
-      file = 'Organization.csv'
-
-      check_columns(
-        file: file,
-        expected_columns: GrdaWarehouse::Hud::Organization.hmis_configuration(version: '2024').keys.map(&:to_s),
-        critical_columns: ['OrganizationID'],
+        expected_columns: klass.hmis_configuration(version: '2024').keys.map(&:to_s),
+        critical_columns: [hud_key],
       )
 
       generic_upsert(
         file: file,
-        conflict_target: ['"OrganizationID"', 'data_source_id'],
-        klass: GrdaWarehouse::Hud::Organization,
+        conflict_target: ["\"#{hud_key}\"", 'data_source_id'],
+        klass: klass,
       )
     end
 
+    # Doesn't match HUD spec exactly, has additional column 'Walkin'
     def upsert_projects
       file = 'Project.csv'
 
@@ -193,22 +187,6 @@ module HmisExternalApis::AcHmis::Importers
             end,
         )
       end
-    end
-
-    def upsert_inventory
-      file = 'Inventory.csv'
-
-      check_columns(
-        file: file,
-        expected_columns: GrdaWarehouse::Hud::Inventory.hmis_configuration(version: '2024').keys.map(&:to_s),
-        critical_columns: ['InventoryID'],
-      )
-
-      generic_upsert(
-        file: file,
-        conflict_target: ['"InventoryID"', 'data_source_id'],
-        klass: GrdaWarehouse::Hud::Inventory,
-      )
     end
 
     def upsert_project_unit_type_mappings
@@ -344,16 +322,27 @@ module HmisExternalApis::AcHmis::Importers
 
       csv = records_from_csv(file)
 
-      columns_to_update = csv.headers - conflict_target - ignore_columns
+      # Fix known issues in CSV headers
+      header_fixes = {
+        'HousingAssessmemnt' => 'HousingAssessment',
+        'ZIP' => 'Zip',
+      }
+      csv_headers = csv.headers.map { |val| header_fixes[val] || val }
+      columns_to_update = csv_headers - conflict_target - ignore_columns
 
       records = csv.each.map(&:to_h)
 
       records.each do |r|
         r['data_source_id'] = data_source.id
+
+        # Fix issues with hash keys (ZIP=>Zip)
+        header_fixes.each do |file_col, db_col|
+          r[db_col] = r.delete file_col if r[file_col]
+        end
       end
 
       # Validate format of all dates before attempting import, so we don't import them incorrectly
-      date_columns = csv.headers.filter { |h| h.end_with?('Date') }
+      date_columns = csv_headers.filter { |h| h.end_with?('Date') }
       if date_columns.any?
         date_columns.each do |col|
           records.each do |r|
