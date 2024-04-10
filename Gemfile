@@ -70,6 +70,9 @@ gem 'image_processing'
 gem 'ruby-filemagic' unless ENV['SKIP_FILEMAGIC'].to_s == 'true'
 gem 'mini_magick'
 gem 'mimemagic'
+# there are no obvious breaking changes but
+# since there are no tests for this
+# it should be tested manually
 gem 'acts-as-taggable-on', '~> 9.0.1'
 # gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
 #
