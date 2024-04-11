@@ -107,8 +107,8 @@ module HmisExternalApis::AcHmis::Importers
         'Project.csv',
         'Inventory.csv',
         'ProjectCoC.csv',
-        'HmisParticipation.csv',
-        'CeParticipation.csv',
+        'HMISParticipation.csv',
+        'CEParticipation.csv',
         'ProjectUnitTypes.csv',
       ].each do |file|
         msg << "#{file} was not present." unless File.exist?("#{dir}/#{file}")
