@@ -136,3 +136,4 @@ class AllNeighborsSystemDashboardDonut {
   }
 
 }
+globalThis.AllNeighborsSystemDashboardDonut = AllNeighborsSystemDashboardDonut;
