@@ -64,7 +64,7 @@ class Deployer
     self.web_options              = args.fetch(:web_options)
     self.registry_id              = args.fetch(:registry_id)
     self.repo_name                = args.fetch(:repo_name)
-    self.skip_remote_git_check    = args.fetch(:skip_remote_git_check)
+    self.skip_remote_git_check    = args.fetch(:skip_remote_git_check, false)
     self.variant                  = 'web'
     self.version                  = `git rev-parse --short=7 HEAD`.chomp
     self.args                     = OpenStruct.new(args)
