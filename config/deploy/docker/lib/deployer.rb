@@ -48,6 +48,8 @@ class Deployer
 
   attr_accessor :service_registry_arns
 
+  attr_accessor :skip_remote_git_check
+
   attr_accessor :args
 
   def initialize(args)
@@ -62,6 +64,7 @@ class Deployer
     self.web_options              = args.fetch(:web_options)
     self.registry_id              = args.fetch(:registry_id)
     self.repo_name                = args.fetch(:repo_name)
+    self.skip_remote_git_check    = args.fetch(:skip_remote_git_check)
     self.variant                  = 'web'
     self.version                  = `git rev-parse --short=7 HEAD`.chomp
     self.args                     = OpenStruct.new(args)
@@ -120,7 +123,7 @@ class Deployer
   def _initial_steps
     # _ensure_clean_repo!
     _set_revision!
-    _check_that_you_pushed_to_remote!
+    _check_that_you_pushed_to_remote! unless skip_remote_git_check
     _docker_login!
     _wait_for_image_ready
     _check_secrets!
