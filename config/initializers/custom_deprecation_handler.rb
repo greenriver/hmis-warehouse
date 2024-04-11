@@ -42,7 +42,6 @@ when :raise
   if Rails.env.test?
     ActiveSupport::Deprecation.behavior = lambda do |message, stack, deprecation_horizon, gem_name|
       ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:raise].call(message, stack, deprecation_horizon, gem_name) unless message =~ /RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION/
-      RAILS_disable_deprecated_to_s_conversion
     end
   end
 end
