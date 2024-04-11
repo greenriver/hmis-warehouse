@@ -7,14 +7,19 @@
 class HmisAdmin::GroupsController < ApplicationController
   include ViewableEntities
   include EnforceHmisEnabled
+  include AjaxModalRails::Controller
 
   before_action :require_hmis_admin_access!
-  before_action :set_group, only: [:edit, :update, :destroy]
-  before_action :set_entities, only: [:new, :edit, :create, :update]
+  before_action :set_group, only: [:show, :edit, :update, :destroy, :entities, :bulk_entities]
+  before_action :set_entities, only: [:new, :edit, :create, :update, :entities]
 
   def index
     @groups = access_group_scope.order(:name)
+    @groups = @groups.text_search(params[:q]) if params[:q].present?
     @pagy, @groups = pagy(@groups)
+  end
+
+  def show
   end
 
   def new
@@ -24,9 +29,8 @@ class HmisAdmin::GroupsController < ApplicationController
   def create
     @group = access_group_scope.new
     @group.update(group_params)
-    @group.set_viewables(viewable_params)
     @group.save
-    respond_with(@group, location: hmis_admin_groups_path)
+    respond_with(@group, location: hmis_admin_group_path(@group))
   end
 
   def edit
@@ -34,10 +38,9 @@ class HmisAdmin::GroupsController < ApplicationController
 
   def update
     @group.update(group_params)
-    @group.set_viewables(viewable_params)
     @group.save
 
-    redirect_to({ action: :index }, notice: "Group #{@group.name} updated.")
+    redirect_to({ action: :show }, notice: "Group #{@group.name} updated.")
   end
 
   def destroy
@@ -45,12 +48,44 @@ class HmisAdmin::GroupsController < ApplicationController
     redirect_to({ action: :index }, notice: "Group #{@group.name} removed.")
   end
 
+  def entities
+    @modal_size = :lg
+    @entities = case params[:entities]&.to_sym
+    when :data_sources
+      @data_sources
+    when :organizations
+      @organizations
+    when :projects
+      @projects
+    end
+  end
+
+  def bulk_entities
+    ids = {}
+    @group.entity_types.keys.each do |entity_type|
+      values = bulk_entities_params.to_h.with_indifferent_access[entity_type]
+      ids[entity_type] ||= []
+      # Prevent unsetting other entity types
+      if entity_type.to_s == params[:entities]
+        values.each do |id, checked|
+          id = id.to_i
+          ids[entity_type] << id if checked == '1'
+        end
+      else
+        ids[entity_type] = @group.send(entity_type).map(&:id)
+      end
+    end
+
+    @group.set_viewables(ids.with_indifferent_access)
+    redirect_to({ action: :show }, notice: "Collection #{@group.name} updated.")
+  end
+
   private def access_group_scope
     Hmis::AccessGroup
   end
 
   private def group_params
-    params.require(:access_group).permit(:name)
+    params.require(:access_group).permit(:name, :description)
   end
 
   private def viewable_params
@@ -59,6 +94,14 @@ class HmisAdmin::GroupsController < ApplicationController
       organizations: [],
       projects: [],
       project_access_groups: [],
+    )
+  end
+
+  private def bulk_entities_params
+    params.require(:collection).permit(
+      data_sources: {},
+      organizations: {},
+      projects: {},
     )
   end
 

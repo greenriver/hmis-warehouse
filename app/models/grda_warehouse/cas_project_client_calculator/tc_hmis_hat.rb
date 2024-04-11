@@ -269,14 +269,14 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     private def days_homeless_in_last_three_years_cached(client)
       days = 0
-      days += client.tc_hat_additional_days_homeless
+      days += (client.tc_hat_additional_days_homeless || 0)
 
       days + (client.processed_service_history&.days_homeless_last_three_years || 0)
     end
 
     private def literally_homeless_last_three_years_cached(client)
       days = 0
-      days += client.tc_hat_additional_days_homeless
+      days += (client.tc_hat_additional_days_homeless || 0)
 
       days + (client.processed_service_history&.literally_homeless_last_three_years || 0)
     end

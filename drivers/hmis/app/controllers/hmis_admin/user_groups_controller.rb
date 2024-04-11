@@ -12,6 +12,7 @@ class HmisAdmin::UserGroupsController < ApplicationController
 
   def index
     @user_groups = user_group_scope.order(:name)
+    @user_groups = @user_groups.text_search(params[:q]) if params[:q].present?
     @pagy, @user_groups = pagy(@user_groups)
   end
 
@@ -31,10 +32,7 @@ class HmisAdmin::UserGroupsController < ApplicationController
 
   def update
     @user_group.update(user_group_params)
-    # add any users passed through to the Access Control List
-    # user_ids = user_params[:user_ids].select(&:present?).map(&:to_i)
-    # users = Hmis::User.where(id: user_ids)
-    # @user_group.add(users) if users.any?
+    @user_group.save
 
     redirect_to({ action: :index }, notice: "User Group #{@user_group.name} updated.")
   end
@@ -51,6 +49,7 @@ class HmisAdmin::UserGroupsController < ApplicationController
   private def user_group_params
     params.require(:user_group).permit(
       :name,
+      user_ids: [],
     )
   end
 

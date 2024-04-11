@@ -195,13 +195,13 @@ module GrdaWarehouse::CasProjectClientCalculator
     end
 
     private def family_member(client)
-      response = most_recent_pathways_or_transfer(client).
-        question_matching_requirement('c_additional_household_members')
-      response = if response.nil?
-        most_recent_pathways_or_transfer(client).
-          question_matching_requirement('c_pathway_pregnant_parentingchild')
-      end
-      response&.AssessmentAnswer&.to_i&.positive?
+      household_members_response = most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_additional_household_members')&.AssessmentAnswer&.to_i&.positive?
+      pregnant_or_parenting_pathway_response = most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_pathway_pregnant_parentingchild')&.AssessmentAnswer&.to_i&.positive?
+      household_size_pathway_response = most_recent_pathways_or_transfer(client).
+        question_matching_requirement('c_pathways_Household_size')&.AssessmentAnswer&.to_i || 0
+      household_members_response || pregnant_or_parenting_pathway_response || household_size_pathway_response > 1
     end
 
     private def child_in_household(client)

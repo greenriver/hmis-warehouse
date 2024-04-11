@@ -20,6 +20,16 @@ class Hmis::UserGroup < ApplicationRecord
       merge(Hmis::UserGroupMember.where(user_id: user_id))
   end
 
+  def self.text_search(text)
+    return none unless text.present?
+
+    query = "%#{text}%"
+    where(
+      arel_table[:name].matches(query).
+      or(arel_table[:description].matches(query)),
+    )
+  end
+
   def self.system_user_group
     group = find_by(name: 'System User Group', system: true)
     return group if group.present?
