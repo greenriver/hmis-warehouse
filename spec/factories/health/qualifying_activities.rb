@@ -89,7 +89,7 @@ FactoryBot.define do
   factory :care_team_qa, class: 'Health::QualifyingActivity' do
     user_full_name { 'First Last' }
     follow_up { 'X' }
-    date_of_activity { '2023-04-01'.to_date }
+    date_of_activity { '2024-04-01'.to_date }
     mode_of_contact { :other }
     mode_of_contact_other { 'X' }
     reached_client { :yes }
