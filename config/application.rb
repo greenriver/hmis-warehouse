@@ -2,9 +2,11 @@ require_relative 'boot'
 
 require 'rails/all'
 require 'active_record_extended'
-# same as config.active_support.disable_to_s_conversion = true. Set this here because our drivers railtie loads before
-# the application config block
-ENV['RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION'] = 'true'
+
+### Toggle this on when we are ready to remove deprecated behavior for date.to_s
+# The env var is the same as config.active_support.disable_to_s_conversion = true but impacts driver initializers that
+# load before this app config block
+# ENV['RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION'] = 'true'
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -18,7 +20,10 @@ module BostonHmis
     config.load_defaults 7.0
     config.autoload_paths << Rails.root.join('lib', 'devise')
 
-    TodoOrDie('Remove support for rails 6.1 cookies, change cookies_serializer to :json', by: '2024-12-01')
+    # uncomment RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION above
+    TodoOrDie('Remove deprecated date/time.to_s', by: '2024-07-01')
+
+    TodoOrDie('Remove support for rails 6.1 cookies, change cookies_serializer to :json', by: '2024-07-01')
     config.action_dispatch.cookies_serializer = :hybrid
 
     # ActionCable
