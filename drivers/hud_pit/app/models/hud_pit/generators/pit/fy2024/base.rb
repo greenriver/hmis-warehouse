@@ -285,16 +285,20 @@ module HudPit::Generators::Pit::Fy2024
           query: age_ranges['65+'],
         },
         youth_hoh: {
+          # HoH or spouse/partner (RelationshipToHoH = 3)
           title: 'Number of parenting youth (age 18 to 24)',
-          query: hoh_clause.and(age_ranges['18-24']),
+          query: hoh_or_spouse.and(age_ranges['18-24']),
         },
         child_hoh: {
+          # HoH or spouse/partner (RelationshipToHoH = 3)
           title: 'Number of parenting youth (under age 18)',
-          query: hoh_clause.and(child_clause),
+          query: hoh_or_spouse.and(child_clause),
         },
-        hoh_for_youth: { # note because the question is already limited to youth households, this is just here to provide the title
+        hoh_for_youth: {
+          # HoH or spouse/partner (RelationshipToHoH = 3)
+          # note because the question is already limited to youth households, this is just here to provide the title
           title: 'Number of parenting youth (youth parents only)',
-          query: hoh_clause,
+          query: hoh_or_spouse,
         },
         children_of_youth_parents: {
           title: 'Total Children in Parenting Youth Households',
