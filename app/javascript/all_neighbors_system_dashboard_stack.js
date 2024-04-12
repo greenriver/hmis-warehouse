@@ -20,12 +20,20 @@ class AllNeighborsSystemDashboardStack {
     this.cohort = (this.countLevel.cohorts || []).filter((d) => d.cohort === this.state.cohort)[0] || {}
     this.householdType = (this.project.household_types || []).filter((d) => d.household_type === this.state.householdType)[0] || {}
     this.demographic = (this.householdType.demographics || this.data.demographics || []).filter((d) => d.demographic === this.state.demographics)[0] || {}
-    this.config = this.project.config || this.homelessnessStatus.config || this.demographic.config || this.cohort.config || this.data.config || {}
-    this.series = this.cohort.series || this.homelessnessStatus.series || this.demographic.series || this.countLevel.series || this.data.series || []
+    this.config = this.project.config || this.homelessnessStatus.config || this.demographic.config || this.cohort.config || this.data.config || this.getActiveConfig()
+    this.series = this.cohort.series || this.homelessnessStatus.series || this.demographic.series || this.countLevel.series || this.data.series || this.getActiveSeries()
   }
 
   test() {
     console.debug(this)
+  }
+
+  getActiveConfig() {
+    return {}
+  }
+
+  getActiveSeries() {
+    return {};
   }
 
   inDateRange(dateString, range) {
@@ -468,7 +476,6 @@ class AllNeighborsSystemDashboardTTOHStack extends AllNeighborsSystemDashboardSt
     }
     return {...superConfig, ...config}
   }
-
 }
 
 // Returns to homelessness group stack with label on the left
@@ -477,35 +484,143 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
     super(data, initialState, selector, options)
   }
 
+  getActiveConfig() {
+    // this.data is an array of arrays, the key is in position 0, data in position 1
+    return this.getActiveSet()[1].config
+  }
+
+  getActiveSeries() {
+    // this.data is an array of arrays, the key is in position 0, data in position 1
+    return this.getActiveSet()[1].series
+  }
+
+  getActiveSet() {
+    let activeSet = this.data.filter((d) => {
+      let equal = true
+      if (this.state.projectType != d[0].projectType) {
+        equal = false
+      }
+      if (this.state.countLevel != d[0].countLevel) {
+        equal = false
+      }
+      if (this.state.demographics != d[0].demographics) {
+        equal = false
+      }
+      return equal
+    })
+    return activeSet[0]
+  }
+
+  // var chart = bb.generate({
+  //   data: {
+  //     columns: [
+  //       ["Housed, completed program", 30, 200, 100],
+  //       ["Returns", 10, 20, 15]
+  //     ],
+  //     type: "bar", // for ESM specify as: line()
+  //   },
+  //   axis: {
+  //     rotated: true,
+  //     x: {
+  //       type: "category",
+  //       categories: [
+  //         "Adult only",
+  //         "Adult & Child",
+  //         "Child Only",
+  //       ],
+  //     }
+  //   },
+  //   bindto: "#categoryAxis"
+  // });
+
+  getDataConfig() {
+    const categories = this.getActiveConfig().axis.x.categories
+
+    const columns = this.getActiveConfig().names.map((name, i) => {
+      return this.getColumn(name, i, categories)
+    })
+    return {
+      order: null,
+      columns: columns,
+      type: "bar",
+      colors: this.config.colors,
+      names: this.config.names,
+      labels: {
+        show: true,
+        centered: false,
+        colors: this.config.label_colors,
+        format: (v, id, i, j) => {
+          return d3.format(",")(v);
+        },
+      },
+      stack: {
+        normalize: false,
+      }
+    }
+  }
+
+  // Given an array of categories, and the index of the array in the values set
+  // collect sums for each category in the date range
+  // return an array of [name, category_1_sum, category_2_sum, ...]
+  getColumn(name, index, categories) {
+    let col = [name]
+
+    // find data that overlaps the filter date range
+    const filtered = this.series.filter((n) => {
+      return this.inDateRange(n.date, this.state.dateRange)
+    })
+    const monthly_counts_for_name = filtered.map((s) => {
+      return s.values[index]
+    })
+
+    const monthly_counts = categories.map((_, cat_index) => {
+      // Gather up all of the returns or placements for the given category
+      return d3.sum(monthly_counts_for_name.map((counts) => counts[cat_index]))
+    })
+    return col.concat(monthly_counts)
+  }
+
   getConfig() {
-    const fitLabels = this.fitLabels
     const superConfig = super.getConfig()
-    const superNormalizeDataLabels = super.normalizeDataLabels
-    const data = this.data
-    const demographic = this.demographic
+    const normalizeDataLabels = this.normalizeDataLabels
     const config = {
+      size: {
+        width: $(this.selector).width(),
+        height: this.config.axis.x.categories.length * 130,
+      },
       padding: {
-        left: 150,
+        left: 250,
         top: 0,
-        right: 200,
+        right: 100,
         bottom: 0,
       },
+      bar: {
+        width: 40,
+        padding: 5,
+      },
       onrendered: function() {
-        superNormalizeDataLabels(this)
-        const selector = this.internal.config.bindto
-        let container = d3.select(`${selector} .bb-main`)
-        container.selectAll(`.bb-text__custom-total`)
-          .data([demographic.exited_household_count, demographic.returned_household_count])
-          .join(
-            (enter) => enter.append('text').attr('class', 'bb-text__custom-total'),
-            (update) => update,
-            (exit) => exit.remove()
-          )
-          .text((d) => `${d3.format(',')(d)} Households`)
-          .attr('x', (d) => this.internal.scale.y(100))
-          .attr('y', (d, i) => this.internal.scale.x(i))
-          .attr('transform', 'translate(30, 6)')
-        fitLabels(this)
+        normalizeDataLabels(this)
+        // fitLabels(this)
+      },
+      tooltip: {
+        contents: (d, defaultTitleFormat, defaultValueFormat, color) => {
+          const index = d[0].index
+          const swatches = d.map((n) => {
+            const swatch = `<svg class="chart-legend-item-swatch-prs1 mb-2" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color(n.id)}"/></svg>`;
+            const swatchLabel = `<div class="d-flex justify-content-start align-items-center"><div style="width:20px;padding-right:10px;">${swatch}</div><div class="pl-2">${n.name}</div></div>`;
+            return `<tr><td>${swatchLabel}</td><td>${d3.format(',')(n.value)}</dt></tr>`
+          })
+          let html = "<table class='bb-tooltip'>"
+          html += "<thead>"
+          html += `<tr><th colspan="3">Returns to Homelessness</th></tr>`
+          html += `<tr><td>Category</td><td>Count</td></tr>`
+          html += "</thead>"
+          html += "<tbody>"
+          html += swatches.join('')
+          html += "</tbody>"
+          html += "</table>"
+          return html
+        }
       }
     }
     if(this.options.legend) {
@@ -513,4 +628,59 @@ class AllNeighborsSystemDashboardRTHStack extends AllNeighborsSystemDashboardSta
     }
     return {...superConfig, ...config}
   }
+
+  getColumnLegend(bindto) {
+    return {
+      contents: {
+        bindto: bindto,
+        template: (title, color) => {
+          const swatch = `<svg class="mt-1 chart-legend-item-swatch-prs1" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10" fill="${color}"/></svg>`;
+          return `<div class="col-xs-12 col-md-3 mb-4 d-flex">${swatch}<div class="chart-legend-item-label-prs1">${title}</div></div>`;
+        },
+      },
+    }
+  }
+
+  getAxisConfig() {
+    return {
+      rotated: true,
+      x: {
+        type: "category",
+        categories: this.getActiveConfig().axis.x.categories,
+        tick: {
+          width: this.padding.left,
+        }
+      },
+      y: {
+        show: false,
+      }
+    }
+  }
+
+  normalizeDataLabels(chart) {
+    // is there a better way to do this with billboard config?
+    const selector = chart.internal.config.bindto
+    chart.data().forEach((d, i) => {
+      d.values.forEach((v, vi) => {
+        const text = $(`${selector} .bb-texts-${d.id.replaceAll('_', '-')} .bb-text-${v.x}`)
+        let label = ''
+        if(i == 1) {
+          const placements = chart.data()[0].values[vi].value
+          const returns = v.value
+          const ratio = returns/placements
+          label = d3.format(",")(returns)
+          if(returns > 0) {
+           label += ' (' + d3.format(".0%")(ratio) + ')'
+          }
+        } else {
+          label = d3.format(",")(v.value)
+        }
+        text.text(label)
+      })
+    })
+  }
 }
+globalThis.AllNeighborsSystemDashboardStack = AllNeighborsSystemDashboardStack;
+globalThis.AllNeighborsSystemDashboardUPVerticalStack = AllNeighborsSystemDashboardUPVerticalStack;
+globalThis.AllNeighborsSystemDashboardTTOHStack = AllNeighborsSystemDashboardTTOHStack;
+globalThis.AllNeighborsSystemDashboardRTHStack = AllNeighborsSystemDashboardRTHStack;

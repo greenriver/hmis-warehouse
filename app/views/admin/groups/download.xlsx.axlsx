@@ -1,8 +1,8 @@
 wb = xlsx_package.workbook
 wb.add_worksheet(name: 'Users') do |sheet|
   sheet.add_row(['First Name', 'Last Name', 'Email', 'Agency', 'Role', 'Account Created', 'Last Login', 'Active'])
-  User.joins(:legacy_roles, :agency).find_each do |user|
-    user.legacy_roles.each do |role|
+  User.joins(:agency).preload(:legacy_roles, :agency).find_each do |user|
+    user.legacy_roles.uniq.each do |role|
       sheet.add_row(
         [
           user.first_name,
