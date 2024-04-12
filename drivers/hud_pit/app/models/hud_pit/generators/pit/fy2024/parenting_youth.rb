@@ -66,12 +66,12 @@ module HudPit::Generators::Pit::Fy2024
       [
         :households,
         :clients,
-        :hoh_for_youth,
+        :hoh_for_youth, # HoH or spouse/partner (RelationshipToHoH = 3)
         :children_of_youth_parents,
         :child_hoh,
-        :children_of_0_to_18_parents,
+        :children_of_0_to_18_parents, # HoH or spouse/partner (RelationshipToHoH = 3)
         :youth_hoh,
-        :children_of_18_to_24_parents,
+        :children_of_18_to_24_parents, # HoH or spouse/partner (RelationshipToHoH = 3)
         :woman,
         :man,
         :culturally_specific_identity,
