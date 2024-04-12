@@ -11,66 +11,77 @@ class Consent::Implied
 
   private def current_consent_type
     consent_type = no_release_string
-    consent_type = full_consent_string if @client.active_consent_form&.consent_type == full_release_string
+    consent_type = full_release_string if @client.active_consent_form&.consent_type == full_release_string
     consent_type = revoked_consent_string if @client.newest_consent_form&.revoked?
     consent_type
   end
 
-  def no_release_string
+  def self.no_release_string
     'Implied Consent'
   end
 
-  def full_consent_string
-    'Expanded Consent'
+  def no_release_string
+    self.class.no_release_string
   end
 
-  def revoked_consent_string
+  def self.revoked_consent_string
     'Consent Revoked'
   end
 
-  def partial_release_string
-    'Implied Consent'
+  def revoked_consent_string
+    self.class.revoked_consent_string
   end
 
-  def full_release_string
+  def self.partial_release_string
+    self.class.no_release_string
+  end
+
+  def partial_release_string
+    self.class.partial_release_string
+  end
+
+  def self.full_release_string
     'Expanded Consent'
   end
 
+  def full_release_string
+    self.class.full_release_string
+  end
+
   def release_current_status
-    # TODO: COMPLETE THIS
-    consent_text = @client.class.no_release_string
-    consent_text = @client.class.full_consent_string if current_consent_type == full_release_string
-    consent_text = @client.class.revoked_consent_string if current_consent_type == revoked_consent_string
+    consent_text = no_release_string
+    consent_text = full_release_string if current_consent_type == full_release_string
+    consent_text = revoked_consent_string if current_consent_type == revoked_consent_string
     consent_text
   end
 
   def scope_for_residential_enrollments(user)
-    va_revoked_consent = release_current_status == @client.class.revoked_consent_string
+    revoked_consent = release_current_status == revoked_consent_string
 
-    permission = if va_revoked_consent
+    permission = if revoked_consent
       :can_view_clients
     else
       :can_view_client_enrollments_with_roi
     end
 
-    va_scope = @client.service_history_enrollments.
+    scope = @client.service_history_enrollments.
       entry.
       hud_residential
-    va_scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: permission))
+    scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: permission))
   end
 
   def scope_for_other_enrollments(user)
-    va_revoked_consent = release_current_status == @client.class.revoked_consent_string
+    revoked_consent = release_current_status == revoked_consent_string
 
-    permission = if va_revoked_consent
+    permission = if revoked_consent
       :can_view_clients
     else
       :can_view_client_enrollments_with_roi
     end
 
-    va_scope = @client.service_history_enrollments.
+    scope = @client.service_history_enrollments.
       entry.
       hud_non_residential
-    va_scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: permission))
+    scope.joins(:project).merge(GrdaWarehouse::Hud::Project.viewable_by(user, permission: permission))
   end
 end

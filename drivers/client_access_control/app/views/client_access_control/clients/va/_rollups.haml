@@ -18,7 +18,7 @@
       %header
         %h1.h3 Other Enrollments
  
-    - if @client.release_current_status == @client.class.full_consent_string
+    - if @client.release_current_status == @client.class.full_release_string
       %section.row.o-dashboard__block--primary
         .col-sm-12
           %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'disability-types'}}

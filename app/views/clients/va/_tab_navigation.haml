@@ -1,9 +1,7 @@
 - unless ajax_modal_request?
   :ruby
-    show_health_pilot = @client.show_health_pilot_for?(current_user) rescue false
-    show_health_hpc = @client.show_health_hpc_for?(current_user) rescue false
     show_demographic = @client.show_demographics_to?(current_user) rescue false 
-    show_expanded_va_dashboard = @client.release_current_status == @client.class.full_consent_string
+    show_expanded_dashboard = @client.release_current_status == @client.class.full_release_string
 
     @note_count = 0
     show_notes = can_edit_window_client_notes_or_own_window_client_notes?
@@ -21,7 +19,7 @@
       },
       enrollment_details_client_path(@client) => {
         title: 'Enrollment Details',
-        permission: can_view_enrollment_details? && show_demographic && show_expanded_va_dashboard,
+        permission: can_view_enrollment_details? && show_demographic && show_expanded_dashboard,
       },
       client_releases_path(client_id: @client) => {
         title: Translation.translate('Releases of Information'),

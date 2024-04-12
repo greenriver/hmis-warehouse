@@ -996,10 +996,6 @@ module GrdaWarehouse::Hud
       @active_consent_model ||= GrdaWarehouse::Config.active_consent_class.new(client: self)
     end
 
-    def self.active_consent_model
-      @active_consent_model ||= GrdaWarehouse::Config.active_consent_class.new(client: self)
-    end
-
     attr_accessor :merge
     attr_accessor :unmerge
     attr_accessor :bypass_search # Used for creating new clients
@@ -1037,26 +1033,24 @@ module GrdaWarehouse::Hud
     # and maintained in the warehouse
     def self.full_release_string
       # Return the untranslated string, but force the translator to see it
-      Translation.translate(active_consent_model.full_release_string)
-      active_consent_model.full_release_string
+      release_string = GrdaWarehouse::Config.active_consent_class.full_release_string
+      Translation.translate(release_string)
+      release_string
     end
 
     def self.partial_release_string
       # Return the untranslated string, but force the translator to see it
-      Translation.translate(active_consent_model.partial_release_string)
-      active_consent_model.partial_release_string
+      release_string = GrdaWarehouse::Config.active_consent_class.partial_release_string
+      Translation.translate(release_string)
+      release_string
     end
 
     def self.revoked_consent_string
-      active_consent_model.revoked_consent_string
-    end
-
-    def self.full_consent_string
-      active_consent_model.full_consent_string
+      GrdaWarehouse::Config.active_consent_class.revoked_consent_string
     end
 
     def self.no_release_string
-      active_consent_model.no_release_string
+      GrdaWarehouse::Config.active_consent_class.no_release_string
     end
 
     def self.consent_validity_period

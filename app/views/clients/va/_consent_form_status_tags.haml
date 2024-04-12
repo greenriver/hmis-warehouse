@@ -5,7 +5,7 @@
 - if status == @client.class.no_release_string
   - state='warning'
   - icon='question'
-- elsif status == @client.class.full_consent_string
+- elsif status == @client.class.full_release_string
   - state='success'
   - icon='checkmark'
 - elsif status == @client.class.revoked_consent_string

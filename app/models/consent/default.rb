@@ -9,29 +9,41 @@ class Consent::Default
     @client = client
   end
 
-  def no_release_string
+  def self.no_release_string
     'None on file'
   end
 
+  def no_release_string
+    self.class.no_release_string
+  end
+
+  def self.revoked_consent_string
+    ''
+  end
+
   def revoked_consent_string
-    ''
+    self.class.revoked_consent_string
   end
 
-  def full_consent_string
-    ''
-  end
-
-  def partial_release_string
+  def self.partial_release_string
     'Limited CAS Release'
   end
 
-  def full_release_string
+  def partial_release_string
+    self.class.partial_release_string
+  end
+
+  def self.full_release_string
     'Full HAN Release'
+  end
+
+  def full_release_string
+    self.class.full_release_string
   end
 
   def release_current_status
     consent_text = if @client.housing_release_status.blank?
-      @client.class.no_release_string
+      no_release_string
     elsif @client.release_duration.in?(['One Year', 'Two Years'])
       if @client.consent_form_valid?
         "Valid Until #{@client.consent_form_signed_on + @client.class.consent_validity_period}"
