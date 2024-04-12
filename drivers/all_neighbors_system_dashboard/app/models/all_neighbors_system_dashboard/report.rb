@@ -368,7 +368,8 @@ module AllNeighborsSystemDashboard
     private def per_page_js_asset_path(asset)
       return Rails.root.join('app', 'assets', 'builds', asset) if Rails.env.development?
 
-      asset_name, ext = asset.split('.')
+      ext = File.extname(asset)
+      asset_name = File.basename(asset, ext)
       asset_path = Rails.root.join('public', 'assets', "#{asset_name}-*#{ext}")
       Dir.glob(asset_path).first
     end
