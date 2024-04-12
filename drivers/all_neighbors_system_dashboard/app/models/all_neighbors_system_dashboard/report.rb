@@ -299,9 +299,9 @@ module AllNeighborsSystemDashboard
               'icons.woff',
               'icons.woff2',
             ].each do |filename|
-              css.gsub!("url(/assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
+              css.gsub!("url(#{Rails.application.config.assets.prefix}/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
               # Also replace development version of assets url
-              css.gsub!("url(/assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
+              css.gsub!("url(#{Rails.application.config.assets.prefix}/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
             end
             css
           },
