@@ -57,6 +57,7 @@ module ClientShowPages
         '/clients/rollup/ce_events',
         '/clients/rollup/employment_education',
         '/clients/rollup/hmis_clients',
+        '/clients/rollup/va/service_summary',
       ]
       rollup = allowed_rollups.detect do |m|
         m == '/clients/rollup/' + params.require(:partial).underscore

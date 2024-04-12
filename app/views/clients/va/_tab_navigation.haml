@@ -1,0 +1,40 @@
+- unless ajax_modal_request?
+  :ruby
+    show_health_pilot = @client.show_health_pilot_for?(current_user) rescue false
+    show_health_hpc = @client.show_health_hpc_for?(current_user) rescue false
+    show_demographic = @client.show_demographics_to?(current_user) rescue false 
+    show_expanded_va_dashboard = @client.release_current_status == @client.class.full_consent_string
+
+    @note_count = 0
+    show_notes = can_edit_window_client_notes_or_own_window_client_notes?
+    if show_notes
+      @note_count = @client.notes.visible_by(current_user, @client).count
+    end
+    always_visible = {
+      client_path(@client) => {
+        title: 'Dashboard', #'Basic Info & Programs'
+        permission: show_demographic,
+      },
+      simple_client_path(@client) => {
+        title: 'Demographics',
+        permission: !show_demographic,
+      },
+      enrollment_details_client_path(@client) => {
+        title: 'Enrollment Details',
+        permission: can_view_enrollment_details? && show_demographic && show_expanded_va_dashboard,
+      },
+      client_releases_path(client_id: @client) => {
+        title: Translation.translate('Releases of Information'),
+        permission: can_use_separated_consent?,
+      },
+      polymorphic_path(files_path_generator, client_id: @client) => {
+        title: 'Files',
+        permission: can_manage_window_client_files? || can_see_own_file_uploads? || can_generate_homeless_verification_pdfs?,
+      },
+    }
+
+    hmis = {}
+    health = {}
+
+  = render 'clients/pre_navigation_bar'
+  = render 'menus/client_tab_navigation', current: current, always_visible: always_visible, hmis: hmis, health: health

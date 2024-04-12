@@ -57,7 +57,7 @@ module Clients
             user_id: current_user.id,
             visible_in_window: window_visible?(allowed_params[:visible_in_window]),
             consent_form_confirmed: allowed_params[:consent_form_confirmed] || GrdaWarehouse::Config.get(:auto_confirm_consent),
-            coc_codes: allowed_params[:coc_codes].reject(&:blank?),
+            coc_codes: allowed_params[:coc_codes]&.reject(&:blank?) || [],
           ),
         )
         @file.name = @file.client_file.filename.base

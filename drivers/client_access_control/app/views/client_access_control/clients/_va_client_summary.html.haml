@@ -1,0 +1,12 @@
+.client__main-details
+  - if @client.image
+    .client__image{ style: "background-image: url(#{ image_client_path })" }
+  %section.o-section-card.mb-0
+    .d-flex.align-items-start.flex-wrap 
+      - unless @client.release_current_status == @client.class.no_release_string
+        .client-consent-status.d-none--empty.mb-3.mr-8<
+          = render 'clients/va/consent_form_flags'
+    - unless @client.release_current_status == @client.class.revoked_consent_string
+      %h1.h3 Homeless History and Veteran Status
+      .c-card.c-card--block.c-card--padded.c-card--flush.mb-4
+        = render 'clients/va/service_summary'
