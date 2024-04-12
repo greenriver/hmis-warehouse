@@ -366,7 +366,9 @@ module AllNeighborsSystemDashboard
     end
 
     private def asset_path(asset)
-      Rails.root.join('app', 'assets', 'builds', asset)
+      return Rails.root.join('app', 'assets', 'builds', asset) if Rails.env.development?
+
+      Rails.root.join('public', 'assets', asset)
     end
   end
 end
