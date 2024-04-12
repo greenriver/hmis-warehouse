@@ -35,7 +35,7 @@
       (
       %span{class: filter_label_id(tab[:id], 'date_range')}
       )
-- if debug
+- if params[:debug].present?
   .well
     = link_to 'Debug page ->', debug_all_neighbors_system_dashboard_warehouse_reports_report_path(@report, {project_type: 'All', count_level: 'Individuals', group: 'monthly_counts'})
 
