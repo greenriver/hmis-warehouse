@@ -44,7 +44,7 @@ module MaReports::CsgEngage::ReportComponents
       field('Extra-Sensitive')
       field('Farmer')
       field('FoodStamps') do
-        @enrollments_scope.any? { |enrollment| enrollment.income_benefits.max_by(&:information_date)&.SNAP == 1 }
+        boolean_string(@enrollments_scope.any? { |enrollment| enrollment.income_benefits.max_by(&:information_date)&.SNAP == 1 })
       end
       field('Household Type')
       field('Housing Subsidy Type') do
@@ -53,7 +53,7 @@ module MaReports::CsgEngage::ReportComponents
       field('Housing Type')
       field('HousingType', method: :housing_type_2)
       field('MigrantFarmer')
-      field('Number in House') { enrollments_scope.count }
+      field('Number in House') { enrollments_scope.count.to_s }
       field('SeasonalFarmer')
     end
 

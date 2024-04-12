@@ -58,13 +58,13 @@ module MaReports::CsgEngage::ReportComponents
       field('Non-Cash Benefits - ACA Subsidy')
       field('Non-Cash Benefits - Childcare Voucher')
       field('Non-Cash Benefits - LIHEAP')
-      field('Non-Cash Benefits - None') { boolean_string(latest_income_benefit&.BenefitsFromAnySource == 0) }
+      field('Non-Cash Benefits - None') { latest_income_benefit&.BenefitsFromAnySource == 0 }
       field('Non-Cash Benefits - Other')
-      field('Non-Cash Benefits - SNAP') { boolean_string(latest_income_benefit&.SNAP == 1) }
-      field('Non-Cash Benefits - Unknown/not reported') { boolean_string(![1, 0].include?(latest_income_benefit&.BenefitsFromAnySource)) }
-      field('Non-Cash Benefits - WIC') { boolean_string(latest_income_benefit&.WIC == 1) }
+      field('Non-Cash Benefits - SNAP') { latest_income_benefit&.SNAP == 1 }
+      field('Non-Cash Benefits - Unknown/not reported') { ![1, 0].include?(latest_income_benefit&.BenefitsFromAnySource) }
+      field('Non-Cash Benefits - WIC') { latest_income_benefit&.WIC == 1 }
       field('Secondary Health Insurance Source')
-      field('Veteran') { client.VeteranStatus == 1 }
+      field('Veteran') { boolean_string(client.VeteranStatus == 1) }
       field('Work Status')
     end
 
