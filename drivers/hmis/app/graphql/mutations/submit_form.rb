@@ -162,7 +162,7 @@ module Mutations
       when 'Hmis::Hud::Funder', 'Hmis::Hud::ProjectCoc', 'Hmis::Hud::Inventory', 'Hmis::Hud::CeParticipation', 'Hmis::Hud::HmisParticipation'
         [project, klass.new({ project_id: project&.project_id, **ds })]
       when 'Hmis::Hud::Enrollment'
-        [project, klass.new({ project_id: project&.project_id, personal_id: client&.personal_id, **ds })]
+        [project, klass.new({ actual_project_id: project&.id, personal_id: client&.personal_id, **ds })]
       when 'Hmis::Hud::CurrentLivingSituation'
         [enrollment, klass.new({ personal_id: enrollment&.personal_id, enrollment_id: enrollment&.enrollment_id, **ds })]
       when 'Hmis::Hud::HmisService'

@@ -33,12 +33,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   has_many :hmis_participations, **hmis_relation(:ProjectID, 'HmisParticipation'), inverse_of: :project, dependent: :destroy
   has_many :ce_participations, **hmis_relation(:ProjectID, 'CeParticipation'), inverse_of: :project, dependent: :destroy
-  # Enrollments in this Project, NOT including WIP Enrollments
-  has_many :enrollments, **hmis_relation(:ProjectID, 'Enrollment'), inverse_of: :project, dependent: :destroy
-  # WIP records representing Enrollments for this Project
-  has_many :enrollment_wips, -> { where(source_type: Hmis::Hud::Enrollment.sti_name) }, class_name: 'Hmis::Wip'
-  # WIP Enrollments for this Project
-  has_many :wip_enrollments, class_name: 'Hmis::Hud::Enrollment', through: :enrollment_wips, source: :source, source_type: Hmis::Hud::Enrollment.sti_name
+  # Enrollments in this Project, including WIP Enrollments
+  has_many :enrollments, foreign_key: :actual_project_id, inverse_of: :project, dependent: :destroy
 
   has_many :project_cocs, **hmis_relation(:ProjectID, 'ProjectCoc'), inverse_of: :project, dependent: :destroy
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project, dependent: :destroy
@@ -46,40 +42,22 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :units, -> { active }, dependent: :destroy
   has_many :unit_type_mappings, dependent: :destroy, class_name: 'Hmis::ProjectUnitTypeMapping'
 
-  has_many :client_projects
-  has_many :clients_including_wip, through: :client_projects, source: :client
-  has_many :enrollments_including_wip, through: :client_projects, source: :enrollment
-
   has_many :group_viewable_entity_projects
   has_many :group_viewable_entities, through: :group_viewable_entity_projects, source: :group_viewable_entity
 
-  # Households in this Project, NOT including WIP Enrollments
-  has_many :households, through: :enrollments
+  # Households in this Project including WIP Enrollments
+  has_many :households, foreign_key: :actual_project_id, inverse_of: :project
 
-  # NOTE: These are not performant, because they go through the WIP view. Don't use them in the application.
-  has_many :services, through: :enrollments_including_wip
-  has_many :custom_services, through: :enrollments_including_wip
-
-  # For now, use a class method instead of an AR association for custom assessments rather than joining thru the
-  # not-very-performant view.
-  # has_many :custom_assessments, through: :enrollments_including_wip
-  def custom_assessments
-    Hmis::Hud::CustomAssessment.joins(:enrollment).left_outer_joins(enrollment: :wip).
-      where(Hmis::Hud::Enrollment.arel_table[:project_id].eq(project_id)).
-      or(Hmis::Hud::CustomAssessment.joins(:enrollment).left_outer_joins(enrollment: :wip).
-        where(Hmis::Wip.arel_table[:project_id].eq(id)))
-  end
+  has_many :custom_assessments, through: :enrollments
+  has_many :services, through: :enrollments
+  has_many :custom_services, through: :enrollments
+  has_many :clients, through: :enrollments
 
   has_one :warehouse_project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :id, primary_key: :id
 
   accepts_nested_attributes_for :affiliations, allow_destroy: true
 
-  # FIXME: joining services through enrollments confounds postgres. On larger projects, the query might take many
-  # minutes. It needs optimization; for now we use a class method instead of a AR association
-  # has_many :hmis_services, through: :enrollments_including_wip
-  def hmis_services
-    Hmis::Hud::HmisService.joins(:project).where(Hmis::Hud::Project.arel_table[:id].eq(id))
-  end
+  has_many :hmis_services, through: :enrollments
 
   has_and_belongs_to_many :project_groups,
                           class_name: 'GrdaWarehouse::ProjectGroup',
@@ -187,13 +165,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   def name
     project_name
-  end
-
-  def households_including_wip
-    # correlated subquery for performance
-    cp_t = Hmis::Hud::ClientProject.arel_table
-    subquery = client_projects.where(cp_t[:HouseholdID].eq(hh_t[:HouseholdID]))
-    Hmis::Hud::Household.where(data_source_id: data_source_id).where(subquery.arel.exists)
   end
 
   def close_related_funders_and_inventory!

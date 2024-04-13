@@ -42,9 +42,6 @@ module Hmis
             joins(:project).
             pluck(e_t[:id], p_t[:id])
         end
-        pairs += Hmis::Wip.enrollments.with_deleted.
-          where(source_id: enrollment_ids).
-          pluck(:source_id, :project_id)
         pairs.to_h
       end
 

@@ -49,12 +49,12 @@ module GraphqlApplicationHelper
     enrollments = load_ar_association(
       client,
       :enrollments,
-      scope: Hmis::Hud::Enrollment.viewable_by(current_user).preload(:client_project, :exit),
+      scope: Hmis::Hud::Enrollment.viewable_by(current_user).preload(:exit),
     )
 
     # Filter down by project and date
     enrollments.filter do |en|
-      en.open_on_date?(open_on_date) && en.client_project.project_id.to_s == project_id.to_s
+      en.open_on_date?(open_on_date) && en.actual_project_id.to_s == project_id.to_s
     end.min_by { |e| [e.entry_date, e.id] }
   end
 end
