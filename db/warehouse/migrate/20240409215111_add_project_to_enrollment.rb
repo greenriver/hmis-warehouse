@@ -1,7 +1,12 @@
 class AddProjectToEnrollment < ActiveRecord::Migration[6.1]
-  def change
+  def up
     safety_assured do
-      add_reference :Enrollment, :actual_project, foreign_key: { to_table: :Project, name: 'fk_rails_enrollment_actual_project_di' }
+      add_column :Enrollment, :project_pk, :bigint, index: true
+      add_foreign_key :Enrollment, :Project, column: :project_pk, name: 'fk_rails_enrollment_project_pk'
     end
+  end
+
+  def down
+    remove_column :Enrollment, :project_pk
   end
 end

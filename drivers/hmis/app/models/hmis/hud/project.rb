@@ -34,7 +34,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :hmis_participations, **hmis_relation(:ProjectID, 'HmisParticipation'), inverse_of: :project, dependent: :destroy
   has_many :ce_participations, **hmis_relation(:ProjectID, 'CeParticipation'), inverse_of: :project, dependent: :destroy
   # Enrollments in this Project, including WIP Enrollments
-  has_many :enrollments, foreign_key: :actual_project_id, inverse_of: :project, dependent: :destroy
+  has_many :enrollments, foreign_key: :project_pk, inverse_of: :project, dependent: :destroy
 
   has_many :project_cocs, **hmis_relation(:ProjectID, 'ProjectCoc'), inverse_of: :project, dependent: :destroy
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project, dependent: :destroy
@@ -46,7 +46,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :group_viewable_entities, through: :group_viewable_entity_projects, source: :group_viewable_entity
 
   # Households in this Project including WIP Enrollments
-  has_many :households, foreign_key: :actual_project_id, inverse_of: :project
+  has_many :households, foreign_key: :project_pk, inverse_of: :project
 
   has_many :custom_assessments, through: :enrollments
   has_many :services, through: :enrollments

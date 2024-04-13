@@ -1675,7 +1675,7 @@ CREATE TABLE public."Enrollment" (
     "PreferredLanguageDifferent" character varying,
     "VAMCStation" character varying,
     lock_version integer DEFAULT 0 NOT NULL,
-    actual_project_id bigint
+    project_pk bigint
 );
 
 
@@ -13586,33 +13586,6 @@ CREATE TABLE public.hmis_wips (
 
 
 --
--- Name: hmis_client_projects; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.hmis_client_projects AS
- SELECT "Client".id AS client_id,
-    "Project".id AS project_id,
-    "Enrollment".id AS enrollment_id,
-    "Enrollment"."EnrollmentID",
-    "Enrollment"."HouseholdID",
-    "Enrollment".data_source_id
-   FROM ((public."Client"
-     JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".data_source_id = "Client".data_source_id) AND (("Enrollment"."PersonalID")::text = ("Client"."PersonalID")::text))))
-     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = "Enrollment".data_source_id) AND (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text))))
-  WHERE ("Client"."DateDeleted" IS NULL)
-UNION
- SELECT (hmis_wips.client_id)::integer AS client_id,
-    (hmis_wips.project_id)::integer AS project_id,
-    "Enrollment".id AS enrollment_id,
-    "Enrollment"."EnrollmentID",
-    "Enrollment"."HouseholdID",
-    "Enrollment".data_source_id
-   FROM (public.hmis_wips
-     JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".id = hmis_wips.source_id))))
-  WHERE (((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text) AND (hmis_wips.deleted_at IS NULL));
-
-
---
 -- Name: hmis_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -18544,7 +18517,7 @@ UNION
 CREATE VIEW public.hmis_households AS
  SELECT concat("Enrollment"."HouseholdID", ':', "Project"."ProjectID", ':', "Project".data_source_id) AS id,
     "Enrollment"."HouseholdID",
-    "Enrollment".actual_project_id,
+    "Enrollment".project_pk,
     "Project"."ProjectID",
     "Project".data_source_id,
     min("Enrollment"."EntryDate") AS earliest_entry,
@@ -18558,9 +18531,9 @@ CREATE VIEW public.hmis_households AS
     min("Enrollment"."DateCreated") AS "DateCreated"
    FROM ((public."Enrollment"
      LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
-     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = "Enrollment".actual_project_id))))
+     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = "Enrollment".project_pk))))
   WHERE ("Enrollment"."DateDeleted" IS NULL)
-  GROUP BY "Project".data_source_id, "Project"."ProjectID", "Enrollment".actual_project_id, "Enrollment"."HouseholdID";
+  GROUP BY "Project".data_source_id, "Project"."ProjectID", "Enrollment".project_pk, "Enrollment"."HouseholdID";
 
 
 --
@@ -50951,10 +50924,10 @@ CREATE INDEX "index_Enrollment_on_ProjectID_and_data_source_id" ON public."Enrol
 
 
 --
--- Name: index_Enrollment_on_actual_project_id; Type: INDEX; Schema: public; Owner: -
+-- Name: index_Enrollment_on_project_pk; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX "index_Enrollment_on_actual_project_id" ON public."Enrollment" USING btree (actual_project_id);
+CREATE INDEX "index_Enrollment_on_project_pk" ON public."Enrollment" USING btree (project_pk);
 
 
 --
@@ -62421,19 +62394,19 @@ ALTER TABLE ONLY public."Funder"
 
 
 --
--- Name: Enrollment fk_rails_enrollment_actual_project_di; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."Enrollment"
-    ADD CONSTRAINT fk_rails_enrollment_actual_project_di FOREIGN KEY (actual_project_id) REFERENCES public."Project"(id);
-
-
---
 -- Name: hmis_external_referral_household_members fk_rails_f16596e413; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hmis_external_referral_household_members
     ADD CONSTRAINT fk_rails_f16596e413 FOREIGN KEY (referral_id) REFERENCES public.hmis_external_referrals(id);
+
+
+--
+-- Name: Enrollment fk_rails_enrollment_project_pk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."Enrollment"
+    ADD CONSTRAINT fk_rails_enrollment_project_pk FOREIGN KEY (project_pk) REFERENCES public."Project"(id);
 
 
 --
@@ -62635,7 +62608,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240322153133'),
 ('20240322183410'),
 ('20240409215111'),
-('20240411183410');
-
-
-
+('20240411183410'),
+('20240413183410');

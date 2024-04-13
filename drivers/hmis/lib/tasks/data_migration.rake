@@ -1,7 +1,7 @@
 namespace :data_migration do
-  # rails driver:hmis:data_migration:update_actual_project
-  desc 'One time task to set Enrollment.actual_project_id'
-  task :update_actual_project, [] => [:environment] do
+  # rails driver:hmis:data_migration:update_project_pk
+  desc 'One time task to set Enrollment.project_pk'
+  task :update_project_pk, [] => [:environment] do
     data_source = GrdaWarehouse::DataSource.hmis.first
     return unless data_source
 
@@ -9,7 +9,7 @@ namespace :data_migration do
     puts 'updating enrollments from hmis_wip'
     connection.execute(<<~SQL)
       UPDATE "Enrollment"
-        SET actual_project_id = "hmis_wips".project_id
+        SET project_pk = "hmis_wips".project_id
       FROM "hmis_wips"
         WHERE "hmis_wips"."source_id" = "Enrollment"."id"
         AND "hmis_wips"."source_type" = 'Hmis::Hud::Enrollment'
@@ -19,7 +19,7 @@ namespace :data_migration do
     puts 'updating enrollments from project'
     connection.execute(<<~SQL)
       UPDATE "Enrollment"
-        SET actual_project_id = "Project".id
+        SET project_pk = "Project".id
       FROM "Project"
         WHERE "Project"."data_source_id" = "Enrollment"."data_source_id"
         AND "Project"."ProjectID" = "Enrollment"."ProjectID"

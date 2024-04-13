@@ -29,10 +29,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   delegate :exit_date, to: :exit, allow_nil: true
 
   # CAUTION: unlike the warehouse models, the HMIS Enrollment-to-Project relationship does not use the HUD ProjectID
-  # field. It uses a conventional db PK relationship "Enrollment.actual_project_id" instead. This allows us to have
+  # field. It uses a conventional db PK relationship "Enrollment.project_pk" instead. This allows us to have
   # enrollments in a "WIP" or in-progress state; these wip enrollments have a NULL ProjectID but are still related via
   # the project pk
-  belongs_to :project, foreign_key: :actual_project_id, optional: true
+  belongs_to :project, foreign_key: :project_pk, optional: true
 
   has_one :exit, **hmis_enrollment_relation('Exit'), inverse_of: :enrollment, dependent: :destroy
 
@@ -85,8 +85,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   accepts_nested_attributes_for :move_in_addresses, allow_destroy: true
 
-  before_validation :set_hud_project_id_from_actual_project_id, if: :actual_project_id_changed?
-  def set_hud_project_id_from_actual_project_id
+  before_validation :set_hud_project_id_from_project_pk, if: :project_pk_changed?
+  def set_hud_project_id_from_project_pk
     return unless project_id
 
     self.project_id = project.project_id
@@ -124,7 +124,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     return none unless user.permissions?(*permissions)
 
     project_ids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).order(:id).pluck(:id)
-    where(actual_project_id: project_ids)
+    where(project_pk: project_ids)
   end
 
   # Enrollments that this user has access to. By default, only returns enrollments that the user has full
@@ -140,7 +140,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     # Projects where the user has limited enrollment access
     limited_access_project_ids = Hmis::Hud::Project.with_access(user, :can_view_limited_enrollment_details).pluck(:id)
 
-    where(actual_project_id: (full_access_project_ids + limited_access_project_ids).uniq.sort)
+    where(project_pk: (full_access_project_ids + limited_access_project_ids).uniq.sort)
   end
 
   # Free-text search for Enrollment
@@ -183,11 +183,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   scope :with_project_type, ->(project_types) do
     project_pks = Hmis::Hud::Project.where(project_type: project_types).pluck(:id)
-    where(actual_project_id: project_pks)
+    where(project_pk: project_pks)
   end
 
   scope :with_project, ->(project_pks) do
-    where(actual_project_id: project_pks)
+    where(project_pk: project_pks)
   end
 
   scope :in_age_group, ->(start_age: 0, end_age: nil) do

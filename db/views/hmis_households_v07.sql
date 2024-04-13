@@ -8,7 +8,7 @@ SELECT
     "Project"."data_source_id"
   ) AS id,
   "Enrollment"."HouseholdID",
-  "Enrollment"."actual_project_id",
+  "Enrollment"."project_pk",
   "Project"."ProjectID",
   "Project"."data_source_id",
   MIN("Enrollment"."EntryDate") AS earliest_entry,
@@ -26,13 +26,13 @@ FROM
   AND "Exit"."data_source_id" = "Enrollment"."data_source_id"
   AND "Exit"."DateDeleted" IS NULL
   JOIN "Project" ON "Project"."DateDeleted" IS NULL
-  AND "Project"."id" = "Enrollment"."actual_project_id"
+  AND "Project"."id" = "Enrollment"."project_pk"
 WHERE
   "Enrollment"."DateDeleted" IS NULL
 GROUP BY
   "Project"."data_source_id",
   "Project"."ProjectID",
-  "Enrollment"."actual_project_id",
+  "Enrollment"."project_pk",
   "Enrollment"."HouseholdID";
 
 CREATE RULE attempt_hmis_households_del AS ON DELETE TO hmis_households DO INSTEAD NOTHING;
