@@ -32,7 +32,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   # field. It uses a conventional db PK relationship "Enrollment.project_pk" instead. This allows us to have
   # enrollments in a "WIP" or in-progress state; these wip enrollments have a NULL ProjectID but are still related via
   # the project pk
-  belongs_to :project, foreign_key: :project_pk, optional: true
+  belongs_to :project, foreign_key: :project_pk, optional: true, class_name: 'Hmis::Hud::Project'
 
   has_one :exit, **hmis_enrollment_relation('Exit'), inverse_of: :enrollment, dependent: :destroy
 
