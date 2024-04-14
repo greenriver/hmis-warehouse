@@ -14,6 +14,7 @@ namespace :data_migration do
         WHERE "hmis_wips"."source_id" = "Enrollment"."id"
         AND "hmis_wips"."source_type" = 'Hmis::Hud::Enrollment'
         AND "Enrollment"."data_source_id" = #{data_source.id}
+        AND "Enrollment"."ProjectID" IS NULL
     SQL
 
     puts 'updating enrollments from project'

@@ -45,19 +45,16 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   has_many :group_viewable_entity_projects
   has_many :group_viewable_entities, through: :group_viewable_entity_projects, source: :group_viewable_entity
 
-  # Households in this Project including WIP Enrollments
   has_many :households, foreign_key: :project_pk, inverse_of: :project
-
   has_many :custom_assessments, through: :enrollments
   has_many :services, through: :enrollments
   has_many :custom_services, through: :enrollments
   has_many :clients, through: :enrollments
+  has_many :hmis_services, through: :enrollments
 
   has_one :warehouse_project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :id, primary_key: :id
 
   accepts_nested_attributes_for :affiliations, allow_destroy: true
-
-  has_many :hmis_services, through: :enrollments
 
   has_and_belongs_to_many :project_groups,
                           class_name: 'GrdaWarehouse::ProjectGroup',

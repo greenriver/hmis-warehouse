@@ -110,12 +110,12 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
 
   def validate(record)
     super(record) do
-      # enrollment.project_id should match the project.project_id. The rails association is through project_pk
       if record.project
+        # enrollment.project_id should match the project.project_id. The rails association is through project_pk
         record.errors.add :project_id, 'reference does not match DB PK' if record.ProjectID && record.ProjectID != record.project.ProjectID
         record.errors.add :project_id, 'must match enrollment data source' if record.project.data_source_id != record.data_source_id
       else
-        record.errors.add :project_id, 'must be present' unless record.project
+        record.errors.add :project_id, 'must be present'
       end
     end
   end

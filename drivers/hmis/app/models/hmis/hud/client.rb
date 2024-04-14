@@ -37,7 +37,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   # Enrollments for this Client, including WIP Enrollments
   has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment'), dependent: :destroy
-  # Projects that this Client is enrolled in, NOT including WIP enrollments
+  # Projects that this Client is enrolled in, including through WIP enrollments
   has_many :projects, through: :enrollments
 
   has_many :custom_assessments, through: :enrollments
