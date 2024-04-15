@@ -50,4 +50,7 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
 
     assign_attributes(service_name: service_type.name)
   end
+
+  # Include extensions at the end so they can override default behavior
+  include RailsDrivers::Extensions
 end

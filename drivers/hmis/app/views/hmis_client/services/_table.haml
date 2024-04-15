@@ -13,9 +13,7 @@
         %tr
           %td
             .ds{class: "ds-color-#{service.data_source_id}"}= ds_short_name_for(service.client.id)
-          %td
-            = cache(service.project.as_warehouse) do
-              = service.project.as_warehouse.name(current_user)
+          %td= service.warehouse_project.name(current_user)
           %td= service.enrollment.entry_date
           %td= service.date_provided
           %td= service.display_name
