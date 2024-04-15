@@ -21,7 +21,9 @@
           %td= service.display_name
           %td.text-right
             - if @client.hmis_source_visible_by?(current_user)
-              = link_to 'HMIS', service.data_source.hmis_url_for(service, user: current_user), class: 'btn btn-xs btn-secondary btn-muted btn-hmis mb-2'
+              = link_to service.data_source.hmis_url_for(service, user: current_user), target: :_blank do
+                Open in HMIS
+                %i.icon-link-ext
               .text-teeny.font-weight-light
                 .text-nowrap
                   Created: #{service.DateCreated}
