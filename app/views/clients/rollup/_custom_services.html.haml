@@ -1,7 +1,8 @@
-:ruby
-  custom_services = @client.services_for_rollup.merge(GrdaWarehouse::Hud::Enrollment.visible_to(current_user))
-- if custom_services.any?
-  = render 'hmis_client/services/table', custom_services: custom_services
-- else
-  .no-data
-    No Custom Services on file
+= cache([@client, 'enrollments', can_view_enrollment_details?, controller_path, current_user], expires_in: 1.hours) do
+  :ruby
+    custom_services = @client.services_for_rollup.merge(GrdaWarehouse::Hud::Enrollment.visible_to(current_user))
+  - if custom_services.any?
+    = render 'hmis_client/services/table', custom_services: custom_services
+  - else
+    .no-data
+      No Custom Services on file
