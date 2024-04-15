@@ -327,7 +327,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       # if we don't know the assessor, and the assessment was added by the system, ignore it
       return nil if email == User.system_user.email
 
-      email
+      Array.wrap(email)
     end
   end
 end
