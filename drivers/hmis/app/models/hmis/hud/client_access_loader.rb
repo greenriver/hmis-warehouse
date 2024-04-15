@@ -17,7 +17,7 @@ class Hmis::Hud::ClientAccessLoader < Hmis::BaseAccessLoader
     orphan_client_ids = Hmis::Hud::Client.
       left_outer_joins(:enrollments).
       where(id: client_ids).
-      where(arel.e_t[:project_id].eq(nil)).
+      where(arel.e_t[:id].eq(nil)).
       pluck(arel.c_t[:id])
 
     access_group_ids_by_client_id = Hmis::Hud::Project.

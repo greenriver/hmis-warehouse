@@ -158,12 +158,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   scope :with_open_enrollment_in_organization, ->(organization_ids) do
-    tuples = Hmis::Hud::Organization.where(id: Array.wrap(organization_ids)).pluck(:data_source_id, :organization_id)
-    ds_ids = tuples.map(&:first).compact.map(&:to_i).uniq
-    hud_org_ids = tuples.map(&:second)
-    raise 'orgs are in multiple data sources' if ds_ids.size > 1
+    ds_count = Hmis::Hud::Organization.where(id: organization_ids).select(:data_source_id).distinct.count
+    raise 'orgs are in multiple data sources' if ds_count.size > 1
 
-    joins(:projects).where(p_t[:organization_id].in(hud_org_ids).and(p_t[:data_source_id].eq(ds_ids.first)))
+    joins(projects: :organization).merge(Hmis::Hud::Organization.where(id: organization_ids))
   end
 
   scope :with_service_in_range, ->(start_date:, end_date: Date.current, project_id: nil, service_type_id: nil) do

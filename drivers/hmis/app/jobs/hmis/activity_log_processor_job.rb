@@ -27,7 +27,6 @@ module Hmis
     RESOLVE_ENROLLMENT_IDS = ->(enrollment_ids) {
       e_t = Hmis::Hud::Enrollment.arel_table
       c_t = Hmis::Hud::Client.arel_table
-      p_t = Hmis::Hud::Project.arel_table
       # unscope client to include deleted records in the join
       client_id_map = Hmis::Hud::Client.unscoped do
         Hmis::Hud::Enrollment.with_deleted.
@@ -35,15 +34,10 @@ module Hmis
           joins(:client).
           pluck(e_t[:id], c_t[:id]).to_h
       end
-      project_id_map = [].yield_self do |pairs|
-        Hmis::Hud::Project.unscoped do
-          pairs += Hmis::Hud::Enrollment.with_deleted.
-            where(id: enrollment_ids).
-            joins(:project).
-            pluck(e_t[:id], p_t[:id])
-        end
-        pairs.to_h
-      end
+
+      project_id_map = Hmis::Hud::Enrollment.with_deleted.
+        where(id: enrollment_ids).
+        pluck(:id, :project_pk).to_h
 
       enrollment_ids.map(&:to_i).map do |enrollment_id|
         project_id = project_id_map[enrollment_id]

@@ -115,7 +115,7 @@ class Hmis::Hud::Validators::EnrollmentValidator < Hmis::Hud::Validators::BaseVa
         record.errors.add :project_id, 'reference does not match DB PK' if record.ProjectID && record.ProjectID != record.project.ProjectID
         record.errors.add :project_id, 'must match enrollment data source' if record.project.data_source_id != record.data_source_id
       else
-        record.errors.add :project_id, 'must be present'
+        record.errors.add :project_pk, :required
       end
     end
   end

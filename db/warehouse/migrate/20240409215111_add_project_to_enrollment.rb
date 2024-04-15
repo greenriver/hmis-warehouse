@@ -1,7 +1,8 @@
 class AddProjectToEnrollment < ActiveRecord::Migration[6.1]
   def up
     safety_assured do
-      add_column :Enrollment, :project_pk, :bigint, index: true
+      add_column :Enrollment, :project_pk, :bigint
+      add_index :Enrollment, :project_pk
       add_foreign_key :Enrollment, :Project, column: :project_pk, name: 'fk_rails_enrollment_project_pk'
     end
   end

@@ -294,6 +294,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   def save_in_progress!
+    raise 'cannot unset ProjectID on enrollment that is missing project_pk' unless project_pk
+
     # "WIP" Enrollments have a null ProjectID column, so that they aren't included in reporting.
     self.project_id = nil
     save!(validate: false)
