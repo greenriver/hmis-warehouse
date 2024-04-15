@@ -1409,6 +1409,9 @@ module GrdaWarehouse::Hud
     end
 
     def email
+      # Fetch the data from the source clients if we are a destination client
+      return source_clients.map(&:email).reject(&:blank?).first if destination?
+
       # Look for value from OP HMIS
       value = most_recent_email_hmis if HmisEnforcement.hmis_enabled?
       # Look for value from other HMIS integrations
@@ -1418,12 +1421,18 @@ module GrdaWarehouse::Hud
     end
 
     def home_phone
+      # Fetch the data from the source clients if we are a destination client
+      return source_clients.map(&:home_phone).reject(&:blank?).first if destination?
+
       value = most_recent_home_phone_hmis if HmisEnforcement.hmis_enabled?
       value ||= hmis_client_response['HomePhone'] if hmis_client_response.present?
       value
     end
 
     def cell_phone
+      # Fetch the data from the source clients if we are a destination client
+      return source_clients.map(&:cell_phone).reject(&:blank?).first if destination?
+
       value = most_recent_cell_or_other_phone_hmis if HmisEnforcement.hmis_enabled?
       value ||= hmis_client_response['CellPhone'] if hmis_client_response.present?
       value ||= hmis_client.processed_fields['phone'] if hmis_client&.processed_fields
@@ -1431,6 +1440,9 @@ module GrdaWarehouse::Hud
     end
 
     def work_phone
+      # Fetch the data from the source clients if we are a destination client
+      return source_clients.map(&:work_phone).reject(&:blank?).first if destination?
+
       value = most_recent_work_or_school_phone_hmis if HmisEnforcement.hmis_enabled?
       return value if value
       return unless hmis_client_response.present?
