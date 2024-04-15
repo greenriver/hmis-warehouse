@@ -65,7 +65,9 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   scope :post_exits, -> { where(data_collection_stage: 6) }
 
   scope :with_role, ->(role) do
-    stages = Array.wrap(role).map { |r| Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[r.to_sym] }.compact
+    stages = Array.wrap(role).map do |r|
+      Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES.merge({ CUSTOM_ASSESSMENT: 99 })[r.to_sym]
+    end.compact
     where(data_collection_stage: stages)
   end
 
