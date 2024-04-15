@@ -30,6 +30,10 @@ module HudReports::Households
       a_t[:head_of_household].eq(true)
     end
 
+    private def hoh_or_spouse
+      a_t[:relationship_to_hoh].in([1, 3])
+    end
+
     private def adult_or_hoh_clause
       adult_clause.or(hoh_clause)
     end
