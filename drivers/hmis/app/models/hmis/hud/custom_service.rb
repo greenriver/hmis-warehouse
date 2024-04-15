@@ -23,6 +23,7 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
   alias_attribute :service_type, :custom_service_type
   has_one :organization, through: :project
   has_one :custom_service_category, through: :custom_service_type
+  has_one :warehouse_project, class_name: 'GrdaWarehouse::Hud::Project', through: :project
 
   before_validation :set_service_name
   validates_with Hmis::Hud::Validators::CustomServiceValidator
@@ -50,7 +51,4 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
 
     assign_attributes(service_name: service_type.name)
   end
-
-  # Include extensions at the end so they can override default behavior
-  include RailsDrivers::Extensions
 end
