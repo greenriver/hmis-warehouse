@@ -94,7 +94,7 @@ RSpec.describe 'HmisExternalApis::PublishExternalFormsJob', type: :model do
   before(:each) do
     {
       site_logo_alt: 'test site alt',
-      site_logo_url: 'logo.html',
+      site_logo_url: 'logo.png',
       site_logo_width: 100,
       site_logo_height: 100,
       recaptcha_key: 'fakekey',
