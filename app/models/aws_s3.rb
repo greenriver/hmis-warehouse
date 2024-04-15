@@ -152,6 +152,6 @@ class AwsS3
   end
 
   def delete(key:)
-    s3_client.delete_object(bucket: bucket_name, key: key)
+    client.delete_object(bucket: bucket_name, key: key)
   end
 end
