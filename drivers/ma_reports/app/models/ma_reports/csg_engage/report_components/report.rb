@@ -19,12 +19,5 @@ module MaReports::CsgEngage::ReportComponents
     field('Programs') do
       [MaReports::CsgEngage::ReportComponents::Program.new(program_mapping)]
     end
-
-    def self.preloaded_program_mappings(mappings)
-      mappings.
-        preload(:project, :agency).
-        preload(project: [:project_cocs]).
-        preload(project: { enrollments: [:income_benefits, :services] })
-    end
   end
 end

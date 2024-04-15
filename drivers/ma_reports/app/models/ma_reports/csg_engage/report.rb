@@ -7,20 +7,27 @@
 module MaReports::CsgEngage
   class Report < GrdaWarehouseBase
     self.table_name = :csg_engage_reports
+    has_many :program_reports, class_name: 'MaReports::CsgEngage::ProgramReport', inverse_of: :report
 
-    def self.build_from_scope(program_mapping_scope = ProgramMapping.all)
-      create(project_ids: program_mapping_scope.pluck(:project_id))
+    def self.build(program_mapping_scope = ProgramMapping.all)
+      report = create(project_ids: program_mapping_scope.pluck(:project_id))
+      program_mapping_scope.each do |program_mapping|
+        MaReports::CsgEngage::ProgramReport.create(report: report, program_mapping: program_mapping)
+      end
+      report
     end
 
     def program_mappings
-      MaReports::CsgEngage::ReportComponents::Report.preloaded_program_mappings(ProgramMapping.where(project_id: project_ids))
+      @program_mappings ||= ProgramMapping.where(project_id: project_ids).
+        preload(:project, :agency).
+        preload(project: [:project_cocs]).
+        preload(project: { enrollments: [:income_benefits, :services, :client] })
     end
 
     def run
       update(started_at: Time.zone.now, failed_at: nil, completed_at: nil)
 
-      # TODO: Handle external calls
-      program_mappings.map { |pm| MaReports::CsgEngage::ReportComponents::Report.new(pm) }
+      program_reports.each(&:run)
     end
   end
 end

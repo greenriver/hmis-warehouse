@@ -14,7 +14,7 @@ module MaReports::CsgEngage::ReportComponents
     end
 
     # field('Temporary Family Member') { enrollment.household_id }
-    field('Household Member Identifier') { enrollment.personal_id }
+    # field('Household Member Identifier') { enrollment.personal_id }
     # field('Temporary Person Number in Family') { number }
 
     subfield('Household Member') do

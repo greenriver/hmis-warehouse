@@ -6590,6 +6590,40 @@ ALTER SEQUENCE public.csg_engage_agencies_id_seq OWNED BY public.csg_engage_agen
 
 
 --
+-- Name: csg_engage_household_histories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.csg_engage_household_histories (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    last_program_report_id bigint,
+    household_id character varying NOT NULL,
+    fingerprint character varying,
+    data jsonb
+);
+
+
+--
+-- Name: csg_engage_household_histories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.csg_engage_household_histories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: csg_engage_household_histories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.csg_engage_household_histories_id_seq OWNED BY public.csg_engage_household_histories.id;
+
+
+--
 -- Name: csg_engage_program_mappings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -6623,6 +6657,45 @@ CREATE SEQUENCE public.csg_engage_program_mappings_id_seq
 --
 
 ALTER SEQUENCE public.csg_engage_program_mappings_id_seq OWNED BY public.csg_engage_program_mappings.id;
+
+
+--
+-- Name: csg_engage_program_reports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.csg_engage_program_reports (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    program_mapping_id bigint,
+    report_id bigint,
+    raw_result character varying,
+    json_result jsonb,
+    error_data jsonb,
+    warning_data jsonb,
+    started_at timestamp without time zone,
+    completed_at timestamp without time zone,
+    failed_at timestamp without time zone
+);
+
+
+--
+-- Name: csg_engage_program_reports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.csg_engage_program_reports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: csg_engage_program_reports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.csg_engage_program_reports_id_seq OWNED BY public.csg_engage_program_reports.id;
 
 
 --
@@ -27898,10 +27971,24 @@ ALTER TABLE ONLY public.csg_engage_agencies ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: csg_engage_household_histories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.csg_engage_household_histories ALTER COLUMN id SET DEFAULT nextval('public.csg_engage_household_histories_id_seq'::regclass);
+
+
+--
 -- Name: csg_engage_program_mappings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.csg_engage_program_mappings ALTER COLUMN id SET DEFAULT nextval('public.csg_engage_program_mappings_id_seq'::regclass);
+
+
+--
+-- Name: csg_engage_program_reports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.csg_engage_program_reports ALTER COLUMN id SET DEFAULT nextval('public.csg_engage_program_reports_id_seq'::regclass);
 
 
 --
@@ -31239,11 +31326,27 @@ ALTER TABLE ONLY public.csg_engage_agencies
 
 
 --
+-- Name: csg_engage_household_histories csg_engage_household_histories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.csg_engage_household_histories
+    ADD CONSTRAINT csg_engage_household_histories_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: csg_engage_program_mappings csg_engage_program_mappings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.csg_engage_program_mappings
     ADD CONSTRAINT csg_engage_program_mappings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: csg_engage_program_reports csg_engage_program_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.csg_engage_program_reports
+    ADD CONSTRAINT csg_engage_program_reports_pkey PRIMARY KEY (id);
 
 
 --
@@ -52103,6 +52206,20 @@ CREATE INDEX index_contacts_on_type ON public.contacts USING btree (type);
 
 
 --
+-- Name: index_csg_engage_household_histories_on_household_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_csg_engage_household_histories_on_household_id ON public.csg_engage_household_histories USING btree (household_id);
+
+
+--
+-- Name: index_csg_engage_household_histories_on_last_program_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_csg_engage_household_histories_on_last_program_report_id ON public.csg_engage_household_histories USING btree (last_program_report_id);
+
+
+--
 -- Name: index_csg_engage_program_mappings_on_agency_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -52114,6 +52231,20 @@ CREATE INDEX index_csg_engage_program_mappings_on_agency_id ON public.csg_engage
 --
 
 CREATE INDEX index_csg_engage_program_mappings_on_project_id ON public.csg_engage_program_mappings USING btree (project_id);
+
+
+--
+-- Name: index_csg_engage_program_reports_on_program_mapping_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_csg_engage_program_reports_on_program_mapping_id ON public.csg_engage_program_reports USING btree (program_mapping_id);
+
+
+--
+-- Name: index_csg_engage_program_reports_on_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_csg_engage_program_reports_on_report_id ON public.csg_engage_program_reports USING btree (report_id);
 
 
 --
@@ -63638,6 +63769,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240320190835'),
 ('20240322153133'),
 ('20240322183410'),
-('20240404162953');
+('20240404162953'),
+('20240412183733');
 
 
