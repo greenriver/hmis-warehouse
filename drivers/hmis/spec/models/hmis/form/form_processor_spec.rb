@@ -2096,6 +2096,36 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect(assessment.ce_assessment.assessment_questions.count).to eq(1)
       expect(assessment.ce_assessment.assessment_questions.find_by(assessment_question: 'assessment_question').assessment_answer).to eq('answer')
     end
+
+    it 'should truncate if an answer is too long' do
+      # note: definition is loaded in test environment because it is in the form_data/test/ directory
+      definition = Hmis::Form::Definition.find_by(identifier: 'housing_needs_assessment')
+      create(:hmis_custom_data_element_definition, key: 'assessment_question', owner_type: 'Hmis::Hud::CustomAssessment')
+      extra_long_string = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque ac turpis congue, '\
+        'placerat felis id, porta leo. Sed volutpat nunc mi, pretium aliquet enim imperdiet sed.Aliquam et facilisis '\
+        'quam, in pulvinar elit. Mauris egestas arcu eu turpis fermentum laoreet. Phasellus molestie lorem quam, sit '\
+        'amet efficitur lorem egestas in. Duis rutrum dolor a ligula ultrices, at elementum sem lobortis. Vestibulum '\
+        'fermentum nisi sem, eu maximus sem mollis at. Pellentesque dapibus quam tempor sapien semper aliquet. Quisque '\
+        'lobortis eros magna, id facilisis augue faucibus eget. Nullam sit amet erat et ipsum ullamcorper condimentum '\
+        'eget quis ipsum. Curabitur et gravida erat. Pellentesque ullamcorper euismod justo a vehicula. '\
+        'Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Ut et lacus vel dui '\
+        'molestie bibendum et id velit. Suspendisse porttitor nibh eget ante imperdiet, ut ultrices neque laoreet. Donec '\
+        'varius feugiat interdum. Nulla molestie eu erat sit amet varius. Ut suscipit tellus efficitur nulla semper, id '\
+        'congue dui gravida. Pellentesque blandit, elit et malesuada auctor, urna est faucibus risus, non dictum magna '\
+        'arcu et ex. Praesent molestie commodo nibh nec blandit. Pellentesque lacinia massa sapien, vel mattis arcu '\
+        'ultricies sed. Praesent libero lacus, efficitur non orci ac, euismod pretium libero.'
+      expect(extra_long_string.length).to be > 500
+      hud_values.merge!({ 'assessment_question' => extra_long_string })
+
+      assessment = build(:hmis_wip_custom_assessment, client: c1, enrollment: e1, data_source: ds1, user: u1)
+      process_record(record: assessment, hud_values: hud_values, user: hmis_user, definition: definition)
+      assessment.form_processor.store_assessment_questions!
+
+      expect(assessment.ce_assessment.assessment_questions.count).to eq(1)
+      saved_answer = assessment.ce_assessment.assessment_questions.find_by(assessment_question: 'assessment_question').assessment_answer
+      expect(saved_answer.length).to eq(500), 'should truncate to 500 characters'
+      expect(saved_answer[-3..]).to eq('...'), 'should indicate truncated answer with ellipsis'
+    end
   end
 end
 
