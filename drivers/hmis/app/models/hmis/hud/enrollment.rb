@@ -85,8 +85,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   accepts_nested_attributes_for :move_in_addresses, allow_destroy: true
 
-  before_validation :set_hud_project_id_from_project_pk, if: :project_pk_changed?
-  def set_hud_project_id_from_project_pk
+  before_validation :set_hud_project_id_from_project_pk_unless_wip, if: :project_pk_changed?
+  def set_hud_project_id_from_project_pk_unless_wip
     return unless project_id
 
     self.project_id = project.project_id
@@ -309,7 +309,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   alias save_not_in_progress save_not_in_progress!
 
   def in_progress?
-    read_attribute(:ProjectID).nil?
+    ProjectID.nil?
   end
 
   def exit_in_progress?
