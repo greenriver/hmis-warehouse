@@ -984,16 +984,16 @@ module GrdaWarehouse::Hud
         ongoing
     end
 
-    def scope_for_other_enrollments
-      service_history_enrollments.
-        entry.
-        hud_non_residential
+    def scope_for_other_enrollments(user)
+      active_consent_model.scope_for_other_enrollments(user)
     end
 
-    def scope_for_residential_enrollments
-      service_history_enrollments.
-        entry.
-        hud_residential
+    def scope_for_residential_enrollments(user)
+      active_consent_model.scope_for_residential_enrollments(user)
+    end
+
+    def active_consent_model
+      @active_consent_model ||= GrdaWarehouse::Config.active_consent_class.new(client: self)
     end
 
     attr_accessor :merge
@@ -1033,25 +1033,24 @@ module GrdaWarehouse::Hud
     # and maintained in the warehouse
     def self.full_release_string
       # Return the untranslated string, but force the translator to see it
-      if GrdaWarehouse::Config.implicit_roi?
-        Translation.translate('Implicit Release')
-        'Implicit Release'
-      else
-        Translation.translate('Full HAN Release')
-        'Full HAN Release'
-      end
+      release_string = GrdaWarehouse::Config.active_consent_class.full_release_string
+      Translation.translate(release_string)
+      release_string
     end
 
     def self.partial_release_string
       # Return the untranslated string, but force the translator to see it
-      Translation.translate('Limited CAS Release')
-      'Limited CAS Release'
+      release_string = GrdaWarehouse::Config.active_consent_class.partial_release_string
+      Translation.translate(release_string)
+      release_string
+    end
+
+    def self.revoked_consent_string
+      GrdaWarehouse::Config.active_consent_class.revoked_consent_string
     end
 
     def self.no_release_string
-      return 'Consent revoked' if GrdaWarehouse::Config.implicit_roi?
-
-      'None on file'
+      GrdaWarehouse::Config.active_consent_class.no_release_string
     end
 
     def self.consent_validity_period
@@ -1085,25 +1084,7 @@ module GrdaWarehouse::Hud
     end
 
     def release_current_status
-      consent_text = if housing_release_status.blank?
-        self.class.no_release_string
-      elsif release_duration.in?(['One Year', 'Two Years'])
-        if consent_form_valid?
-          "Valid Until #{consent_form_signed_on + self.class.consent_validity_period}"
-        else
-          'Expired'
-        end
-      elsif release_duration == 'Use Expiration Date'
-        if consent_form_valid?
-          "Valid Until #{consent_expires_on}"
-        else
-          'Expired'
-        end
-      else
-        Translation.translate(housing_release_status)
-      end
-      consent_text += " in #{consented_coc_codes.to_sentence}" if consented_coc_codes&.any?
-      consent_text
+      active_consent_model.release_current_status
     end
 
     def release_duration
@@ -1164,7 +1145,7 @@ module GrdaWarehouse::Hud
     end
 
     def apply_housing_release_status
-      return unless GrdaWarehouse::Config.implicit_roi?
+      return unless GrdaWarehouse::Config.implied_consent?
 
       self.housing_release_status = GrdaWarehouse::Hud::Client.full_release_string
     end
@@ -1428,6 +1409,9 @@ module GrdaWarehouse::Hud
     end
 
     def email
+      # Fetch the data from the source clients if we are a destination client
+      return source_clients.map(&:email).reject(&:blank?).first if destination?
+
       # Look for value from OP HMIS
       value = most_recent_email_hmis if HmisEnforcement.hmis_enabled?
       # Look for value from other HMIS integrations
@@ -1437,12 +1421,18 @@ module GrdaWarehouse::Hud
     end
 
     def home_phone
+      # Fetch the data from the source clients if we are a destination client
+      return source_clients.map(&:home_phone).reject(&:blank?).first if destination?
+
       value = most_recent_home_phone_hmis if HmisEnforcement.hmis_enabled?
       value ||= hmis_client_response['HomePhone'] if hmis_client_response.present?
       value
     end
 
     def cell_phone
+      # Fetch the data from the source clients if we are a destination client
+      return source_clients.map(&:cell_phone).reject(&:blank?).first if destination?
+
       value = most_recent_cell_or_other_phone_hmis if HmisEnforcement.hmis_enabled?
       value ||= hmis_client_response['CellPhone'] if hmis_client_response.present?
       value ||= hmis_client.processed_fields['phone'] if hmis_client&.processed_fields
@@ -1450,6 +1440,9 @@ module GrdaWarehouse::Hud
     end
 
     def work_phone
+      # Fetch the data from the source clients if we are a destination client
+      return source_clients.map(&:work_phone).reject(&:blank?).first if destination?
+
       value = most_recent_work_or_school_phone_hmis if HmisEnforcement.hmis_enabled?
       return value if value
       return unless hmis_client_response.present?
@@ -1719,6 +1712,13 @@ module GrdaWarehouse::Hud
 
     def date_of_last_homeless_service
       processed_service_history&.last_homeless_date
+    end
+
+    def services_for_rollup
+      custom_services.
+        preload(:warehouse_project, enrollment: [:project, :client], custom_service_type: [:custom_service_category]).
+        order(date_provided: :desc).
+        order(id: :desc)
     end
 
     def confidential_project_ids

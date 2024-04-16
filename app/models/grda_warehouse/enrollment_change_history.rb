@@ -36,8 +36,8 @@ module GrdaWarehouse
         updated_at: Time.now,
         version: 1,
       }
-      attributes_for_client[:residential] = client.enrollments_for_rollup(en_scope: client.scope_for_residential_enrollments, user: User.setup_system_user).to_json rescue '[]' # rubocop:disable Style/RescueModifier
-      attributes_for_client[:other] = client.enrollments_for_rollup(en_scope: client.scope_for_other_enrollments, user: User.setup_system_user).to_json rescue '[]' # rubocop:disable Style/RescueModifier
+      attributes_for_client[:residential] = client.enrollments_for_rollup(en_scope: client.scope_for_residential_enrollments(current_user), user: User.setup_system_user).to_json rescue '[]' # rubocop:disable Style/RescueModifier
+      attributes_for_client[:other] = client.enrollments_for_rollup(en_scope: client.scope_for_other_enrollments(current_user), user: User.setup_system_user).to_json rescue '[]' # rubocop:disable Style/RescueModifier
       attributes_for_client[:days_homeless] = client.days_homeless rescue 0 # rubocop:disable Style/RescueModifier
       return attributes_for_client
     end

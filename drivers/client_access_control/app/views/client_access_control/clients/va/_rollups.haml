@@ -1,0 +1,27 @@
+%section.row.o-dashboard__block--primary
+  .col-sm-12
+    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :demographics}}
+      %header
+        %h1.h3 Demographics
+    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :residential_enrollments}}
+      %header
+        %h1.h3 Residential Enrollments
+        - if can_view_cached_client_enrollments?
+          .ml-2
+            = link_to enrollment_history_index_path(@client) do
+              %i.icon-settings_backup_restore
+        .c-color-key.ml-auto
+          %span.c-color-key__swatch.enrollment__new-episode--key
+          %span.c-color-key__title New Episode
+
+    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :other_enrollments}}
+      %header
+        %h1.h3 Other Enrollments
+ 
+    - if @client.release_current_status == @client.class.full_release_string
+      %section.row.o-dashboard__block--primary
+        .col-sm-12
+          %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'disability-types'}}
+            %header.d-flex
+              %h1.h3 Disability Types
+              %i.icon-info.ml-2{data: {toggle: :tooltip, title: 'Please note, that when determining if a client has a disabling condition, the most recent enrollment Disabling Condition will take precedence over "No" responses for any of the individual disability categories.  In addtion, the following data is ordered by Entry Date and then Information Date, but the calculation will rely on the most-recent Information Date.'}}
