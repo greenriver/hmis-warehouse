@@ -181,7 +181,9 @@ module CasClientData
       when :active_clients
         range = GrdaWarehouse::Config.cas_sync_range
 
-        homeless_ce_project_ids = GrdaWarehouse::Hud::Project.with_project_type(HudUtility2024.homeless_project_types + [14]) # Homeless or Coordinated Entry
+        # Homeless and Coordinated Entry Projects
+        homeless_ce_project_ids = GrdaWarehouse::Hud::Project.with_project_type(HudUtility2024.homeless_project_types + [14]).pluck(:id)
+        # Projects with override to consider enrolled clients as actively homeless for CAS and Cohorts
         override_project_ids = GrdaWarehouse::Hud::Project.where(active_homeless_status_override: true).pluck(:id)
         enrollment_scope = service_history_enrollments.in_project(homeless_ce_project_ids + override_project_ids)
         if GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
