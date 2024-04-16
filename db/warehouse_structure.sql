@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
+        
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -6196,7 +6196,29 @@ CREATE TABLE public.cohort_clients (
     user_boolean_48 boolean,
     user_boolean_49 boolean,
     sheltered_days_homeless_last_three_years integer,
-    unsheltered_days_homeless_last_three_years integer
+    unsheltered_days_homeless_last_three_years integer,
+    user_string_9 character varying,
+    user_string_10 character varying,
+    user_string_11 character varying,
+    user_string_12 character varying,
+    user_string_13 character varying,
+    user_string_14 character varying,
+    user_string_15 character varying,
+    user_string_16 character varying,
+    user_string_17 character varying,
+    user_string_18 character varying,
+    user_string_19 character varying,
+    user_string_20 character varying,
+    user_string_21 character varying,
+    user_string_22 character varying,
+    user_string_23 character varying,
+    user_string_24 character varying,
+    user_string_25 character varying,
+    user_string_26 character varying,
+    user_string_27 character varying,
+    user_string_28 character varying,
+    user_string_29 character varying,
+    user_string_30 character varying
 );
 
 
@@ -18235,7 +18257,9 @@ CREATE TABLE public.hmis_form_definitions (
     definition jsonb,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    title character varying NOT NULL
+    title character varying NOT NULL,
+    deleted_at timestamp without time zone,
+    external_form_object_key character varying
 );
 
 
@@ -24879,17 +24903,17 @@ CREATE TABLE public.service_history_services_2050 (
 --
 
 CREATE MATERIALIZED VIEW public.service_history_services_materialized AS
- SELECT service_history_services_was_for_inheritance.id,
-    service_history_services_was_for_inheritance.service_history_enrollment_id,
-    service_history_services_was_for_inheritance.record_type,
-    service_history_services_was_for_inheritance.date,
-    service_history_services_was_for_inheritance.age,
-    service_history_services_was_for_inheritance.service_type,
-    service_history_services_was_for_inheritance.client_id,
-    service_history_services_was_for_inheritance.project_type,
-    service_history_services_was_for_inheritance.homeless,
-    service_history_services_was_for_inheritance.literally_homeless
-   FROM public.service_history_services_was_for_inheritance
+ SELECT service_history_services.id,
+    service_history_services.service_history_enrollment_id,
+    service_history_services.record_type,
+    service_history_services.date,
+    service_history_services.age,
+    service_history_services.service_type,
+    service_history_services.client_id,
+    service_history_services.project_type,
+    service_history_services.homeless,
+    service_history_services.literally_homeless
+   FROM public.service_history_services
   WITH NO DATA;
 
 
@@ -50175,6 +50199,13 @@ CREATE UNIQUE INDEX "idxCustomCaseNoteOnID" ON public."CustomCaseNote" USING btr
 
 
 --
+-- Name: idx_CustomDataElementDefinitions_1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "idx_CustomDataElementDefinitions_1" ON public."CustomDataElementDefinitions" USING btree (form_definition_identifier);
+
+
+--
 -- Name: idx_any_stage; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50690,13 +50721,6 @@ CREATE UNIQUE INDEX "index_CustomClientAddress_on_data_source_id_and_EnrollmentI
 --
 
 CREATE INDEX "index_CustomDataElementDefinitions_on_custom_service_type_id" ON public."CustomDataElementDefinitions" USING btree (custom_service_type_id);
-
-
---
--- Name: idx_CustomDataElementDefinitions_1; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "idx_CustomDataElementDefinitions_1" ON public."CustomDataElementDefinitions" USING btree (form_definition_identifier);
 
 
 --
@@ -53871,6 +53895,20 @@ CREATE INDEX index_hmis_dqt_inventories_on_report_id ON public.hmis_dqt_inventor
 
 
 --
+-- Name: index_hmis_external_form_publications_on_definition_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_form_publications_on_definition_id ON public.hmis_external_form_publications USING btree (definition_id);
+
+
+--
+-- Name: index_hmis_external_form_submissions_on_definition_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_form_submissions_on_definition_id ON public.hmis_external_form_submissions USING btree (definition_id);
+
+
+--
 -- Name: index_hmis_external_referral_postings_on_project_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -53931,6 +53969,13 @@ CREATE INDEX index_hmis_external_unit_availability_syncs_on_unit_type_id ON publ
 --
 
 CREATE INDEX index_hmis_external_unit_availability_syncs_on_user_id ON public.hmis_external_unit_availability_syncs USING btree (user_id);
+
+
+--
+-- Name: index_hmis_form_definitions_on_external_form_object_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hmis_form_definitions_on_external_form_object_key ON public.hmis_form_definitions USING btree (external_form_object_key);
 
 
 --
@@ -62617,6 +62662,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240221195839'),
 ('20240222152739'),
 ('20240229132014'),
-('20240304181225');
+('20240304181225'),
+('20240312153543'),
+('20240319171241'),
+('20240320134450'),
+('20240320190835'),
+('20240322153133'),
+('20240322183410'),
+('20240416155829');
 
 
