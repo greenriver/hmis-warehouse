@@ -83,20 +83,22 @@ module MaReports::CsgEngage::ReportComponents
       next unless latest_income_benefit.present?
 
       [
-        [:TANF, :TANFAmount, { description: 'AFDC/TANF', income_source: 'E' }],
-        [:Alimony, :AlimonyAmount, { description: 'Alimony/Spousal Support', income_source: 'Q' }],
-        [:ChildSupport, :ChildSupportAmount, { description: 'Child Support', income_source: 'P' }],
-        [:Earned, :EarnedAmount, { description: 'Employment', income_source: 'A' }],
-        [:PrivateDisability, :PrivateDisabilityAmount, { description: 'Employment Disability', income_source: 'S' }],
-        # [:OtherIncomeSource, :OtherIncomeAmount, { description: 'Other', income_source: 'N' }],
-        [:Pension, :PensionAmount, { description: 'Pension', income_source: 'I' }],
-        [:SocSecRetirement, :SocSecRetirementAmount, { description: 'Social Security Retirement', income_source: 'C' }],
-        [:SSDI, :SSDIAmount, { description: 'SSDI', income_source: 'U' }],
-        [:SSI, :SSIAmount, { description: 'SSI/SSP', income_source: 'D' }],
+        [:TANF, :TANFAmount, { description: 'Temporary Assistance for Needy Families (TANF)', income_source: 'E' }],
+        [:Alimony, :AlimonyAmount, { description: 'Alimony and other spousal support', income_source: 'Q' }],
+        [:ChildSupport, :ChildSupportAmount, { description: 'Child support', income_source: 'P' }],
+        [:Earned, :EarnedAmount, { description: 'All earned income', income_source: 'A' }],
+        [:PrivateDisability, :PrivateDisabilityAmount, { description: 'Private disability insurance', income_source: 'S' }],
+        [:OtherIncomeSource, :OtherIncomeAmount, { description: 'All other income', income_source: 'N' }],
+        [:Pension, :PensionAmount, { description: 'Pension or retirement income from a former job', income_source: 'I' }],
+        [:SocSecRetirement, :SocSecRetirementAmount, { description: 'Retirement Income from Social Security', income_source: 'C' }],
+        [:SSDI, :SSDIAmount, { description: 'Social Security Disability Insurance (SSDI)', income_source: 'U' }],
+        [:SSI, :SSIAmount, { description: 'Supplemental Security Income (SSI)', income_source: 'D' }],
         [:GA, :GAAmount, { description: 'State Cash Assistance', income_source: 'F' }],
-        [:Unemployment, :UnemploymentAmount, { description: 'Unemployment', income_source: 'G' }],
-        [:VADisabilityService, :VADisabilityServiceAmount, { description: 'Veteran Compensation Benefits', income_source: 'H' }],
+        [:Unemployment, :UnemploymentAmount, { description: 'Unemployment Insurance', income_source: 'G' }],
+        [:VADisabilityService, :VADisabilityServiceAmount, { description: 'VA Service-Connected Disability Compensation', income_source: 'H' }],
+        [:VADisabilityNonService, :VADisabilityNonServiceAmount, { description: 'VA Non-Service-Connected Disability Pension', income_source: 'H' }],
         [:WorkersComp, :WorkersCompAmount, { description: "Worker's Compensation", income_source: 'J' }],
+        [:GA, :GAAmount, { description: 'General Assistance (GA)', income_source: 'N' }],
       ].map do |field, amount_field, attrs|
         next unless latest_income_benefit.send(field) == 1
 
