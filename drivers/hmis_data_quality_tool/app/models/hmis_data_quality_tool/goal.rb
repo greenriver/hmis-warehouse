@@ -156,6 +156,10 @@ module HmisDataQualityTool
         '3 days or less' => 3,
         '6 days or less' => 6,
         '10 days or less' => 10,
+        '15 days or less' => 15,
+        '30 days or less' => 30,
+        '60 days or less' => 60,
+        '90 days or less' => 90,
         '11 or more days' => 10_000,
       }
     end
