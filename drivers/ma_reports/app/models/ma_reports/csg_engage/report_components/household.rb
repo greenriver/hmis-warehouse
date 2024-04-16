@@ -48,7 +48,22 @@ module MaReports::CsgEngage::ReportComponents
       end
       field('Household Type')
       field('Housing Subsidy Type') do
-        # TODO: Mapping work
+        return '6' unless [435, 421].include?(hoh_enrollment.living_situation)
+
+        case hoh_enrollment.rental_subsidy_type
+        when 419
+          '2'
+        when 433
+          '1'
+        when 434
+          '4'
+        when 439
+          '3'
+        when nil
+          'U'
+        else
+          '5'
+        end
       end
       field('Housing Type')
       field('HousingType', method: :housing_type_2)
