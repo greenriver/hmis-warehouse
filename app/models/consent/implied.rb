@@ -33,7 +33,7 @@ class Consent::Implied
   end
 
   def self.partial_release_string
-    self.class.no_release_string
+    no_release_string
   end
 
   def partial_release_string
