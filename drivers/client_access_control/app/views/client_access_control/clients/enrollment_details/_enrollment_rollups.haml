@@ -15,9 +15,10 @@
     %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'services-all'}}
       %header
         %h1#full_services.h3 Services
-    %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'custom_services'}}
-      %header
-        %h1#full_services.h3 Custom Services
+    - if HmisEnforcement.hmis_enabled?
+      %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'custom_services'}}
+        %header
+          %h1#full_services.h3 Custom Services
     %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: 'income-benefits'}}
       %header
         %h1.h3 Income and Benefits
