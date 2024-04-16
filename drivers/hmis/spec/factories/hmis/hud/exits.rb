@@ -11,6 +11,10 @@ FactoryBot.define do
     sequence(:ExitID, 50)
     destination { 1 }
     exit_date { Date.today }
+
+    trait :without_validations do
+      to_create { |instance| instance.save(validate: false) }
+    end
   end
 
   factory :hmis_hud_exit, class: 'Hmis::Hud::Exit', parent: :hmis_base_hud_exit do
