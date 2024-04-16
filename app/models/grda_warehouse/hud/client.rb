@@ -984,16 +984,16 @@ module GrdaWarehouse::Hud
         ongoing
     end
 
-    def scope_for_other_enrollments
-      service_history_enrollments.
-        entry.
-        hud_non_residential
+    def scope_for_other_enrollments(user)
+      active_consent_model.scope_for_other_enrollments(user)
     end
 
-    def scope_for_residential_enrollments
-      service_history_enrollments.
-        entry.
-        hud_residential
+    def scope_for_residential_enrollments(user)
+      active_consent_model.scope_for_residential_enrollments(user)
+    end
+
+    def active_consent_model
+      @active_consent_model ||= GrdaWarehouse::Config.active_consent_class.new(client: self)
     end
 
     attr_accessor :merge
@@ -1033,25 +1033,24 @@ module GrdaWarehouse::Hud
     # and maintained in the warehouse
     def self.full_release_string
       # Return the untranslated string, but force the translator to see it
-      if GrdaWarehouse::Config.implicit_roi?
-        Translation.translate('Implicit Release')
-        'Implicit Release'
-      else
-        Translation.translate('Full HAN Release')
-        'Full HAN Release'
-      end
+      release_string = GrdaWarehouse::Config.active_consent_class.full_release_string
+      Translation.translate(release_string)
+      release_string
     end
 
     def self.partial_release_string
       # Return the untranslated string, but force the translator to see it
-      Translation.translate('Limited CAS Release')
-      'Limited CAS Release'
+      release_string = GrdaWarehouse::Config.active_consent_class.partial_release_string
+      Translation.translate(release_string)
+      release_string
+    end
+
+    def self.revoked_consent_string
+      GrdaWarehouse::Config.active_consent_class.revoked_consent_string
     end
 
     def self.no_release_string
-      return 'Consent revoked' if GrdaWarehouse::Config.implicit_roi?
-
-      'None on file'
+      GrdaWarehouse::Config.active_consent_class.no_release_string
     end
 
     def self.consent_validity_period
@@ -1085,25 +1084,7 @@ module GrdaWarehouse::Hud
     end
 
     def release_current_status
-      consent_text = if housing_release_status.blank?
-        self.class.no_release_string
-      elsif release_duration.in?(['One Year', 'Two Years'])
-        if consent_form_valid?
-          "Valid Until #{consent_form_signed_on + self.class.consent_validity_period}"
-        else
-          'Expired'
-        end
-      elsif release_duration == 'Use Expiration Date'
-        if consent_form_valid?
-          "Valid Until #{consent_expires_on}"
-        else
-          'Expired'
-        end
-      else
-        Translation.translate(housing_release_status)
-      end
-      consent_text += " in #{consented_coc_codes.to_sentence}" if consented_coc_codes&.any?
-      consent_text
+      active_consent_model.release_current_status
     end
 
     def release_duration
@@ -1164,7 +1145,7 @@ module GrdaWarehouse::Hud
     end
 
     def apply_housing_release_status
-      return unless GrdaWarehouse::Config.implicit_roi?
+      return unless GrdaWarehouse::Config.implied_consent?
 
       self.housing_release_status = GrdaWarehouse::Hud::Client.full_release_string
     end
