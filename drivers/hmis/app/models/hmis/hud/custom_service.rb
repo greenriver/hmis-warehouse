@@ -22,6 +22,8 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
   alias_attribute :service_type, :custom_service_type
   has_many :custom_data_elements, as: :owner, dependent: :destroy
   has_one :organization, through: :project
+  has_one :custom_service_category, through: :custom_service_type
+  has_one :warehouse_project, class_name: 'GrdaWarehouse::Hud::Project', through: :project
 
   accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
@@ -38,6 +40,12 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
 
   def within_range?(range)
     date_provided.between?(range.begin, range.end)
+  end
+
+  def display_name
+    return service_type.name if custom_service_category.name == service_type.name
+
+    "#{custom_service_category.name} - #{service_type.name}"
   end
 
   private def set_service_name

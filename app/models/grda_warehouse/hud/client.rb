@@ -1714,6 +1714,13 @@ module GrdaWarehouse::Hud
       processed_service_history&.last_homeless_date
     end
 
+    def services_for_rollup
+      custom_services.
+        preload(:warehouse_project, enrollment: [:project, :client], custom_service_type: [:custom_service_category]).
+        order(date_provided: :desc).
+        order(id: :desc)
+    end
+
     def confidential_project_ids
       @confidential_project_ids ||= Rails.cache.fetch('confidential_project_ids', expires_in: 2.minutes) do
         GrdaWarehouse::Hud::Project.confidential.pluck(:ProjectID, :data_source_id)

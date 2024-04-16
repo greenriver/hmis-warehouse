@@ -44,6 +44,7 @@ module ClientShowPages
         '/clients/rollup/services',
         '/clients/rollup/services_full',
         '/clients/rollup/services_all',
+        '/clients/rollup/custom_services',
         '/clients/rollup/boston_custom_services',
         '/clients/rollup/special_populations',
         '/clients/rollup/zip_details',
