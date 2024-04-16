@@ -76,7 +76,7 @@ class HmisExternalApis::PublishExternalFormsJob
       body: publication.content,
       acl: 'public-read',
       content_disposition: 'inline',
-      content_type: 'text/html',
+      content_type: 'text/html; charset=utf-8',
     )
   end
 
