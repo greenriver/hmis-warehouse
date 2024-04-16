@@ -1723,8 +1723,7 @@ module GrdaWarehouse::Hud
 
     def services_for_rollup
       custom_services.
-        preload(enrollment: [:project, :client], custom_service_type: [:custom_service_category]).
-        preload(:warehouse_project).
+        preload(:warehouse_project, enrollment: [:project, :client], custom_service_type: [:custom_service_category]).
         order(date_provided: :desc).
         order(id: :desc)
     end
