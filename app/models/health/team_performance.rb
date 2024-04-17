@@ -169,12 +169,14 @@ module Health
         begin
           set = Set.new
           patient_ids.each_slice(100).each do |patient_id_slice|
-            set << ClaimsReporting::MedicalClaim.
-              annual_well_care_visits.
-              service_in(anchor - WELLCARE_WINDOW... anchor).
-              joins(:patient).
-              where(hp_t[:id].in(patient_id_slice)).
-              pluck(hp_t[:id])
+            set.merge(
+              ClaimsReporting::MedicalClaim.
+                annual_well_care_visits.
+                service_in(anchor - WELLCARE_WINDOW... anchor).
+                joins(:patient).
+                where(hp_t[:id].in(patient_id_slice)).
+                pluck(hp_t[:id]),
+            )
           end
 
           set.to_a

@@ -424,9 +424,17 @@ module HudPit::Generators::Pit::Fy2024
           title: 'Adults with HIV/AIDS',
           query: a_t[:hiv_aids].eq(true),
         },
+        # Adjusted in 2024 to match 2023 version of adult_dv_survivors_currently_fleeing
+        # Interpretation of the following is that it should only include people who
+        # were homeless because they were fleeing
+        # https://www.hud.gov/sites/dfiles/OCHCO/documents/2023-11cpdn.pdf
+        # they must only report the number of
+        # survivors of domestic violence who are currently experiencing homelessness because of domestic
+        # violence, dating violence, sexual assault, or stalking, as opposed to reporting on survivors who have
+        # ever experienced these circumstances.
         adult_dv_survivors: {
           title: 'Adult Survivors of Domestic Violence (optional)',
-          query: a_t[:domestic_violence].eq(true),
+          query: a_t[:domestic_violence_currently_fleeing].eq(true),
         },
       }
     end

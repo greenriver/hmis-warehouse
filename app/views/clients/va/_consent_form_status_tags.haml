@@ -1,0 +1,20 @@
+- status = @client.release_current_status
+- state='success'
+- icon='checkmark'
+
+- if status == @client.class.no_release_string
+  - state='warning'
+  - icon='question'
+- elsif status == @client.class.full_release_string
+  - state='success'
+  - icon='checkmark'
+- elsif status == @client.class.revoked_consent_string
+  - state='warning'
+  - icon='cross'
+
+.c-tag{ class: "c-tag--#{state}" }
+  .c-tag__wrapper
+    .c-tag__icon
+      %div{ class: "icon-#{icon}" }
+    .c-tag__content
+      %span=status

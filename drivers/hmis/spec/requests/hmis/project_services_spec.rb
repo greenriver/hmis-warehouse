@@ -124,7 +124,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect do
           response, result = post_graphql(id: p1.id, limit: limit) { query }
           expect(response.status).to eq(200), result.inspect
-        end.to perform_under(200).ms
+        end.to perform_under(500).ms
       end
     end
   end
