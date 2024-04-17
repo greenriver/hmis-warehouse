@@ -309,7 +309,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   alias save_not_in_progress save_not_in_progress!
 
   def in_progress?
-    ProjectID.nil?
+    self.ProjectID.nil?
   end
 
   def exit_in_progress?
