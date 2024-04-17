@@ -8,7 +8,7 @@
     = link_to hud_reports_historic_pits_path do
       Pre-2022 PIT reports
   %p
-    = link_to new_hud_reports_pit_path do
+    = link_to new_hud_reports_pit_path, class: 'btn btn-primary' do
       Generate New PIT
 
 = render 'hud_reports/all_questions_table'
