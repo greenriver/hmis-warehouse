@@ -21,18 +21,17 @@ module Health
 
     def decrypt(data)
       store_secret_key
-      # TODO:decrypt data
+
       crypto = GPGME::Crypto.new
-      crypto.decrypt(data, passphrase_callback: method(:passfunc)) # FIXME: passphrase isn't working
+      options = {
+        pinentry_mode: GPGME::PINENTRY_MODE_LOOPBACK,
+        password: passphrase,
+      }
+      crypto.decrypt(data, options).to_s
     end
 
     private def store_secret_key
       GPGME::Key.import(secret_key) unless GPGME::Key.find(encryption_key_name).present?
-    end
-
-    private def passfunc(_hook, _uid_hint, _passphrase_info, _prev_was_bad, fd) # rubocop:disable Naming/MethodParameterName
-      io = IO.for_fd(fd, 'w')
-      io.puts(passphrase)
     end
 
     # TODO: This class should be STI instead
