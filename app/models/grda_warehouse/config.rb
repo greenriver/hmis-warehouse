@@ -214,7 +214,7 @@ module GrdaWarehouse
       get(:site_coc_codes).presence&.split(/,\s*/)
     end
 
-    def self.implicit_roi?
+    def self.implied_consent?
       get(:roi_model).to_s == 'implicit'
     end
 
@@ -338,6 +338,12 @@ module GrdaWarehouse
       {
         'Default' => 'GrdaWarehouse::Tasks::EnrollmentExtrasImport',
       }
+    end
+
+    def self.active_consent_class
+      return Consent::Implied if implied_consent?
+
+      Consent::Default
     end
   end
 end

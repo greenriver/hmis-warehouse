@@ -41,14 +41,15 @@ module GrdaWarehouse
       enrollment_ids = GrdaWarehouse::Hud::Enrollment.processed.pluck(:id)
       to_add = enrollment_ids - ch_enrollment_ids
       GrdaWarehouse::Hud::Enrollment.processed.
-        preload(:project, :disabilities_at_entry).
+        preload(:project, :disabilities_at_entry, :exit).
         where(id: to_add).find_in_batches do |enrollments|
           batch = []
           enrollments.each do |enrollment|
+            date = [Date.current, enrollment.exit&.exit_date].compact.min
             batch << {
               enrollment_id: enrollment.id,
               processed_as: enrollment.processed_as,
-              chronically_homeless_at_entry: chronically_homeless_at_start?(enrollment, date: Date.current),
+              chronically_homeless_at_entry: chronically_homeless_at_start?(enrollment, date: date),
             }
           end
           import(batch)
@@ -56,17 +57,18 @@ module GrdaWarehouse
     end
 
     def self.update_existing!
-      needs_processing.preload(enrollment: [:project, :disabilities_at_entry]).find_in_batches do |ch_enrollments|
+      needs_processing.preload(enrollment: [:project, :disabilities_at_entry, :exit]).find_in_batches do |ch_enrollments|
         batch = []
         ch_enrollments.each do |ch_enrollment|
           enrollment = ch_enrollment.enrollment
           next unless enrollment.present?
 
+          date = [Date.current, enrollment.exit&.exit_date].compact.min
           batch << {
             id: ch_enrollment.id, # Updates existing record
             enrollment_id: enrollment.id, # Not actually in the import, but required for well-formedness
             processed_as: enrollment.processed_as,
-            chronically_homeless_at_entry: chronically_homeless_at_start?(enrollment, date: Date.current),
+            chronically_homeless_at_entry: chronically_homeless_at_start?(enrollment, date: date),
           }
         end
         import!(
