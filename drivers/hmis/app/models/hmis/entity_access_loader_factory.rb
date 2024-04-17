@@ -74,11 +74,7 @@ class Hmis::EntityAccessLoaderFactory
       # should be limited based on access to that enrollment.
       entity.enrollment_id ? block.call(entity, :enrollment) : block.call(entity, :client)
     when Hmis::Hud::Enrollment
-      if entity.in_progress?
-        block.call(entity, :wip)
-      else
-        block.call(entity, :project)
-      end
+      block.call(entity, :project)
     else
       resolve_through_project(entity, &block)
     end

@@ -64,16 +64,7 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
   describe 'in progress enrollments' do
     let!(:enrollment) { build(:hmis_hud_enrollment) }
     before(:each) do
-      enrollment.build_wip(client: enrollment.client, date: enrollment.entry_date)
-      enrollment.save_in_progress
-    end
-
-    it 'clean up dependent wip after destroy' do
-      expect(enrollment.wip).to be_present
-
-      enrollment.destroy
-      enrollment.reload
-      expect(enrollment.wip).not_to be_present
+      enrollment.save_in_progress!
     end
   end
 
@@ -164,13 +155,12 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
         e1.update(household_id: e2.household_id)
 
         # make e2 WIP
-        e2.build_wip(client: e2.client, date: e2.entry_date)
-        e2.save_in_progress
+        e2.save_in_progress!
       end
 
       it 'household with one entered (e1) and one WIP with no intake assessment (e2)' do
-        expect(e1.wip).to be nil
-        expect(e2.wip).to be_present
+        expect(e1).not_to be_in_progress
+        expect(e2).to be_in_progress
         expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e1)).to eq('ANY_ENTRY_INCOMPLETE')
         expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e2)).to eq('OWN_ENTRY_INCOMPLETE')
       end
@@ -178,8 +168,8 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       it 'household with one entered (e1) and one WIP with a WIP intake assessment (e2)' do
         intake_assessment.update(enrollment: e2, wip: true)
 
-        expect(e1.wip).to be nil
-        expect(e2.wip).to be_present
+        expect(e1).not_to be_in_progress
+        expect(e2).to be_in_progress
         expect(e2.intake_assessment).to be_present
         expect(e2.intake_assessment.in_progress?).to eq(true)
         expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e1)).to eq('ANY_ENTRY_INCOMPLETE')
@@ -189,8 +179,8 @@ RSpec.describe Hmis::Hud::Enrollment, type: :model do
       it 'household with one entered (e1) and one WIP with a submitted intake assessment (e2, bad state)' do
         intake_assessment.update(enrollment: e2)
 
-        expect(e1.wip).to be nil
-        expect(e2.wip).to be_present
+        expect(e1).not_to be_in_progress
+        expect(e2).to be_in_progress
         expect(e2.intake_assessment).to be_present
         expect(e2.intake_assessment.in_progress?).to eq(false)
         expect(Types::HmisSchema::Enums::EnrollmentStatus.from_enrollment(e1)).to eq('ANY_ENTRY_INCOMPLETE')
