@@ -986,7 +986,9 @@ CREATE TABLE public.claims_reporting_medical_claims (
     ind_mco_aco_cvd_svc character varying(50),
     enrolled_days integer DEFAULT 0,
     engaged_days integer DEFAULT 0,
-    cde_ndc character varying(48)
+    cde_ndc character varying(48),
+    pcc_repricing_fee_flag character varying(50),
+    cde_enc_rec_ind character varying(50)
 );
 
 
@@ -9289,6 +9291,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230816173812'),
 ('20240126184731'),
 ('20240318191704'),
-('20240327144840');
+('20240327144840'),
+('20240402142808');
 
 
