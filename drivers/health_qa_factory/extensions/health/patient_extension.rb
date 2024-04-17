@@ -17,12 +17,17 @@ module HealthQaFactory::Health
       newest = qa_factories.order(created_at: :desc).first
       return qa_factories.create unless newest.present?
 
-      # If the newest factory is not associated with a PCTP, it is has to be current
+      newest
+    end
+
+    def qa_factory_factory
+      newest = current_qa_factory
+
+      # If the newest factory is not associated with a PCTP, so, use it
       return newest if newest.careplan.nil?
 
-      # If the newest factory is associated with the current CP2 careplan, it is current
-      careplan = recent_pctp_careplan&.instrument
-      return newest if careplan&.cp2? && newest.careplan_id == careplan.id
+      # If the current factory is not complete, so, use it
+      return newest unless newest.complete?
 
       # Otherwise, create a new one
       qa_factories.create
