@@ -51,7 +51,7 @@ class FixEnrollmentDates20240416
       end
     end
 
-    services_to_update = Hmis::Hud::Service.
+    services_to_update = Hmis::Hud::Service.hmis.
       joins(:enrollment, :project).
       where(p_t[:project_id].eq(project_id)).
       where(record_type: 200). # Bed Nights
