@@ -19,7 +19,7 @@ class FixEnrollmentDates20240416
 
   def perform
     puts "Fixing dates. Special treatment project: #{special_treatment_project_id}"
-    special_project = Hmis::Hud::Project.find_by(project_id: special_treatment_project_id)
+    special_project = Hmis::Hud::Project.hmis.find_by(project_id: special_treatment_project_id)
     raise 'Special project not found' unless special_project
 
     normal_project_ids = Hmis::Hud::Project.hmis.
