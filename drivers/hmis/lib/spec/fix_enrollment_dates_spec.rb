@@ -60,16 +60,13 @@ RSpec.describe FixEnrollmentDates20240416 do
   describe 'for non-residential projects' do
     # 11 is day shelter - non-residential
     let!(:p3) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 11 }
-    let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p3, client: c1, entry_date: Date.new(2023, 1, 1), exit_date: Date.new(2020, 2, 1) }
-    let!(:bn3) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e3, user: u1, record_type: 200, date_provided: Date.new(2020, 1, 1) }
+    let!(:e3) { create :hmis_hud_enrollment, data_source: ds1, project: p3, client: c1, entry_date: Date.new(2023, 1, 1), exit_date: Date.new(2023, 1, 1) }
 
     it 'should not make any changes' do
-      FixEnrollmentDates20240416.new(special_treatment_project_id: p3.project_id).perform
+      FixEnrollmentDates20240416.new(special_treatment_project_id: p2.project_id).perform
 
       e3.reload
-      expect(e3.exit_date).to eq(Date.new(2020, 2, 1)), 'should be unchanged'
-      bn3.reload
-      expect(bn3.date_provided).to eq(Date.new(2020, 1, 1)), 'should be unchanged'
+      expect(e3.exit_date).to eq(Date.new(2023, 1, 1)), 'should be unchanged'
     end
   end
 end

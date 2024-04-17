@@ -11,22 +11,22 @@ class FixEnrollmentDates20240416
   # For Bed Night Services (recordType:200) in special treatment project, where the DateProvided is in 2020
   # - Change DateProvided to 2023 (same month and day). The project was not open in 2020
 
+  include ArelHelper
   attr_accessor :special_treatment_project_id
   def initialize(special_treatment_project_id:)
     self.special_treatment_project_id = special_treatment_project_id
   end
-
-  def e_t = Hmis::Hud::Enrollment.arel_table
-  def ex_t = Hmis::Hud::Exit.arel_table
-  def sv_t  = Hmis::Hud::Service.arel_table
-  def p_t = Hmis::Hud::Project.arel_table
 
   def perform
     puts "Fixing dates. Special treatment project: #{special_treatment_project_id}"
     special_project = Hmis::Hud::Project.find_by(project_id: special_treatment_project_id)
     raise 'Special project not found' unless special_project
 
-    normal_project_ids = Hmis::Hud::Project.where.not(project_id: special_treatment_project_id).pluck(:project_id)
+    normal_project_ids = Hmis::Hud::Project.hmis.
+      where.not(project_id: special_treatment_project_id).
+      where(project_type: HudUtility2024.residential_project_type_ids).
+      pluck(:project_id)
+
     fix_dates_special(special_treatment_project_id)
     fix_dates(normal_project_ids)
   end
@@ -34,10 +34,9 @@ class FixEnrollmentDates20240416
   def fix_dates_special(project_id)
     puts "Updating (special): #{project_id}"
 
-    exits_to_update = Hmis::Hud::Exit.
+    exits_to_update = Hmis::Hud::Exit.hmis.
       joins(:enrollment, :project).
       where(p_t[:project_id].eq(project_id)).
-      where(p_t[:project_type].in(HudUtility2024.residential_project_type_ids)).
       where(ex_t[:exit_date].extract('year').eq(2020)).
       where(e_t[:entry_date].gteq(ex_t[:exit_date]))
 
@@ -55,9 +54,8 @@ class FixEnrollmentDates20240416
     services_to_update = Hmis::Hud::Service.
       joins(:enrollment, :project).
       where(p_t[:project_id].eq(project_id)).
-      where(p_t[:project_type].in(HudUtility2024.residential_project_type_ids)).
       where(record_type: 200). # Bed Nights
-      where(sv_t[:date_provided].extract('year').eq(2020))
+      where(s_t[:date_provided].extract('year').eq(2020))
 
     puts "Found #{services_to_update.count} bed nights with date provided in 2020"
 
@@ -74,7 +72,7 @@ class FixEnrollmentDates20240416
   def fix_dates(project_ids)
     puts "Updating (normal): #{project_ids.count} projects"
 
-    exits_to_update = Hmis::Hud::Exit.
+    exits_to_update = Hmis::Hud::Exit.hmis.
       joins(:enrollment).
       where(e_t[:project_id].in(project_ids)).
       where(e_t[:entry_date].eq(ex_t[:exit_date]))

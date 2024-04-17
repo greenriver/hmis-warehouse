@@ -34,7 +34,7 @@ FactoryBot.define do
       if evaluator.exit_date
         enrollment.exit = create(
           :hmis_base_hud_exit,
-          :without_validations,
+          :skip_validate,
           exit_date: evaluator.exit_date,
           enrollment: enrollment,
           data_source: enrollment.data_source,
