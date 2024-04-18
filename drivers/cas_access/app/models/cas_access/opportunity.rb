@@ -9,5 +9,6 @@ module CasAccess
     self.table_name = :opportunities
     belongs_to :voucher, optional: true
     has_many :programs, through: :voucher
+    has_many :opportunity_contacts
   end
 end

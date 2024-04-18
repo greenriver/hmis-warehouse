@@ -219,4 +219,10 @@ class User < ApplicationRecord
     # END_ACL
     @ids_for_relations[relation]
   end
+
+  def unique_role_names
+    return legacy_roles.map(&:name).uniq unless using_acls?
+
+    roles.map(&:name).uniq
+  end
 end

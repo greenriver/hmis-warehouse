@@ -15,7 +15,7 @@ module AllNeighborsSystemDashboard
       [
         { name: 'Housing Placements' },
         { name: 'Time To Obtain Housing' },
-        # { name: 'Returns To Homelessness' }, # Disabled until further notice 1/16/2024
+        { name: 'Returns To Homelessness' },
         # { name: 'Unhoused Population' },
       ].map { |tab| tab.merge({ id: tab[:name].gsub(' ', '').underscore }) }
     end
@@ -36,13 +36,12 @@ module AllNeighborsSystemDashboard
           name: 'Average Number of Days Between Referral and Housing Move-in',
           display_method: :number_with_delimiter,
         },
-        # Disabled until further notice 1/16/2024
-        # {
-        #   id: 'no_return',
-        #   icon: 'icon-clip-board-check',
-        #   value: returned_percent,
-        #   name: 'Returned to Homelessness Within 12 Months',
-        # },
+        {
+          id: 'no_return',
+          icon: 'icon-clip-board-check',
+          value: returned_percent,
+          name: 'Returned to Homelessness Within 12 Months',
+        },
       ]
     end
 
@@ -56,25 +55,23 @@ module AllNeighborsSystemDashboard
     end
 
     def average_days_to_obtain_housing
-      # DB only method, doesn't quite give the same result
-      # en_t = Enrollment.arel_table
-      # with_ce_data.moved_in_in_range(@report.filter.range, filter: @report.filter).average(
-      #   datediff(
-      #     Enrollment,
-      #     'day',
-      #     en_t[:move_in_date],
-      #     en_t[:entry_date],
-      #   ),
-      # )
-
       AllNeighborsSystemDashboard::TimeToObtainHousing.new(@report).overall_average_time(:referral_to_move_in)
     end
 
     def returned_percent
       return 0 if housed_count.zero?
 
-      percent = ((report_enrollments_enrollment_scope.returned.distinct.select(:destination_client_id).count / housed_count.to_f) * 100).round
+      percent = ((returned_total_scope.select(Enrollment.arel_table[:return_date]).count / housed_and_exited_count.to_f) * 100).round
       "#{percent}%"
+    end
+
+    def housed_and_exited_count
+      @housed_and_exited_count ||= begin
+        scope = housed_total_scope.where.not(exit_date: nil)
+        # Enforce the same project limits as the subsequent charts
+        scope = filter_for_type(scope, 'All')
+        scope.select(:destination_client_id).count
+      end
     end
   end
 end

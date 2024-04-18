@@ -89,22 +89,6 @@ module HmisExternalApis::ExternalFormsHelper
   end
 
   def page_config
-    presign_url = ENV['EXTERNAL_FORM_S3_PRESIGN_URL']
-    recaptcha_key = ENV['EXTERNAL_FORM_CAPTCHA_KEY']
-    if Rails.env.development?
-      presign_url ||= presign_hmis_external_apis_external_form_path
-      # for development on hmis-warehouse.dev.test
-      recaptcha_key ||= '6Ldbm4UpAAAAAAK9h9ujlVDig1nC4DghpOP6WFfQ'
-    end
-
-    # FIXME move away from this hard-coded configuration
-    @page_config ||= HmisExternalApis::ExternalForms::Config.new(
-      site_title: 'Tarrant County Homeless Coalition',
-      # FIXME: find a better home for the logo asset
-      site_logo_url: './logo.png',
-      site_logo_dimensions: [110, 60],
-      recaptcha_key: recaptcha_key,
-      presign_url: presign_url,
-    )
+    @page_config ||= HmisExternalApis::ExternalForms::Config.new
   end
 end

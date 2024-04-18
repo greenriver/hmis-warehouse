@@ -789,6 +789,8 @@ type ClientAccess {
   canViewAnyFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
   canViewClientAlerts: Boolean!
+  canViewClientName: Boolean!
+  canViewClientPhoto: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!
   canViewFullSsn: Boolean!
@@ -6253,6 +6255,10 @@ type OrganizationAccess {
   id: ID!
 }
 
+input OrganizationFilterOptions {
+  searchTerm: String
+}
+
 """
 HUD Organization Sorting Options
 """
@@ -8275,6 +8281,7 @@ type Project {
   access: ProjectAccess!
   active: Boolean!
   affiliatedProjects: [Project!]!
+  assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   ceParticipations(limit: Int, offset: Int): CeParticipationsPaginated!
   contactInformation: String
   continuumProject: NoYes
@@ -8681,7 +8688,7 @@ type Query {
   Organization lookup
   """
   organization(id: ID!): Organization
-  organizations(limit: Int, offset: Int, sortOrder: OrganizationSortOption): OrganizationsPaginated!
+  organizations(filters: OrganizationFilterOptions, limit: Int, offset: Int, sortOrder: OrganizationSortOption): OrganizationsPaginated!
   parsedFormDefinition(input: String!): FormDefinitionForJsonResult
 
   """
@@ -8770,6 +8777,9 @@ type QueryAccess {
   canViewAnyConfidentialClientFiles: Boolean!
   canViewAnyNonconfidentialClientFiles: Boolean!
   canViewClientAlerts: Boolean!
+  canViewClientContactInfo: Boolean!
+  canViewClientName: Boolean!
+  canViewClientPhoto: Boolean!
   canViewClients: Boolean!
   canViewDob: Boolean!
   canViewEnrollmentDetails: Boolean!

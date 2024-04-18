@@ -613,3 +613,7 @@ class AllNeighborsSystemDashboardStackedLineByQuarter extends AllNeighborsSystem
   }
 
 }
+globalThis.AllNeighborsSystemDashboardLine = AllNeighborsSystemDashboardLine;
+globalThis.AllNeighborsSystemDashboardScatter = AllNeighborsSystemDashboardScatter;
+globalThis.AllNeighborsSystemDashboardLineBarByQuarter = AllNeighborsSystemDashboardLineBarByQuarter;
+globalThis.AllNeighborsSystemDashboardScatter = AllNeighborsSystemDashboardScatter;

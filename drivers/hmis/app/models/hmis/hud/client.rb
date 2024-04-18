@@ -90,20 +90,24 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   after_create :warehouse_identify_duplicate_clients
   after_update :warehouse_match_existing_clients
   before_save :set_source_hash
-  after_save do
+  after_save :save_image_blob_as_client_headshot!
+
+  # The client creation form sets image_blob_id
+  # This is also called directly by UpdateClientImage operation
+  def save_image_blob_as_client_headshot!
     current_image_blob = ActiveStorage::Blob.find_by(id: image_blob_id)
     self.image_blob_id = nil
-    if current_image_blob
-      file = GrdaWarehouse::ClientFile.new(
-        client_id: id,
-        user_id: user.id,
-        name: 'Client Headshot',
-        visible_in_window: false,
-      )
-      file.tag_list.add('Client Headshot')
-      file.client_file.attach(current_image_blob)
-      file.save!
-    end
+    return unless current_image_blob
+
+    file = GrdaWarehouse::ClientFile.new(
+      client_id: id,
+      user_id: user.id,
+      name: 'Client Headshot',
+      visible_in_window: false,
+    )
+    file.tag_list.add('Client Headshot')
+    file.client_file.attach(current_image_blob)
+    file.save!
   end
 
   # Includes clients where..
@@ -214,6 +218,10 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       user_id: user_id || Hmis::Hud::User.system_user(data_source_id: data_source_id).user_id,
       **slice(:name_data_quality, :data_source_id, :date_created, :date_updated),
     )
+  end
+
+  def masked_name
+    "Client #{id}"
   end
 
   def enrolled?

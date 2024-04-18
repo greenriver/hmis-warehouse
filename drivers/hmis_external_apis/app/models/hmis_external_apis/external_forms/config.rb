@@ -5,24 +5,25 @@
 ###
 
 module HmisExternalApis::ExternalForms
-  Config = Struct.new(:site_title, :site_logo_url, :site_logo_dimensions, :recaptcha_key, :presign_url, keyword_init: true) do
+  class Config
+    PROPERTIES = [:site_logo_alt, :site_logo_url, :site_logo_width, :site_logo_height, :recaptcha_key, :presign_url, :csp_content].freeze
+    private_constant :PROPERTIES
+    attr_reader(*PROPERTIES)
+
+    def initialize
+      # This could be dryed up if we repeat this pattern
+      attr_keys = PROPERTIES.map { |attr| "external_forms/#{attr}" }
+      settings = AppConfigProperty.where(key: attr_keys).index_by(&:key)
+      PROPERTIES.zip(attr_keys).each do |attr, key|
+        instance_variable_set(:"@#{attr}", settings[key]&.value&.freeze)
+      end
+    end
+
     def js_config
       {
         recaptchaKey: recaptcha_key,
         presignUrl: presign_url,
       }
-    end
-
-    def csp_content
-      # disabling CSP for the moment
-      # [
-      #   "default-src 'self'",
-      #   "script-src 'unsafe-inline' cdn.jsdelivr.net www.google.com code.jquery.com www.gstatic.com",
-      #   "style-src 'unsafe-inline' cdn.jsdelivr.net",
-      #   "font-src 'self' fonts.gstatic.com",
-      #   'img-src www.gstatic.com www.w3.org data:',
-      #   'frame-src www.google.com',
-      # ].join('; ')
     end
   end
 end

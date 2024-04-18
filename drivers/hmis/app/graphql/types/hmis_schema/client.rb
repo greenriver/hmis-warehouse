@@ -105,10 +105,6 @@ module Types
     scan_card_codes_field
     field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false
     audit_history_field(
-      field_permissions: {
-        'SSN' => :can_view_full_ssn,
-        'DOB' => :can_view_dob,
-      },
       excluded_keys: ['owner_type'],
       filter_args: { omit: [:enrollment_record_type], type_name: 'ClientAuditEvent' },
       # Transform race and gender fields
@@ -150,6 +146,8 @@ module Types
     access_field do
       can :view_partial_ssn
       can :view_full_ssn
+      can :view_client_name
+      can :view_client_photo
       can :view_dob
       can :view_enrollment_details
       can :edit_enrollments
@@ -243,6 +241,8 @@ module Types
     end
 
     def image
+      return unless current_permission?(permission: :can_view_client_photo, entity: object)
+
       files = load_ar_association(object, :client_files, scope: GrdaWarehouse::ClientFile.client_photos.newest_first)
       file = files.first&.client_file
       file&.download ? file : nil
@@ -271,7 +271,28 @@ module Types
       object.dob if current_permission?(permission: :can_view_dob, entity: object)
     end
 
+    def first_name
+      return object.masked_name unless can_view_name
+
+      object.first_name
+    end
+
+    def middle_name
+      object.middle_name if can_view_name
+    end
+
+    def last_name
+      object.last_name if can_view_name
+    end
+
+    def name_suffix
+      object.name_suffix if can_view_name
+    end
+
     def names
+      # initialize a dummy CustomClientName with masked name
+      return [object.names.new(first: object.masked_name)] unless can_view_name
+
       names = load_ar_association(object, :names)
       return names unless names.empty?
 
@@ -279,19 +300,31 @@ module Types
       [object.build_primary_custom_client_name]
     end
 
+    private def can_view_name
+      current_permission?(permission: :can_view_client_name, entity: object)
+    end
+
     def contact_points
+      return [] unless current_permission?(permission: :can_view_client_contact_info, entity: object)
+
       load_ar_association(object, :contact_points)
     end
 
     def phone_numbers
+      return [] unless current_permission?(permission: :can_view_client_contact_info, entity: object)
+
       load_ar_association(object, :contact_points).filter { |r| r.system == 'phone' }
     end
 
     def email_addresses
+      return [] unless current_permission?(permission: :can_view_client_contact_info, entity: object)
+
       load_ar_association(object, :contact_points).filter { |r| r.system == 'email' }
     end
 
     def addresses
+      return [] unless current_permission?(permission: :can_view_client_contact_info, entity: object)
+
       load_ar_association(object, :addresses)
     end
 
