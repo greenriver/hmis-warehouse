@@ -20,6 +20,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
       GrdaWarehouse::Utility.clear!
       cleanup_hmis_csv_fixtures
     end
+    # these should all test the GrdaWarehouse::Hud::Client.cas_active scope too
     it 'finds two clients who are active for CAS' do
       travel_to Time.local(2016, 2, 15) do
         expect(GrdaWarehouse::Hud::Client.destination.map(&:active_in_cas?).count(true)).to eq(2)

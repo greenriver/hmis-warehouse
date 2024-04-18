@@ -382,6 +382,33 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
     where(age: (18..Float::INFINITY))
   end
 
+  scope :cas_active_clients, -> do
+    # should only be used when cas_available_method is set to active_clients
+    raise 'unexpected cas_available_method' unless GrdaWarehouse::Config.get(:cas_available_method).to_sym == :active_clients
+
+    range = GrdaWarehouse::Config.cas_sync_range
+
+    # Homeless and Coordinated Entry Projects
+    homeless_ce_project_ids = GrdaWarehouse::Hud::Project.with_project_type(HudUtility2024.homeless_project_types + [14]).pluck(:id)
+    # Projects with override to consider enrolled clients as actively homeless for CAS and Cohorts
+    override_project_ids = GrdaWarehouse::Hud::Project.where(active_homeless_status_override: true).pluck(:id)
+
+    enrollment_scope = in_project(homeless_ce_project_ids + override_project_ids)
+
+    if GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
+      enrollment_scope.with_service_between(
+        start_date: range.first,
+        end_date: range.last,
+      )
+    else
+      enrollment_scope.with_service_between(
+        start_date: range.first,
+        end_date: range.last,
+        service_scope: GrdaWarehouse::ServiceHistoryService.service_excluding_extrapolated,
+      )
+    end
+  end
+
   def self.known_standard_cohorts
     AvailableSubPopulations.available_sub_populations.values
   end

@@ -179,25 +179,7 @@ module CasClientData
       when :release_present
         any_release_on_file?
       when :active_clients
-        range = GrdaWarehouse::Config.cas_sync_range
-
-        # Homeless and Coordinated Entry Projects
-        homeless_ce_project_ids = GrdaWarehouse::Hud::Project.with_project_type(HudUtility2024.homeless_project_types + [14]).pluck(:id)
-        # Projects with override to consider enrolled clients as actively homeless for CAS and Cohorts
-        override_project_ids = GrdaWarehouse::Hud::Project.where(active_homeless_status_override: true).pluck(:id)
-        enrollment_scope = service_history_enrollments.in_project(homeless_ce_project_ids + override_project_ids)
-        if GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
-          enrollment_scope.with_service_between(
-            start_date: range.first,
-            end_date: range.last,
-          ).exists?
-        else
-          enrollment_scope.with_service_between(
-            start_date: range.first,
-            end_date: range.last,
-            service_scope: GrdaWarehouse::ServiceHistoryService.service_excluding_extrapolated,
-          ).exists?
-        end
+        service_history_enrollments.cas_active_clients.exists?
       when :project_group
         project_ids = GrdaWarehouse::Config.cas_sync_project_group&.projects&.ids
         return false unless project_ids.present?
