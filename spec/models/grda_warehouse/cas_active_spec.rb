@@ -23,12 +23,14 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
     it 'finds two clients who are active for CAS' do
       travel_to Time.local(2016, 2, 15) do
         expect(GrdaWarehouse::Hud::Client.destination.map(&:active_in_cas?).count(true)).to eq(2)
+        expect(GrdaWarehouse::Hud::Client.destination.cas_active.count).to eq(2)
       end
     end
 
     it 'finds no client who is active for CAS' do
       travel_to Time.local(2016, 3, 15) do
         expect(GrdaWarehouse::Hud::Client.destination.map(&:active_in_cas?).count(true)).to eq(0)
+        expect(GrdaWarehouse::Hud::Client.destination.cas_active.count).to eq(0)
       end
     end
 
@@ -36,6 +38,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
       GrdaWarehouse::Hud::Project.update_all(ProjectType: 11) # Day Shelter
       travel_to Time.local(2016, 2, 15) do
         expect(GrdaWarehouse::Hud::Client.destination.map(&:active_in_cas?).count(true)).to eq(0)
+        expect(GrdaWarehouse::Hud::Client.destination.cas_active.count).to eq(0)
       end
     end
 
@@ -43,6 +46,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
       GrdaWarehouse::Hud::Project.update_all(ProjectType: 11, active_homeless_status_override: true) # Day Shelter with override
       travel_to Time.local(2016, 2, 15) do
         expect(GrdaWarehouse::Hud::Client.destination.map(&:active_in_cas?).count(true)).to eq(2)
+        expect(GrdaWarehouse::Hud::Client.destination.cas_active.count).to eq(2)
       end
     end
   end
