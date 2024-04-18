@@ -1,0 +1,611 @@
+{
+  "item": [
+    {
+      "text": "Client Data",
+      "type": "GROUP",
+      "link_id": "caseworker_exit_client_data",
+      "item": [
+        {
+          "text": "Assessment Date",
+          "type": "DATE",
+          "link_id": "caseworker_assessment_date",
+          "required": true,
+          "mapping": {
+            "field_name": "assessmentDate"
+          },
+          "assessment_date": true
+        },
+        {
+          "text": "Exit Date",
+          "type": "DATE",
+          "link_id": "caseworker_exit_date",
+          "mapping": {
+            "custom_field_key": "caseworker_exit_date"
+          }
+        },
+        {
+          "text": "Phone Number",
+          "size": "SMALL",
+          "type": "STRING",
+          "link_id": "caseworker_exit_phone",
+          "component": "PHONE",
+          "mapping": {
+            "custom_field_key": "caseworker_exit_phone"
+          }
+        },
+        {
+          "text": "Email",
+          "type": "STRING",
+          "link_id": "caseworker_exit_email",
+          "mapping": {
+            "custom_field_key": "caseworker_exit_email"
+          }
+        },
+        {
+          "text": "Number of weeks in program",
+          "type": "INTEGER",
+          "required": true,
+          "link_id": "caseworker_exit_weeks_in_program",
+          "mapping": {
+            "custom_field_key": "caseworker_exit_weeks_in_program"
+          }
+        },
+        {
+          "text": "Beginning GAS Score",
+          "helper_text": "Target 40.00",
+          "type": "NUMBER",
+          "link_id": "caseworker_exit_beginning_gas_score",
+          "mapping": {
+            "custom_field_key": "caseworker_exit_beginning_gas_score"
+          }
+        },
+        {
+          "text": "Beginning GAS Score Date",
+          "type": "DATE",
+          "link_id": "caseworker_exit_beginning_gas_score_date",
+          "mapping": {
+            "custom_field_key": "caseworker_exit_beginning_gas_score_date"
+          }
+        },
+        {
+          "text": "Exit GAS Score",
+          "helper_text": "Target 40.00",
+          "type": "INTEGER",
+          "link_id": "caseworker_exit_end_gas_score",
+          "mapping": {
+            "custom_field_key": "caseworker_exit_end_gas_score"
+          }
+        },
+        {
+          "text": "Exit GAS Score Date",
+          "type": "DATE",
+          "link_id": "caseworker_exit_end_gas_score_date",
+          "mapping": {
+            "custom_field_key": "caseworker_exit_end_gas_score_date"
+          }
+        },
+        {
+          "text": "Difference/Change in GAS score",
+          "type": "INTEGER",
+          "link_id": "caseworker_exit_gas_score_change",
+          "read_only": true,
+          "autofill_values": [
+            {
+              "formula": "caseworker_exit_end_gas_score - caseworker_exit_beginning_gas_score",
+              "autofill_when": [
+                {
+                  "operator": "EXISTS",
+                  "question": "caseworker_exit_end_gas_score",
+                  "answer_boolean": true
+                },
+                {
+                  "operator": "EXISTS",
+                  "question": "caseworker_exit_beginning_gas_score",
+                  "answer_boolean": true
+                }
+              ],
+              "autofill_behavior": "ALL",
+              "autofill_readonly": true
+            }
+          ],
+          "mapping": {
+            "custom_field_key": "caseworker_exit_gas_score_change"
+          }
+        },
+        {
+          "text": "Percent of GAS Change",
+          "type": "INTEGER",
+          "link_id": "caseworker_exit_gas_score_percent_change",
+          "read_only": true,
+          "autofill_values": [
+            {
+              "formula": "(caseworker_exit_end_gas_score - caseworker_exit_beginning_gas_score) / 40 * 100",
+              "autofill_when": [
+                {
+                  "operator": "EXISTS",
+                  "question": "caseworker_exit_end_gas_score",
+                  "answer_boolean": true
+                },
+                {
+                  "operator": "EXISTS",
+                  "question": "caseworker_exit_beginning_gas_score",
+                  "answer_boolean": true
+                }
+              ],
+              "autofill_behavior": "ALL",
+              "autofill_readonly": true
+            }
+          ],
+          "mapping": {
+            "custom_field_key": "caseworker_exit_gas_score_percent_change"
+          }
+        },
+        {
+          "text": "Where will the client be residing? (Please check one).",
+          "type": "CHOICE",
+          "required": true,
+          "pick_list_options": [
+            {
+              "code": "Rental Home/Apartment"
+            },
+            {
+              "code": "Family/Friends (Permanent)"
+            },
+            {
+              "code": "Family/Friends (Temporary)"
+            },
+            {
+              "code": "Hotel/Motel"
+            },
+            {
+              "code": "Other Permanent Destination"
+            },
+            {
+              "code": "Place not meant for habitation (vehicle, outside, etc)"
+            },
+            {
+              "code": "Other"
+            }
+          ],
+          "link_id": "caseworker_exit_destination",
+          "mapping": {
+            "custom_field_key": "caseworker_exit_destination"
+          }
+        },
+        {
+          "text": "If other, please specify exit destination.",
+          "type": "TEXT",
+          "link_id": "caseworker_exit_destination_other",
+          "enable_when": [
+            {
+              "operator": "EQUAL",
+              "question": "caseworker_exit_destination",
+              "answer_code": "Other"
+            }
+          ],
+          "mapping": {
+            "custom_field_key": "caseworker_exit_destination_other"
+          }
+        },
+        {
+          "text": "If client exited to a housing program, which program was it?",
+          "type": "CHOICE",
+          "pick_list_options": [
+            {
+              "code": "Rapid Rehousing (RRH)"
+            },
+            {
+              "code": "Rapid Exit"
+            },
+            {
+              "code": "TBRA"
+            },
+            {
+              "code": "VASH"
+            },
+            {
+              "code": "PSH"
+            },
+            {
+              "code": "Other"
+            },
+            {
+              "code": "None"
+            }
+          ],
+          "link_id": "caseworker_exit_housing_program",
+          "mapping": {
+            "custom_field_key": "caseworker_exit_housing_program"
+          }
+        },
+        {
+          "text": "If other housing program, please specify which one.",
+          "type": "TEXT",
+          "link_id": "caseworker_exit_housing_program_other",
+          "enable_when": [
+            {
+              "operator": "EQUAL",
+              "question": "caseworker_exit_housing_program",
+              "answer_code": "Other"
+            }
+          ],
+          "mapping": {
+            "custom_field_key": "caseworker_exit_housing_program_other"
+          }
+        }
+      ]
+    },
+    {
+      "text": "Employment and Income",
+      "type": "GROUP",
+      "link_id": "caseworker_exit_employment_and_income",
+      "item": [
+        {
+          "text": "Was resident employed when they entered the shelter?",
+          "type": "BOOLEAN",
+          "link_id": "caseworker_exit_employed_at_entry",
+          "mapping": {
+            "custom_field_key": "caseworker_exit_employed_at_entry"
+          }
+        },
+        {
+          "text": "Hourly rate at employment",
+          "type": "CURRENCY",
+          "link_id": "caseworker_exit_hourly_rate_at_entry",
+          "enable_when": [
+            {
+              "operator": "EQUAL",
+              "question": "caseworker_exit_employed_at_entry",
+              "answer_boolean": true
+            }
+          ],
+          "mapping": {
+            "custom_field_key": "caseworker_exit_hourly_rate_at_entry"
+          }
+        },
+        {
+          "text": "Is resident employed at time of exit?",
+          "type": "BOOLEAN",
+          "link_id": "caseworker_exit_employed_at_exit",
+          "mapping": {
+            "custom_field_key": "caseworker_exit_employed_at_exit"
+          }
+        },
+        {
+          "text": "Hourly rate at exit",
+          "type": "CURRENCY",
+          "link_id": "caseworker_exit_hourly_rate_at_exit",
+          "enable_when": [
+            {
+              "operator": "EQUAL",
+              "question": "caseworker_exit_employed_at_exit",
+              "answer_boolean": true
+            }
+          ],
+          "mapping": {
+            "custom_field_key": "caseworker_exit_hourly_rate_at_exit"
+          }
+        },
+        {
+          "text": "Auto populated. If they gained employment in shelter, this should say \"1\" (1 = they gained employment while in shelter, 0 = they either lost employment while in shelter, was employed the entire time in shelter, or never was employed while in shelter. This helps us track how many clients got employment while in shelter.)",
+          "type": "INTEGER",
+          "link_id": "caseworker_exit_gained_employment",
+          "read_only": true,
+          "autofill_values": [
+            {
+              "value_number": 1,
+              "autofill_behavior": "ALL",
+              "autofill_when": [
+                {
+                  "question": "caseworker_exit_employed_at_entry",
+                  "operator": "EQUAL",
+                  "answer_boolean": false
+                },
+                {
+                  "question": "caseworker_exit_employed_at_exit",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                }
+              ]
+            },
+            {
+              "value_number": 0,
+              "autofill_behavior": "ALL",
+              "autofill_when": [
+                {
+                  "question": "caseworker_exit_employed_at_entry",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "caseworker_exit_employed_at_exit",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                }
+              ]
+            },
+            {
+              "value_number": 0,
+              "autofill_behavior": "ALL",
+              "autofill_when": [
+                {
+                  "question": "caseworker_exit_employed_at_entry",
+                  "operator": "EQUAL",
+                  "answer_boolean": true
+                },
+                {
+                  "question": "caseworker_exit_employed_at_exit",
+                  "operator": "EQUAL",
+                  "answer_boolean": false
+                }
+              ]
+            },
+            {
+              "value_number": 0,
+              "autofill_behavior": "ALL",
+              "autofill_when": [
+                {
+                  "question": "caseworker_exit_employed_at_entry",
+                  "operator": "EQUAL",
+                  "answer_boolean": false
+                },
+                {
+                  "question": "caseworker_exit_employed_at_exit",
+                  "operator": "EQUAL",
+                  "answer_boolean": false
+                }
+              ]
+            }
+          ],
+          "mapping": {
+            "custom_field_key": "caseworker_exit_gained_employment"
+          }
+        },
+        {
+          "text": "If employed at exit was it",
+          "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
+          "link_id": "caseworker_exit_employment_type",
+          "pick_list_options": [
+            {
+              "code": "Full-time"
+            },
+            {
+              "code": "Part-time"
+            },
+            {
+              "code": "Temp/day labor"
+            }
+          ],
+          "enable_when": [
+            {
+              "operator": "EQUAL",
+              "question": "caseworker_exit_employed_at_exit",
+              "answer_boolean": true
+            }
+          ],
+          "mapping": {
+            "custom_field_key": "caseworker_exit_employment_type"
+          }
+        },
+        {
+          "text": "How much did income increase while in shelter?",
+          "type": "CURRENCY",
+          "link_id": "caseworker_exit_income_increase",
+          "read_only": true,
+          "autofill_values": [
+            {
+              "formula": "caseworker_exit_hourly_rate_at_exit - caseworker_exit_hourly_rate_at_entry",
+              "autofill_when": [
+                {
+                  "operator": "EXISTS",
+                  "question": "caseworker_exit_hourly_rate_at_exit",
+                  "answer_boolean": true
+                },
+                {
+                  "operator": "EXISTS",
+                  "question": "caseworker_exit_hourly_rate_at_entry",
+                  "answer_boolean": true
+                }
+              ],
+              "autofill_behavior": "ALL",
+              "autofill_readonly": true
+            }
+          ],
+          "mapping": {
+            "custom_field_key": "caseworker_exit_income_increase"
+          }
+        },
+        {
+          "text": "How much money did the resident have in savings when entering the shelter?",
+          "type": "CURRENCY",
+          "link_id": "caseworker_exit_savings_at_entry",
+          "mapping": {
+            "custom_field_key": "caseworker_exit_savings_at_entry"
+          }
+        },
+        {
+          "text": "How much money did the resident have in savings when exiting the shelter?",
+          "type": "CURRENCY",
+          "link_id": "caseworker_exit_savings_at_exit",
+          "mapping": {
+            "custom_field_key": "caseworker_exit_savings_at_exit"
+          }
+        },
+        {
+          "text": "Difference between savings",
+          "type": "CURRENCY",
+          "link_id": "caseworker_exit_savings_difference",
+          "read_only": true,
+          "autofill_values": [
+            {
+              "formula": "caseworker_exit_savings_at_exit - caseworker_exit_savings_at_entry",
+              "autofill_when": [
+                {
+                  "operator": "EXISTS",
+                  "question": "caseworker_exit_savings_at_exit",
+                  "answer_boolean": true
+                },
+                {
+                  "operator": "EXISTS",
+                  "question": "caseworker_exit_savings_at_entry",
+                  "answer_boolean": true
+                }
+              ],
+              "autofill_behavior": "ANY",
+              "autofill_readonly": true
+            }
+          ],
+          "mapping": {
+            "custom_field_key": "caseworker_exit_savings_difference"
+          }
+        },
+        {
+          "text": "If client left with savings, was it from employment, benefits, both or other? (choose one answer)",
+          "type": "CHOICE",
+          "component": "RADIO_BUTTONS",
+          "link_id": "caseworker_exit_savings_source",
+          "pick_list_options": [
+            {
+              "code": "Employment"
+            },
+            {
+              "code": "Benefits"
+            },
+            {
+              "code": "Both"
+            },
+            {
+              "code": "Other"
+            }
+          ],
+          "mapping": {
+            "custom_field_key": "caseworker_exit_savings_source"
+          }
+        }
+      ]
+    },
+    {
+      "text": "Exit Data",
+      "type": "GROUP",
+      "link_id": "caseworker_exit_exit_data",
+      "item": [
+        {
+          "text": "Special status",
+          "type": "CHOICE",
+          "link_id": "caseworker_exit_special_status",
+          "pick_list_options": [
+            {
+              "code": "Family"
+            },
+            {
+              "code": "Veteran"
+            },
+            {
+              "code": "Special needs"
+            }
+          ],
+          "mapping": {
+            "custom_field_key": "caseworker_exit_special_status"
+          }
+        },
+        {
+          "text": "How many members in family?",
+          "type": "INTEGER",
+          "link_id": "caseworker_exit_members_in_family",
+          "mapping": {
+            "custom_field_key": "caseworker_exit_members_in_family"
+          }
+        },
+        {
+          "text": "Number of adults",
+          "type": "INTEGER",
+          "link_id": "caseworker_exit_number_of_adults",
+          "enable_when": [
+            {
+              "operator": "EQUAL",
+              "answer_code": "Family",
+              "question": "caseworker_exit_special_status"
+            }
+          ],
+          "mapping": {
+            "custom_field_key": "caseworker_exit_number_of_adults"
+          }
+        },
+        {
+          "text": "Number of children",
+          "type": "INTEGER",
+          "link_id": "caseworker_exit_number_of_children",
+          "enable_when": [
+            {
+              "operator": "EQUAL",
+              "answer_code": "Family",
+              "question": "caseworker_exit_special_status"
+            }
+          ],
+          "mapping": {
+            "custom_field_key": "caseworker_exit_number_of_children"
+          }
+        },
+        {
+          "text": "Highest level achieved in shelter",
+          "type": "CHOICE",
+          "link_id": "caseworker_exit_highest_level_achieved",
+          "component": "DROPDOWN",
+          "pick_list_options": [
+            {
+              "code": "3 Days"
+            },
+            {
+              "code": "Basic needs"
+            },
+            {
+              "code": "Employment program"
+            }
+          ],
+          "mapping": {
+            "custom_field_key": "caseworker_exit_highest_level_achieved"
+          }
+        },
+        {
+          "text": "One month follow-up",
+          "type": "CHOICE",
+          "component": "RADIO_BUTTONS_VERTICAL",
+          "repeats": true,
+          "link_id": "caseworker_exit_one_month_follow_up",
+          "pick_list_options": [
+            {
+              "code": "Working"
+            },
+            {
+              "code": "Has a place to live"
+            },
+            {
+              "code": "Unsuccessful attempts to reach client"
+            },
+            {
+              "code": "Reached client, but neither working nor housed"
+            },
+            {
+              "code": "Client not eligible for follow-up"
+            },
+            {
+              "code": "Did not attempt to reach client"
+            }
+          ],
+          "mapping": {
+            "custom_field_key": "caseworker_exit_one_month_follow_up"
+          }
+        },
+        {
+          "text": "Referrals given at follow-up",
+          "type": "TEXT",
+          "link_id": "caseworker_exit_referrals_at_follow_up",
+          "mapping": {
+            "custom_field_key": "caseworker_exit_referrals_at_follow_up"
+          }
+        }
+      ]
+    }
+  ]
+}
