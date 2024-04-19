@@ -73,8 +73,7 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
     it 'finds one client who is active for CAS' do
       travel_to Time.local(2016, 2, 15) do
         expect(GrdaWarehouse::Hud::Client.destination.map(&:active_in_cas?).count(true)).to eq(1)
-        # Fails, cas_active scope does not respect ineligible_uses_extrapolated_days setting
-        # expect(GrdaWarehouse::Hud::Client.destination.cas_active.count).to eq(1)
+        expect(GrdaWarehouse::Hud::Client.destination.cas_active.count).to eq(1)
       end
     end
 
@@ -87,16 +86,6 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
   end
 
   describe 'when syncing by project group' do
-    let!(:data_source) { create :grda_warehouse_data_source, source_type: nil, authoritative: false }
-    let!(:project) { create :hud_project, data_source_id: data_source.id }
-    let!(:client) { create :hud_client, data_source: data_source, data_source_id: data_source.id }
-    let!(:enrollment) { create :hud_enrollment, ProjectID: project.ProjectID, data_source_id: data_source.id }
-    let!(:service_history_enrollment) do
-      create :grda_warehouse_service_history, :service_history_entry,
-             project: project, client: client, enrollment_group_id: enrollment.EnrollmentID,
-             first_date_in_program: Date.yesterday, data_source_id: data_source.id
-    end
-
     before(:all) do
       @cas_project_group = GrdaWarehouse::ProjectGroup.create!(name: 'test')
       @config = GrdaWarehouse::Config.first_or_create
@@ -116,18 +105,36 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
       @cas_project_group.destroy
     end
 
-    it 'finds no client who is active for CAS' do
-      @cas_project_group.projects = []
-      clients = GrdaWarehouse::Hud::Client.destination.select(&:active_in_cas?)
-      error_message = "Clients: #{clients.map(&:FirstName).join('; ')}"
-      expect(clients.count).to eq(0), error_message
-      expect(GrdaWarehouse::Hud::Client.destination.cas_active.count).to eq(0)
+    describe 'with no projects in the project group' do
+      before(:all) do
+        @cas_project_group.projects = []
+      end
+      it 'finds no client who is active for CAS' do
+        clients = GrdaWarehouse::Hud::Client.destination.select(&:active_in_cas?)
+        error_message = "Clients: #{clients.map(&:FirstName).join('; ')}"
+        expect(clients.count).to eq(0), error_message
+        expect(GrdaWarehouse::Hud::Client.destination.cas_active.count).to eq(0)
+      end
     end
 
-    it 'finds one client who is active for CAS' do
-      @cas_project_group.projects << project
-      expect(GrdaWarehouse::Hud::Client.destination.map(&:active_in_cas?).count(true)).to eq(1)
-      expect(GrdaWarehouse::Hud::Client.destination.cas_active.count).to eq(1)
+    describe 'with one project in the project group' do
+      before(:all) do
+        @cas_project_group.projects.delete_all
+        @cas_project_group.projects << GrdaWarehouse::Hud::Project.find_by(project_id: '1-1')
+      end
+      it 'finds one client who is active for CAS' do
+        aggregate_failures do
+          # This depends on ongoing enrollments so to verify actual functionality, we need to move to a time
+          # where two enrollments are open, but only one is at the chosen project
+          travel_to Time.zone.local(2016, 2, 1) do
+            expect(GrdaWarehouse::Hud::Project.count).to eq(3)
+            expect(@cas_project_group.projects.count).to eq(1)
+            expect(GrdaWarehouse::ServiceHistoryEnrollment.entry.ongoing.count).to eq(2)
+            expect(GrdaWarehouse::Hud::Client.destination.map(&:active_in_cas?).count(true)).to eq(1)
+            expect(GrdaWarehouse::Hud::Client.destination.cas_active.count).to eq(1)
+          end
+        end
+      end
     end
   end
 
