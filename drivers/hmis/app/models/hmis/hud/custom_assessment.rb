@@ -26,7 +26,6 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   SORT_OPTIONS = [:assessment_date, :date_updated].freeze
 
-  belongs_to :enrollment, **hmis_enrollment_relation, optional: true
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments, optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
@@ -175,7 +174,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     new_assessment = new(
       user_id: user.user_id,
       assessment_date: assessment_date,
-      data_collection_stage: Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[form_definition.role.to_sym] || 99,
+      data_collection_stage: Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[form_definition.role.to_sym],
       **enrollment.slice(:data_source_id, :personal_id, :enrollment_id),
     )
     new_assessment.build_form_processor(definition: form_definition)

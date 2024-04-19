@@ -9,7 +9,7 @@ module Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
   extend ActiveSupport::Concern
 
   included do
-    has_one :client_project, **hmis_relation(:EnrollmentID)
-    has_one :project, through: :client_project
+    belongs_to :enrollment, **hmis_enrollment_relation, optional: true
+    has_one :project, through: :enrollment
   end
 end

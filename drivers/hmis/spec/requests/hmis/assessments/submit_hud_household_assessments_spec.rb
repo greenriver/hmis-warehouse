@@ -43,7 +43,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     [assessment1, assessment2, assessment3].each do |assessment|
       enrollment = assessment.enrollment
       project = assessment1.enrollment.project # all use the same project
-      enrollment.update(household_id: assessment1.enrollment.household_id, project_id: project.project_id)
+      enrollment.update!(household_id: assessment1.enrollment.household_id, project_id: project.project_id, project_pk: project.id)
 
       # Save enrollment as WIP
       enrollment.save_in_progress! if role == :INTAKE
@@ -52,7 +52,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       raise "No definition for role #{role}" unless definition.present?
 
       # Save assessment as WIP with minimum needed values
-      assessment.update(data_collection_stage: role == :INTAKE ? 1 : 3)
+      assessment.update!(data_collection_stage: role == :INTAKE ? 1 : 3)
       assessment.form_processor.update(definition: definition, **build_minimum_values(definition, assessment_date: assessment.assessment_date))
       assessment.definition = definition
       assessment.save!

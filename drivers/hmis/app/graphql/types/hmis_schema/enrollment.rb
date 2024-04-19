@@ -264,7 +264,7 @@ module Types
     def reminders
       # assumption is this is called on a single record; we aren't solving n+1 queries
       project = object.project
-      enrollments = project.enrollments_including_wip.where(household_id: object.HouseholdID)
+      enrollments = project.enrollments.where(household_id: object.HouseholdID)
       Hmis::Reminders::ReminderGenerator.perform(project: project, enrollments: enrollments)
     end
 
@@ -281,12 +281,7 @@ module Types
     end
 
     def project
-      if object.in_progress?
-        wip = load_ar_association(object, :wip)
-        load_ar_association(wip, :project)
-      else
-        load_ar_association(object, :project)
-      end
+      load_ar_association(object, :project)
     end
 
     # Needed because limited access viewers cannot resolve the project

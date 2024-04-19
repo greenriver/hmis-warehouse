@@ -162,5 +162,10 @@ RSpec.describe 'BulkAssignService', type: :request do
 
       expect_gql_error(perform_mutation(date_provided: 6.days.ago, client_ids: [c1.id]))
     end
+
+    it 'succeeds if entry date is >30 days ago (internally generates warning)' do
+      response, result = perform_mutation(date_provided: 45.days.ago, client_ids: [c1.id])
+      expect(response.status).to eq(200), result.inspect
+    end
   end
 end

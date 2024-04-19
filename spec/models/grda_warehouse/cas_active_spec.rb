@@ -31,6 +31,20 @@ RSpec.describe GrdaWarehouse::ServiceHistoryService, type: :model do
         expect(GrdaWarehouse::Hud::Client.destination.map(&:active_in_cas?).count(true)).to eq(0)
       end
     end
+
+    it 'excludes clients enrolled in non-Homeless/non-CE project types' do
+      GrdaWarehouse::Hud::Project.update_all(ProjectType: 11) # Day Shelter
+      travel_to Time.local(2016, 2, 15) do
+        expect(GrdaWarehouse::Hud::Client.destination.map(&:active_in_cas?).count(true)).to eq(0)
+      end
+    end
+
+    it 'includes clients enrolled in projects active_homeless_status_override' do
+      GrdaWarehouse::Hud::Project.update_all(ProjectType: 11, active_homeless_status_override: true) # Day Shelter with override
+      travel_to Time.local(2016, 2, 15) do
+        expect(GrdaWarehouse::Hud::Client.destination.map(&:active_in_cas?).count(true)).to eq(2)
+      end
+    end
   end
 
   describe 'when excluding extrapolated enrollments' do
