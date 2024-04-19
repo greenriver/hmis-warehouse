@@ -168,8 +168,8 @@ module HudReports
       defaults = {
         run_type: 'manual',
         creator: 'all',
-        start: (Date.current - 6.months).to_s,
-        end: Date.current.to_s,
+        start: (Date.current - 6.months).to_fs,
+        end: Date.current.to_fs,
       }
       @view_filter = {}
       @view_filter[:run_type] = view_filter_params[:run_type] || defaults[:run_type]
