@@ -20,7 +20,12 @@ class HmisImportConfigsController < ApplicationController
     @error = false
     begin
       @bucket_objects_list = @config.s3.list_objects(25, prefix: @config.s3_path)
-    rescue Aws::S3::Errors::InvalidAccessKeyId, Aws::S3::Errors::AccessDenied, Aws::S3::Errors::SignatureDoesNotMatch, Aws::S3::Errors::NoSuchBucket
+    rescue Aws::S3::Errors::InvalidAccessKeyId,
+           Aws::S3::Errors::AccessDenied,
+           Aws::S3::Errors::SignatureDoesNotMatch,
+           Aws::S3::Errors::NoSuchBucket,
+           Aws::STS::Errors::InvalidClientTokenId,
+           Aws::Errors::MissingCredentialsError
       @error = true
     end
   end
@@ -74,6 +79,7 @@ class HmisImportConfigsController < ApplicationController
       :s3_region,
       :s3_bucket_name,
       :s3_path,
+      :s3_role_arn,
       :zip_file_password,
       :file_count,
     )
