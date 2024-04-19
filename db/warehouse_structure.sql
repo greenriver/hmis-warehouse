@@ -18558,7 +18558,8 @@ CREATE TABLE public.hmis_import_configs (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     file_count integer DEFAULT 1 NOT NULL,
-    s3_role_arn character varying
+    s3_role_arn character varying,
+    s3_external_id character varying
 );
 
 
@@ -62655,6 +62656,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240411183410'),
 ('20240413183410'),
 ('20240416155829'),
-('20240419165229');
+('20240419165229'),
+('20240419174433');
 
 

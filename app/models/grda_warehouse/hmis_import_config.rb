@@ -27,6 +27,7 @@ class GrdaWarehouse::HmisImportConfig < GrdaWarehouseBase
       s3_options[:secret_access_key] = s3_secret_access_key
     end
     s3_options[:role_arn] = s3_role_arn if s3_role_arn.present?
+    s3_options[:external_id] = s3_external_id if s3_external_id.present?
 
     @s3 ||= AwsS3.new(**s3_options)
   end

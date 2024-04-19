@@ -25,7 +25,8 @@ class HmisImportConfigsController < ApplicationController
            Aws::S3::Errors::SignatureDoesNotMatch,
            Aws::S3::Errors::NoSuchBucket,
            Aws::STS::Errors::InvalidClientTokenId,
-           Aws::Errors::MissingCredentialsError
+           Aws::Errors::MissingCredentialsError,
+           Aws::STS::Errors::AccessDenied
       @error = true
     end
   end
@@ -80,6 +81,7 @@ class HmisImportConfigsController < ApplicationController
       :s3_bucket_name,
       :s3_path,
       :s3_role_arn,
+      :s3_external_id,
       :zip_file_password,
       :file_count,
     )

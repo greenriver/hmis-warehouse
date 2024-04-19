@@ -13,7 +13,8 @@ class AwsS3
     bucket_name:,
     access_key_id: nil,
     secret_access_key: nil,
-    role_arn: nil
+    role_arn: nil,
+    external_id: nil
   )
     @bucket_name = bucket_name
 
@@ -47,6 +48,7 @@ class AwsS3
         sts_options = {
           region: region,
         }
+        assume_options[:external_id] = external_id if external_id.present?
         if secret_access_key.present? && secret_access_key != 'unknown'
           assume_options[:access_key_id] = access_key_id
           assume_options[:secret_access_key] = secret_access_key

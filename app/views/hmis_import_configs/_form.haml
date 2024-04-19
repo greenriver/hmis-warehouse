@@ -7,6 +7,7 @@
 = f.input :s3_access_key_id
 = f.input :s3_secret_access_key, as: :password, input_html: { value: @config.s3_secret_access_key }
 = f.input :s3_role_arn, as: :password, input_html: { value: @config.s3_role_arn }, hint: 'This is only necessary if assuming a role'
+= f.input :s3_external_id, hint: 'This is only necessary if assuming a role', label: 'S3 external id'
 
 %h3 File
 = f.input :s3_path
