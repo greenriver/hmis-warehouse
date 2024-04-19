@@ -52,8 +52,8 @@
         },
         {
           "text": "Beginning GAS Score",
-          "helper_text": "Target 40.00",
-          "type": "NUMBER",
+          "helper_text": "Target 40",
+          "type": "INTEGER",
           "link_id": "caseworker_exit_beginning_gas_score",
           "mapping": {
             "custom_field_key": "caseworker_exit_beginning_gas_score"
@@ -69,7 +69,7 @@
         },
         {
           "text": "Exit GAS Score",
-          "helper_text": "Target 40.00",
+          "helper_text": "Target 40",
           "type": "INTEGER",
           "link_id": "caseworker_exit_end_gas_score",
           "mapping": {
@@ -82,7 +82,14 @@
           "link_id": "caseworker_exit_end_gas_score_date",
           "mapping": {
             "custom_field_key": "caseworker_exit_end_gas_score_date"
-          }
+          },
+          "bounds": [
+            {
+              "id": "min_end_gas_score_date",
+              "type": "MIN",
+              "question": "caseworker_exit_beginning_gas_score_date"
+            }
+          ]
         },
         {
           "text": "Difference/Change in GAS score",
@@ -92,18 +99,7 @@
           "autofill_values": [
             {
               "formula": "caseworker_exit_end_gas_score - caseworker_exit_beginning_gas_score",
-              "autofill_when": [
-                {
-                  "operator": "EXISTS",
-                  "question": "caseworker_exit_end_gas_score",
-                  "answer_boolean": true
-                },
-                {
-                  "operator": "EXISTS",
-                  "question": "caseworker_exit_beginning_gas_score",
-                  "answer_boolean": true
-                }
-              ],
+              "autofill_when": [],
               "autofill_behavior": "ALL",
               "autofill_readonly": true
             }
@@ -120,18 +116,7 @@
           "autofill_values": [
             {
               "formula": "(caseworker_exit_end_gas_score - caseworker_exit_beginning_gas_score) / 40 * 100",
-              "autofill_when": [
-                {
-                  "operator": "EXISTS",
-                  "question": "caseworker_exit_end_gas_score",
-                  "answer_boolean": true
-                },
-                {
-                  "operator": "EXISTS",
-                  "question": "caseworker_exit_beginning_gas_score",
-                  "answer_boolean": true
-                }
-              ],
+              "autofill_when": [],
               "autofill_behavior": "ALL",
               "autofill_readonly": true
             }
@@ -141,7 +126,7 @@
           }
         },
         {
-          "text": "Where will the client be residing? (Please check one).",
+          "text": "Where will the client be residing?",
           "type": "CHOICE",
           "required": true,
           "pick_list_options": [
@@ -396,18 +381,7 @@
           "autofill_values": [
             {
               "formula": "caseworker_exit_hourly_rate_at_exit - caseworker_exit_hourly_rate_at_entry",
-              "autofill_when": [
-                {
-                  "operator": "EXISTS",
-                  "question": "caseworker_exit_hourly_rate_at_exit",
-                  "answer_boolean": true
-                },
-                {
-                  "operator": "EXISTS",
-                  "question": "caseworker_exit_hourly_rate_at_entry",
-                  "answer_boolean": true
-                }
-              ],
+              "autofill_when": [],
               "autofill_behavior": "ALL",
               "autofill_readonly": true
             }
@@ -440,18 +414,7 @@
           "autofill_values": [
             {
               "formula": "caseworker_exit_savings_at_exit - caseworker_exit_savings_at_entry",
-              "autofill_when": [
-                {
-                  "operator": "EXISTS",
-                  "question": "caseworker_exit_savings_at_exit",
-                  "answer_boolean": true
-                },
-                {
-                  "operator": "EXISTS",
-                  "question": "caseworker_exit_savings_at_entry",
-                  "answer_boolean": true
-                }
-              ],
+              "autofill_when": [],
               "autofill_behavior": "ANY",
               "autofill_readonly": true
             }
