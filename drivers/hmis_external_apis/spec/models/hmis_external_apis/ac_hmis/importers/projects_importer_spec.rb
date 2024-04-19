@@ -35,11 +35,18 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::ProjectsImporter, type: :mod
     expect(GrdaWarehouse::Hud::Funder.count).to eq(1)
     expect(GrdaWarehouse::Hud::Organization.count).to eq(1)
     expect(GrdaWarehouse::Hud::Inventory.count).to eq(20)
+    expect(GrdaWarehouse::Hud::ProjectCoc.count).to eq(1)
+    expect(GrdaWarehouse::Hud::HmisParticipation.count).to eq(1)
+    expect(GrdaWarehouse::Hud::CeParticipation.count).to eq(1)
     expect(Hmis::Hud::CustomDataElement.count).to eq(1)
     expect(Hmis::Hud::CustomDataElement.first.value_boolean).to be(false)
     expect(Hmis::ProjectUnitTypeMapping.count).to eq(2)
     expect(Hmis::Unit.count).to eq(10)
     expect(Hmis::Unit.where(unit_type: active_unit_type).count).to eq(10)
+
+    # fixes incorrect hmis format
+    expect(GrdaWarehouse::Hud::ProjectCoc.first.zip).to eq('11111')
+    expect(GrdaWarehouse::Hud::CeParticipation.first.HousingAssessment).to eq(1)
   end
 
   it 'fails when funder dates are formatted incorrectly' do

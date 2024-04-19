@@ -15,13 +15,14 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
   include ::Hmis::Hud::Concerns::HasCustomDataElements
 
-  belongs_to :enrollment, **hmis_enrollment_relation, optional: true
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :services, optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :custom_service_type
   alias_attribute :service_type, :custom_service_type
   has_one :organization, through: :project
+  has_one :custom_service_category, through: :custom_service_type
+  has_one :warehouse_project, class_name: 'GrdaWarehouse::Hud::Project', through: :project
 
   before_validation :set_service_name
   validates_with Hmis::Hud::Validators::CustomServiceValidator
@@ -36,6 +37,12 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
 
   def within_range?(range)
     date_provided.between?(range.begin, range.end)
+  end
+
+  def display_name
+    return service_type.name if custom_service_category.name == service_type.name
+
+    "#{custom_service_category.name} - #{service_type.name}"
   end
 
   private def set_service_name

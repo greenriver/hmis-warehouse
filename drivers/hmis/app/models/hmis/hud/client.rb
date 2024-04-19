@@ -37,10 +37,8 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   # Enrollments for this Client, including WIP Enrollments
   has_many :enrollments, **hmis_relation(:PersonalID, 'Enrollment'), dependent: :destroy
-  # Projects that this Client is enrolled in, NOT inluding WIP enrollments
+  # Projects that this Client is enrolled in, including through WIP enrollments
   has_many :projects, through: :enrollments
-  # WIP records representing enrollments for this Client
-  has_many :wip, class_name: 'Hmis::Wip', through: :enrollments
 
   has_many :custom_assessments, through: :enrollments
 
@@ -57,9 +55,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   has_many :hmis_services, through: :enrollments # All services (HUD and Custom)
   has_many :services, through: :enrollments # HUD Services only
   has_many :custom_services, through: :enrollments # Custom Services only
-
-  has_many :client_projects
-  has_many :projects_including_wip, through: :client_projects, source: :project
 
   # History of merges into this client
   has_many :merge_histories, class_name: 'Hmis::ClientMergeHistory', primary_key: :id, foreign_key: :retained_client_id
@@ -123,7 +118,6 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     scopes << unenrolled.joins(:data_source).merge(GrdaWarehouse::DataSource.hmis(user)) if user.permissions?(*permissions, **kwargs)
     scopes += [
       joins(:projects).where(p_t[:id].in(pids)),
-      joins(:wip).where(wip_t[:project_id].in(pids)),
     ]
     sql = scopes.map { |s| s.select(c_t[:id].to_sql).to_sql }.join(' UNION ALL ')
 
@@ -156,20 +150,18 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   # Clients that have no Enrollments (WIP or otherwise)
   scope :unenrolled, -> do
     # Clients that have no projects, AND no wip enrollments
-    left_outer_joins(:projects, :wip).where(p_t[:id].eq(nil).and(wip_t[:id].eq(nil)))
+    left_outer_joins(:projects).where(p_t[:id].eq(nil))
   end
 
   scope :with_open_enrollment_in_project, ->(project_ids) do
-    joins(:projects_including_wip).where(p_t[:id].in(Array.wrap(project_ids)))
+    joins(:projects).where(p_t[:id].in(Array.wrap(project_ids)))
   end
 
   scope :with_open_enrollment_in_organization, ->(organization_ids) do
-    tuples = Hmis::Hud::Organization.where(id: Array.wrap(organization_ids)).pluck(:data_source_id, :organization_id)
-    ds_ids = tuples.map(&:first).compact.map(&:to_i).uniq
-    hud_org_ids = tuples.map(&:second)
-    raise 'orgs are in multiple data sources' if ds_ids.size > 1
+    ds_count = Hmis::Hud::Organization.where(id: organization_ids).select(:data_source_id).distinct.count
+    raise 'orgs are in multiple data sources' if ds_count.size > 1
 
-    joins(:projects_including_wip).where(p_t[:organization_id].in(hud_org_ids).and(p_t[:data_source_id].eq(ds_ids.first)))
+    joins(projects: :organization).merge(Hmis::Hud::Organization.where(id: organization_ids))
   end
 
   scope :with_service_in_range, ->(start_date:, end_date: Date.current, project_id: nil, service_type_id: nil) do

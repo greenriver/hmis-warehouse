@@ -303,5 +303,6 @@ class AllNeighborsSystemDashboardHorizontalBar extends AllNeighborsSystemDashboa
     }
     return {...superConfig, ...config}
   }
-
 }
+globalThis.AllNeighborsSystemDashboardBar = AllNeighborsSystemDashboardBar;
+globalThis.AllNeighborsSystemDashboardHorizontalBar = AllNeighborsSystemDashboardHorizontalBar;

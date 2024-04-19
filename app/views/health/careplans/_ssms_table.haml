@@ -6,7 +6,7 @@
         %th Date Completed
         %th Case Manager
     %tbody
-      - @patient&.thrive_assessments&.each do |assessment|
+      - @patient&.thrive_assessments&.newest_first&.each do |assessment|
         %tr
           %td
             = link_to client_health_thrive_assessment_assessment_path(@client, assessment), data: { loads_in_pjax_modal: true } do

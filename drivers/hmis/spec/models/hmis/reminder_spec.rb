@@ -17,7 +17,7 @@ RSpec.describe Hmis::Reminders::ReminderGenerator, type: :model do
   def reminders_for(_enrollment, topic:)
     project = p1
     Hmis::Reminders::ReminderGenerator.
-      perform(project: project, enrollments: project.enrollments_including_wip).
+      perform(project: project, enrollments: project.enrollments).
       filter { |r| r.topic == topic }
   end
 

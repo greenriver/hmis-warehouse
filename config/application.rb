@@ -112,5 +112,19 @@ module BostonHmis
       GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!
       GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts
     end
+
+    # Fix for chronic calculator
+    # Previously, imported data where the enrollment was in a literally homeless project
+    # where the client would accumulate days between entry & exit that counted toward
+    # "Chronically Homeless at start", the current date was used to make the chronic
+    # determination instead of the exit date
+    config.queued_tasks[:ch_enrollment_exited_rebuild] = -> do
+      # Invalidate the calculation for any enrollment with an exit date
+      # that was previously marked chronic at entry
+      GrdaWarehouse::ChEnrollment.joins(enrollment: :exit).
+        where(chronically_homeless_at_entry: true).
+        update_all(processed_as: nil)
+      GrdaWarehouse::ChEnrollment.maintain!
+    end
   end
 end

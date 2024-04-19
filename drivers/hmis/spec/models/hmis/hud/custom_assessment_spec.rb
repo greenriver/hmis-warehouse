@@ -269,4 +269,14 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
       expect(grouped).to contain_exactly(e3_a1, e2_a2)
     end
   end
+
+  describe 'assessment role scope' do
+    let!(:intake_assessment) { create(:hmis_custom_assessment) }
+    let!(:custom_assessment) { create(:hmis_custom_assessment, data_collection_stage: 99) }
+
+    it 'correctly returns custom assessments' do
+      result = Hmis::Hud::CustomAssessment.with_role('CUSTOM_ASSESSMENT')
+      expect(result).to contain_exactly(custom_assessment)
+    end
+  end
 end

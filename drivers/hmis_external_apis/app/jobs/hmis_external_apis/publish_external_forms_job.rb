@@ -18,7 +18,7 @@ class HmisExternalApis::PublishExternalFormsJob
     publication = definition.external_form_publications.new
 
     renderer = HmisExternalApis::ExternalFormsController.renderer.new
-    raw_content = renderer.render('hmis_external_apis/external_forms/form', assigns: { form_definition: definition.definition })
+    raw_content = renderer.render('hmis_external_apis/external_forms/form', assigns: { form_definition: definition.definition, page_title: definition.title })
 
     publication.object_key = definition.external_form_object_key
     publication.content_digest = digest = Digest::MD5.hexdigest(raw_content)
@@ -71,13 +71,12 @@ class HmisExternalApis::PublishExternalFormsJob
 
     # use bucket/object rather than AwsS3 methods here since we want to publish the form without access restrictions.
     # Maybe this could be DRYed up in the future if we find more use cases
-    s3 = AwsS3.new(region: 'us-east-1', bucket_name: bucket_name)
     object = s3.bucket.object(publication.object_key)
     object.put(
       body: publication.content,
       acl: 'public-read',
       content_disposition: 'inline',
-      content_type: 'text/html',
+      content_type: 'text/html; charset=utf-8',
     )
   end
 

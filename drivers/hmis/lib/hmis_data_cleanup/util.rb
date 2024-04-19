@@ -285,8 +285,6 @@ module HmisDataCleanup
       Hmis::Hud::Project.hmis.each do |project|
         next if project.project_id.size == 32 # Skip internal projects
 
-        wip_enrollments = project.wip_enrollments.pluck(:id)
-
         open_enrollments = project.enrollments.open_on_date.pluck(:id)
         open_enrollments_with_referral = project.enrollments.open_on_date.joins(:source_postings).pluck(:id)
         open_enrollments_missing_referral = open_enrollments - open_enrollments_with_referral
@@ -306,7 +304,7 @@ module HmisDataCleanup
           OpenEnrollments: open_enrollments.size,
           OpenEnrollmentsWithoutReferral: open_enrollments_missing_referral.size,
           OpenEnrollmentsWithoutUnit: open_enrollments_missing_unit.size,
-          AcceptedPendingIncompleteEnrollments: wip_enrollments.size,
+          AcceptedPendingIncompleteEnrollments: project.enrollments.in_progress.count,
         }
 
         if direct_entry_cded
