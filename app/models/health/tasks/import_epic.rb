@@ -178,9 +178,9 @@ module Health::Tasks
 
     def read_csv_file(path:)
       # Decrypt the file if it is '*.gpg'
-      if path =~ /.gpg$/
+      if File.extname(path) == '.gpg'
         data = @config.decrypt_data(File.read(path))
-        path = path[...-4] # Trim off '.gpg'
+        path = File.join(File.dirname(path), File.basename(path, '.gpg'))
         File.write(path, data) # Store decrypted version for processing
       end
 
