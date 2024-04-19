@@ -19,7 +19,7 @@ module Health
       where(kind: :epic_data)
     end
 
-    def decrypt(data)
+    def decrypt_data(data)
       store_secret_key
 
       crypto = GPGME::Crypto.new
