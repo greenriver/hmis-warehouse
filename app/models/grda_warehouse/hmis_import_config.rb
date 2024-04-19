@@ -16,19 +16,20 @@ class GrdaWarehouse::HmisImportConfig < GrdaWarehouseBase
   end
 
   def s3
-    @s3 ||= if s3_secret_access_key.present? && s3_secret_access_key != 'unknown'
-      AwsS3.new(
-        region: s3_region,
-        bucket_name: s3_bucket_name,
-        access_key_id: s3_access_key_id,
-        secret_access_key: s3_secret_access_key,
-      )
-    else
-      AwsS3.new(
-        region: s3_region,
-        bucket_name: s3_bucket_name,
-      )
+    return @s3 if @s3.present?
+
+    s3_options = {
+      region: s3_region,
+      bucket_name: s3_bucket_name,
+    }
+    if s3_secret_access_key.present? && s3_secret_access_key != 'unknown'
+      s3_options[:access_key_id] = s3_access_key_id
+      s3_options[:secret_access_key] = s3_secret_access_key
     end
+    s3_options[:role_arn] = s3_role_arn if s3_role_arn.present?
+    s3_options[:external_id] = s3_external_id if s3_external_id.present?
+
+    @s3 ||= AwsS3.new(**s3_options)
   end
 
   def possible_files
