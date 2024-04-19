@@ -71,6 +71,8 @@ module Types
         enrollments_for_client(client, user: user)
       when 'EXTERNAL_FORM_TYPES_FOR_PROJECT'
         external_form_types_for_project(project)
+      when 'ASSESSMENT_TYPES'
+        assessment_types_for_project(project)
       end
     end
 
@@ -446,6 +448,12 @@ module Types
             initial_selected: unit.id == hh_units.first,
           }
         end
+    end
+
+    def self.assessment_types_for_project(project)
+      project.custom_assessments.joins(:form_processor, :definition).pluck(:identifier, :title).uniq.map do |id, title|
+        { code: id, label: title }
+      end
     end
   end
 end

@@ -296,6 +296,7 @@ type AssessmentEligibility {
 }
 
 input AssessmentFilterOptions {
+  formDefinitionIdentifier: [String!]
   project: [ID!]
   projectType: [ProjectType!]
   type: [AssessmentRole!]
@@ -434,11 +435,17 @@ enum AssessmentType {
 }
 
 input AssessmentsForEnrollmentFilterOptions {
+  formDefinitionIdentifier: [String!]
   type: [AssessmentRole!]
 }
 
 input AssessmentsForHouseholdFilterOptions {
+  formDefinitionIdentifier: [String!]
   type: [AssessmentRole!]
+}
+
+input AssessmentsForProjectFilterOptions {
+  formDefinitionIdentifier: [String!]
 }
 
 type AssessmentsPaginated {
@@ -6393,6 +6400,7 @@ enum PickListType {
   All unit types.
   """
   ALL_UNIT_TYPES
+  ASSESSMENT_TYPES
   AVAILABLE_BULK_SERVICE_TYPES
   AVAILABLE_FILE_TYPES
   AVAILABLE_SERVICE_TYPES
@@ -8281,7 +8289,7 @@ type Project {
   access: ProjectAccess!
   active: Boolean!
   affiliatedProjects: [Project!]!
-  assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  assessments(filters: AssessmentsForProjectFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   ceParticipations(limit: Int, offset: Int): CeParticipationsPaginated!
   contactInformation: String
   continuumProject: NoYes

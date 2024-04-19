@@ -15,6 +15,7 @@ module Types
     value 'ENROLLABLE_PROJECTS', 'Projects that the User can enroll Clients in'
     value 'RESIDENTIAL_PROJECTS', 'Residential Projects'
     value 'ORGANIZATION', 'All Organizations that the User can see'
+    value 'ASSESSMENT_TYPES'
     value 'GEOCODE'
     value 'STATE'
     value 'PRIOR_LIVING_SITUATION'

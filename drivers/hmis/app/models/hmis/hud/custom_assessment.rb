@@ -76,6 +76,10 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     joins(:project).merge(Hmis::Hud::Project.where(id: project_ids))
   end
 
+  scope :with_form_definition_identifier, ->(form_identifiers) do
+    joins(:form_processor, :definition).merge(Hmis::Form::Definition.where(identifier: form_identifiers))
+  end
+
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 
