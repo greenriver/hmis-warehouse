@@ -24,5 +24,9 @@ module MaReports::CsgEngage
       response = https.request(request)
       response.read_body
     end
+
+    def delete(program_id)
+      # TODO
+    end
   end
 end

@@ -12,13 +12,5 @@ class AddCsgReportResultModels < ActiveRecord::Migration[6.1]
       t.datetime :completed_at
       t.datetime :failed_at
     end
-
-    create_table(:csg_engage_household_histories) do |t|
-      t.timestamps
-      t.belongs_to :last_program_report, to_table: :csg_engage_program_reports, index: true
-      t.string :household_id, null: false, index: { unique: true }
-      t.string :fingerprint
-      t.jsonb :data
-    end
   end
 end

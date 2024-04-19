@@ -26,21 +26,6 @@ module MaReports::CsgEngage
       reset
 
       data = MaReports::CsgEngage::ReportComponents::Report.new(program_mapping).serialize
-
-      # Check household data with previous values, only send updated households
-      households = []
-      data.dig('Programs', 0, 'Households').each do |hh_data|
-        # TODO: Handle using actual HH ID instead of enrollment ID
-        fingerprint = MaReports::CsgEngage::HouseholdHistory.fingerprint_for_household_data(hh_data)
-        hh_id = hh_data['Household Identifier']
-        last_fingerprint = MaReports::CsgEngage::HouseholdHistory.last_fingerprint_for_household(hh_id)
-        if last_fingerprint.nil? || fingerprint != last_fingerprint
-          MaReports::CsgEngage::HouseholdHistory.find_or_create_by(household_id: hh_id).update(data: hh_data, last_program_report: self)
-          households << hh_data
-        end
-      end
-      data['Programs'][0]['Households'] = households
-
       result = MaReports::CsgEngage::Credential.first.post(data)
       update(
         completed_at: Time.zone.now,

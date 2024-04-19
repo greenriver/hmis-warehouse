@@ -6590,40 +6590,6 @@ ALTER SEQUENCE public.csg_engage_agencies_id_seq OWNED BY public.csg_engage_agen
 
 
 --
--- Name: csg_engage_household_histories; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.csg_engage_household_histories (
-    id bigint NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    last_program_report_id bigint,
-    household_id character varying NOT NULL,
-    fingerprint character varying,
-    data jsonb
-);
-
-
---
--- Name: csg_engage_household_histories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.csg_engage_household_histories_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: csg_engage_household_histories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.csg_engage_household_histories_id_seq OWNED BY public.csg_engage_household_histories.id;
-
-
---
 -- Name: csg_engage_program_mappings; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -27971,13 +27937,6 @@ ALTER TABLE ONLY public.csg_engage_agencies ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
--- Name: csg_engage_household_histories id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.csg_engage_household_histories ALTER COLUMN id SET DEFAULT nextval('public.csg_engage_household_histories_id_seq'::regclass);
-
-
---
 -- Name: csg_engage_program_mappings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -31323,14 +31282,6 @@ ALTER TABLE ONLY public.contacts
 
 ALTER TABLE ONLY public.csg_engage_agencies
     ADD CONSTRAINT csg_engage_agencies_pkey PRIMARY KEY (id);
-
-
---
--- Name: csg_engage_household_histories csg_engage_household_histories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.csg_engage_household_histories
-    ADD CONSTRAINT csg_engage_household_histories_pkey PRIMARY KEY (id);
 
 
 --
@@ -52203,20 +52154,6 @@ CREATE INDEX index_contacts_on_entity_id ON public.contacts USING btree (entity_
 --
 
 CREATE INDEX index_contacts_on_type ON public.contacts USING btree (type);
-
-
---
--- Name: index_csg_engage_household_histories_on_household_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_csg_engage_household_histories_on_household_id ON public.csg_engage_household_histories USING btree (household_id);
-
-
---
--- Name: index_csg_engage_household_histories_on_last_program_report_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_csg_engage_household_histories_on_last_program_report_id ON public.csg_engage_household_histories USING btree (last_program_report_id);
 
 
 --

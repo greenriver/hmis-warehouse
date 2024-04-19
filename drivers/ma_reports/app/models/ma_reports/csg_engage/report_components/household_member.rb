@@ -49,16 +49,16 @@ module MaReports::CsgEngage::ReportComponents
       field('Education Level')
       field('EITC')
       field('Health Insurance Source') do
-        return nil unless latest_income_benefit&.InsuranceFromAnySource == 1
+        next '4' unless latest_income_benefit&.InsuranceFromAnySource == 1
 
-        return '1' if latest_income_benefit&.PrivatePay == 1
-        return '3' if latest_income_benefit&.Medicaid == 1
-        return '2' if latest_income_benefit&.Medicare == 1
-        return '8' if latest_income_benefit&.SCHIP == 1
-        return '7' if latest_income_benefit&.VAMedicalServices == 1
-        return '10' if latest_income_benefit&.EmployerProvided == 1
-        return '10' if latest_income_benefit&.COBRA == 1
-        return '9' if latest_income_benefit&.StateHealthIns == 1
+        next '1' if latest_income_benefit&.PrivatePay == 1
+        next '3' if latest_income_benefit&.Medicaid == 1
+        next '2' if latest_income_benefit&.Medicare == 1
+        next '8' if latest_income_benefit&.SCHIP == 1
+        next '7' if latest_income_benefit&.VAMedicalServices == 1
+        next '10' if latest_income_benefit&.EmployerProvided == 1
+        next '10' if latest_income_benefit&.COBRA == 1
+        next '9' if latest_income_benefit&.StateHealthIns == 1
 
         'U'
       end
