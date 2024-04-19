@@ -34,7 +34,16 @@ FactoryBot.define do
       record.project_id = record.project.project_id
     end
     after(:create) do |enrollment, evaluator|
-      enrollment.exit = create(:hmis_hud_exit, exit_date: evaluator.exit_date, enrollment: enrollment, data_source: enrollment.data_source, client: enrollment.client) if evaluator.exit_date
+      if evaluator.exit_date
+        enrollment.exit = create(
+          :hmis_base_hud_exit,
+          :skip_validate,
+          exit_date: evaluator.exit_date,
+          enrollment: enrollment,
+          data_source: enrollment.data_source,
+          client: enrollment.client,
+        )
+      end
     end
   end
 

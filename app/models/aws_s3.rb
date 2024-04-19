@@ -12,43 +12,60 @@ class AwsS3
     region: nil,
     bucket_name:,
     access_key_id: nil,
-    secret_access_key: nil
+    secret_access_key: nil,
+    role_arn: nil,
+    external_id: nil
   )
     @bucket_name = bucket_name
 
     region ||= ENV.fetch('AWS_REGION', 'us-east-1')
 
-    # if environment is set up right, this can all be:
-    # self.client = Aws::S3::Client.new
+    client_options = {
+      region: region,
+    }
+
+    # In development setup local access
     if ENV['USE_MINIO_ENDPOINT'] == 'true' && ENV['MINIO_ENDPOINT'].present?
       access_key_id = ENV['AWS_ACCESS_KEY_ID'] unless access_key_id.present?
       secret_access_key = ENV['AWS_SECRET_ACCESS_KEY'] unless secret_access_key.present?
 
-      params = {
+      client_options = {
         force_path_style: true, # don't force dns hoop jumping
         endpoint: ENV.fetch('MINIO_ENDPOINT'),
         region: region,
         access_key_id: access_key_id,
         secret_access_key: secret_access_key,
       }
-
-      self.client = Aws::S3::Client.new(params)
-    elsif secret_access_key.present? && secret_access_key != 'unknown'
-      self.client = Aws::S3::Client.new(
-        {
-          region: region,
-          access_key_id: access_key_id,
-          secret_access_key: secret_access_key,
-        },
-      )
     else
-      self.client = Aws::S3::Client.new(
-        {
+      # if we are assuming a role, set that up
+      # https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/AssumeRoleCredentials.html
+      if role_arn.present?
+        assume_options = {
           region: region,
-        },
-      )
+          role_arn: role_arn,
+          role_session_name: 'hmis-warehouse-session',
+        }
+        sts_options = {
+          region: region,
+        }
+        assume_options[:external_id] = external_id if external_id.present?
+        if secret_access_key.present? && secret_access_key != 'unknown'
+          assume_options[:access_key_id] = access_key_id
+          assume_options[:secret_access_key] = secret_access_key
+          sts_options[:access_key_id] = access_key_id
+          sts_options[:secret_access_key] = secret_access_key
+        end
+        assume_options[:client] = Aws::STS::Client.new(**sts_options)
+        client_options[:credentials] = Aws::AssumeRoleCredentials.new(**assume_options)
+      end
+      # if we provided keys, use those
+      if secret_access_key.present? && secret_access_key != 'unknown'
+        client_options[:access_key_id] = access_key_id
+        client_options[:secret_access_key] = secret_access_key
+      end
     end
 
+    self.client = Aws::S3::Client.new(**client_options)
     @s3 = Aws::S3::Resource.new(client: client)
     @bucket = @s3.bucket(@bucket_name)
   end
