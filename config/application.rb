@@ -23,9 +23,6 @@ module BostonHmis
     # uncomment RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION above
     TodoOrDie('Remove deprecated date/time.to_s', by: '2024-07-01')
 
-    TodoOrDie('Remove support for rails 6.1 cookies, change cookies_serializer to :json', by: '2024-07-01')
-    config.action_dispatch.cookies_serializer = :hybrid
-
     # ActionCable
     config.action_cable.mount_path = '/cable'
     config.action_cable.url = ENV.fetch('ACTION_CABLE_URL') { "wss://#{ENV['FQDN']}/cable" }
