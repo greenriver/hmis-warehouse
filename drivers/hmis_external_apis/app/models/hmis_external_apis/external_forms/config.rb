@@ -17,6 +17,9 @@ module HmisExternalApis::ExternalForms
       PROPERTIES.zip(attr_keys).each do |attr, key|
         instance_variable_set(:"@#{attr}", settings[key]&.value&.freeze)
       end
+      # for local development use:
+      # AppConfigProperty.create!(key: "external_forms/presign_url", value: "/hmis_external_api/external_forms/presign")
+      raise "Missing AppConfigProperty for presign url" if presign_url.blank?
     end
 
     def js_config
