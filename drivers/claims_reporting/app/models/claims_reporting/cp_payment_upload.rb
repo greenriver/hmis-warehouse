@@ -66,7 +66,7 @@ module ClaimsReporting
 
     def validate_contents
       if content.length > MAX_UPLOAD_SIZE
-        errors.add(:content, "is too large. Max size is #{MAX_UPLOAD_SIZE.to_s(:human_size)}")
+        errors.add(:content, "is too large. Max size is #{MAX_UPLOAD_SIZE.to_fs(:human_size)}")
         return
       end
       content_as_details.any? # we call this just to provoke Roo to throw validation errors
