@@ -3,10 +3,9 @@ require_relative 'boot'
 require 'rails/all'
 require 'active_record_extended'
 
-### Toggle this on when we are ready to remove deprecated behavior for date.to_s
-# The env var is the same as config.active_support.disable_to_s_conversion = true but impacts driver initializers that
-# load before this app config block
-# ENV['RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION'] = 'true'
+# The env var is the same as config.active_support.disable_to_s_conversion = true but impacts driver initializers that load before this app config block
+#   * Note, we still use the deprecated behavior for date/time. It's preserved in config/initializers/legacy_rails_conversions.rb
+ENV['RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION'] = 'true'
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -19,9 +18,6 @@ module BostonHmis
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 7.0
     config.autoload_paths << Rails.root.join('lib', 'devise')
-
-    # uncomment RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION above
-    TodoOrDie('Remove deprecated date/time.to_s', by: '2024-07-01')
 
     # ActionCable
     config.action_cable.mount_path = '/cable'

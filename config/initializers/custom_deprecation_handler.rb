@@ -16,7 +16,7 @@ class CustomDeprecationHandler
     error = StandardError.new(message)
     begin
       error.set_backtrace(backtrace) if backtrace
-    rescue TypeError # rubocop:disable Lint/SuppressedException
+    rescue TypeError
     end
     key = Digest::MD5.hexdigest(error.full_message)
     # rate limit warnings
@@ -30,19 +30,10 @@ class CustomDeprecationHandler
 end
 
 # rails deprecations are logged
-case Rails.configuration.active_support.deprecation
-when :notify
+if Rails.configuration.active_support.deprecation == :notify
   ActiveSupport::Notifications.subscribe('deprecation.rails') do |_name, _start, _finish, _event_id, payload|
-    CustomDeprecationHandler.instance.
-      call(message: payload[:message], backtrace: payload[:callstack])
-  end
-when :raise
-  TodoOrDie('Remove deprecated date/time.to_s', by: '2024-07-01')
-  # we don't want CI tests to fail because of date.to_s deprecations. Remove this once we have fixed deprecations
-  if Rails.env.test?
-    ActiveSupport::Deprecation.behavior = lambda do |message, stack, deprecation_horizon, gem_name|
-      ActiveSupport::Deprecation::DEFAULT_BEHAVIORS[:raise].call(message, stack, deprecation_horizon, gem_name) unless message =~ /RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION/
-    end
+    CustomDeprecationHandler.instance
+      .call(message: payload[:message], backtrace: payload[:callstack])
   end
 end
 
@@ -51,8 +42,8 @@ Warning.process do |message|
   if Rails.env.development?
     :raise
   else
-    CustomDeprecationHandler.instance.
-      call(message: message, backtrace: caller(6))
+    CustomDeprecationHandler.instance
+      .call(message: message, backtrace: caller(6))
     :default
   end
 end
