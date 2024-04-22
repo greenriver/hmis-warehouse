@@ -30,6 +30,7 @@ module Types
       klass
     end
 
+    # object is a GrdaWarehouse::Version (papertrail)
     field :id, ID, null: false
     field :record_id, ID, null: false, method: :item_id
     field :record_name, String, null: false

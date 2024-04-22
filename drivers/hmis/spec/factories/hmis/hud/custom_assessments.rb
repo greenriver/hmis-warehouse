@@ -32,6 +32,7 @@ FactoryBot.define do
     after(:create) do |assessment, evaluator|
       assessment.build_form_processor(values: evaluator.values, hud_values: evaluator.hud_values, definition: evaluator.definition)
       assessment.form_processor.definition ||= build(:hmis_form_definition)
+      assessment.form_definition_identifier = assessment.form_processor.definition.identifier
       assessment.save!
     end
   end
@@ -52,6 +53,7 @@ FactoryBot.define do
     end
     after(:create) do |assessment, evaluator|
       assessment.form_processor = create(:hmis_form_processor, custom_assessment: assessment, values: evaluator.values, hud_values: evaluator.hud_values)
+      assessment.form_definition_identifier = assessment.form_processor.definition.identifier
       assessment.save_in_progress
     end
   end

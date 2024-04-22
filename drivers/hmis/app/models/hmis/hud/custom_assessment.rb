@@ -30,9 +30,12 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments, optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
+  # WARNING: use form_processor.definition instead to get the specific version of the form definition
+  belongs_to :definition,
+             -> { from('(SELECT DISTINCT ON (identifier) * FROM hmis_form_definitions ORDER BY identifier, version DESC) as hmis_form_definitions') },
+             primary_key: 'identifier', foreign_key: 'form_definition_identifier', class_name: 'Hmis::Form::Definition', optional: true
 
   has_one :form_processor, class_name: 'Hmis::Form::FormProcessor', dependent: :destroy
-  has_one :definition, through: :form_processor
   has_one :health_and_dv, through: :form_processor
   has_one :income_benefit, through: :form_processor
   has_one :physical_disability, through: :form_processor
@@ -132,10 +135,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   def title
     title = HudUtility2024.assessment_name_by_data_collection_stage[data_collection_stage]
-    # TODO(#187248703): replace with `definition.title` via definition_identifier column once that relationship exists
-    title ||= form_processor&.definition&.title
-    title ||= 'Custom Assessment'
-    title
+    title || definition&.title.presence || 'Custom Assessment'
   end
 
   def save_submitted_assessment!(current_user:, as_wip: false)
@@ -176,6 +176,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
       user_id: user.user_id,
       assessment_date: assessment_date,
       data_collection_stage: Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[form_definition.role.to_sym] || 99,
+      form_definition_identifier: form_definition.identifier,
       **enrollment.slice(:data_source_id, :personal_id, :enrollment_id),
     )
     new_assessment.build_form_processor(definition: form_definition)
