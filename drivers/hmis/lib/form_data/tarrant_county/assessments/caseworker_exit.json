@@ -16,14 +16,6 @@
           "assessment_date": true
         },
         {
-          "text": "Exit Date",
-          "type": "DATE",
-          "link_id": "caseworker_exit_date",
-          "mapping": {
-            "custom_field_key": "caseworker_exit_date"
-          }
-        },
-        {
           "text": "Phone Number",
           "size": "SMALL",
           "type": "STRING",
@@ -109,10 +101,9 @@
           }
         },
         {
-          "text": "Percent of GAS Change",
-          "type": "INTEGER",
+          "text": "<b>Percent of GAS Change</b>: ${value}%",
+          "type": "DISPLAY",
           "link_id": "caseworker_exit_gas_score_percent_change",
-          "read_only": true,
           "autofill_values": [
             {
               "formula": "(caseworker_exit_end_gas_score - caseworker_exit_beginning_gas_score) / 40 * 100",
@@ -120,10 +111,7 @@
               "autofill_behavior": "ALL",
               "autofill_readonly": true
             }
-          ],
-          "mapping": {
-            "custom_field_key": "caseworker_exit_gas_score_percent_change"
-          }
+          ]
         },
         {
           "text": "Where will the client be residing?",
@@ -276,6 +264,7 @@
           "type": "INTEGER",
           "link_id": "caseworker_exit_gained_employment",
           "read_only": true,
+          "hidden": true,
           "autofill_values": [
             {
               "value_number": 1,
