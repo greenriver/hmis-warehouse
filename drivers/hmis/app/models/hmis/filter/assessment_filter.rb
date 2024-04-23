@@ -8,8 +8,7 @@ class Hmis::Filter::AssessmentFilter < Hmis::Filter::BaseFilter
   def filter_scope(scope)
     scope = ensure_scope(scope)
     scope.
-      yield_self(&method(:with_role)).
-      yield_self(&method(:with_form_definition_identifier)).
+      yield_self(&method(:with_type)).
       yield_self(&method(:with_project_type)).
       yield_self(&method(:with_project)).
       yield_self(&method(:clean_scope))
@@ -17,12 +16,19 @@ class Hmis::Filter::AssessmentFilter < Hmis::Filter::BaseFilter
 
   protected
 
-  def with_role(scope)
-    with_filter(scope, :type) { scope.with_role(input.type) }
-  end
+  def with_type(scope)
+    hud_types = []
+    custom_types = []
 
-  def with_form_definition_identifier(scope)
-    with_filter(scope, :form_definition_identifier) { scope.with_form_definition_identifier(input.form_definition_identifier) }
+    input.type.each do |t|
+      if Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES.excluding(:CUSTOM_ASSESSMENT).keys.include?(t.to_sym)
+        hud_types << t
+      else
+        custom_types << t
+      end
+    end
+
+    with_filter(scope, :type) { scope.with_role(hud_types).or(scope.with_form_definition_identifier(custom_types)) }
   end
 
   def with_project_type(scope)

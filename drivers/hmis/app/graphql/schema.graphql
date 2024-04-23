@@ -296,10 +296,9 @@ type AssessmentEligibility {
 }
 
 input AssessmentFilterOptions {
-  formDefinitionIdentifier: [String!]
   project: [ID!]
   projectType: [ProjectType!]
-  type: [AssessmentRole!]
+  type: [String!]
 }
 
 input AssessmentInput {
@@ -435,17 +434,15 @@ enum AssessmentType {
 }
 
 input AssessmentsForEnrollmentFilterOptions {
-  formDefinitionIdentifier: [String!]
-  type: [AssessmentRole!]
+  type: [String!]
 }
 
 input AssessmentsForHouseholdFilterOptions {
-  formDefinitionIdentifier: [String!]
-  type: [AssessmentRole!]
+  type: [String!]
 }
 
 input AssessmentsForProjectFilterOptions {
-  formDefinitionIdentifier: [String!]
+  type: [String!]
 }
 
 type AssessmentsPaginated {

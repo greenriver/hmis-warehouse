@@ -451,9 +451,20 @@ module Types
     end
 
     def self.assessment_types_for_project(project)
-      project.custom_assessments.joins(:form_processor, :definition).pluck(:identifier, :title).uniq.map do |id, title|
-        { code: id, label: title }
-      end
+      # It's a little odd to combine the "roles" (eg INTAKE) with the identifiers (eg housing_needs_assessment), but
+      # we need to do that in order to get the desired behavior. The "Intake" option should show all Intakes,
+      # regardless of what form they used.
+
+      # get all form rules for custom assessments (active and inactive)
+      scope = Hmis::Form::Instance.with_role(:CUSTOM_ASSESSMENT)
+      # filter down to rules that match this project, if project is specified
+      scope = scope.filter { |fi| fi.project_match(project) } if project
+      # { code: definition.identifier, label: definition.title }
+      custom_options = scope.map(&:to_pick_list_option).uniq.sort_by { |opt| opt[:label] }
+      hud_options = Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES.excluding(:CUSTOM_ASSESSMENT).keys.
+        map { |k| { code: k.to_s, label: k.to_s.humanize } }
+
+      hud_options + custom_options
     end
   end
 end

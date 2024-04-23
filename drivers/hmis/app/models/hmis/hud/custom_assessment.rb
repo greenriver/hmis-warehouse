@@ -65,7 +65,14 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   scope :with_role, ->(role) do
     stages = Array.wrap(role).map { |r| Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[r.to_sym] }.compact
-    where(data_collection_stage: stages)
+    # joining form processor and definition here so that this scope is compatible to be OR-ed with with_form_definition_identifier.
+    # TODO(#187248703): remove `joins(:form_processor, :definition).`
+    joins(:form_processor, :definition).where(data_collection_stage: stages)
+  end
+
+  scope :with_form_definition_identifier, ->(form_identifiers) do
+    # TODO(#187248703): simplify this query to just look at custom_assessment.definition_identifier and avoid the join
+    joins(:form_processor, :definition).merge(Hmis::Form::Definition.where(identifier: form_identifiers))
   end
 
   scope :with_project_type, ->(project_types) do
@@ -74,10 +81,6 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   scope :with_project, ->(project_ids) do
     joins(:project).merge(Hmis::Hud::Project.where(id: project_ids))
-  end
-
-  scope :with_form_definition_identifier, ->(form_identifiers) do
-    joins(:form_processor, :definition).merge(Hmis::Form::Definition.where(identifier: form_identifiers))
   end
 
   def self.sort_by_option(option)

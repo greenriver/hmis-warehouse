@@ -12,8 +12,7 @@ module Types
     include Types::HmisSchema::HasHudMetadata
 
     available_filter_options do
-      arg :type, [Types::Forms::Enums::AssessmentRole]
-      arg :form_definition_identifier, [String]
+      arg :type, [String]
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
       arg :project, [ID]
     end
