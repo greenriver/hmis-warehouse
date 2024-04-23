@@ -6,7 +6,7 @@
 
 module HmisExternalApis::ExternalForms
   class Config
-    PROPERTIES = [:site_logo_alt, :site_logo_url, :site_logo_width, :site_logo_height, :recaptcha_key, :presign_url, :csp_content].freeze
+    PROPERTIES = [:site_logo_alt, :site_logo_url, :site_logo_width, :site_logo_height, :recaptcha_key, :presign_url, :csp_content, :sentry_sdk_url].freeze
     private_constant :PROPERTIES
     attr_reader(*PROPERTIES)
 
@@ -19,7 +19,7 @@ module HmisExternalApis::ExternalForms
       end
       # for local development use:
       # AppConfigProperty.create!(key: "external_forms/presign_url", value: "/hmis_external_api/external_forms/presign")
-      raise "Missing AppConfigProperty for presign url" if presign_url.blank?
+      raise 'Missing AppConfigProperty for presign url' if presign_url.blank?
     end
 
     def js_config
