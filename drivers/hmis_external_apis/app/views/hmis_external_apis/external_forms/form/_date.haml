@@ -3,6 +3,7 @@
   month_id = next_html_id
   day_id = next_html_id
   year_id = next_html_id
+  validation_message_id = next_html_id
 .form-row(style="max-width: 400px")
   %input{type:"hidden", name: name, id: date_id}
   .col-3
@@ -11,6 +12,7 @@
     = render_numeric_input(label: 'Day', name: nil, required: required, input_placeholder: 'DD', input_html_id: day_id)
   .col-4
     = render_numeric_input(label: 'Year', name: nil, required: required, input_placeholder: 'YYYY', input_html_id: year_id)
+%div.hide.text-danger.my-2{id: validation_message_id}
 
 - content_for :page_js do
   :javascript
@@ -20,12 +22,61 @@
       var day ='#' + #{day_id.to_json.html_safe};
       var year ='#' + #{year_id.to_json.html_safe};
       var date ='#' + #{date_id.to_json.html_safe};
-      $([month, day, year].join(', ')).change(function() {
+      var validationMessage ='#' + #{validation_message_id.to_json.html_safe};
+
+      $([month, day, year].join(', ')).on('change', function() {
         var parts = [
           $(month).val().padStart(2, '0'),
           $(day).val().padStart(2, '0'),
           $(year).val()
         ]
+        console.info(parts.join('/'));
         $(date).val(parts.join('/'));
+      });
+
+      var dateValidationMessage = function(month, day, year) {
+        if (!(month && day && year)) return
+
+        month = parseInt(month) - 1;
+        day = parseInt(day);
+        year = parseInt(year);
+        var inputDate = new Date(year, month, day);
+
+        // Check if date is valid by comparing it against the parts
+        if (inputDate.getFullYear() !== year || inputDate.getMonth() !== month || inputDate.getDate() !== day) {
+          return "Date is not valid";
+        }
+
+        // crude date range validation
+        var today = new Date();
+        var dateMax = new Date(today.getFullYear() - 10, 0, 1);
+        var dateMin = new Date(today.getFullYear() - 100, 0, 1);
+
+        if (inputDate < dateMin) {
+          return "Date must greater than " + dateMin.toDateString();
+        } else {
+          if (inputDate > dateMax) return "Date must less than " + dateMax.toDateString();
+        }
+      }
+
+      var setError = function(msg) {
+        console.info(msg)
+        var el = $(validationMessage);
+        if (msg) {
+          el.addClass('is-invalid');
+          el.removeClass('hide');
+          el.text(msg);
+        } else {
+          el.removeClass('is-invalid');
+          el.addClass('hide');
+          el.text('');
+        }
+      }
+
+      $([month, day, year].join(',')).on('focusout', function () {
+        var monthValue = $(month).val();
+        var dayValue = $(day).val();
+        var yearValue = $(year).val();
+        setError(dateValidationMessage(monthValue, dayValue, yearValue));
       });
     });
