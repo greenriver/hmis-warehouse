@@ -107,21 +107,7 @@ $(function () {
 
   $('.needs-validation').find('input,select,textarea').on('focusout', function () {
     // check element validity and change class
-    var el = $(this);
-    el.removeClass('is-valid is-invalid validity-value-missing validity-pattern-mismatch');
-    if (this.checkValidity()) {
-      el.addClass('is-valid');
-    } else {
-      // could differentiate validation type here
-      // if (this.validity) {
-      //   if (this.validity.valueMissing) {
-      //     el.addClass('validity-value-missing');
-      //   } else if (this.validity.patternMismatch) {
-      //     el.addClass('validity-pattern-mismatch');
-      //   }
-      // }
-      el.addClass('is-invalid');
-    }
+    $(this).removeClass('is-valid is-invalid').addClass(this.checkValidity() ? 'is-valid' : 'is-invalid');
   });
 });
 

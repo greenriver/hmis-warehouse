@@ -99,7 +99,7 @@ RSpec.describe 'HmisExternalApis::PublishExternalFormsJob', type: :model do
       site_logo_height: 100,
       recaptcha_key: 'fakekey',
       presign_url: 'http://example.com',
-      sentry_sdk_url: 'ttps://js.sentry-cdn.com/your-key.js',
+      sentry_sdk_url: 'https://js.sentry-cdn.com/your-key.js',
     }.each do |key, value|
       AppConfigProperty.create!(key: "external_forms/#{key}", value: value)
     end
