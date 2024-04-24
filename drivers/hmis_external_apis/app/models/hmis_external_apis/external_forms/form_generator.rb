@@ -71,7 +71,7 @@ module HmisExternalApis::ExternalForms
       render_form_group(node: node) do
         case node['component']
         when 'PHONE'
-          render_form_input(label: node['text'], name: node_name(node), required: node['required'], input_type: 'tel', input_invalid_feedback: 'Enter a valid 10-digit phone number, placeholder')
+          render_form_input(label: node['text'], name: node_name(node), required: node['required'], input_type: 'tel', input_invalid_feedback: 'Enter a valid 10-digit phone number')
         when 'EMAIL'
           render_form_input(label: node['text'], name: node_name(node), required: node['required'], input_type: 'email', input_invalid_feedback: 'Enter a valid email address')
         else
