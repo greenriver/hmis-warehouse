@@ -19,7 +19,7 @@
         margin-bottom: 2rem;
       }
       .form-group {
-        margin-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
       }
       .form-group > .required:after, fieldset > .required:after {
         content: " *";
@@ -29,6 +29,7 @@
       legend {
         font-size: 16px;
         font-weight: normal;
+        margin-bottom: 0.25rem;
       }
       main.container {
         max-width: 540px;
@@ -66,6 +67,9 @@
       .form-check-input.is-valid~.form-check-label, .was-validated .form-check-input:valid~.form-check-label {
         color: #212529 !important;
       }
+      .form-check {
+        margin: 0.25rem;
+      }
 
   %body.bg-light
     %nav.sticky-top.navbar-light.border-bottom.bg-white.mb-4.shadow-sm
@@ -74,6 +78,9 @@
           %img{ alt: page_config.site_logo_alt, width: page_config.site_logo_width, height: page_config.site_logo_height, src: page_config.site_logo_url}
 
     %main.container.p-sm-0
+      %p.text-muted.small.text-right.pr-2
+        %span.text-danger *
+        Indicates a required field
       %noscript
         .p-4(style="background-color: #ffcc00;")
           %strong.mb-2.d-block JavaScript Required

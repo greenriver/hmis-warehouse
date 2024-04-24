@@ -3,7 +3,7 @@
   "item": [
     {
       "type": "DISPLAY",
-      "text": "Do not leave any portion of the assessment blank",
+      "text": "This assessment determines your eligibility for rental assistance. Please do not leave any portion of the assessment blank.",
       "link_id": "required_fields_explanation"
     },
     {
@@ -69,6 +69,7 @@
         },
         {
           "link_id": "client_email",
+          "component": "EMAIL",
           "type": "STRING",
           "required": true,
           "text": "Your Email",
@@ -80,6 +81,7 @@
           "link_id": "client_phone_number",
           "type": "STRING",
           "required": true,
+          "component": "PHONE",
           "text": "Your Phone Number",
           "mapping": {
             "custom_field_key": "tchc_prevention_screening_client_phone_number"
@@ -319,6 +321,7 @@
         {
           "link_id": "landlord_phone_number",
           "type": "STRING",
+          "component": "PHONE",
           "text": "Landlord Phone Number",
           "mapping": {
             "custom_field_key": "tchc_prevention_screening_landlord_phone_number"
@@ -327,6 +330,7 @@
         {
           "link_id": "landlord_email",
           "type": "STRING",
+          "component": "EMAIL",
           "text": "Landlord Email",
           "mapping": {
             "custom_field_key": "tchc_prevention_screening_landlord_email"

@@ -4,15 +4,17 @@
   day_id = next_html_id
   year_id = next_html_id
   validation_message_id = next_html_id
-.form-row(style="max-width: 400px")
+.form-text.text-muted.mb-2
+  For example: 3 27 2007
+%div.hide.text-danger.my-2{id: validation_message_id}
+.form-row
   %input{type:"hidden", name: name, id: date_id}
   .col-3
-    = render_numeric_input(label: 'Month', name: nil, required: required, input_placeholder: 'MM', input_html_id: month_id)
+    = render_numeric_input(label: 'Month', name: nil, required: required, input_placeholder: 'MM', input_html_id: month_id, input_pattern: '0?[1-9]|1[0-2]', input_invalid_feedback: 'must be a month (1-12)')
   .col-3
-    = render_numeric_input(label: 'Day', name: nil, required: required, input_placeholder: 'DD', input_html_id: day_id)
+    = render_numeric_input(label: 'Day', name: nil, required: required, input_placeholder: 'DD', input_html_id: day_id, input_pattern: '0?[1-9]|1[0-9]|2[0-9]|3[01]', input_invalid_feedback: 'must be a day of the month (1-31)')
   .col-4
-    = render_numeric_input(label: 'Year', name: nil, required: required, input_placeholder: 'YYYY', input_html_id: year_id)
-%div.hide.text-danger.my-2{id: validation_message_id}
+    = render_numeric_input(label: 'Year', name: nil, required: required, input_placeholder: 'YYYY', input_html_id: year_id, input_pattern: '(19|20)\d{2}', input_invalid_feedback: 'must be a four-digit year')
 
 - content_for :page_js do
   :javascript
@@ -47,16 +49,16 @@
           return "Date is not valid";
         }
 
-        // crude date range validation
-        var today = new Date();
-        var dateMax = new Date(today.getFullYear() - 10, 0, 1);
-        var dateMin = new Date(today.getFullYear() - 100, 0, 1);
+        // FIXME - it would be nice to pass in bounds from the date (max: $today, etc)
+        // var today = new Date();
+        // var dateMax = new Date(today.getFullYear() - 10, 0, 1);
+        // var dateMin = new Date(today.getFullYear() - 100, 0, 1);
 
-        if (inputDate < dateMin) {
-          return "Date must greater than " + dateMin.toDateString();
-        } else {
-          if (inputDate > dateMax) return "Date must less than " + dateMax.toDateString();
-        }
+        // if (inputDate < dateMin) {
+        //   return "Date must greater than " + dateMin.toDateString();
+        // } else {
+        //   if (inputDate > dateMax) return "Date must less than " + dateMax.toDateString();
+        // }
       }
 
       var setError = function(msg) {
