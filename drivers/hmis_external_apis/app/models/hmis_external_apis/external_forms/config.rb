@@ -6,7 +6,7 @@
 
 module HmisExternalApis::ExternalForms
   class Config
-    PROPERTIES = [:site_logo_alt, :site_logo_url, :site_logo_width, :site_logo_height, :recaptcha_key, :presign_url, :csp_content, :sentry_sdk_url].freeze
+    PROPERTIES = [:site_logo_alt, :site_logo_url, :site_logo_width, :site_logo_height, :recaptcha_key, :presign_url, :sentry_sdk_url].freeze
     private_constant :PROPERTIES
     attr_reader(*PROPERTIES)
 
@@ -20,6 +20,19 @@ module HmisExternalApis::ExternalForms
       # for local development use:
       # AppConfigProperty.create!(key: "external_forms/presign_url", value: "/hmis_external_api/external_forms/presign")
       raise 'Missing AppConfigProperty for presign url' if presign_url.blank?
+    end
+
+    def csp_content
+      sentry_base_url = 'https://sentry.io'
+      <<~CSP
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com https://code.jquery.com https://cdn.jsdelivr.net https://js.sentry-cdn.com;
+      style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
+      img-src 'self' data:;
+      connect-src 'self' #{Rails.env.development? ? nil : presign_url} https://sentry.io;
+      frame-src https://www.google.com;
+      font-src 'self';
+      CSP
     end
 
     def js_config
