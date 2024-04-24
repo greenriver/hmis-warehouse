@@ -13,6 +13,14 @@ RSpec.describe 'HmisExternalApis::ConsumeExternalFormSubmissionsJob', type: :mod
     create(:hmis_external_form_definition)
   end
 
+  before(:each) do
+    {
+      presign_url: 'http://example.com',
+    }.each do |key, value|
+      AppConfigProperty.create!(key: "external_forms/#{key}", value: value)
+    end
+  end
+
   let!(:s3_cred) do
     GrdaWarehouse::RemoteCredentials::S3.where(slug: 'hmis_external_form_submissions').first_or_create! do |record|
       record.bucket = 'external-forms'
