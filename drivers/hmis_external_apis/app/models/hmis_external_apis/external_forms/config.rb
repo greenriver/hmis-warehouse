@@ -17,9 +17,15 @@ module HmisExternalApis::ExternalForms
       PROPERTIES.zip(attr_keys).each do |attr, key|
         instance_variable_set(:"@#{attr}", settings[key]&.value&.freeze)
       end
-      # for local development use:
-      # AppConfigProperty.create!(key: "external_forms/presign_url", value: "/hmis_external_api/external_forms/presign")
+
+      return if Rails.env.development? || Rails.env.test?
+
       raise 'Missing AppConfigProperty for presign url' if presign_url.blank?
+      raise 'Missing submission bucket' if submission_s3_url.blank?
+    end
+
+    def submission_s3_url
+      GrdaWarehouse::RemoteCredentials::S3.for_active_slug('public_bucket')&.s3&.bucket&.url
     end
 
     def csp_content
@@ -28,7 +34,7 @@ module HmisExternalApis::ExternalForms
         script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com https://code.jquery.com https://cdn.jsdelivr.net https://js.sentry-cdn.com;
         style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
         img-src 'self' data:;
-        connect-src 'self' #{Rails.env.development? ? nil : presign_url} https://sentry.io;
+        connect-src 'self' #{base_url(presign_url)} #{base_url(submission_s3_url)} https://sentry.io;
         frame-src https://www.google.com;
         font-src 'self';
       CSP
@@ -39,6 +45,16 @@ module HmisExternalApis::ExternalForms
         recaptchaKey: recaptcha_key,
         presignUrl: presign_url,
       }
+    end
+
+    protected
+
+    # remove the path of a url (for inclusion in CSP)
+    def base_url(url)
+      return if url.blank?
+      return if url =~ /\A\// # is a relative url, like might be used in development
+
+      URI.join(url, '/').to_s
     end
   end
 end
