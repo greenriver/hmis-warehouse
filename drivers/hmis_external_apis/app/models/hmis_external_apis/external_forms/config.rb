@@ -23,15 +23,14 @@ module HmisExternalApis::ExternalForms
     end
 
     def csp_content
-      sentry_base_url = 'https://sentry.io'
       <<~CSP
-      default-src 'self';
-      script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com https://code.jquery.com https://cdn.jsdelivr.net https://js.sentry-cdn.com;
-      style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
-      img-src 'self' data:;
-      connect-src 'self' #{Rails.env.development? ? nil : presign_url} https://sentry.io;
-      frame-src https://www.google.com;
-      font-src 'self';
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com https://code.jquery.com https://cdn.jsdelivr.net https://js.sentry-cdn.com;
+        style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
+        img-src 'self' data:;
+        connect-src 'self' #{Rails.env.development? ? nil : presign_url} https://sentry.io;
+        frame-src https://www.google.com;
+        font-src 'self';
       CSP
     end
 

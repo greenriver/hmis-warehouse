@@ -9,7 +9,7 @@ module HmisExternalApis::ExternalFormsHelper
     "hmis_external_apis/external_forms/#{partial}"
   end
 
-  def render_form_input(label:, input_type: 'text', name:, input_pattern: nil, input_mode: 'text', required: false, input_placeholder: nil, input_class: nil, input_html_id: next_html_id, input_helper: nil, input_invalid_feedback: nil)
+  def render_form_input(label:, input_type: 'text', name:, input_pattern: nil, input_mode: 'text', required: false, input_placeholder: nil, input_class: nil, input_html_id: next_html_id, input_helper: nil, input_invalid_feedback: nil) # rubocop:disable Metrics/ParameterLists
     input_invalid_feedback ||= required ? 'This is required' : nil
     render partial_path('form/input'), label: label, input_type: input_type, name: name, required: required, input_pattern: input_pattern, html_id: input_html_id, input_mode: input_mode, input_placeholder: input_placeholder, input_class: input_class, input_helper: input_helper, input_invalid_feedback: input_invalid_feedback
   end
