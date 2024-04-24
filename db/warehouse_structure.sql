@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
+        
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -13589,25 +13589,6 @@ ALTER SEQUENCE public.hmis_client_merge_histories_id_seq OWNED BY public.hmis_cl
 
 
 --
--- Name: hmis_wips; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_wips (
-    id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    project_id bigint,
-    enrollment_id bigint,
-    source_type character varying,
-    source_id bigint,
-    date date NOT NULL,
-    data jsonb,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
 -- Name: hmis_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -18576,7 +18557,9 @@ CREATE TABLE public.hmis_import_configs (
     encrypted_zip_file_password_iv character varying,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    file_count integer DEFAULT 1 NOT NULL
+    file_count integer DEFAULT 1 NOT NULL,
+    s3_role_arn character varying,
+    s3_external_id character varying
 );
 
 
@@ -18942,6 +18925,25 @@ CREATE SEQUENCE public.hmis_units_id_seq
 --
 
 ALTER SEQUENCE public.hmis_units_id_seq OWNED BY public.hmis_units.id;
+
+
+--
+-- Name: hmis_wips; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_wips (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    project_id bigint,
+    enrollment_id bigint,
+    source_type character varying,
+    source_id bigint,
+    date date NOT NULL,
+    data jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
 
 
 --
@@ -50946,13 +50948,6 @@ CREATE INDEX "index_Enrollment_on_ProjectID_and_data_source_id" ON public."Enrol
 
 
 --
--- Name: index_Enrollment_on_project_pk; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Enrollment_on_project_pk" ON public."Enrollment" USING btree (project_pk);
-
-
---
 -- Name: index_Enrollment_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50971,6 +50966,13 @@ CREATE INDEX "index_Enrollment_on_data_source_id_and_PersonalID" ON public."Enro
 --
 
 CREATE INDEX "index_Enrollment_on_pending_date_deleted" ON public."Enrollment" USING btree (pending_date_deleted);
+
+
+--
+-- Name: index_Enrollment_on_project_pk; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Enrollment_on_project_pk" ON public."Enrollment" USING btree (project_pk);
 
 
 --
@@ -62437,19 +62439,19 @@ ALTER TABLE ONLY public."Funder"
 
 
 --
--- Name: hmis_external_referral_household_members fk_rails_f16596e413; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_external_referral_household_members
-    ADD CONSTRAINT fk_rails_f16596e413 FOREIGN KEY (referral_id) REFERENCES public.hmis_external_referrals(id);
-
-
---
 -- Name: Enrollment fk_rails_enrollment_project_pk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."Enrollment"
     ADD CONSTRAINT fk_rails_enrollment_project_pk FOREIGN KEY (project_pk) REFERENCES public."Project"(id);
+
+
+--
+-- Name: hmis_external_referral_household_members fk_rails_f16596e413; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_household_members
+    ADD CONSTRAINT fk_rails_f16596e413 FOREIGN KEY (referral_id) REFERENCES public.hmis_external_referrals(id);
 
 
 --
@@ -62653,4 +62655,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240409215111'),
 ('20240411183410'),
 ('20240413183410'),
-('20240416155829');
+('20240416155829'),
+('20240419165229'),
+('20240419174433');
+
+
