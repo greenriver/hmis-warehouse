@@ -46,6 +46,11 @@ module HmisExternalApis::TcHmis::Importers
         Loaders::CustomClientDemographicsLoader,
         Loaders::NavigationNotesLoader,
         Loaders::DiversionAssessmentLoader,
+        Loaders::AumPreventionScreeningLoader,
+        Loaders::CaseworkerExitSurveyLoader,
+        Loaders::DcsfV3Loader,
+        Loaders::DirectionHomesHousingLoader,
+        Loaders::HvrpEmploymentDetailsLoader,
       ]
 
       # disable paper trail to improve importer performance
@@ -78,7 +83,10 @@ module HmisExternalApis::TcHmis::Importers
       end
 
       Rails.logger.info "#{importer_name} running #{loader.class.name} at #{Time.current.to_s(:db)}"
-      loader.perform
+      Hmis::Hud::Client.transaction do
+        loader.perform
+        raise ActiveRecord::Rollback
+      end
       self.table_names += loader.table_names
     end
 
