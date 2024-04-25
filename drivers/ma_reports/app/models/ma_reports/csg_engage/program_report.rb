@@ -6,6 +6,8 @@
 
 module MaReports::CsgEngage
   class ProgramReport < GrdaWarehouseBase
+    include MaReports::CsgEngage::Concerns::HasReportStatus
+
     self.table_name = :csg_engage_program_reports
     belongs_to :report, class_name: 'MaReports::CsgEngage::Report'
     belongs_to :program_mapping, class_name: 'MaReports::CsgEngage::ProgramMapping'
@@ -32,6 +34,7 @@ module MaReports::CsgEngage
         raw_result: result,
         json_result: JSON.parse(result),
       )
+      report.respond_to_program_report_update(reload)
     end
   end
 end

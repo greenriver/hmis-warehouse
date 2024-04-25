@@ -6,28 +6,39 @@
 
 module MaReports::CsgEngage
   class Report < GrdaWarehouseBase
+    include MaReports::CsgEngage::Concerns::HasReportStatus
+
     self.table_name = :csg_engage_reports
     has_many :program_reports, class_name: 'MaReports::CsgEngage::ProgramReport', inverse_of: :report
+    belongs_to :agency, class_name: 'MaReports::CsgEngage::Agency'
 
-    def self.build(program_mapping_scope = ProgramMapping.all)
-      report = create(project_ids: program_mapping_scope.pluck(:project_id))
-      program_mapping_scope.each do |program_mapping|
+    def self.build(agency)
+      report = create(agency: agency, project_ids: agency.program_mappings.pluck(:project_id))
+      agency.program_mappings.each do |program_mapping|
         MaReports::CsgEngage::ProgramReport.create(report: report, program_mapping: program_mapping)
       end
       report
     end
 
     def program_mappings
-      @program_mappings ||= ProgramMapping.where(project_id: project_ids).
+      @program_mappings ||= agency.program_mappings.
         preload(:project, :agency).
         preload(project: [:project_cocs]).
         preload(project: { enrollments: [:income_benefits, :services, :client] })
     end
 
     def run
+      return unless not_started?
+
       update(started_at: Time.zone.now, failed_at: nil, completed_at: nil)
 
       program_reports.each(&:run)
+    end
+
+    def respond_to_program_report_update(program_report)
+      self.completed_at = program_report.completed_at if program_reports.all?(&:completed?)
+      self.failed_at = program_report.failed_at if program_reports.any?(&:failed?)
+      save!
     end
   end
 end

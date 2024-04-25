@@ -108,5 +108,55 @@ RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
         end
       end
     end
+
+    describe 'income values' do
+      it 'should have the right values for income' do
+        create(
+          :hud_income_benefit,
+          client: c1,
+          enrollment: e1,
+          IncomeFromAnySource: 1,
+          TotalMonthlyIncome: 120,
+          Earned: 1,
+          EarnedAmount: 1,
+          Unemployment: 1,
+          UnemploymentAmount: 2,
+          SSI: 1,
+          SSIAmount: 3,
+          SSDI: 1,
+          SSDIAmount: 4,
+          VADisabilityService: 1,
+          VADisabilityServiceAmount: 5,
+          VADisabilityNonService: 1,
+          VADisabilityNonServiceAmount: 6,
+          PrivateDisability: 1,
+          PrivateDisabilityAmount: 7,
+          WorkersComp: 1,
+          WorkersCompAmount: 8,
+          TANF: 1,
+          TANFAmount: 9,
+          GA: 1,
+          GAAmount: 10,
+          SocSecRetirement: 1,
+          SocSecRetirementAmount: 11,
+          Pension: 1,
+          PensionAmount: 12,
+          ChildSupport: 1,
+          ChildSupportAmount: 13,
+          Alimony: 1,
+          AlimonyAmount: 14,
+          OtherIncomeSource: 1,
+          OtherIncomeAmount: 15,
+          OtherIncomeSourceIdentify: 'Stuff',
+          BenefitsFromAnySource: 1,
+        )
+        # result = MaReports::CsgEngage::ReportComponents::Report.new(pm).serialize
+        # expect(result.dig('Programs', 0, 'Households', 0, 'Household Members', 0, 'Household Member', 'Incomes')).to(
+        #   include(
+        #     include()
+        #   )
+        # )
+      end
+    end
   end
 end
