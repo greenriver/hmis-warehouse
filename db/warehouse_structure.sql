@@ -1674,7 +1674,8 @@ CREATE TABLE public."Enrollment" (
     "PreferredLanguage" integer,
     "PreferredLanguageDifferent" character varying,
     "VAMCStation" character varying,
-    lock_version integer DEFAULT 0 NOT NULL
+    lock_version integer DEFAULT 0 NOT NULL,
+    project_pk bigint
 );
 
 
@@ -13588,52 +13589,6 @@ ALTER SEQUENCE public.hmis_client_merge_histories_id_seq OWNED BY public.hmis_cl
 
 
 --
--- Name: hmis_wips; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_wips (
-    id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    project_id bigint,
-    enrollment_id bigint,
-    source_type character varying,
-    source_id bigint,
-    date date NOT NULL,
-    data jsonb,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: hmis_client_projects; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.hmis_client_projects AS
- SELECT "Client".id AS client_id,
-    "Project".id AS project_id,
-    "Enrollment".id AS enrollment_id,
-    "Enrollment"."EnrollmentID",
-    "Enrollment"."HouseholdID",
-    "Enrollment".data_source_id
-   FROM ((public."Client"
-     JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".data_source_id = "Client".data_source_id) AND (("Enrollment"."PersonalID")::text = ("Client"."PersonalID")::text))))
-     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = "Enrollment".data_source_id) AND (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text))))
-  WHERE ("Client"."DateDeleted" IS NULL)
-UNION
- SELECT (hmis_wips.client_id)::integer AS client_id,
-    (hmis_wips.project_id)::integer AS project_id,
-    "Enrollment".id AS enrollment_id,
-    "Enrollment"."EnrollmentID",
-    "Enrollment"."HouseholdID",
-    "Enrollment".data_source_id
-   FROM (public.hmis_wips
-     JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".id = hmis_wips.source_id))))
-  WHERE (((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text) AND (hmis_wips.deleted_at IS NULL));
-
-
---
 -- Name: hmis_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -18563,49 +18518,25 @@ UNION
 --
 
 CREATE VIEW public.hmis_households AS
- WITH tmp1 AS (
-         SELECT "Enrollment"."HouseholdID",
-            "Project"."ProjectID",
-            false AS wip,
-            "Project".data_source_id,
-            "Enrollment"."EntryDate",
-            "Exit"."ExitDate",
-            "Enrollment"."DateUpdated",
-            "Enrollment"."DateCreated"
-           FROM ((public."Enrollment"
-             LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
-             JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = "Enrollment".data_source_id) AND (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text))))
-          WHERE ("Enrollment"."DateDeleted" IS NULL)
-        UNION ALL
-         SELECT "Enrollment"."HouseholdID",
-            "Project"."ProjectID",
-            true AS wip,
-            "Project".data_source_id,
-            "Enrollment"."EntryDate",
-            "Exit"."ExitDate",
-            "Enrollment"."DateUpdated",
-            "Enrollment"."DateCreated"
-           FROM (((public."Enrollment"
-             LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
-             JOIN public.hmis_wips ON (((hmis_wips.source_id = "Enrollment".id) AND ((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text))))
-             JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = hmis_wips.project_id))))
-          WHERE (("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment"."ProjectID" IS NULL) AND (hmis_wips.deleted_at IS NULL))
-        )
- SELECT concat(tmp1."HouseholdID", ':', tmp1."ProjectID", ':', tmp1.data_source_id) AS id,
-    tmp1."HouseholdID",
-    tmp1."ProjectID",
-    tmp1.data_source_id,
-    min(tmp1."EntryDate") AS earliest_entry,
+ SELECT concat("Enrollment"."HouseholdID", ':', "Project"."ProjectID", ':', "Project".data_source_id) AS id,
+    "Enrollment"."HouseholdID",
+    "Enrollment".project_pk,
+    "Project"."ProjectID",
+    "Project".data_source_id,
+    min("Enrollment"."EntryDate") AS earliest_entry,
         CASE
-            WHEN bool_or((tmp1."ExitDate" IS NULL)) THEN NULL::date
-            ELSE max(tmp1."ExitDate")
+            WHEN bool_or(("Exit"."ExitDate" IS NULL)) THEN NULL::date
+            ELSE max("Exit"."ExitDate")
         END AS latest_exit,
-    bool_or(tmp1.wip) AS any_wip,
+    bool_or(("Enrollment"."ProjectID" IS NULL)) AS any_wip,
     NULL::text AS "DateDeleted",
-    max(tmp1."DateUpdated") AS "DateUpdated",
-    min(tmp1."DateCreated") AS "DateCreated"
-   FROM tmp1
-  GROUP BY tmp1."HouseholdID", tmp1."ProjectID", tmp1.data_source_id;
+    max("Enrollment"."DateUpdated") AS "DateUpdated",
+    min("Enrollment"."DateCreated") AS "DateCreated"
+   FROM ((public."Enrollment"
+     LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
+     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = "Enrollment".project_pk))))
+  WHERE ("Enrollment"."DateDeleted" IS NULL)
+  GROUP BY "Project".data_source_id, "Project"."ProjectID", "Enrollment".project_pk, "Enrollment"."HouseholdID";
 
 
 --
@@ -18626,7 +18557,9 @@ CREATE TABLE public.hmis_import_configs (
     encrypted_zip_file_password_iv character varying,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    file_count integer DEFAULT 1 NOT NULL
+    file_count integer DEFAULT 1 NOT NULL,
+    s3_role_arn character varying,
+    s3_external_id character varying
 );
 
 
@@ -18992,6 +18925,25 @@ CREATE SEQUENCE public.hmis_units_id_seq
 --
 
 ALTER SEQUENCE public.hmis_units_id_seq OWNED BY public.hmis_units.id;
+
+
+--
+-- Name: hmis_wips; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_wips (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    project_id bigint,
+    enrollment_id bigint,
+    source_type character varying,
+    source_id bigint,
+    date date NOT NULL,
+    data jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
 
 
 --
@@ -51017,6 +50969,13 @@ CREATE INDEX "index_Enrollment_on_pending_date_deleted" ON public."Enrollment" U
 
 
 --
+-- Name: index_Enrollment_on_project_pk; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Enrollment_on_project_pk" ON public."Enrollment" USING btree (project_pk);
+
+
+--
 -- Name: index_Enrollment_on_service_history_processing_job_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -62480,6 +62439,14 @@ ALTER TABLE ONLY public."Funder"
 
 
 --
+-- Name: Enrollment fk_rails_enrollment_project_pk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."Enrollment"
+    ADD CONSTRAINT fk_rails_enrollment_project_pk FOREIGN KEY (project_pk) REFERENCES public."Project"(id);
+
+
+--
 -- Name: hmis_external_referral_household_members fk_rails_f16596e413; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -62685,6 +62652,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240320190835'),
 ('20240322153133'),
 ('20240322183410'),
-('20240416155829');
+('20240409215111'),
+('20240411183410'),
+('20240413183410'),
+('20240416155829'),
+('20240419165229'),
+('20240419174433');
 
 

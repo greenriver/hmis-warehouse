@@ -53,6 +53,11 @@
         {
           "variable": "projectOtherFunders",
           "operator": "INCLUDE",
+          "value": "HAP Shallow Rent"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
           "value": "HAP Emergency Shelter (entry/exit)"
         },
         {
@@ -158,6 +163,11 @@
           "variable": "projectOtherFunders",
           "operator": "INCLUDE",
           "value": "HAP Bridge Housing"
+        },
+        {
+          "variable": "projectOtherFunders",
+          "operator": "INCLUDE",
+          "value": "HAP Shallow Rent"
         },
         {
           "variable": "projectOtherFunders",

@@ -107,8 +107,7 @@ module Hmis
     end
 
     def full_enrollment_scope
-      # Note: joining with project drops WIP enrollments. That should be fine since they won't have assessment records yet.
-      @full_enrollment_scope ||= Hmis::Hud::Enrollment.joins(:project).merge(project_scope)
+      @full_enrollment_scope ||= Hmis::Hud::Enrollment.joins(:project).merge(project_scope).not_in_progress
     end
 
     def build_assessments(enrollment_batch:, data_collection_stages:, unique_by_information_date:, data_source_id:)

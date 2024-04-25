@@ -204,6 +204,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     ANNUAL: 5,
     EXIT: 3,
     POST_EXIT: 6,
+    CUSTOM_ASSESSMENT: 99,
   }.freeze
 
   # All form roles
