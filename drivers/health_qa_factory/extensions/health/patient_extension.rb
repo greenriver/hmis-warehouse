@@ -23,10 +23,10 @@ module HealthQaFactory::Health
     def qa_factory_factory
       newest = current_qa_factory
 
-      # If the newest factory is not associated with a PCTP, so, use it
+      # If the newest factory is not associated with a PCTP,  use it
       return newest if newest.careplan.nil?
 
-      # If the current factory is not complete, so, use it
+      # If the current factory is not complete,  use it
       return newest unless newest.complete?
 
       # Otherwise, create a new one
