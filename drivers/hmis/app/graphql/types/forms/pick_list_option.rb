@@ -71,8 +71,8 @@ module Types
         enrollments_for_client(client, user: user)
       when 'EXTERNAL_FORM_TYPES_FOR_PROJECT'
         external_form_types_for_project(project)
-      when 'ASSESSMENT_TYPES'
-        assessment_types_for_project(project)
+      when 'ASSESSMENT_NAMES'
+        assessment_names_for_project(project)
       end
     end
 
@@ -450,7 +450,7 @@ module Types
         end
     end
 
-    def self.assessment_types_for_project(project)
+    def self.assessment_names_for_project(project)
       # It's a little odd to combine the "roles" (eg INTAKE) with the identifiers (eg housing_needs_assessment), but
       # we need to do that in order to get the desired behavior. The "Intake" option should show all Intakes,
       # regardless of what form they used.

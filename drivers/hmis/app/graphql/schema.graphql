@@ -296,9 +296,9 @@ type AssessmentEligibility {
 }
 
 input AssessmentFilterOptions {
+  assessmentName: [String!]
   project: [ID!]
   projectType: [ProjectType!]
-  type: [String!]
 }
 
 input AssessmentInput {
@@ -434,15 +434,15 @@ enum AssessmentType {
 }
 
 input AssessmentsForEnrollmentFilterOptions {
-  type: [String!]
+  assessmentName: [String!]
 }
 
 input AssessmentsForHouseholdFilterOptions {
-  type: [String!]
+  assessmentName: [String!]
 }
 
 input AssessmentsForProjectFilterOptions {
-  type: [String!]
+  assessmentName: [String!]
 }
 
 type AssessmentsPaginated {
@@ -6397,7 +6397,13 @@ enum PickListType {
   All unit types.
   """
   ALL_UNIT_TYPES
-  ASSESSMENT_TYPES
+
+  """
+  Assessment names, including custom assessments and assessments that are
+  inactive. If a project is specified, the list is limited to assessments that
+  exist in the project (both active and inactive).
+  """
+  ASSESSMENT_NAMES
   AVAILABLE_BULK_SERVICE_TYPES
   AVAILABLE_FILE_TYPES
   AVAILABLE_SERVICE_TYPES
