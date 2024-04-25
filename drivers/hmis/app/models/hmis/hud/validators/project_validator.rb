@@ -32,7 +32,8 @@ class Hmis::Hud::Validators::ProjectValidator < Hmis::Hud::Validators::BaseValid
 
     # If project end date is changing
     if project.operating_end_date.present? && project.operating_end_date_changed?
-      open_enrollments = project.enrollments.open_on_date(project.operating_end_date)
+      # Check for open enrollments on the day after end date. (Don't want about people that exited today).
+      open_enrollments = project.enrollments.open_on_date(project.operating_end_date + 1)
       errors.add :base, :information, severity: :warning, full_message: open_enrollments_message(open_enrollments.count) if open_enrollments.any?
     end
 
