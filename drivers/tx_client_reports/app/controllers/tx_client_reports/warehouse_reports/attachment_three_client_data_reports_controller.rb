@@ -14,6 +14,7 @@ module TxClientReports::WarehouseReports
 
     def index
       @rows = report.rows
+      @excel_export = TxClientReports::AttachmentThreeReportExports::AttachmentThreeReportExcelExport.new
       respond_to do |format|
         format.html do
           show_validations
