@@ -98,7 +98,7 @@ module MaReports::CsgEngage::ReportComponents
         [:VADisabilityService, :VADisabilityServiceAmount, { description: 'VA Service-Connected Disability Compensation', income_source: 'H' }],
         [:VADisabilityNonService, :VADisabilityNonServiceAmount, { description: 'VA Non-Service-Connected Disability Pension', income_source: 'H' }],
         [:WorkersComp, :WorkersCompAmount, { description: "Worker's Compensation", income_source: 'J' }],
-        [:GA, :GAAmount, { description: 'General Assistance (GA)', income_source: 'N' }],
+        [:GA, :GAAmount, { description: 'General Assistance (GA)', income_source: 'F' }],
       ].map do |field, amount_field, attrs|
         next unless latest_income_benefit.send(field) == 1
 
