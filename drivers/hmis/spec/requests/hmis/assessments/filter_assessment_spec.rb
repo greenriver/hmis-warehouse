@@ -59,7 +59,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should return only intake when intake filter is passed' do
-    response, result = post_graphql(id: p1.id, filters: { type: 'INTAKE' }) { query }
+    response, result = post_graphql(id: p1.id, filters: { assessment_name: 'INTAKE' }) { query }
     expect(response.status).to eq 200
     assessments = result.dig('data', 'project', 'assessments', 'nodes')
     expect(assessments.count).to eq 1
@@ -67,7 +67,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should return both intake and fully custom assessment when both filters are passed' do
-    response, result = post_graphql(id: p1.id, filters: { type: ['INTAKE', 'fully-custom-assessment-identifier'] }) { query }
+    response, result = post_graphql(id: p1.id, filters: { assessment_name: ['INTAKE', 'fully-custom-assessment-identifier'] }) { query }
     expect(response.status).to eq 200
     assessments = result.dig('data', 'project', 'assessments', 'nodes')
     expect(assessments.count).to eq 2
