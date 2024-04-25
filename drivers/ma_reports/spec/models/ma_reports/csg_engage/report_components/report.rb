@@ -39,10 +39,9 @@ RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
             'Import Keyword' => pm.csg_engage_import_keyword,
             'Households' => contain_exactly(
               include(
-                'Household Identifier' => e1.household_id,
+                'Household Identifier' => e1.id.to_s,
                 'Household Members' => contain_exactly(
                   include(
-                    'Household Member Identifier' => c1.personal_id,
                     'Household Member' => include(
                       'Head Of Household' => 'Y',
                       'Is in Household' => 'Y',
@@ -51,7 +50,7 @@ RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
                 ),
                 'Address' => be_present,
                 'CSBG Data' => include(
-                  'Number in House' => 1,
+                  'Number in House' => '1',
                 ),
               ),
             ),
@@ -111,10 +110,10 @@ RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
 
     describe 'income values' do
       it 'should have the right values for income' do
-        create(
+        income_benefit = create(
           :hud_income_benefit,
-          client: c1,
           enrollment: e1,
+          data_source: ds,
           IncomeFromAnySource: 1,
           TotalMonthlyIncome: 120,
           Earned: 1,
@@ -150,12 +149,19 @@ RSpec.describe MaReports::CsgEngage::ReportComponents::Report, type: :model do
           OtherIncomeSourceIdentify: 'Stuff',
           BenefitsFromAnySource: 1,
         )
-        # result = MaReports::CsgEngage::ReportComponents::Report.new(pm).serialize
-        # expect(result.dig('Programs', 0, 'Households', 0, 'Household Members', 0, 'Household Member', 'Incomes')).to(
-        #   include(
-        #     include()
-        #   )
-        # )
+        result = MaReports::CsgEngage::ReportComponents::Report.new(pm).serialize
+
+        expect(result.dig('Programs', 0, 'Households', 0, 'Household Members', 0, 'Income')).to(
+          include(
+            *MaReports::CsgEngage::ReportComponents::HouseholdMember::INCOME_MAPPINGS.map do |_field, amount_field, attrs|
+              include(
+                'Amount' => (income_benefit.send(amount_field) * 12.0).round.to_s,
+                'Description' => attrs[:description],
+                'IncomeSource' => attrs[:income_source],
+              )
+            end,
+          ),
+        )
       end
     end
   end

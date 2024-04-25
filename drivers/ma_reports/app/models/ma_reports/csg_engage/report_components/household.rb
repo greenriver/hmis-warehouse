@@ -48,7 +48,7 @@ module MaReports::CsgEngage::ReportComponents
       end
       field('Household Type')
       field('Housing Subsidy Type') do
-        return '6' unless [435, 421].include?(hoh_enrollment.living_situation)
+        next '6' unless [435, 421].include?(hoh_enrollment.living_situation)
 
         case hoh_enrollment.rental_subsidy_type
         when 419
