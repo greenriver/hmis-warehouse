@@ -131,6 +131,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
           row_field_value = row_enrollment_id(row)
           enrollment = row_field_value ? enrollments[row_field_value] : nil
+          enrollment = enrollments.values.first
           if enrollment.blank?
             log_skipped_row(row, field: ENROLLMENT_ID, prefix: touch_point_name)
             next
@@ -248,18 +249,19 @@ module HmisExternalApis::TcHmis::Importers::Loaders
             },
             'Time Spent:' => {
               key: 'service_time_spent',
+              field_type: :integer,
             },
-          }
-         },
+          },
+        },
         'TB and Buss Pass' => {
           service_type: 'TB and Bus Pass',
-          service_fields: { },
+          service_fields: {},
           id_prefix: 'employment_recruiter_service',
           elements: {
             'Contact Location/Method:' => {
               key: 'service_contact_location',
             },
-          }
+          },
         },
         'PNS Moving Home Services' => {
           service_type: 'PNS Moving Home Services',
@@ -271,18 +273,23 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               cleaner: ->(services) { services.split('|') },
               repeats: true,
             },
-            'Contact Location/Method:' => {
+            'Case Notes' => {
+              key: 'service_note',
+            },
+            'Contact Location/Method' => {
               key: 'service_contact_location',
             },
             'Time Spent' => {
               key: 'service_time_spent',
+              field_type: :integer,
             },
-          }
+          },
         },
         'When We Love' => {
           service_type: 'TB and Bus Pass',
           service_fields: {
-            'Amount ( If Needed )' => {
+            #'Amount ( If Needed )' => {
+            'The amount Assistance' => {
               key: :FAAmount,
               cleaner: ->(amount) { amount.to_f },
             },
@@ -296,20 +303,20 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               key: :when_we_love_assistance_type,
               cleaner: ->(services) { services.split('|') },
             },
-          }
+          },
         },
-        'DRC Critical Documents' => {
+        'DRC Critical Documents (Services)' => {
           service_type: 'DRC Critical Documents',
           service_fields: {},
           id_prefix: 'drc_critical_document_service',
           elements: {
             'Critical Document Service' => {
-              key: 'drc_critical_document_service'
+              key: 'drc_critical_document_service',
               cleaner: ->(services) { services.split('|') },
               repeats: true,
             },
             'Document Obtainment' => {
-              key: 'drc_critical_document_service_document_type'
+              key: 'drc_critical_document_service_document_type',
               cleaner: ->(services) { services.split('|') },
               repeats: true,
             },
@@ -317,21 +324,26 @@ module HmisExternalApis::TcHmis::Importers::Loaders
               key: :service_note,
             },
             'How Many Birth Certificate ?' => {
-              key: 'drc_critical_document_num_birth_certificate'
+              key: 'drc_critical_document_num_birth_certificate',
+              field_type: :integer,
             },
             'How Many State ID ?' => {
-              key: 'drc_critical_document_num_state_id'
+              key: 'drc_critical_document_num_state_id',
+              field_type: :integer,
             },
             'How Many Driver Licenses ?' => {
-              key: 'drc_critical_document_num_driver_license'
+              key: 'drc_critical_document_num_driver_license',
+              field_type: :integer,
             },
             'How Many Social Security ?' => {
-              key: 'drc_critical_document_num_social_security'
+              key: 'drc_critical_document_num_social_security',
+              field_type: :integer,
             },
-            "How many Voter's Registration cards?" =>{
-              key: 'drc_critical_document_num_voter_registration_cards'
+            "How many Voter's Registration cards?" => {
+              key: 'drc_critical_document_num_voter_registration_cards',
+              field_type: :integer,
             },
-          }
+          },
         },
         'Food Box - Groceries' => {
           service_type: 'Food Box / Groceries',

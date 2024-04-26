@@ -30,27 +30,28 @@ module HmisExternalApis::TcHmis::Importers
     def perform
       start
       loaders = [
-        Loaders::ScanCardLoader,
-        Loaders::SpdatLoader,
-        Loaders::HatLoader,
-        Loaders::UhaLoader,
+         #Loaders::ScanCardLoader,
+         #Loaders::SpdatLoader,
+         #Loaders::HatLoader,
+         #Loaders::UhaLoader,
         Loaders::CustomServicesLoader,
-        Loaders::LunchServicesLoader,
-        Loaders::BreakfastServicesLoader,
-        Loaders::DinnerServicesLoader,
-        Loaders::CriticalDocumentsCmLoader,
-        Loaders::CaseManagementAssessmentLoader,
-        Loaders::MhmrCaseManagementNoteLoader,
-        Loaders::MhmrNonBillableNoteLoader,
-        Loaders::MhmrRehabilitationNoteLoader,
-        Loaders::CustomClientDemographicsLoader,
-        Loaders::NavigationNotesLoader,
-        Loaders::DiversionAssessmentLoader,
-        Loaders::AumPreventionScreeningLoader,
-        Loaders::CaseworkerExitSurveyLoader,
-        Loaders::DcsfV3Loader,
-        Loaders::DirectionHomesHousingLoader,
-        Loaders::HvrpEmploymentDetailsLoader,
+        # Loaders::LunchServicesLoader,
+        # Loaders::BreakfastServicesLoader,
+        # Loaders::DinnerServicesLoader,
+        # Loaders::CriticalDocumentsCmLoader,
+        # Loaders::CaseManagementAssessmentLoader,
+        # Loaders::MhmrCaseManagementNoteLoader,
+        # Loaders::MhmrNonBillableNoteLoader,
+        # Loaders::MhmrRehabilitationNoteLoader,
+        # Loaders::CustomClientDemographicsLoader,
+        # Loaders::NavigationNotesLoader,
+        # Loaders::DiversionAssessmentLoader,
+        # Loaders::AumPreventionScreeningLoader,
+        # Loaders::CaseworkerExitSurveyLoader,
+        # Loaders::DcsfV3Loader,
+        # Loaders::DirectionHomesHousingLoader,
+        # Loaders::HvrpEmploymentDetailsLoader,
+        # Loaders::DocumentReadyLoader,
       ]
 
       # disable paper trail to improve importer performance
@@ -85,6 +86,7 @@ module HmisExternalApis::TcHmis::Importers
       Rails.logger.info "#{importer_name} running #{loader.class.name} at #{Time.current.to_s(:db)}"
       Hmis::Hud::Client.transaction do
         loader.perform
+        byebug
         raise ActiveRecord::Rollback
       end
       self.table_names += loader.table_names

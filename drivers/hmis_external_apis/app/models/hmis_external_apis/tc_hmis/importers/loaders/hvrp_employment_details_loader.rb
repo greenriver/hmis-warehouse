@@ -13,22 +13,22 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     CDED_CONFIGS = [
-      { element_id: 10633, key: 'form_type', repeats: false, field_type: 'string' },
-      { element_id: 10635, key: 'employer_address_name', repeats: false, field_type: 'string' },
-      { element_id: 10636, key: 'employer_address_company', repeats: false, field_type: 'string' },
-      { element_id: 10637, key: 'employer_address_1', repeats: false, field_type: 'string' },
-      { element_id: 10638, key: 'employer_address_2', repeats: false, field_type: 'string' },
-      { element_id: 10639, key: 'employer_address_city', repeats: false, field_type: 'string' },
-      { element_id: 10641, key: 'employer_address_county', repeats: false, field_type: 'string' },
-      { element_id: 10640, key: 'employer_address_state', repeats: false, field_type: 'string' },
-      { element_id: 10642, key: 'employer_address_zip', repeats: false, field_type: 'string' },
-      { element_id: 10643, key: 'current_job_title', repeats: false, field_type: 'string' },
-      { element_id: 10644, key: 'date_of_hire', repeats: false, field_type: 'string' },
-      { element_id: 10645, key: 'last_date_of_employment', repeats: false, field_type: 'date' },
-      { element_id: 10648, key: 'rate_of_pay', repeats: false, field_type: 'float' },
-      { element_id: 10649, key: 'wages_change_reason', repeats: false, field_type: 'string' },
-      { element_id: 10652, key: 'hours_per_week', repeats: false, field_type: 'integer' },
-      { element_id: 10652, key: 'monthly_earnings', repeats: false, field_type: 'float' },
+      { label: 'Employment Form Type:', key: 'form_type', repeats: false, field_type: 'string' },
+      { label: 'Name', key: 'employer_address_name', repeats: false, field_type: 'string' },
+      { label: 'Company', key: 'employer_address_company', repeats: false, field_type: 'string' },
+      { label: 'Address Line 1', key: 'employer_address_1', repeats: false, field_type: 'string' },
+      { label: 'Address Line 2', key: 'employer_address_2', repeats: false, field_type: 'string' },
+      { label: 'City', key: 'employer_address_city', repeats: false, field_type: 'string' },
+      { label: 'State', key: 'employer_address_state', repeats: false, field_type: 'string' },
+      { label: 'County', key: 'employer_address_county', repeats: false, field_type: 'string' },
+      { label: 'Zip Code', key: 'employer_address_zip', repeats: false, field_type: 'string' },
+      { label: 'Current Job Title:', key: 'current_job_title', repeats: false, field_type: 'string' },
+      { label: 'Date of Hire:', key: 'date_of_hire', repeats: false, field_type: 'string' },
+      { label: 'Last Date of Employment:', key: 'last_date_of_employment', repeats: false, field_type: 'date' },
+      { label: 'Rate of Pay:', key: 'rate_of_pay', repeats: false, field_type: 'float' },
+      { label: 'Wages Change Reason (if applicable):', key: 'wages_change_reason', repeats: false, field_type: 'string' },
+      { label: 'How many hours work per week?', key: 'hours_per_week', repeats: false, field_type: 'integer' },
+      { label: 'Monthly Earnings', key: 'monthly_earnings', repeats: false, field_type: 'float' },
     ].freeze
 
     protected

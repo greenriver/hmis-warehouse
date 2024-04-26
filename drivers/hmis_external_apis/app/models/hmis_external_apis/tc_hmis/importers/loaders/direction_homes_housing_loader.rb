@@ -13,11 +13,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     CDED_CONFIGS = [
-      { element_id: 8358, key: 'date_app_received', repeats: false, field_type: 'date' },
-      { element_id: 8360, key: 'date_given_voucher', repeats: false, field_type: 'date' },
-      { element_id: 8359, key: 'date_app_completed', repeats: false, field_type: 'date' },
-      { element_id: 8362, key: 'date_passed_inspection', repeats: false, field_type: 'date' },
-      { element_id: 8362, key: 'move_in_date', repeats: false, field_type: 'date' },
+      { label: 'Date Application Received', key: 'date_app_received', repeats: false, field_type: 'date' },
+      { label: 'Date Application Completed', key: 'date_app_completed', repeats: false, field_type: 'date' },
+      { label: 'Date Given Voucher and Briefing Date', key: 'date_given_voucher', repeats: false, field_type: 'date' },
+      { label: 'Passed Inspection Date', key: 'date_passed_inspection', repeats: false, field_type: 'date' },
+      { label: 'Move in Date', key: 'move_in_date', repeats: false, field_type: 'date' },
     ].freeze
 
     protected

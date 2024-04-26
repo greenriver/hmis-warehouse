@@ -60,7 +60,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       cded_configs.each do |item|
         # Check for required keys
         raise "Missing required keys in #{item.inspect}" unless required_keys.all? { |k| item.key?(k) }
-        raise "Must have label or element_id" unless item[:label] || item[:element_id]
+        raise 'Must have label or element_id' unless item[:label] || item[:element_id]
         raise "Invalid keys present in #{item.inspect}" unless item.keys.all? { |k| all_keys.include?(k) }
 
         # If :element_id is present, check for uniqueness
@@ -108,7 +108,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       actual = 0
       records = rows.flat_map do |row|
         expected += 1
-        enrollment_id = row_enrollment_id(row)
+        row_enrollment_id(row)
         enrollment_id = personal_id_by_enrollment_id.keys.first
         next if enrollment_id.blank?
 
