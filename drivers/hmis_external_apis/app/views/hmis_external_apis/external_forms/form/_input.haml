@@ -1,3 +1,5 @@
 %label{for:html_id, class: required && 'required'}= label
-%input.form-control{type: input_type, id: html_id, name: name, required: required, pattern: input_pattern, placeholder: input_placeholder, class: input_class, autocomplete:"off"}
-.invalid-feedback This is required
+%input.form-control{type: input_type, id: html_id, name: name, required: required, pattern: input_pattern, placeholder: input_placeholder, class: input_class, autocomplete:"off", inputmode: input_mode }
+.invalid-feedback= input_invalid_feedback
+- if input_helper
+  .form-text.small.text-muted= input_helper

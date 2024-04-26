@@ -88,6 +88,9 @@ module GrdaWarehouse::Tasks
               project_client.enrolled_in_rrh = client.enrolled_in_rrh(enrollments)
               project_client.enrolled_in_psh = client.enrolled_in_psh(enrollments)
               project_client.enrolled_in_ph = client.enrolled_in_ph(enrollments)
+              project_client.enrolled_in_rrh_pre_move_in = client.enrolled_in_rrh_pre_move_in(enrollments)
+              project_client.enrolled_in_psh_pre_move_in = client.enrolled_in_psh_pre_move_in(enrollments)
+              project_client.enrolled_in_ph_pre_move_in = client.enrolled_in_ph_pre_move_in(enrollments)
               project_client.date_days_homeless_verified = Date.current
 
               # Order the files by effective date to get the newest date for each tag, blank at the end

@@ -8373,7 +8373,7 @@ type ProjectCoc {
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
-  geocode: String!
+  geocode: String
   geographyType: GeographyType
   id: ID!
   state: String
