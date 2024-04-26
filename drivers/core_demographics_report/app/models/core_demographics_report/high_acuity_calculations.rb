@@ -136,8 +136,6 @@ module
 
               counted_disabilities = Set.new
               disabilities.each do |d_type, response, indefinite|
-                counted_disabilities << :disabling_condition if disabling_condition == 1
-
                 next unless response.in?(GrdaWarehouse::Hud::Disability.positive_responses)
 
                 # developmental and hiv are always indefinite and impairing
@@ -147,6 +145,8 @@ module
                   counted_disabilities << d_type
                 end
               end
+              # Only count disabling condition if there are no supporting disability details
+              counted_disabilities << :disabling_condition if disabling_condition == 1 && counted_disabilities.count.zero?
 
               clients[:one_disability][base_count_sym] << client_id if counted_disabilities.count == 1
 
@@ -172,8 +172,6 @@ module
 
                 counted_disabilities = Set.new
                 disabilities.each do |d_type, response, indefinite|
-                  counted_disabilities << :disabling_condition if disabling_condition == 1
-
                   next unless response.in?(GrdaWarehouse::Hud::Disability.positive_responses)
 
                   # developmental and hiv are always indefinite and impairing
@@ -183,6 +181,8 @@ module
                     counted_disabilities << d_type
                   end
                 end
+                # Only count disabling condition if there are no supporting disability details
+                counted_disabilities << :disabling_condition if disabling_condition == 1 && counted_disabilities.count.zero?
 
                 clients[:one_disability][coc_code.to_sym] << client_id if counted_disabilities.count == 1
 
