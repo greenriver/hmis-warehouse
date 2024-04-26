@@ -126,18 +126,32 @@ module
           report_scope.distinct.
             joins(client: :source_enrollment_disabilities).
             merge(GrdaWarehouse::Hud::Disability.chronically_disabled).
-            pluck(:client_id, :id, e_t[:TimesHomelessPastThreeYears], d_t[:DisabilityType]).
-            group_by { |e| [e.shift, e.shift, e.shift] }.
-            each do |(client_id, enrollment_id, times_homeless), disabilities|
+            pluck(:client_id, :id, e_t[:TimesHomelessPastThreeYears], e_t[:DisablingCondition], d_t[:DisabilityType], d_t[:DisabilityResponse], d_t[:IndefiniteAndImpairs]).
+            group_by { |e| [e.shift, e.shift, e.shift, e.shift] }.
+            each do |(client_id, enrollment_id, times_homeless, disabling_condition), disabilities|
               # Exclude 8, 9, & 99 responses. Assume this enrollment consitutes 1 episode
               next if times_homeless.nil? || times_homeless > 4
               # Don't count anyone we've already counted in the chronic counts
               next if chronic_clients[:client].include?(client_id)
 
-              clients[:one_disability][base_count_sym] << client_id if disabilities.count == 1
+              counted_disabilities = Set.new
+              disabilities.each do |d_type, response, indefinite|
+                counted_disabilities << :disabling_condition if disabling_condition == 1
+
+                next unless response.in?(GrdaWarehouse::Hud::Disability.positive_responses)
+
+                # developmental and hiv are always indefinite and impairing
+                if d_type.in?([6, 8])
+                  counted_disabilities << d_type
+                elsif indefinite == 1
+                  counted_disabilities << d_type
+                end
+              end
+
+              clients[:one_disability][base_count_sym] << client_id if counted_disabilities.count == 1
 
               # Don't count anyone with only one disabling condition
-              next unless disabilities.count > 1
+              next unless counted_disabilities.count > 1
 
               set_high_acuity_client_counts(clients, client_id, enrollment_id)
             end
@@ -148,18 +162,32 @@ module
             report_scope.distinct.in_coc(coc_code: coc_code).
               joins(client: :source_enrollment_disabilities).
               merge(GrdaWarehouse::Hud::Disability.chronically_disabled).
-              pluck(:client_id, :id, e_t[:TimesHomelessPastThreeYears], d_t[:DisabilityType]).
-              group_by { |e| [e.shift, e.shift, e.shift] }.
-              each do |(client_id, enrollment_id, times_homeless), disabilities|
+              pluck(:client_id, :id, e_t[:TimesHomelessPastThreeYears], e_t[:DisablingCondition], d_t[:DisabilityType], d_t[:DisabilityResponse], d_t[:IndefiniteAndImpairs]).
+              group_by { |e| [e.shift, e.shift, e.shift, e.shift] }.
+              each do |(client_id, enrollment_id, times_homeless, disabling_condition), disabilities|
                 # Exclude 8, 9, & 99 responses. Assume this enrollment consitutes 1 episode
                 next if times_homeless.nil? || times_homeless > 4
                 # Don't count anyone we've already counted in the chronic counts
                 next if chronic_clients[:client][base_count_sym].include?(client_id)
 
-                clients[:one_disability][coc_code.to_sym] << client_id if disabilities.count == 1
+                counted_disabilities = Set.new
+                disabilities.each do |d_type, response, indefinite|
+                  counted_disabilities << :disabling_condition if disabling_condition == 1
+
+                  next unless response.in?(GrdaWarehouse::Hud::Disability.positive_responses)
+
+                  # developmental and hiv are always indefinite and impairing
+                  if d_type.in?([6, 8])
+                    counted_disabilities << d_type
+                  elsif indefinite == 1
+                    counted_disabilities << d_type
+                  end
+                end
+
+                clients[:one_disability][coc_code.to_sym] << client_id if counted_disabilities.count == 1
 
                 # Don't count anyone with only one disabling condition
-                next unless disabilities.count > 1
+                next unless counted_disabilities.count > 1
 
                 set_high_acuity_client_counts(clients, client_id, enrollment_id, coc_code.to_sym)
               end
