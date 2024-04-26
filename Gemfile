@@ -193,6 +193,7 @@ gem 'redis-actionpack'
 
 gem 'ed25519'
 gem 'bcrypt_pbkdf'
+gem 'gpgme'
 
 # AWS SDK is needed for deployment and within the application
 gem 'aws-sdk-rails'

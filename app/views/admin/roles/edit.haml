@@ -5,6 +5,11 @@
   = render 'new_form', f: f, submit_text: 'Update Role'
 
 .mt-4
-  -# TODO: START_ACL replace when ACL transition is complete
-  -# = render 'users/user_members_table', item: @role, path_to_add_users: nil, path_to_delete_item: admin_role_path(@role), delete_user_lambda: nil
-  = render 'users/user_members_table', item: @role, path_to_add_users: admin_role_users_path(@role), path_to_delete_item: admin_role_path(@role), delete_user_lambda: ->(user) { admin_role_user_path(@role, user) }, users_lambda: ->(role) { role.legacy_users }
+  -# TODO: START_ACL remove when ACL transition is complete
+  .mb-6
+    = render 'users/user_members_table', item: @role, path_to_add_users: admin_role_users_path(@role), path_to_delete_item: admin_role_path(@role), delete_user_lambda: ->(user) { admin_role_user_path(@role, user) }, users_lambda: ->(role) { role.legacy_users }
+  -# END_ACL
+  - if User.anyone_using_acls?
+    %h2 Users Through Access Controls
+    %p The following users inherit this role through an Access Control.
+    = render 'users/user_members_table', item: @role, path_to_add_users: nil, path_to_delete_item: admin_role_path(@role), delete_user_lambda: nil
