@@ -27,8 +27,9 @@ module HealthThriveAssessment
     end
 
     def update
+      prior_completion = @assessment.completed_on
       @assessment.update(assessment_params)
-      @patient.current_qa_factory.complete_hrsn(@assessment) if @assessment.completed_on.present?
+      @patient.qa_factory_factory.complete_hrsn(@assessment) if @assessment.completed_on.present? && @assessment.completed_on != prior_completion
       respond_with @assessment, location: client_health_careplans_path(@client)
     end
 
