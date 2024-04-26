@@ -40,7 +40,7 @@ module TxClientReports::AttachmentThreeReportExports
             format: :xlsx,
             assigns: view_assigns,
           ),
-          "Attachment III - Client Data #{Time.current.to_s(:db)}",
+          "Attachment III - Client Data #{Time.current.to_fs(:db)}",
         ) do |io|
           self.pdf_file = io
         end
