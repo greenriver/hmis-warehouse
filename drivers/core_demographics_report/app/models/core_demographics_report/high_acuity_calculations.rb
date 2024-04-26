@@ -127,37 +127,36 @@ module
             scope = report_scope.distinct
             scope = scope.in_coc(coc_code: coc_code) unless coc_code == base_count_sym
             scope.
-              joins(client: :source_enrollment_disabilities).
-              merge(GrdaWarehouse::Hud::Disability.chronically_disabled).
+              joins(:client, enrollment: :disabilities).
               pluck(:client_id, :id, e_t[:TimesHomelessPastThreeYears], e_t[:DisablingCondition], d_t[:DisabilityType], d_t[:DisabilityResponse], d_t[:IndefiniteAndImpairs]).
               group_by(&:shift).
-              each do |client_id, row|
+              each do |client_id, rows|
                 counts_by_enrollment = {}
 
                 # Don't count anyone we've already counted in the chronic counts
                 next if chronic_clients[:client].include?(client_id)
 
-                row.group_by { |e| [e.shift, e.shift, e.shift] }.
-                  each do |(enrollment_id, times_homeless, disabling_condition), disabilities|
-                    # Exclude 8, 9, & 99 responses. Assume this enrollment consitutes 1 episode
-                    next if times_homeless.nil? || times_homeless > 4
+                enrollments = rows.group_by { |e| [e.shift, e.shift, e.shift] }
+                enrollments.each do |(enrollment_id, times_homeless, disabling_condition), disabilities|
+                  # Exclude 8, 9, & 99 responses. Assume this enrollment consitutes 1 episode
+                  next if times_homeless.nil? || times_homeless > 4
 
-                    counted_disabilities = Set.new
-                    disabilities.each do |d_type, response, indefinite|
-                      next unless response.in?(GrdaWarehouse::Hud::Disability.positive_responses)
+                  counted_disabilities = Set.new
+                  disabilities.each do |d_type, response, indefinite|
+                    next unless response.in?(GrdaWarehouse::Hud::Disability.positive_responses)
 
-                      # developmental and hiv are always indefinite and impairing
-                      if d_type.in?([6, 8])
-                        counted_disabilities << d_type
-                      elsif indefinite == 1
-                        counted_disabilities << d_type
-                      end
+                    # developmental and hiv are always indefinite and impairing
+                    if d_type.in?([6, 8])
+                      counted_disabilities << d_type
+                    elsif indefinite == 1
+                      counted_disabilities << d_type
                     end
-                    # Only count disabling condition if there are no supporting disability details
-                    counted_disabilities << :disabling_condition if disabling_condition == 1 && counted_disabilities.count.zero?
-
-                    counts_by_enrollment[enrollment_id] = counted_disabilities.count
                   end
+                  # Only count disabling condition if there are no supporting disability details
+                  counted_disabilities << :disabling_condition if disabling_condition == 1 && counted_disabilities.count.zero?
+
+                  counts_by_enrollment[enrollment_id] = counted_disabilities.count
+                end
                 counts = counts_by_enrollment.values
                 # Count any client who has one disability (and never reported more than one)
                 if counts.max == 1
@@ -165,7 +164,6 @@ module
                   # Don't count anyone with only one or no disabling condition
                   next
                 end
-
                 counts_by_enrollment.each do |enrollment_id, count|
                   next if count < 2
 
