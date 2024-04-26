@@ -2,14 +2,19 @@
   "name": "Tarrant County Prevention Screening Form",
   "item": [
     {
+      "type": "DISPLAY",
+      "text": "This assessment determines your eligibility for rental assistance. Please do not leave any portion of the assessment blank.",
+      "link_id": "required_fields_explanation"
+    },
+    {
       "type": "GROUP",
       "text": "About You",
       "link_id": "about_you",
       "item": [
         {
           "link_id": "first_name",
-          "required": true,
           "type": "STRING",
+          "required": true,
           "text": "First Name",
           "mapping": {
             "custom_field_key": "tchc_prevention_screening_first_name"
@@ -17,8 +22,8 @@
         },
         {
           "link_id": "last_name",
-          "required": true,
           "type": "STRING",
+          "required": true,
           "text": "Last Name",
           "mapping": {
             "custom_field_key": "tchc_prevention_screening_last_name"
@@ -26,8 +31,8 @@
         },
         {
           "link_id": "address_apartment_number",
-          "required": true,
           "type": "STRING",
+          "required": true,
           "text": "Address & Apartment Number",
           "mapping": {
             "custom_field_key": "tchc_prevention_screening_address_apartment_number"
@@ -35,44 +40,58 @@
         },
         {
           "link_id": "city",
-          "required": true,
           "type": "STRING",
+          "required": true,
           "text": "City",
           "mapping": {
             "custom_field_key": "tchc_prevention_screening_city"
           }
         },
         {
-          "link_id": "zip_code",
-          "type": "STRING",
-          "text": "Zip Code",
+          "link_id": "resident_of_arlington_fort_worth_or_grand_prairie",
+          "type": "CHOICE",
+          "required": true,
+          "component": "RADIO_BUTTONS",
+          "text": "Do you live outside of the following cities: Arlington, Fort Worth, or Grand Prairie?",
+          "pick_list_options": [
+            {
+              "code": "yes",
+              "label": "Yes"
+            },
+            {
+              "code": "no",
+              "label": "No"
+            }
+          ],
           "mapping": {
-            "custom_field_key": "tchc_prevention_screening_zip_code"
+            "custom_field_key": "tchc_prevention_screening_resident_of_arlington_fort_worth_or_grand_prairie"
           }
         },
         {
           "link_id": "client_email",
-          "required": true,
+          "component": "EMAIL",
           "type": "STRING",
-          "text": "Client Email",
+          "required": true,
+          "text": "Your Email",
           "mapping": {
             "custom_field_key": "tchc_prevention_screening_client_email"
           }
         },
         {
           "link_id": "client_phone_number",
-          "required": true,
           "type": "STRING",
-          "text": "Client Phone Number",
+          "required": true,
+          "component": "PHONE",
+          "text": "Your Phone Number",
           "mapping": {
             "custom_field_key": "tchc_prevention_screening_client_phone_number"
           }
         },
         {
           "link_id": "dob",
-          "required": true,
           "type": "DATE",
-          "text": "Date of Birth",
+          "required": true,
+          "text": "Your Date of Birth",
           "mapping": {
             "custom_field_key": "tchc_prevention_screening_dob"
           }
@@ -93,6 +112,7 @@
         {
           "link_id": "military_veteran_in_home",
           "type": "CHOICE",
+          "required": true,
           "component": "RADIO_BUTTONS",
           "text": "Is there a military veteran in the home?",
           "pick_list_options": [
@@ -125,6 +145,7 @@
         {
           "link_id": "received_rental_assistance_in_last_three_years",
           "type": "CHOICE",
+          "required": true,
           "component": "RADIO_BUTTONS",
           "text": "Have you received rental assistance within the past three (3) years?",
           "pick_list_options": [
@@ -142,27 +163,9 @@
           }
         },
         {
-          "link_id": "received_texas_rent_relief_or_erap",
-          "type": "CHOICE",
-          "component": "RADIO_BUTTONS",
-          "text": "Have you received \"Texas Rent Relief\" or \"Tarrant County ERAP\" assistance?",
-          "pick_list_options": [
-            {
-              "code": "yes",
-              "label": "Yes"
-            },
-            {
-              "code": "no",
-              "label": "No"
-            }
-          ],
-          "mapping": {
-            "custom_field_key": "tchc_prevention_screening_received_texas_rent_relief_or_erap"
-          }
-        },
-        {
           "link_id": "lives_in_unit_with_assisted_by_federal_funding",
           "type": "CHOICE",
+          "required": true,
           "component": "RADIO_BUTTONS",
           "text": "Do you live in a unit assisted by another Federal Funded housing, such as Section 8?",
           "pick_list_options": [
@@ -180,17 +183,9 @@
           }
         },
         {
-          "link_id": "understanding_of_cross_reference",
-          "type": "BOOLEAN",
-          "component": "CHECKBOX",
-          "text": "I understand that my information will be cross referenced with other agencies that may have provided rental assistance to my household within the last 3 years",
-          "mapping": {
-            "custom_field_key": "tchc_prevention_screening_understanding_of_cross_reference"
-          }
-        },
-        {
           "link_id": "explanation_of_non_payment_of_rent",
           "type": "TEXT",
+          "required": true,
           "text": "Please explain current Household \"Crisis\" that has resulted in the non-Payment of rent for your household this month.",
           "mapping": {
             "custom_field_key": "tchc_prevention_screening_explanation_of_non_payment_of_rent"
@@ -200,6 +195,7 @@
           "link_id": "has_been_literally_homeless",
           "type": "CHOICE",
           "component": "RADIO_BUTTONS",
+          "required": true,
           "text": "Have you ever been literally homeless (Stayed in an Emergency Shelter or Outside or a place not meant for habitation)?",
           "pick_list_options": [
             {
@@ -223,39 +219,9 @@
       "link_id": "rental_history",
       "item": [
         {
-          "link_id": "how_many_months_is_your_lease",
-          "type": "CHOICE",
-          "component": "DROPDOWN",
-          "text": "How many months is your lease?",
-          "pick_list_options": [
-            {
-              "code": "six_months",
-              "label": "6 months"
-            },
-            {
-              "code": "twelve_months",
-              "label": "12 months"
-            },
-            {
-              "code": "eighteen_months",
-              "label": "18 months"
-            },
-            {
-              "code": "twenty_four_months",
-              "label": "24 months"
-            },
-            {
-              "code": "other",
-              "label": "Other"
-            }
-          ],
-          "mapping": {
-            "custom_field_key": "tchc_prevention_screening_how_many_months_is_your_lease"
-          }
-        },
-        {
           "link_id": "how_many_bedrooms_is_your_unit",
           "type": "CHOICE",
+          "required": true,
           "component": "DROPDOWN",
           "text": "How many bedrooms is your unit?",
           "pick_list_options": [
@@ -289,8 +255,9 @@
           }
         },
         {
-          "link_id": "have_you_received_a_3_daynotice_to_vacate",
+          "link_id": "have_you_received_a_3_day_notice_to_vacate",
           "type": "CHOICE",
+          "required": true,
           "component": "RADIO_BUTTONS",
           "text": "Have you received a \"3 Day Notice to Vacate\" from your property management?",
           "pick_list_options": [
@@ -304,12 +271,13 @@
             }
           ],
           "mapping": {
-            "custom_field_key": "tchc_prevention_screening_have_you_received_a_3_daynotice_to_vacate"
+            "custom_field_key": "tchc_prevention_screening_have_you_received_a_3_day_notice_to_vacate"
           }
         },
         {
           "link_id": "have_you_been_served_with_eviction_court_date",
           "type": "CHOICE",
+          "required": true,
           "component": "RADIO_BUTTONS",
           "text": "Have you been served by the Tarrant County Constable Office with a formal eviction court date?",
           "pick_list_options": [
@@ -343,14 +311,6 @@
           }
         },
         {
-          "link_id": "amount_of_rent_owed",
-          "type": "STRING",
-          "text": "As of today, how much do you owe on your rent?",
-          "mapping": {
-            "custom_field_key": "tchc_prevention_screening_amount_of_rent_owed"
-          }
-        },
-        {
           "link_id": "landlord_name",
           "type": "STRING",
           "text": "Landlord Name",
@@ -361,6 +321,7 @@
         {
           "link_id": "landlord_phone_number",
           "type": "STRING",
+          "component": "PHONE",
           "text": "Landlord Phone Number",
           "mapping": {
             "custom_field_key": "tchc_prevention_screening_landlord_phone_number"
@@ -369,6 +330,7 @@
         {
           "link_id": "landlord_email",
           "type": "STRING",
+          "component": "EMAIL",
           "text": "Landlord Email",
           "mapping": {
             "custom_field_key": "tchc_prevention_screening_landlord_email"
@@ -384,6 +346,7 @@
         {
           "link_id": "landlord_has_relationship_with_anyone_in_household",
           "type": "CHOICE",
+          "required": true,
           "component": "RADIO_BUTTONS",
           "text": "Does the landlord have a relationship to anyone in the household?",
           "pick_list_options": [
@@ -403,6 +366,7 @@
         {
           "link_id": "has_anyone_assisted_with_rent_in_past_12_months",
           "type": "CHOICE",
+          "required": true,
           "component": "RADIO_BUTTONS",
           "text": "Has any person or program assisted in paying rent for your household in past 12 months?",
           "pick_list_options": [
@@ -417,26 +381,6 @@
           ],
           "mapping": {
             "custom_field_key": "tchc_prevention_screening_has_anyone_assisted_with_rent_in_past_12_months"
-          }
-        },
-        {
-          "link_id": "resident_of_arlington_fort_worth_or_grand_prairie",
-          "type": "CHOICE",
-          "component": "RADIO_BUTTONS",
-          "text": "Do you live outside of the following cities: Arlington, Fort Worth, or Grand Prairie?",
-          "required": true,
-          "pick_list_options": [
-            {
-              "code": "yes",
-              "label": "Yes"
-            },
-            {
-              "code": "no",
-              "label": "No"
-            }
-          ],
-          "mapping": {
-            "custom_field_key": "tchc_prevention_screening_resident_of_arlington_fort_worth_or_grand_prairie"
           }
         },
         {
@@ -513,6 +457,7 @@
           "link_id": "lost_employment_or_income_in_last_30_days",
           "type": "CHOICE",
           "component": "RADIO_BUTTONS",
+          "required": true,
           "text": "Did you lose employment or have lower income within the past 30 days?",
           "pick_list_options": [
             {
@@ -531,6 +476,7 @@
         {
           "link_id": "household_member_notified_of_income_or_state_benefits",
           "type": "CHOICE",
+          "required": true,
           "component": "RADIO_BUTTONS",
           "text": "Has anyone in your household received written notice that they will start receiving income and or state benefits? (Ex: Job offer letter, unemployment benefits, SNAP benefits, child support, etc.)",
           "pick_list_options": [
@@ -545,6 +491,23 @@
           ],
           "mapping": {
             "custom_field_key": "tchc_prevention_screening_household_member_notified_of_income_or_state_benefits"
+          }
+        }
+      ]
+    },
+    {
+      "type": "GROUP",
+      "text": "Applicant Certification",
+      "link_id": "applicant_certification",
+      "item": [
+        {
+          "link_id": "applicant_certification_authorization",
+          "type": "BOOLEAN",
+          "required": true,
+          "component": "CHECKBOX",
+          "text": "I/we understand that the above information is being collected to determine if I/we are eligible to receive rental assistance. I/we authorize the program administrator to verify all information provided on this assessment.",
+          "mapping": {
+            "custom_field_key": "tchc_prevention_screening_applicant_certification_authorization"
           }
         }
       ]

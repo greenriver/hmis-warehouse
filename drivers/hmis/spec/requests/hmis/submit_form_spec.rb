@@ -312,27 +312,40 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       input.merge(hud_values: input[:hud_values].merge(*args))
     end
 
-    it 'should warn if changing the end date for a project with open enrollments' do
-      # Set end dates on inventory and funder, so that we don't get warnings about them
-      i1.update!(inventory_end_date: '2030-01-01')
-      f1.update!(end_date: '2030-01-01')
+    context 'with open enrollments' do
+      let(:today) { Date.current }
+      let!(:project) { create :hmis_hud_project, data_source: ds1, organization: o1, with_coc: true, operating_end_date: nil }
+      let!(:enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: project, entry_date: 1.month.ago }
+      let!(:exited_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: project, entry_date: 1.month.ago, exit_date: 2.days.ago }
 
-      input = merge_hud_values(
-        test_input.merge(confirmed: false),
-        'operatingEndDate' => Date.current.strftime('%Y-%m-%d'),
-      )
+      def close_project(date = today, proj = project)
+        input = merge_hud_values(
+          test_input.merge(confirmed: false, record_id: proj.id),
+          'operatingEndDate' => date.strftime('%Y-%m-%d'),
+        )
+        post_graphql(input: { input: input }) { mutation }
+      end
 
-      response, result = post_graphql(input: { input: input }) { mutation }
-      record_id = result.dig('data', 'submitForm', 'record', 'id')
-      errors = result.dig('data', 'submitForm', 'errors')
-      p1.reload
-      aggregate_failures 'checking response' do
-        expect(response.status).to eq(200), result&.inspect
-        expect(record_id).to be_nil
-        expect(p1.operating_end_date).to be_nil
-        expect(errors).to match([
-                                  a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => Hmis::Hud::Validators::ProjectValidator.open_enrollments_message(1)),
-                                ])
+      it 'should warn if changing the end date for a project with open enrollments' do
+        response, result = close_project
+        record_id = result.dig('data', 'submitForm', 'record', 'id')
+        errors = result.dig('data', 'submitForm', 'errors')
+        project.reload
+        aggregate_failures 'checking response' do
+          expect(response.status).to eq(200), result&.inspect
+          expect(record_id).to be_nil
+          expect(project.operating_end_date).to be_nil # didn't update
+          expect(errors).to contain_exactly(include('severity' => 'warning', 'type' => 'information', 'fullMessage' => Hmis::Hud::Validators::ProjectValidator.open_enrollments_message(1)))
+        end
+      end
+
+      it 'should not warn about enrollments that exited today' do
+        # exit the enrollment today
+        create(:hmis_hud_exit, enrollment: enrollment, client: enrollment.client, data_source: ds1, exit_date: today)
+
+        _, result = close_project
+        errors = result.dig('data', 'submitForm', 'errors')
+        expect(errors).to be_empty
       end
     end
 
