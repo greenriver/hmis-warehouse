@@ -23,7 +23,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       { label: 'County', key: 'employer_address_county', repeats: false, field_type: 'string' },
       { label: 'Zip Code', key: 'employer_address_zip', repeats: false, field_type: 'string' },
       { label: 'Current Job Title:', key: 'current_job_title', repeats: false, field_type: 'string' },
-      { label: 'Date of Hire:', key: 'date_of_hire', repeats: false, field_type: 'string' },
+      { label: 'Date of Hire:', key: 'date_of_hire', repeats: false, field_type: 'date' },
       { label: 'Last Date of Employment:', key: 'last_date_of_employment', repeats: false, field_type: 'date' },
       { label: 'Rate of Pay:', key: 'rate_of_pay', repeats: false, field_type: 'float' },
       { label: 'Wages Change Reason (if applicable):', key: 'wages_change_reason', repeats: false, field_type: 'string' },

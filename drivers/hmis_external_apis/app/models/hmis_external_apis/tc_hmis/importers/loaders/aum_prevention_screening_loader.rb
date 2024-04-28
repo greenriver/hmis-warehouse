@@ -26,9 +26,9 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       { label: 'How many people are in the household?', key: 'household_size', repeats: false, field_type: 'integer' },
       { label: "Do all adults in the household have a State ID or Driver's License?", key: 'state_id_drivers_license', repeats: false, field_type: 'boolean' },
       { label: 'Does EVERYONE in the household have a social security card and birth certificate?', key: 'section_social_security_birth_cert', repeats: false, field_type: 'boolean' },
-      { label: 'What is the ANNUAL household income?', key: 'annual_household_income', repeats: false, field_type: 'integer' },
+      { label: 'What is the ANNUAL household income?', key: 'annual_household_income', repeats: false, field_type: 'float' },
       { label: 'What is the source of the household income (i.e. full time job, part-time job, SSI, SDI, etc.)?', key: 'source_of_income', repeats: false, field_type: 'string' },
-      { label: 'How much is your monthly base rent (rent only)?', key: 'base_rent', repeats: false, field_type: 'integer' },
+      { label: 'How much is your monthly base rent (rent only)?', key: 'base_rent', repeats: false, field_type: 'float' },
     ].freeze
 
     protected
