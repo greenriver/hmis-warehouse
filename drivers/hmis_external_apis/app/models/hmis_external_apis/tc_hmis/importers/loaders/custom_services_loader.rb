@@ -131,7 +131,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
           row_field_value = row_enrollment_id(row)
           enrollment = row_field_value ? enrollments[row_field_value] : nil
-          enrollment = enrollments.values.first
           if enrollment.blank?
             log_skipped_row(row, field: ENROLLMENT_ID, prefix: touch_point_name)
             next
@@ -288,7 +287,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
         'When We Love' => {
           service_type: 'TB and Bus Pass',
           service_fields: {
-            #'Amount ( If Needed )' => {
             'The amount Assistance' => {
               key: :FAAmount,
               cleaner: ->(amount) { amount.to_f },
