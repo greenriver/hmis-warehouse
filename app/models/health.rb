@@ -14,23 +14,23 @@ module Health
   end
 
   module_function def models_by_health_filename
-    # use an explicit allowlist as a security measure
+    # use an explicit allowlist as a security measure, does not include extensions, which should be added in processing
     {
-      'appointments.csv' => Health::Appointment,
-      'medications.csv' => Health::Medication,
-      'patients.csv' => Health::EpicPatient,
-      'problems.csv' => Health::Problem,
-      'recent_visits.csv' => Health::Visit,
-      'goals.csv' => Health::EpicGoal,
-      'careteam.csv' => Health::EpicTeamMember,
-      'encounters.csv' => Health::EpicCaseNote,
-      'QA.csv' => Health::EpicQualifyingActivity,
-      'careplan.csv' => Health::EpicCareplan,
-      'CHA.csv' => Health::EpicCha,
-      'SSM.csv' => Health::EpicSsm,
-      'QA_enc.csv' => Health::EpicCaseNoteQualifyingActivity,
-      'covid_vaccine.csv' => Health::Vaccination,
-      'thrive.csv' => Health::EpicThrive,
+      'appointments' => Health::Appointment,
+      'medications' => Health::Medication,
+      'patients' => Health::EpicPatient,
+      'problems' => Health::Problem,
+      'recent_visits' => Health::Visit,
+      'goals' => Health::EpicGoal,
+      'careteam' => Health::EpicTeamMember,
+      'encounters' => Health::EpicCaseNote,
+      'QA' => Health::EpicQualifyingActivity,
+      'careplan' => Health::EpicCareplan,
+      'CHA' => Health::EpicCha,
+      'SSM' => Health::EpicSsm,
+      'QA_enc' => Health::EpicCaseNoteQualifyingActivity,
+      'covid_vaccine' => Health::Vaccination,
+      'thrive' => Health::EpicThrive,
     }.freeze
   end
 end
