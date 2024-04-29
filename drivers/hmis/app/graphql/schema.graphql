@@ -3205,6 +3205,7 @@ type Enrollment {
   assessmentEligibilities: [AssessmentEligibility!]!
   assessments(filters: AssessmentsForEnrollmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(filters: EnrollmentAuditEventFilterOptions, limit: Int, offset: Int): EnrollmentAuditEventsPaginated!
+  autoExited: Boolean!
   ceAssessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): CeAssessmentsPaginated!
   childWelfareMonths: Int
   childWelfareYears: RHYNumberofYears
