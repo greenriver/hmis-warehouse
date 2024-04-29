@@ -16,6 +16,7 @@ module Mutations
 
       definition = Hmis::Form::Definition.find_by(id: id)
       raise 'not found' unless definition
+      raise 'not allowed to change identifier' if input.identifier.present? && input.identifier != definition.identifier
 
       definition.assign_attributes(**input.to_attributes)
 

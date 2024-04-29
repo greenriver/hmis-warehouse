@@ -380,9 +380,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
         errors.add field_name || :base, :data_not_collected, severity: :warning, **error_context
       end
 
-      # Additional validations for currency
-      errors.add field_name, :out_of_range, **error_context, message: 'must be positive' if item.type == 'CURRENCY' && value&.negative?
-
       # TODO(##184404620): Validate ValueBounds (How to handle bounds that rely on local values like projectStartDate and entryDate?)
       # TODO(##184402463): Add support for RequiredWhen
     end
