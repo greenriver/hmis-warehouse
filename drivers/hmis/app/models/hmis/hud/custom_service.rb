@@ -12,8 +12,10 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
   include ::HmisStructure::Service
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
-  include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
   include ::Hmis::Hud::Concerns::HasCustomDataElements
+
+  belongs_to :enrollment, foreign_key: :enrollment_pk, optional: true, class_name: 'Hmis::Hud::Enrollment'
+  has_one :project, through: :enrollment
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :services, optional: true
@@ -26,6 +28,21 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
 
   before_validation :set_service_name
   validates_with Hmis::Hud::Validators::CustomServiceValidator
+
+  before_validation :set_hud_enrollment_id_from_enrollment_pk, if: :enrollment_pk_changed?
+  def set_hud_enrollment_id_from_enrollment_pk
+    self.enrollment_id = enrollment.enrollment_id
+    self.personal_id = enrollment.personal_id
+  end
+
+  def validate_enrollment_pk
+    if enrollment
+      errors.add :enrollment_id, 'does not match DB PK' if EnrollmentID != enrollment.EnrollmentID
+      errors.add :enrollment_id, 'must match enrollment data source' if data_source_id != enrollment.data_source_id
+    else
+      errors.add :enrollment_pk, :required
+    end
+  end
 
   scope :within_range, ->(range) do
     where(date_provided: range)

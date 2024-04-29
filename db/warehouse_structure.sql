@@ -1394,7 +1394,8 @@ CREATE TABLE public."CustomServices" (
     "DateDeleted" timestamp without time zone,
     "FAAmount" double precision,
     "FAStartDate" date,
-    "FAEndDate" date
+    "FAEndDate" date,
+    enrollment_pk bigint
 );
 
 
@@ -2487,7 +2488,8 @@ CREATE TABLE public."Services" (
     pending_date_deleted timestamp without time zone,
     "MovingOnOtherType" character varying,
     "FAStartDate" date,
-    "FAEndDate" date
+    "FAEndDate" date,
+    enrollment_pk bigint
 );
 
 
@@ -18721,11 +18723,11 @@ ALTER SEQUENCE public.hmis_scan_card_codes_id_seq OWNED BY public.hmis_scan_card
 --
 
 CREATE VIEW public.hmis_services AS
-( SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
+ SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
     "Services".id AS owner_id,
     'Hmis::Hud::Service'::text AS owner_type,
     "CustomServiceTypes".id AS custom_service_type_id,
-    "Services"."EnrollmentID",
+    "Services".enrollment_pk,
     "Services"."PersonalID",
     "Services"."DateProvided",
     ("Services"."UserID")::character varying AS "UserID",
@@ -18736,13 +18738,12 @@ CREATE VIEW public.hmis_services AS
    FROM (public."Services"
      JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes".data_source_id = "Services".data_source_id) AND ("CustomServiceTypes"."DateDeleted" IS NULL))))
   WHERE ("Services"."DateDeleted" IS NULL)
-  ORDER BY "Services"."DateProvided")
 UNION ALL
-( SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
+ SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
     ("CustomServices".id)::integer AS owner_id,
     'Hmis::Hud::CustomService'::text AS owner_type,
     "CustomServices".custom_service_type_id,
-    "CustomServices"."EnrollmentID",
+    "CustomServices".enrollment_pk,
     "CustomServices"."PersonalID",
     "CustomServices"."DateProvided",
     "CustomServices"."UserID",
@@ -18751,8 +18752,7 @@ UNION ALL
     "CustomServices"."DateDeleted",
     "CustomServices".data_source_id
    FROM public."CustomServices"
-  WHERE ("CustomServices"."DateDeleted" IS NULL)
-  ORDER BY "CustomServices"."DateProvided");
+  WHERE ("CustomServices"."DateDeleted" IS NULL);
 
 
 --
@@ -50759,6 +50759,13 @@ CREATE INDEX "index_CustomServices_on_data_source_id" ON public."CustomServices"
 
 
 --
+-- Name: index_CustomServices_on_enrollment_pk; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomServices_on_enrollment_pk" ON public."CustomServices" USING btree (enrollment_pk);
+
+
+--
 -- Name: index_Disabilities_on_DateDeleted_and_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -51379,6 +51386,13 @@ CREATE UNIQUE INDEX "index_Services_on_ServicesID_and_data_source_id" ON public.
 --
 
 CREATE INDEX "index_Services_on_data_source_id" ON public."Services" USING btree (data_source_id);
+
+
+--
+-- Name: index_Services_on_enrollment_pk; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Services_on_enrollment_pk" ON public."Services" USING btree (enrollment_pk);
 
 
 --
@@ -61711,6 +61725,14 @@ CREATE TRIGGER service_history_service_insert_trigger BEFORE INSERT ON public.se
 
 
 --
+-- Name: Services fk_custom_service_enrollment_pk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."Services"
+    ADD CONSTRAINT fk_custom_service_enrollment_pk FOREIGN KEY (enrollment_pk) REFERENCES public."Enrollment"(id);
+
+
+--
 -- Name: service_history_services_2036 fk_rails_000b38b036; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -62463,6 +62485,14 @@ ALTER TABLE ONLY public.import_logs
 
 
 --
+-- Name: Services fk_service_enrollment_pk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."Services"
+    ADD CONSTRAINT fk_service_enrollment_pk FOREIGN KEY (enrollment_pk) REFERENCES public."Enrollment"(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
@@ -62655,6 +62685,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240409215111'),
 ('20240411183410'),
 ('20240413183410'),
+('20240414183410'),
 ('20240416155829'),
 ('20240419165229'),
 ('20240419174433');

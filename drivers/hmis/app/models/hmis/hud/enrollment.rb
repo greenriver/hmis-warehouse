@@ -37,13 +37,13 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :exit, **hmis_enrollment_relation('Exit'), inverse_of: :enrollment, dependent: :destroy
 
   # HUD services
-  has_many :services, **hmis_enrollment_relation('Service'), inverse_of: :enrollment, dependent: :destroy
+  has_many :services, foreign_key: :enrollment_pk, class_name: 'Hmis::Hud::Service', inverse_of: :enrollment, dependent: :destroy
   has_many :bed_nights, -> { bed_nights }, **hmis_enrollment_relation('Service')
   # Custom services
-  has_many :custom_services, **hmis_enrollment_relation('CustomService'), inverse_of: :enrollment, dependent: :destroy
+  has_many :custom_services, foreign_key: :enrollment_pk, class_name: 'Hmis::Hud::CustomService', inverse_of: :enrollment, dependent: :destroy
   has_many :custom_case_notes, **hmis_enrollment_relation('CustomCaseNote'), inverse_of: :enrollment, dependent: :destroy
   # All services (combined view of HUD and Custom services)
-  has_many :hmis_services, **hmis_enrollment_relation('HmisService'), inverse_of: :enrollment
+  has_many :hmis_services, foreign_key: :enrollment_pk, class_name: 'Hmis::Hud::HmisService', inverse_of: :enrollment
   has_many(
     :move_in_addresses,
     -> { where(enrollment_address_type: Hmis::Hud::CustomClientAddress::ENROLLMENT_MOVE_IN_TYPE) },
