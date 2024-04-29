@@ -36,14 +36,16 @@ RSpec.describe 'Import GPG Epic', type: :model do
       end
     end
 
-    it 'Imports encrypted data' do
-      Health::DataSource.create!(name: 'GPG EPIC')
-      dest_path = configs.first.destination
-      FileUtils.mkdir_p(dest_path) unless Dir.exist?(dest_path)
-      FileUtils.cp(Dir.glob('spec/fixtures/files/health/epic/gpg/*.gpg'), dest_path)
-      Health::Tasks::ImportEpic.new(load_locally: true, configs: configs).run!
+    describe 'Importing encrypted data ' do
+      it 'Import decrypted the data so it could be imported' do
+        Health::DataSource.create!(name: 'GPG EPIC')
+        dest_path = configs.first.destination
+        FileUtils.mkdir_p(dest_path) unless Dir.exist?(dest_path)
+        FileUtils.cp(Dir.glob('spec/fixtures/files/health/epic/gpg/*.gpg'), dest_path)
+        Health::Tasks::ImportEpic.new(load_locally: true, configs: configs).run!
 
-      expect(Health::Appointment.count).to eq(30)
+        expect(Health::Appointment.count).to eq(30)
+      end
     end
   end
 end
