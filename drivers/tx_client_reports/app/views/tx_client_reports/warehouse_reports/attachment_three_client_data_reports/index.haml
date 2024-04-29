@@ -7,4 +7,8 @@
 = render 'filter'
 
 - if show_report?
-  = render 'report'
+  = render 'background_render', url: render_section_tx_client_reports_warehouse_reports_attachment_three_client_data_reports_path, fetch_params: { filter: @filter.for_params[:filters], query_string: params } do
+    .rollup
+      .rollup-container.well
+
+  = render 'common/section_not_loading', path_to_section: data_tx_client_reports_warehouse_reports_attachment_three_client_data_reports_path(link_params)

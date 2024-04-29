@@ -296,9 +296,9 @@ type AssessmentEligibility {
 }
 
 input AssessmentFilterOptions {
+  assessmentName: [String!]
   project: [ID!]
   projectType: [ProjectType!]
-  type: [AssessmentRole!]
 }
 
 input AssessmentInput {
@@ -434,11 +434,15 @@ enum AssessmentType {
 }
 
 input AssessmentsForEnrollmentFilterOptions {
-  type: [AssessmentRole!]
+  assessmentName: [String!]
 }
 
 input AssessmentsForHouseholdFilterOptions {
-  type: [AssessmentRole!]
+  assessmentName: [String!]
+}
+
+input AssessmentsForProjectFilterOptions {
+  assessmentName: [String!]
 }
 
 type AssessmentsPaginated {
@@ -3201,6 +3205,7 @@ type Enrollment {
   assessmentEligibilities: [AssessmentEligibility!]!
   assessments(filters: AssessmentsForEnrollmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(filters: EnrollmentAuditEventFilterOptions, limit: Int, offset: Int): EnrollmentAuditEventsPaginated!
+  autoExited: Boolean!
   ceAssessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): CeAssessmentsPaginated!
   childWelfareMonths: Int
   childWelfareYears: RHYNumberofYears
@@ -6393,6 +6398,13 @@ enum PickListType {
   All unit types.
   """
   ALL_UNIT_TYPES
+
+  """
+  Assessment names, including custom assessments and assessments that are
+  inactive. If a project is specified, the list is limited to assessments that
+  exist in the project (both active and inactive).
+  """
+  ASSESSMENT_NAMES
   AVAILABLE_BULK_SERVICE_TYPES
   AVAILABLE_FILE_TYPES
   AVAILABLE_SERVICE_TYPES
@@ -8281,7 +8293,7 @@ type Project {
   access: ProjectAccess!
   active: Boolean!
   affiliatedProjects: [Project!]!
-  assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  assessments(filters: AssessmentsForProjectFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   ceParticipations(limit: Int, offset: Int): CeParticipationsPaginated!
   contactInformation: String
   continuumProject: NoYes
@@ -8362,7 +8374,7 @@ type ProjectCoc {
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
-  geocode: String!
+  geocode: String
   geographyType: GeographyType
   id: ID!
   state: String
