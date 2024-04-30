@@ -15,5 +15,9 @@ FactoryBot.define do
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
     DateProvided { Date.parse('2019-01-01') }
+    after(:build) do |record|
+      record.enrollment_id = record.enrollment.enrollment_id
+      record.personal_id = record.enrollment.personal_id
+    end
   end
 end

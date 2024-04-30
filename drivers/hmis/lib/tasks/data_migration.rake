@@ -6,28 +6,30 @@ namespace :data_migration do
     return unless data_source
 
     connection = Hmis::Hud::Enrollment.connection
+    elapsed = Benchmark.realtime do
+      puts 'updating services'
+      connection.execute(<<~SQL)
+        UPDATE "Services"
+          SET enrollment_pk = "Enrollment".id
+        FROM "Enrollment"
+          WHERE "Enrollment"."data_source_id" = "Services"."data_source_id"
+          AND "Enrollment"."EnrollmentID" = "Services"."EnrollmentID"
+          AND "Services"."data_source_id" = #{data_source.id}
+      SQL
+      connection.execute('VACUUM ANALYZE "Services"')
 
-    puts 'updating services'
-    connection.execute(<<~SQL)
-      UPDATE "Services"
-        SET enrollment_pk = "Enrollment".id
-      FROM "Enrollment"
-        WHERE "Enrollment"."data_source_id" = "Services"."data_source_id"
-        AND "Enrollment"."EnrollmentID" = "Services"."EnrollmentID"
-        AND "Services"."data_source_id" = #{data_source.id}
-    SQL
-    connection.execute('VACUUM ANALYZE "Services"')
-
-    puts 'updating custom services'
-    connection.execute(<<~SQL)
-      UPDATE "CustomServices"
-        SET enrollment_pk = "Enrollment".id
-      FROM "Enrollment"
-        WHERE "Enrollment"."data_source_id" = "CustomServices"."data_source_id"
-        AND "Enrollment"."EnrollmentID" = "CustomServices"."EnrollmentID"
-        AND "CustomServices"."data_source_id" = #{data_source.id}
-    SQL
-    connection.execute('VACUUM ANALYZE "CustomServices"')
+      puts 'updating custom services'
+      connection.execute(<<~SQL)
+        UPDATE "CustomServices"
+          SET enrollment_pk = "Enrollment".id
+        FROM "Enrollment"
+          WHERE "Enrollment"."data_source_id" = "CustomServices"."data_source_id"
+          AND "Enrollment"."EnrollmentID" = "CustomServices"."EnrollmentID"
+          AND "CustomServices"."data_source_id" = #{data_source.id}
+      SQL
+      connection.execute('VACUUM ANALYZE "CustomServices"')
+    end
+    puts "updated in #{elapsed.round(2)} seconds"
   end
 
   task :update_project_pk, [] => [:environment] do

@@ -14,6 +14,10 @@ FactoryBot.define do
     DateProvided { Date.yesterday }
     RecordType { 200 }
     TypeProvided { 200 }
+    after(:build) do |record|
+      record.enrollment_id = record.enrollment.enrollment_id
+      record.personal_id = record.enrollment.personal_id
+    end
   end
 
   factory :hmis_hud_service_bednight, parent: :hmis_hud_service do
