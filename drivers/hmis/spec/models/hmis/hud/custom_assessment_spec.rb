@@ -15,6 +15,8 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
     cleanup_test_environment
   end
 
+  include_context 'hmis base setup'
+
   describe 'destroying WIP assessment' do
     let!(:assessment) { create(:hmis_wip_custom_assessment) }
 
@@ -278,5 +280,36 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
       result = Hmis::Hud::CustomAssessment.with_role('CUSTOM_ASSESSMENT')
       expect(result).to contain_exactly(custom_assessment)
     end
+  end
+
+  describe 'assessment submission logic' do
+    context 're-submitting Intake Assessment' do
+      let!(:assessment) { create(:hmis_custom_assessment, data_collection_stage: 1) }
+
+      it 'does not change DateCreated' do
+        old_date_created = assessment.DateCreated
+        assessment.save_submitted_assessment!(current_user: hmis_user)
+
+        assessment.reload
+        expect(assessment.date_created).to eq(old_date_created)
+        expect(assessment).not_to be_wip
+      end
+    end
+
+    # context 'submitting new Intake Assessment' do
+    #   let!(:assessment) { build(:hmis_custom_assessment, data_collection_stage: 1) }
+
+    #   it 'does not change DateCreated' do
+    #     old_date_created = assessment.DateCreated
+    #     assessment.save_submitted_assessment!(current_user: hmis_user)
+
+    #     assessment.reload
+    #     expect(assessment.date_created).to eq(old_date_created)
+    #     expect(assessment).not_to be_wip
+    #   end
+    # end
+
+    # save_assessment!
+    # save as WIP
   end
 end

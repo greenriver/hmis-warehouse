@@ -149,6 +149,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
       # If Assessment is being saved as Work-in-progress, just save and return
       if as_wip
+        # TODO enforce cant move from nonWIP=>WIP
         save_in_progress
         return
       end
@@ -168,6 +169,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
       # Side-effects when submitting Intake for the first time
       if is_first_submission && intake?
         # Move Enrollment out of WIP status
+        # test is DateUpdated gonna be before this cuz of touch?
         enrollment.save_not_in_progress!
         # Accept referral in LINK if submitted intake (HoH)
         enrollment.accept_referral!(current_user: current_user)
