@@ -54,7 +54,7 @@ module Types
           sort_by_option(:organization_and_name).
           map(&:to_pick_list_option)
       when 'OPEN_PROJECTS'
-        Hmis::Hud::Project.viewable_by(user).where(operating_end_date: nil).
+        Hmis::Hud::Project.viewable_by(user).open_on_date(Date.current).
           preload(:organization).
           sort_by_option(:organization_and_name).
           map(&:to_pick_list_option)
