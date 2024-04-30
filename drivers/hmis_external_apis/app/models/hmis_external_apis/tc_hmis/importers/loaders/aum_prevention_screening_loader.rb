@@ -29,7 +29,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       { label: 'What is the ANNUAL household income?', key: 'annual_household_income', repeats: false, field_type: 'float' },
       { label: 'What is the source of the household income (i.e. full time job, part-time job, SSI, SDI, etc.)?', key: 'source_of_income', repeats: false, field_type: 'string' },
       { label: 'How much is your monthly base rent (rent only)?', key: 'base_rent', repeats: false, field_type: 'float' },
-    ].freeze
+    ].map { |h| h.merge(key: "aum_prevention_#{h[:key]}") }.freeze
 
     protected
 
@@ -48,7 +48,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     def form_definition_identifier
-      'aum_prevention'
+      'aum-prevention-screening'
     end
 
     def cde_values(row, config)

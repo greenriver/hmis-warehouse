@@ -29,7 +29,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       { label: 'Wages Change Reason (if applicable):', key: 'wages_change_reason', repeats: false, field_type: 'string' },
       { label: 'How many hours work per week?', key: 'hours_per_week', repeats: false, field_type: 'integer' },
       { label: 'Monthly Earnings', key: 'monthly_earnings', repeats: false, field_type: 'float' },
-    ].freeze
+    ].map { |h| h.merge(key: "hvrp_employment_details_#{h[:key]}") }.freeze
 
     protected
 
@@ -43,11 +43,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     def row_assessment_id(row)
       response_id = row.field_value(RESPONSE_ID_COL)
-      "hvrp_employment_details-eto-#{response_id}"
+      "hvrp-employment-details-eto-#{response_id}"
     end
 
     def form_definition_identifier
-      'hvrp_employment_details'
+      'hvrp-employment-details'
     end
   end
 end

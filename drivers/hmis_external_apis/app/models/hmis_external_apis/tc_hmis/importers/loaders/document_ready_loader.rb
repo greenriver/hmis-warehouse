@@ -27,7 +27,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       { label: 'Status Notes', key: 'status_notes', repeats: false, field_type: 'string' },
       { label: 'Service Provider', key: 'service_provider', repeats: false, field_type: 'string' },
       { label: 'Assessor', key: 'assessor', repeats: false, field_type: 'string' },
-    ].freeze
+    ].map { |h| h.merge(key: "document_ready_#{h[:key]}") }.freeze
 
     protected
 
@@ -41,11 +41,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     def row_assessment_id(row)
       response_id = row.field_value(RESPONSE_ID_COL)
-      "document_ready-eto-#{response_id}"
+      "document-ready-eto-#{response_id}"
     end
 
     def form_definition_identifier
-      'document_ready'
+      'document-ready'
     end
   end
 end

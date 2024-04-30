@@ -18,7 +18,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       { label: 'Date Given Voucher and Briefing Date', key: 'date_given_voucher', repeats: false, field_type: 'date' },
       { label: 'Passed Inspection Date', key: 'date_passed_inspection', repeats: false, field_type: 'date' },
       { label: 'Move in Date', key: 'move_in_date', repeats: false, field_type: 'date' },
-    ].freeze
+    ].map { |h| h.merge(key: "direction_homes_housing_#{h[:key]}") }.freeze
+
 
     protected
 
@@ -32,11 +33,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     def row_assessment_id(row)
       response_id = row.field_value(RESPONSE_ID_COL)
-      "direction_homes_housing-eto-#{response_id}"
+      "direction-homes-housing-application-info-eto-#{response_id}"
     end
 
     def form_definition_identifier
-      'direction_homes_housing'
+      'direction-homes-housing-application-info'
     end
   end
 end

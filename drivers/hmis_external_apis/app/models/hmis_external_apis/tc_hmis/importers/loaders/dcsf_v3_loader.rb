@@ -45,7 +45,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       { label: 'Housing Search Transportation', key: 'housing_search_transportation', repeats: false, field_type: 'float' },
       { label: 'Name of Apartment Complex/Property Owner', key: 'name_of_apartment_complex_property_owner', repeats: false, field_type: 'string' },
       { label: 'Family day sheltering', key: 'family_day_sheltering', repeats: false, field_type: 'string' },
-    ].freeze
+    ].map { |h| h.merge(key: "dcsf_v3_#{h[:key]}") }.freeze
 
     protected
 
@@ -59,11 +59,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     def row_assessment_id(row)
       response_id = row.field_value(RESPONSE_ID_COL)
-      "dcsf_v3-eto-#{response_id}"
+      "dcsf-v3-eto-#{response_id}"
     end
 
     def form_definition_identifier
-      'dcsf_v3'
+      'dcsf-v3'
     end
   end
 end

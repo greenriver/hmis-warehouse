@@ -43,8 +43,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       { label: 'If client left with savings, was it from employment, benefits, both or other? (choose one answer)', key: 'savings_source', repeats: false, field_type: 'string' },
       { label: 'If other, please specify exit destination.', key: 'destination_other', repeats: false, field_type: 'string' },
       { label: 'How many members in family?', key: 'members_in_family', repeats: false, field_type: 'integer' },
-
-    ].freeze
+    ].map { |h| h.merge(key: "caseworker_exit_#{h[:key]}") }.freeze
 
     protected
 
@@ -58,11 +57,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     def row_assessment_id(row)
       response_id = row.field_value(RESPONSE_ID_COL)
-      "caseworker_exit-eto-#{response_id}"
+      "caseworker-exit-eto-#{response_id}"
     end
 
     def form_definition_identifier
-      'caseworker_exit'
+      'caseworker_exit_survey'
     end
   end
 end
