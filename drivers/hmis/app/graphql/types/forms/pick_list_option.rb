@@ -53,6 +53,11 @@ module Types
           preload(:organization).
           sort_by_option(:organization_and_name).
           map(&:to_pick_list_option)
+      when 'OPEN_PROJECTS'
+        Hmis::Hud::Project.viewable_by(user).where(operating_end_date: nil).
+          preload(:organization).
+          sort_by_option(:organization_and_name).
+          map(&:to_pick_list_option)
       when 'ORGANIZATION'
         Hmis::Hud::Organization.viewable_by(user).sort_by_option(:name).map(&:to_pick_list_option)
       when 'AVAILABLE_SERVICE_TYPES'
