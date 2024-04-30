@@ -13,7 +13,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     end
 
     CDED_CONFIGS = [
-      { label: 'Household Type', key: 'document_ready_household_type', repeats: false, field_type: 'string' },
+      { label: 'Household Type', key: 'household_type', repeats: false, field_type: 'string' },
       { label: 'Is the participant assigned to a navigator?', key: 'assigned_navigator', repeats: false, field_type: 'boolean' },
       { label: 'If No', key: 'if_no_navigator', repeats: false, field_type: 'string' },
       { label: 'If shelter choose one.', key: 'if_shelter_choose', repeats: false, field_type: 'string' },
