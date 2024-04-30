@@ -88,6 +88,7 @@ module Types
     summary_field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false, default_value: 99
     summary_field :move_in_date, GraphQL::Types::ISO8601Date, null: true
     summary_field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
+    summary_field :auto_exited, Boolean, null: false
 
     field :last_service_date, GraphQL::Types::ISO8601Date, null: true do
       argument :service_type_id, ID, required: true
@@ -307,6 +308,10 @@ module Types
 
     def exit_destination
       exit&.destination
+    end
+
+    def auto_exited
+      exit&.auto_exited || false
     end
 
     def exit
