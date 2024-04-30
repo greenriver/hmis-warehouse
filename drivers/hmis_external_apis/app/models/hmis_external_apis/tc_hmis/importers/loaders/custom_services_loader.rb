@@ -285,7 +285,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
           },
         },
         'When We Love' => {
-          service_type: 'TB and Bus Pass',
+          service_type: 'Financial Assistance',
           service_fields: {
             'The amount Assistance' => {
               key: :FAAmount,
