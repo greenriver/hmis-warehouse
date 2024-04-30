@@ -184,6 +184,7 @@ class GrdaWarehouse::Utility
       GrdaWarehouse::DataSource,
       GrdaWarehouse::Hud::Client,
       GrdaWarehouse::Hud::Project,
+      GrdaWarehouse::Hud::Enrollment,
       GrdaWarehouse::ServiceHistoryEnrollment,
       ActiveStorage::Attachment,
       ActiveStorage::Blob,

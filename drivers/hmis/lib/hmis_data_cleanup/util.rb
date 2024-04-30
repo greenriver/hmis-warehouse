@@ -109,7 +109,14 @@ module HmisDataCleanup
             next
           end
 
-          klass.where(data_source_id: data_source_id).left_outer_joins(:enrollment).
+          # join using HUD keys (services use enrollment_pk)
+          join_sql = <<~SQL
+            LEFT JOIN "Enrollment" ON "Enrollment"."DateDeleted" IS NULL
+            AND "Enrollment"."EnrollmentID" = "#{klass.table_name}"."EnrollmentID"
+            AND "Enrollment"."PersonalID" = "#{klass.table_name}"."PersonalID"
+            AND "Enrollment"."data_source_id" = "#{klass.table_name}"."data_source_id"
+          SQL
+          klass.where(data_source_id: data_source_id).joins(join_sql).
             where(GrdaWarehouse::Hud::Enrollment.arel_table[:id].eq(nil)).
             find_in_batches do |batch|
             Rails.logger.info "[#{klass.name}] Processing batch"

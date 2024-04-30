@@ -1838,7 +1838,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       hud_service_type = Hmis::Hud::CustomServiceType.find_by(hud_record_type: hud_service.record_type, hud_type_provided: hud_service.type_provided)
       new_record = Hmis::Hud::HmisService.new(
         data_source: ds1,
-        enrollment_id: e1.enrollment_id,
+        enrollment_pk: e1.id,
         personal_id: e1.personal_id,
         custom_service_type: hud_service_type,
       )
@@ -1862,7 +1862,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       existing_record = Hmis::Hud::HmisService.find_by(owner: custom_service)
       new_record = Hmis::Hud::HmisService.new(
         data_source: ds1,
-        enrollment_id: e1.enrollment_id,
+        enrollment_pk: e1.id,
         personal_id: e1.personal_id,
         custom_service_type: cst1,
       )

@@ -168,7 +168,7 @@ module Mutations
       when 'Hmis::Hud::HmisService'
         [
           enrollment, klass.new({
-                                  enrollment_id: enrollment&.EnrollmentID,
+                                  enrollment_pk: enrollment&.id,
                                   personal_id: enrollment&.PersonalID,
                                   custom_service_type_id: custom_service_type&.id,
                                   **ds,

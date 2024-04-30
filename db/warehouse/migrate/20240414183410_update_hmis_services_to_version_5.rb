@@ -15,6 +15,8 @@ class UpdateHmisServicesToVersion5 < ActiveRecord::Migration[6.1]
       add_foreign_key :Services, :Enrollment, column: :enrollment_pk, name: 'fk_custom_service_enrollment_pk'
     end
     update_view :hmis_services, version: 5
+    # now run
+    # rails runner driver:hmis:data_migration:update_project_service_pk
   end
 
   # the scenic gem seems to have trouble rolling back without this

@@ -139,7 +139,8 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
         DateCreated: last_year,
         DateUpdated: last_year,
       }
-      records << create(:hmis_hud_service, :skip_validate, **shared_attributes)
+      service = create(:hmis_hud_service, :skip_validate, **shared_attributes)
+      service.update_columns(PersonalID: 'not-real')
       records << create(:hmis_income_benefit, :skip_validate, **shared_attributes)
       records << create(:hmis_health_and_dv, :skip_validate, **shared_attributes)
       records << create(:hmis_youth_education_status, :skip_validate, **shared_attributes)
@@ -179,7 +180,8 @@ RSpec.describe HmisDataCleanup::Util, type: :model do
     end
 
     it 'works for services' do
-      bad_service = create(:hmis_hud_service, :skip_validate, enrollment: e1, PersonalID: 'unmatched-id', data_source: hmis_ds)
+      bad_service = create(:hmis_hud_service, :skip_validate, enrollment: e1, data_source: hmis_ds)
+      bad_service.update_columns(PersonalID: 'unmatched-id')
       good_service = create(:hmis_hud_service, :skip_validate, enrollment: e1, data_source: hmis_ds)
 
       HmisDataCleanup::Util.fix_incorrect_personal_id_references!(classes: [Hmis::Hud::Service])

@@ -76,7 +76,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           enrollments = result.dig('data', 'client', 'enrollments', 'nodes')
           expect(enrollments.map { |r| r.fetch('id') }).to contain_exactly(*expected)
         end
-        c1.hmis_services.where(enrollment_id: e1.enrollment_id).map(&:id).map(&:to_s).tap do |expected|
+        c1.hmis_services.where(enrollment_pk: e1.id).map(&:id).map(&:to_s).tap do |expected|
           expect(expected.size).to eq 1
           services = result.dig('data', 'client', 'services', 'nodes')
           expect(services.map { |r| r.fetch('id') }).to contain_exactly(*expected)
@@ -115,7 +115,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         end
 
         # Only resolves services for e1
-        c1.hmis_services.where(enrollment_id: e1.enrollment_id).map(&:id).map(&:to_s).tap do |expected|
+        c1.hmis_services.where(enrollment_pk: e1.id).map(&:id).map(&:to_s).tap do |expected|
           expect(expected.size).to eq 1
           services = result.dig('data', 'client', 'services', 'nodes')
           expect(services.map { |r| r.fetch('id') }).to contain_exactly(*expected)
