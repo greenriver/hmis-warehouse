@@ -68,9 +68,6 @@ module GrdaWarehouse::CustomImports
     def import!(force = false)
       import_type.constantize.new(config_id: id, data_source_id: data_source_id, status: 'queued').import!(force)
       update(last_import_attempted_at: Time.current)
-    rescue StandardError => e
-      Sentry.capture_exception(e)
-      Rails.logger.error(e.message)
     end
   end
 
