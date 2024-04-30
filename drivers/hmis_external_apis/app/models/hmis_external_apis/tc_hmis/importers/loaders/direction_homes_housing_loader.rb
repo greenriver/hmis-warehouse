@@ -20,7 +20,6 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       { label: 'Move in Date', key: 'move_in_date', repeats: false, field_type: 'date' },
     ].map { |h| h.merge(key: "direction_homes_housing_#{h[:key]}") }.freeze
 
-
     protected
 
     def cded_configs
