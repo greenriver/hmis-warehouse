@@ -62,7 +62,7 @@ module Types
     households_field
     hmis_participations_field
     ce_participations_field
-    assessments_field
+    assessments_field filter_args: { omit: [:project, :project_type], type_name: 'AssessmentsForProject' }
     services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForProject' }
     hud_field :operating_start_date, null: true
     hud_field :operating_end_date
