@@ -132,6 +132,8 @@ namespace :grda_warehouse do
         region: conf.s3_region,
         access_key_id: conf.s3_access_key_id,
         secret_access_key: conf.s3_secret_access_key,
+        s3_external_id: conf.s3_external_id,
+        s3_role_arn: conf.s3_role_arn,
         bucket_name: conf.s3_bucket_name,
         path: conf.s3_path,
         file_password: conf.zip_file_password,
