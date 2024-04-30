@@ -236,6 +236,8 @@ gem 'business_time', '~> 0.10.0'
 gem 'cable_ready', '>= 5.0.0.rc2'
 gem 'graphql', '~> 2.0'
 gem 'sentry-rails', '~> 5.5'
+gem 'sentry-ruby'
+gem 'sentry-delayed_job'
 gem 'warning'
 
 group :development, :test do
