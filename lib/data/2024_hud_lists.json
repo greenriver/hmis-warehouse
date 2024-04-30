@@ -71,43 +71,43 @@
     "values": [
       {
         "key": 141,
-        "description": "PATH Service"
+        "description": "PATH service"
       },
       {
         "key": 142,
-        "description": "RHY Service Connections"
+        "description": "RHY service connections"
       },
       {
         "key": 143,
-        "description": "HOPWA Service"
+        "description": "HOPWA financial assistance"
       },
       {
         "key": 144,
-        "description": "SSVF Service"
+        "description": "SSVF service"
       },
       {
         "key": 151,
-        "description": "HOPWA Financial Assistance"
+        "description": "PATH referral"
       },
       {
         "key": 152,
-        "description": "SSVF Financial Assistance"
+        "description": "SSVF financial assistance"
       },
       {
         "key": 161,
-        "description": "PATH Referral"
+        "description": "PATH referral"
       },
       {
         "key": 200,
-        "description": "Bed Night"
+        "description": "Bed night"
       },
       {
         "key": 210,
-        "description": "HUD-VASH OTH Voucher Tracking"
+        "description": "HUD-VASH OTH voucher tracking"
       },
       {
         "key": 300,
-        "description": "Moving On Assistance"
+        "description": "Moving On assistance provided"
       }
     ]
   },
@@ -121,7 +121,7 @@
       },
       {
         "key": 2,
-        "description": "SHA-1 RHY"
+        "description": "SHA-1 (no longer used for federal purposes)"
       },
       {
         "key": 3,
@@ -232,38 +232,16 @@
     ]
   },
   {
-    "name": "TargetPopulation",
-    "code": "2.02.7",
+    "name": "RRHSubType",
+    "code": "2.02.A",
     "values": [
       {
         "key": 1,
-        "description": "DV: Survivor of Domestic Violence"
-      },
-      {
-        "key": 3,
-        "description": "HIV: Persons with HIV/AIDS"
-      },
-      {
-        "key": 4,
-        "description": "NA: Not applicable"
-      }
-    ]
-  },
-  {
-    "name": "HOPWAMedAssistedLivingFac",
-    "code": "2.02.8",
-    "values": [
-      {
-        "key": 0,
-        "description": "No"
-      },
-      {
-        "key": 1,
-        "description": "Yes"
+        "description": "RRH: Services Only"
       },
       {
         "key": 2,
-        "description": "Non-HOPWA Funded Project"
+        "description": "RRH: Housing with or without services"
       }
     ]
   },
@@ -314,16 +292,16 @@
         "description": "Services Only"
       },
       {
+        "key": 7,
+        "description": "Other"
+      },
+      {
         "key": 8,
         "description": "Safe Haven"
       },
       {
         "key": 9,
         "description": "PH - Housing Only"
-      },
-      {
-        "key": 7,
-        "description": "Other"
       },
       {
         "key": 10,
@@ -410,284 +388,38 @@
     ]
   },
   {
-    "name": "RRHSubType",
-    "code": "2.02.A",
+    "name": "TargetPopulation",
+    "code": "2.02.7",
     "values": [
       {
         "key": 1,
-        "description": "RRH: Services Only"
-      },
-      {
-        "key": 2,
-        "description": "RRH: Housing with or without services"
-      }
-    ]
-  },
-  {
-    "name": "FundingSource",
-    "code": "2.06.1",
-    "values": [
-      {
-        "key": 1,
-        "description": "HUD: CoC - Homelessness Prevention (High Performing Communities Only)"
-      },
-      {
-        "key": 2,
-        "description": "HUD: CoC - Permanent Supportive Housing"
+        "description": "DV: Survivor of Domestic Violence"
       },
       {
         "key": 3,
-        "description": "HUD: CoC - Rapid Re-Housing"
+        "description": "HIV: Persons with HIV/AIDS"
       },
       {
         "key": 4,
-        "description": "HUD: CoC - Supportive Services Only"
-      },
-      {
-        "key": 5,
-        "description": "HUD: CoC - Transitional Housing"
-      },
-      {
-        "key": 6,
-        "description": "HUD: CoC - Safe Haven"
-      },
-      {
-        "key": 7,
-        "description": "HUD: CoC - Single Room Occupancy (SRO)"
-      },
-      {
-        "key": 8,
-        "description": "HUD: ESG - Emergency Shelter (operating and/or essential services)"
-      },
-      {
-        "key": 9,
-        "description": "HUD: ESG - Homelessness Prevention"
-      },
-      {
-        "key": 10,
-        "description": "HUD: ESG - Rapid Rehousing"
-      },
-      {
-        "key": 11,
-        "description": "HUD: ESG - Street Outreach"
-      },
-      {
-        "key": 12,
-        "description": "HUD: Rural Housing Stability Assistance Program [Deprecated]"
-      },
-      {
-        "key": 13,
-        "description": "HUD: HOPWA - Hotel/Motel Vouchers"
-      },
-      {
-        "key": 14,
-        "description": "HUD: HOPWA - Housing Information"
-      },
-      {
-        "key": 15,
-        "description": "HUD: HOPWA - Permanent Housing (facility based or TBRA)"
-      },
-      {
-        "key": 16,
-        "description": "HUD: HOPWA - Permanent Housing Placement"
-      },
-      {
-        "key": 17,
-        "description": "HUD: HOPWA - Short-Term Rent, Mortgage, Utility assistance"
-      },
-      {
-        "key": 18,
-        "description": "HUD: HOPWA - Short-Term Supportive Facility"
-      },
-      {
-        "key": 19,
-        "description": "HUD: HOPWA - Transitional Housing (facility based or TBRA)"
-      },
-      {
-        "key": 20,
-        "description": "HUD: HUD/VASH"
-      },
-      {
-        "key": 21,
-        "description": "HHS: PATH - Street Outreach \u0026 Supportive Services Only"
-      },
-      {
-        "key": 22,
-        "description": "HHS: RHY - Basic Center Program (prevention and shelter)"
-      },
-      {
-        "key": 23,
-        "description": "HHS: RHY - Maternity Group Home for Pregnant and Parenting Youth"
-      },
-      {
-        "key": 24,
-        "description": "HHS: RHY - Transitional Living Program"
-      },
-      {
-        "key": 25,
-        "description": "HHS: RHY - Street Outreach Project"
-      },
-      {
-        "key": 26,
-        "description": "HHS: RHY - Demonstration Project"
-      },
-      {
-        "key": 27,
-        "description": "VA: CRS Contract Residential Services"
-      },
-      {
-        "key": 30,
-        "description": "VA: Community Contract Safe Haven Program"
-      },
-      {
-        "key": 32,
-        "description": "VA: Compensated Work Therapy Transitional Residence"
-      },
-      {
-        "key": 33,
-        "description": "VA: Supportive Services for Veteran Families"
-      },
-      {
-        "key": 34,
-        "description": "N/A"
-      },
-      {
-        "key": 35,
-        "description": "HUD: Pay for Success"
-      },
-      {
-        "key": 36,
-        "description": "HUD: Public and Indian Housing (PIH) Programs"
-      },
-      {
-        "key": 37,
-        "description": "VA: Grant Per Diem - Bridge Housing"
-      },
-      {
-        "key": 38,
-        "description": "VA: Grant Per Diem - Low Demand"
-      },
-      {
-        "key": 39,
-        "description": "VA: Grant Per Diem - Hospital to Housing"
-      },
-      {
-        "key": 40,
-        "description": "VA: Grant Per Diem - Clinical Treatment"
-      },
-      {
-        "key": 41,
-        "description": "VA: Grant Per Diem - Service Intensive Transitional Housing"
-      },
-      {
-        "key": 42,
-        "description": "VA: Grant Per Diem - Transition in Place"
-      },
-      {
-        "key": 43,
-        "description": "HUD: CoC - Youth Homeless Demonstration Program (YHDP)"
-      },
-      {
-        "key": 44,
-        "description": "HUD: CoC - Joint Component TH/RRH"
-      },
-      {
-        "key": 45,
-        "description": "VA: Grant Per Diem - Case Management/Housing Retention"
-      },
-      {
-        "key": 46,
-        "description": "Local or Other Funding Source"
-      },
-      {
-        "key": 47,
-        "description": "HUD: ESG - CV"
-      },
-      {
-        "key": 48,
-        "description": "HUD: HOPWA - CV"
-      },
-      {
-        "key": 49,
-        "description": "HUD: CoC - Joint Component RRH/PSH [Deprecated]"
-      },
-      {
-        "key": 50,
-        "description": "HUD: HOME"
-      },
-      {
-        "key": 51,
-        "description": "HUD: HOME (ARP)"
-      },
-      {
-        "key": 52,
-        "description": "HUD: PIH (Emergency Housing Voucher)"
-      },
-      {
-        "key": 53,
-        "description": "HUD: ESG - RUSH"
-      },
-      {
-        "key": 54,
-        "description": "HUD: Unsheltered Special NOFO"
-      },
-      {
-        "key": 55,
-        "description": "HUD: Rural Special NOFO"
+        "description": "NA: Not applicable"
       }
     ]
   },
   {
-    "name": "HouseholdType",
-    "code": "2.07.4",
+    "name": "HOPWAMedAssistedLivingFac",
+    "code": "2.02.8",
     "values": [
       {
-        "key": 1,
-        "description": "Households without children"
+        "key": 0,
+        "description": "No"
       },
       {
-        "key": 3,
-        "description": "Households with at least one adult and one child"
-      },
-      {
-        "key": 4,
-        "description": "Households with only children"
-      }
-    ]
-  },
-  {
-    "name": "BedType",
-    "code": "2.07.5",
-    "values": [
-      {
         "key": 1,
-        "description": "Facility-based"
+        "description": "Yes"
       },
       {
         "key": 2,
-        "description": "Voucher"
-      },
-      {
-        "key": 3,
-        "description": "Other"
-      }
-    ]
-  },
-  {
-    "name": "Availability",
-    "code": "2.07.6",
-    "values": [
-      {
-        "key": 1,
-        "description": "Year-round"
-      },
-      {
-        "key": 2,
-        "description": "Seasonal"
-      },
-      {
-        "key": 3,
-        "description": "Overflow"
+        "description": "Non-HOPWA Funded Project"
       }
     ]
   },
@@ -2272,6 +2004,262 @@
     ]
   },
   {
+    "name": "FundingSource",
+    "code": "2.06.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "HUD: CoC - Homelessness Prevention (High Performing Comm. Only)"
+      },
+      {
+        "key": 2,
+        "description": "HUD: CoC - Permanent Supportive Housing"
+      },
+      {
+        "key": 3,
+        "description": "HUD: CoC - Rapid Re-Housing"
+      },
+      {
+        "key": 4,
+        "description": "HUD: CoC - Supportive Services Only"
+      },
+      {
+        "key": 5,
+        "description": "HUD: CoC - Transitional Housing"
+      },
+      {
+        "key": 6,
+        "description": "HUD: CoC - Safe Haven"
+      },
+      {
+        "key": 7,
+        "description": "HUD: CoC - Single Room Occupancy (SRO)"
+      },
+      {
+        "key": 8,
+        "description": "HUD: ESG - Emergency Shelter (operating and/or essential services)"
+      },
+      {
+        "key": 9,
+        "description": "HUD: ESG - Homelessness Prevention"
+      },
+      {
+        "key": 10,
+        "description": "HUD: ESG - Rapid Rehousing"
+      },
+      {
+        "key": 11,
+        "description": "HUD: ESG - Street Outreach"
+      },
+      {
+        "key": 13,
+        "description": "HUD: HOPWA - Hotel/Motel Vouchers"
+      },
+      {
+        "key": 14,
+        "description": "HUD: HOPWA - Housing Information"
+      },
+      {
+        "key": 15,
+        "description": "HUD: HOPWA - Permanent Housing (facility based or TBRA)"
+      },
+      {
+        "key": 16,
+        "description": "HUD: HOPWA - Permanent Housing Placement"
+      },
+      {
+        "key": 17,
+        "description": "HUD: HOPWA - Short-Term Rent, Mortgage, Utility assistance"
+      },
+      {
+        "key": 18,
+        "description": "HUD: HOPWA - Short-Term Supportive Facility"
+      },
+      {
+        "key": 19,
+        "description": "HUD: HOPWA - Transitional Housing (facility based or TBRA)"
+      },
+      {
+        "key": 20,
+        "description": "HUD: HUD/VASH"
+      },
+      {
+        "key": 21,
+        "description": "HHS: PATH - Street Outreach & Supportive Services Only"
+      },
+      {
+        "key": 22,
+        "description": "HHS: RHY - Basic Center Program (prevention and shelter)"
+      },
+      {
+        "key": 23,
+        "description": "HHS: RHY - Maternity Group Home for Pregnant and Parenting Youth"
+      },
+      {
+        "key": 24,
+        "description": "HHS: RHY - Transitional Living Program"
+      },
+      {
+        "key": 25,
+        "description": "HHS: RHY - Street Outreach Project"
+      },
+      {
+        "key": 26,
+        "description": "HHS: RHY - Demonstration Project"
+      },
+      {
+        "key": 27,
+        "description": "VA: CRS Contract Residential Services"
+      },
+      {
+        "key": 30,
+        "description": "VA: Community Contract Safe Haven Program"
+      },
+      {
+        "key": 33,
+        "description": "VA: Supportive Services for Veteran Families"
+      },
+      {
+        "key": 34,
+        "description": "N/A"
+      },
+      {
+        "key": 35,
+        "description": "HUD: Pay for Success"
+      },
+      {
+        "key": 36,
+        "description": "HUD: Public and Indian Housing (PIH) Programs"
+      },
+      {
+        "key": 37,
+        "description": "VA: Grant Per Diem - Bridge Housing"
+      },
+      {
+        "key": 38,
+        "description": "VA: Grant Per Diem - Low Demand"
+      },
+      {
+        "key": 39,
+        "description": "VA: Grant Per Diem - Hospital to Housing"
+      },
+      {
+        "key": 40,
+        "description": "VA: Grant Per Diem - Clinical Treatment"
+      },
+      {
+        "key": 41,
+        "description": "VA: Grant Per Diem - Service Intensive Transitional Housing"
+      },
+      {
+        "key": 42,
+        "description": "VA: Grant Per Diem - Transition in Place"
+      },
+      {
+        "key": 43,
+        "description": "HUD: CoC - Youth Homeless Demonstration Program (YHDP)"
+      },
+      {
+        "key": 44,
+        "description": "HUD: CoC - Joint Component TH/RRH"
+      },
+      {
+        "key": 45,
+        "description": "VA: Grant Per Diem - Case Management/Housing Retention"
+      },
+      {
+        "key": 46,
+        "description": "Local or Other Funding Source (Please Specify)"
+      },
+      {
+        "key": 47,
+        "description": "HUD: ESG - CV"
+      },
+      {
+        "key": 48,
+        "description": "HUD: HOPWA - CV"
+      },
+      {
+        "key": 50,
+        "description": "HUD: HOME"
+      },
+      {
+        "key": 51,
+        "description": "HUD: HOME (ARP)"
+      },
+      {
+        "key": 52,
+        "description": "HUD: PIH (Emergency Housing Voucher)"
+      },
+      {
+        "key": 53,
+        "description": "HUD: ESG - RUSH"
+      },
+      {
+        "key": 54,
+        "description": "HUD: Unsheltered Special NOFO"
+      },
+      {
+        "key": 55,
+        "description": "HUD: Rural Special NOFO"
+      }
+    ]
+  },
+  {
+    "name": "HouseholdType",
+    "code": "2.07.4",
+    "values": [
+      {
+        "key": 1,
+        "description": "Households without children"
+      },
+      {
+        "key": 3,
+        "description": "Households with at least one adult and one child"
+      },
+      {
+        "key": 4,
+        "description": "Households with only children"
+      }
+    ]
+  },
+  {
+    "name": "BedType",
+    "code": "2.07.5",
+    "values": [
+      {
+        "key": 1,
+        "description": "Facility-based beds"
+      },
+      {
+        "key": 2,
+        "description": "Voucher beds"
+      },
+      {
+        "key": 3,
+        "description": "Other beds"
+      }
+    ]
+  },
+  {
+    "name": "Availability",
+    "code": "2.07.6",
+    "values": [
+      {
+        "key": 1,
+        "description": "Year-round"
+      },
+      {
+        "key": 2,
+        "description": "Seasonal"
+      },
+      {
+        "key": 3,
+        "description": "Overflow"
+      }
+    ]
+  },
+  {
     "name": "HMISParticipationType",
     "code": "2.08.1",
     "values": [
@@ -2300,6 +2288,104 @@
       {
         "key": 2,
         "description": "Partial, street name, or code name reported"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "SSNDataQuality",
+    "code": "3.02.2",
+    "values": [
+      {
+        "key": 1,
+        "description": "Full SSN reported"
+      },
+      {
+        "key": 2,
+        "description": "Approximate or partial SSN reported"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "DOBDataQuality",
+    "code": "3.03.2",
+    "values": [
+      {
+        "key": 1,
+        "description": "Full DOB reported"
+      },
+      {
+        "key": 2,
+        "description": "Approximate or partial DOB reported"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "Gender",
+    "code": "3.6.1",
+    "values": [
+      {
+        "key": 0,
+        "description": "Woman (Girl, if child)"
+      },
+      {
+        "key": 1,
+        "description": "Man (Boy, if child)"
+      },
+      {
+        "key": 2,
+        "description": "Culturally Specific Identity (e.g., Two-Spirit)"
+      },
+      {
+        "key": 4,
+        "description": "Non-Binary"
+      },
+      {
+        "key": 5,
+        "description": "Transgender"
+      },
+      {
+        "key": 6,
+        "description": "Questioning"
+      },
+      {
+        "key": 3,
+        "description": "Different Identity"
       },
       {
         "key": 8,
@@ -2438,170 +2524,58 @@
     ]
   },
   {
-    "name": "RelationshipToHoH",
-    "code": "3.15.1",
+    "name": "RentalSubsidyType",
+    "code": "3.12.A",
     "values": [
       {
-        "key": 1,
-        "description": "Self (head of household)"
+        "key": 419,
+        "description": "VASH housing subsidy"
       },
       {
-        "key": 2,
-        "description": "Child"
+        "key": 420,
+        "description": "Rental by client, with other ongoing housing subsidy"
       },
       {
-        "key": 3,
-        "description": "Spouse or partner"
+        "key": 428,
+        "description": "GPD TIP housing subsidy"
       },
       {
-        "key": 4,
-        "description": "Other relative"
+        "key": 431,
+        "description": "RRH or equivalent subsidy"
       },
       {
-        "key": 5,
-        "description": "Unrelated household member"
+        "key": 433,
+        "description": "HCV voucher (tenant or project based) (not dedicated)"
       },
       {
-        "key": 99,
-        "description": "Data not collected"
+        "key": 434,
+        "description": "Public housing unit"
+      },
+      {
+        "key": 436,
+        "description": "Housing Stability Voucher"
+      },
+      {
+        "key": 437,
+        "description": "Family Unification Program Voucher (FUP)"
+      },
+      {
+        "key": 438,
+        "description": "Foster Youth to Independence Initiative (FYI)"
+      },
+      {
+        "key": 439,
+        "description": "Permanent Supportive Housing"
+      },
+      {
+        "key": 440,
+        "description": "Other permanent housing dedicated for formerly homeless persons"
       }
     ]
   },
   {
-    "name": "SSNDataQuality",
-    "code": "3.02.2",
-    "values": [
-      {
-        "key": 1,
-        "description": "Full SSN reported"
-      },
-      {
-        "key": 2,
-        "description": "Approximate or partial SSN reported"
-      },
-      {
-        "key": 8,
-        "description": "Client doesn't know"
-      },
-      {
-        "key": 9,
-        "description": "Client prefers not to answer"
-      },
-      {
-        "key": 99,
-        "description": "Data not collected"
-      }
-    ]
-  },
-  {
-    "name": "DOBDataQuality",
-    "code": "3.03.2",
-    "values": [
-      {
-        "key": 1,
-        "description": "Full DOB reported"
-      },
-      {
-        "key": 2,
-        "description": "Approximate or partial DOB reported"
-      },
-      {
-        "key": 8,
-        "description": "Client doesn't know"
-      },
-      {
-        "key": 9,
-        "description": "Client prefers not to answer"
-      },
-      {
-        "key": 99,
-        "description": "Data not collected"
-      }
-    ]
-  },
-  {
-    "name": "TimesHomelessPastThreeYears",
-    "code": "3.917.4",
-    "values": [
-      {
-        "key": 1,
-        "description": "One time"
-      },
-      {
-        "key": 2,
-        "description": "Two times"
-      },
-      {
-        "key": 3,
-        "description": "Three times"
-      },
-      {
-        "key": 4,
-        "description": "Four or more times"
-      },
-      {
-        "key": 8,
-        "description": "Client doesn't know"
-      },
-      {
-        "key": 9,
-        "description": "Client prefers not to answer"
-      },
-      {
-        "key": 99,
-        "description": "Data not collected"
-      }
-    ]
-  },
-  {
-    "name": "Gender",
-    "code": "3.6.1",
-    "values": [
-      {
-        "key": 0,
-        "description": "Woman (Girl, if child)"
-      },
-      {
-        "key": 1,
-        "description": "Man (Boy, if child)"
-      },
-      {
-        "key": 2,
-        "description": "Culturally Specific Identity (e.g., Two-Spirit)"
-      },
-      {
-        "key": 4,
-        "description": "Non-Binary"
-      },
-      {
-        "key": 5,
-        "description": "Transgender"
-      },
-      {
-        "key": 6,
-        "description": "Questioning"
-      },
-      {
-        "key": 3,
-        "description": "Different Identity"
-      },
-      {
-        "key": 8,
-        "description": "Client doesn't know"
-      },
-      {
-        "key": 9,
-        "description": "Client prefers not to answer"
-      },
-      {
-        "key": 99,
-        "description": "Data not collected"
-      }
-    ]
-  },
-  {
-    "name": "CurrentLivingSituation",
-    "code": "4.12",
+    "name": "Unknown",
+    "code": "3.12.1",
     "values": [
       {
         "key": 8,
@@ -2616,6 +2590,14 @@
         "description": "Other"
       },
       {
+        "key": 24,
+        "description": "Deceased"
+      },
+      {
+        "key": 30,
+        "description": "No exit interview completed"
+      },
+      {
         "key": 37,
         "description": "Worker unable to determine"
       },
@@ -2625,7 +2607,7 @@
       },
       {
         "key": 101,
-        "description": "Emergency shelter, including hotel or motel paid for with emergency shelter voucher, or Host Home shelter"
+        "description": "Emergency shelter, including hotel or motel paid for with emergency shelter voucher, Host Home shelter "
       },
       {
         "key": 116,
@@ -2649,7 +2631,7 @@
       },
       {
         "key": 207,
-        "description": "Jail, prison or juvenile detention facility"
+        "description": "Jail, prison, or juvenile detention facility"
       },
       {
         "key": 215,
@@ -2664,8 +2646,20 @@
         "description": "Transitional housing for homeless persons (including homeless youth)"
       },
       {
+        "key": 312,
+        "description": "Staying or living with family, temporary tenure (e.g. room, apartment, or house)"
+      },
+      {
+        "key": 313,
+        "description": "Staying or living with friends, temporary tenure (e.g. room, apartment, or house)"
+      },
+      {
         "key": 314,
         "description": "Hotel or motel paid for without emergency shelter voucher"
+      },
+      {
+        "key": 327,
+        "description": "Moved from one HOPWA funded project to HOPWA TH"
       },
       {
         "key": 329,
@@ -2677,11 +2671,11 @@
       },
       {
         "key": 335,
-        "description": "Staying or living in a family member’s room, apartment, or house"
+        "description": "Staying or living in a family member's room, apartment, or house"
       },
       {
         "key": 336,
-        "description": "Staying or living in a friend's room, apartment or house"
+        "description": "Staying or living in a friend's room, apartment, or house"
       },
       {
         "key": 410,
@@ -2696,8 +2690,50 @@
         "description": "Owned by client, with ongoing housing subsidy"
       },
       {
+        "key": 422,
+        "description": "Staying or living with family, permanent tenure"
+      },
+      {
+        "key": 423,
+        "description": "Staying or living with friends, permanent tenure"
+      },
+      {
+        "key": 426,
+        "description": "Moved from one HOPWA funded project to HOPWA PH"
+      },
+      {
         "key": 435,
         "description": "Rental by client, with ongoing housing subsidy"
+      }
+    ]
+  },
+  {
+    "name": "RelationshipToHoH",
+    "code": "3.15.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "Self (Head of Household)"
+      },
+      {
+        "key": 2,
+        "description": "Head of household's child"
+      },
+      {
+        "key": 3,
+        "description": "Head of household's spouse or partner"
+      },
+      {
+        "key": 4,
+        "description": "Head of household's other relation member"
+      },
+      {
+        "key": 5,
+        "description": "Other: non-relation member"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
       }
     ]
   },
@@ -2771,7 +2807,7 @@
       },
       {
         "key": 335,
-        "description": "Staying or living in a family member’s room, apartment, or house"
+        "description": "Staying or living in a family member's room, apartment, or house"
       },
       {
         "key": 336,
@@ -2792,56 +2828,6 @@
       {
         "key": 435,
         "description": "Rental by client, with ongoing housing subsidy"
-      }
-    ]
-  },
-  {
-    "name": "RentalSubsidyType",
-    "code": "3.12.A",
-    "values": [
-      {
-        "key": 428,
-        "description": "GPD TIP housing subsidy"
-      },
-      {
-        "key": 419,
-        "description": "VASH housing subsidy"
-      },
-      {
-        "key": 431,
-        "description": "RRH or equivalent subsidy"
-      },
-      {
-        "key": 433,
-        "description": "HCV voucher (tenant or project based) (not dedicated)"
-      },
-      {
-        "key": 434,
-        "description": "Public housing unit"
-      },
-      {
-        "key": 420,
-        "description": "Rental by client, with other ongoing housing subsidy"
-      },
-      {
-        "key": 436,
-        "description": "Emergency Housing Voucher"
-      },
-      {
-        "key": 437,
-        "description": "Family Unification Program Voucher (FUP)"
-      },
-      {
-        "key": 438,
-        "description": "Foster Youth to Independence Initiative (FYI)"
-      },
-      {
-        "key": 439,
-        "description": "Permanent Supportive Housing"
-      },
-      {
-        "key": 440,
-        "description": "Other permanent housing dedicated for formerly homeless persons"
       }
     ]
   },
@@ -2880,6 +2866,40 @@
       {
         "key": 11,
         "description": "Two to six nights"
+      },
+      {
+        "key": 99,
+        "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "TimesHomelessPastThreeYears",
+    "code": "3.917.4",
+    "values": [
+      {
+        "key": 1,
+        "description": "One time"
+      },
+      {
+        "key": 2,
+        "description": "Two times"
+      },
+      {
+        "key": 3,
+        "description": "Three times"
+      },
+      {
+        "key": 4,
+        "description": "Four or more times"
+      },
+      {
+        "key": 8,
+        "description": "Client doesn't know"
+      },
+      {
+        "key": 9,
+        "description": "Client prefers not to answer"
       },
       {
         "key": 99,
@@ -2975,7 +2995,7 @@
       },
       {
         "key": 4,
-        "description": "Insurance type N/A for this client"
+        "description": "Insurance type n/a for this client"
       },
       {
         "key": 8,
@@ -3065,139 +3085,7 @@
     "values": [
       {
         "key": 200,
-        "description": "Bed Night"
-      }
-    ]
-  },
-  {
-    "name": "RHYServices",
-    "code": "R14.2",
-    "values": [
-      {
-        "key": 2,
-        "description": "Community service/service learning (CSL)"
-      },
-      {
-        "key": 5,
-        "description": "Education"
-      },
-      {
-        "key": 6,
-        "description": "Employment and training services"
-      },
-      {
-        "key": 7,
-        "description": "Criminal justice /legal services"
-      },
-      {
-        "key": 8,
-        "description": "Life skills training"
-      },
-      {
-        "key": 10,
-        "description": "Parenting education for youth with children"
-      },
-      {
-        "key": 12,
-        "description": "Post-natal care for client (person who gave birth)"
-      },
-      {
-        "key": 13,
-        "description": "Pre-natal care"
-      },
-      {
-        "key": 14,
-        "description": "Health/medical care"
-      },
-      {
-        "key": 17,
-        "description": "Substance use disorder treatment"
-      },
-      {
-        "key": 18,
-        "description": "Substance use disorder/Prevention Services"
-      },
-      {
-        "key": 26,
-        "description": "Home-based Services"
-      },
-      {
-        "key": 27,
-        "description": "Post-natal newborn care (wellness exams; immunizations)"
-      },
-      {
-        "key": 28,
-        "description": "STD Testing"
-      },
-      {
-        "key": 29,
-        "description": "Street-based Services"
-      }
-    ]
-  },
-  {
-    "name": "SSVFFinancialAssistance",
-    "code": "V3.3",
-    "values": [
-      {
-        "key": 1,
-        "description": "Rental assistance"
-      },
-      {
-        "key": 2,
-        "description": "Security deposit"
-      },
-      {
-        "key": 3,
-        "description": "Utility deposit"
-      },
-      {
-        "key": 4,
-        "description": "Utility fee payment assistance"
-      },
-      {
-        "key": 5,
-        "description": "Moving costs"
-      },
-      {
-        "key": 8,
-        "description": "Transportation services: tokens/vouchers"
-      },
-      {
-        "key": 9,
-        "description": "Transportation services: vehicle repair/maintenance"
-      },
-      {
-        "key": 10,
-        "description": "Child care"
-      },
-      {
-        "key": 11,
-        "description": "General housing stability assistance - emergency supplies [Deprecated]"
-      },
-      {
-        "key": 12,
-        "description": "General housing stability assistance"
-      },
-      {
-        "key": 14,
-        "description": "Emergency housing assistance"
-      },
-      {
-        "key": 15,
-        "description": "Shallow Subsidy - Financial Assistance"
-      },
-      {
-        "key": 16,
-        "description": "Food Assistance"
-      },
-      {
-        "key": 17,
-        "description": "Landlord Incentive"
-      },
-      {
-        "key": 18,
-        "description": "Tenant Incentive"
+        "description": "BedNight"
       }
     ]
   },
@@ -3244,6 +3132,24 @@
       {
         "key": 2,
         "description": "Not placed on prioritization list"
+      }
+    ]
+  },
+  {
+    "name": "ReferralResult",
+    "code": "4.20.D",
+    "values": [
+      {
+        "key": 1,
+        "description": "Successful referral: client accepted"
+      },
+      {
+        "key": 2,
+        "description": "Unsuccessful referral: client rejected"
+      },
+      {
+        "key": 3,
+        "description": "Unsuccessful referral: provider rejected"
       }
     ]
   },
@@ -3326,50 +3232,6 @@
     ]
   },
   {
-    "name": "ReferralResult",
-    "code": "4.20.D",
-    "values": [
-      {
-        "key": 1,
-        "description": "Successful referral: client accepted"
-      },
-      {
-        "key": 2,
-        "description": "Unsuccessful referral: client rejected"
-      },
-      {
-        "key": 3,
-        "description": "Unsuccessful referral: provider rejected"
-      }
-    ]
-  },
-  {
-    "name": "EarlyExitReason",
-    "code": "R17.A",
-    "values": [
-      {
-        "key": 1,
-        "description": "Left for other opportunities - independent living"
-      },
-      {
-        "key": 2,
-        "description": "Left for other opportunities - education"
-      },
-      {
-        "key": 3,
-        "description": "Left for other opportunities - military"
-      },
-      {
-        "key": 4,
-        "description": "Left for other opportunities - other"
-      },
-      {
-        "key": 5,
-        "description": "Needs could not be met by project"
-      }
-    ]
-  },
-  {
     "name": "DataCollectionStage",
     "code": "5.03.1",
     "values": [
@@ -3391,7 +3253,165 @@
       },
       {
         "key": 6,
-        "description": "Post-exit"
+        "description": "Post-exit (not used in CSV)"
+      }
+    ]
+  },
+  {
+    "name": "RHYServices",
+    "code": "R14.2",
+    "values": [
+      {
+        "key": 2,
+        "description": "Community service/service learning (CSL)"
+      },
+      {
+        "key": 5,
+        "description": "Education"
+      },
+      {
+        "key": 6,
+        "description": "Employment and/or training services"
+      },
+      {
+        "key": 7,
+        "description": "Criminal justice /legal services"
+      },
+      {
+        "key": 8,
+        "description": "Life skills training"
+      },
+      {
+        "key": 10,
+        "description": "Parenting education for youth with children"
+      },
+      {
+        "key": 12,
+        "description": "Post-natal care for client (person who gave birth)"
+      },
+      {
+        "key": 13,
+        "description": "Pre-natal care"
+      },
+      {
+        "key": 14,
+        "description": "Health/medical care"
+      },
+      {
+        "key": 17,
+        "description": "Substance use disorder treatment"
+      },
+      {
+        "key": 18,
+        "description": "Substance use disorder Ed/Prevention Services"
+      },
+      {
+        "key": 26,
+        "description": "Home-based Services"
+      },
+      {
+        "key": 27,
+        "description": "Post-natal newborn care (wellness exams; immunizations)"
+      },
+      {
+        "key": 28,
+        "description": "STD Testing"
+      },
+      {
+        "key": 29,
+        "description": "Street-based Services"
+      }
+    ]
+  },
+  {
+    "name": "SSVFFinancialAssistance",
+    "code": "V3.3",
+    "values": [
+      {
+        "key": 1,
+        "description": "Rental assistance"
+      },
+      {
+        "key": 2,
+        "description": "Security deposit"
+      },
+      {
+        "key": 3,
+        "description": "Utility deposit"
+      },
+      {
+        "key": 4,
+        "description": "Utility fee payment assistance"
+      },
+      {
+        "key": 5,
+        "description": "Moving costs"
+      },
+      {
+        "key": 8,
+        "description": "Transportation services: tokens/vouchers"
+      },
+      {
+        "key": 9,
+        "description": "Transportation services: vehicle repair/maintenance"
+      },
+      {
+        "key": 10,
+        "description": "Child care"
+      },
+      {
+        "key": 12,
+        "description": "General housing stability assistance"
+      },
+      {
+        "key": 14,
+        "description": "Emergency housing assistance"
+      },
+      {
+        "key": 15,
+        "description": "Shallow Subsidy -Financial Assistance"
+      },
+      {
+        "key": 16,
+        "description": "Food assistance"
+      },
+      {
+        "key": 17,
+        "description": "Landlord Incentive"
+      },
+      {
+        "key": 18,
+        "description": "Tenant Incentive"
+      }
+    ]
+  },
+  {
+    "name": "EarlyExitReason",
+    "code": "R17.A",
+    "values": [
+      {
+        "key": 1,
+        "description": "Criminal activity/destruction of property/violence"
+      },
+      {
+        "key": 2,
+        "description": "Non-compliance with project rules"
+      },
+      {
+        "key": 3,
+        "description": "Non-payment of rent/occupancy charge"
+      },
+      {
+        "key": 4,
+        "description": "Reached maximum time allowed by project"
+      },
+      {
+        "key": 5,
+        "description": "Project terminated"
+      },
+      {
+        "key": 6,
+        "description": "Unknown/disappeared"
       }
     ]
   },
@@ -3405,11 +3425,11 @@
       },
       {
         "key": 2,
-        "description": "Financial assistance for Moving On (e.g., security deposit, moving expenses)"
+        "description": "Financial assistance for Moving On"
       },
       {
         "key": 3,
-        "description": "Non-financial assistance for Moving On (e.g., housing navigation, transition support)"
+        "description": "Non-financial assistance for Moving On"
       },
       {
         "key": 4,
@@ -3417,7 +3437,7 @@
       },
       {
         "key": 5,
-        "description": "Other"
+        "description": "Other (please specify)"
       }
     ]
   },
@@ -3676,6 +3696,10 @@
       {
         "key": 2,
         "description": "Client was not enrolled for other reason(s)"
+      },
+      {
+        "key": 3,
+        "description": "Unable to locate client"
       }
     ]
   },
@@ -3685,7 +3709,7 @@
     "values": [
       {
         "key": 1,
-        "description": "Self-referral"
+        "description": "Self-Referral"
       },
       {
         "key": 2,
@@ -3725,7 +3749,7 @@
       },
       {
         "key": 35,
-        "description": "Law Enforcement/Police"
+        "description": "Law Enforcement/ Police"
       },
       {
         "key": 37,
@@ -3737,7 +3761,7 @@
       },
       {
         "key": 39,
-        "description": "Other organization"
+        "description": "Other Organization"
       },
       {
         "key": 99,
@@ -3760,10 +3784,6 @@
       {
         "key": 3,
         "description": "3 to 5 or more years"
-      },
-      {
-        "key": 99,
-        "description": "Data not collected"
       }
     ]
   },
@@ -3773,15 +3793,15 @@
     "values": [
       {
         "key": 1,
-        "description": "1-3"
+        "description": "44929"
       },
       {
         "key": 2,
-        "description": "4-7"
+        "description": "45023"
       },
       {
         "key": 3,
-        "description": "8-11"
+        "description": "45149"
       },
       {
         "key": 4,
@@ -4274,32 +4294,6 @@
     ]
   },
   {
-    "name": "HOPWAFinancialAssistance",
-    "code": "V2.3",
-    "values": [
-      {
-        "key": 1,
-        "description": "Rental assistance"
-      },
-      {
-        "key": 2,
-        "description": "Security deposits"
-      },
-      {
-        "key": 3,
-        "description": "Utility deposits"
-      },
-      {
-        "key": 4,
-        "description": "Utility payments"
-      },
-      {
-        "key": 7,
-        "description": "Mortgage assistance"
-      }
-    ]
-  },
-  {
     "name": "SSVFSubType3",
     "code": "V2.A",
     "values": [
@@ -4460,6 +4454,10 @@
     "code": "V6.1",
     "values": [
       {
+        "key": 99,
+        "description": "Data not collected"
+      },
+      {
         "key": 402,
         "description": "(402) Togus, ME"
       },
@@ -4486,6 +4484,10 @@
       {
         "key": 459,
         "description": "(459) Honolulu, HI"
+      },
+      {
+        "key": "459GE",
+        "description": "(459GE) Guam"
       },
       {
         "key": 460,
@@ -4564,8 +4566,24 @@
         "description": "(526) Bronx, NY"
       },
       {
+        "key": "528A6",
+        "description": "(528A6) Bath, NY"
+      },
+      {
         "key": 528,
         "description": "(528) Western New York, NY"
+      },
+      {
+        "key": "528A7",
+        "description": "(528A7) Syracuse, NY"
+      },
+      {
+        "key": "528A5",
+        "description": "(528A5) Canandaigua, NY"
+      },
+      {
+        "key": "528A8",
+        "description": "(528A8) Albany, NY"
       },
       {
         "key": 529,
@@ -4708,6 +4726,22 @@
         "description": "(589) Kansas City, MO"
       },
       {
+        "key": "589A6",
+        "description": "(589A6) Eastern KS HCS, KS"
+      },
+      {
+        "key": "589A4",
+        "description": "(589A4) Columbia, MO"
+      },
+      {
+        "key": "589A5",
+        "description": "(589A5) Kansas City, MO"
+      },
+      {
+        "key": "589A7",
+        "description": "(589A7) Wichita, KS"
+      },
+      {
         "key": 590,
         "description": "(590) Hampton, VA"
       },
@@ -4812,6 +4846,14 @@
         "description": "(636) Nebraska-W Iowa, NE"
       },
       {
+        "key": "636A8",
+        "description": "(636A8) Iowa City, IA"
+      },
+      {
+        "key": "636A6",
+        "description": "(636A6) Central Iowa, IA"
+      },
+      {
         "key": 637,
         "description": "(637) Asheville, NC"
       },
@@ -4866,6 +4908,14 @@
       {
         "key": 657,
         "description": "(657) St. Louis, MO"
+      },
+      {
+        "key": "657A4",
+        "description": "(657A4) Poplar Bluff, MO"
+      },
+      {
+        "key": "657A5",
+        "description": "(657A5) Marion, IL"
       },
       {
         "key": 658,
@@ -4974,80 +5024,6 @@
       {
         "key": 757,
         "description": "(757) Columbus, OH"
-      },
-      {
-        "key": "459GE",
-        "description": "(459GE) Guam"
-      },
-      {
-        "key": "528A5",
-        "description": "(528A5) Canandaigua, NY"
-      },
-      {
-        "key": "528A6",
-        "description": "(528A6) Bath, NY"
-      },
-      {
-        "key": "528A7",
-        "description": "(528A7) Syracuse, NY"
-      },
-      {
-        "key": "528A8",
-        "description": "(528A8) Albany, NY"
-      },
-      {
-        "key": "589A4",
-        "description": "(589A4) Columbia, MO"
-      },
-      {
-        "key": "589A5",
-        "description": "(589A5) Kansas City, MO"
-      },
-      {
-        "key": "589A6",
-        "description": "(589A6) Eastern KS HCS, KS"
-      },
-      {
-        "key": "589A7",
-        "description": "(589A7) Wichita, KS"
-      },
-      {
-        "key": "636A6",
-        "description": "(636A6) Central Iowa, IA"
-      },
-      {
-        "key": "636A8",
-        "description": "(636A8) Iowa City, IA"
-      },
-      {
-        "key": "657A4",
-        "description": "(657A4) Poplar Bluff, MO"
-      },
-      {
-        "key": "657A5",
-        "description": "(657A5) Marion, IL"
-      },
-      {
-        "key": 99,
-        "description": "Data not collected"
-      }
-    ]
-  },
-  {
-    "name": "NoPointsYes",
-    "code": "V7.1",
-    "values": [
-      {
-        "key": 0,
-        "description": "No (0 points)"
-      },
-      {
-        "key": 1,
-        "description": "Yes"
-      },
-      {
-        "key": 99,
-        "description": "Data not collected"
       }
     ]
   },
@@ -5183,65 +5159,11 @@
       },
       {
         "key": 2,
-        "description": "Youngest child is 1 to 6 years old and/or one or more children (any age) require significant care"
+        "description": "Youngest child is 1 to 6 years old and/or one or more children (any age) require significant\ncare"
       },
       {
         "key": 99,
         "description": "Data not collected"
-      }
-    ]
-  },
-  {
-    "name": "VoucherTracking",
-    "code": "V8.1",
-    "values": [
-      {
-        "key": 1,
-        "description": "Referral package forwarded to PHA"
-      },
-      {
-        "key": 2,
-        "description": "Voucher denied by PHA"
-      },
-      {
-        "key": 3,
-        "description": "Voucher issued by PHA"
-      },
-      {
-        "key": 4,
-        "description": "Voucher revoked or expired"
-      },
-      {
-        "key": 5,
-        "description": "Voucher in use - veteran moved into housing"
-      },
-      {
-        "key": 6,
-        "description": "Voucher was ported locally"
-      },
-      {
-        "key": 7,
-        "description": "Voucher was administratively absorbed by new PHA"
-      },
-      {
-        "key": 8,
-        "description": "Voucher was converted to Housing Choice Voucher"
-      },
-      {
-        "key": 9,
-        "description": "Veteran exited - voucher was returned"
-      },
-      {
-        "key": 10,
-        "description": "Veteran exited - family maintained the voucher"
-      },
-      {
-        "key": 11,
-        "description": "Veteran exited - prior to ever receiving a voucher"
-      },
-      {
-        "key": 12,
-        "description": "Other"
       }
     ]
   },
@@ -5515,7 +5437,7 @@
       },
       {
         "key": 4,
-        "description": "Only with financial assistance other than a subsidy"
+        "description": "But only with other financial assistance"
       },
       {
         "key": 11,
@@ -5528,38 +5450,82 @@
     ]
   },
   {
-    "name": "SubsidyInformationA",
-    "code": "W5.A",
+    "name": "Unknown",
+    "code": "V8.2",
     "values": [
       {
         "key": 1,
-        "description": "Without a subsidy"
+        "description": "Referral package forwarded to PHA"
       },
       {
         "key": 2,
-        "description": "With the subsidy they had at project entry"
+        "description": "Voucher denied by PHA"
       },
       {
         "key": 3,
-        "description": "With an on-going subsidy acquired since project entry"
+        "description": "Voucher issued by PHA"
       },
       {
         "key": 4,
-        "description": "Only with financial assistance other than a subsidy"
+        "description": "Voucher revoked or expired"
+      },
+      {
+        "key": 5,
+        "description": "Voucher in use - veteran moved into housing"
+      },
+      {
+        "key": 6,
+        "description": "Voucher was ported locally"
+      },
+      {
+        "key": 7,
+        "description": "Voucher was administratively absorbed by new PHA"
+      },
+      {
+        "key": 8,
+        "description": "Voucher was converted to Housing Choice Voucher"
+      },
+      {
+        "key": 9,
+        "description": "Veteran exited - voucher was returned"
+      },
+      {
+        "key": 10,
+        "description": "Veteran exited - family maintained the voucher"
+      },
+      {
+        "key": 11,
+        "description": "Veteran exited - prior to ever receiving a voucher"
+      },
+      {
+        "key": 12,
+        "description": "Other"
       }
     ]
   },
   {
-    "name": "SubsidyInformationB",
-    "code": "W5.B",
+    "name": "Unknown",
+    "code": "W2.2",
     "values": [
       {
-        "key": 11,
-        "description": "With on-going subsidy"
+        "key": 1,
+        "description": "Rental assistance"
       },
       {
-        "key": 12,
-        "description": "Without an on-going subsidy"
+        "key": 2,
+        "description": "Security deposits"
+      },
+      {
+        "key": 3,
+        "description": "Utility deposits"
+      },
+      {
+        "key": 4,
+        "description": "Utility payments"
+      },
+      {
+        "key": 7,
+        "description": "Mortgage assistance"
       }
     ]
   },
@@ -5590,40 +5556,28 @@
     ]
   },
   {
-    "name": "Race",
-    "code": "race",
+    "name": "HOPWAFinancialAssistance",
+    "code": "V2.3",
     "values": [
       {
-        "key": "AmIndAKNative",
-        "description": "American Indian, Alaska Native, or Indigenous"
+        "key": 1,
+        "description": "Rental assistance"
       },
       {
-        "key": "Asian",
-        "description": "Asian or Asian American"
+        "key": 2,
+        "description": "Security deposits"
       },
       {
-        "key": "BlackAfAmerican",
-        "description": "Black, African American, or African"
+        "key": 3,
+        "description": "Utility deposits"
       },
       {
-        "key": "NativeHIPacific",
-        "description": "Native Hawaiian or Pacific Islander"
+        "key": 4,
+        "description": "Utility payments"
       },
       {
-        "key": "White",
-        "description": "White"
-      },
-      {
-        "key": "HispanicLatinaeo",
-        "description": "Hispanic/Latina/e/o"
-      },
-      {
-        "key": "MidEastNAfrican",
-        "description": "Middle Eastern or North African"
-      },
-      {
-        "key": "RaceNone",
-        "description": "Doesn't know, prefers not to answer, or not collected"
+        "key": 7,
+        "description": "Mortgage assistance"
       }
     ]
   },
@@ -6955,6 +6909,112 @@
       {
         "key": 99,
         "description": "Data not collected"
+      }
+    ]
+  },
+  {
+    "name": "Race",
+    "code": "race",
+    "values": [
+      {
+        "key": "AmIndAKNative",
+        "description": "American Indian, Alaska Native, or Indigenous"
+      },
+      {
+        "key": "Asian",
+        "description": "Asian or Asian American"
+      },
+      {
+        "key": "BlackAfAmerican",
+        "description": "Black, African American, or African"
+      },
+      {
+        "key": "NativeHIPacific",
+        "description": "Native Hawaiian or Pacific Islander"
+      },
+      {
+        "key": "White",
+        "description": "White"
+      },
+      {
+        "key": "HispanicLatinaeo",
+        "description": "Hispanic/Latina/e/o"
+      },
+      {
+        "key": "MidEastNAfrican",
+        "description": "Middle Eastern or North African"
+      },
+      {
+        "key": "RaceNone",
+        "description": "Doesn't know, prefers not to answer, or not collected"
+      }
+    ]
+  },
+  {
+    "name": "SubsidyInformationB",
+    "code": "W5.B",
+    "values": [
+      {
+        "key": 11,
+        "description": "With on-going subsidy"
+      },
+      {
+        "key": 12,
+        "description": "Without an on-going subsidy"
+      }
+    ]
+  },
+  {
+    "name": "VoucherTracking",
+    "code": "V8.1",
+    "values": [
+      {
+        "key": 1,
+        "description": "Referral package forwarded to PHA"
+      },
+      {
+        "key": 2,
+        "description": "Voucher denied by PHA"
+      },
+      {
+        "key": 3,
+        "description": "Voucher issued by PHA"
+      },
+      {
+        "key": 4,
+        "description": "Voucher revoked or expired"
+      },
+      {
+        "key": 5,
+        "description": "Voucher in use - veteran moved into housing"
+      },
+      {
+        "key": 6,
+        "description": "Voucher was ported locally"
+      },
+      {
+        "key": 7,
+        "description": "Voucher was administratively absorbed by new PHA"
+      },
+      {
+        "key": 8,
+        "description": "Voucher was converted to Housing Choice Voucher"
+      },
+      {
+        "key": 9,
+        "description": "Veteran exited - voucher was returned"
+      },
+      {
+        "key": 10,
+        "description": "Veteran exited - family maintained the voucher"
+      },
+      {
+        "key": 11,
+        "description": "Veteran exited - prior to ever receiving a voucher"
+      },
+      {
+        "key": 12,
+        "description": "Other"
       }
     ]
   }
