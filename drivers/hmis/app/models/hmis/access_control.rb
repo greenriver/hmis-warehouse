@@ -26,7 +26,7 @@ class Hmis::AccessControl < ApplicationRecord
   # User, UserGroup, Role, AccessGroup
   scope :filtered, ->(filter_params) do
     return current_scope unless filter_params
-    return current_scope if filter_params[:user_id].blank? && filter_params[:user_group_id].blank? && filter_params[:role_id].blank? && filter_params[:collection_id].blank?
+    return current_scope if filter_params[:user_id].blank? && filter_params[:user_group_id].blank? && filter_params[:role_id].blank? && filter_params[:access_group_id].blank?
 
     ids = []
     if filter_params[:user_id].present?
