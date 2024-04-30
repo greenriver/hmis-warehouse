@@ -109,7 +109,8 @@ module HmisDataCleanup
             next
           end
 
-          # join using HUD keys (services use enrollment_pk)
+          # literal join here to find bad enrollment/personal id mismatches. Some models (services) use
+          # enrollment_pk for the rails association so we can't use join(:enrollment)
           join_sql = <<~SQL
             LEFT JOIN "Enrollment" ON "Enrollment"."DateDeleted" IS NULL
             AND "Enrollment"."EnrollmentID" = "#{klass.table_name}"."EnrollmentID"
