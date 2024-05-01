@@ -20,7 +20,7 @@ jobs:
         name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
       - id: dependencies
         name: Set up dependencies
@@ -50,12 +50,16 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: masesgroup/retrieve-changed-files@v3
+        uses: tj-actions/changed-files@v44
+        with:
+          since_last_remote_commit: true
 
       - id: rubocop
         name: Run Rubocop
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
-          files=`echo "${{ steps.changed-files.outputs.added_modified }}" | tr " " "\n" | grep "**/*.rb" | tr "\n" " ./"`
+          files=`echo "${{ ALL_CHANGED_FILES }}" | tr " " "\n" | grep "**/*.rb" | tr "\n" " ./"`
           num=`echo $files | wc -w`
           echo $files
           if [ $num -gt 0 ]; then bundle exec rubocop --config ./.rubocop.yml $files; else echo "No changed ruby files"; fi
