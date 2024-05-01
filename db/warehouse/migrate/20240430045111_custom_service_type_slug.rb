@@ -1,9 +1,6 @@
 class CustomServiceTypeSlug < ActiveRecord::Migration[6.1]
   def up
     safety_assured do
-      # change_column :Services, :id, :bigint
-      change_column_null :Services, :EnrollmentID, false
-      change_column_null :Services, :PersonalID, false
       execute <<~SQL
         ALTER TABLE "Services" ADD COLUMN custom_service_type_slug VARCHAR GENERATED ALWAYS AS (data_source_id::text || ':' || "TypeProvided"::text || ':' || "RecordType"::text) STORED
       SQL
