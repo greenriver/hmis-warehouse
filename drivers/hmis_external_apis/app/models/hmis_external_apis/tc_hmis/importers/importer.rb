@@ -46,6 +46,12 @@ module HmisExternalApis::TcHmis::Importers
         Loaders::CustomClientDemographicsLoader,
         Loaders::NavigationNotesLoader,
         Loaders::DiversionAssessmentLoader,
+        Loaders::AumPreventionScreeningLoader,
+        Loaders::CaseworkerExitSurveyLoader,
+        Loaders::DcsfV3Loader,
+        Loaders::DirectionHomesHousingLoader,
+        Loaders::HvrpEmploymentDetailsLoader,
+        Loaders::DocumentReadyLoader,
       ]
 
       # disable paper trail to improve importer performance
