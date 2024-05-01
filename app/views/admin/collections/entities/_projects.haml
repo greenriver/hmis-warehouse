@@ -17,5 +17,5 @@
                 .c-checkbox.d-flex
                   %input{ id: id, name: name, type: 'checkbox', value: 1, checked: checked }
                   %label{for: id}
-          %td= entity.name
+          %td= entity.name(ignore_confidential_status: true)
           %td= org_name
