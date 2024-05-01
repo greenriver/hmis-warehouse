@@ -10,8 +10,10 @@ class CustomServiceTypeSlug < ActiveRecord::Migration[6.1]
       execute <<~SQL
         ALTER TABLE "CustomServiceTypes" ADD COLUMN slug VARCHAR GENERATED ALWAYS AS (data_source_id::text || ':' || "hud_type_provided"::text ||':'|| "hud_record_type"::text) STORED
       SQL
-      execute %{CREATE INDEX idx_services_enrollment_slug ON "Services" (custom_service_type_slug)}
-      execute %{CREATE INDEX idx_custom_service_type_enrollment_slug ON "CustomServiceTypes" (slug)}
+      execute %{CREATE INDEX idx_custom_service_type_slug ON "CustomServiceTypes" (slug)}
+      execute %(VACUUM ANALYZE "Enrollment")
+      execute %(VACUUM ANALYZE "CustomServices")
+      execute %(VACUUM ANALYZE "Services")
     end
   end
 
@@ -19,8 +21,6 @@ class CustomServiceTypeSlug < ActiveRecord::Migration[6.1]
     safety_assured do
       change_column_null :Services, :EnrollmentID, true
       change_column_null :Services, :PersonalID, true
-      execute %(DROP INDEX idx_services_enrollment_slug)
-      execute %(DROP INDEX idx_custom_service_type_enrollment_slug)
       execute %(ALTER TABLE "Services" DROP COLUMN custom_service_type_slug)
       execute %(ALTER TABLE "CustomServiceTypes" DROP COLUMN slug)
     end

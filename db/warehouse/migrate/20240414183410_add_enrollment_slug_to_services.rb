@@ -7,14 +7,14 @@ class AddEnrollmentSlugToServices < ActiveRecord::Migration[6.1]
   def up
     safety_assured do
       [
-        'Enrollment',
-        'Services',
-        'CustomServices',
-      ].each do |table|
+        ['Enrollment', 'slug'],
+        ['Services', 'enrollment_slug'],
+        ['CustomServices', 'enrollment_slug'],
+      ].each do |table, field|
         execute <<~SQL
-          ALTER TABLE "#{table}" ADD COLUMN enrollment_slug VARCHAR GENERATED ALWAYS AS (data_source_id::text || ':' || "EnrollmentID") STORED
+          ALTER TABLE "#{table}" ADD COLUMN #{field} VARCHAR GENERATED ALWAYS AS (data_source_id::text || ':' || "EnrollmentID") STORED
         SQL
-        execute %{CREATE INDEX idx_#{table.downcase}_enrollment_slug ON "#{table}" (enrollment_slug)}
+        execute %{CREATE INDEX idx_#{table.downcase}_enrollment_slug ON "#{table}" (#{field})}
       end
     end
   end
@@ -22,12 +22,11 @@ class AddEnrollmentSlugToServices < ActiveRecord::Migration[6.1]
   def down
     safety_assured do
       [
-        'Enrollment',
-        'Services',
-        'CustomServices',
-      ].each do |table|
-        execute %(DROP INDEX idx_#{table.downcase}_enrollment_slug)
-        execute %(ALTER TABLE "#{table}" DROP COLUMN enrollment_slug)
+        ['Enrollment', 'slug'],
+        ['Services', 'enrollment_slug'],
+        ['CustomServices', 'enrollment_slug'],
+      ].each do |table, field|
+        execute %(ALTER TABLE "#{table}" DROP COLUMN #{field})
       end
     end
   end

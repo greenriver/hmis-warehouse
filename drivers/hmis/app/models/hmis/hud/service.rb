@@ -13,7 +13,7 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::HasCustomDataElements
   include ::Hmis::Hud::Concerns::ServiceHistoryQueuer
 
-  belongs_to :enrollment, primary_key: :enrollment_slug, foreign_key: :enrollment_slug, optional: true, class_name: 'Hmis::Hud::Enrollment'
+  belongs_to :enrollment, primary_key: :slug, foreign_key: :enrollment_slug, optional: true, class_name: 'Hmis::Hud::Enrollment'
   has_one :project, through: :enrollment
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
