@@ -16,8 +16,6 @@ class CustomServiceTypeSlug < ActiveRecord::Migration[6.1]
 
   def down
     safety_assured do
-      change_column_null :Services, :EnrollmentID, true
-      change_column_null :Services, :PersonalID, true
       execute %(ALTER TABLE "Services" DROP COLUMN custom_service_type_slug)
       execute %(ALTER TABLE "CustomServiceTypes" DROP COLUMN slug)
     end
