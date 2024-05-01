@@ -305,7 +305,7 @@ namespace :grda_warehouse do
 
     TextMessage::Message.send_pending! if GrdaWarehouse::Config.get(:send_sms_for_covid_reminders) && RailsDrivers.loaded.include?(:text_message)
     GrdaWarehouse::CustomImports::Config.active.each do |config|
-      config.delay.import!
+      config.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).import!
     end
     TaskQueue.queue_unprocessed!
     GrdaWarehouse::ProjectGroup.maintain_project_lists!
