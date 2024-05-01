@@ -1,4 +1,4 @@
-class TestNull < ActiveRecord::Migration[6.1]
+class CustomServiceTypeSlug < ActiveRecord::Migration[6.1]
   def up
     safety_assured do
       # change_column :Services, :id, :bigint
@@ -17,8 +17,9 @@ class TestNull < ActiveRecord::Migration[6.1]
   def down
     safety_assured do
       change_column_null :Services, :EnrollmentID, true
-
       change_column_null :Services, :PersonalID, true
+      execute %{DROP INDEX idx_services_enrollment_slug}
+      execute %{DROP INDEX idx_custom_service_type_enrollment_slug}
       execute %{ALTER TABLE "Services" DROP COLUMN custom_service_type_slug}
       execute %{ALTER TABLE "CustomServiceTypes" DROP COLUMN slug}
     end
