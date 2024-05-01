@@ -26,8 +26,8 @@ class AddEnrollmentSlugToServices < ActiveRecord::Migration[6.1]
         'Services',
         'CustomServices',
       ].each do |table|
-        execute %{DROP INDEX idx_#{table.downcase}_enrollment_slug}
-        execute %{ALTER TABLE "#{table}" DROP COLUMN enrollment_slug}
+        execute %(DROP INDEX idx_#{table.downcase}_enrollment_slug)
+        execute %(ALTER TABLE "#{table}" DROP COLUMN enrollment_slug)
       end
     end
   end

@@ -20,7 +20,6 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :services
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
-
   validates_with Hmis::Hud::Validators::ServiceValidator
 
   # On user-initiated change, validate that there is max 1 bed night per date
