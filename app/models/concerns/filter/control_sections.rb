@@ -7,7 +7,6 @@
 module
   Filter::ControlSections
 
-
   extend ActiveSupport::Concern
   included do
     def control_sections

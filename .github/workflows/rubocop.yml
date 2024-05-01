@@ -17,6 +17,14 @@ jobs:
     # Docker Hub image that the job executes in
     container: ruby:3.1.4-alpine3.18
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
+
+      # ensure changed-files can read repo files from git
+      - name: Configure Git Safe Directory
+        run: git config --global --add safe.directory /__w/hmis-warehouse/hmis-warehouse
+
       - id: dependencies
         name: Set up dependencies
         run: |
@@ -41,14 +49,6 @@ jobs:
         run: |
           bundle config set --local without 'production staging'
           bundle install --jobs 4 --retry 3
-
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
-
-      # ensure changed-files can read repo files from git
-      - name: Configure Git Safe Directory
-        run: git config --global --add safe.directory /__w/hmis-warehouse/hmis-warehouse
 
       - name: Get changed files
         id: changed-files
