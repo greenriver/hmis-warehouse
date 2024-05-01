@@ -98,6 +98,38 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     end
   end
 
+  describe 'current_versions scope' do
+    let!(:id1_retired1) { create :hmis_form_definition, identifier: 'identifier_1', version: 0, status: 'retired' }
+    let!(:id1_retired2) { create :hmis_form_definition, identifier: 'identifier_1', version: 1, status: 'retired' }
+    let!(:id1_published) { create :hmis_form_definition, identifier: 'identifier_1', version: 2, status: 'published' }
+    let!(:id1_draft) { create :hmis_form_definition, identifier: 'identifier_1', version: 3, status: 'draft' }
+    let!(:id2_draft) { create :hmis_form_definition, identifier: 'identifier_2', version: 0, status: 'draft' }
+    let!(:id3_retired1) { create :hmis_form_definition, identifier: 'identifier_3', version: 0, status: 'retired' }
+    let!(:id3_retired2) { create :hmis_form_definition, identifier: 'identifier_3', version: 1, status: 'retired' }
+
+    it 'should return published version if exists' do
+      current_versions = Hmis::Form::Definition.current_versions.where(identifier: 'identifier_1')
+      expect(current_versions.size).to eq(1)
+      expect(current_versions.first.id).to eq(id1_published.id)
+    end
+
+    it 'should return draft version if no published version exists' do
+      current_versions = Hmis::Form::Definition.current_versions.where(identifier: 'identifier_2')
+      expect(current_versions.size).to eq(1)
+      expect(current_versions.first.id).to eq(id2_draft.id)
+    end
+
+    it 'should not return anything if only retired versions exist' do
+      current_versions = Hmis::Form::Definition.current_versions.where(identifier: 'identifier_3')
+      expect(current_versions.size).to eq(0)
+    end
+
+    it 'should return one version per identifier' do
+      current_versions = Hmis::Form::Definition.current_versions.where(identifier: ['identifier_1', 'identifier_2', 'identifier_3'])
+      expect(current_versions.size).to eq(2)
+    end
+  end
+
   describe 'find_definition_for_service_type' do
     let(:role) { :SERVICE }
     it 'only service defintions for the specified service type are returned (regression test)' do

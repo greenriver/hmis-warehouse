@@ -416,6 +416,26 @@ module Types
       scope.order(updated_at: :desc)
     end
 
+    field :form_identifier, Types::Forms::FormIdentifier, null: true do
+      argument :identifier, String, required: true
+    end
+    def form_identifier(identifier:)
+      raise 'Access denied' unless current_user.can_configure_data_collection?
+
+      Hmis::Form::Definition.current_versions.where(identifier: identifier).first
+    end
+
+    field :form_identifiers, Types::Forms::FormIdentifier.page_type, null: false do
+      filters_argument Forms::FormIdentifier
+    end
+    def form_identifiers(filters: nil)
+      raise 'Access denied' unless current_user.can_configure_data_collection?
+
+      scope = Hmis::Form::Definition.current_versions.non_static
+      scope = scope.apply_filters(filters) if filters
+      scope.order(updated_at: :desc)
+    end
+
     form_rules_field
     def form_rules(**args)
       raise 'Access denied' unless current_user.can_configure_data_collection?

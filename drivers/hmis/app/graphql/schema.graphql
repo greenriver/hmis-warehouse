@@ -3981,6 +3981,33 @@ type FormDefinitionsPaginated {
   pagesCount: Int!
 }
 
+"""
+FormIdentifier
+"""
+type FormIdentifier {
+  currentVersion: FormDefinition!
+  draft: FormDefinition
+  id: String!
+  identifier: String!
+  retiredVersions: [FormDefinition!]!
+  role: FormRole!
+  title: String!
+}
+
+input FormIdentifierFilterOptions {
+  searchTerm: String
+}
+
+type FormIdentifiersPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [FormIdentifier!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
 input FormInput {
   clientId: ID
   confirmed: Boolean
@@ -8671,6 +8698,8 @@ type Query {
   file(id: ID!): File
   formDefinition(id: ID!): FormDefinition
   formDefinitions(filters: FormDefinitionFilterOptions, limit: Int, offset: Int): FormDefinitionsPaginated!
+  formIdentifier(identifier: String!): FormIdentifier
+  formIdentifiers(filters: FormIdentifierFilterOptions, limit: Int, offset: Int): FormIdentifiersPaginated!
   formRule(id: ID!): FormRule
   formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
 

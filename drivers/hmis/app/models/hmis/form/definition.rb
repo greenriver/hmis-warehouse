@@ -268,6 +268,17 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     where(identifier: instance_scope.pluck(:definition_identifier))
   end
 
+  scope :current_versions, -> do
+    identifier_map = Hmis::Form::Definition.exclude_definition_from_select.all.group_by(&:identifier)
+    ids = []
+    identifier_map.each do |_identifier, definitions|
+      published = definitions.select { |definition| definition.status == 'published' }.first
+      draft = definitions.select { |definition| definition.status == 'draft' }.first
+      ids.append(published&.id || draft&.id)
+    end
+    Hmis::Form::Definition.where(id: ids)
+  end
+
   def self.apply_filters(input)
     Hmis::Filter::FormDefinitionFilter.new(input).filter_scope(self)
   end
