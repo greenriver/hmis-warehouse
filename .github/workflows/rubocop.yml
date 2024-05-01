@@ -10,7 +10,6 @@ concurrency:
 
 jobs:
   rubocop:
-    changed_files:
     runs-on: ubuntu-latest  # windows-latest || macos-latest
     name: Test changed-files
     steps:
