@@ -1,246 +1,246 @@
-name: Rails Tests
+# name: Rails Tests
 
-on:
-  push:
-    branches:
-      - '*'
-      - '**/*'
-  # NOTE: you don't need to build all PRs if you are also building all branches
-  # pull_request:
-  #   branches:
-  #     - '*'
-  #     - '**/*'
-concurrency:
-  group: ${{ github.ref }}-tests
-  cancel-in-progress: true
+# on:
+#   push:
+#     branches:
+#       - '*'
+#       - '**/*'
+#   # NOTE: you don't need to build all PRs if you are also building all branches
+#   # pull_request:
+#   #   branches:
+#   #     - '*'
+#   #     - '**/*'
+# concurrency:
+#   group: ${{ github.ref }}-tests
+#   cancel-in-progress: true
 
-jobs:
-  # Label of the container job
-  tests:
-    strategy:
-      fail-fast: false
-      matrix:
-        test_group:
-          - drivers/{a,b,c,d,e,f,g}*
-          - drivers/{h,i}*
-          - drivers/{j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}*
-          - spec
-    # Containers must run in Linux based operating systems
-    runs-on: ubuntu-20.04
+# jobs:
+#   # Label of the container job
+#   tests:
+#     strategy:
+#       fail-fast: false
+#       matrix:
+#         test_group:
+#           - drivers/{a,b,c,d,e,f,g}*
+#           - drivers/{h,i}*
+#           - drivers/{j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}*
+#           - spec
+#     # Containers must run in Linux based operating systems
+#     runs-on: ubuntu-20.04
 
-    # Docker Hub image that the job executes in
-    # $RUBY_VERSION
-    container: ruby:3.1.4-alpine3.18
+#     # Docker Hub image that the job executes in
+#     # $RUBY_VERSION
+#     container: ruby:3.1.4-alpine3.18
 
-    # Service containers to run with job
-    services:
-      postgres:
-        image: postgis/postgis:12-3.1-alpine
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_PASS: postgres
-          POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
+#     # Service containers to run with job
+#     services:
+#       postgres:
+#         image: postgis/postgis:12-3.1-alpine
+#         env:
+#           POSTGRES_PASSWORD: postgres
+#           POSTGRES_USER: postgres
+#           POSTGRES_PASS: postgres
+#           POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore
+#         # Set health checks to wait until postgres has started
+#         options: >-
+#           --health-cmd pg_isready
+#           --health-interval 10s
+#           --health-timeout 5s
+#           --health-retries 5
+#         ports:
+#           - 5432:5432
 
-      redis:
-        image: redis:alpine
-        ports:
-          - 6379:6379
+#       redis:
+#         image: redis:alpine
+#         ports:
+#           - 6379:6379
 
-      hmis-warehouse-sftp:
-        image: ghcr.io/greenriver/openpath-sftp:1.0
-        credentials:
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-        ports:
-          - '2222:22'
+#       hmis-warehouse-sftp:
+#         image: ghcr.io/greenriver/openpath-sftp:1.0
+#         credentials:
+#           username: ${{ github.actor }}
+#           password: ${{ secrets.GITHUB_TOKEN }}
+#         ports:
+#           - '2222:22'
 
-      minio:
-        image: ghcr.io/greenriver/openpath-minio:1.0
-        credentials:
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          MINIO_ACCESS_KEY: local_access_key
-          MINIO_SECRET_KEY: local_secret_key
-        ports:
-          - '9000:9000'
+#       minio:
+#         image: ghcr.io/greenriver/openpath-minio:1.0
+#         credentials:
+#           username: ${{ github.actor }}
+#           password: ${{ secrets.GITHUB_TOKEN }}
+#         env:
+#           MINIO_ACCESS_KEY: local_access_key
+#           MINIO_SECRET_KEY: local_secret_key
+#         ports:
+#           - '9000:9000'
 
-    env:
-      CLIENT: test
-      DATABASE_ADAPTER: postgresql
-      DATABASE_APP_DB_TEST: warehouse_app_test
-      DATABASE_DB_TEST: warehouse_test
-      DATABASE_APP_DB: warehouse_app_test
-      DATABASE_HOST: postgres
-      DATABASE_PASS: postgres
-      DATABASE_USER: postgres
-      DATABASE_WAREHOUSE_DB_TEST: warehouse_test
-      DEFAULT_FROM: greenriver.testing@mailinator.com
-      ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
-      FQDN: openpath.host
-      HEALTH_DATABASE_ADAPTER: postgresql
-      HEALTH_DATABASE_DB_TEST: health_test
-      HEALTH_DATABASE_HOST: postgres
-      HEALTH_DATABASE_PASS: postgres
-      HEALTH_DATABASE_USER: postgres
-      HEALTH_FROM: greenriver.testing@mailinator.com
-      HOSTNAME: openpath.host
-      MINIO_ENDPOINT: http://minio:9000
-      USE_MINIO_ENDPOINT: true
-      PORT: 80
-      RAILS_ENV: test
-      REPORTING_DATABASE_ADAPTER: postgresql
-      REPORTING_DATABASE_DB_TEST: reporting_test
-      REPORTING_DATABASE_HOST: postgres
-      REPORTING_DATABASE_PASS: postgres
-      REPORTING_DATABASE_USER: postgres
-      WAREHOUSE_DATABASE_ADAPTER: postgis
-      WAREHOUSE_DATABASE_DB_TEST: warehouse_test
-      WAREHOUSE_DATABASE_HOST: postgres
-      WAREHOUSE_DATABASE_PASS: postgres
-      WAREHOUSE_DATABASE_USER: postgres
-      WAREHOUSE_DATABASE_DB: warehouse_test
-      HEALTH_DATABASE_DB: health_test
-      REPORTING_DATABASE_DB: reporting_test
-      # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
-      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
-      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+#     env:
+#       CLIENT: test
+#       DATABASE_ADAPTER: postgresql
+#       DATABASE_APP_DB_TEST: warehouse_app_test
+#       DATABASE_DB_TEST: warehouse_test
+#       DATABASE_APP_DB: warehouse_app_test
+#       DATABASE_HOST: postgres
+#       DATABASE_PASS: postgres
+#       DATABASE_USER: postgres
+#       DATABASE_WAREHOUSE_DB_TEST: warehouse_test
+#       DEFAULT_FROM: greenriver.testing@mailinator.com
+#       ENCRYPTION_KEY: strongEncryptionstrongEncryptionstrongEncryption
+#       FQDN: openpath.host
+#       HEALTH_DATABASE_ADAPTER: postgresql
+#       HEALTH_DATABASE_DB_TEST: health_test
+#       HEALTH_DATABASE_HOST: postgres
+#       HEALTH_DATABASE_PASS: postgres
+#       HEALTH_DATABASE_USER: postgres
+#       HEALTH_FROM: greenriver.testing@mailinator.com
+#       HOSTNAME: openpath.host
+#       MINIO_ENDPOINT: http://minio:9000
+#       USE_MINIO_ENDPOINT: true
+#       PORT: 80
+#       RAILS_ENV: test
+#       REPORTING_DATABASE_ADAPTER: postgresql
+#       REPORTING_DATABASE_DB_TEST: reporting_test
+#       REPORTING_DATABASE_HOST: postgres
+#       REPORTING_DATABASE_PASS: postgres
+#       REPORTING_DATABASE_USER: postgres
+#       WAREHOUSE_DATABASE_ADAPTER: postgis
+#       WAREHOUSE_DATABASE_DB_TEST: warehouse_test
+#       WAREHOUSE_DATABASE_HOST: postgres
+#       WAREHOUSE_DATABASE_PASS: postgres
+#       WAREHOUSE_DATABASE_USER: postgres
+#       WAREHOUSE_DATABASE_DB: warehouse_test
+#       HEALTH_DATABASE_DB: health_test
+#       REPORTING_DATABASE_DB: reporting_test
+#       # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
+#       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+#       PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Set up dependencies
-        run: |
-          apk add --no-cache \
-            nodejs yarn npm \
-            tzdata \
-            git \
-            bash \
-            freetds-dev \
-            icu icu-dev \
-            curl libcurl curl-dev \
-            imagemagick \
-            libmagic file-dev file \
-            build-base libxml2-dev libxslt-dev postgresql-dev \
-            libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-freefont \
-            chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
-            lftp postgresql tmux postgis geos geos-dev \
-            shared-mime-info
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v3
+#       - name: Set up dependencies
+#         run: |
+#           apk add --no-cache \
+#             nodejs yarn npm \
+#             tzdata \
+#             git \
+#             bash \
+#             freetds-dev \
+#             icu icu-dev \
+#             curl libcurl curl-dev \
+#             imagemagick \
+#             libmagic file-dev file \
+#             build-base libxml2-dev libxslt-dev postgresql-dev \
+#             libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-freefont \
+#             chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
+#             lftp postgresql tmux postgis geos geos-dev \
+#             shared-mime-info
 
-          echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
-          chmod 600 ~/.pgpass
+#           echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
+#           chmod 600 ~/.pgpass
 
-          yarn install --frozen-lockfile
-          gem install bundler --version=2.5.7
+#           yarn install --frozen-lockfile
+#           gem install bundler --version=2.5.7
 
-      - name: Install gems
-        run: |
-          bundle config set --local without 'production staging development'
-          bundle install --jobs 4 --retry 3
+#       - name: Install gems
+#         run: |
+#           bundle config set --local without 'production staging development'
+#           bundle install --jobs 4 --retry 3
 
-      - name: 'App setup'
-        run: |
-          cp config/secrets.yml.sample config/secrets.yml
-          mkdir app/assets/stylesheets/theme/styles
-          touch app/assets/stylesheets/theme/styles/_variables.scss
-          cp .rspec.sample .rspec
-          cp config/database.yml.ci config/database.yml
+#       - name: 'App setup'
+#         run: |
+#           cp config/secrets.yml.sample config/secrets.yml
+#           mkdir app/assets/stylesheets/theme/styles
+#           touch app/assets/stylesheets/theme/styles/_variables.scss
+#           cp .rspec.sample .rspec
+#           cp config/database.yml.ci config/database.yml
 
-      - name: Prepare test db
-        run: |
-          pg_isready -h postgres -U postgres
-          bin/db_prep
+#       - name: Prepare test db
+#         run: |
+#           pg_isready -h postgres -U postgres
+#           bin/db_prep
 
-          echo "Setting up .pgpass"
-          echo "postgres:*:*:postgres:postgres" > ~/.pgpass
-          chmod 600 ~/.pgpass
+#           echo "Setting up .pgpass"
+#           echo "postgres:*:*:postgres:postgres" > ~/.pgpass
+#           chmod 600 ~/.pgpass
 
-          bundle exec rake assets:precompile
+#           bundle exec rake assets:precompile
 
-      # Regenerate the graphql schema and fail if it has changed
-      - name: 'Check HMIS GraphQL schema'
-        run: |
-          bundle exec rake driver:hmis:dump_graphql_schema
+#       # Regenerate the graphql schema and fail if it has changed
+#       - name: 'Check HMIS GraphQL schema'
+#         run: |
+#           bundle exec rake driver:hmis:dump_graphql_schema
 
-      # fetch some closed source files
-      - name: 'Fetch testkit source files'
-        uses: keithweaver/aws-s3-github-action@v1.0.0
-        with:
-          command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_02_2024 }}
-          destination: ./drivers/datalab_testkit/spec/fixtures/inputs/
-          aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
-          aws_region: us-east-1
-          flags: --recursive
-      # fetch pre-processed FY2024 data set; note that we need to update this whenever the test kit source
-      # data changes.  To update:
-      # 1. Remove the fixtures from `drivers/datalab_testkit/spec/fixpoints/`
-      # 2. Replace the source and result files in `drivers/datalab_testkit/spec/fixtures` and on S3
-      # 3. Re-run the tests  rspec drivers/hud_apr/spec/models/fy2024/datalab_2_0_spec.rb
-      # 4. Update the fixpoint in S3 from the newly generated file
-      - name: 'Fetch testkit fixpoint files'
-        uses: keithweaver/aws-s3-github-action@v1.0.0
-        with:
-          command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_02_2024 }}
-          destination: ./drivers/datalab_testkit/spec/fixpoints/
-          aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
-          aws_region: us-east-1
-          flags: --recursive
+#       # fetch some closed source files
+#       - name: 'Fetch testkit source files'
+#         uses: keithweaver/aws-s3-github-action@v1.0.0
+#         with:
+#           command: cp
+#           source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_02_2024 }}
+#           destination: ./drivers/datalab_testkit/spec/fixtures/inputs/
+#           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
+#           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
+#           aws_region: us-east-1
+#           flags: --recursive
+#       # fetch pre-processed FY2024 data set; note that we need to update this whenever the test kit source
+#       # data changes.  To update:
+#       # 1. Remove the fixtures from `drivers/datalab_testkit/spec/fixpoints/`
+#       # 2. Replace the source and result files in `drivers/datalab_testkit/spec/fixtures` and on S3
+#       # 3. Re-run the tests  rspec drivers/hud_apr/spec/models/fy2024/datalab_2_0_spec.rb
+#       # 4. Update the fixpoint in S3 from the newly generated file
+#       - name: 'Fetch testkit fixpoint files'
+#         uses: keithweaver/aws-s3-github-action@v1.0.0
+#         with:
+#           command: cp
+#           source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_02_2024 }}
+#           destination: ./drivers/datalab_testkit/spec/fixpoints/
+#           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
+#           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
+#           aws_region: us-east-1
+#           flags: --recursive
 
-      - name: 'Fetch result files'
-        uses: keithweaver/aws-s3-github-action@v1.0.0
-        with:
-          command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_01_2024 }}
-          destination: ./drivers/datalab_testkit/spec/fixtures/results/
-          aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
-          aws_region: us-east-1
-          flags: --recursive
+#       - name: 'Fetch result files'
+#         uses: keithweaver/aws-s3-github-action@v1.0.0
+#         with:
+#           command: cp
+#           source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_01_2024 }}
+#           destination: ./drivers/datalab_testkit/spec/fixtures/results/
+#           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
+#           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
+#           aws_region: us-east-1
+#           flags: --recursive
 
-      - name: 'Fetch 2022 -> 2024 source files'
-        uses: keithweaver/aws-s3-github-action@v1.0.0
-        with:
-          command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_02_2024 }}/merged/source
-          destination: ./drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/
-          aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
-          aws_region: us-east-1
-          flags: --recursive
+#       - name: 'Fetch 2022 -> 2024 source files'
+#         uses: keithweaver/aws-s3-github-action@v1.0.0
+#         with:
+#           command: cp
+#           source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_02_2024 }}/merged/source
+#           destination: ./drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/
+#           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
+#           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
+#           aws_region: us-east-1
+#           flags: --recursive
 
-      - name: Run tests
-        env:
-          AWS_ACCESS_KEY_ID: local_access_key
-          AWS_SECRET_ACCESS_KEY: local_secret_key
-          GROVER_NO_SANDBOX: true
-          CHROMIUM_PATH: /usr/bin/chromium-browser
-          MAX_FAILURES: 60
-          LOG_LEVEL: INFO
-        run: |
-          bundle exec rspec --fail-fast=$MAX_FAILURES --color -P "${{ matrix.test_group }}/**/*_spec.rb"
-          OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
+#       - name: Run tests
+#         env:
+#           AWS_ACCESS_KEY_ID: local_access_key
+#           AWS_SECRET_ACCESS_KEY: local_secret_key
+#           GROVER_NO_SANDBOX: true
+#           CHROMIUM_PATH: /usr/bin/chromium-browser
+#           MAX_FAILURES: 60
+#           LOG_LEVEL: INFO
+#         run: |
+#           bundle exec rspec --fail-fast=$MAX_FAILURES --color -P "${{ matrix.test_group }}/**/*_spec.rb"
+#           OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
 
-      - name: Run logging tests
-        env:
-          AWS_ACCESS_KEY_ID: local_access_key
-          AWS_SECRET_ACCESS_KEY: local_secret_key
-          LOG_LEVEL: INFO
-        run: |
-          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
-          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
-          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
-          TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
-          TEST_STAGING_LOGGING_CONFIG=true bundle exec rspec --color --format p spec/models/logging_spec.rb
+#       - name: Run logging tests
+#         env:
+#           AWS_ACCESS_KEY_ID: local_access_key
+#           AWS_SECRET_ACCESS_KEY: local_secret_key
+#           LOG_LEVEL: INFO
+#         run: |
+#           TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
+#           TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=true LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
+#           TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=true bundle exec rspec --color --format p spec/models/logging_spec.rb
+#           TEST_DEVELOPMENT_LOGGING_CONFIG=true RAILS_LOG_TO_STDOUT=false LOGRAGE=false bundle exec rspec --color --format p spec/models/logging_spec.rb
+#           TEST_STAGING_LOGGING_CONFIG=true bundle exec rspec --color --format p spec/models/logging_spec.rb

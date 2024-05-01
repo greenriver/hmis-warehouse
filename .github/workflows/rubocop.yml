@@ -16,12 +16,6 @@ jobs:
     # Docker Hub image that the job executes in
     container: ruby:3.1.4-alpine3.18
     steps:
-      - id: checkout
-        name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
       - id: dependencies
         name: Set up dependencies
         run: |
@@ -42,11 +36,17 @@ jobs:
             shared-mime-info
           gem install bundler --version=2.5.7
 
-      - id: gems
-        name: Install gems
-        run: |
-          bundle config set --local without 'production staging'
-          bundle install --jobs 4 --retry 3
+      - id: checkout
+        name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      # - id: gems
+      #   name: Install gems
+      #   run: |
+      #     bundle config set --local without 'production staging'
+      #     bundle install --jobs 4 --retry 3
 
       - name: Get changed files
         id: changed-files
