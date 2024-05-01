@@ -21,7 +21,7 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CdeExport, type: :model do
 
   let!(:cded) { create :hmis_custom_data_element_definition, label: 'A string', data_source: ds, owner_type: 'Hmis::Hud::Service', field_type: :string }
   let!(:cde1) { create :hmis_custom_data_element, data_element_definition: cded, owner: hud_service, data_source: ds, value_string: 'First value', DateCreated: creation_time, DateUpdated: creation_time }
-
+  let!(:direct_enty_cded) { create(:hmis_custom_data_element_definition, key: :direct_entry, data_source: ds, owner_type: 'Hmis::Hud::Project', field_type: :boolean) }
   let(:output) do
     subject.output.rewind
     subject.output.read
@@ -46,15 +46,21 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CdeExport, type: :model do
   end
 
   context 'when there are multiple CDEs with different owners and CDEDs' do
-    let!(:hud_service_2) { create :hmis_hud_service, data_source: ds, client: c1, enrollment: e1 }
-    let!(:cded2) { create :hmis_custom_data_element_definition, label: 'A different CDED', data_source: ds, owner_type: 'Hmis::Hud::Service', field_type: :string }
-    let!(:cde2) { create :hmis_custom_data_element, data_element_definition: cded2, owner: hud_service_2, data_source: ds, value_string: 'A new value' }
+    let!(:records) do
+      cdes = []
+      10.times do
+        service = create(:hmis_hud_service, data_source: ds, client: c1, enrollment: e1)
+        cded = create(:hmis_custom_data_element_definition, label: 'A different CDED', data_source: ds, owner_type: 'Hmis::Hud::Service', field_type: :string)
+        cdes << create(:hmis_custom_data_element, data_element_definition: cded, owner: service, data_source: ds, value_string: 'A new value')
+      end
+      cdes
+    end
 
     it 'does not do a db lookup per iteration' do
       expect do
         subject.run!
-        expect(subject.send(:cdes).length).to eq(2)
-      end.to make_database_queries(count: 4)
+        expect(subject.send(:cdes).length).to eq(11)
+      end.to make_database_queries(count: 5..8)
     end
   end
 
@@ -67,6 +73,31 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CdeExport, type: :model do
       result = CSV.parse(output, headers: true)
       expect(result.length).to eq(1)
       expect(result.first['Response']).to eq(Date.today.strftime('%Y-%m-%d'))
+    end
+  end
+
+  context 'with enrollments with unit assignments' do
+    let!(:walk_in_project) do
+      project = create(:hmis_hud_project, data_source: ds, organization: o1)
+      create(:hmis_custom_data_element, data_element_definition: direct_enty_cded, owner: project, data_source: ds, value_boolean: true)
+      project
+    end
+    let!(:unit_type) { create :hmis_unit_type, description: '1 bed room' }
+    let!(:unit1) { create :hmis_unit, project: walk_in_project, unit_type: unit_type }
+    let!(:e2) { create :hmis_hud_enrollment, data_source: ds, project: walk_in_project, entry_date: 2.weeks.ago }
+    let!(:e3) { create :hmis_hud_enrollment, data_source: ds, project: walk_in_project, entry_date: 2.weeks.ago, household_id: e1.household_id }
+    let!(:uo1) { create :hmis_unit_occupancy, unit: unit1, enrollment: e2 }
+    let!(:uo2) { create :hmis_unit_occupancy, unit: unit1, enrollment: e3 }
+
+    it 'reports on unit type' do
+      subject.run!
+      result = CSV.parse(output, headers: true)
+      unit_rows = result.map(&:to_h).select { |r| r['CustomFieldKey'] == 'unit_type' }
+      expect(unit_rows.length).to eq(2)
+      expect(unit_rows).to contain_exactly(
+        a_hash_including({ 'ResponseID' => uo1.id.to_s, 'RecordId' => e2.id.to_s, 'Response' => '1 bed room' }),
+        a_hash_including({ 'ResponseID' => uo2.id.to_s, 'RecordId' => e3.id.to_s, 'Response' => '1 bed room' }),
+      )
     end
   end
 end

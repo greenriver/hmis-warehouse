@@ -569,6 +569,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       "#{base}/client/#{entity.client&.id}/enrollments/#{entity.id}"
     when Hmis::Hud::CustomAssessment
       "#{base}/client/#{entity.enrollment&.client&.id}/enrollments/#{entity.enrollment&.id}/assessments/#{entity.id}"
+    when Hmis::Hud::CustomService
+      "#{base}/client/#{entity.enrollment&.client&.id}/enrollments/#{entity.enrollment&.id}/services"
     end
 
     # For any other Enrollment-related record, link to the enrollment page

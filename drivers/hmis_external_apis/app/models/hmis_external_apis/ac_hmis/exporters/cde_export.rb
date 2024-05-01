@@ -26,6 +26,37 @@ module HmisExternalApis::AcHmis::Exporters
         ]
         write_row(values)
       end
+
+      # Include Unit Type assignment for all Enrollments at Walk-in projects. Even though these are _not_ stored in CustomDataElements.
+      project_scope = Hmis::Hud::Project.hmis.where(id: walk_in_cded.values.where(value_boolean: true).pluck(:owner_id))
+      seen = Set.new
+      unit_occupancies = Hmis::UnitOccupancy.joins(:occupancy_period, enrollment: :project).
+        merge(project_scope).
+        order(Hmis::ActiveRange.arel_table[:updated_at].asc).
+        preload(:occupancy_period, unit: [:unit_type])
+
+      unit_occupancies.each do |unit_occupancy|
+        unit_type = unit_occupancy.unit&.unit_type
+        next unless unit_type
+
+        enrollment_id = unit_occupancy.enrollment_id
+        # If we already wrote a unit type for this enrollment, skip it. The Unit Occupancies
+        # are sorted from most recently updated=>oldest, so we should have the correct information.
+        # (Note: It is rare that unit occupancy is changed during an enrollment, and even rarer that unit type would change.)
+        next if seen.include?(enrollment_id)
+
+        seen.add(enrollment_id)
+        values = [
+          unit_occupancy.id,                          # ResponseID
+          'unit_type',                                # CustomFieldKey
+          'Enrollment',                               # RecordType
+          enrollment_id,                              # RecordId
+          unit_type.description,                      # Response
+          unit_occupancy.occupancy_period.created_at, # DateCreated
+          unit_occupancy.occupancy_period.updated_at, # DateUpdated
+        ]
+        write_row(values)
+      end
     end
 
     private
@@ -46,6 +77,10 @@ module HmisExternalApis::AcHmis::Exporters
       @cdes ||= Hmis::Hud::CustomDataElement.
         where(data_source: data_source).
         preload(:data_element_definition)
+    end
+
+    def walk_in_cded
+      @walk_in_cded ||= Hmis::Hud::CustomDataElementDefinition.where(data_source: data_source, key: :direct_entry, owner_type: 'Hmis::Hud::Project').first!
     end
   end
 end
