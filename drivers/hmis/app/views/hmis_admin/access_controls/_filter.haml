@@ -14,7 +14,7 @@
         .col-12
           = f.input :user_group_id, as: :select_two, collection: Hmis::UserGroup.where(id: Hmis::AccessControl.select(:user_group_id)).order(:name), selected: params.dig(:filter, :user_group_id).to_i, required: false, include_blank: 'Any user group'
         .col-12
-          = f.input :access_group_id, as: :select_two, collection: Hmis::AccessGroup.where(id: Hmis::AccessControl.select(:access_group_id)).order(:name), selected: params.dig(:filter, :access_group_id).to_i, required: false, include_blank: 'Any collection'
+          = f.input :access_group_id, as: :select_two, label: 'Collection', collection: Hmis::AccessGroup.where(id: Hmis::AccessControl.select(:access_group_id)).order(:name), selected: params.dig(:filter, :access_group_id).to_i, required: false, include_blank: 'Any collection'
         .col-12
           = f.input :role_id, as: :select_two, collection: Hmis::Role.where(id: Hmis::AccessControl.select(:role_id)).order(:name), selected: params.dig(:filter, :role_id).to_i, required: false, include_blank: 'Any role'
 
