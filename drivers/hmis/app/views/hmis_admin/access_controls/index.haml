@@ -32,7 +32,7 @@
               - if acl.user_group.present?
                 = link_to acl.user_group.name, edit_hmis_admin_user_group_path(acl.user_group)
             %td= link_to acl.role.name, hmis_admin_roles_path
-            %td= link_to acl.access_group.name, edit_hmis_admin_group_path(acl.access_group)
+            %td= link_to acl.access_group.name, hmis_admin_group_path(acl.access_group)
             %td
               .d-flex.justify-content-end
                 = link_to edit_hmis_admin_access_control_path(acl), class: ['btn', 'btn-sm', 'btn-secondary'] do
