@@ -46,7 +46,7 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
 
     case option
     when :name
-      order(:OrganizationName)
+      order(:OrganizationName, id: :desc)
     else
       raise NotImplementedError
     end
