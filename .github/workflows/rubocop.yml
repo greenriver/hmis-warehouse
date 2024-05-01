@@ -16,7 +16,7 @@ jobs:
 
     # Docker Hub image that the job executes in
     # container: ruby:3.1.4-alpine3.18
-    # steps:
+    steps:
     #   - id: dependencies
     #     name: Set up dependencies
     #     run: |
