@@ -39,7 +39,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
+          fetch-depth: 0
 
       # ensure changed-files can read repo files from git
       - name: Configure Git Safe Directory
@@ -60,9 +60,6 @@ jobs:
         env:
           ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
-          for file in ${ALL_CHANGED_FILES}; do
-            echo "$file was changed"
-          done
           files=`echo "${ALL_CHANGED_FILES}" | tr " " "\n" | grep "**/*.rb" | tr "\n" " ./"`
           num=`echo $files | wc -w`
           echo $files
