@@ -13,10 +13,6 @@ module Hmis::Concerns::HmisArelHelper
       Hmis::Hud::CustomAssessment.arel_table
     end
 
-    def wip_t
-      Hmis::Wip.arel_table
-    end
-
     def ar_t
       Hmis::ActiveRange.arel_table
     end
