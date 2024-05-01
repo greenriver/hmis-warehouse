@@ -12,7 +12,8 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   replace_scope :viewable_by, ->(user) do
     joins(:enrollment).merge(Hmis::Hud::Enrollment.viewable_by(user))
   end
-  include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
+  belongs_to :enrollment, primary_key: :enrollment_slug, foreign_key: :enrollment_slug, optional: true, class_name: 'Hmis::Hud::Enrollment'
+  has_one :project, through: :enrollment
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :services
