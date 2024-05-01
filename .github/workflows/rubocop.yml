@@ -39,6 +39,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
+          set-safe-directory: /__w/hmis-warehouse/hmis-warehouse
 
       # - id: gems
       #   name: Install gems
@@ -47,8 +48,8 @@ jobs:
       #     bundle install --jobs 4 --retry 3
 
       # ensure changed-files can read repo files from git
-      - name: Configure Git Safe Directory
-        run: git config --global --add safe.directory /__w/hmis-warehouse/hmis-warehouse
+      # - name: Configure Git Safe Directory
+      #   run: git config --global --add safe.directory /__w/hmis-warehouse/hmis-warehouse
 
       - name: Get changed files
         id: changed-files
