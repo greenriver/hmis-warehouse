@@ -59,7 +59,7 @@ jobs:
         env:
           ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
-          files=`echo "${{ ALL_CHANGED_FILES }}" | tr " " "\n" | grep "**/*.rb" | tr "\n" " ./"`
+          files=`echo "${ALL_CHANGED_FILES}" | tr " " "\n" | grep "**/*.rb" | tr "\n" " ./"`
           num=`echo $files | wc -w`
           echo $files
           if [ $num -gt 0 ]; then bundle exec rubocop --config ./.rubocop.yml $files; else echo "No changed ruby files"; fi
