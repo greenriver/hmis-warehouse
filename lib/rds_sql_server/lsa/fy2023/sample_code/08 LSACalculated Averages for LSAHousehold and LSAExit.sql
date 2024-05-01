@@ -323,8 +323,7 @@ Populates and references:
 	inner join tlsa_AveragePops p1 on p1.PopID = rp.Pop1
 	inner join tlsa_AveragePops p2 on p2.PopID = rp.Pop2	
 		and p1.Cohort = p2.Cohort 
-		and ((p1.HHType = p2.HHType and p1.HoHID = p2.HoHID)
-			 or (p1.PopID = 0 and p2.PopID = 0))
+		and p1.HHType = p2.HHType and p1.HoHID = p2.HoHID
 
 /*
 	8.4-8.7 Average Days from LSAHousehold 
@@ -356,7 +355,7 @@ Populates and references:
 		hh.ReportID, '8.4-8.7'
 	from tlsa_Household hh 
 	inner join tlsa_AveragePops pop on (pop.PopID = 0 or (pop.HHType = hh.HHType and pop.HoHID = hh.HoHID)) and pop.Cohort = 1
-	inner join ref_RowPopulations rp on rp.PopID = pop.PopID 
+	inner join ref_RowPopulations rp on rp.PopID = pop.PopID and rp.RowMin between 1 and 16
 	inner join ref_PopHHTypes ph on ph.PopID = rp.PopID and (ph.HHType = hh.HHType or ph.HHType = 0)
 	inner join ref_RowValues rv on rv.RowID between rp.RowMin and rp.RowMax 
 			and ((rp.ByPath is null and rv.SystemPath = -1) 
