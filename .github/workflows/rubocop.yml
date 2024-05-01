@@ -51,8 +51,8 @@ jobs:
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v44
-        with:
-          since_last_remote_commit: true
+        # with:
+        #   since_last_remote_commit: true
 
       - id: rubocop
         name: Run Rubocop
