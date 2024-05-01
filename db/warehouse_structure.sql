@@ -1317,7 +1317,8 @@ CREATE TABLE public."CustomServiceTypes" (
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
-    supports_bulk_assignment boolean DEFAULT false NOT NULL
+    supports_bulk_assignment boolean DEFAULT false NOT NULL,
+    slug character varying GENERATED ALWAYS AS ((((((data_source_id)::text || ':'::text) || (hud_type_provided)::text) || ':'::text) || (hud_record_type)::text)) STORED
 );
 
 
@@ -1394,7 +1395,8 @@ CREATE TABLE public."CustomServices" (
     "DateDeleted" timestamp without time zone,
     "FAAmount" double precision,
     "FAStartDate" date,
-    "FAEndDate" date
+    "FAEndDate" date,
+    enrollment_slug character varying GENERATED ALWAYS AS ((((data_source_id)::text || ':'::text) || ("EnrollmentID")::text)) STORED
 );
 
 
@@ -1675,7 +1677,8 @@ CREATE TABLE public."Enrollment" (
     "PreferredLanguageDifferent" character varying,
     "VAMCStation" character varying,
     lock_version integer DEFAULT 0 NOT NULL,
-    project_pk bigint
+    project_pk bigint,
+    enrollment_slug character varying GENERATED ALWAYS AS ((((data_source_id)::text || ':'::text) || ("EnrollmentID")::text)) STORED
 );
 
 
@@ -2467,8 +2470,8 @@ ALTER SEQUENCE public."Project_id_seq" OWNED BY public."Project".id;
 
 CREATE TABLE public."Services" (
     "ServicesID" character varying,
-    "EnrollmentID" character varying,
-    "PersonalID" character varying,
+    "EnrollmentID" character varying NOT NULL,
+    "PersonalID" character varying NOT NULL,
     "DateProvided" date,
     "RecordType" integer,
     "TypeProvided" integer,
@@ -2487,7 +2490,9 @@ CREATE TABLE public."Services" (
     pending_date_deleted timestamp without time zone,
     "MovingOnOtherType" character varying,
     "FAStartDate" date,
-    "FAEndDate" date
+    "FAEndDate" date,
+    enrollment_slug character varying GENERATED ALWAYS AS ((((data_source_id)::text || ':'::text) || ("EnrollmentID")::text)) STORED,
+    custom_service_type_slug character varying GENERATED ALWAYS AS ((((((data_source_id)::text || ':'::text) || ("TypeProvided")::text) || ':'::text) || ("RecordType")::text)) STORED
 );
 
 
@@ -18721,10 +18726,11 @@ ALTER SEQUENCE public.hmis_scan_card_codes_id_seq OWNED BY public.hmis_scan_card
 --
 
 CREATE VIEW public.hmis_services AS
-( SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
+ SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
     "Services".id AS owner_id,
     'Hmis::Hud::Service'::text AS owner_type,
     "CustomServiceTypes".id AS custom_service_type_id,
+    "Services".enrollment_slug,
     "Services"."EnrollmentID",
     "Services"."PersonalID",
     "Services"."DateProvided",
@@ -18734,14 +18740,14 @@ CREATE VIEW public.hmis_services AS
     "Services"."DateDeleted",
     "Services".data_source_id
    FROM (public."Services"
-     JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes".data_source_id = "Services".data_source_id) AND ("CustomServiceTypes"."DateDeleted" IS NULL))))
+     JOIN public."CustomServiceTypes" ON (((("CustomServiceTypes".slug)::text = ("Services".custom_service_type_slug)::text) AND ("CustomServiceTypes"."DateDeleted" IS NULL))))
   WHERE ("Services"."DateDeleted" IS NULL)
-  ORDER BY "Services"."DateProvided")
 UNION ALL
-( SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
+ SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
     ("CustomServices".id)::integer AS owner_id,
     'Hmis::Hud::CustomService'::text AS owner_type,
     "CustomServices".custom_service_type_id,
+    "CustomServices".enrollment_slug,
     "CustomServices"."EnrollmentID",
     "CustomServices"."PersonalID",
     "CustomServices"."DateProvided",
@@ -18751,8 +18757,7 @@ UNION ALL
     "CustomServices"."DateDeleted",
     "CustomServices".data_source_id
    FROM public."CustomServices"
-  WHERE ("CustomServices"."DateDeleted" IS NULL)
-  ORDER BY "CustomServices"."DateProvided");
+  WHERE ("CustomServices"."DateDeleted" IS NULL);
 
 
 --
@@ -50213,6 +50218,20 @@ CREATE INDEX idx_client_name_last_gin ON public."Client" USING gin (search_name_
 
 
 --
+-- Name: idx_custom_service_type_enrollment_slug; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_custom_service_type_enrollment_slug ON public."CustomServiceTypes" USING btree (slug);
+
+
+--
+-- Name: idx_customservices_enrollment_slug; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_customservices_enrollment_slug ON public."CustomServices" USING btree (enrollment_slug);
+
+
+--
 -- Name: idx_dis_p_id_e_id_del_ds_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50231,6 +50250,13 @@ CREATE INDEX idx_earned_stage ON public."IncomeBenefits" USING btree ("Earned", 
 --
 
 CREATE INDEX idx_enrollment_ds_id_hh_id_p_id ON public."Enrollment" USING btree (data_source_id, "HouseholdID", "ProjectID");
+
+
+--
+-- Name: idx_enrollment_enrollment_slug; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_enrollment_enrollment_slug ON public."Enrollment" USING btree (enrollment_slug);
 
 
 --
@@ -50420,6 +50446,13 @@ CREATE INDEX idx_hmis_external_referral_postings_user_2 ON public.hmis_external_
 --
 
 CREATE UNIQUE INDEX idx_inbound_api_configurations_uniq ON public.inbound_api_configurations USING btree (internal_system_id, external_system_name, version);
+
+
+--
+-- Name: idx_services_enrollment_slug; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_services_enrollment_slug ON public."Services" USING btree (custom_service_type_slug);
 
 
 --
@@ -62655,8 +62688,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240409215111'),
 ('20240411183410'),
 ('20240413183410'),
+('20240414183410'),
 ('20240416155829'),
 ('20240419165229'),
-('20240419174433');
+('20240419174433'),
+('20240430045111'),
+('20240430045112');
 
 
