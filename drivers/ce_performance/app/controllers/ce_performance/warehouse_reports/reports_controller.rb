@@ -91,7 +91,7 @@ module CePerformance::WarehouseReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          filename = "#{"#{@result.class.title} #{@report.clients_title(sub_population_title: @sub_population_title, vispdat_range: @vispdat_range, vispdat_type: @vispdat_type)}".tr(' ', '-')}-#{Date.current.to_s(:db)}.xlsx"
+          filename = "#{"#{@result.class.title} #{@report.clients_title(sub_population_title: @sub_population_title, vispdat_range: @vispdat_range, vispdat_type: @vispdat_type)}".tr(' ', '-')}-#{Date.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end

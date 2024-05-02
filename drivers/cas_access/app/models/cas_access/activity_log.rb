@@ -44,7 +44,7 @@ module CasAccess
         # Strip anything after the ?
         row[:path]&.gsub!(/\?.*/, '')
         row[:referrer]&.gsub!(/\?.*/, '')
-        row[:created_at] = row[:created_at].to_s(:db)
+        row[:created_at] = row[:created_at].to_fs(:db)
         row
       end
     end

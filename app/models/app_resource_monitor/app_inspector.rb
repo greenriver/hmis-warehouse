@@ -26,8 +26,8 @@ class AppResourceMonitor::AppInspector
   def self.activity_stats(range:)
     [
       {
-        starts_at: range.begin&.to_s(:db),
-        ends_at: range.end&.to_s(:db),
+        starts_at: range.begin&.to_fs(:db),
+        ends_at: range.end&.to_fs(:db),
         distinct_warehouse_users: ActivityLog.where(created_at: range).distinct.count(:user_id),
         distinct_hmis_users: Hmis::ActivityLog.where(created_at: range).distinct.count(:user_id),
       },

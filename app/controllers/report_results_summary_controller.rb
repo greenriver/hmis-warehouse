@@ -18,7 +18,7 @@ class ReportResultsSummaryController < ApplicationController
           redirect_to action: :show
         end
         response.headers['Content-Type'] = 'text/csv'
-        response.headers['Content-Disposition'] = "attachment; filename=\"#{@report_results_summary.name}-#{Time.current.to_s(:number)}.csv\""
+        response.headers['Content-Disposition'] = "attachment; filename=\"#{@report_results_summary.name}-#{Time.current.to_fs(:number)}.csv\""
       end
     end
   end

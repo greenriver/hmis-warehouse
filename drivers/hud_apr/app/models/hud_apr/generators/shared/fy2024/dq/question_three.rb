@@ -57,7 +57,7 @@ module HudApr::Generators::Shared::Fy2024::Dq::QuestionThree
       )
 
       total_cell = sheet.update_cell_value(cell: 'E2', value: [dkpntr_cell, missing_cell, issue_cell].map(&:value).sum)
-      total_cell.add_members([dkpntr_cell, missing_cell, issue_cell].map(&:members).sum)
+      total_cell.add_members([dkpntr_cell, missing_cell, issue_cell].map(&:members).sum([]))
       # Issue Rate
       # Number of adults (age 18 or over) + Number of children (under age 18)
       denominator = universe_members.where(a_t[:age].not_eq(nil)).count.to_f
@@ -149,7 +149,7 @@ module HudApr::Generators::Shared::Fy2024::Dq::QuestionThree
       )
 
       total_cell = sheet.update_cell_value(cell: 'E6', value: [dkpntr_cell, missing_cell, issue_cell].map(&:value).sum)
-      total_cell.add_members([dkpntr_cell, missing_cell, issue_cell].map(&:members).sum)
+      total_cell.add_members([dkpntr_cell, missing_cell, issue_cell].map(&:members).sum([]))
       # Issue Rate
       sheet.update_cell_value(cell: 'F6', value: percentage(issue_cell.value / universe_members.count.to_f))
     end

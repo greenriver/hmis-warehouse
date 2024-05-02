@@ -12,7 +12,7 @@ module ClaimsReporting::WarehouseReports
     def index
       @report = ClaimsReporting::ReconcilationReport.new(**filter_params)
       @file = ::ClaimsReporting::CpPaymentUpload.new
-      export_name = "unmatched-claims-for-#{@report.month.end_of_month.to_s(:number)}"
+      export_name = "unmatched-claims-for-#{@report.month.end_of_month.to_fs(:number)}"
       respond_to do |format|
         format.html {} # render the default template
         format.xlsx do

@@ -36,7 +36,7 @@
         %td= number_with_delimiter(GrdaWarehouse::Hud::Client.destination.count)
         %td{colspan: 6}
       - @data_sources.each do |data_source|
-        - most_recently_completed = data_source.import_logs.maximum(:completed_at)&.localtime
+        - most_recently_completed = data_source.import_logs.maximum(:completed_at)&.localtime&.to_fs
         %tr
           %td= link_to data_source.name, data_source_path(data_source)
           %td

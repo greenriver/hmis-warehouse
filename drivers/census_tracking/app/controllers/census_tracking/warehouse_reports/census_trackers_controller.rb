@@ -19,7 +19,7 @@ module CensusTracking::WarehouseReports
           flash[:error] = 'You must select one or more organizations, projects, or project groups' if params[:commit].present? && ! @show_report
         end
         format.xlsx do
-          filename = "Census Tracking Worksheet - #{Time.current.to_s(:db)}.xlsx"
+          filename = "Census Tracking Worksheet - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end

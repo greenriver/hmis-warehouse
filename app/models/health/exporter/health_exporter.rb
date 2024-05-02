@@ -98,13 +98,13 @@ module Health::Exporter
 
     def fakers
       @fakers ||= {
-        id_in_source: [ Faker::IDNumber, :valid ],
+        id_in_source: [ Faker::IdNumber, :valid ],
         first_name: [ Faker::Name, :first_name ],
         last_name: [ Faker::Name, :last_name ],
         medicaid_id: [ Faker::Number, :number, {digits: 12} ],
         birthdate: [ Faker::Date, :birthday ],
         completed_at: :keep,
-        ssn: [Faker::IDNumber, :valid],
+        ssn: [Faker::IdNumber, :valid],
         created_at: :keep,
         updated_at: :keep,
         engagement_date: :keep,

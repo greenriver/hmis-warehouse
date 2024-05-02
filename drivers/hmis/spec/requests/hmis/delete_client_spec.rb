@@ -82,8 +82,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             'enrollments' => contain_exactly(
               a_hash_including(
                 'id' => e1.id.to_s,
-                'entryDate' => e1.entry_date&.to_s(:db),
-                'exitDate' => e1.exit_date&.to_s(:db),
+                'entryDate' => e1.entry_date&.to_fs(:db),
+                'exitDate' => e1.exit_date&.to_fs(:db),
                 'name' => e1.project.project_name,
               ),
             ),
