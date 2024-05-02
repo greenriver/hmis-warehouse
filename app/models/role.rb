@@ -904,6 +904,12 @@ class Role < ApplicationRecord
         category: 'Administration',
         sub_category: 'Site Configuration',
       },
+      can_view_client_name: {
+        description: 'Can view client names',
+        administrative: false,
+        category: 'Client Access',
+        sub_category: 'General Client Access',
+      },
     }
   end
 

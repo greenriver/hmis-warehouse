@@ -298,4 +298,9 @@ class ApplicationController < ActionController::Base
   def set_app_user_header
     response.headers['X-app-user-id'] = current_user&.id
   end
+
+  before_action :set_current_global_request_scope
+  def set_current_global_request_scope
+    CurrentGlobalRequestScope.user = current_user
+  end
 end

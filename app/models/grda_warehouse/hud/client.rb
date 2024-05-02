@@ -1403,8 +1403,26 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def name
-      "#{self.FirstName} #{self.LastName}"
+    def name(format = :first_last, delimiter: ' ')
+      parts = [first_name, last_name]
+      case format
+      when :first_last
+        parts = [first_name, last_name]
+      when :full
+        parts = [first_name, middle_name, last_name]
+      when :last
+        parts = [last_name]
+      when :middle
+        parts = [middle_name]
+      when :first
+        parts = [first_name]
+      else
+        raise "format #{format} not supported"
+      end
+      parts.compact_blank!
+      de_identify = !CurrentGlobalRequestScope.user&.can_view_client_name
+      parts.map! { |part| part.slice(0).upcase + '*****' } if de_identify
+      parts.join(delimiter).presence
     end
 
     def names
@@ -1677,7 +1695,7 @@ module GrdaWarehouse::Hud
     end
 
     def full_name
-      [self.FirstName, self.MiddleName, self.LastName].select(&:present?).join(' ')
+      name(:full)
     end
 
     ########################
