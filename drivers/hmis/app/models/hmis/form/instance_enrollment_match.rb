@@ -6,6 +6,7 @@
 
 # determine if enrollment is a valid match for a form intance
 #
+require 'memery'
 class Hmis::Form::InstanceEnrollmentMatch
   include Memery
   attr_accessor :enrollment, :instance

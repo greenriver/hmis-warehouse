@@ -14,7 +14,7 @@ module HmisExternalApis::AcHmis
       # Unfortunately the referral isn't contained in top-level object
       # so get the params before rails pollutes it
       if request.raw_post.bytesize > MAX_SIZE
-        msg = "Request is too large, maximum is #{MAX_SIZE.to_s(:human_size)}"
+        msg = "Request is too large, maximum is #{MAX_SIZE.to_fs(:human_size)}"
         request_log.update!(request: 'too large') # Don't store large request
         return respond_with_errors([msg])
       end

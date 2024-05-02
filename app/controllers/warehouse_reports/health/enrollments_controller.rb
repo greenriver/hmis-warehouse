@@ -65,7 +65,7 @@ module WarehouseReports::Health
 
     def download
       @enrollment = Health::Enrollment.find(params[:id].to_i)
-      filename = "Enrollments #{@enrollment.created_at.to_s(:db)}"
+      filename = "Enrollments #{@enrollment.created_at.to_fs(:db)}"
       respond_to do |format|
         format.xlsx do
           headers['Content-Disposition'] = "attachment; filename=#{filename}.xlsx"

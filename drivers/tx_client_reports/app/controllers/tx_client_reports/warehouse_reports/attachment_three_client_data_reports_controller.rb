@@ -30,7 +30,7 @@ module TxClientReports::WarehouseReports
         end
         format.xlsx do
           @rows = report.rows
-          filename = "Attachment III - #{Time.current.to_s(:db)}.xlsx"
+          filename = "Attachment III - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end

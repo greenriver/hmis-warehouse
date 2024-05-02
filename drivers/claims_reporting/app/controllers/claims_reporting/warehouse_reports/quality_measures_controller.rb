@@ -35,7 +35,7 @@ module ClaimsReporting::WarehouseReports
       respond_to do |format|
         format.html
         format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=CP Quality Measures #{Time.current.to_s(:db)}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=CP Quality Measures #{Time.current.to_fs(:db)}.xlsx"
         end
       end
     end

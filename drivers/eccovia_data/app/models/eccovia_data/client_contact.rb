@@ -14,7 +14,7 @@ module EccoviaData
     def self.fetch_updated(data_source_id:, credentials:)
       since = max_fetch_time(data_source_id) || default_lookback
 
-      query = "crql?q=select ClientID, Address, Address2, City, State, ZipCode, ZipCodeID, HomePhone, WorkPhone, MsgPhone, Email, UpdatedDate from cmClient where UpdatedDate > '#{since.to_s(:db)}'"
+      query = "crql?q=select ClientID, Address, Address2, City, State, ZipCode, ZipCodeID, HomePhone, WorkPhone, MsgPhone, Email, UpdatedDate from cmClient where UpdatedDate > '#{since.to_fs(:db)}'"
       credentials.get_all_in_batches(query) do |client_batch|
         break unless client_batch.present?
 

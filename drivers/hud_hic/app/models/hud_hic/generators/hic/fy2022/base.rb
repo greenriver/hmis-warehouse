@@ -37,7 +37,7 @@ module HudHic::Generators::Hic::Fy2022
       universe.members.to_a.each_with_index do |row, row_index|
         header_row.each_with_index do |header, column_index|
           value = row.universe_membership[header]
-          value = value.to_s(:db) if value.is_a?(Date) || value.is_a?(Time)
+          value = value.to_fs(:db) if value.is_a?(Date) || value.is_a?(Time)
           cell_name = cell_columns[column_index] + (row_index + 1).to_s
           @report.answer(question: question_number, cell: cell_name).update(summary: value)
         end

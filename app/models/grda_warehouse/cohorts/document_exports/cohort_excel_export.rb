@@ -57,7 +57,7 @@ module GrdaWarehouse::Cohorts::DocumentExports
             format: :xlsx,
             assigns: view_assigns,
           ),
-          "Cohort - #{cohort.name} - #{params['population']} - #{Time.current.to_s(:db)}",
+          "Cohort - #{cohort.name} - #{params['population']} - #{Time.current.to_fs(:db)}",
         ) do |io|
           self.downloadable_file = io
         end

@@ -13,10 +13,7 @@ class Sources::ActiveRecordAssociation < ::GraphQL::Dataloader::Source
   end
 
   def fetch(records)
-    # in rails 7, this should be:
-    # ::ActiveRecord::Associations::Preloader.new(records: records, associations: @association_name, scope: @scope).call
-
-    ::ActiveRecord::Associations::Preloader.new.preload(records, @association_name, @scope)
+    ::ActiveRecord::Associations::Preloader.new(records: records, associations: @association_name, scope: @scope).call
     records.map { |record| record.public_send(@association_name) }
   end
 

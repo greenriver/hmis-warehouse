@@ -6,7 +6,7 @@
       %td= message.subject
     %tr
       %th Sent at:
-      %td= message.created_at.to_s(:long)
+      %td= message.created_at.to_fs(:long)
 
   %div{ style: ( "white-space: pre;" unless message.html? ) }= message.body_html
 

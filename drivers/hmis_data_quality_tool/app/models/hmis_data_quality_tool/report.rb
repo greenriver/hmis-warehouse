@@ -13,8 +13,6 @@ module HmisDataQualityTool
     include ActionView::Helpers::NumberHelper
     include ArelHelper
 
-    acts_as_paranoid
-
     belongs_to :user, optional: true
     has_many :clients
     has_many :enrollments

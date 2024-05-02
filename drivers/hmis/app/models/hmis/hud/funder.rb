@@ -36,7 +36,7 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
 
     case option
     when :start_date
-      order(start_date: :desc)
+      order(start_date: :desc, id: :desc)
     else
       raise NotImplementedError
     end

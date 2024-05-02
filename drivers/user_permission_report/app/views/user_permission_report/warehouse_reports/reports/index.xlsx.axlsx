@@ -21,7 +21,7 @@ wb.add_worksheet(name: 'User Permissions') do |sheet|
       user.email,
       user.overall_status(current_user).join('; '),
       user.agency_name,
-      user.last_sign_in_at&.to_time&.to_s(:db),
+      user.last_sign_in_at&.to_time&.to_fs(:db),
       user.legacy_roles.map(&:name).join(', '),
       user.access_groups.filter(&:general?).map(&:name).join(', '),
       *@group_associations.keys.map { |ga| associated_items(user, ga)[:names].join(', ') }
