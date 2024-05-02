@@ -14,8 +14,9 @@ class AddEnrollmentSlugToServices < ActiveRecord::Migration[6.1]
         execute <<~SQL
           ALTER TABLE "#{table}" ADD COLUMN #{field} VARCHAR GENERATED ALWAYS AS (data_source_id::text || ':' || "EnrollmentID") STORED
         SQL
-        execute %{CREATE INDEX idx_#{table.downcase}_enrollment_slug ON "#{table}" (#{field})}
+        execute %(CREATE INDEX idx_#{table.downcase}_enrollment_slug ON "#{table}" (#{field}))
       end
+      execute %(CREATE INDEX index_services_hud_types ON public."Services" USING btree ("RecordType", "TypeProvided"))
     end
   end
 
@@ -28,6 +29,7 @@ class AddEnrollmentSlugToServices < ActiveRecord::Migration[6.1]
       ].each do |table, field|
         execute %(ALTER TABLE "#{table}" DROP COLUMN #{field})
       end
+      execute %(DROP INDEX index_services_hud_types)
     end
   end
 end

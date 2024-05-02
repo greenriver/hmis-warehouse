@@ -19,12 +19,9 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :services
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :owner, polymorphic: true # Service or CustomService
-  belongs_to :custom_service_type
-  has_many :custom_service_categories, through: :custom_service_type
 
   validate :service_is_valid
 
-  alias_attribute :service_type, :custom_service_type
   alias_to_underscore [:DateProvided, :EnrollmentID, :PersonalID]
 
   after_initialize :initialize_owner, if: :new_record?
@@ -59,13 +56,21 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
     define_method(hud_field_name) { hud_service&.send(hud_field_name) }
   end
 
-  scope :with_service_type, ->(service_type_id) do
-    where(custom_service_type_id: service_type_id)
-  end
+  scope :with_service_type, ->(csts) do
+    return none if csts.empty?
 
-  scope :in_service_category, ->(category_id) do
-    type_ids = Hmis::Hud::CustomServiceType.where(custom_service_category_id: category_id).pluck(:id)
-    with_service_type(type_ids)
+    params = []
+    sqls = []
+    csts.each do |cst|
+      sqls.push <<~SQL
+        CASE
+          WHEN owner_type = 'Hmis::Hud::CustomService' THEN custom_service_type_id = ?
+          WHEN owner_type = 'Hmis::Hud::Service' THEN "RecordType" = ? AND "TypeProvided" = ?
+        END
+      SQL
+      params += [cst.id, cst.hud_record_type, cst.hud_type_provided]
+    end
+    where(sqls.join(' OR '), *params)
   end
 
   scope :with_project_type, ->(project_types) do
@@ -74,15 +79,6 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
 
   scope :with_project, ->(project_ids) do
     joins(:enrollment).merge(Hmis::Hud::Enrollment.with_project(project_ids))
-  end
-
-  scope :matching_search_term, ->(search_term) do
-    return none unless search_term.present?
-
-    search_term.strip!
-    query = "%#{search_term}%"
-    joins(:custom_service_type, :custom_service_categories).
-      where(cst_t[:name].matches(query).or(csc_t[:name].matches(query)))
   end
 
   def self.apply_filters(input)

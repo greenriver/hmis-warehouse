@@ -6,7 +6,9 @@
 		) AS id,
 		"Services"."id" AS owner_id,
 		'Hmis::Hud::Service' AS owner_type,
-		"CustomServiceTypes"."id" AS custom_service_type_id,
+		"Services"."RecordType",
+		"Services"."TypeProvided",
+		NULL AS custom_service_type_id,
 		"enrollment_slug",
 		"EnrollmentID",
 		"PersonalID",
@@ -17,9 +19,7 @@
 		"Services"."DateDeleted" AS "DateDeleted",
 		"Services"."data_source_id" AS "data_source_id"
 	FROM
-		"Services" JOIN "CustomServiceTypes"
-		ON "CustomServiceTypes"."slug" = "Services"."custom_service_type_slug"
-		AND "CustomServiceTypes"."DateDeleted" IS NULL
+		"Services"
 	WHERE
 		"Services"."DateDeleted" IS NULL
 )
@@ -31,6 +31,8 @@ ALL (
 		) AS id,
 		"CustomServices".id :: integer AS owner_id,
 		'Hmis::Hud::CustomService' AS owner_type,
+		NULL AS "RecordType",
+		NULL AS "TypeProvided",
 		"CustomServices"."custom_service_type_id",
 		"CustomServices"."enrollment_slug",
 		"CustomServices"."EnrollmentID",
