@@ -23,6 +23,7 @@ module Mutations
         find_by(id: input.enrollment_id)
       handle_error('enrollment not found') unless enrollment
       handle_error('access denied') unless current_user.can_manage_outgoing_referrals_for?(enrollment.project)
+      handle_error('cannot refer incomplete enrollment') if enrollment.in_progress?
 
       project = Hmis::Hud::Project.
         viewable_by(current_user).
