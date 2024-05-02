@@ -24,7 +24,7 @@ module Types
 
     field :representative_version, Types::Forms::FormDefinition, null: false
     field :draft, Types::Forms::FormDefinition, null: true
-    field :retired_versions, Types::Forms::FormDefinition.page_type, null: false
+    field :all_versions, Types::Forms::FormDefinition.page_type, null: false
 
     def id
       object.id
@@ -38,8 +38,8 @@ module Types
       Hmis::Form::Definition.where(identifier: object.identifier).draft.first
     end
 
-    def retired_versions
-      Hmis::Form::Definition.where(identifier: object.identifier).retired.order(version: :desc)
+    def all_versions
+      Hmis::Form::Definition.where(identifier: object.identifier).order(version: :desc)
     end
   end
 end

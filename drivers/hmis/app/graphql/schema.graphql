@@ -3985,11 +3985,11 @@ type FormDefinitionsPaginated {
 FormIdentifier
 """
 type FormIdentifier {
+  allVersions(limit: Int, offset: Int): FormDefinitionsPaginated!
   draft: FormDefinition
   id: String!
   identifier: String!
   representativeVersion: FormDefinition!
-  retiredVersions(limit: Int, offset: Int): FormDefinitionsPaginated!
   role: FormRole!
   title: String!
 }
