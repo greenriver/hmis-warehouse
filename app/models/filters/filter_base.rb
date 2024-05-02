@@ -493,12 +493,12 @@ module Filters
     end
 
     def date_range_words
-      "#{start_date} - #{end_date}"
+      "#{start_date.to_fs} - #{end_date.to_fs}"
     end
 
     def comparison_range_words
       s, e = comparison_dates
-      "#{s} - #{e}"
+      "#{s.to_fs} - #{e.to_fs}"
     end
 
     def length

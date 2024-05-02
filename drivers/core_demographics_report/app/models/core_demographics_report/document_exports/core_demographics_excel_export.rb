@@ -45,7 +45,7 @@ module CoreDemographicsReport::DocumentExports
             format: :xlsx,
             assigns: view_assigns,
           ),
-          "Core Demographics - #{Time.current.to_s(:db)}",
+          "Core Demographics - #{Time.current.to_fs(:db)}",
         ) do |io|
           self.downloadable_file = io
         end

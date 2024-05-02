@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
+        
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -4273,41 +4273,6 @@ CREATE VIEW public.bi_service_history_enrollments AS
      JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = service_history_enrollments.data_source_id) AND (("Project"."ProjectID")::text = (service_history_enrollments.project_id)::text) AND (("Project"."OrganizationID")::text = (service_history_enrollments.organization_id)::text))))
      JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".data_source_id = service_history_enrollments.data_source_id) AND (("Enrollment"."EnrollmentID")::text = (service_history_enrollments.enrollment_group_id)::text) AND (("Enrollment"."ProjectID")::text = (service_history_enrollments.project_id)::text))))
   WHERE (((service_history_enrollments.record_type)::text = 'entry'::text) AND ((service_history_enrollments.last_date_in_program IS NULL) OR (service_history_enrollments.last_date_in_program >= (CURRENT_DATE - '5 years'::interval))));
-
-
---
--- Name: service_history_services_was_for_inheritance; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.service_history_services_was_for_inheritance (
-    id bigint NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
-    age smallint,
-    service_type smallint,
-    client_id integer,
-    project_type smallint,
-    homeless boolean,
-    literally_homeless boolean
-);
-
-
---
--- Name: bi_service_history_services; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.bi_service_history_services AS
- SELECT service_history_services_was_for_inheritance.id,
-    service_history_services_was_for_inheritance.service_history_enrollment_id,
-    service_history_services_was_for_inheritance.record_type,
-    service_history_services_was_for_inheritance.date,
-    service_history_services_was_for_inheritance.age,
-    service_history_services_was_for_inheritance.client_id,
-    service_history_services_was_for_inheritance.project_type
-   FROM (public.service_history_services_was_for_inheritance
-     JOIN public."Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_services_was_for_inheritance.client_id))))
-  WHERE (service_history_services_was_for_inheritance.date >= (CURRENT_DATE - '5 years'::interval));
 
 
 --
@@ -13589,25 +13554,6 @@ ALTER SEQUENCE public.hmis_client_merge_histories_id_seq OWNED BY public.hmis_cl
 
 
 --
--- Name: hmis_wips; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_wips (
-    id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    project_id bigint,
-    enrollment_id bigint,
-    source_type character varying,
-    source_id bigint,
-    date date NOT NULL,
-    data jsonb,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
 -- Name: hmis_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -18576,7 +18522,9 @@ CREATE TABLE public.hmis_import_configs (
     encrypted_zip_file_password_iv character varying,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    file_count integer DEFAULT 1 NOT NULL
+    file_count integer DEFAULT 1 NOT NULL,
+    s3_role_arn character varying,
+    s3_external_id character varying
 );
 
 
@@ -18942,6 +18890,25 @@ CREATE SEQUENCE public.hmis_units_id_seq
 --
 
 ALTER SEQUENCE public.hmis_units_id_seq OWNED BY public.hmis_units.id;
+
+
+--
+-- Name: hmis_wips; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_wips (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    project_id bigint,
+    enrollment_id bigint,
+    source_type character varying,
+    source_id bigint,
+    date date NOT NULL,
+    data jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
 
 
 --
@@ -23812,30 +23779,11 @@ ALTER SEQUENCE public.secure_files_id_seq OWNED BY public.secure_files.id;
 
 
 --
--- Name: service_history_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.service_history_services_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: service_history_services_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.service_history_services_id_seq OWNED BY public.service_history_services_was_for_inheritance.id;
-
-
---
 -- Name: service_history_services; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.service_history_services (
-    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    id bigint NOT NULL,
     service_history_enrollment_id integer NOT NULL,
     record_type character varying(50) NOT NULL,
     date date NOT NULL,
@@ -23941,6 +23889,25 @@ CREATE SEQUENCE public.service_history_enrollments_id_seq
 --
 
 ALTER SEQUENCE public.service_history_enrollments_id_seq OWNED BY public.service_history_enrollments.id;
+
+
+--
+-- Name: service_history_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.service_history_services_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: service_history_services_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.service_history_services_id_seq OWNED BY public.service_history_services.id;
 
 
 --
@@ -30074,10 +30041,10 @@ ALTER TABLE ONLY public.service_history_enrollments ALTER COLUMN id SET DEFAULT 
 
 
 --
--- Name: service_history_services_was_for_inheritance id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: service_history_services id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.service_history_services_was_for_inheritance ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
+ALTER TABLE ONLY public.service_history_services ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
 
 
 --
@@ -34143,14 +34110,6 @@ ALTER TABLE ONLY public.service_history_services_2049
 
 ALTER TABLE ONLY public.service_history_services_2050
     ADD CONSTRAINT service_history_services_2050_pkey PRIMARY KEY (id, date);
-
-
---
--- Name: service_history_services_was_for_inheritance service_history_services_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_was_for_inheritance
-    ADD CONSTRAINT service_history_services_pkey PRIMARY KEY (id);
 
 
 --
@@ -50946,13 +50905,6 @@ CREATE INDEX "index_Enrollment_on_ProjectID_and_data_source_id" ON public."Enrol
 
 
 --
--- Name: index_Enrollment_on_project_pk; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Enrollment_on_project_pk" ON public."Enrollment" USING btree (project_pk);
-
-
---
 -- Name: index_Enrollment_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50971,6 +50923,13 @@ CREATE INDEX "index_Enrollment_on_data_source_id_and_PersonalID" ON public."Enro
 --
 
 CREATE INDEX "index_Enrollment_on_pending_date_deleted" ON public."Enrollment" USING btree (pending_date_deleted);
+
+
+--
+-- Name: index_Enrollment_on_project_pk; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Enrollment_on_project_pk" ON public."Enrollment" USING btree (project_pk);
 
 
 --
@@ -59633,13 +59592,6 @@ CREATE INDEX shape_counties_namelsad_lower ON public.shape_counties USING btree 
 
 
 --
--- Name: shs_unique_date_she_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX shs_unique_date_she_id ON public.service_history_services_was_for_inheritance USING btree (date, service_history_enrollment_id);
-
-
---
 -- Name: simple_report_univ_type_and_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -61702,13 +61654,6 @@ CREATE RULE attempt_hmis_households_up AS
 
 
 --
--- Name: service_history_services_was_for_inheritance service_history_service_insert_trigger; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER service_history_service_insert_trigger BEFORE INSERT ON public.service_history_services_was_for_inheritance FOR EACH ROW EXECUTE FUNCTION public.service_history_service_insert_trigger();
-
-
---
 -- Name: service_history_services_2036 fk_rails_000b38b036; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -62421,14 +62366,6 @@ ALTER TABLE ONLY public.service_history_services_2050
 
 
 --
--- Name: service_history_services_was_for_inheritance fk_rails_ee37ed289e; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_was_for_inheritance
-    ADD CONSTRAINT fk_rails_ee37ed289e FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
-
-
---
 -- Name: Funder fk_rails_ee7363191f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -62437,19 +62374,19 @@ ALTER TABLE ONLY public."Funder"
 
 
 --
--- Name: hmis_external_referral_household_members fk_rails_f16596e413; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_external_referral_household_members
-    ADD CONSTRAINT fk_rails_f16596e413 FOREIGN KEY (referral_id) REFERENCES public.hmis_external_referrals(id);
-
-
---
 -- Name: Enrollment fk_rails_enrollment_project_pk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."Enrollment"
     ADD CONSTRAINT fk_rails_enrollment_project_pk FOREIGN KEY (project_pk) REFERENCES public."Project"(id);
+
+
+--
+-- Name: hmis_external_referral_household_members fk_rails_f16596e413; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_household_members
+    ADD CONSTRAINT fk_rails_f16596e413 FOREIGN KEY (referral_id) REFERENCES public.hmis_external_referrals(id);
 
 
 --
@@ -62653,4 +62590,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240409215111'),
 ('20240411183410'),
 ('20240413183410'),
-('20240416155829');
+('20240416155829'),
+('20240419165229'),
+('20240419174433'),
+('20240426133811');
+
+

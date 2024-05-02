@@ -20,7 +20,7 @@ module ZipCodeReport::WarehouseReports
           @pagy, @zip_codes = pagy(@report.zip_codes.order(pc_t[:Zip]))
         end
         format.xlsx do
-          filename = "Zip Code Report - #{Time.current.to_s(:db)}.xlsx"
+          filename = "Zip Code Report - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end

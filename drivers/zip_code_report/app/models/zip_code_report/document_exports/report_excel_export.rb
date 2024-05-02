@@ -40,7 +40,7 @@ module ZipCodeReport::DocumentExports
             format: :xlsx,
             assigns: view_assigns,
           ),
-          "Zip Code Report - #{Time.current.to_s(:db)}",
+          "Zip Code Report - #{Time.current.to_fs(:db)}",
         ) do |io|
           self.downloadable_file = io
         end

@@ -13,7 +13,7 @@ require 'csv'
 class AppResourceMonitor::Report
   def export_to_csv
     results = collect_results
-    timestamp = now.to_s(:number)
+    timestamp = now.to_fs(:number)
     Dir.mktmpdir do |dir|
       results.each do |name, records|
         write_csv(
@@ -53,7 +53,7 @@ class AppResourceMonitor::Report
       headers = records.first.keys
       csv << headers + ['timestamp']
       records.each do |record|
-        csv << record.values_at(*headers) + [now.to_s(:db)]
+        csv << record.values_at(*headers) + [now.to_fs(:db)]
       end
     end
   end

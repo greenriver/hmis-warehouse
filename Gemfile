@@ -1,8 +1,8 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~> 6.1'
-gem 'activesupport', '>= 6.1.7.5' # CVE-2023-38037
-gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'master'
+gem 'rails', '~> 7.0.8.1'
+gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'rails-7'
+# gem 'rails_drivers', path: '/usr/local/bundle/tmp/rails_drivers'
 gem 'rack', '>= 2.2.8.1'
 gem 'rexml'
 gem 'actionpack', '>= 6.1.7.7'
@@ -16,7 +16,7 @@ gem 'rubyzip', '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'rails-html-sanitizer', '>= 1.4.4' # >= 1.4.4 due to CVE-2022-23519
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
-gem 'composite_primary_keys', '=13.0.3'
+gem 'composite_primary_keys', '~> 14.0.9'
 gem 'pg'
 gem 'activerecord-sqlserver-adapter'
 gem 'activerecord-import'
@@ -36,7 +36,7 @@ gem 'census_api', github: 'greenriver/census_api'
 gem 'activerecord-postgis-adapter'
 gem 'ffi'
 gem 'ffi-geos'
-gem 'rgeo'
+gem 'rgeo', '~> 2.4.0'
 gem 'rgeo-geojson'
 gem 'rgeo-proj4'
 
@@ -45,6 +45,7 @@ gem 'charlock_holmes', require: false
 gem 'bootsnap'
 gem 'bcrypt'
 gem 'haml-rails'
+gem 'haml', '~> 5.2.2' # pinned to v5, v6 was not escaping correctly
 gem 'sassc-rails'
 gem 'autoprefixer-rails', '~> 10.3.3' # pinned until we can update to Bootstrap 5.3 or later
 gem 'kaminari'
@@ -72,7 +73,7 @@ gem 'mimemagic'
 # there are no obvious breaking changes but
 # since there are no tests for this
 # it should be tested manually
-gem 'acts-as-taggable-on', '~> 7.0'
+gem 'acts-as-taggable-on', '~> 9.0.1'
 # gem 'seven_zip_ruby' unless ENV['NO_7ZIP'] == '1'
 #
 # FIXME: the hellosign gem is no longer a requirement. This dependency can be dropped pending code pruning
@@ -82,7 +83,7 @@ gem 'devise', '~> 4.8'
 gem 'devise_invitable', '~> 2.0.9'
 gem 'devise-pwned_password'
 gem 'devise-security'
-gem 'devise-two-factor'
+gem 'devise-two-factor', '~> 4.1.1'
 gem 'rack-cors'
 gem 'doorkeeper'
 
@@ -135,6 +136,7 @@ gem 'coffee-rails'
 gem 'handlebars_assets'
 gem 'execjs'
 gem 'sprockets', '~> 4.0'
+gem "sprockets-rails"
 gem 'babel-transpiler'
 # gem 'sprockets-es6'
 gem 'jquery-ui-rails', github: 'jquery-ui-rails/jquery-ui-rails', tag: 'v7.0.0'
@@ -191,6 +193,7 @@ gem 'redis-actionpack'
 
 gem 'ed25519'
 gem 'bcrypt_pbkdf'
+gem 'gpgme'
 
 # AWS SDK is needed for deployment and within the application
 gem 'aws-sdk-rails'
@@ -219,7 +222,7 @@ gem 'responders'
 
 gem 'rack-attack'
 
-gem 'attr_encrypted', '~> 3.1.0'
+gem 'attr_encrypted', '~> 4.0.0'
 
 gem 'ajax_modal_rails', '~> 1.0'
 gem 'browser'
@@ -233,6 +236,8 @@ gem 'business_time', '~> 0.10.0'
 gem 'cable_ready', '>= 5.0.0.rc2'
 gem 'graphql', '~> 2.0'
 gem 'sentry-rails', '~> 5.5'
+gem 'sentry-ruby'
+gem 'sentry-delayed_job'
 gem 'warning'
 
 group :development, :test do

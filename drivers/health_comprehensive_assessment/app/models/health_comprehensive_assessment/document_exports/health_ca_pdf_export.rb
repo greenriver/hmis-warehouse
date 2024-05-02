@@ -102,7 +102,7 @@ module HealthComprehensiveAssessment::DocumentExports
         pdf << CombinePDF.parse(PdfGenerator.new.render_pdf(first_page_html, options: first_page_options), allow_optional_content: true)
         pdf << CombinePDF.parse(PdfGenerator.new.render_pdf(html, options: body_options), allow_optional_content: true)
 
-        file_name = "#{Translation.translate('Comprehensive Assessment')} #{DateTime.current.to_s(:db)}"
+        file_name = "#{Translation.translate('Comprehensive Assessment')} #{DateTime.current.to_fs(:db)}"
         PdfGenerator.new.perform(
           html: '',
           file_name: file_name,

@@ -90,7 +90,7 @@ module HealthQaFactory
       ::Health::QualifyingActivity.create(
         source_type: assessment.class.name,
         source_id: assessment.id,
-        user_id: assessment.id,
+        user_id: user.id,
         user_full_name: user.name_with_email,
         date_of_activity: assessment.completed_on,
         activity: :cha,

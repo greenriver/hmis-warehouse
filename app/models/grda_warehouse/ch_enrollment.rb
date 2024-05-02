@@ -126,7 +126,7 @@ module GrdaWarehouse
       end
 
       # Line 9
-      steps.push(prior_living_sitation_homeless(enrollment))
+      steps.push(prior_living_situation_homeless(enrollment))
       if steps.last[:result] == :continue
         # Lines 10 - 12
         time_steps = homeless_duration_sufficient(enrollment)
@@ -135,7 +135,7 @@ module GrdaWarehouse
       end
 
       # Line 14
-      steps.push(prior_living_sitation_institutional(enrollment))
+      steps.push(prior_living_situation_institutional(enrollment))
       if steps.last[:result] == :continue
         # Lines 15-16
         los_steps = length_of_stay_previous_sufficient(enrollment)
@@ -149,7 +149,7 @@ module GrdaWarehouse
       end
 
       # Line 21
-      steps.push(prior_living_sitation_other(enrollment))
+      steps.push(prior_living_situation_other(enrollment))
       if steps.last[:result] == :continue
         # Lines 22-23
         los_steps = length_of_stay_previous_sufficient(enrollment)
@@ -206,7 +206,7 @@ module GrdaWarehouse
     end
 
     # Line 9  (3.917.1)
-    def self.prior_living_sitation_homeless(enrollment)
+    def self.prior_living_situation_homeless(enrollment)
       value = enrollment.LivingSituation
       result = if HudUtility2024.homeless_situations(as: :prior).include?(value)
         :continue
@@ -220,7 +220,7 @@ module GrdaWarehouse
     end
 
     # Line 14 (3.917.1)
-    def self.prior_living_sitation_institutional(enrollment)
+    def self.prior_living_situation_institutional(enrollment)
       value = enrollment.LivingSituation
       result = if HudUtility2024.institutional_situations(as: :prior).include?(value)
         :continue
@@ -234,7 +234,7 @@ module GrdaWarehouse
     end
 
     # Line 21 (3.917.1)
-    def self.prior_living_sitation_other(enrollment)
+    def self.prior_living_situation_other(enrollment)
       value = enrollment.LivingSituation
       is_other = (HudUtility2024.temporary_situations(as: :prior) + HudUtility2024.permanent_situations(as: :prior) + HudUtility2024.other_situations(as: :prior)).include?(value)
       display_value = value ? "#{value} (#{::HudUtility2024.living_situation(value)})" : ''

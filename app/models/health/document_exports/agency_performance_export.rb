@@ -47,7 +47,7 @@ module Health::DocumentExports
         )
         PdfGenerator.new.perform(
           html: html,
-          file_name: "Partner Dashboard #{DateTime.current.to_s(:db)}",
+          file_name: "Partner Dashboard #{DateTime.current.to_fs(:db)}",
           options: {
             margin: {
               top: '.5in',

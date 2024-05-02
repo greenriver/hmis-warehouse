@@ -19,7 +19,7 @@ module HmisExternalApis::AcHmis
         'suffix' => client.name_suffix,
         # API only accepts full SSNs
         'ssn' => client.ssn&.match?(/^\d{9}$/) ? client.ssn : nil,
-        'birthDate' => client.dob.to_s(:db) + 'T00:00:00',
+        'birthDate' => client.dob.to_fs(:db) + 'T00:00:00',
         'raceCodes' => MciMapping.mci_races(client),
         'ethnicityCode' => MciMapping.mci_ethnicity(client),
         'genderCode' => MciMapping.mci_gender(client),

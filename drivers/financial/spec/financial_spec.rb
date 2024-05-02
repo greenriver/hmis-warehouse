@@ -18,7 +18,7 @@
 
 # # Put the zip file into s3
 # config = GrdaWarehouse::CustomImports::Config.find_by(import_type: 'Financial::Import')
-# config.s3.store(content: File.read('drivers/financial/spec/fixtures/initial_import.zip'), name: "development/combined/#{Time.current.to_s(:number)}-initial_import.zip")
+# config.s3.store(content: File.read('drivers/financial/spec/fixtures/initial_import.zip'), name: "development/combined/#{Time.current.to_fs(:number)}-initial_import.zip")
 #
 # # Run the various importers
 # config = GrdaWarehouse::CustomImports::Config.find_by(import_type: 'Financial::Import'); config.import!
@@ -27,7 +27,7 @@
 # config = GrdaWarehouse::CustomImports::Config.find_by(import_type: 'Financial::TransactionImport'); config.import!
 #
 # # Store the second import file and re-run imports
-# config.s3.store(content: File.read('drivers/financial/spec/fixtures/second_import.zip'), name: "development/combined/#{Time.current.to_s(:number)}-second_import.zip")
+# config.s3.store(content: File.read('drivers/financial/spec/fixtures/second_import.zip'), name: "development/combined/#{Time.current.to_fs(:number)}-second_import.zip")
 # config = GrdaWarehouse::CustomImports::Config.find_by(import_type: 'Financial::Import'); config.import!
 # config = GrdaWarehouse::CustomImports::Config.find_by(import_type: 'Financial::ClientImport'); config.import!
 # config = GrdaWarehouse::CustomImports::Config.find_by(import_type: 'Financial::ProviderImport'); config.import!
@@ -50,7 +50,7 @@ RSpec.describe Financial::Import, type: :model do
   it 'imports run without erroring' do
     import_config = { Financial::Import => 'Expand financial data zip and push back to S3' }
     config = GrdaWarehouse::CustomImports::Config.create(s3_prefix: "#{Rails.env}/#{import_config.keys.first.import_prefix}", data_source_id: 2, s3_region: 'us-east-1', s3_bucket: bucket, active: true, import_type: import_config.keys.first.name, user: User.system_user, import_hour: 6, s3_access_key_id: 'local_access_key', s3_secret_access_key: 'local_secret_key', description: import_config.values.first)
-    config.s3.store(content: File.read('drivers/financial/spec/fixtures/initial_import.zip'), name: "#{Rails.env}/combined/#{Time.current.to_s(:number)}-initial_import.zip")
+    config.s3.store(content: File.read('drivers/financial/spec/fixtures/initial_import.zip'), name: "#{Rails.env}/combined/#{Time.current.to_fs(:number)}-initial_import.zip")
     importers = {
       Financial::TransactionImport => 'Financial transaction data',
       Financial::ClientImport => 'Client information for financial transactions',
@@ -69,7 +69,7 @@ RSpec.describe Financial::Import, type: :model do
     expect(Financial::Provider.count).to eq(1)
 
     # Run a second import
-    config.s3.store(content: File.read('drivers/financial/spec/fixtures/second_import.zip'), name: "#{Rails.env}/combined/#{Time.current.to_s(:number)}-second_import.zip")
+    config.s3.store(content: File.read('drivers/financial/spec/fixtures/second_import.zip'), name: "#{Rails.env}/combined/#{Time.current.to_fs(:number)}-second_import.zip")
     import_config.merge(importers).each_key do |klass|
       c = GrdaWarehouse::CustomImports::Config.find_by(import_type: klass.name)
       c.import!

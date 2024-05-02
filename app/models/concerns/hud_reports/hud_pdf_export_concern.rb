@@ -70,7 +70,7 @@ module HudReports::HudPdfExportConcern
 
         PdfGenerator.new.perform(
           html: html,
-          file_name: "#{report_generator_class.file_prefix}-#{DateTime.current.to_s(:db)}",
+          file_name: "#{report_generator_class.file_prefix}-#{DateTime.current.to_fs(:db)}",
         ) do |io|
           self.pdf_file = io
         end

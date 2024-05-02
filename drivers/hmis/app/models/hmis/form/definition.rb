@@ -380,9 +380,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
         errors.add field_name || :base, :data_not_collected, severity: :warning, **error_context
       end
 
-      # Additional validations for currency
-      errors.add field_name, :out_of_range, **error_context, message: 'must be positive' if item.type == 'CURRENCY' && value&.negative?
-
       # TODO(##184404620): Validate ValueBounds (How to handle bounds that rely on local values like projectStartDate and entryDate?)
       # TODO(##184402463): Add support for RequiredWhen
     end
@@ -468,7 +465,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     instances.map { |i| i.project_and_enrollment_match(...) }.compact.min_by(&:rank)
   end
 
-  # should use rails attr normalization in rails 7
+  # should use rails attr normalization in rails 7.1 (ActiveRecord::Base::normalizes)
   def external_form_object_key=(value)
     super(value.blank? ? nil : value.strip)
   end
