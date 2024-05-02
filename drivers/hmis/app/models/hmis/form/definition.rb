@@ -281,6 +281,19 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     where("hmis_form_definitions.id IN (#{CURRENT_VERSION_SQL})")
   end
 
+  # TODO(#6006) Update these three scopes to use enums
+  scope :retired, -> do
+    where(status: 'retired')
+  end
+
+  scope :draft, -> do
+    where(status: 'draft')
+  end
+
+  scope :published, -> do
+    where(status: 'published')
+  end
+
   def self.apply_filters(input)
     Hmis::Filter::FormDefinitionFilter.new(input).filter_scope(self)
   end

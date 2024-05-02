@@ -35,11 +35,11 @@ module Types
     end
 
     def draft
-      Hmis::Form::Definition.find_by(identifier: object.identifier, status: 'draft')
+      Hmis::Form::Definition.where(identifier: object.identifier).draft.first
     end
 
     def retired_versions
-      Hmis::Form::Definition.where(identifier: object.identifier, status: 'retired').order(version: :desc)
+      Hmis::Form::Definition.where(identifier: object.identifier).retired.order(version: :desc)
     end
   end
 end
