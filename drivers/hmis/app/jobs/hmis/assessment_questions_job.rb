@@ -42,9 +42,8 @@ module Hmis
               date_updated: Time.current,
 
               assessment_question: key,
-              # Truncate strings to ensure value is not too long for db
-              assessment_answer: value.instance_of?(String) ? value&.truncate(500) : value,
-
+              # Truncate to ensure value is not too long for db
+              assessment_answer: value&.to_s&.truncate(500),
               assessment_question_group: question_group(key),
               assessment_question_order: question_order(key),
             )
