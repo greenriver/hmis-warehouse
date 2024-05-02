@@ -67,16 +67,16 @@ module Concerns::HudLists2024
     # 1.4
     def record_types
       {
-        141 => 'PATH Service',
-        142 => 'RHY Service Connections',
-        143 => 'HOPWA Service',
-        144 => 'SSVF Service',
+        141 => 'PATH service',
+        142 => 'RHY service connections',
+        143 => 'HOPWA service',
+        144 => 'SSVF service',
         151 => 'HOPWA Financial Assistance',
-        152 => 'SSVF Financial Assistance',
-        161 => 'PATH Referral',
-        200 => 'Bed Night',
-        210 => 'HUD-VASH OTH Voucher Tracking',
-        300 => 'Moving On Assistance',
+        152 => 'SSVF financial assistance',
+        161 => 'PATH referral',
+        200 => 'Bed night',
+        210 => 'HUD-VASH OTH voucher tracking',
+        300 => 'Moving On assistance provided',
       }.freeze
     end
 
@@ -88,7 +88,7 @@ module Concerns::HudLists2024
     def hash_statuses
       {
         1 => 'Unhashed',
-        2 => 'SHA-1 RHY',
+        2 => 'SHA-1 (no longer used for federal purposes)',
         3 => 'Hashed - other',
         4 => 'SHA-256 (RHY)',
       }.freeze
@@ -162,9 +162,9 @@ module Concerns::HudLists2024
         3 => 'PH - Permanent Supportive Housing',
         4 => 'Street Outreach',
         6 => 'Services Only',
+        7 => 'Other',
         8 => 'Safe Haven',
         9 => 'PH - Housing Only',
-        7 => 'Other',
         10 => 'PH - Housing with Services (no disability required for entry)',
         11 => 'Day Shelter',
         12 => 'Homelessness Prevention',
@@ -667,7 +667,7 @@ module Concerns::HudLists2024
     # 2.06.1
     def funding_sources
       {
-        1 => 'HUD: CoC - Homelessness Prevention (High Performing Communities Only)',
+        1 => 'HUD: CoC - Homelessness Prevention (High Performing Comm. Only)',
         2 => 'HUD: CoC - Permanent Supportive Housing',
         3 => 'HUD: CoC - Rapid Re-Housing',
         4 => 'HUD: CoC - Supportive Services Only',
@@ -678,7 +678,6 @@ module Concerns::HudLists2024
         9 => 'HUD: ESG - Homelessness Prevention',
         10 => 'HUD: ESG - Rapid Rehousing',
         11 => 'HUD: ESG - Street Outreach',
-        12 => 'HUD: Rural Housing Stability Assistance Program [Deprecated]',
         13 => 'HUD: HOPWA - Hotel/Motel Vouchers',
         14 => 'HUD: HOPWA - Housing Information',
         15 => 'HUD: HOPWA - Permanent Housing (facility based or TBRA)',
@@ -695,7 +694,6 @@ module Concerns::HudLists2024
         26 => 'HHS: RHY - Demonstration Project',
         27 => 'VA: CRS Contract Residential Services',
         30 => 'VA: Community Contract Safe Haven Program',
-        32 => 'VA: Compensated Work Therapy Transitional Residence',
         33 => 'VA: Supportive Services for Veteran Families',
         34 => 'N/A',
         35 => 'HUD: Pay for Success',
@@ -709,10 +707,9 @@ module Concerns::HudLists2024
         43 => 'HUD: CoC - Youth Homeless Demonstration Program (YHDP)',
         44 => 'HUD: CoC - Joint Component TH/RRH',
         45 => 'VA: Grant Per Diem - Case Management/Housing Retention',
-        46 => 'Local or Other Funding Source',
+        46 => 'Local or Other Funding Source (Please Specify)',
         47 => 'HUD: ESG - CV',
         48 => 'HUD: HOPWA - CV',
-        49 => 'HUD: CoC - Joint Component RRH/PSH [Deprecated]',
         50 => 'HUD: HOME',
         51 => 'HUD: HOME (ARP)',
         52 => 'HUD: PIH (Emergency Housing Voucher)',
@@ -742,9 +739,9 @@ module Concerns::HudLists2024
     # 2.07.5
     def bed_types
       {
-        1 => 'Facility-based',
-        2 => 'Voucher',
-        3 => 'Other',
+        1 => 'Facility-based beds',
+        2 => 'Voucher beds',
+        3 => 'Other beds',
       }.freeze
     end
 
@@ -862,16 +859,58 @@ module Concerns::HudLists2024
       _translate destinations, id, reverse
     end
 
+    # 3.12.1
+    def unknowns
+      {
+        8 => "Client doesn't know",
+        9 => 'Client prefers not to answer',
+        17 => 'Other',
+        24 => 'Deceased',
+        30 => 'No exit interview completed',
+        37 => 'Worker unable to determine',
+        99 => 'Data not collected',
+        101 => 'Emergency shelter, including hotel or motel paid for with emergency shelter voucher, Host Home shelter',
+        116 => 'Place not meant for habitation (e.g., a vehicle, an abandoned building, bus/train/subway station/airport or anywhere outside)',
+        118 => 'Safe Haven',
+        204 => 'Psychiatric hospital or other psychiatric facility',
+        205 => 'Substance abuse treatment facility or detox center',
+        206 => 'Hospital or other residential non-psychiatric medical facility',
+        207 => 'Jail, prison, or juvenile detention facility',
+        215 => 'Foster care home or foster care group home',
+        225 => 'Long-term care facility or nursing home',
+        302 => 'Transitional housing for homeless persons (including homeless youth)',
+        312 => 'Staying or living with family, temporary tenure (e.g. room, apartment, or house)',
+        313 => 'Staying or living with friends, temporary tenure (e.g. room, apartment, or house)',
+        314 => 'Hotel or motel paid for without emergency shelter voucher',
+        327 => 'Moved from one HOPWA funded project to HOPWA TH',
+        329 => 'Residential project or halfway house with no homeless criteria',
+        332 => 'Host Home (non-crisis)',
+        335 => "Staying or living in a family member's room, apartment, or house",
+        336 => "Staying or living in a friend's room, apartment, or house",
+        410 => 'Rental by client, no ongoing housing subsidy',
+        411 => 'Owned by client, no ongoing housing subsidy',
+        421 => 'Owned by client, with ongoing housing subsidy',
+        422 => 'Staying or living with family, permanent tenure',
+        423 => 'Staying or living with friends, permanent tenure',
+        426 => 'Moved from one HOPWA funded project to HOPWA PH',
+        435 => 'Rental by client, with ongoing housing subsidy',
+      }.freeze
+    end
+
+    def unknown(id, reverse = false)
+      _translate unknowns, id, reverse
+    end
+
     # 3.12.A
     def rental_subsidy_types
       {
-        428 => 'GPD TIP housing subsidy',
         419 => 'VASH housing subsidy',
+        420 => 'Rental by client, with other ongoing housing subsidy',
+        428 => 'GPD TIP housing subsidy',
         431 => 'RRH or equivalent subsidy',
         433 => 'HCV voucher (tenant or project based) (not dedicated)',
         434 => 'Public housing unit',
-        420 => 'Rental by client, with other ongoing housing subsidy',
-        436 => 'Emergency Housing Voucher',
+        436 => 'Housing Stability Voucher',
         437 => 'Family Unification Program Voucher (FUP)',
         438 => 'Foster Youth to Independence Initiative (FYI)',
         439 => 'Permanent Supportive Housing',
@@ -886,11 +925,11 @@ module Concerns::HudLists2024
     # 3.15.1
     def relationships_to_hoh
       {
-        1 => 'Self (head of household)',
-        2 => 'Child',
-        3 => 'Spouse or partner',
-        4 => 'Other relative',
-        5 => 'Unrelated household member',
+        1 => 'Self (Head of Household)',
+        2 => "Head of household's child",
+        3 => "Head of household's spouse or partner",
+        4 => "Head of household's other relation member",
+        5 => 'Other: non-relation member',
         99 => 'Data not collected',
       }.freeze
     end
@@ -938,7 +977,7 @@ module Concerns::HudLists2024
         314 => 'Hotel or motel paid for without emergency shelter voucher',
         329 => 'Residential project or halfway house with no homeless criteria',
         332 => 'Host Home (non-crisis)',
-        335 => 'Staying or living in a family member’s room, apartment, or house',
+        335 => "Staying or living in a family member's room, apartment, or house",
         336 => "Staying or living in a friend's room, apartment or house",
         410 => 'Rental by client, no ongoing housing subsidy',
         411 => 'Owned by client, no ongoing housing subsidy',
@@ -1019,7 +1058,7 @@ module Concerns::HudLists2024
         1 => 'Applied; decision pending',
         2 => 'Applied; client not eligible',
         3 => 'Client did not apply',
-        4 => 'Insurance type N/A for this client',
+        4 => 'Insurance type n/a for this client',
         8 => "Client doesn't know",
         9 => 'Client prefers not to answer',
         99 => 'Data not collected',
@@ -1101,7 +1140,7 @@ module Concerns::HudLists2024
     # 4.14
     def bed_night_options
       {
-        200 => 'Bed Night',
+        200 => 'BedNight',
       }.freeze
     end
 
@@ -1194,7 +1233,7 @@ module Concerns::HudLists2024
         2 => 'Update',
         3 => 'Project exit',
         5 => 'Annual assessment',
-        6 => 'Post-exit',
+        6 => 'Post-exit (not used in CSV)',
       }.freeze
     end
 
@@ -1206,10 +1245,10 @@ module Concerns::HudLists2024
     def moving_on_assistance_options
       {
         1 => 'Subsidized housing application assistance',
-        2 => 'Financial assistance for Moving On (e.g., security deposit, moving expenses)',
-        3 => 'Non-financial assistance for Moving On (e.g., housing navigation, transition support)',
+        2 => 'Financial assistance for Moving On',
+        3 => 'Non-financial assistance for Moving On',
         4 => 'Housing referral/placement',
-        5 => 'Other',
+        5 => 'Other (please specify)',
       }.freeze
     end
 
@@ -1675,6 +1714,7 @@ module Concerns::HudLists2024
       {
         1 => 'Client was found ineligible for PATH',
         2 => 'Client was not enrolled for other reason(s)',
+        3 => 'Unable to locate client',
       }.freeze
     end
 
@@ -1685,7 +1725,7 @@ module Concerns::HudLists2024
     # R1.1
     def referral_sources
       {
-        1 => 'Self-referral',
+        1 => 'Self-Referral',
         2 => 'Individual: Parent/Guardian/Relative/Friend/Foster Parent/Other Individual',
         7 => 'Outreach Project',
         8 => "Client doesn't know",
@@ -1695,10 +1735,10 @@ module Concerns::HudLists2024
         28 => 'Hotline',
         30 => 'Child Welfare/CPS',
         34 => 'Juvenile Justice',
-        35 => 'Law Enforcement/Police',
+        35 => 'Law Enforcement/ Police',
         37 => 'Mental Hospital',
         38 => 'School',
-        39 => 'Other organization',
+        39 => 'Other Organization',
         99 => 'Data not collected',
       }.freeze
     end
@@ -1713,7 +1753,6 @@ module Concerns::HudLists2024
         1 => 'Less than one year',
         2 => '1 to 2 years',
         3 => '3 to 5 or more years',
-        99 => 'Data not collected',
       }.freeze
     end
 
@@ -1726,7 +1765,7 @@ module Concerns::HudLists2024
       {
         2 => 'Community service/service learning (CSL)',
         5 => 'Education',
-        6 => 'Employment and training services',
+        6 => 'Employment and/or training services',
         7 => 'Criminal justice /legal services',
         8 => 'Life skills training',
         10 => 'Parenting education for youth with children',
@@ -1734,7 +1773,7 @@ module Concerns::HudLists2024
         13 => 'Pre-natal care',
         14 => 'Health/medical care',
         17 => 'Substance use disorder treatment',
-        18 => 'Substance use disorder/Prevention Services',
+        18 => 'Substance use disorder Ed/Prevention Services',
         26 => 'Home-based Services',
         27 => 'Post-natal newborn care (wellness exams; immunizations)',
         28 => 'STD Testing',
@@ -1749,9 +1788,9 @@ module Concerns::HudLists2024
     # R15.B
     def count_exchange_for_sexes
       {
-        1 => '1-3',
-        2 => '4-7',
-        3 => '8-11',
+        1 => '44929',
+        2 => '45023',
+        3 => '45149',
         4 => '12 or more',
         8 => "Client doesn't know",
         9 => 'Client prefers not to answer',
@@ -1779,11 +1818,12 @@ module Concerns::HudLists2024
     # R17.A
     def early_exit_reasons
       {
-        1 => 'Left for other opportunities - independent living',
-        2 => 'Left for other opportunities - education',
-        3 => 'Left for other opportunities - military',
-        4 => 'Left for other opportunities - other',
-        5 => 'Needs could not be met by project',
+        1 => 'Criminal activity/destruction of property/violence',
+        2 => 'Non-compliance with project rules',
+        3 => 'Non-payment of rent/occupancy charge',
+        4 => 'Reached maximum time allowed by project',
+        5 => 'Project terminated',
+        6 => 'Unknown/disappeared',
       }.freeze
     end
 
@@ -2099,11 +2139,10 @@ module Concerns::HudLists2024
         8 => 'Transportation services: tokens/vouchers',
         9 => 'Transportation services: vehicle repair/maintenance',
         10 => 'Child care',
-        11 => 'General housing stability assistance - emergency supplies [Deprecated]',
         12 => 'General housing stability assistance',
         14 => 'Emergency housing assistance',
-        15 => 'Shallow Subsidy - Financial Assistance',
-        16 => 'Food Assistance',
+        15 => 'Shallow Subsidy -Financial Assistance',
+        16 => 'Food assistance',
         17 => 'Landlord Incentive',
         18 => 'Tenant Incentive',
       }.freeze
@@ -2131,6 +2170,7 @@ module Concerns::HudLists2024
     # V6.1
     def vamc_station_numbers
       {
+        99 => 'Data not collected',
         402 => '(402) Togus, ME',
         405 => '(405) White River Junction, VT',
         436 => '(436) Montana HCS',
@@ -2138,6 +2178,7 @@ module Concerns::HudLists2024
         438 => '(438) Sioux Falls, SD',
         442 => '(442) Cheyenne, WY',
         459 => '(459) Honolulu, HI',
+        '459GE' => '(459GE) Guam',
         460 => '(460) Wilmington, DE',
         463 => '(463) Anchorage, AK',
         501 => '(501) New Mexico HCS',
@@ -2157,7 +2198,11 @@ module Concerns::HudLists2024
         521 => '(521) Birmingham, AL',
         523 => '(523) VA Boston HCS, MA',
         526 => '(526) Bronx, NY',
+        '528A6' => '(528A6) Bath, NY',
         528 => '(528) Western New York, NY',
+        '528A7' => '(528A7) Syracuse, NY',
+        '528A5' => '(528A5) Canandaigua, NY',
+        '528A8' => '(528A8) Albany, NY',
         529 => '(529) Butler, PA',
         531 => '(531) Boise, ID',
         534 => '(534) Charleston, SC',
@@ -2193,6 +2238,10 @@ module Concerns::HudLists2024
         585 => '(585) Iron Mountain, MI',
         586 => '(586) Jackson, MS',
         589 => '(589) Kansas City, MO',
+        '589A6' => '(589A6) Eastern KS HCS, KS',
+        '589A4' => '(589A4) Columbia, MO',
+        '589A5' => '(589A5) Kansas City, MO',
+        '589A7' => '(589A7) Wichita, KS',
         590 => '(590) Hampton, VA',
         593 => '(593) Las Vegas, NV',
         595 => '(595) Lebanon, PA',
@@ -2219,6 +2268,8 @@ module Concerns::HudLists2024
         632 => '(632) Northport, NY',
         635 => '(635) Oklahoma City, OK',
         636 => '(636) Nebraska-W Iowa, NE',
+        '636A8' => '(636A8) Iowa City, IA',
+        '636A6' => '(636A6) Central Iowa, IA',
         637 => '(637) Asheville, NC',
         640 => '(640) Palo Alto, CA',
         642 => '(642) Philadelphia, PA',
@@ -2233,6 +2284,8 @@ module Concerns::HudLists2024
         655 => '(655) Saginaw, MI',
         656 => '(656) St. Cloud, MN',
         657 => '(657) St. Louis, MO',
+        '657A4' => '(657A4) Poplar Bluff, MO',
+        '657A5' => '(657A5) Marion, IL',
         658 => '(658) Salem, VA',
         659 => '(659) Salisbury, NC',
         660 => '(660) Salt Lake City, UT',
@@ -2260,38 +2313,11 @@ module Concerns::HudLists2024
         740 => '(740) VA Texas Valley Coastal Bend HCS',
         756 => '(756) El Paso, TX',
         757 => '(757) Columbus, OH',
-        '459GE' => '(459GE) Guam',
-        '528A5' => '(528A5) Canandaigua, NY',
-        '528A6' => '(528A6) Bath, NY',
-        '528A7' => '(528A7) Syracuse, NY',
-        '528A8' => '(528A8) Albany, NY',
-        '589A4' => '(589A4) Columbia, MO',
-        '589A5' => '(589A5) Kansas City, MO',
-        '589A6' => '(589A6) Eastern KS HCS, KS',
-        '589A7' => '(589A7) Wichita, KS',
-        '636A6' => '(636A6) Central Iowa, IA',
-        '636A8' => '(636A8) Iowa City, IA',
-        '657A4' => '(657A4) Poplar Bluff, MO',
-        '657A5' => '(657A5) Marion, IL',
-        99 => 'Data not collected',
       }.freeze
     end
 
     def vamc_station_number(id, reverse = false)
       _translate vamc_station_numbers, id, reverse
-    end
-
-    # V7.1
-    def no_points_yes_options
-      {
-        0 => 'No (0 points)',
-        1 => 'Yes',
-        99 => 'Data not collected',
-      }.freeze
-    end
-
-    def no_points_yes(id, reverse = false)
-      _translate no_points_yes_options, id, reverse
     end
 
     # V7.A
@@ -2371,7 +2397,8 @@ module Concerns::HudLists2024
       {
         0 => 'No',
         1 => 'Youngest child is under 1 year old',
-        2 => 'Youngest child is 1 to 6 years old and/or one or more children (any age) require significant care',
+        2 => "Youngest child is 1 to 6 years old and/or one or more children (any age) require significant
+care",
         99 => 'Data not collected',
       }.freeze
     end
@@ -2400,6 +2427,28 @@ module Concerns::HudLists2024
 
     def voucher_tracking(id, reverse = false)
       _translate voucher_tracking_options, id, reverse
+    end
+
+    # V8.2
+    def unknowns
+      {
+        1 => 'Referral package forwarded to PHA',
+        2 => 'Voucher denied by PHA',
+        3 => 'Voucher issued by PHA',
+        4 => 'Voucher revoked or expired',
+        5 => 'Voucher in use - veteran moved into housing',
+        6 => 'Voucher was ported locally',
+        7 => 'Voucher was administratively absorbed by new PHA',
+        8 => 'Voucher was converted to Housing Choice Voucher',
+        9 => 'Veteran exited - voucher was returned',
+        10 => 'Veteran exited - family maintained the voucher',
+        11 => 'Veteran exited - prior to ever receiving a voucher',
+        12 => 'Other',
+      }.freeze
+    end
+
+    def unknown(id, reverse = false)
+      _translate unknowns, id, reverse
     end
 
     # V9.1
@@ -2447,6 +2496,21 @@ module Concerns::HudLists2024
 
     def hopwa_services(id, reverse = false)
       _translate hopwa_services_options, id, reverse
+    end
+
+    # W2.2
+    def unknowns
+      {
+        1 => 'Rental assistance',
+        2 => 'Security deposits',
+        3 => 'Utility deposits',
+        4 => 'Utility payments',
+        7 => 'Mortgage assistance',
+      }.freeze
+    end
+
+    def unknown(id, reverse = false)
+      _translate unknowns, id, reverse
     end
 
     # W3
@@ -2536,7 +2600,7 @@ module Concerns::HudLists2024
         1 => 'Without a subsidy',
         2 => 'With the subsidy they had at project entry',
         3 => 'With an on-going subsidy acquired since project entry',
-        4 => 'Only with financial assistance other than a subsidy',
+        4 => 'But only with other financial assistance',
         11 => 'With on-going subsidy',
         12 => 'Without an on-going subsidy',
       }.freeze
@@ -2544,6 +2608,18 @@ module Concerns::HudLists2024
 
     def subsidy_information(id, reverse = false)
       _translate subsidy_informations, id, reverse
+    end
+
+    # W5.B
+    def subsidy_information_bs
+      {
+        11 => 'With on-going subsidy',
+        12 => 'Without an on-going subsidy',
+      }.freeze
+    end
+
+    def subsidy_information_b(id, reverse = false)
+      _translate subsidy_information_bs, id, reverse
     end
 
     # W5.B

@@ -539,9 +539,9 @@ scalar Base64
 """
 enum BedType {
   """
-  (1) Facility-based
+  (1) Facility-based beds
   """
-  FACILITY_BASED
+  FACILITY_BASED_BEDS
 
   """
   Invalid Value
@@ -549,14 +549,14 @@ enum BedType {
   INVALID
 
   """
-  (3) Other
+  (3) Other beds
   """
-  OTHER
+  OTHER_BEDS
 
   """
-  (2) Voucher
+  (2) Voucher beds
   """
-  VOUCHER
+  VOUCHER_BEDS
 }
 
 enum BoundType {
@@ -1509,19 +1509,19 @@ enum CountExchangeForSex {
   NUM_12_OR_MORE
 
   """
-  (1) 1-3
+  (1) 44929
   """
-  NUM_1_3
+  NUM_44929
 
   """
-  (2) 4-7
+  (2) 45023
   """
-  NUM_4_7
+  NUM_45023
 
   """
-  (3) 8-11
+  (3) 45149
   """
-  NUM_8_11
+  NUM_45149
 }
 
 """
@@ -2102,9 +2102,9 @@ enum DataCollectionStage {
   INVALID
 
   """
-  (6) Post-exit
+  (6) Post-exit (not used in CSV)
   """
-  POST_EXIT
+  POST_EXIT_NOT_USED_IN_CSV
 
   """
   (1) Project entry
@@ -2613,7 +2613,8 @@ enum DependentUnder6 {
   NO
 
   """
-  (2) Youngest child is 1 to 6 years old and/or one or more children (any age) require significant care
+  (2) Youngest child is 1 to 6 years old and/or one or more children (any age) require significant
+  care
   """
   YOUNGEST_CHILD_IS_1_TO_6_YEARS_OLD_AND_OR_ONE_OR_MORE_CHILDREN_ANY_AGE_REQUIRE_SIGNIFICANT_CARE
 
@@ -4424,14 +4425,9 @@ enum FundingSource {
   HHS_RHY_TRANSITIONAL_LIVING_PROGRAM
 
   """
-  (1) HUD: CoC - Homelessness Prevention (High Performing Communities Only)
+  (1) HUD: CoC - Homelessness Prevention (High Performing Comm. Only)
   """
   HUD_COC_HOMELESSNESS_PREVENTION
-
-  """
-  (49) HUD: CoC - Joint Component RRH/PSH [Deprecated]
-  """
-  HUD_COC_JOINT_COMPONENT_RRH_PSH_DEPRECATED
 
   """
   (44) HUD: CoC - Joint Component TH/RRH
@@ -4574,11 +4570,6 @@ enum FundingSource {
   HUD_PUBLIC_AND_INDIAN_HOUSING_PIH_PROGRAMS
 
   """
-  (12) HUD: Rural Housing Stability Assistance Program [Deprecated]
-  """
-  HUD_RURAL_HOUSING_STABILITY_ASSISTANCE_PROGRAM_DEPRECATED
-
-  """
   (55) HUD: Rural Special NOFO
   """
   HUD_RURAL_SPECIAL_NOFO
@@ -4594,9 +4585,9 @@ enum FundingSource {
   INVALID
 
   """
-  (46) Local or Other Funding Source
+  (46) Local or Other Funding Source (Please Specify)
   """
-  LOCAL_OR_OTHER_FUNDING_SOURCE
+  LOCAL_OR_OTHER_FUNDING_SOURCE_PLEASE_SPECIFY
 
   """
   (34) N/A
@@ -4607,11 +4598,6 @@ enum FundingSource {
   (30) VA: Community Contract Safe Haven Program
   """
   VA_COMMUNITY_CONTRACT_SAFE_HAVEN_PROGRAM
-
-  """
-  (32) VA: Compensated Work Therapy Transitional Residence
-  """
-  VA_COMPENSATED_WORK_THERAPY_TRANSITIONAL_RESIDENCE
 
   """
   (27) VA: CRS Contract Residential Services
@@ -8253,7 +8239,7 @@ enum PriorLivingSituation {
   SAFE_HAVEN
 
   """
-  (335) Staying or living in a family member’s room, apartment, or house
+  (335) Staying or living in a family member's room, apartment, or house
   """
   STAYING_OR_LIVING_IN_A_FAMILY_MEMBER_S_ROOM_APARTMENT_OR_HOUSE
 
@@ -8814,11 +8800,6 @@ R11.A
 """
 enum RHYNumberofYears {
   """
-  (99) Data not collected
-  """
-  DATA_NOT_COLLECTED
-
-  """
   Invalid Value
   """
   INVALID
@@ -8967,6 +8948,11 @@ enum ReasonNotEnrolled {
   Invalid Value
   """
   INVALID
+
+  """
+  (3) Unable to locate client
+  """
+  UNABLE_TO_LOCATE_CLIENT
 }
 
 """
@@ -9004,7 +8990,7 @@ enum ReasonNotInsured {
   DATA_NOT_COLLECTED
 
   """
-  (4) Insurance type N/A for this client
+  (4) Insurance type n/a for this client
   """
   INSURANCE_TYPE_N_A_FOR_THIS_CLIENT
 
@@ -9132,7 +9118,7 @@ enum RecordFormRole {
 """
 enum RecordType {
   """
-  (200) Bed Night
+  (200) Bed night
   """
   BED_NIGHT
 
@@ -9142,12 +9128,12 @@ enum RecordType {
   HOPWA_FINANCIAL_ASSISTANCE
 
   """
-  (143) HOPWA Service
+  (143) HOPWA service
   """
   HOPWA_SERVICE
 
   """
-  (210) HUD-VASH OTH Voucher Tracking
+  (210) HUD-VASH OTH voucher tracking
   """
   HUD_VASH_OTH_VOUCHER_TRACKING
 
@@ -9157,32 +9143,32 @@ enum RecordType {
   INVALID
 
   """
-  (300) Moving On Assistance
+  (300) Moving On assistance provided
   """
-  MOVING_ON_ASSISTANCE
+  MOVING_ON_ASSISTANCE_PROVIDED
 
   """
-  (161) PATH Referral
+  (161) PATH referral
   """
   PATH_REFERRAL
 
   """
-  (141) PATH Service
+  (141) PATH service
   """
   PATH_SERVICE
 
   """
-  (142) RHY Service Connections
+  (142) RHY service connections
   """
   RHY_SERVICE_CONNECTIONS
 
   """
-  (152) SSVF Financial Assistance
+  (152) SSVF financial assistance
   """
   SSVF_FINANCIAL_ASSISTANCE
 
   """
-  (144) SSVF Service
+  (144) SSVF service
   """
   SSVF_SERVICE
 }
@@ -9457,7 +9443,7 @@ enum ReferralSource {
   JUVENILE_JUSTICE
 
   """
-  (35) Law Enforcement/Police
+  (35) Law Enforcement/ Police
   """
   LAW_ENFORCEMENT_POLICE
 
@@ -9467,7 +9453,7 @@ enum ReferralSource {
   MENTAL_HOSPITAL
 
   """
-  (39) Other organization
+  (39) Other Organization
   """
   OTHER_ORGANIZATION
 
@@ -9487,7 +9473,7 @@ enum ReferralSource {
   SCHOOL
 
   """
-  (1) Self-referral
+  (1) Self-Referral
   """
   SELF_REFERRAL
 
@@ -9567,14 +9553,24 @@ enum RelatedRecordType {
 """
 enum RelationshipToHoH {
   """
-  (2) Child
-  """
-  CHILD
-
-  """
   (99) Data not collected
   """
   DATA_NOT_COLLECTED
+
+  """
+  (2) Head of household's child
+  """
+  HEAD_OF_HOUSEHOLD_S_CHILD
+
+  """
+  (4) Head of household's other relation member
+  """
+  HEAD_OF_HOUSEHOLD_S_OTHER_RELATION_MEMBER
+
+  """
+  (3) Head of household's spouse or partner
+  """
+  HEAD_OF_HOUSEHOLD_S_SPOUSE_OR_PARTNER
 
   """
   Invalid Value
@@ -9582,24 +9578,14 @@ enum RelationshipToHoH {
   INVALID
 
   """
-  (4) Other relative
+  (5) Other: non-relation member
   """
-  OTHER_RELATIVE
+  OTHER_NON_RELATION_MEMBER
 
   """
-  (1) Self (head of household)
+  (1) Self (Head of Household)
   """
   SELF_HEAD_OF_HOUSEHOLD
-
-  """
-  (3) Spouse or partner
-  """
-  SPOUSE_OR_PARTNER
-
-  """
-  (5) Unrelated household member
-  """
-  UNRELATED_HOUSEHOLD_MEMBER
 }
 
 type Reminder {
@@ -9649,11 +9635,6 @@ type RenameServiceTypePayload {
 """
 enum RentalSubsidyType {
   """
-  (436) Emergency Housing Voucher
-  """
-  EMERGENCY_HOUSING_VOUCHER
-
-  """
   (437) Family Unification Program Voucher (FUP)
   """
   FAMILY_UNIFICATION_PROGRAM_VOUCHER_FUP
@@ -9672,6 +9653,11 @@ enum RentalSubsidyType {
   (433) HCV voucher (tenant or project based) (not dedicated)
   """
   HCV_VOUCHER
+
+  """
+  (436) Housing Stability Voucher
+  """
+  HOUSING_STABILITY_VOUCHER
 
   """
   Invalid Value
@@ -10219,7 +10205,7 @@ HUD Service RecordType:TypeProvided aggregate (P1.2, R14.2, W1.2, V2.2, W2.3, V3
 """
 enum ServiceTypeProvided {
   """
-  (200) Bed Night
+  (200) BedNight
   """
   BED_NIGHT__BED_NIGHT
 
@@ -10384,29 +10370,29 @@ enum ServiceTypeProvided {
   INVALID
 
   """
-  (2) Financial assistance for Moving On (e.g., security deposit, moving expenses)
+  (2) Financial assistance for Moving On
   """
-  MOVING_ON_ASSISTANCE__FINANCIAL_ASSISTANCE_FOR_MOVING_ON
+  MOVING_ON_ASSISTANCE_PROVIDED__FINANCIAL_ASSISTANCE_FOR_MOVING_ON
 
   """
   (4) Housing referral/placement
   """
-  MOVING_ON_ASSISTANCE__HOUSING_REFERRAL_PLACEMENT
+  MOVING_ON_ASSISTANCE_PROVIDED__HOUSING_REFERRAL_PLACEMENT
 
   """
-  (3) Non-financial assistance for Moving On (e.g., housing navigation, transition support)
+  (3) Non-financial assistance for Moving On
   """
-  MOVING_ON_ASSISTANCE__NON_FINANCIAL_ASSISTANCE_FOR_MOVING_ON
+  MOVING_ON_ASSISTANCE_PROVIDED__NON_FINANCIAL_ASSISTANCE_FOR_MOVING_ON
 
   """
-  (5) Other
+  (5) Other (please specify)
   """
-  MOVING_ON_ASSISTANCE__OTHER
+  MOVING_ON_ASSISTANCE_PROVIDED__OTHER_PLEASE_SPECIFY
 
   """
   (1) Subsidized housing application assistance
   """
-  MOVING_ON_ASSISTANCE__SUBSIDIZED_HOUSING_APPLICATION_ASSISTANCE
+  MOVING_ON_ASSISTANCE_PROVIDED__SUBSIDIZED_HOUSING_APPLICATION_ASSISTANCE
 
   """
   (1) Community mental health
@@ -10544,9 +10530,9 @@ enum ServiceTypeProvided {
   RHY_SERVICE_CONNECTIONS__EDUCATION
 
   """
-  (6) Employment and training services
+  (6) Employment and/or training services
   """
-  RHY_SERVICE_CONNECTIONS__EMPLOYMENT_AND_TRAINING_SERVICES
+  RHY_SERVICE_CONNECTIONS__EMPLOYMENT_AND_OR_TRAINING_SERVICES
 
   """
   (14) Health/medical care
@@ -10594,9 +10580,9 @@ enum ServiceTypeProvided {
   RHY_SERVICE_CONNECTIONS__STREET_BASED_SERVICES
 
   """
-  (18) Substance use disorder/Prevention Services
+  (18) Substance use disorder Ed/Prevention Services
   """
-  RHY_SERVICE_CONNECTIONS__SUBSTANCE_USE_DISORDER_PREVENTION_SERVICES
+  RHY_SERVICE_CONNECTIONS__SUBSTANCE_USE_DISORDER_ED_PREVENTION_SERVICES
 
   """
   (17) Substance use disorder treatment
@@ -10614,7 +10600,7 @@ enum ServiceTypeProvided {
   SSVF_FINANCIAL_ASSISTANCE__EMERGENCY_HOUSING_ASSISTANCE
 
   """
-  (16) Food Assistance
+  (16) Food assistance
   """
   SSVF_FINANCIAL_ASSISTANCE__FOOD_ASSISTANCE
 
@@ -10622,11 +10608,6 @@ enum ServiceTypeProvided {
   (12) General housing stability assistance
   """
   SSVF_FINANCIAL_ASSISTANCE__GENERAL_HOUSING_STABILITY_ASSISTANCE
-
-  """
-  (11) General housing stability assistance - emergency supplies [Deprecated]
-  """
-  SSVF_FINANCIAL_ASSISTANCE__GENERAL_HOUSING_STABILITY_ASSISTANCE_EMERGENCY_SUPPLIES_DEPRECATED
 
   """
   (17) Landlord Incentive
@@ -10649,7 +10630,7 @@ enum ServiceTypeProvided {
   SSVF_FINANCIAL_ASSISTANCE__SECURITY_DEPOSIT
 
   """
-  (15) Shallow Subsidy - Financial Assistance
+  (15) Shallow Subsidy -Financial Assistance
   """
   SSVF_FINANCIAL_ASSISTANCE__SHALLOW_SUBSIDY_FINANCIAL_ASSISTANCE
 
@@ -10940,14 +10921,14 @@ W5.AB
 """
 enum SubsidyInformation {
   """
+  (4) But only with other financial assistance
+  """
+  BUT_ONLY_WITH_OTHER_FINANCIAL_ASSISTANCE
+
+  """
   Invalid Value
   """
   INVALID
-
-  """
-  (4) Only with financial assistance other than a subsidy
-  """
-  ONLY_WITH_FINANCIAL_ASSISTANCE_OTHER_THAN_A_SUBSIDY
 
   """
   (12) Without an on-going subsidy
