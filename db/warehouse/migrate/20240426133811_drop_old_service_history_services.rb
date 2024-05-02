@@ -2,8 +2,15 @@ class DropOldServiceHistoryServices < ActiveRecord::Migration[6.1]
   def up
     safety_assured do
       begin
-        # Is this okay?
-        execute("DROP VIEW IF EXISTS bi_service_history_services")
+        Bi::ViewMaintainer.new.tap do |vm|
+          vm.safe_drop_view(vm.view_name(GrdaWarehouse::ServiceHistoryService))
+
+          vm.client_history_view(
+            GrdaWarehouse::ServiceHistoryService.where(
+              "date >= (CURRENT_DATE - #{Bi::ViewMaintainer::SH_INTERVAL})",
+            ),
+          )
+        end
 
         execute("ALTER SEQUENCE service_history_services_id_seq OWNED BY service_history_services.id")
 
@@ -18,6 +25,7 @@ class DropOldServiceHistoryServices < ActiveRecord::Migration[6.1]
         else
           raise "For some reason service_history_services_was_for_inheritance was not empty! Please check."
         end
+
       rescue ActiveRecord::StatementInvalid => e
         execute("ROLLBACK")
         Rails.logger.error "For some reason service_history_services_was_for_inheritance didn't exist or had dependencies. Ignoring drop attempt"
