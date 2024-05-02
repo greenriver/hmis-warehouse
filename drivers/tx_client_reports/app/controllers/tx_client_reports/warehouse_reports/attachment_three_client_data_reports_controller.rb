@@ -22,7 +22,6 @@ module TxClientReports::WarehouseReports
     end
 
     def index
-      @rows = report.rows
       @can_view_projects = current_user.can_view_projects?
       @excel_export = TxClientReports::AttachmentThreeReportExports::AttachmentThreeReportExcelExport.new
       respond_to do |format|
@@ -30,6 +29,7 @@ module TxClientReports::WarehouseReports
           show_validations
         end
         format.xlsx do
+          @rows = report.rows
           filename = "Attachment III - #{Time.current.to_s(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
