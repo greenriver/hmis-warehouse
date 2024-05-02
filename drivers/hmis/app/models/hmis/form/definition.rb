@@ -268,15 +268,18 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     where(identifier: instance_scope.pluck(:definition_identifier))
   end
 
+  CURRENT_VERSION_SQL = <<~SQL.freeze
+    SELECT DISTINCT ON (identifier) id
+    FROM hmis_form_definitions
+    WHERE status IN ('published', 'draft')
+    ORDER BY identifier, CASE
+      WHEN status = 'published' THEN 1
+      WHEN status = 'draft' THEN 2
+      ELSE 3
+    END, version DESC
+  SQL
   scope :current_versions, -> do
-    identifier_map = Hmis::Form::Definition.exclude_definition_from_select.all.group_by(&:identifier)
-    ids = []
-    identifier_map.each do |_identifier, definitions|
-      published = definitions.select { |definition| definition.status == 'published' }.first
-      draft = definitions.select { |definition| definition.status == 'draft' }.first
-      ids.append(published&.id || draft&.id)
-    end
-    Hmis::Form::Definition.where(id: ids)
+    where("hmis_form_definitions.id IN (#{CURRENT_VERSION_SQL})")
   end
 
   def self.apply_filters(input)

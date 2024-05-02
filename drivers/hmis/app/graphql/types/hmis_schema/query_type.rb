@@ -422,7 +422,7 @@ module Types
     def form_identifier(identifier:)
       raise 'Access denied' unless current_user.can_configure_data_collection?
 
-      Hmis::Form::Definition.current_versions.where(identifier: identifier).first
+      Hmis::Form::Definition.where(identifier: identifier).current_versions.first
     end
 
     field :form_identifiers, Types::Forms::FormIdentifier.page_type, null: false do
@@ -431,7 +431,7 @@ module Types
     def form_identifiers(filters: nil)
       raise 'Access denied' unless current_user.can_configure_data_collection?
 
-      scope = Hmis::Form::Definition.current_versions.non_static
+      scope = Hmis::Form::Definition.non_static.current_versions
       scope = scope.apply_filters(filters) if filters
       scope.order(updated_at: :desc)
     end

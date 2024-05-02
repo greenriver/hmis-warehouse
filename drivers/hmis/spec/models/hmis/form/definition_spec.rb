@@ -108,24 +108,24 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     let!(:id3_retired2) { create :hmis_form_definition, identifier: 'identifier_3', version: 1, status: 'retired' }
 
     it 'should return published version if exists' do
-      current_versions = Hmis::Form::Definition.current_versions.where(identifier: 'identifier_1')
+      current_versions = Hmis::Form::Definition.where(identifier: 'identifier_1').current_versions
       expect(current_versions.size).to eq(1)
       expect(current_versions.first.id).to eq(id1_published.id)
     end
 
     it 'should return draft version if no published version exists' do
-      current_versions = Hmis::Form::Definition.current_versions.where(identifier: 'identifier_2')
+      current_versions = Hmis::Form::Definition.where(identifier: 'identifier_2').current_versions
       expect(current_versions.size).to eq(1)
       expect(current_versions.first.id).to eq(id2_draft.id)
     end
 
     it 'should not return anything if only retired versions exist' do
-      current_versions = Hmis::Form::Definition.current_versions.where(identifier: 'identifier_3')
+      current_versions = Hmis::Form::Definition.where(identifier: 'identifier_3').current_versions
       expect(current_versions.size).to eq(0)
     end
 
     it 'should return one version per identifier' do
-      current_versions = Hmis::Form::Definition.current_versions.where(identifier: ['identifier_1', 'identifier_2', 'identifier_3'])
+      current_versions = Hmis::Form::Definition.where(identifier: ['identifier_1', 'identifier_2', 'identifier_3']).current_versions
       expect(current_versions.size).to eq(2)
     end
   end
