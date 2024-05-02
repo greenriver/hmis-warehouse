@@ -1,13 +1,24 @@
 {
   "item": [
     {
-      "type": "BOOLEAN",
-      "link_id": "see-definition",
+      "text": "Form Type",
+      "type": "CHOICE",
+      "link_id": "role",
+      "mapping": {
+        "field_name": "role"
+      },
+      "_comment": "FIXME this dropdown should be restrictied to form types that can be created/managed through the UI. Maybe start small initially.",
+      "pick_list_reference": "FormRole",
+      "required": true
+    },
+    {
+      "type": "STRING",
+      "link_id": "definitionId",
       "hidden": true,
       "initial": [
         {
           "initial_behavior": "OVERWRITE",
-          "value_local_constant": "$showDefinition"
+          "value_local_constant": "$definitionId"
         }
       ]
     },
@@ -18,7 +29,8 @@
       "mapping": {
         "field_name": "title"
       },
-      "required": true
+      "required": true,
+      "helper_text": "Human-readable title for the form."
     },
     {
       "text": "Form Identifier",
@@ -27,32 +39,15 @@
       "mapping": {
         "field_name": "identifier"
       },
-      "required": true
-    },
-    {
-      "text": "Form Role",
-      "type": "CHOICE",
-      "link_id": "role",
-      "mapping": {
-        "field_name": "role"
-      },
       "required": true,
-      "pick_list_reference": "FormRole"
-    },
-    {
-      "text": "Form Definition",
-      "type": "TEXT",
-      "link_id": "definition",
-      "mapping": {
-        "field_name": "definition"
-      },
-      "required": false,
+      "helper_text": "Unique system identifier for the form. This cannot be changed.",
+      "_comment": "Only shown when creating a new FormDefinition",
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "see-definition",
-          "operator": "EQUAL",
-          "answer_boolean": true
+          "question": "definitionId",
+          "operator": "EXISTS",
+          "answer_boolean": false
         }
       ]
     }
