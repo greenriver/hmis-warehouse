@@ -271,7 +271,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   CURRENT_VERSION_SQL = <<~SQL.freeze
     SELECT DISTINCT ON (identifier) id
     FROM hmis_form_definitions
-    WHERE status IN ('published', 'draft')
     ORDER BY identifier, CASE
       WHEN status = 'published' THEN 1
       WHEN status = 'draft' THEN 2

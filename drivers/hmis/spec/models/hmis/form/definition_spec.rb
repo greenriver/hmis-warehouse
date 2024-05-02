@@ -119,14 +119,15 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       expect(current_versions.first.id).to eq(id2_draft.id)
     end
 
-    it 'should not return anything if only retired versions exist' do
+    it 'should not return most recent retired version if only retired versions exist' do
       current_versions = Hmis::Form::Definition.where(identifier: 'identifier_3').current_versions
-      expect(current_versions.size).to eq(0)
+      expect(current_versions.size).to eq(1)
+      expect(current_versions.first.id).to eq(id3_retired2.id)
     end
 
     it 'should return one version per identifier' do
       current_versions = Hmis::Form::Definition.where(identifier: ['identifier_1', 'identifier_2', 'identifier_3']).current_versions
-      expect(current_versions.size).to eq(2)
+      expect(current_versions.size).to eq(3)
     end
   end
 
