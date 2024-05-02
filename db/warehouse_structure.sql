@@ -34113,14 +34113,6 @@ ALTER TABLE ONLY public.service_history_services_2050
 
 
 --
--- Name: service_history_services_was_for_inheritance service_history_services_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_was_for_inheritance
-    ADD CONSTRAINT service_history_services_pkey PRIMARY KEY (id);
-
-
---
 -- Name: service_history_services_remainder service_history_services_remainder_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -59600,13 +59592,6 @@ CREATE INDEX shape_counties_namelsad_lower ON public.shape_counties USING btree 
 
 
 --
--- Name: shs_unique_date_she_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX shs_unique_date_she_id ON public.service_history_services_was_for_inheritance USING btree (date, service_history_enrollment_id);
-
-
---
 -- Name: simple_report_univ_type_and_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -61669,13 +61654,6 @@ CREATE RULE attempt_hmis_households_up AS
 
 
 --
--- Name: service_history_services_was_for_inheritance service_history_service_insert_trigger; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER service_history_service_insert_trigger BEFORE INSERT ON public.service_history_services_was_for_inheritance FOR EACH ROW EXECUTE FUNCTION public.service_history_service_insert_trigger();
-
-
---
 -- Name: service_history_services_2036 fk_rails_000b38b036; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -62385,14 +62363,6 @@ ALTER TABLE ONLY public.service_history_services_2048
 
 ALTER TABLE ONLY public.service_history_services_2050
     ADD CONSTRAINT fk_rails_eb51169a46 FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
-
-
---
--- Name: service_history_services_was_for_inheritance fk_rails_ee37ed289e; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_was_for_inheritance
-    ADD CONSTRAINT fk_rails_ee37ed289e FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
 
 
 --
