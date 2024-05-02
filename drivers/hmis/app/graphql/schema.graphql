@@ -3989,7 +3989,7 @@ type FormIdentifier {
   draft: FormDefinition
   id: String!
   identifier: String!
-  retiredVersions: [FormDefinition!]!
+  retiredVersions(limit: Int, offset: Int): FormDefinitionsPaginated!
   role: FormRole!
   title: String!
 }

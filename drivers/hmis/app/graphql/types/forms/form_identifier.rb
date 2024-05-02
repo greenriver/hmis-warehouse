@@ -24,7 +24,7 @@ module Types
 
     field :current_version, Types::Forms::FormDefinition, null: false
     field :draft, Types::Forms::FormDefinition, null: true
-    field :retired_versions, [Types::Forms::FormDefinition], null: false
+    field :retired_versions, Types::Forms::FormDefinition.page_type, null: false
 
     def id
       object.id

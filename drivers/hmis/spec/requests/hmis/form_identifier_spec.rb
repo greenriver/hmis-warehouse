@@ -52,7 +52,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
                 ...FormDefinitionMetadata
               }
               retiredVersions {
-                ...FormDefinitionMetadata
+                nodesCount
               }
             }
           }
@@ -76,7 +76,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(identifiers.first['role']).to eq('CUSTOM_ASSESSMENT')
       expect(identifiers.first['title']).to eq('This is an assessment!')
       expect(identifiers.first.dig('draft', 'title')).to eq('The title of this assessment has changed!')
-      expect(identifiers.first['retiredVersions'].size).to eq(2)
+      expect(identifiers.first['retiredVersions']['nodesCount']).to eq(2)
     end
 
     it 'should filter correctly' do
