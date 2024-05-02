@@ -24,7 +24,7 @@ class Hmis::Hud::Inventory < Hmis::Hud::Base
 
     case option
     when :start_date
-      order(inventory_start_date: :desc)
+      order(inventory_start_date: :desc, id: :desc)
     else
       raise NotImplementedError
     end

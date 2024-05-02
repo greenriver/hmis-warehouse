@@ -23,7 +23,7 @@ class Hmis::Hud::Event < Hmis::Hud::Base
 
     case option
     when :event_date
-      order(EventDate: :desc)
+      order(EventDate: :desc, id: :desc)
     else
       raise NotImplementedError
     end

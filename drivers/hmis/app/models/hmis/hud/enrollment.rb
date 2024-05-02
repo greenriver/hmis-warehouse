@@ -248,21 +248,22 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
         ex_t[:ExitDate].eq(nil).desc, # active enrollments
         EntryDate: :desc,
         date_created: :desc,
+        id: :desc,
       )
     when :household_id
-      order(household_id: :asc, date_created: :desc)
+      order(household_id: :asc, date_created: :desc, id: :desc)
     when :last_name_a_to_z
-      joins(:client).order(c_t[:last_name].asc.nulls_last)
+      joins(:client).order(c_t[:last_name].asc.nulls_last, id: :desc)
     when :last_name_z_to_a
-      joins(:client).order(c_t[:last_name].desc.nulls_last)
+      joins(:client).order(c_t[:last_name].desc.nulls_last, id: :desc)
     when :first_name_a_to_z
-      joins(:client).order(c_t[:first_name].asc.nulls_last)
+      joins(:client).order(c_t[:first_name].asc.nulls_last, id: :desc)
     when :first_name_z_to_a
-      joins(:client).order(c_t[:first_name].desc.nulls_last)
+      joins(:client).order(c_t[:first_name].desc.nulls_last, id: :desc)
     when :age_youngest_to_oldest
-      joins(:client).order(c_t[:dob].desc.nulls_last)
+      joins(:client).order(c_t[:dob].desc.nulls_last, id: :desc)
     when :age_oldest_to_youngest
-      joins(:client).order(c_t[:dob].asc.nulls_last)
+      joins(:client).order(c_t[:dob].asc.nulls_last, id: :desc)
     else
       raise NotImplementedError
     end
