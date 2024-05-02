@@ -45,7 +45,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               identifier
               role
               title
-              currentVersion {
+              representativeVersion {
                 ...FormDefinitionMetadata
               }
               draft {

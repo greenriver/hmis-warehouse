@@ -22,7 +22,7 @@ module Types
     field :role, Types::Forms::Enums::FormRole, null: false
     field :title, String, null: false
 
-    field :current_version, Types::Forms::FormDefinition, null: false
+    field :representative_version, Types::Forms::FormDefinition, null: false
     field :draft, Types::Forms::FormDefinition, null: true
     field :retired_versions, Types::Forms::FormDefinition.page_type, null: false
 
@@ -30,7 +30,7 @@ module Types
       object.id
     end
 
-    def current_version
+    def representative_version
       object
     end
 

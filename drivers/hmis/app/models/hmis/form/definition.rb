@@ -268,7 +268,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     where(identifier: instance_scope.pluck(:definition_identifier))
   end
 
-  CURRENT_VERSION_SQL = <<~SQL.freeze
+  REPRESENTATIVES_SQL = <<~SQL.freeze
     SELECT DISTINCT ON (identifier) id
     FROM hmis_form_definitions
     ORDER BY identifier, CASE
@@ -277,8 +277,12 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       ELSE 3
     END, version DESC
   SQL
-  scope :current_versions, -> do
-    where("hmis_form_definitions.id IN (#{CURRENT_VERSION_SQL})")
+  # This scope returns one 'representative' form version PER form identifier.
+  # If a published version exists for an identifier, it returns that.
+  # Otherwise, if a draft version exists, it returns that.
+  # Lastly, if no published or draft versions exist, it returns the most recent retired version.
+  scope :representative_versions, -> do
+    where("hmis_form_definitions.id IN (#{REPRESENTATIVES_SQL})")
   end
 
   # TODO(#6006) Update these three scopes to use enums

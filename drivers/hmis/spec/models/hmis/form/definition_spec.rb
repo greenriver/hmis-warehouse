@@ -98,7 +98,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     end
   end
 
-  describe 'current_versions scope' do
+  describe 'representative_versions scope' do
     let!(:id1_retired1) { create :hmis_form_definition, identifier: 'identifier_1', version: 0, status: 'retired' }
     let!(:id1_retired2) { create :hmis_form_definition, identifier: 'identifier_1', version: 1, status: 'retired' }
     let!(:id1_published) { create :hmis_form_definition, identifier: 'identifier_1', version: 2, status: 'published' }
@@ -108,26 +108,26 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     let!(:id3_retired2) { create :hmis_form_definition, identifier: 'identifier_3', version: 1, status: 'retired' }
 
     it 'should return published version if exists' do
-      current_versions = Hmis::Form::Definition.where(identifier: 'identifier_1').current_versions
-      expect(current_versions.size).to eq(1)
-      expect(current_versions.first.id).to eq(id1_published.id)
+      representative_versions = Hmis::Form::Definition.where(identifier: 'identifier_1').representative_versions
+      expect(representative_versions.size).to eq(1)
+      expect(representative_versions.first.id).to eq(id1_published.id)
     end
 
     it 'should return draft version if no published version exists' do
-      current_versions = Hmis::Form::Definition.where(identifier: 'identifier_2').current_versions
-      expect(current_versions.size).to eq(1)
-      expect(current_versions.first.id).to eq(id2_draft.id)
+      representative_versions = Hmis::Form::Definition.where(identifier: 'identifier_2').representative_versions
+      expect(representative_versions.size).to eq(1)
+      expect(representative_versions.first.id).to eq(id2_draft.id)
     end
 
     it 'should not return most recent retired version if only retired versions exist' do
-      current_versions = Hmis::Form::Definition.where(identifier: 'identifier_3').current_versions
-      expect(current_versions.size).to eq(1)
-      expect(current_versions.first.id).to eq(id3_retired2.id)
+      representative_versions = Hmis::Form::Definition.where(identifier: 'identifier_3').representative_versions
+      expect(representative_versions.size).to eq(1)
+      expect(representative_versions.first.id).to eq(id3_retired2.id)
     end
 
     it 'should return one version per identifier' do
-      current_versions = Hmis::Form::Definition.where(identifier: ['identifier_1', 'identifier_2', 'identifier_3']).current_versions
-      expect(current_versions.size).to eq(3)
+      representative_versions = Hmis::Form::Definition.where(identifier: ['identifier_1', 'identifier_2', 'identifier_3']).representative_versions
+      expect(representative_versions.size).to eq(3)
     end
   end
 
