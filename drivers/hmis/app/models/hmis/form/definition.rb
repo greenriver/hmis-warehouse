@@ -272,6 +272,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   scope :latest_versions, -> do
+    # Returns the latest version per identifier
     one_for_column([:version], source_arel_table: Hmis::Form::Definition.arel_table, group_on: :identifier)
   end
 
