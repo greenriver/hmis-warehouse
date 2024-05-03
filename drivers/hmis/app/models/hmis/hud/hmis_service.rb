@@ -56,20 +56,22 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   end
 
   scope :with_service_type, ->(csts) do
-    return none if csts.empty?
-
     params = []
     sqls = []
     csts.each do |cst|
-      sqls.push <<~SQL
-        CASE
-          WHEN owner_type = 'Hmis::Hud::CustomService' THEN custom_service_type_id = ?
-          WHEN owner_type = 'Hmis::Hud::Service' THEN "RecordType" = ? AND "TypeProvided" = ?
-        END
-      SQL
-      params += [cst.id, cst.hud_record_type, cst.hud_type_provided]
+      if cst.hud_service?
+        sqls.push <<~SQL
+          custom_service_type_id = ? OR ("RecordType" = ? AND "TypeProvided" = ?)
+        SQL
+        params += [cst.id, cst.hud_record_type, cst.hud_type_provided]
+      else
+        sqls.push %(custom_service_type_id = ?)
+        params += [cst.id]
+      end
     end
-    where(sqls.join(' OR '), *params)
+    return where(sqls.join(' OR '), *params) if sqls.any?
+
+    return none
   end
 
   scope :with_project_type, ->(project_types) do
