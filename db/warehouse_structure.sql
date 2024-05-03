@@ -18759,10 +18759,12 @@ ALTER SEQUENCE public.hmis_scan_card_codes_id_seq OWNED BY public.hmis_scan_card
 --
 
 CREATE VIEW public.hmis_services AS
-( SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
+ SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
     "Services".id AS owner_id,
     'Hmis::Hud::Service'::text AS owner_type,
-    "CustomServiceTypes".id AS custom_service_type_id,
+    "Services"."RecordType",
+    "Services"."TypeProvided",
+    NULL::bigint AS custom_service_type_id,
     "Services"."EnrollmentID",
     "Services"."PersonalID",
     "Services"."DateProvided",
@@ -18771,14 +18773,14 @@ CREATE VIEW public.hmis_services AS
     "Services"."DateUpdated",
     "Services"."DateDeleted",
     "Services".data_source_id
-   FROM (public."Services"
-     JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes".data_source_id = "Services".data_source_id) AND ("CustomServiceTypes"."DateDeleted" IS NULL))))
+   FROM public."Services"
   WHERE ("Services"."DateDeleted" IS NULL)
-  ORDER BY "Services"."DateProvided")
 UNION ALL
-( SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
+ SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
     ("CustomServices".id)::integer AS owner_id,
     'Hmis::Hud::CustomService'::text AS owner_type,
+    NULL::integer AS "RecordType",
+    NULL::integer AS "TypeProvided",
     "CustomServices".custom_service_type_id,
     "CustomServices"."EnrollmentID",
     "CustomServices"."PersonalID",
@@ -18789,8 +18791,7 @@ UNION ALL
     "CustomServices"."DateDeleted",
     "CustomServices".data_source_id
    FROM public."CustomServices"
-  WHERE ("CustomServices"."DateDeleted" IS NULL)
-  ORDER BY "CustomServices"."DateProvided");
+  WHERE ("CustomServices"."DateDeleted" IS NULL);
 
 
 --
@@ -50423,6 +50424,13 @@ CREATE UNIQUE INDEX idx_inbound_api_configurations_uniq ON public.inbound_api_co
 
 
 --
+-- Name: idx_services_hud_types; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_services_hud_types ON public."Services" USING btree ("RecordType", "TypeProvided");
+
+
+--
 -- Name: idx_tpc_uniqueness; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -62655,9 +62663,12 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240409215111'),
 ('20240411183410'),
 ('20240413183410'),
+('20240414183410'),
 ('20240416155829'),
 ('20240419165229'),
 ('20240419174433'),
-('20240426133811');
+('20240426133811'),
+('20240430045112'),
+('20240503152843');
 
 
