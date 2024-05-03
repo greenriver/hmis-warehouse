@@ -61,7 +61,7 @@ module Types
       when 'Hmis::Hud::Service'
         # ideally we'd lazy load this
         custom_service_types_scope.to_a.detect do |cst|
-          cst.hud_record_type == object.record_type &&  cst.hud_type_provided == object.type_provided
+          cst.hud_record_type == object.record_type && cst.hud_type_provided == object.type_provided
         end
       when 'Hmis::Hud::CustomService'
         load_ar_scope(scope: custom_service_types_scope, id: object.custom_service_type_id)

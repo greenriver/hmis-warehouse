@@ -27,16 +27,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   self.table_name = :hmis_form_definitions
   acts_as_paranoid
 
-  CURRENT_VERSION_SQL = <<~SQL
-    SELECT DISTINCT ON (identifier) id
-    FROM hmis_form_definitions
-    ORDER BY identifier, version DESC
-  SQL
-  scope :current_versions, -> {
-    where("hmis_form_definitions.id IN (#{CURRENT_VERSION_SQL})")
-  }
-
-
   # There is no need to track the JSON blob, because form should be immutable once they are managed through the Form Editor config tool.
   # When changes are needed, they will be applied to a duplicated Hmis::Form::Definition with a bumped `version`.
   has_paper_trail(
