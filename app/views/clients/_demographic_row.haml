@@ -10,10 +10,7 @@
       = image_tag(polymorphic_path(source_client_image_path_generator, id: client.id), style: 'width: 50px', data: {toggle: :tooltip, html: :true, placement: :right, title: image})
 
   %td
-    - if can_view_full_ssn?
-      = ssn(client.SSN)
-    - else
-      = masked_ssn(client.SSN)
+    = client.pii(user: current_user).ssn
   %td
     - if client.DOB.present?
       = "#{client.DOB} (#{client.age})"

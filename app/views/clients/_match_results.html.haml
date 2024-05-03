@@ -24,15 +24,9 @@
               = link_to(client_name, client_path(c), target: "_blank")
           - if sc_count == 1
             %td
-              - if can_view_full_dob?
-                = c.DOB
-              - else
-                = c.age
+              = c.pii(current_user).dob_or_age
             %td
-              - if can_view_full_ssn?
-                = ssn(c.SSN)
-              - else
-                = masked_ssn(c.SSN)
+              = c.pii(current_user).ssn
           - else
             - c.source_clients.each do |sc|
               %tr
