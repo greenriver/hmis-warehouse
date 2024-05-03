@@ -46,6 +46,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   has_many :external_form_publications, class_name: 'HmisExternalApis::ExternalForms::FormPublication', dependent: :destroy
   has_many :custom_data_element_definitions, class_name: 'Hmis::Hud::CustomDataElementDefinition', dependent: :nullify,
                                              primary_key: 'identifier', foreign_key: 'form_definition_identifier'
+  has_one :published_version, -> { published }, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
+  has_one :draft_version, -> { draft }, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
+  has_many :all_versions, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
 
   # Forms that are used for Assessments. These are submitted using SubmitAssessment mutation.
   ASSESSMENT_FORM_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT, :POST_EXIT, :CUSTOM_ASSESSMENT].freeze
@@ -268,21 +271,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     where(identifier: instance_scope.pluck(:definition_identifier))
   end
 
-  REPRESENTATIVES_SQL = <<~SQL.freeze
-    SELECT DISTINCT ON (identifier) id
-    FROM hmis_form_definitions
-    ORDER BY identifier, CASE
-      WHEN status = 'published' THEN 1
-      WHEN status = 'draft' THEN 2
-      ELSE 3
-    END, version DESC
-  SQL
-  # This scope returns one 'representative' form version PER form identifier.
-  # If a published version exists for an identifier, it returns that.
-  # Otherwise, if a draft version exists, it returns that.
-  # Lastly, if no published or draft versions exist, it returns the most recent retired version.
-  scope :representative_versions, -> do
-    where("hmis_form_definitions.id IN (#{REPRESENTATIVES_SQL})")
+  scope :latest_versions, -> do
+    one_for_column([:version], source_arel_table: Hmis::Form::Definition.arel_table, group_on: :identifier)
   end
 
   # TODO(#6006) Update these three scopes to use enums

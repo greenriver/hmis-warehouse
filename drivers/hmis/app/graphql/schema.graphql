@@ -3989,7 +3989,7 @@ type FormIdentifier {
   draft: FormDefinition
   id: String!
   identifier: String!
-  representativeVersion: FormDefinition!
+  published: FormDefinition
   role: FormRole!
   title: String!
 }

@@ -22,24 +22,32 @@ module Types
     field :role, Types::Forms::Enums::FormRole, null: false
     field :title, String, null: false
 
-    field :representative_version, Types::Forms::FormDefinition, null: false
+    field :published, Types::Forms::FormDefinition, null: true
     field :draft, Types::Forms::FormDefinition, null: true
     field :all_versions, Types::Forms::FormDefinition.page_type, null: false
 
-    def id
-      object.id
-    end
-
-    def representative_version
-      object
+    def published
+      load_ar_association(object, :published_version)
     end
 
     def draft
-      Hmis::Form::Definition.where(identifier: object.identifier).draft.first
+      load_ar_association(object, :draft_version)
     end
 
     def all_versions
-      Hmis::Form::Definition.where(identifier: object.identifier).order(version: :desc)
+      load_ar_association(object, :all_versions)
+    end
+
+    def id
+      object.identifier
+    end
+
+    def title
+      published&.title ? published.title : object.title
+    end
+
+    def role
+      published&.role ? published.role : object.role
     end
   end
 end
