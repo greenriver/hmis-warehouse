@@ -26,7 +26,7 @@ module HudSpmReport
     end
 
     private def csv_filename
-      "#{generator.file_prefix} - #{DateTime.current.to_s(:db)}.csv"
+      "#{generator.file_prefix} - #{DateTime.current.to_fs(:db)}.csv"
     end
   end
 end

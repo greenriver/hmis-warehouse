@@ -46,7 +46,7 @@ module Admin
     def download
       respond_to do |format|
         format.xlsx do
-          filename = "Access Details - #{Time.current.to_s(:db)}.xlsx"
+          filename = "Access Details - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end

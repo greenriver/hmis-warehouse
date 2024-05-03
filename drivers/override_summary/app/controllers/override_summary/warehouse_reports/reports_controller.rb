@@ -17,7 +17,7 @@ module OverrideSummary::WarehouseReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          filename = "#{@report.title} - #{Time.current.to_s(:db)}.xlsx"
+          filename = "#{@report.title} - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end

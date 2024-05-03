@@ -85,7 +85,7 @@ module HealthPctp::DocumentExports
         pdf << CombinePDF.parse(PdfGenerator.new.render_pdf(html, options: options), allow_optional_content: true)
         pdf << CombinePDF.parse(careplan.health_file.content, allow_optional_content: true) if careplan.health_file.present?
 
-        file_name = "#{Translation.translate('Care Plan / Patient-Centered Treatment Plan')} #{DateTime.current.to_s(:db)}"
+        file_name = "#{Translation.translate('Care Plan / Patient-Centered Treatment Plan')} #{DateTime.current.to_fs(:db)}"
         PdfGenerator.new.perform(
           html: '',
           file_name: file_name,

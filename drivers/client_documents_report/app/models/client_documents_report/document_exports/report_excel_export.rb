@@ -40,7 +40,7 @@ module ClientDocumentsReport::DocumentExports
             format: :xlsx,
             assigns: view_assigns,
           ),
-          "Client Documents - #{Time.current.to_s(:db)}",
+          "Client Documents - #{Time.current.to_fs(:db)}",
         ) do |io|
           self.downloadable_file = io
         end

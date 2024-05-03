@@ -29,7 +29,7 @@ module AnalysisTool::WarehouseReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          filename = "Client Analysis - #{Time.current.to_s(:db)}.xlsx"
+          filename = "Client Analysis - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
@@ -40,7 +40,7 @@ module AnalysisTool::WarehouseReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          filename = "#{@report.support_title(params).gsub(',', '')} - #{Time.current.to_s(:db)}.xlsx"
+          filename = "#{@report.support_title(params).gsub(',', '')} - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end

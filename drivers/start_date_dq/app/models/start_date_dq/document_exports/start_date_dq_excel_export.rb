@@ -40,7 +40,7 @@ module StartDateDq::DocumentExports
             format: :xlsx,
             assigns: view_assigns,
           ),
-          "#{report.title} Data Quality Report #{DateTime.current.to_s(:db)}",
+          "#{report.title} Data Quality Report #{DateTime.current.to_fs(:db)}",
         ) do |io|
           self.downloadable_file = io
         end
