@@ -9,6 +9,10 @@ module Types
     skip_activity_log
     description 'FormIdentifier'
 
+    # object is a Hmis::Form::Definition, but this schema type is a little funny because it doesn't
+    # correspond to ONE FormDefinition -- it corresponds to a form _identifier_, such as SPDAT, which
+    # can have published, draft, and retired versions.
+
     available_filter_options do
       arg :search_term, String
       # ADD: role
@@ -43,10 +47,13 @@ module Types
     end
 
     def title
+      # If there is a published version corresponding to this identifier, return its title. Otherwise
+      # (meaning there exist only draft or retired versions for this identifier), return whatever title we have
       published&.title ? published.title : object.title
     end
 
     def role
+      # Same goes for `role` as for `title`
       published&.role ? published.role : object.role
     end
   end
