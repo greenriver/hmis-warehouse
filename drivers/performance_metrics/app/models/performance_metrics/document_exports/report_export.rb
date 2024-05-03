@@ -37,7 +37,7 @@ module PerformanceMetrics::DocumentExports
         )
         PdfGenerator.new.perform(
           html: html,
-          file_name: "#{Translation.translate('Performance Metrics')} #{DateTime.current.to_s(:db)}",
+          file_name: "#{Translation.translate('Performance Metrics')} #{DateTime.current.to_fs(:db)}",
         ) do |io|
           self.pdf_file = io
         end

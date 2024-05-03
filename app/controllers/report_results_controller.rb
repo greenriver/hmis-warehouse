@@ -56,7 +56,7 @@ class ReportResultsController < ApplicationController
         end
         file = @result.file.first
         filename = @report.try(:file_name, @result.options) || @report.name
-        send_data file.content, filename: "#{filename}-#{@result.created_at.to_s(:db)}.zip", type: file.content_type, disposition: 'attachment'
+        send_data file.content, filename: "#{filename}-#{@result.created_at.to_fs(:db)}.zip", type: file.content_type, disposition: 'attachment'
       end
     end
   end
@@ -70,7 +70,7 @@ class ReportResultsController < ApplicationController
         end
         file = @result.support_file
         filename = @report.try(:file_name, @result.options) || @report.name
-        send_data file.content, filename: "Support for #{filename}-#{@result.created_at.to_s(:db)}.zip", type: file.content_type, disposition: 'attachment'
+        send_data file.content, filename: "Support for #{filename}-#{@result.created_at.to_fs(:db)}.zip", type: file.content_type, disposition: 'attachment'
       end
     end
   end

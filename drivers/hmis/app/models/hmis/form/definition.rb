@@ -486,7 +486,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     instances.map { |i| i.project_and_enrollment_match(...) }.compact.min_by(&:rank)
   end
 
-  # should use rails attr normalization in rails 7
+  # should use rails attr normalization in rails 7.1 (ActiveRecord::Base::normalizes)
   def external_form_object_key=(value)
     super(value.blank? ? nil : value.strip)
   end

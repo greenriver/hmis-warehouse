@@ -49,6 +49,7 @@ module GrdaWarehouse::Tasks
               :client_files,
               source_clients: [
                 :most_recent_current_living_situation,
+                :most_recent_tc_hat,
                 {
                   most_recent_pathways_or_rrh_assessment: [
                     :assessment_questions,

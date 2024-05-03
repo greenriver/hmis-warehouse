@@ -105,7 +105,7 @@ module HmisDataQualityTool::WarehouseReports
         format.html {}
         format.xlsx do
           title = "#{@result.category} #{@result.title}"
-          filename = "#{sanitized_name(title)}-#{Date.current.to_s(:db)}.xlsx"
+          filename = "#{sanitized_name(title)}-#{Date.current.to_fs(:db)}.xlsx"
           headers['Content-Type'] = GrdaWarehouse::DocumentExport::EXCEL_MIME_TYPE
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end

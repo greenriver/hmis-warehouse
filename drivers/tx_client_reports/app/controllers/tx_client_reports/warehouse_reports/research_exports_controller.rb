@@ -26,14 +26,14 @@ module TxClientReports::WarehouseReports
         end
         format.xlsx do
           @report = report_class.new(options: @filter.for_params, user_id: @filter.user_id)
-          filename = "Research Export  #{Time.current.to_s(:db)}.xlsx"
+          filename = "Research Export  #{Time.current.to_fs(:db)}.xlsx"
           headers['ContentDisposition'] = "attachment; filename=#{filename}"
         end
       end
     end
 
     def show
-      filename = "Research Export - #{Time.current.to_s(:db)}.xlsx"
+      filename = "Research Export - #{Time.current.to_fs(:db)}.xlsx"
       headers['Content-Disposition'] = "attachment; filename=#{filename}"
       export = report.export
       send_data(export.content, type: export.content_type, filename: filename)

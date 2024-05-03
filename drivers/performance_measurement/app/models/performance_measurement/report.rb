@@ -23,8 +23,6 @@ module PerformanceMeasurement
 
     attr_accessor :households
 
-    acts_as_paranoid
-
     belongs_to :user
     belongs_to :goal_configuration, class_name: 'PerformanceMeasurement::Goal'
     has_many :clients

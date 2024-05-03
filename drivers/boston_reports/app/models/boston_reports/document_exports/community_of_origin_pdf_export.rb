@@ -37,7 +37,7 @@ module BostonReports::DocumentExports
         )
         PdfGenerator.new.perform(
           html: html,
-          file_name: "Community of Origin #{DateTime.current.to_s(:db)}",
+          file_name: "Community of Origin #{DateTime.current.to_fs(:db)}",
         ) do |io|
           self.pdf_file = io
         end
