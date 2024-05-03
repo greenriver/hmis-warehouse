@@ -12,10 +12,8 @@ class Hmis::Hud::CustomService < Hmis::Hud::Base
   include ::HmisStructure::Service
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
+  include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
   include ::Hmis::Hud::Concerns::HasCustomDataElements
-
-  belongs_to :enrollment, primary_key: :slug, foreign_key: :enrollment_slug, optional: true, class_name: 'Hmis::Hud::Enrollment'
-  has_one :project, through: :enrollment
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :services, optional: true
