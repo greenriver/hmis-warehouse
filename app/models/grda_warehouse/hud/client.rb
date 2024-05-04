@@ -1407,7 +1407,7 @@ module GrdaWarehouse::Hud
     end
 
     memoize def pii(user: nil)
-      GrdaWarehouse::ClientPii.new(user: user, client: self)
+      GrdaWarehouse::ClientPii.new(self, user: user)
     end
 
     def name

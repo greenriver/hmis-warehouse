@@ -1,26 +1,36 @@
 # mask PII attributes on the client record
 class GrdaWarehouse::ClientPii
-  attr_reader :user, :client
+  attr_reader :user, :record
 
-  def initialize(user:, client:)
+  def initialize(record, user: nil)
     @user = user
-    @client = client
+    @record = record
   end
 
- #def self.from_client(user:, client:)
- #  self.new(user: user, adapter: adapter)
- #end
+  ClientPiiRecordAdapter = Struct.new(:first_name, :last_name, :middle_name, :ssn, :dob, keyword_init: true)
+
+  # GrdaWarehouse::ClientPii.from_attributes(user: current_user, dob: dob)
+  def self.from_attributes(user: nil, first_name: nil, last_name: nil, middle_name: nil, dob: nil, ssn: nil)
+    record = ClientPiiRecordAdapter.new(
+      first_name: first_name,
+      last_name: last_name,
+      middle_name: middle_name,
+      dob: dob,
+      ssn: ssn,
+    )
+    new(record, user: user)
+  end
 
   def first_name
-    name_part(client.first_name.presence)
+    name_part(record.first_name)
   end
 
   def last_name
-    name_part(client.last_name.presence)
+    name_part(record.last_name)
   end
 
   def middle_name
-    name_part(client.middle_name.presence)
+    name_part(record.middle_name)
   end
 
   def full_name
@@ -36,15 +46,15 @@ class GrdaWarehouse::ClientPii
   end
 
   def dob
-    can_view_full_dob? ? client.dob : nil
+    can_view_full_dob? ? record.dob : nil
   end
 
   def age
-    GrdaWarehouse::Hud::Client.age(date: Date.current, dob: client.dob)
+    GrdaWarehouse::Hud::Client.age(date: Date.current, dob: record.dob)
   end
 
   def ssn
-    value = client.ssn.presence
+    value = record.ssn.presence
     format_ssn(value, mask: !can_view_full_ssn?) if value
   end
 
@@ -64,6 +74,8 @@ class GrdaWarehouse::ClientPii
   end
 
   def name_part(value, substitute: '*****')
+    return nil unless value.present?
+
     can_view_client_name? ? value : "#{value.slice(0)}#{substitute}"
   end
 end
