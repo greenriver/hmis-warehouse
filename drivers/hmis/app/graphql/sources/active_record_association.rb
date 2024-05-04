@@ -8,12 +8,21 @@
 
 class Sources::ActiveRecordAssociation < ::GraphQL::Dataloader::Source
   def initialize(association_name, scope = nil)
+    raise "association must be symbol #{association_name.inspect}" unless association_name.is_a?(Symbol)
+
     @association_name = association_name
     @scope = scope
   end
 
   def fetch(records)
-    ::ActiveRecord::Associations::Preloader.new(records: records, associations: @association_name, scope: @scope).call
+    raise if records.map(&:class).uniq.many?
+
+    TodoOrDie('test behavior after rails upgrade, see #6019', if: Rails.version !~ /\A7\.0/)
+    # in rails 7.0, calling preloader more than once can cause unscoped queries. Resetting association before preload
+    # seems to address this.
+    records.each { |record| record.association(@association_name).reset }
+
+    ::ActiveRecord::Associations::Preloader.new(records: records, associations: [@association_name], scope: @scope).call
     records.map { |record| record.public_send(@association_name) }
   end
 
