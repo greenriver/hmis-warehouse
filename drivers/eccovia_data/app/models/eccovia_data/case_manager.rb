@@ -26,7 +26,7 @@ module EccoviaData
       fetch_time = Time.current
       ids = warehouse_enrollment_ids(data_source_id: data_source_id, credentials: credentials, since: since)
       ids.each_slice(EccoviaData::Credential::PAGE_SIZE) do |id_batch|
-        query = "crql?q=select ClientID, EnrollID, ClntCaseID from Enrollment where EnrollID in (#{quote(id_batch)}) and UpdatedDate > '#{since.to_s(:db)}'"
+        query = "crql?q=select ClientID, EnrollID, ClntCaseID from Enrollment where EnrollID in (#{quote(id_batch)}) and UpdatedDate > '#{since.to_fs(:db)}'"
         credentials.get_all_in_batches(query) do |enrollments|
           break unless enrollments.present?
 

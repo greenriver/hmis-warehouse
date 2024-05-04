@@ -42,10 +42,9 @@ FY2023 Changes
 		, format(hp.DateUpdated, 'yyyy-MM-dd HH:mm:ss')
 		, rpt.ReportID
 	from hmis_Project hp
-	inner join lsa_Report rpt on rpt.ReportEnd >= hp.OperatingStartDate 
-	inner join hmis_ProjectCoC coc on coc.CoCCode = rpt.ReportCoC
-		and coc.ProjectID = hp.ProjectID
+	inner join hmis_ProjectCoC coc on coc.ProjectID = hp.ProjectID
 		and coc.DateDeleted is null
+	inner join lsa_Report rpt on rpt.ReportCoC = coc.CoCCode 
 	where hp.DateDeleted is null
 		and hp.ContinuumProject = 1 
 		and hp.ProjectType in (0,1,2,3,8,9,10,13)

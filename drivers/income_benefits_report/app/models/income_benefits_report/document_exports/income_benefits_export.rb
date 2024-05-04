@@ -42,7 +42,7 @@ module IncomeBenefitsReport::DocumentExports
         )
         PdfGenerator.new.perform(
           html: html,
-          file_name: "Income Benefits #{DateTime.current.to_s(:db)}",
+          file_name: "Income Benefits #{DateTime.current.to_fs(:db)}",
         ) do |io|
           self.pdf_file = io
         end

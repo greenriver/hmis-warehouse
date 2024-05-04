@@ -46,7 +46,7 @@ module UserDirectoryReport::DocumentExports
             format: :xlsx,
             assigns: view_assigns,
           ),
-          "Warehouse User Directory Report - #{Time.current.to_s(:db)}",
+          "Warehouse User Directory Report - #{Time.current.to_fs(:db)}",
         ) do |io|
           self.downloadable_file = io
         end

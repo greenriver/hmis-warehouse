@@ -59,11 +59,11 @@ class Hmis::Hud::CustomCaseNote < Hmis::Hud::Base
 
     case option
     when :date_updated
-      order(arel_table[:date_updated].desc)
+      order(arel_table[:date_updated].desc, id: :desc)
     when :date_created
-      order(arel_table[:date_created].desc)
+      order(arel_table[:date_created].desc, id: :desc)
     when :information_date
-      order(arel_table[:information_date].desc.nulls_last)
+      order(arel_table[:information_date].desc.nulls_last, id: :desc)
     else
       raise NotImplementedError
     end

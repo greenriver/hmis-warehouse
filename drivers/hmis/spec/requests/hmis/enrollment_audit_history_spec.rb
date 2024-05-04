@@ -65,7 +65,7 @@ RSpec.describe 'Client Audit History Query', type: :request do
       records = run_query(id: e1.id, filters: { user: [hmis_user2.id.to_s] })
       expect(records.size).to eq(1)
       expect(records.dig(0, 'objectChanges', 'entryDate', 'values')).
-        to eq([today - 1.day, today].map { |d| d.to_s(:db) })
+        to eq([today - 1.day, today].map { |d| d.to_fs(:db) })
     end
   end
 

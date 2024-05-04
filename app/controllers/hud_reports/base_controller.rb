@@ -73,7 +73,7 @@ module HudReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=#{generator.file_prefix} - #{DateTime.current.to_s(:db)}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{generator.file_prefix} - #{DateTime.current.to_fs(:db)}.xlsx"
           render template: 'hud_reports/download'
         end
       end
@@ -168,8 +168,8 @@ module HudReports
       defaults = {
         run_type: 'manual',
         creator: 'all',
-        start: (Date.current - 6.months).to_s,
-        end: Date.current.to_s,
+        start: (Date.current - 6.months).to_fs,
+        end: Date.current.to_fs,
       }
       @view_filter = {}
       @view_filter[:run_type] = view_filter_params[:run_type] || defaults[:run_type]
@@ -222,7 +222,7 @@ module HudReports
     end
 
     private def zip_filename
-      "#{generator.file_prefix} - #{DateTime.current.to_s(:db)}.zip"
+      "#{generator.file_prefix} - #{DateTime.current.to_fs(:db)}.zip"
     end
 
     private def report_scope
