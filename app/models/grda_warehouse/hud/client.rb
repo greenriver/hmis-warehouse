@@ -1406,10 +1406,9 @@ module GrdaWarehouse::Hud
       end
     end
 
-    def pii(user: nil)
+    memoize def pii(user: nil)
       GrdaWarehouse::ClientPii.new(user: user, client: self)
     end
-    memoize :display
 
     def name
       "#{self.FirstName} #{self.LastName}"

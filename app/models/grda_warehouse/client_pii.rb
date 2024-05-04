@@ -7,6 +7,10 @@ class GrdaWarehouse::ClientPii
     @client = client
   end
 
+ #def self.from_client(user:, client:)
+ #  self.new(user: user, adapter: adapter)
+ #end
+
   def first_name
     name_part(client.first_name.presence)
   end
@@ -27,9 +31,8 @@ class GrdaWarehouse::ClientPii
     [first_name, last_name].compact.join(' ').presence
   end
 
-  DATE_FMT = '%m/%d/%Y'.freeze
   def dob_or_age
-    dob&.strftime(DATE_FMT) || age&.to_s
+    dob&.strftime(Date::DATE_FORMATS[:default]) || age&.to_s
   end
 
   def dob
