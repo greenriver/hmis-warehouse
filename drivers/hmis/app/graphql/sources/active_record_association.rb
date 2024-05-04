@@ -18,8 +18,8 @@ class Sources::ActiveRecordAssociation < ::GraphQL::Dataloader::Source
     raise if records.map(&:class).uniq.many?
 
     TodoOrDie('test behavior after rails upgrade, see #6019', if: Rails.version !~ /\A7\.0/)
-    # in rails 7.0, calling preloader more than once can cause unscoped queries. Resetting association before preload
-    # seems to address this.
+    # in rails 7.0, calling preloader more than once can cause unscoped queries, particularly with has-many-through.
+    # Resetting association before preload seems to address this
     records.each { |record| record.association(@association_name).reset }
 
     ::ActiveRecord::Associations::Preloader.new(records: records, associations: [@association_name], scope: @scope).call
