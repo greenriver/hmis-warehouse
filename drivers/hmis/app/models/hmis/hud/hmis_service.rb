@@ -56,20 +56,20 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   end
 
   scope :with_service_type, ->(csts) do
-    params = []
-    sqls = []
-    csts.each do |cst|
+    conds = csts.map do |cst|
       if cst.hud_service?
-        sqls.push <<~SQL
-          custom_service_type_id = ? OR ("RecordType" = ? AND "TypeProvided" = ?)
-        SQL
-        params += [cst.id, cst.hud_record_type, cst.hud_type_provided]
+        # the arel is hard to parse, but this is just:
+        # custom_service_type_id = ? OR ("RecordType" = ? AND "TypeProvided" = ?)
+        arel_table[:custom_service_type_id].eq(cst.id).
+          or(
+            arel_table[:RecordType].eq(cst.hud_record_type).
+              or(arel_table[:TypeProvided].eq(cst.hud_type_provided)),
+          )
       else
-        sqls.push %(custom_service_type_id = ?)
-        params += [cst.id]
+        arel_table[:custom_service_type_id].eq(cst.id)
       end
     end
-    return where(sqls.join(' OR '), *params) if sqls.any?
+    return where(conds.reduce(&:or)) if conds.any?
 
     return none
   end

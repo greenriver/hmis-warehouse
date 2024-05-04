@@ -59,10 +59,8 @@ module Types
       custom_service_types_scope = Hmis::Hud::CustomServiceType.where(data_source_id: object.data_source_id)
       case object.owner_type
       when 'Hmis::Hud::Service'
-        # ideally we'd lazy load this
-        custom_service_types_scope.to_a.detect do |cst|
-          cst.hud_record_type == object.record_type && cst.hud_type_provided == object.type_provided
-        end
+        dataloader.with(Sources::CustomServiceTypeByHudTypeSource).
+          load([object.RecordType, object.TypeProvided])
       when 'Hmis::Hud::CustomService'
         load_ar_scope(scope: custom_service_types_scope, id: object.custom_service_type_id)
       else
