@@ -1023,7 +1023,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  actionpack (>= 6.1.7.7)
   active_median
   active_record_distinct_on
   active_record_extended
