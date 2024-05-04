@@ -23152,18 +23152,8 @@ CREATE TABLE public.recurring_hmis_exports (
     every_n_days integer,
     reporting_range character varying,
     reporting_range_days integer,
-    start_date date,
-    end_date date,
-    hash_status integer,
-    period_type integer,
-    directive integer,
-    include_deleted boolean,
     user_id integer,
-    faked_pii boolean,
     project_ids character varying,
-    project_group_ids character varying,
-    organization_ids character varying,
-    data_source_ids character varying,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     s3_region character varying,
@@ -23174,11 +23164,10 @@ CREATE TABLE public.recurring_hmis_exports (
     encrypted_s3_secret character varying,
     encrypted_s3_secret_iv character varying,
     deleted_at timestamp without time zone,
-    version character varying,
     encrypted_zip_password character varying,
     encrypted_zip_password_iv character varying,
     encryption_type character varying,
-    confidential boolean DEFAULT false NOT NULL
+    options jsonb
 );
 
 
@@ -62658,6 +62647,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240416155829'),
 ('20240419165229'),
 ('20240419174433'),
-('20240426133811');
+('20240426133811'),
+('20240503124656'),
+('20240503132627'),
+('20240503170130');
 
 
