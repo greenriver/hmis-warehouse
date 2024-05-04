@@ -3986,12 +3986,11 @@ FormIdentifier
 """
 type FormIdentifier {
   allVersions(limit: Int, offset: Int): FormDefinitionsPaginated!
+  displayVersion: FormDefinition!
   draft: FormDefinition
   id: String!
   identifier: String!
   published: FormDefinition
-  role: FormRole!
-  title: String!
 }
 
 input FormIdentifierFilterOptions {

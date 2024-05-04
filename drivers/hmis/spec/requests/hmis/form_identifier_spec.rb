@@ -44,12 +44,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             nodes {
               id
               identifier
-              title
-              role
               published {
                 ...FormDefinitionMetadata
               }
               draft {
+                ...FormDefinitionMetadata
+              }
+              displayVersion {
                 ...FormDefinitionMetadata
               }
               allVersions {
@@ -74,8 +75,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       identifiers = result.dig('data', 'formIdentifiers', 'nodes')
       expect(identifiers).to be_present
       expect(identifiers.first['identifier']).to eq('identifier_1')
-      expect(identifiers.first['role']).to eq('CUSTOM_ASSESSMENT')
-      expect(identifiers.first['title']).to eq('This is an assessment!')
+      expect(identifiers.first.dig('displayVersion', 'role')).to eq('CUSTOM_ASSESSMENT')
+      expect(identifiers.first.dig('displayVersion', 'title')).to eq('This is an assessment!')
       expect(identifiers.first.dig('published', 'title')).to eq('This is an assessment!')
       expect(identifiers.first.dig('draft', 'title')).to eq('The title of this assessment has changed!')
       expect(identifiers.first['allVersions']['nodesCount']).to eq(4)
