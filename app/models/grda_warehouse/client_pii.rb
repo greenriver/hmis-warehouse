@@ -1,4 +1,4 @@
-# mask PII attributes on the client record
+# Client PII accessors. Attributes are masked conditionally based on user permissions
 class GrdaWarehouse::ClientPii
   attr_reader :user, :record
 
@@ -8,6 +8,7 @@ class GrdaWarehouse::ClientPii
   end
 
   ClientPiiRecordAdapter = Struct.new(:first_name, :last_name, :middle_name, :ssn, :dob, keyword_init: true)
+  private_constant :ClientPiiRecordAdapter
 
   # GrdaWarehouse::ClientPii.from_attributes(user: current_user, dob: dob)
   def self.from_attributes(user: nil, first_name: nil, last_name: nil, middle_name: nil, dob: nil, ssn: nil)
@@ -62,15 +63,25 @@ class GrdaWarehouse::ClientPii
 
   delegate :can_view_full_dob?, :can_view_full_ssn?, :can_view_client_name?, to: :user, allow_nil: true
 
-  SSN_RGX = /(\d{3})[^\d]?(\d{2})[^\d]?(\d{4})/
   def format_ssn(value, mask: true)
-    # pad with leading 0s if we don't have enough characters
-    value = value.rjust(9, '0')
-    if mask
-      value.gsub(SSN_RGX, 'XXX-XX-\3')
-    else
-      value.gsub(SSN_RGX, '\1-\2-\3')
-    end
+    padded_ssn = pad_ssn(value)
+    mask ? format_masked_ssn(padded_ssn) : format_full_ssn(padded_ssn)
+  end
+
+  # Pad SSN with leading zeros to ensure it is 9 digits long
+  def pad_ssn(value)
+    value.rjust(9, '0')
+  end
+
+  SSN_RGX = /(\d{3})[^\d]?(\d{2})[^\d]?(\d{4})/
+  private_constant :SSN_RGX
+
+  def format_masked_ssn(value)
+    value.gsub(SSN_RGX, 'XXX-XX-\3').slice(0, 11)
+  end
+
+  def format_full_ssn(value)
+    value.gsub(SSN_RGX, '\1-\2-\3')
   end
 
   def name_part(value, substitute: '*****')
