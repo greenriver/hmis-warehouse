@@ -46,8 +46,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   has_many :external_form_publications, class_name: 'HmisExternalApis::ExternalForms::FormPublication', dependent: :destroy
   has_many :custom_data_element_definitions, class_name: 'Hmis::Hud::CustomDataElementDefinition', dependent: :nullify,
                                              primary_key: 'identifier', foreign_key: 'form_definition_identifier'
-  has_one :published_version, -> { published }, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
-  has_one :draft_version, -> { draft }, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
+  has_one :published_version, -> { order(version: :desc).published }, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
+  has_one :draft_version, -> { order(version: :desc).draft }, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
   has_many :all_versions, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
 
   # Forms that are used for Assessments. These are submitted using SubmitAssessment mutation.
