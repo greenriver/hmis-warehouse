@@ -3944,6 +3944,7 @@ type FormDefinition {
   identifier: String!
   rawDefinition: JsonObject!
   role: FormRole!
+  status: FormStatus!
   system: Boolean!
   title: String!
 }
@@ -4381,6 +4382,23 @@ type FormRulesPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+enum FormStatus {
+  """
+  3 - Draft
+  """
+  draft
+
+  """
+  2 - Published
+  """
+  published
+
+  """
+  1 - Retired
+  """
+  retired
 }
 
 type Funder {

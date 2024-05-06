@@ -29,6 +29,7 @@ module Types
     field :definition, Forms::FormDefinitionJson, null: false
     field :raw_definition, JsonObject, null: false
     field :system, Boolean, null: false
+    field :status, HmisSchema::Enums::FormStatus, null: false, default_value: Hmis::Form::Definition::DRAFT
     form_rules_field :form_rules, method: :instances
 
     # Filtering is implemented within this resolver rather than a separate concern. This
