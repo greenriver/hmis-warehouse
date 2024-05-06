@@ -12,7 +12,11 @@ module GraphqlPermissionChecker
     return false unless current_user.send("#{permission}?")
 
     loader, subject = current_user.entity_access_loader_factory(entity) do |record, association|
-      context.dataloader.with(Sources::ActiveRecordAssociation, association, nil).load(record)
+      if record.association(association).loaded?
+        record.public_send(association)
+      else
+        context.dataloader.with(Sources::ActiveRecordAssociation, association).load(record)
+      end
     end
     raise "Missing loader for #{entity.class.name}##{entity.id}" unless loader
 
