@@ -66,7 +66,7 @@ module CustomImportsBostonService
 
     private def header_lookup
       {
-        'Personal ID' => 'personal_id',
+        'Client ID' => 'personal_id',
         'Unique Identifier' => 'unique_id',
         'Agency ID' => 'agency_id',
         'Enrollment ID' => 'enrollment_id',

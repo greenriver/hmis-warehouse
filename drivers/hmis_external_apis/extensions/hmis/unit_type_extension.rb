@@ -8,7 +8,7 @@ module HmisExternalApis
   module Hmis
     module UnitTypeExtension
       extend ActiveSupport::Concern
-      include ExternallyIdentifiedMixin
+      include HmisExternalApis::ExternallyIdentifiedMixin
 
       included do
         has_many :external_referral_requests, class_name: 'HmisExternalApis::AcHmis::ReferralRequest', dependent: :restrict_with_exception

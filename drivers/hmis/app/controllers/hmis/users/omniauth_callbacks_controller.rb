@@ -15,7 +15,7 @@ module Hmis
         sign_in(:hmis_user, user, event: :authentication)
         log('sign-in success')
         set_csrf_cookie
-        redirect_to hmis_host_url
+        redirect_to hmis_host_url, allow_other_host: true
       end
 
       def set_csrf_cookie

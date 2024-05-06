@@ -40,7 +40,7 @@ module HealthFlexibleService
     end
 
     private def render_pdf!
-      file_name = "VPR Follow Up #{DateTime.current.to_s(:db)}"
+      file_name = "VPR Follow Up #{DateTime.current.to_fs(:db)}"
       send_data pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 

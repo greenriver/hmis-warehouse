@@ -144,7 +144,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     when :name
       order(:ProjectName)
     when :organization_and_name
-      joins(:organization).order(o_t[:OrganizationName], p_t[:ProjectName])
+      joins(:organization).order(o_t[:OrganizationName], p_t[:ProjectName], id: :desc)
     else
       raise NotImplementedError
     end

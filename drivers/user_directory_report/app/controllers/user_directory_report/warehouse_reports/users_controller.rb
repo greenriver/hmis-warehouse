@@ -21,7 +21,7 @@ module UserDirectoryReport::WarehouseReports
       respond_to do |format|
         format.html { @pagy, @users = pagy(@users) }
         format.xlsx do
-          filename = "Warehouse User Directory Report - #{Time.current.to_s(:db)}.xlsx"
+          filename = "Warehouse User Directory Report - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
@@ -38,7 +38,7 @@ module UserDirectoryReport::WarehouseReports
       respond_to do |format|
         format.html { @pagy, @users = pagy(@users) }
         format.xlsx do
-          filename = "CAS User Directory Report - #{Time.current.to_s(:db)}.xlsx"
+          filename = "CAS User Directory Report - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end

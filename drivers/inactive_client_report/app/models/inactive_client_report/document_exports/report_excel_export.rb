@@ -40,7 +40,7 @@ module InactiveClientReport::DocumentExports
             format: :xlsx,
             assigns: view_assigns,
           ),
-          "#{report.class.name} - #{Time.current.to_s(:db)}",
+          "#{report.class.name} - #{Time.current.to_fs(:db)}",
         ) do |io|
           self.downloadable_file = io
         end

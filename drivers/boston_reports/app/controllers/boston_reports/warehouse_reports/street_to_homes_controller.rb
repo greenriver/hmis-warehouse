@@ -29,7 +29,7 @@ module BostonReports::WarehouseReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          filename = "Street to Home - #{Time.current.to_s(:db)}.xlsx"
+          filename = "Street to Home - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end

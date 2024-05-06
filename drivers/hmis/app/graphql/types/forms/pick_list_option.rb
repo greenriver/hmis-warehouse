@@ -53,6 +53,11 @@ module Types
           preload(:organization).
           sort_by_option(:organization_and_name).
           map(&:to_pick_list_option)
+      when 'OPEN_PROJECTS'
+        Hmis::Hud::Project.viewable_by(user).open_on_date(Date.current).
+          preload(:organization).
+          sort_by_option(:organization_and_name).
+          map(&:to_pick_list_option)
       when 'ORGANIZATION'
         Hmis::Hud::Organization.viewable_by(user).sort_by_option(:name).map(&:to_pick_list_option)
       when 'AVAILABLE_SERVICE_TYPES'
@@ -66,7 +71,7 @@ module Types
       when 'AVAILABLE_UNITS_FOR_ENROLLMENT'
         available_units_for_enrollment(project, household_id: household_id)
       when 'OPEN_HOH_ENROLLMENTS_FOR_PROJECT'
-        open_hoh_enrollments_for_project(project)
+        open_hoh_enrollments_for_project(project, user: user)
       when 'ENROLLMENTS_FOR_CLIENT'
         enrollments_for_client(client, user: user)
       when 'EXTERNAL_FORM_TYPES_FOR_PROJECT'
@@ -376,12 +381,12 @@ module Types
       picklist.compact
     end
 
-    def self.open_hoh_enrollments_for_project(project)
+    # This is used for selecting a household for an "outgoing referral"
+    def self.open_hoh_enrollments_for_project(project, user:)
       raise 'Project required' unless project.present?
 
-      # No need for viewable_by here because we know the project is already veiwable by the user
-      enrollments = project.enrollments.
-        open_on_date(Date.current + 1.day). # exclude clients that exited today
+      enrollments = project.enrollments.viewable_by(user).
+        open_excluding_wip.
         heads_of_households.
         preload(:client).
         preload(household: :enrollments)

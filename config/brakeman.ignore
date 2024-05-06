@@ -1699,7 +1699,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/organization.rb",
-      "line": 90,
+      "line": 91,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -1860,7 +1860,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/organization.rb",
-      "line": 65,
+      "line": 66,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{has_access_to_organization_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{has_access_to_organization_through_projects(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -2044,7 +2044,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called on model attribute",
       "file": "app/controllers/cohorts/clients_controller.rb",
-      "line": 466,
+      "line": 471,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "GrdaWarehouse::Cohort.available_columns.map(&:class).map(&:name).select do\n (m == params.require(:field))\n end.first.constantize",
       "render_path": null,
@@ -2331,7 +2331,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "app/views/common/_pagination_top.haml",
-      "line": 2,
+      "line": 3,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "pagy_info(@pagy, :item_name => Translation.translate((local_assigns[:item_name] or \"item\")).pluralize(@pagy.count))",
       "render_path": [
@@ -2400,29 +2400,6 @@
       "confidence": "Medium",
       "cwe_id": [
         89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Redirect",
-      "warning_code": 18,
-      "fingerprint": "bc859ee98d096f8661ae7acda9fc8c122004a13934a088f7c73ddbdbe8363a67",
-      "check_name": "Redirect",
-      "message": "Possible unprotected redirect",
-      "file": "app/controllers/user_training_controller.rb",
-      "line": 41,
-      "link": "https://brakemanscanner.org/docs/warning_types/redirect/",
-      "code": "redirect_to(Talentlms::Facade.new.course_url(current_user, Talentlms::Config.first.courseid, (clients_url or root_url), logout_talentlms_url))",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "UserTrainingController",
-        "method": "index"
-      },
-      "user_input": "Talentlms::Facade.new.course_url(current_user, Talentlms::Config.first.courseid, (clients_url or root_url), logout_talentlms_url)",
-      "confidence": "High",
-      "cwe_id": [
-        601
       ],
       "note": ""
     },
@@ -3206,6 +3183,6 @@
       "note": ""
     }
   ],
-  "updated": "2024-03-25 16:22:45 +0000",
-  "brakeman_version": "5.4.1"
+  "updated": "2024-04-09 02:50:32 +0000",
+  "brakeman_version": "6.1.2"
 }
