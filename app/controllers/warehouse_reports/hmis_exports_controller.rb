@@ -40,11 +40,14 @@ module WarehouseReports
     end
 
     def create
-      @filter = ::Filters::HmisExport.new(report_params.merge(user_id: current_user.id))
+      options = report_params.merge(user_id: current_user.id)
+      # options that are specific to recurring exports should be stored on the recurring export, not the filter
+      options = options.except(*recurrence_param_keys)
+      @filter = ::Filters::HmisExport.new(options)
       if @filter.valid?
         frequency = recurrence_params[:every_n_days].to_i || 0
         if frequency.positive?
-          recurring_export = GrdaWarehouse::RecurringHmisExport.create(recurrence_params.merge(user_id: current_user.id))
+          recurring_export = GrdaWarehouse::RecurringHmisExport.create(recurrence_params.merge(user_id: current_user.id, options: @filter.to_h))
           @filter.recurring_hmis_export_id = recurring_export.id
         end
         @filter.adjust_reporting_period
@@ -76,7 +79,7 @@ module WarehouseReports
 
     def update
       @export.recurring_hmis_export.update(recurrence_params.merge(user_id: current_user.id))
-      flash[:info] = 'Recurrence options updated'
+      flash[:notice] = 'Recurrence options updated'
       redirect_to warehouse_reports_hmis_exports_path
     end
 
@@ -134,38 +137,28 @@ module WarehouseReports
           project_group_ids: [],
           organization_ids: [],
           data_source_ids: [],
+          coc_codes: [],
         ),
       )
     end
 
     def recurrence_params
-      export_source.clean_params(
-        params.require(:filter).permit(
-          :version,
-          :start_date,
-          :end_date,
-          :hash_status,
-          :period_type,
-          :include_deleted,
-          :directive,
-          :faked_pii,
-          :confidential,
-          :every_n_days,
-          :reporting_range,
-          :reporting_range_days,
-          :s3_access_key_id,
-          :s3_secret_access_key,
-          :s3_region,
-          :s3_bucket,
-          :s3_prefix,
-          :zip_password,
-          :encryption_type,
-          project_ids: [],
-          project_group_ids: [],
-          organization_ids: [],
-          data_source_ids: [],
-        ),
-      )
+      export_source.clean_params(params.require(:filter).permit(*recurrence_param_keys))
+    end
+
+    private def recurrence_param_keys
+      [
+        :every_n_days,
+        :reporting_range,
+        :reporting_range_days,
+        :s3_access_key_id,
+        :s3_secret_access_key,
+        :s3_region,
+        :s3_bucket,
+        :s3_prefix,
+        :zip_password,
+        :encryption_type,
+      ]
     end
 
     def flash_interpolation_options
