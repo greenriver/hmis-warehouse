@@ -422,7 +422,7 @@ module Types
     def form_identifier(identifier:)
       raise 'Access denied' unless current_user.can_configure_data_collection?
 
-      Hmis::Form::Definition.where(identifier: identifier).published.first
+      Hmis::Form::Definition.non_static.latest_versions.where(identifier: identifier).first
     end
 
     field :form_identifiers, Types::Forms::FormIdentifier.page_type, null: false do
