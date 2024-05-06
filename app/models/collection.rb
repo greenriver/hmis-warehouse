@@ -4,6 +4,17 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Part of the "new" ACL permissions system
+#
+# A Collection is a set of entities that are the target of an AccessControl. It is analogous to the "AccessGroup" in the
+# legacy role-based permissions system
+#
+# Rules for project-related records are inclusive (a project is included if it's in access_group.projects OR if its
+# organization is included in access.group.organizations)
+#
+# Collections which are flagged as "system" are maintained automatically. For example when a project record is created
+# it is automatically added to the "All Projects" Collection
+#
 class Collection < ApplicationRecord
   include UserPermissionCache
 
@@ -16,10 +27,14 @@ class Collection < ApplicationRecord
   has_many :users, through: :access_controls
 
   has_many :group_viewable_entities, class_name: 'GrdaWarehouse::GroupViewableEntity'
+  # grants access to projects within these data sources
   has_many :data_sources, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::DataSource'
+  # grants access to projects within these organizations
   has_many :organizations, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Hud::Organization'
+  # grants access to projects
   has_many :projects, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Hud::Project'
   has_many :project_access_groups, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::ProjectAccessGroup'
+  # grants access to reports (report data is constrained by above project-filters)
   has_many :reports, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::WarehouseReports::ReportDefinition'
   has_many :project_groups, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::ProjectGroup'
   has_many :cohorts, through: :group_viewable_entities, source: :entity, source_type: 'GrdaWarehouse::Cohort'
