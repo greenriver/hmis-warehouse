@@ -27,6 +27,7 @@ module GrdaWarehouse::Tasks
       debug_log('Cleaning projects')
       @projects = load_projects
 
+      invalidate_service_for_moved_projects
       @projects.each do |project|
         any_enrollments = project.enrollments.exists?
 
@@ -56,7 +57,7 @@ module GrdaWarehouse::Tasks
       sh_project_types_for_check = sh_project_types(project)
       project_types_match_sh_types = true
       # If SHE only has one set of project types, that's generally good, just confirm they match the project's types
-      if sh_project_types_for_check.count == 1
+      if sh_project_types_for_check.count == 1 # rubocop:disable Style/IfUnlessModifier
         project_types_match_sh_types = project.ProjectType == sh_project_types_for_check.first
       end
       # If SHE has more than one set of project types, we'll need to rebuild
@@ -78,6 +79,21 @@ module GrdaWarehouse::Tasks
         ).update_all(project_type: project.ProjectType)
       end
       debug_log("done invalidating enrollments for #{project.ProjectName}")
+    end
+
+    def invalidate_service_for_moved_projects
+      scope = GrdaWarehouse::ServiceHistoryEnrollment.left_outer_joins(:project).where(p_t[:id].eq(nil))
+      invalid_count = scope.count
+      return unless invalid_count.positive?
+
+      debug_log("Found #{invalid_count} enrollments with missing projects, usually because the project was moved to a different organization, forcing rebuild")
+      # This is hacky but we need to update the enrollment table
+      GrdaWarehouse::Hud::Enrollment.joins(:service_history_enrollment).
+        where(she_t[:id].in(Arel.sql(scope.select(:id).to_sql))).
+        update_all(processed_as: nil)
+      # delete all of the SHE since some of these would never get cleaned up otherwise
+      # note: this means these won't be available in the app until the rebuild occurs
+      scope.delete_all
     end
 
     def sh_project_types project
