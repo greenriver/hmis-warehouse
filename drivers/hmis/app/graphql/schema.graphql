@@ -3982,10 +3982,14 @@ type FormDefinitionsPaginated {
 }
 
 """
-FormIdentifier
+Type representing one form Identifier, which collects all versioned FormDefinitions for the same identifier
 """
 type FormIdentifier {
   allVersions(limit: Int, offset: Int): FormDefinitionsPaginated!
+
+  """
+  Form version to use for display in the configuration tool interface. The form itself may be draft, status, or retired.
+  """
   displayVersion: FormDefinition!
   draftVersion: FormDefinition
   id: String!
@@ -8701,7 +8705,7 @@ type Query {
   externalFormDefinition(identifier: String!): FormDefinition
   file(id: ID!): File
   formDefinition(id: ID!): FormDefinition
-  formDefinitions(filters: FormDefinitionFilterOptions, limit: Int, offset: Int): FormDefinitionsPaginated!
+  formDefinitions(filters: FormDefinitionFilterOptions, limit: Int, offset: Int): FormDefinitionsPaginated! @deprecated(reason: "replaced by FormIdentifiers query")
   formIdentifier(identifier: String!): FormIdentifier
   formIdentifiers(filters: FormIdentifierFilterOptions, limit: Int, offset: Int): FormIdentifiersPaginated!
   formRule(id: ID!): FormRule
