@@ -388,7 +388,7 @@ class Hmis::Role < ::ApplicationRecord
         sub_category: 'Admin Tools',
       },
       can_configure_data_collection: {
-        description: 'Ability to configure rules for custom assessments, services, auto-exit, etc, but not to edit forms',
+        description: 'Ability to configure data collection rules for assessments, services, auto-exit, and more.',
         administrative: true,
         access: [:editable],
         category: 'Administration',
