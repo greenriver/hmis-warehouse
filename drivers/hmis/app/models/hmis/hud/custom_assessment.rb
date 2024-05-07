@@ -147,40 +147,26 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
       # Save FormProcessor to save wip values and/or related records
       form_processor.save! # Not passing validation context because records have already been validated
 
-      # If Assessment is being saved as Work-in-progress, just save and return
+      # Save the assessment record
       if as_wip
-        # TODO enforce cant move from nonWIP=>WIP
         save_in_progress
-        return
+      else
+        save_not_in_progress
+        form_processor.store_assessment_questions! if form_processor.ce_assessment?
       end
 
-      # Whether this is the first time this assessment is submitted
-      is_first_submission = new_record? || in_progress?
-
-      save_not_in_progress
-
-      # If this is a CE Assessment, kick off job to store questions in HUD CE AssessmentQuestions table
-      form_processor.store_assessment_questions! if form_processor.ce_assessment?
-
-      # Save the Enrollment (not saved by FormProcessor because they dont have a relationship)
-      enrollment.save!
-      enrollment.touch # Update even if no changes to Enrollment
-
-      # Side-effects when submitting Intake for the first time
-      if is_first_submission && intake?
-        # Move Enrollment out of WIP status
-        # test is DateUpdated gonna be before this cuz of touch?
-        enrollment.save_not_in_progress!
+      unless as_wip
+        # Save the Enrollment (not saved by FormProcessor because they dont have a relationship)
+        enrollment.save!
+        enrollment.touch # Update even if no changes to Enrollment
+        # Move Enrollment out of WIP if this is a submitted intake
+        enrollment.save_not_in_progress! if intake?
+        # If this is an exit, release the unit
+        enrollment.release_unit!(enrollment.exit_date, user: current_user) if exit?
         # Accept referral in LINK if submitted intake (HoH)
-        enrollment.accept_referral!(current_user: current_user)
-      end
-
-      # Side-effects when submitting Exit for the first time
-      if is_first_submission && exit?
-        # Release assigned unit
-        enrollment.release_unit!(enrollment.exit_date, user: current_user)
+        enrollment.accept_referral!(current_user: current_user) if intake?
         # Close referral in LINK if submitted exit (HoH)
-        enrollment.close_referral!(current_user: current_user)
+        enrollment.close_referral!(current_user: current_user) if exit?
       end
     end
   end
