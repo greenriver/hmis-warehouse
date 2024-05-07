@@ -1407,8 +1407,8 @@ module GrdaWarehouse::Hud
     end
 
     memoize def pii(user: nil, project_id: nil)
-      GrdaWarehouse::ClientPii.new(self, user: user)
-      GrdaWarehouse::ClientPermission.new(project_id: project_id)
+      policy = GrdaWarehouse::ClientAccessPolicy.new(project_id: project_id, user: user)
+      GrdaWarehouse::ClientPii.new(policy, user: user)
     end
 
     def name
