@@ -871,7 +871,7 @@ module Concerns::HudLists2024
         433 => 'HCV voucher (tenant or project based) (not dedicated)',
         434 => 'Public housing unit',
         420 => 'Rental by client, with other ongoing housing subsidy',
-        436 => 'Emergency Housing Voucher',
+        436 => 'Housing Stability Voucher',
         437 => 'Family Unification Program Voucher (FUP)',
         438 => 'Foster Youth to Independence Initiative (FYI)',
         439 => 'Permanent Supportive Housing',
@@ -1675,6 +1675,7 @@ module Concerns::HudLists2024
       {
         1 => 'Client was found ineligible for PATH',
         2 => 'Client was not enrolled for other reason(s)',
+        3 => 'Unable to locate client',
       }.freeze
     end
 
