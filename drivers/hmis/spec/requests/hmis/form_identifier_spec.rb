@@ -20,10 +20,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let!(:access_control) { create_access_control(hmis_user, ds1) }
 
-  let!(:id1_retired1) { create :hmis_form_definition, identifier: 'identifier_1', version: 0, status: 'retired', title: 'This is an assessment!', role: 'CUSTOM_ASSESSMENT' }
-  let!(:id1_retired2) { create :hmis_form_definition, identifier: 'identifier_1', version: 1, status: 'retired', title: 'This is an assessment!', role: 'CUSTOM_ASSESSMENT' }
-  let!(:id1_published) { create :hmis_form_definition, identifier: 'identifier_1', version: 2, status: 'published', title: 'This is an assessment!', role: 'CUSTOM_ASSESSMENT' }
-  let!(:id1_draft) { create :hmis_form_definition, identifier: 'identifier_1', version: 3, status: 'draft', title: 'The title of this assessment has changed!', role: 'CUSTOM_ASSESSMENT' }
+  let!(:id1_retired1) { create :hmis_form_definition, identifier: 'identifier_1', version: 0, status: Hmis::Form::Definition::RETIRED, title: 'This is an assessment!', role: 'CUSTOM_ASSESSMENT' }
+  let!(:id1_retired2) { create :hmis_form_definition, identifier: 'identifier_1', version: 1, status: Hmis::Form::Definition::RETIRED, title: 'This is an assessment!', role: 'CUSTOM_ASSESSMENT' }
+  let!(:id1_published) { create :hmis_form_definition, identifier: 'identifier_1', version: 2, status: Hmis::Form::Definition::PUBLISHED, title: 'This is an assessment!', role: 'CUSTOM_ASSESSMENT' }
+  let!(:id1_draft) { create :hmis_form_definition, identifier: 'identifier_1', version: 3, status: Hmis::Form::Definition::DRAFT, title: 'The title of this assessment has changed!', role: 'CUSTOM_ASSESSMENT' }
 
   before(:each) do
     hmis_login(user)
