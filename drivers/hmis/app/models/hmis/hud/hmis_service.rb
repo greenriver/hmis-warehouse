@@ -91,7 +91,7 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   end
 
   # Helper to initialize the "owner" (Service or CustomService) based on a specified custom_service_type_id.
-  # Initialization happens in SubmitForm when submitting a new service.
+  # Initialization happens in SubmitForm when submitting a new service, and in BulkAssignService.
   private def initialize_owner
     raise 'Cannot initialize HmisService without a custom_service_type_id' unless custom_service_type_id.present?
 
