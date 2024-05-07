@@ -405,7 +405,7 @@ module Types
       Hmis::Form::Definition.with_role(:EXTERNAL_FORM).where(identifier: identifier).order(version: :desc).first
     end
 
-    field :form_definitions, Types::Forms::FormDefinition.page_type, null: false do
+    field :form_definitions, Types::Forms::FormDefinition.page_type, null: false, deprecation_reason: 'replaced by FormIdentifiers query' do
       filters_argument Forms::FormDefinition
     end
     def form_definitions(filters:)

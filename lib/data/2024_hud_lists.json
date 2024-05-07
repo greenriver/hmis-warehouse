@@ -2825,7 +2825,7 @@
       },
       {
         "key": 436,
-        "description": "Emergency Housing Voucher"
+        "description": "Housing Stability Voucher"
       },
       {
         "key": 437,
@@ -3676,6 +3676,10 @@
       {
         "key": 2,
         "description": "Client was not enrolled for other reason(s)"
+      },
+      {
+        "key": 3,
+        "description": "Unable to locate client"
       }
     ]
   },
