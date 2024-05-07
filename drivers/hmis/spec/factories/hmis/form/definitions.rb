@@ -9,7 +9,7 @@ FactoryBot.define do
     version { 1 }
     sequence(:identifier, 100)
     role { 'UPDATE' }
-    status { 'active' }
+    status { 'published' }
     title { 'Form' }
     definition do
       {

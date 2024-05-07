@@ -98,6 +98,65 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     end
   end
 
+  describe 'different form versions' do
+    # id1 has 2 retired, 1 published, and 1 draft version
+    let!(:id1_retired1) { create :hmis_form_definition, identifier: 'identifier_1', version: 0, status: 'retired' }
+    let!(:id1_retired2) { create :hmis_form_definition, identifier: 'identifier_1', version: 1, status: 'retired' }
+    let!(:id1_published) { create :hmis_form_definition, identifier: 'identifier_1', version: 2, status: 'published' }
+    let!(:id1_draft) { create :hmis_form_definition, identifier: 'identifier_1', version: 3, status: 'draft' }
+
+    # id2 exists only in draft
+    let!(:id2_draft) { create :hmis_form_definition, identifier: 'identifier_2', version: 0, status: 'draft' }
+
+    # id3 has 2 retired versions, no currently published or draft versions
+    let!(:id3_retired1) { create :hmis_form_definition, identifier: 'identifier_3', version: 0, status: 'retired' }
+    let!(:id3_retired2) { create :hmis_form_definition, identifier: 'identifier_3', version: 1, status: 'retired' }
+
+    it 'should have correct relationships when there are multiple retired, 1 published, and 1 draft' do
+      latest = Hmis::Form::Definition.where(identifier: 'identifier_1').latest_versions
+      expect(latest.size).to eq(1)
+      expect(latest.first).to eq(id1_draft)
+
+      expect(id1_retired1.published_version).to eq(id1_published)
+      expect(id1_retired1.draft_version).to eq(id1_draft)
+      expect(id1_draft.published_version).to eq(id1_published)
+    end
+
+    it 'should have no relationships when there is only 1 draft' do
+      latest = Hmis::Form::Definition.where(identifier: 'identifier_2').latest_versions
+      expect(latest.size).to eq(1)
+      expect(latest.first).to eq(id2_draft)
+
+      expect(id2_draft.published_version).to be_nil
+      expect(id2_draft.all_versions.size).to eq(1)
+    end
+
+    it 'should have correct relationships when there are no published or draft' do
+      latest = Hmis::Form::Definition.where(identifier: 'identifier_3').latest_versions
+      expect(latest.size).to eq(1)
+      expect(latest.first).to eq(id3_retired2)
+
+      expect(id3_retired2.draft_version).to be_nil
+      expect(id3_retired2.published_version).to be_nil
+      expect(id3_retired2.all_versions.size).to eq(2)
+    end
+
+    it 'should return one version per identifier' do
+      def_scope = Hmis::Form::Definition.where(identifier: ['identifier_1', 'identifier_2', 'identifier_3'])
+      latest = def_scope.latest_versions
+      expect(latest).to contain_exactly(id1_draft, id2_draft, id3_retired2)
+
+      drafts = def_scope.draft
+      expect(drafts).to contain_exactly(id1_draft, id2_draft)
+
+      published = def_scope.published
+      expect(published).to contain_exactly(id1_published)
+
+      retired = def_scope.retired
+      expect(retired).to contain_exactly(id1_retired1, id1_retired2, id3_retired1, id3_retired2)
+    end
+  end
+
   describe 'find_definition_for_service_type' do
     let(:role) { :SERVICE }
     it 'only service defintions for the specified service type are returned (regression test)' do
