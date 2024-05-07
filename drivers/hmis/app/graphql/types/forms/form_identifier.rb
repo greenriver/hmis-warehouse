@@ -7,7 +7,7 @@
 module Types
   class Forms::FormIdentifier < Types::BaseObject
     skip_activity_log
-    description 'FormIdentifier'
+    description 'Type representing one form Identifier, which collects all versioned FormDefinitions for the same identifier'
 
     # object is a Hmis::Form::Definition, but this schema type is a little funny because it doesn't
     # correspond to ONE FormDefinition -- it corresponds to a form _identifier_, such as `spdat`, which
