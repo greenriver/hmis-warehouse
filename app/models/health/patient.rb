@@ -356,8 +356,9 @@ module Health
     # CP 2 relaxed the requirements for the PCTP so that it required in-house clinical approval instead of needing
     # to be approved by the patients PCP.
     # Oct 31, 2023: simplified engagement to be based on PCTP being sent to PCP in the last year
+    # May 7, 2024: Removed requirement that the PCTP had to be sent in the last year, leaving just that it had to be sent
     def self.cp_2_engagement(on) # rubocop:disable Naming/MethodParameterName
-      where(id: Health::PctpCareplan.recent.sent_within(on - 365.days .. on).select(:patient_id))
+      where(id: Health::PctpCareplan.recent.sent_within(.. on).select(:patient_id))
     end
 
     scope :engagement_required_by, ->(date) do
