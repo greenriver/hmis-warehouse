@@ -221,6 +221,7 @@ module GrdaWarehouse
     def filter_hash
       hash = options
       hash[:recurring_hmis_export_id] = id
+      hash[:user_id] = user_id
       return hash
     end
   end
