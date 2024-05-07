@@ -620,6 +620,9 @@ GEM
     net-ssh (7.2.3)
     netrc (0.11.0)
     nio4r (2.7.1)
+    nokogiri (1.16.4)
+      mini_portile2 (~> 2.8.2)
+      racc (~> 1.4)
     nokogiri (1.16.4-arm64-darwin)
       racc (~> 1.4)
     oauth (1.1.0)
@@ -1017,9 +1020,9 @@ GEM
 
 PLATFORMS
   arm64-darwin-22
+  ruby
 
 DEPENDENCIES
-  actionpack (>= 6.1.7.7)
   active_median
   active_record_distinct_on
   active_record_extended

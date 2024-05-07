@@ -113,7 +113,7 @@ module Filters
     end
 
     def self.options_for_version
-      available_versions.map { |v| [v.label, v.version_str] }
+      available_versions.map { |v| [v.label, v.version_str] }.uniq
     end
 
     def schedule_job(report_url:)

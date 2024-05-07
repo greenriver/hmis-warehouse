@@ -39,7 +39,12 @@ module Types
 
       return false unless GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_enrollment_details, entity: object)
 
-      project = ctx.dataloader.with(Sources::ActiveRecordAssociation, :project).load(object)
+      project = if object.association(:project).loaded?
+        object.project
+      else
+        ctx.dataloader.with(Sources::ActiveRecordAssociation, :project).load(object)
+      end
+
       GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_project, entity: project)
     end
 
