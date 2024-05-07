@@ -46,12 +46,6 @@ module Hmis::Hud::Processors
       hmis_service = @processor.owner_factory
       hmis_service.assign_attributes(user: @processor.hud_user)
       hmis_service.owner.assign_attributes(user: @processor.hud_user)
-      return unless hmis_service.hud_service?
-
-      hmis_service.owner.assign_attributes(
-        record_type: hmis_service.service_type&.hud_record_type,
-        type_provided: hmis_service.service_type&.hud_type_provided,
-      )
     end
   end
 end
