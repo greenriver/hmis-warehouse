@@ -380,8 +380,15 @@ class Hmis::Role < ::ApplicationRecord
         category: 'Administration',
         sub_category: 'Enrollment Management',
       },
+      can_manage_forms: {
+        description: 'Ability to edit forms',
+        administrative: true,
+        access: [:editable],
+        category: 'Administration',
+        sub_category: 'Admin Tools',
+      },
       can_configure_data_collection: {
-        description: 'Ability to configure custom assessments, services, auto-exit, and other application rules',
+        description: 'Ability to configure data collection rules for assessments, services, auto-exit, and more.',
         administrative: true,
         access: [:editable],
         category: 'Administration',

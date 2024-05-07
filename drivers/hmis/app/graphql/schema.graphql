@@ -8783,6 +8783,7 @@ type QueryAccess {
   canManageClientAlerts: Boolean!
   canManageDeniedReferrals: Boolean!
   canManageExternalFormSubmissions: Boolean!
+  canManageForms: Boolean!
   canManageIncomingReferrals: Boolean!
   canManageInventory: Boolean!
   canManageOutgoingReferrals: Boolean!
