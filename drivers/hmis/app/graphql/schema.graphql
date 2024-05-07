@@ -4390,17 +4390,17 @@ type FormRulesPaginated {
 
 enum FormStatus {
   """
-  3 - Draft
+  Draft
   """
   draft
 
   """
-  2 - Published
+  Published
   """
   published
 
   """
-  1 - Retired
+  Retired
   """
   retired
 }
