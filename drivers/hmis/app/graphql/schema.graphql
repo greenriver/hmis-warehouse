@@ -3987,10 +3987,10 @@ FormIdentifier
 type FormIdentifier {
   allVersions(limit: Int, offset: Int): FormDefinitionsPaginated!
   displayVersion: FormDefinition!
-  draft: FormDefinition
+  draftVersion: FormDefinition
   id: String!
   identifier: String!
-  published: FormDefinition
+  publishedVersion: FormDefinition
 }
 
 input FormIdentifierFilterOptions {

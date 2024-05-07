@@ -23,8 +23,8 @@ module Types
     field :id, String, null: false
     field :identifier, String, null: false
 
-    field :published, Types::Forms::FormDefinition, null: true
-    field :draft, Types::Forms::FormDefinition, null: true
+    field :published_version, Types::Forms::FormDefinition, null: true
+    field :draft_version, Types::Forms::FormDefinition, null: true
     field :all_versions, Types::Forms::FormDefinition.page_type, null: false
     field :display_version, Types::Forms::FormDefinition, null: false
 
@@ -33,11 +33,11 @@ module Types
       object.identifier
     end
 
-    def published
+    def published_version
       load_ar_association(object, :published_version)
     end
 
-    def draft
+    def draft_version
       load_ar_association(object, :draft_version)
     end
 
@@ -49,7 +49,7 @@ module Types
       # This is a helper for the frontend to display info like the form title, role, etc.
       # Unlike the published and draft versions, it can't be nil.
       # If there exists a published version corresponding to this identifier, use it; otherwise, return the latest
-      published || all_versions.first
+      published_version || all_versions.first
     end
   end
 end
