@@ -68,6 +68,11 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     where(data_collection_stage: stages)
   end
 
+  scope :with_form_definition_identifier, ->(form_identifiers) do
+    # TODO(#187248703): simplify this query to just look at custom_assessment.definition_identifier and avoid the join
+    joins(:definition).merge(Hmis::Form::Definition.where(identifier: form_identifiers))
+  end
+
   scope :with_project_type, ->(project_types) do
     joins(:project).merge(Hmis::Hud::Project.with_project_type(project_types))
   end
@@ -81,9 +86,9 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
     case option
     when :assessment_date
-      order(assessment_date: :desc, date_created: :desc)
+      order(assessment_date: :desc, date_created: :desc, id: :desc)
     when :date_updated
-      order(date_updated: :desc)
+      order(date_updated: :desc, id: :desc)
     else
       raise NotImplementedError
     end

@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
+        
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -4294,20 +4294,58 @@ CREATE TABLE public.service_history_services_was_for_inheritance (
 
 
 --
+-- Name: service_history_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.service_history_services_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: service_history_services_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.service_history_services_id_seq OWNED BY public.service_history_services_was_for_inheritance.id;
+
+
+--
+-- Name: service_history_services; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.service_history_services (
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+)
+PARTITION BY RANGE (date);
+
+
+--
 -- Name: bi_service_history_services; Type: VIEW; Schema: public; Owner: -
 --
 
 CREATE VIEW public.bi_service_history_services AS
- SELECT service_history_services_was_for_inheritance.id,
-    service_history_services_was_for_inheritance.service_history_enrollment_id,
-    service_history_services_was_for_inheritance.record_type,
-    service_history_services_was_for_inheritance.date,
-    service_history_services_was_for_inheritance.age,
-    service_history_services_was_for_inheritance.client_id,
-    service_history_services_was_for_inheritance.project_type
-   FROM (public.service_history_services_was_for_inheritance
-     JOIN public."Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_services_was_for_inheritance.client_id))))
-  WHERE (service_history_services_was_for_inheritance.date >= (CURRENT_DATE - '5 years'::interval));
+ SELECT service_history_services.id,
+    service_history_services.service_history_enrollment_id,
+    service_history_services.record_type,
+    service_history_services.date,
+    service_history_services.age,
+    service_history_services.client_id,
+    service_history_services.project_type
+   FROM (public.service_history_services
+     JOIN public."Client" ON ((("Client"."DateDeleted" IS NULL) AND ("Client".id = service_history_services.client_id))))
+  WHERE (service_history_services.date >= (CURRENT_DATE - '5 years'::interval));
 
 
 --
@@ -13372,40 +13410,6 @@ ALTER SEQUENCE public.hmis_assessments_id_seq OWNED BY public.hmis_assessments.i
 
 
 --
--- Name: hmis_auto_exit_configs; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_auto_exit_configs (
-    id bigint NOT NULL,
-    length_of_absence_days integer NOT NULL,
-    project_type integer,
-    organization_id bigint,
-    project_id bigint,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_auto_exit_configs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_auto_exit_configs_id_seq OWNED BY public.hmis_auto_exit_configs.id;
-
-
---
 -- Name: hmis_case_notes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -13586,25 +13590,6 @@ CREATE SEQUENCE public.hmis_client_merge_histories_id_seq
 --
 
 ALTER SEQUENCE public.hmis_client_merge_histories_id_seq OWNED BY public.hmis_client_merge_histories.id;
-
-
---
--- Name: hmis_wips; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_wips (
-    id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    project_id bigint,
-    enrollment_id bigint,
-    source_type character varying,
-    source_id bigint,
-    date date NOT NULL,
-    data jsonb,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
 
 
 --
@@ -18240,8 +18225,8 @@ CREATE TABLE public.hmis_form_definitions (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     title character varying NOT NULL,
-    deleted_at timestamp without time zone,
-    external_form_object_key character varying
+    external_form_object_key character varying,
+    deleted_at timestamp without time zone
 );
 
 
@@ -18576,7 +18561,9 @@ CREATE TABLE public.hmis_import_configs (
     encrypted_zip_file_password_iv character varying,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    file_count integer DEFAULT 1 NOT NULL
+    file_count integer DEFAULT 1 NOT NULL,
+    s3_role_arn character varying,
+    s3_external_id character varying
 );
 
 
@@ -18942,6 +18929,25 @@ CREATE SEQUENCE public.hmis_units_id_seq
 --
 
 ALTER SEQUENCE public.hmis_units_id_seq OWNED BY public.hmis_units.id;
+
+
+--
+-- Name: hmis_wips; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_wips (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    project_id bigint,
+    enrollment_id bigint,
+    source_type character varying,
+    source_id bigint,
+    date date NOT NULL,
+    data jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
 
 
 --
@@ -23112,18 +23118,8 @@ CREATE TABLE public.recurring_hmis_exports (
     every_n_days integer,
     reporting_range character varying,
     reporting_range_days integer,
-    start_date date,
-    end_date date,
-    hash_status integer,
-    period_type integer,
-    directive integer,
-    include_deleted boolean,
     user_id integer,
-    faked_pii boolean,
     project_ids character varying,
-    project_group_ids character varying,
-    organization_ids character varying,
-    data_source_ids character varying,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     s3_region character varying,
@@ -23134,11 +23130,10 @@ CREATE TABLE public.recurring_hmis_exports (
     encrypted_s3_secret character varying,
     encrypted_s3_secret_iv character varying,
     deleted_at timestamp without time zone,
-    version character varying,
     encrypted_zip_password character varying,
     encrypted_zip_password_iv character varying,
     encryption_type character varying,
-    confidential boolean DEFAULT false NOT NULL
+    options jsonb
 );
 
 
@@ -23809,44 +23804,6 @@ CREATE SEQUENCE public.secure_files_id_seq
 --
 
 ALTER SEQUENCE public.secure_files_id_seq OWNED BY public.secure_files.id;
-
-
---
--- Name: service_history_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.service_history_services_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: service_history_services_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.service_history_services_id_seq OWNED BY public.service_history_services_was_for_inheritance.id;
-
-
---
--- Name: service_history_services; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.service_history_services (
-    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
-    service_history_enrollment_id integer NOT NULL,
-    record_type character varying(50) NOT NULL,
-    date date NOT NULL,
-    age smallint,
-    service_type smallint,
-    client_id integer,
-    project_type smallint,
-    homeless boolean,
-    literally_homeless boolean
-)
-PARTITION BY RANGE (date);
 
 
 --
@@ -28723,13 +28680,6 @@ ALTER TABLE ONLY public.hmis_assessments ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
--- Name: hmis_auto_exit_configs id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_auto_exit_configs ALTER COLUMN id SET DEFAULT nextval('public.hmis_auto_exit_configs_id_seq'::regclass);
-
-
---
 -- Name: hmis_case_notes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -32175,14 +32125,6 @@ ALTER TABLE ONLY public.hmis_assessment_details
 
 ALTER TABLE ONLY public.hmis_assessments
     ADD CONSTRAINT hmis_assessments_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_auto_exit_configs hmis_auto_exit_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_auto_exit_configs
-    ADD CONSTRAINT hmis_auto_exit_configs_pkey PRIMARY KEY (id);
 
 
 --
@@ -50946,13 +50888,6 @@ CREATE INDEX "index_Enrollment_on_ProjectID_and_data_source_id" ON public."Enrol
 
 
 --
--- Name: index_Enrollment_on_project_pk; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Enrollment_on_project_pk" ON public."Enrollment" USING btree (project_pk);
-
-
---
 -- Name: index_Enrollment_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50971,6 +50906,13 @@ CREATE INDEX "index_Enrollment_on_data_source_id_and_PersonalID" ON public."Enro
 --
 
 CREATE INDEX "index_Enrollment_on_pending_date_deleted" ON public."Enrollment" USING btree (pending_date_deleted);
+
+
+--
+-- Name: index_Enrollment_on_project_pk; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Enrollment_on_project_pk" ON public."Enrollment" USING btree (project_pk);
 
 
 --
@@ -53218,20 +53160,6 @@ CREATE INDEX index_hmis_assessments_on_name ON public.hmis_assessments USING btr
 --
 
 CREATE INDEX index_hmis_assessments_on_site_id ON public.hmis_assessments USING btree (site_id);
-
-
---
--- Name: index_hmis_auto_exit_configs_on_organization_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_auto_exit_configs_on_organization_id ON public.hmis_auto_exit_configs USING btree (organization_id);
-
-
---
--- Name: index_hmis_auto_exit_configs_on_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_auto_exit_configs_on_project_id ON public.hmis_auto_exit_configs USING btree (project_id);
 
 
 --
@@ -59710,13 +59638,6 @@ CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "Personal
 
 
 --
--- Name: tt_hh_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX tt_hh_id ON public.service_history_enrollments USING btree (household_id);
-
-
---
 -- Name: tx_id_ds_id_ft_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -59783,7 +59704,21 @@ CREATE UNIQUE INDEX uidx_hmis_external_unit_availability_syncs ON public.hmis_ex
 -- Name: uidx_hmis_form_definitions_identifier; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX uidx_hmis_form_definitions_identifier ON public.hmis_form_definitions USING btree (identifier, version);
+CREATE UNIQUE INDEX uidx_hmis_form_definitions_identifier ON public.hmis_form_definitions USING btree (identifier, version) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: uidx_hmis_form_definitions_one_draft_per_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_form_definitions_one_draft_per_identifier ON public.hmis_form_definitions USING btree (identifier) WHERE (((status)::text = 'draft'::text) AND (deleted_at IS NULL));
+
+
+--
+-- Name: uidx_hmis_form_definitions_one_published_per_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_form_definitions_one_published_per_identifier ON public.hmis_form_definitions USING btree (identifier) WHERE (((status)::text = 'published'::text) AND (deleted_at IS NULL));
 
 
 --
@@ -62437,19 +62372,19 @@ ALTER TABLE ONLY public."Funder"
 
 
 --
--- Name: hmis_external_referral_household_members fk_rails_f16596e413; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_external_referral_household_members
-    ADD CONSTRAINT fk_rails_f16596e413 FOREIGN KEY (referral_id) REFERENCES public.hmis_external_referrals(id);
-
-
---
 -- Name: Enrollment fk_rails_enrollment_project_pk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."Enrollment"
     ADD CONSTRAINT fk_rails_enrollment_project_pk FOREIGN KEY (project_pk) REFERENCES public."Project"(id);
+
+
+--
+-- Name: hmis_external_referral_household_members fk_rails_f16596e413; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_referral_household_members
+    ADD CONSTRAINT fk_rails_f16596e413 FOREIGN KEY (referral_id) REFERENCES public.hmis_external_referrals(id);
 
 
 --
@@ -62653,4 +62588,13 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240409215111'),
 ('20240411183410'),
 ('20240413183410'),
-('20240416155829');
+('20240416155829'),
+('20240419165229'),
+('20240419174433'),
+('20240426133811'),
+('20240503124656'),
+('20240503132627'),
+('20240503170130'),
+('20240506204908');
+
+

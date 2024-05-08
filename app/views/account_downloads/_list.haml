@@ -17,5 +17,5 @@
           %td
             = link_to item.download_title, item.download_url, download: 'download'
           %td
-            = item.created_at.to_s(:long)
+            = item.created_at.to_fs(:long)
           %td= link_to 'Report', "#{item.generator_url}?#{item.query_string}"

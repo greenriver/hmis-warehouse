@@ -39,7 +39,7 @@ module HmisDataQualityTool::DocumentExports
         )
         PdfGenerator.new.perform(
           html: html,
-          file_name: "#{Translation.translate('HMIS Data Quality Tool')} #{DateTime.current.to_s(:db)}",
+          file_name: "#{Translation.translate('HMIS Data Quality Tool')} #{DateTime.current.to_fs(:db)}",
           options: {
             print_background: true,
             display_header_footer: true,

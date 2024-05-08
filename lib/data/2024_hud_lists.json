@@ -2832,6 +2832,56 @@
     ]
   },
   {
+    "name": "RentalSubsidyType",
+    "code": "3.12.A",
+    "values": [
+      {
+        "key": 428,
+        "description": "GPD TIP housing subsidy"
+      },
+      {
+        "key": 419,
+        "description": "VASH housing subsidy"
+      },
+      {
+        "key": 431,
+        "description": "RRH or equivalent subsidy"
+      },
+      {
+        "key": 433,
+        "description": "HCV voucher (tenant or project based) (not dedicated)"
+      },
+      {
+        "key": 434,
+        "description": "Public housing unit"
+      },
+      {
+        "key": 420,
+        "description": "Rental by client, with other ongoing housing subsidy"
+      },
+      {
+        "key": 436,
+        "description": "Housing Stability Voucher"
+      },
+      {
+        "key": 437,
+        "description": "Family Unification Program Voucher (FUP)"
+      },
+      {
+        "key": 438,
+        "description": "Foster Youth to Independence Initiative (FYI)"
+      },
+      {
+        "key": 439,
+        "description": "Permanent Supportive Housing"
+      },
+      {
+        "key": 440,
+        "description": "Other permanent housing dedicated for formerly homeless persons"
+      }
+    ]
+  },
+  {
     "name": "ResidencePriorLengthOfStay",
     "code": "3.917.2",
     "values": [

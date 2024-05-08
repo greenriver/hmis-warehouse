@@ -39,7 +39,12 @@ module Types
 
       return false unless GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_enrollment_details, entity: object)
 
-      project = ctx.dataloader.with(Sources::ActiveRecordAssociation, :project).load(object)
+      project = if object.association(:project).loaded?
+        object.project
+      else
+        ctx.dataloader.with(Sources::ActiveRecordAssociation, :project).load(object)
+      end
+
       GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_project, entity: project)
     end
 
@@ -88,6 +93,7 @@ module Types
     summary_field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false, default_value: 99
     summary_field :move_in_date, GraphQL::Types::ISO8601Date, null: true
     summary_field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
+    summary_field :auto_exited, Boolean, null: false
 
     field :last_service_date, GraphQL::Types::ISO8601Date, null: true do
       argument :service_type_id, ID, required: true
@@ -307,6 +313,10 @@ module Types
 
     def exit_destination
       exit&.destination
+    end
+
+    def auto_exited
+      exit&.auto_exited || false
     end
 
     def exit

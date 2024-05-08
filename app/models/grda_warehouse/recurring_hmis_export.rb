@@ -8,10 +8,7 @@ require 'pty'
 require 'expect'
 module GrdaWarehouse
   class RecurringHmisExport < GrdaWarehouseBase
-    serialize :project_ids, Array
-    serialize :project_group_ids, Array
-    serialize :organization_ids, Array
-    serialize :data_source_ids, Array
+    attr_accessor :version
 
     attr_encrypted :s3_access_key_id, key: ENV['ENCRYPTION_KEY'][0..31]
     attr_encrypted :s3_secret_access_key, key: ENV['ENCRYPTION_KEY'][0..31], attribute: 'encrypted_s3_secret'
@@ -222,26 +219,9 @@ module GrdaWarehouse
     end
 
     def filter_hash
-      hash = slice(
-        :start_date,
-        :end_date,
-        :hash_status,
-        :period_type,
-        :directive,
-        :include_deleted,
-        :project_ids,
-        :project_group_ids,
-        :organization_ids,
-        :data_source_ids,
-        :user_id,
-        :faked_pii,
-        :confidential,
-        :version,
-        :reporting_range,
-        :reporting_range_days,
-        :zip_password,
-      )
+      hash = options
       hash[:recurring_hmis_export_id] = id
+      hash[:user_id] = user_id
       return hash
     end
   end

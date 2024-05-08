@@ -31,62 +31,62 @@ Populates and references:
 	values (0, '9.1.0')
 
 	insert into tlsa_CountPops (PopID, HouseholdID, Step)
-	select 10, HouseholdID, '9.1.1' 
+	select distinct 10, HouseholdID, '9.1.1' 
 	from tlsa_HHID
 	where AHAR = 1 and HHAdultAge = 18 
 		and ActiveHHType = 1
 
 	insert into tlsa_CountPops (PopID, HouseholdID, Step)
-	select 11, HouseholdID, '9.1.2' 
+	select distinct 11, HouseholdID, '9.1.2' 
 	from tlsa_HHID
 	where AHAR = 1 and HHAdultAge = 24 
 		and ActiveHHType = 1
 
 	insert into tlsa_CountPops (PopID, HouseholdID, Step)
-	select 12, HouseholdID, '9.1.3' 
+	select distinct 12, HouseholdID, '9.1.3' 
 	from tlsa_HHID
 	where AHAR = 1 and HHParent = 1 and HHAdultAge in (18,24)
 		and ActiveHHType = 2
 
 	insert into tlsa_CountPops (PopID, HouseholdID, Step)
-	select 13, HouseholdID, '9.1.4' 
+	select distinct 13, HouseholdID, '9.1.4' 
 	from tlsa_HHID
 	where AHAR = 1 and HHVet = 1
 
 	insert into tlsa_CountPops (PopID, HouseholdID, Step)
-	select 14, HouseholdID, '9.1.5' 
+	select distinct 14, HouseholdID, '9.1.5' 
 	from tlsa_HHID
 	where AHAR = 1 and HHVet = 0 and HHAdultAge in (25,55)
 	and ActiveHHType = 1
 
 	insert into tlsa_CountPops (PopID, HouseholdID, Step)
-	select 15, HouseholdID, '9.1.6' 
+	select distinct 15, HouseholdID, '9.1.6' 
 	from tlsa_HHID
 	where AHAR = 1 and HHChronic = 1
 
 	insert into tlsa_CountPops (PopID, HouseholdID, Step)
-	select 18, HouseholdID, '9.1.7' 
+	select distinct 18, HouseholdID, '9.1.7' 
 	from tlsa_HHID
 	where AHAR = 1 and HHDisability = 1
 
 	insert into tlsa_CountPops (PopID, HouseholdID, Step)
-	select 19, HouseholdID, '9.1.8'
+	select distinct 19, HouseholdID, '9.1.8'
 	from tlsa_HHID
 	where AHAR = 1 and HHFleeingDV = 1
 
 	insert into tlsa_CountPops (PopID, HouseholdID, Step)
-	select 45, HouseholdID, '9.1.9' 
+	select distinct 45, HouseholdID, '9.1.9' 
 	from tlsa_HHID
 	where AHAR = 1 and HHAdultAge = 55
 		and ActiveHHType = 1
 
 	insert into tlsa_CountPops (PopID, HouseholdID, Step)
-	select 46, HouseholdID, '9.1.10' 
+	select distinct 46, HouseholdID, '9.1.10' 
 	from tlsa_HHID
 	where AHAR = 1 and HHParent = 1 and ActiveHHType = 3
 
 	insert into tlsa_CountPops (PopID, HouseholdID, Step)
-	select 48, HouseholdID, '9.1.11'
+	select distinct 48, HouseholdID, '9.1.11'
 	from tlsa_HHID
 	where AHAR = 1 and HHFleeingDV = 2
 
@@ -97,12 +97,12 @@ Populates and references:
 	where n.AHAR = 1 and lp.VetStatus = 1
 
 	insert into tlsa_CountPops (PopID, PersonalID, HouseholdID, Step) 
-	select 51, hhid.HoHID, hhid.HouseholdID, '9.1.13'
+	select distinct 51, hhid.HoHID, hhid.HouseholdID, '9.1.13'
 	from tlsa_HHID hhid 
 	where hhid.AHAR = 1 and hhid.HHAdultAge in (18,24) and hhid.HHParent = 1 and hhid.ActiveHHType = 2
 
 	insert into tlsa_CountPops (PopID, PersonalID, HouseholdID, Step) 
-	select 52, hhid.HoHID, hhid.HouseholdID, '9.1.14' 
+	select distinct 52, hhid.HoHID, hhid.HouseholdID, '9.1.14' 
 	from tlsa_HHID hhid 
 	where hhid.AHAR = 1 and hhid.HHParent = 1 and hhid.ActiveHHType = 3
 
@@ -149,43 +149,43 @@ Populates and references:
 	where n.AHAR = 1 and lp.RaceEthnicity not in (98,99) 
 
 	insert into tlsa_CountPops (PopID, PersonalID, Step) 
-	select 71, n.PersonalID, '9.1.19' 
+	select distinct 71, n.PersonalID, '9.1.19' 
 	from tlsa_Enrollment n 
 	inner join tlsa_Person lp on lp.PersonalID = n.PersonalID 
 	where n.AHAR = 1 and cast(lp.RaceEthnicity as nvarchar) like '%1%' 
 
 	insert into tlsa_CountPops (PopID, PersonalID, Step) 
-	select 72, n.PersonalID, '9.1.20' 
+	select distinct 72, n.PersonalID, '9.1.20' 
 	from tlsa_Enrollment n 
 	inner join tlsa_Person lp on lp.PersonalID = n.PersonalID 
 	where n.AHAR = 1 and cast(lp.RaceEthnicity as nvarchar) like '%2%' 
 
 	insert into tlsa_CountPops (PopID, PersonalID, Step) 
-	select 73, n.PersonalID, '9.1.21' 
+	select distinct 73, n.PersonalID, '9.1.21' 
 	from tlsa_Enrollment n 
 	inner join tlsa_Person lp on lp.PersonalID = n.PersonalID 
 	where n.AHAR = 1 and cast(lp.RaceEthnicity as nvarchar) like '%3%' 
 
 	insert into tlsa_CountPops (PopID, PersonalID, Step) 
-	select 74, n.PersonalID, '9.1.22' 
+	select distinct 74, n.PersonalID, '9.1.22' 
 	from tlsa_Enrollment n 
 	inner join tlsa_Person lp on lp.PersonalID = n.PersonalID 
 	where n.AHAR = 1 and cast(lp.RaceEthnicity as nvarchar) like '%6%' 
 
 	insert into tlsa_CountPops (PopID, PersonalID, Step) 
-	select 75, n.PersonalID, '9.1.23' 
+	select distinct 75, n.PersonalID, '9.1.23' 
 	from tlsa_Enrollment n 
 	inner join tlsa_Person lp on lp.PersonalID = n.PersonalID 
 	where n.AHAR = 1 and cast(lp.RaceEthnicity as nvarchar) like '%7%' 
 
 	insert into tlsa_CountPops (PopID, PersonalID, Step) 
-	select 76, n.PersonalID, '9.1.24' 
+	select distinct 76, n.PersonalID, '9.1.24' 
 	from tlsa_Enrollment n 
 	inner join tlsa_Person lp on lp.PersonalID = n.PersonalID 
 	where n.AHAR = 1 and cast(lp.RaceEthnicity as nvarchar) like '%4%' 
 
 	insert into tlsa_CountPops (PopID, PersonalID, Step) 
-	select 77, n.PersonalID, '9.1.25' 
+	select distinct 77, n.PersonalID, '9.1.25' 
 	from tlsa_Enrollment n 
 	inner join tlsa_Person lp on lp.PersonalID = n.PersonalID 
 	where n.AHAR = 1 and cast(lp.RaceEthnicity as nvarchar) like '%5%' 
@@ -206,7 +206,7 @@ Populates and references:
 	where n.AHAR = 1 and lp.Gender not in (98, 99)
 
 	insert into tlsa_CountPops (PopID, PersonalID, Step) 
-	select case max(n.ActiveAge)
+	select distinct case max(n.ActiveAge)
 		when 0 then 86
 		when 2 then 87
 		when 5 then 88
@@ -255,19 +255,19 @@ Populates and references:
 */
 
 	update n
-	set PITOctober = (select case when cd.Cohort is null then 0 else 1 end
+	set PITOctober = (select distinct case when cd.Cohort is null then 0 else 1 end
 						from tlsa_CohortDates cd
 						where (cd.CohortStart < n.ExitDate or n.ExitDate is NULL) 
 							and n.EntryDate <= cd.CohortStart and cd.Cohort = 10)
-	  , PITJanuary = (select case when cd.Cohort is null then 0 else 1 end
+	  , PITJanuary = (select distinct case when cd.Cohort is null then 0 else 1 end
 						from tlsa_CohortDates cd
 						where (cd.CohortStart < n.ExitDate or n.ExitDate is NULL) 
 							and n.EntryDate <= cd.CohortStart and cd.Cohort = 11)
-	  , PITApril = (select case when cd.Cohort is null then 0 else 1 end
+	  , PITApril = (select distinct case when cd.Cohort is null then 0 else 1 end
 						from tlsa_CohortDates cd
 						where (cd.CohortStart < n.ExitDate or n.ExitDate is NULL) 
 							and n.EntryDate <= cd.CohortStart and cd.Cohort = 12)
-	  , PITJuly = (select case when cd.Cohort is null then 0 else 1 end
+	  , PITJuly = (select distinct case when cd.Cohort is null then 0 else 1 end
 						from tlsa_CohortDates cd
 						where (cd.CohortStart < n.ExitDate or n.ExitDate is NULL) 
 							and n.EntryDate <= cd.CohortStart and cd.Cohort = 13)
@@ -283,7 +283,7 @@ Populates and references:
 		, n.PITJuly = PIT.PITJuly
 		, n.Step = '9.2.2'
 	from tlsa_Enrollment n
-	inner join (select nbn.EnrollmentID 
+	inner join (select distinct nbn.EnrollmentID 
 		  , PITOctober = max(case when cd1.Cohort is null then 0 else 1 end)
 		  , PITJanuary = max(case when cd2.Cohort is null then 0 else 1 end)
 		  , PITApril = max(case when cd3.Cohort is null then 0 else 1 end)
@@ -303,19 +303,19 @@ Populates and references:
 		group by nbn.EnrollmentID) PIT on PIT.EnrollmentID = n.EnrollmentID
 
 	update n
-	set PITOctober = (select case when cd.Cohort is null then 0 else 1 end
+	set PITOctober = (select distinct case when cd.Cohort is null then 0 else 1 end
 						from tlsa_CohortDates cd
 						where (cd.CohortStart < n.ExitDate or n.ExitDate is NULL) 
 							and n.MoveInDate <= cd.CohortStart and cd.Cohort = 10)
-	  , PITJanuary = (select case when cd.Cohort is null then 0 else 1 end
+	  , PITJanuary = (select distinct case when cd.Cohort is null then 0 else 1 end
 						from tlsa_CohortDates cd
 						where (cd.CohortStart < n.ExitDate or n.ExitDate is NULL) 
 							and n.MoveInDate <= cd.CohortStart and cd.Cohort = 11)
-	  , PITApril = (select case when cd.Cohort is null then 0 else 1 end
+	  , PITApril = (select distinct case when cd.Cohort is null then 0 else 1 end
 						from tlsa_CohortDates cd
 						where (cd.CohortStart < n.ExitDate or n.ExitDate is NULL) 
 							and n.MoveInDate <= cd.CohortStart and cd.Cohort = 12)
-	  , PITJuly = (select case when cd.Cohort is null then 0 else 1 end
+	  , PITJuly = (select distinct case when cd.Cohort is null then 0 else 1 end
 						from tlsa_CohortDates cd
 						where (cd.CohortStart < n.ExitDate or n.ExitDate is NULL) 
 							and n.MoveInDate <= cd.CohortStart and cd.Cohort = 13)
@@ -337,7 +337,7 @@ Populates and references:
 			else count(distinct hhid.HoHID + cast(hhid.ActiveHHType as varchar)) end
 		, rv.Cohort, rv.Universe, ph.HHType, rp.PopID, rv.SystemPath
 		, case when rv.Universe = 10 then hhid.ProjectID else null end
-		, rv.RowID, (select ReportID from lsa_Report), '9.3.1'
+		, rv.RowID, (select distinct ReportID from lsa_Report), '9.3.1'
 	from ref_RowValues rv
 	inner join ref_RowPopulations rp on rv.RowID between rp.RowMin and rp.RowMax 
 	inner join ref_PopHHTypes ph on ph.PopID = rp.PopID
@@ -375,7 +375,7 @@ Populates and references:
 	select distinct count(distinct n.PersonalID) 
 		, rv.Cohort, rv.Universe, ph.HHType, rp.PopID, rv.SystemPath
 		, case when rv.Universe = 10 then hhid.ProjectID else null end
-		, rv.RowID, (select ReportID from lsa_Report), '9.4.1'
+		, rv.RowID, (select distinct ReportID from lsa_Report), '9.4.1'
 	from ref_RowValues rv
 	inner join ref_RowPopulations rp on rv.RowID between rp.RowMin and rp.RowMax 
 	inner join ref_PopHHTypes ph on ph.PopID = rp.PopID
@@ -423,10 +423,10 @@ Populates and references:
 
 
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType, Population, SystemPath, ProjectID, ReportRow, ReportID, Step)
-	select count(distinct n.PersonalID + cast(bn.DateProvided as varchar)), 1, 10, ph.HHType, pop.PopID, -1
+	select distinct count(distinct n.PersonalID + cast(bn.DateProvided as varchar)), 1, 10, ph.HHType, pop.PopID, -1
 			, hhid.ProjectID
 			, case when pop.PopID in (0,10,11) then 56 else 57 end 
-			, (select ReportID from lsa_Report), '9.5.1'
+			, (select distinct ReportID from lsa_Report), '9.5.1'
 		from hmis_Services bn
 		inner join tlsa_Enrollment n on n.EnrollmentID = bn.EnrollmentID
 				and (n.ExitDate is null or n.ExitDate > bn.DateProvided)
@@ -444,7 +444,7 @@ Populates and references:
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
 		, Population, SystemPath, ReportRow, ProjectID, ReportID, Step)
-	select count (distinct n.PersonalID + cast(cal.theDate as nvarchar))
+	select distinct count (distinct n.PersonalID + cast(cal.theDate as nvarchar))
 		, 1, 10, ph.HHType
 		, pop.PopID, -1 
 		, case when pop.PopID in (0,10,11) then 56 else 57 end 
@@ -470,9 +470,9 @@ Populates and references:
 	
 	-- All ES (Universe 11) 
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType, Population, SystemPath, ProjectID, ReportRow, ReportID, Step)
-	select count(distinct es.bn), 1, 11, es.HHType, es.PopID, -1, NULL
+	select distinct count(distinct es.bn), 1, 11, es.HHType, es.PopID, -1, NULL
 		, case when es.PopID in (0,10,11) then 56 else 57 end 
-		, (select ReportID from lsa_Report), '9.5.3'
+		, (select distinct ReportID from lsa_Report), '9.5.3'
 	from 
 		(select distinct n.PersonalID + cast(bn.DateProvided as varchar) as bn, ph.HHType as HHType, pop.PopID
 			from hmis_Services bn
@@ -506,7 +506,7 @@ Populates and references:
 	insert into lsa_Calculated
 		(Value, Cohort, Universe, HHType
 		, Population, SystemPath, ReportRow, ReportID, Step)
-	select count (distinct n.PersonalID + cast(cal.theDate as nvarchar))
+	select distinct count (distinct n.PersonalID + cast(cal.theDate as nvarchar))
 		, 1, case n.LSAProjectType 
 				when 8 then 12
 				when 2 then 13
@@ -538,9 +538,9 @@ Populates and references:
 
 	-- Unduplicated ES/SH/TH (Universe 16) 
 	insert into lsa_Calculated (Value, Cohort, Universe, HHType, Population, SystemPath, ProjectID, ReportRow, ReportID, Step)
-	select count(distinct est.bn), 1, 16, est.HHType, est.PopID, -1, NULL
+	select distinct count(distinct est.bn), 1, 16, est.HHType, est.PopID, -1, NULL
 		, case when est.PopID in (0,10,11) then 56 else 57 end 
-		, (select ReportID from lsa_Report), '9.5.5'
+		, (select distinct ReportID from lsa_Report), '9.5.5'
 	from 
 		(select distinct n.PersonalID + cast(bn.DateProvided as varchar) as bn, ph.HHType as HHType, pop.PopID
 			from hmis_Services bn

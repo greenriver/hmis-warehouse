@@ -70,7 +70,7 @@ module CustomImportsBostonCommunityOfOrigin
       {
         'row_number' => 'do_not_import',
         'Unique Identifier' => 'unique_id',
-        'Personal ID' => 'personal_id',
+        'Client ID' => 'personal_id',
         'Client Full Name' => 'do_not_import', # Use warehouse name
         'Enrollment ID' => 'enrollment_id',
         'Project Start Date' => 'do_not_import', # Use enrollment start date

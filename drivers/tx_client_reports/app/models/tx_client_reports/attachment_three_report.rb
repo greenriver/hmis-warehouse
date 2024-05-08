@@ -13,6 +13,15 @@ module TxClientReports
       @filter = filter
     end
 
+    def self.viewable_by(user)
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).
+        viewable_by(user).exists?
+    end
+
+    def self.url
+      'tx_client_reports/warehouse_reports/attachment_three_client_data_reports'
+    end
+
     def attachment_three_headers
       [
         'Row Number',
@@ -65,7 +74,7 @@ module TxClientReports
           ('1' if row[:genders].include?(1)), # Male
           ('1' if row[:genders].include?(0)), # Female
           ('1' if row[:ethnicity] == 1),
-          ('1' if row[:ethnicity] == 0), # rubocop:disable Style/NumericPredicate
+          ('1' if row[:ethnicity] == 0),
           ('1' if row[:races] == ['AmIndAKNative']),
           ('1' if row[:races] == ['Asian']),
           ('1' if row[:races] == ['BlackAfAmerican']),

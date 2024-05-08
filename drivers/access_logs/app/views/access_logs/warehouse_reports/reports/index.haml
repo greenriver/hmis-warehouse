@@ -19,7 +19,7 @@
         - @exports.each do |item|
           %tr
             %td= link_to_if item.completed?, item.download_title, item.download_url, download: 'download'
-            %td= item.created_at.to_s(:long)
+            %td= item.created_at.to_fs(:long)
             %td= item.status
 - else
   %p.none-found No prior exports.

@@ -44,7 +44,7 @@ module Importers::HmisAutoMigrate
 
     private def compress_and_upload
       # rezip files
-      zip_file_path = File.join(@file_path, "#{@data_source_id}_#{Time.current.to_s(:db)}.zip")
+      zip_file_path = File.join(@file_path, "#{@data_source_id}_#{Time.current.to_fs(:db)}.zip")
       files = Dir.glob(File.join(@file_path, '*')).map { |f| File.basename(f) }
       Zip::File.open(zip_file_path, Zip::File::CREATE) do |zipfile|
         files.each do |filename|

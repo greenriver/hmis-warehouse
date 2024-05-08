@@ -46,6 +46,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   has_many :external_form_publications, class_name: 'HmisExternalApis::ExternalForms::FormPublication', dependent: :destroy
   has_many :custom_data_element_definitions, class_name: 'Hmis::Hud::CustomDataElementDefinition', dependent: :nullify,
                                              primary_key: 'identifier', foreign_key: 'form_definition_identifier'
+  has_one :published_version, -> { order(version: :desc).published }, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
+  has_one :draft_version, -> { order(version: :desc).draft }, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
+  has_many :all_versions, class_name: 'Hmis::Form::Definition', primary_key: 'identifier', foreign_key: 'identifier'
 
   # Forms that are used for Assessments. These are submitted using SubmitAssessment mutation.
   ASSESSMENT_FORM_ROLES = [:INTAKE, :UPDATE, :ANNUAL, :EXIT, :POST_EXIT, :CUSTOM_ASSESSMENT].freeze
@@ -268,6 +271,32 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     where(identifier: instance_scope.pluck(:definition_identifier))
   end
 
+  scope :latest_versions, -> do
+    # Returns the latest version per identifier
+    one_for_column([:version], source_arel_table: Hmis::Form::Definition.arel_table, group_on: :identifier)
+  end
+
+  RETIRED = 'retired'.freeze
+  PUBLISHED = 'published'.freeze
+  DRAFT = 'draft'.freeze
+  STATUSES = [RETIRED, PUBLISHED, DRAFT].freeze
+  validates :status, inclusion: {
+    in: STATUSES,
+    message: '%{value} is not a valid status',
+  }
+
+  scope :retired, -> do
+    where(status: RETIRED)
+  end
+
+  scope :draft, -> do
+    where(status: DRAFT)
+  end
+
+  scope :published, -> do
+    where(status: PUBLISHED)
+  end
+
   def self.apply_filters(input)
     Hmis::Filter::FormDefinitionFilter.new(input).filter_scope(self)
   end
@@ -380,9 +409,6 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
         errors.add field_name || :base, :data_not_collected, severity: :warning, **error_context
       end
 
-      # Additional validations for currency
-      errors.add field_name, :out_of_range, **error_context, message: 'must be positive' if item.type == 'CURRENCY' && value&.negative?
-
       # TODO(##184404620): Validate ValueBounds (How to handle bounds that rely on local values like projectStartDate and entryDate?)
       # TODO(##184402463): Add support for RequiredWhen
     end
@@ -468,7 +494,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     instances.map { |i| i.project_and_enrollment_match(...) }.compact.min_by(&:rank)
   end
 
-  # should use rails attr normalization in rails 7
+  # should use rails attr normalization in rails 7.1 (ActiveRecord::Base::normalizes)
   def external_form_object_key=(value)
     super(value.blank? ? nil : value.strip)
   end

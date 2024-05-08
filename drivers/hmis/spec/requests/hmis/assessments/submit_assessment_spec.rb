@@ -158,7 +158,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       aggregate_failures 'checking response' do
         expect(response.status).to eq(200), result&.inspect
-        expect(errors).to match([a_hash_including('severity' => 'warning', 'type' => 'data_not_collected')])
+        expect(errors).to contain_exactly(a_hash_including('severity' => 'warning', 'type' => 'data_not_collected'))
         expect(assessment).to be_nil
 
         # It is still WIP, and fields should NOT have been updated
