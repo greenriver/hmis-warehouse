@@ -43,14 +43,18 @@ namespace :us_census_api do
 
   desc "Get the available variables from the US Census"
   task :vars, [] => [:setup, :environment] do
-    importer = GrdaWarehouse::UsCensusApi::Importer.new(years: @years, datasets: @datasets, state_code: @state_code, levels: @levels)
-    importer.bootstrap_variables!
+    @state_code.split(',').each do |state_code|
+      importer = GrdaWarehouse::UsCensusApi::Importer.new(years: @years, datasets: @datasets, state_code: state_code, levels: @levels)
+      importer.bootstrap_variables!
+    end
   end
 
   desc "Get data from the US Census"
   task :import, [] => [:setup, :environment] do
-    importer = GrdaWarehouse::UsCensusApi::Importer.new(years: @years, datasets: @datasets, state_code: @state_code, levels: @levels)
-    importer.run!
+    @state_code.split(',').each do |state_code|
+      importer = GrdaWarehouse::UsCensusApi::Importer.new(years: @years, datasets: @datasets, state_code: state_code, levels: @levels)
+      importer.run!
+    end
   end
 
   desc "Aggregate values so CoC geometries can use same interface to census data"

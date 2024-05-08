@@ -38,7 +38,7 @@ module CePerformance
     end
 
     def available_cocs
-      ::HudUtility2024.cocs_in_state(ENV['RELEVANT_COC_STATE']).map do |code, name|
+      ::HudUtility2024.cocs_in_state(ENV['RELEVANT_COC_STATE']&.split(',')).map do |code, name|
         [
           "#{name} (#{code})",
           code,

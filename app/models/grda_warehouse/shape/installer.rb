@@ -84,7 +84,7 @@ module GrdaWarehouse
 
         # command-line arg is only important for block groups and CoC, but
         # easier to just pass it along for all
-        system("./shape_files/#{conf.dir}/make.inserts #{ENV['RELEVANT_COC_STATE']}")
+        system("./shape_files/#{conf.dir}/make.inserts #{ENV['RELEVANT_COC_STATE']}") # FIXME
 
         if ::File.exist?("shape_files/#{conf.dir}/inserts.sql")
           Rails.logger.info "Inserting #{conf.klass} into the database, conserving RAM"

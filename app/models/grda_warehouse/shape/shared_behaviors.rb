@@ -63,7 +63,7 @@ module GrdaWarehouse
         end
 
         def my_fips_state_code
-          @my_fips_state_code ||= State.find_by!(stusps: ENV['RELEVANT_COC_STATE']).geoid
+          @my_fips_state_code ||= State.find_by!(stusps: ENV['RELEVANT_COC_STATE']&.split(',')).geoid # FIXME
         end
 
         def all_we_need?

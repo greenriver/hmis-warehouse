@@ -40,7 +40,7 @@ module GrdaWarehouse
       #  end
       #end
 
-      def test_00_state_chossen
+      def test_00_state_chosen
         if ENV['RELEVANT_COC_STATE'].blank?
           $stdout.puts "[FAIL] Set RELEVANT_COC_STATE"
           exit 1
