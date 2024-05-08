@@ -102,7 +102,7 @@ module HudCodeGen
     arr.push ::Code.copywright_header
     arr.push "
       # frozen_string_literal: true
-      #{CODEGEN_FILE_HEADER}
+
       module Types::HmisSchema::Enums::Hud
     "
     JSON.parse(source).each do |element|
@@ -113,11 +113,26 @@ module HudCodeGen
 
       map_name = get_function_names(name)[0]
       graphql_name = GRAPHQL_NAME_OVERRIDES[name] || name
-      arr.push "  class #{name} < Types::BaseEnum"
-      arr.push "    description '#{element['code'] || name}'"
-      arr.push "    graphql_name '#{graphql_name}'"
-      arr.push "    hud_enum #{hud_utility_class}.#{map_name}"
-      arr.push '  end'
+      arr.push "class #{name} < Types::BaseEnum"
+      enum_description = "HUD #{name}"
+      enum_description << " (#{element['code']})" if element['code']
+      arr.push "description '#{enum_description}'"
+      arr.push "graphql_name '#{graphql_name}'"
+      # graphql name; description; value
+      enum_map = hud_utility_class.constantize.send(map_name)
+
+      stringify_values = enum_map.keys.any? { |k| k.is_a?(String) }
+      enum_map.each do |key, value|
+        enum_key = Types::BaseEnum.to_enum_key(value)
+        enum_key = 'DATA_NOT_COLLECTED' if key.to_s == '99'
+
+        enum_description = "(#{key}) #{value}"
+        enum_value = key
+        escaped_value = stringify_values ? "'#{enum_value}'" : enum_value
+        arr.push "value '#{enum_key}', \"#{enum_description}\", value: #{escaped_value}"
+      end
+      arr.push "value 'INVALID', 'Invalid Value', value: #{Types::BaseEnum::INVALID_VALUE}"
+      arr.push 'end'
       seen << name
     end
 
