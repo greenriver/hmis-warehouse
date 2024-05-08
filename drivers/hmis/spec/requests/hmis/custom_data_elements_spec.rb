@@ -69,23 +69,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
         elements = result.dig('data', 'project', 'customDataElements')
-        expect(elements).to match( # use match instead of contain_exactly here, the sort order should be deterministic
-          [
-            a_hash_including(
-              'key' => cded5.key,
-              'label' => cded5.label,
-              'value' => a_hash_including('valueString' => cde5.value_string),
-            ),
-            a_hash_including(
-              'key' => cded1.key,
-              'label' => cded1.label,
-              'values' => [
-                a_hash_including('valueString' => cde1a.value_string),
-                a_hash_including('valueString' => cde1b.value_string),
-              ],
-            ),
-          ],
+        expect(elements).to contain_exactly(
+          a_hash_including(
+            'key' => cded5.key,
+            'label' => cded5.label,
+            'value' => a_hash_including('valueString' => cde5.value_string),
+          ),
+          a_hash_including(
+            'key' => cded1.key,
+            'label' => cded1.label,
+            'values' => [
+              a_hash_including('valueString' => cde1a.value_string),
+              a_hash_including('valueString' => cde1b.value_string),
+            ],
+          ),
         )
+        # the IDs on the `elements` items here are composite IDs separated by : , the first one is the CDED id and the following ones are CDE ids.
+        expect(elements[0]['id'].split(':')[0] < elements[1]['id'].split(':')[0]).to be_truthy, 'should sort deterministically by CDED id'
       end
     end
   end

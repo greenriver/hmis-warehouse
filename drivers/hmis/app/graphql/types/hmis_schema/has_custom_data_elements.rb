@@ -45,7 +45,7 @@ module Types
         cde_definitions.uniq.map do |cded|
           Hmis::Hud::GraphqlCdeValueAdapter.new(
             definition: cded,
-            custom_data_elements: cde_values[cded.id].sort_by(&:id) || [],
+            custom_data_elements: cde_values[cded.id]&.sort_by(&:id) || [],
           )
         end
       end
