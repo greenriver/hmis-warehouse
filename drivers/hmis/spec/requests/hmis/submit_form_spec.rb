@@ -41,7 +41,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
   let!(:hmis_hud_service1) do
     hmis_service = Hmis::Hud::HmisService.find_by(owner: s1)
-    hmis_service.custom_service_type = Hmis::Hud::CustomServiceType.find_by(hud_record_type: s1.record_type, hud_type_provided: s1.type_provided)
+    hmis_service.custom_service_type_id = Hmis::Hud::CustomServiceType.find_by(hud_record_type: s1.record_type, hud_type_provided: s1.type_provided).id
     hmis_service
   end
   let!(:file1) { create :file, client: c2, enrollment: e1, blob: blob, user_id: hmis_user.id, tags: [tag] }
