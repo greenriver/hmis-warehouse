@@ -8,6 +8,15 @@
 
 module Types
   class HmisSchema::Service < Types::BaseObject
+    # FIXME: order dependent, filter options must be first statement in class
+    available_filter_options do
+      arg :service_category, [ID]
+      arg :service_type, [ID]
+      arg :project_type, [Types::HmisSchema::Enums::ProjectType]
+      arg :project, [ID]
+      arg :date_provided, GraphQL::Types::ISO8601Date
+    end
+
     include Types::HmisSchema::HasHudMetadata
     include Types::HmisSchema::HasCustomDataElements
 
@@ -15,14 +24,6 @@ module Types
 
     def self.configuration
       Hmis::Hud::Service.hmis_configuration(version: '2024')
-    end
-
-    available_filter_options do
-      arg :service_category, [ID]
-      arg :service_type, [ID]
-      arg :project_type, [Types::HmisSchema::Enums::ProjectType]
-      arg :project, [ID]
-      arg :date_provided, GraphQL::Types::ISO8601Date
     end
 
     field :id, ID, null: false
