@@ -16,7 +16,7 @@ module WarehouseReports
       GrdaWarehouse::Shape::Coc.order(Arel.sql('random()')).limit(1).pluck(:st)
     rescue StandardError
       'UNKNOWN'
-    end
+    end.split(',')
 
     private def state_coc_shapes
       GrdaWarehouse::Shape::Coc.where(
