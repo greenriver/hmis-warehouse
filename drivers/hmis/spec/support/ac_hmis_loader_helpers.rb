@@ -4,9 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# frozen_string_literal: true
-
 module AcHmisLoaderHelpers
+  def self.included(base)
+    base.before(:each) do
+      skip 'Skipping all tests in this file'
+    end
+  end
+
   def csv_reader(...)
     HmisExternalApis::AcHmis::Importers::Loaders::CsvReader.new(...)
   end

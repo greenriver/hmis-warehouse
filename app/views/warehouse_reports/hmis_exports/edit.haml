@@ -4,10 +4,11 @@
 .well
   = simple_form_for @recurrence, as: :filter, url: warehouse_reports_hmis_export_path(@export) do |f|
     .row
+      -# Preserve the date fields as read only to show run range
       .col-sm-3
-        = f.input :start_date, as: :date_picker
+        = f.input :start_date, as: :date_picker, disabled: true, input_html: { value: @recurrence.options['start_date'] }
       .col-sm-3
-        = f.input :end_date, as: :date_picker
+        = f.input :end_date, as: :date_picker, disabled: true, input_html: { value: @recurrence.options['end_date'] }
       .col-sm-3
-        = f.input :version, collection: ::Filters::HmisExport.options_for_version, include_blank: false, as: :select_two
+        = f.input :version, collection: ::Filters::HmisExport.options_for_version, include_blank: false, as: :select_two, disabled: true
     = render 'recurrence_options', save_language: 'Update Recurring Options', f: f

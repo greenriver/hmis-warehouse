@@ -54,7 +54,7 @@ module Hmis
       self.generate_empty_intakes = generate_empty_intakes
       raise 'Not an HMIS Data source' if ::GrdaWarehouse::DataSource.find(data_source_id).hmis.nil?
 
-      debug_log "MigrateAssessmentsJob starting at #{Time.current.to_s(:db)}"
+      debug_log "MigrateAssessmentsJob starting at #{Time.current.to_fs(:db)}"
 
       # Deletes the CustomAssessment and FormProcessor, but not the underlying data. It DOES delete Custom Data Elements tied to CustomAssessment.
       if clobber
@@ -93,7 +93,7 @@ module Hmis
         end
       end
 
-      debug_log "MigrateAssessmentsJob completed at #{Time.current.to_s(:db)}"
+      debug_log "MigrateAssessmentsJob completed at #{Time.current.to_fs(:db)}"
       log_assessment_summary
     end
 
@@ -107,8 +107,7 @@ module Hmis
     end
 
     def full_enrollment_scope
-      # Note: joining with project drops WIP enrollments. That should be fine since they won't have assessment records yet.
-      @full_enrollment_scope ||= Hmis::Hud::Enrollment.joins(:project).merge(project_scope)
+      @full_enrollment_scope ||= Hmis::Hud::Enrollment.joins(:project).merge(project_scope).not_in_progress
     end
 
     def build_assessments(enrollment_batch:, data_collection_stages:, unique_by_information_date:, data_source_id:)

@@ -39,7 +39,12 @@ module Types
 
       return false unless GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_enrollment_details, entity: object)
 
-      project = ctx.dataloader.with(Sources::ActiveRecordAssociation, :project).load(object)
+      project = if object.association(:project).loaded?
+        object.project
+      else
+        ctx.dataloader.with(Sources::ActiveRecordAssociation, :project).load(object)
+      end
+
       GraphqlPermissionChecker.current_permission_for_context?(ctx, permission: :can_view_project, entity: project)
     end
 
@@ -88,6 +93,7 @@ module Types
     summary_field :relationship_to_ho_h, HmisSchema::Enums::Hud::RelationshipToHoH, null: false, default_value: 99
     summary_field :move_in_date, GraphQL::Types::ISO8601Date, null: true
     summary_field :last_bed_night_date, GraphQL::Types::ISO8601Date, null: true
+    summary_field :auto_exited, Boolean, null: false
 
     field :last_service_date, GraphQL::Types::ISO8601Date, null: true do
       argument :service_type_id, ID, required: true
@@ -264,7 +270,7 @@ module Types
     def reminders
       # assumption is this is called on a single record; we aren't solving n+1 queries
       project = object.project
-      enrollments = project.enrollments_including_wip.where(household_id: object.HouseholdID)
+      enrollments = project.enrollments.where(household_id: object.HouseholdID)
       Hmis::Reminders::ReminderGenerator.perform(project: project, enrollments: enrollments)
     end
 
@@ -281,12 +287,7 @@ module Types
     end
 
     def project
-      if object.in_progress?
-        wip = load_ar_association(object, :wip)
-        load_ar_association(wip, :project)
-      else
-        load_ar_association(object, :project)
-      end
+      load_ar_association(object, :project)
     end
 
     # Needed because limited access viewers cannot resolve the project
@@ -312,6 +313,10 @@ module Types
 
     def exit_destination
       exit&.destination
+    end
+
+    def auto_exited
+      exit&.auto_exited || false
     end
 
     def exit

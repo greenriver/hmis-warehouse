@@ -299,9 +299,9 @@ module AllNeighborsSystemDashboard
               'icons.woff',
               'icons.woff2',
             ].each do |filename|
-              css.gsub!("url(/assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
+              css.gsub!("url(#{Rails.application.config.assets.prefix}/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
               # Also replace development version of assets url
-              css.gsub!("url(/assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
+              css.gsub!("url(#{Rails.application.config.assets.prefix}/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
             end
             css
           },
@@ -334,27 +334,27 @@ module AllNeighborsSystemDashboard
         },
         {
           name: 'bar.js',
-          content: -> { File.read(asset_path('all_neighbors_system_dashboard_bar.js')) },
+          content: -> { File.read(per_page_js_asset_path('all_neighbors_system_dashboard_bar.js')) },
           type: 'text/javascript',
         },
         {
           name: 'donut.js',
-          content: -> { File.read(asset_path('all_neighbors_system_dashboard_donut.js')) },
+          content: -> { File.read(per_page_js_asset_path('all_neighbors_system_dashboard_donut.js')) },
           type: 'text/javascript',
         },
         {
           name: 'filters.js',
-          content: -> { File.read(asset_path('all_neighbors_system_dashboard_filters.js')) },
+          content: -> { File.read(per_page_js_asset_path('all_neighbors_system_dashboard_filters.js')) },
           type: 'text/javascript',
         },
         {
           name: 'line.js',
-          content: -> { File.read(asset_path('all_neighbors_system_dashboard_line.js')) },
+          content: -> { File.read(per_page_js_asset_path('all_neighbors_system_dashboard_line.js')) },
           type: 'text/javascript',
         },
         {
           name: 'stack.js',
-          content: -> { File.read(asset_path('all_neighbors_system_dashboard_stack.js')) },
+          content: -> { File.read(per_page_js_asset_path('all_neighbors_system_dashboard_stack.js')) },
           type: 'text/javascript',
         },
       ]
@@ -365,8 +365,13 @@ module AllNeighborsSystemDashboard
       "<iframe width='800' height='1200' src='#{generate_publish_url}' frameborder='0'><a href='#{generate_publish_url}'>#{instance_title}</a></iframe>"
     end
 
-    private def asset_path(asset)
-      Rails.root.join('app', 'assets', 'builds', asset)
+    private def per_page_js_asset_path(asset)
+      return Rails.root.join('app', 'assets', 'builds', asset) if Rails.env.development?
+
+      ext = File.extname(asset)
+      asset_name = File.basename(asset, ext)
+      asset_path = Rails.root.join('public', 'assets', "#{asset_name}-*#{ext}")
+      Dir.glob(asset_path).first
     end
   end
 end

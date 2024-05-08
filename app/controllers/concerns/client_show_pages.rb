@@ -44,6 +44,7 @@ module ClientShowPages
         '/clients/rollup/services',
         '/clients/rollup/services_full',
         '/clients/rollup/services_all',
+        '/clients/rollup/custom_services',
         '/clients/rollup/boston_custom_services',
         '/clients/rollup/special_populations',
         '/clients/rollup/zip_details',
@@ -57,6 +58,7 @@ module ClientShowPages
         '/clients/rollup/ce_events',
         '/clients/rollup/employment_education',
         '/clients/rollup/hmis_clients',
+        '/clients/rollup/va/service_summary',
       ]
       rollup = allowed_rollups.detect do |m|
         m == '/clients/rollup/' + params.require(:partial).underscore

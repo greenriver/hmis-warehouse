@@ -32,6 +32,9 @@ module HudPit::Generators::Pit::Fy2024
       calcs = super
       # The following calculations should only be run for the HoH for parenting youth
       # per HUD guidance from 11/2021
+      # Updated 4/2024 to include both HoH and spouse clients per the following guidance
+      # •	HUD Notice CPD-2023-11: “Parenting youth are youth who identify as the parent or legal guardian of one or more children who are present with or sleeping in the same place as that youth parent, where there is no person over age 24 in the household”. “CoCs must report data on persons in Youth Households, including the gender, race, and ethnicity for parenting youth and unaccompanied youth, as outlined in Appendix C. However, while gender, race, and ethnicity are reported for all unaccompanied youth, CoCs will only report the gender, race, and ethnicity on the parents in the parenting youth households.”
+      # •	Also, Appendix C to HUD Notice CPD-2023-11shows who should be counted for each item. Throughout the categories for Gender and Race/Ethnicity, it indicates that the data collection is for “youth parents only”. In other places HUD refers for “Head of Household” and HUD didn’t use that language here.
       [
         :woman,
         :man,
@@ -57,7 +60,7 @@ module HudPit::Generators::Pit::Fy2024
         :multi_racial_latino,
         :multi_racial,
       ].each do |key|
-        calcs[key][:query] = calcs[key][:query].and(hoh_clause)
+        calcs[key][:query] = calcs[key][:query].and(hoh_or_spouse)
       end
       calcs
     end
@@ -66,12 +69,12 @@ module HudPit::Generators::Pit::Fy2024
       [
         :households,
         :clients,
-        :hoh_for_youth,
+        :hoh_for_youth, # HoH or spouse/partner (RelationshipToHoH = 3)
         :children_of_youth_parents,
         :child_hoh,
-        :children_of_0_to_18_parents,
+        :children_of_0_to_18_parents, # HoH or spouse/partner (RelationshipToHoH = 3)
         :youth_hoh,
-        :children_of_18_to_24_parents,
+        :children_of_18_to_24_parents, # HoH or spouse/partner (RelationshipToHoH = 3)
         :woman,
         :man,
         :culturally_specific_identity,

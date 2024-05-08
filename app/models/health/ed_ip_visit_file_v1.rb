@@ -9,8 +9,6 @@
 # Control: PHI attributes documented
 module Health
   class EdIpVisitFileV1 < EdIpVisitFile
-    acts_as_paranoid
-
     def label
       'ED & IP Visits (V1)'
     end

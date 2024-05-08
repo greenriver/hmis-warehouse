@@ -14,10 +14,12 @@ module Importers::HmisAutoMigrate
       allowed_projects: false,
       file_path: 'tmp/hmis_import',
       region:,
-      access_key_id:,
-      secret_access_key:,
       bucket_name:,
       path:,
+      access_key_id: nil,
+      secret_access_key: nil,
+      s3_role_arn: nil,
+      s3_external_id: nil,
       file_password: nil,
       file_name: nil
     )
@@ -32,6 +34,13 @@ module Importers::HmisAutoMigrate
           bucket_name: bucket_name,
           access_key_id: access_key_id,
           secret_access_key: secret_access_key,
+        )
+      elsif s3_role_arn.present? && s3_external_id.present?
+        AwsS3.new(
+          region: region,
+          bucket_name: bucket_name,
+          role_arn: s3_role_arn,
+          external_id: s3_external_id,
         )
       else
         AwsS3.new(

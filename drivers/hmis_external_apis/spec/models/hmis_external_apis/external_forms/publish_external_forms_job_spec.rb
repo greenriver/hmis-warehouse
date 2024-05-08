@@ -94,12 +94,12 @@ RSpec.describe 'HmisExternalApis::PublishExternalFormsJob', type: :model do
   before(:each) do
     {
       site_logo_alt: 'test site alt',
-      site_logo_url: 'logo.html',
+      site_logo_url: 'logo.png',
       site_logo_width: 100,
       site_logo_height: 100,
       recaptcha_key: 'fakekey',
       presign_url: 'http://example.com',
-      csp_content: ["default-src 'self'"],
+      sentry_sdk_url: 'https://js.sentry-cdn.com/your-key.js',
     }.each do |key, value|
       AppConfigProperty.create!(key: "external_forms/#{key}", value: value)
     end

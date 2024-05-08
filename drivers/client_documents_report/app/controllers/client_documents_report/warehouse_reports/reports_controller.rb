@@ -23,7 +23,7 @@ module ClientDocumentsReport::WarehouseReports
           @pagy, @clients = pagy(@report.clients.order(:last_name, :first_name))
         end
         format.xlsx do
-          filename = "Client Documents - #{Time.current.to_s(:db)}.xlsx"
+          filename = "Client Documents - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end

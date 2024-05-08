@@ -285,16 +285,20 @@ module HudPit::Generators::Pit::Fy2024
           query: age_ranges['65+'],
         },
         youth_hoh: {
+          # HoH or spouse/partner (RelationshipToHoH = 3)
           title: 'Number of parenting youth (age 18 to 24)',
-          query: hoh_clause.and(age_ranges['18-24']),
+          query: hoh_or_spouse.and(age_ranges['18-24']),
         },
         child_hoh: {
+          # HoH or spouse/partner (RelationshipToHoH = 3)
           title: 'Number of parenting youth (under age 18)',
-          query: hoh_clause.and(child_clause),
+          query: hoh_or_spouse.and(child_clause),
         },
-        hoh_for_youth: { # note because the question is already limited to youth households, this is just here to provide the title
+        hoh_for_youth: {
+          # HoH or spouse/partner (RelationshipToHoH = 3)
+          # note because the question is already limited to youth households, this is just here to provide the title
           title: 'Number of parenting youth (youth parents only)',
-          query: hoh_clause,
+          query: hoh_or_spouse,
         },
         children_of_youth_parents: {
           title: 'Total Children in Parenting Youth Households',
@@ -420,9 +424,17 @@ module HudPit::Generators::Pit::Fy2024
           title: 'Adults with HIV/AIDS',
           query: a_t[:hiv_aids].eq(true),
         },
+        # Adjusted in 2024 to match 2023 version of adult_dv_survivors_currently_fleeing
+        # Interpretation of the following is that it should only include people who
+        # were homeless because they were fleeing
+        # https://www.hud.gov/sites/dfiles/OCHCO/documents/2023-11cpdn.pdf
+        # they must only report the number of
+        # survivors of domestic violence who are currently experiencing homelessness because of domestic
+        # violence, dating violence, sexual assault, or stalking, as opposed to reporting on survivors who have
+        # ever experienced these circumstances.
         adult_dv_survivors: {
           title: 'Adult Survivors of Domestic Violence (optional)',
-          query: a_t[:domestic_violence].eq(true),
+          query: a_t[:domestic_violence_currently_fleeing].eq(true),
         },
       }
     end

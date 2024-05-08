@@ -407,6 +407,28 @@ module GrdaWarehouse
         ::CohortColumns::UserString6.new,
         ::CohortColumns::UserString7.new,
         ::CohortColumns::UserString8.new,
+        ::CohortColumns::UserString9.new,
+        ::CohortColumns::UserString10.new,
+        ::CohortColumns::UserString11.new,
+        ::CohortColumns::UserString12.new,
+        ::CohortColumns::UserString13.new,
+        ::CohortColumns::UserString14.new,
+        ::CohortColumns::UserString15.new,
+        ::CohortColumns::UserString16.new,
+        ::CohortColumns::UserString17.new,
+        ::CohortColumns::UserString18.new,
+        ::CohortColumns::UserString19.new,
+        ::CohortColumns::UserString20.new,
+        ::CohortColumns::UserString21.new,
+        ::CohortColumns::UserString22.new,
+        ::CohortColumns::UserString23.new,
+        ::CohortColumns::UserString24.new,
+        ::CohortColumns::UserString25.new,
+        ::CohortColumns::UserString26.new,
+        ::CohortColumns::UserString27.new,
+        ::CohortColumns::UserString28.new,
+        ::CohortColumns::UserString28.new,
+        ::CohortColumns::UserString30.new,
         ::CohortColumns::UserBoolean1.new,
         ::CohortColumns::UserBoolean2.new,
         ::CohortColumns::UserBoolean3.new,
@@ -646,7 +668,7 @@ module GrdaWarehouse
       client.permanent_source_exits_from_homelessness.
         where(ex_t[:ExitDate].gteq(90.days.ago.to_date)).
         pluck(:ExitDate, :Destination).map do |exit_date, destination|
-          "<span class='hidden'>#{exit_date.to_s(:db)}</span>#{exit_date} to #{HudUtility2024.destination(destination)}"
+          "<span class='hidden'>#{exit_date.to_fs(:db)}</span>#{exit_date} to #{HudUtility2024.destination(destination)}"
         end.join('; ')
     end
 

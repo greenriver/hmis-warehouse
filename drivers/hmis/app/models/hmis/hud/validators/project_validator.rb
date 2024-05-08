@@ -32,8 +32,9 @@ class Hmis::Hud::Validators::ProjectValidator < Hmis::Hud::Validators::BaseValid
 
     # If project end date is changing
     if project.operating_end_date.present? && project.operating_end_date_changed?
-      open_enrollments = project.enrollments_including_wip.open_on_date(project.operating_end_date)
-      errors.add :base, :information, severity: :warning, full_message: open_enrollments_message(open_enrollments.count) if open_enrollments.any?
+      # Warn about open enrollments. Manual says: "all clients must be exited on or before the Operating End Date".
+      num_open_enrollments = project.enrollments.open_on_date(project.operating_end_date + 1).count
+      errors.add :base, :information, severity: :warning, full_message: open_enrollments_message(num_open_enrollments) if num_open_enrollments > 0
     end
 
     # If project is being "closed" for the first time

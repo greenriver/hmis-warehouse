@@ -37,7 +37,7 @@ module DisabilitySummary::DocumentExports
         )
         PdfGenerator.new.perform(
           html: html,
-          file_name: "Disability Summary #{DateTime.current.to_s(:db)}",
+          file_name: "Disability Summary #{DateTime.current.to_fs(:db)}",
         ) do |io|
           self.pdf_file = io
         end

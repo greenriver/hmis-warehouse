@@ -296,9 +296,9 @@ type AssessmentEligibility {
 }
 
 input AssessmentFilterOptions {
+  assessmentName: [String!]
   project: [ID!]
   projectType: [ProjectType!]
-  type: [AssessmentRole!]
 }
 
 input AssessmentInput {
@@ -434,11 +434,15 @@ enum AssessmentType {
 }
 
 input AssessmentsForEnrollmentFilterOptions {
-  type: [AssessmentRole!]
+  assessmentName: [String!]
 }
 
 input AssessmentsForHouseholdFilterOptions {
-  type: [AssessmentRole!]
+  assessmentName: [String!]
+}
+
+input AssessmentsForProjectFilterOptions {
+  assessmentName: [String!]
 }
 
 type AssessmentsPaginated {
@@ -3201,6 +3205,7 @@ type Enrollment {
   assessmentEligibilities: [AssessmentEligibility!]!
   assessments(filters: AssessmentsForEnrollmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   auditHistory(filters: EnrollmentAuditEventFilterOptions, limit: Int, offset: Int): EnrollmentAuditEventsPaginated!
+  autoExited: Boolean!
   ceAssessments(limit: Int, offset: Int, sortOrder: AssessmentSortOption): CeAssessmentsPaginated!
   childWelfareMonths: Int
   childWelfareYears: RHYNumberofYears
@@ -3939,6 +3944,7 @@ type FormDefinition {
   identifier: String!
   rawDefinition: JsonObject!
   role: FormRole!
+  status: FormStatus!
   system: Boolean!
   title: String!
 }
@@ -3971,6 +3977,36 @@ type FormDefinitionsPaginated {
   hasMoreBefore: Boolean!
   limit: Int!
   nodes: [FormDefinition!]!
+  nodesCount: Int!
+  offset: Int!
+  pagesCount: Int!
+}
+
+"""
+Type representing one form Identifier, which collects all versioned FormDefinitions for the same identifier
+"""
+type FormIdentifier {
+  allVersions(limit: Int, offset: Int): FormDefinitionsPaginated!
+
+  """
+  Form version to use for display in the configuration tool interface. The form itself may be draft, status, or retired.
+  """
+  displayVersion: FormDefinition!
+  draftVersion: FormDefinition
+  id: String!
+  identifier: String!
+  publishedVersion: FormDefinition
+}
+
+input FormIdentifierFilterOptions {
+  searchTerm: String
+}
+
+type FormIdentifiersPaginated {
+  hasMoreAfter: Boolean!
+  hasMoreBefore: Boolean!
+  limit: Int!
+  nodes: [FormIdentifier!]!
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
@@ -4350,6 +4386,23 @@ type FormRulesPaginated {
   nodesCount: Int!
   offset: Int!
   pagesCount: Int!
+}
+
+enum FormStatus {
+  """
+  Draft
+  """
+  draft
+
+  """
+  Published
+  """
+  published
+
+  """
+  Retired
+  """
+  retired
 }
 
 type Funder {
@@ -6393,6 +6446,13 @@ enum PickListType {
   All unit types.
   """
   ALL_UNIT_TYPES
+
+  """
+  Assessment names, including custom assessments and assessments that are
+  inactive. If a project is specified, the list is limited to assessments that
+  exist in the project (both active and inactive).
+  """
+  ASSESSMENT_NAMES
   AVAILABLE_BULK_SERVICE_TYPES
   AVAILABLE_FILE_TYPES
   AVAILABLE_SERVICE_TYPES
@@ -6437,6 +6497,11 @@ enum PickListType {
   Open HoH enrollments at the project.
   """
   OPEN_HOH_ENROLLMENTS_FOR_PROJECT
+
+  """
+  Open Projects that the user can see
+  """
+  OPEN_PROJECTS
 
   """
   All Organizations that the User can see
@@ -8281,7 +8346,7 @@ type Project {
   access: ProjectAccess!
   active: Boolean!
   affiliatedProjects: [Project!]!
-  assessments(filters: AssessmentFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
+  assessments(filters: AssessmentsForProjectFilterOptions, inProgress: Boolean, limit: Int, offset: Int, sortOrder: AssessmentSortOption): AssessmentsPaginated!
   ceParticipations(limit: Int, offset: Int): CeParticipationsPaginated!
   contactInformation: String
   continuumProject: NoYes
@@ -8362,7 +8427,7 @@ type ProjectCoc {
   dateCreated: ISO8601DateTime
   dateDeleted: ISO8601DateTime
   dateUpdated: ISO8601DateTime
-  geocode: String!
+  geocode: String
   geographyType: GeographyType
   id: ID!
   state: String
@@ -8658,7 +8723,9 @@ type Query {
   externalFormDefinition(identifier: String!): FormDefinition
   file(id: ID!): File
   formDefinition(id: ID!): FormDefinition
-  formDefinitions(filters: FormDefinitionFilterOptions, limit: Int, offset: Int): FormDefinitionsPaginated!
+  formDefinitions(filters: FormDefinitionFilterOptions, limit: Int, offset: Int): FormDefinitionsPaginated! @deprecated(reason: "replaced by FormIdentifiers query")
+  formIdentifier(identifier: String!): FormIdentifier
+  formIdentifiers(filters: FormIdentifierFilterOptions, limit: Int, offset: Int): FormIdentifiersPaginated!
   formRule(id: ID!): FormRule
   formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
 
@@ -8766,6 +8833,7 @@ type QueryAccess {
   canManageClientAlerts: Boolean!
   canManageDeniedReferrals: Boolean!
   canManageExternalFormSubmissions: Boolean!
+  canManageForms: Boolean!
   canManageIncomingReferrals: Boolean!
   canManageInventory: Boolean!
   canManageOutgoingReferrals: Boolean!
@@ -8950,6 +9018,11 @@ enum ReasonNotEnrolled {
   Invalid Value
   """
   INVALID
+
+  """
+  (3) Unable to locate client
+  """
+  UNABLE_TO_LOCATE_CLIENT
 }
 
 """
@@ -9632,11 +9705,6 @@ type RenameServiceTypePayload {
 """
 enum RentalSubsidyType {
   """
-  (436) Emergency Housing Voucher
-  """
-  EMERGENCY_HOUSING_VOUCHER
-
-  """
   (437) Family Unification Program Voucher (FUP)
   """
   FAMILY_UNIFICATION_PROGRAM_VOUCHER_FUP
@@ -9655,6 +9723,11 @@ enum RentalSubsidyType {
   (433) HCV voucher (tenant or project based) (not dedicated)
   """
   HCV_VOUCHER
+
+  """
+  (436) Housing Stability Voucher
+  """
+  HOUSING_STABILITY_VOUCHER
 
   """
   Invalid Value

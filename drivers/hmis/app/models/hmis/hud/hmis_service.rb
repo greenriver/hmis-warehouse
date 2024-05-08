@@ -14,7 +14,6 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   end
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
 
-  belongs_to :enrollment, **hmis_enrollment_relation, optional: true
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :services
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
@@ -137,17 +136,17 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
     when :date_provided
       order(DateProvided: :desc, id: :desc)
     when :last_name_a_to_z
-      joins(enrollment: :client).order(c_t[:LastName].asc.nulls_last)
+      joins(enrollment: :client).order(c_t[:LastName].asc.nulls_last, id: :desc)
     when :last_name_z_to_a
-      joins(enrollment: :client).order(c_t[:LastName].desc.nulls_last)
+      joins(enrollment: :client).order(c_t[:LastName].desc.nulls_last, id: :desc)
     when :first_name_a_to_z
-      joins(enrollment: :client).order(c_t[:FirstName].asc.nulls_last)
+      joins(enrollment: :client).order(c_t[:FirstName].asc.nulls_last, id: :desc)
     when :first_name_z_to_a
-      joins(enrollment: :client).order(c_t[:FirstName].desc.nulls_last)
+      joins(enrollment: :client).order(c_t[:FirstName].desc.nulls_last, id: :desc)
     when :age_youngest_to_oldest
-      joins(enrollment: :client).order(c_t[:dob].asc.nulls_last)
+      joins(enrollment: :client).order(c_t[:dob].asc.nulls_last, id: :desc)
     when :age_oldest_to_youngest
-      joins(enrollment: :client).order(c_t[:dob].desc.nulls_last)
+      joins(enrollment: :client).order(c_t[:dob].desc.nulls_last, id: :desc)
     else
       raise NotImplementedError
     end

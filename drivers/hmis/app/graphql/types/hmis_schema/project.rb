@@ -62,7 +62,7 @@ module Types
     households_field
     hmis_participations_field
     ce_participations_field
-    assessments_field
+    assessments_field filter_args: { omit: [:project, :project_type], type_name: 'AssessmentsForProject' }
     services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForProject' }
     hud_field :operating_start_date, null: true
     hud_field :operating_end_date
@@ -114,7 +114,7 @@ module Types
     def enrollments(**args)
       check_enrollment_details_access
 
-      resolve_enrollments(object.enrollments_including_wip, dangerous_skip_permission_check: true, **args)
+      resolve_enrollments(object.enrollments, dangerous_skip_permission_check: true, **args)
     end
 
     def assessments(**args)
@@ -177,7 +177,7 @@ module Types
     def households(**args)
       check_enrollment_details_access
 
-      resolve_households(object.households_including_wip, **args, dangerous_skip_permission_check: true)
+      resolve_households(object.households, **args, dangerous_skip_permission_check: true)
     end
 
     def referral_requests(**args)
