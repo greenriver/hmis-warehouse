@@ -29,7 +29,7 @@ module GrdaWarehouse::Census
       @by_count.each do | project_id, census_collection |
         inventories = GrdaWarehouse::Hud::Project.find(project_id).inventories.within_range(@start_date..@end_date)
         census_collection.each do | date, census_item |
-          filtered_beds = census_item.beds = inventories.select do |inventory|
+          filtered_inventory = inventories.select do |inventory|
             ((inventory.InformationDate.blank? && inventory.InventoryStartDate.blank?) &&
                 (inventory.InventoryEndDate.blank?)) ||
             ((inventory.InformationDate.present? && inventory.InformationDate < date) &&
@@ -41,8 +41,10 @@ module GrdaWarehouse::Census
             ((inventory.InformationDate.blank? && inventory.InventoryStartDate.present? && inventory.InventoryStartDate < date) &&
                 (inventory.InventoryEndDate.present? && inventory.InventoryEndDate > date))
           end
+          beds = filtered_inventory.map(&:beds).compact
+          beds = [0] if beds.empty?
           # preserve behavior of returning 0 if any bed values are nil (rather than compact.sum)
-          census_item.beds = filtered_beds.all?(&:present?) ? filtered_beds.sum : 0
+          census_item.beds = beds.sum
         end
       end
     end
