@@ -280,13 +280,13 @@ module Types
       raise 'invalid custom service type' unless custom_service_type
 
       services_of_type = if custom_service_type.hud_service?
-        load_ar_association(object, :services).
-          filter { |s| s.matches_custom_service_type?(custom_service_type) }
+        load_ar_association(object, :services)
       else
-        load_ar_association(object, :custom_services).
-          filter { |s| s.custom_service_type_id&.to_s == service_type_id }
+        load_ar_association(object, :custom_services)
       end
-      services_of_type.max_by(&:DateProvided)&.DateProvided
+      services_of_type.
+        filter { |s| s.matches_custom_service_type?(custom_service_type) }.
+        max_by(&:DateProvided)&.DateProvided
     end
 
     def last_bed_night_date
