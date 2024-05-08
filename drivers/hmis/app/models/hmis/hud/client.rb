@@ -159,7 +159,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   scope :with_open_enrollment_in_organization, ->(organization_ids) do
     ds_count = Hmis::Hud::Organization.where(id: organization_ids).select(:data_source_id).distinct.count
-    raise 'orgs are in multiple data sources' if ds_count.size > 1
+    raise 'orgs are in multiple data sources' if ds_count > 1
 
     joins(projects: :organization).merge(Hmis::Hud::Organization.where(id: organization_ids))
   end
