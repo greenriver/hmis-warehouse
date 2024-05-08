@@ -4,7 +4,7 @@ class HmisExternalApis::TcHmis::Importers::SpdatAssessmentFormDefinitionBuilder 
       identifier: 'tc-spdat',
       role: 'CUSTOM_ASSESSMENT',
       version: 0,
-      status: 'draft',
+      status: Hmis::Form::Definition::DRAFT,
     ).first_or_initialize
 
     @score_questions = []

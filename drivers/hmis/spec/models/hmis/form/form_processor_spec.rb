@@ -856,10 +856,10 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(client.name_data_quality).to eq(1)
         # Ensure all names persisted
         expect(client.names.count).to eq(2)
-        expect(client.names.map(&:attributes)).to match([
-                                                          a_hash_including(primary_name.excluding(:nameDataQuality).stringify_keys),
-                                                          a_hash_including(secondary_name.excluding(:nameDataQuality).stringify_keys),
-                                                        ])
+        expect(client.names.map(&:attributes)).to contain_exactly(
+          a_hash_including(primary_name.excluding(:nameDataQuality).stringify_keys),
+          a_hash_including(secondary_name.excluding(:nameDataQuality).stringify_keys),
+        )
         expect(client.dob.strftime('%Y-%m-%d')).to eq('2000-03-29')
         expect(client.dob_data_quality).to eq(1)
         expect(client.ssn).to eq('XXXXX1234')
@@ -1022,10 +1022,10 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       # Ensure all names persisted
       expect(client.names.size).to eq(2)
       expect(client.names.pluck(:id)).not_to include(old_secondary_name.id)
-      expect(client.names.map(&:attributes)).to match([
-                                                        a_hash_including({ first: 'Atticus Changed', primary: false, id: old_primary_name.id }.stringify_keys),
-                                                        a_hash_including({ first: 'Charlotte', primary: true }.stringify_keys),
-                                                      ])
+      expect(client.names.map(&:attributes)).to contain_exactly(
+        a_hash_including({ first: 'Atticus Changed', primary: false, id: old_primary_name.id }.stringify_keys),
+        a_hash_including({ first: 'Charlotte', primary: true }.stringify_keys),
+      )
     end
 
     it 'handles "deleting" primary name' do

@@ -30,14 +30,20 @@ module Mutations
       project_has_units = project.units.exists?
       available_units = project.units.unoccupied_on(input.date_provided).order(updated_at: :desc).to_a
 
+      # async record load must be called outside of a db transaction to avoid deadlocks
+      enrollment_by_client = clients.to_h do |client|
+        enrollment = load_open_enrollment_for_client(
+          client,
+          project_id: project.id,
+          open_on_date: input.date_provided,
+        )
+        [client.id, enrollment]
+      end
+
       Hmis::Hud::Service.transaction do
         clients.each do |client|
           # Look for Enrollment at the project that is open on the service date
-          enrollment = load_open_enrollment_for_client(
-            client,
-            project_id: project.id,
-            open_on_date: input.date_provided,
-          )
+          enrollment = enrollment_by_client[client.id]
 
           # If no Enrollment was found, create one
           unless enrollment
