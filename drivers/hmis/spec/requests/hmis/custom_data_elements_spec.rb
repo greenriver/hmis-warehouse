@@ -21,9 +21,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
   # Custom String field on Project (repeating with 2 values)
-  let!(:cded1) { create :hmis_custom_data_element_definition, label: 'Multiple strings', data_source: ds1, owner_type: 'Hmis::Hud::Project', repeats: true }
-  let!(:cde1a) { create :hmis_custom_data_element, data_element_definition: cded1, owner: p1, data_source: ds1, value_string: 'First value' }
-  let!(:cde1b) { create :hmis_custom_data_element, data_element_definition: cded1, owner: p1, data_source: ds1, value_string: 'Second value' }
+  let!(:cded1) { create :hmis_custom_data_element_definition, id: 2, label: 'Multiple strings', data_source: ds1, owner_type: 'Hmis::Hud::Project', repeats: true }
+  let!(:cde1b) { create :hmis_custom_data_element, id: 2, data_element_definition: cded1, owner: p1, data_source: ds1, value_string: 'Second value' }
+  let!(:cde1a) { create :hmis_custom_data_element, id: 1, data_element_definition: cded1, owner: p1, data_source: ds1, value_string: 'First value' }
+
+  # Another custom string field on Project - to test sorting
+  let!(:cded5) { create :hmis_custom_data_element_definition, id: 1, label: 'Another string', data_source: ds1, owner_type: 'Hmis::Hud::Project' }
+  let!(:cde5) { create :hmis_custom_data_element, id: 3, data_element_definition: cded5, owner: p1, data_source: ds1, value_string: 'Third value' }
 
   # Custom Boolean field on Client (repeating with 1 value)
   let!(:cded2) { create :hmis_custom_data_element_definition, label: 'Multiple booleans', data_source: ds1, owner_type: 'Hmis::Hud::Client', field_type: :boolean, repeats: true }
@@ -65,16 +69,23 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
         elements = result.dig('data', 'project', 'customDataElements')
-        expect(elements).to match([
-                                    a_hash_including(
-                                      'key' => cded1.key,
-                                      'label' => cded1.label,
-                                      'values' => [
-                                        a_hash_including('valueString' => cde1a.value_string),
-                                        a_hash_including('valueString' => cde1b.value_string),
-                                      ],
-                                    ),
-                                  ])
+        expect(elements).to match( # use match instead of contain_exactly here, the sort order should be deterministic
+          [
+            a_hash_including(
+              'key' => cded5.key,
+              'label' => cded5.label,
+              'value' => a_hash_including('valueString' => cde5.value_string),
+            ),
+            a_hash_including(
+              'key' => cded1.key,
+              'label' => cded1.label,
+              'values' => [
+                a_hash_including('valueString' => cde1a.value_string),
+                a_hash_including('valueString' => cde1b.value_string),
+              ],
+            ),
+          ],
+        )
       end
     end
   end
