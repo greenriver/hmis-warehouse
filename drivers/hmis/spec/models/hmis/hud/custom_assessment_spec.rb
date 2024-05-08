@@ -105,7 +105,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
       it "should error if assessment date is missing (#{role})" do
         apply_assessment_date(nil)
         validations = Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(assessment).map(&:to_h)
-        expect(validations).to match([a_hash_including(severity: :error, type: :required)])
+        expect(validations).to contain_exactly(a_hash_including(severity: :error, type: :required))
       end
 
       it "should succeed if assessment date is the same as entry date (#{role})" do
@@ -120,7 +120,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
         if assessment.intake?
           expect(validations).to be_empty
         else
-          expect(validations).to match([a_hash_including(severity: :error, message: Hmis::Hud::Validators::BaseValidator.before_entry_message(e1.entry_date))])
+          expect(validations).to contain_exactly(a_hash_including(severity: :error, message: Hmis::Hud::Validators::BaseValidator.before_entry_message(e1.entry_date)))
         end
       end
 
@@ -130,7 +130,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
         if assessment.exit?
           expect(validations).to be_empty
         else
-          expect(validations).to match([a_hash_including(severity: :error, message: Hmis::Hud::Validators::BaseValidator.after_exit_message(e1_exit.exit_date))])
+          expect(validations).to contain_exactly(a_hash_including(severity: :error, message: Hmis::Hud::Validators::BaseValidator.after_exit_message(e1_exit.exit_date)))
         end
       end
     end
@@ -155,11 +155,11 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
 
         # Validate HoH
         validations = Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(assessment).map(&:to_h)
-        expect(validations).to match([a_hash_including(severity: :warning, message: Hmis::Hud::Validators::ExitValidator.hoh_exits_before_others)])
+        expect(validations).to contain_exactly(a_hash_including(severity: :warning, message: Hmis::Hud::Validators::ExitValidator.hoh_exits_before_others))
 
         # Validate other member
         validations = Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(assessment2).map(&:to_h)
-        expect(validations).to match([a_hash_including(severity: :warning, message: Hmis::Hud::Validators::ExitValidator.member_exits_after_hoh(e1.exit_date))])
+        expect(validations).to contain_exactly(a_hash_including(severity: :warning, message: Hmis::Hud::Validators::ExitValidator.member_exits_after_hoh(e1.exit_date)))
       end
 
       it 'should warn if HoH exit date is before other members (unpersisted)' do
@@ -175,11 +175,11 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
 
         # Validate HoH
         validations = Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(assessment, household_members: [e1, e2]).map(&:to_h)
-        expect(validations).to match([a_hash_including(severity: :warning, message: Hmis::Hud::Validators::ExitValidator.hoh_exits_before_others)])
+        expect(validations).to contain_exactly(a_hash_including(severity: :warning, message: Hmis::Hud::Validators::ExitValidator.hoh_exits_before_others))
 
         # Validate other member
         validations = Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(assessment2, household_members: [e1, e2]).map(&:to_h)
-        expect(validations).to match([a_hash_including(severity: :warning, message: Hmis::Hud::Validators::ExitValidator.member_exits_after_hoh(e1.exit_date))])
+        expect(validations).to contain_exactly(a_hash_including(severity: :warning, message: Hmis::Hud::Validators::ExitValidator.member_exits_after_hoh(e1.exit_date)))
       end
     end
   end

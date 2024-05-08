@@ -104,20 +104,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       aggregate_failures 'checking response' do
         expect(response.status).to eq 200
         elements = result.dig('data', 'client', 'customDataElements')
-        expect(elements).to match([
-                                    a_hash_including(
-                                      'key' => cded2.key,
-                                      'label' => cded2.label,
-                                      'values' => [
-                                        a_hash_including('valueBoolean' => cde2.value_boolean),
-                                      ],
-                                    ),
-                                    a_hash_including(
-                                      'key' => cded3.key,
-                                      'label' => cded3.label,
-                                      'value' => a_hash_including('valueJson' => cde3.value_json),
-                                    ),
-                                  ])
+        expect(elements).to contain_exactly(
+          a_hash_including(
+            'key' => cded2.key,
+            'label' => cded2.label,
+            'values' => [
+              a_hash_including('valueBoolean' => cde2.value_boolean),
+            ],
+          ),
+          a_hash_including(
+            'key' => cded3.key,
+            'label' => cded3.label,
+            'value' => a_hash_including('valueJson' => cde3.value_json),
+          ),
+        )
       end
     end
   end
