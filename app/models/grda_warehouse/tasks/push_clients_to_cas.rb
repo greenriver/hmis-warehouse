@@ -89,8 +89,8 @@ module GrdaWarehouse::Tasks
               project_client.enrolled_in_rrh = client.enrolled_in_rrh(enrollments)
               project_client.enrolled_in_psh = client.enrolled_in_psh(enrollments)
               project_client.enrolled_in_ph = client.enrolled_in_ph(enrollments)
-              project_client.ongoing_es_enrollments = client.processed_service_history&.cohorts_ongoing_enrollments_es&.map { |e| e['project_name'] + ':' + e['date'] }.presence
-              project_client.ongoing_so_enrollments = client.processed_service_history&.cohorts_ongoing_enrollments_so&.map { |e| e['project_name'] + ':' + e['date'] }.presence
+              project_client.ongoing_es_enrollments = client.processed_service_history&.cohorts_ongoing_enrollments_es&.map { |e| e['project_name'] + ': ' + e['date']&.to_date.to_s }.presence
+              project_client.ongoing_so_enrollments = client.processed_service_history&.cohorts_ongoing_enrollments_so&.map { |e| e['project_name'] + ': ' + e['date']&.to_date.to_s }.presence
               project_client.last_seen_projects = client.last_intentional_contacts_ignore_visibile_status(include_confidential_names: false, include_dates: true).presence
               project_client.enrolled_in_rrh_pre_move_in = client.enrolled_in_rrh_pre_move_in(enrollments)
               project_client.enrolled_in_psh_pre_move_in = client.enrolled_in_psh_pre_move_in(enrollments)
