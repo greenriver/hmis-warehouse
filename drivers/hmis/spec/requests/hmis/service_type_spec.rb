@@ -36,13 +36,14 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  let(:rename_service_type) do
+  let(:update_service_type) do
     <<~GRAPHQL
-      mutation RenameServiceType($id: ID!, $name: String!) {
-        renameServiceType(id: $id, name: $name) {
+      mutation UpdateServiceType($id: ID!, $name: String!, $supportsBulkAssignment: Boolean!) {
+        updateServiceType(id: $id, name: $name, supportsBulkAssignment: $supportsBulkAssignment) {
           serviceType {
             id,
-            name
+            name,
+            supportsBulkAssignment
           }
           #{error_fields}
         }
@@ -78,14 +79,17 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(service_type.name).to eq('A new type')
     end
 
-    it 'should successfully rename a service type' do
+    it 'should successfully update a service type' do
       expect(t1.name).to eq('An old type')
-      response, result = post_graphql(name: 'A renamed type', id: t1.id) { rename_service_type }
+      expect(t1.supports_bulk_assignment).to eq(false)
+      response, result = post_graphql(name: 'A renamed type', id: t1.id, supportsBulkAssignment: true) { update_service_type }
       expect(response.status).to eq(200), result.inspect
-      service_type_name = result.dig('data', 'renameServiceType', 'serviceType', 'name')
-      expect(service_type_name).to eq('A renamed type')
+      service_type = result.dig('data', 'updateServiceType', 'serviceType')
+      expect(service_type['name']).to eq('A renamed type')
+      expect(service_type['supportsBulkAssignment']).to eq(true)
       t1.reload
       expect(t1.name).to eq('A renamed type')
+      expect(t1.supports_bulk_assignment).to eq(true)
     end
 
     it 'should successfully delete a service type' do
