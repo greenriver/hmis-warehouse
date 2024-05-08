@@ -304,6 +304,9 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   alias save_in_progress save_in_progress!
 
   def save_not_in_progress!
+    # If this enrollment is being moved from WIP=>non-WIP, then set the DateCreated to now. This is to get the desired time for timeliness reports.
+    self.date_created = Time.current if persisted? && in_progress?
+    # Set ProjectID to the actual HUD ProjectID, to indicate that this is no longer WIP (and can be used in reporting)
     self.project_id = project.project_id
     save!
   end

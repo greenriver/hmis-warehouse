@@ -15,6 +15,8 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
     cleanup_test_environment
   end
 
+  include_context 'hmis base setup'
+
   describe 'destroying WIP assessment' do
     let!(:assessment) { create(:hmis_wip_custom_assessment) }
 
@@ -277,6 +279,78 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
     it 'correctly returns custom assessments' do
       result = Hmis::Hud::CustomAssessment.with_role('CUSTOM_ASSESSMENT')
       expect(result).to contain_exactly(custom_assessment)
+    end
+  end
+
+  describe 'save_submitted_assessment! function' do
+    context 'when re-submitting Intake on Enrollment' do
+      let!(:enrollment) { create(:hmis_hud_enrollment, project: p1, data_source: ds1, date_created: 1.month.ago) }
+      let!(:assessment) { create(:hmis_custom_assessment, data_collection_stage: 1, enrollment: enrollment, data_source: ds1, assessment_date: 2.weeks.ago) }
+
+      it 'does not change DateCreated, does not adjust WIP status' do
+        old_date_created = enrollment.DateCreated
+        assessment.save_submitted_assessment!(current_user: hmis_user)
+
+        expect(enrollment.date_created.to_s).to eq(old_date_created.to_s)
+        expect(enrollment).not_to be_in_progress
+        expect(assessment).not_to be_wip
+      end
+    end
+
+    context 'new Intake on WIP Enrollment' do
+      let!(:enrollment) { create(:hmis_hud_wip_enrollment, project: p1, data_source: ds1, date_created: 1.month.ago) }
+      let!(:assessment) { build(:hmis_custom_assessment, data_collection_stage: 1, enrollment: enrollment, data_source: ds1) }
+
+      it 'does not change DateCreated when saving intake as WIP' do
+        old_date_created = enrollment.DateCreated
+        assessment.save_submitted_assessment!(current_user: hmis_user, as_wip: true)
+
+        # DateCreated is not updated
+        expect(enrollment.date_created.to_s).to eq(old_date_created.to_s)
+        # Enrollment is still WIP
+        expect(enrollment).to be_in_progress
+        expect(assessment).to be_wip
+      end
+
+      it 'does change DateCreated when submitting intake' do
+        old_date_created = enrollment.DateCreated
+        assessment.save_submitted_assessment!(current_user: hmis_user)
+
+        # DateCreated is updated to the current time
+        expect(enrollment.date_created.to_s).not_to eq(old_date_created.to_s)
+        expect(enrollment.date_created).to be > old_date_created
+        # Enrollment is no longer WIP
+        expect(enrollment).not_to be_in_progress
+        expect(assessment).not_to be_wip
+      end
+    end
+
+    context 'WIP Intake on WIP Enrollment' do
+      let!(:enrollment) { create(:hmis_hud_wip_enrollment, project: p1, data_source: ds1, date_created: 1.month.ago) }
+      let!(:assessment) { create(:hmis_wip_custom_assessment, data_collection_stage: 1, enrollment: enrollment, data_source: ds1) }
+
+      it 'does not change DateCreated when saving intake as WIP' do
+        old_date_created = enrollment.DateCreated
+        assessment.save_submitted_assessment!(current_user: hmis_user, as_wip: true)
+
+        # DateCreated is not updated
+        expect(enrollment.date_created.to_s).to eq(old_date_created.to_s)
+        # Enrollment is still WIP
+        expect(enrollment).to be_in_progress
+        expect(assessment).to be_wip
+      end
+
+      it 'does change DateCreated when submitting intake' do
+        old_date_created = enrollment.DateCreated
+        assessment.save_submitted_assessment!(current_user: hmis_user)
+
+        # DateCreated is updated to the current time
+        expect(enrollment.date_created.to_s).not_to eq(old_date_created.to_s)
+        expect(enrollment.date_created).to be > old_date_created
+        # Enrollment is no longer WIP
+        expect(enrollment).not_to be_in_progress
+        expect(assessment).not_to be_wip
+      end
     end
   end
 end
