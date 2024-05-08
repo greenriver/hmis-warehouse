@@ -1789,10 +1789,12 @@ module GrdaWarehouse::Hud
       contacts = processed_service_history&.last_intentional_contacts
       return [] unless contacts.present?
 
+      projects = GrdaWarehouse::Hud::Project.all.index_by(&:id)
       contacts = JSON.parse(contacts)
 
       contacts.sort_by { |c| c['date']&.to_date || 5.years.ago }.reverse.map do |contact|
-        project = GrdaWarehouse::Hud::Project.find(contact['project_id'])
+        project = projects[contact['project_id']]
+
         next if project&.confidential? && skip_confidential_projects
 
         name = project&.name(ignore_confidential_status: include_confidential_names) || contact['project_name']
