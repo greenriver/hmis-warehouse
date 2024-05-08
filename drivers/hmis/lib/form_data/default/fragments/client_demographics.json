@@ -20,7 +20,7 @@
       "type": "STRING",
       "required": false,
       "warn_if_empty": false,
-      "link_id": "race-other",
+      "link_id": "race_other",
       "text": "Additional Race and Ethnicity Detail",
       "mapping": {
         "record_type": "CLIENT",
@@ -49,13 +49,13 @@
     },
     {
       "type": "GROUP",
-      "link_id": "gender-conditionals",
+      "link_id": "gender_conditionals",
       "item": [
         {
           "type": "TEXT",
           "required": false,
           "warn_if_empty": false,
-          "link_id": "gender-other",
+          "link_id": "gender_other",
           "text": "If different identity, please specify",
           "mapping": {
             "record_type": "CLIENT",
@@ -98,7 +98,7 @@
       "type": "CHOICE",
       "required": false,
       "repeats": false,
-      "link_id": "veteran-status",
+      "link_id": "veteran_status",
       "text": "Veteran Status",
       "mapping": {
         "record_type": "CLIENT",

@@ -2,9 +2,11 @@
   "item": [
     {
       "type": "STRING",
-      "link_id": "client-id",
+      "link_id": "client_id",
       "hidden": true,
-      "mapping": { "field_name": "id" }
+      "mapping": {
+        "field_name": "id"
+      }
     },
     {
       "fragment": "#client_names"

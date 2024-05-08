@@ -1,6 +1,6 @@
 [
   {
-    "link_id": "income-and-sources",
+    "link_id": "income_and_sources",
     "_comment": "Default HUD Rules + Local/NA funders",
     "rule": {
       "operator": "ANY",
@@ -9,8 +9,16 @@
           "_comment": "Local or N/A funder",
           "operator": "ANY",
           "parts": [
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 46},
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 34}
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 46
+            },
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 34
+            }
           ]
         },
         {
@@ -19,11 +27,19 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: CoC"
+              "operator": "INCLUDE",
+              "value": "HUD: CoC"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 6},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 14}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 6
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
           ]
         },
         {
@@ -32,10 +48,14 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: ESG"
+              "operator": "INCLUDE",
+              "value": "HUD: ESG"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 1}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 1
+            }
           ]
         },
         {
@@ -44,31 +64,51 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: ESG RUSH"
+              "operator": "INCLUDE",
+              "value": "HUD: ESG RUSH"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 0},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 1},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 4}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 0
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 1
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 4
+            }
           ]
         },
         {
           "_comment": "HUD: HOPWA – Collection required for all components",
-          "variable": "projectFunderComponents"                            ,
-          "operator": "INCLUDE"                                            ,
-          "value"   : "HUD: HOPWA"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HUD: HOPWA"
         },
         {
           "operator": "ALL",
           "_comment": "HUD: Unsheltered Special NOFO – Collection required for all components except SSO Coordinated Entry",
           "parts": [
             {
-              "variable": "projectFunderComponents"      ,
-              "operator": "INCLUDE"                      ,
-              "value"   : "HUD: Unsheltered Special NOFO"
+              "variable": "projectFunderComponents",
+              "operator": "INCLUDE",
+              "value": "HUD: Unsheltered Special NOFO"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 6},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 14}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 6
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
           ]
         },
         {
@@ -77,11 +117,19 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: Rural Special NOFO"
+              "operator": "INCLUDE",
+              "value": "HUD: Rural Special NOFO"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 6},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 14}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 6
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
           ]
         },
         {
@@ -96,33 +144,61 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: PFS"
+              "operator": "INCLUDE",
+              "value": "HUD: PFS"
             },
             {
               "operator": "ANY",
               "parts": [
-                {"variable": "projectType", "operator": "EQUAL", "value":  3},
-                {"variable": "projectType", "operator": "EQUAL", "value":  9},
-                {"variable": "projectType", "operator": "EQUAL", "value": 10},
-                {"variable": "projectType", "operator": "EQUAL", "value": 13}
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 3
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 9
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 10
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 13
+                }
               ]
             }
           ]
         },
         {
           "_comment": "HHS: PATH – Collection required for all components",
-          "variable": "projectFunderComponents"                           ,
-          "operator": "INCLUDE"                                           ,
-          "value"   : "HHS: PATH"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HHS: PATH"
         },
         {
           "_comment": "HHS: RHY – Collection only required for MGH, TLP, and Demo",
           "operator": "ANY",
           "parts": [
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 23},
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 24},
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 26}
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 23
+            },
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 24
+            },
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 26
+            }
           ]
         },
         {
@@ -131,23 +207,31 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "VA: SSVF"
+              "operator": "INCLUDE",
+              "value": "VA: SSVF"
             },
             {
               "operator": "ANY",
               "parts": [
-                {"variable": "projectType", "operator": "EQUAL", "value": 12},
-                {"variable": "projectType", "operator": "EQUAL", "value": 13}
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 12
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 13
+                }
               ]
             }
           ]
         },
         {
           "_comment": "VA: GPD – Collection required for all components",
-          "variable": "projectFunderComponents"                         ,
-          "operator": "INCLUDE"                                         ,
-          "value"   : "VA: GPD"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "VA: GPD"
         },
         {
           "_comment": "VA: Community Contract Safe Haven",
@@ -156,9 +240,9 @@
           "value": 30
         },
         {
-          "variable": "projectFunderComponents"              ,
-          "operator": "INCLUDE"                              ,
-          "value"   : "VA: CRS Contract Residential Services"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "VA: CRS Contract Residential Services"
         },
         {
           "_comment": "YHDP",
@@ -170,7 +254,7 @@
     }
   },
   {
-    "link_id": "non-cash-benefits",
+    "link_id": "non_cash_benefits",
     "_comment": "Default HUD Rules + Local/NA funders",
     "rule": {
       "operator": "ANY",
@@ -179,8 +263,16 @@
           "_comment": "Local or N/A funder",
           "operator": "ANY",
           "parts": [
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 46},
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 34}
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 46
+            },
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 34
+            }
           ]
         },
         {
@@ -189,11 +281,19 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: CoC"
+              "operator": "INCLUDE",
+              "value": "HUD: CoC"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 6},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 14}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 6
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
           ]
         },
         {
@@ -202,10 +302,14 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: ESG"
+              "operator": "INCLUDE",
+              "value": "HUD: ESG"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 1}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 1
+            }
           ]
         },
         {
@@ -214,31 +318,51 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: ESG RUSH"
+              "operator": "INCLUDE",
+              "value": "HUD: ESG RUSH"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 0},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 1},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 4}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 0
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 1
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 4
+            }
           ]
         },
         {
           "_comment": "HUD: HOPWA – Collection required for all components",
-          "variable": "projectFunderComponents"                            ,
-          "operator": "INCLUDE"                                            ,
-          "value"   : "HUD: HOPWA"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HUD: HOPWA"
         },
         {
           "operator": "ALL",
           "_comment": "HUD: Unsheltered Special NOFO – Collection required for all components except SSO Coordinated Entry",
           "parts": [
             {
-              "variable": "projectFunderComponents"      ,
-              "operator": "INCLUDE"                      ,
-              "value"   : "HUD: Unsheltered Special NOFO"
+              "variable": "projectFunderComponents",
+              "operator": "INCLUDE",
+              "value": "HUD: Unsheltered Special NOFO"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 6},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 14}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 6
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
           ]
         },
         {
@@ -247,11 +371,19 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: Rural Special NOFO"
+              "operator": "INCLUDE",
+              "value": "HUD: Rural Special NOFO"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 6},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 14}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 6
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
           ]
         },
         {
@@ -266,34 +398,66 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: PFS"
+              "operator": "INCLUDE",
+              "value": "HUD: PFS"
             },
             {
               "operator": "ANY",
               "parts": [
-                {"variable": "projectType", "operator": "EQUAL", "value":  3},
-                {"variable": "projectType", "operator": "EQUAL", "value":  9},
-                {"variable": "projectType", "operator": "EQUAL", "value": 10},
-                {"variable": "projectType", "operator": "EQUAL", "value": 13}
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 3
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 9
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 10
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 13
+                }
               ]
             }
           ]
         },
         {
           "_comment": "HHS: PATH – Collection required for all components",
-          "variable": "projectFunderComponents"                           ,
-          "operator": "INCLUDE"                                           ,
-          "value"   : "HHS: PATH"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HHS: PATH"
         },
         {
           "_comment": "HHS: RHY – Collection only required for BCP (HP and ES), MGH, TLP, and Demo",
           "operator": "ANY",
           "parts": [
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 22},
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 23},
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 24},
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 26}
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 22
+            },
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 23
+            },
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 24
+            },
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 26
+            }
           ]
         },
         {
@@ -302,23 +466,31 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "VA: SSVF"
+              "operator": "INCLUDE",
+              "value": "VA: SSVF"
             },
             {
               "operator": "ANY",
               "parts": [
-                {"variable": "projectType", "operator": "EQUAL", "value": 12},
-                {"variable": "projectType", "operator": "EQUAL", "value": 13}
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 12
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 13
+                }
               ]
             }
           ]
         },
         {
           "_comment": "VA: GPD – Collection required for all components",
-          "variable": "projectFunderComponents"                         ,
-          "operator": "INCLUDE"                                         ,
-          "value"   : "VA: GPD"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "VA: GPD"
         },
         {
           "_comment": "VA: Community Contract Safe Haven",
@@ -327,9 +499,9 @@
           "value": 30
         },
         {
-          "variable": "projectFunderComponents"              ,
-          "operator": "INCLUDE"                              ,
-          "value"   : "VA: CRS Contract Residential Services"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "VA: CRS Contract Residential Services"
         },
         {
           "_comment": "YHDP",
@@ -341,7 +513,7 @@
     }
   },
   {
-    "link_id": "health-insurance",
+    "link_id": "health_insurance",
     "_comment": "Default HUD Rules + Local/NA funders",
     "rule": {
       "operator": "ANY",
@@ -350,8 +522,16 @@
           "_comment": "Local or N/A funder",
           "operator": "ANY",
           "parts": [
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 46},
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 34}
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 46
+            },
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 34
+            }
           ]
         },
         {
@@ -360,11 +540,19 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: CoC"
+              "operator": "INCLUDE",
+              "value": "HUD: CoC"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 6},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 14}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 6
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
           ]
         },
         {
@@ -373,10 +561,14 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: ESG"
+              "operator": "INCLUDE",
+              "value": "HUD: ESG"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 1}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 1
+            }
           ]
         },
         {
@@ -385,31 +577,51 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: ESG RUSH"
+              "operator": "INCLUDE",
+              "value": "HUD: ESG RUSH"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 0},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 1},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 4}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 0
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 1
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 4
+            }
           ]
         },
         {
           "_comment": "HUD: HOPWA – Collection required for all components",
-          "variable": "projectFunderComponents"                            ,
-          "operator": "INCLUDE"                                            ,
-          "value"   : "HUD: HOPWA"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HUD: HOPWA"
         },
         {
           "operator": "ALL",
           "_comment": "HUD: Unsheltered Special NOFO – Collection required for all components except SSO Coordinated Entry",
           "parts": [
             {
-              "variable": "projectFunderComponents"      ,
-              "operator": "INCLUDE"                      ,
-              "value"   : "HUD: Unsheltered Special NOFO"
+              "variable": "projectFunderComponents",
+              "operator": "INCLUDE",
+              "value": "HUD: Unsheltered Special NOFO"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 6},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 14}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 6
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
           ]
         },
         {
@@ -418,11 +630,19 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: Rural Special NOFO"
+              "operator": "INCLUDE",
+              "value": "HUD: Rural Special NOFO"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 6},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 14}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 6
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
           ]
         },
         {
@@ -437,31 +657,47 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: PFS"
+              "operator": "INCLUDE",
+              "value": "HUD: PFS"
             },
             {
               "operator": "ANY",
               "parts": [
-                {"variable": "projectType", "operator": "EQUAL", "value":  3},
-                {"variable": "projectType", "operator": "EQUAL", "value":  9},
-                {"variable": "projectType", "operator": "EQUAL", "value": 10},
-                {"variable": "projectType", "operator": "EQUAL", "value": 13}
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 3
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 9
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 10
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 13
+                }
               ]
             }
           ]
         },
         {
           "_comment": "HHS: PATH – Collection required for all components",
-          "variable": "projectFunderComponents"                           ,
-          "operator": "INCLUDE"                                           ,
-          "value"   : "HHS: PATH"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HHS: PATH"
         },
         {
           "_comment": "HHS: RHY – Collection required for all components",
-          "variable": "projectFunderComponents"                          ,
-          "operator": "INCLUDE"                                          ,
-          "value"   : "HHS: RHY"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HHS: RHY"
         },
         {
           "operator": "ALL",
@@ -469,23 +705,31 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "VA: SSVF"
+              "operator": "INCLUDE",
+              "value": "VA: SSVF"
             },
             {
               "operator": "ANY",
               "parts": [
-                {"variable": "projectType", "operator": "EQUAL", "value": 12},
-                {"variable": "projectType", "operator": "EQUAL", "value": 13}
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 12
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 13
+                }
               ]
             }
           ]
         },
         {
           "_comment": "VA: GPD – Collection required for all components",
-          "variable": "projectFunderComponents"                         ,
-          "operator": "INCLUDE"                                         ,
-          "value"   : "VA: GPD"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "VA: GPD"
         },
         {
           "_comment": "VA: Community Contract Safe Haven",
@@ -494,9 +738,9 @@
           "value": 30
         },
         {
-          "variable": "projectFunderComponents"              ,
-          "operator": "INCLUDE"                              ,
-          "value"   : "VA: CRS Contract Residential Services"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "VA: CRS Contract Residential Services"
         },
         {
           "_comment": "YHDP",
@@ -508,7 +752,7 @@
     }
   },
   {
-    "link_id": "disability-table",
+    "link_id": "disability_table",
     "_comment": "Default HUD Rules + Local/NA funders",
     "rule": {
       "operator": "ANY",
@@ -517,8 +761,16 @@
           "_comment": "Local or N/A funder",
           "operator": "ANY",
           "parts": [
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 46},
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 34}
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 46
+            },
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 34
+            }
           ]
         },
         {
@@ -527,11 +779,19 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: CoC"
+              "operator": "INCLUDE",
+              "value": "HUD: CoC"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 6},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 14}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 6
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
           ]
         },
         {
@@ -540,10 +800,14 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: ESG"
+              "operator": "INCLUDE",
+              "value": "HUD: ESG"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 1}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 1
+            }
           ]
         },
         {
@@ -552,40 +816,72 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: ESG RUSH"
+              "operator": "INCLUDE",
+              "value": "HUD: ESG RUSH"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 0},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 1},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 4}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 0
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 1
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 4
+            }
           ]
         },
         {
           "_comment": "HUD: HOPWA – Collection required for all components",
-          "variable": "projectFunderComponents"                            ,
-          "operator": "INCLUDE"                                            ,
-          "value"   : "HUD: HOPWA"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HUD: HOPWA"
         },
         {
           "operator": "ALL",
           "_comment": "HUD: Unsheltered Special NOFO – Collection required for all components except SSO Coordinated Entry",
           "parts": [
             {
-              "variable": "projectFunderComponents"      ,
-              "operator": "INCLUDE"                      ,
-              "value"   : "HUD: Unsheltered Special NOFO"
+              "variable": "projectFunderComponents",
+              "operator": "INCLUDE",
+              "value": "HUD: Unsheltered Special NOFO"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 6},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 14}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 6
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
           ]
         },
         {
           "operator": "ALL",
           "_comment": "HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry",
           "parts": [
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 55},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 6}  ,
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 14}
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 55
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 6
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
           ]
         },
         {
@@ -598,46 +894,66 @@
           "operator": "ALL",
           "_comment": "HUD: PFS – Collection required for all permanent housing projects",
           "parts": [
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 35},
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 35
+            },
             {
               "operator": "ANY",
               "parts": [
-                {"variable": "projectType", "operator": "EQUAL", "value":  3},
-                {"variable": "projectType", "operator": "EQUAL", "value":  9},
-                {"variable": "projectType", "operator": "EQUAL", "value": 10},
-                {"variable": "projectType", "operator": "EQUAL", "value": 13}
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 3
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 9
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 10
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 13
+                }
               ]
             }
           ]
         },
         {
           "_comment": "HHS: PATH – Collection required for all components",
-          "variable": "projectFunderComponents"                           ,
-          "operator": "INCLUDE"                                           ,
-          "value"   : "HHS: PATH"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HHS: PATH"
         },
         {
           "_comment": "HHS: RHY – Collection required for all components",
-          "variable": "projectFunderComponents"                          ,
-          "operator": "INCLUDE"                                          ,
-          "value"   : "HHS: RHY"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HHS: RHY"
         },
         {
           "_comment": "VA: GPD – Collection required for all components",
-          "variable": "projectFunderComponents"                         ,
-          "operator": "INCLUDE"                                         ,
-          "value"   : "VA: GPD"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "VA: GPD"
         },
         {
           "_comment": "VA: Community Contract Safe Haven",
-          "variable": "projectFunderComponents"          ,
-          "operator": "INCLUDE"                          ,
-          "value"   : "VA: Community Contract Safe Haven"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "VA: Community Contract Safe Haven"
         },
         {
-          "variable": "projectFunderComponents"              ,
-          "operator": "INCLUDE"                              ,
-          "value"   : "VA: CRS Contract Residential Services"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "VA: CRS Contract Residential Services"
         },
         {
           "_comment": "YHDP",
@@ -649,7 +965,7 @@
     }
   },
   {
-    "link_id": "disability-table-r4",
+    "link_id": "disability_table_r4",
     "_comment": "Default HUD Rules + Local/NA funders",
     "rule": {
       "operator": "ANY",
@@ -658,8 +974,16 @@
           "_comment": "Local or N/A funder",
           "operator": "ANY",
           "parts": [
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 46},
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 34}
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 46
+            },
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 34
+            }
           ]
         },
         {
@@ -668,11 +992,19 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: CoC"
+              "operator": "INCLUDE",
+              "value": "HUD: CoC"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 6},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 14}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 6
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
           ]
         },
         {
@@ -681,10 +1013,14 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: ESG"
+              "operator": "INCLUDE",
+              "value": "HUD: ESG"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 1}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 1
+            }
           ]
         },
         {
@@ -693,40 +1029,72 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: ESG RUSH"
+              "operator": "INCLUDE",
+              "value": "HUD: ESG RUSH"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 0},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 1},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 4}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 0
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 1
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 4
+            }
           ]
         },
         {
           "_comment": "HUD: HOPWA – Collection required for all components",
-          "variable": "projectFunderComponents"                            ,
-          "operator": "INCLUDE"                                            ,
-          "value"   : "HUD: HOPWA"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HUD: HOPWA"
         },
         {
           "operator": "ALL",
           "_comment": "HUD: Unsheltered Special NOFO – Collection required for all components except SSO Coordinated Entry",
           "parts": [
             {
-              "variable": "projectFunderComponents"      ,
-              "operator": "INCLUDE"                      ,
-              "value"   : "HUD: Unsheltered Special NOFO"
+              "variable": "projectFunderComponents",
+              "operator": "INCLUDE",
+              "value": "HUD: Unsheltered Special NOFO"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 6},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 14}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 6
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
           ]
         },
         {
           "operator": "ALL",
           "_comment": "HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry",
           "parts": [
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 55},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 6}  ,
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 14}
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 55
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 6
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
           ]
         },
         {
@@ -739,23 +1107,43 @@
           "operator": "ALL",
           "_comment": "HUD: PFS – Collection required for all permanent housing projects",
           "parts": [
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 35},
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 35
+            },
             {
               "operator": "ANY",
               "parts": [
-                {"variable": "projectType", "operator": "EQUAL", "value":  3},
-                {"variable": "projectType", "operator": "EQUAL", "value":  9},
-                {"variable": "projectType", "operator": "EQUAL", "value": 10},
-                {"variable": "projectType", "operator": "EQUAL", "value": 13}
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 3
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 9
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 10
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 13
+                }
               ]
             }
           ]
         },
         {
           "_comment": "VA: GPD – Collection required for all components",
-          "variable": "projectFunderComponents"                         ,
-          "operator": "INCLUDE"                                         ,
-          "value"   : "VA: GPD"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "VA: GPD"
         },
         {
           "_comment": "VA: Community Contract Safe Haven",
@@ -764,9 +1152,9 @@
           "value": 30
         },
         {
-          "variable": "projectFunderComponents"              ,
-          "operator": "INCLUDE"                              ,
-          "value"   : "VA: CRS Contract Residential Services"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "VA: CRS Contract Residential Services"
         },
         {
           "_comment": "YHDP",
@@ -778,7 +1166,7 @@
     }
   },
   {
-    "link_id": "4.11",
+    "link_id": "hud_4_11",
     "_comment": "Default HUD Rules + Local/NA funders",
     "rule": {
       "operator": "ANY",
@@ -787,8 +1175,16 @@
           "_comment": "Local or N/A funder",
           "operator": "ANY",
           "parts": [
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 46},
-            {"variable": "projectFunders", "operator": "INCLUDE", "value": 34}
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 46
+            },
+            {
+              "variable": "projectFunders",
+              "operator": "INCLUDE",
+              "value": 34
+            }
           ]
         },
         {
@@ -797,18 +1193,26 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: CoC"
+              "operator": "INCLUDE",
+              "value": "HUD: CoC"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 6},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 14}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 6
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
           ]
         },
         {
           "_comment": "HUD: ESG – Collection required for all components ",
-          "variable": "projectFunderComponents"                           ,
-          "operator": "INCLUDE"                                           ,
-          "value"   : "HUD: ESG"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HUD: ESG"
         },
         {
           "operator": "ALL",
@@ -816,31 +1220,51 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: ESG RUSH"
+              "operator": "INCLUDE",
+              "value": "HUD: ESG RUSH"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 0},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 1},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 4}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 0
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 1
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 4
+            }
           ]
         },
         {
           "_comment": "HUD: HOPWA – Collection required for all components",
-          "variable": "projectFunderComponents"                            ,
-          "operator": "INCLUDE"                                            ,
-          "value"   : "HUD: HOPWA"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HUD: HOPWA"
         },
         {
           "operator": "ALL",
           "_comment": "HUD: Unsheltered Special NOFO – Collection required for all components except SSO Coordinated Entry",
           "parts": [
             {
-              "variable": "projectFunderComponents"      ,
-              "operator": "INCLUDE"                      ,
-              "value"   : "HUD: Unsheltered Special NOFO"
+              "variable": "projectFunderComponents",
+              "operator": "INCLUDE",
+              "value": "HUD: Unsheltered Special NOFO"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 6},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 14}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 6
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
           ]
         },
         {
@@ -849,11 +1273,19 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: Rural Special NOFO"
+              "operator": "INCLUDE",
+              "value": "HUD: Rural Special NOFO"
             },
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 6},
-            {"variable": "projectType", "operator": "NOT_EQUAL", "value": 14}
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 6
+            },
+            {
+              "variable": "projectType",
+              "operator": "NOT_EQUAL",
+              "value": 14
+            }
           ]
         },
         {
@@ -868,25 +1300,41 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "HUD: PFS"
+              "operator": "INCLUDE",
+              "value": "HUD: PFS"
             },
             {
               "operator": "ANY",
               "parts": [
-                {"variable": "projectType", "operator": "EQUAL", "value":  3},
-                {"variable": "projectType", "operator": "EQUAL", "value":  9},
-                {"variable": "projectType", "operator": "EQUAL", "value": 10},
-                {"variable": "projectType", "operator": "EQUAL", "value": 13}
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 3
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 9
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 10
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 13
+                }
               ]
             }
           ]
         },
         {
           "_comment": "HHS: PATH – Collection required for all components",
-          "variable": "projectFunderComponents"                           ,
-          "operator": "INCLUDE"                                           ,
-          "value"   : "HHS: PATH"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "HHS: PATH"
         },
         {
           "operator": "ALL",
@@ -894,23 +1342,31 @@
           "parts": [
             {
               "variable": "projectFunderComponents",
-              "operator": "INCLUDE"                ,
-              "value"   : "VA: SSVF"
+              "operator": "INCLUDE",
+              "value": "VA: SSVF"
             },
             {
               "operator": "ANY",
               "parts": [
-                {"variable": "projectType", "operator": "EQUAL", "value": 12},
-                {"variable": "projectType", "operator": "EQUAL", "value": 13}
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 12
+                },
+                {
+                  "variable": "projectType",
+                  "operator": "EQUAL",
+                  "value": 13
+                }
               ]
             }
           ]
         },
         {
           "_comment": "VA: GPD – Collection required for all components",
-          "variable": "projectFunderComponents"                         ,
-          "operator": "INCLUDE"                                         ,
-          "value"   : "VA: GPD"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "VA: GPD"
         },
         {
           "_comment": "VA: Community Contract Safe Haven",
@@ -919,9 +1375,9 @@
           "value": 30
         },
         {
-          "variable": "projectFunderComponents"              ,
-          "operator": "INCLUDE"                              ,
-          "value"   : "VA: CRS Contract Residential Services"
+          "variable": "projectFunderComponents",
+          "operator": "INCLUDE",
+          "value": "VA: CRS Contract Residential Services"
         },
         {
           "_comment": "YHDP",

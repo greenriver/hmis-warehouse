@@ -1,6 +1,6 @@
 {
   "type": "GROUP",
-  "link_id": "c3-youth-education-status",
+  "link_id": "c3_youth_education_status",
   "text": "Youth Education Status",
   "data_collected_about": "HOH",
   "prefill": true,
@@ -18,7 +18,7 @@
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "C3.2",
+      "link_id": "C3_2",
       "required": false,
       "warn_if_empty": true,
       "text": "Current school enrollment and attendance",
@@ -30,7 +30,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "C3.A",
+      "link_id": "C3_A",
       "required": false,
       "warn_if_empty": true,
       "text": "Most recent educational status",
@@ -42,7 +42,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "C3.2",
+          "question": "C3_2",
           "operator": "EQUAL",
           "answer_code": "NOT_CURRENTLY_ENROLLED_IN_ANY_SCHOOL_OR_EDUCATIONAL_COURSE"
         }
@@ -50,7 +50,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "C3.B",
+      "link_id": "C3_B",
       "required": false,
       "warn_if_empty": true,
       "text": "Current Educational Status",
@@ -62,12 +62,12 @@
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "C3.2",
+          "question": "C3_2",
           "operator": "EQUAL",
           "answer_code": "CURRENTLY_ENROLLED_BUT_NOT_ATTENDING_REGULARLY"
         },
         {
-          "question": "C3.2",
+          "question": "C3_2",
           "operator": "EQUAL",
           "answer_code": "CURRENTLY_ENROLLED_AND_ATTENDING_REGULARLY"
         }

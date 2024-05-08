@@ -1,10 +1,10 @@
 [
   {
-    "link_id": "new-enrollment-details",
+    "link_id": "new_enrollment_details",
     "append_items": [
       {
         "type": "CHOICE",
-        "link_id": "unit-selection-for-new-enrollment-in-family-shelters",
+        "link_id": "unit_selection_for_new_enrollment_in_family_shelters",
         "_comment": "unit selection version that allows user to choose different units for different household members when enrolling. only supported for certain projects.",
         "required": true,
         "text": "Unit",
@@ -57,7 +57,7 @@
       },
       {
         "type": "CHOICE",
-        "link_id": "unit-selection-for-new-enrollment",
+        "link_id": "unit_selection_for_new_enrollment",
         "_comment": "unit selection version that lets the user choose which unit the HoH goes into. rest of household members go to the same unit, without ability to change.",
         "required": true,
         "text": "Unit",
@@ -71,7 +71,7 @@
         "enable_when": [
           {
             "_comment": "Only show unit selection for first member in household. The rest of the members get the same unit as the first member",
-            "question": "household-id",
+            "question": "household_id",
             "operator": "EXISTS",
             "answer_boolean": false
           }

@@ -1,7 +1,7 @@
 {
   "item": [
     {
-      "link_id": "3.20",
+      "link_id": "hud_3_20",
       "type": "DATE",
       "text": "Move-in Date",
       "mapping": {
@@ -40,7 +40,7 @@
       "text": "Move in address",
       "enable_when": [
         {
-          "question": "3.20",
+          "question": "hud_3_20",
           "operator": "EXISTS",
           "answer_boolean": true
         }

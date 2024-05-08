@@ -1,6 +1,6 @@
 {
   "type": "GROUP",
-  "link_id": "medical-assistance",
+  "link_id": "medical_assistance",
   "text": "Medical Assistance",
   "data_collected_about": "ALL_CLIENTS",
   "prefill": true,
@@ -13,7 +13,7 @@
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "W3.3",
+      "link_id": "W3_3",
       "required": false,
       "text": "Receiving AIDS Drug Assistance Program (ADAP)",
       "pick_list_reference": "NoYesReasonsForMissingData",
@@ -24,7 +24,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "W3.B",
+      "link_id": "W3_B",
       "required": false,
       "text": "Reason for not receiving AIDS Drug Assistance Program",
       "pick_list_reference": "NoAssistanceReason",
@@ -35,7 +35,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "W3.3",
+          "question": "W3_3",
           "operator": "EQUAL",
           "answer_code": "NO"
         }
@@ -43,7 +43,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "W3.4",
+      "link_id": "W3_4",
       "required": false,
       "text": "Receiving Ryan White-funded Medical or Dental Assistance",
       "pick_list_reference": "NoYesReasonsForMissingData",
@@ -54,7 +54,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "W3.C",
+      "link_id": "W3_C",
       "required": false,
       "text": "Reason for not receiving Ryan White-funded Medical or Dental Assistance",
       "pick_list_reference": "NoAssistanceReason",
@@ -65,7 +65,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "W3.4",
+          "question": "W3_4",
           "operator": "EQUAL",
           "answer_code": "NO"
         }

@@ -6,7 +6,7 @@
   "item": [
     {
       "type": "DATE",
-      "link_id": "exit-date",
+      "link_id": "exit_date",
       "text": "Exit Date",
       "mapping": {
         "record_type": "EXIT",
@@ -37,7 +37,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "3.12",
+      "link_id": "hud_3_12",
       "text": "Exit Destination",
       "pick_list_reference": "DESTINATION",
       "mapping": {
@@ -48,11 +48,11 @@
     },
     {
       "type": "GROUP",
-      "link_id": "3.12.conditional",
+      "link_id": "hud_3_12_conditional",
       "item": [
         {
           "type": "CHOICE",
-          "link_id": "3.12.A",
+          "link_id": "hud_3_12_A",
           "required": true,
           "text": "Rental subsidy type",
           "pick_list_reference": "RentalSubsidyType",
@@ -63,7 +63,7 @@
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "3.12",
+              "question": "hud_3_12",
               "operator": "EQUAL",
               "answer_code": "RENTAL_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY"
             }
@@ -71,7 +71,7 @@
         },
         {
           "type": "STRING",
-          "link_id": "3.12.B",
+          "link_id": "hud_3_12_B",
           "required": true,
           "text": "Other destination",
           "mapping": {
@@ -81,7 +81,7 @@
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "3.12",
+              "question": "hud_3_12",
               "operator": "EQUAL",
               "answer_code": "OTHER"
             }
