@@ -96,6 +96,7 @@ module HudCodeGen
     skipped = ['race', '3.6.1', '2.4.2', '1.6']
     filename = 'drivers/hmis/app/graphql/types/hmis_schema/enums/hud.rb'
     hud_utility_class = year == '2022' ? 'HudUtility' : "HudUtility#{year}"
+    hud_utility = hud_utility_class.constantize
 
     seen = []
     arr = []
@@ -118,9 +119,9 @@ module HudCodeGen
       enum_description << " (#{element['code']})" if element['code']
       arr.push "description '#{enum_description}'"
       arr.push "graphql_name '#{graphql_name}'"
-      # graphql name; description; value
-      enum_map = hud_utility_class.constantize.send(map_name)
 
+      # Get the hash map from HudUtility, and declare an enum value for each key-value pair
+      enum_map = hud_utility.send(map_name)
       stringify_values = enum_map.keys.any? { |k| k.is_a?(String) }
       enum_map.each do |key, value|
         enum_key = Types::BaseEnum.to_enum_key(value)
@@ -131,6 +132,7 @@ module HudCodeGen
         escaped_value = stringify_values ? "'#{enum_value}'" : enum_value
         arr.push "value '#{enum_key}', \"#{enum_description}\", value: #{escaped_value}"
       end
+      # Always add an invalid value to the enum. This will be resolved if the data has a numeric value that is not in the enum.
       arr.push "value 'INVALID', 'Invalid Value', value: #{Types::BaseEnum::INVALID_VALUE}"
       arr.push 'end'
       seen << name
