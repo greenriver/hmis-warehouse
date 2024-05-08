@@ -205,6 +205,8 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     it 'should error if form has instances, even if there are newer versions of this form' do
       new_fd_version = fd1.dup
       new_fd_version.version = fd1.version + 1
+      fd1.status = Hmis::Form::Definition::RETIRED
+      fd1.save!
       new_fd_version.save!
 
       # the form instance points to both form definitions, by identifier

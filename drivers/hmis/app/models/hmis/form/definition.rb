@@ -276,17 +276,25 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     one_for_column([:version], source_arel_table: Hmis::Form::Definition.arel_table, group_on: :identifier)
   end
 
-  # TODO(#6006) Update these three scopes to use enums
+  RETIRED = 'retired'.freeze
+  PUBLISHED = 'published'.freeze
+  DRAFT = 'draft'.freeze
+  STATUSES = [RETIRED, PUBLISHED, DRAFT].freeze
+  validates :status, inclusion: {
+    in: STATUSES,
+    message: '%{value} is not a valid status',
+  }
+
   scope :retired, -> do
-    where(status: 'retired')
+    where(status: RETIRED)
   end
 
   scope :draft, -> do
-    where(status: 'draft')
+    where(status: DRAFT)
   end
 
   scope :published, -> do
-    where(status: 'published')
+    where(status: PUBLISHED)
   end
 
   def self.apply_filters(input)
