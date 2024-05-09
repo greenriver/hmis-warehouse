@@ -1,11 +1,11 @@
 [
   {
-    "link_id": "file_enrollment",
+    "link_id": "file-enrollment",
     "required": true,
     "helper_text": "Access will be limited to users who can view this Enrollment."
   },
   {
-    "link_id": "file_confidential",
+    "link_id": "file-confidential",
     "hidden": true
   }
 ]

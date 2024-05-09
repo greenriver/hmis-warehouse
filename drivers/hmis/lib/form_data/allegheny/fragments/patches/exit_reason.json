@@ -3,11 +3,11 @@
     "link_id": "destination",
     "append_items": [
       {
-        "link_id": "exit_reason_group",
+        "link_id": "exit-reason-group",
         "type": "GROUP",
         "item": [
           {
-            "link_id": "exit_reason",
+            "link_id": "exit-reason",
             "type": "CHOICE",
             "required": true,
             "text": "Is this a Voluntary Exit or an Involuntary Termination?      ",
@@ -26,14 +26,14 @@
             "enable_behavior": "ALL",
             "enable_when": [
               {
-                "question": "hud_3_12",
+                "question": "3.12",
                 "operator": "NOT_EQUAL",
                 "answer_code": "DECEASED"
               }
             ]
           },
           {
-            "link_id": "voluntary_exit_reason",
+            "link_id": "voluntary-exit-reason",
             "type": "CHOICE",
             "required": true,
             "text": "Voluntary Exit Reason",
@@ -44,7 +44,7 @@
             "enable_behavior": "ALL",
             "enable_when": [
               {
-                "question": "exit_reason",
+                "question": "exit-reason",
                 "operator": "EQUAL",
                 "answer_code": "Voluntary Exit"
               }
@@ -71,7 +71,7 @@
             ]
           },
           {
-            "link_id": "involuntary_exit_reason",
+            "link_id": "involuntary-exit-reason",
             "type": "CHOICE",
             "required": true,
             "text": "Involuntary Termination Reason",
@@ -82,7 +82,7 @@
             "enable_behavior": "ALL",
             "enable_when": [
               {
-                "question": "exit_reason",
+                "question": "exit-reason",
                 "operator": "EQUAL",
                 "answer_code": "Involuntary Termination"
               }
@@ -110,17 +110,17 @@
           },
           {
             "type": "GROUP",
-            "link_id": "exit_reason_other_group",
+            "link_id": "exit-reason-other-group",
             "enable_when": [
               {
-                "question": "exit_reason",
+                "question": "exit-reason",
                 "operator": "EXISTS"
               }
             ],
             "item": [
               {
                 "type": "STRING",
-                "link_id": "exit_reason_other",
+                "link_id": "exit-reason-other",
                 "required": true,
                 "text": "Other reason",
                 "mapping": {
@@ -130,12 +130,12 @@
                 "enable_behavior": "ANY",
                 "enable_when": [
                   {
-                    "question": "voluntary_exit_reason",
+                    "question": "voluntary-exit-reason",
                     "operator": "EQUAL",
                     "answer_code": "Other"
                   },
                   {
-                    "question": "involuntary_exit_reason",
+                    "question": "involuntary-exit-reason",
                     "operator": "EQUAL",
                     "answer_code": "Other"
                   }

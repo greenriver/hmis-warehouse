@@ -1,12 +1,12 @@
 {
   "type": "GROUP",
   "required": false,
-  "link_id": "mci_clearance",
+  "link_id": "mci-clearance",
   "text": "MCI ID",
   "item": [
     {
       "type": "OBJECT",
-      "link_id": "current_mci_id",
+      "link_id": "current-mci-id",
       "repeats": true,
       "hidden": true,
       "initial": [
@@ -19,7 +19,7 @@
     {
       "type": "STRING",
       "required": false,
-      "link_id": "mci_clearance_value",
+      "link_id": "mci-clearance-value",
       "component": "MCI",
       "text": "MCI ID",
       "_comment": "NOTE: mciId is not a real field on Client, but the ClientProcessor has a special case to handle it",
@@ -37,25 +37,25 @@
           "answer_boolean": true
         },
         {
-          "question": "first_name",
+          "question": "first-name",
           "_comment": "dummy dependency to enable reset when field changes",
           "operator": "ENABLED",
           "answer_boolean": true
         },
         {
-          "question": "middle_name",
+          "question": "middle-name",
           "_comment": "dummy dependency to enable reset when field changes",
           "operator": "ENABLED",
           "answer_boolean": true
         },
         {
-          "question": "last_name",
+          "question": "last-name",
           "_comment": "dummy dependency to enable reset when field changes",
           "operator": "ENABLED",
           "answer_boolean": true
         },
         {
-          "question": "name_dq",
+          "question": "name-dq",
           "_comment": "dummy dependency to enable reset when field changes",
           "operator": "ENABLED",
           "answer_boolean": true
@@ -67,7 +67,7 @@
           "answer_boolean": true
         },
         {
-          "question": "dob_dq",
+          "question": "dob-dq",
           "_comment": "dummy dependency to enable reset when field changes",
           "operator": "ENABLED",
           "answer_boolean": true

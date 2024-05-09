@@ -32,7 +32,7 @@
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "R1_1",
+      "link_id": "R1.1",
       "required": false,
       "warn_if_empty": true,
       "text": "Referral Source",
@@ -44,11 +44,11 @@
     },
     {
       "type": "GROUP",
-      "link_id": "R1_1_dependents",
+      "link_id": "R1.1-dependents",
       "item": [
         {
           "type": "INTEGER",
-          "link_id": "R1_A",
+          "link_id": "R1.A",
           "required": false,
           "text": "Number of times approached by outreach prior to entering project",
           "mapping": {
@@ -58,7 +58,7 @@
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "R1_1",
+              "question": "R1.1",
               "operator": "EQUAL",
               "answer_code": "OUTREACH_PROJECT"
             }

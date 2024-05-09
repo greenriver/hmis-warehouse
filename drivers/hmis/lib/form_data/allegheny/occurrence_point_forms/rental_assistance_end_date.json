@@ -1,7 +1,7 @@
 {
   "item": [
     {
-      "link_id": "rental_assistance_end_date",
+      "link_id": "rental-assistance-end-date",
       "type": "DATE",
       "text": "Rental Assistance End Date",
       "mapping": {

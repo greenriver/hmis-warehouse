@@ -22,7 +22,7 @@
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "R20_2",
+      "link_id": "R20.2",
       "required": false,
       "warn_if_empty": true,
       "text": "Aftercare was provided",
@@ -34,7 +34,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "R20_1_methods",
+      "link_id": "R20.1.methods",
       "required": false,
       "warn_if_empty": true,
       "repeats": true,
@@ -48,7 +48,7 @@
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "R20_2",
+          "question": "R20.2",
           "operator": "EQUAL",
           "answer_code": "YES"
         }

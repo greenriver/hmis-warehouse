@@ -1,9 +1,9 @@
 [
   {
-    "link_id": "current_living_situation",
+    "link_id": "current-living-situation",
     "append_items": [
       {
-        "link_id": "current_living_situation_custom_note",
+        "link_id": "current-living-situation-custom-note",
         "type": "TEXT",
         "text": "Note",
         "mapping": {

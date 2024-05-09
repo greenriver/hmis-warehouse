@@ -1,6 +1,6 @@
 [
   {
-    "link_id": "income_and_sources",
+    "link_id": "income-and-sources",
     "rule": {
       "operator": "ANY",
       "parts": [

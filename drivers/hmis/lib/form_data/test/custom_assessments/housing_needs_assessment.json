@@ -3,12 +3,12 @@
     {
       "type": "GROUP",
       "text": "TEST Housing Needs Assessment",
-      "link_id": "housing_needs_assessment_example_group",
+      "link_id": "housing-needs-assessment-example-group",
       "item": [
         {
           "type": "DATE",
           "required": true,
-          "link_id": "hud_4_19_1",
+          "link_id": "4.19.1",
           "text": "Assessment Date",
           "assessment_date": true,
           "mapping": {
@@ -19,7 +19,7 @@
         {
           "type": "TEXT",
           "required": true,
-          "link_id": "hud_4_19_2",
+          "link_id": "4.19.2",
           "text": "Assessment Location",
           "mapping": {
             "record_type": "ASSESSMENT",
@@ -31,7 +31,7 @@
           "required": true,
           "text": "Assessment Type",
           "pick_list_reference": "AssessmentType",
-          "link_id": "hud_4_19_3",
+          "link_id": "4.19.3",
           "mapping": {
             "record_type": "ASSESSMENT",
             "field_name": "assessmentType"
@@ -42,7 +42,7 @@
           "required": true,
           "text": "Assessment Level",
           "pick_list_reference": "AssessmentLevel",
-          "link_id": "hud_4_19_4",
+          "link_id": "4.19.4",
           "mapping": {
             "record_type": "ASSESSMENT",
             "field_name": "assessmentLevel"
@@ -53,7 +53,7 @@
           "required": true,
           "text": "Prioritization Status",
           "pick_list_reference": "PrioritizationStatus",
-          "link_id": "hud_4_19_7",
+          "link_id": "4.19.7",
           "mapping": {
             "record_type": "ASSESSMENT",
             "field_name": "prioritizationStatus"

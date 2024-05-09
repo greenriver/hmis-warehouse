@@ -3,7 +3,7 @@
   "item": [
     {
       "type": "DATE",
-      "link_id": "project_start",
+      "link_id": "project-start",
       "hidden": true,
       "initial": [
         {
@@ -14,7 +14,7 @@
     },
     {
       "type": "DATE",
-      "link_id": "project_end",
+      "link_id": "project-end",
       "hidden": true,
       "initial": [
         {
@@ -25,7 +25,7 @@
     },
     {
       "type": "GROUP",
-      "link_id": "q_1",
+      "link_id": "1",
       "text": "Funder Details",
       "item": [
         {
@@ -34,18 +34,14 @@
           "link_id": "funder",
           "text": "Funding Source",
           "pick_list_reference": "FundingSource",
-          "mapping": {
-            "field_name": "funder"
-          }
+          "mapping": { "field_name": "funder" }
         },
         {
           "type": "STRING",
           "required": true,
           "link_id": "other",
           "text": "Other Funder",
-          "mapping": {
-            "field_name": "otherFunder"
-          },
+          "mapping": { "field_name": "otherFunder" },
           "enable_behavior": "ALL",
           "enable_when": [
             {
@@ -58,11 +54,9 @@
         {
           "type": "STRING",
           "required": true,
-          "link_id": "grant_id",
+          "link_id": "grant-id",
           "text": "Grant Identifier",
-          "mapping": {
-            "field_name": "grantId"
-          }
+          "mapping": { "field_name": "grantId" }
         },
         {
           "type": "DISPLAY",
@@ -71,7 +65,7 @@
           "text": "<br />"
         },
         {
-          "link_id": "date_range_warning",
+          "link_id": "date-range-warning",
           "type": "DISPLAY",
           "component": "ALERT_WARNING",
           "text": "Date range does not overlap with the project operating period.",
@@ -80,12 +74,12 @@
             {
               "question": "end",
               "operator": "LESS_THAN",
-              "compare_question": "project_start"
+              "compare_question": "project-start"
             },
             {
               "question": "start",
               "operator": "GREATER_THAN",
-              "compare_question": "project_end"
+              "compare_question": "project-end"
             }
           ]
         },
@@ -94,9 +88,7 @@
           "required": true,
           "link_id": "start",
           "text": "Start Date",
-          "mapping": {
-            "field_name": "startDate"
-          },
+          "mapping": { "field_name": "startDate" },
           "bounds": [
             {
               "id": "max-start-date",
@@ -110,9 +102,7 @@
           "required": false,
           "link_id": "end",
           "text": "End Date",
-          "mapping": {
-            "field_name": "endDate"
-          },
+          "mapping": { "field_name": "endDate" },
           "bounds": [
             {
               "id": "min-end-date",

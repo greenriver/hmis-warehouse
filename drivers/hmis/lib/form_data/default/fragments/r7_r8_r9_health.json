@@ -1,6 +1,6 @@
 {
   "type": "GROUP",
-  "link_id": "rhy_health_status",
+  "link_id": "rhy-health-status",
   "text": "Health Status",
   "data_collected_about": "HOH_AND_ADULTS",
   "item": [
