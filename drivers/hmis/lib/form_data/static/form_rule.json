@@ -48,12 +48,12 @@
       ]
     },
     {
-      "link_id": "form_rule_instruction",
+      "link_id": "form-rule-instruction",
       "type": "DISPLAY",
       "text": "Enter one or more applicability condition for this rule. Conditions will be AND-ed. For example, selecting Project Type 'Street Outreach' and Funder 'HHS Path' means that the rule should match projects that match both conditions."
     },
     {
-      "link_id": "form_rule_project_type",
+      "link_id": "form-rule-project-type",
       "type": "CHOICE",
       "text": "Project Type",
       "pick_list_reference": "ProjectType",
@@ -63,7 +63,7 @@
       }
     },
     {
-      "link_id": "form_rule_funder",
+      "link_id": "form-rule-funder",
       "type": "CHOICE",
       "text": "Funding Source",
       "pick_list_reference": "FundingSource",
@@ -73,7 +73,7 @@
       }
     },
     {
-      "link_id": "form_rule_other_funder",
+      "link_id": "form-rule-other-funder",
       "type": "STRING",
       "text": "Other Funder",
       "mapping": {
@@ -82,14 +82,14 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "form_rule_funder",
+          "question": "form-rule-funder",
           "operator": "EQUAL",
           "answer_code": "LOCAL_OR_OTHER_FUNDING_SOURCE"
         }
       ]
     },
     {
-      "link_id": "form_rule_organization",
+      "link_id": "form-rule-organization",
       "type": "CHOICE",
       "text": "Organization",
       "pick_list_reference": "ORGANIZATION",
@@ -99,7 +99,7 @@
       }
     },
     {
-      "link_id": "form_rule_project",
+      "link_id": "form-rule-project",
       "type": "CHOICE",
       "text": "Project",
       "pick_list_reference": "PROJECT",
@@ -109,7 +109,7 @@
       }
     },
     {
-      "link_id": "form_rule_data_collected_about",
+      "link_id": "form-rule-data-collected-about",
       "type": "CHOICE",
       "text": "Data Collected About",
       "pick_list_reference": "DataCollectedAbout",
@@ -119,7 +119,7 @@
       }
     },
     {
-      "link_id": "form_rule_active_status",
+      "link_id": "form-rule-active-status",
       "type": "CHOICE",
       "text": "Active Status",
       "pick_list_reference": "ActiveStatus",

@@ -32,7 +32,7 @@
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "R11_1",
+      "link_id": "R11.1",
       "required": false,
       "warn_if_empty": true,
       "text": "Formerly a Ward of Child Welfare/Foster Care Agency",
@@ -44,11 +44,11 @@
     },
     {
       "type": "GROUP",
-      "link_id": "R11_1_dependents",
+      "link_id": "R11.1-dependents",
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "R11_1",
+          "question": "R11.1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -56,7 +56,7 @@
       "item": [
         {
           "type": "CHOICE",
-          "link_id": "R11_A",
+          "link_id": "R11.A",
           "required": false,
           "warn_if_empty": true,
           "text": "Number of Years",
@@ -68,7 +68,7 @@
         },
         {
           "type": "INTEGER",
-          "link_id": "R11_B",
+          "link_id": "R11.B",
           "required": false,
           "warn_if_empty": true,
           "text": "Number of Months",
@@ -79,7 +79,7 @@
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "R11_A",
+              "question": "R11.A",
               "operator": "EQUAL",
               "answer_code": "LESS_THAN_ONE_YEAR"
             }

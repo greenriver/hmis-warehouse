@@ -1,6 +1,6 @@
 [
   {
-    "link_id": "disability_table",
+    "link_id": "disability-table",
     "rule": {
       "operator": "ANY",
       "parts": [
@@ -225,7 +225,7 @@
     }
   },
   {
-    "link_id": "disability_table_r4",
+    "link_id": "disability-table-r4",
     "rule": {
       "operator": "ANY",
       "parts": [

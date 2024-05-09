@@ -1,6 +1,6 @@
 {
   "type": "GROUP",
-  "link_id": "health_insurance",
+  "link_id": "health-insurance",
   "text": "Health Insurance",
   "data_collected_about": "ALL_CLIENTS",
   "prefill": true,
@@ -227,7 +227,7 @@
     {
       "type": "CHOICE",
       "component": "RADIO_BUTTONS",
-      "link_id": "hud_4_04_2",
+      "link_id": "4.04.2",
       "required": false,
       "warn_if_empty": true,
       "text": "Covered by Health Insurance",
@@ -242,52 +242,52 @@
           "autofill_behavior": "ANY",
           "autofill_when": [
             {
-              "question": "hud_4_04_3",
+              "question": "4.04.3",
               "operator": "EQUAL",
               "answer_code": "YES"
             },
             {
-              "question": "hud_4_04_4",
+              "question": "4.04.4",
               "operator": "EQUAL",
               "answer_code": "YES"
             },
             {
-              "question": "hud_4_04_5",
+              "question": "4.04.5",
               "operator": "EQUAL",
               "answer_code": "YES"
             },
             {
-              "question": "hud_4_04_6",
+              "question": "4.04.6",
               "operator": "EQUAL",
               "answer_code": "YES"
             },
             {
-              "question": "hud_4_04_7",
+              "question": "4.04.7",
               "operator": "EQUAL",
               "answer_code": "YES"
             },
             {
-              "question": "hud_4_04_8",
+              "question": "4.04.8",
               "operator": "EQUAL",
               "answer_code": "YES"
             },
             {
-              "question": "hud_4_04_9",
+              "question": "4.04.9",
               "operator": "EQUAL",
               "answer_code": "YES"
             },
             {
-              "question": "hud_4_04_10",
+              "question": "4.04.10",
               "operator": "EQUAL",
               "answer_code": "YES"
             },
             {
-              "question": "hud_4_04_11",
+              "question": "4.04.11",
               "operator": "EQUAL",
               "answer_code": "YES"
             },
             {
-              "question": "hud_4_04_12",
+              "question": "4.04.12",
               "operator": "EQUAL",
               "answer_code": "YES"
             }
@@ -297,19 +297,19 @@
     },
     {
       "type": "GROUP",
-      "link_id": "health_insurance_group",
+      "link_id": "health-insurance-group",
       "component": "INPUT_GROUP",
       "text": "Select Insurance Provider(s)",
       "readonly_text": "Insurance Providers",
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "hud_4_04_2",
+          "question": "4.04.2",
           "operator": "EQUAL",
           "answer_code": "YES"
         },
         {
-          "question": "hud_4_04_2",
+          "question": "4.04.2",
           "operator": "EXISTS",
           "answer_boolean": false
         }
@@ -319,7 +319,7 @@
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
-          "link_id": "hud_4_04_3",
+          "link_id": "4.04.3",
           "text": "Medicaid",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -330,7 +330,7 @@
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
-          "link_id": "hud_4_04_4",
+          "link_id": "4.04.4",
           "text": "Medicare",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -341,7 +341,7 @@
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
-          "link_id": "hud_4_04_5",
+          "link_id": "4.04.5",
           "text": "State Children's Health Insurance Program",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -352,7 +352,7 @@
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
-          "link_id": "hud_4_04_6",
+          "link_id": "4.04.6",
           "text": "Veteran's Health Administration (VHA)",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -363,7 +363,7 @@
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
-          "link_id": "hud_4_04_7",
+          "link_id": "4.04.7",
           "text": "Employer-Provided Health Insurance",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -374,7 +374,7 @@
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
-          "link_id": "hud_4_04_8",
+          "link_id": "4.04.8",
           "text": "Health Insurance obtained through COBRA",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -385,7 +385,7 @@
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
-          "link_id": "hud_4_04_9",
+          "link_id": "4.04.9",
           "text": "Private Pay Health Insurance",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -396,7 +396,7 @@
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
-          "link_id": "hud_4_04_10",
+          "link_id": "4.04.10",
           "text": "State Health Insurance for Adults",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -407,7 +407,7 @@
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
-          "link_id": "hud_4_04_11",
+          "link_id": "4.04.11",
           "text": "Indian Health Services Program",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -418,7 +418,7 @@
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
           "component": "CHECKBOX",
-          "link_id": "hud_4_04_12",
+          "link_id": "4.04.12",
           "text": "Other",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -427,7 +427,7 @@
         },
         {
           "type": "STRING",
-          "link_id": "hud_4_04_12A",
+          "link_id": "4.04.12A",
           "text": "Specify other source",
           "brief_text": "Other insurance",
           "required": false,
@@ -439,7 +439,7 @@
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "hud_4_04_12",
+              "question": "4.04.12",
               "answer_code": "YES",
               "operator": "EQUAL"
             }

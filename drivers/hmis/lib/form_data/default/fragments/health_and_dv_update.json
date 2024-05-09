@@ -1,6 +1,6 @@
 {
   "type": "GROUP",
-  "link_id": "health_and_dv",
+  "link_id": "health-and-dv",
   "text": "Health and DV",
   "data_collected_about": "HOH_AND_ADULTS",
   "prefill": true,

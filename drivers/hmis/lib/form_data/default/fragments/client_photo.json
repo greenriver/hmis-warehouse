@@ -6,7 +6,7 @@
   "enable_behavior": "ANY",
   "enable_when": [
     {
-      "question": "client_id",
+      "question": "client-id",
       "operator": "EXISTS",
       "answer_boolean": false
     }

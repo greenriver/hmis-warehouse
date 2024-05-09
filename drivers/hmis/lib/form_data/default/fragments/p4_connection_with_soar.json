@@ -1,6 +1,6 @@
 {
   "type": "CHOICE",
-  "link_id": "P4_1",
+  "link_id": "P4.1",
   "required": false,
   "warn_if_empty": true,
   "text": "Connection with SOAR",

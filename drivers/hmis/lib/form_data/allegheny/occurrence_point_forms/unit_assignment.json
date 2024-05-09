@@ -2,7 +2,7 @@
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "unit_assignment_editable",
+      "link_id": "unit-assignment-editable",
       "_comment": "Editable version to allow the user to change the current unit assignment. Only permitted for certain projects.",
       "text": "Unit Assignment",
       "mapping": {
@@ -63,7 +63,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "unit_assignment_readonly",
+      "link_id": "unit-assignment-readonly",
       "_comment": "read-only version to just show the currently assigned unit. FIXME: for exited enrollments, this just displays non-editable unit value, which should be DNC because units should not remain assigned after exit. It would be better if the most recent unit was displayed, or show full unit assignment history.",
       "text": "Unit Assignment",
       "read_only": true,

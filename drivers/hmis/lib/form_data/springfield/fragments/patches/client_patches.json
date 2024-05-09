@@ -1,14 +1,14 @@
 [
   {
-    "link_id": "name_dq",
+    "link_id": "name-dq",
     "required": true
   },
   {
-    "link_id": "dob_dq",
+    "link_id": "dob-dq",
     "required": true
   },
   {
-    "link_id": "ssn_dq",
+    "link_id": "ssn-dq",
     "required": true
   },
   {
@@ -20,7 +20,7 @@
     "required": true
   },
   {
-    "link_id": "veteran_status",
+    "link_id": "veteran-status",
     "required": true
   }
 ]

@@ -1,6 +1,6 @@
 [
   {
-    "link_id": "C4_group",
+    "link_id": "C4-group",
     "rule": {
       "operator": "ANY",
       "parts": [

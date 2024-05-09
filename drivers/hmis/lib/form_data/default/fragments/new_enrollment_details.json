@@ -1,9 +1,9 @@
 {
-  "link_id": "new_enrollment_details",
+  "link_id": "new-enrollment-details",
   "type": "GROUP",
   "item": [
     {
-      "link_id": "household_id",
+      "link_id": "household-id",
       "hidden": true,
       "type": "STRING",
       "_comment": "This will be present if creating a new Enrollment in an existing Houshold",
@@ -20,7 +20,7 @@
     },
     {
       "type": "DATE",
-      "link_id": "entry_date",
+      "link_id": "entry-date",
       "text": "Entry Date",
       "mapping": {
         "record_type": "ENROLLMENT",
@@ -43,7 +43,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "relationship_to_hoh",
+      "link_id": "relationship-to-hoh",
       "required": true,
       "text": "Relationship to HoH",
       "mapping": {
@@ -58,7 +58,7 @@
           "autofill_behavior": "ALL",
           "autofill_when": [
             {
-              "question": "household_id",
+              "question": "household-id",
               "operator": "EXISTS",
               "answer_boolean": false
             }
@@ -68,7 +68,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "enrollment_coc",
+      "link_id": "enrollment-coc",
       "required": true,
       "text": "Enrollment CoC",
       "mapping": {
@@ -84,7 +84,7 @@
           "answer_number": 1
         },
         {
-          "question": "household_id",
+          "question": "household-id",
           "operator": "EXISTS",
           "answer_boolean": false
         }
