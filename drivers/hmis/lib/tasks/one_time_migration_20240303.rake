@@ -15,13 +15,15 @@ class OneTimeMigration20230303
     update_form_definitions
   end
 
+  # Migrate LinkIDs for all files in drivers/hmis/lib/form_data. Write changes to files.
+  # Doesn't catch everything, a few things need to be manually fixed (client-id and veteran-status)
   def update_form_data_files
     Dir.glob("#{HmisUtil::JsonForms::DATA_DIR}/**/*.json").each do |file_path|
       puts "Transforming #{file_path}..."
       file = File.read(file_path)
       parsed = JSON.parse(file)
 
-      if parsed.is_a?(Array)
+      if parsed.is_a?(Array) # patch files are arrays
         parsed.each { |item| transform_definition(item) }
       else
         transform_definition(parsed)
