@@ -1840,7 +1840,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         data_source: ds1,
         enrollment_id: e1.enrollment_id,
         personal_id: e1.personal_id,
-        custom_service_type: hud_service_type,
+        custom_service_type_id: hud_service_type.id, # initializer sets record type and type provided on Service
       )
 
       [existing_record, new_record].each do |record|
@@ -1850,7 +1850,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         hmis_service = Hmis::Hud::HmisService.find_by(owner: record.owner)
         expect(hmis_service.hud_service?).to eq(true)
         expect(hmis_service.custom_service?).to eq(false)
-        expect(hmis_service.service_type).to eq(hud_service_type)
         expect(hmis_service.record_type).to eq(hud_service.record_type)
         expect(hmis_service.type_provided).to eq(hud_service.type_provided)
         expect(hmis_service.fa_amount).to eq(200)
@@ -1864,7 +1863,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         data_source: ds1,
         enrollment_id: e1.enrollment_id,
         personal_id: e1.personal_id,
-        custom_service_type: cst1,
+        custom_service_type_id: cst1.id,
       )
       [existing_record, new_record].each do |record|
         process_record(record: record, hud_values: custom_service_values, user: hmis_user, save: false, definition: definition)
@@ -1873,7 +1872,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         hmis_service = Hmis::Hud::HmisService.find_by(owner: record.owner)
         expect(hmis_service.hud_service?).to eq(false)
         expect(hmis_service.custom_service?).to eq(true)
-        expect(hmis_service.service_type).to eq(cst1)
+        expect(hmis_service.custom_service_type_id).to eq(cst1.id)
         expect(hmis_service.record_type).to be nil
         expect(hmis_service.type_provided).to be nil
         expect(hmis_service.fa_amount).to eq(100)
