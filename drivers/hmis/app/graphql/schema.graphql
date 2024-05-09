@@ -6004,6 +6004,7 @@ type Mutation {
     input: MergeClientsInput!
   ): MergeClientsPayload
   renameServiceCategory(id: ID!, name: String!): RenameServiceCategoryPayload
+  renameServiceType(id: ID!, name: String!, supportsBulkAssignment: Boolean!): UpdateServiceTypePayload @deprecated(reason: "Renamed to updateServiceType")
   restoreScanCardCode(id: ID!): RestoreScanCardCodePayload
 
   """
