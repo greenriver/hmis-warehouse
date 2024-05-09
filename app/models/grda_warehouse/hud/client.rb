@@ -1785,24 +1785,6 @@ module GrdaWarehouse::Hud
       end.uniq.sort
     end
 
-    def last_intentional_contacts_ignore_visibile_status(include_confidential_names: false, skip_confidential_projects: false, include_dates: false)
-      contacts = processed_service_history&.last_intentional_contacts
-      return [] unless contacts.present?
-
-      projects = GrdaWarehouse::Hud::Project.all.index_by(&:id)
-      contacts = JSON.parse(contacts)
-
-      contacts.sort_by { |c| c['date']&.to_date || 5.years.ago }.reverse.map do |contact|
-        project = projects[contact['project_id']]
-
-        next if project&.confidential? && skip_confidential_projects
-
-        name = project&.name(ignore_confidential_status: include_confidential_names) || contact['project_name']
-        name += ': ' + contact['date']&.to_date.to_s if include_dates
-        name
-      end.compact.uniq
-    end
-
     def last_intentional_contacts(user, include_confidential_names: false, skip_confidential_projects: false, include_dates: false)
       contacts = processed_service_history&.last_intentional_contacts
       return [] unless contacts.present?

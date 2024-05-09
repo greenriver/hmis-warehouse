@@ -67,6 +67,10 @@ module GrdaWarehouse::Tasks
                 :source_eccovia_case_managers,
               ]
             end
+            safe_project_names = {}
+            GrdaWarehouse::Hud::Project.all.each do |project|
+              safe_project_names[project.id] = project.safe_project_name
+            end
             client_source.preload(preloads).
               where(id: client_id_batch).find_each do |client|
               project_client = project_clients[client.id] || CasAccess::ProjectClient.new(data_source_id: data_source.id, id_in_data_source: client.id)
@@ -91,7 +95,7 @@ module GrdaWarehouse::Tasks
               project_client.enrolled_in_ph = client.enrolled_in_ph(enrollments)
               project_client.ongoing_es_enrollments = client.processed_service_history&.cohorts_ongoing_enrollments_es&.map { |e| e['project_name'] + ': ' + e['date']&.to_date.to_s }.presence
               project_client.ongoing_so_enrollments = client.processed_service_history&.cohorts_ongoing_enrollments_so&.map { |e| e['project_name'] + ': ' + e['date']&.to_date.to_s }.presence
-              project_client.last_seen_projects = client.last_intentional_contacts_ignore_visibile_status(include_confidential_names: false, include_dates: true).presence
+              project_client.last_seen_projects = client.last_intentional_contacts_for_cas(safe_project_names: safe_project_names).presence
               project_client.enrolled_in_rrh_pre_move_in = client.enrolled_in_rrh_pre_move_in(enrollments)
               project_client.enrolled_in_psh_pre_move_in = client.enrolled_in_psh_pre_move_in(enrollments)
               project_client.enrolled_in_ph_pre_move_in = client.enrolled_in_ph_pre_move_in(enrollments)
