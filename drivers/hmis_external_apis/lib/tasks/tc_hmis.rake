@@ -11,7 +11,7 @@ namespace :tc_hmis do
       Hmis::Form::Definition.validate_json(definition.definition) { |msg| raise msg }
       definition.role = :EXTERNAL_FORM
       definition.title = definition.definition['name']
-      definition.status = 'draft'
+      definition.status = Hmis::Form::Definition::DRAFT
       definition.version = 0
       definition.external_form_object_key = "tchc/#{file_name}"
       definition.save!

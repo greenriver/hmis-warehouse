@@ -86,7 +86,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       }
       _resp, result = post_graphql(input: input) { submit_assessment_mutation }
       errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
-      expect(errors).to match([a_hash_including('severity' => 'error', 'fullMessage' => 'Please include the head of household. Other household members cannot be entered without the HoH.')])
+      expect(errors).to contain_exactly(a_hash_including('severity' => 'error', 'fullMessage' => 'Please include the head of household. Other household members cannot be entered without the HoH.'))
     end
 
     it 'succeeds if (WIP) HoH is included' do
@@ -117,7 +117,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       }
       _resp, result = post_graphql(input: input) { submit_assessment_mutation }
       errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
-      expect(errors).to match([a_hash_including('severity' => 'error', 'fullMessage' => 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH, or exit all open enrollments.')])
+      expect(errors).to contain_exactly(a_hash_including('severity' => 'error', 'fullMessage' => 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH, or exit all open enrollments.'))
     end
 
     it 'succeeds if all members are present' do
