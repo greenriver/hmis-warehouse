@@ -38,6 +38,10 @@ module CustomImportsBostonService
       file.drop(1).each_slice(batch_size) do |lines|
         loaded_rows += lines.count
         cleaned_headers = headers.reject { |h| h == 'do_not_import' }
+
+        # Check for any headers we don't know how to handle
+        raise "Unable to import, headers in #{filename} do not match expectation" unless (cleaned_headers - rows.klass.column_names).empty?
+
         rows.klass.import!(
           cleaned_headers,
           clean_rows(headers, lines),
@@ -62,7 +66,7 @@ module CustomImportsBostonService
 
     private def header_lookup
       {
-        'Personal ID' => 'personal_id',
+        'Client ID' => 'personal_id',
         'Unique Identifier' => 'unique_id',
         'Agency ID' => 'agency_id',
         'Enrollment ID' => 'enrollment_id',

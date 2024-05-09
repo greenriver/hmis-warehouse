@@ -113,6 +113,7 @@ class DocumentExportsControllerBase < ApplicationController
       'GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport',
       'UserDirectoryReport::DocumentExports::CasUserDirectoryExcelExport',
       'UserDirectoryReport::DocumentExports::WarehouseUserDirectoryExcelExport',
+      'TxClientReports::AttachmentThreeReportExports::AttachmentThreeReportExcelExport',
     ]
   end
 end

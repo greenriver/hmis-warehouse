@@ -5,10 +5,9 @@
 ###
 
 module Health
-  class AgencyPerformance
+  class AgencyPerformance < PerformanceBase
     include ArelHelper
 
-    attr_accessor :range
     def initialize range:, agency_scope: nil
       @range = (range.first.to_date..range.last.to_date)
       @agency_scope = agency_scope
@@ -17,13 +16,6 @@ module Health
     def self.url
       'warehouse_reports/health/agency_performance'
     end
-
-    QA_WINDOW = 60.days
-    QA_NO_INTAKE_WINDOW = 30.days
-    F2F_WINDOW = 60.days
-    COMPLETION_WINDOW = 30.days
-    RENEWAL_WINDOW = 365.days
-    WELLCARE_WINDOW = 12.months
 
     DESCRIPTIONS = {
       without_required_qa: "Patients with no QA in the last #{QA_WINDOW.inspect}, or, who have not completed intake and have not received a QA in the #{QA_NO_INTAKE_WINDOW.inspect} preceding the specified end date.",
@@ -84,11 +76,6 @@ module Health
       @agency_scope || Health::Agency.all
     end
 
-    def client_ids
-      @client_ids ||= Health::Patient.where(id: patient_referrals.keys).
-        pluck(:client_id, :id).to_h
-    end
-
     def patient_referrals
       @patient_referrals ||= Health::PatientReferral.with_patient.
         where.not(agency_id: nil).
@@ -98,119 +85,6 @@ module Health
         pluck(:patient_id, :agency_id, hpr_t[:enrollment_start_date]).
         reduce({}) do |hash, (patient_id, agency_id, enrollment_start_date)|
           hash.update(patient_id => [agency_id, enrollment_start_date])
-        end
-    end
-
-    def patient_ids
-      @patient_ids ||= patient_referrals.keys
-    end
-
-    def with_required_qa
-      @with_required_qa ||=
-        (Health::QualifyingActivity.
-          payable.
-          not_valid_unpayable.
-          where(patient_id: patient_ids).
-          in_range(@range.last - QA_NO_INTAKE_WINDOW .. @range.last).
-          pluck(:patient_id) +
-          Health::QualifyingActivity.
-            payable.
-            not_valid_unpayable.
-            where(patient_id: with_completed_intake).
-            in_range(@range.last - QA_WINDOW .. @range.last).
-            pluck(:patient_id)
-        ).uniq
-    end
-
-    def with_required_f2f_visit
-      @with_required_f2f_visit ||= Health::QualifyingActivity.
-        payable.
-        not_valid_unpayable.
-        face_to_face.
-        where(patient_id: patient_ids).
-        in_range(@range.last - F2F_WINDOW .. @range.last).
-        pluck(:patient_id).uniq
-    end
-
-    def with_discharge_followup_completed
-      @with_discharge_followup_completed ||= Health::QualifyingActivity.
-        submittable.
-        where(patient_id: patient_ids).
-        in_range(@range).
-        where(activity: :discharge_follow_up).
-        pluck(:patient_id).uniq
-    end
-
-    def with_completed_intake
-      @with_completed_intake ||= Health::Patient.
-        where(id: patient_ids).
-        joins(:careplans).
-        where(h_cp_t[:careplan_sent].eq(true)).
-        distinct.
-        pluck(hp_t[:id])
-    end
-
-    def with_initial_intake
-      @with_initial_intake ||= Health::Patient.
-        where(id: patient_ids).
-        joins(:careplans).
-        where(h_cp_t[:careplan_sent].eq(true)).
-        order(h_cp_t[:careplan_sent_on].desc).
-        pluck(hp_t[:id], h_cp_t[:careplan_sent_on]).to_h
-    end
-
-    def initial_intake_due
-      overdue = [@range.last, Date.current].min
-      due = overdue + COMPLETION_WINDOW
-      @initial_intake_due ||= Health::Patient.
-        where(id: patient_ids).
-        where.not(id: with_initial_intake.keys).
-        where(engagement_date: overdue .. due).
-        pluck(:id).uniq
-    end
-
-    def initial_intake_overdue
-      overdue = [@range.last, Date.current].min
-      @initial_intake_overdue ||= Health::Patient.
-        where(id: patient_ids).
-        where.not(id: with_initial_intake.keys).
-        where(engagement_date: ...overdue).
-        pluck(:id).uniq
-    end
-
-    def intake_renewal_due
-      overdue = [@range.last, Date.current].min - RENEWAL_WINDOW
-      due = overdue + COMPLETION_WINDOW
-      @intake_renewal_due ||= Health::Patient.
-        where(id: patient_ids).
-        joins(:recent_pctp_form).
-        where(h_cp_t[:careplan_sent_on].between(overdue .. due)).
-        pluck(:id).uniq
-    end
-
-    def intake_renewal_overdue
-      overdue = [@range.last, Date.current].min - RENEWAL_WINDOW
-      @intake_renewal_overdue = Health::Patient.
-        where(id: patient_ids).
-        joins(:recent_pctp_form).
-        where(h_cp_t[:careplan_sent_on].lt(overdue)).
-        pluck(:id).uniq
-    end
-
-    def with_required_wellcare_visit
-      anchor = [@range.last, Date.current].min
-      @with_required_wellcare_visit ||=
-        begin
-          set = Set.new
-          patient_ids.each_slice(100).each do |patient_id_slice|
-            set << ClaimsReporting::MedicalClaim.
-              annual_well_care_visits.
-              service_in(anchor - WELLCARE_WINDOW ... anchor).
-              joins(:patient).
-              where(hp_t[:id].in(patient_id_slice)).
-              pluck(hp_t[:id])
-          end
-          set.to_a
         end
     end
   end
