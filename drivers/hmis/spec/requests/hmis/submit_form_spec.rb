@@ -138,10 +138,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             service_type_id: hmis_hud_service1.custom_service_type_id,
             client_id: c2.id,
             confirmed: true, # ignore warnings, they are tested separately
-            **mock_form_values_for_definition(definition) do |values|
+            **completed_form_values_for_role(role) do |values|
               if role == :FILE
-                # FIXME make this not depend on specific Link IDs in the file form
-                values[:values]['file_blob_id'] = blob.id.to_s
+                values[:values]['file-blob-id'] = blob.id.to_s
                 values[:hud_values]['fileBlobId'] = blob.id.to_s
               end
               values
@@ -304,7 +303,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       {
         form_definition_id: definition.id,
         record_id: p1.id,
-        **mock_form_values_for_definition(definition),
+        **completed_form_values_for_role(:PROJECT),
         confirmed: false,
       }
     end
@@ -446,7 +445,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let(:test_input) do
       {
         form_definition_id: definition.id,
-        **mock_form_values_for_definition(definition),
+        **completed_form_values_for_role(:ENROLLMENT),
         project_id: p2.id,
         client_id: c3.id,
         confirmed: false,
@@ -535,7 +534,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let(:test_input) do
       {
         form_definition_id: definition.id,
-        **mock_form_values_for_definition(definition),
+        **completed_form_values_for_role(:ENROLLMENT),
         project_id: p1.id,
         client_id: c2.id,
         confirmed: false,
@@ -575,7 +574,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let(:test_input) do
       {
         form_definition_id: definition.id,
-        **mock_form_values_for_definition(definition),
+        **completed_form_values_for_role(:ENROLLMENT),
         project_id: p1.id,
         client_id: c1.id,
         confirmed: false,
@@ -604,7 +603,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let(:test_input) do
       {
         form_definition_id: definition.id,
-        **mock_form_values_for_definition(definition),
+        **completed_form_values_for_role(:NEW_CLIENT_ENROLLMENT),
         project_id: p2.id,
         confirmed: true,
       }

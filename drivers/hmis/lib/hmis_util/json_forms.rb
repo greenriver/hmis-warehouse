@@ -240,17 +240,7 @@ module HmisUtil
       # Apply any client-specific patches
       apply_all_patches!(form_definition, identifier: identifier)
       # Validate final definition
-      begin
-        validate_definition(form_definition, role)
-      rescue StandardError => e
-        # If there was an error, _try_ to print out the exact value that failed by traversing the json path
-        match_path = /property '(.*)'/.match(e.to_s)
-        if match_path.size == 2
-          dig_path = match_path[1].split('/').map(&:presence).compact.map { |s| Integer(s, exception: false) || s }
-          problem_item = form_definition.dig(*dig_path)
-        end
-        raise "Failed to validate #{role}/#{identifier} (item##{problem_item || 'unknown'}): #{e}"
-      end
+      validate_definition(form_definition, role)
 
       # Create or update definition
       record = Hmis::Form::Definition.where(
