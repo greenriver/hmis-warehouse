@@ -80,13 +80,10 @@ module Mutations
           service = Hmis::Hud::HmisService.new(
             client: client,
             enrollment: enrollment,
-            custom_service_type: cst,
+            custom_service_type_id: cst.id,
             date_provided: input.date_provided,
             user_id: hud_user_id,
           )
-
-          # If this is a HUD Service, set the HUD RecordType and TypeProvided on the owner
-          service.owner.assign_attributes(record_type: cst.hud_record_type, type_provided: cst.hud_type_provided) if cst.hud_service?
 
           # Pass form_submission context to validate uniqueness of bed nights per day.
           # Note: an improvement would be to raise a user-facing error if any service(s) were duplicates for bed nights,
