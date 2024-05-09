@@ -3803,6 +3803,7 @@ type ExternalFormSubmission {
 }
 
 input ExternalFormSubmissionFilterOptions {
+  includeSpam: Boolean
   status: ExternalFormSubmissionStatus
   submittedDate: ISO8601Date
 }
