@@ -341,7 +341,7 @@
     {
       "type": "GROUP",
       "text": "Income Details",
-      "link_id": "income details",
+      "link_id": "income_details",
       "item": [
         {
           "link_id": "landlord_has_relationship_with_anyone_in_household",
