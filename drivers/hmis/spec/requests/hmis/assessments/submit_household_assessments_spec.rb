@@ -63,11 +63,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let(:save_input) do
     {
       form_definition_id: fd1.id,
-      values: { 'linkid-date' => 2.weeks.ago.strftime('%Y-%m-%d') },
+      values: { 'linkid_date' => 2.weeks.ago.strftime('%Y-%m-%d') },
       hud_values: { 'informationDate' => 2.weeks.ago.strftime('%Y-%m-%d') },
     }
   end
-  let(:incomplete_values) { { **save_input[:values], 'linkid-choice' => nil } }
+  let(:incomplete_values) { { **save_input[:values], 'linkid_choice' => nil } }
 
   let(:save_assessment) do
     <<~GRAPHQL

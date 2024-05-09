@@ -30,6 +30,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
   end
 
   describe 'Validating form values on HUD assessments' do
+    # FIXME: Update this test to test against a mocked definition
     let(:completed_values_for_update) do
       {
         "information-date-input": '2023-02-15',
@@ -113,7 +114,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     # Test using factory because actual forms don't have any required fields aside from assessment date
     let!(:factory_form_definition) { create :hmis_form_definition }
     it 'should error if required field is nil' do
-      values = { 'linkid-required': nil }
+      values = { 'linkid_required': nil }
       expected_errors = [
         {
           type: :required,
