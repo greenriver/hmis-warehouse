@@ -10,10 +10,14 @@ module HmisExternalApis::ExternalForms
     belongs_to :definition, class_name: 'Hmis::Form::Definition'
     include ::Hmis::Hud::Concerns::HasCustomDataElements
 
+    # The recaptcha spam score is a float between 0 (likely spam) and 1.0 (likely real)
+    # For now we will start with 0.5 as the threshold, maybe we will adjust in future
+    SPAM_THRESHOLD = 0.5
+    scope :not_spam, -> { where(spam_score: SPAM_THRESHOLD...).or(where(spam_score: nil)) }
+    scope :spam, -> { where(spam_score: ..SPAM_THRESHOLD) }
+
     def spam
-      # The recaptcha spam score is a float between 0 (likely spam) and 1.0 (likely real)
-      # For now we will start with 0.5 as the threshold, maybe we will adjust in future
-      spam_score && spam_score < 0.5
+      spam_score && spam_score < SPAM_THRESHOLD
     end
 
     def self.apply_filters(input)

@@ -10,6 +10,7 @@ module Types
 
     available_filter_options do
       arg :status, HmisSchema::Enums::ExternalFormSubmissionStatus
+      arg :include_spam, Boolean
       arg :submitted_date, GraphQL::Types::ISO8601Date
     end
 
