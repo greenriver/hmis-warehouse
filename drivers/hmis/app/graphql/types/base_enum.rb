@@ -61,22 +61,6 @@ module Types
       value 'INVALID', 'Invalid Value', value: INVALID_VALUE
     end
 
-    def self.hud_enum(hash)
-      # If ANY values are strings, then all enum values should all be stringified. Needed for VAMC station number.
-      stringify_values = hash.keys.any? { |k| k.is_a?(String) }
-
-      values = hash.map do |key, desc|
-        {
-          key: desc,
-          value: stringify_values ? key.to_s : key,
-          desc: desc,
-        }
-      end
-
-      with_enum_map(Hmis::FieldMap.new(values))
-      invalid_value # Always define invalid value on HUD enums
-    end
-
     def self.value_for(key)
       raise "Unrecognized key '#{key}' for enum #{name}" unless values.key?(key)
 
