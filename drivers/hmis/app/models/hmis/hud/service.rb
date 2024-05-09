@@ -30,6 +30,11 @@ class Hmis::Hud::Service < Hmis::Hud::Base
 
   after_commit :warehouse_trigger_processing
 
+  def matches_custom_service_type?(custom_service_type)
+    record_type == custom_service_type.hud_record_type &&
+      type_provided == custom_service_type.hud_type_provided
+  end
+
   private def warehouse_trigger_processing
     return unless enrollment && warehouse_columns_changed?
 
