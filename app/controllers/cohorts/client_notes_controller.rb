@@ -34,9 +34,7 @@ module Cohorts
       @cohort_client.touch
       # send notifications
       if note_params[:send_notification].present? && note_params[:recipients].present?
-        # FIXME: this doesn't bring up the note.  see app/controllers/cohorts/notes_controller.rb:37 for an example of
-        # how this should work.  Though, it'll need a different path, or that one will need some adjustment.
-        token = Token.tokenize(client_notes_path(client_id: @cohort_client.client_id))
+        token = Token.tokenize(cohort_cohort_client_client_notes_path(@cohort, @cohort_client))
         note_params[:recipients].reject(&:blank?).map(&:to_i).each do |id|
           user = User.find(id)
           TokenMailer.note_added(user, token).deliver_later if user.present?
