@@ -219,4 +219,13 @@ class User < ApplicationRecord
 
     roles.map(&:name).uniq
   end
+
+  def policy(entity)
+    case entity
+    when GrdaWarehouse::Hud::Client
+      GrdaWarehouse::Policies::ClientPolicy.new(user: self, record: entity)
+    else
+      raise
+    end
+  end
 end

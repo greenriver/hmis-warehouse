@@ -10,8 +10,8 @@ class GrdaWarehouse::ClientPii
   ClientPiiRecordAdapter = Struct.new(:first_name, :last_name, :middle_name, :ssn, :dob, keyword_init: true)
   private_constant :ClientPiiRecordAdapter
 
-  # policy = GrdaWarehouse::ClientAccessPolicy.new(project_id: client_project_id)
-  # GrdaWarehouse::ClientPii.from_attributes(policy: policy, dob: dob)
+  # use when you don't have a client model, only ids (for example in reporting)
+  # GrdaWarehouse::ClientPii.from_attributes(policy: client_policy, dob: client_dob)
   def self.from_attributes(policy: nil, first_name: nil, last_name: nil, middle_name: nil, dob: nil, ssn: nil)
     record = ClientPiiRecordAdapter.new(
       first_name: first_name,

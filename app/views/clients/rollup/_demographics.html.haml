@@ -1,6 +1,7 @@
 = cache(['clients', 'demographics', @client, can_view_full_ssn?, controller_path, current_user], expires_in: 4.hours) do
   - authoritative_data_source_ids = GrdaWarehouse::DataSource.authoritative.pluck(:id)
   - source_clients = @client.source_clients.source_visible_to(current_user, client_ids: @client.source_client_ids)
+  - pii = @client.pii(current_user.policy(client))
   %table.table
     %thead
       %tr
@@ -23,15 +24,9 @@
       %tr
         %td.destination-data-source-tag{data: {toggle: :tooltip, title: 'Data from this row is used in reporting.', container: 'body'}}
           .destination-sqr Warehouse
-        %td= @client.name
-        %td
-          - if can_view_full_ssn?
-            = ssn(@client.SSN)
-          - else
-            = masked_ssn(@client.SSN)
-        %td
-          - if @client.DOB.present?
-            = "#{@client.DOB} (#{@client.age})"
+        %td= pii.brief_name
+        %td= pii.ssn
+        %td= pii.dob ? "#{pii.dob} (#{pii.age})" : nil
         %td= @client.gender
         %td= @client.race_description(include_missing_reason: true)
         %td= HudUtility2024.no_yes_reasons_for_missing_data @client.VeteranStatus
