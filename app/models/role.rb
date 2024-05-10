@@ -6,8 +6,8 @@
 
 # Participates in both the "new" AccessControl permissions system and the "legacy" role-based system
 #
-# A role is a named permission set. Not all permissions grant abilities, some are subtractive. The permissions are applied
-# to a set of entities such as projects or organizations.
+# Roles define what actions a user can perform within the system. Not all permissions grant abilities, some are
+# subtractive. The permissions are applied to a set of entities such as projects or organizations.
 #
 # Roles that are related to an AccessControl are part of the "new" access control system; roles that are related to a
 # user through user_roles are part of the legacy system.
