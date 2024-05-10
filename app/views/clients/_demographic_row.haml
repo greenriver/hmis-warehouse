@@ -1,4 +1,4 @@
-- pii = client.pii(current_user.policy(client))
+- pii = client.pii(current_user.access_context(:global).client_policy)
 %tr
   %td
     .ds{class: "ds-color-#{client.data_source_id}"}= ds_short_name_for(client.id)

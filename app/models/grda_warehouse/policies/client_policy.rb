@@ -1,29 +1,14 @@
 
 #
 class GrdaWarehouse::Policies::ClientPolicy
-  attr_reader :user, :record
+  attr_reader :access_context
+  delegate :can_view_full_dob?, :can_view_full_ssn?, :can_view_client_name?, to: :access_context
 
-  def initialize(user:, record:)
-    @user = user
-    @record = record
+  def initialize(access_context)
+    @access_context = access_context
   end
 
-  def can_view_full_dob?
-    can?(:can_view_full_dob)
-  end
-
-  def can_view_full_ssn?
-    can?(:can_view_full_ssn)
-  end
-
-  def can_view_client_name?
-    can?(:can_view_client_name)
-  end
-
-  protected
-
-  def can?(permission)
-    project_ids = GrdaWarehouse::Hud::Project.project_ids_viewable_by(user, permission: permission)
-    project_id ?  project_ids(permission).include?(project_id) : false
+  def can_view_name?
+    access_context.can_view_client_name?
   end
 end
