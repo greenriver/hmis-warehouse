@@ -20,8 +20,9 @@ class Sources::ActiveRecordAssociation < ::GraphQL::Dataloader::Source
     # in rails 7.0, calling preloader more than once can cause unscoped queries, particularly with has-many-through.
     # Resetting association before preload seems to address this
     records.each do |record|
-      record.association(:enrollment).reset if record.class.reflect_on_all_associations(:belongs_to).any? { |assoc| assoc.name == :enrollment }
-      record.association(@association_name).reset
+      record.class.reflect_on_all_associations.each do |assoc|
+        record.association(assoc.name).reset
+      end
     end
 
     ::ActiveRecord::Associations::Preloader.new(records: records, associations: [@association_name], scope: @scope).call
