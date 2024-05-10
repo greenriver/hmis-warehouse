@@ -1,6 +1,6 @@
 
 #
-class GrdaWarehouse::Policies::ProjectAccessContext
+class GrdaWarehouse::AuthPolicies::ProjectPolicy
   attr_reader :user
 
   def initialize(user:, record:)

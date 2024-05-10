@@ -1,4 +1,5 @@
-- akas = client_aliases(client)
+- policy = current_user.auth_policy(:global)
+- akas = poilcy.can_view_client_name ? client_aliases(client) : []
 - if akas.any?
   .clients__client-additional-names
     - akas.each_with_index do | aka, i |
