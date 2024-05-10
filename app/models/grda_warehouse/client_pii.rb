@@ -47,6 +47,10 @@ class GrdaWarehouse::ClientPii
     dob&.strftime(Date::DATE_FORMATS[:default]) || age&.to_s
   end
 
+  def dob_and_age
+    record.dob ?  "#{record.dob&.year} (#{age})" : nil
+  end
+
   def dob
     policy.can_view_full_dob? ? record.dob : nil
   end
@@ -55,9 +59,10 @@ class GrdaWarehouse::ClientPii
     GrdaWarehouse::Hud::Client.age(date: Date.current, dob: record.dob)
   end
 
-  def ssn
+  def ssn(force_mask: false)
     value = record.ssn.presence
-    format_ssn(value, mask: !policy.can_view_full_ssn?) if value
+    mask = force_mask || !policy.can_view_full_ssn?
+    format_ssn(value, mask: mask) if value
   end
 
   protected

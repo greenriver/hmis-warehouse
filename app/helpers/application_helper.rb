@@ -17,6 +17,11 @@ module ApplicationHelper
       current_user.try(permission)
     end
   end
+
+  def current_auth_policy(...)
+    current_user&.auth_policy(...)
+  end
+
   # END Permissions
 
   # Backwards compatible translations for views so we don't have to

@@ -1,6 +1,16 @@
 - content_for "client_card_demographics__#{client.id}" do
   - ssns = client.source_clients_searchable_to(current_user).map{|c| masked_ssn(c[:SSN]).html_safe if c[:SSN].present?}.uniq.compact
   - ages = client.source_clients_searchable_to(current_user).map{|m| [m.DOB, m.age].compact}.uniq.select(&:present?)
+  :ruby
+    ssns = []
+    ages = []
+    client.source_clients_searchable_to(current_user).each do |client|
+      pii = client.pii(current_auth_policy(:global))
+      ssns.push(pii.ssn(force_mask: true))
+      ages.push(pii.dob_and_age)
+    end
+    ssns = ssns.compact.uniq
+    ages = ages.compact.uniq
   - if (@show_ssn && ssns.present?) || ages.any?
     .row
       - if @show_ssn && ssns.present?
@@ -14,8 +24,6 @@
         .col-md-6.client__dobs
           - # Note only show year and age for list
           %h3 Year of Birth (age)
-          - ages.each do |dob, age|
+          - ages.each do |age|
             .client__dob
-              .no-wrap
-                - if dob.present?
-                  #{dob&.year} (#{age})
+              .no-wrap= age
