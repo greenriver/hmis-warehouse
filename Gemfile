@@ -5,7 +5,6 @@ gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'rails-7'
 # gem 'rails_drivers', path: '/usr/local/bundle/tmp/rails_drivers'
 gem 'rack', '>= 2.2.8.1'
 gem 'rexml'
-gem 'actionpack', '>= 6.1.7.7'
 
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc

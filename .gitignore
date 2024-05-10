@@ -163,6 +163,9 @@ docker/superset/op/__pycache__/**
 docker/superset/op/.did.db.init
 /superset/**
 
+# Hud Machine Readable Excel Files
+lib/data/*.xlsx
+
 # Development ENV
 /dev/minio/**
 /dev/db_data/**

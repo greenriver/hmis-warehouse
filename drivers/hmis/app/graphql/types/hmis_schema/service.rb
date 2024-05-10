@@ -17,6 +17,7 @@ module Types
       Hmis::Hud::Service.hmis_configuration(version: '2024')
     end
 
+    # NOTE: there may be class load-order dependent issues in development/test
     available_filter_options do
       arg :service_category, [ID]
       arg :service_type, [ID]
@@ -56,7 +57,16 @@ module Types
     end
 
     def service_type
-      load_ar_association(object, :custom_service_type)
+      custom_service_types_scope = Hmis::Hud::CustomServiceType.where(data_source_id: object.data_source_id)
+      case object.owner_type
+      when 'Hmis::Hud::Service'
+        dataloader.with(Sources::CustomServiceTypeByHudTypeSource).
+          load([object.RecordType, object.TypeProvided])
+      when 'Hmis::Hud::CustomService'
+        load_ar_scope(scope: custom_service_types_scope, id: object.custom_service_type_id)
+      else
+        raise
+      end
     end
 
     def enrollment

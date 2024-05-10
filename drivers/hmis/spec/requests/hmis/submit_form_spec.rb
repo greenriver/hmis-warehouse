@@ -41,7 +41,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
   let!(:hmis_hud_service1) do
     hmis_service = Hmis::Hud::HmisService.find_by(owner: s1)
-    hmis_service.custom_service_type = Hmis::Hud::CustomServiceType.find_by(hud_record_type: s1.record_type, hud_type_provided: s1.type_provided)
+    hmis_service.custom_service_type_id = Hmis::Hud::CustomServiceType.find_by(hud_record_type: s1.record_type, hud_type_provided: s1.type_provided).id
     hmis_service
   end
   let!(:file1) { create :file, client: c2, enrollment: e1, blob: blob, user_id: hmis_user.id, tags: [tag] }
@@ -405,10 +405,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq(200), result&.inspect
         expect(record_id).to be_nil
         expect(p1.operating_end_date).to be_nil
-        expect(errors).to match([
-                                  a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => Hmis::Hud::Validators::ProjectValidator.open_funders_message(1)),
-                                  a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => Hmis::Hud::Validators::ProjectValidator.open_inventory_message(1)),
-                                ])
+        expect(errors).to contain_exactly(
+          a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => Hmis::Hud::Validators::ProjectValidator.open_funders_message(1)),
+          a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => Hmis::Hud::Validators::ProjectValidator.open_inventory_message(1)),
+        )
         expect(i1.reload.inventory_end_date).to be nil
         expect(f1.reload.end_date).to be nil
       end

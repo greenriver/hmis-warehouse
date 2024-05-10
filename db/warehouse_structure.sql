@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -13410,40 +13410,6 @@ ALTER SEQUENCE public.hmis_assessments_id_seq OWNED BY public.hmis_assessments.i
 
 
 --
--- Name: hmis_auto_exit_configs; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_auto_exit_configs (
-    id bigint NOT NULL,
-    length_of_absence_days integer NOT NULL,
-    project_type integer,
-    organization_id bigint,
-    project_id bigint,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_auto_exit_configs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_auto_exit_configs_id_seq OWNED BY public.hmis_auto_exit_configs.id;
-
-
---
 -- Name: hmis_case_notes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -18259,8 +18225,8 @@ CREATE TABLE public.hmis_form_definitions (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     title character varying NOT NULL,
-    deleted_at timestamp without time zone,
-    external_form_object_key character varying
+    external_form_object_key character varying,
+    deleted_at timestamp without time zone
 );
 
 
@@ -18759,10 +18725,12 @@ ALTER SEQUENCE public.hmis_scan_card_codes_id_seq OWNED BY public.hmis_scan_card
 --
 
 CREATE VIEW public.hmis_services AS
-( SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
+ SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
     "Services".id AS owner_id,
     'Hmis::Hud::Service'::text AS owner_type,
-    "CustomServiceTypes".id AS custom_service_type_id,
+    "Services"."RecordType",
+    "Services"."TypeProvided",
+    NULL::bigint AS custom_service_type_id,
     "Services"."EnrollmentID",
     "Services"."PersonalID",
     "Services"."DateProvided",
@@ -18771,14 +18739,14 @@ CREATE VIEW public.hmis_services AS
     "Services"."DateUpdated",
     "Services"."DateDeleted",
     "Services".data_source_id
-   FROM (public."Services"
-     JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes".data_source_id = "Services".data_source_id) AND ("CustomServiceTypes"."DateDeleted" IS NULL))))
+   FROM public."Services"
   WHERE ("Services"."DateDeleted" IS NULL)
-  ORDER BY "Services"."DateProvided")
 UNION ALL
-( SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
+ SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
     ("CustomServices".id)::integer AS owner_id,
     'Hmis::Hud::CustomService'::text AS owner_type,
+    NULL::integer AS "RecordType",
+    NULL::integer AS "TypeProvided",
     "CustomServices".custom_service_type_id,
     "CustomServices"."EnrollmentID",
     "CustomServices"."PersonalID",
@@ -18789,8 +18757,7 @@ UNION ALL
     "CustomServices"."DateDeleted",
     "CustomServices".data_source_id
    FROM public."CustomServices"
-  WHERE ("CustomServices"."DateDeleted" IS NULL)
-  ORDER BY "CustomServices"."DateProvided");
+  WHERE ("CustomServices"."DateDeleted" IS NULL);
 
 
 --
@@ -28714,13 +28681,6 @@ ALTER TABLE ONLY public.hmis_assessments ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
--- Name: hmis_auto_exit_configs id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_auto_exit_configs ALTER COLUMN id SET DEFAULT nextval('public.hmis_auto_exit_configs_id_seq'::regclass);
-
-
---
 -- Name: hmis_case_notes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -32166,14 +32126,6 @@ ALTER TABLE ONLY public.hmis_assessment_details
 
 ALTER TABLE ONLY public.hmis_assessments
     ADD CONSTRAINT hmis_assessments_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_auto_exit_configs hmis_auto_exit_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_auto_exit_configs
-    ADD CONSTRAINT hmis_auto_exit_configs_pkey PRIMARY KEY (id);
 
 
 --
@@ -50412,6 +50364,13 @@ CREATE UNIQUE INDEX idx_inbound_api_configurations_uniq ON public.inbound_api_co
 
 
 --
+-- Name: idx_services_hud_types; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_services_hud_types ON public."Services" USING btree ("RecordType", "TypeProvided");
+
+
+--
 -- Name: idx_tpc_uniqueness; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -53209,20 +53168,6 @@ CREATE INDEX index_hmis_assessments_on_name ON public.hmis_assessments USING btr
 --
 
 CREATE INDEX index_hmis_assessments_on_site_id ON public.hmis_assessments USING btree (site_id);
-
-
---
--- Name: index_hmis_auto_exit_configs_on_organization_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_auto_exit_configs_on_organization_id ON public.hmis_auto_exit_configs USING btree (organization_id);
-
-
---
--- Name: index_hmis_auto_exit_configs_on_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_auto_exit_configs_on_project_id ON public.hmis_auto_exit_configs USING btree (project_id);
 
 
 --
@@ -59701,13 +59646,6 @@ CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "Personal
 
 
 --
--- Name: tt_hh_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX tt_hh_id ON public.service_history_enrollments USING btree (household_id);
-
-
---
 -- Name: tx_id_ds_id_ft_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -59774,7 +59712,21 @@ CREATE UNIQUE INDEX uidx_hmis_external_unit_availability_syncs ON public.hmis_ex
 -- Name: uidx_hmis_form_definitions_identifier; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX uidx_hmis_form_definitions_identifier ON public.hmis_form_definitions USING btree (identifier, version);
+CREATE UNIQUE INDEX uidx_hmis_form_definitions_identifier ON public.hmis_form_definitions USING btree (identifier, version) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: uidx_hmis_form_definitions_one_draft_per_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_form_definitions_one_draft_per_identifier ON public.hmis_form_definitions USING btree (identifier) WHERE (((status)::text = 'draft'::text) AND (deleted_at IS NULL));
+
+
+--
+-- Name: uidx_hmis_form_definitions_one_published_per_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_form_definitions_one_published_per_identifier ON public.hmis_form_definitions USING btree (identifier) WHERE (((status)::text = 'published'::text) AND (deleted_at IS NULL));
 
 
 --
@@ -62644,12 +62596,16 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240409215111'),
 ('20240411183410'),
 ('20240413183410'),
+('20240414183410'),
 ('20240416155829'),
 ('20240419165229'),
 ('20240419174433'),
 ('20240426133811'),
+('20240430045112'),
 ('20240503124656'),
 ('20240503132627'),
-('20240503170130');
+('20240503152843'),
+('20240503170130'),
+('20240506204908');
 
 

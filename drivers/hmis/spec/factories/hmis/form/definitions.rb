@@ -9,7 +9,7 @@ FactoryBot.define do
     version { 1 }
     sequence(:identifier, 100)
     role { 'UPDATE' }
-    status { 'active' }
+    status { Hmis::Form::Definition::PUBLISHED }
     title { 'Form' }
     definition do
       {
