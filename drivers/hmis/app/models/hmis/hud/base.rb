@@ -52,16 +52,19 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
       'Hmis::Hud::Enrollment'
     end
     h = {
-      primary_key: [
-        :EnrollmentID,
-        :PersonalID,
-        :data_source_id,
-      ],
-      foreign_key: [
-        :EnrollmentID,
-        :PersonalID,
-        :data_source_id,
-      ],
+      # primary_key: [
+      #   :EnrollmentID,
+      #   :PersonalID,
+      #   :data_source_id,
+      # ],
+      # foreign_key: [
+      #   :EnrollmentID,
+      #   :PersonalID,
+      #   :data_source_id,
+      # ],
+      # Moved to a generated column with Rails 7 transition
+      primary_key: :enrollment_slug,
+      foreign_key: :enrollment_slug,
       class_name: model_name,
       autosave: false,
     }

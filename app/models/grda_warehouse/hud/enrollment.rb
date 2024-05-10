@@ -22,7 +22,7 @@ module GrdaWarehouse::Hud
     alias_attribute :date, :EntryDate
 
     belongs_to :data_source, inverse_of: :enrollments, autosave: false
-    belongs_to :client, **hud_assoc(:PersonalID, 'Client'), inverse_of: :enrollments, optional: true
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', primary_key: :client_slug, foreign_key: :client_slug, inverse_of: :enrollments, optional: true
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :enrollments, optional: true
     belongs_to :project, **hud_assoc(:ProjectID, 'Project'), inverse_of: :enrollments, optional: true
     belongs_to :user, **hud_assoc(:UserID, 'User'), inverse_of: :projects, optional: true
