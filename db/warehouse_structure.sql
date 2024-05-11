@@ -339,8 +339,7 @@ CREATE TABLE public."Assessment" (
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
     source_hash character varying,
-    synthetic boolean DEFAULT false,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    synthetic boolean DEFAULT false
 );
 
 
@@ -365,8 +364,7 @@ CREATE TABLE public."AssessmentQuestions" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
-    source_hash character varying,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    source_hash character varying
 );
 
 
@@ -408,8 +406,7 @@ CREATE TABLE public."AssessmentResults" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
-    source_hash character varying,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    source_hash character varying
 );
 
 
@@ -638,8 +635,7 @@ CREATE TABLE public."Client" (
     "DifferentIdentityText" character varying,
     search_name_full character varying GENERATED ALWAYS AS (public.f_unaccent((((((COALESCE("FirstName", ''::character varying))::text || ' '::text) || (COALESCE("MiddleName", ''::character varying))::text) || ' '::text) || (COALESCE("LastName", ''::character varying))::text))) STORED,
     search_name_last character varying GENERATED ALWAYS AS (public.f_unaccent(("LastName")::text)) STORED,
-    lock_version integer DEFAULT 0 NOT NULL,
-    client_slug character varying GENERATED ALWAYS AS (((("PersonalID")::text || ':'::text) || (data_source_id)::text)) STORED
+    lock_version integer DEFAULT 0 NOT NULL
 );
 
 
@@ -807,8 +803,7 @@ CREATE TABLE public."CurrentLivingSituation" (
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
     source_hash character varying,
-    "CLSSubsidyType" integer,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    "CLSSubsidyType" integer
 );
 
 
@@ -1468,8 +1463,7 @@ CREATE TABLE public."Disabilities" (
     id integer NOT NULL,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
-    "AntiRetroviral" integer,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    "AntiRetroviral" integer
 );
 
 
@@ -1515,8 +1509,7 @@ CREATE TABLE public."EmploymentEducation" (
     data_source_id integer,
     id integer NOT NULL,
     source_hash character varying,
-    pending_date_deleted timestamp without time zone,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    pending_date_deleted timestamp without time zone
 );
 
 
@@ -1682,9 +1675,7 @@ CREATE TABLE public."Enrollment" (
     "PreferredLanguageDifferent" character varying,
     "VAMCStation" character varying,
     lock_version integer DEFAULT 0 NOT NULL,
-    project_pk bigint,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED,
-    client_slug character varying GENERATED ALWAYS AS (((("PersonalID")::text || ':'::text) || (data_source_id)::text)) STORED
+    project_pk bigint
 );
 
 
@@ -1775,8 +1766,7 @@ CREATE TABLE public."Event" (
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
     source_hash character varying,
-    synthetic boolean DEFAULT false,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    synthetic boolean DEFAULT false
 );
 
 
@@ -1865,8 +1855,7 @@ CREATE TABLE public."Exit" (
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
     "DestinationSubsidyType" integer,
-    auto_exited timestamp without time zone,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    auto_exited timestamp without time zone
 );
 
 
@@ -2106,8 +2095,7 @@ CREATE TABLE public."HealthAndDV" (
     "SupportFromOthers" integer,
     "BounceBack" integer,
     "FeelingFrequency" integer,
-    "DomesticViolenceSurvivor" integer,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    "DomesticViolenceSurvivor" integer
 );
 
 
@@ -2221,8 +2209,7 @@ CREATE TABLE public."IncomeBenefits" (
     "RyanWhiteMedDent" integer,
     "NoRyanWhiteReason" integer,
     "VHAServices" integer,
-    "NoVHAReason" character varying,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    "NoVHAReason" character varying
 );
 
 
@@ -2500,8 +2487,7 @@ CREATE TABLE public."Services" (
     pending_date_deleted timestamp without time zone,
     "MovingOnOtherType" character varying,
     "FAStartDate" date,
-    "FAEndDate" date,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    "FAEndDate" date
 );
 
 
@@ -2615,8 +2601,7 @@ CREATE TABLE public."YouthEducationStatus" (
     data_source_id integer,
     pending_date_deleted date,
     source_hash character varying,
-    synthetic boolean DEFAULT false,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    synthetic boolean DEFAULT false
 );
 
 
@@ -18774,12 +18759,10 @@ ALTER SEQUENCE public.hmis_scan_card_codes_id_seq OWNED BY public.hmis_scan_card
 --
 
 CREATE VIEW public.hmis_services AS
- SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
+( SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
     "Services".id AS owner_id,
     'Hmis::Hud::Service'::text AS owner_type,
-    "Services"."RecordType",
-    "Services"."TypeProvided",
-    NULL::bigint AS custom_service_type_id,
+    "CustomServiceTypes".id AS custom_service_type_id,
     "Services"."EnrollmentID",
     "Services"."PersonalID",
     "Services"."DateProvided",
@@ -18788,14 +18771,14 @@ CREATE VIEW public.hmis_services AS
     "Services"."DateUpdated",
     "Services"."DateDeleted",
     "Services".data_source_id
-   FROM public."Services"
+   FROM (public."Services"
+     JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes".data_source_id = "Services".data_source_id) AND ("CustomServiceTypes"."DateDeleted" IS NULL))))
   WHERE ("Services"."DateDeleted" IS NULL)
+  ORDER BY "Services"."DateProvided")
 UNION ALL
- SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
+( SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
     ("CustomServices".id)::integer AS owner_id,
     'Hmis::Hud::CustomService'::text AS owner_type,
-    NULL::integer AS "RecordType",
-    NULL::integer AS "TypeProvided",
     "CustomServices".custom_service_type_id,
     "CustomServices"."EnrollmentID",
     "CustomServices"."PersonalID",
@@ -18806,7 +18789,8 @@ UNION ALL
     "CustomServices"."DateDeleted",
     "CustomServices".data_source_id
    FROM public."CustomServices"
-  WHERE ("CustomServices"."DateDeleted" IS NULL);
+  WHERE ("CustomServices"."DateDeleted" IS NULL)
+  ORDER BY "CustomServices"."DateProvided");
 
 
 --
@@ -50428,13 +50412,6 @@ CREATE UNIQUE INDEX idx_inbound_api_configurations_uniq ON public.inbound_api_co
 
 
 --
--- Name: idx_services_hud_types; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_services_hud_types ON public."Services" USING btree ("RecordType", "TypeProvided");
-
-
---
 -- Name: idx_tpc_uniqueness; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50491,24 +50468,10 @@ CREATE INDEX "index_Affiliation_on_pending_date_deleted" ON public."Affiliation"
 
 
 --
--- Name: index_AssessmentQuestions_on_enrollment_slug; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_AssessmentQuestions_on_enrollment_slug" ON public."AssessmentQuestions" USING btree (enrollment_slug);
-
-
---
 -- Name: index_AssessmentQuestions_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "index_AssessmentQuestions_on_pending_date_deleted" ON public."AssessmentQuestions" USING btree (pending_date_deleted);
-
-
---
--- Name: index_AssessmentResults_on_enrollment_slug; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_AssessmentResults_on_enrollment_slug" ON public."AssessmentResults" USING btree (enrollment_slug);
 
 
 --
@@ -50523,13 +50486,6 @@ CREATE INDEX "index_AssessmentResults_on_pending_date_deleted" ON public."Assess
 --
 
 CREATE UNIQUE INDEX "index_Assessment_on_AssessmentID_and_data_source_id" ON public."Assessment" USING btree ("AssessmentID", data_source_id);
-
-
---
--- Name: index_Assessment_on_enrollment_slug; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Assessment_on_enrollment_slug" ON public."Assessment" USING btree (enrollment_slug);
 
 
 --
@@ -50652,13 +50608,6 @@ CREATE INDEX "index_Client_on_White" ON public."Client" USING btree ("White");
 
 
 --
--- Name: index_Client_on_client_slug; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Client_on_client_slug" ON public."Client" USING btree (client_slug);
-
-
---
 -- Name: index_Client_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50684,13 +50633,6 @@ CREATE INDEX "index_Client_on_health_housing_navigator_id" ON public."Client" US
 --
 
 CREATE INDEX "index_Client_on_pending_date_deleted" ON public."Client" USING btree (pending_date_deleted);
-
-
---
--- Name: index_CurrentLivingSituation_on_enrollment_slug; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_CurrentLivingSituation_on_enrollment_slug" ON public."CurrentLivingSituation" USING btree (enrollment_slug);
 
 
 --
@@ -50848,13 +50790,6 @@ CREATE INDEX "index_Disabilities_on_data_source_id_and_PersonalID" ON public."Di
 
 
 --
--- Name: index_Disabilities_on_enrollment_slug; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Disabilities_on_enrollment_slug" ON public."Disabilities" USING btree (enrollment_slug);
-
-
---
 -- Name: index_Disabilities_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50894,13 +50829,6 @@ CREATE INDEX "index_EmploymentEducation_on_data_source_id" ON public."Employment
 --
 
 CREATE INDEX "index_EmploymentEducation_on_data_source_id_and_PersonalID" ON public."EmploymentEducation" USING btree (data_source_id, "PersonalID");
-
-
---
--- Name: index_EmploymentEducation_on_enrollment_slug; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_EmploymentEducation_on_enrollment_slug" ON public."EmploymentEducation" USING btree (enrollment_slug);
 
 
 --
@@ -51009,13 +50937,6 @@ CREATE INDEX "index_Enrollment_on_ProjectID_and_data_source_id" ON public."Enrol
 
 
 --
--- Name: index_Enrollment_on_client_slug; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Enrollment_on_client_slug" ON public."Enrollment" USING btree (client_slug);
-
-
---
 -- Name: index_Enrollment_on_data_source_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -51027,13 +50948,6 @@ CREATE INDEX "index_Enrollment_on_data_source_id" ON public."Enrollment" USING b
 --
 
 CREATE INDEX "index_Enrollment_on_data_source_id_and_PersonalID" ON public."Enrollment" USING btree (data_source_id, "PersonalID");
-
-
---
--- Name: index_Enrollment_on_enrollment_slug; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Enrollment_on_enrollment_slug" ON public."Enrollment" USING btree (enrollment_slug);
 
 
 --
@@ -51055,13 +50969,6 @@ CREATE INDEX "index_Enrollment_on_project_pk" ON public."Enrollment" USING btree
 --
 
 CREATE INDEX "index_Enrollment_on_service_history_processing_job_id" ON public."Enrollment" USING btree (service_history_processing_job_id);
-
-
---
--- Name: index_Event_on_enrollment_slug; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Event_on_enrollment_slug" ON public."Event" USING btree (enrollment_slug);
 
 
 --
@@ -51097,13 +51004,6 @@ CREATE INDEX "index_Exit_on_ExitDate" ON public."Exit" USING btree ("ExitDate");
 --
 
 CREATE UNIQUE INDEX "index_Exit_on_ExitID_and_data_source_id" ON public."Exit" USING btree ("ExitID", data_source_id);
-
-
---
--- Name: index_Exit_on_enrollment_slug; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Exit_on_enrollment_slug" ON public."Exit" USING btree (enrollment_slug);
 
 
 --
@@ -51240,13 +51140,6 @@ CREATE INDEX "index_HealthAndDV_on_data_source_id_and_PersonalID" ON public."Hea
 
 
 --
--- Name: index_HealthAndDV_on_enrollment_slug; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_HealthAndDV_on_enrollment_slug" ON public."HealthAndDV" USING btree (enrollment_slug);
-
-
---
 -- Name: index_HealthAndDV_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -51300,13 +51193,6 @@ CREATE INDEX "index_IncomeBenefits_on_data_source_id" ON public."IncomeBenefits"
 --
 
 CREATE INDEX "index_IncomeBenefits_on_data_source_id_and_PersonalID" ON public."IncomeBenefits" USING btree (data_source_id, "PersonalID");
-
-
---
--- Name: index_IncomeBenefits_on_enrollment_slug; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_IncomeBenefits_on_enrollment_slug" ON public."IncomeBenefits" USING btree (enrollment_slug);
 
 
 --
@@ -51485,13 +51371,6 @@ CREATE INDEX "index_Services_on_data_source_id" ON public."Services" USING btree
 
 
 --
--- Name: index_Services_on_enrollment_slug; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Services_on_enrollment_slug" ON public."Services" USING btree (enrollment_slug);
-
-
---
 -- Name: index_Services_on_pending_date_deleted; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -51510,13 +51389,6 @@ CREATE UNIQUE INDEX "index_User_on_UserID_and_data_source_id" ON public."User" U
 --
 
 CREATE INDEX "index_User_on_pending_date_deleted" ON public."User" USING btree (pending_date_deleted);
-
-
---
--- Name: index_YouthEducationStatus_on_enrollment_slug; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_YouthEducationStatus_on_enrollment_slug" ON public."YouthEducationStatus" USING btree (enrollment_slug);
 
 
 --
@@ -59902,21 +59774,7 @@ CREATE UNIQUE INDEX uidx_hmis_external_unit_availability_syncs ON public.hmis_ex
 -- Name: uidx_hmis_form_definitions_identifier; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_hmis_form_definitions_identifier ON public.hmis_form_definitions USING btree (identifier, version) WHERE (deleted_at IS NULL);
-
-
---
--- Name: uidx_hmis_form_definitions_one_draft_per_identifier; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uidx_hmis_form_definitions_one_draft_per_identifier ON public.hmis_form_definitions USING btree (identifier) WHERE (((status)::text = 'draft'::text) AND (deleted_at IS NULL));
-
-
---
--- Name: uidx_hmis_form_definitions_one_published_per_identifier; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uidx_hmis_form_definitions_one_published_per_identifier ON public.hmis_form_definitions USING btree (identifier) WHERE (((status)::text = 'published'::text) AND (deleted_at IS NULL));
+CREATE INDEX uidx_hmis_form_definitions_identifier ON public.hmis_form_definitions USING btree (identifier, version);
 
 
 --
@@ -62786,20 +62644,11 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240409215111'),
 ('20240411183410'),
 ('20240413183410'),
-('20240414183410'),
 ('20240416155829'),
 ('20240419165229'),
 ('20240419174433'),
 ('20240426133811'),
-('20240430045112'),
 ('20240503124656'),
 ('20240503132627'),
-('20240503152843'),
 ('20240503170130'),
-('20240506204908'),
-('20240510191109'),
-('20240510195819'),
-('20240510204158'),
 ('20240510230733');
-
-
