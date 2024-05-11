@@ -293,6 +293,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
       it 'should find 3 new episodes' do
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+        enrollments.each(&:reload)
         enrollments.each_with_index do |en, i|
           date = dates[i]
           project = projects[i]
@@ -366,6 +367,7 @@ RSpec.describe GrdaWarehouse::Hud::Client, type: :model do
 
       it 'should find 2 new episodes' do
         GrdaWarehouse::Tasks::IdentifyDuplicates.new.run!
+        enrollments.each(&:reload)
         enrollments.each_with_index do |en, i|
           date = dates[i]
           project = projects[i]
