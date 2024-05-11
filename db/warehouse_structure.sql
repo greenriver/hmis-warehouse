@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -848,7 +848,8 @@ CREATE TABLE public."CustomAssessments" (
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
     wip boolean DEFAULT false NOT NULL,
-    lock_version integer DEFAULT 0 NOT NULL
+    lock_version integer DEFAULT 0 NOT NULL,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -1399,7 +1400,8 @@ CREATE TABLE public."CustomServices" (
     "DateDeleted" timestamp without time zone,
     "FAAmount" double precision,
     "FAStartDate" date,
-    "FAEndDate" date
+    "FAEndDate" date,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -13425,40 +13427,6 @@ ALTER SEQUENCE public.hmis_assessments_id_seq OWNED BY public.hmis_assessments.i
 
 
 --
--- Name: hmis_auto_exit_configs; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_auto_exit_configs (
-    id bigint NOT NULL,
-    length_of_absence_days integer NOT NULL,
-    project_type integer,
-    organization_id bigint,
-    project_id bigint,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_auto_exit_configs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_auto_exit_configs_id_seq OWNED BY public.hmis_auto_exit_configs.id;
-
-
---
 -- Name: hmis_case_notes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -18274,8 +18242,8 @@ CREATE TABLE public.hmis_form_definitions (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     title character varying NOT NULL,
-    deleted_at timestamp without time zone,
-    external_form_object_key character varying
+    external_form_object_key character varying,
+    deleted_at timestamp without time zone
 );
 
 
@@ -28730,13 +28698,6 @@ ALTER TABLE ONLY public.hmis_assessments ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
--- Name: hmis_auto_exit_configs id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_auto_exit_configs ALTER COLUMN id SET DEFAULT nextval('public.hmis_auto_exit_configs_id_seq'::regclass);
-
-
---
 -- Name: hmis_case_notes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -32182,14 +32143,6 @@ ALTER TABLE ONLY public.hmis_assessment_details
 
 ALTER TABLE ONLY public.hmis_assessments
     ADD CONSTRAINT hmis_assessments_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_auto_exit_configs hmis_auto_exit_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_auto_exit_configs
-    ADD CONSTRAINT hmis_auto_exit_configs_pkey PRIMARY KEY (id);
 
 
 --
@@ -50701,6 +50654,13 @@ CREATE INDEX "index_CurrentLivingSituation_on_pending_date_deleted" ON public."C
 
 
 --
+-- Name: index_CustomAssessments_on_enrollment_slug; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomAssessments_on_enrollment_slug" ON public."CustomAssessments" USING btree (enrollment_slug);
+
+
+--
 -- Name: index_CustomCaseNote_on_EnrollmentID; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50803,6 +50763,13 @@ CREATE INDEX "index_CustomServices_on_custom_service_type_id" ON public."CustomS
 --
 
 CREATE INDEX "index_CustomServices_on_data_source_id" ON public."CustomServices" USING btree (data_source_id);
+
+
+--
+-- Name: index_CustomServices_on_enrollment_slug; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomServices_on_enrollment_slug" ON public."CustomServices" USING btree (enrollment_slug);
 
 
 --
@@ -53337,20 +53304,6 @@ CREATE INDEX index_hmis_assessments_on_name ON public.hmis_assessments USING btr
 --
 
 CREATE INDEX index_hmis_assessments_on_site_id ON public.hmis_assessments USING btree (site_id);
-
-
---
--- Name: index_hmis_auto_exit_configs_on_organization_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_auto_exit_configs_on_organization_id ON public.hmis_auto_exit_configs USING btree (organization_id);
-
-
---
--- Name: index_hmis_auto_exit_configs_on_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_auto_exit_configs_on_project_id ON public.hmis_auto_exit_configs USING btree (project_id);
 
 
 --
@@ -59829,13 +59782,6 @@ CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "Personal
 
 
 --
--- Name: tt_hh_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX tt_hh_id ON public.service_history_enrollments USING btree (household_id);
-
-
---
 -- Name: tx_id_ds_id_ft_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -59902,21 +59848,7 @@ CREATE UNIQUE INDEX uidx_hmis_external_unit_availability_syncs ON public.hmis_ex
 -- Name: uidx_hmis_form_definitions_identifier; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX uidx_hmis_form_definitions_identifier ON public.hmis_form_definitions USING btree (identifier, version) WHERE (deleted_at IS NULL);
-
-
---
--- Name: uidx_hmis_form_definitions_one_draft_per_identifier; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uidx_hmis_form_definitions_one_draft_per_identifier ON public.hmis_form_definitions USING btree (identifier) WHERE (((status)::text = 'draft'::text) AND (deleted_at IS NULL));
-
-
---
--- Name: uidx_hmis_form_definitions_one_published_per_identifier; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX uidx_hmis_form_definitions_one_published_per_identifier ON public.hmis_form_definitions USING btree (identifier) WHERE (((status)::text = 'published'::text) AND (deleted_at IS NULL));
+CREATE INDEX uidx_hmis_form_definitions_identifier ON public.hmis_form_definitions USING btree (identifier, version);
 
 
 --
@@ -62796,7 +62728,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240503132627'),
 ('20240503152843'),
 ('20240503170130'),
-('20240506204908'),
 ('20240510191109'),
 ('20240510195819'),
 ('20240510204158');

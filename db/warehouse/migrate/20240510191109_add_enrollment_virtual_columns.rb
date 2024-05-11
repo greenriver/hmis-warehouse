@@ -1,7 +1,9 @@
 class AddEnrollmentVirtualColumns < ActiveRecord::Migration[7.0]
   disable_ddl_transaction!
 
-  def change
+  def down
+  end
+  def up
     [
       'Enrollment',
       'Disabilities',
@@ -11,6 +13,8 @@ class AddEnrollmentVirtualColumns < ActiveRecord::Migration[7.0]
       'IncomeBenefits',
       'Services',
       'CurrentLivingSituation',
+      'CustomAssessments',
+      'CustomServices',
       'Assessment',
       'AssessmentQuestions',
       'AssessmentResults',

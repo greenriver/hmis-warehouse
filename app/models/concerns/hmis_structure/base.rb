@@ -9,6 +9,11 @@ module HmisStructure::Base
 
   included do
     class_attribute :hud_key
+    after_initialize do
+      return unless respond_to?(:enrollment_slug)
+      self.enrollment_slug ||= "#{self.EnrollmentID}:#{self.PersonalID}:#{data_source_id}"
+    end
+
 
     scope :delete_pending, -> do
       where.not(pending_date_deleted: nil)
@@ -76,6 +81,11 @@ module HmisStructure::Base
       else
         'GrdaWarehouse::Hud::Enrollment'
       end
+
+      define_method(:enrollment_slug) do
+        read_attribute(:enrollment_slug) || "#{self.EnrollmentID}:#{self.PersonalID}:#{data_source_id}"
+      end
+
       h = {
         # primary_key: [
         #   :EnrollmentID,

@@ -11,5 +11,9 @@ module Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
   included do
     belongs_to :enrollment, **hmis_enrollment_relation, optional: true
     has_one :project, through: :enrollment
+
+    after_initialize do
+      self.enrollment_slug ||= "#{self.EnrollmentID}:#{self.PersonalID}:#{data_source_id}"
+    end
   end
 end
