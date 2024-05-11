@@ -116,11 +116,20 @@ module HmisStructure::Base
       @additional_upsert_columns || []
     end
 
+    # These are PG generated columns and will throw errors if you try to write to them
+    def never_insert_columns
+      [
+        :project_pk,
+        :client_slug,
+        :enrollment_slug,
+      ]
+    end
+
     def upsert_column_names(version: hud_csv_version)
       @upsert_column_names ||= (hud_csv_headers(version: version) +
         [:source_hash, :pending_date_deleted] +
         additional_upsert_columns -
-        conflict_target).uniq
+        conflict_target - never_insert_columns).uniq
     end
 
     def related_item_keys
