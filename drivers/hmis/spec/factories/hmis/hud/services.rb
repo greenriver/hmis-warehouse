@@ -14,6 +14,7 @@ FactoryBot.define do
     DateProvided { Date.yesterday }
     RecordType { 200 }
     TypeProvided { 200 }
+    enrollment_slug { "#{enrollment_id}:#{personal_id}:#{data_source_id}" }
   end
 
   factory :hmis_hud_service_bednight, parent: :hmis_hud_service do

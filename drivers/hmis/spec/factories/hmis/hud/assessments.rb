@@ -16,5 +16,6 @@ FactoryBot.define do
     PrioritizationStatus { 1 }
     DateCreated { Date.parse('2019-01-01') }
     DateUpdated { Date.parse('2019-01-01') }
+    enrollment_slug { "#{enrollment_id}:#{personal_id}:#{data_source_id}" }
   end
 end

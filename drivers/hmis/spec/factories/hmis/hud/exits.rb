@@ -11,6 +11,7 @@ FactoryBot.define do
     sequence(:ExitID, 50)
     destination { 1 }
     exit_date { Date.today }
+    enrollment_slug { "#{enrollment_id}:#{personal_id}:#{data_source_id}" }
   end
 
   factory :hmis_hud_exit, class: 'Hmis::Hud::Exit', parent: :hmis_base_hud_exit do

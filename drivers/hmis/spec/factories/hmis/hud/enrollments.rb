@@ -17,6 +17,8 @@ FactoryBot.define do
     DisablingCondition { 99 }
     sequence(:EnrollmentID, 500)
     EnrollmentCoC { 'XX-500' }
+    enrollment_slug { "#{enrollment_id}:#{personal_id}:#{data_source_id}" }
+    client_slug { "#{personal_id}:#{data_source_id}" }
     sequence(:EntryDate) do |n|
       dates = [
         3.weeks.ago,

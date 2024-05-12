@@ -11,5 +11,6 @@ FactoryBot.define do
     sequence(:HealthAndDVID, 500)
     information_date { Date.yesterday }
     data_collection_stage { 1 }
+    enrollment_slug { "#{enrollment_id}:#{personal_id}:#{data_source_id}" }
   end
 end

@@ -13,5 +13,6 @@ FactoryBot.define do
     disability_response { 1 }
     information_date { Date.yesterday }
     data_collection_stage { 1 }
+    enrollment_slug { "#{enrollment_id}:#{personal_id}:#{data_source_id}" }
   end
 end
