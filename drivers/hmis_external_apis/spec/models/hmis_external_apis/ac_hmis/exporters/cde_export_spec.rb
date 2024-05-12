@@ -15,7 +15,8 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CdeExport, type: :model do
   let!(:o1) { create :hmis_hud_organization, data_source: ds, user: u1 }
   let!(:p1) { create :hmis_hud_project, data_source: ds, organization: o1, user: u1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds, project: p1 }
-  let!(:hud_service) { create :hmis_hud_service, data_source: ds, client: c1, enrollment: e1 }
+  # Need to manually set the enrollment_id since the relation now uses the generated column
+  let!(:hud_service) { create :hmis_hud_service, data_source: ds, client: c1, enrollment: e1, enrollment_id: e1.enrollment_id }
 
   let!(:creation_time) { Time.current }
 
@@ -49,7 +50,7 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CdeExport, type: :model do
     let!(:records) do
       cdes = []
       10.times do
-        service = create(:hmis_hud_service, data_source: ds, client: c1, enrollment: e1)
+        service = create(:hmis_hud_service, data_source: ds, client: c1, enrollment: e1, enrollment_id: e1.enrollment_id)
         cded = create(:hmis_custom_data_element_definition, label: 'A different CDED', data_source: ds, owner_type: 'Hmis::Hud::Service', field_type: :string)
         cdes << create(:hmis_custom_data_element, data_element_definition: cded, owner: service, data_source: ds, value_string: 'A new value')
       end

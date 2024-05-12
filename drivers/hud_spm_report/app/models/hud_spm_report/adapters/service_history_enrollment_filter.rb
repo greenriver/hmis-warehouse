@@ -64,6 +64,8 @@ module HudSpmReport::Adapters
         :DateDeleted,
         :ExportID,
         :data_source_id,
+        :client_slug,
+        :enrollment_slug,
       ].freeze
     end
   end

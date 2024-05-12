@@ -398,7 +398,7 @@ module HmisCsvImporter::Importer
               # entire history of enrollments for aggregated projects because some of the existing enrollments fall
               # outside of the range, but are necessary to calculate the correctly aggregated set
               upsert = ! destination_class.name.in?(un_updateable_warehouse_classes)
-              columns = batch.first.attributes.keys - ['id']
+              columns = batch.first.attributes.keys - ['id'] - destination_class.never_insert_columns.map(&:to_s)
               process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert)
               batch = []
             end
@@ -410,7 +410,7 @@ module HmisCsvImporter::Importer
           # outside of the range, but are necessary to calculate the correctly aggregated set
           if batch.present?
             upsert = ! destination_class.name.in?(un_updateable_warehouse_classes)
-            columns = batch.first.attributes.keys - ['id']
+            columns = batch.first.attributes.keys - ['id'] - destination_class.never_insert_columns.map(&:to_s)
             process_batch!(destination_class, batch, file_name, columns: columns, type: 'added', upsert: upsert) # ensure we get the last batch
           end
         end

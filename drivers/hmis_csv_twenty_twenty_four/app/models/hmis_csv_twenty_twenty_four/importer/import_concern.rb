@@ -64,7 +64,7 @@ module HmisCsvTwentyTwentyFour::Importer::ImportConcern
     end
 
     def self.upsert_column_names(version: hud_csv_version)
-      super(version: version) - [:processed_as, :demographic_dirty]
+      super(version: version) - [:processed_as, :demographic_dirty] - never_insert_columns
     end
 
     def self.upsert?
