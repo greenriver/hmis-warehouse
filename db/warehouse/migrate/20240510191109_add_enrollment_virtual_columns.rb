@@ -1,9 +1,7 @@
 class AddEnrollmentVirtualColumns < ActiveRecord::Migration[7.0]
   disable_ddl_transaction!
 
-  def down
-  end
-  def up
+  def change
     [
       'Enrollment',
       'Disabilities',

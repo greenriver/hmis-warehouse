@@ -130,14 +130,6 @@ module GrdaWarehouse::Hud
 
     # has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', foreign_key: [:PersonalID, :data_source_id], primary_key: [:PersonalID, :data_source_id], inverse_of: :client
     has_many :enrollments, class_name: 'GrdaWarehouse::Hud::Enrollment', foreign_key: :client_slug, primary_key: :client_slug, inverse_of: :client
-
-    after_initialize do
-      self.client_slug ||= "#{self.PersonalID}:#{data_source_id}"
-    end
-    def client_slug
-      read_attribute(:client_slug) || "#{self.PersonalID}:#{data_source_id}"
-    end
-
     has_many :exits, through: :enrollments, source: :exit, inverse_of: :client
     has_many :enrollment_cocs, through: :enrollments, source: :enrollment_cocs, inverse_of: :client
     has_many :services, through: :enrollments, source: :services, inverse_of: :client

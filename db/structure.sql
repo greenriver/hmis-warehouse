@@ -375,38 +375,19 @@ CREATE SEQUENCE public.agencies_id_seq
 
 ALTER SEQUENCE public.agencies_id_seq OWNED BY public.agencies.id;
 
-
---
--- Name: app_config_properties; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.app_config_properties (
     id bigint NOT NULL,
     key character varying NOT NULL,
     value jsonb NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
-);
+ );
 
-
---
--- Name: app_config_properties_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.app_config_properties_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: app_config_properties_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
+CREATE SEQUENCE public.app_config_properties_id_seq AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 ALTER SEQUENCE public.app_config_properties_id_seq OWNED BY public.app_config_properties.id;
-
+ALTER TABLE ONLY public.app_config_properties ALTER COLUMN id SET DEFAULT nextval('public.app_config_properties_id_seq'::regclass);
+ALTER TABLE ONLY public.app_config_properties ADD CONSTRAINT app_config_properties_pkey PRIMARY KEY (id);
+CREATE UNIQUE INDEX index_app_config_properties_on_key ON public.app_config_properties USING btree (key);
 
 --
 -- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
@@ -897,19 +878,18 @@ CREATE TABLE public.hmis_roles (
     can_merge_clients boolean DEFAULT false,
     can_split_households boolean DEFAULT false,
     can_transfer_enrollments boolean DEFAULT false,
-    can_impersonate_users boolean DEFAULT false,
     can_view_limited_enrollment_details boolean DEFAULT false,
+    can_impersonate_users boolean DEFAULT false,
     can_audit_users boolean DEFAULT false,
     can_audit_enrollments boolean DEFAULT false,
     can_configure_data_collection boolean DEFAULT false,
-    can_manage_scan_cards boolean DEFAULT false,
     can_view_client_alerts boolean DEFAULT false,
     can_manage_client_alerts boolean DEFAULT false,
+    can_manage_scan_cards boolean DEFAULT false,
     can_manage_external_form_submissions boolean DEFAULT false,
-    can_view_client_name boolean DEFAULT false,
     can_view_client_contact_info boolean DEFAULT false,
     can_view_client_photo boolean DEFAULT false,
-    can_manage_forms boolean DEFAULT false
+    can_view_client_name boolean DEFAULT false
 );
 
 
@@ -1766,12 +1746,12 @@ CREATE TABLE public.roles (
     can_view_cohort_client_changes_report boolean DEFAULT false,
     can_approve_careplan boolean DEFAULT false,
     can_manage_inbound_api_configurations boolean DEFAULT false,
-    system boolean DEFAULT false NOT NULL,
     can_view_client_enrollments_with_roi boolean DEFAULT false,
     can_search_clients_with_roi boolean DEFAULT false,
-    can_edit_theme boolean DEFAULT false,
-    can_edit_collections boolean DEFAULT false,
     can_see_confidential_files boolean DEFAULT false,
+    can_edit_theme boolean DEFAULT false,
+    system boolean DEFAULT false NOT NULL,
+    can_edit_collections boolean DEFAULT false,
     can_publish_reports boolean DEFAULT false,
     deleted_at timestamp without time zone,
     can_edit_own_client_notes boolean DEFAULT false
@@ -2521,13 +2501,6 @@ ALTER TABLE ONLY public.agencies ALTER COLUMN id SET DEFAULT nextval('public.age
 
 
 --
--- Name: app_config_properties id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.app_config_properties ALTER COLUMN id SET DEFAULT nextval('public.app_config_properties_id_seq'::regclass);
-
-
---
 -- Name: clients_unduplicated id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2919,14 +2892,6 @@ ALTER TABLE ONLY public.activity_logs
 
 ALTER TABLE ONLY public.agencies
     ADD CONSTRAINT agencies_pkey PRIMARY KEY (id);
-
-
---
--- Name: app_config_properties app_config_properties_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.app_config_properties
-    ADD CONSTRAINT app_config_properties_pkey PRIMARY KEY (id);
 
 
 --
@@ -3458,13 +3423,6 @@ CREATE INDEX index_agencies_consent_limits_on_agency_id ON public.agencies_conse
 --
 
 CREATE INDEX index_agencies_consent_limits_on_consent_limit_id ON public.agencies_consent_limits USING btree (consent_limit_id);
-
-
---
--- Name: index_app_config_properties_on_key; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_app_config_properties_on_key ON public.app_config_properties USING btree (key);
 
 
 --
@@ -4322,9 +4280,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230322195141'),
 ('20230322204908'),
 ('20230328150855'),
-('20230329102609'),
-('20230329112926'),
-('20230329112954'),
 ('20230330161305'),
 ('20230412142430'),
 ('20230418170053'),
@@ -4339,7 +4294,6 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230511152438'),
 ('20230512175436'),
 ('20230513203001'),
-('20230514123118'),
 ('20230516131951'),
 ('20230522111726'),
 ('20230525153134'),
@@ -4378,6 +4332,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240123160215'),
 ('20240124173020'),
 ('20240212150622'),
+('20240229184109'),
 ('20240301173438'),
 ('20240305160215'),
 ('20240311135958'),
@@ -4388,8 +4343,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240401041826'),
 ('20240401132430'),
 ('20240402161400'),
-('20240402204100'),
 ('20240404162012'),
-('20240506135053');
-
-
+('20240402204100');

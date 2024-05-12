@@ -210,18 +210,6 @@ module GrdaWarehouse::Hud
       where(e_t[:service_history_processing_job_id].eq(nil).or(e_t[:service_history_processing_job_id].not_in(jobs)))
     end
 
-    after_initialize do
-      self.client_slug ||= "#{self.PersonalID}:#{data_source_id}"
-    end
-
-    def client_slug
-      read_attribute(:client_slug) || "#{self.PersonalID}:#{data_source_id}"
-    end
-
-    def enrollment_slug
-      read_attribute(:enrollment_slug) || "#{self.EnrollmentID}:#{self.PersonalID}:#{data_source_id}"
-    end
-
     def self.related_item_keys
       [
         :PersonalID,

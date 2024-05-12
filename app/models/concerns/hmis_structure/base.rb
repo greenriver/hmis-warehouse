@@ -9,11 +9,6 @@ module HmisStructure::Base
 
   included do
     class_attribute :hud_key
-    after_initialize do
-      return unless respond_to?(:enrollment_slug)
-      self.enrollment_slug ||= "#{self.EnrollmentID}:#{self.PersonalID}:#{data_source_id}"
-    end
-
 
     scope :delete_pending, -> do
       where.not(pending_date_deleted: nil)
@@ -81,11 +76,6 @@ module HmisStructure::Base
       else
         'GrdaWarehouse::Hud::Enrollment'
       end
-
-      define_method(:enrollment_slug) do
-        read_attribute(:enrollment_slug) || "#{self.EnrollmentID}:#{self.PersonalID}:#{data_source_id}"
-      end
-
       h = {
         # primary_key: [
         #   :EnrollmentID,
@@ -126,11 +116,20 @@ module HmisStructure::Base
       @additional_upsert_columns || []
     end
 
+    # These are PG generated columns and will throw errors if you try to write to them
+    def never_insert_columns
+      [
+        :project_pk,
+        :client_slug,
+        :enrollment_slug,
+      ]
+    end
+
     def upsert_column_names(version: hud_csv_version)
       @upsert_column_names ||= (hud_csv_headers(version: version) +
         [:source_hash, :pending_date_deleted] +
         additional_upsert_columns -
-        conflict_target).uniq
+        conflict_target - never_insert_columns).uniq
     end
 
     def related_item_keys
