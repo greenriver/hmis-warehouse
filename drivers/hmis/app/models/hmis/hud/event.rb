@@ -8,6 +8,8 @@ class Hmis::Hud::Event < Hmis::Hud::Base
   self.table_name = :Event
   self.sequence_name = "public.\"#{table_name}_id_seq\""
   include ::HmisStructure::Event
+  include ::HmisStructure::EnrollmentDependent
+  include ::HmisStructure::ClientDependent
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated

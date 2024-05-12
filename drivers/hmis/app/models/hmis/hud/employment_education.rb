@@ -6,6 +6,8 @@
 
 class Hmis::Hud::EmploymentEducation < Hmis::Hud::Base
   include ::HmisStructure::EmploymentEducation
+  include ::HmisStructure::EnrollmentDependent
+  include ::HmisStructure::ClientDependent
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated

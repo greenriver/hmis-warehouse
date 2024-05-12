@@ -17,6 +17,8 @@ class Hmis::Hud::CustomCaseNote < Hmis::Hud::Base
     },
   )
 
+  include ::HmisStructure::EnrollmentDependent
+  include ::HmisStructure::ClientDependent
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
   include ::Hmis::Hud::Concerns::HasCustomDataElements
 

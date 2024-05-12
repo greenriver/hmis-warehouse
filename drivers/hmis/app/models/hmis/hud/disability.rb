@@ -8,6 +8,8 @@ class Hmis::Hud::Disability < Hmis::Hud::Base
   self.table_name = :Disabilities
   self.sequence_name = "public.\"#{table_name}_id_seq\""
   include ::HmisStructure::Disability
+  include ::HmisStructure::EnrollmentDependent
+  include ::HmisStructure::ClientDependent
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated

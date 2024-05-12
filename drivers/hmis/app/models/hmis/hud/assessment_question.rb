@@ -6,6 +6,8 @@
 
 class Hmis::Hud::AssessmentQuestion < Hmis::Hud::Base
   include ::HmisStructure::AssessmentQuestion
+  include ::HmisStructure::EnrollmentDependent
+  include ::HmisStructure::ClientDependent
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated

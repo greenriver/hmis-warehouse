@@ -16,6 +16,24 @@ module HmisStructure::Enrollment
 
     alias_attribute :relationship_to_hoh, :RelationshipToHoH
     alias_attribute :disabled_hoh, :DisabledHoH
+
+    def _associated_item=(item)
+      item.enrollment_id = enrollment_id
+      item.personal_id = personal_id
+      item.data_source = data_source
+    end
+    alias_method :assessment=, :_associated_item=
+    alias_method :assessment_question=, :_associated_item=
+    alias_method :assessment_result=, :_associated_item=
+    alias_method :current_living_situation=, :_associated_item=
+    alias_method :disability=, :_associated_item=
+    alias_method :employment_education=, :_associated_item=
+    alias_method :event=, :_associated_item=
+    alias_method :exit=, :_associated_item=
+    alias_method :health_and_dv=, :_associated_item=
+    alias_method :income_benefit=, :_associated_item=
+    alias_method :service=, :_associated_item=
+    alias_method :youth_education_status=, :_associated_item=
   end
 
   module ClassMethods

@@ -12,6 +12,7 @@ module GrdaWarehouse::Hud
     include NotifierConfig
     include ::HudConcerns::Enrollment
     include ::HmisStructure::Enrollment
+    include ::HmisStructure::ClientDependent
     include ::HmisStructure::Shared
 
     attr_accessor :source_id

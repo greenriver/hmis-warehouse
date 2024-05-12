@@ -848,7 +848,8 @@ CREATE TABLE public."CustomAssessments" (
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
     wip boolean DEFAULT false NOT NULL,
-    lock_version integer DEFAULT 0 NOT NULL
+    lock_version integer DEFAULT 0 NOT NULL,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -893,7 +894,8 @@ CREATE TABLE public."CustomCaseNote" (
     "DateCreated" timestamp without time zone,
     "DateUpdated" timestamp without time zone,
     "DateDeleted" timestamp without time zone,
-    information_date date
+    information_date date,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -1399,7 +1401,8 @@ CREATE TABLE public."CustomServices" (
     "DateDeleted" timestamp without time zone,
     "FAAmount" double precision,
     "FAStartDate" date,
-    "FAEndDate" date
+    "FAEndDate" date,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -50701,6 +50704,13 @@ CREATE INDEX "index_CurrentLivingSituation_on_pending_date_deleted" ON public."C
 
 
 --
+-- Name: index_CustomAssessments_on_enrollment_slug; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomAssessments_on_enrollment_slug" ON public."CustomAssessments" USING btree (enrollment_slug);
+
+
+--
 -- Name: index_CustomCaseNote_on_EnrollmentID; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50719,6 +50729,13 @@ CREATE INDEX "index_CustomCaseNote_on_PersonalID" ON public."CustomCaseNote" USI
 --
 
 CREATE INDEX "index_CustomCaseNote_on_UserID" ON public."CustomCaseNote" USING btree ("UserID");
+
+
+--
+-- Name: index_CustomCaseNote_on_enrollment_slug; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomCaseNote_on_enrollment_slug" ON public."CustomCaseNote" USING btree (enrollment_slug);
 
 
 --
@@ -50803,6 +50820,13 @@ CREATE INDEX "index_CustomServices_on_custom_service_type_id" ON public."CustomS
 --
 
 CREATE INDEX "index_CustomServices_on_data_source_id" ON public."CustomServices" USING btree (data_source_id);
+
+
+--
+-- Name: index_CustomServices_on_enrollment_slug; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_CustomServices_on_enrollment_slug" ON public."CustomServices" USING btree (enrollment_slug);
 
 
 --
@@ -62800,6 +62824,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240510191109'),
 ('20240510195819'),
 ('20240510204158'),
-('20240510230733');
+('20240510230733'),
+('20240512143647'),
+('20240512143713');
 
 

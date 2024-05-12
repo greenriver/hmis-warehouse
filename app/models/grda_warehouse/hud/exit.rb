@@ -9,6 +9,8 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::Exit
     include ::HmisStructure::Shared
+    include ::HmisStructure::EnrollmentDependent
+    include ::HmisStructure::ClientDependent
     include RailsDrivers::Extensions
 
     attr_accessor :source_id

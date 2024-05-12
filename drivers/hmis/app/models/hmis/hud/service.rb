@@ -8,6 +8,8 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   self.table_name = :Services
   self.sequence_name = "public.\"#{table_name}_id_seq\""
   include ::HmisStructure::Service
+  include ::HmisStructure::EnrollmentDependent
+  include ::HmisStructure::ClientDependent
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated

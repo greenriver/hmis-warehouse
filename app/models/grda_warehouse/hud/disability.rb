@@ -9,6 +9,8 @@ module GrdaWarehouse::Hud
     include HudSharedScopes
     include ::HmisStructure::Disability
     include ::HmisStructure::Shared
+    include ::HmisStructure::EnrollmentDependent
+    include ::HmisStructure::ClientDependent
     include RailsDrivers::Extensions
 
     self.table_name = 'Disabilities'

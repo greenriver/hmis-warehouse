@@ -61,7 +61,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
     end
 
     it 'preserves records linked through FormProcessor' do
-      health_and_dv = create(:hmis_health_and_dv, **assessment.slice(:data_source, :client, :enrollment, :user))
+      health_and_dv = create(:hmis_health_and_dv, **assessment.reload.slice(:data_source, :client, :enrollment, :user))
       assessment.form_processor.update(health_and_dv: health_and_dv)
       expect(assessment.health_and_dv).to eq(health_and_dv)
 
@@ -90,6 +90,9 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
     let!(:assessment) { create(:hmis_custom_assessment, data_source: ds1, enrollment: e1) }
 
     def apply_assessment_date(date)
+      assessment.reload
+      assessment.enrollment.reload
+      assessment.enrollment&.exit&.reload
       assessment.assessment_date = date
       assessment.enrollment.entry_date = date if assessment.intake?
       assessment.enrollment.exit.exit_date = date if assessment.exit?
@@ -149,6 +152,14 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
       end
 
       it 'should warn if HoH exit date is before other members (persisted)' do
+        assessment2.reload
+        assessment2.enrollment.reload
+        assessment2.enrollment.exit.reload
+
+        assessment.reload
+        assessment.enrollment.reload
+        assessment.enrollment.exit.reload
+
         apply_assessment_date(1.week.ago) # HoH exits 1 week ago
         assessment2.update(assessment_date: 3.days.ago) # Other member exits 3 days ago
         assessment2.enrollment.exit.update(exit_date: 3.days.ago)
@@ -163,6 +174,14 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
       end
 
       it 'should warn if HoH exit date is before other members (unpersisted)' do
+        assessment2.reload
+        assessment2.enrollment.reload
+        assessment2.enrollment.exit.reload
+
+        assessment.reload
+        assessment.enrollment.reload
+        assessment.enrollment.exit.reload
+
         hoh_exit_date = 1.week.ago
         other_exit_date = 3.days.ago
         # Assign in all the places it is accessed..
