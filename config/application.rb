@@ -60,9 +60,9 @@ module BostonHmis
       generate.test_framework :rspec
     end
 
-    require_relative('setup_logging')
-    setup_logging = SetupLogging.new(config)
-    setup_logging.run!
+    #require_relative('setup_logging')
+    #setup_logging = SetupLogging.new(config)
+    #setup_logging.run!
 
     # default to not be sandbox email mode
     config.sandbox_email_mode = false

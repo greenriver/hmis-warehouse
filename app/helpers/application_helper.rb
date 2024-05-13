@@ -18,8 +18,8 @@ module ApplicationHelper
     end
   end
 
-  def current_auth_policy(...)
-    current_user&.auth_policy(...)
+  def current_global_auth_policy
+    current_user&.global_auth_policy
   end
 
   # END Permissions

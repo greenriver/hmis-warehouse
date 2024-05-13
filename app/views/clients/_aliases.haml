@@ -1,6 +1,6 @@
 - show_second_column = can_track_anomalies? || @client.alert_notes.exists?
-- policy = current_auth_policy(:global)
-- aliases = policy.can_view_client_name? ? @client.client_names(user: current_user, health: true).uniq : []
+- # FIXME - probably should show starred out name
+- aliases = current_global_auth_policy.can_view_client_name? ? @client.client_names(user: current_user, health: true).uniq : []
 - alias_class = if show_second_column then 'col-sm-9' else 'col' end
 .row.flex-grow-1
   %div{class: alias_class}

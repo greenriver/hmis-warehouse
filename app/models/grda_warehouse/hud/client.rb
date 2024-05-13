@@ -1413,7 +1413,7 @@ module GrdaWarehouse::Hud
     def name
       "#{self.FirstName} #{self.LastName}"
     end
-    deprecate :name, 'Use client.pii(user:).brief_name instead'
+    deprecate :name, 'Use client.pii(policy).brief_name instead'
 
     def names
       source_clients.map { |n| "#{n.data_source.short_name} #{n.full_name}" }
@@ -1687,7 +1687,7 @@ module GrdaWarehouse::Hud
     def full_name
       [self.FirstName, self.MiddleName, self.LastName].select(&:present?).join(' ')
     end
-    deprecate :full_name, 'Use client.pii(user:).full_name instead'
+    deprecate :full_name, 'Use client.pii(policy).full_name instead'
 
     ########################
     # NOTE: this section deals with the consent form as seen in ETO via the API

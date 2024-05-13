@@ -1,4 +1,4 @@
-- policy = current_auth_policy(:global)
+- policy = current_global_auth_policy
 - akas = policy.can_view_client_name? ? client_aliases(client) : [client.pii(policy).brief_name]
 - if akas.any?
   .clients__client-additional-names

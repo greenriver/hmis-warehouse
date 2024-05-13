@@ -7,13 +7,14 @@ class GrdaWarehouse::ClientPii
     @record = record
   end
 
-  ClientPiiRecordAdapter = Struct.new(:first_name, :last_name, :middle_name, :ssn, :dob, keyword_init: true)
+  ClientPiiRecordAdapter = Struct.new(:id, :first_name, :last_name, :middle_name, :ssn, :dob, keyword_init: true)
   private_constant :ClientPiiRecordAdapter
 
   # use when you don't have a client model, only ids (for example in reporting)
   # GrdaWarehouse::ClientPii.from_attributes(policy: client_policy, dob: client_dob)
-  def self.from_attributes(policy: nil, first_name: nil, last_name: nil, middle_name: nil, dob: nil, ssn: nil)
+  def self.from_attributes(policy: nil, id: nil, first_name: nil, last_name: nil, middle_name: nil, dob: nil, ssn: nil)
     record = ClientPiiRecordAdapter.new(
+      id: id,
       first_name: first_name,
       last_name: last_name,
       middle_name: middle_name,
@@ -24,15 +25,15 @@ class GrdaWarehouse::ClientPii
   end
 
   def first_name
-    name_part(record.first_name)
+    name_part(record.first_name, 'F')
   end
 
   def last_name
-    name_part(record.last_name)
+    name_part(record.last_name, 'L')
   end
 
   def middle_name
-    name_part(record.middle_name)
+    name_part(record.middle_name, 'M')
   end
 
   def full_name
@@ -65,6 +66,10 @@ class GrdaWarehouse::ClientPii
     format_ssn(value, mask: mask) if value
   end
 
+  def client_id_as_name
+    "Client ID: #{record.id || 'N/A'}"
+  end
+
   protected
 
   def format_ssn(value, mask: true)
@@ -88,9 +93,11 @@ class GrdaWarehouse::ClientPii
     value.gsub(SSN_RGX, '\1-\2-\3')
   end
 
-  def name_part(value, substitute: '*****')
+  def name_part(value, initial)
     return nil unless value.present?
 
-    policy.can_view_client_name? ? value : "#{value.slice(0)}#{substitute}"
+    return value if policy.can_view_client_name?
+
+    return initial == 'M' ? initial : "#{initial}****"
   end
 end
