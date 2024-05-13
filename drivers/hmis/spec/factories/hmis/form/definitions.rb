@@ -20,7 +20,7 @@ FactoryBot.define do
             'item': [
               {
                 'type': 'DATE',
-                'link_id': 'linkid-date',
+                'link_id': 'linkid_date',
                 'required': true,
                 'warn_if_empty': false,
                 'text': 'Information Date',
@@ -29,7 +29,7 @@ FactoryBot.define do
               },
               {
                 'type': 'NUMBER',
-                'link_id': 'linkid-required',
+                'link_id': 'linkid_required',
                 'required': true,
                 'warn_if_empty': false,
                 'brief_text': 'The Required Field',
@@ -37,7 +37,7 @@ FactoryBot.define do
               },
               {
                 'type': 'CHOICE',
-                'link_id': 'linkid-choice',
+                'link_id': 'linkid_choice',
                 'required': false,
                 'warn_if_empty': true,
                 'text': 'Choice field',
