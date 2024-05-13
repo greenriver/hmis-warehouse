@@ -339,8 +339,7 @@ CREATE TABLE public."Assessment" (
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
     source_hash character varying,
-    synthetic boolean DEFAULT false,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    synthetic boolean DEFAULT false
 );
 
 
@@ -365,8 +364,7 @@ CREATE TABLE public."AssessmentQuestions" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
-    source_hash character varying,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    source_hash character varying
 );
 
 
@@ -408,8 +406,7 @@ CREATE TABLE public."AssessmentResults" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
-    source_hash character varying,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    source_hash character varying
 );
 
 
@@ -638,8 +635,7 @@ CREATE TABLE public."Client" (
     "DifferentIdentityText" character varying,
     search_name_full character varying GENERATED ALWAYS AS (public.f_unaccent((((((COALESCE("FirstName", ''::character varying))::text || ' '::text) || (COALESCE("MiddleName", ''::character varying))::text) || ' '::text) || (COALESCE("LastName", ''::character varying))::text))) STORED,
     search_name_last character varying GENERATED ALWAYS AS (public.f_unaccent(("LastName")::text)) STORED,
-    lock_version integer DEFAULT 0 NOT NULL,
-    client_slug character varying GENERATED ALWAYS AS (((("PersonalID")::text || ':'::text) || (data_source_id)::text)) STORED
+    lock_version integer DEFAULT 0 NOT NULL
 );
 
 
@@ -807,8 +803,7 @@ CREATE TABLE public."CurrentLivingSituation" (
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
     source_hash character varying,
-    "CLSSubsidyType" integer,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    "CLSSubsidyType" integer
 );
 
 
@@ -848,8 +843,7 @@ CREATE TABLE public."CustomAssessments" (
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
     wip boolean DEFAULT false NOT NULL,
-    lock_version integer DEFAULT 0 NOT NULL,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    lock_version integer DEFAULT 0 NOT NULL
 );
 
 
@@ -894,8 +888,7 @@ CREATE TABLE public."CustomCaseNote" (
     "DateCreated" timestamp without time zone,
     "DateUpdated" timestamp without time zone,
     "DateDeleted" timestamp without time zone,
-    information_date date,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    information_date date
 );
 
 
@@ -1401,8 +1394,7 @@ CREATE TABLE public."CustomServices" (
     "DateDeleted" timestamp without time zone,
     "FAAmount" double precision,
     "FAStartDate" date,
-    "FAEndDate" date,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    "FAEndDate" date
 );
 
 
@@ -1471,8 +1463,7 @@ CREATE TABLE public."Disabilities" (
     id integer NOT NULL,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
-    "AntiRetroviral" integer,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    "AntiRetroviral" integer
 );
 
 
@@ -1518,8 +1509,7 @@ CREATE TABLE public."EmploymentEducation" (
     data_source_id integer,
     id integer NOT NULL,
     source_hash character varying,
-    pending_date_deleted timestamp without time zone,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    pending_date_deleted timestamp without time zone
 );
 
 
@@ -1685,9 +1675,7 @@ CREATE TABLE public."Enrollment" (
     "PreferredLanguageDifferent" character varying,
     "VAMCStation" character varying,
     lock_version integer DEFAULT 0 NOT NULL,
-    project_pk bigint,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED,
-    client_slug character varying GENERATED ALWAYS AS (((("PersonalID")::text || ':'::text) || (data_source_id)::text)) STORED
+    project_pk bigint
 );
 
 
@@ -1778,8 +1766,7 @@ CREATE TABLE public."Event" (
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
     source_hash character varying,
-    synthetic boolean DEFAULT false,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    synthetic boolean DEFAULT false
 );
 
 
@@ -1868,8 +1855,7 @@ CREATE TABLE public."Exit" (
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
     "DestinationSubsidyType" integer,
-    auto_exited timestamp without time zone,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    auto_exited timestamp without time zone
 );
 
 
@@ -2109,8 +2095,7 @@ CREATE TABLE public."HealthAndDV" (
     "SupportFromOthers" integer,
     "BounceBack" integer,
     "FeelingFrequency" integer,
-    "DomesticViolenceSurvivor" integer,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    "DomesticViolenceSurvivor" integer
 );
 
 
@@ -2224,8 +2209,7 @@ CREATE TABLE public."IncomeBenefits" (
     "RyanWhiteMedDent" integer,
     "NoRyanWhiteReason" integer,
     "VHAServices" integer,
-    "NoVHAReason" character varying,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    "NoVHAReason" character varying
 );
 
 
@@ -2503,8 +2487,7 @@ CREATE TABLE public."Services" (
     pending_date_deleted timestamp without time zone,
     "MovingOnOtherType" character varying,
     "FAStartDate" date,
-    "FAEndDate" date,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    "FAEndDate" date
 );
 
 
@@ -2618,8 +2601,7 @@ CREATE TABLE public."YouthEducationStatus" (
     data_source_id integer,
     pending_date_deleted date,
     source_hash character varying,
-    synthetic boolean DEFAULT false,
-    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
+    synthetic boolean DEFAULT false
 );
 
 
@@ -50634,13 +50616,6 @@ CREATE INDEX "index_Client_on_White" ON public."Client" USING btree ("White");
 
 
 --
--- Name: index_Client_on_client_slug; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Client_on_client_slug" ON public."Client" USING btree (client_slug);
-
-
---
 -- Name: index_Client_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50967,13 +50942,6 @@ CREATE INDEX "index_Enrollment_on_ProjectID" ON public."Enrollment" USING btree 
 --
 
 CREATE INDEX "index_Enrollment_on_ProjectID_and_data_source_id" ON public."Enrollment" USING btree ("ProjectID", data_source_id) WHERE ("DateDeleted" IS NULL);
-
-
---
--- Name: index_Enrollment_on_client_slug; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "index_Enrollment_on_client_slug" ON public."Enrollment" USING btree (client_slug);
 
 
 --
