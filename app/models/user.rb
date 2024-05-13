@@ -78,11 +78,6 @@ class User < ApplicationRecord
     end
   end
 
-  memoize def project_permission_by_id?(permission:, project_id:)
-    project_ids = GrdaWarehouse::Hud::Project.project_ids_viewable_by(self, permission: permission)
-    project_ids(permission).include?(project_id)
-  end
-
   def user_permission_prefix
     "#{USER_PERMISSION_PREFIX}_user_#{id}"
   end

@@ -22,7 +22,7 @@ class GrdaWarehouse::AuthPolicies::ProjectPolicy
   Role.permissions.each do |permission|
     define_method("#{permission}?") do
       project_ids = GrdaWarehouse::Hud::Project.project_ids_viewable_by(user, permission: permission)
-      project_ids(permission).include?(project_id)
+      project_ids.include?(project_id)
     end
   end
 end
