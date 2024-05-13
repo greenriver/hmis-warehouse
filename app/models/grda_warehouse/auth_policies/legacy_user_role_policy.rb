@@ -1,5 +1,4 @@
-#
-class GrdaWarehouse::AuthPolicies::GlobalPolicy
+class GrdaWarehouse::AuthPolicies::LegacyUserRolePolicy
   attr_reader :user
 
   def initialize(user:)

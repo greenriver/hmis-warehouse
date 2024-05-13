@@ -215,19 +215,8 @@ class User < ApplicationRecord
     roles.map(&:name).uniq
   end
 
-  memoize def global_auth_policy
-    GrdaWarehouse::AuthPolicies::GlobalPolicy.new(user: self)
-  end
-
-  memoize def project_auth_policy(project_or_project_id)
-    project_id = case project_or_project_id
-    when GrdaWarehouse::Hud::Project
-      project_or_project_id.id
-    when Integer, String
-      project_or_project_id
-    else
-      raise "unknown entity #{record}"
-    end
-    GrdaWarehouse::AuthPolicies::ProjectPolicy.new(user: self, project_id: project_id)
+  def client_auth_policy(...)
+    @auth_policy_provider ||= GrdaWarehouse::AuthPolicies::PolicyProvider.new(self)
+    @auth_policy_provider.for_client(...)
   end
 end

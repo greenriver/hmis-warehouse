@@ -13,7 +13,7 @@ module ClientShowPages
     include ArelHelper
 
     def title_for_show
-      @client.pii(current_global_auth_policy).full_name
+      @client.pii(user: current_user).full_name
     end
     alias_method :title_for_edit, :title_for_show
     alias_method :title_for_destroy, :title_for_show

@@ -1,4 +1,4 @@
-- title = @client.pii(current_global_auth_policy).full_name
+- title = @client.pii(user: current_user).full_name
 - content_for :title, title
 = render 'clients/breadcrumbs'
 

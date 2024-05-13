@@ -25,23 +25,33 @@ class GrdaWarehouse::ClientPii
   end
 
   def first_name
-    name_part(record.first_name, 'F')
+    return name_redacted unless policy.can_view_client_name?
+
+    record.first_name.presence
   end
 
   def last_name
-    name_part(record.last_name, 'L')
+    return name_redacted unless policy.can_view_client_name?
+
+    record.last_name.presence
   end
 
   def middle_name
-    name_part(record.middle_name, 'M')
+    return name_redacted unless policy.can_view_client_name?
+
+    record.middle_name.presence
   end
 
   def full_name
-    [first_name, middle_name, last_name].compact.join(' ').presence
+    return name_redacted unless policy.can_view_client_name?
+
+    [record.first_name, record.middle_name, record.last_name].compact.join(' ').presence
   end
 
   def brief_name
-    [first_name, last_name].compact.join(' ').presence
+    return name_redacted unless policy.can_view_client_name?
+
+    [record.first_name, record.last_name].compact.join(' ').presence
   end
 
   def dob_or_age
@@ -49,7 +59,7 @@ class GrdaWarehouse::ClientPii
   end
 
   def dob_and_age
-    record.dob ?  "#{record.dob&.year} (#{age})" : nil
+    record.dob ? "#{record.dob&.year} (#{age})" : nil
   end
 
   def dob
@@ -93,11 +103,10 @@ class GrdaWarehouse::ClientPii
     value.gsub(SSN_RGX, '\1-\2-\3')
   end
 
-  def name_part(value, initial)
-    return nil unless value.present?
+  REDACTED = 'Name Redacted'.freeze
+  private_constant :REDACTED
 
-    return value if policy.can_view_client_name?
-
-    return initial == 'M' ? initial : "#{initial}****"
+  def name_redacted
+    REDACTED
   end
 end

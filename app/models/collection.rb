@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# Part of the "new" ACL permissions system
+# Part of the "new" permissions system
 #
 # A Collection is a set of entities that are the target of an AccessControl. It is analogous to the "AccessGroup" in the
 # legacy role-based permissions system

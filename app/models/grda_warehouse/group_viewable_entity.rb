@@ -5,8 +5,8 @@
 ###
 
 # Participates in both the "new" ACL permissions model and the "legacy" role-based model
-# * A GroupViewableEntity is a defines membership in a Collection. Membership in a collection defines the set
-#   of entities to which the collection's access-control's role permissions are applied
+# * A GroupViewableEntity a defines membership in a Collection.
+# * Membership in a collection or access group are subject to the role permissions
 # * records should have either an access_group_id or a collection_id but not both
 module GrdaWarehouse
   class GroupViewableEntity < GrdaWarehouseBase

@@ -1,11 +1,9 @@
 - content_for "client_card_demographics__#{client.id}" do
-  - ssns = client.source_clients_searchable_to(current_user).map{|c| masked_ssn(c[:SSN]).html_safe if c[:SSN].present?}.uniq.compact
-  - ages = client.source_clients_searchable_to(current_user).map{|m| [m.DOB, m.age].compact}.uniq.select(&:present?)
   :ruby
     ssns = []
     ages = []
-    client.source_clients_searchable_to(current_user).each do |client|
-      pii = client.pii(current_global_auth_policy)
+    client.source_clients_searchable_to(current_user).each do |sc|
+      pii = sc.pii(user: current_user)
       ssns.push(pii.ssn(force_mask: true))
       ages.push(pii.dob_and_age)
     end
