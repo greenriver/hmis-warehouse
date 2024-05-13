@@ -520,9 +520,12 @@ module CasClientData
 
       contacts = JSON.parse(contacts)
 
-      contacts.sort_by { |c| c['date']&.to_date || 5.years.ago }.reverse.map do |contact|
-        safe_project_names[contact['project_id']] + ': ' + contact['date']&.to_date.to_s
-      end.compact.uniq
+      contacts.select { |c| c['date'].present? && c['date'] > 3.years.ago }.
+        sort_by { |c| c['date']&.to_date || 5.years.ago }.
+        reverse.
+        map { |contact| safe_project_names[contact['project_id']] + ': ' + contact['date']&.to_date.to_s }.
+        compact.
+        uniq
     end
 
     def cas_assessment_collected_at
