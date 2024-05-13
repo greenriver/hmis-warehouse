@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-
+        
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -339,7 +339,8 @@ CREATE TABLE public."Assessment" (
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
     source_hash character varying,
-    synthetic boolean DEFAULT false
+    synthetic boolean DEFAULT false,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -364,7 +365,8 @@ CREATE TABLE public."AssessmentQuestions" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
-    source_hash character varying
+    source_hash character varying,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -406,7 +408,8 @@ CREATE TABLE public."AssessmentResults" (
     "ExportID" character varying,
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
-    source_hash character varying
+    source_hash character varying,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -635,7 +638,8 @@ CREATE TABLE public."Client" (
     "DifferentIdentityText" character varying,
     search_name_full character varying GENERATED ALWAYS AS (public.f_unaccent((((((COALESCE("FirstName", ''::character varying))::text || ' '::text) || (COALESCE("MiddleName", ''::character varying))::text) || ' '::text) || (COALESCE("LastName", ''::character varying))::text))) STORED,
     search_name_last character varying GENERATED ALWAYS AS (public.f_unaccent(("LastName")::text)) STORED,
-    lock_version integer DEFAULT 0 NOT NULL
+    lock_version integer DEFAULT 0 NOT NULL,
+    client_slug character varying GENERATED ALWAYS AS (((("PersonalID")::text || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -803,7 +807,8 @@ CREATE TABLE public."CurrentLivingSituation" (
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
     source_hash character varying,
-    "CLSSubsidyType" integer
+    "CLSSubsidyType" integer,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -843,7 +848,8 @@ CREATE TABLE public."CustomAssessments" (
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
     wip boolean DEFAULT false NOT NULL,
-    lock_version integer DEFAULT 0 NOT NULL
+    lock_version integer DEFAULT 0 NOT NULL,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -888,7 +894,8 @@ CREATE TABLE public."CustomCaseNote" (
     "DateCreated" timestamp without time zone,
     "DateUpdated" timestamp without time zone,
     "DateDeleted" timestamp without time zone,
-    information_date date
+    information_date date,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -1394,7 +1401,8 @@ CREATE TABLE public."CustomServices" (
     "DateDeleted" timestamp without time zone,
     "FAAmount" double precision,
     "FAStartDate" date,
-    "FAEndDate" date
+    "FAEndDate" date,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -1463,7 +1471,8 @@ CREATE TABLE public."Disabilities" (
     id integer NOT NULL,
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
-    "AntiRetroviral" integer
+    "AntiRetroviral" integer,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -1509,7 +1518,8 @@ CREATE TABLE public."EmploymentEducation" (
     data_source_id integer,
     id integer NOT NULL,
     source_hash character varying,
-    pending_date_deleted timestamp without time zone
+    pending_date_deleted timestamp without time zone,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -1675,7 +1685,9 @@ CREATE TABLE public."Enrollment" (
     "PreferredLanguageDifferent" character varying,
     "VAMCStation" character varying,
     lock_version integer DEFAULT 0 NOT NULL,
-    project_pk bigint
+    project_pk bigint,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED,
+    client_slug character varying GENERATED ALWAYS AS (((("PersonalID")::text || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -1766,7 +1778,8 @@ CREATE TABLE public."Event" (
     data_source_id integer,
     pending_date_deleted timestamp without time zone,
     source_hash character varying,
-    synthetic boolean DEFAULT false
+    synthetic boolean DEFAULT false,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -1855,7 +1868,8 @@ CREATE TABLE public."Exit" (
     source_hash character varying,
     pending_date_deleted timestamp without time zone,
     "DestinationSubsidyType" integer,
-    auto_exited timestamp without time zone
+    auto_exited timestamp without time zone,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -2095,7 +2109,8 @@ CREATE TABLE public."HealthAndDV" (
     "SupportFromOthers" integer,
     "BounceBack" integer,
     "FeelingFrequency" integer,
-    "DomesticViolenceSurvivor" integer
+    "DomesticViolenceSurvivor" integer,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -2209,7 +2224,8 @@ CREATE TABLE public."IncomeBenefits" (
     "RyanWhiteMedDent" integer,
     "NoRyanWhiteReason" integer,
     "VHAServices" integer,
-    "NoVHAReason" character varying
+    "NoVHAReason" character varying,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -2487,7 +2503,8 @@ CREATE TABLE public."Services" (
     pending_date_deleted timestamp without time zone,
     "MovingOnOtherType" character varying,
     "FAStartDate" date,
-    "FAEndDate" date
+    "FAEndDate" date,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -2601,7 +2618,8 @@ CREATE TABLE public."YouthEducationStatus" (
     data_source_id integer,
     pending_date_deleted date,
     source_hash character varying,
-    synthetic boolean DEFAULT false
+    synthetic boolean DEFAULT false,
+    enrollment_slug character varying GENERATED ALWAYS AS (((((("EnrollmentID")::text || ':'::text) || ("PersonalID")::text) || ':'::text) || (data_source_id)::text)) STORED
 );
 
 
@@ -13410,6 +13428,40 @@ ALTER SEQUENCE public.hmis_assessments_id_seq OWNED BY public.hmis_assessments.i
 
 
 --
+-- Name: hmis_auto_exit_configs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_auto_exit_configs (
+    id bigint NOT NULL,
+    length_of_absence_days integer NOT NULL,
+    project_type integer,
+    organization_id bigint,
+    project_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_auto_exit_configs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_auto_exit_configs_id_seq OWNED BY public.hmis_auto_exit_configs.id;
+
+
+--
 -- Name: hmis_case_notes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -18225,8 +18277,8 @@ CREATE TABLE public.hmis_form_definitions (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     title character varying NOT NULL,
-    external_form_object_key character varying,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    external_form_object_key character varying
 );
 
 
@@ -28681,6 +28733,13 @@ ALTER TABLE ONLY public.hmis_assessments ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: hmis_auto_exit_configs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_auto_exit_configs ALTER COLUMN id SET DEFAULT nextval('public.hmis_auto_exit_configs_id_seq'::regclass);
+
+
+--
 -- Name: hmis_case_notes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -32126,6 +32185,14 @@ ALTER TABLE ONLY public.hmis_assessment_details
 
 ALTER TABLE ONLY public.hmis_assessments
     ADD CONSTRAINT hmis_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_auto_exit_configs hmis_auto_exit_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_auto_exit_configs
+    ADD CONSTRAINT hmis_auto_exit_configs_pkey PRIMARY KEY (id);
 
 
 --
@@ -50567,6 +50634,13 @@ CREATE INDEX "index_Client_on_White" ON public."Client" USING btree ("White");
 
 
 --
+-- Name: index_Client_on_client_slug; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Client_on_client_slug" ON public."Client" USING btree (client_slug);
+
+
+--
 -- Name: index_Client_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -50893,6 +50967,13 @@ CREATE INDEX "index_Enrollment_on_ProjectID" ON public."Enrollment" USING btree 
 --
 
 CREATE INDEX "index_Enrollment_on_ProjectID_and_data_source_id" ON public."Enrollment" USING btree ("ProjectID", data_source_id) WHERE ("DateDeleted" IS NULL);
+
+
+--
+-- Name: index_Enrollment_on_client_slug; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Enrollment_on_client_slug" ON public."Enrollment" USING btree (client_slug);
 
 
 --
@@ -53168,6 +53249,20 @@ CREATE INDEX index_hmis_assessments_on_name ON public.hmis_assessments USING btr
 --
 
 CREATE INDEX index_hmis_assessments_on_site_id ON public.hmis_assessments USING btree (site_id);
+
+
+--
+-- Name: index_hmis_auto_exit_configs_on_organization_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_auto_exit_configs_on_organization_id ON public.hmis_auto_exit_configs USING btree (organization_id);
+
+
+--
+-- Name: index_hmis_auto_exit_configs_on_project_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_auto_exit_configs_on_project_id ON public.hmis_auto_exit_configs USING btree (project_id);
 
 
 --
@@ -59646,6 +59741,13 @@ CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "Personal
 
 
 --
+-- Name: tt_hh_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX tt_hh_id ON public.service_history_enrollments USING btree (household_id);
+
+
+--
 -- Name: tx_id_ds_id_ft_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -62606,6 +62708,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240503132627'),
 ('20240503152843'),
 ('20240503170130'),
-('20240506204908');
+('20240506204908'),
+('20240510204158'),
+('20240510230733');
 
 
