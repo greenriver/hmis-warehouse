@@ -24,7 +24,7 @@
 
 - if @pagy.count.positive?
   = render 'common/pagination_top', item_name: 'patient'
-  - @patients.each do |patient|
+  - @patients.find_each do |patient|
     = render 'health/patients/patient_card', patient: patient
   = render 'common/pagination_bottom', item_name: 'patient'
 - else
