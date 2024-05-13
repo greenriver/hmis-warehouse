@@ -376,8 +376,11 @@ module HmisExternalApis::AcHmis::Importers
         end
       end
 
+      # Drop records with duplicate conflict targets (HUD keys)
+      unique_records = records.index_by { |r| conflict_target.map { |col| r[col.gsub(/\"/, '')] }.join(':') }.values
+
       result = klass.import(
-        records,
+        unique_records,
         validate: false,
         batch_size: 1_000,
         on_duplicate_key_update: {
