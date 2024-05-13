@@ -59,6 +59,8 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
         if (target_role == $(column).data('roleManagerRoleValue')) {
           $(column).removeClass('hide')
         }
+        const search_string = $('.j-table__search').val().toLowerCase()
+        this.showSearchPermissions(search_string, false)
       });
     } else {
       this.roleColumnTargets.forEach((column) => {
@@ -81,15 +83,21 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
   }
 
   searchPermissions(e) {
+    const target = $(e.currentTarget)
+    const search_string = target.val().toLowerCase()
+    this.showSearchPermissions(search_string)
+  }
+
+  showSearchPermissions(search_string, reset=true) {
     // if we have more than three characters
     // 1. Expand all sections
     // 2. hide any permission where the search string doesn't exit in the text
-    const target = $(e.currentTarget)
-    const search_string = target.val().toLowerCase()
     if (search_string.length > 2) {
       this.permissionCategoryTargets.forEach((section) => {
         $(section).siblings('.panel-collapse').collapse('show')
       });
+      $(this.subCategoryWrapperTargets).removeClass('hide')
+
       this.individualPermissionTargets.forEach((permission) => {
         const wrapper = $(permission).closest('.form-check')
         const sub_category = $(permission).closest('.sub-category-wrapper').find('.sub-category-title')
@@ -107,8 +115,7 @@ App.StimulusApp.register('role-manager', class extends Stimulus.Controller {
           $(section).addClass('hide')
         }
       });
-    } else {
-      // reset
+    } else if(reset) {
       this.permissionCategoryTargets.forEach((section) => {
         $(section).siblings('.panel-collapse').collapse('hide')
       });

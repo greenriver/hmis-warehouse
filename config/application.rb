@@ -51,6 +51,8 @@ module BostonHmis
     config.active_job.queue_adapter = :delayed_job
     config.action_mailer.deliver_later_queue_name = :mailers
 
+    config.active_storage.variant_processor = :mini_magick
+
     # GraphQL config
     config.graphql.parser_cache = true
 

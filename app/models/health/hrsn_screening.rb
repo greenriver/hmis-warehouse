@@ -32,6 +32,10 @@ module Health
       where.not(id: completed.pluck(:id))
     end
 
+    scope :newest_first, -> do
+      order(created_at: :desc)
+    end
+
     scope :completed_within, ->(range) do
       ssm_ids = joins(:ssm).merge(Health::SelfSufficiencyMatrixForm.completed_within(range)).pluck(:instrument_id)
       thrive_ids = joins(:thrive).merge(HealthThriveAssessment::Assessment.completed_within(range)).pluck(:instrument_id)
