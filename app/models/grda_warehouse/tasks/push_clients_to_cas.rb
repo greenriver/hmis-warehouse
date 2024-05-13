@@ -68,7 +68,7 @@ module GrdaWarehouse::Tasks
               ]
             end
             safe_project_names = {}
-            GrdaWarehouse::Hud::Project.all.each do |project|
+            GrdaWarehouse::Hud::Project.find_each do |project|
               safe_project_names[project.id] = project.safe_project_name
             end
             client_source.preload(preloads).
@@ -93,8 +93,8 @@ module GrdaWarehouse::Tasks
               project_client.enrolled_in_rrh = client.enrolled_in_rrh(enrollments)
               project_client.enrolled_in_psh = client.enrolled_in_psh(enrollments)
               project_client.enrolled_in_ph = client.enrolled_in_ph(enrollments)
-              project_client.ongoing_es_enrollments = client.processed_service_history&.cohorts_ongoing_enrollments_es&.map { |e| e['project_name'] + ': ' + e['date']&.to_date.to_s }.presence
-              project_client.ongoing_so_enrollments = client.processed_service_history&.cohorts_ongoing_enrollments_so&.map { |e| e['project_name'] + ': ' + e['date']&.to_date.to_s }.presence
+              project_client.ongoing_es_enrollments = client.processed_service_history&.cohorts_ongoing_enrollments_es&.map { |e| safe_project_names[e['project_id']] + ': ' + e['date']&.to_date.to_s }.presence
+              project_client.ongoing_so_enrollments = client.processed_service_history&.cohorts_ongoing_enrollments_so&.map { |e| safe_project_names[e['project_id']] + ': ' + e['date']&.to_date.to_s }.presence
               project_client.last_seen_projects = client.last_intentional_contacts_for_cas(safe_project_names: safe_project_names).presence
               project_client.enrolled_in_rrh_pre_move_in = client.enrolled_in_rrh_pre_move_in(enrollments)
               project_client.enrolled_in_psh_pre_move_in = client.enrolled_in_psh_pre_move_in(enrollments)
