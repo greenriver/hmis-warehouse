@@ -15,7 +15,8 @@ gem 'rubyzip', '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'rails-html-sanitizer', '>= 1.4.4' # >= 1.4.4 due to CVE-2022-23519
 gem 'sshkit'
 gem 'paranoia', '~> 2.0'
-gem 'composite_primary_keys', '~> 14.0.9'
+# gem 'composite_primary_keys', '~> 14.0.9'
+gem 'composite_primary_keys', git: 'https://github.com/greenriver/composite_primary_keys', branch: 'ea/preload-has-many-through-fix'
 gem 'pg'
 gem 'activerecord-sqlserver-adapter'
 gem 'activerecord-import'
