@@ -25,7 +25,7 @@ module HmisCsvTwentyTwentyFour::Exporter
       start_date:,
       end_date:,
       projects:,
-      coc_codes: nil,
+      coc_codes: [],
       period_type: nil,
       directive: nil,
       hash_status: nil,
@@ -57,6 +57,9 @@ module HmisCsvTwentyTwentyFour::Exporter
       @faked_environment = faked_environment
       @confidential = confidential
       @selected_options = options
+      # We also provide CoC Codes via options, make sure those are added to any CoC codes provided for backwards
+      # compatibility with old code
+      @coc_codes += options['coc_codes'] if options['coc_codes'].present?
     end
 
     # Exports HMIS data in the specified CSV format, wrapped in a zip file.

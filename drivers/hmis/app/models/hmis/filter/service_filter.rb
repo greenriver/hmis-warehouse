@@ -18,11 +18,17 @@ class Hmis::Filter::ServiceFilter < Hmis::Filter::BaseFilter
   protected
 
   def with_service_category(scope)
-    with_filter(scope, :service_category) { scope.in_service_category(input.service_category) }
+    with_filter(scope, :service_category) do
+      csts = Hmis::Hud::CustomServiceType.where(custom_service_category_id: input.service_category)
+      scope.with_service_type(csts)
+    end
   end
 
   def with_service_type(scope)
-    with_filter(scope, :service_type) { scope.with_service_type(input.service_type) }
+    with_filter(scope, :service_type) do
+      csts = Hmis::Hud::CustomServiceType.where(id: input.service_type)
+      scope.with_service_type(csts)
+    end
   end
 
   def with_project_type(scope)
