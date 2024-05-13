@@ -76,6 +76,10 @@ module HealthThriveAssessment
       homeless?
     end
 
+    def case_manager
+      user&.name || external_name
+    end
+
     enum reporter: {
       patient: 10,
       caregiver: 20,

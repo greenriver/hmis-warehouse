@@ -8,7 +8,6 @@ module HudHic::Fy2022
   class ProjectCoc < ::GrdaWarehouseBase
     self.table_name = 'hud_report_hic_project_cocs'
     include ::HmisStructure::ProjectCoc
-    acts_as_paranoid
 
     has_many :report_project_cocs, as: :universe_membership, dependent: :destroy
     has_many :hud_reports_universe_members, inverse_of: :universe_membership, class_name: 'HudReports::UniverseMember', foreign_key: :universe_membership_id
