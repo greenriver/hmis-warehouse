@@ -52,7 +52,7 @@ module BostonHmis
     config.action_mailer.deliver_later_queue_name = :mailers
 
     config.active_storage.variant_processor = :mini_magick
-    config.active_storage.variable_content_types = %w(image/png image/gif image/jpeg image/tiff image/bmp image/webp image/avif image/heic image/heif)
+    config.active_storage.variable_content_types = ['image/png', 'image/gif', 'image/jpeg', 'image/tiff', 'image/bmp', 'image/webp', 'image/avif', 'image/heic', 'image/heif']
 
     # GraphQL config
     config.graphql.parser_cache = true
