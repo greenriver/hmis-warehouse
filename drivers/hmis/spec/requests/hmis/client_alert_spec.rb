@@ -117,6 +117,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(c1.alerts.size).to eq(1), '1 of the 2 alerts should have been deleted'
     end
 
+    it 'should not create an alert if the expiry date is nil' do
+      mutation_input = { clientId: c1.id.to_s, note: 'strawberries', priority: 'high' }
+      _response, result = post_graphql(input: mutation_input) { create_alert }
+      errors = result.dig('data', 'createClientAlert', 'errors')
+      expect(errors[0].dig('fullMessage')).to eq('Expiration date must exist')
+    end
+
     it 'should not create an alert if the expiry date is not in the future' do
       # Test both a date equal to today, and a date sometime in the past. Both are invalid.
       [Date.current, Date.current - 2.months].each do |past_date|
@@ -129,6 +136,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(errors[0].dig('attribute')).to eq('expirationDate')
         expect(errors[0].dig('fullMessage')).to eq('Expiration date must be in the future.')
       end
+    end
+
+    it 'should not create an alert if the expiry date is > 10 years in the future' do
+      mutation_input = { clientId: c1.id.to_s, note: 'strawberries', priority: 'high', expirationDate: Date.current + 12.years }
+      _response, result = post_graphql(input: mutation_input) { create_alert }
+      errors = result.dig('data', 'createClientAlert', 'errors')
+      expect(errors[0].dig('fullMessage')).to eq('Expiration date must not be more than 10 years in the future.')
     end
   end
 
