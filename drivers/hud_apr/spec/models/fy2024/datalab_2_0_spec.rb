@@ -48,11 +48,11 @@ RSpec.describe 'Datalab 2024', type: :model do
     # include_context 'datalab organization s rrh apr'
     # include_context 'datalab organization t psh apr'
 
-    # include_context 'datalab organization a so caper'
+    include_context 'datalab organization a so caper'
     # include_context 'datalab organization j hp caper'
     # include_context 'datalab organization m es caper'
-    # include_context 'datalab organization m rrh caper'
-    # include_context 'datalab organization s es caper'
+    include_context 'datalab organization m rrh caper'
+    include_context 'datalab organization s es caper'
     include_context 'datalab systemwide ce apr'
   else
     it 'Data Lab Testkit based tests are skipped, files are missing' do
