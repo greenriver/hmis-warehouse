@@ -20,7 +20,12 @@ Devise.setup do |config|
       identifier: ENV['IDP_CLIENT_ID'],
       secret: ENV['IDP_SECRET_KEY'],
       redirect_uri: ENV['IDP_REDIRECT_URI'],
-      token_endpoint: ENV['IDP_TOKEN_ENDPOINT']
+      token_endpoint: ENV['IDP_TOKEN_ENDPOINT'],
+      # FIXME: Development only
+      ssl: {
+        verify: false,
+        verify_mode: 0
+      },
     },
   }
 
