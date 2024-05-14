@@ -12,8 +12,6 @@ RSpec.describe Hmis::AssessmentQuestionsJob, type: :model do
 
     # Repeat-string field
     let!(:cded_str) { create :hmis_custom_data_element_definition, label: 'Multiple strings', data_source: ds1, owner_type: 'Hmis::Hud::CustomAssessment', repeats: true }
-    # let!(:cde1a) { create :hmis_custom_data_element, data_element_definition: cded1, owner: p1, data_source: ds1, value_string: 'First value' }
-    # let!(:cde1b) { create :hmis_custom_data_element, data_element_definition: cded1, owner: p1, data_source: ds1, value_string: 'Second value' }
 
     # Boolean field
     let!(:cded_bool) { create :hmis_custom_data_element_definition, label: 'A bool', data_source: ds1, owner_type: 'Hmis::Hud::CustomAssessment', field_type: :boolean, repeats: false }
