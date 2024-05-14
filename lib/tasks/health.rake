@@ -87,7 +87,7 @@ namespace :health do
       patient = Health::PatientReferral.new
       patient.first_name = Faker::Name.first_name
       patient.last_name = Faker::Name.last_name
-      patient.ssn = Faker::IDNumber.valid.gsub('-','')
+      patient.ssn = Faker::IdNumber.valid.gsub('-','')
       patient.birthdate = Faker::Date.birthday(18, 75)
       patient.medicaid_id = Faker::Number.number(12)
       patient.save!

@@ -1,20 +1,19 @@
 = simple_form_for @filter, as: :filter, url: warehouse_reports_hmis_exports_path, html: { method: :post, class: 'jFilter' } do |f|
-  - content_for :filters_col_full do
+  %h3 Limits
+  .well
     .row
       .col-sm-3
         = f.input :start_date, as: :date_picker
       .col-sm-3
         = f.input :end_date, as: :date_picker
       .col-sm-3
-        = f.input :hash_status, collection: {'Unhashed' => 1, 'SHA-256 (RHY)' => 4}, include_blank: false, as: :select_two
-      .col-sm-3
-        = f.input :period_type, collection: {'Reporting period (3)' => 3, 'Updated (1)' => 1}, include_blank: false, as: :select_two
-        %p.muted
-
+        = f.input :coc_codes, collection: @filter.coc_code_options_for_select(user: current_user), as: :select_two, input_html: { multiple: true, placeholder: 'Choose CoCs' }, label: 'CoC Codes', hint: 'If any  CoC Codes are selected, Project CoC, Enrollment, and Inventory records will be limited to those with the chosen CoC Codes.'
+  %h3 Projects
+  .well
     .row
       .col-sm-6
         = f.input :project_ids, label: 'Projects', collection: [], as: :select_two, input_html: {multiple: true, placeholder: 'Any Project', data: {'collection-path' => api_projects_path(selected_project_ids: @filter.project_ids)}}, include_blank: false
-      - if can_edit_project_groups?
+      - if can_edit_project_groups? || can_edit_assigned_project_groups?
         .col-sm-6
           = f.input :project_group_ids, collection: GrdaWarehouse::ProjectGroup.viewable_by(current_user).pluck(:name, :id), placeholder: 'Any Project Group', input_html: {multiple: true}, label: 'Project Groups', as: :select_two
       .col-sm-6
@@ -22,43 +21,41 @@
       .col-sm-6
         = f.input :data_source_ids, collection: GrdaWarehouse::DataSource.source.viewable_by(current_user).pluck(:name, :id), placeholder: 'Any Data Source', input_html: {multiple: true}, label: 'Data Sources', as: :select_two
     .row
+      .col-sm-12
+        %h4 Notes About Choices
+        %p
+          The various project related options will limit your export to a set of projects.  The four options are additive; choosing a project and a data source will produce a single export that includes all projects from the data source plus the selected project.  Leaving all four options blank will result in a warehouse-wide export.
+  %h3 Export Configuration
+  .well
+    .row
+      .col-sm-3
+        = f.input :version, collection: ::Filters::HmisExport.options_for_version, include_blank: false, as: :select_two
       .col-sm-3
         %label.control-label
           Export Directive
         %p Full Refresh
         = f.input :directive, as: :hidden, input_html: { value: 2 }
       .col-sm-3
-        = f.input :version, collection: ::Filters::HmisExport.options_for_version, include_blank: false, as: :select_two
+        = f.input :hash_status, collection: {'Unhashed' => 1, 'SHA-256 (RHY)' => 4}, include_blank: false, as: :select_two
+      .col-sm-3
+        = f.input :period_type, collection: {'Reporting period (3)' => 3, 'Updated (1)' => 1}, include_blank: false, as: :select_two
+    .row
       .col-sm-3
         = f.input :include_deleted, collection: {'No' => false, 'Yes' => true}, include_blank: false, as: :select_two
       - if current_user.can_view_confidential_project_names?
         .col-sm-3
-          %p= f.input :confidential, as: :boolean, label: 'Replace confidential project and organization names with the confidential version?'
-
-    - if can_export_anonymous_hmis_data?
-      .row
+          .pt-no-label= f.input :confidential, as: :boolean, label: 'Replace confidential project and organization names with the confidential version?'
+      - if can_export_anonymous_hmis_data?
         .col-sm-4
-          %p= f.input :faked_pii, as: :boolean, label: 'Should the PII in this export be faked?', hint: 'This can be used to export data useful for developers.'
-    .row
-      .col-sm-12
-        %h4 Notes About Choices
-        %p
-          The various project related options will limit your export to a set of projects.  The four options are additive; choosing a project and a data source will produce a single export that includes all projects from the data source plus the selected project.  Leaving all four options blank will result in a warehouse-wide export.
-        %p
-          Choosing
-          %strong Other
-          for the period type is a superset of
-          %strong Reporting period
-          and additionally includes any records associated with enrollments that changed during the selected time range.
+          .pt-no-label= f.input :faked_pii, as: :boolean, label: 'Should the PII in this export be faked?', hint: 'This can be used to export data useful for developers.'
 
-  - content_for :filter_actions do
+  %h3 Recurring Exports
+  .well
     .d-flex
-      .ml-auto
+      .mr-auto
         %a.btn.btn-secondary.collapsed{data: {toggle: 'collapse', target: '#recurrence_options', aria: {expanded: false, controls: '#recurrence_options'}}, href: '#'}
           Recurring Export Options...
       .ml-2
         = f.button :submit, value: 'Queue Export', data: { disable_with: 'running...' }
     #recurrence_options.collapse
       = render 'recurrence_options', save_language: 'Queue Export', f: f
-
-  = render 'warehouse_reports/filters', f:f

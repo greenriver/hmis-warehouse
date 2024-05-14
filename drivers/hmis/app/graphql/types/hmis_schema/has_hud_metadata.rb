@@ -31,7 +31,7 @@ module Types
           else
             object
           end
-          load_last_user_from_versions(version_holder)
+          load_last_user_from_versions(version_holder) if version_holder
         end
       end
     end

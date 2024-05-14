@@ -40,7 +40,7 @@ class SourceDataController < ApplicationController
     if @data_source.hmis
       @imported = @csv = false
       @hmis = true
-      @hmis_url = @data_source.hmis_url_for(@item)
+      @hmis_url = @data_source.hmis_url_for(@item, user: current_user)
       return
     end
 

@@ -1,7 +1,8 @@
-- home_phones = @client.source_clients.map(&:home_phone).reject(&:blank?).compact.uniq
-- cell_phones = @client.source_clients.map(&:cell_phone).reject(&:blank?).compact.uniq
-- emails = @client.source_clients.map(&:email).compact.reject(&:blank?).uniq
-- work_phones = @client.source_clients.map(&:work_phone).compact.reject(&:blank?).uniq
+- source_clients = @client.source_clients.preload(:custom_client_contact_points, :hmis_client)
+- home_phones = source_clients.map(&:home_phone).reject(&:blank?).compact.uniq
+- cell_phones = source_clients.map(&:cell_phone).reject(&:blank?).compact.uniq
+- emails = source_clients.map(&:email).compact.reject(&:blank?).uniq
+- work_phones = source_clients.map(&:work_phone).compact.reject(&:blank?).uniq
 - assessment = @client.most_recent_pathways_assessment
 - client_contacts = @client.client_contacts.newest_first
 - if RailsDrivers.loaded.include?(:eccovia_data)

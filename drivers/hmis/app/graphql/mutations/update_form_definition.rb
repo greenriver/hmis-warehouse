@@ -12,10 +12,11 @@ module Mutations
     field :form_definition, Types::Forms::FormDefinition, null: true
 
     def resolve(id:, input:)
-      raise 'not allowed' unless current_user.can_configure_data_collection?
+      raise 'not allowed' unless current_user.can_manage_forms?
 
       definition = Hmis::Form::Definition.find_by(id: id)
       raise 'not found' unless definition
+      raise 'not allowed to change identifier' if input.identifier.present? && input.identifier != definition.identifier
 
       definition.assign_attributes(**input.to_attributes)
 

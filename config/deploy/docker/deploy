@@ -5,8 +5,13 @@ require_relative 'lib/deployer'
 
 args = CommandArgs.new
 
-args.deployments.each do |deployment|
-  puts "Deploying #{deployment[:target_group_name]}..."
+args.deployments.each_with_index do |deployment, idx|
+  puts "Deploying #{deployment[:target_group_name]} #{idx}..."
+
+  # If this is not the first deployment in a group, skip the git check, so that it doesn't fail
+  # mid-group if a new commit is pushed.
+  deployment[:skip_remote_git_check] = true unless idx.zero?
+
   Deployer.new(**deployment).run!
 
   # poll between deployments to prevent scaling out too much while we have
@@ -16,5 +21,5 @@ args.deployments.each do |deployment|
 end
 EcsTools.new.poll_state_until_stable!(CommandArgs.cluster)
 
-puts "Updating one ECS instance agent if needed."
+puts 'Updating one ECS instance agent if needed.'
 EcsTools.new.update_ecs_agents!(CommandArgs.cluster)

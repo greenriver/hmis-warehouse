@@ -425,7 +425,7 @@ module ApplicationHelper
   end
 
   # Override pagy_info to add delimiters to large numbers
-  def pagy_info(pagy, pagy_id: nil, item_name: nil, i18n_key: nil)
+  def pagy_info(pagy, pagy_id: nil, item_name: nil, item_i18n_key: nil)
     p_id = %( id="#{pagy_id}") if pagy_id
     p_count = pagy.count
     key = if p_count.zero?
@@ -437,7 +437,7 @@ module ApplicationHelper
     end
 
     %(<span#{p_id} class="pagy-info">#{
-      pagy_t(key, item_name: item_name || pagy_t(i18n_key || pagy.vars[:i18n_key], count: number_with_delimiter(p_count)), count: number_with_delimiter(p_count), from: pagy.from, to: pagy.to)
+      pagy_t(key, item_name: item_name || pagy_t(item_i18n_key || pagy.vars[:item_i18n_key], count: number_with_delimiter(p_count)), count: number_with_delimiter(p_count), from: pagy.from, to: pagy.to)
     }</span>)
   end
 

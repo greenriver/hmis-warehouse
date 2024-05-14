@@ -21,7 +21,7 @@ module InactiveClientReport::WarehouseReports
           @report.client_ids = @clients.map(&:id)
         end
         format.xlsx do
-          filename = "#{@report.name} - #{Time.current.to_s(:db)}.xlsx"
+          filename = "#{@report.name} - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end

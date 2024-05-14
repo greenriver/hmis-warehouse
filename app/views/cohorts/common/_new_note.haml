@@ -6,7 +6,7 @@
 
   = f.input :send_notification, as: :boolean, label: 'Send notifications?', input_html: { class: :jNotifications }
   .jRecipients
-    = f.input :recipients, collection: User.active.can_view_clients.uniq, as: :select_two, input_html: {multiple: true}
+    = f.input :recipients, collection: User.active.not_system.can_view_clients.uniq, as: :select_two, input_html: {multiple: true}
   = f.submit value: 'Add Note', class: 'btn btn-primary'
 
 = content_for :page_js do

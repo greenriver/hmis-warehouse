@@ -3,6 +3,10 @@ require_relative 'boot'
 require 'rails/all'
 require 'active_record_extended'
 
+# The env var is the same as config.active_support.disable_to_s_conversion = true but impacts driver initializers that load before this app config block
+#   * Note, we still use the deprecated behavior for date/time. It's preserved in config/initializers/legacy_rails_conversions.rb
+ENV['RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION'] = 'true'
+
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
@@ -12,8 +16,7 @@ require_relative '../lib/util/id_protector'
 module BostonHmis
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 6.1
-    # config.autoloader = :classic
+    config.load_defaults 7.0
     config.autoload_paths << Rails.root.join('lib', 'devise')
 
     # ActionCable
@@ -47,6 +50,9 @@ module BostonHmis
 
     config.active_job.queue_adapter = :delayed_job
     config.action_mailer.deliver_later_queue_name = :mailers
+
+    config.active_storage.variant_processor = :mini_magick
+    config.active_storage.variable_content_types = ['image/png', 'image/gif', 'image/jpeg', 'image/tiff', 'image/bmp', 'image/webp', 'image/avif', 'image/heic', 'image/heif']
 
     # GraphQL config
     config.graphql.parser_cache = true
@@ -101,6 +107,20 @@ module BostonHmis
     config.queued_tasks[:service_history_services_materialized_rebuild_and_process] = -> do
       GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!
       GrdaWarehouse::WarehouseClientsProcessed.update_cached_counts
+    end
+
+    # Fix for chronic calculator
+    # Previously, imported data where the enrollment was in a literally homeless project
+    # where the client would accumulate days between entry & exit that counted toward
+    # "Chronically Homeless at start", the current date was used to make the chronic
+    # determination instead of the exit date
+    config.queued_tasks[:ch_enrollment_exited_rebuild] = -> do
+      # Invalidate the calculation for any enrollment with an exit date
+      # that was previously marked chronic at entry
+      GrdaWarehouse::ChEnrollment.joins(enrollment: :exit).
+        where(chronically_homeless_at_entry: true).
+        update_all(processed_as: nil)
+      GrdaWarehouse::ChEnrollment.maintain!
     end
   end
 end

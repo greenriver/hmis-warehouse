@@ -38,7 +38,7 @@ module CoreDemographicsReport::WarehouseReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          filename = "#{Translation.translate('Demographic Summary')} - #{Time.current.to_s(:db)}.xlsx"
+          filename = "#{Translation.translate('Demographic Summary')} - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
@@ -50,7 +50,7 @@ module CoreDemographicsReport::WarehouseReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          filename = "#{Translation.translate('Demographic Summary')} Support for #{@report.support_title(@key).gsub(',', '')} - #{Time.current.to_s(:db)}.xlsx"
+          filename = "#{Translation.translate('Demographic Summary')} Support for #{@report.support_title(@key).gsub(',', '')} - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end

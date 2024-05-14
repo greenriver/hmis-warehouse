@@ -50,6 +50,8 @@ module HmisDataQualityTool
             current_living_situation: current_living_situation,
             report: report,
           )
+          next unless item.present?
+
           sections(report).each do |_, calc|
             section_title = calc[:title]
             intermediate[section_title] ||= { denominator: {}, invalid: {} }
@@ -82,6 +84,8 @@ module HmisDataQualityTool
 
       project = current_living_situation.enrollment.project
       client = current_living_situation.enrollment.client
+      return unless client.present?
+
       report_item = new(
         report_id: report.id,
         current_living_situation_id: current_living_situation.id,

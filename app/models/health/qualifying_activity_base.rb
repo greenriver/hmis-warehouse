@@ -58,7 +58,13 @@ module Health
       elsif mode_of_contact.present? && mode_of_contact[:dynamic_code].present?
         modlist << mode_of_contact[:dynamic_code].call(@qa)
       end
-      modlist << client_reached[@qa.reached_client&.to_sym].try(:[], :code)
+
+      reached = client_reached[@qa.reached_client&.to_sym]
+      if reached.present? && reached[:code].present?
+        modlist << reached[:code]
+      elsif reached.present? && reached[:dynamic_code].present?
+        modlist << reached[:dynamic_code].call(@qa)
+      end
 
       return modlist.reject(&:blank?).compact
     end

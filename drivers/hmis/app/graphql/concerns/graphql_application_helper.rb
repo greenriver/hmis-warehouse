@@ -30,10 +30,13 @@ module GraphqlApplicationHelper
   # Note: 'scope' is intended for ordering or to modify the default
   # association in a way that is constant with respect to the resolver,
   # for example `scope: FooBar.order(:name)`. It is NOT used to filter down results.
-  def load_ar_association(object, association, scope: nil)
+  def load_ar_association(object, association_name, scope: nil)
     raise "object must be an ApplicationRecord, got #{object.class.name}" unless object.is_a?(ApplicationRecord)
 
-    dataloader.with(Sources::ActiveRecordAssociation, association, scope).load(object)
+    # if we already have preloaded association, just return it
+    return object.public_send(association_name) if scope.nil? && object.association(association_name).loaded?
+
+    dataloader.with(Sources::ActiveRecordAssociation, association_name, scope).load(object)
   end
 
   def load_ar_scope(scope:, id:)
@@ -49,12 +52,12 @@ module GraphqlApplicationHelper
     enrollments = load_ar_association(
       client,
       :enrollments,
-      scope: Hmis::Hud::Enrollment.viewable_by(current_user).preload(:client_project, :exit),
+      scope: Hmis::Hud::Enrollment.viewable_by(current_user).preload(:exit),
     )
 
     # Filter down by project and date
     enrollments.filter do |en|
-      en.open_on_date?(open_on_date) && en.client_project.project_id.to_s == project_id.to_s
+      en.open_on_date?(open_on_date) && en.project_pk.to_s == project_id.to_s
     end.min_by { |e| [e.entry_date, e.id] }
   end
 end

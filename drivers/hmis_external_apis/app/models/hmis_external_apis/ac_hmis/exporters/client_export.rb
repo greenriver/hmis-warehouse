@@ -6,12 +6,7 @@
 
 module HmisExternalApis::AcHmis::Exporters
   class ClientExport
-    attr_accessor :output
-
-    def initialize(output = StringIO.new)
-      require 'csv'
-      self.output = output
-    end
+    include ::HmisExternalApis::AcHmis::Exporters::CsvExporter
 
     def run!
       Rails.logger.info 'Generating content of client export'
@@ -65,24 +60,6 @@ module HmisExternalApis::AcHmis::Exporters
       client_columns + external_id_columns + address_columns
     end
 
-    def write_row(row)
-      output << CSV.generate_line(row, **csv_config)
-    end
-
-    def csv_config
-      {
-        write_converters: ->(value, _) {
-          if value.instance_of?(Date)
-            value.strftime('%Y-%m-%d')
-          elsif value.respond_to?(:strftime)
-            value.strftime('%Y-%m-%d %H:%M:%S')
-          else
-            value
-          end
-        },
-      }
-    end
-
     def clients
       Hmis::Hud::Client.
         where(data_source: data_source).
@@ -90,10 +67,6 @@ module HmisExternalApis::AcHmis::Exporters
         preload(:warehouse_client_source).
         preload(:addresses).
         preload(:ac_hmis_mci_ids)
-    end
-
-    def data_source
-      @data_source ||= HmisExternalApis::AcHmis.data_source
     end
   end
 end
