@@ -13,7 +13,7 @@ module Types
     field :note, String, null: false
     field :created_at, GraphQL::Types::ISO8601DateTime, null: false
     field :created_by, Types::Application::User, null: true
-    field :expiration_date, GraphQL::Types::ISO8601Date, null: false
+    field :expiration_date, GraphQL::Types::ISO8601Date, null: true
     field :priority, HmisSchema::Enums::ClientAlertPriorityLevel, null: false, default_value: Hmis::ClientAlert::LOW
   end
 end
