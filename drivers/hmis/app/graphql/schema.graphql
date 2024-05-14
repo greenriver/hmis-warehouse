@@ -904,7 +904,7 @@ Alert
 type ClientAlert {
   createdAt: ISO8601DateTime!
   createdBy: ApplicationUser
-  expirationDate: ISO8601Date
+  expirationDate: ISO8601Date!
   id: ID!
   note: String!
   priority: ClientAlertPriorityLevel!

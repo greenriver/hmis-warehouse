@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -13493,7 +13493,7 @@ CREATE TABLE public.hmis_client_alerts (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     deleted_at timestamp without time zone,
-    expiration_date date,
+    expiration_date date NOT NULL,
     created_by_id bigint NOT NULL,
     client_id bigint NOT NULL,
     priority character varying
@@ -62678,6 +62678,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240503170130'),
 ('20240506204908'),
 ('20240510204158'),
-('20240510230733');
-
-
+('20240510230733'),
+('20240514131401');
