@@ -21,8 +21,9 @@ module Health
       @direction = params[:direction]&.to_sym || :asc
       respond_to do |format|
         format.html do
-          medicaid_ids = @patients.pluck(&:medicaid_id)
-          @patients = patient_source.where(id: @patients.select(:id))
+          ids = @patients.pluck(:id, :medicaid_id)
+          medicaid_ids = ids.map(&:last)
+          @patients = patient_source.where(id: ids.map(&:first)) # This removes the need to re-process the complicated patient query
           if @column == 'name'
             @patients = @patients.order(last_name: @direction, first_name: @direction)
           else
