@@ -48,8 +48,8 @@ module Health
     end
 
     scope :editable, -> do
-      v1_ids = joins(:v1).merge(Health::Careplan.editable).pluck(:instrument_id)
-      v2_ids = joins(:v2).merge(HealthPctp::Careplan.editable).pluck(:instrument_id)
+      v1_ids = joins(:v1).merge(Health::Careplan.editable).select(:instrument_id)
+      v2_ids = joins(:v2).merge(HealthPctp::Careplan.editable).select(:instrument_id)
       where(instrument_id: v1_ids, instrument_type: 'Health::Careplan').
         or(where(instrument_id: v2_ids, instrument_type: 'HealthPctp::Careplan'))
     end
@@ -71,29 +71,29 @@ module Health
     end
 
     scope :completed_within, ->(range) do
-      v1_ids = joins(:v1).merge(Health::Careplan.completed_within(range)).pluck(:instrument_id)
-      v2_ids = joins(:v2).merge(HealthPctp::Careplan.completed_within(range)).pluck(:instrument_id)
+      v1_ids = joins(:v1).merge(Health::Careplan.completed_within(range)).select(:instrument_id)
+      v2_ids = joins(:v2).merge(HealthPctp::Careplan.completed_within(range)).select(:instrument_id)
       where(instrument_id: v1_ids, instrument_type: 'Health::Careplan').
         or(where(instrument_id: v2_ids, instrument_type: 'HealthPctp::Careplan'))
     end
 
     scope :allowed_for_engagement, -> do
-      v1_ids = joins(:v1).merge(Health::Careplan.allowed_for_engagement).pluck(:instrument_id)
-      v2_ids = joins(:v2).merge(HealthPctp::Careplan.allowed_for_engagement).pluck(:instrument_id)
+      v1_ids = joins(:v1).merge(Health::Careplan.allowed_for_engagement).select(:instrument_id)
+      v2_ids = joins(:v2).merge(HealthPctp::Careplan.allowed_for_engagement).select(:instrument_id)
       where(instrument_id: v1_ids, instrument_type: 'Health::Careplan').
         or(where(instrument_id: v2_ids, instrument_type: 'HealthPctp::Careplan'))
     end
 
     scope :reviewed_within, ->(range) do
-      v1_ids = joins(:v1).merge(Health::Careplan.reviewed_within(range)).pluck(:instrument_id)
-      v2_ids = joins(:v2).merge(HealthPctp::Careplan.reviewed_within(range).signature_present).pluck(:instrument_id)
+      v1_ids = joins(:v1).merge(Health::Careplan.reviewed_within(range)).select(:instrument_id)
+      v2_ids = joins(:v2).merge(HealthPctp::Careplan.reviewed_within(range).signature_present).select(:instrument_id)
       where(instrument_id: v1_ids, instrument_type: 'Health::Careplan').
         or(where(instrument_id: v2_ids, instrument_type: 'HealthPctp::Careplan'))
     end
 
     scope :sent_within, ->(range) do
-      v1_ids = joins(:v1).merge(Health::Careplan.sent_within(range)).pluck(:instrument_id)
-      v2_ids = joins(:v2).merge(HealthPctp::Careplan.sent_within(range)).pluck(:instrument_id)
+      v1_ids = joins(:v1).merge(Health::Careplan.sent_within(range)).select(:instrument_id)
+      v2_ids = joins(:v2).merge(HealthPctp::Careplan.sent_within(range)).select(:instrument_id)
       where(instrument_id: v1_ids, instrument_type: 'Health::Careplan').
         or(where(instrument_id: v2_ids, instrument_type: 'HealthPctp::Careplan'))
     end
