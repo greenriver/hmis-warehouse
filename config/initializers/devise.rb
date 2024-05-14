@@ -8,6 +8,12 @@ Devise.setup do |config|
     manager.default_strategies(scope: :user).unshift :two_factor_backupable
     manager.failure_app = CustomAuthFailure
   end
+
+  # This needs to be silenced because it may have already been set
+  silence_warnings do
+    OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE if Rails.env.development?
+  end
+
   config.omniauth :openid_connect, {
     name: ENV['IDP_NAME'],
     scope: [:openid, :email, :profile, :address],
@@ -23,8 +29,7 @@ Devise.setup do |config|
       token_endpoint: ENV['IDP_TOKEN_ENDPOINT'],
       # FIXME: Development only
       ssl: {
-        verify: false,
-        verify_mode: 0
+        verify: ! Rails.env.development?,
       },
     },
   }
