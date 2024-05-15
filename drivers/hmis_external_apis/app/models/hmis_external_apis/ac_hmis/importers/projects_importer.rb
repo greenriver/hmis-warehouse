@@ -88,6 +88,7 @@ module HmisExternalApis::AcHmis::Importers
       @notifier.ping('Failure in project importer', { exception: e })
       Rails.logger.fatal e.message
       Rails.logger.fatal 'ProjectsImporter aborted before it finished.'
+      raise e if Rails.env.test?
     end
 
     def start
@@ -154,7 +155,7 @@ module HmisExternalApis::AcHmis::Importers
         critical_columns: ['ProjectID'],
       )
 
-      @project_result = generic_upsert(
+      generic_upsert(
         file: file,
         conflict_target: ['"ProjectID"', 'data_source_id'],
         klass: GrdaWarehouse::Hud::Project,
@@ -164,13 +165,14 @@ module HmisExternalApis::AcHmis::Importers
 
     def upsert_walkins
       Rails.logger.info 'Upserting walkins'
-      project_ids = @project_result.ids
-      walkin = records_from_csv('Project.csv').map { |x| x['Walkin'] }
+      project_id_to_pk = Hmis::Hud::Project.hmis.pluck(:ProjectID, :id).to_h
 
-      project_ids.length != walkin.length and raise(AbortImportException, 'Project upsert should have been the same length as the parsed csv')
-
-      project_ids.zip(walkin).each do |(project_id, bool_str)|
+      records_from_csv('Project.csv').each do |row|
+        bool_str = row['Walkin']
         next unless bool_str.present?
+
+        project_id = project_id_to_pk[row['ProjectID']]
+        raise "ProjectID #{row['ProjectID']} not found" unless project_id
 
         cde = Hmis::Hud::CustomDataElement.
           where(
@@ -376,8 +378,13 @@ module HmisExternalApis::AcHmis::Importers
         end
       end
 
+      # Drop records with duplicate conflict targets (HUD keys)
+      unique_records = records.index_by do |record|
+        conflict_target.map { |col| record[col.gsub(/\"/, '')] }.join(':')
+      end.values.flatten
+
       result = klass.import(
-        records,
+        unique_records,
         validate: false,
         batch_size: 1_000,
         on_duplicate_key_update: {
