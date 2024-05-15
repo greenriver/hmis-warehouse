@@ -21,8 +21,8 @@ class Hmis::Filter::AssessmentFilter < Hmis::Filter::BaseFilter
     hud_data_collection_stages = []
     custom_identifiers = []
 
+    hud_role_to_dcs = Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES.excluding(:CUSTOM_ASSESSMENT)
     input.assessment_name.each do |t|
-      hud_role_to_dcs = Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES.excluding(:CUSTOM_ASSESSMENT)
       if hud_role_to_dcs.include?(t.to_sym)
         hud_data_collection_stages << hud_role_to_dcs[t.to_sym]
       else
