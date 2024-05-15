@@ -9,13 +9,9 @@
 module Hmis
   class AssessmentQuestionsJob < BaseJob
     include ::Hmis::Concerns::HmisArelHelper
-    attr_accessor :custom_assessment_ids
 
-    def initialize(custom_assessment_ids)
+    def perform(custom_assessment_ids:)
       @custom_assessment_ids = Array.wrap(custom_assessment_ids)
-    end
-
-    def perform
       custom_assessment_scope.each do |custom_assessment|
         form_processor = custom_assessment.form_processor
         ce_assessment = form_processor.ce_assessment # AssessmentQuestions will be tied to this HUD CE Assessment
@@ -66,7 +62,7 @@ module Hmis
     end
 
     private def custom_assessment_scope
-      @custom_assessment_scope ||= Hmis::Hud::CustomAssessment.where(id: @custom_assessment_ids).
+      Hmis::Hud::CustomAssessment.where(id: @custom_assessment_ids).
         joins(:form_processor).
         where(fp_t[:ce_assessment_id].not_eq(nil)).
         preload(form_processor: [:ce_assessment], custom_data_elements: [:data_element_definition])

@@ -138,9 +138,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     # Queue up job to store CE Assessment responses in the HUD CE AssessmentQuestions table
     # Rspec test isolation interferes with delayed job transaction
     if Rails.env.test?
-      ::Hmis::AssessmentQuestionsJob.perform_now(custom_assessment_id)
+      ::Hmis::AssessmentQuestionsJob.perform_now(custom_assessment_ids: custom_assessment_id)
     else
-      ::Hmis::AssessmentQuestionsJob.perform_later(custom_assessment_id)
+      ::Hmis::AssessmentQuestionsJob.perform_later(custom_assessment_ids: custom_assessment_id)
     end
   end
 
