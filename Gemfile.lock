@@ -15,6 +15,14 @@ GIT
       http
 
 GIT
+  remote: https://github.com/greenriver/composite_primary_keys
+  revision: c6fd56bcfe74156ec61119e293f76b11f6858a66
+  branch: ea/preload-has-many-through-fix
+  specs:
+    composite_primary_keys (14.0.9)
+      activerecord (~> 7.0.2)
+
+GIT
   remote: https://github.com/greenriver/hellosign-ruby-sdk.git
   revision: 5718c3f96c37153fb18c02c9ade0e4112a8c7926
   specs:
@@ -354,8 +362,6 @@ GEM
     combine_pdf (1.0.26)
       matrix
       ruby-rc4 (>= 0.1.5)
-    composite_primary_keys (14.0.9)
-      activerecord (~> 7.0.2)
     concurrent-ruby (1.2.3)
     connection_pool (2.4.1)
     crack (1.0.0)
@@ -620,10 +626,10 @@ GEM
     net-ssh (7.2.3)
     netrc (0.11.0)
     nio4r (2.7.1)
-    nokogiri (1.16.4)
+    nokogiri (1.16.5)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
-    nokogiri (1.16.4-arm64-darwin)
+    nokogiri (1.16.5-arm64-darwin)
       racc (~> 1.4)
     oauth (1.1.0)
       oauth-tty (~> 1.0, >= 1.0.1)
@@ -1086,7 +1092,7 @@ DEPENDENCIES
   charlock_holmes
   coffee-rails
   combine_pdf
-  composite_primary_keys (~> 14.0.9)
+  composite_primary_keys!
   cuprite
   curb
   daemons
@@ -1150,7 +1156,7 @@ DEPENDENCIES
   net-http
   net-sftp
   net-ssh (~> 7)
-  nokogiri (>= 1.16.2)
+  nokogiri (>= 1.16.4)
   oauth2
   oj
   omniauth (~> 2.1)

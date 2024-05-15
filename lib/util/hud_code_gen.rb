@@ -96,13 +96,14 @@ module HudCodeGen
     skipped = ['race', '3.6.1', '2.4.2', '1.6']
     filename = 'drivers/hmis/app/graphql/types/hmis_schema/enums/hud.rb'
     hud_utility_class = year == '2022' ? 'HudUtility' : "HudUtility#{year}"
+    hud_utility = hud_utility_class.constantize
 
     seen = []
     arr = []
     arr.push ::Code.copywright_header
     arr.push "
       # frozen_string_literal: true
-      #{CODEGEN_FILE_HEADER}
+
       module Types::HmisSchema::Enums::Hud
     "
     JSON.parse(source).each do |element|
@@ -113,11 +114,27 @@ module HudCodeGen
 
       map_name = get_function_names(name)[0]
       graphql_name = GRAPHQL_NAME_OVERRIDES[name] || name
-      arr.push "  class #{name} < Types::BaseEnum"
-      arr.push "    description '#{element['code'] || name}'"
-      arr.push "    graphql_name '#{graphql_name}'"
-      arr.push "    hud_enum #{hud_utility_class}.#{map_name}"
-      arr.push '  end'
+      arr.push "class #{name} < Types::BaseEnum"
+      enum_description = "HUD #{name}"
+      enum_description << " (#{element['code']})" if element['code']
+      arr.push "description '#{enum_description}'"
+      arr.push "graphql_name '#{graphql_name}'"
+
+      # Get the hash map from HudUtility, and declare an enum value for each key-value pair
+      enum_map = hud_utility.send(map_name)
+      stringify_values = enum_map.keys.any? { |k| k.is_a?(String) }
+      enum_map.each do |key, value|
+        enum_key = Types::BaseEnum.to_enum_key(value)
+        enum_key = 'DATA_NOT_COLLECTED' if key.to_s == '99'
+
+        enum_description = "(#{key}) #{value}"
+        enum_value = key
+        escaped_value = stringify_values ? "'#{enum_value}'" : enum_value
+        arr.push "value '#{enum_key}', \"#{enum_description}\", value: #{escaped_value}"
+      end
+      # Always add an invalid value to the enum. This will be resolved if the data has a numeric value that is not in the enum.
+      arr.push "value 'INVALID', 'Invalid Value', value: #{Types::BaseEnum::INVALID_VALUE}"
+      arr.push 'end'
       seen << name
     end
 

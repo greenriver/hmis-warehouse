@@ -24,7 +24,7 @@ module HmisCsvTwentyTwentyFour::Exporter
     end
 
     def self.apply_overrides(row)
-      missing_type = if row.project.organization.VictimServiceProvider == 1
+      missing_type = if row.project&.organization&.VictimServiceProvider == 1
         2 # Assume VSPs are using a CD if we don't know
       else
         0
