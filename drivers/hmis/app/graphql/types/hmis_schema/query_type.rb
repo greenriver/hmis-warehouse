@@ -405,13 +405,33 @@ module Types
       Hmis::Form::Definition.with_role(:EXTERNAL_FORM).where(identifier: identifier).order(version: :desc).first
     end
 
-    field :form_definitions, Types::Forms::FormDefinition.page_type, null: false do
+    field :form_definitions, Types::Forms::FormDefinition.page_type, null: false, deprecation_reason: 'replaced by FormIdentifiers query' do
       filters_argument Forms::FormDefinition
     end
     def form_definitions(filters:)
       raise 'Access denied' unless current_user.can_configure_data_collection?
 
       scope = Hmis::Form::Definition.non_static
+      scope = scope.apply_filters(filters) if filters
+      scope.order(updated_at: :desc)
+    end
+
+    field :form_identifier, Types::Forms::FormIdentifier, null: true do
+      argument :identifier, String, required: true
+    end
+    def form_identifier(identifier:)
+      raise 'Access denied' unless current_user.can_configure_data_collection?
+
+      Hmis::Form::Definition.non_static.latest_versions.where(identifier: identifier).first
+    end
+
+    field :form_identifiers, Types::Forms::FormIdentifier.page_type, null: false do
+      filters_argument Forms::FormIdentifier
+    end
+    def form_identifiers(filters: nil)
+      raise 'Access denied' unless current_user.can_configure_data_collection?
+
+      scope = Hmis::Form::Definition.non_static.latest_versions
       scope = scope.apply_filters(filters) if filters
       scope.order(updated_at: :desc)
     end

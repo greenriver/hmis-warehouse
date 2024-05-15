@@ -41,7 +41,8 @@ module Types
 
     field :create_service_type, mutation: Mutations::CreateServiceType
     field :delete_service_type, mutation: Mutations::DeleteServiceType
-    field :rename_service_type, mutation: Mutations::RenameServiceType
+    field :rename_service_type, mutation: Mutations::UpdateServiceType, deprecation_reason: 'Renamed to updateServiceType'
+    field :update_service_type, mutation: Mutations::UpdateServiceType
 
     field :save_assessment, mutation: Mutations::SaveAssessment
     field :submit_assessment, mutation: Mutations::SubmitAssessment
