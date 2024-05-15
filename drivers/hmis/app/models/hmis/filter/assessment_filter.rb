@@ -17,6 +17,7 @@ class Hmis::Filter::AssessmentFilter < Hmis::Filter::BaseFilter
   protected
 
   def with_assessment_name(scope)
+    # "assessment_name" is either a HUD Role ('INTAKE') or a custom assessment form identifier ('my_assessment_form')
     hud_data_collection_stages = []
     custom_identifiers = []
 
@@ -30,8 +31,6 @@ class Hmis::Filter::AssessmentFilter < Hmis::Filter::BaseFilter
     end
 
     with_filter(scope, :assessment_name) do
-      # "assessment_name" is either a HUD Role ('INTAKE') or a custom assessment form identifier ('my_assessment_form')
-
       # we check data collection stage because migrated-in HUD Assessments may not be linked to a definition
       matches_hud_assessment = cas_t[:data_collection_stage].in(hud_data_collection_stages)
       matches_custom_assessment = fd_t[:identifier].in(custom_identifiers)
