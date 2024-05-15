@@ -54,6 +54,8 @@ module HmisCsvTwentyTwentyFour::Exporter::ExportConcern
         end
       when :integer
         row[hud_field].to_f.round(0) # Use to_f to round .9 to 1
+      else
+        row[hud_field]
       end
       row
     end
