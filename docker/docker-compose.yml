@@ -262,6 +262,46 @@ services:
       - 9000:9000
       - 9001:9001 # enable for UI access
     command: server --certs-dir /certs /data
+  # Access http://oauth2-proxy.dev.test:4180 to initiate a login cycle
+  oauth2-proxy:
+    container_name: oauth2-proxy
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+    command: --config /oauth2-proxy.cfg
+    hostname: oauth2-proxy.dev.test
+    volumes:
+      - "./dev/auth/oauth2-proxy.cfg:/oauth2-proxy.cfg"
+      - "./dev/auth/certs/dev.test.crt:/etc/certs/dev.test.crt"
+      - "./dev/auth/certs/dev.test.key:/etc/certs/dev.test.key"
+    restart: unless-stopped
+    ports:
+      - 4180:4180/tcp
+    depends_on:
+      - dex
+  dex:
+    container_name: dex
+    image: ghcr.io/dexidp/dex:v2.39.0
+    command: dex serve /dex.yaml
+    hostname: dex
+    volumes:
+      - "./dev/auth/dex.yaml:/dex.yaml"
+      - "./dev/auth/certs/dev.test.crt:/etc/certs/dev.test.crt"
+      - "./dev/auth/certs/dev.test.key:/etc/certs/dev.test.key"
+    restart: unless-stopped
+    ports:
+      - 4190:4190/tcp
+    networks:
+      default:
+        aliases:
+          - dex.dev.test
+    depends_on:
+      - etcd
+  etcd:
+    container_name: etcd
+    image: gcr.io/etcd-development/etcd:v3.5.13
+    entrypoint: /usr/local/bin/etcd
+    command:
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --advertise-client-urls=http://etcd:2379
 
 volumes:
   bundle_alpine:

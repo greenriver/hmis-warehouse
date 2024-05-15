@@ -68,6 +68,7 @@ untracked
 docker-compose.dev.yml
 yarn-error.log
 /dev/minio/*
+/dev/auth/certs/*
 
 # docker deployment
 docker/deploy/REVISION
