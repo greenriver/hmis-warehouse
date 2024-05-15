@@ -96,7 +96,7 @@ RSpec.describe Hmis::AssessmentQuestionsJob, type: :model do
 
       it 'creates AssessmentQuestions with some empty values' do
         expect do
-          Hmis::AssessmentQuestionsJob.perform_now(custom_assessment.id)
+          Hmis::AssessmentQuestionsJob.perform_now(custom_assessment_ids: custom_assessment.id)
         end.to change(ce_assessment.assessment_questions, :count).by(3)
 
         expect(ce_assessment.assessment_questions.map(&:attributes)).to contain_exactly(
@@ -118,7 +118,7 @@ RSpec.describe Hmis::AssessmentQuestionsJob, type: :model do
 
       it 'creates AssessmentQuestions with correct group and order' do
         expect do
-          Hmis::AssessmentQuestionsJob.perform_now(custom_assessment.id)
+          Hmis::AssessmentQuestionsJob.perform_now(custom_assessment_ids: custom_assessment.id)
         end.to change(ce_assessment.assessment_questions, :count).by(3)
 
         expect(ce_assessment.assessment_questions.map(&:attributes)).to contain_exactly(
@@ -146,7 +146,7 @@ RSpec.describe Hmis::AssessmentQuestionsJob, type: :model do
       it 'can re-process changed values' do
         # create AssessmentQuestions
         expect do
-          Hmis::AssessmentQuestionsJob.perform_now(custom_assessment.id)
+          Hmis::AssessmentQuestionsJob.perform_now(custom_assessment_ids: custom_assessment.id)
         end.to change(ce_assessment.assessment_questions, :count).by(3)
         bool_question = ce_assessment.assessment_questions.find_by(assessment_question: cded_bool.key)
         expect(bool_question.AssessmentAnswer).to eq('Yes')
@@ -156,7 +156,7 @@ RSpec.describe Hmis::AssessmentQuestionsJob, type: :model do
 
         # re-run the job
         expect do
-          Hmis::AssessmentQuestionsJob.perform_now(custom_assessment.id)
+          Hmis::AssessmentQuestionsJob.perform_now(custom_assessment_ids: custom_assessment.id)
         end.to change(ce_assessment.assessment_questions, :count).by(0)
 
         bool_question = ce_assessment.assessment_questions.find_by(assessment_question: cded_bool.key)
@@ -196,7 +196,7 @@ RSpec.describe Hmis::AssessmentQuestionsJob, type: :model do
 
       it 'can run on a batch of Custom Assessments that use different definitions' do
         expect do
-          Hmis::AssessmentQuestionsJob.perform_now([custom_assessment.id, custom_assessment_2.id])
+          Hmis::AssessmentQuestionsJob.perform_now(custom_assessment_ids: [custom_assessment.id, custom_assessment_2.id])
         end.to change(ce_assessment.assessment_questions, :count).by(3).
           and change(ce_assessment_2.assessment_questions, :count).by(1)
 
