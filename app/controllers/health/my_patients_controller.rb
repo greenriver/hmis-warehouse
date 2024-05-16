@@ -15,21 +15,22 @@ module Health
     include Search
 
     def index
-      @search, @patients, @active_filter = apply_filter(@patients, params[:filter])
+      @search, @filtered_patients, @active_filter = apply_filter(@patients, params[:filter])
 
       @column = params[:sort] || 'name'
       @direction = params[:direction]&.to_sym || :asc
       respond_to do |format|
         format.html do
-          medicaid_ids = @patients.map(&:medicaid_id)
-          @patients = patient_source.where(id: @patients.pluck(:id))
+          ids = @filtered_patients.pluck(:id, :medicaid_id)
+          medicaid_ids = ids.map(&:last)
+          @patients = patient_source.where(id: ids.map(&:first)) # This removes the need to re-process the complicated patient query
           if @column == 'name'
             @patients = @patients.order(last_name: @direction, first_name: @direction)
           else
             sort_order = determine_sort_order(medicaid_ids, @column, @direction)
             @patients = @patients.order_as_specified(sort_order)
           end
-          @pagy, @patients = pagy(@patients)
+          @pagy, @patients = pagy(@patients, items: 10)
           @scores = calculate_dashboards(medicaid_ids)
         end
         format.xlsx do
