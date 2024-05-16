@@ -7,10 +7,10 @@
 # Part of the "new" permissions system
 #
 # A Collection is a set of entities that are the target of an AccessControl. It is analogous to the "AccessGroup" in the
-# legacy role-based permissions system
+# legacy permissions system
 #
-# Rules for project-related records are inclusive (a project is included if it's in access_group.projects OR if its
-# organization is included in access.group.organizations)
+# Rules for project-related records are inclusive (a project is included if it's in collection.projects OR if its
+# organization is included in collection.organizations)
 #
 # Collections which are flagged as "system" are maintained automatically. For example when a project record is created
 # it is automatically added to the "All Projects" Collection

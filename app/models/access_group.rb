@@ -4,13 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# AccessGroup is part of the "legacy" role-based permissions model
+# AccessGroup is part of the "legacy" permissions model
 #
 # Entities in an AccessGroup are the target for user role-permissions. The permission applied to an AccessGroup are
-# those that are directly associated with a user (as opposed to an AccessControl)
+# those that are directly associated with a user via user_roles
 #
-# Rules for project data are inclusively (project is included if it's in access_group.projects OR the project
-# organization is included in access.group.organizations)
+# Rules for project data are inclusive (project is included if it's in the access_group.projects OR the project
+# organization is included in access_group.organizations)
 #
 # TODO: START_ACL remove when ACL transition complete
 class AccessGroup < ApplicationRecord

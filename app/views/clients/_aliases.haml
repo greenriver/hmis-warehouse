@@ -1,5 +1,5 @@
 - show_second_column = can_track_anomalies? || @client.alert_notes.exists?
-- aliases = @client.client_names(user:  current_user, health: true)
+- aliases = @client.client_names(user: current_user, health: true)
 - alias_class = if show_second_column then 'col-sm-9' else 'col' end
 .row.flex-grow-1
   %div{class: alias_class}

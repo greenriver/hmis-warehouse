@@ -1,7 +1,7 @@
 class GrdaWarehouse::AuthPolicies::ProjectPolicy
   attr_reader :user
 
-  def initialize(user:, project_ids: )
+  def initialize(user:, project_ids:)
     @user = user
     @project_ids = project_ids
   end

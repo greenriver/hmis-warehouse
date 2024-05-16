@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# Part of the "legacy" role-based permissions system
+# Part of the "legacy" permissions system
 class UserRole < ApplicationRecord
   has_paper_trail(
     meta: {

@@ -1,19 +1,20 @@
-# Client PII accessors. Attributes are masked conditionally based permissions
-class GrdaWarehouse::ClientPii
+# Bag of PII accessors. Attributes are masked conditionally based on the policy
+class GrdaWarehouse::PiiProvider
   attr_reader :policy, :record
 
+  # record may be a Client or PiiProviderRecordAdapter
   def initialize(record, policy: nil)
     @policy = policy
     @record = record
   end
 
-  ClientPiiRecordAdapter = Struct.new(:id, :first_name, :last_name, :middle_name, :ssn, :dob, keyword_init: true)
-  private_constant :ClientPiiRecordAdapter
+  PiiProviderRecordAdapter = Struct.new(:id, :first_name, :last_name, :middle_name, :ssn, :dob, keyword_init: true)
+  private_constant :PiiProviderRecordAdapter
 
   # use when you don't have a client model, only ids (for example in reporting)
-  # GrdaWarehouse::ClientPii.from_attributes(policy: client_policy, dob: client_dob)
+  # GrdaWarehouse::PiiProvider.from_attributes(policy: client_policy, dob: client_dob)
   def self.from_attributes(policy: nil, id: nil, first_name: nil, last_name: nil, middle_name: nil, dob: nil, ssn: nil)
-    record = ClientPiiRecordAdapter.new(
+    record = PiiProviderRecordAdapter.new(
       id: id,
       first_name: first_name,
       last_name: last_name,

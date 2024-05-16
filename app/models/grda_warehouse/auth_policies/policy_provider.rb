@@ -8,27 +8,39 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
     @user = user
   end
 
-  memoize def for_client(client_or_id)
+  def for_client(client_or_id)
     client_id = client_id_from_arg(client_or_id)
 
-    user.using_acls? ? client_project_policy(client_id) : legacy_user_role_policy
+    user.using_acls? ? client_project_policy(client_id) : legacy_user_role_policy(client_id)
+  end
+
+  def for_patient(patient)
+    for_client(patient.client_id)
   end
 
   protected
 
-  memoize def legacy_user_role_policy
+  memoize def legacy_user_role_policy(client_id)
+    project_ids = client_project_ids(client_id)
+    return deny_policy if project_ids.empty?
+
     GrdaWarehouse::AuthPolicies::LegacyUserRolePolicy.new(user: user)
   end
 
   memoize def client_project_policy(client_id)
-    project_ids = GrdaWarehouse::Hud::Enrollment
-      .visible_to(user, client_ids: [client_id])
-      .joins(:project)
-      .pluck(GrdaWarehouse::Hud::Project.arel_table[:id])
-      .sort
-    return GrdaWarehouse::AuthPolicies::DenyPolicy.instance if project_ids.empty?
+    project_ids = client_project_ids(client_id)
+    return deny_policy if project_ids.empty?
 
     GrdaWarehouse::AuthPolicies::ProjectPolicy.new(user: user, project_ids: project_ids)
+  end
+
+  # find client project ids via enrollments
+  def client_project_ids(client_id)
+    GrdaWarehouse::Hud::Enrollment.
+      visible_to(user, client_ids: [client_id]).
+      joins(:project).
+      pluck(GrdaWarehouse::Hud::Project.arel_table[:id]).
+      sort
   end
 
   def client_id_from_arg(arg)
@@ -40,5 +52,9 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
     else
       raise "invalid argument #{arg.inspect}"
     end
+  end
+
+  def deny_policy
+    GrdaWarehouse::AuthPolicies::DenyPolicy.instance
   end
 end

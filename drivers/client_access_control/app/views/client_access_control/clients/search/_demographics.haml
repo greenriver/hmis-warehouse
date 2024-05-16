@@ -22,6 +22,6 @@
         .col-md-6.client__dobs
           - # Note only show year and age for list
           %h3 Year of Birth (age)
-          - ages.each do |age|
+          - ages.each do |dob_and_age|
             .client__dob
-              .no-wrap= age
+              .no-wrap= dob_and_age

@@ -215,8 +215,7 @@ class User < ApplicationRecord
     roles.map(&:name).uniq
   end
 
-  def client_auth_policy(...)
-    @auth_policy_provider ||= GrdaWarehouse::AuthPolicies::PolicyProvider.new(self)
-    @auth_policy_provider.for_client(...)
+  memoize def policies
+    GrdaWarehouse::AuthPolicies::PolicyProvider.new(self)
   end
 end

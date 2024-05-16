@@ -4,13 +4,17 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# Participates in both the "new" AccessControl permissions system and the "legacy" role-based system
+# Participates in both the "new" and "legacy" permissions systems
 #
 # Roles define what actions a user can perform within the system. Not all permissions grant abilities, some are
 # subtractive. The permissions are applied to a set of entities such as projects or organizations.
 #
-# Roles that are related to an AccessControl are part of the "new" access control system; roles that are related to a
+# Roles that are related to an AccessControl are part of the "new" system; roles that are related to a
 # user through user_roles are part of the legacy system.
+#
+#
+# Adding a role: first define it in the "permissions_with_descriptions" config below. Then, within a migration call:
+#   Role.ensure_permissions_exist
 #
 class Role < ApplicationRecord
   acts_as_paranoid

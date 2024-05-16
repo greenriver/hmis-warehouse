@@ -255,7 +255,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :searchable_to, ->(_user, client_ids: nil) do # rubocop:disable Lint/UnusedBlockArgument
-      # FIXME: add doc as to why scopes are in an extension
+      # FIXME: add doc as to why scopes are in an extension (these are overridden)
       none
     end
     # End User access control
@@ -819,7 +819,7 @@ module GrdaWarehouse::Hud
     end
 
     def source_clients_searchable_to(user)
-      # FIXME: looks like we intended to memoize this but this is not memoizing, needs conditional assignment
+      # FIXME: looks like we intended to memoize, it's not working due to missing conditional assignment
       @source_clients_searchable_to = {}.tap do |clients|
         clients[user.id] ||= if source_client_ids.present?
           self.class.searchable_to(user, client_ids: source_client_ids).preload(:data_source).to_a
@@ -841,7 +841,7 @@ module GrdaWarehouse::Hud
         {
           ds: client.data_source&.short_name,
           ds_id: client.data_source&.id,
-          name: client.pii(user: user).full_name,
+          name: client.pii_provider(user: user).full_name,
           health: client.data_source&.authoritative_type == 'health',
         }
       end
@@ -850,7 +850,7 @@ module GrdaWarehouse::Hud
         names << {
           ds: 'Health',
           ds_id: GrdaWarehouse::DataSource.health_authoritative_id,
-          name: pii(user.auth_policy_provider).brief_name,
+          name: patient.pii_provider(user: user).brief_name,
         }
       end
       names.uniq
@@ -1415,14 +1415,14 @@ module GrdaWarehouse::Hud
       end
     end
 
-    memoize def pii(user:)
-      GrdaWarehouse::ClientPii.new(self, policy: user.client_auth_policy(self))
+    memoize def pii_provider(user:)
+      GrdaWarehouse::PiiProvider.new(self, policy: user.policies.for_client(self))
     end
 
     def name
       "#{self.FirstName} #{self.LastName}"
     end
-    deprecate :name, 'Use client.pii(user: current_user).brief_name instead'
+    deprecate :name, 'Use client.pii_provider(user: current_user).brief_name instead'
 
     def names
       source_clients.map { |n| "#{n.data_source.short_name} #{n.full_name}" }
@@ -1696,7 +1696,7 @@ module GrdaWarehouse::Hud
     def full_name
       [self.FirstName, self.MiddleName, self.LastName].select(&:present?).join(' ')
     end
-    deprecate :full_name, 'Use client.pii(user: current_user).full_name instead'
+    deprecate :full_name, 'Use client.pii_provider(user: current_user).full_name instead'
 
     ########################
     # NOTE: this section deals with the consent form as seen in ETO via the API

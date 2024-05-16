@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# AccessControl is part of the "new" ACL permissions model
+# AccessControl is part of the "new" permissions system
 #
 # An AccessControl includes:
 # * A role that specifies the set of permissions controlling what actions a user can perform within the system
