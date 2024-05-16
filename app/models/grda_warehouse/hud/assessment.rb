@@ -75,8 +75,8 @@ module GrdaWarehouse::Hud
       return nil if matching_question.blank?
       return matching_question unless answer.present?
 
-      assessment_answer = matching_question.AssessmentAnswer.to_s
-      assessment_answer.downcase! unless case_sensitive
+      assessment_answer = matching_question.AssessmentAnswer&.to_s
+      assessment_answer&.downcase! unless case_sensitive
       answer&.downcase! unless case_sensitive
 
       assessment_answer == answer
