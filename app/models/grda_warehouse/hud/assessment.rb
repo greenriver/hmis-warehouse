@@ -79,7 +79,7 @@ module GrdaWarehouse::Hud
       assessment_answer&.downcase! unless case_sensitive
       answer&.downcase! unless case_sensitive
 
-      assessment_answer == answer
+      (assessment_answer || '') == answer
     end
 
     def results_matching_requirement(question, answer = nil)
