@@ -138,11 +138,8 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
     e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
     create :hmis_custom_service, data_source: ds1, client: c1, enrollment: e1, user: u1, date_provided: Date.current - 31.days
 
-    allow(Rails.logger).to receive(:fatal).and_return nil
-
-    Hmis::AutoExitJob.perform_now
+    expect { Hmis::AutoExitJob.perform_now }.to raise_error('Auto-exit config unusually low: 29')
 
     expect(e1.exit).to be_nil
-    expect(Rails.logger).to have_received(:fatal).with('Auto-exit config unusually low: 29')
   end
 end
