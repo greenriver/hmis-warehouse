@@ -101,7 +101,7 @@ RSpec.describe Hmis::AssessmentQuestionsJob, type: :model do
 
         expect(ce_assessment.assessment_questions.map(&:attributes)).to contain_exactly(
           a_hash_including('AssessmentQuestion' => cded_str.key, 'AssessmentAnswer' => 'response'),
-          a_hash_including('AssessmentQuestion' => cded_bool.key, 'AssessmentAnswer' => nil),
+          a_hash_including('AssessmentQuestion' => cded_bool.key, 'AssessmentAnswer' => 'No'), # nil boolean response gets stored as No
           a_hash_including('AssessmentQuestion' => cded_int.key, 'AssessmentAnswer' => nil),
         )
       end
@@ -209,7 +209,7 @@ RSpec.describe Hmis::AssessmentQuestionsJob, type: :model do
           ),
           a_hash_including(
             'AssessmentQuestion' => cded_bool.key,
-            'AssessmentAnswer' => nil,
+            'AssessmentAnswer' => 'No', # nil boolean response gets stored as No
             'AssessmentQuestionGroup' => 'Section 2',
             'AssessmentQuestionOrder' => 2,
           ),
