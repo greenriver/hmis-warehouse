@@ -35,7 +35,7 @@ module Hmis
               # find responses to this question
               value = custom_assessment.custom_data_elements.select { |cde| cde.data_element_definition_id == cded.id }&.map(&:value)
               value = nil if value.blank? # [] => nil
-              value = value.first if value&.size == 1 # [value] => value
+              value = value&.first unless cded.repeats # [value] => value
               # Don't change this, TcHmisHat calculator relies on booleans being stored as 'Yes' or 'No'
               value = yes_no(value) if cded.field_type.to_sym == :boolean # false => 'No'
 
