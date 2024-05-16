@@ -6451,6 +6451,11 @@ enum PickListType {
   OPEN_HOH_ENROLLMENTS_FOR_PROJECT
 
   """
+  Open Projects that the user can see
+  """
+  OPEN_PROJECTS
+
+  """
   All Organizations that the User can see
   """
   ORGANIZATION
@@ -8962,6 +8967,11 @@ enum ReasonNotEnrolled {
   Invalid Value
   """
   INVALID
+
+  """
+  (3) Unable to locate client
+  """
+  UNABLE_TO_LOCATE_CLIENT
 }
 
 """
@@ -9644,11 +9654,6 @@ type RenameServiceTypePayload {
 """
 enum RentalSubsidyType {
   """
-  (436) Emergency Housing Voucher
-  """
-  EMERGENCY_HOUSING_VOUCHER
-
-  """
   (437) Family Unification Program Voucher (FUP)
   """
   FAMILY_UNIFICATION_PROGRAM_VOUCHER_FUP
@@ -9667,6 +9672,11 @@ enum RentalSubsidyType {
   (433) HCV voucher (tenant or project based) (not dedicated)
   """
   HCV_VOUCHER
+
+  """
+  (436) Housing Stability Voucher
+  """
+  HOUSING_STABILITY_VOUCHER
 
   """
   Invalid Value

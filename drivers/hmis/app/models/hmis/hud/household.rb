@@ -113,7 +113,9 @@ class Hmis::Hud::Household < Hmis::Hud::Base
         hh_t[:any_wip].eq(true).desc,
         hh_t[:latest_exit].eq(nil).desc,
         earliest_entry: :desc,
+        id: :desc,
       )
+    # FIXME these HoH sort orders aren't working as desired, they sort based on all household members
     when :hoh_last_name_a_to_z
       joins(:enrollments, :clients).
         merge(Hmis::Hud::Enrollment.heads_of_households).

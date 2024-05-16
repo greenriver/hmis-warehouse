@@ -159,7 +159,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
 
   scope :with_open_enrollment_in_organization, ->(organization_ids) do
     ds_count = Hmis::Hud::Organization.where(id: organization_ids).select(:data_source_id).distinct.count
-    raise 'orgs are in multiple data sources' if ds_count.size > 1
+    raise 'orgs are in multiple data sources' if ds_count > 1
 
     joins(projects: :organization).merge(Hmis::Hud::Organization.where(id: organization_ids))
   end
@@ -307,19 +307,19 @@ class Hmis::Hud::Client < Hmis::Hud::Base
     when :best_match
       current_scope # no order, use text search rank
     when :last_name_a_to_z
-      order(arel_table[:last_name].asc.nulls_last)
+      order(arel_table[:last_name].asc.nulls_last, id: :desc)
     when :last_name_z_to_a
-      order(arel_table[:last_name].desc.nulls_last)
+      order(arel_table[:last_name].desc.nulls_last, id: :desc)
     when :first_name_a_to_z
-      order(arel_table[:first_name].asc.nulls_last)
+      order(arel_table[:first_name].asc.nulls_last, id: :desc)
     when :first_name_z_to_a
-      order(arel_table[:first_name].desc.nulls_last)
+      order(arel_table[:first_name].desc.nulls_last, id: :desc)
     when :age_youngest_to_oldest
-      order(arel_table[:dob].desc.nulls_last)
+      order(arel_table[:dob].desc.nulls_last, id: :desc)
     when :age_oldest_to_youngest
-      order(arel_table[:dob].asc.nulls_last)
+      order(arel_table[:dob].asc.nulls_last, id: :desc)
     when :recently_added
-      order(arel_table[:date_created].desc.nulls_last)
+      order(arel_table[:date_created].desc.nulls_last, id: :desc)
     else
       raise NotImplementedError
     end

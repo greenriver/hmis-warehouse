@@ -57,7 +57,7 @@ module Health
 
     def show
       pdf = careplan_combine_pdf_object
-      file_name = "care_plan_#{@careplan.updated_at.to_s(:db)}"
+      file_name = "care_plan_#{@careplan.updated_at.to_fs(:db)}"
       send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 
@@ -118,7 +118,7 @@ module Health
 
     def coversheet
       pdf = careplan_pdf_coversheet
-      file_name = "care_plan_coversheet_#{@careplan.updated_at.to_s(:db)}"
+      file_name = "care_plan_coversheet_#{@careplan.updated_at.to_fs(:db)}"
       send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 
@@ -126,7 +126,7 @@ module Health
       @document = 'pctp'
       pdf = careplan_pdf_coversheet
       pdf << careplan_pdf_pctp
-      file_name = "care_plan_pctp_#{@careplan.updated_at.to_s(:db)}"
+      file_name = "care_plan_pctp_#{@careplan.updated_at.to_fs(:db)}"
       send_data pdf.to_pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 

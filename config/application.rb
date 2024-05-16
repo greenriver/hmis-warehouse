@@ -3,6 +3,10 @@ require_relative 'boot'
 require 'rails/all'
 require 'active_record_extended'
 
+# The env var is the same as config.active_support.disable_to_s_conversion = true but impacts driver initializers that load before this app config block
+#   * Note, we still use the deprecated behavior for date/time. It's preserved in config/initializers/legacy_rails_conversions.rb
+ENV['RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION'] = 'true'
+
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
@@ -12,8 +16,7 @@ require_relative '../lib/util/id_protector'
 module BostonHmis
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 6.1
-    # config.autoloader = :classic
+    config.load_defaults 7.0
     config.autoload_paths << Rails.root.join('lib', 'devise')
 
     # ActionCable
@@ -47,6 +50,8 @@ module BostonHmis
 
     config.active_job.queue_adapter = :delayed_job
     config.action_mailer.deliver_later_queue_name = :mailers
+
+    config.active_storage.variant_processor = :mini_magick
 
     # GraphQL config
     config.graphql.parser_cache = true

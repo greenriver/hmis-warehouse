@@ -30,7 +30,7 @@ RSpec.describe 'LINK API', type: :model do
     let(:unit_type_id) { 32 }
 
     def format_date(date)
-      date.to_s(:iso8601)
+      date.to_fs(:iso8601)
     end
 
     let(:subject) do

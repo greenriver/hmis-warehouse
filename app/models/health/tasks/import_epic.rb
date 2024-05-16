@@ -207,7 +207,7 @@ module Health::Tasks
       end
       found = CSV.parse(header_row).first.map(&:to_sym).sort
       if klass.name == 'Health::EpicCaseNote'
-        (expected - found).size.zero?
+        (expected - found).empty?
       else
         found == expected
       end

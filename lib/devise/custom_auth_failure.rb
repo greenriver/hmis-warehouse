@@ -14,7 +14,7 @@ class CustomAuthFailure < Devise::FailureApp
 
       # This is probably a GraphQL API or current user/settings request. Return a JSON error for SPA to handle.
       # This is the case when the user signs out in another tab or the session becomes invalid for another reason
-      return json_error_response if request.content_type == 'application/json' || request.format == :json
+      return json_error_response if request.media_type == 'application/json' || request.format == :json
     end
     super
   end

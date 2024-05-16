@@ -41,7 +41,7 @@ module SystemPathways::DocumentExports
             format: :xlsx,
             assigns: view_assigns,
           ),
-          "System Pathways - #{Time.current.to_s(:db)}",
+          "System Pathways - #{Time.current.to_fs(:db)}",
         ) do |io|
           self.downloadable_file = io
         end

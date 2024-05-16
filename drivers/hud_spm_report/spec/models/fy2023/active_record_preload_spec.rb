@@ -49,11 +49,12 @@ RSpec.describe 'Active Record Preload API', type: :model do
       enrollments = GrdaWarehouse::Hud::Enrollment.includes(:services).references(:services).where(scope).to_a
       expect(enrollments.first.services.to_a.size).to eq(2)
     end
-    # NOTE: it is expected this API will change in Rails 7, this is a canary test meant to catch that
-    it 'when poisoning the preload with a scope, only two services are included' do
+
+    it 'when preloading with a scope, filters are applied to associations' do
       scope = GrdaWarehouse::Hud::Service.where(DateProvided: '2022-01-02'.to_date .. '2022-01-15'.to_date)
+      expect(GrdaWarehouse::Hud::Enrollment.first.services.size).to eq(4)
       enrollments = GrdaWarehouse::Hud::Enrollment.all
-      ::ActiveRecord::Associations::Preloader.new.preload(enrollments, :services, scope)
+      ::ActiveRecord::Associations::Preloader.new(records: enrollments, associations: :services, scope: scope).call
       enrollments.each { |record| record.public_send(:services) }
       expect(enrollments.first.services.to_a.size).to eq(2)
     end

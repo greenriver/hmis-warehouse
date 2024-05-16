@@ -13,7 +13,6 @@ module BuiltForZeroReport
     alias_attribute :community_id, :bucket
     attr_accessor :bearer_token
     attr_accessor :bearer_token_expires_at
-    acts_as_paranoid
 
     private def login
       query = 'auth/v1/token?grant_type=password'

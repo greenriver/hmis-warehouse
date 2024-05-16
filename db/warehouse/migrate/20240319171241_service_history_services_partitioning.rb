@@ -32,7 +32,7 @@ class ServiceHistoryServicesPartitioning < ActiveRecord::Migration[6.1]
       Rails.logger.info 'Reatatching subtables to new parent'
       GrdaWarehouse::ServiceHistoryService.sub_tables.each do |year, table|
         # Inclusive at lower end, and exclusive at upper end.
-        dates = [Date.new(year, 1, 1).to_s(:db), Date.new(year + 1, 1, 1).to_s(:db)]
+        dates = [Date.new(year, 1, 1).to_fs(:db), Date.new(year + 1, 1, 1).to_fs(:db)]
         execute %(ALTER TABLE service_history_services_partitioned ATTACH PARTITION #{table} FOR VALUES FROM ('#{dates[0]}') TO ('#{dates[1]}'))
       end
 
