@@ -8490,6 +8490,13 @@ CREATE INDEX index_patient_referrals_on_deleted_at ON public.patient_referrals U
 
 
 --
+-- Name: index_patient_referrals_on_patient_id_and_current; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_patient_referrals_on_patient_id_and_current ON public.patient_referrals USING btree (patient_id, current);
+
+
+--
 -- Name: index_patients_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -9292,6 +9299,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240126184731'),
 ('20240318191704'),
 ('20240327144840'),
-('20240402142808');
+('20240402142808'),
+('20240515205603');
 
 
