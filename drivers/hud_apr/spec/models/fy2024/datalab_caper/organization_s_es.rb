@@ -305,7 +305,7 @@ RSpec.shared_context 'datalab organization s es caper', shared_context: :metadat
       )
     end
 
-    # Almost matches (off by a few) - May have to do with household_chronic_status calculations
+    # Almost matches (off by a few) - client_id: 678933, enrollment: 324092 - flagged as CH in the test kit results, but not CH due in our results
     xit 'Q26b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
