@@ -23,7 +23,6 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
       client_project_policy(client_id)
     else
       # TODO: START_ACL remove after ACL migration is complete
-      handle_legacy_unauthorized unless legacy_implicitly_assume_authorized_access
       legacy_user_role_policy
     end
   end
@@ -38,7 +37,6 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
       GrdaWarehouse::AuthPolicies::ProjectPolicy.new(user: user, project_id: project_id)
     else
       # TODO: START_ACL remove after ACL migration is complete
-      handle_legacy_unauthorized unless legacy_implicitly_assume_authorized_access
       legacy_user_role_policy
     end
   end
@@ -58,6 +56,7 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
 
   # TODO: START_ACL remove after ACL migration is complete
   memoize def legacy_user_role_policy
+    handle_legacy_unauthorized unless legacy_implicitly_assume_authorized_access
     GrdaWarehouse::AuthPolicies::LegacyUserRolePolicy.new(user: user)
   end
 
