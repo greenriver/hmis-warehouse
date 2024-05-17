@@ -1,3 +1,4 @@
+# TODO: START_ACL remove after ACL migration is complete
 class GrdaWarehouse::AuthPolicies::LegacyUserRolePolicy
   attr_reader :user
 
@@ -6,6 +7,9 @@ class GrdaWarehouse::AuthPolicies::LegacyUserRolePolicy
   end
 
   Role.permissions.each do |permission|
-    delegate "#{permission}?", to: :user
+    method_name = :"#{permission}?"
+    define_method method_name do
+      user.public_send(method_name)
+    end
   end
 end

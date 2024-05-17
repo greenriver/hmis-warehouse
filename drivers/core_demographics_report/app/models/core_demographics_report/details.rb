@@ -70,6 +70,27 @@ module
       detail[:columns]
     end
 
+    def column_objects_for(key)
+      raw = detail_hash.dig(key, :headers) || []
+      project_id_index = raw.index('_project_id')
+      raw.map.with_index do |label, index|
+        next if index == project_id_index # we don't show project id, it's just for permissions
+        CoreDemographicsReport::DetailsColumn.new(
+          label: label,
+          index: index,
+          pii: label.in?(pii_headers),
+          user: filter.user,
+          project_id_index: project_id_index,
+        )
+      end.compact
+    end
+
+    def detail_headers_for_export(key)
+      return header_for(key) if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
+
+      header_for(key) - pii_headers
+    end
+
     def detail_columns_for_export(key)
       return columns_for(key) if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
 
@@ -118,6 +139,7 @@ module
         'Entry Date',
         'Exit Date',
         'Destination',
+        '_project_id',
       ]
     end
 
@@ -150,6 +172,7 @@ module
         e_t[:EntryDate],
         she_t[:exit_date],
         she_t[:destination],
+        p_t[:id],
       ]
     end
   end

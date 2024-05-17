@@ -8,44 +8,70 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
     @user = user
   end
 
-  def for_client(client_or_id)
-    client_id = client_id_from_arg(client_or_id)
+  # TODO: START_ACL remove after ACL migration is complete
+  ###
+  # The legacy permission policy only checks the permissions on a user's roles and assumes the loaded record is visible
+  # to the user already. This is a dangerous assumption so it's required to confirm the record is authorized by
+  # setting legacy_implicitly_assume_authorized_access to true.
+  # Note this is only relevant for users where using_acls is false
+  ###
+  attr_accessor :legacy_implicitly_assume_authorized_access
 
-    user.using_acls? ? client_project_policy(client_id) : legacy_user_role_policy(client_id)
+  def for_client(client_or_id)
+    client_id = id_from_arg(client_or_id, GrdaWarehouse::Hud::Client)
+    if user.using_acls?
+      client_project_policy(client_id)
+    else
+      # TODO: START_ACL remove after ACL migration is complete
+      handle_legacy_unauthorized unless legacy_implicitly_assume_authorized_access
+      legacy_user_role_policy
+    end
   end
 
   def for_patient(patient)
     for_client(patient.client_id)
   end
 
+  memoize def for_project(project_or_id)
+    project_id = id_from_arg(project_or_id, GrdaWarehouse::Hud::Project)
+    if user.using_acls?
+      GrdaWarehouse::AuthPolicies::ProjectPolicy.new(user: user, project_id: project_id)
+    else
+      # TODO: START_ACL remove after ACL migration is complete
+      handle_legacy_unauthorized unless legacy_implicitly_assume_authorized_access
+      legacy_user_role_policy
+    end
+  end
+
   protected
 
-  memoize def legacy_user_role_policy(client_id)
-    project_ids = client_project_ids(client_id)
-    return deny_policy if project_ids.empty?
-
-    GrdaWarehouse::AuthPolicies::LegacyUserRolePolicy.new(user: user)
+  def handle_legacy_unauthorized
+    raise "legacy authorization not performed"
   end
 
   memoize def client_project_policy(client_id)
-    project_ids = client_project_ids(client_id)
-    return deny_policy if project_ids.empty?
-
-    GrdaWarehouse::AuthPolicies::ProjectPolicy.new(user: user, project_ids: project_ids)
+    project_policies = visible_client_project_ids(client_id).map do |project_id|
+      for_project(project_id)
+    end
+    GrdaWarehouse::AuthPolicies::AnyPolicy.new(project_policies)
   end
 
-  # find client project ids via enrollments
-  def client_project_ids(client_id)
-    GrdaWarehouse::Hud::Enrollment.
-      visible_to(user, client_ids: [client_id]).
-      joins(:project).
-      pluck(GrdaWarehouse::Hud::Project.arel_table[:id]).
-      sort
+  # TODO: START_ACL remove after ACL migration is complete
+  memoize def legacy_user_role_policy
+    GrdaWarehouse::AuthPolicies::LegacyUserRolePolicy.new(user: user)
   end
 
-  def client_id_from_arg(arg)
+  # Needs review
+  def visible_client_project_ids(client_id)
+    p_t = GrdaWarehouse::Hud::Project.arel_table
+    GrdaWarehouse::Hud::Enrollment
+      .visible_to(user, client_ids: [client_id])
+      .joins(:project).order(p_t[:id]).pluck(p_t[:id])
+  end
+
+  def id_from_arg(arg, klass)
     case arg
-    when GrdaWarehouse::Hud::Client
+    when klass
       arg.id
     when Integer, String
       arg.to_i

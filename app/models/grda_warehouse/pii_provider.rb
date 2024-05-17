@@ -8,14 +8,13 @@ class GrdaWarehouse::PiiProvider
     @record = record
   end
 
-  PiiProviderRecordAdapter = Struct.new(:id, :first_name, :last_name, :middle_name, :ssn, :dob, keyword_init: true)
+  PiiProviderRecordAdapter = Struct.new(:first_name, :last_name, :middle_name, :ssn, :dob, keyword_init: true)
   private_constant :PiiProviderRecordAdapter
 
   # use when you don't have a client model, only ids (for example in reporting)
   # GrdaWarehouse::PiiProvider.from_attributes(policy: client_policy, dob: client_dob)
-  def self.from_attributes(policy: nil, id: nil, first_name: nil, last_name: nil, middle_name: nil, dob: nil, ssn: nil)
+  def self.from_attributes(policy: nil, first_name: nil, last_name: nil, middle_name: nil, dob: nil, ssn: nil)
     record = PiiProviderRecordAdapter.new(
-      id: id,
       first_name: first_name,
       last_name: last_name,
       middle_name: middle_name,
