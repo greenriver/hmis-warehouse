@@ -122,16 +122,16 @@ services:
     stdin_open: true
     tty: true
     command: bin/rails server -b 0.0.0.0
-    labels:
-      - traefik.enable=${TRAEFIK_ENABLED:-false}
-      - traefik.http.routers.op.entrypoints=web
-      - traefik.http.routers.op.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
-      - traefik.http.services.op_https.loadbalancer.server.port=3000
-      - traefik.http.routers.op_https.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
-      - traefik.http.routers.op_https.tls=true
-      - traefik.http.routers.op_https.entrypoints=web-secure
-      - traefik.http.middlewares.op_https.redirectscheme.scheme=https
-      - traefik.http.routers.op.middlewares=op_https
+    # labels:
+    #   - traefik.enable=${TRAEFIK_ENABLED:-false}
+    #   - traefik.http.routers.op.entrypoints=web
+    #   - traefik.http.routers.op.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
+    #   - traefik.http.services.op_https.loadbalancer.server.port=3000
+    #   - traefik.http.routers.op_https.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
+    #   - traefik.http.routers.op_https.tls=true
+    #   - traefik.http.routers.op_https.entrypoints=web-secure
+    #   - traefik.http.middlewares.op_https.redirectscheme.scheme=https
+    #   - traefik.http.routers.op.middlewares=op_https
     ports:
       - "3000"
       - "9394"
@@ -151,11 +151,11 @@ services:
         condition: service_started
       yarn:
         condition: service_started
-    hostname: hmis-warehouse.dev.test
-    networks:
-      default:
-        aliases:
-          - hmis-warehouse.dev.test
+    hostname: warehouse.dev.test
+    # networks:
+    #   default:
+    #     aliases:
+    #       - hmis-warehouse.dev.test
 
   # To transition from a previous major version to pg13, run ./docker/pg13/upgrade.db
   db_previous:
@@ -273,22 +273,32 @@ services:
   # mkcert dev.test "*.dev.test" localhost 127.0.0.1 ::1
   # mkcert -CACERT
   # copy the certs and CA cert to dev/auth/certs/
-
   oauth2-proxy:
     container_name: oauth2-proxy
     image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
     command: --config /oauth2-proxy.cfg
-    hostname: oauth2-proxy.dev.test
+    hostname: hmis-warehouse.dev.test
     volumes:
       - "./dev/auth/oauth2-proxy.cfg:/oauth2-proxy.cfg"
-      - "./dev/auth/certs/dev.test.crt:/etc/certs/dev.test.crt"
-      - "./dev/auth/certs/dev.test.key:/etc/certs/dev.test.key"
-      - "./dev/auth/certs/ca/rootCA.pem:/etc/certs/root-ca.pem"
+      # - "./dev/auth/certs/dev.test.crt:/etc/certs/dev.test.crt"
+      # - "./dev/auth/certs/dev.test.key:/etc/certs/dev.test.key"
+      # - "./dev/auth/certs/ca/rootCA.pem:/etc/certs/root-ca.pem"
+    labels:
+      - traefik.enable=${TRAEFIK_ENABLED:-false}
+      - traefik.http.routers.op.entrypoints=web
+      - traefik.http.routers.op.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
+      - traefik.http.services.op_https.loadbalancer.server.port=4180
+      - traefik.http.routers.op_https.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
+      - traefik.http.routers.op_https.tls=true
+      - traefik.http.routers.op_https.entrypoints=web-secure
+      - traefik.http.middlewares.op_https.redirectscheme.scheme=https
+      - traefik.http.routers.op.middlewares=op_https
     restart: unless-stopped
     ports:
       - 4180:4180/tcp
     depends_on:
       - dex
+      - web
   dex:
     container_name: dex
     # image: dexidp/dex:latest-alpine
@@ -297,9 +307,9 @@ services:
     hostname: dex
     volumes:
       - "./dev/auth/dex.yaml:/dex.yaml"
-      - "./dev/auth/certs/dev.test.crt:/etc/certs/dev.test.crt"
-      - "./dev/auth/certs/dev.test.key:/etc/certs/dev.test.key"
-      - "./dev/auth/certs/ca/rootCA.pem:/etc/certs/root-ca.pem"
+      # - "./dev/auth/certs/dev.test.crt:/etc/certs/dev.test.crt"
+      # - "./dev/auth/certs/dev.test.key:/etc/certs/dev.test.key"
+      # - "./dev/auth/certs/ca/rootCA.pem:/etc/certs/root-ca.pem"
     restart: unless-stopped
     ports:
       - 4190:4190/tcp

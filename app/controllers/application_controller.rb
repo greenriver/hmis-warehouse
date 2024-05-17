@@ -40,6 +40,36 @@ class ApplicationController < ActionController::Base
 
   prepend_before_action :skip_timeout
 
+  # if we have a jwt, use it,
+  # sign-in user (programmatically)
+  # if not, call devise authenticate_user!
+  def authenticate_user!
+    if valid_jwt?
+      login_jwt_user
+    else
+      super
+    end
+  end
+
+  private def valid_jwt?
+    return false unless ENV['JWT_SECRET']
+
+    # TODO: how do we validate the JWT?
+    return true
+    # decoded = JWT.decode(cookies[:_oauth2_proxy], ENV['JWT_SECRET'])[0]
+    # raise decoded.inspect
+  end
+
+  private def login_jwt_user
+    email = request.headers['HTTP_X_FORWARDED_USER']
+    return unless email
+
+    user = User.find_by(email: email.downcase)
+    return unless user
+
+    sign_in(user)
+  end
+
   private def resource_name
     :user
   end
