@@ -78,17 +78,10 @@ module
         CoreDemographicsReport::DetailsColumn.new(
           label: label,
           index: index,
-          pii: label.in?(pii_headers),
           user: filter.user,
           project_id_index: project_id_index,
         )
       end.compact
-    end
-
-    def detail_headers_for_export(key)
-      return header_for(key) if GrdaWarehouse::Config.get(:include_pii_in_detail_downloads)
-
-      header_for(key) - pii_headers
     end
 
     def detail_columns_for_export(key)

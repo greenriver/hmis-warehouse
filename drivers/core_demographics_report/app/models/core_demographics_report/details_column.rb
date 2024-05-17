@@ -1,14 +1,13 @@
 
 # CoreDemographicsReport::DetailsColumn
 module CoreDemographicsReport
-  DetailsColumn = Struct.new(:label, :index, :pii, :user, :project_id_index, keyword_init: true) do
+  DetailsColumn = Struct.new(:label, :index, :user, :project_id_index, keyword_init: true) do
     def value(row)
       raw_value = row[index]
-      return raw_value unless pii
 
       project_id = row[project_id_index]
       policy = user.policies.for_project(project_id)
-      return pii_value(raw_value, policy)
+      pii_value(raw_value, policy)
     end
 
     protected
@@ -20,6 +19,8 @@ module CoreDemographicsReport
         policy.can_view_client_name? ? raw_value : REDACTED
       when 'DOB'
         policy.can_view_full_dob? ? raw_value : REDACTED
+      else
+        raw_value
       end
     end
 

@@ -37,7 +37,6 @@ module CoreDemographicsReport::WarehouseReports
     end
 
     def details
-      # TODO: START_ACL remove when ACL transition complete
       @key = params[:key]
       @sub_key = params[:sub_key]
       respond_to do |format|

@@ -76,10 +76,6 @@ class GrdaWarehouse::PiiProvider
     format_ssn(value, mask: mask) if value
   end
 
-  def client_id_as_name
-    "Client ID: #{record.id || 'N/A'}"
-  end
-
   protected
 
   def format_ssn(value, mask: true)
