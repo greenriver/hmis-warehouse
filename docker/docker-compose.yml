@@ -151,6 +151,11 @@ services:
         condition: service_started
       yarn:
         condition: service_started
+    hostname: hmis-warehouse.dev.test
+    networks:
+      default:
+        aliases:
+          - hmis-warehouse.dev.test
 
   # To transition from a previous major version to pg13, run ./docker/pg13/upgrade.db
   db_previous:
@@ -263,6 +268,12 @@ services:
       - 9001:9001 # enable for UI access
     command: server --certs-dir /certs /data
   # Access http://oauth2-proxy.dev.test:4180 to initiate a login cycle
+  # some useful notes about setting up SSL certs
+  # mkcert -install
+  # mkcert dev.test "*.dev.test" localhost 127.0.0.1 ::1
+  # mkcert -CACERT
+  # copy the certs and CA cert to dev/auth/certs/
+
   oauth2-proxy:
     container_name: oauth2-proxy
     image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
@@ -272,6 +283,7 @@ services:
       - "./dev/auth/oauth2-proxy.cfg:/oauth2-proxy.cfg"
       - "./dev/auth/certs/dev.test.crt:/etc/certs/dev.test.crt"
       - "./dev/auth/certs/dev.test.key:/etc/certs/dev.test.key"
+      - "./dev/auth/certs/ca/rootCA.pem:/etc/certs/root-ca.pem"
     restart: unless-stopped
     ports:
       - 4180:4180/tcp
@@ -279,6 +291,7 @@ services:
       - dex
   dex:
     container_name: dex
+    # image: dexidp/dex:latest-alpine
     image: ghcr.io/dexidp/dex:v2.39.0
     command: dex serve /dex.yaml
     hostname: dex
@@ -286,6 +299,7 @@ services:
       - "./dev/auth/dex.yaml:/dex.yaml"
       - "./dev/auth/certs/dev.test.crt:/etc/certs/dev.test.crt"
       - "./dev/auth/certs/dev.test.key:/etc/certs/dev.test.key"
+      - "./dev/auth/certs/ca/rootCA.pem:/etc/certs/root-ca.pem"
     restart: unless-stopped
     ports:
       - 4190:4190/tcp
