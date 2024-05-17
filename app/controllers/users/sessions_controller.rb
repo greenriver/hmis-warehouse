@@ -23,7 +23,12 @@ class Users::SessionsController < Devise::SessionsController
   def destroy
     request.env['last_user'] = current_user
 
-    super
+    if request.headers['HTTP_X_FORWARDED_USER']
+      sign_out(current_user)
+      redirect_to '/oauth2/sign_out'
+    else
+      super
+    end
   end
 
   def keepalive
