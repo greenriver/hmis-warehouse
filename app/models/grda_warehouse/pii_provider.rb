@@ -3,7 +3,7 @@ class GrdaWarehouse::PiiProvider
   attr_reader :policy, :record
 
   # record may be a Client or PiiProviderRecordAdapter
-  def initialize(record, policy: nil)
+  def initialize(record, policy: )
     @policy = policy
     @record = record
   end
@@ -62,10 +62,12 @@ class GrdaWarehouse::PiiProvider
     record.dob ? "#{record.dob&.year} (#{age})" : nil
   end
 
+  # return nil rather than 'redacted' for consistent return type
   def dob
     policy.can_view_full_dob? ? record.dob : nil
   end
 
+  # return nil rather than 'redacted' for consistent return type
   def age
     GrdaWarehouse::Hud::Client.age(date: Date.current, dob: record.dob)
   end

@@ -9,7 +9,7 @@ class GrdaWarehouse::AuthPolicies::LegacyUserRolePolicy
   Role.permissions.each do |permission|
     method_name = :"#{permission}?"
     define_method method_name do
-      user.public_send(method_name)
+      !!user.public_send(method_name)
     end
   end
 end
