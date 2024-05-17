@@ -307,8 +307,7 @@ RSpec.shared_context 'datalab organization a so caper', shared_context: :metadat
       )
     end
 
-    # Almost matches (off by a few) - May have to do with household_chronic_status calculations
-    xit 'Q26b' do
+    it 'Q26b' do
       compare_results(
         file_path: result_file_prefix + results_dir,
         question: 'Q26b',
