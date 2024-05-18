@@ -51,7 +51,7 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
   protected
 
   def handle_legacy_unauthorized
-    raise "legacy authorization not performed"
+    raise 'legacy authorization not performed'
   end
 
   memoize def viewable_project_ids
@@ -76,9 +76,9 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
   # Needs review
   def visible_client_project_ids(client_id)
     p_t = GrdaWarehouse::Hud::Project.arel_table
-    enrollment_arbiter
-      .enrollments_visible_to(user, client_ids: [client_id])
-      .joins(:project).order(p_t[:id]).pluck(p_t[:id])
+    enrollment_arbiter.
+      enrollments_visible_to(user, client_ids: [client_id]).
+      joins(:project).order(p_t[:id]).pluck(p_t[:id])
   end
 
   memoize def enrollment_arbiter

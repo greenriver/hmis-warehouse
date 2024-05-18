@@ -75,6 +75,7 @@ module
       project_id_index = raw.index('_project_id')
       raw.map.with_index do |label, index|
         next if index == project_id_index # we don't show project id, it's just for permissions
+
         CoreDemographicsReport::DetailsColumn.new(
           label: label,
           index: index,

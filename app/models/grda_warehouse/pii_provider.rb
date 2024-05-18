@@ -3,7 +3,7 @@ class GrdaWarehouse::PiiProvider
   attr_reader :policy, :record
 
   # record may be a Client or PiiProviderRecordAdapter
-  def initialize(record, policy: )
+  def initialize(record, policy:)
     @policy = policy
     @record = record
   end

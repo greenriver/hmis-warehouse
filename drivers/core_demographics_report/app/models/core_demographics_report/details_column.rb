@@ -1,4 +1,3 @@
-
 # CoreDemographicsReport::DetailsColumn
 module CoreDemographicsReport
   DetailsColumn = Struct.new(:label, :index, :user, :project_id_index, keyword_init: true) do
@@ -12,7 +11,7 @@ module CoreDemographicsReport
 
     protected
 
-    REDACTED = 'Redacted'
+    REDACTED = 'Redacted'.freeze
     def pii_value(raw_value, policy)
       case label
       when 'First Name', 'Last Name'
@@ -34,6 +33,7 @@ module CoreDemographicsReport
     project_id_index = raw.index('_project_id')
     raw.map.with_index do |label, index|
       next if index == project_id_index # we don't show project id, it's just for permissions
+
       CoreDemographicReportColumn.new(
         label: label,
         index: index,
