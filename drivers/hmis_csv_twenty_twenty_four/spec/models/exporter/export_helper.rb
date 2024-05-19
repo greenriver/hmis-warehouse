@@ -64,6 +64,7 @@ def setup_data
   @enrollment_class = HmisCsvTwentyTwentyFour::Exporter::Enrollment
   @client_class = HmisCsvTwentyTwentyFour::Exporter::Client
   @exit_class = HmisCsvTwentyTwentyFour::Exporter::Exit
+  @income_benefit_class = HmisCsvTwentyTwentyFour::Exporter::IncomeBenefit
 
   # Create a loader record for the project that isn't PH to test project_type_overridden_as_ph?
   project = @projects.first

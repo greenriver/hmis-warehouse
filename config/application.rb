@@ -78,9 +78,6 @@ module BostonHmis
     # rather than using static error pages in public/.
     config.exceptions_app = routes
 
-    config.middleware.use Rack::Attack # needed pre rails 5.1
-    config.middleware.use IdProtector
-
     # FIXME: required to make forms in pjax modals work
     config.action_controller.per_form_csrf_tokens = false
 
