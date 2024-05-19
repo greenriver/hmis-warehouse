@@ -5887,7 +5887,7 @@ type Mutation {
   """
   Create outgoing referral posting
   """
-  createOutgoingReferralPosting(input: OutgoingReferralPostingInput): CreateOutgoingReferralPostingPayload
+  createOutgoingReferralPosting(input: OutgoingReferralPostingInput): CreateOutgoingReferralPostingPayload @deprecated(reason: "Moved to SubmitForm")
   createProjectConfig(input: ProjectConfigInput!): CreateProjectConfigPayload
   createScanCardCode(clientId: ID!, expirationDate: ISO8601Date): CreateScanCardCodePayload
   createServiceCategory(name: String!): CreateServiceCategoryPayload

@@ -133,7 +133,7 @@ module Types
     end
 
     def unit_type
-      load_ar_association(referral, :unit_type)
+      load_ar_association(object, :unit_type)
     end
 
     [:referral_date, :referral_notes, :chronic, :score, :needs_wheelchair_accessible_unit].each do |name|

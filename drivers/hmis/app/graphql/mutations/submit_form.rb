@@ -176,6 +176,15 @@ module Mutations
         ]
       when 'HmisExternalApis::AcHmis::ReferralRequest'
         [project, klass.new({ project_id: project&.id })]
+      when 'HmisExternalApis::AcHmis::ReferralPosting'
+        referral_posting = HmisExternalApis::AcHmis::ReferralPosting.new_with_referral(
+          enrollment: enrollment, # enrollment at the source project
+          receiving_project: project,
+          user: current_user,
+        )
+        # Evaluate permission (can manage outgoing referrals) against the source project, not the receiving project
+        source_project = enrollment.project
+        [source_project, referral_posting]
       when 'Hmis::File'
         [client, klass.new({ client_id: client&.id, enrollment_id: enrollment&.id })]
       when 'Hmis::Hud::Assessment', 'Hmis::Hud::CustomCaseNote', 'Hmis::Hud::Event'

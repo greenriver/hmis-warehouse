@@ -82,9 +82,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :CE_EVENT,
     :CE_ASSESSMENT,
     :CASE_NOTE,
-    # Would be nice if we could use instances to enable/disable the referral feature (instead of using permissions for it).
-    # That would mean creating an Instance for this form for each non-Direct Entry program.
-    # Maybe less cumbersome than dealing with data access groups, but we'd need that anyway to handle Direct Enrollment permission?
+    :REFERRAL,
     :REFERRAL_REQUEST,
     :EXTERNAL_FORM,
   ].freeze
@@ -178,6 +176,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     REFERRAL_REQUEST: {
       owner_class: 'HmisExternalApis::AcHmis::ReferralRequest',
       permission: :can_manage_incoming_referrals,
+    },
+    REFERRAL: {
+      owner_class: 'HmisExternalApis::AcHmis::ReferralPosting',
+      permission: :can_manage_outgoing_referrals,
     },
     CURRENT_LIVING_SITUATION: {
       owner_class: 'Hmis::Hud::CurrentLivingSituation',
