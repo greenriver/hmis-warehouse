@@ -8,6 +8,8 @@ module Types
   class HmisSchema::ReferralPosting < Types::BaseObject
     description 'A referral for a household of one or more clients'
 
+    include Types::HmisSchema::HasCustomDataElements
+
     field :id, ID, null: false
 
     # Fields that come from Referral
@@ -42,9 +44,10 @@ module Types
     field :referral_result, HmisSchema::Enums::Hud::ReferralResult
     field :denial_note, String
     field :referred_from, String, null: false, description: 'Name of project or external source that the referral originated from'
-    field :unit_type, HmisSchema::UnitTypeObject, null: false
+    field :unit_type, HmisSchema::UnitTypeObject, null: true
     field :project, HmisSchema::Project, null: true, description: 'Project that household is being referred to'
     field :organization, HmisSchema::Organization, null: true
+    custom_data_elements_field
 
     # If this posting has been accepted, this is the enrollment for the HoH at the enrolled household.
     # This enrollment is NOT necessarily the same as the `hoh_name`, because the HoH may have changed after
@@ -127,6 +130,10 @@ module Types
 
     def referred_by
       referral.service_coordinator
+    end
+
+    def unit_type
+      load_ar_association(referral, :unit_type)
     end
 
     [:referral_date, :referral_notes, :chronic, :score, :needs_wheelchair_accessible_unit].each do |name|
