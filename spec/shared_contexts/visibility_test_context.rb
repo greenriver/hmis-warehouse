@@ -170,7 +170,7 @@ RSpec.shared_context 'visibility test context', shared_context: :metadata do
   end
 
   # roles
-  let!(:can_view_clients) { create :role, can_view_clients: true }
+  let!(:can_view_clients) { create :role, can_view_clients: true, can_view_client_name: true }
   let!(:can_create_clients) { create :role, can_create_clients: true }
   let!(:can_search_window) { create :role, can_search_window: true } # START_ACL remove after ACL migration
   let!(:can_use_strict_search) { create :role, can_use_strict_search: true }
