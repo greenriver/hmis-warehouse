@@ -168,3 +168,11 @@
   color: #555;
   font-weight: 700;
 }
+
+// client perf chart width constraint for reflow on window resize
+.prs-chart-width-container {
+  max-width: calc(100vw - (350px));
+  @media (min-width: 1200px) {
+    max-width: calc(100vw - (550px));
+  }
+}
