@@ -42,11 +42,7 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
   memoize def for_project(project_or_id)
     project_id = id_from_arg(project_or_id, GrdaWarehouse::Hud::Project)
     if user.using_acls?
-      if project_id.in?(viewable_project_ids)
-        GrdaWarehouse::AuthPolicies::ProjectPolicy.new(user: user, project_id: project_id)
-      else
-        deny_policy
-      end
+      GrdaWarehouse::AuthPolicies::ProjectPolicy.new(user: user, project_id: project_id)
     else
       # TODO: START_ACL remove after ACL migration is complete
       legacy_user_role_policy
@@ -60,11 +56,6 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
     raise 'legacy authorization not performed'
   end
 
-  memoize def viewable_project_ids
-    user.viewable_project_ids(:can_view_projects)
-  end
-
-  # TODO: START_ACL remove after ACL migration is complete
   memoize def client_project_policy(client_id)
     project_policies = visible_client_project_ids(client_id).map do |project_id|
       for_project(project_id)
