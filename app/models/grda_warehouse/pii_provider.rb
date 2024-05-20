@@ -8,6 +8,21 @@
 class GrdaWarehouse::PiiProvider
   attr_reader :policy, :record
 
+  NAME_REDACTED = 'Name Redacted'.freeze
+  REDACTED = 'Redacted'.freeze
+
+  def self.viewable_name(value, policy:, replacement: REDACTED)
+    return replacement unless policy.can_view_client_name?
+
+    value.presence
+  end
+
+  def self.viewable_dob(value, policy:, replacement: REDACTED)
+    return replacement unless policy.can_view_full_dob?
+
+    value.presence
+  end
+
   # record may be a Client or PiiProviderRecordAdapter
   def initialize(record, policy:)
     @policy = policy
@@ -107,10 +122,7 @@ class GrdaWarehouse::PiiProvider
     value.gsub(SSN_RGX, '\1-\2-\3')
   end
 
-  REDACTED = 'Name Redacted'.freeze
-  private_constant :REDACTED
-
   def name_redacted
-    REDACTED
+    NAME_REDACTED
   end
 end

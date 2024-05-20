@@ -11,13 +11,12 @@ module CoreDemographicsReport
 
     protected
 
-    REDACTED = 'Redacted'.freeze
     def pii_value(raw_value, policy)
       case label
       when 'First Name', 'Last Name'
-        policy.can_view_client_name? ? raw_value : REDACTED
+        GrdaWarehouse::PiiProvider.viewable_name(raw_value, policy: policy)
       when 'DOB'
-        policy.can_view_full_dob? ? raw_value : REDACTED
+        GrdaWarehouse::PiiProvider.viewable_dob(raw_value, policy: policy)
       else
         raw_value
       end

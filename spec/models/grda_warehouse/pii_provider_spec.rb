@@ -34,6 +34,10 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
       expected = pii_attributes.values_at(:first_name, :middle_name, :last_name).join(' ')
       expect(pii.full_name).to eq(expected)
     end
+    it('displays viewable name') do
+      actual = GrdaWarehouse::PiiProvider.viewable_name(pii_attributes[:first_name], policy: policy)
+      expect(actual).to eq(pii_attributes[:first_name])
+    end
   end
 
   context('pii with view dob permission') do
@@ -43,6 +47,10 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
     it('displays dob') { expect(pii.dob).to eq(pii_attributes[:dob]) }
     it('displays age') { expect(pii.age).to eq(pii_age) }
     it('displays dob over age') { expect(pii.dob_or_age).to eq(pii_attributes[:dob].to_fs) }
+    it('displays viewable dob') do
+      actual = GrdaWarehouse::PiiProvider.viewable_dob(pii_attributes[:dob], policy: policy)
+      expect(actual).to eq(pii_attributes[:dob])
+    end
   end
 
   context('pii with vew ssn permission') do
@@ -70,6 +78,14 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
     it('displays dob year and age') do
       expected = "#{pii_attributes[:dob].year} (#{pii_age})"
       expect(pii.dob_and_age).to eq(expected)
+    end
+    it('redacts viewable dob') do
+      actual = GrdaWarehouse::PiiProvider.viewable_dob(pii_attributes[:dob], policy: policy)
+      expect(actual).to eq('Redacted')
+    end
+    it('redacts viewable name') do
+      actual = GrdaWarehouse::PiiProvider.viewable_name(pii_attributes[:first_name], policy: policy)
+      expect(actual).to eq('Redacted')
     end
   end
 end

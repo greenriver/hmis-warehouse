@@ -819,8 +819,7 @@ module GrdaWarehouse::Hud
     end
 
     def source_clients_searchable_to(user)
-      # FIXME: looks like we intended to memoize, it's not working due to missing conditional assignment
-      @source_clients_searchable_to = {}.tap do |clients|
+      @source_clients_searchable_to ||= {}.tap do |clients|
         clients[user.id] ||= if source_client_ids.present?
           self.class.searchable_to(user, client_ids: source_client_ids).preload(:data_source).to_a
         else
