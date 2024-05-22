@@ -4,12 +4,12 @@ gem 'rails', '~> 7.0.8.1'
 gem 'rails_drivers', github: 'greenriver/rails_drivers', branch: 'rails-7'
 # gem 'rails_drivers', path: '/usr/local/bundle/tmp/rails_drivers'
 gem 'rack', '>= 2.2.8.1'
-gem 'rexml'
+gem 'rexml', '>= 3.2.7'
 
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', group: :doc
 
-gem 'nokogiri', '>= 1.16.2' # GHSA-xc9x-jj77-9p9j
+gem 'nokogiri', '>= 1.16.4' # GHSA-r95h-9x8f-r3f7
 gem 'loofah', '>= 2.19.1' # >= 2.19.1 due to GHSA-228g-948r-83gx
 gem 'rubyzip', '>= 1.2.1' # >= 1.2.1 due to CVE-2017-5946
 gem 'rails-html-sanitizer', '>= 1.4.4' # >= 1.4.4 due to CVE-2022-23519

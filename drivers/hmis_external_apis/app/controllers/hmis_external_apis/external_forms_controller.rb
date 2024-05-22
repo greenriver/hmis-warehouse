@@ -27,14 +27,6 @@ class HmisExternalApis::ExternalFormsController < ActionController::Base
     object_key = params[:object_key]
     definition = Hmis::Form::Definition.where(external_form_object_key: object_key).first!
 
-    if params[:freshen_from_file]
-      file_path = Rails.root.join("drivers/hmis/lib/form_data/tarrant_county/external_forms/#{File.basename(object_key)}.json")
-      definition.definition = JSON.parse(File.read(file_path))
-      Hmis::Form::Definition.validate_json(definition.definition) { |msg| raise msg }
-      definition.title = definition.definition['name']
-      definition.save!
-    end
-
     HmisExternalApis::PublishExternalFormsJob.new.perform(definition.id)
     definition.reload
     publication = definition.external_form_publications.last!

@@ -143,7 +143,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     mutate(input: { input: input }) do |matches, errors|
       expect(errors).to be_empty
       expect(matches.length).to eq(1)
-      expect(matches).to match([a_hash_including('score' => 98)])
+      expect(matches).to contain_exactly(a_hash_including('score' => 98))
     end
   end
 
@@ -158,7 +158,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     mutate(input: { input: input }) do |matches, errors|
       expect(errors).to be_empty
       expect(matches.length).to eq(1)
-      expect(matches).to match([a_hash_including('existingClientId' => '123')])
+      expect(matches).to contain_exactly(a_hash_including('existingClientId' => '123'))
     end
   end
 
