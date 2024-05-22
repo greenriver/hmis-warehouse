@@ -40,6 +40,7 @@ RSpec.describe Health::Tasks::ImportEpic, type: :model do
       FileUtils.cp(Dir.glob('spec/fixtures/files/health/epic/simple/*.csv'), dest_path)
       Health::Tasks::ImportEpic.new(load_locally: true, configs: configs).run!
       Health.models_by_health_filename.each do |file_name, klass|
+        file_name = "#{file_name}.csv"
         record_count = File.readlines(File.join(dest_path, file_name)).size - 1
         record_count -= 1 if klass.name == 'Health::Vaccination' # Ignoring duplicate
         count = klass.count
@@ -54,6 +55,7 @@ RSpec.describe Health::Tasks::ImportEpic, type: :model do
       FileUtils.cp(Dir.glob('spec/fixtures/files/health/epic/simple/*.csv'), dest_path)
       Health::Tasks::ImportEpic.new(load_locally: true, configs: configs).run!
       Health.models_by_health_filename.each do |file_name, klass|
+        file_name = "#{file_name}.csv"
         record_count = File.readlines(File.join(dest_path, file_name)).size - 1
         record_count -= 1 if klass.name == 'Health::Vaccination' # Ignoring duplicate
         count = klass.count
@@ -68,6 +70,7 @@ RSpec.describe Health::Tasks::ImportEpic, type: :model do
       FileUtils.cp(Dir.glob('spec/fixtures/files/health/epic/simple/*.csv'), dest_path)
       counts = {}
       Health.models_by_health_filename.each do |file_name, klass|
+        file_name = "#{file_name}.csv"
         source = File.join(dest_path, file_name)
         counts[klass.name] = File.readlines(source).size - 1
         lines = File.foreach(source).first(2)
@@ -79,6 +82,7 @@ RSpec.describe Health::Tasks::ImportEpic, type: :model do
       end
       Health::Tasks::ImportEpic.new(load_locally: true, configs: configs).run!
       Health.models_by_health_filename.each do |file_name, klass|
+        file_name = "#{file_name}.csv"
         file_path = File.join(dest_path, file_name)
         count = klass.count
         counts[klass.name] -= 1 if klass.name == 'Health::Vaccination' # Ignoring duplicate
@@ -94,6 +98,7 @@ RSpec.describe Health::Tasks::ImportEpic, type: :model do
       FileUtils.cp(Dir.glob('spec/fixtures/files/health/epic/simple/*.csv'), dest_path)
       counts = {}
       Health.models_by_health_filename.each do |file_name, klass|
+        file_name = "#{file_name}.csv"
         source = File.join(dest_path, file_name)
         counts[klass.name] = File.readlines(source).size - 2 # ignore header and one line
         lines = File.foreach(source).first(counts[klass.name] + 1)
@@ -105,6 +110,7 @@ RSpec.describe Health::Tasks::ImportEpic, type: :model do
       end
       Health::Tasks::ImportEpic.new(load_locally: true, configs: configs).run!
       Health.models_by_health_filename.each do |file_name, klass|
+        file_name = "#{file_name}.csv"
         file_path = File.join(dest_path, file_name)
         count = klass.count
         counts[klass.name] -= 1 if klass.name == 'Health::Vaccination' # Ignoring duplicate

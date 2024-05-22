@@ -161,7 +161,6 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
       end.to change(HmisExternalApis::AcHmis::Referral, :count).by(1).
         and change(HmisExternalApis::AcHmis::ReferralPosting, :count).by(1).
         and change(HmisExternalApis::AcHmis::ReferralHouseholdMember, :count).by(2).
-        and change(Hmis::Wip, :count).by(2).
         and change(Hmis::Hud::Enrollment, :count).by(2).
         and change(Hmis::Hud::Enrollment.in_progress, :count).by(2).
         and change(Hmis::UnitOccupancy, :count).by(2)
@@ -187,7 +186,6 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::Loaders::ReferralPostingsLoa
       end.to change(HmisExternalApis::AcHmis::Referral, :count).by(1).
         and change(HmisExternalApis::AcHmis::ReferralPosting, :count).by(1).
         and change(HmisExternalApis::AcHmis::ReferralHouseholdMember, :count).by(2).
-        and change(Hmis::Wip, :count).by(2).
         and change(Hmis::Hud::Enrollment, :count).by(2).
         and change(Hmis::Hud::Enrollment.in_progress, :count).by(2).
         and change(Hmis::UnitOccupancy, :count).by(2)

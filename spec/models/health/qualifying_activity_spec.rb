@@ -151,7 +151,8 @@ RSpec.describe Health::QualifyingActivity, type: :model do
       end
     end
 
-    it 'adds a PCTP-signed QA on a re-enrollment' do
+    xit 'adds a PCTP-signed QA on a re-enrollment' do
+      # 4/3/24 - re-enrollment QAs are disabled pending dicussion
       enrollment_start_date = @referral.enrollment_start_date
       careplan = create(
         :cp2_careplan,
@@ -381,18 +382,48 @@ RSpec.describe Health::QualifyingActivity, type: :model do
     end
   end
 
-  describe '2024 care team indirect contact changes' do
-    let(:phone_qa) { create :care_team_qa, mode_of_contact: :email }
+  describe '2024 care team contact changes' do
+    let(:qa) { create :care_team_qa }
+    it 'codes an in person meeting that includes the client as face to face' do
+      qa.mode_of_contact = :in_person
+      qa.reached_client = :yes
 
-    it 'is a U3 before 2024-01-01' do
-      phone_qa.date_of_activity = '2023-12-31'.to_date
-      # binding.pry
-      expect(phone_qa.compute_procedure_valid?).to be true
+      expect(qa.modifiers).to contain_exactly('U1', 'U2')
     end
 
-    it 'is forbidden on 2024-01-01' do
-      phone_qa.date_of_activity = '2024-01-01'.to_date
-      expect(phone_qa.compute_procedure_valid?).to be false
+    it "codes an in person meeting that doesn't include the client as face to face" do
+      qa.mode_of_contact = :in_person
+      qa.reached_client = :no
+
+      expect(qa.modifiers).to contain_exactly('U2')
+    end
+
+    it 'codes an in person meeting that is marked as collateral as face to face' do
+      qa.mode_of_contact = :in_person
+      qa.reached_client = :collateral
+
+      expect(qa.modifiers).to contain_exactly('U2')
+    end
+
+    it 'codes a phone call that includes the client as telehealth' do
+      qa.mode_of_contact = :phone_call
+      qa.reached_client = :yes
+
+      expect(qa.modifiers).to contain_exactly('U1', '93')
+    end
+
+    it "codes a phone call that doesn't include the client as indirect" do
+      qa.mode_of_contact = :phone_call
+      qa.reached_client = :no
+
+      expect(qa.modifiers).to contain_exactly('U3')
+    end
+
+    it 'codes a phone call that is marked as a collateral as indirect and not as collateral' do
+      qa.mode_of_contact = :phone_call
+      qa.reached_client = :collateral
+
+      expect(qa.modifiers).to contain_exactly('U3')
     end
   end
 end

@@ -11,7 +11,6 @@ module GrdaWarehouse::HealthEmergency
     include ::HealthEmergency
     include ArelHelper
     include ::Import::ClientMatching
-    acts_as_paranoid
     mount_uploader :file, TestResultsUploader
 
     belongs_to :user, optional: true

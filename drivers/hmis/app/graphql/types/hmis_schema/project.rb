@@ -22,6 +22,8 @@ module Types
     include Types::HmisSchema::HasCeParticipations
     include Types::HmisSchema::HasHudMetadata
     include Types::HmisSchema::HasExternalFormSubmissions
+    include Types::HmisSchema::HasAssessments
+    include Types::HmisSchema::HasCurrentLivingSituations
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2024')
@@ -61,7 +63,9 @@ module Types
     households_field
     hmis_participations_field
     ce_participations_field
+    assessments_field filter_args: { omit: [:project, :project_type], type_name: 'AssessmentsForProject' }
     services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForProject' }
+    current_living_situations_field
     hud_field :operating_start_date, null: true
     hud_field :operating_end_date
     hud_field :description, String, null: true
@@ -110,10 +114,21 @@ module Types
     end
 
     def enrollments(**args)
-      # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
-      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
+      check_enrollment_details_access
 
-      resolve_enrollments(object.enrollments_including_wip, dangerous_skip_permission_check: true, **args)
+      resolve_enrollments(object.enrollments, dangerous_skip_permission_check: true, **args)
+    end
+
+    def assessments(**args)
+      check_enrollment_details_access
+
+      resolve_assessments(object.custom_assessments, dangerous_skip_permission_check: true, **args)
+    end
+
+    def current_living_situations(**args)
+      check_enrollment_details_access
+
+      resolve_assessments(object.current_living_situations, dangerous_skip_permission_check: true, **args)
     end
 
     def organization
@@ -125,8 +140,7 @@ module Types
     end
 
     def services(**args)
-      # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
-      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
+      check_enrollment_details_access
 
       resolve_services(**args, dangerous_skip_permission_check: true)
     end
@@ -169,10 +183,9 @@ module Types
     end
 
     def households(**args)
-      # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
-      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
+      check_enrollment_details_access
 
-      resolve_households(object.households_including_wip, **args, dangerous_skip_permission_check: true)
+      resolve_households(object.households, **args, dangerous_skip_permission_check: true)
     end
 
     def referral_requests(**args)
@@ -214,6 +227,13 @@ module Types
       form_definition_identifier = args.delete(:form_definition_identifier)
       scope = scope.where(definition: { identifier: form_definition_identifier }) if form_definition_identifier
       resolve_external_form_submissions(scope, **args)
+    end
+
+    private def check_enrollment_details_access
+      # For resolving several associations, we want to skip permission checks that use the viewable_by scope, both for
+      # performance reasons, and so that we throw an error instead of returning an empty list.
+      # After this check it's OK to use `dangerous_skip_permission_check`
+      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
     end
   end
 end

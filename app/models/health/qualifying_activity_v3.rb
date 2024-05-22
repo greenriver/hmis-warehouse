@@ -98,7 +98,14 @@ module Health
         },
         collateral: {
           title: 'Collateral contact - not with client directly',
-          code: 'UK',
+          dynamic_code: ->(qa) do
+            case qa.activity&.to_sym
+            when :care_team
+              '' # UK is implied for care team meetings
+            else
+              'UK'
+            end
+          end,
           weight: 30,
         },
       }.sort_by { |_, m| m[:weight] }.to_h
@@ -159,7 +166,7 @@ module Health
           title: 'Meeting with 3+ care team members',
           code: 'G9007',
           weight: 40,
-          allowed: ['U1', 'U2', '95', '93'],
+          allowed: ['U1', 'U2', 'U3', '95', '93'],
           required: [],
           per_day: 1,
         },

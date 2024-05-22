@@ -9,16 +9,18 @@ module HmisExternalApis::ExternalFormsHelper
     "hmis_external_apis/external_forms/#{partial}"
   end
 
-  def render_form_input(label:, input_type: 'text', name:, input_pattern: nil, input_mode: nil, required: false, input_placeholder: nil, input_class: nil, input_html_id: next_html_id)
-    render partial_path('form/input'), label: label, input_type: input_type, name: name, required: required, input_pattern: input_pattern, html_id: input_html_id, input_mode: input_mode, input_placeholder: input_placeholder, input_class: input_class
+  def render_form_input(label:, input_type: 'text', name:, input_pattern: nil, input_mode: 'text', required: false, input_placeholder: nil, input_class: nil, input_html_id: next_html_id, input_helper: nil, input_invalid_feedback: nil) # rubocop:disable Metrics/ParameterLists
+    input_invalid_feedback ||= required ? 'This is required' : nil
+    render partial_path('form/input'), label: label, input_type: input_type, name: name, required: required, input_pattern: input_pattern, html_id: input_html_id, input_mode: input_mode, input_placeholder: input_placeholder, input_class: input_class, input_helper: input_helper, input_invalid_feedback: input_invalid_feedback
   end
 
-  def render_form_textarea(label:, name:, required: false, rows: 2)
-    render partial_path('form/textarea'), label: label, name: name, required: required, rows: rows, html_id: next_html_id
+  def render_form_textarea(label:, name:, required: false, rows: 2, input_invalid_feedback: nil)
+    input_invalid_feedback ||= required ? 'This is required' : nil
+    render partial_path('form/textarea'), label: label, name: name, required: required, rows: rows, html_id: next_html_id, input_invalid_feedback: input_invalid_feedback
   end
 
-  def render_numeric_input(label:, name:, required: false, input_placeholder: nil, input_pattern: '\d*', input_html_id: nil)
-    render_form_input(label: label, name: name, required: required, input_pattern: input_pattern, input_mode: 'numeric', input_placeholder: input_placeholder, input_html_id: input_html_id)
+  def render_numeric_input(label:, name:, required: false, input_placeholder: nil, input_pattern: '\d*', input_html_id: nil, input_helper: nil, input_invalid_feedback: 'Must be a number')
+    render_form_input(label: label, name: name, required: required, input_pattern: input_pattern, input_mode: 'numeric', input_placeholder: input_placeholder, input_html_id: input_html_id, input_helper: input_helper, input_invalid_feedback: input_invalid_feedback)
   end
 
   def render_form_date(legend:, name: nil, required: false)
@@ -43,7 +45,7 @@ module HmisExternalApis::ExternalFormsHelper
   def render_section(title:, &block)
     tag.section do
       safe_join(
-        [tag.h2(title, class: 'h4'), capture(&block)],
+        [tag.h2(title, class: 'h4 mb-3'), capture(&block)],
         "\n",
       )
     end
@@ -89,22 +91,6 @@ module HmisExternalApis::ExternalFormsHelper
   end
 
   def page_config
-    presign_url = ENV['EXTERNAL_FORM_S3_PRESIGN_URL']
-    recaptcha_key = ENV['EXTERNAL_FORM_CAPTCHA_KEY']
-    if Rails.env.development?
-      presign_url ||= presign_hmis_external_apis_external_form_path
-      # for development on hmis-warehouse.dev.test
-      recaptcha_key ||= '6Ldbm4UpAAAAAAK9h9ujlVDig1nC4DghpOP6WFfQ'
-    end
-
-    # FIXME move away from this hard-coded configuration
-    @page_config ||= HmisExternalApis::ExternalForms::Config.new(
-      site_title: 'Tarrant County Homeless Coalition',
-      # FIXME: find a better home for the logo asset
-      site_logo_url: './logo.png',
-      site_logo_dimensions: [110, 60],
-      recaptcha_key: recaptcha_key,
-      presign_url: presign_url,
-    )
+    @page_config ||= HmisExternalApis::ExternalForms::Config.new
   end
 end

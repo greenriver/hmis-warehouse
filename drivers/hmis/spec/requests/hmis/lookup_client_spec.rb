@@ -30,6 +30,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:f1) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag] }
   let!(:f2) { create :file, client: c1, blob: blob, user: hmis_user, tags: [tag], confidential: true }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
+  let!(:photo_tag) { create :available_file_tag, consent_form: false, name: 'Client Headshot' }
+  let!(:photo) { create :client_file, client: c1.as_warehouse, name: 'Client Headshot Cache', tags: [photo_tag] }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
   let(:query) do
@@ -61,6 +63,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             id
             first
             last
+          }
+          image {
+            id
+            contentType
+            base64
           }
           files {
             nodes {
@@ -147,6 +154,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       'phoneNumbers' => [{ 'value' => '5554567891', 'use' => 'home', 'system' => 'phone' }],
       'emailAddresses' => [{ 'value' => 'email@e.mail', 'use' => 'home', 'system' => 'email' }],
     )
+    expect(result.dig('data', 'client', 'image')).not_to be_nil
   end
 
   it 'should return client if can view clients and client is unenrolled' do
@@ -182,6 +190,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     remove_permissions(access_control, :can_view_client_name)
     _response, result = post_graphql(id: c1.id) { query }
     expect(result.dig('data', 'client', 'names')).to contain_exactly(include('first' => "Client #{c1.id}", 'last' => nil))
+  end
+
+  it 'should return no client photo if not allowed to see photos' do
+    remove_permissions(access_control, :can_view_client_photo)
+    _response, result = post_graphql(id: c1.id) { query }
+    expect(result.dig('data', 'client', 'image')).to be_nil
   end
 
   it 'should return null DOB if not allowed to see DOB' do

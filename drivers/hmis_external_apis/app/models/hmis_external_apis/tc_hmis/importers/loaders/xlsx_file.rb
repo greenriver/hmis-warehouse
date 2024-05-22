@@ -102,6 +102,8 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def normalize_col(value)
       case value
       when String
+        # perhaps should use a pattern that matches unusual unicode space chars
+        # /[\s\u00A0\u2002\u2003\u2009\u200A\u200B\u200C\u200D]+/
         value&.gsub(/\s+/, ' ')&.strip.presence
       else
         value

@@ -60,12 +60,14 @@ module HmisDataCleanup
 
       hh_id_to_enrollments = Hmis::Hud::Enrollment.hmis.where(household_id: hh_ids).group_by(&:household_id)
 
-      hh_id_to_enrollments.each do |hh_id, enrollments|
-        Rails.logger.info "Processing HouseholdID #{hh_id}..."
-        enrollments.group_by(&:project_id).each do |project_id, enrollments_in_project|
-          id = Hmis::Hud::Base.generate_uuid
-          Rails.logger.info "[HouseholdID #{hh_id}][ProjectID #{project_id}] Reassigning Enrollments with ids: [#{enrollments_in_project.map(&:id).join(',')}] to new HouseholdID (#{id})"
-          enrollments_in_project.each { |en| en.update_columns(household_id: id) }
+      Hmis::Hud::Enrollment.without_optimistic_locking do
+        hh_id_to_enrollments.each do |hh_id, enrollments|
+          Rails.logger.info "Processing HouseholdID #{hh_id}..."
+          enrollments.group_by(&:project_id).each do |project_id, enrollments_in_project|
+            id = Hmis::Hud::Base.generate_uuid
+            Rails.logger.info "[HouseholdID #{hh_id}][ProjectID #{project_id}] Reassigning Enrollments with ids: [#{enrollments_in_project.map(&:id).join(',')}] to new HouseholdID (#{id})"
+            enrollments_in_project.each { |en| en.update_columns(household_id: id) }
+          end
         end
       end
     end
@@ -283,8 +285,6 @@ module HmisDataCleanup
       Hmis::Hud::Project.hmis.each do |project|
         next if project.project_id.size == 32 # Skip internal projects
 
-        wip_enrollments = project.wip_enrollments.pluck(:id)
-
         open_enrollments = project.enrollments.open_on_date.pluck(:id)
         open_enrollments_with_referral = project.enrollments.open_on_date.joins(:source_postings).pluck(:id)
         open_enrollments_missing_referral = open_enrollments - open_enrollments_with_referral
@@ -304,7 +304,7 @@ module HmisDataCleanup
           OpenEnrollments: open_enrollments.size,
           OpenEnrollmentsWithoutReferral: open_enrollments_missing_referral.size,
           OpenEnrollmentsWithoutUnit: open_enrollments_missing_unit.size,
-          AcceptedPendingIncompleteEnrollments: wip_enrollments.size,
+          AcceptedPendingIncompleteEnrollments: project.enrollments.in_progress.count,
         }
 
         if direct_entry_cded
@@ -481,8 +481,10 @@ module HmisDataCleanup
 
       Rails.logger.info "Updating #{record_to_personal_id.size} records..."
       without_papertrail_or_timestamps do
-        record_to_personal_id.each do |id, personal_id|
-          dangling_records_by_id[id].update_columns(personal_id: personal_id)
+        klass.without_optimistic_locking do
+          record_to_personal_id.each do |id, personal_id|
+            dangling_records_by_id[id].update_columns(personal_id: personal_id)
+          end
         end
       end
 

@@ -46,16 +46,19 @@ module Health::Tasks
     end
 
     def import(klass:, file:)
-      path = File.join((@local_path || @config.destination), file)
+      path = find_file_path(file)
+      return unless path.present? # Skip missing files
+
       handle = read_csv_file(path: path)
       unless header_row_matches(file: handle, klass: klass)
         msg = "Incorrect file format for #{file}"
         notify msg
         return
       end
+      handle.rewind
       clean_values = []
       instance = klass.new # need an instance to cache some queries
-      CSV.open(path, 'r:bom|utf-8', headers: true).each do |row|
+      CSV.open(handle, headers: true).each do |row|
         row = instance.clean_row(row: row, data_source_id: @data_source_id)
         clean_values << row.to_h.map do |k, v|
           clean_key = klass.csv_map[k.to_sym] || k.to_sym
@@ -73,6 +76,15 @@ module Health::Tasks
       klass.transaction do
         klass.process_new_data(clean_values)
       end
+    end
+
+    private def find_file_path(file)
+      ['csv', 'csv.gpg'].each do |ext|
+        path = File.join((@local_path || @config.destination), "#{file}.#{ext}")
+        return path if File.exist?(path)
+      end
+
+      return nil # File not found
     end
 
     # currently just a 10% change will prevent deletion
@@ -164,7 +176,14 @@ module Health::Tasks
       notify 'Health data downloaded'
     end
 
-    def read_csv_file path:
+    def read_csv_file(path:)
+      # Decrypt the file if it is '*.gpg'
+      if File.extname(path) == '.gpg'
+        data = @config.decrypt_data(File.read(path))
+        path = File.join(File.dirname(path), File.basename(path, '.gpg'))
+        File.write(path, data) # Store decrypted version for processing
+      end
+
       # Look at the file to see if we can determine the encoding
       @file_encoding = CharlockHolmes::EncodingDetector.
         detect(File.read(path)).
@@ -188,7 +207,7 @@ module Health::Tasks
       end
       found = CSV.parse(header_row).first.map(&:to_sym).sort
       if klass.name == 'Health::EpicCaseNote'
-        (expected - found).size.zero?
+        (expected - found).empty?
       else
         found == expected
       end

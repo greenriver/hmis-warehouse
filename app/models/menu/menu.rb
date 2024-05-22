@@ -246,7 +246,7 @@ class Menu::Menu
     )
 
     menu.add_child(warehouse_access_menu)
-    menu.add_child(legacy_access_menu)
+    menu.add_child(legacy_access_menu) unless User.all_using_acls?
     menu.add_child(warehouse_configuration_menu)
     menu.add_child(warehouse_status_menu)
     menu

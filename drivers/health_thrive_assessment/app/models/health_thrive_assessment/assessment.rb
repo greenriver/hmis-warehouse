@@ -19,6 +19,9 @@ module HealthThriveAssessment
 
     scope :in_progress, -> { where(completed_on: nil) }
     scope :completed_within, ->(range) { where(completed_on: range) }
+    scope :newest_first, -> do
+      order(arel_table[:completed_on].desc.nulls_first)
+    end
 
     scope :allowed_for_engagement, -> do
       joins(patient: :patient_referrals).
@@ -71,6 +74,10 @@ module HealthThriveAssessment
 
     def positive_for_homelessness?
       homeless?
+    end
+
+    def case_manager
+      user&.name || external_name
     end
 
     enum reporter: {

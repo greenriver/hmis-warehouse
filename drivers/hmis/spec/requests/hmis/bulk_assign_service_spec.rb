@@ -53,6 +53,8 @@ RSpec.describe 'BulkAssignService', type: :request do
       to change(c1.enrollments, :count).by(1).
       # c1 was assigned a service
       and change(c1.services, :count).by(1).
+      # c1 was assigned a bed night
+      and change(c1.services.bed_nights, :count).by(1).
       # c2 was not re-enrolled
       and change(c2.enrollments, :count).by(0).
       # c2 was assigned a service on their existing enrollment
@@ -65,6 +67,8 @@ RSpec.describe 'BulkAssignService', type: :request do
     expect(generated_enrollment.enrollment_coc).to eq(pc1.coc_code)
     expect(generated_enrollment.relationship_to_hoh).to eq(1)
     expect(generated_enrollment.household_id).to be_present
+    expect(generated_enrollment.services.first.record_type).to eq(200)
+    expect(generated_enrollment.services.first.type_provided).to eq(200)
   end
 
   it 'assigns services and enrolls unenrolled clients (Custom Service)' do
@@ -161,6 +165,11 @@ RSpec.describe 'BulkAssignService', type: :request do
       create(:hmis_hud_enrollment, data_source: ds1, client: c1, project: p1, entry_date: Date.current)
 
       expect_gql_error(perform_mutation(date_provided: 6.days.ago, client_ids: [c1.id]))
+    end
+
+    it 'succeeds if entry date is >30 days ago (internally generates warning)' do
+      response, result = perform_mutation(date_provided: 45.days.ago, client_ids: [c1.id])
+      expect(response.status).to eq(200), result.inspect
     end
   end
 end

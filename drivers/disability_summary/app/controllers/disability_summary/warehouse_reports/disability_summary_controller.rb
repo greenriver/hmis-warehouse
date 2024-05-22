@@ -28,7 +28,7 @@ module DisabilitySummary::WarehouseReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          filename = "Disability Summary - #{Time.current.to_s(:db)}.xlsx"
+          filename = "Disability Summary - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
@@ -38,7 +38,7 @@ module DisabilitySummary::WarehouseReports
       respond_to do |format|
         format.html {}
         format.xlsx do
-          filename = "Disability Summary Support for #{@report.support_title(@key).gsub(',', '')} - #{Time.current.to_s(:db)}.xlsx"
+          filename = "Disability Summary Support for #{@report.support_title(@key).gsub(',', '')} - #{Time.current.to_fs(:db)}.xlsx"
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end

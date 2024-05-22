@@ -14,7 +14,7 @@ module EccoviaData
     def self.fetch_updated(data_source_id:, credentials:)
       since = max_fetch_time(data_source_id) || default_lookback
 
-      query = "crql?q=select VulnerabilityID, ClientID, CreatedBy, UpdatedDate from VulnerabilityIndex where UpdatedDate > '#{since.to_s(:db)}'"
+      query = "crql?q=select VulnerabilityID, ClientID, CreatedBy, UpdatedDate from VulnerabilityIndex where UpdatedDate > '#{since.to_fs(:db)}'"
       credentials.get_all_in_batches(query) do |assessment_batch|
         break unless assessment_batch.present?
 

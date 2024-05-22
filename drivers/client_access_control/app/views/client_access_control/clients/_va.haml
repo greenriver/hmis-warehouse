@@ -1,7 +1,4 @@
-- if can_access_some_version_of_clients? && ! GrdaWarehouse::Config.get(:multi_coc_installation)
+- if can_access_some_version_of_clients?
   %section.o-dashboard__block--primary.client__summary
-    = render 'client_access_control/clients/client_summary'
-- if can_view_full_client_dashboard?
-  = render 'client_access_control/clients/rollups'
-- elsif can_view_limited_client_dashboard?
-  = render 'client_access_control/clients/rollups_limited'
+    = render 'client_access_control/clients/va/client_summary'
+= render 'client_access_control/clients/va/rollups'

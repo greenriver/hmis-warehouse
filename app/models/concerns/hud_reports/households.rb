@@ -30,6 +30,10 @@ module HudReports::Households
       a_t[:head_of_household].eq(true)
     end
 
+    private def hoh_or_spouse
+      a_t[:relationship_to_hoh].in([1, 3])
+    end
+
     private def adult_or_hoh_clause
       adult_clause.or(hoh_clause)
     end
@@ -103,6 +107,9 @@ module HudReports::Households
 
       # and the HoH enrollment for children if HoH status is unknown
       return hoh if hoh[:chronic_detail].in?([:dk_or_r, :missing])
+
+      # if we have an indeterminate response for the child, use the hoh
+      return hoh if current_member[:chronic_detail].in?([:dk_or_r, :missing])
 
       current_member
     end

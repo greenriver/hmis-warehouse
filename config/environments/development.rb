@@ -1,4 +1,5 @@
 I18n.config.available_locales = :en
+require 'active_support/core_ext/integer/time'
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
@@ -20,6 +21,9 @@ Rails.application.configure do
   # Show full error reports.
   config.consider_all_requests_local = true
 
+  # Enable server timing
+  config.server_timing = true
+
   # Enable/disable caching. By default caching is disabled.
   # Run rails dev:cache to toggle caching.
   config.action_controller.perform_caching = true
@@ -34,7 +38,7 @@ Rails.application.configure do
 
     cache_ssl = (ENV.fetch('CACHE_SSL') { 'false' }) == 'true'
     cache_namespace = "#{ENV.fetch('CLIENT')}-#{Rails.env}-hmis"
-    redis_config = Rails.application.config_for(:cache_store).merge({ expires_in: 5.minutes, raise_errors: false, ssl: cache_ssl, namespace: cache_namespace })
+    redis_config = Rails.application.config_for(:cache_store).merge({ expires_in: 5.minutes, race_condition_ttl: 1.minute, ssl: cache_ssl, namespace: cache_namespace })
     config.cache_store = :redis_cache_store, redis_config
   end
 

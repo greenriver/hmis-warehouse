@@ -21,7 +21,6 @@ class Hmis::Hud::CustomCaseNote < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::HasCustomDataElements
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
-  belongs_to :enrollment, **hmis_enrollment_relation, optional: true
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
@@ -60,11 +59,11 @@ class Hmis::Hud::CustomCaseNote < Hmis::Hud::Base
 
     case option
     when :date_updated
-      order(arel_table[:date_updated].desc)
+      order(arel_table[:date_updated].desc, id: :desc)
     when :date_created
-      order(arel_table[:date_created].desc)
+      order(arel_table[:date_created].desc, id: :desc)
     when :information_date
-      order(arel_table[:information_date].desc.nulls_last)
+      order(arel_table[:information_date].desc.nulls_last, id: :desc)
     else
       raise NotImplementedError
     end

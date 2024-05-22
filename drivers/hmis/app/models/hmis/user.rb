@@ -24,8 +24,8 @@ class Hmis::User < ApplicationRecord
   has_many :roles, through: :access_controls
   has_many :activity_logs, class_name: 'Hmis::ActivityLog'
 
-  has_recent :clients, Hmis::Hud::Client
-  has_recent :projects, Hmis::Hud::Project
+  has_recent :clients, 'Hmis::Hud::Client'
+  has_recent :projects, 'Hmis::Hud::Project'
   attr_accessor :hmis_data_source_id # stores the data_source_id of the currently logged in HMIS
 
   scope :with_hmis_access, -> do

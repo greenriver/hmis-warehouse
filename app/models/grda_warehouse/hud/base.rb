@@ -14,5 +14,15 @@ module GrdaWarehouse::Hud
     scope :in_coc, ->(*) do
       current_scope
     end
+
+    # This will return an equivalent record in the HMIS format
+    # Note: this will incur a db call.  Without it, permissions
+    # refuse to function.
+    def as_hmis
+      return self unless HmisEnforcement.hmis_enabled?
+
+      hmis_class = "Hmis::Hud::#{self.class.name.demodulize}".constantize
+      hmis_class.find(id)
+    end
   end
 end

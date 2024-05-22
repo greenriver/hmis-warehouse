@@ -23,7 +23,7 @@ module Types
       def resolve_external_form_submissions(scope = object.external_form_submissions, filters: nil)
         return [] unless current_user.can_manage_external_form_submissions?
 
-        scope = scope.apply_filters(filters) if filters.present?
+        scope = scope.apply_filters(filters)
         scope.order(submitted_at: :desc, id: :desc)
       end
     end

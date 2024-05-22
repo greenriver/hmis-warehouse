@@ -7,9 +7,6 @@ Rails.application.routes.draw do
   match "/422", to: "errors#unacceptable", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
 
-  require 'rails_drivers/routes'
-  RailsDrivers::Routes.load_driver_routes
-
   class OnlyXhrRequest
     def matches?(request)
       request.xhr?
@@ -773,6 +770,7 @@ Rails.application.routes.draw do
     end
     resources :groups do
        resources :users, only: [:create, :destroy], controller: 'groups/users'
+       get :download, on: :collection
     end
     # END_ACL
     resources :access_controls do

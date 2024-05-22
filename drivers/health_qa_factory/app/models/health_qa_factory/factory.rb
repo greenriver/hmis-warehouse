@@ -71,7 +71,11 @@ module HealthQaFactory
         )
       end
 
-      return if ::Health::QualifyingActivity.find_by(date_of_activity: qa.date_of_activity, activity: qa.activity).present? # Don't duplicate QAs
+      return if ::Health::QualifyingActivity.find_by(
+        patient_id: qa.patient_id,
+        date_of_activity: qa.date_of_activity,
+        activity: qa.activity,
+      ).present? # Don't duplicate QAs
 
       qa.save
 
@@ -86,7 +90,7 @@ module HealthQaFactory
       ::Health::QualifyingActivity.create(
         source_type: assessment.class.name,
         source_id: assessment.id,
-        user_id: assessment.id,
+        user_id: user.id,
         user_full_name: user.name_with_email,
         date_of_activity: assessment.completed_on,
         activity: :cha,

@@ -197,6 +197,7 @@ module HmisStructure::Service
           FAAmount: {
             type: :string,
             limit: 50,
+            check: :money,
           },
           FAStartDate: {
             type: :date,

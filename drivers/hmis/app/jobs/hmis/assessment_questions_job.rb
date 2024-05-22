@@ -4,100 +4,85 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Job for processing CustomAssessments that represent CE Assessments (e.g. HAT) into HUD CE AssessmentQuestions table.
+# This is necessary because CAS calculators rely and answers to be present in the AssessmentQuestions table.
 module Hmis
   class AssessmentQuestionsJob < BaseJob
-    attr_accessor :form_processor
+    include ::Hmis::Concerns::HmisArelHelper
 
-    # DO NOT CHANGE: Frontend code sends this value
-    HIDDEN_FIELD_VALUE = '_HIDDEN'.freeze
+    def perform(custom_assessment_ids:)
+      @custom_assessment_ids = Array.wrap(custom_assessment_ids)
+      custom_assessment_scope.each do |custom_assessment|
+        form_processor = custom_assessment.form_processor
+        ce_assessment = form_processor.ce_assessment # AssessmentQuestions will be tied to this HUD CE Assessment
+        next unless ce_assessment.present?
 
-    def perform(form_processor_id)
-      @form_processor = Hmis::Form::FormProcessor.find(form_processor_id)
-      assessment = form_processor.ce_assessment
-      return unless assessment.present?
+        definition = form_definitions_by_id[form_processor.definition_id]
+        raise "Form Definition not found: #{form_processor.definition_id}" unless definition
 
-      ::GrdaWarehouse::Hud::AssessmentQuestion.transaction do
-        assessment.assessment_questions.delete_all
-        questions_to_import = [].tap do |questions|
-          form_processor.hud_values.each do |key, value|
-            next if key.include?('.') # Field is stored in another HUD object
-            next if value == HIDDEN_FIELD_VALUE
+        ::GrdaWarehouse::Hud::AssessmentQuestion.transaction do
+          ce_assessment.assessment_questions.delete_all
 
-            value = case question_type(key)
-            when 'BOOLEAN'
-              if value
-                'Yes'
-              else
-                'No'
-              end
-            else
-              value
+          questions_to_import = [].tap do |questions|
+            question_items = definition.link_id_item_hash.values.select { |item| item.mapping&.custom_field_key.present? }
+            question_items.each_with_index do |item, index|
+              next unless item.mapping&.custom_field_key
+
+              key = item.mapping.custom_field_key
+              cded = custom_data_element_definitions_by_key[key]
+              raise "No custom data element definition found for key: #{key}" unless cded
+
+              # find responses to this question
+              value = custom_assessment.custom_data_elements.select { |cde| cde.data_element_definition_id == cded.id }&.map(&:value)
+              value = nil if value.blank? # [] => nil
+              value = value.first if value&.size == 1 # [value] => value
+              value = yes_no_nil(value) if cded.field_type.to_sym == :boolean # false => 'No'
+
+              questions << ce_assessment.assessment_questions.build(
+                enrollment_id: ce_assessment.enrollment_id,
+                personal_id: ce_assessment.personal_id,
+                user_id: ce_assessment.user_id,
+                date_created: ce_assessment.date_created,
+                date_updated: ce_assessment.date_updated,
+
+                # Note: this key is referenced by the tc_hat calculator
+                assessment_question: key,
+                # Truncate to ensure value is not too long for db
+                assessment_answer: value&.to_s&.truncate(500),
+                # Name of the section that this question belongs to
+                assessment_question_group: definition.link_id_section_hash[item.link_id],
+                # Order of this question in the form
+                assessment_question_order: index + 1,
+              )
             end
-
-            questions << assessment.assessment_questions.build(
-              enrollment_id: assessment.enrollment_id,
-              personal_id: assessment.personal_id,
-              user_id: assessment.user_id,
-              date_created: assessment.assessment_date,
-              date_updated: Time.current,
-
-              assessment_question: key,
-              assessment_answer: value,
-
-              assessment_question_group: question_group(key),
-              assessment_question_order: question_order(key),
-            )
           end
-        end
-        ::GrdaWarehouse::Hud::AssessmentQuestion.import!(questions_to_import)
-      end
-    end
-
-    private def question_type(key)
-      form_definition[key].try(:[], :type)
-    end
-
-    private def question_group(key)
-      form_definition[key].try(:[], :group)
-    end
-
-    private def question_order(key)
-      form_definition[key].try(:[], :order)
-    end
-
-    def form_definition
-      @form_definition ||= {}.tap do |h|
-        @order = 1
-        definition = form_processor.definition.definition['item']
-        h.merge!(parse(definition))
-      end
-    end
-
-    # Parse form definition hash to determine the order that custom field keys are declared,
-    # and when they are nested within a group, the label on the group (otherwise nil)
-    #
-    # @return Hash of custom_field_keys to a hash containing {group: group_label, order: the order that the fields appear, type: the type declaration}
-    private def parse(definition, group: nil)
-      {}.tap do |h|
-        definition.each do |item|
-          type = item['type']
-          if type == 'GROUP'
-            group = item['text']
-            nested_definition = item['item']
-            h.merge!(parse(nested_definition, group: group))
-          else
-            key = item.dig('mapping', 'custom_field_key')
-            next unless key.present?
-
-            h[key] = {
-              group: group,
-              order: @order,
-              type: type,
-            }
-            @order += 1
-          end
+          ::GrdaWarehouse::Hud::AssessmentQuestion.import!(questions_to_import)
         end
       end
+    end
+
+    private def custom_assessment_scope
+      Hmis::Hud::CustomAssessment.where(id: @custom_assessment_ids).
+        joins(:form_processor).
+        where(fp_t[:ce_assessment_id].not_eq(nil)).
+        preload(form_processor: [:ce_assessment], custom_data_elements: [:data_element_definition])
+    end
+
+    def form_definitions_by_id
+      @form_definitions_by_id ||= begin
+        definition_ids = Hmis::Form::FormProcessor.where(custom_assessment_id: @custom_assessment_ids).pluck(:definition_id).uniq
+        Hmis::Form::Definition.where(id: definition_ids).index_by(&:id)
+      end
+    end
+
+    def custom_data_element_definitions_by_key
+      @custom_data_element_definitions_by_key ||= Hmis::Hud::CustomDataElementDefinition.where(owner_type: 'Hmis::Hud::CustomAssessment').index_by(&:key)
+    end
+
+    private def yes_no_nil(bool)
+      return nil if bool.nil?
+
+      bool ? 'Yes' : 'No'
     end
   end
 end

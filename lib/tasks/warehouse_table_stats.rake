@@ -27,7 +27,7 @@ namespace :warehouse_table_stats do
           last_update = connection.exec_query("select max(#{q_date_col}) as last_updated from #{q_table_name}")[0]&.transform_values do |d|
             case d
             when Date, DateTime, Time
-              d&.to_s(:db)
+              d&.to_fs(:db)
             else
               d
             end

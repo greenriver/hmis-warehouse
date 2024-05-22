@@ -185,7 +185,6 @@ module Hmis
       candidates = [
         ::GrdaWarehouse::ClientFile,
         Hmis::File,
-        Hmis::Wip,
       ]
 
       Rails.logger.info "Updating #{candidates.length} tables with foreign keys to merged clients (client_id)"

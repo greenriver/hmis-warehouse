@@ -180,8 +180,12 @@ module CasClientData
         any_release_on_file?
       when :active_clients
         range = GrdaWarehouse::Config.cas_sync_range
-        # Homeless or Coordinated Entry
-        enrollment_scope = service_history_enrollments.in_project_type([0, 1, 2, 4, 8, 14])
+
+        # Homeless and Coordinated Entry Projects
+        homeless_ce_project_ids = GrdaWarehouse::Hud::Project.with_project_type(HudUtility2024.homeless_project_types + [14]).pluck(:id)
+        # Projects with override to consider enrolled clients as actively homeless for CAS and Cohorts
+        override_project_ids = GrdaWarehouse::Hud::Project.where(active_homeless_status_override: true).pluck(:id)
+        enrollment_scope = service_history_enrollments.in_project(homeless_ce_project_ids + override_project_ids)
         if GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
           enrollment_scope.with_service_between(
             start_date: range.first,
@@ -443,6 +447,36 @@ module CasClientData
       end.any?
     end
 
+    def enrolled_in_rrh_pre_move_in(ongoing_enrollments)
+      return false unless ongoing_enrollments
+
+      project_type_codes = [13]
+      ongoing_enrollments.select do |en|
+        en.project_type.in?(project_type_codes) &&
+        en.move_in_date.blank?
+      end.any?
+    end
+
+    def enrolled_in_psh_pre_move_in(ongoing_enrollments)
+      return false unless ongoing_enrollments
+
+      project_type_codes = [3]
+      ongoing_enrollments.select do |en|
+        en.project_type.in?(project_type_codes) &&
+        en.move_in_date.blank?
+      end.any?
+    end
+
+    def enrolled_in_ph_pre_move_in(ongoing_enrollments)
+      return false unless ongoing_enrollments
+
+      project_type_codes = [9, 10]
+      ongoing_enrollments.select do |en|
+        en.project_type.in?(project_type_codes) &&
+        en.move_in_date.blank?
+      end.any?
+    end
+
     def enrolled_in_th(ongoing_enrollments)
       return false unless ongoing_enrollments
 
@@ -477,6 +511,21 @@ module CasClientData
       ongoing_enrollments.select do |en|
         en.project_type.in?(project_type_codes)
       end.any?
+    end
+
+    # We are passing in safe project names to avoid N+1 queries
+    def last_intentional_contacts_for_cas(safe_project_names:)
+      contacts = processed_service_history&.last_intentional_contacts
+      return [] unless contacts.present?
+
+      contacts = JSON.parse(contacts)
+
+      contacts.select { |c| c['date'].present? && c['date'] > 3.years.ago }.
+        sort_by { |c| c['date']&.to_date || 5.years.ago }.
+        reverse.
+        map { |contact| safe_project_names[contact['project_id']] + ': ' + contact['date']&.to_date.to_s }.
+        compact.
+        uniq
     end
 
     def cas_assessment_collected_at

@@ -30,14 +30,20 @@ module Mutations
       project_has_units = project.units.exists?
       available_units = project.units.unoccupied_on(input.date_provided).order(updated_at: :desc).to_a
 
+      # async record load must be called outside of a db transaction to avoid deadlocks
+      enrollment_by_client = clients.to_h do |client|
+        enrollment = load_open_enrollment_for_client(
+          client,
+          project_id: project.id,
+          open_on_date: input.date_provided,
+        )
+        [client.id, enrollment]
+      end
+
       Hmis::Hud::Service.transaction do
         clients.each do |client|
           # Look for Enrollment at the project that is open on the service date
-          enrollment = load_open_enrollment_for_client(
-            client,
-            project_id: project.id,
-            open_on_date: input.date_provided,
-          )
+          enrollment = enrollment_by_client[client.id]
 
           # If no Enrollment was found, create one
           unless enrollment
@@ -54,6 +60,8 @@ module Mutations
             raise 'bulk service assignment generated invalid enrollment' unless enrollment.valid?
 
             entry_date_errors = Hmis::Hud::Validators::EnrollmentValidator.validate_entry_date(enrollment)
+            # Ignore informational warnings (e.g. >30 days ago). Keep out-of-range warnings (e.g. existing overlapping enrollment)
+            entry_date_errors.reject! { |e| e.warning? && e.type == :information }
             error_out(entry_date_errors.first.full_message) unless entry_date_errors.empty?
 
             # Attempt to assign this enrollment to a unit if this project has units. This is AC-specific for now, and does
@@ -72,13 +80,10 @@ module Mutations
           service = Hmis::Hud::HmisService.new(
             client: client,
             enrollment: enrollment,
-            custom_service_type: cst,
+            custom_service_type_id: cst.id,
             date_provided: input.date_provided,
             user_id: hud_user_id,
           )
-
-          # If this is a HUD Service, set the HUD RecordType and TypeProvided on the owner
-          service.owner.assign_attributes(record_type: cst.hud_record_type, type_provided: cst.hud_type_provided) if cst.hud_service?
 
           # Pass form_submission context to validate uniqueness of bed nights per day.
           # Note: an improvement would be to raise a user-facing error if any service(s) were duplicates for bed nights,

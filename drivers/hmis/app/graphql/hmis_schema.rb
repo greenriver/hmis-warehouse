@@ -11,6 +11,8 @@ class HmisSchema < GraphQL::Schema
   trace_with(GraphqlTraceBehavior)
 
   # For batch-loading (see https://graphql-ruby.org/dataloader/overview.html)
+  # - after upgrade to Rails 7.1 we could replace Dataloader with AsyncDataloader for performance
+  #   https://graphql-ruby.org/dataloader/async_dataloader
   use GraphQL::Dataloader
 
   disable_introspection_entry_points unless Rails.env.development?

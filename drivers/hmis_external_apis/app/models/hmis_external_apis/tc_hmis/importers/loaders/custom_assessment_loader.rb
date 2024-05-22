@@ -32,6 +32,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       super && reader.file_present?(filename)
     end
 
+    def supports_upsert?
+      true
+    end
+
     protected
 
     # for extrapolate_missing_enrollment_ids
@@ -51,12 +55,12 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def validate_cde_configs
       seen_element_ids = Set.new
 
-      required_keys = [:label, :key, :repeats, :field_type]
-      all_keys = (required_keys + [:element_id, :ignore_type]).to_set
+      required_keys = [:key, :repeats, :field_type]
+      all_keys = (required_keys + [:label, :element_id, :ignore_type]).to_set
       cded_configs.each do |item|
         # Check for required keys
         raise "Missing required keys in #{item.inspect}" unless required_keys.all? { |k| item.key?(k) }
-
+        raise 'Must have label or element_id' unless item[:label] || item[:element_id]
         raise "Invalid keys present in #{item.inspect}" unless item.keys.all? { |k| all_keys.include?(k) }
 
         # If :element_id is present, check for uniqueness
@@ -159,9 +163,11 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       processor_model = Hmis::Form::FormProcessor
       records = []
       rows.each do |row|
-        assessment_id = owner_id_by_row_id[row_assessment_id(row)]
-        next unless assessment_id
+        assessment_hud_key = row_assessment_id(row)
         next if existing_assessment_hud_keys.include?(assessment_hud_key) # already imported
+
+        assessment_id = owner_id_by_row_id[assessment_hud_key]
+        next unless assessment_id
 
         ce_assessment_id = nil
         if ce_assessment_level
@@ -183,7 +189,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def form_definition
       @form_definition ||= Hmis::Form::Definition.where(identifier: form_definition_identifier).first_or_create! do |definition|
         definition.title = form_definition_identifier.humanize
-        definition.status = 'draft'
+        definition.status = Hmis::Form::Definition::DRAFT
         definition.version = 0
         definition.role = 'FORM_DEFINITION'
       end
@@ -203,7 +209,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       seen = Set.new
       cdes = []
       rows.each do |row|
-        owner_id = owner_id_by_assessment_id[row_assessment_id(row)]
+        assessment_hud_key = row_assessment_id(row)
+        next if existing_assessment_hud_keys.include?(assessment_hud_key) # already imported
+
+        owner_id = owner_id_by_assessment_id[assessment_hud_key]
         next unless owner_id
 
         cded_configs.each do |config|

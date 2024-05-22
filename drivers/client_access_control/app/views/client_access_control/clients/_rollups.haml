@@ -28,7 +28,7 @@
 
 %section.row.o-dashboard__block--primary
   .col-sm-6
-    - if GrdaWarehouse::Config.get(:eto_api_available) || RailsDrivers.loaded.include?(:eccovia_data) && @client.source_eccovia_case_managers.exists?
+    - if GrdaWarehouse::Config.get(:eto_api_available) || HmisEnforcement.hmis_enabled? || RailsDrivers.loaded.include?(:eccovia_data) && @client.source_eccovia_case_managers.exists?
       %article.rollup.o-dashboard__block.o-dashboard__block--secondary{data: {partial: :contact_information}}
         %header
           %h1.h3 Contact Information
