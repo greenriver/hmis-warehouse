@@ -36,5 +36,7 @@
               %td= client.last_name
               - @data_cells.each do |cell|
                 - val = client.send("spm_#{cell}")
-                - val = nil if val.negative? # -1 days is used to identify clients with no return
-                %td= val
+                - if client.show_cell?(cell, val)
+                  %td= val
+                - else
+                  %td

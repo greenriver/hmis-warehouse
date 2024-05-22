@@ -81,5 +81,13 @@ module HomelessSummaryReport
         end
       end
     end
+
+    def show_cell?(name, value)
+      case name.to_sym
+      when :m2_reentry_days
+        return false if value.negative?
+      end
+      return true
+    end
   end
 end
