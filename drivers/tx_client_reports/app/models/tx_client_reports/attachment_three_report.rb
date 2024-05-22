@@ -196,7 +196,8 @@ module TxClientReports
           street_address: enrollment.project.project_cocs&.first&.Address1, # Shelter address
           age: enrollment.age, # Age at project entry to keep report stable
           genders: client.gender_multi,
-          races: client.race_fields,
+          ethnicity: client.hispanic_latinaeo,
+          races: client.race_fields - ['HispanicLatinaeo'],
           race_description: client.race_description,
           disabled: client_disabled?(client),
           hh_size: household.count,

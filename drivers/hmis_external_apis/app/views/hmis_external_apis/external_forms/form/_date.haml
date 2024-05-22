@@ -32,7 +32,7 @@
           $(day).val().padStart(2, '0'),
           $(year).val()
         ]
-        console.info(parts.join('/'));
+        // console.info(parts.join('/'));
         $(date).val(parts.join('/'));
       });
 
@@ -62,7 +62,7 @@
       }
 
       var setError = function(msg) {
-        console.info(msg)
+        // console.info(msg)
         var el = $(validationMessage);
         if (msg) {
           el.addClass('is-invalid');

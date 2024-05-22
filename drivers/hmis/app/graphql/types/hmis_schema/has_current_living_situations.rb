@@ -31,8 +31,9 @@ module Types
 
       private
 
-      def scoped_current_living_situations(scope)
-        scope.viewable_by(current_user).order(information_date: :desc)
+      def scoped_current_living_situations(scope, dangerous_skip_permission_check: false)
+        scope = scope.viewable_by(current_user) unless dangerous_skip_permission_check
+        scope.order(information_date: :desc, id: :desc)
       end
     end
   end

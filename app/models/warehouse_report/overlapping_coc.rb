@@ -35,9 +35,8 @@ class WarehouseReport::OverlappingCoc < WarehouseReport
         end_date: end_date,
       )
 
-    my_enrollments = e_scope.in_coc(
-      coc_code: coc_code,
-    )
+    my_enrollments = e_scope.joins(:enrollment).
+      where(e_t[:enrollment_coc].eq(coc_code))
 
     my_client_ids = my_enrollments.distinct.pluck(:client_id)
 
@@ -45,9 +44,9 @@ class WarehouseReport::OverlappingCoc < WarehouseReport
       client_id: my_client_ids,
     ).where.not(
       id: my_enrollments.select(:id),
-    ).joins(project: :project_cocs).group(
-      GrdaWarehouse::Hud::ProjectCoc.coc_code_coalesce.to_sql,
-    ).distinct.count(:client_id)
+    ).joins(:enrollment).
+      group(e_t[:enrollment_coc]).
+      distinct.count(:client_id)
 
     other_client_counts
   end

@@ -54,10 +54,11 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::ProjectsImporter, type: :mod
 
     Dir.chdir(invalid_data_dir) do
       importer = HmisExternalApis::AcHmis::Importers::ProjectsImporter.new(dir: '.', key: 'data.zip', etag: '12345')
-      importer.run!
+      expect do
+        importer.run!
+      end.to raise_error(StandardError, /Incorrectly formatted date in Funder.csv StartDate: 01-JUL-20/)
     end
 
-    expect(Rails.logger).to have_received(:fatal).with('Incorrectly formatted date in Funder.csv StartDate: 01-JUL-20')
     expect(Rails.logger).to have_received(:fatal).with('ProjectsImporter aborted before it finished.')
     expect(GrdaWarehouse::Hud::Project.count).to eq(0)
     expect(GrdaWarehouse::Hud::Funder.count).to eq(0)
