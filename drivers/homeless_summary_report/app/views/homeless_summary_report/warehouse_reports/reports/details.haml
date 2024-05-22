@@ -35,4 +35,8 @@
               %td= client.first_name
               %td= client.last_name
               - @data_cells.each do |cell|
-                %td= client.send("spm_#{cell}")
+                - val = client.send("spm_#{cell}")
+                - if client.show_cell?(cell, val)
+                  %td= val
+                - else
+                  %td
