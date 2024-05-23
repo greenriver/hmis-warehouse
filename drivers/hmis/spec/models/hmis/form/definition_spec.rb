@@ -21,29 +21,28 @@ RSpec.describe Hmis::Form::Definition, type: :model do
 
   let(:c1) { create :hmis_hud_client, data_source: ds1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
-  let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
+  let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 7 }
 
   describe 'finding the definition for a HUD Assessment' do
     let(:role) { :INTAKE }
-    let!(:fd1) { create :hmis_form_definition, identifier: 'p1-intake', role: role, version: 3, status: :published }
-    let!(:fd2) { create :hmis_form_definition, identifier: 'p1-intake', role: role, version: 2, status: :retired }
-    let!(:fd3) { create :hmis_form_definition, identifier: 'default-intake', role: role, version: 4, status: :published }
-    let!(:fd4) { create :hmis_form_definition, identifier: 'default-intake', role: role, version: 3, status: :draft }
-    let!(:fd5) { create :hmis_form_definition, identifier: 'draft-only-intake', role: role, version: 6, status: :draft }
-    let!(:fd6) { create :hmis_form_definition, identifier: 'inactive-intake', role: role, version: 7, status: :published }
+    # Intake for p1
+    let!(:p1_intake_published) { create :hmis_form_definition, identifier: 'p1-intake', role: role, version: 3, status: :published }
+    let!(:p1_intake_retired) { create :hmis_form_definition, identifier: 'p1-intake', role: role, version: 2, status: :retired } # cruft: old version
+    let!(:p1_intake_rule) { create :hmis_form_instance, definition_identifier: 'p1-intake', entity: p1, active: true }
 
-    # Rule enabling p1-intake for p1
-    let!(:fi1) { create :hmis_form_instance, definition_identifier: 'p1-intake', entity: p1, active: true }
+    # Intake for all projects
+    let!(:default_intake_published) { create :hmis_form_definition, identifier: 'default-intake', role: role, version: 4, status: :published }
+    let!(:default_intake_retired) { create :hmis_form_definition, identifier: 'default-intake', role: role, version: 3, status: :draft } # cruft: old version
+    let!(:default_intake_rule) { create :hmis_form_instance, definition_identifier: 'default-intake', entity: nil, active: true }
 
-    # Rule enabling default-intake for p1
-    let!(:fi2) { create :hmis_form_instance, definition_identifier: 'default-intake', entity: nil, active: true }
-
-    # Active Rule enabling the draft-only form for p1. It should never be used, because the form only has a draft version.
+    # cruft: form has active rules but only has a draft version
+    let!(:draft_only_intake) { create :hmis_form_definition, identifier: 'draft-only-intake', role: role, version: 6, status: :draft }
     # TODO(#6147): Re-enable when switch from `latest_versions` to `published` scope
-    # let!(:fi3) { create :hmis_form_instance, definition: fd5, entity: p1, active: true }
+    # let!(:draft_only_intake_rule) { create :hmis_form_instance, definition: draft_only_intake, entity: p1, active: true }
 
-    # Inactive Rule enabling the inactive intake. Should never be used, because ther rule is inactive and the form doesn't have an active rule.
-    let!(:fi4) { create :hmis_form_instance, definition_identifier: 'inactive-intake', entity: p1, active: false }
+    # cruft: form only has inactive rules
+    let!(:inactive_intake) { create :hmis_form_definition, identifier: 'inactive-intake', role: role, version: 7, status: :published }
+    let!(:inactive_intake_rule) { create :hmis_form_instance, definition_identifier: 'inactive-intake', entity: p1, active: false }
 
     def expect_definition(expected_fd, project: nil)
       selected = Hmis::Form::Definition.find_definition_for_role(role, project: project)
@@ -54,32 +53,33 @@ RSpec.describe Hmis::Form::Definition, type: :model do
     end
 
     it 'should use the definition with the most applicable rule (default rule)' do
-      expect_definition(fd3, project: p2)
+      expect_definition(default_intake_published, project: p2)
     end
 
     it 'should use the definition with the most applicable rule (project rule)' do
-      expect_definition(fd1, project: p1)
+      expect_definition(p1_intake_published, project: p1)
     end
 
     it 'should ignore inactive rules, even if they are more specific' do
       create(:hmis_form_instance, definition_identifier: 'p1-intake', entity: p2, active: false)
       # chooses default-intake based on default rule, even though p1-intake has a more specific rule that is inactive
-      expect_definition(fd3, project: p2)
+      expect_definition(default_intake_published, project: p2)
     end
 
     it 'should only return default-rule-definitions if project is not passed' do
-      expect_definition(fd3)
+      expect_definition(default_intake_published)
     end
 
     it 'should use the definition with the most applicable rule (org rule)' do
-      fi1.update!(entity: o1)
-      expect_definition(fd1, project: p1) # p1 belongs to o1
-      expect_definition(fd1, project: p2) # p1 belongs to o2
+      p1_intake_rule.update!(entity: o1)
+      expect_definition(p1_intake_published, project: p1) # p1 belongs to o1
+      expect_definition(p1_intake_published, project: p2) # p1 belongs to o2
     end
 
     it 'should use the definition with the most applicable rule (project type rule)' do
-      fi1.update!(entity: nil, project_type: p1.project_type)
-      expect_definition(fd1, project: p1)
+      p1_intake_rule.update!(entity: nil, project_type: p1.project_type)
+      expect_definition(p1_intake_published, project: p1) # p1 intake matches project type
+      expect_definition(default_intake_published, project: p2) # p1 intake does not match project type, fall back to default
     end
   end
 
