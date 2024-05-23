@@ -61,6 +61,12 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       expect_definition(fd1, project: p1)
     end
 
+    it 'should ignore inactive rules, even if they are more specific' do
+      create(:hmis_form_instance, definition_identifier: 'p1-intake', entity: p2, active: false)
+      # chooses default-intake based on default rule, even though p1-intake has a more specific rule that is inactive
+      expect_definition(fd3, project: p2)
+    end
+
     it 'should only return default-rule-definitions if project is not passed' do
       expect_definition(fd3)
     end

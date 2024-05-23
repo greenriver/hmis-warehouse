@@ -236,14 +236,14 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   def self.for_project(project:, role:, service_type: nil)
     # Consider all Active, Published Forms for this Role
     definition_scope = Hmis::Form::Definition.with_role(role).
-      active.
+      active. # Drop definitions that have no active rules
       latest_versions # TODO(#6147): Switch from `latest_versions` to `published` scope
 
     # Filter by Service Type if specified
     definition_scope = definition_scope.for_service_type(service_type) if service_type.present?
 
-    # Scope of Instances (Rules) that are are associated with the eligible definitions
-    instance_scope = Hmis::Form::Instance.joins(:definition).merge(definition_scope)
+    # Scope of active Instances (Rules) that are are associated with the eligible definitions
+    instance_scope = Hmis::Form::Instance.joins(:definition).merge(definition_scope).active
     # Choose the Instance that is the "best match" for this Project (e.g. prefer project-specific rule, then org-specific, default rule, etc.)
     selected_instance = instance_scope.detect_best_instance_for_project(project: project)
     return unless selected_instance # No match found. This is OK for non-system roles, like CurrentLivingSituation.
@@ -306,8 +306,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def self.find_definition_for_role(role, project: nil)
-    # If project was specified, return the published active FormDefition that is "most relevant" for the Project
     selected_definition = if project.present?
+      # Chooses the published FormDefinition that is "most relevant" for the Project (via an active FormInstance)
       Hmis::Form::Definition.for_project(project: project, role: role)
     else
       # Project was not specified, so return the "default" FormDefinition for the role (if any)
