@@ -35,8 +35,9 @@ module Hmis
               # find responses to this question
               value = custom_assessment.custom_data_elements.select { |cde| cde.data_element_definition_id == cded.id }&.map(&:value)
               value = nil if value.blank? # [] => nil
-              value = value.first if value&.size == 1 # [value] => value
-              value = yes_no_nil(value) if cded.field_type.to_sym == :boolean # false => 'No'
+              value = value&.first unless cded.repeats # [value] => value
+              # Don't change this, TcHmisHat calculator relies on booleans being stored as 'Yes' or 'No'
+              value = yes_no(value) if cded.field_type.to_sym == :boolean # false => 'No'
 
               questions << ce_assessment.assessment_questions.build(
                 enrollment_id: ce_assessment.enrollment_id,
@@ -79,9 +80,9 @@ module Hmis
       @custom_data_element_definitions_by_key ||= Hmis::Hud::CustomDataElementDefinition.where(owner_type: 'Hmis::Hud::CustomAssessment').index_by(&:key)
     end
 
-    private def yes_no_nil(bool)
-      return nil if bool.nil?
-
+    private def yes_no(bool)
+      # Nil is intentionally saved as 'No' to match previous behavior.
+      # This will be the case even for questions that were hidden on the page at time of assessment.
       bool ? 'Yes' : 'No'
     end
   end
