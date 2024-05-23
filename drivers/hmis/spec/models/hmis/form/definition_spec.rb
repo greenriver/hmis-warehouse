@@ -52,22 +52,19 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       expect(selected.slice(*comparison_attrs)).to match(expected_fd.slice(*comparison_attrs))
     end
 
-    it 'should use the definition with the most applicable rule (default rule)' do
-      expect_definition(default_intake_published, project: p2)
+    it 'should use the definition with the most applicable rule' do
+      expect_definition(p1_intake_published, project: p1) # uses p1_intake_rule
+      expect_definition(default_intake_published, project: p2) # uses default_intake_rule
     end
 
-    it 'should use the definition with the most applicable rule (project rule)' do
-      expect_definition(p1_intake_published, project: p1)
+    it 'should only return default-rule-definitions if project is not passed' do
+      expect_definition(default_intake_published)
     end
 
     it 'should ignore inactive rules, even if they are more specific' do
       create(:hmis_form_instance, definition_identifier: 'p1-intake', entity: p2, active: false)
       # chooses default-intake based on default rule, even though p1-intake has a more specific rule that is inactive
       expect_definition(default_intake_published, project: p2)
-    end
-
-    it 'should only return default-rule-definitions if project is not passed' do
-      expect_definition(default_intake_published)
     end
 
     it 'should use the definition with the most applicable rule (org rule)' do
