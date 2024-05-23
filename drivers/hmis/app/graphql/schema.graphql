@@ -8352,6 +8352,7 @@ type Project {
   ceParticipations(limit: Int, offset: Int): CeParticipationsPaginated!
   contactInformation: String
   continuumProject: NoYes
+  currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
   customDataElements: [CustomDataElement!]!
 
   """

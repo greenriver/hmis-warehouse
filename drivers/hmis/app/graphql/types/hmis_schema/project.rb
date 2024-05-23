@@ -23,6 +23,7 @@ module Types
     include Types::HmisSchema::HasHudMetadata
     include Types::HmisSchema::HasExternalFormSubmissions
     include Types::HmisSchema::HasAssessments
+    include Types::HmisSchema::HasCurrentLivingSituations
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2024')
@@ -64,6 +65,7 @@ module Types
     ce_participations_field
     assessments_field filter_args: { omit: [:project, :project_type], type_name: 'AssessmentsForProject' }
     services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForProject' }
+    current_living_situations_field
     hud_field :operating_start_date, null: true
     hud_field :operating_end_date
     hud_field :description, String, null: true
@@ -121,6 +123,12 @@ module Types
       check_enrollment_details_access
 
       resolve_assessments(object.custom_assessments, dangerous_skip_permission_check: true, **args)
+    end
+
+    def current_living_situations(**args)
+      check_enrollment_details_access
+
+      resolve_assessments(object.current_living_situations, dangerous_skip_permission_check: true, **args)
     end
 
     def organization

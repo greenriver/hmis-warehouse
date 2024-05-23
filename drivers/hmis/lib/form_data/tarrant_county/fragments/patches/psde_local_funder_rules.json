@@ -1,7 +1,7 @@
 [
   {
     "link_id": "income-and-sources",
-    "_comment": "Default HUD Rules + Local/NA funders",
+    "_comment": "Default HUD Rules + All ES NBN + Local/NA funders",
     "rule": {
       "operator": "ANY",
       "parts": [
@@ -12,6 +12,12 @@
             {"variable": "projectFunders", "operator": "INCLUDE", "value": 46},
             {"variable": "projectFunders", "operator": "INCLUDE", "value": 34}
           ]
+        },
+        {
+          "_comment": "Collect for all NBN Emergency Shelters (non-HUD rule)",
+          "variable": "projectType",
+          "operator": "EQUAL",
+          "value": 1
         },
         {
           "operator": "ALL",
