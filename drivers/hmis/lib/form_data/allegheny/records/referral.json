@@ -1,7 +1,7 @@
 {
   "item": [
     {
-      "_comment": "Referral form that requires Unit Types and collects Resource Coordiantor Notes",
+      "_comment": "Referral form that requires Unit Types and collects Resource Coordinator Notes",
       "type": "CHOICE",
       "required": true,
       "link_id": "referral_unit_type",

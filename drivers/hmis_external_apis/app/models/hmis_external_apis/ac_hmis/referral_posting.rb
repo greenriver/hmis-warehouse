@@ -89,8 +89,11 @@ module HmisExternalApis::AcHmis
       validates :denial_note, length: { maximum: 2_000 }
     end
 
+    validate :validate_unit_availability, on: :form_submission, if: :new_record?
+
     before_create do
       self.status_updated_at ||= created_at
+      self.status_updated_by ||= current_user if current_user
     end
 
     ACTIVE_STATUSES = [:assigned_status, :accepted_pending_status, :denied_pending_status].freeze
@@ -124,6 +127,12 @@ module HmisExternalApis::AcHmis
       return unless expected_statuses.present?
 
       errors.add(:status, :invalid, message: "is invalid. Expected one of: #{expected_statuses.map(&:humanize).join(', ')}") unless expected_statuses.include?(status)
+    end
+
+    private def validate_unit_availability
+      return unless unit_type_id.present?
+
+      errors.add(:unit_type_id, :invalid, message: 'is not available in the selected project') unless project.units.unoccupied_on.where(unit_type_id: unit_type_id).exists?
     end
 
     # referral came from LINK
