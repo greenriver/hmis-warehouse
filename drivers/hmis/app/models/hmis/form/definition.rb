@@ -236,7 +236,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   def self.for_project(project:, role:, service_type: nil)
     # Consider all Active, Published Forms for this Role
     definition_scope = Hmis::Form::Definition.with_role(role).
-      active.         # Only consider definitions that have any active rules
+      active.
       latest_versions # TODO(#6147): Switch from `latest_versions` to `published` scope
 
     # Filter by Service Type if specified
