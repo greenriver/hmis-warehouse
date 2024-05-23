@@ -78,6 +78,21 @@ RSpec.describe Hmis::Form::Definition, type: :model do
       expect_definition(p1_intake_published, project: p1) # p1 intake matches project type
       expect_definition(default_intake_published, project: p2) # p1 intake does not match project type, fall back to default
     end
+
+    it 'should prefer non-system rule over system rule when choosing a default instance' do
+      default_intake_rule.update!(system: true)
+
+      other_default_intake = create(:hmis_form_definition, identifier: 'custom-default-intake', role: role, version: 4, status: :published)
+      other_default_rule = create(:hmis_form_instance, definition: other_default_intake, entity: nil, active: true, system: false)
+      expect_definition(other_default_intake, project: p2) # chooses definition referenced by non-system rule
+      expect_definition(other_default_intake) # same if project is not passed
+
+      # test the other direction
+      default_intake_rule.update!(system: false)
+      other_default_rule.update!(system: true)
+      expect_definition(default_intake_published, project: p2) # chooses definition referenced by non-system rule
+      expect_definition(default_intake_published) # same if project is not passed
+    end
   end
 
   describe 'finding the definition for an Enrollment form, with funder and project type instances' do
