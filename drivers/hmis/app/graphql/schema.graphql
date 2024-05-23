@@ -3301,6 +3301,11 @@ type Enrollment {
   sexualOrientation: SexualOrientation
   sexualOrientationOther: String
   singleParent: NoYesMissing
+
+  """
+  Present if this household was enrolled as the result of a referral from another project.
+  """
+  sourceReferralPosting: ReferralPosting
   status: EnrollmentStatus!
   subsidyAtRisk: NoYesMissing
   targetScreenReqd: NoYesMissing
