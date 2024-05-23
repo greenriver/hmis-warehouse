@@ -5,6 +5,7 @@
 ###
 
 module Mutations
+  # Deprecated, remove in release-118
   class AcHmis::CreateOutgoingReferralPosting < CleanBaseMutation
     description 'Create outgoing referral posting'
 

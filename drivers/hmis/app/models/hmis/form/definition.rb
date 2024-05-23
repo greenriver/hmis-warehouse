@@ -179,6 +179,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     },
     REFERRAL: {
       owner_class: 'HmisExternalApis::AcHmis::ReferralPosting',
+      # Note: this permission should be checked against the project that is _sending_ the referral,
+      # not the project that is receiving it.
       permission: :can_manage_outgoing_referrals,
     },
     CURRENT_LIVING_SITUATION: {
