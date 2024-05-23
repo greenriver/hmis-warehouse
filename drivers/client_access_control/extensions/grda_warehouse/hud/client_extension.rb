@@ -194,6 +194,9 @@ module ClientAccessControl::GrdaWarehouse::Hud
             else
               entry.service_history_services.service_excluding_extrapolated.maximum(:date)
             end
+            # default to entry date if we don't have any services
+            most_recent_service ||= entry.entry_date
+
             new_episode = new_episode?(enrollments: enrollments, enrollment: entry)
             {
               client_source_id: entry.source_client.id,
@@ -201,11 +204,11 @@ module ClientAccessControl::GrdaWarehouse::Hud
               ProjectID: project.ProjectID,
               project_name: project_name,
               confidential_project: project.confidential,
-              entry_date: entry.first_date_in_program,
+              entry_date: entry.entry_date,
               living_situation: entry.enrollment.LivingSituation,
               chronically_homeless_at_start: entry.enrollment.chronically_homeless_at_start?,
               chronically_homeless_at_most_recent: entry.enrollment.chronically_homeless_at_start?(date: most_recent_service),
-              exit_date: entry.last_date_in_program,
+              exit_date: entry.exit_date,
               destination: entry.destination,
               move_in_date_inherited: entry.enrollment.MoveInDate.blank? && entry.move_in_date.present?,
               move_in_date: entry.move_in_date,
