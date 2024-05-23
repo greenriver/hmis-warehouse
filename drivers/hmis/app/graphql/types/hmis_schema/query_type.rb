@@ -177,6 +177,7 @@ module Types
     end
     def record_form_definition(role:, project_id: nil)
       raise 'Not supported, use serviceFormDefinition to look up service forms' if role == 'SERVICE'
+      raise 'unexpected role' unless Hmis::Form::Definition::FORM_ROLES.include?(role.to_sym)
 
       project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
       record = Hmis::Form::Definition.find_definition_for_role(role, project: project)
@@ -193,6 +194,7 @@ module Types
     end
     def assessment_form_definition(project_id:, id: nil, role: nil, assessment_date: nil)
       raise 'id or role required' if id.nil? && role.nil?
+      raise 'unexpected role' if role && !Hmis::Form::Definition::ASSESSMENT_FORM_ROLES.include?(role.to_sym)
 
       project = Hmis::Hud::Project.find(project_id)
       # Ensure that user can view enrollments for this project. There is no need to expose assessment forms otherwise.
