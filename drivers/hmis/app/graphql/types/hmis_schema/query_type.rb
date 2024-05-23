@@ -173,7 +173,7 @@ module Types
 
     field :record_form_definition, Types::Forms::FormDefinition, 'Get the most relevant Form Definition to use for record viewing/editing', null: true do
       argument :role, Types::Forms::Enums::RecordFormRole, required: true
-      argument :project_id, ID, required: false, description: 'Optional Project to apply rule filtering (e.g. show/hide questions based on Project applicability)'
+      argument :project_id, ID, required: false, description: 'Optional Project to select the relevant form, and to apply rule filtering (e.g. show/hide questions based on Project applicability)'
     end
     def record_form_definition(role:, project_id: nil)
       raise 'Not supported, use serviceFormDefinition to look up service forms' if role == 'SERVICE'
@@ -431,7 +431,7 @@ module Types
     def form_identifiers(filters: nil)
       raise 'Access denied' unless current_user.can_configure_data_collection?
 
-      scope = Hmis::Form::Definition.non_static.latest_versions
+      scope = Hmis::Form::Definition.non_static.valid.latest_versions
       scope = scope.apply_filters(filters) if filters
       scope.order(updated_at: :desc)
     end

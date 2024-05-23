@@ -12,6 +12,8 @@ RSpec.describe Hmis::Form::Definition, type: :model do
 
   before(:all) do
     cleanup_test_environment
+    Hmis::Form::Definition.delete_all
+    Hmis::Form::Instance.delete_all
   end
   after(:all) do
     cleanup_test_environment
@@ -19,86 +21,89 @@ RSpec.describe Hmis::Form::Definition, type: :model do
 
   let(:c1) { create :hmis_hud_client, data_source: ds1 }
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1 }
-  let!(:fd1) { create :hmis_form_definition, role: 'INTAKE' }
-  let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1 }
+  let!(:p2) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1 }
 
-  it 'should return the right definition if a project has a specific assessment' do
-    expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
-  end
+  describe 'finding the definition for a HUD Assessment' do
+    let(:role) { :INTAKE }
+    let!(:fd1) { create :hmis_form_definition, identifier: 'p1-intake', role: role, version: 3, status: :published }
+    let!(:fd2) { create :hmis_form_definition, identifier: 'p1-intake', role: role, version: 2, status: :retired }
+    let!(:fd3) { create :hmis_form_definition, identifier: 'default-intake', role: role, version: 4, status: :published }
+    let!(:fd4) { create :hmis_form_definition, identifier: 'default-intake', role: role, version: 3, status: :draft }
+    let!(:fd5) { create :hmis_form_definition, identifier: 'draft-only-intake', role: role, version: 6, status: :draft }
+    let!(:fd6) { create :hmis_form_definition, identifier: 'inactive-intake', role: role, version: 7, status: :published }
 
-  it 'should return the right definition if a project\'s org has a specific assessment' do
-    fi1.entity = o1
-    fi1.save!
-    expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
-  end
+    # Rule enabling p1-intake for p1
+    let!(:fi1) { create :hmis_form_instance, definition_identifier: 'p1-intake', entity: p1, active: true }
 
-  it 'should return the right definition if a project\'s type has a specific assessment' do
-    fi1.update(entity: nil, project_type: p1.project_type)
-    expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
-  end
+    # Rule enabling default-intake for p1
+    let!(:fi2) { create :hmis_form_instance, definition_identifier: 'default-intake', entity: nil, active: true }
 
-  it 'should return the right definition if there\'s only a default assessment' do
-    fi1.entity = nil
-    fi1.save!
-    expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
-  end
+    # Active Rule enabling the draft-only form for p1. It should never be used, because the form only has a draft version.
+    # TODO(#6147): Re-enable when switch from `latest_versions` to `published` scope
+    # let!(:fi3) { create :hmis_form_instance, definition: fd5, entity: p1, active: true }
 
-  describe 'with multiple definitions' do
-    let!(:fd2) { create :hmis_form_definition, role: 'UPDATE' }
-    let!(:fi2) { create :hmis_form_instance, definition: fd2, entity: p1 }
+    # Inactive Rule enabling the inactive intake. Should never be used, because ther rule is inactive and the form doesn't have an active rule.
+    let!(:fi4) { create :hmis_form_instance, definition_identifier: 'inactive-intake', entity: p1, active: false }
 
-    it 'should return a definition with the correct role' do
-      expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
-      expect(Hmis::Form::Definition.find_definition_for_role(fd2.role, project: p1)).to eq(fd2)
+    def expect_definition(expected_fd, project: nil)
+      selected = Hmis::Form::Definition.find_definition_for_role(role, project: project)
+
+      # compare on a subset of attributes to make debugging easier
+      comparison_attrs = [:id, :identifier, :version, :status]
+      expect(selected.slice(*comparison_attrs)).to match(expected_fd.slice(*comparison_attrs))
     end
 
-    it 'should return the most specific definition with the correct role' do
-      fi2.update(entity: nil, project_type: p1.project_type)
-      fd2.update(role: fd1.role)
-      expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
+    it 'should use the definition with the most applicable rule (default rule)' do
+      expect_definition(fd3, project: p2)
     end
 
-    it 'should return the most recent version of a definition when no version provided' do
-      fd2.update(role: fd1.role, version: 1)
-      fd1.update(version: 2)
-      expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1)).to eq(fd1)
+    it 'should use the definition with the most applicable rule (project rule)' do
+      expect_definition(fd1, project: p1)
     end
 
-    it 'should return the most recent version of a definition when a version is provided' do
-      fd2.update(role: fd1.role, version: 1)
-      fd1.update(version: 2)
-      expect(Hmis::Form::Definition.find_definition_for_role(fd1.role, project: p1, version: 1)).to eq(fd2)
+    it 'should only return default-rule-definitions if project is not passed' do
+      expect_definition(fd3)
+    end
+
+    it 'should use the definition with the most applicable rule (org rule)' do
+      fi1.update!(entity: o1)
+      expect_definition(fd1, project: p1) # p1 belongs to o1
+      expect_definition(fd1, project: p2) # p1 belongs to o2
+    end
+
+    it 'should use the definition with the most applicable rule (project type rule)' do
+      fi1.update!(entity: nil, project_type: p1.project_type)
+      expect_definition(fd1, project: p1)
     end
   end
 
-  describe 'with funder and project type instances' do
-    let(:role) { :ENROLLMENT }
+  describe 'finding the definition for an Enrollment form, with funder and project type instances' do
     it 'applies correct specificity (project > org > funder&ptype > funder > ptype)' do
-      base_fd = Hmis::Form::Definition.find_definition_for_role(role) # created by hmis base setup
-
       p1 = create(:hmis_hud_project, project_type: 1)
       p2 = create(:hmis_hud_project, project_type: 1, funders: [43])
       p3 = create(:hmis_hud_project, project_type: 2, funders: [43])
-      p4 = create(:hmis_hud_project, project_type: 2)
+      p4 = create(:hmis_hud_project, project_type: 2) # matches default rule
       p5 = create(:hmis_hud_project, project_type: 1, funders: [43])
       p6 = create(:hmis_hud_project, project_type: 1, funders: [43])
 
+      role = :CURRENT_LIVING_SITUATION
       fi1 = create(:hmis_form_instance, role: role, entity: nil, project_type: 1, funder: nil)
       fi2 = create(:hmis_form_instance, role: role, entity: nil, project_type: 1, funder: 43)
       fi3 = create(:hmis_form_instance, role: role, entity: nil, project_type: nil, funder: 43)
       fi4 = create(:hmis_form_instance, role: role, entity: p5)
       fi5 = create(:hmis_form_instance, role: role, entity: p6.organization)
+      fi6 = create(:hmis_form_instance, role: role, entity: nil) # default rule
 
       expect(Hmis::Form::Definition.find_definition_for_role(role, project: p1)).to eq(fi1.definition)
       expect(Hmis::Form::Definition.find_definition_for_role(role, project: p2)).to eq(fi2.definition)
       expect(Hmis::Form::Definition.find_definition_for_role(role, project: p3)).to eq(fi3.definition)
-      expect(Hmis::Form::Definition.find_definition_for_role(role, project: p4)).to eq(base_fd)
+      expect(Hmis::Form::Definition.find_definition_for_role(role, project: p4)).to eq(fi6.definition)
       expect(Hmis::Form::Definition.find_definition_for_role(role, project: p5)).to eq(fi4.definition)
       expect(Hmis::Form::Definition.find_definition_for_role(role, project: p6)).to eq(fi5.definition)
     end
   end
 
-  describe 'different form versions' do
+  describe 'the latest_versions scope' do
     # id1 has 2 retired, 1 published, and 1 draft version
     let!(:id1_retired1) { create :hmis_form_definition, identifier: 'identifier_1', version: 0, status: 'retired' }
     let!(:id1_retired2) { create :hmis_form_definition, identifier: 'identifier_1', version: 1, status: 'retired' }
@@ -185,6 +190,9 @@ RSpec.describe Hmis::Form::Definition, type: :model do
   end
 
   describe 'deletion' do
+    let!(:fd1) { create :hmis_form_definition, identifier: 'p1-intake', role: :INTAKE, version: 3, status: :published }
+    let!(:fi1) { create :hmis_form_instance, definition: fd1, entity: p1, active: true }
+
     it 'should error if form has active instance' do
       expect(fd1.instances).to contain_exactly(fi1)
 
