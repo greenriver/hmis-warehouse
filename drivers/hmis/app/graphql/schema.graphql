@@ -9278,6 +9278,10 @@ type ReferralPosting {
   assignedDate: ISO8601DateTime!
   chronic: Boolean
   customDataElements: [CustomDataElement!]!
+
+  """
+  Admin Note associated with the denial (entered from the Denial Screen)
+  """
   denialNote: String
   denialReason: ReferralPostingDenialReasonType
   hohClient: Client
@@ -9302,6 +9306,10 @@ type ReferralPosting {
   project: Project
   referralDate: ISO8601DateTime!
   referralIdentifier: ID
+
+  """
+  Note associated with the Referral that came from an External API
+  """
   referralNotes: String
   referralRequest: ReferralRequest
   referralResult: ReferralResult
@@ -9311,9 +9319,18 @@ type ReferralPosting {
   Name of project or external source that the referral originated from
   """
   referredFrom: String!
+
+  """
+  Note associated with the Referral Posting that either came from the External
+  API, or was entered when creating a referral within HMIS
+  """
   resourceCoordinatorNotes: String
   score: Int
   status: ReferralPostingStatus!
+
+  """
+  Note associated with the status (E.g. why it was accepted pending / denied pending)
+  """
   statusNote: String
   statusNoteUpdatedAt: ISO8601DateTime
   statusNoteUpdatedBy: String
