@@ -1,0 +1,24 @@
+{
+  "item": [
+    {
+      "_comment": "Referral form that requires Unit Types and collects Resource Coordiantor Notes",
+      "type": "CHOICE",
+      "required": true,
+      "link_id": "referral_unit_type",
+      "text": "Unit Type",
+      "pick_list_reference": "AVAILABLE_UNIT_TYPES",
+      "mapping": {
+        "field_name": "unitTypeId"
+      }
+    },
+    {
+      "type": "TEXT",
+      "required": false,
+      "link_id": "referral_resource_coordinator_notes",
+      "text": "Resource Coordinator Notes",
+      "mapping": {
+        "field_name": "resourceCoordinatorNotes"
+      }
+    }
+  ]
+}
