@@ -33,12 +33,28 @@ module MaReports::CsgEngage
       update(started_at: Time.zone.now, failed_at: nil, completed_at: nil)
 
       program_reports.each(&:run)
+      cleanup
     end
 
     def respond_to_program_report_update(program_report)
       self.completed_at = program_report.completed_at if program_reports.all?(&:completed?)
       self.failed_at = program_report.failed_at if program_reports.any?(&:failed?)
       save!
+    end
+
+    def program_names
+      program_reports.pluck(:imported_program_name).compact.uniq
+    end
+
+    def cleanup
+      last_report = MaReports::CsgEngage::Report.order(:completed_at).where.not(id: id).last
+      return unless last_report.present?
+
+      last_report.program_reports.where(imported_program_name: last_report.program_names - program_names).find_each(&:delete_from_csg)
+    end
+
+    def last_report
+      MaReports::CsgEngage::Report.where.not(completed_at: nil).order(:completed_at).where.not(id: id).last
     end
   end
 end
