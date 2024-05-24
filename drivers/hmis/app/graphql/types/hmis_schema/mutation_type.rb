@@ -57,7 +57,7 @@ module Types
     field :clear_mci, mutation: Mutations::AcHmis::ClearMci
     field :void_referral_request, mutation: Mutations::AcHmis::VoidReferralRequest
     field :update_referral_posting, mutation: Mutations::AcHmis::UpdateReferralPosting
-    field :create_outgoing_referral_posting, mutation: Mutations::AcHmis::CreateOutgoingReferralPosting
+    field :create_outgoing_referral_posting, mutation: Mutations::AcHmis::CreateOutgoingReferralPosting, deprecation_reason: 'Moved to SubmitForm'
     field :delete_custom_case_note, mutation: Mutations::DeleteCustomCaseNote
 
     field :merge_clients, mutation: Mutations::MergeClients

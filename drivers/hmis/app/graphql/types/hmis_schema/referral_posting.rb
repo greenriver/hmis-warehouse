@@ -8,13 +8,15 @@ module Types
   class HmisSchema::ReferralPosting < Types::BaseObject
     description 'A referral for a household of one or more clients'
 
+    include Types::HmisSchema::HasCustomDataElements
+
     field :id, ID, null: false
 
     # Fields that come from Referral
     field :referral_identifier, ID
     field :referral_date, GraphQL::Types::ISO8601DateTime, null: false
     field :referred_by, String, null: false
-    field :referral_notes, String
+    field :referral_notes, String, description: 'Note associated with the Referral that came from an External API'
     field :chronic, Boolean
     field :hud_chronic, Boolean
     field :score, Integer
@@ -28,23 +30,24 @@ module Types
     field :household_members, [HmisSchema::ReferralHouseholdMember], null: false
 
     # Fields that come from Posting
-    field :resource_coordinator_notes, String
+    field :resource_coordinator_notes, String, description: 'Note associated with the Referral Posting that either came from the External API, or was entered when creating a referral within HMIS'
     field :posting_identifier, ID, method: :identifier
     field :assigned_date, GraphQL::Types::ISO8601DateTime, null: false, method: :created_at
     field :referral_request, HmisSchema::ReferralRequest
     field :status, HmisSchema::Enums::ReferralPostingStatus, null: false
     field :status_updated_at, GraphQL::Types::ISO8601DateTime
     field :status_updated_by, String
-    field :status_note, String
+    field :status_note, String, description: 'Note associated with the status (E.g. why it was accepted pending / denied pending)'
     field :status_note_updated_at, GraphQL::Types::ISO8601DateTime
     field :status_note_updated_by, String
     field :denial_reason, HmisSchema::Enums::ReferralPostingDenialReasonType
     field :referral_result, HmisSchema::Enums::Hud::ReferralResult
-    field :denial_note, String
+    field :denial_note, String, description: 'Admin Note associated with the denial (entered from the Denial Screen)'
     field :referred_from, String, null: false, description: 'Name of project or external source that the referral originated from'
-    field :unit_type, HmisSchema::UnitTypeObject, null: false
+    field :unit_type, HmisSchema::UnitTypeObject, null: true
     field :project, HmisSchema::Project, null: true, description: 'Project that household is being referred to'
     field :organization, HmisSchema::Organization, null: true
+    custom_data_elements_field
 
     # If this posting has been accepted, this is the enrollment for the HoH at the enrolled household.
     # This enrollment is NOT necessarily the same as the `hoh_name`, because the HoH may have changed after
@@ -127,6 +130,10 @@ module Types
 
     def referred_by
       referral.service_coordinator
+    end
+
+    def unit_type
+      load_ar_association(object, :unit_type)
     end
 
     [:referral_date, :referral_notes, :chronic, :score, :needs_wheelchair_accessible_unit].each do |name|
