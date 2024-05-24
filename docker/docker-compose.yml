@@ -312,7 +312,7 @@ services:
       # - "./dev/auth/certs/ca/rootCA.pem:/etc/certs/root-ca.pem"
     restart: unless-stopped
     ports:
-      - 4190:4190/tcp
+      - 4443:4443/tcp
     networks:
       default:
         aliases:

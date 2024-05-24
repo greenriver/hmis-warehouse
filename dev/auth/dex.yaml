@@ -1,8 +1,8 @@
 # https://github.com/oauth2-proxy/oauth2-proxy/blob/master/contrib/local-environment/dex.yaml
 # This configuration is intended to be used with the docker-compose testing
 # environment.
-# This should configure Dex to run on port 4190 and provides a static login
-issuer: http://dex.dev.test:4190/dex
+# This should configure Dex to run on port 4443 and provides a static login
+issuer: http://dex.dev.test:4443/dex
 storage:
   type: etcd
   config:
@@ -10,8 +10,8 @@ storage:
     - http://etcd:2379
     namespace: dex/
 web:
-  http: 0.0.0.0:4190
-  # https: 0.0.0.0:4190
+  http: 0.0.0.0:4443
+  # https: 0.0.0.0:4443
   # tlsCert: /etc/certs/dev.test.crt
   # tlsKey: /etc/certs/dev.test.key
   # tlsClientCA: /etc/certs/root-ca.pem
@@ -43,6 +43,9 @@ staticPasswords:
   userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"
 - email: "noreply@example.com"
   # bcrypt hash of the string "password"
+  # bash $(echo password | htpasswd -BinC 10 admin | cut -d: -f2)
+  # hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
+  # bash $(echo 'fix-this-password-55-*' | htpasswd -BinC 10 admin | cut -d: -f2)
   hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
   username: "admin-user"
   userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"
