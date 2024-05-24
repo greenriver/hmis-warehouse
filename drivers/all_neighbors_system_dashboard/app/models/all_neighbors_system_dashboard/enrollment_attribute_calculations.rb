@@ -264,10 +264,13 @@ module AllNeighborsSystemDashboard
         # Find enrollments in the batch by client with an exit to a permanent destination as defined in SPM M2
         exited_enrollments = batch.
           select do |enrollment|
+            # You have to have exited to be eligible for a return
+            next false unless enrollment.exit_date.present?
+
             # you have a move-in date (you are not homeless)
             enrollment.move_in_date.present? ||
             # or you exited to a permanent destination (no longer homeless)
-            (enrollment.exit_date.present? && enrollment.destination.in?(HudUtility2024::SITUATION_PERMANENT_RANGE)) # From SPM M2
+            enrollment.destination.in?(HudUtility2024::SITUATION_PERMANENT_RANGE) # From SPM M2
           end.
           sort_by(&:exit_date).
           index_by(&:client_id) # Index by selects the last item, should be chronologically the last exit
