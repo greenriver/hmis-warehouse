@@ -264,21 +264,25 @@ module AllNeighborsSystemDashboard
         # Find enrollments in the batch by client with an exit to a permanent destination as defined in SPM M2
         exited_enrollments = batch.
           select do |enrollment|
-          enrollment.exit_date.present? &&
-            enrollment.destination.in?(HudUtility2024::SITUATION_PERMANENT_RANGE) # From SPM M2
-        end.sort_by(&:exit_date).
+            # you have a move-in date (you are not homeless)
+            enrollment.placed_date.present? ||
+            # or you exited to a permanent destination (no longer homeless)
+            (enrollment.exit_date.present? && enrollment.destination.in?(HudUtility2024::SITUATION_PERMANENT_RANGE)) # From SPM M2
+          end.
+          sort_by(&:exit_date).
           index_by(&:client_id) # Index by selects the last item, should be chronologically the last exit
 
-        # Find the any enrollments entered by the clients within the reporting period and the year after so we can find anyone who returned with a year of exiting
+        # Find any enrollments that started within the reporting period and the subsequent year, so we can find anyone who returned with a year of exiting
         enrollments_by_client = GrdaWarehouse::ServiceHistoryEnrollment.
           homeless.
           entry.
-          where(client_id: exited_enrollments.values.map(&:client_id), entry_date: (filter.start_date .. filter.end_date + 1.years)).
+          where(client_id: exited_enrollments.keys, entry_date: (filter.start_date .. filter.end_date + 1.years)).
           group_by(&:client_id)
 
         # Select the enrollments for the client that are candidates for return
         re_enrollments = enrollments_by_client.map do |client_id, enrollments|
           housed_exit_date = exited_enrollments[client_id].exit_date
+          # earliest first
           re_enrollment = enrollments.sort_by(&:entry_date).detect do |enrollment|
             candidate_for_return?(housed_exit_date, enrollment)
           end
