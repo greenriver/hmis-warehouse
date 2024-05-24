@@ -6535,6 +6535,11 @@ enum PickListType {
   All Projects that the User can see
   """
   PROJECT
+
+  """
+  Open Projects that can receive referrals
+  """
+  PROJECTS_RECEIVING_REFERRALS
   REFERRAL_OUTCOME
 
   """

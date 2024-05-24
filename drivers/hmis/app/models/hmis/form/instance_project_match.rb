@@ -51,7 +51,6 @@ class Hmis::Form::InstanceProjectMatch
       end
     end
 
-    # rubocop:disable Style/GuardClause
     if could_match_project_type? && could_match_funder?
       return matches_project_type? && matches_project_funder? ? PROJECT_TYPE_AND_FUNDER_MATCH : nil
     elsif could_match_project_type?
@@ -59,7 +58,6 @@ class Hmis::Form::InstanceProjectMatch
     elsif could_match_funder?
       return matches_project_funder? ? PROJECT_FUNDER_MATCH : nil
     end
-    # rubocop:enable Style/GuardClause
 
     return matches_default? ? DEFAULT_MATCH : nil
   end
@@ -86,6 +84,8 @@ class Hmis::Form::InstanceProjectMatch
   end
 
   def matches_project_funder?
+    # TODO: Should this be based on _active_ funders? Currently this would apply rules to a project
+    # that used to be funded by a certain funder.
     instance.funder.presence&.in?(project.funders.map(&:funder)) ||
       instance.other_funder.presence&.in?(project.funders.map(&:other_funder))
   end
