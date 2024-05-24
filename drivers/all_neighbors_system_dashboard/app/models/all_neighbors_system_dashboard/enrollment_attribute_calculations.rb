@@ -265,7 +265,7 @@ module AllNeighborsSystemDashboard
         exited_enrollments = batch.
           select do |enrollment|
             # you have a move-in date (you are not homeless)
-            enrollment.placed_date.present? ||
+            enrollment.move_in_date.present? ||
             # or you exited to a permanent destination (no longer homeless)
             (enrollment.exit_date.present? && enrollment.destination.in?(HudUtility2024::SITUATION_PERMANENT_RANGE)) # From SPM M2
           end.
