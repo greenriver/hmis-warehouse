@@ -5,7 +5,7 @@
 ###
 
 module Mutations
-  # Deprecated, remove in release-118
+  TodoOrDie('Remove deprecated referral mutation', by: '2024-06-15')
   class AcHmis::CreateOutgoingReferralPosting < CleanBaseMutation
     description 'Create outgoing referral posting'
 
