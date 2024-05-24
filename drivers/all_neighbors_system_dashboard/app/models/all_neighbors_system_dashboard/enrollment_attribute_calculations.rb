@@ -260,6 +260,7 @@ module AllNeighborsSystemDashboard
         end
       end
 
+      # Returns are calculated against placements not clients, all placements potentially include a return.
       def return_dates_for_batch(filter, batch)
         # Find enrollments in the batch by client with an exit to a permanent destination as defined in SPM M2
         exited_enrollments = batch.
@@ -273,7 +274,7 @@ module AllNeighborsSystemDashboard
             enrollment.destination.in?(HudUtility2024::SITUATION_PERMANENT_RANGE) # From SPM M2
           end.
           sort_by(&:exit_date).
-          index_by(&:client_id) # Index by selects the last item, should be chronologically the last exit
+          group_by(&:client_id)
 
         # Find any enrollments that started within the reporting period and the subsequent year, so we can find anyone who returned with a year of exiting
         enrollments_by_client = GrdaWarehouse::ServiceHistoryEnrollment.
@@ -283,22 +284,16 @@ module AllNeighborsSystemDashboard
           group_by(&:client_id)
 
         # Select the enrollments for the client that are candidates for return
-        re_enrollments = enrollments_by_client.map do |client_id, enrollments|
-          housed_exit_date = exited_enrollments[client_id].exit_date
-          # earliest first
-          re_enrollment = enrollments.sort_by(&:entry_date).detect do |enrollment|
-            candidate_for_return?(housed_exit_date, enrollment)
-          end
-          [client_id, re_enrollment] if re_enrollment.present? # Only include clients with candidates
-        end.compact.to_h
-
-        # Build a hash of exited enrollments to the earliest date of the clients return to homelessness
-        {}.tap do |h|
-          exited_enrollments.values.each do |housing_enrollment|
-            candidate = re_enrollments[housing_enrollment.client_id]
-            next unless candidate.present?
-
-            h[housing_enrollment.id] = candidate.entry_date
+        {}.tap do |re_enrollments|
+          enrollments_by_client.each do |client_id, enrollments|
+            exited_enrollments[client_id].each do |housed_exited_enrollment|
+              housed_exit_date = housed_exited_enrollment.exit_date
+              # earliest first
+              re_enrollment = enrollments.sort_by(&:entry_date).detect do |enrollment|
+                candidate_for_return?(housed_exit_date, enrollment)
+              end
+              re_enrollments[housed_exited_enrollment.id] = re_enrollment.entry_date if re_enrollment.present? # Only include clients with candidates
+            end
           end
         end
       end
