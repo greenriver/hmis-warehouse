@@ -15,6 +15,7 @@ module Types
     value 'ENROLLABLE_PROJECTS', 'Projects that the User can enroll Clients in'
     value 'RESIDENTIAL_PROJECTS', 'Residential Projects'
     value 'OPEN_PROJECTS', 'Open Projects that the user can see'
+    value 'PROJECTS_RECEIVING_REFERRALS', 'Open Projects that can receive referrals'
     value 'ORGANIZATION', 'All Organizations that the User can see'
     value 'ASSESSMENT_NAMES', 'Assessment names, including custom assessments and assessments that are inactive. If a project is specified, the list is limited to assessments that exist in the project (both active and inactive).'
     value 'GEOCODE'

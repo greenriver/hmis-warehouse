@@ -125,6 +125,8 @@ module Types
         enrollment_audit_event_record_type_picklist
       when 'CLIENT_AUDIT_EVENT_RECORD_TYPES'
         client_audit_event_record_type_picklist
+      when 'PROJECTS_RECEIVING_REFERRALS'
+        projects_receiving_referrals
       end
     end
 
@@ -470,6 +472,25 @@ module Types
         map { |k| { code: k.to_s, label: k.to_s.humanize } }
 
       hud_options + custom_options
+    end
+
+    def self.projects_receiving_referrals
+      # Find all active instances that enable the Referral functionality
+      instance_scope = Hmis::Form::Instance.active.with_role(:REFERRAL)
+      # Find open projects that have an instance that match the criteria, which indicates that the
+      # project accepts referrals.
+      #
+      # We do not check `viewable_by` because providers can refer to projects they can't otherwise view.
+      # NOTE: is not optimized, could be refactored if performance is an issue. Used this approach to minimize
+      # duplication of project_match logic.
+      project_ids = Hmis::Hud::Project.open_on_date(Date.current).select do |project|
+        instance_scope.any? { |instance| instance.project_match(project) }
+      end.map(&:id)
+
+      Hmis::Hud::Project.where(id: project_ids).
+        joins(:organization).preload(:organization).
+        sort_by_option(:organization_and_name).
+        map(&:to_pick_list_option)
     end
   end
 end
