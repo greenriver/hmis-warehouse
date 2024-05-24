@@ -295,7 +295,7 @@ class ApplicationController < ActionController::Base
   # TODO: START_ACL remove when ACL transition complete
   def set_legacy_implicitly_assume_authorized_access
     return if current_user.using_acls?
-    
+
     current_user.policies.legacy_implicitly_assume_authorized_access = true
   end
   # END ACL
