@@ -81,10 +81,10 @@ RSpec.describe 'GrdaWarehouse::AuthPolicies::PolicyProvider', type: :model do
     it 'raises on attempt to use global policy' do
       expect do
         check_permissions(policy: user.policies.for_project(authorized_project), role: nil)
-      end.to raise_error
+      end.to raise_error(StandardError, /legacy authorization not performed/)
       expect do
         check_permissions(policy: user.policies.for_client(authorized_client), role: nil)
-      end.to raise_error
+      end.to raise_error(StandardError, /legacy authorization not performed/)
     end
   end
   # END_ACL
