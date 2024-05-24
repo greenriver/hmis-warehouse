@@ -62,10 +62,21 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
   end
 
   memoize def client_project_policy(client_id)
-    project_policies = visible_client_project_ids(client_id).map do |project_id|
+    p_t = GrdaWarehouse::Hud::Project.arel_table
+    c_t = GrdaWarehouse::Hud::Client.arel_table
+
+    cond = c_t[:id].eq(client_id)
+    cond = p_t[:data_source_id].in(window_data_source_ids) if window_data_source_ids.any?
+
+    client_project_scope = GrdaWarehouse::Hud::Project.joins(:clients).where(cond)
+    project_policies = client_project_scope.pluck(:id).map do |project_id|
       for_project(project_id)
     end
     GrdaWarehouse::AuthPolicies::AnyPolicy.new(policies: project_policies)
+  end
+
+  memoize def window_data_source_ids
+    ::GrdaWarehouse::DataSource.window_data_source_ids
   end
 
   # TODO: START_ACL remove after ACL migration is complete
@@ -74,15 +85,6 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
     GrdaWarehouse::AuthPolicies::LegacyUserRolePolicy.new(user: user)
   end
   # END_ACL
-
-  # I believe this is correct because it enforces can_view_clients. The access-control system requires this
-  # permission for both viewing and searching clients (see note on can_search_own_clients in the role class)
-  def visible_client_project_ids(client_id)
-    p_t = GrdaWarehouse::Hud::Project.arel_table
-    enrollment_arbiter.
-      enrollments_visible_to(user, client_ids: [client_id]).
-      joins(:project).order(p_t[:id]).pluck(p_t[:id])
-  end
 
   memoize def enrollment_arbiter
     GrdaWarehouse::Config.arbiter_class.new
