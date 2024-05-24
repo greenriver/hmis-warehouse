@@ -521,7 +521,7 @@ module Health
     end
 
     def contributing_enrollment_start_date
-      patient_referrals.contributing.minimum(:enrollment_start_date)
+      @contributing_enrollment_start_date ||= patient_referrals.contributing.minimum(:enrollment_start_date)
     end
 
     def current_days_enrolled
@@ -1022,7 +1022,7 @@ module Health
     end
 
     def engaged?
-      self.class.engaged.where(id: id).exists?
+      @engaged ||= self.class.engaged.where(id: id).exists?
       # ssms? && participation_forms.reviewed.exists? && release_forms.reviewed.exists? && comprehensive_health_assessments.reviewed.exists?
     end
 
