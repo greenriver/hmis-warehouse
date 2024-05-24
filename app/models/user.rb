@@ -118,7 +118,7 @@ class User < ApplicationRecord
     end
   end
 
-  def viewable_project_ids(context)
+  memoize def viewable_project_ids(context)
     return GrdaWarehouse::Hud::Project.project_ids_viewable_by(self, permission: context) if Rails.env.test?
 
     Rails.cache.fetch("#{user_project_id_prefix}_#{context}", expires_in: EXPIRY_MINUTES.minutes) do

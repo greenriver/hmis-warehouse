@@ -53,7 +53,12 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
   protected
 
   def handle_legacy_unauthorized
-    raise 'legacy authorization not performed'
+    message = "legacy authorization not performed for User##{user.id}"
+    raise message unless Rails.env.production?
+
+    # per discussion with Elliot, we log the message in production but continue anyways. It's possible partials that use
+    # policies for legacy users are included into controllers that do not set legacy_implicitly_assume_authorized_access
+    Sentry.capture_message(message)
   end
 
   memoize def client_project_policy(client_id)
@@ -70,7 +75,8 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
   end
   # END_ACL
 
-  # Needs review
+  # I believe this is correct because it enforces can_view_clients. The access-control system requires this
+  # permission for both viewing and searching clients (see note on can_search_own_clients in the role class)
   def visible_client_project_ids(client_id)
     p_t = GrdaWarehouse::Hud::Project.arel_table
     enrollment_arbiter.
