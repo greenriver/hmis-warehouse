@@ -28,14 +28,14 @@
 - if @assessment.custom_data_elements.any?
   %h2 Questions
   .well
-    - @assessment.custom_data_elements.each do |cde|
-      - cded = cde.data_element_definition
-      - label = cded.label
-      - key = cded.key # <== this is what is referenced as custom_Field_key in the form def
-      - value = cde.value # this is a function, it will read value_string,value_date etc.
+    - @assessment.custom_data_elements.group_by(&:data_element_definition).each do |cded, cdes|
+      -# values of the CustomDataElement(s)
+      - values_arr = cdes.map(&:value)
+      - display_value = values_arr.join(', ')
+      - display_value = yes_no(values_arr.first) if [true, false].include?(values_arr.first) && values_arr.size == 1
       %dl
-        %dt= label
-        %dd= value
+        %dt= cded.label # label of the CustomDataElementDefinition
+        %dd= display_value
 - elsif !@assessment.hud_assessment?
   .none-found No questions provided.
 -# Always link to HMIS for HUD Assessments, since the majority of data is non-Custom so wont be shown here.

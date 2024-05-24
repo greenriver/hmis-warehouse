@@ -53,8 +53,8 @@ module HomelessSummaryReport
     scope :spm_m1b_es_sh_ph_days, -> { where(arel_table[:spm_m1b_es_sh_ph_days].gt(0)) }
     scope :spm_m1b_es_sh_th_ph_days, -> { where(arel_table[:spm_m1b_es_sh_th_ph_days].gt(0)) }
 
-    scope :spm_m2_reentry_days, -> { where(arel_table[:spm_m2_reentry_days].gteq(0)) }
-    scope :spm_m2_reentry_0_to_180_days, -> { where(arel_table[:spm_m2_reentry_days].between(1..180)) }
+    scope :spm_m2_reentry_days, -> { where(arel_table[:spm_m2_reentry_days].gteq(-1)) }
+    scope :spm_m2_reentry_0_to_180_days, -> { where(arel_table[:spm_m2_reentry_days].between(0..180)) }
     scope :spm_m2_reentry_181_to_365_days, -> { where(arel_table[:spm_m2_reentry_days].between(181..365)) }
     scope :spm_m2_reentry_366_to_730_days, -> { where(arel_table[:spm_m2_reentry_days].between(366..730)) }
 
@@ -80,6 +80,14 @@ module HomelessSummaryReport
           end
         end
       end
+    end
+
+    def show_cell?(name, value)
+      case name.to_sym
+      when :m2_reentry_days
+        return false if value.negative?
+      end
+      return true
     end
   end
 end
