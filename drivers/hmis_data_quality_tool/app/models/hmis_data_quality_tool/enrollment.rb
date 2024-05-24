@@ -95,6 +95,17 @@ module HmisDataQualityTool
         ch_at_entry: { title: 'Chronically Homeless at Entry' },
         enrollment_anniversary_date: { title: 'Enrollment anniversary' },
         annual_assessment_status: { title: 'Missing assessments', translator: ->(v) { v.map(&:humanize).join(', ') } },
+        percent_ami: { title: 'Income as a Percent of AMI', translator: ->(v) { "#{HudUtility2024.percent_ami(v)} (#{v})" } },
+        vamc_station: { title: 'VAMC Station Number' },
+        veteran: { title: 'Veteran' },
+        hoh_veteran: { title: 'Head of Household is a Veteran' },
+        hh_veteran_count: { title: 'Count of Veterans in Household' },
+        target_screen_required: { title: 'Homelessness Prevention Targeting Screening is Required', translator: ->(v) { "#{HudUtility2024.no_yes(v)} (#{v})" } },
+        target_screen_completed: { title: 'Homelessness Prevention Targeting Screening is Completed' },
+        total_monthly_income_at_entry: { title: 'Total Monthly Income At Entry' },
+        total_monthly_income_from_source_at_entry: { title: 'Total Income From Sources At Entry' },
+        total_monthly_income_at_exit: { title: 'Total Monthly Income At Exit' },
+        total_monthly_income_from_source_at_exit: { title: 'Total Income From Sources At Exit' },
       }.freeze
     end
 
@@ -209,7 +220,7 @@ module HmisDataQualityTool
       report_item.data_source_id = enrollment.data_source_id
       report_item.project_id = enrollment.project.id
       report_item.project_name = enrollment.project.name(report.user)
-      project_type =  enrollment.project.project_type_to_use
+      project_type = enrollment.project.project_type_to_use
       report_item.project_type = project_type
       report_item.entry_date = enrollment.EntryDate
       report_item.move_in_date = enrollment.MoveInDate
@@ -231,6 +242,13 @@ module HmisDataQualityTool
       report_age_date = [enrollment.EntryDate, report.filter.start].max
       report_item.age = enrollment.client.age_on(report_age_date)
       report_item.ch_at_entry = enrollment.chronically_homeless_at_start?
+      report_item.percent_ami = enrollment.PercentAMI
+      report_item.vamc_station = enrollment.VAMCStation
+      report_item.veteran = client.veteran?
+
+      # HP Targeting Criteria
+      report_item.target_screen_required = enrollment.TargetScreenReqd
+      report_item.target_screen_completed = hp_targeting_criteria_complete(enrollment)
 
       hh = report.household(enrollment.HouseholdID)
       hoh = hh&.detect(&:head_of_household?) || enrollment.service_history_enrollment
@@ -249,6 +267,9 @@ module HmisDataQualityTool
       adult_or_hoh = enrollment.RelationshipToHoH == 1 || report_item.age.present? && report_item.age >= 18
       report_item.head_of_household_count = hh&.select(&:head_of_household?)&.count || 0
       report_item.household_type = household_type(report_item.household_min_age, report_item.household_max_age)
+
+      report_item.hh_veteran_count = hh.select { |hm| hm.client.veteran? }.count || 0
+      report_item.hoh_veteran = hh&.select { |hm| hm.head_of_household && hm.client.veteran? }&.count&.> 0 || false
 
       report_item.ch_details_expected = adult_or_hoh
       report_item.health_dv_at_entry_expected = adult_or_hoh
@@ -278,8 +299,12 @@ module HmisDataQualityTool
       annual_income_assessment = annual_assessment(enrollment, hoh.first_date_in_program)
       exit_income_assessment = enrollment.income_benefits_at_exit
 
+      report_item.total_monthly_income_at_entry = entry_income_assessment&.TotalMonthlyIncome
+      report_item.total_monthly_income_from_source_at_entry = entry_income_assessment&.all_sources_and_amounts&.sum { |_k, amount| amount || 0 }
       report_item.income_from_any_source_at_entry = entry_income_assessment&.IncomeFromAnySource
       report_item.income_from_any_source_at_annual = annual_income_assessment&.IncomeFromAnySource
+      report_item.total_monthly_income_at_exit = exit_income_assessment&.TotalMonthlyIncome
+      report_item.total_monthly_income_from_source_at_exit = exit_income_assessment&.all_sources_and_amounts&.sum { |_k, amount| amount || 0 }
       report_item.income_from_any_source_at_exit = exit_income_assessment&.IncomeFromAnySource
 
       report_item.cash_income_as_expected_at_entry = income_as_expected?(
@@ -365,6 +390,31 @@ module HmisDataQualityTool
       report_item
     end
 
+    private def hp_targeting_criteria_complete(enrollment)
+      return false if enrollment.TimeToHousingLoss.blank? || enrollment.TimeToHousingLoss == 99 # V7.A
+      return false if enrollment.AnnualPercentAMI.blank? || enrollment.AnnualPercentAMI == 99 # V7.B
+      return false if enrollment.LiteralHomelessHistory.blank? || enrollment.LiteralHomelessHistory == 99 # V7.C
+      return false if enrollment.ClientLeaseholder.blank? || enrollment.ClientLeaseholder == 99 # V7.D
+      return false if enrollment.HOHLeaseholder.blank? || enrollment.HOHLeaseholder == 99 # V7.E
+      return false if enrollment.SubsidyAtRisk.blank? || enrollment.SubsidyAtRisk == 99 # V7.F
+      return false if enrollment.EvictionHistory.blank? || enrollment.EvictionHistory == 99 # V7.G
+      return false if enrollment.CriminalRecord.blank? || enrollment.CriminalRecord == 99 # V7.H
+      return false if enrollment.IncarceratedAdult.blank? || enrollment.IncarceratedAdult == 99 # V7.I
+      return false if enrollment.PrisonDischarge.blank? || enrollment.PrisonDischarge == 99 # V7.J
+      return false if enrollment.SexOffender.blank? || enrollment.SexOffender == 99 # V7.K
+      return false if enrollment.DisabledHoH.blank? || enrollment.DisabledHoH == 99 # V7.L
+      return false if enrollment.CurrentPregnant.blank? || enrollment.CurrentPregnant == 99 # V7.M
+      return false if enrollment.SingleParent.blank? || enrollment.SingleParent == 99 # V7.N
+      return false if enrollment.DependentUnder6.blank? || enrollment.DependentUnder6 == 99 # V7.O
+      return false if enrollment.HH5Plus.blank? || enrollment.HH5Plus == 99 # V7.P
+      return false if enrollment.CoCPrioritized.blank? || enrollment.CoCPrioritized == 99 # V7.Q
+      return false if enrollment.HPScreeningScore.blank? # V7.R
+      return false if enrollment.ThresholdScore.blank? # V7.S
+
+      # HP Targeting Criteria is complete
+      true
+    end
+
     private def annual_assessment_complete(enrollment, hoh_first_date_in_program)
       # IncomeBenefits is always required
       [].tap do |missing|
@@ -437,6 +487,10 @@ module HmisDataQualityTool
 
       # Either said Yes and had none, or said No and had some, or some other random numbers
       false
+    end
+
+    def self.adult?(item)
+      item.age.present? && item.age > 18
     end
 
     def self.hoh_or_adult?(item)
@@ -618,6 +672,224 @@ module HmisDataQualityTool
 
             # If the enrollment CoC doesn't match a project CoC
             ! item.enrollment_coc.in?(item.project_coc_codes)
+          },
+        },
+        hoh_income_percent_ami: {
+          title: 'Head of Household is Missing Income as a Percent of AMI',
+          description: 'Income as a Percent of AMI is missing or not collected',
+          required_for: 'HoH in HP or RRH',
+          detail_columns: default_detail_columns + [
+            :percent_ami,
+          ],
+          denominator: ->(item) {
+            hoh?(item) && [
+              HudUtility2024.performance_reporting[:rrh],
+              HudUtility2024.performance_reporting[:prevention],
+            ].flatten.include?(item.project_type)
+          },
+          limiter: ->(item) {
+            return false unless hoh?(item)
+            return false unless [
+              HudUtility2024.performance_reporting[:rrh],
+              HudUtility2024.performance_reporting[:prevention],
+            ].flatten.include?(item.project_type)
+
+            item.percent_ami.blank?
+          },
+        },
+        hp_targeting_criteria: {
+          title: 'Head of Household is Missing HP Targeting Criteria',
+          description: 'HP Targeting Criteria is missing or not collected',
+          required_for: 'HoH in HP',
+          detail_columns: default_detail_columns + [
+            :target_screen_required,
+            :target_screen_completed,
+          ],
+          denominator: ->(item) { hoh?(item) && HudUtility2024.performance_reporting[:prevention].include?(item.project_type) },
+          limiter: ->(item) {
+            return false unless hoh?(item)
+            return false unless HudUtility2024.performance_reporting[:prevention].include?(item.project_type)
+            # Screening Required flag is missing
+            return true if item.target_screen_required.blank?
+            # Screening is not required
+            return false if item.target_screen_required == 0
+
+            !item.target_screen_completed
+          },
+        },
+        vamc_station: {
+          title: 'VAMC Station Number is Missing',
+          description: 'VAMC Station Number is missing or not collected',
+          required_for: 'HoH and Veteran in ES (E/E), TH, PSH, SO, SH, PH-Housing Only, and RRH',
+          detail_columns: default_detail_columns + [
+            :vamc_station,
+          ],
+          denominator: ->(item) {
+            (hoh?(item) || item.veteran) && [
+              HudUtility2024.performance_reporting[:es_entry_exit],
+              HudUtility2024.performance_reporting[:th],
+              HudUtility2024.performance_reporting[:psh],
+              HudUtility2024.performance_reporting[:so],
+              HudUtility2024.performance_reporting[:sh],
+              HudUtility2024.performance_reporting[:oph],
+              HudUtility2024.performance_reporting[:rrh],
+            ].flatten.include?(item.project_type)
+          },
+          limiter: ->(item) {
+            return false unless hoh?(item) || item.veteran
+            return false unless [
+              HudUtility2024.performance_reporting[:es_entry_exit],
+              HudUtility2024.performance_reporting[:th],
+              HudUtility2024.performance_reporting[:psh],
+              HudUtility2024.performance_reporting[:so],
+              HudUtility2024.performance_reporting[:sh],
+              HudUtility2024.performance_reporting[:oph],
+              HudUtility2024.performance_reporting[:rrh],
+            ].flatten.include?(item.project_type)
+
+            item.vamc_station.blank?
+          },
+        },
+        entering_from_streets_issues: {
+          title: 'Client Entering From Streets, ES, or SH',
+          description: 'Prior living situation is "Data not collected" (99) or blank',
+          required_for: 'Adults and HoH',
+          detail_columns: default_detail_columns + [
+            :living_situation,
+          ],
+          denominator: ->(item) { hoh_or_adult?(item) },
+          limiter: ->(item) {
+            return false unless hoh_or_adult?(item)
+
+            item.living_situation.blank? || item.living_situation == 99
+          },
+        },
+        homeless_living_situation_issues: {
+          title: 'HP - Homeless Living Situation',
+          description: 'HP adult has a homeless prior living situation',
+          required_for: 'Adults in HP at entry',
+          detail_columns: default_detail_columns + [
+            :living_situation,
+          ],
+          denominator: ->(item) { adult?(item) && HudUtility2024.performance_reporting[:prevention].include?(item.project_type) },
+          limiter: ->(item) {
+            return false unless adult?(item)
+            return false unless HudUtility2024.performance_reporting[:prevention].include?(item.project_type)
+
+            HudUtility2024.homeless_situations(as: :prior).include?(item.living_situation)
+          },
+        },
+        non_homeless_living_situation_issues: {
+          title: 'RRH - Non-Homeless Living Situation',
+          description: 'RRH adult has a non-homeless prior living situation',
+          required_for: 'Adults in RRH at entry',
+          detail_columns: default_detail_columns + [
+            :living_situation,
+          ],
+          denominator: ->(item) { adult?(item) && HudUtility2024.performance_reporting[:rrh].include?(item.project_type) },
+          limiter: ->(item) {
+            return false unless adult?(item)
+            return false unless HudUtility2024.performance_reporting[:rrh].include?(item.project_type)
+
+            HudUtility2024.situation_type(item.living_situation) == 'Homeless'
+          },
+        },
+        total_monthly_income_at_entry: {
+          title: 'Total Monthly Income at Entry',
+          description: 'Total Monthly Income at entry matches Income from Any Source at entry',
+          required_for: 'Adults',
+          detail_columns: default_detail_columns + [
+            :income_from_any_source_at_entry,
+            :total_monthly_income_at_entry,
+          ],
+          denominator: ->(item) { item.income_at_entry_expected == true },
+          limiter: ->(item) {
+            return false unless item.income_at_entry_expected == true
+
+            has_any_source_of_income_at_entry = item.income_from_any_source_at_entry.present? && item.income_from_any_source_at_entry == 1
+            has_monthly_income_at_entry = item.total_monthly_income_at_entry.present? && item.total_monthly_income_at_entry > 0
+
+            # any source at entry XOR reported monthly income at entry
+            has_any_source_of_income_at_entry ^ has_monthly_income_at_entry
+          },
+        },
+        income_source_amounts_match_total_at_entry: {
+          title: 'Total Monthly Income Matches Sources at Entry',
+          description: 'Total monthly income matches the sum of the sourced income at entry',
+          required_for: 'Adults',
+          detail_columns: default_detail_columns + [
+            :income_from_any_source_at_entry,
+            :total_monthly_income_at_entry,
+            :total_monthly_income_from_source_at_entry,
+          ],
+          denominator: ->(item) { adult?(item) },
+          limiter: ->(item) {
+            return false unless adult?(item)
+
+            total_monthly_income = item.total_monthly_income_at_entry || 0
+            source_income = item.total_monthly_income_from_source_at_entry || 0
+            total_monthly_income != source_income
+          },
+        },
+        total_monthly_income_at_exit: {
+          title: 'Total Monthly Income at Exit',
+          description: 'Total Monthly Income at exit matches Income from Any Source at exit',
+          required_for: 'Adults',
+          detail_columns: default_detail_columns + [
+            :income_from_any_source_at_exit,
+            :total_monthly_income_at_exit,
+          ],
+          denominator: ->(item) { item.income_at_exit_expected == true },
+          limiter: ->(item) {
+            return false unless item.income_at_exit_expected == true
+
+            has_any_source_of_income_at_exit = item.income_from_any_source_at_exit.present? && item.income_from_any_source_at_exit == 1
+            has_monthly_income_at_exit = item.total_monthly_income_at_exit.present? && item.total_monthly_income_at_exit > 0
+
+            # any source at exit XOR reported monthly income at exit
+            has_any_source_of_income_at_exit ^ has_monthly_income_at_exit
+          },
+        },
+        income_source_amounts_match_total_at_exit: {
+          title: 'Total Monthly Income Matches Sources at Exit',
+          description: 'Total monthly income matches the sum of the sourced income at exit',
+          required_for: 'Adults',
+          detail_columns: default_detail_columns + [
+            :income_from_any_source_at_exit,
+            :total_monthly_income_at_exit,
+            :total_monthly_income_from_source_at_exit,
+          ],
+          denominator: ->(item) { adult?(item) },
+          limiter: ->(item) {
+            return false unless adult?(item)
+
+            total_monthly_income = item.total_monthly_income_at_exit || 0
+            source_income = item.total_monthly_income_from_source_at_exit || 0
+            total_monthly_income != source_income
+          },
+        },
+        no_veteran_in_household: {
+          title: 'No Veteran in Household',
+          description: 'No member of the household is a veteran',
+          required_for: 'Household',
+          detail_columns: default_detail_columns + [
+            :hh_veteran_count,
+          ],
+          denominator: ->(_item) { true },
+          limiter: ->(item) {
+            item.hh_veteran_count.zero?
+          },
+        },
+        hoh_not_veteran: {
+          title: 'Head of Household is not a Veteran',
+          description: 'The Head of Household is is not a veteran',
+          required_for: 'Household',
+          detail_columns: default_detail_columns + [
+            :relationship_to_hoh,
+          ],
+          denominator: ->(_item) { true },
+          limiter: ->(item) {
+            !item.hoh_veteran
           },
         },
         future_entry_date_issues: {

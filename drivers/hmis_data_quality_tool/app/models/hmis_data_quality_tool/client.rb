@@ -49,6 +49,14 @@ module HmisDataQualityTool
         overlapping_post_move_in: { title: 'Overlapping Moved-in PH' },
         ch_at_most_recent_entry: { title: 'Chronically Homeless at Most-Recent Entry' },
         ch_at_any_entry: { title: 'Chronically Homeless at Any Entry' },
+        afghanistan_oef: { title: 'Afghanistan (Operation Enduring Freedom)', translator: ->(v) { "#{HudUtility2024.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        iraq_oif: { title: 'Iraq (Operation Iraqi Freedom)', translator: ->(v) { "#{HudUtility2024.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        iraq_ond: { title: 'Iraq (Operation New Dawn)', translator: ->(v) { "#{HudUtility2024.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        military_branch: { title: 'Military Branch', translator: ->(v) { "#{HudUtility2024.military_branch(v)} (#{v})" } },
+        discharge_status: { title: 'Discharge Status', translator: ->(v) { "#{HudUtility2024.discharge_status(v)} (#{v})" } },
+        employed: { title: 'Employed', translator: ->(v) { "#{HudUtility2024.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        employment_type: { title: 'Employment Type', translator: ->(v) { "#{HudUtility2024.employment_type(v)} (#{v})" } },
+        not_employed_reason: { title: 'Reason Not Employed', translator: ->(v) { "#{HudUtility2024.not_employed_reason(v)} (#{v})" } },
       }.freeze
     end
 
@@ -201,6 +209,15 @@ module HmisDataQualityTool
       report_item.overlapping_post_move_in = overlapping_post_move_in(enrollments: report_item.enrollments, report: report)
       report_item.ch_at_most_recent_entry = report_item.enrollments&.max_by(&:EntryDate)&.chronically_homeless_at_start?
       report_item.ch_at_any_entry = report_item.enrollments.map(&:chronically_homeless_at_start?)&.any?
+      report_item.afghanistan_oef = source_client.AfghanistanOEF
+      report_item.iraq_oif = source_client.IraqOIF
+      report_item.iraq_ond = source_client.IraqOND
+      report_item.military_branch = source_client.MilitaryBranch
+      report_item.discharge_status = source_client.DischargeStatus
+      employment_education = source_client.employment_educations.max_by(&:InformationDate)
+      report_item.employed = employment_education.Employed
+      report_item.employment_type = employment_education.EmploymentType
+      report_item.not_employed_reason = employment_education.NotEmployedReason
       report_item
     end
 
@@ -311,7 +328,7 @@ module HmisDataQualityTool
       overlaps
     end
 
-    def self.sections(_)
+    def self.sections(_) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       {
         gender_issues: {
           title: 'Gender',
@@ -576,6 +593,175 @@ module HmisDataQualityTool
             return false unless item.reporting_age.present? && item.reporting_age > 18
 
             item.overlapping_post_move_in.positive?
+          },
+        },
+        afghanistan_oef: {
+          title: 'Afghanistan (Operation Enduring Freedom)',
+          description: 'Afghanistan (OEF) is "Data not collected" (99) or blank for veterans',
+          required_for: 'Veterans',
+          detail_columns: [
+            :destination_client_id,
+            :personal_id,
+            :first_name,
+            :last_name,
+            :reporting_age,
+            :veteran_status,
+            :afghanistan_oef,
+          ],
+          denominator: ->(item) { item.veteran_status == 1 },
+          limiter: ->(item) {
+            return false unless item.veteran_status == 1
+
+            item.afghanistan_oef == 99 || item.afghanistan_oef.blank?
+          },
+        },
+        iraq_oif: {
+          title: 'Iraq (Operation Iraqi Freedom)',
+          description: 'Iraq (OIF) is "Data not collected" (99) or blank for veterans',
+          required_for: 'Veterans',
+          detail_columns: [
+            :destination_client_id,
+            :personal_id,
+            :first_name,
+            :last_name,
+            :reporting_age,
+            :veteran_status,
+            :iraq_oif,
+          ],
+          denominator: ->(item) { item.veteran_status == 1 },
+          limiter: ->(item) {
+            return false unless item.veteran_status == 1
+
+            item.iraq_oif == 99 || item.iraq_oif.blank?
+          },
+        },
+        iraq_ond: {
+          title: 'Iraq (Operation New Dawn)',
+          description: 'Iraq (OND) is "Data not collected" (99) or blank for veterans',
+          required_for: 'Veterans',
+          detail_columns: [
+            :destination_client_id,
+            :personal_id,
+            :first_name,
+            :last_name,
+            :reporting_age,
+            :veteran_status,
+            :iraq_ond,
+          ],
+          denominator: ->(item) { item.veteran_status == 1 },
+          limiter: ->(item) {
+            return false unless item.veteran_status == 1
+
+            item.iraq_ond == 99 || item.iraq_ond.blank?
+          },
+        },
+        military_branch: {
+          title: 'Military Branch',
+          description: 'Military Branch is "Data not collected" (99) or blank for veterans',
+          required_for: 'Veterans',
+          detail_columns: [
+            :destination_client_id,
+            :personal_id,
+            :first_name,
+            :last_name,
+            :reporting_age,
+            :veteran_status,
+            :iraq_ond,
+          ],
+          denominator: ->(item) { item.veteran_status == 1 },
+          limiter: ->(item) {
+            return false unless item.veteran_status == 1
+
+            item.military_branch == 99 || item.military_branch.blank?
+          },
+        },
+        discharge_status: {
+          title: 'Discharge Status',
+          description: 'Discharge Status is "Data not collected" (99) or blank for veterans',
+          required_for: 'Veterans',
+          detail_columns: [
+            :destination_client_id,
+            :personal_id,
+            :first_name,
+            :last_name,
+            :reporting_age,
+            :veteran_status,
+            :iraq_ond,
+          ],
+          denominator: ->(item) { item.veteran_status == 1 },
+          limiter: ->(item) {
+            return false unless item.veteran_status == 1
+
+            item.discharge_status == 99 || item.discharge_status.blank?
+          },
+        },
+        employed: {
+          title: 'Employed',
+          description: 'Employed Status is "Data not collected" (99) or blank',
+          required_for: 'Adults',
+          detail_columns: [
+            :destination_client_id,
+            :personal_id,
+            :first_name,
+            :last_name,
+            :reporting_age,
+            :employed,
+          ],
+          denominator: ->(item) { item.reporting_age.present? && item.reporting_age > 18 },
+          limiter: ->(item) {
+            return false unless item.reporting_age.present? && item.reporting_age > 18
+
+            item.employed == 99 || item.employed.blank?
+          },
+        },
+        employment_type_matches_status: {
+          title: 'Employment Type Matches Employment Status',
+          description: 'Employment status and employment type do not match expected results',
+          required_for: 'Adults',
+          detail_columns: [
+            :destination_client_id,
+            :personal_id,
+            :first_name,
+            :last_name,
+            :reporting_age,
+            :employed,
+            :employment_type,
+          ],
+          denominator: ->(item) { item.reporting_age.present? && item.reporting_age > 18 },
+          limiter: ->(item) {
+            return false unless item.reporting_age.present? && item.reporting_age > 18
+
+            is_employed = item.employed == 1
+            missing_employment_type = item.employment_type.blank? || item.employment_type == 99
+
+            return true if is_employed ^ !missing_employment_type
+
+            false
+          },
+        },
+        not_employed_reason_matches_status: {
+          title: 'Reason Not Employed Matches Employment Status',
+          description: 'Employment status and reason not employed do not match expected results',
+          required_for: 'Adults',
+          detail_columns: [
+            :destination_client_id,
+            :personal_id,
+            :first_name,
+            :last_name,
+            :reporting_age,
+            :employed,
+            :not_employed_reason,
+          ],
+          denominator: ->(item) { item.reporting_age.present? && item.reporting_age > 18 },
+          limiter: ->(item) {
+            return false unless item.reporting_age.present? && item.reporting_age > 18
+
+            is_not_employed = item.employed == 0
+            missing_unemployed_reason = item.not_employed_reason.blank? || item.not_employed_reason == 99
+
+            return true if is_not_employed ^ !missing_unemployed_reason
+
+            false
           },
         },
       }
