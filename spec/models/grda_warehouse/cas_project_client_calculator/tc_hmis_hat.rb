@@ -49,5 +49,10 @@ RSpec.describe GrdaWarehouse::CasProjectClientCalculator::TcHat, type: :model do
       client = GrdaWarehouse::Hud::Client.destination.find_by(personal_id: '1-1')
       expect(@calculator.value_for_cas_project_client(client: client, column: :dv_date)).to eq('2015-01-02'.to_date)
     end
+
+    it 'doesn\'t fail on null AssessmentAnswer for boolean' do
+      client = GrdaWarehouse::Hud::Client.destination.find_by(personal_id: '1-1')
+      expect(@calculator.value_for_cas_project_client(client: client, column: :drug_test)).to be_nil
+    end
   end
 end

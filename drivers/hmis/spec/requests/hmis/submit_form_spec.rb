@@ -41,7 +41,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
   let!(:hmis_hud_service1) do
     hmis_service = Hmis::Hud::HmisService.find_by(owner: s1)
-    hmis_service.custom_service_type = Hmis::Hud::CustomServiceType.find_by(hud_record_type: s1.record_type, hud_type_provided: s1.type_provided)
+    hmis_service.custom_service_type_id = Hmis::Hud::CustomServiceType.find_by(hud_record_type: s1.record_type, hud_type_provided: s1.type_provided).id
     hmis_service
   end
   let!(:file1) { create :file, client: c2, enrollment: e1, blob: blob, user_id: hmis_user.id, tags: [tag] }
@@ -138,8 +138,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             service_type_id: hmis_hud_service1.custom_service_type_id,
             client_id: c2.id,
             confirmed: true, # ignore warnings, they are tested separately
-            **completed_form_values_for_role(role) do |values|
+            **mock_form_values_for_definition(definition) do |values|
               if role == :FILE
+                # FIXME make this not depend on specific Link IDs in the file form
                 values[:values]['file-blob-id'] = blob.id.to_s
                 values[:hud_values]['fileBlobId'] = blob.id.to_s
               end
@@ -303,7 +304,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       {
         form_definition_id: definition.id,
         record_id: p1.id,
-        **completed_form_values_for_role(:PROJECT),
+        **mock_form_values_for_definition(definition),
         confirmed: false,
       }
     end
@@ -405,10 +406,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq(200), result&.inspect
         expect(record_id).to be_nil
         expect(p1.operating_end_date).to be_nil
-        expect(errors).to match([
-                                  a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => Hmis::Hud::Validators::ProjectValidator.open_funders_message(1)),
-                                  a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => Hmis::Hud::Validators::ProjectValidator.open_inventory_message(1)),
-                                ])
+        expect(errors).to contain_exactly(
+          a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => Hmis::Hud::Validators::ProjectValidator.open_funders_message(1)),
+          a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => Hmis::Hud::Validators::ProjectValidator.open_inventory_message(1)),
+        )
         expect(i1.reload.inventory_end_date).to be nil
         expect(f1.reload.end_date).to be nil
       end
@@ -445,7 +446,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let(:test_input) do
       {
         form_definition_id: definition.id,
-        **completed_form_values_for_role(:ENROLLMENT),
+        **mock_form_values_for_definition(definition),
         project_id: p2.id,
         client_id: c3.id,
         confirmed: false,
@@ -534,7 +535,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let(:test_input) do
       {
         form_definition_id: definition.id,
-        **completed_form_values_for_role(:ENROLLMENT),
+        **mock_form_values_for_definition(definition),
         project_id: p1.id,
         client_id: c2.id,
         confirmed: false,
@@ -574,7 +575,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let(:test_input) do
       {
         form_definition_id: definition.id,
-        **completed_form_values_for_role(:ENROLLMENT),
+        **mock_form_values_for_definition(definition),
         project_id: p1.id,
         client_id: c1.id,
         confirmed: false,
@@ -603,7 +604,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let(:test_input) do
       {
         form_definition_id: definition.id,
-        **completed_form_values_for_role(:NEW_CLIENT_ENROLLMENT),
+        **mock_form_values_for_definition(definition),
         project_id: p2.id,
         confirmed: true,
       }

@@ -37,7 +37,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     {
       enrollment_id: e1.id.to_s,
       form_definition_id: fd1.id,
-      values: { 'linkid-date' => test_assessment_date },
+      values: { 'linkid_date' => test_assessment_date },
       hud_values: { 'informationDate' => test_assessment_date },
     }
   end
@@ -93,7 +93,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         assessment_id: a1.id,
         enrollment_id: a1.enrollment.id,
         form_definition_id: fd1.id,
-        values: { 'linkid-date' => new_information_date },
+        values: { 'linkid_date' => new_information_date },
         hud_values: { 'informationDate' => new_information_date },
       }
       response, result = post_graphql(input: { input: input }) { mutation }
@@ -121,7 +121,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         assessment_id: a1_wip.id,
         enrollment_id: a1_wip.enrollment.id,
         form_definition_id: fd1.id,
-        values: { 'linkid-date' => new_information_date },
+        values: { 'linkid_date' => new_information_date },
         hud_values: { 'informationDate' => new_information_date },
       }
       response, result = post_graphql(input: { input: input }) { mutation }
@@ -149,7 +149,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         assessment_id: a1_wip.id,
         enrollment_id: a1_wip.enrollment.id,
         form_definition_id: fd1.id,
-        values: { 'linkid-date' => new_information_date, 'linkid-choice' => nil },
+        values: { 'linkid_date' => new_information_date, 'linkid_choice' => nil },
         hud_values: { 'informationDate' => new_information_date, 'fieldTwo' => nil },
       }
       response, result = post_graphql(input: { input: input }) { mutation }
@@ -158,7 +158,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
       aggregate_failures 'checking response' do
         expect(response.status).to eq(200), result&.inspect
-        expect(errors).to match([a_hash_including('severity' => 'warning', 'type' => 'data_not_collected')])
+        expect(errors).to contain_exactly(a_hash_including('severity' => 'warning', 'type' => 'data_not_collected'))
         expect(assessment).to be_nil
 
         # It is still WIP, and fields should NOT have been updated
@@ -207,7 +207,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         ->(input) {
           input.merge(
             hud_values: { **input[:hud_values], 'fieldOne' => nil },
-            values: { **input[:values], 'linkid-required' => nil },
+            values: { **input[:values], 'linkid_required' => nil },
           )
         },
         {
@@ -223,7 +223,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         ->(input) {
           input.merge(
             hud_values: { **input[:hud_values], 'fieldTwo': 'DATA_NOT_COLLECTED' },
-            values: { **input[:values], 'linkid-choice' => nil },
+            values: { **input[:values], 'linkid_choice' => nil },
           )
         },
         {
@@ -240,7 +240,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         response, result = post_graphql(input: { input: input }) { mutation }
         errors = result.dig('data', 'submitAssessment', 'errors')
         aggregate_failures 'checking response' do
-          expect(response.status).to eq 200
+          expect(response.status).to eq(200), result.inspect
           expect(errors).to match(expected_errors.map { |h| a_hash_including(**h) })
         end
       end
@@ -306,7 +306,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it test_name do
         input = test_input.merge(
           hud_values: { 'informationDate' => date&.strftime('%Y-%m-%d') },
-          values: { 'linkid-date' => date&.strftime('%Y-%m-%d') },
+          values: { 'linkid_date' => date&.strftime('%Y-%m-%d') },
         )
         response, result = post_graphql(input: { input: input }) { mutation }
         errors = result.dig('data', 'submitAssessment', 'errors')
@@ -314,7 +314,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expected_match = expected_errors.map do |h|
           a_hash_including(**h, 'readableAttribute' => 'Information Date',
                                 'attribute' => 'informationDate',
-                                'linkId' => 'linkid-date')
+                                'linkId' => 'linkid_date')
         end
         expect(errors).to match(expected_match)
       end

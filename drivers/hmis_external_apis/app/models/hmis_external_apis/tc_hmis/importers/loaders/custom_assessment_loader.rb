@@ -189,7 +189,7 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     def form_definition
       @form_definition ||= Hmis::Form::Definition.where(identifier: form_definition_identifier).first_or_create! do |definition|
         definition.title = form_definition_identifier.humanize
-        definition.status = 'draft'
+        definition.status = Hmis::Form::Definition::DRAFT
         definition.version = 0
         definition.role = 'FORM_DEFINITION'
       end

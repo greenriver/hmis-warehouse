@@ -513,6 +513,25 @@ module CasClientData
       end.any?
     end
 
+    # We are passing in safe project names to avoid N+1 queries
+    def last_intentional_contacts_for_cas(safe_project_names:)
+      contacts = processed_service_history&.last_intentional_contacts
+      return [] unless contacts.present?
+
+      contacts = JSON.parse(contacts)
+
+      contacts.select { |c| c['date'].present? && c['date'] > 3.years.ago }.
+        sort_by { |c| c['date']&.to_date || 5.years.ago }.
+        reverse.
+        map do |contact|
+          next unless safe_project_names[contact['project_id']]
+
+          safe_project_names[contact['project_id']] + ': ' + contact['date']&.to_date.to_s
+        end.
+        compact.
+        uniq
+    end
+
     def cas_assessment_collected_at
       rrh_assessment_collected_at
     end
