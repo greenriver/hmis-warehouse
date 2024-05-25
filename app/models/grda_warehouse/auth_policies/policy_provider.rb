@@ -27,7 +27,8 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
   def for_client(client_or_id)
     client_id = id_from_arg(client_or_id, GrdaWarehouse::Hud::Client)
     if user.using_acls?
-      client_project_policy(client_id)
+      policies = client_collection_ids(client_id).map { |collection_id| GrdaWarehouse::AuthPolicies::CollectionPolicy.new(user: user, collection_id: collection_id )}
+      GrdaWarehouse::AuthPolicies::AnyPolicy.new(policies: policies)
     else
       # TODO: START_ACL remove after ACL migration is complete
       legacy_user_role_policy
@@ -61,22 +62,18 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
     Sentry.capture_message(message)
   end
 
-  memoize def client_project_policy(client_id)
-    p_t = GrdaWarehouse::Hud::Project.arel_table
+  def client_collection_ids(client_id)
+    collection_ids = [
+      Collection.system_collection(:data_sources).id
+    ]
+
     c_t = GrdaWarehouse::Hud::Client.arel_table
-
-    cond = c_t[:id].eq(client_id)
-    cond = p_t[:data_source_id].in(window_data_source_ids) if window_data_source_ids.any?
-
-    client_project_scope = GrdaWarehouse::Hud::Project.joins(:clients).where(cond)
-    project_policies = client_project_scope.pluck(:id).map do |project_id|
-      for_project(project_id)
+    GrdaWarehouse::Hud::Project.joins(:clients).where(c_t[:id].eq(client_id)).each do |project|
+      collection_ids += Collection.contains(project).pluck(:id)
     end
-    GrdaWarehouse::AuthPolicies::AnyPolicy.new(policies: project_policies)
-  end
+    # needs organizations etc
 
-  memoize def window_data_source_ids
-    ::GrdaWarehouse::DataSource.window_data_source_ids
+    collection_ids.sort.uniq
   end
 
   # TODO: START_ACL remove after ACL migration is complete
