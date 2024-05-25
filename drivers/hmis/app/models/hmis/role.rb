@@ -4,6 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# HMIS uses similar but separate permissions system from the warehouse
+# See drivers/hmis/doc/PERMISSIONS.md
+
 class Hmis::Role < ::ApplicationRecord
   self.table_name = :hmis_roles
   acts_as_paranoid
