@@ -6,17 +6,30 @@
 
 module GrdaWarehouse
   class EnrollmentChangeHistory < GrdaWarehouseBase
-    belongs_to :client
+    belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client'
     validates_presence_of :on, :client_id
 
+    RETENTION_DURATION = 6.months
+    scope :expired_as_of, ->(date) {
+      expiration_date = date - RETENTION_DURATION
+      where(on: ...expiration_date)
+    }
+
     def self.generate_for_date!(date: Date.current)
+      priority = 12
       range = ::Filters::DateRange.new(start: 1.years.ago, end: Date.current)
       GrdaWarehouse::Hud::Client.destination.distinct.
         joins(:source_enrollments).
         merge(GrdaWarehouse::Hud::Enrollment.open_during_range(range)).
         pluck_in_batches(:id, batch_size: 20) do |batch|
-          ::Confidence::AddEnrollmentChangeHistoryJob.set(priority: 12).perform_later(client_ids: batch, date: date.to_s)
+          ::Confidence::AddEnrollmentChangeHistoryJob.set(priority: priority).perform_later(client_ids: batch, date: date.to_s)
         end
+
+      # we'd like to run this after the other jobs are completed since it locks the table. There isn't a good way to
+      # know when the other jobs have completed so we use a lower priority job scheduled for the future
+      ::Confidence::PruneEnrollmentChangeHistoryJob.
+        set(priority: priority + 1, run_at: date + 1.hour).
+        perform_later(date: date.to_s)
     end
 
     def self.create_for_clients_on_date! client_ids:, date:
@@ -32,6 +45,7 @@ module GrdaWarehouse
       attributes_for_client = {
         client_id: client.id,
         on: date,
+        # are timestamps and version columns used? This table is large; perhaps they could be dropped for efficiency
         created_at: Time.now,
         updated_at: Time.now,
         version: 1,
