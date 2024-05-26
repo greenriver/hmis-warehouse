@@ -27,8 +27,7 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
   def for_client(client_or_id)
     client_id = id_from_arg(client_or_id, GrdaWarehouse::Hud::Client)
     if user.using_acls?
-      policies = client_collection_ids(client_id).map { |collection_id| GrdaWarehouse::AuthPolicies::CollectionPolicy.new(user: user, collection_id: collection_id )}
-      GrdaWarehouse::AuthPolicies::AnyPolicy.new(policies: policies)
+      for_client_using_acls(client_id)
     else
       # TODO: START_ACL remove after ACL migration is complete
       legacy_user_role_policy
@@ -53,6 +52,10 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
 
   protected
 
+  memoize def for_client_using_acls(client_id)
+    GrdaWarehouse::AuthPolicies::CollectionPolicy.new(user: user, collection_ids: client_collection_ids(client_id))
+  end
+
   def handle_legacy_unauthorized
     message = "legacy authorization not performed for User##{user.id}"
     raise message unless Rails.env.production?
@@ -63,9 +66,7 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
   end
 
   def client_collection_ids(client_id)
-    collection_ids = [
-      Collection.system_collection(:data_sources).id
-    ]
+    collection_ids = []
 
     c_t = GrdaWarehouse::Hud::Client.arel_table
     GrdaWarehouse::Hud::Project.joins(:clients).where(c_t[:id].eq(client_id)).each do |project|
@@ -74,6 +75,9 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
     GrdaWarehouse::DataSource.joins(:clients).where(c_t[:id].eq(client_id)).each do |data_source|
       collection_ids += Collection.contains(data_source).pluck(:id)
     end
+
+    collection_ids += [Collection.system_collection(:data_sources).id]
+
     # needs organizations etc
 
     collection_ids.sort.uniq
