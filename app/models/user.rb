@@ -121,9 +121,11 @@ class User < ApplicationRecord
   def viewable_project_ids(context)
     return GrdaWarehouse::Hud::Project.project_ids_viewable_by(self, permission: context) if Rails.env.test?
 
-    Rails.cache.fetch("#{user_project_id_prefix}_#{context}", expires_in: EXPIRY_MINUTES.minutes) do
+    @viewable_project_ids ||= {}
+    @viewable_project_ids[context] ||= Rails.cache.fetch("#{user_project_id_prefix}_#{context}", expires_in: EXPIRY_MINUTES.minutes) do
       GrdaWarehouse::Hud::Project.project_ids_viewable_by(self, permission: context)
     end
+    @viewable_project_ids[context]
   end
 
   def editable_project_ids
