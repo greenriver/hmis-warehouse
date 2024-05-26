@@ -25,8 +25,8 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
   end
 
   def for_client(client_or_id)
-    client_id = id_from_arg(client_or_id, GrdaWarehouse::Hud::Client)
     if user.using_acls?
+      client_id = id_from_arg(client_or_id, GrdaWarehouse::Hud::Client)
       for_client_using_acls(client_id)
     else
       # TODO: START_ACL remove after ACL migration is complete
@@ -39,10 +39,10 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
     for_client(patient.client_id)
   end
 
-  memoize def for_project(project_or_id)
-    project_id = id_from_arg(project_or_id, GrdaWarehouse::Hud::Project)
+  def for_project(project_or_id)
     if user.using_acls?
-      GrdaWarehouse::AuthPolicies::ProjectPolicy.new(user: user, project_id: project_id)
+      project_id = id_from_arg(project_or_id, GrdaWarehouse::Hud::Project)
+      for_project_using_acls(project_id)
     else
       # TODO: START_ACL remove after ACL migration is complete
       legacy_user_role_policy
@@ -52,8 +52,34 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
 
   protected
 
+  memoize def for_project_using_acls(project_id)
+    GrdaWarehouse::AuthPolicies::ProjectPolicy.new(user: user, project_id: project_id)
+  end
+
   memoize def for_client_using_acls(client_id)
-    GrdaWarehouse::AuthPolicies::CollectionPolicy.new(user: user, collection_ids: client_collection_ids(client_id))
+    c_t = GrdaWarehouse::Hud::Client.arel_table
+    gve_t = GrdaWarehouse::GroupViewableEntity.arel_table
+
+    policies = []
+    # project policies for all the client's enrollments
+    policies += GrdaWarehouse::Hud::Project.joins(:clients).where(c_t[:id].eq(client_id)).pluck(:id).map do |project_id|
+      for_project_using_acls(project_id)
+    end
+
+    # collection policies for the client's authoritative data source
+    collection_ids = GrdaWarehouse::DataSource.authoritative.
+      joins(:group_viewable_entities, :clients).
+      where(gve_t[:collection_id].not_eq(nil)).
+      where(c_t[:id].eq(client_id)).
+      pluck(gve_t[:collection_id])
+    collection_ids += [global_system_data_source_collection_id]
+    policies << GrdaWarehouse::AuthPolicies::CollectionPolicy.new(user: user, collection_ids: collection_ids)
+
+    GrdaWarehouse::AuthPolicies::AnyPolicy.new(policies: policies)
+  end
+
+  memoize def global_system_data_source_collection_id
+    Collection.system_collection(:data_sources).id
   end
 
   def handle_legacy_unauthorized
@@ -65,34 +91,12 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
     Sentry.capture_message(message)
   end
 
-  def client_collection_ids(client_id)
-    collection_ids = []
-
-    c_t = GrdaWarehouse::Hud::Client.arel_table
-    GrdaWarehouse::Hud::Project.joins(:clients).where(c_t[:id].eq(client_id)).each do |project|
-      collection_ids += Collection.contains(project).pluck(:id)
-    end
-    GrdaWarehouse::DataSource.joins(:clients).where(c_t[:id].eq(client_id)).each do |data_source|
-      collection_ids += Collection.contains(data_source).pluck(:id)
-    end
-
-    collection_ids += [Collection.system_collection(:data_sources).id]
-
-    # needs organizations etc
-
-    collection_ids.sort.uniq
-  end
-
   # TODO: START_ACL remove after ACL migration is complete
   memoize def legacy_user_role_policy
     handle_legacy_unauthorized unless legacy_implicitly_assume_authorized_access
     GrdaWarehouse::AuthPolicies::LegacyUserRolePolicy.new(user: user)
   end
   # END_ACL
-
-  memoize def enrollment_arbiter
-    GrdaWarehouse::Config.arbiter_class.new
-  end
 
   def id_from_arg(arg, klass)
     case arg
@@ -103,9 +107,5 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
     else
       raise "invalid argument #{arg.inspect}"
     end
-  end
-
-  def deny_policy
-    GrdaWarehouse::AuthPolicies::DenyPolicy.instance
   end
 end
