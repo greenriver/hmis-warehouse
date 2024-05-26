@@ -10,7 +10,7 @@ class GrdaWarehouse::AuthPolicies::CollectionPolicy
 
   def initialize(user:, collection_ids:)
     @user = user
-    @collection_ids = collection_ids
+    @collection_ids = collection_ids.sort.uniq
   end
 
   Role.permissions.each do |permission|
