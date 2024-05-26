@@ -15,7 +15,7 @@ class GrdaWarehouse::AuthPolicies::CollectionPolicy
 
   Role.permissions.each do |permission|
     define_method("#{permission}?") do
-      user.collections.where(id: @collection_id).joins(access_controls: :role).merge(Role.where(permission => true)).any?
+      user.access_controls.joins(:role).where(collection_id: @collection_id).merge(Role.where(permission => true)).any?
     end
     memoize :"#{permission}?"
   end

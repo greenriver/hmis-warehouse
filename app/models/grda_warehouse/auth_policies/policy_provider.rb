@@ -71,6 +71,9 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
     GrdaWarehouse::Hud::Project.joins(:clients).where(c_t[:id].eq(client_id)).each do |project|
       collection_ids += Collection.contains(project).pluck(:id)
     end
+    GrdaWarehouse::DataSource.joins(:clients).where(c_t[:id].eq(client_id)).each do |data_source|
+      collection_ids += Collection.contains(data_source).pluck(:id)
+    end
     # needs organizations etc
 
     collection_ids.sort.uniq
