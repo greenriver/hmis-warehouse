@@ -9,31 +9,6 @@ Devise.setup do |config|
     manager.failure_app = CustomAuthFailure
   end
 
-  # This needs to be silenced because it may have already been set
-  silence_warnings do
-    OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE if Rails.env.development?
-  end
-
-  config.omniauth :openid_connect, {
-    name: ENV['IDP_NAME'],
-    scope: [:openid, :email, :profile, :address],
-    response_type: :code,
-    uid_field: 'email',
-    client_options: {
-      port: ENV['IDP_PORT'],
-      scheme: ENV['IDP_SCHEME'],
-      host: ENV['IDP_HOST'],
-      identifier: ENV['IDP_CLIENT_ID'],
-      secret: ENV['IDP_SECRET_KEY'],
-      redirect_uri: ENV['IDP_REDIRECT_URI'],
-      token_endpoint: ENV['IDP_TOKEN_ENDPOINT'],
-      # FIXME: Development only
-      ssl: {
-        verify: ! Rails.env.development?,
-      },
-    },
-  }
-
   # The secret key used by Devise. Devise uses this key to generate
   # random tokens. Changing this key will render invalid all existing
   # confirmation, reset password and unlock tokens in the database.

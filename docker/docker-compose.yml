@@ -122,16 +122,6 @@ services:
     stdin_open: true
     tty: true
     command: bin/rails server -b 0.0.0.0
-    # labels:
-    #   - traefik.enable=${TRAEFIK_ENABLED:-false}
-    #   - traefik.http.routers.op.entrypoints=web
-    #   - traefik.http.routers.op.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
-    #   - traefik.http.services.op_https.loadbalancer.server.port=3000
-    #   - traefik.http.routers.op_https.rule=Host(`${FQDN:-hmis-warehouse.dev.test}`)
-    #   - traefik.http.routers.op_https.tls=true
-    #   - traefik.http.routers.op_https.entrypoints=web-secure
-    #   - traefik.http.middlewares.op_https.redirectscheme.scheme=https
-    #   - traefik.http.routers.op.middlewares=op_https
     ports:
       - "3000"
       - "9394"
@@ -152,10 +142,6 @@ services:
       yarn:
         condition: service_started
     hostname: warehouse.dev.test
-    # networks:
-    #   default:
-    #     aliases:
-    #       - hmis-warehouse.dev.test
 
   # To transition from a previous major version to pg13, run ./docker/pg13/upgrade.db
   db_previous:

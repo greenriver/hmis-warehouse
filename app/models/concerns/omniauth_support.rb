@@ -32,9 +32,7 @@ module OmniauthSupport
   # Does this user use an external identity provider. #provider says which one.
   # All other methods should return safe values if this is false.
   def external_idp?
-    okta = ENV['OKTA_DOMAIN'].present? && OauthIdentity.for_user(self).any?
-    openid_connect = ENV['IDP_NAME'].present?
-    okta || openid_connect
+    ENV['OKTA_DOMAIN'].present? && OauthIdentity.for_user(self).any?
   end
 
   # Remove the IDP present, reseting the password and

@@ -15,8 +15,6 @@ class User < ApplicationRecord
   USER_PROJECT_ID_PREFIX = "#{USER_PERMISSION_PREFIX}_project_ids".freeze
   EXPIRY_MINUTES = 5
 
-  devise :omniauthable, omniauth_providers: [:openid_connect]
-
   has_many :user_group_members, dependent: :destroy, inverse_of: :user
   has_many :user_groups, through: :user_group_members
   has_many :access_controls, through: :user_groups
