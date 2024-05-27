@@ -17,6 +17,11 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
       GrdaWarehouse::Config.invalidate_cache
       Collection.maintain_system_groups
       non_window_visible_data_source.update(obey_consent: false)
+
+      search_role = can_view_clients
+      search_role.update(can_view_client_name: true)
+      own_clients_role = can_search_own_clients
+      own_clients_role.update(can_view_client_name: true)
     end
     let!(:config) { create :config_b }
     let!(:user) { create :acl_user }
@@ -128,9 +133,14 @@ RSpec.describe ClientAccessControl::ClientsController, type: :request do
           expect(doc.text).to include('Displaying 3 clients')
           expect(response).to have_http_status(200)
         end
+        # Michele - non-window source client
+        # Bob Foss - window source client
         it 'can see window source client, but not non-window source client' do
           get client_path(both_destination_client)
           doc = Nokogiri::HTML(response.body)
+          # FIXME: the issue seems to be that we can see the source client Bob's name,
+          # but the source client Michele's name is redacted, as is the destination
+          # client name used in the title (which appears to be Bob Ross)
           expect(doc.text).to include('Bob')
           expect(doc.text).to include('Michele')
         end

@@ -84,8 +84,10 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
   def visible_client_project_ids(client_id)
     p_t = GrdaWarehouse::Hud::Project.arel_table
     enrollment_arbiter.
-      enrollments_visible_to(user, client_ids: [client_id]).
-      joins(:project).order(p_t[:id]).pluck(p_t[:id])
+      # clients_source_visible_to(user, client_ids: [client_id]).
+      clients_source_searchable_to(user, client_ids: [client_id]).
+      # enrollments_visible_to(user, client_ids: [client_id]).
+      left_outer_joins(enrollments: :project).order(p_t[:id]).pluck(p_t[:id]).compact
   end
 
   memoize def enrollment_arbiter
