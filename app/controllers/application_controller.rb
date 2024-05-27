@@ -53,11 +53,18 @@ class ApplicationController < ActionController::Base
 
   private def valid_jwt?
     return false unless ENV['JWT_SECRET']
+    return false unless jwt_payload['email_verified'] == true
+    return false unless jwt_payload['email'] == request.headers['HTTP_X_FORWARDED_USER']
+    return false unless jwt_payload['exp'] > Time.now.to_i
 
-    # TODO: how do we validate the JWT?
-    return true
-    # decoded = JWT.decode(cookies[:_oauth2_proxy], ENV['JWT_SECRET'])[0]
-    # raise decoded.inspect
+    # TODO: any additional checks we should do here?  Also, I'd rather invert this logic and return true
+    # if everything looks good, but false if we can't positively verify
+
+    true
+  end
+
+  private def jwt_payload
+    @jwt_payload ||= JWT.decode(request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN'], ENV['JWT_SECRET'], false, algorithm: 'RS256').first
   end
 
   private def login_jwt_user
