@@ -9314,7 +9314,7 @@ type ReferralPosting {
   Project that household is being referred to
   """
   project: Project
-  referralDate: ISO8601DateTime!
+  referralDate: ISO8601Date!
   referralIdentifier: ID
 
   """

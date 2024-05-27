@@ -14,7 +14,7 @@ module Types
 
     # Fields that come from Referral
     field :referral_identifier, ID
-    field :referral_date, GraphQL::Types::ISO8601DateTime, null: false
+    field :referral_date, GraphQL::Types::ISO8601Date, null: false
     field :referred_by, String, null: false
     field :referral_notes, String, description: 'Note associated with the Referral that came from an External API'
     field :chronic, Boolean
