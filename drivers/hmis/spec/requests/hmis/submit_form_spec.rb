@@ -775,6 +775,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it 'succeeds when referer lacks access to receiving project' do
         # User has access to refer from p1, but no access to p2
         create_access_control(hmis_user, p1, with_permission: [:can_manage_outgoing_referrals, :can_view_project, :can_view_enrollment_details])
+        expect(Hmis::Hud::Project.viewable_by(hmis_user).where(id: p2.id).exists?).to be false # confirm setup
+
         _, errors = submit_form(test_input)
         expect(errors).to be_empty
       end
