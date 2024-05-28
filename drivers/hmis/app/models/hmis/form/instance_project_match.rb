@@ -89,6 +89,8 @@ class Hmis::Form::InstanceProjectMatch
   end
 
   def matches_project_funder?
+    # TODO: Should this be based on _active_ funders? Currently this would apply rules to a project
+    # that used to be funded by a certain funder.
     instance.funder.presence&.in?(project.funders.map(&:funder)) ||
       instance.other_funder.presence&.in?(project.funders.map(&:other_funder))
   end

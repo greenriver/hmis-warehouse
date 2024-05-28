@@ -6535,6 +6535,11 @@ enum PickListType {
   All Projects that the User can see
   """
   PROJECT
+
+  """
+  Open Projects that can receive referrals
+  """
+  PROJECTS_RECEIVING_REFERRALS
   REFERRAL_OUTCOME
 
   """
@@ -9310,7 +9315,7 @@ type ReferralPosting {
   Project that household is being referred to
   """
   project: Project
-  referralDate: ISO8601DateTime!
+  referralDate: ISO8601Date!
   referralIdentifier: ID
 
   """
