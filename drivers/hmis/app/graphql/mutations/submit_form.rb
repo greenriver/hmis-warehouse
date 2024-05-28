@@ -55,7 +55,7 @@ module Mutations
         # allow if no permission check defined
         allowed = true
       end
-      raise HmisErrors::ApiError, 'Access Denied' unless allowed
+      access_denied! unless allowed
 
       # Build FormProcessor
       # It wont be persisted, but it handles validation and updating the relevant record(s)
@@ -177,9 +177,13 @@ module Mutations
       when 'HmisExternalApis::AcHmis::ReferralRequest'
         [project, klass.new({ project_id: project&.id })]
       when 'HmisExternalApis::AcHmis::ReferralPosting'
+        # Look up the receiving project without `viewable_by` scope, since referrer may not have access to receiving project
+        receiving_project = Hmis::Hud::Project.find_by(id: input.project_id)
+        access_denied! unless enrollment.present? && receiving_project.present?
+
         referral_posting = HmisExternalApis::AcHmis::ReferralPosting.new_with_referral(
           enrollment: enrollment, # enrollment at the source project
-          receiving_project: project,
+          receiving_project: receiving_project,
           user: current_user,
         )
         # Evaluate permission (can manage outgoing referrals) against the source project, not the receiving project

@@ -268,7 +268,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         it 'should fail if user lacks permission' do
           remove_permissions(access_control, *definition.record_editing_permissions)
-          expect_gql_error post_graphql(input: { input: test_input }) { mutation }
+          expect_gql_error post_graphql(input: { input: test_input }) { mutation }, message: 'access denied'
         end
 
         it 'should update user correctly' do
@@ -760,6 +760,26 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(posting.referral.enrollment).to eq(hoh)
       expect(posting.project).to eq(p2)
       expect(posting.status).to eq('assigned_status')
+    end
+
+    context 'referral permissions' do
+      before(:each) { access_control.destroy! } # remove blanket access
+
+      [:can_manage_outgoing_referrals, :can_view_enrollment_details, :can_view_project].each do |permission|
+        it "fails when referer lacks #{permission} in source project" do
+          create_access_control(hmis_user, p1, without_permission: permission)
+          expect_gql_error post_graphql(input: { input: test_input }) { mutation }, message: 'access denied'
+        end
+      end
+
+      it 'succeeds when referer lacks access to receiving project' do
+        # User has access to refer from p1, but no access to p2
+        create_access_control(hmis_user, p1, with_permission: [:can_manage_outgoing_referrals, :can_view_project, :can_view_enrollment_details])
+        expect(Hmis::Hud::Project.viewable_by(hmis_user).where(id: p2.id).exists?).to be false # confirm setup
+
+        _, errors = submit_form(test_input)
+        expect(errors).to be_empty
+      end
     end
   end
 end
