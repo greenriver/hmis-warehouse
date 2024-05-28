@@ -141,6 +141,8 @@ services:
         condition: service_started
       yarn:
         condition: service_started
+      oauth2-proxy:
+        condition: service_started
     hostname: warehouse.dev.test
 
   # To transition from a previous major version to pg13, run ./docker/pg13/upgrade.db
@@ -284,7 +286,6 @@ services:
       - 4180:4180/tcp
     depends_on:
       - dex
-      - web
   dex:
     container_name: dex
     # image: dexidp/dex:latest-alpine

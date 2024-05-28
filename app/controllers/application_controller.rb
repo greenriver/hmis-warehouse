@@ -64,6 +64,7 @@ class ApplicationController < ActionController::Base
   end
 
   private def jwt_payload
+    # FIXME: this needs to validate the cookie (false should be true)
     @jwt_payload ||= JWT.decode(request.headers['HTTP_X_FORWARDED_ACCESS_TOKEN'], ENV['JWT_SECRET'], false, algorithm: 'RS256').first
   end
 
@@ -71,8 +72,13 @@ class ApplicationController < ActionController::Base
     email = request.headers['HTTP_X_FORWARDED_USER']
     return unless email
 
+    # TODO: should this potentially do a find_or_create_by?
     user = User.find_by(email: email.downcase)
     return unless user
+
+    # TODO: Need to check expiration/re-request a token so we aren't signed out
+    # after 30 minutes if we're active
+    return if user_signed_in?
 
     sign_in(user)
   end
