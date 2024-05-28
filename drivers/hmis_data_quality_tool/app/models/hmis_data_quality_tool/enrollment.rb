@@ -230,7 +230,7 @@ module HmisDataQualityTool
       report_item.project_name = enrollment.project.name(report.user)
       project_type = enrollment.project.project_type
       report_item.project_type = project_type
-      report_item.funders = enrollment.project.funders.pluck(:Funder).map(&:to_i)
+      report_item.funders = enrollment.project.funders.map(&:Funder).reject(&:blank?).map(&:to_i)
       report_item.entry_date = enrollment.EntryDate
       report_item.move_in_date = enrollment.MoveInDate
       report_item.exit_date = enrollment.exit&.ExitDate
@@ -286,7 +286,7 @@ module HmisDataQualityTool
       report_item.head_of_household_count = hh&.select(&:head_of_household?)&.count || 0
       report_item.household_type = household_type(report_item.household_min_age, report_item.household_max_age)
 
-      report_item.hh_veteran_count = hh.select { |hm| hm.client.veteran? }.count || 0
+      report_item.hh_veteran_count = hh&.select { |hm| hm.client.veteran? }&.count || 0
       report_item.hoh_veteran = hh&.any? { |hm| hm.head_of_household && hm.client.veteran? }
 
       report_item.ch_details_expected = adult_or_hoh
@@ -410,23 +410,25 @@ module HmisDataQualityTool
 
     private def hp_targeting_criteria_complete(enrollment)
       # V7 HP Targeting Criteria in https://files.hudexchange.info/resources/documents/HMIS-Data-Dictionary-2024.pdf
+      valid_yes_no_missing_options = HudUtility2024.yes_no_missing_options.keys - [99]
       return true unless (HudUtility2024.time_to_housing_losses.keys - [99]).include?(enrollment.TimeToHousingLoss) # V7.A
       return true unless (HudUtility2024.annual_percent_amis.keys - [99]).include?(enrollment.AnnualPercentAMI) # V7.B
       return true unless (HudUtility2024.literal_homeless_histories.keys - [99]).include?(enrollment.LiteralHomelessHistory) # V7.C
-      return true unless (HudUtility2024.yes_no_missing_options.keys - [99]).include?(enrollment.ClientLeaseholder) # V7.D
-      return true unless (HudUtility2024.yes_no_missing_options.keys - [99]).include?(enrollment.HOHLeaseholder) # V7.E
-      return true unless (HudUtility2024.yes_no_missing_options.keys - [99]).include?(enrollment.SubsidyAtRisk) # V7.F
+      return true unless valid_yes_no_missing_options.include?(enrollment.ClientLeaseholder) # V7.D
+      return true unless valid_yes_no_missing_options.include?(enrollment.HOHLeaseholder) # V7.E
+      return true unless valid_yes_no_missing_options.include?(enrollment.SubsidyAtRisk) # V7.F
       return true unless (HudUtility2024.eviction_histories.keys - [99]).include?(enrollment.EvictionHistory) # V7.G
-      return true unless (HudUtility2024.yes_no_missing_options.keys - [99]).include?(enrollment.CriminalRecord) # V7.H
+      return true unless valid_yes_no_missing_options.include?(enrollment.CriminalRecord) # V7.H
       return true unless (HudUtility2024.incarcerated_adults.keys - [99]).include?(enrollment.IncarceratedAdult) # V7.I
-      return true unless (HudUtility2024.yes_no_missing_options.keys - [99]).include?(enrollment.PrisonDischarge) # V7.J
-      return true unless (HudUtility2024.yes_no_missing_options.keys - [99]).include?(enrollment.SexOffender) # V7.K
-      return true unless (HudUtility2024.yes_no_missing_options.keys - [99]).include?(enrollment.DisabledHoH) # V7.L
-      return true unless (HudUtility2024.yes_no_missing_options.keys - [99]).include?(enrollment.CurrentPregnant) # V7.M
-      return true unless (HudUtility2024.yes_no_missing_options.keys - [99]).include?(enrollment.SingleParent) # V7.N
+      return true unless valid_yes_no_missing_options.include?(enrollment.PrisonDischarge) # V7.J
+      return true unless valid_yes_no_missing_options.include?(enrollment.SexOffender) # V7.K
+      return true unless valid_yes_no_missing_options.include?(enrollment.DisabledHoH) # V7.L
+      return true unless valid_yes_no_missing_options.include?(enrollment.CurrentPregnant) # V7.M
+      return true unless valid_yes_no_missing_options.include?(enrollment.SingleParent) # V7.N
       return true unless (HudUtility2024.dependent_under_6_options.keys - [99]).include?(enrollment.DependentUnder6) # V7.O
-      return true unless (HudUtility2024.yes_no_missing_options.keys - [99]).include?(enrollment.HH5Plus) # V7.P
-      return true unless (HudUtility2024.yes_no_missing_options.keys - [99]).include?(enrollment.CoCPrioritized) # V7.Q
+      return true unless valid_yes_no_missing_options.include?(enrollment.HH5Plus) # V7.P
+      return true unless valid_yes_no_missing_options.include?(enrollment.CoCPrioritized) # V7.Q
+
       return false if enrollment.HPScreeningScore.blank? # V7.R
       return false if enrollment.ThresholdScore.blank? # V7.S
 
@@ -704,13 +706,13 @@ module HmisDataQualityTool
             funding_sources = [
               HudUtility2024.funder_components['VA: SSVF'],
             ].flatten
-            project_types = [
+            in_project_types = [
               HudUtility2024.performance_reporting[:rrh],
               HudUtility2024.performance_reporting[:prevention],
-            ].flatten
+            ].flatten.include?(item.project_type)
 
             # Only hohs that include the above funder(s) and project type(s)
-            hoh?(item) && ! (funding_sources & item.funders).empty? && project_types.include?(item.project_type)
+            hoh?(item) && in_project_types && (funding_sources & item.funders).any?
           },
           limiter: ->(item) {
             return false unless hoh?(item)
@@ -719,14 +721,13 @@ module HmisDataQualityTool
             funding_sources = [
               HudUtility2024.funder_components['VA: SSVF'],
             ].flatten
-            return false if (funding_sources & item.funders).empty?
+            return false unless (funding_sources & item.funders).any?
 
             # Limit to items with project types below
-            project_types = [
+            return false unless [
               HudUtility2024.performance_reporting[:rrh],
               HudUtility2024.performance_reporting[:prevention],
-            ].flatten
-            return false unless project_types.include?(item.project_type)
+            ].flatten.include?(item.project_type)
 
             ! (HudUtility2024.percent_amis.keys - [99]).include?(item.percent_ami)
           },
@@ -743,12 +744,12 @@ module HmisDataQualityTool
             funding_sources = [
               HudUtility2024.funder_components['VA: SSVF'],
             ].flatten
-            project_types = [
+            in_project_types = [
               HudUtility2024.performance_reporting[:prevention],
-            ].flatten
+            ].flatten.include?(item.project_type)
 
             # Only hohs that include the above funder(s) and project type(s)
-            hoh?(item) && ! (funding_sources & item.funders).empty? && project_types.include?(item.project_type)
+            hoh?(item) && in_project_types && (funding_sources & item.funders).any?
           },
           limiter: ->(item) {
             return false unless hoh?(item)
@@ -757,13 +758,12 @@ module HmisDataQualityTool
             funding_sources = [
               HudUtility2024.funder_components['VA: SSVF'],
             ].flatten
-            return false if (funding_sources & item.funders).empty?
+            return false unless (funding_sources & item.funders).any?
 
             # Limit to items with project types below
-            project_types = [
+            return false unless [
               HudUtility2024.performance_reporting[:prevention],
-            ].flatten
-            return false unless project_types.include?(item.project_type)
+            ].flatten.include?(item.project_type)
 
             # Screening Required flag is missing
             return true unless (HudUtility2024.yes_no_missing_options.keys - [99]).include?(item.target_screen_required)
@@ -788,7 +788,7 @@ module HmisDataQualityTool
               HudUtility2024.funder_components['VA: CRS Contract Residential Services'],
               HudUtility2024.funder_components['VA: Community Contract Safe Haven'],
             ].flatten
-            project_types = [
+            in_project_types = [
               HudUtility2024.performance_reporting[:es_entry_exit],
               HudUtility2024.performance_reporting[:th],
               HudUtility2024.performance_reporting[:psh],
@@ -796,10 +796,10 @@ module HmisDataQualityTool
               HudUtility2024.performance_reporting[:sh],
               HudUtility2024.performance_reporting[:oph],
               HudUtility2024.performance_reporting[:rrh],
-            ].flatten
+            ].flatten.include?(item.project_type)
 
             # Only hohs or veterans that include the above funder(s) and project type(s)
-            (hoh?(item) || item.veteran == 1) && ! (funding_sources & item.funders).empty? && project_types.include?(item.project_type)
+            (hoh?(item) || item.veteran == 1) && in_project_types && (funding_sources & item.funders).any?
           },
           limiter: ->(item) {
             # HoHs or Veterans
@@ -813,10 +813,10 @@ module HmisDataQualityTool
               HudUtility2024.funder_components['VA: CRS Contract Residential Services'],
               HudUtility2024.funder_components['VA: Community Contract Safe Haven'],
             ].flatten
-            return false if (funding_sources & item.funders).empty?
+            return false unless (funding_sources & item.funders).any?
 
             # Limit to items with project types below
-            project_types = [
+            return false unless [
               HudUtility2024.performance_reporting[:es_entry_exit],
               HudUtility2024.performance_reporting[:th],
               HudUtility2024.performance_reporting[:psh],
@@ -824,8 +824,7 @@ module HmisDataQualityTool
               HudUtility2024.performance_reporting[:sh],
               HudUtility2024.performance_reporting[:oph],
               HudUtility2024.performance_reporting[:rrh],
-            ].flatten
-            return false unless project_types.include?(item.project_type)
+            ].flatten.include?(item.project_type)
 
             # normalize station numbers that can be converted to integers
             vamc_number = item.vamc_station
@@ -948,14 +947,14 @@ module HmisDataQualityTool
               HudUtility2024.funder_components['VA: SSVF'],
             ].flatten
             # Only items with funders intersecting the above funding source(s)
-            ! (funding_sources & item.funders).empty?
+            (funding_sources & item.funders).any?
           },
           limiter: ->(item) {
             # Limit to items with intersecting funders below
             funding_sources = [
               HudUtility2024.funder_components['VA: SSVF'],
             ].flatten
-            return false if (funding_sources & item.funders).empty?
+            return false unless (funding_sources & item.funders).any?
 
             item.hh_veteran_count.zero?
           },
@@ -972,14 +971,14 @@ module HmisDataQualityTool
               HudUtility2024.funder_components['VA: SSVF'],
             ].flatten
             # Only items with funders intersecting the above funding source(s)
-            ! (funding_sources & item.funders).empty?
+            (funding_sources & item.funders).any?
           },
           limiter: ->(item) {
             # Limit to items with intersecting funders below
             funding_sources = [
               HudUtility2024.funder_components['VA: SSVF'],
             ].flatten
-            return false if (funding_sources & item.funders).empty?
+            return false unless (funding_sources & item.funders).any?
 
             !item.hoh_veteran
           },
@@ -1828,7 +1827,7 @@ module HmisDataQualityTool
               HudUtility2024.funder_components['VA: GPD'],
             ].flatten
 
-            project_types = [
+            in_project_types = [
               HudUtility2024.performance_reporting[:es_entry_exit],
               HudUtility2024.performance_reporting[:th],
               HudUtility2024.performance_reporting[:psh],
@@ -1837,10 +1836,10 @@ module HmisDataQualityTool
               HudUtility2024.performance_reporting[:oph],
               HudUtility2024.performance_reporting[:prevention],
               HudUtility2024.performance_reporting[:rrh],
-            ].flatten
+            ].flatten.include?(item.project_type)
 
             # Only adults that include the above funder(s) and project type(s)
-            adult?(item) && ! (funding_sources & item.funders).empty? && project_types.include?(item.project_type)
+            adult?(item) && in_project_types && (funding_sources & item.funders).any?
           },
           limiter: ->(item) {
             return false unless adult?(item)
@@ -1852,10 +1851,10 @@ module HmisDataQualityTool
               HudUtility2024.funder_components['VA: SSVF'],
               HudUtility2024.funder_components['VA: GPD'],
             ].flatten
-            return false if (funding_sources & item.funders).empty?
+            return false unless (funding_sources & item.funders).any?
 
             # Limit to items with project types below
-            project_types = [
+            return false unless [
               HudUtility2024.performance_reporting[:es_entry_exit],
               HudUtility2024.performance_reporting[:th],
               HudUtility2024.performance_reporting[:psh],
@@ -1864,8 +1863,7 @@ module HmisDataQualityTool
               HudUtility2024.performance_reporting[:oph],
               HudUtility2024.performance_reporting[:prevention],
               HudUtility2024.performance_reporting[:rrh],
-            ].flatten
-            return false unless project_types.include?(item.project_type)
+            ].flatten.include?(item.project_type)
 
             ! (HudUtility2024.yes_no_missing_options.keys - [99]).include?(item.employed)
           },
@@ -1886,7 +1884,7 @@ module HmisDataQualityTool
               HudUtility2024.funder_components['VA: GPD'],
             ].flatten
 
-            project_types = [
+            in_project_types = [
               HudUtility2024.performance_reporting[:es_entry_exit],
               HudUtility2024.performance_reporting[:th],
               HudUtility2024.performance_reporting[:psh],
@@ -1895,10 +1893,10 @@ module HmisDataQualityTool
               HudUtility2024.performance_reporting[:oph],
               HudUtility2024.performance_reporting[:prevention],
               HudUtility2024.performance_reporting[:rrh],
-            ].flatten
+            ].flatten.include?(item.project_type)
 
             # Only adults that include the above funder(s) and project type(s)
-            adult?(item) && ! (funding_sources & item.funders).empty? && project_types.include?(item.project_type)
+            adult?(item) && in_project_types && (funding_sources & item.funders).any?
           },
           limiter: ->(item) {
             return false unless adult?(item)
@@ -1910,10 +1908,10 @@ module HmisDataQualityTool
               HudUtility2024.funder_components['VA: SSVF'],
               HudUtility2024.funder_components['VA: GPD'],
             ].flatten
-            return false if (funding_sources & item.funders).empty?
+            return false unless (funding_sources & item.funders).any?
 
             # Limit to items with project types below
-            project_types = [
+            return false unless [
               HudUtility2024.performance_reporting[:es_entry_exit],
               HudUtility2024.performance_reporting[:th],
               HudUtility2024.performance_reporting[:psh],
@@ -1922,8 +1920,7 @@ module HmisDataQualityTool
               HudUtility2024.performance_reporting[:oph],
               HudUtility2024.performance_reporting[:prevention],
               HudUtility2024.performance_reporting[:rrh],
-            ].flatten
-            return false unless project_types.include?(item.project_type)
+            ].flatten.include?(item.project_type)
 
             is_employed = item.employed == 1
             has_employment_type = ! (item.employment_type.blank? || item.employment_type == 99)
@@ -1947,7 +1944,7 @@ module HmisDataQualityTool
               HudUtility2024.funder_components['VA: GPD'],
             ].flatten
 
-            project_types = [
+            in_project_types = [
               HudUtility2024.performance_reporting[:es_entry_exit],
               HudUtility2024.performance_reporting[:th],
               HudUtility2024.performance_reporting[:psh],
@@ -1956,10 +1953,10 @@ module HmisDataQualityTool
               HudUtility2024.performance_reporting[:oph],
               HudUtility2024.performance_reporting[:prevention],
               HudUtility2024.performance_reporting[:rrh],
-            ].flatten
+            ].flatten.include?(item.project_type)
 
             # Only adults that include the above funder(s) and project type(s)
-            adult?(item) && ! (funding_sources & item.funders).empty? && project_types.include?(item.project_type)
+            adult?(item) && in_project_types && (funding_sources & item.funders).any?
           },
           limiter: ->(item) {
             return false unless adult?(item)
@@ -1971,10 +1968,10 @@ module HmisDataQualityTool
               HudUtility2024.funder_components['VA: SSVF'],
               HudUtility2024.funder_components['VA: GPD'],
             ].flatten
-            return false if (funding_sources & item.funders).empty?
+            return false unless (funding_sources & item.funders).any?
 
             # Limit to items with project types below
-            project_types = [
+            return false unless [
               HudUtility2024.performance_reporting[:es_entry_exit],
               HudUtility2024.performance_reporting[:th],
               HudUtility2024.performance_reporting[:psh],
@@ -1983,8 +1980,7 @@ module HmisDataQualityTool
               HudUtility2024.performance_reporting[:oph],
               HudUtility2024.performance_reporting[:prevention],
               HudUtility2024.performance_reporting[:rrh],
-            ].flatten
-            return false unless project_types.include?(item.project_type)
+            ].flatten.include?(item.project_type)
 
             is_not_employed = item.employed == 0
             has_unemployed_reason = ! (item.not_employed_reason.blank? || item.not_employed_reason == 99)
