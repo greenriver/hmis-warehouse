@@ -224,5 +224,8 @@ module FormHelpers
       "ceParticipationStatusStartDate": '2020-07-01',
       "ceParticipationStatusEndDate": nil,
     }.stringify_keys,
+    REFERRAL: {
+      'resourceCoordinatorNotes' => 'Note about why client is being referred',
+    },
   }.freeze
 end
