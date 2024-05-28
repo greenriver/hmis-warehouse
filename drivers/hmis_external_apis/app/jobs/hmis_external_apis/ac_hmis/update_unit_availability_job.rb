@@ -40,7 +40,7 @@ module HmisExternalApis::AcHmis
         end
       end
 
-      handle_alert("Failed to sync #{failed_updates} capacity updates to LINK.")
+      handle_alert("Failed to sync #{failed_updates} capacity updates to LINK.") unless failed_updates.zero?
       # If changes were tracked during processing, requeue job
       # FIXME: this check should no longer be necessary once we move to a cron job
       requeue_job if local_changes?(projects)
