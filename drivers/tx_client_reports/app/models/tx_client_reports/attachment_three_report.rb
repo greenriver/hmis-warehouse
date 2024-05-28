@@ -108,6 +108,7 @@ module TxClientReports
         'HoH Monthly Income',
         'AMI %',
         'Gender of Applicant',
+        'Ethnicity',
         'Race of Household',
         'Veteran in Household?',
         'Older Adult (62+) in household?',
@@ -123,6 +124,11 @@ module TxClientReports
 
     def household_report_rows
       rows.map.with_index do |row, index|
+        ethnicity = if row[:ethnicity] == 1
+          'Hispanic/Latin(a)(o)(x)'
+        elsif row[:ethnicity] == 0
+          'Non-Hispanic/Non-Latin(a)(o)(x)'
+        end
         [
           index + 1,
           row[:client_id],
@@ -136,6 +142,7 @@ module TxClientReports
           '', # % AMI
           # TODO: this needs to be updated in the receiving system before we update here
           row[:genders].map { |k| ::HudUtility2024.gender(k) }.join(', '),
+          ethnicity,
           row[:races].map { |f| ::HudUtility2024.race(f) }.join(', '),
           (if row[:any_veterans] then 'Yes' else 'No' end),
           (if row[:over_62_in_household] then 'Yes' else 'No' end),
