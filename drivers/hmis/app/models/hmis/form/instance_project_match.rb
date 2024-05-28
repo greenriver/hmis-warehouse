@@ -19,6 +19,7 @@ class Hmis::Form::InstanceProjectMatch
     PROJECT_TYPE_MATCH = 'project_type'.freeze,
     PROJECT_FUNDER_MATCH = 'project_funder'.freeze,
     DEFAULT_MATCH = 'default'.freeze,
+    DEFAULT_SYSTEM_MATCH = 'default_system'.freeze,
   ].freeze
   MATCH_RANKS = RANKED_MATCHES.each_with_index.to_h.freeze
 
@@ -59,7 +60,11 @@ class Hmis::Form::InstanceProjectMatch
       return matches_project_funder? ? PROJECT_FUNDER_MATCH : nil
     end
 
-    return matches_default? ? DEFAULT_MATCH : nil
+    if matches_default?
+      return instance.system? ? DEFAULT_SYSTEM_MATCH : DEFAULT_MATCH
+    end
+
+    nil
   end
 
   def could_match_funder?
