@@ -19,6 +19,7 @@ module Mutations
       raise 'not allowed to change identifier' if input.identifier.present? && input.identifier != definition.identifier
 
       definition.assign_attributes(**input.to_attributes)
+      definition.definition = convert_form_definition(JSON.parse(input.definition))
 
       errors = HmisErrors::Errors.new
       ::HmisUtil::JsonForms.new.tap do |builder|
@@ -34,6 +35,42 @@ module Mutations
         errors.add_ar_errors(definition.errors)
         { errors: errors }
       end
+    end
+
+    private
+
+    def convert_form_definition(definition)
+      {
+        item: definition['item'].map do |i|
+          convert_form_item(i)
+        end,
+      }
+    end
+
+    def convert_form_item(item)
+      converted = basic_convert(item)
+      converted['mapping'] = basic_convert(item['mapping']) if item['mapping']
+
+      if item['item']
+        converted['item'] = item['item'].map do |i|
+          convert_form_item(i)
+        end
+      end
+
+      converted
+    end
+
+    def basic_convert(input)
+      converted = {}
+
+      input.keys.each do |key|
+        next if key == '__typename'
+        next if input[key].nil?
+
+        converted[key.underscore] = input[key]
+      end
+
+      converted
     end
   end
 end

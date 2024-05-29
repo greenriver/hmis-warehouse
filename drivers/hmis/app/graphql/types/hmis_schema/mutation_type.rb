@@ -65,7 +65,6 @@ module Types
 
     field :create_form_definition, mutation: Mutations::CreateFormDefinition
     field :update_form_definition, mutation: Mutations::UpdateFormDefinition
-    field :update_form_definition_typed, mutation: Mutations::UpdateFormDefinitionTyped
     field :delete_form_definition, mutation: Mutations::DeleteFormDefinition
 
     field :create_form_rule, mutation: Mutations::CreateFormRule
