@@ -110,7 +110,7 @@ module Types
     end
 
     def referred_to
-      project&.project_name
+      load_ar_association(object, :project)&.project_name
     end
 
     def organization
