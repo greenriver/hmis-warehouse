@@ -55,11 +55,14 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
   memoize def for_project_using_acls(project_id)
     p_t = GrdaWarehouse::Hud::Project.arel_table
     collection_ids = GrdaWarehouse::ProjectCollectionMember.where(project_id: project_id).pluck(:collection_id)
+
     coc_codes = GrdaWarehouse::Hud::ProjectCoc.
       joins(:project).
       where(p_t[:id].eq(project_id)).
       pluck(:coc_code)
-    collection_ids += Collection.including_coc_codes(for_coc_codes) if coc_codes.any?
+    collection_ids += Collection.for_coc_codes(coc_codes).pluck(:id) if coc_codes.any?
+
+    collection_ids += system_collection_ids(:data_sources)
     GrdaWarehouse::AuthPolicies::CollectionPolicy.new(user: user, collection_ids: collection_ids)
   end
 
@@ -78,7 +81,7 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
       joins(project: :clients).
       where(c_t[:id].eq(client_id)).
       pluck(:coc_code)
-    collection_ids += Collection.including_coc_codes(for_coc_codes) if coc_codes.any?
+    collection_ids += Collection.for_coc_codes(coc_codes).pluck(:id) if coc_codes.any?
 
     # collections for the client's authoritative data source. Needed for clients records that do not have enrollments
     collection_ids += GrdaWarehouse::DataSource.authoritative.not_hmis.
@@ -87,7 +90,12 @@ class GrdaWarehouse::AuthPolicies::PolicyProvider
       where(c_t[:id].eq(client_id)).
       pluck(gve_t[:collection_id])
 
+    collection_ids += system_collection_ids(:data_sources)
     GrdaWarehouse::AuthPolicies::CollectionPolicy.new(user: user, collection_ids: collection_ids)
+  end
+
+  memoize def system_collection_ids(group_name)
+    [Collection.system_collection(group_name)&.id].compact
   end
 
   def handle_legacy_unauthorized

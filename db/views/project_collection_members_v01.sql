@@ -24,8 +24,8 @@ FROM
     (
       group_viewable_entities.entity_type = 'GrdaWarehouse::DataSource'
       AND group_viewable_entities.entity_id = targets.data_source_id
-    ) OR
-    (
+    )
+    OR (
       group_viewable_entities.entity_type = 'GrdaWarehouse::Hud::Project'
       AND group_viewable_entities.entity_id = targets.project_id
     )
@@ -34,7 +34,10 @@ FROM
       AND group_viewable_entities.entity_id = targets.organization_id
     )
     OR (
-      group_viewable_entities.entity_type = 'GrdaWarehouse::Hud::ProjectGroup'
+      (
+        group_viewable_entities.entity_type = 'GrdaWarehouse::ProjectAccessGroup'
+        OR group_viewable_entities.entity_type = 'GrdaWarehouse::ProjectGroup'
+      )
       AND group_viewable_entities.entity_id = targets.project_group_id
     )
   )
@@ -46,4 +49,5 @@ GROUP BY
   group_viewable_entities.collection_id;
 
 CREATE RULE attempt_project_collection_members_del AS ON DELETE TO project_collection_members DO INSTEAD NOTHING;
-CREATE RULE attempt_project_collection_members_up AS ON UPDATE TO  project_collection_members DO INSTEAD NOTHING;
+
+CREATE RULE attempt_project_collection_members_up AS ON UPDATE TO project_collection_members DO INSTEAD NOTHING;
