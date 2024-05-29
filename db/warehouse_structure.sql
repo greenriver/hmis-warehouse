@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -21201,7 +21201,6 @@ CREATE SEQUENCE public.longitudinal_spm_results_id_seq
     NO MAXVALUE
     CACHE 1;
 
-
 --
 -- Name: longitudinal_spm_results_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
@@ -26809,6 +26808,30 @@ CREATE SEQUENCE public.youth_referrals_id_seq
     NO MAXVALUE
     CACHE 1;
 
+
+--
+-- Name: project_collection_members; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.project_collection_members AS
+ SELECT targets.project_id,
+    group_viewable_entities.collection_id
+   FROM (public.group_viewable_entities
+     JOIN ( SELECT "Project".data_source_id,
+            "Project".id AS project_id,
+            "Organization".id AS organization_id,
+            project_groups.id AS project_group_id
+           FROM (((public."Project"
+             LEFT JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND ("Organization".data_source_id = "Project".data_source_id) AND (("Organization"."OrganizationID")::text = ("Project"."OrganizationID")::text))))
+             LEFT JOIN public.project_project_groups ON ((project_project_groups.project_id = "Project".id)))
+             LEFT JOIN public.project_groups ON (((project_groups.deleted_at IS NULL) AND (project_groups.id = project_project_groups.project_group_id))))
+          WHERE ("Project"."DateDeleted" IS NULL)) targets ON (((group_viewable_entities.deleted_at IS NULL) AND ((((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (group_viewable_entities.entity_id = targets.data_source_id)) OR (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::Project'::text) AND (group_viewable_entities.entity_id = targets.project_id)) OR (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::Organization'::text) AND (group_viewable_entities.entity_id = targets.organization_id)) OR (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::ProjectGroup'::text) AND (group_viewable_entities.entity_id = targets.project_group_id))))))
+  WHERE ((group_viewable_entities.deleted_at IS NULL) AND (group_viewable_entities.collection_id IS NOT NULL))
+  GROUP BY targets.project_id, group_viewable_entities.collection_id;
+
+
+CREATE RULE attempt_project_collection_members_del AS ON DELETE TO project_collection_members DO INSTEAD NOTHING;
+CREATE RULE attempt_project_collection_members_up AS ON UPDATE TO  project_collection_members DO INSTEAD NOTHING;
 
 --
 -- Name: youth_referrals_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
@@ -62678,6 +62701,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240503170130'),
 ('20240506204908'),
 ('20240510204158'),
-('20240510230733');
-
-
+('20240510230733'),
+('20240526045112');
