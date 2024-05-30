@@ -9312,7 +9312,7 @@ type ReferralPosting {
   postingIdentifier: ID
 
   """
-  Project that household is being referred to
+  Project that household is being referred to, if user can access it
   """
   project: Project
   referralDate: ISO8601Date!
@@ -9330,6 +9330,11 @@ type ReferralPosting {
   Name of project or external source that the referral originated from
   """
   referredFrom: String!
+
+  """
+  Name of the Project that household is being referred to
+  """
+  referredTo: String
 
   """
   Note associated with the Referral Posting that either came from the External
