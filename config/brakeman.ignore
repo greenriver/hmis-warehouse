@@ -219,6 +219,29 @@
       "note": ""
     },
     {
+      "warning_type": "Remote Code Execution",
+      "warning_code": 24,
+      "fingerprint": "116e08e84bf0dcb5836d3888745072aa7c0332e7b41bddf19dfeb050ce1d8368",
+      "check_name": "UnsafeReflection",
+      "message": "Unsafe reflection method `constantize` called on model attribute",
+      "file": "drivers/hmis/app/models/hmis/form/definition.rb",
+      "line": 383,
+      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
+      "code": "{ :SERVICE => ({ :owner_class => \"Hmis::Hud::HmisService\", :permission => :can_edit_enrollments }), :PROJECT => ({ :owner_class => \"Hmis::Hud::Project\", :permission => :can_edit_project_details }), :ORGANIZATION => ({ :owner_class => \"Hmis::Hud::Organization\", :permission => :can_edit_organization }), :CLIENT => ({ :owner_class => \"Hmis::Hud::Client\", :permission => :can_edit_clients }), :FUNDER => ({ :owner_class => \"Hmis::Hud::Funder\", :permission => :can_edit_project_details }), :INVENTORY => ({ :owner_class => \"Hmis::Hud::Inventory\", :permission => :can_edit_project_details }), :PROJECT_COC => ({ :owner_class => \"Hmis::Hud::ProjectCoc\", :permission => :can_edit_project_details }), :HMIS_PARTICIPATION => ({ :owner_class => \"Hmis::Hud::HmisParticipation\", :permission => :can_edit_project_details }), :CE_PARTICIPATION => ({ :owner_class => \"Hmis::Hud::CeParticipation\", :permission => :can_edit_project_details }), :CE_ASSESSMENT => ({ :owner_class => \"Hmis::Hud::Assessment\", :permission => :can_edit_enrollments }), :CE_EVENT => ({ :owner_class => \"Hmis::Hud::Event\", :permission => :can_edit_enrollments }), :CASE_NOTE => ({ :owner_class => \"Hmis::Hud::CustomCaseNote\", :permission => :can_edit_enrollments }), :FILE => ({ :owner_class => \"Hmis::File\", :permission => ([:can_manage_any_client_files, :can_manage_own_client_files]), :authorize => (lambda do\n Hmis::File.authorize_proc.call(entity_base, user)\n end) }), :REFERRAL_REQUEST => ({ :owner_class => \"HmisExternalApis::AcHmis::ReferralRequest\", :permission => :can_manage_incoming_referrals }), :REFERRAL => ({ :owner_class => \"HmisExternalApis::AcHmis::ReferralPosting\", :permission => :can_manage_outgoing_referrals }), :CURRENT_LIVING_SITUATION => ({ :owner_class => \"Hmis::Hud::CurrentLivingSituation\", :permission => :can_edit_enrollments }), :OCCURRENCE_POINT => ({ :owner_class => \"Hmis::Hud::Enrollment\", :permission => :can_edit_enrollments }), :ENROLLMENT => ({ :owner_class => \"Hmis::Hud::Enrollment\", :permission => :can_edit_enrollments }), :NEW_CLIENT_ENROLLMENT => ({ :permission => :can_edit_enrollments, :owner_class => \"Hmis::Hud::Enrollment\" }), :CLIENT_DETAIL => ({ :owner_class => \"Hmis::Hud::Client\", :permission => :can_edit_clients }), :EXTERNAL_FORM => ({ :owner_class => \"HmisExternalApis::ExternalForms::FormSubmission\", :permission => :can_manage_external_form_submissions }) }[role.to_sym][:owner_class].constantize",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Hmis::Form::Definition",
+        "method": "owner_class"
+      },
+      "user_input": "Hmis::File.authorize_proc.call(entity_base, user)",
+      "confidence": "Medium",
+      "cwe_id": [
+        470
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "Denial of Service",
       "warning_code": 76,
       "fingerprint": "12d54f9786ea1b87aaff0a84ef939d760a3eac5d1e4c213b702b67a0f9b7905e",
@@ -659,6 +682,29 @@
     {
       "warning_type": "Command Injection",
       "warning_code": 14,
+      "fingerprint": "342d35ee429ab461a9054be831be9ebc311521f286eba079af4e89e55a6221ef",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "drivers/hmis/app/models/hmis/form/definition.rb",
+      "line": 331,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "`No Definition found for System form #{role}`",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Hmis::Form::Definition",
+        "method": "Hmis::Form::Definition.find_definition_for_role"
+      },
+      "user_input": "role",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
       "fingerprint": "34fd658393a9fb9bf9452d6dafc2a7dea87444ddd212196aef05e44065feeeb8",
       "check_name": "Execute",
       "message": "Possible command injection",
@@ -974,52 +1020,6 @@
       "note": ""
     },
     {
-      "warning_type": "File Access",
-      "warning_code": 16,
-      "fingerprint": "53aa3829d816d01fd6d87f4eeca10b2fa2ef40bd2bdbb6e64d899f543b7c6097",
-      "check_name": "FileAccess",
-      "message": "Parameter value used in file name",
-      "file": "drivers/hmis_external_apis/app/controllers/hmis_external_apis/external_forms_controller.rb",
-      "line": 32,
-      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
-      "code": "File.read(Rails.root.join(\"drivers/hmis/lib/form_data/tarrant_county/external_forms/#{File.basename(params[:object_key])}.json\"))",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "HmisExternalApis::ExternalFormsController",
-        "method": "show"
-      },
-      "user_input": "params[:object_key]",
-      "confidence": "Weak",
-      "cwe_id": [
-        22
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Remote Code Execution",
-      "warning_code": 24,
-      "fingerprint": "5479f825f1924957316cbe646519c88a80ca7665923655b0d3727ee94cb2170e",
-      "check_name": "UnsafeReflection",
-      "message": "Unsafe reflection method `constantize` called on model attribute",
-      "file": "drivers/hmis/app/models/hmis/form/definition.rb",
-      "line": 335,
-      "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
-      "code": "{ :SERVICE => ({ :owner_class => \"Hmis::Hud::HmisService\", :permission => :can_edit_enrollments }), :PROJECT => ({ :owner_class => \"Hmis::Hud::Project\", :permission => :can_edit_project_details }), :ORGANIZATION => ({ :owner_class => \"Hmis::Hud::Organization\", :permission => :can_edit_organization }), :CLIENT => ({ :owner_class => \"Hmis::Hud::Client\", :permission => :can_edit_clients }), :FUNDER => ({ :owner_class => \"Hmis::Hud::Funder\", :permission => :can_edit_project_details }), :INVENTORY => ({ :owner_class => \"Hmis::Hud::Inventory\", :permission => :can_edit_project_details }), :PROJECT_COC => ({ :owner_class => \"Hmis::Hud::ProjectCoc\", :permission => :can_edit_project_details }), :HMIS_PARTICIPATION => ({ :owner_class => \"Hmis::Hud::HmisParticipation\", :permission => :can_edit_project_details }), :CE_PARTICIPATION => ({ :owner_class => \"Hmis::Hud::CeParticipation\", :permission => :can_edit_project_details }), :CE_ASSESSMENT => ({ :owner_class => \"Hmis::Hud::Assessment\", :permission => :can_edit_enrollments }), :CE_EVENT => ({ :owner_class => \"Hmis::Hud::Event\", :permission => :can_edit_enrollments }), :CASE_NOTE => ({ :owner_class => \"Hmis::Hud::CustomCaseNote\", :permission => :can_edit_enrollments }), :FILE => ({ :owner_class => \"Hmis::File\", :permission => ([:can_manage_any_client_files, :can_manage_own_client_files]), :authorize => (lambda do\n Hmis::File.authorize_proc.call(entity_base, user)\n end) }), :REFERRAL_REQUEST => ({ :owner_class => \"HmisExternalApis::AcHmis::ReferralRequest\", :permission => :can_manage_incoming_referrals }), :CURRENT_LIVING_SITUATION => ({ :owner_class => \"Hmis::Hud::CurrentLivingSituation\", :permission => :can_edit_enrollments }), :OCCURRENCE_POINT => ({ :owner_class => \"Hmis::Hud::Enrollment\", :permission => :can_edit_enrollments }), :ENROLLMENT => ({ :owner_class => \"Hmis::Hud::Enrollment\", :permission => :can_edit_enrollments }), :NEW_CLIENT_ENROLLMENT => ({ :permission => :can_edit_enrollments, :owner_class => \"Hmis::Hud::Enrollment\" }), :CLIENT_DETAIL => ({ :owner_class => \"Hmis::Hud::Client\", :permission => :can_edit_clients }), :EXTERNAL_FORM => ({ :owner_class => \"HmisExternalApis::ExternalForms::FormSubmission\", :permission => :can_manage_external_form_submissions }) }[role.to_sym][:owner_class].constantize",
-      "render_path": null,
-      "location": {
-        "type": "method",
-        "class": "Hmis::Form::Definition",
-        "method": "owner_class"
-      },
-      "user_input": "Hmis::File.authorize_proc.call(entity_base, user)",
-      "confidence": "Medium",
-      "cwe_id": [
-        470
-      ],
-      "note": ""
-    },
-    {
       "warning_type": "Command Injection",
       "warning_code": 14,
       "fingerprint": "5499b637b8348aa1e36c39c76eedd901c66563518a8514361499efb75c9b0b43",
@@ -1072,7 +1072,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 113,
+      "line": 116,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git rev-parse #{`git rev-parse --abbrev-ref HEAD`.chomp}`",
       "render_path": null,
@@ -1837,7 +1837,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 112,
+      "line": 115,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git ls-remote origin | grep refs/heads/#{`git rev-parse --abbrev-ref HEAD`.chomp}$`",
       "render_path": null,
@@ -2239,7 +2239,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "drivers/homeless_summary_report/app/models/homeless_summary_report/report.rb",
-      "line": 963,
+      "line": 961,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "clients.send(variant).send(\"spm_#{field}\").average(\"spm_#{field}\")",
       "render_path": null,
@@ -2285,7 +2285,7 @@
       "check_name": "Execute",
       "message": "Possible command injection",
       "file": "config/deploy/docker/lib/deployer.rb",
-      "line": 155,
+      "line": 158,
       "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
       "code": "`git rev-parse HEAD > #{_assets_path}/REVISION`",
       "render_path": null,
@@ -2604,7 +2604,7 @@
       "check_name": "MassAssignment",
       "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
       "file": "app/controllers/application_controller.rb",
-      "line": 77,
+      "line": 70,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -3183,6 +3183,6 @@
       "note": ""
     }
   ],
-  "updated": "2024-04-09 02:50:32 +0000",
+  "updated": "2024-05-24 16:49:59 +0000",
   "brakeman_version": "6.1.2"
 }

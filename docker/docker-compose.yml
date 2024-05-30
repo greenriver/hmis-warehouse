@@ -255,13 +255,20 @@ services:
       MINIO_SECRET_KEY: local_secret_key
       MINIO_ROOT_USER: local_access_key
       MINIO_ROOT_PASSWORD: local_secret_key
-    expose:
-      - '9000'
-      - '9001'
     ports:
       - 9000:9000
       - 9001:9001 # enable for UI access
-    command: server --certs-dir /certs /data
+    command: server --certs-dir /certs /data --console-address ":9001"
+    labels:
+      - traefik.enable=${TRAEFIK_ENABLED:-false}
+      - traefik.http.routers.minio.entrypoints=web
+      - traefik.http.routers.minio.rule=Host(`${MINIO_DOMAIN:-s3.dev.test}`)
+      - traefik.http.services.minio_https.loadbalancer.server.port=9000
+      - traefik.http.routers.minio_https.rule=Host(`${MINIO_DOMAIN:-s3.dev.test}`)
+      - traefik.http.routers.minio_https.tls=true
+      - traefik.http.routers.minio_https.entrypoints=web-secure
+      - traefik.http.middlewares.minio_https.redirectscheme.scheme=https
+      - traefik.http.routers.minio.middlewares=op_https
 
 volumes:
   bundle_alpine:
