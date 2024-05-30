@@ -19,7 +19,14 @@ module Mutations
       raise 'not allowed to change identifier' if input.identifier.present? && input.identifier != definition.identifier
 
       definition.assign_attributes(**input.to_attributes)
-      definition.definition = convert_form_definition(JSON.parse(input.definition))
+
+      # This definition could be coming from one of two places:
+      # 1. The Form Builder (new), which sends input as a json-stringified Typescript object. Its keys are camelCase,
+      # and it contains "__typename" keys that need to be removed. The recursively_transform routine fixes this input
+      # to match the expected format.
+      # 2. The JSON Form Editor (old), which sends keys as a JSON string in the expected format and doesn't need
+      # to be transformed, but calling recursively_transform on it is not harmful either.
+      definition.definition = recursively_transform(JSON.parse(input.definition))
 
       errors = HmisErrors::Errors.new
       ::HmisUtil::JsonForms.new.tap do |builder|
@@ -39,38 +46,31 @@ module Mutations
 
     private
 
-    def convert_form_definition(definition)
-      {
-        item: definition['item'].map do |i|
-          convert_form_item(i)
-        end,
-      }
-    end
+    def recursively_transform(form_element)
+      # First drop unneeded keys and transform them all to snake case
+      converted = transform_hash(form_element)
 
-    def convert_form_item(item)
-      converted = basic_convert(item)
-      converted['mapping'] = basic_convert(item['mapping']) if item['mapping']
-
-      if item['item']
-        converted['item'] = item['item'].map do |i|
-          convert_form_item(i)
+      # Then map through all the elements in the result object
+      converted.keys.each do |key|
+        if converted[key].is_a?(Array)
+          # If it's an array, recursively transform each element in the array
+          converted[key] = converted[key].map do |element|
+            recursively_transform(element)
+          end
+        elsif converted[key].is_a?(Hash)
+          # If it's a hash, recursively transform the hash, so that all its nested elements also get transformed
+          converted[key] = recursively_transform(converted[key])
         end
+        # If it's neither an array nor a hash, assume it has been properly handled by the transform_hash call above. No recursion needed
       end
 
       converted
     end
 
-    def basic_convert(input)
-      converted = {}
-
-      input.keys.each do |key|
-        next if key == '__typename'
-        next if input[key].nil?
-
-        converted[key.underscore] = input[key]
-      end
-
-      converted
+    def transform_hash(input)
+      input.excluding('__typename').
+        compact. # drop keys with nil values
+        transform_keys(&:underscore) # transform keys to snake case
     end
   end
 end
