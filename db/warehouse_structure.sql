@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -17783,7 +17783,27 @@ CREATE TABLE public.hmis_dqt_enrollments (
     last_name character varying,
     annual_expected boolean,
     enrollment_anniversary_date date,
-    annual_assessment_status json
+    annual_assessment_status json,
+    funders jsonb,
+    percent_ami integer,
+    vamc_station character varying,
+    veteran integer,
+    hoh_veteran integer,
+    hh_veteran_count integer,
+    target_screen_required integer,
+    target_screen_completed boolean,
+    total_monthly_income_at_entry numeric,
+    total_monthly_income_from_source_at_entry numeric,
+    total_monthly_income_at_exit numeric,
+    total_monthly_income_from_source_at_exit numeric,
+    afghanistan_oef integer,
+    iraq_oif integer,
+    iraq_ond integer,
+    military_branch integer,
+    discharge_status integer,
+    employed integer,
+    employment_type integer,
+    not_employed_reason integer
 );
 
 
@@ -18099,7 +18119,7 @@ CREATE TABLE public.hmis_external_referral_postings (
     referral_id bigint NOT NULL,
     project_id bigint NOT NULL,
     referral_request_id bigint,
-    unit_type_id bigint NOT NULL,
+    unit_type_id bigint,
     "HouseholdID" character varying,
     resource_coordinator_notes text,
     status_updated_at timestamp without time zone NOT NULL,
@@ -22272,6 +22292,55 @@ ALTER SEQUENCE public.pm_results_id_seq OWNED BY public.pm_results.id;
 
 
 --
+-- Name: project_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.project_groups (
+    id integer NOT NULL,
+    name character varying NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    deleted_at timestamp without time zone,
+    options jsonb DEFAULT '{}'::jsonb
+);
+
+
+--
+-- Name: project_project_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.project_project_groups (
+    id integer NOT NULL,
+    project_group_id integer,
+    project_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: project_collection_members; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.project_collection_members AS
+ SELECT targets.project_id,
+    group_viewable_entities.collection_id
+   FROM (public.group_viewable_entities
+     JOIN ( SELECT "Project".data_source_id,
+            "Project".id AS project_id,
+            "Organization".id AS organization_id,
+            project_groups.id AS project_group_id
+           FROM (((public."Project"
+             LEFT JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND ("Organization".data_source_id = "Project".data_source_id) AND (("Organization"."OrganizationID")::text = ("Project"."OrganizationID")::text))))
+             LEFT JOIN public.project_project_groups ON ((project_project_groups.project_id = "Project".id)))
+             LEFT JOIN public.project_groups ON (((project_groups.deleted_at IS NULL) AND (project_groups.id = project_project_groups.project_group_id))))
+          WHERE ("Project"."DateDeleted" IS NULL)) targets ON (((group_viewable_entities.deleted_at IS NULL) AND ((((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (group_viewable_entities.entity_id = targets.data_source_id)) OR (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::Project'::text) AND (group_viewable_entities.entity_id = targets.project_id)) OR (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::Organization'::text) AND (group_viewable_entities.entity_id = targets.organization_id)) OR ((((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::ProjectAccessGroup'::text) OR ((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::ProjectGroup'::text)) AND (group_viewable_entities.entity_id = targets.project_group_id))))))
+  WHERE ((group_viewable_entities.deleted_at IS NULL) AND (group_viewable_entities.collection_id IS NOT NULL))
+  GROUP BY targets.project_id, group_viewable_entities.collection_id;
+
+
+--
 -- Name: project_data_quality; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -22313,20 +22382,6 @@ CREATE SEQUENCE public.project_data_quality_id_seq
 --
 
 ALTER SEQUENCE public.project_data_quality_id_seq OWNED BY public.project_data_quality.id;
-
-
---
--- Name: project_groups; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.project_groups (
-    id integer NOT NULL,
-    name character varying NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    deleted_at timestamp without time zone,
-    options jsonb DEFAULT '{}'::jsonb
-);
 
 
 --
@@ -22509,20 +22564,6 @@ CREATE SEQUENCE public.project_pass_fails_projects_id_seq
 --
 
 ALTER SEQUENCE public.project_pass_fails_projects_id_seq OWNED BY public.project_pass_fails_projects.id;
-
-
---
--- Name: project_project_groups; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.project_project_groups (
-    id integer NOT NULL,
-    project_group_id integer,
-    project_id integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    deleted_at timestamp without time zone
-);
 
 
 --
@@ -61715,6 +61756,22 @@ CREATE RULE attempt_hmis_households_up AS
 
 
 --
+-- Name: project_collection_members attempt_project_collection_members_del; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_project_collection_members_del AS
+    ON DELETE TO public.project_collection_members DO INSTEAD NOTHING;
+
+
+--
+-- Name: project_collection_members attempt_project_collection_members_up; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_project_collection_members_up AS
+    ON UPDATE TO public.project_collection_members DO INSTEAD NOTHING;
+
+
+--
 -- Name: service_history_services_was_for_inheritance service_history_service_insert_trigger; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -62678,6 +62735,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240503170130'),
 ('20240506204908'),
 ('20240510204158'),
-('20240510230733');
-
-
+('20240510230733'),
+('20240519225942'),
+('20240522132648'),
+('20240526045112');
