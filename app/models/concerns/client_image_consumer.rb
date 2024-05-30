@@ -15,9 +15,7 @@ module ClientImageConsumer
     # if none is found. returns that actual image bytes
     # FIXME: invalidate the cached image if any aspect of the client changes
     def image(cache_for = 10.minutes) # rubocop:disable Lint/UnusedMethodArgument
-      return nil unless GrdaWarehouse::Config.get(:eto_api_available)
-
-      # Use an uploaded headshot if available
+      # Use a fake headshot in non-prod environments
       faked_image_data = local_client_image_data || fake_client_image_data
       return faked_image_data unless Rails.env.production?
 
