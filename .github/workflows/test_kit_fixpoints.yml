@@ -179,7 +179,7 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
           aws_region: us-east-1
           flags: --recursive
-      - name: 'Copy new fixpoint files to current folder' # adding comment for test
+      - name: 'Copy new fixpoint files to current folder'
         uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
           command: cp
