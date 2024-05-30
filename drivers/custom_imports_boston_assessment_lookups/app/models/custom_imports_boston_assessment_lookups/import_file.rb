@@ -47,6 +47,9 @@ module CustomImportsBostonAssessmentLookups
     end
 
     def post_process
+      # Refuse to delete anything if the import has no rows, we probably didn't get a file
+      return unless rows.exits?
+
       update(status: 'adding')
       GrdaWarehouse::AssessmentAnswerLookup.transaction do
         GrdaWarehouse::AssessmentAnswerLookup.where(data_source_id: data_source_id).delete_all

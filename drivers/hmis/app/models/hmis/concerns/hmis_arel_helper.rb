@@ -71,6 +71,6 @@ module Hmis::Concerns::HmisArelHelper
   end
 
   included do
-    delegate :cas_t, :wip_t, :ar_t, :hs_t, :cst_t, :csc_t, :cde_t, :cded_t, :hh_t, :u_t, :ut_t, :fd_t, :fp_t, to: 'self.class'
+    delegate :cas_t, :wip_t, :ar_t, :hs_t, :cst_t, :csc_t, :cde_t, :cded_t, :hh_t, :u_t, :ut_t, :fd_t, :fp_t, :fi_t, to: 'self.class'
   end
 end
