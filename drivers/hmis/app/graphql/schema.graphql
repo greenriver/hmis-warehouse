@@ -8803,7 +8803,8 @@ type Query {
   """
   recordFormDefinition(
     """
-    Optional Project to apply rule filtering (e.g. show/hide questions based on Project applicability)
+    Optional Project to select the relevant form, and to apply rule filtering
+    (e.g. show/hide questions based on Project applicability)
     """
     projectId: ID
     role: RecordFormRole!
