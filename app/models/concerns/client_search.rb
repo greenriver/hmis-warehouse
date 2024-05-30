@@ -22,9 +22,7 @@ module ClientSearch
 
       # should never match
       never_cond = sa[:id].eq(nil)
-
-      max_pk = 2_147_483_648 # PK is a 4 byte signed INT (2 ** ((4 * 8) - 1))
-      term_is_possibly_pk = numeric ? text.to_i < max_pk : false
+      term_is_possibly_pk = possibly_pk?(text)
 
       # If alphanumeric search term matches a Scan Card code, return immediately
       if alpha_numeric && HmisEnforcement.hmis_enabled?

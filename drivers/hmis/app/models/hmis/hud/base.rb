@@ -81,6 +81,12 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
     SecureRandom.uuid.gsub(/-/, '')
   end
 
+  def self.possibly_pk?(input)
+    numeric = /[\d-]+/.match(input).try(:[], 0) == input
+    max_pk = 2_147_483_648 # PK is a 4 byte signed INT (2 ** ((4 * 8) - 1))
+    numeric ? input.to_i < max_pk : false
+  end
+
   # Fields that should be skipped during validation.
   def skip_validations
     @skip_validations ||= []
