@@ -48,6 +48,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(errors).to be_empty
   end
 
+  it 'should work when form attributes include a list of strings' do
+    input = {
+      definition: '{"__typename":"FormDefinitionJson","item":[{"__typename":"FormItem","item":null,"linkId":"question_1","type":"CHOICE","component":null,"prefix":null,"text":"Length of stay in prior living situation","briefText":null,"readonlyText":null,"helperText":null,"required":false,"warnIfEmpty":false,"hidden":false,"readOnly":false,"repeats":false,"mapping":null,"pickListReference":"ResidencePriorLengthOfStay","size":null,"assessmentDate":null,"prefill":false,"bounds":null,"pickListOptions":null,"initial":null,"dataCollectedAbout":null,"disabledDisplay":"HIDDEN","enableBehavior":"ANY","enableWhen":null,"autofillValues":null},{"__typename":"FormItem","item":null,"linkId":"question_2","type":"DISPLAY","component":null,"prefix":null,"text":"Client stayed 90+ days in an institutional setting. This is considered a \\"break\\" according to the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.","briefText":null,"readonlyText":null,"helperText":null,"required":false,"warnIfEmpty":false,"hidden":false,"readOnly":false,"repeats":false,"mapping":null,"pickListReference":null,"size":null,"assessmentDate":null,"prefill":false,"bounds":null,"pickListOptions":null,"initial":null,"dataCollectedAbout":null,"disabledDisplay":"HIDDEN","enableBehavior":"ALL","enableWhen":[{"__typename":"EnableWhen","question":"question_1","localConstant":null,"operator":"IN","answerCode":null,"answerCodes":["NUM_90_DAYS_OR_MORE_BUT_LESS_THAN_ONE_YEAR","ONE_YEAR_OR_LONGER"],"answerNumber":null,"answerBoolean":null,"answerGroupCode":null,"compareQuestion":null}],"autofillValues":null},{"linkId":"253ac3e0-1fe7-44fc-8abb-4bdf4b617d22","text":"CURRENCY","type":"CURRENCY","required":false,"warnIfEmpty":false,"hidden":false,"readOnly":false,"repeats":false,"prefill":false,"disabledDisplay":"HIDDEN","enableBehavior":"ANY"}]}',
+    }
+    response, result = post_graphql(id: 30, input: input) { mutation }
+    expect(response.status).to eq 200
+    errors = result.dig('data', 'updateFormDefinition', 'errors')
+    expect(errors).to be_empty
+  end
+
   it 'should work when the definition does not need to be converted' do
     input = {
       definition: '{"item":[{"item":[{"text":"Assessment Date","type":"DATE","hidden":false,"link_id":"link_1","prefill":false,"repeats":false,"required":false,"read_only":false,"warn_if_empty":false,"assessment_date":true,"enable_behavior":"ANY","disabled_display":"HIDDEN"},{"text":"Emergency Contact Name","type":"STRING","hidden":false,"link_id":"emergency_contact_name","mapping":{"custom_field_key":"emergency_contact_name"},"prefill":false,"repeats":false,"required":false,"read_only":false,"warn_if_empty":false,"enable_behavior":"ANY","disabled_display":"HIDDEN"}],"text":"SPDAT","type":"GROUP","hidden":false,"link_id":"event_group","prefill":false,"repeats":false,"required":false,"read_only":false,"warn_if_empty":false,"enable_behavior":"ANY","disabled_display":"HIDDEN"}]}',

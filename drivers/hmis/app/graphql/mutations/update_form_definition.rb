@@ -47,30 +47,27 @@ module Mutations
     private
 
     def recursively_transform(form_element)
-      # First drop unneeded keys and transform them all to snake case
-      converted = transform_hash(form_element)
-
-      # Then map through all the elements in the result object
-      converted.keys.each do |key|
-        if converted[key].is_a?(Array)
-          # If it's an array, recursively transform each element in the array
-          converted[key] = converted[key].map do |element|
-            recursively_transform(element)
-          end
-        elsif converted[key].is_a?(Hash)
-          # If it's a hash, recursively transform the hash, so that all its nested elements also get transformed
-          converted[key] = recursively_transform(converted[key])
+      # If it's an array, loop through the array and recursively transform each element
+      if form_element.is_a?(Array)
+        return form_element.map do |element|
+          recursively_transform(element)
         end
-        # If it's neither an array nor a hash, assume it has been properly handled by the transform_hash call above. No recursion needed
+      end
+
+      return form_element unless form_element.is_a?(Hash)
+
+      # If it's a hash, first drop unneeded keys and transform them all to snake case
+      converted = form_element.
+        excluding('__typename'). # drop typescript artifact
+        compact. # drop keys with nil values
+        transform_keys(&:underscore) # transform keys to snake case
+
+      # Then map through all the sub-elements in the hash and return them
+      converted.keys.each do |key|
+        converted[key] = recursively_transform(converted[key])
       end
 
       converted
-    end
-
-    def transform_hash(input)
-      input.excluding('__typename').
-        compact. # drop keys with nil values
-        transform_keys(&:underscore) # transform keys to snake case
     end
   end
 end
