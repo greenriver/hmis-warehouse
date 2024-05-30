@@ -159,9 +159,6 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
           aws_region: us-east-1
           flags: --recursive
-      - name: Remove existing fixpoint files
-        run: |
-          rm ./drivers/datalab_testkit/spec/fixpoints/*
       - name: Generate new fixpoint files
         env:
           AWS_ACCESS_KEY_ID: local_access_key
