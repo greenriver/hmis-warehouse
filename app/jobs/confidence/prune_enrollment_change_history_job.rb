@@ -12,8 +12,7 @@ module Confidence
       # date will be string when deserialized from the job runner
       date = date.to_date
       pruned = GrdaWarehouse::EnrollmentChangeHistory.expired_as_of(date).delete_all
-      # vacuum full to recover disk space. Locks table exclusively until complete
-      GrdaWarehouse::EnrollmentChangeHistory.vacuum_table(full_with_lock: true)
+      GrdaWarehouse::EnrollmentChangeHistory.vacuum_table
       pruned
     end
 

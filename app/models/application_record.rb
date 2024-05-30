@@ -21,7 +21,7 @@ class ApplicationRecord < ActiveRecord::Base
     scope name, body, &block
   end
 
-  def self.vacuum_table(full_with_lock: true)
+  def self.vacuum_table(full_with_lock: false)
     opts = 'FULL' if full_with_lock
     connection.exec_query("VACUUM #{opts} #{connection.quote_table_name(table_name)}")
   end
