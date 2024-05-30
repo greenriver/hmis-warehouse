@@ -20,7 +20,7 @@ namespace :us_census_api do
       ].join(':')
     }.split(":")
 
-    @state_code = ENV.fetch('RELEVANT_COC_STATE')
+    @state_codes = ENV.fetch('RELEVANT_COC_STATE').split(',')
     @years = ENV.fetch('US_CENSUS_API_YEARS') { 2012.upto(Date.today.year - 2).map(&:to_s).join(',') }.split(/,/).map(&:to_i)
     @datasets = ENV.fetch('US_CENSUS_API_DATASETS') { 'acs5' }.split(/,/).filter { |d| d.match(/acs5|sf1/) }
   end
@@ -43,7 +43,7 @@ namespace :us_census_api do
 
   desc "Get the available variables from the US Census"
   task :vars, [] => [:setup, :environment] do
-    @state_code.split(',').each do |state_code|
+    @state_codes.each do |state_code|
       importer = GrdaWarehouse::UsCensusApi::Importer.new(years: @years, datasets: @datasets, state_code: state_code, levels: @levels)
       importer.bootstrap_variables!
     end
@@ -51,7 +51,7 @@ namespace :us_census_api do
 
   desc "Get data from the US Census"
   task :import, [] => [:setup, :environment] do
-    @state_code.split(',').each do |state_code|
+    @state_codes.each do |state_code|
       importer = GrdaWarehouse::UsCensusApi::Importer.new(years: @years, datasets: @datasets, state_code: state_code, levels: @levels)
       importer.run!
     end

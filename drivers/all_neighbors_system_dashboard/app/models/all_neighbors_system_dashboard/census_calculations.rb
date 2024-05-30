@@ -35,7 +35,7 @@ module AllNeighborsSystemDashboard
       end
 
       private def state_geometry
-        @state_geometry ||= GrdaWarehouse::Shape::State.my_state.first
+        @state_geometry ||= GrdaWarehouse::Shape::State.my_states.first
       end
     end
   end

@@ -9,8 +9,8 @@ module GrdaWarehouse
     class Coc < GrdaWarehouseBase
       include SharedBehaviors
 
-      scope :my_state, -> { where(st: ENV['RELEVANT_COC_STATE']&.split(',')) }
-      scope :not_my_state, -> { where.not(st: ENV['RELEVANT_COC_STATE']&.split(',')) }
+      scope :my_states, -> { where(st: ENV['RELEVANT_COC_STATE']&.split(',')) }
+      scope :not_my_states, -> { where.not(st: ENV['RELEVANT_COC_STATE']&.split(',')) }
 
       def candidate_block_groups
         BlockGroup.joins(Arel.sql(<<~SQL))

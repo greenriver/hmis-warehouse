@@ -91,50 +91,52 @@ module GrdaWarehouse
         failure = false
         name = components.first.class.name
         _years.each do |year|
-          total = Finder.new(geometry: _state, year: year, internal_names: var).best_value.val
+          _states.each do |state|
+            total = Finder.new(geometry: state, year: year, internal_names: var).best_value.val
 
-          total = components.sum do |component|
-            result = Finder.new(geometry: component, year: year, internal_names: var).best_value
-            if result.error
-              if component.id == 3311 && var == ["POP::ASIAN_ALONE"]
-                binding.irb
-                exit
+            total = components.sum do |component|
+              result = Finder.new(geometry: component, year: year, internal_names: var).best_value
+              if result.error
+                if component.id == 3311 && var == ["POP::ASIAN_ALONE"]
+                  binding.irb
+                  exit
+                end
+                puts "[FAIL] #{name} #{component.id} didn't have a population in #{year} for #{var}"
+                failure = true
+                0
+              else
+                result.val
               end
-              puts "[FAIL] #{name} #{component.id} didn't have a population in #{year} for #{var}"
-              failure = true
-              0
-            else
-              result.val
             end
-          end
 
-          if total != (total)
-            puts "[FAIL] #{name} didn't sum to state for #{year}: #{(total.to_i - total.to_i).abs}"
-            failure = true
+            if total != (total)
+              puts "[FAIL] #{name} didn't sum to state for #{year}: #{(total.to_i - total.to_i).abs}"
+              failure = true
+            end
           end
         end
 
         puts "[OK] #{name} sums to state" unless failure
       end
 
-      def _state
-        Shape::State.my_state.first
+      def _states
+        Shape::State.my_states.first
       end
 
       def _counties
-        Shape::County.my_state.select(:id, :full_geoid)
+        Shape::County.my_states.select(:id, :full_geoid)
       end
 
       def _cocs
-        Shape::Coc.my_state.select(:id, :full_geoid)
+        Shape::Coc.my_states.select(:id, :full_geoid)
       end
 
       def _zip_codes
-        Shape::ZipCode.my_state.select(:id, :full_geoid)
+        Shape::ZipCode.my_states.select(:id, :full_geoid)
       end
 
       def _block_groups
-        Shape::BlockGroup.my_state.select(:id, :full_geoid)
+        Shape::BlockGroup.my_states.select(:id, :full_geoid)
       end
 
       private

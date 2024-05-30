@@ -4,17 +4,17 @@ require 'fileutils'
 require 'pathname'
 require 'zip'
 
-if ARGV[0].to_s.length != 2
-  puts "Set first arg to the two-letter state postal code"
+if ARGV[0].to_s.split(',').map(&:length).uniq != [2]
+  puts 'Set first arg to the two-letter state postal code, or comma delimited list of postal codes'
   exit
 end
 
-state_postal_code = ARGV[0]
-
 FileUtils.chdir(Pathname.new(__FILE__).dirname)
 
+state_postal_codes = ARGV[0].to_s.gsub(',', '|')
 begin
-  Dir.glob("*#{state_postal_code}*.zip").each do |zipfile_path|
+  # Handle MA, or MA|VT
+  Dir.glob("*(#{state_postal_codes})*.zip").each do |zipfile_path|
     Zip::File.open(zipfile_path) do |zipfile|
       zipfile.each do |file|
         zipfile.extract(file, "#{file.name}") unless File.exist?(file.name)
@@ -27,7 +27,6 @@ rescue Zip::Error
 end
 
 FileUtils.rm_f('coc.sql')
-
 FileUtils.rm_f('inserts.sql')
 
 Dir.glob('**/*shp').each do |shape_file|

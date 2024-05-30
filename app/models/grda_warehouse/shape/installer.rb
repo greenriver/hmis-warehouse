@@ -64,10 +64,10 @@ module GrdaWarehouse
             next
           end
 
-          next unless klass.not_my_state.count.positive? && (klass.not_my_state.count + klass.my_state.count == klass.count)
+          next unless klass.not_my_states.count.positive? && (klass.not_my_states.count + klass.my_states.count == klass.count)
 
           Rails.logger.warn "Deleting #{klass} that are out of state"
-          klass.not_my_state.delete_all
+          klass.not_my_states.delete_all
           klass.connection.exec_query("VACUUM ANALYZE #{klass.table_name}")
         end
       end
@@ -84,7 +84,7 @@ module GrdaWarehouse
 
         # command-line arg is only important for block groups and CoC, but
         # easier to just pass it along for all
-        system("./shape_files/#{conf.dir}/make.inserts #{ENV['RELEVANT_COC_STATE']}") # FIXME
+        system("./shape_files/#{conf.dir}/make.inserts #{ENV['RELEVANT_COC_STATE']}")
 
         if ::File.exist?("shape_files/#{conf.dir}/inserts.sql")
           Rails.logger.info "Inserting #{conf.klass} into the database, conserving RAM"

@@ -1023,7 +1023,7 @@ module PublicReports
     end
 
     def state_shape
-      GrdaWarehouse::Shape.geo_collection_hash(GrdaWarehouse::Shape::State.my_state)
+      GrdaWarehouse::Shape.geo_collection_hash(GrdaWarehouse::Shape::State.my_states)
     end
 
     def state_shape_json
@@ -1039,7 +1039,7 @@ module PublicReports
     end
 
     private def state_coc_shapes
-      @state_coc_shapes ||= GrdaWarehouse::Shape::Coc.my_state
+      @state_coc_shapes ||= GrdaWarehouse::Shape::Coc.my_states
     end
 
     private def coc_codes
@@ -1095,7 +1095,7 @@ module PublicReports
     end
 
     private def state_zip_shapes
-      @state_zip_shapes ||= GrdaWarehouse::Shape::ZipCode.my_state
+      @state_zip_shapes ||= GrdaWarehouse::Shape::ZipCode.my_states
     end
 
     private def population_by_zip
@@ -1118,7 +1118,7 @@ module PublicReports
     end
 
     private def state_county_shapes
-      @state_county_shapes ||= GrdaWarehouse::Shape::County.my_state
+      @state_county_shapes ||= GrdaWarehouse::Shape::County.my_states
     end
 
     private def population_by_county
@@ -1141,7 +1141,7 @@ module PublicReports
     end
 
     private def state_place_shapes
-      @state_place_shapes ||= GrdaWarehouse::Shape::Town.my_state
+      @state_place_shapes ||= GrdaWarehouse::Shape::Town.my_states
     end
 
     private def population_by_place
