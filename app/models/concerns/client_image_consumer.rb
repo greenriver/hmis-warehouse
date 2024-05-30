@@ -50,6 +50,9 @@ module ClientImageConsumer
       headshot = uploaded_local_image
       return headshot.as_thumb if headshot
 
+      source_headshot = source_local_image
+      return source_headshot.as_thumb if source_headshot
+
       local_client_image_cache&.content
     end
 
@@ -82,6 +85,10 @@ module ClientImageConsumer
 
     private def uploaded_local_image
       client_files.window.tagged_with('Client Headshot').order(updated_at: :desc).limit(1)&.first
+    end
+
+    private def source_local_image
+      GrdaWarehouse::ClientFile.where(client_id: source_client_ids).tagged_with('Client Headshot').order(updated_at: :desc).limit(1)&.first
     end
 
     private def local_client_image_cache
