@@ -160,13 +160,6 @@ jobs:
           aws_region: us-east-1
           flags: --recursive
       - name: Remove existing fixpoint files
-        env:
-          AWS_ACCESS_KEY_ID: local_access_key
-          AWS_SECRET_ACCESS_KEY: local_secret_key
-          GROVER_NO_SANDBOX: true
-          CHROMIUM_PATH: /usr/bin/chromium-browser
-          MAX_FAILURES: 60
-          LOG_LEVEL: INFO
         run: |
           rm ./drivers/datalab_testkit/spec/fixpoints/*
       - name: Generate new fixpoint files
@@ -179,7 +172,6 @@ jobs:
           LOG_LEVEL: INFO
         run: |
           bundle exec rspec --fail-fast=$MAX_FAILURES --color -P "drivers/datalab_testkit/spec/empty_spec.rb"
-          OKTA_DOMAIN=localhost OKTA_CLIENT_ID=x OKTA_CLIENT_SECRET=x bundle exec rspec --fail-fast=$MAX_FAILURES --color -fd spec/requests/omniauth_spec.rb spec/requests/sessions_controller_spec.rb # these tests need okta enabled
       - name: 'Copy old fixpoints to previous folder'
         uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
