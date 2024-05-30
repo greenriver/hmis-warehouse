@@ -216,6 +216,8 @@ module Types
 
     field :move_in_addresses, [HmisSchema::ClientAddress], null: false
 
+    field :source_referral_posting, HmisSchema::ReferralPosting, null: true, description: 'Present if this household was enrolled as the result of a referral from another project.'
+
     audit_history_field(
       :audit_history,
       # Fields should match our DB casing, consult schema to determine appropriate casing
@@ -241,6 +243,13 @@ module Types
         changes
       end,
     )
+
+    def source_referral_posting
+      return unless current_permission?(permission: :can_manage_incoming_referrals, entity: project)
+
+      # there should never be more than 1 referral posting for a given enrollment
+      load_ar_association(object, :source_postings).min_by(&:id)
+    end
 
     def audit_history(filters: nil)
       scope = GrdaWarehouse.paper_trail_versions.
@@ -275,9 +284,18 @@ module Types
     end
 
     def last_service_date(service_type_id:)
-      load_ar_association(object, :hmis_services).
-        filter { |s| s.custom_service_type_id&.to_s == service_type_id }.
-        max_by(&:DateProvided)&.DateProvided
+      custom_service_types_scope = Hmis::Hud::CustomServiceType.where(data_source_id: object.data_source_id)
+      custom_service_type = load_ar_scope(scope: custom_service_types_scope, id: service_type_id)
+      raise 'invalid custom service type' unless custom_service_type
+
+      services_of_type = if custom_service_type.hud_service?
+        load_ar_association(object, :services).
+          filter { |s| s.matches_custom_service_type?(custom_service_type) }
+      else
+        load_ar_association(object, :custom_services).
+          filter { |s| s.custom_service_type_id&.to_s == service_type_id }
+      end
+      services_of_type.max_by(&:DateProvided)&.DateProvided
     end
 
     def last_bed_night_date

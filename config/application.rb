@@ -51,6 +51,9 @@ module BostonHmis
     config.active_job.queue_adapter = :delayed_job
     config.action_mailer.deliver_later_queue_name = :mailers
 
+    config.active_storage.variant_processor = :mini_magick
+    config.active_storage.variable_content_types = ['image/png', 'image/gif', 'image/jpeg', 'image/tiff', 'image/bmp', 'image/webp', 'image/avif', 'image/heic', 'image/heif']
+
     # GraphQL config
     config.graphql.parser_cache = true
 
@@ -74,9 +77,6 @@ module BostonHmis
     # serve error pages from the Rails app itself
     # rather than using static error pages in public/.
     config.exceptions_app = routes
-
-    config.middleware.use Rack::Attack # needed pre rails 5.1
-    config.middleware.use IdProtector
 
     # FIXME: required to make forms in pjax modals work
     config.action_controller.per_form_csrf_tokens = false

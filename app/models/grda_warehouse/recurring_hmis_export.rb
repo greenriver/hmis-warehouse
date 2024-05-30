@@ -220,7 +220,10 @@ module GrdaWarehouse
 
     def filter_hash
       hash = options
+      hash[:reporting_range] = reporting_range
+      hash[:reporting_range_days] = reporting_range_days
       hash[:recurring_hmis_export_id] = id
+      hash[:version] ||= '2024'
       hash[:user_id] = user_id
       return hash
     end

@@ -3,6 +3,7 @@
 #
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
+
 class IdProtector
   def initialize(app)
     @app = app
@@ -27,5 +28,13 @@ class IdProtector
       end
     end
     @app.call(env)
+  end
+end
+
+require 'rack/attack'
+class IdProtectorRailtie < ::Rails::Railtie
+  initializer 'id-protector.middleware' do |app|
+    # put id protector behind rack attack
+    app.middleware.insert_after(Rack::Attack, IdProtector)
   end
 end

@@ -68,7 +68,7 @@ enum AftercareMethod {
 }
 
 """
-R20.2
+HUD AftercareProvided (R20.2)
 """
 enum AftercareProvided {
   """
@@ -153,7 +153,7 @@ enum AgeRange {
 }
 
 """
-V7.B
+HUD AnnualPercentAMI (V7.B)
 """
 enum AnnualPercentAMI {
   """
@@ -339,7 +339,7 @@ input AssessmentInput {
 }
 
 """
-4.19.4
+HUD AssessmentLevel (4.19.4)
 """
 enum AssessmentLevel {
   """
@@ -409,7 +409,7 @@ enum AssessmentSortOption {
 }
 
 """
-4.19.3
+HUD AssessmentType (4.19.3)
 """
 enum AssessmentType {
   """
@@ -505,7 +505,7 @@ type AutofillValue {
 }
 
 """
-2.07.6
+HUD Availability (2.07.6)
 """
 enum Availability {
   """
@@ -535,7 +535,7 @@ A base64 encoded string
 scalar Base64
 
 """
-2.07.5
+HUD BedType (2.07.5)
 """
 enum BedType {
   """
@@ -1229,7 +1229,7 @@ type ClientsPaginated {
 }
 
 """
-V9.1
+HUD CmExitReason (V9.1)
 """
 enum CmExitReason {
   """
@@ -1480,7 +1480,7 @@ enum CounselingMethod {
 }
 
 """
-R15.B
+HUD CountExchangeForSex (R15.B)
 """
 enum CountExchangeForSex {
   """
@@ -1639,7 +1639,7 @@ type CreateUnitsPayload {
 }
 
 """
-C3.B
+HUD CurrentEdStatus (C3.B)
 """
 enum CurrentEdStatus {
   """
@@ -1713,7 +1713,7 @@ type CurrentLivingSituation {
 }
 
 """
-4.12
+HUD CurrentLivingSituation (4.12)
 """
 enum CurrentLivingSituationOptions {
   """
@@ -1854,7 +1854,7 @@ type CurrentLivingSituationsPaginated {
 }
 
 """
-C3.2
+HUD CurrentSchoolAttended (C3.2)
 """
 enum CurrentSchoolAttended {
   """
@@ -1982,7 +1982,7 @@ type CustomDataElementValue {
 }
 
 """
-3.03.2
+HUD DOBDataQuality (3.03.2)
 """
 enum DOBDataQuality {
   """
@@ -2077,6 +2077,11 @@ enum DataCollectionFeatureRole {
   EXTERNAL_FORM
 
   """
+  Referral
+  """
+  REFERRAL
+
+  """
   Referral request
   """
   REFERRAL_REQUEST
@@ -2088,7 +2093,7 @@ enum DataCollectionFeatureRole {
 }
 
 """
-5.03.1
+HUD DataCollectionStage (5.03.1)
 """
 enum DataCollectionStage {
   """
@@ -2594,7 +2599,7 @@ type DeleteUnitsPayload {
 }
 
 """
-V7.O
+HUD DependentUnder6 (V7.O)
 """
 enum DependentUnder6 {
   """
@@ -2624,7 +2629,7 @@ enum DependentUnder6 {
 }
 
 """
-3.12
+HUD Destination (3.12)
 """
 enum Destination {
   """
@@ -2900,7 +2905,7 @@ type DisabilityGroup {
 }
 
 """
-4.10.2
+HUD DisabilityResponse (4.10.2)
 """
 enum DisabilityResponse {
   """
@@ -2945,7 +2950,7 @@ enum DisabilityResponse {
 }
 
 """
-1.3
+HUD DisabilityType (1.3)
 """
 enum DisabilityType {
   """
@@ -2991,7 +2996,7 @@ enum DisabledDisplay {
 }
 
 """
-V1.12
+HUD DischargeStatus (V1.12)
 """
 enum DischargeStatus {
   """
@@ -3086,7 +3091,7 @@ type EmploymentEducationsPaginated {
 }
 
 """
-R6.A
+HUD EmploymentType (R6.A)
 """
 enum EmploymentType {
   """
@@ -3296,6 +3301,11 @@ type Enrollment {
   sexualOrientation: SexualOrientation
   sexualOrientationOther: String
   singleParent: NoYesMissing
+
+  """
+  Present if this household was enrolled as the result of a referral from another project.
+  """
+  sourceReferralPosting: ReferralPosting
   status: EnrollmentStatus!
   subsidyAtRisk: NoYesMissing
   targetScreenReqd: NoYesMissing
@@ -3569,7 +3579,7 @@ enum EventSortOption {
 }
 
 """
-4.20.2
+HUD EventType (4.20.2)
 """
 enum EventType {
   """
@@ -3679,7 +3689,7 @@ type EventsPaginated {
 }
 
 """
-V7.G
+HUD EvictionHistory (V7.G)
 """
 enum EvictionHistory {
   """
@@ -3753,7 +3763,7 @@ type Exit {
 }
 
 """
-R17.A
+HUD ExpelledReason (R17.A)
 """
 enum ExpelledReason {
   """
@@ -3803,6 +3813,7 @@ type ExternalFormSubmission {
 }
 
 input ExternalFormSubmissionFilterOptions {
+  includeSpam: Boolean
   status: ExternalFormSubmissionStatus
   submittedDate: ISO8601Date
 }
@@ -4302,6 +4313,11 @@ enum FormRole {
   PROJECT_CONFIG
 
   """
+  Referral
+  """
+  REFERRAL
+
+  """
   Referral request
   """
   REFERRAL_REQUEST
@@ -4438,7 +4454,7 @@ type FundersPaginated {
 }
 
 """
-2.06.1
+HUD FundingSource (2.06.1)
 """
 enum FundingSource {
   """
@@ -4763,7 +4779,7 @@ enum Gender {
 }
 
 """
-2.03.4
+HUD GeographyType (2.03.4)
 """
 enum GeographyType {
   """
@@ -4793,7 +4809,7 @@ enum GeographyType {
 }
 
 """
-2.08.1
+HUD HMISParticipationType (2.08.1)
 """
 enum HMISParticipationType {
   """
@@ -4818,7 +4834,7 @@ enum HMISParticipationType {
 }
 
 """
-2.02.8
+HUD HOPWAMedAssistedLivingFac (2.02.8)
 """
 enum HOPWAMedAssistedLivingFac {
   """
@@ -4873,7 +4889,7 @@ type HealthAndDvsPaginated {
 }
 
 """
-R7.1
+HUD HealthStatus (R7.1)
 """
 enum HealthStatus {
   """
@@ -5009,7 +5025,7 @@ enum HouseholdSortOption {
 }
 
 """
-2.07.4
+HUD HouseholdType (2.07.4)
 """
 enum HouseholdType {
   """
@@ -5044,7 +5060,7 @@ type HouseholdsPaginated {
 }
 
 """
-W5.1
+HUD HousingAssessmentAtExit (W5.1)
 """
 enum HousingAssessmentAtExit {
   """
@@ -5109,7 +5125,7 @@ enum HousingAssessmentAtExit {
 }
 
 """
-2.02.D
+HUD HousingType (2.02.D)
 """
 enum HousingType {
   """
@@ -5144,7 +5160,7 @@ An ISO 8601-encoded datetime
 scalar ISO8601DateTime @specifiedBy(url: "https://tools.ietf.org/html/rfc3339")
 
 """
-V7.I
+HUD IncarceratedAdult (V7.I)
 """
 enum IncarceratedAdult {
   """
@@ -5416,7 +5432,7 @@ Arbitrary JSON Type
 scalar JsonObject
 
 """
-R4.1
+HUD LastGradeCompleted (R4.1)
 """
 enum LastGradeCompleted {
   """
@@ -5501,7 +5517,7 @@ enum LastGradeCompleted {
 }
 
 """
-V7.C
+HUD LiteralHomelessHistory (V7.C)
 """
 enum LiteralHomelessHistory {
   """
@@ -5607,7 +5623,7 @@ type MergeClientsPayload {
 }
 
 """
-V1.11
+HUD MilitaryBranch (V1.11)
 """
 enum MilitaryBranch {
   """
@@ -5662,7 +5678,7 @@ enum MilitaryBranch {
 }
 
 """
-3.917.5
+HUD MonthsHomelessPastThreeYears (3.917.5)
 """
 enum MonthsHomelessPastThreeYears {
   """
@@ -5752,7 +5768,7 @@ enum MonthsHomelessPastThreeYears {
 }
 
 """
-C3.A
+HUD MostRecentEdStatus (C3.A)
 """
 enum MostRecentEdStatus {
   """
@@ -5876,7 +5892,7 @@ type Mutation {
   """
   Create outgoing referral posting
   """
-  createOutgoingReferralPosting(input: OutgoingReferralPostingInput): CreateOutgoingReferralPostingPayload
+  createOutgoingReferralPosting(input: OutgoingReferralPostingInput): CreateOutgoingReferralPostingPayload @deprecated(reason: "Moved to SubmitForm")
   createProjectConfig(input: ProjectConfigInput!): CreateProjectConfigPayload
   createScanCardCode(clientId: ID!, expirationDate: ISO8601Date): CreateScanCardCodePayload
   createServiceCategory(name: String!): CreateServiceCategoryPayload
@@ -6004,7 +6020,7 @@ type Mutation {
     input: MergeClientsInput!
   ): MergeClientsPayload
   renameServiceCategory(id: ID!, name: String!): RenameServiceCategoryPayload
-  renameServiceType(id: ID!, name: String!): RenameServiceTypePayload
+  renameServiceType(id: ID!, name: String!, supportsBulkAssignment: Boolean!): UpdateServiceTypePayload @deprecated(reason: "Renamed to updateServiceType")
   restoreScanCardCode(id: ID!): RestoreScanCardCodePayload
 
   """
@@ -6072,6 +6088,7 @@ type Mutation {
     """
     input: UpdateRelationshipToHoHInput!
   ): UpdateRelationshipToHoHPayload
+  updateServiceType(id: ID!, name: String!, supportsBulkAssignment: Boolean!): UpdateServiceTypePayload
   updateUnits(
     """
     Parameters for UpdateUnits
@@ -6086,7 +6103,7 @@ type Mutation {
 }
 
 """
-3.01.5
+HUD NameDataQuality (3.01.5)
 """
 enum NameDataQuality {
   """
@@ -6121,7 +6138,7 @@ enum NameDataQuality {
 }
 
 """
-W3
+HUD NoAssistanceReason (W3)
 """
 enum NoAssistanceReason {
   """
@@ -6166,7 +6183,7 @@ enum NoAssistanceReason {
 }
 
 """
-1.10
+HUD NoYes (1.10)
 """
 enum NoYes {
   """
@@ -6186,7 +6203,7 @@ enum NoYes {
 }
 
 """
-1.7
+HUD NoYesMissing (1.7)
 """
 enum NoYesMissing {
   """
@@ -6211,7 +6228,7 @@ enum NoYesMissing {
 }
 
 """
-1.8
+HUD NoYesReasonsForMissingData (1.8)
 """
 enum NoYesReasonsForMissingData {
   """
@@ -6246,7 +6263,7 @@ enum NoYesReasonsForMissingData {
 }
 
 """
-R6.B
+HUD NotEmployedReason (R6.B)
 """
 enum NotEmployedReason {
   """
@@ -6337,7 +6354,7 @@ input OutgoingReferralPostingInput {
 }
 
 """
-P2.A
+HUD PATHReferralOutcome (P2.A)
 """
 enum PATHReferralOutcome {
   """
@@ -6362,7 +6379,7 @@ enum PATHReferralOutcome {
 }
 
 """
-V4.1
+HUD PercentAMI (V4.1)
 """
 enum PercentAMI {
   """
@@ -6518,6 +6535,11 @@ enum PickListType {
   All Projects that the User can see
   """
   PROJECT
+
+  """
+  Open Projects that can receive referrals
+  """
+  PROJECTS_RECEIVING_REFERRALS
   REFERRAL_OUTCOME
 
   """
@@ -6536,7 +6558,7 @@ enum PickListType {
 }
 
 """
-C4.A
+HUD PreferredLanguage (C4.A)
 """
 enum PreferredLanguage {
   """
@@ -8201,7 +8223,7 @@ enum PreferredLanguage {
 }
 
 """
-3.917
+HUD PriorLivingSituation (3.917)
 """
 enum PriorLivingSituation {
   """
@@ -8322,7 +8344,7 @@ enum PriorLivingSituation {
 }
 
 """
-4.19.7
+HUD PrioritizationStatus (4.19.7)
 """
 enum PrioritizationStatus {
   """
@@ -8350,6 +8372,7 @@ type Project {
   ceParticipations(limit: Int, offset: Int): CeParticipationsPaginated!
   contactInformation: String
   continuumProject: NoYes
+  currentLivingSituations(limit: Int, offset: Int): CurrentLivingSituationsPaginated!
   customDataElements: [CustomDataElement!]!
 
   """
@@ -8446,7 +8469,7 @@ type ProjectCocsPaginated {
 }
 
 """
-R17.1
+HUD ProjectCompletionStatus (R17.1)
 """
 enum ProjectCompletionStatus {
   """
@@ -8780,7 +8803,8 @@ type Query {
   """
   recordFormDefinition(
     """
-    Optional Project to apply rule filtering (e.g. show/hide questions based on Project applicability)
+    Optional Project to select the relevant form, and to apply rule filtering
+    (e.g. show/hide questions based on Project applicability)
     """
     projectId: ID
     role: RecordFormRole!
@@ -8861,7 +8885,7 @@ type QueryAccess {
 }
 
 """
-R11.A
+HUD RHYNumberofYears (R11.A)
 """
 enum RHYNumberofYears {
   """
@@ -8891,7 +8915,7 @@ enum RHYNumberofYears {
 }
 
 """
-2.02.A
+HUD RRHSubType (2.02.A)
 """
 enum RRHSubType {
   """
@@ -8966,7 +8990,7 @@ enum Race {
 }
 
 """
-R2.A
+HUD ReasonNoServices (R2.A)
 """
 enum ReasonNoServices {
   """
@@ -9001,7 +9025,7 @@ enum ReasonNoServices {
 }
 
 """
-P3.A
+HUD ReasonNotEnrolled (P3.A)
 """
 enum ReasonNotEnrolled {
   """
@@ -9026,7 +9050,7 @@ enum ReasonNotEnrolled {
 }
 
 """
-4.04.A
+HUD ReasonNotInsured (4.04.A)
 """
 enum ReasonNotInsured {
   """
@@ -9173,6 +9197,11 @@ enum RecordFormRole {
   PROJECT_COC
 
   """
+  Referral
+  """
+  REFERRAL
+
+  """
   Referral request
   """
   REFERRAL_REQUEST
@@ -9184,7 +9213,7 @@ enum RecordFormRole {
 }
 
 """
-1.4
+HUD RecordType (1.4)
 """
 enum RecordType {
   """
@@ -9259,6 +9288,11 @@ A referral for a household of one or more clients
 type ReferralPosting {
   assignedDate: ISO8601DateTime!
   chronic: Boolean
+  customDataElements: [CustomDataElement!]!
+
+  """
+  Admin Note associated with the denial (entered from the Denial Screen)
+  """
   denialNote: String
   denialReason: ReferralPostingDenialReasonType
   hohClient: Client
@@ -9278,11 +9312,15 @@ type ReferralPosting {
   postingIdentifier: ID
 
   """
-  Project that household is being referred to
+  Project that household is being referred to, if user can access it
   """
   project: Project
-  referralDate: ISO8601DateTime!
+  referralDate: ISO8601Date!
   referralIdentifier: ID
+
+  """
+  Note associated with the Referral that came from an External API
+  """
   referralNotes: String
   referralRequest: ReferralRequest
   referralResult: ReferralResult
@@ -9292,15 +9330,29 @@ type ReferralPosting {
   Name of project or external source that the referral originated from
   """
   referredFrom: String!
+
+  """
+  Name of the Project that household is being referred to
+  """
+  referredTo: String
+
+  """
+  Note associated with the Referral Posting that either came from the External
+  API, or was entered when creating a referral within HMIS
+  """
   resourceCoordinatorNotes: String
   score: Int
   status: ReferralPostingStatus!
+
+  """
+  Note associated with the status (E.g. why it was accepted pending / denied pending)
+  """
   statusNote: String
   statusNoteUpdatedAt: ISO8601DateTime
   statusNoteUpdatedBy: String
   statusUpdatedAt: ISO8601DateTime
   statusUpdatedBy: String
-  unitType: UnitTypeObject!
+  unitType: UnitTypeObject
 }
 
 """
@@ -9444,7 +9496,7 @@ type ReferralRequestsPaginated {
 }
 
 """
-4.20.D
+HUD ReferralResult (4.20.D)
 """
 enum ReferralResult {
   """
@@ -9469,7 +9521,7 @@ enum ReferralResult {
 }
 
 """
-R1.1
+HUD ReferralSource (R1.1)
 """
 enum ReferralSource {
   """
@@ -9619,7 +9671,7 @@ enum RelatedRecordType {
 }
 
 """
-3.15.1
+HUD RelationshipToHoH (3.15.1)
 """
 enum RelationshipToHoH {
   """
@@ -9693,15 +9745,7 @@ type RenameServiceCategoryPayload {
 }
 
 """
-Autogenerated return type of RenameServiceType.
-"""
-type RenameServiceTypePayload {
-  errors: [ValidationError!]!
-  serviceType: ServiceType
-}
-
-"""
-3.12.A
+HUD RentalSubsidyType (3.12.A)
 """
 enum RentalSubsidyType {
   """
@@ -9766,7 +9810,7 @@ enum RentalSubsidyType {
 }
 
 """
-3.917.2
+HUD ResidencePriorLengthOfStay (3.917.2)
 """
 enum ResidencePriorLengthOfStay {
   """
@@ -9829,7 +9873,7 @@ type RestoreScanCardCodePayload {
 }
 
 """
-3.02.2
+HUD SSNDataQuality (3.02.2)
 """
 enum SSNDataQuality {
   """
@@ -9910,7 +9954,7 @@ type ScanCardCodesPaginated {
 }
 
 """
-R5.1
+HUD SchoolStatus (R5.1)
 """
 enum SchoolStatus {
   """
@@ -10813,7 +10857,7 @@ type ServicesPaginated {
 }
 
 """
-R3.1
+HUD SexualOrientation (R3.1)
 """
 enum SexualOrientation {
   """
@@ -10955,7 +10999,7 @@ type SubmitFormPayload {
 """
 Union type of allowed records for form submission response
 """
-union SubmitFormResult = CeAssessment | CeParticipation | Client | CurrentLivingSituation | CustomCaseNote | Enrollment | Event | File | Funder | HmisParticipation | Inventory | Organization | Project | ProjectCoc | ReferralRequest | Service
+union SubmitFormResult = CeAssessment | CeParticipation | Client | CurrentLivingSituation | CustomCaseNote | Enrollment | Event | File | Funder | HmisParticipation | Inventory | Organization | Project | ProjectCoc | ReferralPosting | ReferralRequest | Service
 
 """
 Autogenerated input type of SubmitHouseholdAssessments
@@ -10992,7 +11036,7 @@ type SubmitHouseholdAssessmentsPayload {
 }
 
 """
-W5.AB
+HUD SubsidyInformation (W5.AB)
 """
 enum SubsidyInformation {
   """
@@ -11032,7 +11076,7 @@ enum SubsidyInformation {
 }
 
 """
-W5.A
+HUD SubsidyInformationA (W5.A)
 """
 enum SubsidyInformationA {
   """
@@ -11062,7 +11106,7 @@ enum SubsidyInformationA {
 }
 
 """
-W5.B
+HUD SubsidyInformationB (W5.B)
 """
 enum SubsidyInformationB {
   """
@@ -11094,7 +11138,7 @@ enum SystemStatus {
 }
 
 """
-W4.B
+HUD TCellSourceViralLoadSource (W4.B)
 """
 enum TCellSourceViralLoadSource {
   """
@@ -11119,7 +11163,7 @@ enum TCellSourceViralLoadSource {
 }
 
 """
-2.02.7
+HUD TargetPopulation (2.02.7)
 """
 enum TargetPopulation {
   """
@@ -11144,7 +11188,7 @@ enum TargetPopulation {
 }
 
 """
-V7.A
+HUD TimeToHousingLoss (V7.A)
 """
 enum TimeToHousingLoss {
   """
@@ -11179,7 +11223,7 @@ enum TimeToHousingLoss {
 }
 
 """
-3.917.4
+HUD TimesHomelessPastThreeYears (3.917.4)
 """
 enum TimesHomelessPastThreeYears {
   """
@@ -11405,6 +11449,14 @@ type UpdateRelationshipToHoHPayload {
 }
 
 """
+Autogenerated return type of UpdateServiceType.
+"""
+type UpdateServiceTypePayload {
+  errors: [ValidationError!]!
+  serviceType: ServiceType
+}
+
+"""
 Autogenerated input type of UpdateUnits
 """
 input UpdateUnitsInput {
@@ -11510,7 +11562,7 @@ type ValueBound {
 }
 
 """
-V6.1
+HUD VamcStationNumber (V6.1)
 """
 enum VamcStationNumber {
   """
@@ -12240,7 +12292,7 @@ input VersionedRecordInput {
 }
 
 """
-W4.3
+HUD ViralLoadAvailable (W4.3)
 """
 enum ViralLoadAvailable {
   """
@@ -12288,7 +12340,7 @@ type VoidReferralRequestPayload {
 }
 
 """
-4.11.A
+HUD WhenDVOccurred (4.11.A)
 """
 enum WhenDVOccurred {
   """
@@ -12333,7 +12385,7 @@ enum WhenDVOccurred {
 }
 
 """
-R19.A
+HUD WorkerResponse (R19.A)
 """
 enum WorkerResponse {
   """

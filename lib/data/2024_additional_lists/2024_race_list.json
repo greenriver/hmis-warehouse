@@ -1,0 +1,40 @@
+[
+  {
+    "name": "Race",
+    "code": "race",
+    "values": [
+      {
+        "key": "AmIndAKNative",
+        "description": "American Indian, Alaska Native, or Indigenous"
+      },
+      {
+        "key": "Asian",
+        "description": "Asian or Asian American"
+      },
+      {
+        "key": "BlackAfAmerican",
+        "description": "Black, African American, or African"
+      },
+      {
+        "key": "NativeHIPacific",
+        "description": "Native Hawaiian or Pacific Islander"
+      },
+      {
+        "key": "White",
+        "description": "White"
+      },
+      {
+        "key": "HispanicLatinaeo",
+        "description": "Hispanic/Latina/e/o"
+      },
+      {
+        "key": "MidEastNAfrican",
+        "description": "Middle Eastern or North African"
+      },
+      {
+        "key": "RaceNone",
+        "description": "Doesn't know, prefers not to answer, or not collected"
+      }
+    ]
+  }
+]
