@@ -19,6 +19,10 @@ module Clients::Youth
 
     after_action :log_client
 
+    # TODO: START_ACL remove when ACL transition complete
+    before_action :set_legacy_implicitly_assume_authorized_access
+    # END ACL
+
     def index
       @intakes = @client.youth_intakes.merge(intake_scope)
       @case_managements = @client.case_managements.

@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# part of the "new" permission system
+#
 class UserGroup < ApplicationRecord
   acts_as_paranoid
   has_paper_trail

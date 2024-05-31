@@ -10032,7 +10032,7 @@ type Service {
   otherTypeProvided: String
   recordType: RecordType
   referralOutcome: PATHReferralOutcome
-  serviceType: ServiceType!
+  serviceType: ServiceType
   subTypeProvided: ServiceSubTypeProvided
   typeProvided: ServiceTypeProvided
   user: ApplicationUser

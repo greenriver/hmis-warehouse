@@ -156,7 +156,7 @@
       "check_name": "SQL",
       "message": "Possible SQL injection",
       "file": "app/models/grda_warehouse/hud/project.rb",
-      "line": 311,
+      "line": 314,
       "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
       "code": "where(\"#{access_to_project_through_viewable_entities(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_organization(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_data_source(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_coc_codes(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)} OR #{access_to_project_through_project_access_groups(user, lambda do\n connection.quote(s)\n end, lambda do\n connection.quote_column_name(s)\n end)}\")",
       "render_path": null,
@@ -420,6 +420,29 @@
         "method": "filter_clients"
       },
       "user_input": "term_score_sql(variant, :term_weight => ((1.0 or 0.75)))",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "16c0cb5a23d3b4e34da31e5856da88cbace653507f608bbed9b6f10689ef48eb",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/collection.rb",
+      "line": 89,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "where(\"#{quoted_table_name}.coc_codes ?| array[#{coc_codes.map do\n connection.quote(code)\n end.join(\",\")}]\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Collection",
+        "method": "for_coc_codes"
+      },
+      "user_input": "coc_codes.map do\n connection.quote(code)\n end.join(\",\")",
       "confidence": "Medium",
       "cwe_id": [
         89
@@ -3183,6 +3206,6 @@
       "note": ""
     }
   ],
-  "updated": "2024-05-24 16:49:59 +0000",
+  "updated": "2024-05-29 16:22:41 +0000",
   "brakeman_version": "6.1.2"
 }
