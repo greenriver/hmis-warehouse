@@ -1,4 +1,4 @@
-- if @patient&.ssms&.any? || @patient&.thrive_assessments&.any?
+- if @patient&.hrsn_screenings&.any?
   %table.table.table-sm.datatable-ssm
     %thead
       %tr
@@ -6,7 +6,7 @@
         %th Date Completed
         %th Case Manager
     %tbody
-      - @patient.hrsn_screenings.newest_first.find_each do |screening|
+      - @patient.hrsn_screenings.newest_first.each do |screening|
         - instrument = screening.instrument
         %tr
           - if instrument.is_a? Health::SelfSufficiencyMatrixForm # CP1 Instrument
