@@ -13,7 +13,7 @@ require 'csv'
 class AppResourceMonitor::Report
   def export_to_csv
     results = collect_results
-    timestamp = now.to_s(:number)
+    timestamp = now.to_fs(:number)
     Dir.mktmpdir do |dir|
       results.each do |name, records|
         write_csv(
@@ -35,6 +35,10 @@ class AppResourceMonitor::Report
       'postgres_index_stats' => AppResourceMonitor::PostgresInspector.flat_map(&:index_stats),
       'app_record_stats' => AppResourceMonitor::AppInspector.utilization_stats,
       'app_activity' => AppResourceMonitor::AppInspector.activity_stats(range: ((now - 1.day)...now)),
+      'hud_client_references' => AppResourceMonitor::HudReferencesInspector.client_references,
+      'hud_enrollment_references' => AppResourceMonitor::HudReferencesInspector.enrollment_references,
+      'hud_project_references' => AppResourceMonitor::HudReferencesInspector.project_references,
+      'duplicate_hud_ids' => AppResourceMonitor::HudReferencesInspector.duplicate_ids,
     }
   end
 
@@ -49,7 +53,7 @@ class AppResourceMonitor::Report
       headers = records.first.keys
       csv << headers + ['timestamp']
       records.each do |record|
-        csv << record.values_at(*headers) + [now.to_s(:db)]
+        csv << record.values_at(*headers) + [now.to_fs(:db)]
       end
     end
   end

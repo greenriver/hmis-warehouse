@@ -181,7 +181,7 @@ class Hmis::Role < ::ApplicationRecord
         sub_category: 'Users',
       },
       can_audit_users: {
-        description: 'View audit trail of each HMIS activity for each user. Includes changes that they made, as well as Client records that they accessed.',
+        description: 'View audit trail of each HMIS activity for each user. Includes changes that they made, as well as Client records that they accessed. This permission allows the user to view changes to any client details, including DOB, SSN, and name, even if they don\'t have the specific permissions to view those fields on the Client.',
         administrative: true,
         access: [:viewable],
         category: 'Administration',
@@ -219,6 +219,27 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         category: 'Client Access',
         sub_category: 'Access',
+      },
+      can_view_client_name: {
+        description: 'Access to view client names',
+        administrative: false,
+        access: [:viewable],
+        category: 'Client Access',
+        sub_category: 'Sensitive Client Data',
+      },
+      can_view_client_contact_info: {
+        description: 'Access to view client contact info: addresses, phone numbers, emails.',
+        administrative: false,
+        access: [:viewable],
+        category: 'Client Access',
+        sub_category: 'Sensitive Client Data',
+      },
+      can_view_client_photo: {
+        description: 'Access to view client photo.',
+        administrative: false,
+        access: [:viewable],
+        category: 'Client Access',
+        sub_category: 'Sensitive Client Data',
       },
       can_view_full_ssn: {
         administrative: false,
@@ -332,7 +353,7 @@ class Hmis::Role < ::ApplicationRecord
         sub_category: 'Access',
       },
       can_audit_clients: {
-        description: 'View audit history for client on the Client Dashboard',
+        description: 'View audit history for client on the Client Dashboard.  This permission allows the user to view changes to any client details, including DOB, SSN, and name, even if they don\'t have the specific permissions to view those fields on the Client.',
         administrative: true,
         access: [:viewable],
         category: 'Client Access',
@@ -359,8 +380,15 @@ class Hmis::Role < ::ApplicationRecord
         category: 'Administration',
         sub_category: 'Enrollment Management',
       },
+      can_manage_forms: {
+        description: 'Ability to edit forms',
+        administrative: true,
+        access: [:editable],
+        category: 'Administration',
+        sub_category: 'Admin Tools',
+      },
       can_configure_data_collection: {
-        description: 'Ability to configure custom assessments, services, auto-exit, and other application rules',
+        description: 'Ability to configure data collection rules for assessments, services, auto-exit, and more.',
         administrative: true,
         access: [:editable],
         category: 'Administration',
@@ -386,6 +414,13 @@ class Hmis::Role < ::ApplicationRecord
         access: [:editable],
         category: 'Client Access',
         sub_category: 'Alerts',
+      },
+      can_manage_external_form_submissions: {
+        description: 'Grants the ability to manage public form submissions',
+        administrative: false,
+        access: [:editable],
+        category: 'Projects',
+        sub_category: 'Access',
       },
     }
   end

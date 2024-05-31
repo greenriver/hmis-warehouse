@@ -39,7 +39,7 @@ module PerformanceMeasurement::DocumentExports
         )
         PdfGenerator.new.perform(
           html: html,
-          file_name: "#{Translation.translate('Performance Management Dashboard')} #{DateTime.current.to_s(:db)}",
+          file_name: "#{Translation.translate('Performance Management Dashboard')} #{DateTime.current.to_fs(:db)}",
           options: {
             print_background: true,
             display_header_footer: true,

@@ -32,12 +32,7 @@ module Types
     end
 
     def project
-      if object.in_progress?
-        wip = load_ar_association(object, :wip)
-        load_ar_association(wip, :project)
-      else
-        load_ar_association(object, :project)
-      end
+      load_ar_association(object, :project)
     end
   end
 end

@@ -1,0 +1,14 @@
+{
+  "item": [
+    {
+      "_comment": "Default Referral form only collects notes. Can be extended to collect any Custom Data Elements",
+      "type": "TEXT",
+      "required": false,
+      "link_id": "referral_resource_coordinator_notes",
+      "text": "Referral Notes",
+      "mapping": {
+        "field_name": "resourceCoordinatorNotes"
+      }
+    }
+  ]
+}

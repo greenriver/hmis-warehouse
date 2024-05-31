@@ -14,7 +14,6 @@ class Hmis::Hud::CurrentLivingSituation < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::ServiceHistoryQueuer
   include ::Hmis::Hud::Concerns::HasCustomDataElements
 
-  belongs_to :enrollment, **hmis_enrollment_relation, optional: true
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
@@ -22,7 +21,7 @@ class Hmis::Hud::CurrentLivingSituation < Hmis::Hud::Base
   after_commit :warehouse_trigger_processing
 
   private def warehouse_trigger_processing
-    return unless warehouse_columns_changed?
+    return unless enrollment && warehouse_columns_changed?
 
     # NOTE: we only really need to do this for SO at the moment, but this is future-proofing against
     # pre-processing CLS in other enrollments

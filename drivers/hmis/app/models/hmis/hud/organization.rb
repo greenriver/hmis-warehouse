@@ -31,6 +31,14 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
     where(id: ids, data_source_id: user.hmis_data_source_id)
   end
 
+  scope :matching_search_term, ->(search_term) do
+    return none unless search_term.present?
+
+    search_term.strip!
+    query = "%#{search_term.split(/\W+/).join('%')}%"
+    where(o_t[:OrganizationName].matches(query).or(o_t[:id].eq(search_term)).or(o_t[:organization_id].eq(search_term)))
+  end
+
   SORT_OPTIONS = [:name].freeze
 
   def self.sort_by_option(option)
@@ -38,10 +46,14 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
 
     case option
     when :name
-      order(:OrganizationName)
+      order(:OrganizationName, id: :desc)
     else
       raise NotImplementedError
     end
+  end
+
+  def self.apply_filters(input)
+    Hmis::Filter::OrganizationFilter.new(input).filter_scope(self)
   end
 
   def to_pick_list_option
@@ -49,5 +61,9 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
       code: id,
       label: organization_name,
     }
+  end
+
+  def name
+    organization_name
   end
 end

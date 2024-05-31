@@ -54,7 +54,7 @@ module Cohorts
 
       @visible_columns = [CohortColumns::Meta.new]
       @visible_columns += @cohort.visible_columns(user: current_user)
-      delete_column = if params[:population] == 'deleted'
+      delete_column = if @cohort.deleted_clients_tab?(params[:population])
         CohortColumns::Delete.new(title: 'Restore')
       else
         CohortColumns::Delete.new
@@ -413,11 +413,16 @@ module Cohorts
       return unless @client.deleted?
 
       @client.restore
-      if @client.cohort.cohort_clients.only_deleted.exists?
-        redirect_to cohort_path(@cohort, population: :deleted)
+      if @client.cohort.cohort_clients.only_deleted.exists? && deleted_tab&.show_for?(current_user)
+
+        redirect_to cohort_path(@cohort, population: deleted_tab.name)
       else
         redirect_to cohort_path(@cohort)
       end
+    end
+
+    private def deleted_tab
+      @cohort.cohort_tabs.deleted_client_tabs.first
     end
 
     def pre_bulk_destroy
@@ -445,7 +450,7 @@ module Cohorts
         @cohort_clients.each(&:restore)
       end
 
-      return redirect_to cohort_path(@cohort, population: :deleted) if @cohort.cohort_clients.only_deleted.exists?
+      return redirect_to cohort_path(@cohort, population: deleted_tab.name) if @cohort.cohort_clients.only_deleted.exists? && deleted_tab&.show_for?(current_user)
 
       redirect_to cohort_path(@cohort)
     end

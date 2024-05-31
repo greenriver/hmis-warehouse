@@ -46,7 +46,7 @@ module CohortColumns
       note_count = cohort_client.cohort_client_notes.length || 0
       unknown_date = DateTime.current - 10.years
       updated_at = cohort_client.cohort_client_notes.map(&:updated_at)&.max
-      max_updated_at = (updated_at || unknown_date).to_s(:db)
+      max_updated_at = (updated_at || unknown_date).to_fs(:db)
       path = cohort_cohort_client_cohort_client_notes_path(cohort, cohort_client)
       # Sort pattern
       html = content_tag(:div, class: 'd-flex') do

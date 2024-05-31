@@ -42,9 +42,5 @@ module GrdaWarehouse::Hud
 
     belongs_to :export, **hud_assoc(:ExportID, 'Export'), inverse_of: :users, optional: true
     belongs_to :data_source
-
-    def name
-      "#{user_first_name} #{user_last_name}"
-    end
   end
 end

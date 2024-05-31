@@ -11,7 +11,7 @@ module Mutations
     field :form_definition, Types::Forms::FormDefinition, null: true
 
     def resolve(input:)
-      raise 'not allowed' unless current_user.can_configure_data_collection?
+      raise 'not allowed' unless current_user.can_manage_forms?
 
       attrs = input.to_attributes
       attrs[:definition] = attrs[:definition] || { item: [{ link_id: 'name', type: 'STRING' }] }

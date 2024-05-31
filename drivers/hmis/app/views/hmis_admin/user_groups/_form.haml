@@ -1,0 +1,4 @@
+= f.error_notification
+.form-inputs
+  = f.input :name, label: 'User Group Name', hint: 'Descriptive name for user group, e.g. "Green Mountain Shelter: Providers"'
+  = f.input :user_ids, as: :select_two, label_method: :name, collection: User.active.not_system, label: 'Users', input_html: { multiple: true }

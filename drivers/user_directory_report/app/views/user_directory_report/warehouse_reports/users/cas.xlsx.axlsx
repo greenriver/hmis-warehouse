@@ -1,0 +1,30 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "CAS Users"[0,30]) do |sheet|
+  title = sheet.styles.add_style(sz: 12, b: true, alignment: {horizontal: :center})
+  sheet.add_row([
+    'Name',
+    'Email',
+    'Phone',
+    'Agency',
+    'Roles',
+    'Status',
+    'Last Login',
+    'Count of Active Matches',
+    'Count of Closed Matches',
+  ], :style => title)
+  @users.each do |user|
+    sheet.add_row(
+      [
+        user.name,
+        user.email,
+        user.phone_for_directory,
+        user.agency_name,
+        user.unique_role_names&.sort&.join('; '),
+        user.active ? 'Active': 'Inactive',
+        user.last_sign_in_at,
+        user.contact&.client_opportunity_matches&.merge(CasAccess::ClientOpportunityMatch.active)&.count,
+        user.contact&.client_opportunity_matches&.merge(CasAccess::ClientOpportunityMatch.closed)&.count,
+      ]
+    )
+  end
+end

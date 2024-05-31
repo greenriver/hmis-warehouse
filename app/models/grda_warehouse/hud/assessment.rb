@@ -75,11 +75,11 @@ module GrdaWarehouse::Hud
       return nil if matching_question.blank?
       return matching_question unless answer.present?
 
-      assessment_answer = matching_question.AssessmentAnswer.to_s
-      assessment_answer.downcase! unless case_sensitive
+      assessment_answer = matching_question.AssessmentAnswer&.to_s
+      assessment_answer&.downcase! unless case_sensitive
       answer&.downcase! unless case_sensitive
 
-      assessment_answer == answer
+      (assessment_answer || '') == answer
     end
 
     def results_matching_requirement(question, answer = nil)
@@ -94,8 +94,10 @@ module GrdaWarehouse::Hud
     end
 
     # provide a more specific name when appropriate
+    # You'll probably want to preload(assessment_questions: :lookup)
     def name
-      return 'Pathways' if pathways?
+      name_from_questions = assessment_questions.detect(&:assessment_name)
+      return name_from_questions.assessment_name if name_from_questions.present?
 
       HudUtility2024.assessment_level self.AssessmentLevel
     end

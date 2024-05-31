@@ -36,7 +36,7 @@ jobs:
             chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
             lftp postgresql postgis geos geos-dev \
             shared-mime-info
-          gem install bundler --version=2.4.6
+          gem install bundler --version=2.5.7
 
       - name: Install gems
         run: |
@@ -45,8 +45,8 @@ jobs:
 
       - name: Run bundle-audit
         run: |
-          bundle exec bundle-audit check --update --ignore CVE-2015-9284 CVE-2019-16676 CVE-2017-1002201 CVE-2023-49090 CVE-2024-0227 CVE-2024-26143
+          bundle exec bundle-audit check --update --ignore CVE-2015-9284 CVE-2019-16676 CVE-2017-1002201 CVE-2023-49090 CVE-2024-0227 CVE-2024-26143 CVE-2024-29034
 
       - name: Run brakeman
         run: |
-          bundle exec brakeman -q --no-pager --except PermitAttributes,Render
+          bundle exec brakeman -q --no-pager

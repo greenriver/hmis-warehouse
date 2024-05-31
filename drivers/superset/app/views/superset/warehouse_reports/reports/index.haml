@@ -6,7 +6,22 @@
 
 %p Use the button below to access Superset.  Apache Superset is a business inteligence tool where you can create charts and reports based on data available in the warehouse.  Please note, at this time, user access control is not imposed on access to the data in Superset, and therefore only users with access to the full data warehouse should be granted access to this report.
 
-.d-flex
+.d-flex.mb-6
   .ml-auto.mr-auto
     = link_to Superset.superset_base_url, class: 'btn btn-primary', target: :_blank do
       Launch Superset
+
+- content_for :panel_collapse_content_help do
+  %p
+    Superset is connected to your warehouse account, but functionally a different system.  The first time you access Superset you will need to grant it approval which requires clicking through two screens.  Subsequent access will only ask you to
+    %strong Sign in with the warehouse.
+  %p
+    If you see either of the following pages, it is safe to click the buttons, and you will want to "Authorize" Superset or you will not be able to access the tool.
+  .mb-4
+    %h3 Example Sign-In Button
+    = image_tag('page_files/sign-in-button.png', width: 500)
+
+  %h3 Example Authorize Button
+  = image_tag('page_files/authorize-button.png', width: 500)
+
+= render 'common/panel_collapse', id: 'help', title: 'Superset Access Help', content: '_help'

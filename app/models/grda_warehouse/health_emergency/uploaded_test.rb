@@ -8,7 +8,6 @@ module GrdaWarehouse::HealthEmergency
   class UploadedTest < GrdaWarehouseBase
     include ::HealthEmergency
     include ArelHelper
-    acts_as_paranoid
 
     belongs_to :batch, class_name: 'GrdaWarehouse::HealthEmergency::TestBatch', inverse_of: :uploaded_tests, optional: true
     belongs_to :client, class_name: 'GrdaWarehouse::Hud::Client', optional: true

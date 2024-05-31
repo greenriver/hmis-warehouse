@@ -7,9 +7,6 @@ Rails.application.routes.draw do
   match "/422", to: "errors#unacceptable", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
 
-  require 'rails_drivers/routes'
-  RailsDrivers::Routes.load_driver_routes
-
   class OnlyXhrRequest
     def matches?(request)
       request.xhr?
@@ -760,7 +757,10 @@ Rails.application.routes.draw do
       post :confirm
     end
 
-    resources :collections
+    resources :collections do
+      get :entities, on: :member
+      patch :bulk_entities, on: :member
+    end
 
     # TODO: START_ACL cleanup after ACL migration
     # resources :roles
@@ -770,11 +770,13 @@ Rails.application.routes.draw do
     end
     resources :groups do
        resources :users, only: [:create, :destroy], controller: 'groups/users'
+       get :download, on: :collection
     end
     # END_ACL
     resources :access_controls do
        post :assign, on: :collection
      end
+    resources :access_overviews, only: [:index]
     resources :user_groups do
       resources :users, only: [:create, :destroy], controller: 'user_groups/users'
     end

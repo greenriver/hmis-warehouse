@@ -5,25 +5,13 @@
 ###
 
 module Health
-  class TeamPerformance
+  class TeamPerformance < PerformanceBase
     include ArelHelper
 
-    attr_accessor :range
     def initialize(range:, team_scope: nil)
       @range = (range.first.to_date..range.last.to_date)
       @team_scope = team_scope
     end
-
-    def self.url
-      'warehouse_reports/health/agency_performance'
-    end
-
-    QA_WINDOW = 60.days
-    QA_NO_INTAKE_WINDOW = 30.days
-    F2F_WINDOW = 60.days
-    COMPLETION_WINDOW = 30.days
-    RENEWAL_WINDOW = 365.days
-    WELLCARE_WINDOW = 12.months
 
     DESCRIPTIONS = {
       without_required_qa: 'Patients in their outreach period with no QA in the current month, or who have completed a care plan and have no QA in the current or previous month.',
@@ -84,11 +72,6 @@ module Health
       @team_scope || Health::CoordinationTeam.all
     end
 
-    def client_ids
-      @client_ids ||= Health::Patient.where(id: patient_referrals.keys).
-        pluck(:client_id, :id).to_h
-    end
-
     def patient_referrals
       @patient_referrals ||= {}.tap do |hash|
         team_scope.find_each do |team|
@@ -104,73 +87,6 @@ module Health
           )
         end
       end
-    end
-
-    def patient_ids
-      @patient_ids ||= patient_referrals.keys
-    end
-
-    def with_required_qa
-      @with_required_qa ||=
-        patient_ids - Health::Patient.needs_qa(on: @range.last).pluck(:id)
-    end
-
-    def with_required_f2f_visit
-      @with_required_f2f_visit ||= patient_ids - Health::Patient.needs_f2f(on: @range.last).pluck(:id)
-    end
-
-    def with_discharge_followup_completed
-      @with_discharge_followup_completed ||= Health::QualifyingActivity.
-        submittable.
-        where(patient_id: patient_ids).
-        in_range(@range).
-        where(activity: :discharge_follow_up).
-        pluck(:patient_id).uniq
-    end
-
-    def with_completed_intake
-      @with_completed_intake ||= Health::Patient.
-        has_intake.
-        pluck(:id)
-    end
-
-    def with_initial_intake
-      @with_initial_intake ||= Health::Patient.
-        preload(recent_pctp_careplan: :instrument).
-        where(id: patient_ids).
-        has_intake.
-        reject { |patient| patient.recent_pctp_careplan.nil? }.
-        map { |patient| [patient.id, patient.recent_pctp_careplan.instrument.careplan_sent_on] }.to_h
-    end
-
-    def initial_intake_due
-      date = [@range.last, Date.current].min
-      @initial_intake_due ||= Health::Patient.intake_due(on: date).pluck(:id)
-    end
-
-    def initial_intake_overdue
-      date = [@range.last, Date.current].min
-      @initial_intake_overdue ||= Health::Patient.intake_overdue(on: date).pluck(:id)
-    end
-
-    def intake_renewal_due
-      date = [@range.last, Date.current].min
-      Health::Patient.where(id: Health::Patient.needs_renewal(on: date).pluck(:id) - Health::Patient.overdue_for_renewal(on: date).pluck(:id))
-    end
-
-    def intake_renewal_overdue
-      date = [@range.last, Date.current].min
-      Health::Patient.overdue_for_renewal(on: date)
-    end
-
-    def with_required_wellcare_visit
-      anchor = [@range.last, Date.current].min
-      @with_required_wellcare_visit ||= ClaimsReporting::MedicalClaim.
-        annual_well_care_visits.
-        service_in(anchor - WELLCARE_WINDOW... anchor).
-        joins(:patient).
-        where(hp_t[:id].in(patient_ids)).
-        pluck(hp_t[:id]).uniq
     end
   end
 end

@@ -1095,7 +1095,8 @@ CREATE TABLE public."CustomDataElementDefinitions" (
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
-    show_in_summary boolean DEFAULT false NOT NULL
+    show_in_summary boolean DEFAULT false NOT NULL,
+    form_definition_identifier character varying
 );
 
 
@@ -1673,7 +1674,8 @@ CREATE TABLE public."Enrollment" (
     "PreferredLanguage" integer,
     "PreferredLanguageDifferent" character varying,
     "VAMCStation" character varying,
-    lock_version integer DEFAULT 0 NOT NULL
+    lock_version integer DEFAULT 0 NOT NULL,
+    project_pk bigint
 );
 
 
@@ -4274,10 +4276,10 @@ CREATE VIEW public.bi_service_history_enrollments AS
 
 
 --
--- Name: service_history_services; Type: TABLE; Schema: public; Owner: -
+-- Name: service_history_services_was_for_inheritance; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.service_history_services (
+CREATE TABLE public.service_history_services_was_for_inheritance (
     id bigint NOT NULL,
     service_history_enrollment_id integer NOT NULL,
     record_type character varying(50) NOT NULL,
@@ -4289,6 +4291,44 @@ CREATE TABLE public.service_history_services (
     homeless boolean,
     literally_homeless boolean
 );
+
+
+--
+-- Name: service_history_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.service_history_services_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: service_history_services_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.service_history_services_id_seq OWNED BY public.service_history_services_was_for_inheritance.id;
+
+
+--
+-- Name: service_history_services; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.service_history_services (
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+)
+PARTITION BY RANGE (date);
 
 
 --
@@ -6203,7 +6243,29 @@ CREATE TABLE public.cohort_clients (
     user_boolean_48 boolean,
     user_boolean_49 boolean,
     sheltered_days_homeless_last_three_years integer,
-    unsheltered_days_homeless_last_three_years integer
+    unsheltered_days_homeless_last_three_years integer,
+    user_string_9 character varying,
+    user_string_10 character varying,
+    user_string_11 character varying,
+    user_string_12 character varying,
+    user_string_13 character varying,
+    user_string_14 character varying,
+    user_string_15 character varying,
+    user_string_16 character varying,
+    user_string_17 character varying,
+    user_string_18 character varying,
+    user_string_19 character varying,
+    user_string_20 character varying,
+    user_string_21 character varying,
+    user_string_22 character varying,
+    user_string_23 character varying,
+    user_string_24 character varying,
+    user_string_25 character varying,
+    user_string_26 character varying,
+    user_string_27 character varying,
+    user_string_28 character varying,
+    user_string_29 character varying,
+    user_string_30 character varying
 );
 
 
@@ -13565,52 +13627,6 @@ ALTER SEQUENCE public.hmis_client_merge_histories_id_seq OWNED BY public.hmis_cl
 
 
 --
--- Name: hmis_wips; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_wips (
-    id bigint NOT NULL,
-    client_id bigint NOT NULL,
-    project_id bigint,
-    enrollment_id bigint,
-    source_type character varying,
-    source_id bigint,
-    date date NOT NULL,
-    data jsonb,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: hmis_client_projects; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.hmis_client_projects AS
- SELECT "Client".id AS client_id,
-    "Project".id AS project_id,
-    "Enrollment".id AS enrollment_id,
-    "Enrollment"."EnrollmentID",
-    "Enrollment"."HouseholdID",
-    "Enrollment".data_source_id
-   FROM ((public."Client"
-     JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".data_source_id = "Client".data_source_id) AND (("Enrollment"."PersonalID")::text = ("Client"."PersonalID")::text))))
-     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = "Enrollment".data_source_id) AND (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text))))
-  WHERE ("Client"."DateDeleted" IS NULL)
-UNION
- SELECT (hmis_wips.client_id)::integer AS client_id,
-    (hmis_wips.project_id)::integer AS project_id,
-    "Enrollment".id AS enrollment_id,
-    "Enrollment"."EnrollmentID",
-    "Enrollment"."HouseholdID",
-    "Enrollment".data_source_id
-   FROM (public.hmis_wips
-     JOIN public."Enrollment" ON ((("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment".id = hmis_wips.source_id))))
-  WHERE ((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text);
-
-
---
 -- Name: hmis_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -17744,15 +17760,15 @@ CREATE TABLE public.hmis_dqt_enrollments (
     cash_income_as_expected_at_entry boolean DEFAULT false,
     cash_income_as_expected_at_annual boolean DEFAULT false,
     cash_income_as_expected_at_exit boolean DEFAULT false,
-    ncb_from_any_source_at_entry integer,
-    ncb_from_any_source_at_annual integer,
-    ncb_from_any_source_at_exit integer,
+    ncb_from_any_source_at_entry_remove integer,
+    ncb_from_any_source_at_annual_remove integer,
+    ncb_from_any_source_at_exit_remove integer,
     ncb_as_expected_at_entry boolean DEFAULT false,
     ncb_as_expected_at_annual boolean DEFAULT false,
     ncb_as_expected_at_exit boolean DEFAULT false,
-    insurance_from_any_source_at_entry integer,
-    insurance_from_any_source_at_annual integer,
-    insurance_from_any_source_at_exit integer,
+    insurance_from_any_source_at_entry_remove integer,
+    insurance_from_any_source_at_annual_remove integer,
+    insurance_from_any_source_at_exit_remove integer,
     insurance_as_expected_at_entry boolean DEFAULT false,
     insurance_as_expected_at_annual boolean DEFAULT false,
     insurance_as_expected_at_exit boolean DEFAULT false,
@@ -17767,7 +17783,33 @@ CREATE TABLE public.hmis_dqt_enrollments (
     last_name character varying,
     annual_expected boolean,
     enrollment_anniversary_date date,
-    annual_assessment_status json
+    annual_assessment_status json,
+    funders jsonb,
+    percent_ami integer,
+    vamc_station character varying,
+    veteran integer,
+    hoh_veteran integer,
+    hh_veteran_count integer,
+    target_screen_required integer,
+    target_screen_completed boolean,
+    total_monthly_income_at_entry numeric,
+    total_monthly_income_from_source_at_entry numeric,
+    total_monthly_income_at_exit numeric,
+    total_monthly_income_from_source_at_exit numeric,
+    afghanistan_oef integer,
+    iraq_oif integer,
+    iraq_ond integer,
+    military_branch integer,
+    discharge_status integer,
+    employed integer,
+    employment_type integer,
+    not_employed_reason integer,
+    ncb_from_any_source_at_entry integer,
+    ncb_from_any_source_at_annual integer,
+    ncb_from_any_source_at_exit integer,
+    insurance_from_any_source_at_entry integer,
+    insurance_from_any_source_at_annual integer,
+    insurance_from_any_source_at_exit integer
 );
 
 
@@ -17965,6 +18007,78 @@ ALTER SEQUENCE public.hmis_dqt_inventories_id_seq OWNED BY public.hmis_dqt_inven
 
 
 --
+-- Name: hmis_external_form_publications; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_external_form_publications (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    definition_id bigint NOT NULL,
+    object_key character varying NOT NULL,
+    content_definition jsonb NOT NULL,
+    content text,
+    content_digest character varying
+);
+
+
+--
+-- Name: hmis_external_form_publications_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_external_form_publications_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_external_form_publications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_external_form_publications_id_seq OWNED BY public.hmis_external_form_publications.id;
+
+
+--
+-- Name: hmis_external_form_submissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_external_form_submissions (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    submitted_at timestamp without time zone,
+    spam_score double precision,
+    status character varying DEFAULT 'new'::character varying NOT NULL,
+    definition_id bigint NOT NULL,
+    object_key character varying NOT NULL,
+    raw_data jsonb NOT NULL,
+    notes text
+);
+
+
+--
+-- Name: hmis_external_form_submissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_external_form_submissions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_external_form_submissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_external_form_submissions_id_seq OWNED BY public.hmis_external_form_submissions.id;
+
+
+--
 -- Name: hmis_external_referral_household_members; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -18011,7 +18125,7 @@ CREATE TABLE public.hmis_external_referral_postings (
     referral_id bigint NOT NULL,
     project_id bigint NOT NULL,
     referral_request_id bigint,
-    unit_type_id bigint NOT NULL,
+    unit_type_id bigint,
     "HouseholdID" character varying,
     resource_coordinator_notes text,
     status_updated_at timestamp without time zone NOT NULL,
@@ -18171,7 +18285,8 @@ CREATE TABLE public.hmis_form_definitions (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     title character varying NOT NULL,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    external_form_object_key character varying
 );
 
 
@@ -18467,49 +18582,25 @@ UNION
 --
 
 CREATE VIEW public.hmis_households AS
- WITH tmp1 AS (
-         SELECT "Enrollment"."HouseholdID",
-            "Project"."ProjectID",
-            false AS wip,
-            "Project".data_source_id,
-            "Enrollment"."EntryDate",
-            "Exit"."ExitDate",
-            "Enrollment"."DateUpdated",
-            "Enrollment"."DateCreated"
-           FROM ((public."Enrollment"
-             LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
-             JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".data_source_id = "Enrollment".data_source_id) AND (("Project"."ProjectID")::text = ("Enrollment"."ProjectID")::text))))
-          WHERE ("Enrollment"."DateDeleted" IS NULL)
-        UNION ALL
-         SELECT "Enrollment"."HouseholdID",
-            "Project"."ProjectID",
-            true AS wip,
-            "Project".data_source_id,
-            "Enrollment"."EntryDate",
-            "Exit"."ExitDate",
-            "Enrollment"."DateUpdated",
-            "Enrollment"."DateCreated"
-           FROM (((public."Enrollment"
-             LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
-             JOIN public.hmis_wips ON (((hmis_wips.source_id = "Enrollment".id) AND ((hmis_wips.source_type)::text = 'Hmis::Hud::Enrollment'::text))))
-             JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = hmis_wips.project_id))))
-          WHERE (("Enrollment"."DateDeleted" IS NULL) AND ("Enrollment"."ProjectID" IS NULL))
-        )
- SELECT concat(tmp1."HouseholdID", ':', tmp1."ProjectID", ':', tmp1.data_source_id) AS id,
-    tmp1."HouseholdID",
-    tmp1."ProjectID",
-    tmp1.data_source_id,
-    min(tmp1."EntryDate") AS earliest_entry,
+ SELECT concat("Enrollment"."HouseholdID", ':', "Project"."ProjectID", ':', "Project".data_source_id) AS id,
+    "Enrollment"."HouseholdID",
+    "Enrollment".project_pk,
+    "Project"."ProjectID",
+    "Project".data_source_id,
+    min("Enrollment"."EntryDate") AS earliest_entry,
         CASE
-            WHEN bool_or((tmp1."ExitDate" IS NULL)) THEN NULL::date
-            ELSE max(tmp1."ExitDate")
+            WHEN bool_or(("Exit"."ExitDate" IS NULL)) THEN NULL::date
+            ELSE max("Exit"."ExitDate")
         END AS latest_exit,
-    bool_or(tmp1.wip) AS any_wip,
+    bool_or(("Enrollment"."ProjectID" IS NULL)) AS any_wip,
     NULL::text AS "DateDeleted",
-    max(tmp1."DateUpdated") AS "DateUpdated",
-    min(tmp1."DateCreated") AS "DateCreated"
-   FROM tmp1
-  GROUP BY tmp1."HouseholdID", tmp1."ProjectID", tmp1.data_source_id;
+    max("Enrollment"."DateUpdated") AS "DateUpdated",
+    min("Enrollment"."DateCreated") AS "DateCreated"
+   FROM ((public."Enrollment"
+     LEFT JOIN public."Exit" ON (((("Exit"."EnrollmentID")::text = ("Enrollment"."EnrollmentID")::text) AND ("Exit".data_source_id = "Enrollment".data_source_id) AND ("Exit"."DateDeleted" IS NULL))))
+     JOIN public."Project" ON ((("Project"."DateDeleted" IS NULL) AND ("Project".id = "Enrollment".project_pk))))
+  WHERE ("Enrollment"."DateDeleted" IS NULL)
+  GROUP BY "Project".data_source_id, "Project"."ProjectID", "Enrollment".project_pk, "Enrollment"."HouseholdID";
 
 
 --
@@ -18530,7 +18621,9 @@ CREATE TABLE public.hmis_import_configs (
     encrypted_zip_file_password_iv character varying,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    file_count integer DEFAULT 1 NOT NULL
+    file_count integer DEFAULT 1 NOT NULL,
+    s3_role_arn character varying,
+    s3_external_id character varying
 );
 
 
@@ -18692,10 +18785,12 @@ ALTER SEQUENCE public.hmis_scan_card_codes_id_seq OWNED BY public.hmis_scan_card
 --
 
 CREATE VIEW public.hmis_services AS
-( SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
+ SELECT (concat('1', ("Services".id)::character varying))::integer AS id,
     "Services".id AS owner_id,
     'Hmis::Hud::Service'::text AS owner_type,
-    "CustomServiceTypes".id AS custom_service_type_id,
+    "Services"."RecordType",
+    "Services"."TypeProvided",
+    NULL::bigint AS custom_service_type_id,
     "Services"."EnrollmentID",
     "Services"."PersonalID",
     "Services"."DateProvided",
@@ -18704,14 +18799,14 @@ CREATE VIEW public.hmis_services AS
     "Services"."DateUpdated",
     "Services"."DateDeleted",
     "Services".data_source_id
-   FROM (public."Services"
-     JOIN public."CustomServiceTypes" ON ((("CustomServiceTypes".hud_record_type = "Services"."RecordType") AND ("CustomServiceTypes".hud_type_provided = "Services"."TypeProvided") AND ("CustomServiceTypes".data_source_id = "Services".data_source_id) AND ("CustomServiceTypes"."DateDeleted" IS NULL))))
+   FROM public."Services"
   WHERE ("Services"."DateDeleted" IS NULL)
-  ORDER BY "Services"."DateProvided")
 UNION ALL
-( SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
+ SELECT (concat('2', ("CustomServices".id)::character varying))::integer AS id,
     ("CustomServices".id)::integer AS owner_id,
     'Hmis::Hud::CustomService'::text AS owner_type,
+    NULL::integer AS "RecordType",
+    NULL::integer AS "TypeProvided",
     "CustomServices".custom_service_type_id,
     "CustomServices"."EnrollmentID",
     "CustomServices"."PersonalID",
@@ -18722,8 +18817,7 @@ UNION ALL
     "CustomServices"."DateDeleted",
     "CustomServices".data_source_id
    FROM public."CustomServices"
-  WHERE ("CustomServices"."DateDeleted" IS NULL)
-  ORDER BY "CustomServices"."DateProvided");
+  WHERE ("CustomServices"."DateDeleted" IS NULL);
 
 
 --
@@ -18896,6 +18990,25 @@ CREATE SEQUENCE public.hmis_units_id_seq
 --
 
 ALTER SEQUENCE public.hmis_units_id_seq OWNED BY public.hmis_units.id;
+
+
+--
+-- Name: hmis_wips; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_wips (
+    id bigint NOT NULL,
+    client_id bigint NOT NULL,
+    project_id bigint,
+    enrollment_id bigint,
+    source_type character varying,
+    source_id bigint,
+    date date NOT NULL,
+    data jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    deleted_at timestamp without time zone
+);
 
 
 --
@@ -20169,7 +20282,9 @@ CREATE TABLE public.hud_report_path_clients (
     destination_client_id integer,
     personal_id character varying,
     race_multi character varying,
-    newly_enrolled_client boolean DEFAULT false
+    newly_enrolled_client boolean DEFAULT false,
+    cmh_service_provided boolean DEFAULT false NOT NULL,
+    cmh_referral_provided_and_attained boolean DEFAULT false NOT NULL
 );
 
 
@@ -22183,6 +22298,55 @@ ALTER SEQUENCE public.pm_results_id_seq OWNED BY public.pm_results.id;
 
 
 --
+-- Name: project_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.project_groups (
+    id integer NOT NULL,
+    name character varying NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    deleted_at timestamp without time zone,
+    options jsonb DEFAULT '{}'::jsonb
+);
+
+
+--
+-- Name: project_project_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.project_project_groups (
+    id integer NOT NULL,
+    project_group_id integer,
+    project_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    deleted_at timestamp without time zone
+);
+
+
+--
+-- Name: project_collection_members; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.project_collection_members AS
+ SELECT targets.project_id,
+    group_viewable_entities.collection_id
+   FROM (public.group_viewable_entities
+     JOIN ( SELECT "Project".data_source_id,
+            "Project".id AS project_id,
+            "Organization".id AS organization_id,
+            project_groups.id AS project_group_id
+           FROM (((public."Project"
+             LEFT JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND ("Organization".data_source_id = "Project".data_source_id) AND (("Organization"."OrganizationID")::text = ("Project"."OrganizationID")::text))))
+             LEFT JOIN public.project_project_groups ON ((project_project_groups.project_id = "Project".id)))
+             LEFT JOIN public.project_groups ON (((project_groups.deleted_at IS NULL) AND (project_groups.id = project_project_groups.project_group_id))))
+          WHERE ("Project"."DateDeleted" IS NULL)) targets ON (((group_viewable_entities.deleted_at IS NULL) AND ((((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (group_viewable_entities.entity_id = targets.data_source_id)) OR (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::Project'::text) AND (group_viewable_entities.entity_id = targets.project_id)) OR (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::Organization'::text) AND (group_viewable_entities.entity_id = targets.organization_id)) OR (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::ProjectGroup'::text) AND (group_viewable_entities.entity_id = targets.project_group_id))))))
+  WHERE ((group_viewable_entities.deleted_at IS NULL) AND (group_viewable_entities.collection_id IS NOT NULL))
+  GROUP BY targets.project_id, group_viewable_entities.collection_id;
+
+
+--
 -- Name: project_data_quality; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -22224,20 +22388,6 @@ CREATE SEQUENCE public.project_data_quality_id_seq
 --
 
 ALTER SEQUENCE public.project_data_quality_id_seq OWNED BY public.project_data_quality.id;
-
-
---
--- Name: project_groups; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.project_groups (
-    id integer NOT NULL,
-    name character varying NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    deleted_at timestamp without time zone,
-    options jsonb DEFAULT '{}'::jsonb
-);
 
 
 --
@@ -22420,20 +22570,6 @@ CREATE SEQUENCE public.project_pass_fails_projects_id_seq
 --
 
 ALTER SEQUENCE public.project_pass_fails_projects_id_seq OWNED BY public.project_pass_fails_projects.id;
-
-
---
--- Name: project_project_groups; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.project_project_groups (
-    id integer NOT NULL,
-    project_group_id integer,
-    project_id integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    deleted_at timestamp without time zone
-);
 
 
 --
@@ -23064,18 +23200,8 @@ CREATE TABLE public.recurring_hmis_exports (
     every_n_days integer,
     reporting_range character varying,
     reporting_range_days integer,
-    start_date date,
-    end_date date,
-    hash_status integer,
-    period_type integer,
-    directive integer,
-    include_deleted boolean,
     user_id integer,
-    faked_pii boolean,
     project_ids character varying,
-    project_group_ids character varying,
-    organization_ids character varying,
-    data_source_ids character varying,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     s3_region character varying,
@@ -23086,11 +23212,10 @@ CREATE TABLE public.recurring_hmis_exports (
     encrypted_s3_secret character varying,
     encrypted_s3_secret_iv character varying,
     deleted_at timestamp without time zone,
-    version character varying,
     encrypted_zip_password character varying,
     encrypted_zip_password_iv character varying,
     encryption_type character varying,
-    confidential boolean DEFAULT false NOT NULL
+    options jsonb
 );
 
 
@@ -23862,9 +23987,17 @@ ALTER SEQUENCE public.service_history_enrollments_id_seq OWNED BY public.service
 --
 
 CREATE TABLE public.service_history_services_2000 (
-    CONSTRAINT service_history_services_2000_date_check CHECK (((date >= '2000-01-01'::date) AND (date <= '2000-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -23872,9 +24005,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2001 (
-    CONSTRAINT service_history_services_2001_date_check CHECK (((date >= '2001-01-01'::date) AND (date <= '2001-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -23882,9 +24023,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2002 (
-    CONSTRAINT service_history_services_2002_date_check CHECK (((date >= '2002-01-01'::date) AND (date <= '2002-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -23892,9 +24041,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2003 (
-    CONSTRAINT service_history_services_2003_date_check CHECK (((date >= '2003-01-01'::date) AND (date <= '2003-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -23902,9 +24059,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2004 (
-    CONSTRAINT service_history_services_2004_date_check CHECK (((date >= '2004-01-01'::date) AND (date <= '2004-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -23912,9 +24077,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2005 (
-    CONSTRAINT service_history_services_2005_date_check CHECK (((date >= '2005-01-01'::date) AND (date <= '2005-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -23922,9 +24095,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2006 (
-    CONSTRAINT service_history_services_2006_date_check CHECK (((date >= '2006-01-01'::date) AND (date <= '2006-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -23932,9 +24113,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2007 (
-    CONSTRAINT service_history_services_2007_date_check CHECK (((date >= '2007-01-01'::date) AND (date <= '2007-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -23942,9 +24131,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2008 (
-    CONSTRAINT service_history_services_2008_date_check CHECK (((date >= '2008-01-01'::date) AND (date <= '2008-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -23952,9 +24149,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2009 (
-    CONSTRAINT service_history_services_2009_date_check CHECK (((date >= '2009-01-01'::date) AND (date <= '2009-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -23962,9 +24167,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2010 (
-    CONSTRAINT service_history_services_2010_date_check CHECK (((date >= '2010-01-01'::date) AND (date <= '2010-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -23972,9 +24185,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2011 (
-    CONSTRAINT service_history_services_2011_date_check CHECK (((date >= '2011-01-01'::date) AND (date <= '2011-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -23982,9 +24203,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2012 (
-    CONSTRAINT service_history_services_2012_date_check CHECK (((date >= '2012-01-01'::date) AND (date <= '2012-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -23992,9 +24221,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2013 (
-    CONSTRAINT service_history_services_2013_date_check CHECK (((date >= '2013-01-01'::date) AND (date <= '2013-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24002,9 +24239,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2014 (
-    CONSTRAINT service_history_services_2014_date_check CHECK (((date >= '2014-01-01'::date) AND (date <= '2014-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24012,9 +24257,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2015 (
-    CONSTRAINT service_history_services_2015_date_check CHECK (((date >= '2015-01-01'::date) AND (date <= '2015-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24022,9 +24275,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2016 (
-    CONSTRAINT service_history_services_2016_date_check CHECK (((date >= '2016-01-01'::date) AND (date <= '2016-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24032,9 +24293,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2017 (
-    CONSTRAINT service_history_services_2017_date_check CHECK (((date >= '2017-01-01'::date) AND (date <= '2017-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24042,9 +24311,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2018 (
-    CONSTRAINT service_history_services_2018_date_check CHECK (((date >= '2018-01-01'::date) AND (date <= '2018-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24052,28 +24329,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2019 (
-    CONSTRAINT service_history_services_2019_date_check CHECK (((date >= '2019-01-01'::date) AND (date <= '2019-12-31'::date)))
-)
-INHERITS (public.service_history_services);
-
-
---
--- Name: service_history_services_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.service_history_services_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: service_history_services_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.service_history_services_id_seq OWNED BY public.service_history_services.id;
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24081,19 +24347,17 @@ ALTER SEQUENCE public.service_history_services_id_seq OWNED BY public.service_hi
 --
 
 CREATE TABLE public.service_history_services_2020 (
-    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass),
-    service_history_enrollment_id integer,
-    record_type character varying(50),
-    date date,
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
     age smallint,
     service_type smallint,
     client_id integer,
     project_type smallint,
     homeless boolean,
-    literally_homeless boolean,
-    CONSTRAINT service_history_services_2020_date_check CHECK (((date >= '2020-01-01'::date) AND (date <= '2020-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    literally_homeless boolean
+);
 
 
 --
@@ -24101,9 +24365,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2021 (
-    CONSTRAINT service_history_services_2021_date_check CHECK (((date >= '2021-01-01'::date) AND (date <= '2021-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24111,9 +24383,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2022 (
-    CONSTRAINT service_history_services_2022_date_check CHECK (((date >= '2022-01-01'::date) AND (date <= '2022-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24121,9 +24401,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2023 (
-    CONSTRAINT service_history_services_2023_date_check CHECK (((date >= '2023-01-01'::date) AND (date <= '2023-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24131,9 +24419,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2024 (
-    CONSTRAINT service_history_services_2024_date_check CHECK (((date >= '2024-01-01'::date) AND (date <= '2024-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24141,9 +24437,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2025 (
-    CONSTRAINT service_history_services_2025_date_check CHECK (((date >= '2025-01-01'::date) AND (date <= '2025-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24151,9 +24455,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2026 (
-    CONSTRAINT service_history_services_2026_date_check CHECK (((date >= '2026-01-01'::date) AND (date <= '2026-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24161,9 +24473,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2027 (
-    CONSTRAINT service_history_services_2027_date_check CHECK (((date >= '2027-01-01'::date) AND (date <= '2027-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24171,9 +24491,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2028 (
-    CONSTRAINT service_history_services_2028_date_check CHECK (((date >= '2028-01-01'::date) AND (date <= '2028-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24181,9 +24509,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2029 (
-    CONSTRAINT service_history_services_2029_date_check CHECK (((date >= '2029-01-01'::date) AND (date <= '2029-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24191,9 +24527,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2030 (
-    CONSTRAINT service_history_services_2030_date_check CHECK (((date >= '2030-01-01'::date) AND (date <= '2030-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24201,9 +24545,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2031 (
-    CONSTRAINT service_history_services_2031_date_check CHECK (((date >= '2031-01-01'::date) AND (date <= '2031-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24211,9 +24563,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2032 (
-    CONSTRAINT service_history_services_2032_date_check CHECK (((date >= '2032-01-01'::date) AND (date <= '2032-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24221,9 +24581,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2033 (
-    CONSTRAINT service_history_services_2033_date_check CHECK (((date >= '2033-01-01'::date) AND (date <= '2033-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24231,9 +24599,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2034 (
-    CONSTRAINT service_history_services_2034_date_check CHECK (((date >= '2034-01-01'::date) AND (date <= '2034-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24241,9 +24617,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2035 (
-    CONSTRAINT service_history_services_2035_date_check CHECK (((date >= '2035-01-01'::date) AND (date <= '2035-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24251,9 +24635,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2036 (
-    CONSTRAINT service_history_services_2036_date_check CHECK (((date >= '2036-01-01'::date) AND (date <= '2036-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24261,9 +24653,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2037 (
-    CONSTRAINT service_history_services_2037_date_check CHECK (((date >= '2037-01-01'::date) AND (date <= '2037-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24271,9 +24671,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2038 (
-    CONSTRAINT service_history_services_2038_date_check CHECK (((date >= '2038-01-01'::date) AND (date <= '2038-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24281,9 +24689,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2039 (
-    CONSTRAINT service_history_services_2039_date_check CHECK (((date >= '2039-01-01'::date) AND (date <= '2039-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24291,9 +24707,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2040 (
-    CONSTRAINT service_history_services_2040_date_check CHECK (((date >= '2040-01-01'::date) AND (date <= '2040-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24301,9 +24725,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2041 (
-    CONSTRAINT service_history_services_2041_date_check CHECK (((date >= '2041-01-01'::date) AND (date <= '2041-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24311,9 +24743,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2042 (
-    CONSTRAINT service_history_services_2042_date_check CHECK (((date >= '2042-01-01'::date) AND (date <= '2042-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24321,9 +24761,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2043 (
-    CONSTRAINT service_history_services_2043_date_check CHECK (((date >= '2043-01-01'::date) AND (date <= '2043-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24331,9 +24779,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2044 (
-    CONSTRAINT service_history_services_2044_date_check CHECK (((date >= '2044-01-01'::date) AND (date <= '2044-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24341,9 +24797,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2045 (
-    CONSTRAINT service_history_services_2045_date_check CHECK (((date >= '2045-01-01'::date) AND (date <= '2045-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24351,9 +24815,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2046 (
-    CONSTRAINT service_history_services_2046_date_check CHECK (((date >= '2046-01-01'::date) AND (date <= '2046-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24361,9 +24833,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2047 (
-    CONSTRAINT service_history_services_2047_date_check CHECK (((date >= '2047-01-01'::date) AND (date <= '2047-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24371,9 +24851,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2048 (
-    CONSTRAINT service_history_services_2048_date_check CHECK (((date >= '2048-01-01'::date) AND (date <= '2048-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24381,9 +24869,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2049 (
-    CONSTRAINT service_history_services_2049_date_check CHECK (((date >= '2049-01-01'::date) AND (date <= '2049-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24391,9 +24887,17 @@ INHERITS (public.service_history_services);
 --
 
 CREATE TABLE public.service_history_services_2050 (
-    CONSTRAINT service_history_services_2050_date_check CHECK (((date >= '2050-01-01'::date) AND (date <= '2050-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -24420,9 +24924,17 @@ CREATE MATERIALIZED VIEW public.service_history_services_materialized AS
 --
 
 CREATE TABLE public.service_history_services_remainder (
-    CONSTRAINT service_history_services_remainder_date_check CHECK (((date < '2000-01-01'::date) OR (date > '2050-12-31'::date)))
-)
-INHERITS (public.service_history_services);
+    id bigint DEFAULT nextval('public.service_history_services_id_seq'::regclass) NOT NULL,
+    service_history_enrollment_id integer NOT NULL,
+    record_type character varying(50) NOT NULL,
+    date date NOT NULL,
+    age smallint,
+    service_type smallint,
+    client_id integer,
+    project_type smallint,
+    homeless boolean,
+    literally_homeless boolean
+);
 
 
 --
@@ -26350,6 +26862,370 @@ CREATE SEQUENCE public.youth_referrals_id_seq
 --
 
 ALTER SEQUENCE public.youth_referrals_id_seq OWNED BY public.youth_referrals.id;
+
+
+--
+-- Name: service_history_services_2000; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2000 FOR VALUES FROM ('2000-01-01') TO ('2001-01-01');
+
+
+--
+-- Name: service_history_services_2001; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2001 FOR VALUES FROM ('2001-01-01') TO ('2002-01-01');
+
+
+--
+-- Name: service_history_services_2002; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2002 FOR VALUES FROM ('2002-01-01') TO ('2003-01-01');
+
+
+--
+-- Name: service_history_services_2003; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2003 FOR VALUES FROM ('2003-01-01') TO ('2004-01-01');
+
+
+--
+-- Name: service_history_services_2004; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2004 FOR VALUES FROM ('2004-01-01') TO ('2005-01-01');
+
+
+--
+-- Name: service_history_services_2005; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2005 FOR VALUES FROM ('2005-01-01') TO ('2006-01-01');
+
+
+--
+-- Name: service_history_services_2006; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2006 FOR VALUES FROM ('2006-01-01') TO ('2007-01-01');
+
+
+--
+-- Name: service_history_services_2007; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2007 FOR VALUES FROM ('2007-01-01') TO ('2008-01-01');
+
+
+--
+-- Name: service_history_services_2008; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2008 FOR VALUES FROM ('2008-01-01') TO ('2009-01-01');
+
+
+--
+-- Name: service_history_services_2009; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2009 FOR VALUES FROM ('2009-01-01') TO ('2010-01-01');
+
+
+--
+-- Name: service_history_services_2010; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2010 FOR VALUES FROM ('2010-01-01') TO ('2011-01-01');
+
+
+--
+-- Name: service_history_services_2011; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2011 FOR VALUES FROM ('2011-01-01') TO ('2012-01-01');
+
+
+--
+-- Name: service_history_services_2012; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2012 FOR VALUES FROM ('2012-01-01') TO ('2013-01-01');
+
+
+--
+-- Name: service_history_services_2013; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2013 FOR VALUES FROM ('2013-01-01') TO ('2014-01-01');
+
+
+--
+-- Name: service_history_services_2014; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2014 FOR VALUES FROM ('2014-01-01') TO ('2015-01-01');
+
+
+--
+-- Name: service_history_services_2015; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2015 FOR VALUES FROM ('2015-01-01') TO ('2016-01-01');
+
+
+--
+-- Name: service_history_services_2016; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2016 FOR VALUES FROM ('2016-01-01') TO ('2017-01-01');
+
+
+--
+-- Name: service_history_services_2017; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2017 FOR VALUES FROM ('2017-01-01') TO ('2018-01-01');
+
+
+--
+-- Name: service_history_services_2018; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2018 FOR VALUES FROM ('2018-01-01') TO ('2019-01-01');
+
+
+--
+-- Name: service_history_services_2019; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2019 FOR VALUES FROM ('2019-01-01') TO ('2020-01-01');
+
+
+--
+-- Name: service_history_services_2020; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2020 FOR VALUES FROM ('2020-01-01') TO ('2021-01-01');
+
+
+--
+-- Name: service_history_services_2021; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2021 FOR VALUES FROM ('2021-01-01') TO ('2022-01-01');
+
+
+--
+-- Name: service_history_services_2022; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2022 FOR VALUES FROM ('2022-01-01') TO ('2023-01-01');
+
+
+--
+-- Name: service_history_services_2023; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2023 FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
+
+
+--
+-- Name: service_history_services_2024; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2024 FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
+
+
+--
+-- Name: service_history_services_2025; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2025 FOR VALUES FROM ('2025-01-01') TO ('2026-01-01');
+
+
+--
+-- Name: service_history_services_2026; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2026 FOR VALUES FROM ('2026-01-01') TO ('2027-01-01');
+
+
+--
+-- Name: service_history_services_2027; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2027 FOR VALUES FROM ('2027-01-01') TO ('2028-01-01');
+
+
+--
+-- Name: service_history_services_2028; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2028 FOR VALUES FROM ('2028-01-01') TO ('2029-01-01');
+
+
+--
+-- Name: service_history_services_2029; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2029 FOR VALUES FROM ('2029-01-01') TO ('2030-01-01');
+
+
+--
+-- Name: service_history_services_2030; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2030 FOR VALUES FROM ('2030-01-01') TO ('2031-01-01');
+
+
+--
+-- Name: service_history_services_2031; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2031 FOR VALUES FROM ('2031-01-01') TO ('2032-01-01');
+
+
+--
+-- Name: service_history_services_2032; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2032 FOR VALUES FROM ('2032-01-01') TO ('2033-01-01');
+
+
+--
+-- Name: service_history_services_2033; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2033 FOR VALUES FROM ('2033-01-01') TO ('2034-01-01');
+
+
+--
+-- Name: service_history_services_2034; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2034 FOR VALUES FROM ('2034-01-01') TO ('2035-01-01');
+
+
+--
+-- Name: service_history_services_2035; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2035 FOR VALUES FROM ('2035-01-01') TO ('2036-01-01');
+
+
+--
+-- Name: service_history_services_2036; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2036 FOR VALUES FROM ('2036-01-01') TO ('2037-01-01');
+
+
+--
+-- Name: service_history_services_2037; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2037 FOR VALUES FROM ('2037-01-01') TO ('2038-01-01');
+
+
+--
+-- Name: service_history_services_2038; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2038 FOR VALUES FROM ('2038-01-01') TO ('2039-01-01');
+
+
+--
+-- Name: service_history_services_2039; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2039 FOR VALUES FROM ('2039-01-01') TO ('2040-01-01');
+
+
+--
+-- Name: service_history_services_2040; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2040 FOR VALUES FROM ('2040-01-01') TO ('2041-01-01');
+
+
+--
+-- Name: service_history_services_2041; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2041 FOR VALUES FROM ('2041-01-01') TO ('2042-01-01');
+
+
+--
+-- Name: service_history_services_2042; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2042 FOR VALUES FROM ('2042-01-01') TO ('2043-01-01');
+
+
+--
+-- Name: service_history_services_2043; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2043 FOR VALUES FROM ('2043-01-01') TO ('2044-01-01');
+
+
+--
+-- Name: service_history_services_2044; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2044 FOR VALUES FROM ('2044-01-01') TO ('2045-01-01');
+
+
+--
+-- Name: service_history_services_2045; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2045 FOR VALUES FROM ('2045-01-01') TO ('2046-01-01');
+
+
+--
+-- Name: service_history_services_2046; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2046 FOR VALUES FROM ('2046-01-01') TO ('2047-01-01');
+
+
+--
+-- Name: service_history_services_2047; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2047 FOR VALUES FROM ('2047-01-01') TO ('2048-01-01');
+
+
+--
+-- Name: service_history_services_2048; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2048 FOR VALUES FROM ('2048-01-01') TO ('2049-01-01');
+
+
+--
+-- Name: service_history_services_2049; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2049 FOR VALUES FROM ('2049-01-01') TO ('2050-01-01');
+
+
+--
+-- Name: service_history_services_2050; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_2050 FOR VALUES FROM ('2050-01-01') TO ('2051-01-01');
+
+
+--
+-- Name: service_history_services_remainder; Type: TABLE ATTACH; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services ATTACH PARTITION public.service_history_services_remainder DEFAULT;
 
 
 --
@@ -28502,6 +29378,20 @@ ALTER TABLE ONLY public.hmis_dqt_inventories ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: hmis_external_form_publications id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_form_publications ALTER COLUMN id SET DEFAULT nextval('public.hmis_external_form_publications_id_seq'::regclass);
+
+
+--
+-- Name: hmis_external_form_submissions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_form_submissions ALTER COLUMN id SET DEFAULT nextval('public.hmis_external_form_submissions_id_seq'::regclass);
+
+
+--
 -- Name: hmis_external_referral_household_members id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -29223,367 +30113,10 @@ ALTER TABLE ONLY public.service_history_enrollments ALTER COLUMN id SET DEFAULT 
 
 
 --
--- Name: service_history_services id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: service_history_services_was_for_inheritance id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.service_history_services ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2000 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2000 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2001 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2001 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2002 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2002 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2003 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2003 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2004 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2004 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2005 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2005 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2006 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2006 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2007 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2007 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2008 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2008 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2009 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2009 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2010 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2010 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2011 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2011 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2012 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2012 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2013 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2013 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2014 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2014 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2015 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2015 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2016 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2016 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2017 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2017 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2018 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2018 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2019 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2019 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2021 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2021 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2022 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2022 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2023 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2023 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2024 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2024 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2025 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2025 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2026 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2026 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2027 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2027 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2028 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2028 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2029 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2029 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2030 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2030 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2031 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2031 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2032 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2032 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2033 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2033 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2034 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2034 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2035 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2035 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2036 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2036 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2037 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2037 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2038 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2038 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2039 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2039 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2040 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2040 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2041 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2041 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2042 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2042 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2043 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2043 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2044 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2044 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2045 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2045 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2046 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2046 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2047 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2047 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2048 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2048 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2049 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2049 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_2050 id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_2050 ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
-
-
---
--- Name: service_history_services_remainder id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.service_history_services_remainder ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
+ALTER TABLE ONLY public.service_history_services_was_for_inheritance ALTER COLUMN id SET DEFAULT nextval('public.service_history_services_id_seq'::regclass);
 
 
 --
@@ -32388,6 +32921,22 @@ ALTER TABLE ONLY public.hmis_dqt_inventories
 
 
 --
+-- Name: hmis_external_form_publications hmis_external_form_publications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_form_publications
+    ADD CONSTRAINT hmis_external_form_publications_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hmis_external_form_submissions hmis_external_form_submissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_external_form_submissions
+    ADD CONSTRAINT hmis_external_form_submissions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: hmis_external_referral_household_members hmis_external_referral_household_members_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -33220,11 +33769,435 @@ ALTER TABLE ONLY public.service_history_enrollments
 
 
 --
--- Name: service_history_services service_history_services_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: service_history_services service_history_services_partitioned_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.service_history_services
+    ADD CONSTRAINT service_history_services_partitioned_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2000 service_history_services_2000_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2000
+    ADD CONSTRAINT service_history_services_2000_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2001 service_history_services_2001_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2001
+    ADD CONSTRAINT service_history_services_2001_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2002 service_history_services_2002_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2002
+    ADD CONSTRAINT service_history_services_2002_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2003 service_history_services_2003_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2003
+    ADD CONSTRAINT service_history_services_2003_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2004 service_history_services_2004_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2004
+    ADD CONSTRAINT service_history_services_2004_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2005 service_history_services_2005_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2005
+    ADD CONSTRAINT service_history_services_2005_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2006 service_history_services_2006_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2006
+    ADD CONSTRAINT service_history_services_2006_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2007 service_history_services_2007_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2007
+    ADD CONSTRAINT service_history_services_2007_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2008 service_history_services_2008_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2008
+    ADD CONSTRAINT service_history_services_2008_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2009 service_history_services_2009_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2009
+    ADD CONSTRAINT service_history_services_2009_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2010 service_history_services_2010_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2010
+    ADD CONSTRAINT service_history_services_2010_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2011 service_history_services_2011_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2011
+    ADD CONSTRAINT service_history_services_2011_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2012 service_history_services_2012_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2012
+    ADD CONSTRAINT service_history_services_2012_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2013 service_history_services_2013_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2013
+    ADD CONSTRAINT service_history_services_2013_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2014 service_history_services_2014_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2014
+    ADD CONSTRAINT service_history_services_2014_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2015 service_history_services_2015_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2015
+    ADD CONSTRAINT service_history_services_2015_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2016 service_history_services_2016_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2016
+    ADD CONSTRAINT service_history_services_2016_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2017 service_history_services_2017_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2017
+    ADD CONSTRAINT service_history_services_2017_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2018 service_history_services_2018_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2018
+    ADD CONSTRAINT service_history_services_2018_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2019 service_history_services_2019_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2019
+    ADD CONSTRAINT service_history_services_2019_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2020 service_history_services_2020_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2020
+    ADD CONSTRAINT service_history_services_2020_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2021 service_history_services_2021_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2021
+    ADD CONSTRAINT service_history_services_2021_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2022 service_history_services_2022_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2022
+    ADD CONSTRAINT service_history_services_2022_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2023 service_history_services_2023_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2023
+    ADD CONSTRAINT service_history_services_2023_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2024 service_history_services_2024_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2024
+    ADD CONSTRAINT service_history_services_2024_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2025 service_history_services_2025_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2025
+    ADD CONSTRAINT service_history_services_2025_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2026 service_history_services_2026_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2026
+    ADD CONSTRAINT service_history_services_2026_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2027 service_history_services_2027_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2027
+    ADD CONSTRAINT service_history_services_2027_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2028 service_history_services_2028_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2028
+    ADD CONSTRAINT service_history_services_2028_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2029 service_history_services_2029_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2029
+    ADD CONSTRAINT service_history_services_2029_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2030 service_history_services_2030_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2030
+    ADD CONSTRAINT service_history_services_2030_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2031 service_history_services_2031_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2031
+    ADD CONSTRAINT service_history_services_2031_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2032 service_history_services_2032_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2032
+    ADD CONSTRAINT service_history_services_2032_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2033 service_history_services_2033_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2033
+    ADD CONSTRAINT service_history_services_2033_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2034 service_history_services_2034_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2034
+    ADD CONSTRAINT service_history_services_2034_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2035 service_history_services_2035_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2035
+    ADD CONSTRAINT service_history_services_2035_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2036 service_history_services_2036_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2036
+    ADD CONSTRAINT service_history_services_2036_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2037 service_history_services_2037_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2037
+    ADD CONSTRAINT service_history_services_2037_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2038 service_history_services_2038_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2038
+    ADD CONSTRAINT service_history_services_2038_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2039 service_history_services_2039_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2039
+    ADD CONSTRAINT service_history_services_2039_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2040 service_history_services_2040_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2040
+    ADD CONSTRAINT service_history_services_2040_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2041 service_history_services_2041_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2041
+    ADD CONSTRAINT service_history_services_2041_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2042 service_history_services_2042_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2042
+    ADD CONSTRAINT service_history_services_2042_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2043 service_history_services_2043_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2043
+    ADD CONSTRAINT service_history_services_2043_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2044 service_history_services_2044_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2044
+    ADD CONSTRAINT service_history_services_2044_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2045 service_history_services_2045_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2045
+    ADD CONSTRAINT service_history_services_2045_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2046 service_history_services_2046_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2046
+    ADD CONSTRAINT service_history_services_2046_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2047 service_history_services_2047_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2047
+    ADD CONSTRAINT service_history_services_2047_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2048 service_history_services_2048_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2048
+    ADD CONSTRAINT service_history_services_2048_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2049 service_history_services_2049_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2049
+    ADD CONSTRAINT service_history_services_2049_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_2050 service_history_services_2050_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_2050
+    ADD CONSTRAINT service_history_services_2050_pkey PRIMARY KEY (id, date);
+
+
+--
+-- Name: service_history_services_was_for_inheritance service_history_services_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_was_for_inheritance
     ADD CONSTRAINT service_history_services_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: service_history_services_remainder service_history_services_remainder_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.service_history_services_remainder
+    ADD CONSTRAINT service_history_services_remainder_pkey PRIMARY KEY (id, date);
 
 
 --
@@ -49228,6 +50201,13 @@ CREATE UNIQUE INDEX "idxCustomCaseNoteOnID" ON public."CustomCaseNote" USING btr
 
 
 --
+-- Name: idx_CustomDataElementDefinitions_1; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "idx_CustomDataElementDefinitions_1" ON public."CustomDataElementDefinitions" USING btree (form_definition_identifier);
+
+
+--
 -- Name: idx_any_stage; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -49477,6 +50457,13 @@ CREATE INDEX idx_hmis_external_referral_postings_user_2 ON public.hmis_external_
 --
 
 CREATE UNIQUE INDEX idx_inbound_api_configurations_uniq ON public.inbound_api_configurations USING btree (internal_system_id, external_system_name, version);
+
+
+--
+-- Name: idx_services_hud_types; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_services_hud_types ON public."Services" USING btree ("RecordType", "TypeProvided");
 
 
 --
@@ -50023,6 +51010,13 @@ CREATE INDEX "index_Enrollment_on_data_source_id_and_PersonalID" ON public."Enro
 --
 
 CREATE INDEX "index_Enrollment_on_pending_date_deleted" ON public."Enrollment" USING btree (pending_date_deleted);
+
+
+--
+-- Name: index_Enrollment_on_project_pk; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "index_Enrollment_on_project_pk" ON public."Enrollment" USING btree (project_pk);
 
 
 --
@@ -52210,6 +53204,13 @@ CREATE INDEX index_hmis_2022_youth_education_statuses_on_importer_log_id ON publ
 
 
 --
+-- Name: index_hmis_2024_exits_on_importer_log_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_2024_exits_on_importer_log_id ON public.hmis_2024_exits USING btree (importer_log_id);
+
+
+--
 -- Name: index_hmis_active_ranges_on_entity; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -52910,6 +53911,20 @@ CREATE INDEX index_hmis_dqt_inventories_on_report_id ON public.hmis_dqt_inventor
 
 
 --
+-- Name: index_hmis_external_form_publications_on_definition_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_form_publications_on_definition_id ON public.hmis_external_form_publications USING btree (definition_id);
+
+
+--
+-- Name: index_hmis_external_form_submissions_on_definition_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_external_form_submissions_on_definition_id ON public.hmis_external_form_submissions USING btree (definition_id);
+
+
+--
 -- Name: index_hmis_external_referral_postings_on_project_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -52970,6 +53985,13 @@ CREATE INDEX index_hmis_external_unit_availability_syncs_on_unit_type_id ON publ
 --
 
 CREATE INDEX index_hmis_external_unit_availability_syncs_on_user_id ON public.hmis_external_unit_availability_syncs USING btree (user_id);
+
+
+--
+-- Name: index_hmis_form_definitions_on_external_form_object_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hmis_form_definitions_on_external_form_object_key ON public.hmis_form_definitions USING btree (external_form_object_key);
 
 
 --
@@ -55294,6 +56316,13 @@ CREATE INDEX index_shs_1900_date_brin ON public.service_history_services_remaind
 --
 
 CREATE INDEX index_shs_1900_date_client_id ON public.service_history_services_remainder USING btree (date, client_id);
+
+
+--
+-- Name: service_history_services_part_date_service_history_enrollme_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX service_history_services_part_date_service_history_enrollme_idx ON ONLY public.service_history_services USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -58653,7 +59682,7 @@ CREATE INDEX shape_counties_namelsad_lower ON public.shape_counties USING btree 
 -- Name: shs_unique_date_she_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX shs_unique_date_she_id ON public.service_history_services USING btree (date, service_history_enrollment_id);
+CREATE UNIQUE INDEX shs_unique_date_she_id ON public.service_history_services_was_for_inheritance USING btree (date, service_history_enrollment_id);
 
 
 --
@@ -58800,7 +59829,21 @@ CREATE UNIQUE INDEX uidx_hmis_external_unit_availability_syncs ON public.hmis_ex
 -- Name: uidx_hmis_form_definitions_identifier; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX uidx_hmis_form_definitions_identifier ON public.hmis_form_definitions USING btree (identifier, version);
+CREATE UNIQUE INDEX uidx_hmis_form_definitions_identifier ON public.hmis_form_definitions USING btree (identifier, version) WHERE (deleted_at IS NULL);
+
+
+--
+-- Name: uidx_hmis_form_definitions_one_draft_per_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_form_definitions_one_draft_per_identifier ON public.hmis_form_definitions USING btree (identifier) WHERE (((status)::text = 'draft'::text) AND (deleted_at IS NULL));
+
+
+--
+-- Name: uidx_hmis_form_definitions_one_published_per_identifier; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uidx_hmis_form_definitions_one_published_per_identifier ON public.hmis_form_definitions USING btree (identifier) WHERE (((status)::text = 'published'::text) AND (deleted_at IS NULL));
 
 
 --
@@ -58885,6 +59928,734 @@ CREATE UNIQUE INDEX youth_ed_ev_id_ds_id ON public."YouthEducationStatus" USING 
 --
 
 CREATE INDEX youth_eds_id_e_id_p_id_ds_id ON public."YouthEducationStatus" USING btree ("YouthEducationStatusID", "EnrollmentID", "PersonalID", data_source_id);
+
+
+--
+-- Name: index_shs_1900_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_1900_date_en_id;
+
+
+--
+-- Name: index_shs_2000_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2000_date_en_id;
+
+
+--
+-- Name: index_shs_2001_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2001_date_en_id;
+
+
+--
+-- Name: index_shs_2002_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2002_date_en_id;
+
+
+--
+-- Name: index_shs_2003_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2003_date_en_id;
+
+
+--
+-- Name: index_shs_2004_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2004_date_en_id;
+
+
+--
+-- Name: index_shs_2005_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2005_date_en_id;
+
+
+--
+-- Name: index_shs_2006_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2006_date_en_id;
+
+
+--
+-- Name: index_shs_2007_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2007_date_en_id;
+
+
+--
+-- Name: index_shs_2008_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2008_date_en_id;
+
+
+--
+-- Name: index_shs_2009_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2009_date_en_id;
+
+
+--
+-- Name: index_shs_2010_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2010_date_en_id;
+
+
+--
+-- Name: index_shs_2011_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2011_date_en_id;
+
+
+--
+-- Name: index_shs_2012_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2012_date_en_id;
+
+
+--
+-- Name: index_shs_2013_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2013_date_en_id;
+
+
+--
+-- Name: index_shs_2014_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2014_date_en_id;
+
+
+--
+-- Name: index_shs_2015_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2015_date_en_id;
+
+
+--
+-- Name: index_shs_2016_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2016_date_en_id;
+
+
+--
+-- Name: index_shs_2017_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2017_date_en_id;
+
+
+--
+-- Name: index_shs_2018_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2018_date_en_id;
+
+
+--
+-- Name: index_shs_2019_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2019_date_en_id;
+
+
+--
+-- Name: index_shs_2020_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2020_date_en_id;
+
+
+--
+-- Name: index_shs_2021_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2021_date_en_id;
+
+
+--
+-- Name: index_shs_2022_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2022_date_en_id;
+
+
+--
+-- Name: index_shs_2023_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2023_date_en_id;
+
+
+--
+-- Name: index_shs_2024_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2024_date_en_id;
+
+
+--
+-- Name: index_shs_2025_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2025_date_en_id;
+
+
+--
+-- Name: index_shs_2026_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2026_date_en_id;
+
+
+--
+-- Name: index_shs_2027_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2027_date_en_id;
+
+
+--
+-- Name: index_shs_2028_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2028_date_en_id;
+
+
+--
+-- Name: index_shs_2029_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2029_date_en_id;
+
+
+--
+-- Name: index_shs_2030_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2030_date_en_id;
+
+
+--
+-- Name: index_shs_2031_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2031_date_en_id;
+
+
+--
+-- Name: index_shs_2032_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2032_date_en_id;
+
+
+--
+-- Name: index_shs_2033_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2033_date_en_id;
+
+
+--
+-- Name: index_shs_2034_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2034_date_en_id;
+
+
+--
+-- Name: index_shs_2035_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2035_date_en_id;
+
+
+--
+-- Name: index_shs_2036_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2036_date_en_id;
+
+
+--
+-- Name: index_shs_2037_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2037_date_en_id;
+
+
+--
+-- Name: index_shs_2038_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2038_date_en_id;
+
+
+--
+-- Name: index_shs_2039_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2039_date_en_id;
+
+
+--
+-- Name: index_shs_2040_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2040_date_en_id;
+
+
+--
+-- Name: index_shs_2041_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2041_date_en_id;
+
+
+--
+-- Name: index_shs_2042_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2042_date_en_id;
+
+
+--
+-- Name: index_shs_2043_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2043_date_en_id;
+
+
+--
+-- Name: index_shs_2044_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2044_date_en_id;
+
+
+--
+-- Name: index_shs_2045_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2045_date_en_id;
+
+
+--
+-- Name: index_shs_2046_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2046_date_en_id;
+
+
+--
+-- Name: index_shs_2047_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2047_date_en_id;
+
+
+--
+-- Name: index_shs_2048_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2048_date_en_id;
+
+
+--
+-- Name: index_shs_2049_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2049_date_en_id;
+
+
+--
+-- Name: index_shs_2050_date_en_id; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_part_date_service_history_enrollme_idx ATTACH PARTITION public.index_shs_2050_date_en_id;
+
+
+--
+-- Name: service_history_services_2000_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2000_pkey;
+
+
+--
+-- Name: service_history_services_2001_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2001_pkey;
+
+
+--
+-- Name: service_history_services_2002_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2002_pkey;
+
+
+--
+-- Name: service_history_services_2003_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2003_pkey;
+
+
+--
+-- Name: service_history_services_2004_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2004_pkey;
+
+
+--
+-- Name: service_history_services_2005_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2005_pkey;
+
+
+--
+-- Name: service_history_services_2006_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2006_pkey;
+
+
+--
+-- Name: service_history_services_2007_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2007_pkey;
+
+
+--
+-- Name: service_history_services_2008_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2008_pkey;
+
+
+--
+-- Name: service_history_services_2009_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2009_pkey;
+
+
+--
+-- Name: service_history_services_2010_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2010_pkey;
+
+
+--
+-- Name: service_history_services_2011_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2011_pkey;
+
+
+--
+-- Name: service_history_services_2012_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2012_pkey;
+
+
+--
+-- Name: service_history_services_2013_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2013_pkey;
+
+
+--
+-- Name: service_history_services_2014_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2014_pkey;
+
+
+--
+-- Name: service_history_services_2015_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2015_pkey;
+
+
+--
+-- Name: service_history_services_2016_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2016_pkey;
+
+
+--
+-- Name: service_history_services_2017_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2017_pkey;
+
+
+--
+-- Name: service_history_services_2018_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2018_pkey;
+
+
+--
+-- Name: service_history_services_2019_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2019_pkey;
+
+
+--
+-- Name: service_history_services_2020_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2020_pkey;
+
+
+--
+-- Name: service_history_services_2021_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2021_pkey;
+
+
+--
+-- Name: service_history_services_2022_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2022_pkey;
+
+
+--
+-- Name: service_history_services_2023_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2023_pkey;
+
+
+--
+-- Name: service_history_services_2024_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2024_pkey;
+
+
+--
+-- Name: service_history_services_2025_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2025_pkey;
+
+
+--
+-- Name: service_history_services_2026_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2026_pkey;
+
+
+--
+-- Name: service_history_services_2027_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2027_pkey;
+
+
+--
+-- Name: service_history_services_2028_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2028_pkey;
+
+
+--
+-- Name: service_history_services_2029_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2029_pkey;
+
+
+--
+-- Name: service_history_services_2030_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2030_pkey;
+
+
+--
+-- Name: service_history_services_2031_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2031_pkey;
+
+
+--
+-- Name: service_history_services_2032_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2032_pkey;
+
+
+--
+-- Name: service_history_services_2033_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2033_pkey;
+
+
+--
+-- Name: service_history_services_2034_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2034_pkey;
+
+
+--
+-- Name: service_history_services_2035_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2035_pkey;
+
+
+--
+-- Name: service_history_services_2036_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2036_pkey;
+
+
+--
+-- Name: service_history_services_2037_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2037_pkey;
+
+
+--
+-- Name: service_history_services_2038_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2038_pkey;
+
+
+--
+-- Name: service_history_services_2039_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2039_pkey;
+
+
+--
+-- Name: service_history_services_2040_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2040_pkey;
+
+
+--
+-- Name: service_history_services_2041_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2041_pkey;
+
+
+--
+-- Name: service_history_services_2042_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2042_pkey;
+
+
+--
+-- Name: service_history_services_2043_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2043_pkey;
+
+
+--
+-- Name: service_history_services_2044_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2044_pkey;
+
+
+--
+-- Name: service_history_services_2045_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2045_pkey;
+
+
+--
+-- Name: service_history_services_2046_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2046_pkey;
+
+
+--
+-- Name: service_history_services_2047_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2047_pkey;
+
+
+--
+-- Name: service_history_services_2048_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2048_pkey;
+
+
+--
+-- Name: service_history_services_2049_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2049_pkey;
+
+
+--
+-- Name: service_history_services_2050_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_2050_pkey;
+
+
+--
+-- Name: service_history_services_remainder_pkey; Type: INDEX ATTACH; Schema: public; Owner: -
+--
+
+ALTER INDEX public.service_history_services_partitioned_pkey ATTACH PARTITION public.service_history_services_remainder_pkey;
 
 
 --
@@ -59991,10 +61762,26 @@ CREATE RULE attempt_hmis_households_up AS
 
 
 --
--- Name: service_history_services service_history_service_insert_trigger; Type: TRIGGER; Schema: public; Owner: -
+-- Name: project_collection_members attempt_project_collection_members_del; Type: RULE; Schema: public; Owner: -
 --
 
-CREATE TRIGGER service_history_service_insert_trigger BEFORE INSERT ON public.service_history_services FOR EACH ROW EXECUTE FUNCTION public.service_history_service_insert_trigger();
+CREATE RULE attempt_project_collection_members_del AS
+    ON DELETE TO public.project_collection_members DO INSTEAD NOTHING;
+
+
+--
+-- Name: project_collection_members attempt_project_collection_members_up; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE attempt_project_collection_members_up AS
+    ON UPDATE TO public.project_collection_members DO INSTEAD NOTHING;
+
+
+--
+-- Name: service_history_services_was_for_inheritance service_history_service_insert_trigger; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER service_history_service_insert_trigger BEFORE INSERT ON public.service_history_services_was_for_inheritance FOR EACH ROW EXECUTE FUNCTION public.service_history_service_insert_trigger();
 
 
 --
@@ -60710,10 +62497,10 @@ ALTER TABLE ONLY public.service_history_services_2050
 
 
 --
--- Name: service_history_services fk_rails_ee37ed289e; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: service_history_services_was_for_inheritance fk_rails_ee37ed289e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.service_history_services
+ALTER TABLE ONLY public.service_history_services_was_for_inheritance
     ADD CONSTRAINT fk_rails_ee37ed289e FOREIGN KEY (service_history_enrollment_id) REFERENCES public.service_history_enrollments(id) ON DELETE CASCADE;
 
 
@@ -60723,6 +62510,14 @@ ALTER TABLE ONLY public.service_history_services
 
 ALTER TABLE ONLY public."Funder"
     ADD CONSTRAINT fk_rails_ee7363191f FOREIGN KEY (data_source_id) REFERENCES public.data_sources(id);
+
+
+--
+-- Name: Enrollment fk_rails_enrollment_project_pk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."Enrollment"
+    ADD CONSTRAINT fk_rails_enrollment_project_pk FOREIGN KEY (project_pk) REFERENCES public."Project"(id);
 
 
 --
@@ -60921,9 +62716,37 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240220171320'),
 ('20240221195839'),
 ('20240222152739'),
+('20240223002628'),
 ('20240228192937'),
 ('20240229132014'),
 ('20240304181225'),
-('20240312153543');
+('20240312153543'),
+('20240319171241'),
+('20240320134450'),
+('20240320190835'),
+('20240322153133'),
+('20240322183410'),
+('20240409215111'),
+('20240411183410'),
+('20240413183410'),
+('20240414183410'),
+('20240416155829'),
+('20240419165229'),
+('20240419174433'),
+('20240426133811'),
+('20240430045112'),
+('20240503124656'),
+('20240503132627'),
+('20240503152843'),
+('20240503170130'),
+('20240506204908'),
+('20240510204158'),
+('20240510230733'),
+('20240519225942'),
+('20240522132648'),
+('20240526045112'),
+('20240529195902'),
+('20240529202928'),
+('20240529205526');
 
 

@@ -1,0 +1,25 @@
+- content_for :title, Translation.translate('User Directory')
+
+= render 'warehouse_reports/breadcrumbs', tab: 'operational'
+- unless controller.action_name.nil?
+  .o-page
+    .o-page__header
+      - @prompt = 'Search Users'
+
+      .o-page__controls
+        .o-page__search
+          = render 'search_form', tooltip: 'Search on a user\'s first name, last name or email address', aria: { label: 'User Search' }, data: {placement: 'bottom'}
+
+.row
+  .col-sm-8
+    %h1= content_for :title
+
+- if cas_available?
+  %ul.nav.nav-tabs{role: :tablist}
+    %li.nav-item{role: :presentation}
+      = link_to 'Warehouse Users', warehouse_user_directory_report_warehouse_reports_users_path(link_params.permit(:q, :utf8)), class: nav_link_classes('warehouse', @user_source)
+    %li.nav-item{role: :presentation}
+      = link_to 'CAS Users', cas_user_directory_report_warehouse_reports_users_path(link_params.permit(:q, :utf8)), class: nav_link_classes('cas', @user_source)
+
+#report-contents
+  = render 'listing'

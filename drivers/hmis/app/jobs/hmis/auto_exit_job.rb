@@ -44,15 +44,13 @@ module Hmis
 
           auto_exit_count += 1
           auto_exit_projects.add(project.id)
-          auto_exit(enrollment, most_recent_contact)
+          Hmis::Hud::Base.transaction do
+            auto_exit(enrollment, most_recent_contact)
+          end
         end
       end
 
       @notifier&.ping("Auto-exited #{auto_exit_count} Enrollments in #{auto_exit_projects.size} Projects")
-    rescue StandardError => e
-      puts e.message
-      @notifier.ping('Failure in auto-exit job', { exception: e })
-      Rails.logger.fatal e.message
     end
 
     private

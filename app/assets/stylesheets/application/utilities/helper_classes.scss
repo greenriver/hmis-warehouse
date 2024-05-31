@@ -83,3 +83,15 @@
     -webkit-transform: scale(1.0);
   }
 }
+
+.show-on-row-hover {
+  display: none
+}
+
+.show-on-row-hover-wrapper {
+  min-width: 12em;
+}
+
+tr:hover .show-on-row-hover {
+  display: block;
+}

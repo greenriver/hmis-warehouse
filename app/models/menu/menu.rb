@@ -20,7 +20,9 @@ class Menu::Menu
       menu << clients_menu
       menu << health_menu
       menu << data_menu
-      menu << administration_menu
+      menu << warehouse_admin_menu
+      menu << health_admin_menu
+      menu << hmis_admin_menu
       menu << support_menu
       links_menu.each do |item|
         menu << item
@@ -234,20 +236,266 @@ class Menu::Menu
     menu
   end
 
-  def administration_menu
+  def warehouse_admin_menu
     menu = Menu::Item.new(
       user: user,
-      title: Translation.translate('Administration'),
+      title: Translation.translate('Warehouse Admin'),
       icon: 'icon-cog',
-      id: 'administration',
+      id: 'warehouse-administration',
+      match_pattern_terminator: '.*',
+    )
+
+    menu.add_child(warehouse_access_menu)
+    menu.add_child(legacy_access_menu) unless User.all_using_acls?
+    menu.add_child(warehouse_configuration_menu)
+    menu.add_child(warehouse_status_menu)
+    menu
+  end
+
+  def warehouse_access_menu
+    menu = Menu::Item.new(
+      user: user,
+      title: 'Access',
+      id: 'user-access',
     )
     menu.add_child(
       Menu::Item.new(
         user: user,
-        visible: ->(user) { user.can_edit_users? || user.can_edit_translations? || user.can_view_imports? },
-        path: user.admin_dashboard_landing_path,
-        title: Translation.translate('Warehouse Admin'),
+        visible: ->(user) { user.can_edit_roles? && User.anyone_using_acls? },
+        path: admin_access_overviews_path,
+        title: 'Getting Started',
       ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_edit_users? && User.anyone_using_acls? },
+        path: admin_users_path,
+        title: 'Users',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_edit_roles? && User.anyone_using_acls? },
+        path: admin_roles_path,
+        title: 'Roles & Permissions',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_edit_users? && User.anyone_using_acls? },
+        path: admin_user_groups_path,
+        title: 'User Groups',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_edit_collections? && User.anyone_using_acls? },
+        path: admin_collections_path,
+        title: 'Collections',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_edit_users? && User.anyone_using_acls? },
+        path: admin_access_controls_path,
+        title: 'Access Controls',
+      ),
+    )
+    menu
+  end
+
+  def legacy_access_menu
+    title = 'Access'
+    title += ' (Legacy)' if User.anyone_using_acls?
+    menu = Menu::Item.new(
+      user: user,
+      title: title,
+      id: 'legacy-user-access',
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_edit_users? },
+        path: admin_users_path,
+        title: 'Users',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_edit_roles? },
+        path: admin_roles_path,
+        title: 'Roles & Permissions',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_edit_collections? },
+        path: admin_groups_path,
+        title: 'Groups',
+      ),
+    )
+    menu
+  end
+
+  def warehouse_configuration_menu
+    menu = Menu::Item.new(
+      user: user,
+      title: 'Configuration',
+      id: 'warehouse-configuration',
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_manage_config? },
+        path: admin_configs_path,
+        title: 'Site Config',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_manage_config? },
+        path: admin_translation_keys_path,
+        title: 'Translations',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_manage_config? },
+        path: admin_links_path,
+        title: 'Links',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_edit_theme? },
+        path: edit_admin_theme_path,
+        title: 'Theme',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_edit_theme? },
+        path: edit_admin_color_path,
+        title: 'Colors',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_edit_users? },
+        path: admin_agencies_path,
+        title: 'Agencies',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_manage_auto_client_de_duplication? },
+        path: admin_de_duplication_index_path,
+        title: 'Client De-Duplication',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_manage_auto_client_de_duplication? },
+        path: admin_consent_limits_path,
+        title: 'CoCs for Consent',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_add_administrative_event? },
+        path: admin_administrative_events_path,
+        title: 'Administrative Events',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_edit_warehouse_alerts? },
+        path: admin_warehouse_alerts_path,
+        title: 'Warehouse Alerts',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_manage_assessments? && GrdaWarehouse::Config.get(:eto_api_available) },
+        path: admin_eto_api_assessments_path,
+        title: 'ETO TouchPoints',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_manage_inbound_api_configurations? },
+        path: admin_inbound_api_configurations_path,
+        title: 'Inbound APIs',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_manage_config? },
+        path: oauth_applications_path,
+        title: 'Oauth',
+      ),
+    )
+    menu
+  end
+
+  def warehouse_status_menu
+    menu = Menu::Item.new(
+      user: user,
+      title: 'Status',
+      id: 'warehouse-status',
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_view_imports? },
+        path: admin_dashboard_imports_path,
+        title: 'Imports',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_add_administrative_event? },
+        path: admin_delayed_jobs_path,
+        title: 'Delayed Jobs',
+      ),
+    )
+    menu.add_child(
+      Menu::Item.new(
+        user: user,
+        visible: ->(user) { user.can_manage_sessions? },
+        path: admin_sessions_path,
+        title: 'Sessions',
+      ),
+    )
+    menu
+  end
+
+  def health_admin_menu
+    menu = Menu::Item.new(
+      user: user,
+      title: Translation.translate('Healthcare Admin'),
+      icon: 'icon-cog',
+      id: 'health-administration',
     )
     path = if user.can_approve_patient_assignments?
       review_admin_health_patient_referrals_path
@@ -264,17 +512,73 @@ class Menu::Menu
         title: Translation.translate('Healthcare Admin'),
       ),
     )
+    menu
+  end
+
+  def hmis_admin_menu
+    menu = Menu::Item.new(
+      user: user,
+      title: Translation.translate('HMIS Admin'),
+      icon: 'icon-cog',
+      match_pattern_terminator: '.*',
+    )
     # If we don't have the ENV for HMIS, the path isn't available
     # Checking enforcement outside keeps it from throwing an error
     if HmisEnforcement.hmis_enabled?
-      menu.add_child(
+      access_menu = Menu::Item.new(
+        user: user,
+        title: 'Access',
+        id: 'hmis-access',
+      )
+      access_menu.add_child(
+        Menu::Item.new(
+          user: user,
+          visible: ->(_user) { context.hmis_admin_visible? },
+          path: hmis_admin_access_overviews_path,
+          title: Translation.translate('Getting Started'),
+        ),
+      )
+      access_menu.add_child(
         Menu::Item.new(
           user: user,
           visible: ->(_user) { context.hmis_admin_visible? },
           path: hmis_admin_users_path,
-          title: Translation.translate('HMIS Admin'),
+          title: Translation.translate('Users'),
         ),
       )
+      access_menu.add_child(
+        Menu::Item.new(
+          user: user,
+          visible: ->(_user) { context.hmis_admin_visible? },
+          path: hmis_admin_user_groups_path,
+          title: Translation.translate('User Groups'),
+        ),
+      )
+      access_menu.add_child(
+        Menu::Item.new(
+          user: user,
+          visible: ->(_user) { context.hmis_admin_visible? },
+          path: hmis_admin_roles_path,
+          title: Translation.translate('Roles & Permissions'),
+        ),
+      )
+      access_menu.add_child(
+        Menu::Item.new(
+          user: user,
+          visible: ->(_user) { context.hmis_admin_visible? },
+          path: hmis_admin_groups_path,
+          title: Translation.translate('Collections'),
+        ),
+      )
+      access_menu.add_child(
+        Menu::Item.new(
+          user: user,
+          visible: ->(_user) { context.hmis_admin_visible? },
+          path: hmis_admin_access_controls_path,
+          title: Translation.translate('Access Controls'),
+        ),
+      )
+      menu.add_child(access_menu)
     end
 
     menu

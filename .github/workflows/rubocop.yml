@@ -10,17 +10,13 @@ concurrency:
 
 jobs:
   rubocop:
+    name: Rubocop
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-20.04
 
     # Docker Hub image that the job executes in
     container: ruby:3.1.4-alpine3.18
     steps:
-      - id: checkout
-        name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
       - id: dependencies
         name: Set up dependencies
         run: |
@@ -39,19 +35,32 @@ jobs:
             chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
             lftp postgresql postgis geos geos-dev \
             shared-mime-info
-          gem install bundler --version=2.4.6
+          gem install bundler --version=2.5.7
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ensure changed-files can read repo files from git
+      - name: Configure Git Safe Directory
+        run: git config --global --add safe.directory /__w/hmis-warehouse/hmis-warehouse
+
       - id: gems
         name: Install gems
         run: |
           bundle config set --local without 'production staging'
           bundle install --jobs 4 --retry 3
+
       - name: Get changed files
         id: changed-files
-        uses: masesgroup/retrieve-changed-files@v2
+        uses: tj-actions/changed-files@v44
+
       - id: rubocop
         name: Run Rubocop
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
-          files=`echo "${{ steps.changed-files.outputs.added_modified }}" | tr " " "\n" | grep "**/*.rb" | tr "\n" " ./"`
+          files=`echo "${ALL_CHANGED_FILES}" | tr " " "\n" | grep "**/*.rb" | tr "\n" " ./"`
           num=`echo $files | wc -w`
           echo $files
           if [ $num -gt 0 ]; then bundle exec rubocop --config ./.rubocop.yml $files; else echo "No changed ruby files"; fi

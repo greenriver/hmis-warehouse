@@ -986,7 +986,9 @@ CREATE TABLE public.claims_reporting_medical_claims (
     ind_mco_aco_cvd_svc character varying(50),
     enrolled_days integer DEFAULT 0,
     engaged_days integer DEFAULT 0,
-    cde_ndc character varying(48)
+    cde_ndc character varying(48),
+    pcc_repricing_fee_flag character varying(50),
+    cde_enc_rec_ind character varying(50)
 );
 
 
@@ -3717,7 +3719,12 @@ CREATE TABLE public.import_configs (
     destination character varying,
     data_source_name character varying,
     protocol character varying,
-    kind character varying
+    kind character varying,
+    encryption_key_name character varying,
+    encrypted_passphrase character varying,
+    encrypted_passphrase_iv character varying,
+    encrypted_secret_key character varying,
+    encrypted_secret_key_iv character varying
 );
 
 
@@ -8364,6 +8371,13 @@ CREATE INDEX index_loaded_ed_ip_visits_on_updated_at ON public.loaded_ed_ip_visi
 
 
 --
+-- Name: index_medications_on_patient_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_medications_on_patient_id ON public.medications USING btree (patient_id);
+
+
+--
 -- Name: index_member_status_report_patients_on_deleted_at; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -8473,6 +8487,13 @@ CREATE INDEX index_patient_referrals_on_contributing ON public.patient_referrals
 --
 
 CREATE INDEX index_patient_referrals_on_deleted_at ON public.patient_referrals USING btree (deleted_at);
+
+
+--
+-- Name: index_patient_referrals_on_patient_id_and_current; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_patient_referrals_on_patient_id_and_current ON public.patient_referrals USING btree (patient_id, current);
 
 
 --
@@ -9275,6 +9296,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20230807201621'),
 ('20230814153918'),
 ('20230816173812'),
-('20240126184731');
+('20240126184731'),
+('20240318191704'),
+('20240327144840'),
+('20240402142808'),
+('20240515205603');
 
 

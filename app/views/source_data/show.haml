@@ -40,12 +40,13 @@
                 - cleanups = @data_source.import_cleanups[model]&.map do |cleanup|
                   - cleanup.constantize.description
                 #{((aggregators || []) + (cleanups || [])).sort.join(', ')}.
-    - if RailsDrivers.loaded.include?(:hmis_csv_importer)
-      - overrides = HmisCsvImporter::ImportOverride.where(data_source: @data_source).sorted.select { |override| override.applies?(@item) }
-      - if overrides.any?
-        %p The following import overrides are in effect for this record.
-        .mb-4
-          = render 'hmis_csv_importer/import_overrides/table', overrides: overrides, data_source: @data_source, editable: false
+- if RailsDrivers.loaded.include?(:hmis_csv_importer)
+  - overrides = HmisCsvImporter::ImportOverride.where(data_source: @data_source).sorted.select { |override| override.applies?(@item) }
+  - if overrides.any?
+    .well
+      %p The following import overrides are in effect for this record.
+      .mb-4
+        = render 'hmis_csv_importer/import_overrides/table', overrides: overrides, data_source: @data_source, editable: false, show_associated_project: true
 
 .card
   %table.table.table-striped

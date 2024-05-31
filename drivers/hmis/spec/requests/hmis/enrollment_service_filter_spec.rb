@@ -23,6 +23,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:e1) { create :hmis_hud_enrollment, data_source: ds1, client: c1, project: p1 }
   let!(:hud_s1) { create :hmis_hud_service, data_source: ds1, client: c1, enrollment: e1, date_updated: Date.current - 1.week }
   let(:s1) { Hmis::Hud::HmisService.find_by(owner: hud_s1) }
+  let(:s1_custom_service_type) do
+    Hmis::Hud::CustomServiceType.where(data_source: hud_s1.data_source).where(hud_record_type: hud_s1.RecordType, hud_type_provided: hud_s1.TypeProvided).first!
+  end
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
   let(:query) do
@@ -53,7 +56,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should filter correctly by service category' do
-    category_id = s1.custom_service_type.category.id.to_s
+    category_id = s1_custom_service_type.category.id.to_s
     search(id: e1.id.to_s, filters: { service_category: [category_id] }) do |services|
       expect(services).to contain_exactly(include('id' => s1.id.to_s))
     end
@@ -66,7 +69,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
 
   it 'should filter correctly by service type' do
-    service_type_id = s1.custom_service_type.id.to_s
+    service_type_id = s1_custom_service_type.id.to_s
     search(id: e1.id.to_s, filters: { service_type: [service_type_id] }) do |services|
       expect(services).to contain_exactly(include('id' => s1.id.to_s))
     end

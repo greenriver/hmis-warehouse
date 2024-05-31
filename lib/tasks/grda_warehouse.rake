@@ -132,6 +132,8 @@ namespace :grda_warehouse do
         region: conf.s3_region,
         access_key_id: conf.s3_access_key_id,
         secret_access_key: conf.s3_secret_access_key,
+        s3_external_id: conf.s3_external_id,
+        s3_role_arn: conf.s3_role_arn,
         bucket_name: conf.s3_bucket_name,
         path: conf.s3_path,
         file_password: conf.zip_file_password,
@@ -305,7 +307,7 @@ namespace :grda_warehouse do
 
     TextMessage::Message.send_pending! if GrdaWarehouse::Config.get(:send_sms_for_covid_reminders) && RailsDrivers.loaded.include?(:text_message)
     GrdaWarehouse::CustomImports::Config.active.each do |config|
-      config.delay.import!
+      config.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running), attempts: 1).import!
     end
     TaskQueue.queue_unprocessed!
     GrdaWarehouse::ProjectGroup.maintain_project_lists!
@@ -318,6 +320,13 @@ namespace :grda_warehouse do
     if DateTime.current.hour == 20 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && RailsDrivers.loaded.include?(:hmis_external_apis)
       # Run AC Data Warehouse exports to SFTP server at 8pm
       Rake::Task['driver:hmis_external_apis:export:ac_clients'].invoke
+    end
+
+    begin
+      HmisExternalApis::ConsumeExternalFormSubmissionsJob.new.perform if HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && RailsDrivers.loaded.include?(:hmis_external_apis)
+    rescue StandardError => e
+      Sentry.capture_exception(e)
+      Rails.logger.error(e.message)
     end
 
     stats_collector = AppResourceMonitor::CollectStatsJob.new

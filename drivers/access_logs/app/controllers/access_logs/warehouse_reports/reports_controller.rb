@@ -15,7 +15,7 @@ module AccessLogs::WarehouseReports
     end
 
     def create
-      filename = "Access Logs for #{@filter.start.to_s(:db)} to #{@filter.end.to_s(:db)} generated #{Time.current.to_s(:db)}"
+      filename = "Access Logs for #{@filter.start.to_fs(:db)} to #{@filter.end.to_fs(:db)} generated #{Time.current.to_fs(:db)}"
       file = AccessLogs::Export.create!(
         user_id: current_user.id,
         status: 'pending',

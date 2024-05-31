@@ -111,6 +111,9 @@ class DocumentExportsControllerBase < ApplicationController
       'InactiveClientReport::DocumentExports::ReportExcelExport',
       'ZipCodeReport::DocumentExports::ReportExcelExport',
       'GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport',
+      'UserDirectoryReport::DocumentExports::CasUserDirectoryExcelExport',
+      'UserDirectoryReport::DocumentExports::WarehouseUserDirectoryExcelExport',
+      'TxClientReports::AttachmentThreeReportExports::AttachmentThreeReportExcelExport',
     ]
   end
 end

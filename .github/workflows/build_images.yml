@@ -1,5 +1,10 @@
 name: Build, Scan, and Lint Images
 
+# If scanning fails, you can delete the cache and have it rebuild from scratch.
+# This _may_ fix the vulnerability.  Delete the caches prefixed with Linux-buildx-warehouse,
+# specifically, if you look in the failed action at the Cache Docker Layers step, the
+# layer listed under `Cache restored from key:`
+# https://github.com/greenriver/hmis-warehouse/actions/caches?query=linux-buildx
 on:
   push:
     branches:
@@ -33,7 +38,7 @@ jobs:
             keep_latest_tag: true
             cache_key: warehouse
             hadolint_ignore: DL3018
-            trivy_skip_files: /app/config/key.pem,/app/docker/sftp/ssh_host_ed25519_key,/app/docker/sftp/ssh_host_rsa_key
+            trivy_skip_files: /app/config/key.pem,/app/docker/sftp/ssh_host_ed25519_key,/app/docker/sftp/ssh_host_rsa_key,/app/spec/fixtures/files/health/secret.key
             build-args: |
               BUILD_TAG=3.1.4-alpine3.18
               BUNDLER_VERSION=2.4.13

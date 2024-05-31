@@ -19,8 +19,6 @@ module HomelessSummaryReport
     include ActionView::Helpers::NumberHelper
     include ArelHelper
 
-    acts_as_paranoid
-
     belongs_to :user, optional: true
     has_many :clients
     has_many :results
@@ -688,7 +686,7 @@ module HomelessSummaryReport
         },
         m2_reentry_days: {
           cells: [['2a and 2b', 'B7']],
-          value_accessor: ->(spm_return) { spm_return.days_to_return },
+          value_accessor: ->(spm_return) { spm_return.days_to_return || -1 }, # -1 is client didn't return to allow for 0 day returns
           title: 'Re-Entering Homelessness',
         },
         m7a1_destination: {

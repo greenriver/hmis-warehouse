@@ -299,7 +299,7 @@ module HudSpmReport::Fy2023
     private_class_method def self.annual_update_window_sql(enrollment)
       # 30 days of anniversary of entry date
       report_date = ib_t[:information_date].to_sql
-      entry_date = enrollment.entry_date.to_s(:db)
+      entry_date = enrollment.entry_date.to_fs(:db)
       interval = '30 days'
       <<~SQL
         (EXTRACT(MONTH FROM #{report_date}), EXTRACT(DAY FROM #{report_date})) IN (

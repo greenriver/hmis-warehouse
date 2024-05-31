@@ -339,14 +339,14 @@ class Role < ApplicationRecord
       # TODO: START_ACL remove after ACL migration is complete
       # DEPRECATED, superseded by can_search_own_clients in combination with access controls
       can_search_all_clients: {
-        description: 'Given access to a client search, via can search window or can use strict search, allow the user to see the search results for all clients, regardless of if they can see other demographic data',
+        description: 'Given access to a client search, via can search window or can use strict search, allow the user to see the search results for all clients, regardless of if they can see other demographic data. (Note: for Access Controls, this is superseded by "Can Search Own Clients")',
         administrative: false,
         category: 'Client Access',
         sub_category: 'Client Search',
       },
       # DEPRECATED, superseded by can_search_own_clients in combination with access controls
       can_search_window: {
-        description: 'Limited access to the data available in the window.  This should be given to any role that has access to client window data. Assigning "Can View Clients" will take precedence and grant additional access',
+        description: 'Limited access to the data available in the window.  This should be given to any role that has access to client window data. Assigning "Can View Clients" will take precedence and grant additional access. (Note: for Access Controls, this is superseded by "Can Search Own Clients")',
         administrative: false,
         category: 'Client Access',
         sub_category: 'Client Search',
@@ -527,7 +527,7 @@ class Role < ApplicationRecord
         sub_category: 'Privacy',
       },
       can_view_enrollment_details: {
-        description: 'Access to the enrollment details tab.  Users with Can View Clients get this automatically.',
+        description: 'Grants access to the enrollment details tab. Includes all related records such as Assessments, Services, Current Living Situations, and more.',
         administrative: false,
         category: 'Client Extras',
         sub_category: 'General Client Access',
