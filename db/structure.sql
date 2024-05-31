@@ -1774,7 +1774,8 @@ CREATE TABLE public.roles (
     can_edit_collections boolean DEFAULT false,
     can_publish_reports boolean DEFAULT false,
     deleted_at timestamp without time zone,
-    can_edit_own_client_notes boolean DEFAULT false
+    can_edit_own_client_notes boolean DEFAULT false,
+    can_view_client_name boolean DEFAULT false
 );
 
 
