@@ -5,7 +5,9 @@
         %th Assessment
         %th Date Completed
         %th Case Manager
+        %th
     %tbody
+      - first = true
       - @patient.hrsn_screenings.newest_first.each do |screening|
         - instrument = screening.instrument
         %tr
@@ -23,5 +25,9 @@
               = instrument.completed_on || 'in progress'
             %td
               = instrument.case_manager
+          %td
+            - if first
+              %i.o-color--primary.icon-award{data: {toggle: :tooltip, title: 'HRSN included in intake'}}
+              - first = false
 - else
   %p.no-data No HRSNs on file
