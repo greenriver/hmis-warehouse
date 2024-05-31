@@ -10,6 +10,7 @@ class Hmis::Hud::HmisParticipation < Hmis::Hud::Base
   include ::HmisStructure::HmisParticipation
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::ProjectRelated
+  include ::Hmis::Hud::Concerns::HasCustomDataElements
 
   belongs_to :project, **hmis_relation(:ProjectID, 'Project')
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'

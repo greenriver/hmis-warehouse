@@ -211,7 +211,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               input.delete(:enrollment_id)
             end
 
-            e1.update(processed_as: 'PROCESSED', processed_hash: 'PROCESSED') if input[:record_id].present?
+            # delete processing jobs that would have been queued from factory record creation
+            Delayed::Job.jobs_for_class(['GrdaWarehouse::Tasks::ServiceHistory::Enrollment', 'GrdaWarehouse::Tasks::IdentifyDuplicates']).delete_all
+            # mark enrollment record as processed
+            e1.update!(processed_as: 'PROCESSED', processed_hash: 'PROCESSED') if input[:record_id].present?
 
             record, errors = submit_form(input)
             record_id = record['id']
@@ -222,8 +225,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               record_id = record['id']
               expect(record_id).to eq(input[:record_id].to_s) if input[:record_id].present?
               record = definition.owner_class.find_by(id: record_id)
+              record = record.owner if record.is_a? Hmis::Hud::HmisService # we want to assert on the underlying Service/CustomService model
               expect(record).to be_present
-              expect(Hmis::Form::FormProcessor.count).to eq(0)
+
+              expect(Hmis::Form::FormProcessor.where(owner: record).count).to eq(1)
+              expect(record.form_processor).to be_present
 
               # Check that enrollment.processed_as: nil and enrollment.processed_hash: nil, but weren't nil before save
               # this should be true if exit, CLS, Service, or Enrollment changed/added/deleted
@@ -231,6 +237,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
               # check that delayed jobs are queued for when above happens or client is changed
               expect(Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::ServiceHistory::Enrollment').count).to be_positive if role.in?([:ENROLLMENT, :SERVICE, :CURRENT_LIVING_SITUATION])
+
               expect(Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').count).to be_positive if role.in?([:CLIENT])
 
               # Expect that all of the fields that were submitted exist on the record

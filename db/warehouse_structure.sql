@@ -1317,6 +1317,7 @@ CREATE TABLE public."CustomServiceTypes" (
     "DateCreated" timestamp without time zone NOT NULL,
     "DateUpdated" timestamp without time zone NOT NULL,
     "DateDeleted" timestamp without time zone,
+    bulk boolean DEFAULT false NOT NULL,
     supports_bulk_assignment boolean DEFAULT false NOT NULL
 );
 
@@ -1347,6 +1348,13 @@ COMMENT ON COLUMN public."CustomServiceTypes".hud_record_type IS 'Only applicabl
 --
 
 COMMENT ON COLUMN public."CustomServiceTypes".hud_type_provided IS 'Only applicable if this is a HUD service';
+
+
+--
+-- Name: COLUMN "CustomServiceTypes".bulk; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public."CustomServiceTypes".bulk IS 'whether to support bulk service assignment for this type in the hmis application';
 
 
 --
@@ -13410,40 +13418,6 @@ ALTER SEQUENCE public.hmis_assessments_id_seq OWNED BY public.hmis_assessments.i
 
 
 --
--- Name: hmis_auto_exit_configs; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.hmis_auto_exit_configs (
-    id bigint NOT NULL,
-    length_of_absence_days integer NOT NULL,
-    project_type integer,
-    organization_id bigint,
-    project_id bigint,
-    created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
---
--- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.hmis_auto_exit_configs_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: hmis_auto_exit_configs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.hmis_auto_exit_configs_id_seq OWNED BY public.hmis_auto_exit_configs.id;
-
-
---
 -- Name: hmis_case_notes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -18387,7 +18361,7 @@ CREATE TABLE public.hmis_form_processors (
     mental_health_disorder_id bigint,
     substance_use_disorder_id bigint,
     exit_id bigint,
-    custom_assessment_id integer NOT NULL,
+    custom_assessment_id integer,
     definition_id integer,
     "values" jsonb,
     hud_values jsonb,
@@ -18395,7 +18369,9 @@ CREATE TABLE public.hmis_form_processors (
     employment_education_id integer,
     current_living_situation_id integer,
     ce_assessment_id bigint,
-    ce_event_id bigint
+    ce_event_id bigint,
+    owner_type character varying,
+    owner_id bigint
 );
 
 
@@ -22298,55 +22274,6 @@ ALTER SEQUENCE public.pm_results_id_seq OWNED BY public.pm_results.id;
 
 
 --
--- Name: project_groups; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.project_groups (
-    id integer NOT NULL,
-    name character varying NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    deleted_at timestamp without time zone,
-    options jsonb DEFAULT '{}'::jsonb
-);
-
-
---
--- Name: project_project_groups; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.project_project_groups (
-    id integer NOT NULL,
-    project_group_id integer,
-    project_id integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    deleted_at timestamp without time zone
-);
-
-
---
--- Name: project_collection_members; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW public.project_collection_members AS
- SELECT targets.project_id,
-    group_viewable_entities.collection_id
-   FROM (public.group_viewable_entities
-     JOIN ( SELECT "Project".data_source_id,
-            "Project".id AS project_id,
-            "Organization".id AS organization_id,
-            project_groups.id AS project_group_id
-           FROM (((public."Project"
-             LEFT JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND ("Organization".data_source_id = "Project".data_source_id) AND (("Organization"."OrganizationID")::text = ("Project"."OrganizationID")::text))))
-             LEFT JOIN public.project_project_groups ON ((project_project_groups.project_id = "Project".id)))
-             LEFT JOIN public.project_groups ON (((project_groups.deleted_at IS NULL) AND (project_groups.id = project_project_groups.project_group_id))))
-          WHERE ("Project"."DateDeleted" IS NULL)) targets ON (((group_viewable_entities.deleted_at IS NULL) AND ((((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (group_viewable_entities.entity_id = targets.data_source_id)) OR (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::Project'::text) AND (group_viewable_entities.entity_id = targets.project_id)) OR (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::Organization'::text) AND (group_viewable_entities.entity_id = targets.organization_id)) OR (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::ProjectGroup'::text) AND (group_viewable_entities.entity_id = targets.project_group_id))))))
-  WHERE ((group_viewable_entities.deleted_at IS NULL) AND (group_viewable_entities.collection_id IS NOT NULL))
-  GROUP BY targets.project_id, group_viewable_entities.collection_id;
-
-
---
 -- Name: project_data_quality; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -22388,6 +22315,20 @@ CREATE SEQUENCE public.project_data_quality_id_seq
 --
 
 ALTER SEQUENCE public.project_data_quality_id_seq OWNED BY public.project_data_quality.id;
+
+
+--
+-- Name: project_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.project_groups (
+    id integer NOT NULL,
+    name character varying NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    deleted_at timestamp without time zone,
+    options jsonb DEFAULT '{}'::jsonb
+);
 
 
 --
@@ -22570,6 +22511,20 @@ CREATE SEQUENCE public.project_pass_fails_projects_id_seq
 --
 
 ALTER SEQUENCE public.project_pass_fails_projects_id_seq OWNED BY public.project_pass_fails_projects.id;
+
+
+--
+-- Name: project_project_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.project_project_groups (
+    id integer NOT NULL,
+    project_group_id integer,
+    project_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    deleted_at timestamp without time zone
+);
 
 
 --
@@ -28762,13 +28717,6 @@ ALTER TABLE ONLY public.hmis_assessments ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
--- Name: hmis_auto_exit_configs id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_auto_exit_configs ALTER COLUMN id SET DEFAULT nextval('public.hmis_auto_exit_configs_id_seq'::regclass);
-
-
---
 -- Name: hmis_case_notes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -32214,14 +32162,6 @@ ALTER TABLE ONLY public.hmis_assessment_details
 
 ALTER TABLE ONLY public.hmis_assessments
     ADD CONSTRAINT hmis_assessments_pkey PRIMARY KEY (id);
-
-
---
--- Name: hmis_auto_exit_configs hmis_auto_exit_configs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.hmis_auto_exit_configs
-    ADD CONSTRAINT hmis_auto_exit_configs_pkey PRIMARY KEY (id);
 
 
 --
@@ -53267,20 +53207,6 @@ CREATE INDEX index_hmis_assessments_on_site_id ON public.hmis_assessments USING 
 
 
 --
--- Name: index_hmis_auto_exit_configs_on_organization_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_auto_exit_configs_on_organization_id ON public.hmis_auto_exit_configs USING btree (organization_id);
-
-
---
--- Name: index_hmis_auto_exit_configs_on_project_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_hmis_auto_exit_configs_on_project_id ON public.hmis_auto_exit_configs USING btree (project_id);
-
-
---
 -- Name: index_hmis_case_notes_on_client_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -54069,6 +53995,13 @@ CREATE INDEX index_hmis_form_processors_on_income_benefit_id ON public.hmis_form
 --
 
 CREATE INDEX index_hmis_form_processors_on_mental_health_disorder_id ON public.hmis_form_processors USING btree (mental_health_disorder_id);
+
+
+--
+-- Name: index_hmis_form_processors_on_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hmis_form_processors_on_owner ON public.hmis_form_processors USING btree (owner_type, owner_id);
 
 
 --
@@ -59756,13 +59689,6 @@ CREATE INDEX tt ON public.hmis_2022_exits USING btree ("EnrollmentID", "Personal
 
 
 --
--- Name: tt_hh_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX tt_hh_id ON public.service_history_enrollments USING btree (household_id);
-
-
---
 -- Name: tx_id_ds_id_ft_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -61762,22 +61688,6 @@ CREATE RULE attempt_hmis_households_up AS
 
 
 --
--- Name: project_collection_members attempt_project_collection_members_del; Type: RULE; Schema: public; Owner: -
---
-
-CREATE RULE attempt_project_collection_members_del AS
-    ON DELETE TO public.project_collection_members DO INSTEAD NOTHING;
-
-
---
--- Name: project_collection_members attempt_project_collection_members_up; Type: RULE; Schema: public; Owner: -
---
-
-CREATE RULE attempt_project_collection_members_up AS
-    ON UPDATE TO public.project_collection_members DO INSTEAD NOTHING;
-
-
---
 -- Name: service_history_services_was_for_inheritance service_history_service_insert_trigger; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -62740,13 +62650,12 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240503152843'),
 ('20240503170130'),
 ('20240506204908'),
-('20240510204158'),
 ('20240510230733'),
 ('20240519225942'),
 ('20240522132648'),
-('20240526045112'),
 ('20240529195902'),
 ('20240529202928'),
-('20240529205526');
+('20240529205526'),
+('20240531152432');
 
 

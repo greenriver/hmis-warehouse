@@ -11,9 +11,10 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   self.table_name = :hmis_form_processors
   has_paper_trail
 
-  # The assessment that was processed with this processor.
-  # If processor is being used as in-memory processor for records, this will be empty.
-  belongs_to :custom_assessment, class_name: 'Hmis::Hud::CustomAssessment', optional: false
+  belongs_to :owner, polymorphic: true, optional: true # The primary record that is being created/updated by this form. Should be optional: false
+
+  # TODO remove this relation and drop the column
+  belongs_to :custom_assessment, class_name: 'Hmis::Hud::CustomAssessment', optional: true
   # Definition that was most recently used to process this assessment
   belongs_to :definition, class_name: 'Hmis::Form::Definition', optional: true
 
@@ -37,11 +38,16 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   validate :hmis_records_are_valid, on: :form_submission
 
-  attr_accessor :owner, :hud_user, :current_user
+  attr_accessor :hud_user, :current_user
 
-  def run!(owner:, user:)
+  def custom_assessment
+    owner if owner_type == Hmis::Hud::CustomAssessment.sti_name
+  end
+
+  # TODO probably want to persist the user_id too
+  def run!(user:)
     # Owner is the "base" record for the form, which could be an assessment, client, project, etc.
-    self.owner = owner
+    # self.owner = owner
     # Set the HUD User and current user, so processors can store them on related records
     self.current_user = user
     self.hud_user = Hmis::Hud::User.from_user(user)
@@ -138,6 +144,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     # Queue up job to store CE Assessment responses in the HUD CE AssessmentQuestions table
     # Rspec test isolation interferes with delayed job transaction
     if Rails.env.test?
+      # FIXME
       ::Hmis::AssessmentQuestionsJob.perform_now(custom_assessment_ids: custom_assessment_id)
     else
       ::Hmis::AssessmentQuestionsJob.perform_later(custom_assessment_ids: custom_assessment_id)
@@ -158,7 +165,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   end
 
   def service_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
-    @service_factory ||= owner.owner if owner.is_a? Hmis::Hud::HmisService
+    @service_factory ||= owner if owner.is_a?(Hmis::Hud::Service) || owner.is_a?(Hmis::Hud::CustomService)
   end
 
   # Type Factories
@@ -338,6 +345,8 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       # Form Records
       Client: Hmis::Hud::Processors::ClientProcessor,
       HmisService: Hmis::Hud::Processors::ServiceProcessor,
+      Service: Hmis::Hud::Processors::ServiceProcessor,
+      CustomService: Hmis::Hud::Processors::ServiceProcessor,
       Organization: Hmis::Hud::Processors::OrganizationProcessor,
       Project: Hmis::Hud::Processors::ProjectProcessor,
       Inventory: Hmis::Hud::Processors::InventoryProcessor,
@@ -382,7 +391,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   # Pull up any errors from the HMIS records
   private def hmis_records_are_valid
-    all_factories.excluding(:owner_factory, :service_factory).each do |factory_method|
+    all_factories.excluding(:owner_factory).each do |factory_method|
       record = send(factory_method, create: false)
       next unless record.present?
       next if record.valid?

@@ -10,6 +10,7 @@ class Hmis::Hud::ProjectCoc < Hmis::Hud::Base
   include ::HmisStructure::ProjectCoc
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::ProjectRelated
+  include ::Hmis::Hud::Concerns::HasCustomDataElements
   validates_with Hmis::Hud::Validators::ProjectCocValidator
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'

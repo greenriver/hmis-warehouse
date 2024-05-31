@@ -6,6 +6,7 @@
 
 class Hmis::File < GrdaWarehouse::File
   include ClientFileBase
+  include ::Hmis::Hud::Concerns::HasCustomDataElements
   has_paper_trail(
     meta: {
       enrollment_id: :enrollment_id,
