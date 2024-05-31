@@ -103,19 +103,19 @@ RSpec.describe 'GrdaWarehouse::AuthPolicies::PolicyProvider', type: :model do
     end
 
     shared_examples 'expect authorized access' do
-      it 'has allows access to authorized project' do
+      it 'allows access to authorized project' do
         check_permissions(policy: user.policies.for_project(authorized_project), role: role)
       end
-      it 'has allows access to authorized client' do
+      it 'allows access to authorized client' do
         check_permissions(policy: user.policies.for_client(authorized_client), role: role)
       end
     end
 
     shared_examples 'expect restricted access' do
-      it 'has denys access to restricted project' do
+      it 'denys access to restricted project' do
         check_permissions(policy: user.policies.for_project(restricted_project), role: nil)
       end
-      it 'has denys access to restricted client' do
+      it 'denys access to restricted client' do
         check_permissions(policy: user.policies.for_client(restricted_client), role: nil)
       end
     end
