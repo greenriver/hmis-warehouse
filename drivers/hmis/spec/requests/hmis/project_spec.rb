@@ -236,7 +236,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     it 'does not error when passed a large integer value' do
       response, result = post_graphql(searchTerm: '73892738928') { project_omni_search }
-      expect(response.status).to eq 200
+      expect(response.status).to eq(200), result.inspect
       expect(result.dig('data', 'projects', 'nodes').count).to eq(0)
     end
   end

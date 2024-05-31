@@ -148,9 +148,12 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     search_term.strip!
 
     alpha_numeric = /[[[:alnum:]]-]+/.match(search_term).try(:[], 0) == search_term
+    numeric = /[\d-]+/.match(search_term).try(:[], 0) == search_term
+    max_pk = 2_147_483_648 # PK is a 4 byte signed INT (2 ** ((4 * 8) - 1))
+    possibly_pk = numeric ? search_term.to_i < max_pk : false
 
     # If it's a possible PK, check if it's an Enrollment primary key
-    if possibly_pk?(search_term)
+    if possibly_pk
       matching_enrollments = where(id: search_term.to_i)
       return matching_enrollments if matching_enrollments.exists?
     end
