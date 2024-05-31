@@ -17760,15 +17760,15 @@ CREATE TABLE public.hmis_dqt_enrollments (
     cash_income_as_expected_at_entry boolean DEFAULT false,
     cash_income_as_expected_at_annual boolean DEFAULT false,
     cash_income_as_expected_at_exit boolean DEFAULT false,
-    ncb_from_any_source_at_entry integer,
-    ncb_from_any_source_at_annual integer,
-    ncb_from_any_source_at_exit integer,
+    ncb_from_any_source_at_entry_remove integer,
+    ncb_from_any_source_at_annual_remove integer,
+    ncb_from_any_source_at_exit_remove integer,
     ncb_as_expected_at_entry boolean DEFAULT false,
     ncb_as_expected_at_annual boolean DEFAULT false,
     ncb_as_expected_at_exit boolean DEFAULT false,
-    insurance_from_any_source_at_entry integer,
-    insurance_from_any_source_at_annual integer,
-    insurance_from_any_source_at_exit integer,
+    insurance_from_any_source_at_entry_remove integer,
+    insurance_from_any_source_at_annual_remove integer,
+    insurance_from_any_source_at_exit_remove integer,
     insurance_as_expected_at_entry boolean DEFAULT false,
     insurance_as_expected_at_annual boolean DEFAULT false,
     insurance_as_expected_at_exit boolean DEFAULT false,
@@ -17803,7 +17803,13 @@ CREATE TABLE public.hmis_dqt_enrollments (
     discharge_status integer,
     employed integer,
     employment_type integer,
-    not_employed_reason integer
+    not_employed_reason integer,
+    ncb_from_any_source_at_entry integer,
+    ncb_from_any_source_at_annual integer,
+    ncb_from_any_source_at_exit integer,
+    insurance_from_any_source_at_entry integer,
+    insurance_from_any_source_at_annual integer,
+    insurance_from_any_source_at_exit integer
 );
 
 
@@ -62738,4 +62744,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240510230733'),
 ('20240519225942'),
 ('20240522132648'),
-('20240526045112');
+('20240526045112'),
+('20240529195902'),
+('20240529202928'),
+('20240529205526');
