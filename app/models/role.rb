@@ -74,14 +74,6 @@ class Role < ApplicationRecord
     where(where_clause)
   end
 
-  scope :with_editable_permissions, -> do
-    with_any_permissions(*permissions_for_access(:editable))
-  end
-
-  scope :with_viewable_permissions, -> do
-    with_any_permissions(*permissions_for_access(:viewable))
-  end
-
   def self.system_user_role
     where(
       system: true,
@@ -147,10 +139,6 @@ class Role < ApplicationRecord
 
   def self.administrative? permission:
     permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:administrative] rescue true # rubocop:disable Style/RescueModifier
-  end
-
-  def self.permissions_for_access(access)
-    permissions_with_descriptions.select { |_k, attrs| attrs[:access].include?(access) }.keys
   end
 
   def self.permissions_by_group
