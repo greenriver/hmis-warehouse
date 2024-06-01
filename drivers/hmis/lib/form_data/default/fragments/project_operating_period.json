@@ -7,9 +7,11 @@
     {
       "type": "DATE",
       "required": true,
-      "link_id": "2.02.3",
+      "link_id": "hud_2_02_3",
       "text": "Start Date",
-      "mapping": { "field_name": "operatingStartDate" },
+      "mapping": {
+        "field_name": "operatingStartDate"
+      },
       "bounds": [
         {
           "id": "max-start-date",
@@ -21,9 +23,11 @@
     {
       "type": "DATE",
       "required": false,
-      "link_id": "2.02.4",
+      "link_id": "hud_2_02_4",
       "text": "End Date",
-      "mapping": { "field_name": "operatingEndDate" },
+      "mapping": {
+        "field_name": "operatingEndDate"
+      },
       "bounds": [
         {
           "id": "min-end-date",

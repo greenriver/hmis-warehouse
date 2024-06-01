@@ -1,6 +1,6 @@
 {
   "type": "GROUP",
-  "link_id": "4.11",
+  "link_id": "hud_4_11",
   "rule": {
     "operator": "ANY",
     "parts": [
@@ -207,7 +207,7 @@
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "4.11.2",
+      "link_id": "hud_4_11_2",
       "required": false,
       "warn_if_empty": true,
       "text": "Survivor of Domestic Violence",
@@ -219,11 +219,11 @@
     },
     {
       "type": "GROUP",
-      "link_id": "4.11.2-conditionals",
+      "link_id": "hud_4_11_2_conditionals",
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "4.11.2",
+          "question": "hud_4_11_2",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -231,7 +231,7 @@
       "item": [
         {
           "type": "CHOICE",
-          "link_id": "4.11.A",
+          "link_id": "hud_4_11_A",
           "required": false,
           "warn_if_empty": true,
           "text": "When did the experience occur?",
@@ -244,7 +244,7 @@
         },
         {
           "type": "CHOICE",
-          "link_id": "4.11.B",
+          "link_id": "hud_4_11_B",
           "required": false,
           "warn_if_empty": true,
           "text": "Are you currently fleeing?",

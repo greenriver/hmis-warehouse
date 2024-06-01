@@ -37,7 +37,7 @@
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "V4.1",
+      "link_id": "V4_1",
       "required": false,
       "warn_if_empty": true,
       "text": "Household Income as a Percentage of AMI",

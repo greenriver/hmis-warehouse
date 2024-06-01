@@ -1,6 +1,6 @@
 {
   "type": "GROUP",
-  "link_id": "employment-education",
+  "link_id": "employment_education",
   "text": "Employment & Education",
   "data_collected_about": "HOH_AND_ADULTS",
   "prefill": true,
@@ -165,7 +165,7 @@
       "item": [
         {
           "type": "CHOICE",
-          "link_id": "R6.2",
+          "link_id": "R6_2",
           "required": false,
           "warn_if_empty": true,
           "text": "Employed",
@@ -177,11 +177,11 @@
         },
         {
           "type": "GROUP",
-          "link_id": "R6.2.conditionals",
+          "link_id": "R6_2_conditionals",
           "item": [
             {
               "type": "CHOICE",
-              "link_id": "R6.A",
+              "link_id": "R6_A",
               "required": false,
               "warn_if_empty": true,
               "text": "Type of Employment",
@@ -193,7 +193,7 @@
               "enable_behavior": "ALL",
               "enable_when": [
                 {
-                  "question": "R6.2",
+                  "question": "R6_2",
                   "operator": "EQUAL",
                   "answer_code": "YES"
                 }
@@ -201,7 +201,7 @@
             },
             {
               "type": "CHOICE",
-              "link_id": "R6.B",
+              "link_id": "R6_B",
               "required": false,
               "warn_if_empty": true,
               "text": "Why Not Employed",
@@ -213,7 +213,7 @@
               "enable_behavior": "ALL",
               "enable_when": [
                 {
-                  "question": "R6.2",
+                  "question": "R6_2",
                   "operator": "EQUAL",
                   "answer_code": "NO"
                 }

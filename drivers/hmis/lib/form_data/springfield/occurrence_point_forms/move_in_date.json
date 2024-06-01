@@ -2,7 +2,7 @@
   "item": [
     {
       "_comment": "override that does not collect move-in address",
-      "link_id": "3.20",
+      "link_id": "hud_3_20",
       "type": "DATE",
       "text": "Move-in Date",
       "mapping": {

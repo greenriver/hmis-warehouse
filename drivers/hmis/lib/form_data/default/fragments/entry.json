@@ -1,12 +1,12 @@
 {
   "type": "GROUP",
-  "link_id": "entry-date-group",
+  "link_id": "entry_date_group",
   "text": "Project Entry",
   "item": [
     {
       "data_collected_about": "ALL_CLIENTS",
       "type": "DATE",
-      "link_id": "entry-date",
+      "link_id": "entry_date",
       "text": "Entry Date",
       "mapping": {
         "record_type": "ENROLLMENT",
@@ -38,7 +38,7 @@
     {
       "data_collected_about": "HOH",
       "type": "CHOICE",
-      "link_id": "3.16",
+      "link_id": "hud_3_16",
       "prefix": "3.16",
       "text": "CoC Code for Client Location",
       "required": true,

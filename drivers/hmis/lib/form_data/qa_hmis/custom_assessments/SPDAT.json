@@ -3,12 +3,12 @@
     {
       "type": "GROUP",
       "text": "SPDAT",
-      "link_id": "event-group",
+      "link_id": "event_group",
       "item": [
         {
           "type": "DATE",
           "required": true,
-          "link_id": "4.19.1",
+          "link_id": "hud_4_19_1",
           "text": "Assessment Date",
           "assessment_date": true,
           "mapping": {
