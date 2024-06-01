@@ -30,7 +30,7 @@ class OneTimeMigration20230303
 
       seen = Set.new
       walk_nodes(definition.definition) do |node|
-        next unless  node['link_id'].present?
+        next unless node['link_id'].present?
 
         link_id = node['link_id']
         node['link_id'] = transform_identifier(link_id) if link_id
