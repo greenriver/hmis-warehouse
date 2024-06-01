@@ -149,6 +149,7 @@ class Role < ApplicationRecord
     permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:administrative] rescue true # rubocop:disable Style/RescueModifier
   end
 
+  # appears to be broken, the :access property is not present in permissions_with_descriptions
   def self.permissions_for_access(access)
     permissions_with_descriptions.select { |_k, attrs| attrs[:access].include?(access) }.keys
   end
