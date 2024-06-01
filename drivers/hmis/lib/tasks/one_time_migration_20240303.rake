@@ -15,6 +15,26 @@ class OneTimeMigration20230303
     update_form_definitions
   end
 
+  # Migrate LinkIDs for all files in drivers/hmis/lib/form_data. Write changes to files.
+  # Doesn't catch everything, a few things need to be manually fixed (client-id and veteran-status)
+  def update_form_data_files
+    Dir.glob("#{HmisUtil::JsonForms::DATA_DIR}/**/*.json").each do |file_path|
+      puts "Transforming #{file_path}..."
+      file = File.read(file_path)
+      parsed = JSON.parse(file)
+
+      if parsed.is_a?(Array) # patch files are arrays
+        parsed.each { |item| transform_definition(item) }
+      else
+        transform_definition(parsed)
+      end
+
+      File.open(file_path, 'w') do |f|
+        f.write(JSON.pretty_generate(parsed))
+      end
+    end
+  end
+
   def update_form_processors
     Hmis::Form::FormProcessor.where.not(values: nil).find_each do |processor|
       processor.values = processor.values.transform_keys do |key|
@@ -28,31 +48,7 @@ class OneTimeMigration20230303
     Hmis::Form::Definition.find_each do |definition|
       next unless definition.valid?
 
-      seen = Set.new
-      walk_nodes(definition.definition) do |node|
-        next unless node['link_id'].present?
-
-        link_id = node['link_id']
-        node['link_id'] = transform_identifier(link_id) if link_id
-        raise "duplicate link_id for #{link_id}" if node['link_id'].in?(seen)
-
-        seen.add(node['link_id'])
-
-        # try to find any question id references in the item definition
-        node['enable_when']&.each do |props|
-          props['question'] = transform_identifier(props['question']) if props['question']
-          props['compare_question'] = transform_identifier(props['compare_question']) if props['compare_question']
-        end
-
-        node['autofill_values']&.each do |props|
-          props['value_question'] = transform_identifier(props['value_question']) if props['value_question']
-          props['sum_questions']&.map! { |value| transform_identifier(value) }
-          props['autofill_when']&.each do |child_props|
-            child_props['question'] = transform_identifier(child_props['question']) if child_props['question']
-            child_props['compare_question'] = transform_identifier(child_props['compare_question']) if child_props['compare_question']
-          end
-        end
-      end
+      transform_definition(definition.definition)
       definition.save!
     end
   end
@@ -61,6 +57,34 @@ class OneTimeMigration20230303
   VALID_IDENTIFIER_RGX = /\A[a-zA-Z_$][a-zA-Z0-9_$]*\z/
   def valid_identifier?(value)
     value =~ VALID_IDENTIFIER_RGX && !value.in?(RESERVED_WORDS)
+  end
+
+  def transform_definition(definition)
+    seen = Set.new
+    walk_nodes(definition) do |node|
+      next unless node['link_id'].present?
+
+      link_id = node['link_id']
+      node['link_id'] = transform_identifier(link_id) if link_id
+      raise "duplicate link_id for #{link_id}" if node['link_id'].in?(seen)
+
+      seen.add(node['link_id'])
+
+      # try to find any question id references in the item definition
+      node['enable_when']&.each do |props|
+        props['question'] = transform_identifier(props['question']) if props['question']
+        props['compare_question'] = transform_identifier(props['compare_question']) if props['compare_question']
+      end
+
+      node['autofill_values']&.each do |props|
+        props['value_question'] = transform_identifier(props['value_question']) if props['value_question']
+        props['sum_questions']&.map! { |value| transform_identifier(value) }
+        props['autofill_when']&.each do |child_props|
+          child_props['question'] = transform_identifier(child_props['question']) if child_props['question']
+          child_props['compare_question'] = transform_identifier(child_props['compare_question']) if child_props['compare_question']
+        end
+      end
+    end
   end
 
   def transform_identifier(original_value)
@@ -74,8 +98,8 @@ class OneTimeMigration20230303
     value = value =~ /\A[0-9]+\z/ ? "q_#{value}" : value
     # leading number with a period seems to be HUD ref numbers like "2.02.6"
     value = value =~ /\A[^a-z]+\./i ? "hud_#{value}" : value
-    # camelize hyphenated strings or spaces
-    value = value.gsub(/(-| )+([a-z])/) { Regexp.last_match(2).upcase }
+    # snakecase hyphenated strings or spaces
+    value = value.gsub(/(-| )+/, '_')
     # replace dots and lingering hyphens with an underscore
     value = value.gsub(/[-.]/, '_')
 
@@ -91,5 +115,9 @@ class OneTimeMigration20230303
     block.call(node)
     children = node['item']
     children&.each { |child| walk_nodes(child, &block) }
+
+    # also traverse items in patches, when transforming patch files
+    patch_children = node['append_items']
+    patch_children&.each { |child| walk_nodes(child, &block) }
   end
 end
