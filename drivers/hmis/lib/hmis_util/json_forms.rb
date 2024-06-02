@@ -260,7 +260,7 @@ module HmisUtil
         identifier: identifier,
         role: role,
         version: 0,
-      ).first_or_create!(title: title || role.to_s.humanize, status: Hmis::Form::Definition::PUBLISHED)
+      ).first_or_initialize(title: title || role.to_s.humanize)
       record.definition = form_definition
       record.title = title if title.present?
       record.status = Hmis::Form::Definition::PUBLISHED
