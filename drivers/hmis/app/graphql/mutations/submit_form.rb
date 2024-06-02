@@ -58,13 +58,12 @@ module Mutations
       end
       access_denied! unless allowed
 
-      # Build FormProcessor. Handles validation and updating the relevant record(s), and persisting references to any related records.
-      form_processor = Hmis::Form::FormProcessor.new(
-        owner: record,
-        definition: definition,
-        values: input.values,
-        hud_values: input.hud_values,
-      )
+      # Build FormProcessor, or use processor that was most recently used to update this record.
+      # The FormProcessor handles validating+processing the Values into the database, updating any related record(s), and persisting references to related records.
+      form_processor = record.form_processor || record.build_form_processor
+      form_processor.definition = definition
+      form_processor.values = input.values
+      form_processor.hud_values = input.hud_values
 
       # Validate based on FormDefinition
       errors = HmisErrors::Errors.new
@@ -104,7 +103,7 @@ module Mutations
           end
         else
           record.save!
-          # record.touch # update DateUpdated
+          record.touch
         end
 
         # Save FormProcessor, which may save any related records

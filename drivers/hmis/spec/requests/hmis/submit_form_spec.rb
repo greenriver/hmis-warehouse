@@ -211,10 +211,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               input.delete(:enrollment_id)
             end
 
-            # delete processing jobs that would have been queued from factory record creation
-            Delayed::Job.jobs_for_class(['GrdaWarehouse::Tasks::ServiceHistory::Enrollment', 'GrdaWarehouse::Tasks::IdentifyDuplicates']).delete_all
-            # mark enrollment record as processed
-            e1.update!(processed_as: 'PROCESSED', processed_hash: 'PROCESSED') if input[:record_id].present?
+            e1.update(processed_as: 'PROCESSED', processed_hash: 'PROCESSED') if input[:record_id].present?
 
             record, errors = submit_form(input)
             record_id = record['id']
@@ -578,6 +575,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       submit_form(input)
       e1.reload
       expect(e1.in_progress?).to eq(false)
+    end
+
+    it 're-submission should not create a second FormProcessor' do
+      input = test_input.merge(record_id: e1.id)
+      expect { submit_form(input) }.to change(Hmis::Form::FormProcessor, :count).by(1)
+      expect { submit_form(input) }.not_to change(Hmis::Form::FormProcessor, :count)
     end
   end
 
