@@ -980,6 +980,18 @@ module Health
       'managed'
     end
 
+    def pii_provider(user:)
+      # patient almost duck-types for client, except dob field is different
+      GrdaWarehouse::PiiProvider.from_attributes(
+        policy: user.policies.for_patient(self),
+        first_name: first_name,
+        last_name: last_name,
+        middle_name: middle_name,
+        dob: birthdate,
+        ssn: ssn,
+      )
+    end
+
     def coverage_level_managed?
       coverage_level == Health::Patient.coverage_level_managed_value
     end
