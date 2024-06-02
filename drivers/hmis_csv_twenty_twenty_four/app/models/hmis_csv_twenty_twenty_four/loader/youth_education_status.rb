@@ -8,6 +8,9 @@ module HmisCsvTwentyTwentyFour::Loader
   class YouthEducationStatus < GrdaWarehouse::Hud::Base
     include LoaderConcern
     include ::HmisStructure::YouthEducationStatus
+
+    has_one :destination_record_with_deleted, -> { with_deleted }, **hud_assoc(:YouthEducationStatusID, 'YouthEducationStatus')
+
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
     self.table_name = 'hmis_csv_2024_youth_education_statuses'
     self.primary_key = 'id'
