@@ -132,8 +132,7 @@ module Hmis::Hud::Processors
       end
 
       primary = values.find { |v| v['primary'] == true }
-      # Build attributes for Client based on the Primary name. This already happens in the after_save hook on CustomClientName,
-      # but we need it here so that the correct values are present on the unpersisted record for validation.
+      # Build attributes for Client based on the Primary name
       client_attributes = if primary.present?
         {
           first_name: primary['first'],

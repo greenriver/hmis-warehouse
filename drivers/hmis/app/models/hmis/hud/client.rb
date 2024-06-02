@@ -82,6 +82,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 
   attr_accessor :image_blob_id
+  # Order is: before_save => save => after_create|after_update > after_save
   after_create :warehouse_identify_duplicate_clients
   after_update :warehouse_match_existing_clients
   before_save :set_source_hash
