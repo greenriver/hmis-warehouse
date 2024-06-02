@@ -39,7 +39,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'IncomeBenefit.otherIncomeSourceIdentify' => HIDDEN,
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.income_benefits.count).to eq(1)
@@ -65,7 +65,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'IncomeBenefit.otherIncomeSourceIdentify' => HIDDEN,
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.income_benefits.count).to eq(1)
@@ -91,7 +91,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'IncomeBenefit.otherBenefitsSourceIdentify' => HIDDEN,
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.income_benefits.count).to eq(1)
@@ -114,7 +114,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'IncomeBenefit.otherBenefitsSourceIdentify' => HIDDEN,
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.income_benefits.count).to eq(1)
@@ -137,7 +137,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'IncomeBenefit.otherInsuranceIdentify' => HIDDEN,
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.income_benefits.count).to eq(1)
@@ -157,7 +157,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'IncomeBenefit.medicaid' => nil,
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.income_benefits.count).to eq(1)
@@ -175,7 +175,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'IncomeBenefit.insuranceFromAnySource' => 'YES',
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       expect(assessment.form_processor.valid?(:form_submission)).to be false
       expect(assessment.form_processor.errors.where(:income_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::INCOME_SOURCES_UNSPECIFIED)
       expect(assessment.form_processor.errors.where(:benefits_from_any_source).first.options[:full_message]).to eq(Hmis::Hud::Validators::IncomeBenefitValidator::BENEFIT_SOURCES_UNSPECIFIED)
@@ -192,7 +192,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'HealthAndDv.whenOccurred' => HIDDEN,
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.health_and_dvs.count).to eq(1)
@@ -211,7 +211,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'HealthAndDv.whenOccurred' => HIDDEN,
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.health_and_dvs.count).to eq(1)
@@ -230,7 +230,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'HealthAndDv.whenOccurred' => 'CLIENT_PREFERS_NOT_TO_ANSWER',
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.health_and_dvs.count).to eq(1)
@@ -251,7 +251,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'YouthEducationStatus.currentEdStatus' => HIDDEN,
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.youth_education_statuses.count).to eq(1)
@@ -270,7 +270,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'YouthEducationStatus.currentEdStatus' => HIDDEN,
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.youth_education_statuses.count).to eq(1)
@@ -289,7 +289,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'YouthEducationStatus.currentEdStatus' => 'PURSUING_BACHELOR_S_DEGREE',
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.youth_education_statuses.count).to eq(1)
@@ -312,7 +312,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'EmploymentEducation.notEmployedReason' => HIDDEN,
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.employment_educations.count).to eq(1)
@@ -335,7 +335,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'EmploymentEducation.notEmployedReason' => HIDDEN,
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.employment_educations.count).to eq(1)
@@ -358,7 +358,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'EmploymentEducation.notEmployedReason' => 'NOT_LOOKING_FOR_WORK',
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.employment_educations.count).to eq(1)
@@ -389,7 +389,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'Enrollment.disablingCondition' => 'YES',
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.disabilities.count).to eq(6)
@@ -424,7 +424,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'Enrollment.disablingCondition' => nil,
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.save_not_in_progress
 
       expect(assessment.enrollment.disabilities.count).to eq(6)
@@ -449,7 +449,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'HealthAndDv.domesticViolenceSurvivor' => 'NO',
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.save_not_in_progress
 
       assessment.reload.form_processor.hud_values = {
@@ -457,7 +457,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'IncomeBenefit.unemploymentAmount' => 100,
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.form_processor.save!
       assessment.save_not_in_progress
       assessment.reload
@@ -476,7 +476,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'IncomeBenefit.unemploymentAmount' => 100,
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.form_processor.save!
       assessment.save_not_in_progress
 
@@ -486,7 +486,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'IncomeBenefit.incomeFromAnySource' => nil,
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.form_processor.save!
       assessment.save_not_in_progress
       assessment.reload
@@ -500,13 +500,13 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'IncomeBenefit.incomeFromAnySource' => 'NO',
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.save_not_in_progress
 
       test_date = '2020-10-15'.to_date
       assessment.assessment_date = test_date
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.form_processor.save!
       assessment.save_not_in_progress
 
@@ -523,7 +523,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'Exit.counselingMethods' => ['INDIVIDUAL', 'FAMILY'],
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.form_processor.save!
       assessment.save_not_in_progress
       assessment.reload
@@ -545,7 +545,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'Exit.aftercareMethods' => ['VIA_EMAIL_SOCIAL', 'IN_PERSON_1_ON_1'],
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.form_processor.save!
       assessment.save!
       assessment.reload
@@ -559,7 +559,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       # Re-submit with empty aftercare methods (should set fields to 99)
       assessment.reload.form_processor.hud_values.merge!('Exit.aftercareMethods' => [])
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.form_processor.save!
       assessment.save!
       assessment.reload
@@ -573,7 +573,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       # Re-submit with hidden aftercare methods (should set fields to nil)
       assessment.reload.form_processor.hud_values.merge!('Exit.aftercareMethods' => HIDDEN)
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.form_processor.save!
       assessment.save!
       assessment.reload
@@ -591,7 +591,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'Enrollment.enrollmentCoc' => 'MA-507',
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       assessment.save_not_in_progress
 
       old_entry_date = assessment.enrollment.entry_date
@@ -602,7 +602,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'Enrollment.entryDate' => new_entry_date,
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       # Unsaved changes should be present on the enrollment
       expect(assessment.enrollment.entry_date).to eq(Date.parse(new_entry_date))
 
@@ -630,7 +630,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         "Enrollment.monthsHomelessPastThreeYears": 'NUM_2',
       }.stringify_keys
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       enrollment = assessment.enrollment
       expect(enrollment.living_situation).to eq(206)
       expect(enrollment.length_of_stay).to eq(3)
@@ -660,7 +660,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         'Enrollment.monthsHomelessPastThreeYears' => nil,
       }
 
-      assessment.form_processor.run!(owner: assessment, user: hmis_user)
+      assessment.form_processor.run!(user: hmis_user)
       enrollment = assessment.enrollment
       expect(enrollment.living_situation).to eq(99)
       expect(enrollment.length_of_stay).to eq(99)
@@ -673,11 +673,12 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
   def process_record(record:, hud_values:, user:, definition:, save: true)
     form_processor = Hmis::Form::FormProcessor.new(
+      owner: record,
       hud_values: hud_values,
       definition: definition,
     )
     record.form_processor = form_processor if record.is_a?(Hmis::Hud::CustomAssessment)
-    form_processor.run!(owner: record, user: user)
+    form_processor.run!(user: user)
     form_processor.owner.save!(context: :form_submission) if save
     form_processor
   end
@@ -1257,9 +1258,9 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
     it 'validates Client record' do
       enrollment = Hmis::Hud::Enrollment.new(data_source: ds1, user: u1, project: p1)
-      form_processor = Hmis::Form::FormProcessor.new(definition: definition)
+      form_processor = Hmis::Form::FormProcessor.new(owner: enrollment, definition: definition)
       form_processor.hud_values = complete_hud_values.merge('Client.nameDataQuality' => 'INVALID')
-      form_processor.run!(owner: enrollment, user: hmis_user)
+      form_processor.run!(user: hmis_user)
       expect(enrollment.valid?(:form_submission)).to eq(true)
       expect(enrollment.valid?(:new_client_enrollment_form)).to eq(false)
     end
@@ -1835,49 +1836,35 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
     end
 
     it 'creates and updates all fields on a HUD Service' do
-      existing_record = Hmis::Hud::HmisService.find_by(owner: hud_service)
-      hud_service_type = Hmis::Hud::CustomServiceType.find_by(hud_record_type: hud_service.record_type, hud_type_provided: hud_service.type_provided)
-      new_record = Hmis::Hud::HmisService.new(
+      new_record = Hmis::Hud::Service.new(
         data_source: ds1,
         enrollment_id: e1.enrollment_id,
         personal_id: e1.personal_id,
-        custom_service_type_id: hud_service_type.id, # initializer sets record type and type provided on Service
+        record_type: hud_service.record_type,
+        type_provided: hud_service.type_provided,
       )
 
-      [existing_record, new_record].each do |record|
-        process_record(record: record, hud_values: hud_service_values, user: hmis_user, save: false, definition: definition)
-        record.owner.save!
+      [hud_service, new_record].each do |record|
+        process_record(record: record, hud_values: hud_service_values, user: hmis_user, definition: definition)
 
-        hmis_service = Hmis::Hud::HmisService.find_by(owner: record.owner)
-        expect(hmis_service.hud_service?).to eq(true)
-        expect(hmis_service.custom_service?).to eq(false)
-        expect(hmis_service.record_type).to eq(hud_service.record_type)
-        expect(hmis_service.type_provided).to eq(hud_service.type_provided)
-        expect(hmis_service.fa_amount).to eq(200)
-        expect(hmis_service.date_provided.strftime('%Y-%m-%d')).to eq('2023-03-13')
+        expect(record.fa_amount).to eq(200)
+        expect(record.date_provided.strftime('%Y-%m-%d')).to eq('2023-03-13')
       end
     end
 
     it 'creates and updates all fields on a Custom Service' do
-      existing_record = Hmis::Hud::HmisService.find_by(owner: custom_service)
-      new_record = Hmis::Hud::HmisService.new(
+      new_record = Hmis::Hud::CustomService.new(
         data_source: ds1,
         enrollment_id: e1.enrollment_id,
         personal_id: e1.personal_id,
         custom_service_type_id: cst1.id,
       )
-      [existing_record, new_record].each do |record|
-        process_record(record: record, hud_values: custom_service_values, user: hmis_user, save: false, definition: definition)
-        record.owner.save!
+      [custom_service, new_record].each do |record|
+        process_record(record: record, hud_values: custom_service_values, user: hmis_user, definition: definition)
 
-        hmis_service = Hmis::Hud::HmisService.find_by(owner: record.owner)
-        expect(hmis_service.hud_service?).to eq(false)
-        expect(hmis_service.custom_service?).to eq(true)
-        expect(hmis_service.custom_service_type_id).to eq(cst1.id)
-        expect(hmis_service.record_type).to be nil
-        expect(hmis_service.type_provided).to be nil
-        expect(hmis_service.fa_amount).to eq(100)
-        expect(hmis_service.date_provided.strftime('%Y-%m-%d')).to eq('2023-03-13')
+        expect(record.custom_service_type_id).to eq(cst1.id)
+        expect(record.fa_amount).to eq(100)
+        expect(record.date_provided.strftime('%Y-%m-%d')).to eq('2023-03-13')
       end
     end
   end
@@ -1937,7 +1924,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
       def process_assessment(new_hud_values: nil)
         assessment.form_processor.update(hud_values: new_hud_values) if new_hud_values
-        assessment.form_processor.run!(owner: assessment, user: hmis_user)
+        assessment.form_processor.run!(user: hmis_user)
         assessment.form_processor.save!(context: :form_submission)
       end
 
@@ -2032,7 +2019,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       let(:assessment) { build(:hmis_custom_assessment, client: c1, enrollment: e1, data_source: ds1, user: u1, definition: definition, hud_values: hud_values) }
 
       def process_assessment
-        assessment.form_processor.run!(owner: assessment, user: hmis_user)
+        assessment.form_processor.run!(user: hmis_user)
         assessment.form_processor.save!(context: :form_submission)
       end
 

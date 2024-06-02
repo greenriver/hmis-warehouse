@@ -141,13 +141,14 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   end
 
   def store_assessment_questions!
+    return unless owner_type == Hmis::Hud::CustomAssessment.sti_name && ce_assessment?
+
     # Queue up job to store CE Assessment responses in the HUD CE AssessmentQuestions table
     # Rspec test isolation interferes with delayed job transaction
     if Rails.env.test?
-      # FIXME
-      ::Hmis::AssessmentQuestionsJob.perform_now(custom_assessment_ids: custom_assessment_id)
+      ::Hmis::AssessmentQuestionsJob.perform_now(custom_assessment_ids: owner_id)
     else
-      ::Hmis::AssessmentQuestionsJob.perform_later(custom_assessment_ids: custom_assessment_id)
+      ::Hmis::AssessmentQuestionsJob.perform_later(custom_assessment_ids: owner_id)
     end
   end
 
