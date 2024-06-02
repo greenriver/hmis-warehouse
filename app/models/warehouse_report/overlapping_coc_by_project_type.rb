@@ -81,7 +81,8 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
       residential.
       open_between(start_date: @start_date, end_date: @end_date).
       service_within_date_range(start_date: @start_date, end_date: @end_date).
-      in_coc(coc_code: coc_code)
+      joins(:enrollment).
+      merge(GrdaWarehouse::Hud::Enrollment.where(EnrollmentCoC: coc_code))
 
     if @project_type
       scope = scope.merge(
@@ -110,9 +111,12 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
 
   def service_histories(project_type: nil)
     scope = GrdaWarehouse::ServiceHistoryService.joins(
-      service_history_enrollment: {
-        project: :project_cocs,
-      },
+      service_history_enrollment: [
+        :enrollment,
+        {
+          project: :project_cocs,
+        },
+      ],
     ).service_between(
       start_date: @start_date,
       end_date: @end_date,
@@ -136,7 +140,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
             where(client_id: clients).
             in_project_type(p_type).
             distinct.
-            merge(GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc)).
+            merge(GrdaWarehouse::Hud::Enrollment.where(enrollment_coc: coc)).
             pluck(:client_id, :project_type, :date).each do |c_id, p_type2, date|
               dates[p_type2][coc] << [c_id, date]
             end
@@ -208,11 +212,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
     # force this to only return data for the first 50, beyond that is unnecessary
     relevant_client_ids = relevant_client_ids[0..50]
     service_histories.where(client_id: relevant_client_ids).
-      preload(
-        service_history_enrollment: {
-          project: :project_cocs,
-        },
-      ).
+      preload(service_history_enrollment: [:enrollment, { project: :project_cocs }]).
       group_by(&:client_id).map do |client_id, services|
         client = clients_by_id[client_id]
         {
@@ -246,7 +246,7 @@ class WarehouseReport::OverlappingCocByProjectType < WarehouseReport
   private def enrollment_details(services, user)
     services.group_by { |s| s.service_history_enrollment.project }.map do |project, project_services|
       {
-        coc: project.project_cocs.first.effective_coc_code,
+        coc: project_services.first.enrollment.enrollment_coc,
         project_name: project.name(user),
         project_type: ::HudUtility2024.project_type_brief(project.ProjectType),
         history: history_details(project_services),

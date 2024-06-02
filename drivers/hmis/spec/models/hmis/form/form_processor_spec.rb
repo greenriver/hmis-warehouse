@@ -22,6 +22,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
   before(:all) do
     cleanup_test_environment
+    ::HmisUtil::JsonForms.seed_all
   end
   after(:all) do
     cleanup_test_environment

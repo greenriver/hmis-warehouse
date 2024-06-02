@@ -615,6 +615,7 @@ module HmisStructure::IncomeBenefit
           TotalMonthlyIncome: {
             type: :string,
             limit: 50,
+            check: :money,
           },
           Earned: {
             type: :integer,
