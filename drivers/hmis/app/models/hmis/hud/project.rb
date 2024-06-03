@@ -9,6 +9,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::HasCustomDataElements
   include ActiveModel::Dirty
+  include ApplicationHelper # todo @martha - not working?
 
   has_paper_trail(meta: { project_id: :id })
 
@@ -121,15 +122,12 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
     search_term.strip!
     query = "%#{search_term.split(/\W+/).join('%')}%"
-    numeric = /[\d-]+/.match(search_term).try(:[], 0) == search_term
-    max_pk = 2_147_483_648 # PK is a 4 byte signed INT (2 ** ((4 * 8) - 1))
-    possibly_pk = numeric ? search_term.to_i < max_pk : false
 
     where(
       [
         p_t[:ProjectName].matches(query),
         p_t[:project_id].eq(search_term),
-        possibly_pk ? p_t[:id].eq(search_term) : nil,
+        possibly_pk?(search_term) ? p_t[:id].eq(search_term) : nil,
       ].compact.inject(&:or),
     )
   end

@@ -11,6 +11,7 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
   include ::HmisStructure::Organization
   include ::Hmis::Hud::Concerns::HasCustomDataElements
   include ::Hmis::Hud::Concerns::Shared
+  include ApplicationHelper # todo @martha - not working?
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_many :projects, **hmis_relation(:OrganizationID, 'Project'), dependent: :destroy
@@ -36,15 +37,12 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
 
     search_term.strip!
     query = "%#{search_term.split(/\W+/).join('%')}%"
-    numeric = /[\d-]+/.match(search_term).try(:[], 0) == search_term
-    max_pk = 2_147_483_648 # PK is a 4 byte signed INT (2 ** ((4 * 8) - 1))
-    possibly_pk = numeric ? search_term.to_i < max_pk : false
 
     where(
       [
         o_t[:OrganizationName].matches(query),
         o_t[:organization_id].eq(search_term),
-        possibly_pk ? o_t[:id].eq(search_term) : nil,
+        possibly_pk?(search_term) ? o_t[:id].eq(search_term) : nil,
       ].compact.inject(&:or),
     )
   end
