@@ -4,11 +4,14 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+require 'memery'
 require 'restclient'
+
 module GrdaWarehouse::Hud
   class Client < Base
     self.primary_key = :id
     include Rails.application.routes.url_helpers
+    include Memery
     include RandomScope
     include ArelHelper
     include HealthCharts
@@ -252,6 +255,7 @@ module GrdaWarehouse::Hud
     end
 
     scope :searchable_to, ->(_user, client_ids: nil) do # rubocop:disable Lint/UnusedBlockArgument
+      # FIXME: add doc as to why scopes are in an extension (these are overridden)
       none
     end
     # End User access control
@@ -815,7 +819,7 @@ module GrdaWarehouse::Hud
     end
 
     def source_clients_searchable_to(user)
-      @source_clients_searchable_to = {}.tap do |clients|
+      @source_clients_searchable_to ||= {}.tap do |clients|
         clients[user.id] ||= if source_client_ids.present?
           self.class.searchable_to(user, client_ids: source_client_ids).preload(:data_source).to_a
         else
@@ -832,16 +836,23 @@ module GrdaWarehouse::Hud
     end
 
     def client_names(user:, health: false)
-      names = source_clients_searchable_to(user).map do |m|
+      names = source_clients_searchable_to(user).map do |client|
         {
-          ds: m.data_source&.short_name,
-          ds_id: m.data_source&.id,
-          name: m.full_name,
-          health: m.data_source&.authoritative_type == 'health',
+          ds: client.data_source&.short_name,
+          ds_id: client.data_source&.id,
+          name: client.pii_provider(user: user).full_name,
+          health: client.data_source&.authoritative_type == 'health',
         }
       end
-      names << { ds: 'Health', ds_id: GrdaWarehouse::DataSource.health_authoritative_id, name: patient.name } if health && patient.present? && names.detect { |name| name[:health] }.blank?
-      names
+
+      if health && names.none? { |name| name[:health].present? } && patient.present?
+        names << {
+          ds: 'Health',
+          ds_id: GrdaWarehouse::DataSource.health_authoritative_id,
+          name: patient.pii_provider(user: user).brief_name,
+        }
+      end
+      names.uniq
     end
 
     # client has a disability response in the affirmative
@@ -1403,7 +1414,14 @@ module GrdaWarehouse::Hud
       end
     end
 
+    memoize def pii_provider(user:)
+      GrdaWarehouse::PiiProvider.new(self, policy: user.policies.for_client(self))
+    end
+
     def name
+      # Deprecated
+      # skip deprecations to avoid test failures. Suggest uncommenting when we are ready to implement pii globally
+      # ActiveSupport::Deprecation.warn('Use client.pii_provider(user: current_user).brief_name instead')
       "#{self.FirstName} #{self.LastName}"
     end
 
@@ -1677,6 +1695,9 @@ module GrdaWarehouse::Hud
     end
 
     def full_name
+      # Deprecated
+      # skip deprecations to avoid test failures. Suggest uncommenting when we are ready to implement pii globally
+      # ActiveSupport::Deprecation.warn('Use client.pii_provider(user: current_user).full_name instead')
       [self.FirstName, self.MiddleName, self.LastName].select(&:present?).join(' ')
     end
 

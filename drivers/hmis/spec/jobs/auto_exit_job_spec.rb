@@ -46,6 +46,19 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: e1.entry_date, destination: 30)
       expect(e1.exit_assessment).to be_present
     end
+
+    it 'should ignore bed night that is missing DateProvided' do
+      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, entry_date: Date.current - 2.months
+      create :hmis_hud_service, :skip_validate, data_source: ds1, client: c1, enrollment: e1, record_type: 200, date_provided: nil
+
+      Hmis::AutoExitJob.perform_now
+      expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: e1.entry_date, destination: 30)
+    end
+
+    it 'should ignore Enrollment that is missing EntryDate' do
+      create :hmis_hud_enrollment, :skip_validate, data_source: ds1, project: p1, client: c1, entry_date: nil
+      expect { Hmis::AutoExitJob.perform_now }.not_to change(Hmis::Hud::Enrollment.exited, :count)
+    end
   end
 
   describe 'for other project types (not ES NBN)' do
@@ -123,6 +136,19 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
       expect(Hmis::Hud::Enrollment.exited).to include(e1)
       expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: e1.entry_date, destination: 30)
       expect(e1.exit_assessment).to be_present
+    end
+
+    it 'should ignore Service that is missing DateProvided' do
+      e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, entry_date: Date.current - 2.months
+      create :hmis_hud_service, :skip_validate, data_source: ds1, client: c1, enrollment: e1, record_type: 141, type_provided: 1, date_provided: nil
+
+      Hmis::AutoExitJob.perform_now
+      expect(e1.exit).to have_attributes(auto_exited: be_present, exit_date: e1.entry_date, destination: 30)
+    end
+
+    it 'should ignore Enrollment that is missing EntryDate' do
+      create :hmis_hud_enrollment, :skip_validate, data_source: ds1, project: p1, client: c1, entry_date: nil
+      expect { Hmis::AutoExitJob.perform_now }.not_to change(Hmis::Hud::Enrollment.exited, :count)
     end
   end
 
