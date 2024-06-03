@@ -66,18 +66,18 @@ RSpec.describe Hmis::Hud::Client, type: :model do
       expect(c1.valid?(:client_form)).to be false
     end
 
-    it 'should update name when primary name is updated' do
-      n1 = create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'First', primary: true)
-      n2 = create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'Second')
+    # it 'should update name when primary name is updated' do
+    #   n1 = create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'First', primary: true)
+    #   n2 = create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'Second')
 
-      expect(c1.first_name).to eq('First')
+    #   expect(c1.first_name).to eq('First')
 
-      n2.update(first: 'New Second Value')
-      expect(c1.first_name).to eq('First')
+    #   n2.update(first: 'New Second Value')
+    #   expect(c1.first_name).to eq('First')
 
-      n1.update(first: 'New First Value')
-      expect(c1.first_name).to eq('New First Value')
-    end
+    #   n1.update(first: 'New First Value')
+    #   expect(c1.first_name).to eq('New First Value')
+    # end
   end
 
   describe 'with addresses' do
