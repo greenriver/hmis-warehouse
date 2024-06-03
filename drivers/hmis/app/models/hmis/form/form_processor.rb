@@ -11,14 +11,16 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   self.table_name = :hmis_form_processors
   has_paper_trail
 
-  belongs_to :owner, polymorphic: true, optional: true # The primary record that is being created/updated by this form. Should be optional: false
+  # The 'owner' is the primary record that is being processed.
+  # TODO change to optional: false
+  belongs_to :owner, polymorphic: true, optional: true
 
   # TODO remove this relation and drop the column
   belongs_to :custom_assessment, class_name: 'Hmis::Hud::CustomAssessment', optional: true
-  # Definition that was most recently used to process this assessment
+  # Definition that was most recently used to process this form
   belongs_to :definition, class_name: 'Hmis::Form::Definition', optional: true
 
-  # Related records that were created/updated from this assessment
+  # Related records that were created/updated from this form
   belongs_to :health_and_dv, class_name: 'Hmis::Hud::HealthAndDv', optional: true, autosave: true
   belongs_to :income_benefit, class_name: 'Hmis::Hud::IncomeBenefit', optional: true, autosave: true
   belongs_to :physical_disability, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
@@ -40,8 +42,8 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   attr_accessor :hud_user, :current_user
 
-  def custom_assessment
-    owner if owner_type == Hmis::Hud::CustomAssessment.sti_name
+  def custom_assessment?
+    owner_type == Hmis::Hud::CustomAssessment.sti_name
   end
 
   # TODO probably want to persist the user_id too
@@ -81,12 +83,12 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
       # If this is an assessment and all fields pertaining to this record type were hidden,
       # the related record should be destroyed. (For example, a Custom Assessment that conditionally creates a CE Event).
-      if custom_assessment.present? && containers_with_all_fields_hidden.include?(container) && processor.dependent_destroyable?
+      if custom_assessment? && containers_with_all_fields_hidden.include?(container) && processor.dependent_destroyable?
         processor.destroy_record
       else
         # This related record will be created or updated, so assign the metadata and information date.
         processor&.assign_metadata
-        processor&.information_date(custom_assessment.assessment_date) if custom_assessment.present?
+        processor&.information_date(owner.assessment_date) if custom_assessment?
       end
     end
 
@@ -162,7 +164,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
     return current_living_situation if current_living_situation.present? || !create
 
-    self.current_living_situation = enrollment_factory.current_living_situations.build(user_id: custom_assessment&.user_id)
+    self.current_living_situation = enrollment_factory.current_living_situations.build
   end
 
   def service_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
@@ -195,11 +197,15 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
   end
 
+  # Common HUD Assessment-related attributes
   def common_attributes
+    data_collection_stage = owner.data_collection_stage if owner.respond_to?(:data_collection_stage)
+    personal_id = owner.personal_id if owner.respond_to?(:personal_id)
+    information_date = owner.information_date if owner.respond_to?(:information_date)
     {
-      data_collection_stage: custom_assessment&.data_collection_stage,
-      personal_id: custom_assessment&.personal_id,
-      information_date: custom_assessment&.assessment_date,
+      data_collection_stage: data_collection_stage,
+      personal_id: personal_id,
+      information_date: information_date,
     }
   end
 
@@ -210,9 +216,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       # Enrollment already has an Exit that's not tied to this processor (could occur in imported data..)
       self.exit = enrollment_factory.exit
     else
-      self.exit = enrollment_factory.build_exit(
-        user_id: custom_assessment&.user_id,
-      )
+      self.exit = enrollment_factory.build_exit
     end
   end
 
@@ -221,7 +225,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
     return ce_assessment if ce_assessment.present? || !create
 
-    self.ce_assessment = enrollment_factory.assessments.build(user_id: custom_assessment&.user_id)
+    self.ce_assessment = enrollment_factory.assessments.build
   end
 
   def ce_event_factory(create: true)
@@ -229,7 +233,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
     return ce_event if ce_event.present? || !create
 
-    self.ce_event = enrollment_factory.events.build(user_id: custom_assessment&.user_id)
+    self.ce_event = enrollment_factory.events.build
   end
 
   def health_and_dv_factory(create: true)
@@ -411,7 +415,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end.compact.uniq
   end
 
-  def destroy_dependents!
+  def destroy_related_records!
     [
       :health_and_dv,
       :income_benefit,
@@ -457,7 +461,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
           true # reject
         # Skip validations for Information Date if this is an assessment,
         # since we validate the assessment date separately using CustomAssessmentValidator
-        elsif custom_assessment.present? && e.attribute.to_s.underscore == 'information_date'
+        elsif custom_assessment? && e.attribute.to_s.underscore == 'information_date'
           true # reject
         else
           false
@@ -481,9 +485,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     # Collect ActiveRecord validations (as HmisErrors)
     errors = collect_active_record_errors
     # Collect validations on the Assessment Date (if this is an assessment form)
-    if custom_assessment.present?
+    if custom_assessment?
       errors.push(*Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(
-        custom_assessment,
+        owner, # CustomAssessment record
         # Need to pass household members so we can validate based on their unpersisted entry/exit dates
         household_members: household_members,
       ))

@@ -33,7 +33,6 @@ module Mutations
       # Find or create record
       if input.record_id.present?
         record = klass.viewable_by(current_user).find_by(id: input.record_id)
-        record = record.owner if record.is_a? Hmis::Hud::HmisService
         record.lock_version = record_lock_version if record_lock_version
         entity_for_permissions = record # If we're editing an existing record, always use that as the permission base
       else
@@ -58,8 +57,8 @@ module Mutations
       end
       access_denied! unless allowed
 
-      # Use existing FormProcessor or build a new one. The FormProcessor handles validating+processing the Values into the database,
-      # updating any related record(s), and persisting references to related records.
+      # Use existing FormProcessor or build a new one. The FormProcessor handles validating + processing the values into the database,
+      # updating any related record(s), and storing references to related records.
       form_processor = record.form_processor || record.build_form_processor
       form_processor.definition = definition # Definition could be different from the last time this record was submitted
       form_processor.values = input.values # Values keyed by link_id are used for validating against the FormDefinition
