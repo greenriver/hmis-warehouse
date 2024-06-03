@@ -12,20 +12,9 @@ module ClientImageConsumer
 
     # Returns actual image bytes. Cache time limit not yet implemented.
     def image(_cache_for = 10.minutes)
-      # Check for locally uploaded image or a cached ETO image
-      image_data = local_client_image_data
-
-      # Check for HMIS uploaded images
-      # Queries client_files once for every source client - not ideal, but there are never that many
-      image_data ||= source_clients.detect(&:local_hmis_image)&.as_thumb
-
-      # If we still don't have an image at this point, look it up in the ETO API
-      image_data ||= source_clients.detect(&:eto_source_image_data)
-
-      # Use a fake headshot if none exists in non-prod environments
-      return image_data || fake_client_image_data || self.class.no_image_on_file_image unless Rails.env.production?
-
-      image_data || self.class.no_image_on_file_image
+      # Check first for locally uploaded image or a cached ETO image
+      # Otherwise, check for an image connected to the source client
+      local_client_image_data || source_clients.detect(&:image_for_source_client)&.local_hmis_image&.as_thumb
     end
 
     def image_for_source_client(_cache_for = 10.minutes)
@@ -37,8 +26,8 @@ module ClientImageConsumer
       # Return fake image if no image is on file and it's non-prod
       return image_data || fake_client_image_data || self.class.no_image_on_file_image unless Rails.env.production?
 
-      # In prod only, check the ETO API. This method will cache its results in the client_files db
-      image_data || eto_source_image_data
+      # In prod only, check the ETO API. This caches its results in the client_files db
+      image_data || eto_source_image_data || self.class.no_image_on_file_image
     end
 
     def local_client_image_data
