@@ -44,11 +44,31 @@ class OneTimeMigration20230303
     end
   end
 
+  # on_error allows customization of error handling incase we want to collect them instead of raising
+  def validate_definition(...)
+    HmisUtil::JsonForms.new.validate_definition(...)
+  end
+
+  def definition_valid?(definition)
+    return false if definition.definition.blank?
+    errors =  []
+    validate_definition(definition.definition, role: definition.role) do |message|
+      errors.push(message)
+    end
+    errors.empty?
+  end
+
   def update_form_definitions
     Hmis::Form::Definition.find_each do |definition|
-      next unless definition.valid?
+      if !definition_valid?(definition)
+        message = "Hmis::Form::Definition##{definition.id} is invalid, skipping"
+        Rails.logger.warn(message)
+        next
+      end
 
       transform_definition(definition.definition)
+      raise "Hmis::Form::Definition##{definition.id} became invalid after transform" unless definition_valid?(definition)
+
       definition.save!
     end
   end
