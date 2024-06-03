@@ -177,7 +177,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   #  - enroll an existing client (owner_type=Enrollment)
   #  - update Move-in Date at occurrence (owner_type=Enrollment)
   #
-  # In some other cases, the enrollment_factory can be used indirectly, to determine the relationship between records.
+  # In some other cases, the enrollment_factory is used to determine the relationship between records.
   # An example is a CustomCaseNote form that generates a CurrentLivingSituation. The form does not update Enrollment directly,
   # but it relies on the enrollment_factory to determine which enrollment to use when generating a new CLS (current_living_situation_factory)
   def enrollment_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
