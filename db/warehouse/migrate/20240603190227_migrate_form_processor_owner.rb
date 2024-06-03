@@ -7,7 +7,6 @@ class MigrateFormProcessorOwner < ActiveRecord::Migration[7.0]
     Hmis::Form::FormProcessor.where(owner_id: nil). # owner_id should all be null here, but check anyway
       where.not(custom_assessment_id: nil). # custom_assessment_id should all be present here, but check anyway
       update_all(owner_type: 'Hmis::Hud::CustomAssessment', owner_id: fp_t[:custom_assessment_id])
-    # >>>>TODO: owner shoud be made non-nullable
   end
 
   # rails db:migrate:down:warehouse VERSION=20240603190227
