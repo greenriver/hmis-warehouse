@@ -17235,8 +17235,8 @@ CREATE TABLE public.hmis_form_processors (
     current_living_situation_id integer,
     ce_assessment_id bigint,
     ce_event_id bigint,
-    owner_type character varying,
-    owner_id bigint
+    owner_type character varying NOT NULL,
+    owner_id bigint NOT NULL
 );
 
 
@@ -52866,7 +52866,7 @@ CREATE INDEX index_hmis_form_processors_on_mental_health_disorder_id ON public.h
 -- Name: index_hmis_form_processors_on_owner; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_hmis_form_processors_on_owner ON public.hmis_form_processors USING btree (owner_type, owner_id);
+CREATE UNIQUE INDEX index_hmis_form_processors_on_owner ON public.hmis_form_processors USING btree (owner_type, owner_id);
 
 
 --
@@ -62547,6 +62547,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240529195902'),
 ('20240529202928'),
 ('20240529205526'),
-('20240531152432');
+('20240531152432'),
+('20240603185124'),
+('20240603190227'),
+('20240603191431'),
+('20240603191721');
 
 
