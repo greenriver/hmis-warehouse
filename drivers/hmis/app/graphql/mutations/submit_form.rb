@@ -171,13 +171,13 @@ module Mutations
       when 'Hmis::Hud::HmisService'
         raise 'cannot create service without custom service type' unless custom_service_type.present?
 
-        view_model = Hmis::Hud::HmisService.new({
-                                                  enrollment_id: enrollment&.EnrollmentID,
-                                                  personal_id: enrollment&.PersonalID,
-                                                  custom_service_type_id: custom_service_type&.id,
-                                                  **ds,
-                                                })
-        [enrollment, view_model.owner] # Hmis::Hud::Service or Hmis::Hud::CustomService
+        attrs = { enrollment_id: enrollment&.EnrollmentID, personal_id: enrollment&.PersonalID, **ds }
+        service = if custom_service_type.hud_service?
+          Hmis::Hud::Service.new(record_type: custom_service_type.hud_record_type, type_provided: custom_service_type.hud_type_provided, **attrs)
+        else
+          Hmis::Hud::CustomService.new(custom_service_type: custom_service_type, **attrs)
+        end
+        [enrollment, service]
       when 'HmisExternalApis::AcHmis::ReferralRequest'
         [project, klass.new({ project_id: project&.id })]
       when 'HmisExternalApis::AcHmis::ReferralPosting'
