@@ -415,8 +415,8 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
   end
 
-  # fixme remove? this returns records that arent referenced like enrollment
-  def related_records
+  # All related records to validate. This includes the Enrollment record if present.
+  private def related_records
     all_factories.map do |factory_method|
       record = send(factory_method, create: false)
       # assessment is not considered a related record, other "owners" are
