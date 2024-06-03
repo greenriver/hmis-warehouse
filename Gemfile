@@ -190,7 +190,6 @@ gem 'net-ssh', '~> 7', require: false
 gem 'net-http'
 gem 'addressable' # normalize uris
 gem 'redis-actionpack'
-gem 'actiontext', '~> 7.0.8.3'
 
 gem 'ed25519'
 gem 'bcrypt_pbkdf'
