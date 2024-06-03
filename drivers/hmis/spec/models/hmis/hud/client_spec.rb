@@ -66,19 +66,19 @@ RSpec.describe Hmis::Hud::Client, type: :model do
       expect(c1.valid?(:client_form)).to be false
     end
 
-    it 'should update name when primary name is updated' do
+    it 'assign_primary_name_fields should work' do
       n1 = create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'First', primary: true)
       n2 = create(:hmis_hud_custom_client_name, user: u1, data_source: ds1, client: c1, first: 'Second')
 
-      c1.update_name_from_primary_name!
+      c1.assign_primary_name_fields
       expect(c1.first_name).to eq('First')
 
       n2.update!(first: 'New Second Value')
-      c1.update_name_from_primary_name!
+      c1.reload.assign_primary_name_fields
       expect(c1.first_name).to eq('First')
 
       n1.update!(first: 'New First Value')
-      c1.reload.update_name_from_primary_name!
+      c1.reload.assign_primary_name_fields
       expect(c1.first_name).to eq('New First Value')
     end
   end

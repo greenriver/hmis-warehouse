@@ -128,7 +128,6 @@ module HmisExternalApis::AcHmis
       # first => 'Jane', middle => '', last => 'Smith'
       prev_ccn_attrs = prev_attrs.transform_keys { |k| k.gsub(/Name/, '').downcase }
       # keep previous ccn as a non-primary custom name
-      # FIXME failing this relied on hook
       if prev_ccn_attrs.values.compact_blank.any?
         prev_ccn = client.names.where(prev_ccn_attrs).first_or_initialize
         assign_default_common_client_attrs(client, prev_ccn)
@@ -147,11 +146,9 @@ module HmisExternalApis::AcHmis
       new_ccn.save!
 
       # ensure the ccn is the only primary
-      client.names.where.not(id: new_ccn.id).each do |ccn|
-        # update on each record for lifecycle hooks
-        ccn.update!(primary: false)
-      end
-      client.update_name_from_primary_name!
+      client.names.where.not(id: new_ccn.id).update_all(primary: false)
+      # propagate the primary name to the client record
+      client.assign_primary_name_fields
     end
 
     # Add/update addresses
