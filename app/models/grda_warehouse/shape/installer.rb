@@ -43,7 +43,7 @@ module GrdaWarehouse
 
         return unless ZipCode.missing_assigned_county.any?
 
-        Rails.logger.info 'Associating zip codes with counties in YOUR state only'
+        Rails.logger.info 'Associating zip codes with counties in YOUR states only'
         GrdaWarehouse::Shape::ZipCode.calculate_counties
       end
 

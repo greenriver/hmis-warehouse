@@ -5,6 +5,8 @@ require 'pathname'
 require 'zip'
 require_relative '../../app/models/grda_warehouse/us_census_api/state_fips'
 
+# https://www.census.gov/cgi-bin/geo/shapefiles/index.php?year=2023&layergroup=Places
+
 if ARGV[0].to_s.split(',').map(&:length).uniq != [2]
   puts 'Set first arg to the two-letter state postal code, or comma delimited list of postal codes'
   exit
