@@ -417,4 +417,18 @@ class Hmis::Hud::Client < Hmis::Hud::Base
       )
     end
   end
+
+  # propagate values from the client's primary CustomClientName onto the Client record
+  # fixme should this be hooked into a callback to just assign the values? not sure where we depend on this :\
+  def update_name_from_primary_name!
+    return unless primary_name
+
+    update!(
+      first_name: primary_name.first,
+      last_name: primary_name.last,
+      middle_name: primary_name.middle,
+      name_suffix: primary_name.suffix,
+      name_data_quality: primary_name.name_data_quality || 99,
+    )
+  end
 end

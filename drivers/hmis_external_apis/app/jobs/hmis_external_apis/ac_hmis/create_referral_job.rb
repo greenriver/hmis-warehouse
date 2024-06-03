@@ -151,6 +151,7 @@ module HmisExternalApis::AcHmis
         # update on each record for lifecycle hooks
         ccn.update!(primary: false)
       end
+      client.update_name_from_primary_name!
     end
 
     # Add/update addresses
