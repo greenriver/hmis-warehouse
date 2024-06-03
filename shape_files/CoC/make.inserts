@@ -11,10 +11,10 @@ end
 
 FileUtils.chdir(Pathname.new(__FILE__).dirname)
 
-state_postal_codes = ARGV[0].to_s.gsub(',', '|')
+state_postal_codes = ARGV[0].to_s
 begin
-  # Handle MA, or MA|VT
-  Dir.glob("*(#{state_postal_codes})*.zip").each do |zipfile_path|
+  # Handle MA, or MA,VT
+  Dir.glob("*{#{state_postal_codes}}*.zip").each do |zipfile_path|
     Zip::File.open(zipfile_path) do |zipfile|
       zipfile.each do |file|
         zipfile.extract(file, "#{file.name}") unless File.exist?(file.name)

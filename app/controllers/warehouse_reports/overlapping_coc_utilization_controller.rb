@@ -13,7 +13,7 @@ module WarehouseReports
     CACHE_LIFETIME = 30.minutes.freeze
 
     RELEVANT_COC_STATE = ENV.fetch('RELEVANT_COC_STATE') do
-      GrdaWarehouse::Shape::Coc.order(Arel.sql('random()')).limit(1).pluck(:st)
+      GrdaWarehouse::Shape::Coc.order(Arel.sql('random()')).limit(2).pluck(:st).join(',')
     rescue StandardError
       'UNKNOWN'
     end.split(',')
