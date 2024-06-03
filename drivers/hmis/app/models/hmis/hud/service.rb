@@ -28,8 +28,7 @@ class Hmis::Hud::Service < Hmis::Hud::Base
 
   scope :bed_nights, -> { where(RecordType: 200) }
 
-  after_create :warehouse_trigger_processing
-  after_update :warehouse_trigger_processing
+  after_commit :warehouse_trigger_processing
 
   def matches_custom_service_type?(custom_service_type)
     record_type == custom_service_type.hud_record_type &&

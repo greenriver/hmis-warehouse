@@ -234,7 +234,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
               # check that delayed jobs are queued for when above happens or client is changed
               expect(Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::ServiceHistory::Enrollment').count).to be_positive if role.in?([:ENROLLMENT, :SERVICE, :CURRENT_LIVING_SITUATION])
-
               expect(Delayed::Job.jobs_for_class('GrdaWarehouse::Tasks::IdentifyDuplicates').count).to be_positive if role.in?([:CLIENT])
 
               # Expect that all of the fields that were submitted exist on the record
