@@ -128,6 +128,7 @@ module HmisExternalApis::AcHmis
       # first => 'Jane', middle => '', last => 'Smith'
       prev_ccn_attrs = prev_attrs.transform_keys { |k| k.gsub(/Name/, '').downcase }
       # keep previous ccn as a non-primary custom name
+      # FIXME failing this relied on hook
       if prev_ccn_attrs.values.compact_blank.any?
         prev_ccn = client.names.where(prev_ccn_attrs).first_or_initialize
         assign_default_common_client_attrs(client, prev_ccn)
