@@ -4,6 +4,9 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# HMIS uses similar but separate permissions system from the warehouse
+# See drivers/hmis/doc/PERMISSIONS.md
+
 module Hmis
   class GroupViewableEntity < GrdaWarehouseBase
     acts_as_paranoid

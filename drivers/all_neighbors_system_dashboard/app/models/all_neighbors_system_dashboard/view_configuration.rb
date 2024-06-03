@@ -78,6 +78,7 @@ module AllNeighborsSystemDashboard
           :project_group_ids,
           :data_source_ids,
           :secondary_project_ids,
+          :secondary_project_group_ids,
         ]
         filter.describe_filter_as_html(keys, inline: inline, labels: { secondary_projects: 'Diversion Projects', secondary_project_groups: 'DRTRR Project Group' })
       end
@@ -91,6 +92,7 @@ module AllNeighborsSystemDashboard
           :project_group_ids,
           :data_source_ids,
           :secondary_project_ids,
+          :secondary_project_group_ids,
         ]
       end
 
