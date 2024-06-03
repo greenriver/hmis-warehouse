@@ -14,7 +14,7 @@ module ClientImageConsumer
     def image(_cache_for = 10.minutes)
       # Check first for locally uploaded image or a cached ETO image
       # Otherwise, check for an image connected to the source client
-      local_client_image_data || source_clients.detect(&:image_for_source_client)&.local_hmis_image&.as_thumb
+      local_client_image_data || source_clients.detect(&:image_for_source_client)&.image_for_source_client
     end
 
     def image_for_source_client(_cache_for = 10.minutes)
