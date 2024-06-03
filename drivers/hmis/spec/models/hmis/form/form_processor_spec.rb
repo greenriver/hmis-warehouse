@@ -672,12 +672,10 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
   end
 
   def process_record(record:, hud_values:, user:, definition:, save: true)
-    form_processor = Hmis::Form::FormProcessor.new(
-      owner: record,
+    form_processor = record.build_form_processor(
       hud_values: hud_values,
       definition: definition,
     )
-    record.form_processor = form_processor if record.is_a?(Hmis::Hud::CustomAssessment)
     form_processor.run!(user: user)
     form_processor.owner.save!(context: :form_submission) if save
     form_processor

@@ -33,6 +33,7 @@ module Mutations
       # Find or create record
       if input.record_id.present?
         record = klass.viewable_by(current_user).find_by(id: input.record_id)
+        record = record.owner if record.is_a?(Hmis::Hud::HmisService)
         record.lock_version = record_lock_version if record_lock_version
         entity_for_permissions = record # If we're editing an existing record, always use that as the permission base
       else

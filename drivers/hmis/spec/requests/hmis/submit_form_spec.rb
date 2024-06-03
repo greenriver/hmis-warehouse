@@ -791,6 +791,102 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       end
     end
   end
+
+  describe 'Creating related records' do
+    let(:information_date) { 1.week.ago.to_date }
+    let(:definition_json) do
+      {
+        "item": [
+          {
+            # CaseNote.content field
+            "type": 'TEXT',
+            "required": false,
+            "link_id": 'note',
+            "mapping": {
+              "field_name": 'content',
+            },
+          },
+          {
+            # CurrentLivingSituation.informationDate field
+            "type": 'DATE',
+            "required": false,
+            "link_id": 'date',
+            "mapping": {
+              "record_type": 'CURRENT_LIVING_SITUATION',
+              "field_name": 'informationDate',
+            },
+          },
+          {
+            # CurrentLivingSituation.currentLivingSituation field
+            "type": 'CHOICE',
+            "required": false,
+            "link_id": 'cls',
+            "mapping": {
+              "record_type": 'CURRENT_LIVING_SITUATION',
+              "field_name": 'currentLivingSituation',
+            },
+          },
+        ],
+      }
+    end
+    let!(:definition) { create :hmis_form_definition, role: :CASE_NOTE, definition: definition_json }
+    let(:test_input) do
+      {
+        form_definition_id: definition.id,
+        **mock_form_values_for_definition(definition),
+        hud_values: {
+          'content' => 'test note',
+          'CurrentLivingSituation.informationDate' => information_date.strftime('%Y-%m-%d'),
+          'CurrentLivingSituation.currentLivingSituation' => 'SAFE_HAVEN', # 118
+        },
+        enrollment_id: e1.id,
+        confirmed: true,
+      }
+    end
+
+    it 'creates new CustomCaseNote with new CurrentLivingSituation attached' do
+      record, errors = submit_form(test_input)
+      expect(errors).to be_empty
+      expect(record).to be_present
+
+      case_note = Hmis::Hud::CustomCaseNote.find(record['id'])
+      cls = case_note.form_processor.current_living_situation
+      expect(cls).to be_present
+      expect(cls.information_date).to eq(information_date)
+      expect(cls.current_living_situation).to eq(118)
+      expect(cls.form_processor).to be_nil # CLS is not the owner, so it does not have a FormProcessor
+    end
+
+    it 'updates existing CustomCaseNote and related CurrentLivingSituation' do
+      # Run once to generate the records
+      record, = submit_form(test_input)
+      case_note = Hmis::Hud::CustomCaseNote.find(record['id'])
+      cls = case_note.form_processor.current_living_situation
+      expect(cls).to be_present
+
+      # Submit another form to update the same record with different values
+      second_input = test_input.merge(
+        record_id: case_note.id.to_s,
+        hud_values: {
+          'content' => 'note updated',
+          'CurrentLivingSituation.currentLivingSituation' => 'DATA_NOT_COLLECTED', # 99
+        },
+      )
+
+      expect do
+        submit_form(second_input)
+      end.to not_change(Hmis::Form::FormProcessor, :count).
+        and not_change(Hmis::Hud::CustomCaseNote, :count).
+        and not_change(Hmis::Hud::CurrentLivingSituation, :count)
+
+      case_note.reload
+      cls.reload
+      expect(case_note.form_processor.current_living_situation).to eq(cls)
+      expect(case_note.content).to eq('note updated')
+      expect(cls.form_processor).to be_nil
+      expect(cls.current_living_situation).to eq(99)
+    end
+  end
 end
 
 RSpec.configure do |c|

@@ -11,12 +11,12 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   self.table_name = :hmis_form_processors
   has_paper_trail
 
-  # The 'owner' is the primary record that is being processed.
-  # TODO change to optional: false
+  # The 'owner' is the primary record that is being processed. Could be a CustomAssessment, Client, Project, etc.
+  # TODO: change to optional: false
   belongs_to :owner, polymorphic: true, optional: true
-
-  # TODO remove this relation and drop the column
+  # TODO: remove this relation and drop the column
   belongs_to :custom_assessment, class_name: 'Hmis::Hud::CustomAssessment', optional: true
+
   # Definition that was most recently used to process this form
   belongs_to :definition, class_name: 'Hmis::Form::Definition', optional: true
 
@@ -46,10 +46,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     owner_type == Hmis::Hud::CustomAssessment.sti_name
   end
 
-  # TODO probably want to persist the user_id too
   def run!(user:)
-    # Owner is the "base" record for the form, which could be an assessment, client, project, etc.
-    # self.owner = owner
     # Set the HUD User and current user, so processors can store them on related records
     self.current_user = user
     self.hud_user = Hmis::Hud::User.from_user(user)
@@ -172,12 +169,26 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   end
 
   # Type Factories
+
+  # Enrollment is a special case, because it is not referenced by the FormProcessor.
+  # Enrollment can be the owner, or it can be related to the owner.
+  # Examples of forms that may update Enrollment:
+  #  - set EntryDate from intake assessment (owner_type=CustomAssessment)
+  #  - enroll an existing client (owner_type=Enrollment)
+  #  - update Move-in Date at occurrence (owner_type=Enrollment)
+  #
+  # In some other cases, the enrollment_factory can be used indirectly, to determine the relationship between records.
+  # An example is a CustomCaseNote form that generates a CurrentLivingSituation. The form does not update Enrollment directly,
+  # but it relies on the enrollment_factory to determine which enrollment to use when generating a new CLS (current_living_situation_factory)
   def enrollment_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
     @enrollment_factory ||= case owner
     when Hmis::Hud::CustomAssessment
       owner.enrollment
     when Hmis::Hud::Enrollment
       owner
+    else
+      # This is importantly mirrored in SubmitForm which saves the `record.enrollment` if it exists
+      owner.enrollment if owner.respond_to?(:enrollment)
     end
   end
 
