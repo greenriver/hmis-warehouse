@@ -6,8 +6,8 @@
 
 module HmisCsvTwentyTwentyFour::Loader
   class AssessmentQuestion < GrdaWarehouse::Hud::Base
-    include LoaderConcern
     include ::HmisStructure::AssessmentQuestion
+    include LoaderConcern
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
     self.table_name = 'hmis_csv_2024_assessment_questions'
     self.primary_key = 'id'
