@@ -199,7 +199,8 @@ module AllNeighborsSystemDashboard
     # 3. PH without services move-in (Project Type 9)
     # 4. RRH move-in (Project Type 13)
     # 5. Diversion
-    # 6. Latest entry date
+    # 6. Latest exit date
+    # 7. Latest entry date
     def deduplicate_universe!
       # NOTE: we aren't using the simple report universe anywhere else, using enrollments is way easier.
       cols = [
@@ -238,9 +239,16 @@ module AllNeighborsSystemDashboard
           keep[client_id] ||= row
           next if row[:id] == keep[client_id][:id]
 
-          # if we have the same project type, pick the later entry date
           if row[:project_type] == keep[client_id][:project_type]
+            # if we have the same project type, pick the later entry date
             keep[client_id] = row if row[:entry_date] > keep[client_id][:entry_date]
+
+            # if we have the same project type, pick the later exit date, prefer an open enrolment
+            if row[:exit_date].blank? && keep[client_id][:exit_date].present?
+              keep[client_id] = row
+            elsif row[:exit_date].present? && keep[client_id][:exit_date].present? && row[:exit_date] > keep[client_id][:exit_date]
+              keep[client_id] = row
+            end
           else
             # Sort by project type priority, set any diversion to 100 (max PH will be 3)
             row_project_type_index = priority_project_type_order.index(row[:project_type]) || 100
