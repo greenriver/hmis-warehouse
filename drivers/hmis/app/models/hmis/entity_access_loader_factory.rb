@@ -5,7 +5,7 @@
 ##
 
 # Factory to resolve the user access loader for a given entity. It also resolves
-# the entity that should be passed to the loader. A resolver blocker is used to
+# the entity that should be passed to the loader. A resolver block is used to
 # traverse associations as, in the case of graphql, another data loader would be
 # used to resolve the association.
 #
@@ -19,7 +19,7 @@
 #     association.send(record)
 #   end
 #   # resolve a user's permission on project through the loader. Loader.fetch() would
-#   # be used to called for many projects
+#   # be called for many projects
 #   allowed = loader.fetch_one(entity, :can_do_something)
 class Hmis::EntityAccessLoaderFactory
   # @param user [Hmis::User]

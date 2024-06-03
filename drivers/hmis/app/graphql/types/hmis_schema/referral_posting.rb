@@ -44,8 +44,9 @@ module Types
     field :referral_result, HmisSchema::Enums::Hud::ReferralResult
     field :denial_note, String, description: 'Admin Note associated with the denial (entered from the Denial Screen)'
     field :referred_from, String, null: false, description: 'Name of project or external source that the referral originated from'
+    field :referred_to, String, null: true, description: 'Name of the Project that household is being referred to'
     field :unit_type, HmisSchema::UnitTypeObject, null: true
-    field :project, HmisSchema::Project, null: true, description: 'Project that household is being referred to'
+    field :project, HmisSchema::Project, null: true, description: 'Project that household is being referred to, if user can access it'
     field :organization, HmisSchema::Organization, null: true
     custom_data_elements_field
 
@@ -108,6 +109,10 @@ module Types
       enrollment_project&.project_name || 'Coordinated Entry'
     end
 
+    def referred_to
+      load_ar_association(object, :project)&.project_name
+    end
+
     def organization
       project&.organization
     end
@@ -143,7 +148,10 @@ module Types
     end
 
     def project
-      load_ar_association(object, :project)
+      receiving_project = load_ar_association(object, :project)
+      return unless current_permission?(permission: :can_view_project, entity: receiving_project)
+
+      receiving_project
     end
 
     def referral

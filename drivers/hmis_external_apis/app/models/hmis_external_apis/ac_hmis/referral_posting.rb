@@ -11,7 +11,7 @@ module HmisExternalApis::AcHmis
     include ::Hmis::Hud::Concerns::HasCustomDataElements
     belongs_to :referral, class_name: 'HmisExternalApis::AcHmis::Referral'
     belongs_to :referral_request, class_name: 'HmisExternalApis::AcHmis::ReferralRequest', optional: true
-    belongs_to :project, class_name: 'Hmis::Hud::Project'
+    belongs_to :project, class_name: 'Hmis::Hud::Project' # project that is receiving the referral
     belongs_to :unit_type, class_name: 'Hmis::UnitType', optional: true
     belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
@@ -26,6 +26,7 @@ module HmisExternalApis::AcHmis
 
     scope :from_link, -> { where.not(identifier: nil) }
 
+    # viewability is based on whether the user can see the project that is RECEIVING the referral. It does not check referral perms.
     scope :viewable_by, ->(_user) { raise } # this scope is replaced by ::Hmis::Hud::Concerns::ProjectRelated
     include ::Hmis::Hud::Concerns::ProjectRelated
 

@@ -4,6 +4,13 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# AccessControl is part of the "new" permissions system
+#
+# An AccessControl includes:
+# * A role that specifies the set of permissions controlling what actions a user can perform within the system
+# * A user-group which defines the users who are granted those permissions
+# * A collection which defines the set of entities to which the permissions are applied (Project, Organization, etc)
+#
 class AccessControl < ApplicationRecord
   include ActionView::Helpers::TagHelper
   include UserPermissionCache

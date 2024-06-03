@@ -251,8 +251,6 @@ services:
       - ./dev/minio/certs:/certs
     hostname: s3.dev.test
     environment:
-      MINIO_ACCESS_KEY: local_access_key
-      MINIO_SECRET_KEY: local_secret_key
       MINIO_ROOT_USER: local_access_key
       MINIO_ROOT_PASSWORD: local_secret_key
     ports:

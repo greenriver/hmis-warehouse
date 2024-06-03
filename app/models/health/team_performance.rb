@@ -33,22 +33,7 @@ module Health
 
         next unless patient_ids.any?
 
-        OpenStruct.new(
-          {
-            id: nil,
-            name: name,
-            patient_referrals: patient_ids,
-            without_required_qa: patient_ids - with_required_qa,
-            without_required_f2f_visit: patient_ids - with_required_f2f_visit,
-            with_discharge_followup_completed: with_discharge_followup_completed.select { |id| id.in?(patient_ids) },
-            with_completed_intake: with_completed_intake.select { |id| id.in?(patient_ids) },
-            initial_intake_due: initial_intake_due.select { |id| id.in?(patient_ids) },
-            initial_intake_overdue: initial_intake_overdue.select { |id| id.in?(patient_ids) },
-            intake_renewal_due: intake_renewal_due.select { |id| id.in?(patient_ids) },
-            intake_renewal_overdue: intake_renewal_overdue.select { |id| id.in?(patient_ids) },
-            without_required_wellcare_visit: patient_ids - with_required_wellcare_visit,
-          },
-        )
+        create_count(name, patient_ids, self)
       end.compact
     end
 
