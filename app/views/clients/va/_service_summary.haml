@@ -1,7 +1,7 @@
 - seen_before = ( projects = @client.last_intentional_contacts( current_user, include_confidential_names: can_view_confidential_project_names?, include_dates: true).select(&:present?) ).any?
 
 - if @client.service_history_enrollments.empty?
-  = "There is no service record for #{@client.name}"
+  = "There is no service record for #{@client.pii_provider(user: current_user).name}"
 - else
   - if can_view_service_register_on_client? && RailsDrivers.loaded.include?(:service_scanning) && GrdaWarehouse::Config.get(:service_register_visible)
     = render 'service_scanning/scanner_ids/clients/last_seen_register'
@@ -47,6 +47,6 @@
             %i.icon-info{ data: { toggle: :tooltip, title: 'Most-recent dates and locations for services, current living situations, or CE activity' }}
           - projects.each do |proj|
             .service= proj
-     
+
   - else
     %p None

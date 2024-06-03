@@ -291,4 +291,12 @@ class ApplicationController < ActionController::Base
   def set_app_user_header
     response.headers['X-app-user-id'] = current_user&.id
   end
+
+  # TODO: START_ACL remove when ACL transition complete
+  def set_legacy_implicitly_assume_authorized_access
+    return if current_user.using_acls?
+
+    current_user.policies.legacy_implicitly_assume_authorized_access = true
+  end
+  # END ACL
 end

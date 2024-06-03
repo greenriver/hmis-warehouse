@@ -49,6 +49,9 @@ module CoreDemographicsReport::WarehouseReports
     end
 
     private def set_report
+      # TODO: START_ACL remove when ACL transition complete
+      @filter.user.policies.legacy_implicitly_assume_authorized_access = true
+
       @report = report_class.new(@filter)
       if @report.include_comparison?
         @comparison = report_class.new(@comparison_filter)

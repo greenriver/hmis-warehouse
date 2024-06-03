@@ -17,6 +17,25 @@ module Health
 
     attr_accessor :range
 
+    def create_count(name, patient_ids, calculator)
+      OpenStruct.new(
+        {
+          id: nil,
+          name: name,
+          patient_referrals: patient_ids,
+          without_required_qa: patient_ids - calculator.with_required_qa,
+          without_required_f2f_visit: patient_ids - calculator.with_required_f2f_visit,
+          with_discharge_followup_completed: calculator.with_discharge_followup_completed.select { |id| id.in?(patient_ids) },
+          with_completed_intake: calculator.with_completed_intake.select { |id| id.in?(patient_ids) },
+          initial_intake_due: calculator.initial_intake_due.select { |id| id.in?(patient_ids) },
+          initial_intake_overdue: calculator.initial_intake_overdue.select { |id| id.in?(patient_ids) },
+          intake_renewal_due: calculator.intake_renewal_due.select { |id| id.in?(patient_ids) },
+          intake_renewal_overdue: calculator.intake_renewal_overdue.select { |id| id.in?(patient_ids) },
+          without_required_wellcare_visit: patient_ids - calculator.with_required_wellcare_visit,
+        },
+      )
+    end
+
     def client_ids
       @client_ids ||= Health::Patient.where(id: patient_referrals.keys).
         pluck(:client_id, :id).to_h
