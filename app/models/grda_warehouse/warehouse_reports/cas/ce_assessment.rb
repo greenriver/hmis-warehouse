@@ -46,7 +46,7 @@ class GrdaWarehouse::WarehouseReports::Cas::CeAssessment < OpenStruct
   end
 
   private def default_project_id
-    available_projects.values.flatten(1).first.last
+    available_projects.values.flatten(1).first&.last
   end
 
   def project_name
