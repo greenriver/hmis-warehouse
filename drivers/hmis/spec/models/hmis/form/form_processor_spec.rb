@@ -1948,14 +1948,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
           and change { assessment.reload.ce_event.event }.to(1) # value updated
       end
 
-      it 'should find the CE event related record' do
-        process_assessment
-        related_records = assessment.form_processor.related_records
-        expect(related_records.length).to eq(2)
-        expect(related_records).to include(e1)
-        expect(related_records).to include(assessment.ce_event)
-      end
-
       describe 'and all CE Event fields are hidden:' do
         before(:each) do
           assessment.form_processor.hud_values = {

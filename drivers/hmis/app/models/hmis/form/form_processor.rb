@@ -345,7 +345,6 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       Exit: Hmis::Hud::Processors::ExitProcessor,
       # Form Records
       Client: Hmis::Hud::Processors::ClientProcessor,
-      HmisService: Hmis::Hud::Processors::ServiceProcessor,
       Service: Hmis::Hud::Processors::ServiceProcessor,
       CustomService: Hmis::Hud::Processors::ServiceProcessor,
       Organization: Hmis::Hud::Processors::OrganizationProcessor,
@@ -401,6 +400,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
   end
 
+  # fixme remove? this returns records that arent referenced like enrollment
   def related_records
     all_factories.map do |factory_method|
       record = send(factory_method, create: false)
@@ -409,6 +409,25 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
       record
     end.compact.uniq
+  end
+
+  def destroy_dependents!
+    [
+      :health_and_dv,
+      :income_benefit,
+      :physical_disability,
+      :developmental_disability,
+      :chronic_health_condition,
+      :hiv_aids,
+      :mental_health_disorder,
+      :substance_use_disorder,
+      :exit,
+      :youth_education_status,
+      :employment_education,
+      :current_living_situation,
+      :ce_assessment,
+      :ce_event,
+    ].map { |assoc| send(assoc)&.destroy! }.compact
   end
 
   # Pull out the Assessment Date from the values hash
