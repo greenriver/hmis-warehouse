@@ -171,7 +171,7 @@ jobs:
       #     bundle exec rspec --fail-fast=$MAX_FAILURES --color -P "drivers/datalab_testkit/spec/empty_spec.rb"
       - name: Get current date
         id: date
-        run: echo "today=$(date +'%Y-%m-%d')"
+        run: echo "today=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
       - name: 'Copy old fixpoints to previous folder'
         uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
