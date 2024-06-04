@@ -82,7 +82,7 @@ module HmisExternalApis::AcHmis
     end
 
     def update_client(client, attrs)
-      setup_client_name(client, attrs)
+      setup_client_name(client, attrs) # reconcile CustomClientNames and assign Client name attributes
       client.attributes = attrs.slice(:dob, :ssn, :veteran_status, :different_identity_text, :additional_race_ethnicity)
 
       client.name_data_quality = 1 # Full name always present for MCI clients
