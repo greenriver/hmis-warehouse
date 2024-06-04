@@ -11,7 +11,7 @@ module SystemPathways
     include Memery
     include SystemPathways::ChartBase
     include SystemPathways::Equity::Race
-    # include SystemPathways::Equity::Ethnicity
+    include SystemPathways::Equity::Ethnicity
     # include SystemPathways::Equity::RaceAndEthnicity
     include SystemPathways::Equity::Veteran
     include SystemPathways::Equity::Chronic

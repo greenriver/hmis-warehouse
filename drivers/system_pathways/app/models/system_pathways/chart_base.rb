@@ -322,7 +322,11 @@ module SystemPathways::ChartBase
     end
 
     private def ethnicities
-      @ethnicities ||= HudUtility2024.no_yes_reasons_for_missing_data_options
+      @ethnicities ||= {
+        hispanic_latinaeo: 'Hispanic/Latina/e/o',
+        non_hispanic_latinaeo: 'Non-Hispanic/Latina/e/o',
+        unknown: 'Unknown (Missing, Prefers not to answer, Unknown)',
+      }
     end
 
     private def race_ethnicity_combinations
