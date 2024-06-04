@@ -318,7 +318,15 @@ module SystemPathways::ChartBase
     end
 
     private def races
-      @races ||= HudUtility2024.races
+      @races ||= HudUtility2024.races(multi_racial: true)
+    end
+
+    private def ethnicities
+      @ethnicities ||= HudUtility2024.no_yes_reasons_for_missing_data_options
+    end
+
+    private def race_ethnicity_combinations
+      @race_ethnicity_combinations ||= HudUtility2024.race_ethnicity_combinations
     end
 
     private def veteran_statuses
