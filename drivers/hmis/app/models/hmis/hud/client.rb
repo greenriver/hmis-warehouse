@@ -419,6 +419,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   end
 
   # Assign the HUD Client name fields (FirstName, LastName) from the primary CustomClientName record
+  # Note: for clients created/updated via form submissions, the ClientProcessor handles updating th Client name fields based on the Primary name submitted
   def assign_primary_name_fields
     return unless primary_name
 

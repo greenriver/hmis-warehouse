@@ -135,6 +135,7 @@ module Hmis::Hud::Processors
       # Build attributes for Client based on the Primary name
       client_attributes = if primary.present?
         {
+          # Note: This logic for transforming CustomClientName attributes to Client attributes is duplicated with the Client model method assign_primary_name_fields
           first_name: primary['first'],
           last_name: primary['last'],
           middle_name: primary['middle'],
