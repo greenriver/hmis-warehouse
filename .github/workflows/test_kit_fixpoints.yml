@@ -169,12 +169,15 @@ jobs:
       #     LOG_LEVEL: INFO
       #   run: |
       #     bundle exec rspec --fail-fast=$MAX_FAILURES --color -P "drivers/datalab_testkit/spec/empty_spec.rb"
+      - name: Get current date
+        id: date
+        run: echo "today=$(date +'%Y-%m-%d')"
       - name: 'Copy old fixpoints to previous folder'
         uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
           command: cp
           source: ${{ secrets.AWS_S3_ACTION_BUCKET }}test-kit-fixpoint-automation-test/current/
-          destination: ${{ secrets.AWS_S3_ACTION_BUCKET }}test-kit-fixpoint-automation-test/previous/
+          destination: ${{ secrets.AWS_S3_ACTION_BUCKET }}test-kit-fixpoint-automation-test/previous/${{ env.today }}/
           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
           aws_region: us-east-1
