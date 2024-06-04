@@ -6,7 +6,7 @@
 -# Contain content blocks that are later yielded in
 -# the "client_card_content-secondary__#{id}" content block
 -# within `clients/client_card_wrapper` partial
-= render 'clients/search/cas', client: client
+= render 'clients/search/cas', client: client unless GrdaWarehouse::Config.get(:client_dashboard).to_s == 'va'
 = render 'client_access_control/clients/search/demographics', client: client
 = render 'clients/search/assessments', client: client
 = render 'clients/relationships', client: client, showing_in_card: true
