@@ -325,7 +325,7 @@ module PerformanceMeasurement::EquityAnalysis
     private def geometries
       coc_code = @report.filter.coc_code
       # CoC code needs to be real, even in development to get census data
-      coc_code = "#{ENV['RELEVANT_COC_STATE']&.split(',')&.first}-500" if coc_code.starts_with?('XX')
+      coc_code = "#{GrdaWarehouse::Config.relevant_state_codes&.first}-500" if coc_code.starts_with?('XX')
 
       @geometries ||= GrdaWarehouse::Shape::Coc.where(cocnum: coc_code)
     end

@@ -985,7 +985,7 @@ module PublicReports
     end
 
     def map_shape_json
-      cache_key = "map-shape-json-#{settings.map_type}-#{ENV['RELEVANT_COC_STATE']&.gsub(',', '_')}"
+      cache_key = "map-shape-json-#{settings.map_type}-#{GrdaWarehouse::Config.relevant_state_codes.join('_')}"
       Rails.cache.fetch(cache_key, expires_in: 4.hours) do
         Oj.dump(map_shapes, mode: :compat).html_safe
       end
@@ -1027,7 +1027,7 @@ module PublicReports
     end
 
     def state_shape_json
-      cache_key = "state-shape-json-#{ENV['RELEVANT_COC_STATE']&.gsub(',', '_')}"
+      cache_key = "state-shape-json-#{GrdaWarehouse::Config.relevant_state_codes.join('_')}"
       Rails.cache.fetch(cache_key, expires_in: 4.hours) do
         Oj.dump(state_shape, mode: :compat).html_safe
       end

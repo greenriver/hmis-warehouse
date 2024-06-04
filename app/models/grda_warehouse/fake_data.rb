@@ -54,7 +54,7 @@ class GrdaWarehouse::FakeData < GrdaWarehouseBase
       PersonalID: ->(value) { Digest::MD5.hexdigest(value&.to_s) },
       UserID: ->(_value) { Faker::Internet.user_name(specifier: 5..8) },
       CoCCode: ->(_value) do
-        rc = ENV['RELEVANT_COC_STATE'].split(',').first
+        rc = GrdaWarehouse::Config.relevant_state_codes.first
         if rc
           HudUtility2024.cocs.keys.select { |c| c.starts_with?(rc) }.sample
         else

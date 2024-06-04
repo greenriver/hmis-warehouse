@@ -6,7 +6,7 @@ require 'zip'
 require_relative '../../app/models/grda_warehouse/us_census_api/state_fips'
 
 if ARGV[0].to_s.split(',').map(&:length).uniq != [2]
-  puts 'Set first arg to the two-letter state postal code, or comma delimited list of postal codes'
+  puts 'Set first arg to the two-letter state code, or comma delimited list of state codes'
   exit
 end
 

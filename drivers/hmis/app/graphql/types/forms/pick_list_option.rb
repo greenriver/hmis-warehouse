@@ -225,7 +225,7 @@ module Types
       available_codes = if selected_project.present?
         selected_project.project_cocs.pluck(:CoCCode).uniq.map { |code| [code, ::HudUtility2024.cocs[code] || code] }
       else
-        ::HudUtility2024.cocs_in_state(ENV['RELEVANT_COC_STATE']&.split(','))
+        ::HudUtility2024.cocs_in_state(GrdaWarehouse::Config.relevant_state_codes)
       end
 
       available_codes.sort.map do |code, name|
@@ -235,7 +235,7 @@ module Types
 
     def self.geocodes_picklist
       # NOTE: HMIS currently only supports one state installations
-      state = ENV['RELEVANT_COC_STATE']&.split(',')&.first
+      state = GrdaWarehouse::Config.relevant_state_codes&.first
       Rails.cache.fetch(['GEOCODES', state], expires_in: 1.days) do
         JSON.parse(File.read("drivers/hmis/lib/pick_list_data/geocodes/geocodes-#{state}.json"))
       end.map do |obj|
@@ -254,7 +254,7 @@ module Types
           code: obj['abbreviation'],
           # label: "#{obj['abbreviation']} - #{obj['name']}",
           # NOTE: HMIS currently only supports one state installations
-          initial_selected: obj['abbreviation'].in?(ENV['RELEVANT_COC_STATE']&.split(',')&.first),
+          initial_selected: obj['abbreviation'].in?(GrdaWarehouse::Config.relevant_state_codes&.first),
         }
       end
     end
