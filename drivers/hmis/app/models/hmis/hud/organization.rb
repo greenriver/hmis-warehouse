@@ -11,7 +11,6 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
   include ::HmisStructure::Organization
   include ::Hmis::Hud::Concerns::HasCustomDataElements
   include ::Hmis::Hud::Concerns::Shared
-  include ApplicationHelper # todo @martha - not working?
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   has_many :projects, **hmis_relation(:OrganizationID, 'Project'), dependent: :destroy

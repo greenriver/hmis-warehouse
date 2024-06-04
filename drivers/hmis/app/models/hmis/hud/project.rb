@@ -9,7 +9,6 @@ class Hmis::Hud::Project < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::HasCustomDataElements
   include ActiveModel::Dirty
-  include ApplicationHelper # todo @martha - not working?
 
   has_paper_trail(meta: { project_id: :id })
 

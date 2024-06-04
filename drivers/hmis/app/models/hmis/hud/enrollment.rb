@@ -10,7 +10,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   include ::HudConcerns::Enrollment
   include ::Hmis::Hud::Concerns::HasCustomDataElements
   include ::Hmis::Hud::Concerns::ServiceHistoryQueuer
-  include ApplicationHelper # todo @martha - not working?
 
   self.table_name = :Enrollment
   self.sequence_name = "public.\"#{table_name}_id_seq\""
