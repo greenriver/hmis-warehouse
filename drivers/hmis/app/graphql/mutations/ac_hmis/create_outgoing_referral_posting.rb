@@ -5,6 +5,7 @@
 ###
 
 module Mutations
+  TodoOrDie('Remove deprecated referral mutation', by: '2024-06-15')
   class AcHmis::CreateOutgoingReferralPosting < CleanBaseMutation
     description 'Create outgoing referral posting'
 
@@ -35,7 +36,7 @@ module Mutations
 
       referral = HmisExternalApis::AcHmis::Referral.new(
         enrollment: enrollment,
-        referral_date: Time.current,
+        referral_date: Date.current,
         service_coordinator: current_user.name,
       )
       referral.household_members = enrollment.household_members.preload(:client).map do |member|

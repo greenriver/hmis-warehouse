@@ -216,6 +216,8 @@ module Types
 
     field :move_in_addresses, [HmisSchema::ClientAddress], null: false
 
+    field :source_referral_posting, HmisSchema::ReferralPosting, null: true, description: 'Present if this household was enrolled as the result of a referral from another project.'
+
     audit_history_field(
       :audit_history,
       # Fields should match our DB casing, consult schema to determine appropriate casing
@@ -241,6 +243,13 @@ module Types
         changes
       end,
     )
+
+    def source_referral_posting
+      return unless current_permission?(permission: :can_manage_incoming_referrals, entity: project)
+
+      # there should never be more than 1 referral posting for a given enrollment
+      load_ar_association(object, :source_postings).min_by(&:id)
+    end
 
     def audit_history(filters: nil)
       scope = GrdaWarehouse.paper_trail_versions.

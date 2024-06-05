@@ -23,6 +23,7 @@ module Types
     include Types::HmisSchema::HasHudMetadata
     include Types::HmisSchema::HasExternalFormSubmissions
     include Types::HmisSchema::HasAssessments
+    include Types::HmisSchema::HasCurrentLivingSituations
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2024')
@@ -64,6 +65,7 @@ module Types
     ce_participations_field
     assessments_field filter_args: { omit: [:project, :project_type], type_name: 'AssessmentsForProject' }
     services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForProject' }
+    current_living_situations_field
     hud_field :operating_start_date, null: true
     hud_field :operating_end_date
     hud_field :description, String, null: true
@@ -121,6 +123,12 @@ module Types
       check_enrollment_details_access
 
       resolve_assessments(object.custom_assessments, dangerous_skip_permission_check: true, **args)
+    end
+
+    def current_living_situations(**args)
+      check_enrollment_details_access
+
+      resolve_assessments(object.current_living_situations, dangerous_skip_permission_check: true, **args)
     end
 
     def organization
@@ -188,10 +196,14 @@ module Types
 
     # TODO(#186102846) support user-specified sorting/filtering
     def incoming_referral_postings(**args)
-      raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_incoming_referrals)
+      access_denied! unless current_permission?(entity: object, permission: :can_manage_incoming_referrals)
 
-      # Only show Active postings on the incoming referral table
-      scoped_referral_postings(object.external_referral_postings.active, sort_order: :oldest_to_newest, **args)
+      scoped_referral_postings(
+        object.external_referral_postings.active, # Only show Active postings on the incoming referral table
+        sort_order: :oldest_to_newest,
+        dangerous_skip_permission_check: true, # safe because its checked above
+        **args,
+      )
     end
 
     def arel
@@ -200,14 +212,14 @@ module Types
 
     # TODO(#186102846) support user-specified sorting/filtering
     def outgoing_referral_postings(**args)
-      raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_outgoing_referrals)
+      access_denied! unless current_permission?(entity: object, permission: :can_manage_outgoing_referrals)
 
       # Show all postings on the outgoing referral table
       scope = HmisExternalApis::AcHmis::ReferralPosting.
-        joins(referral: :enrollment).
+        joins(referral: :enrollment). # Find the "source" project from posting.referral.enrollment.project
         where(arel.e_t[:ProjectID].eq(object.ProjectID))
 
-      scoped_referral_postings(scope, sort_order: :relevent_status, **args)
+      scoped_referral_postings(scope, sort_order: :relevent_status, dangerous_skip_permission_check: true, **args)
     end
 
     def external_form_submissions(**args)

@@ -298,7 +298,7 @@ module GrdaWarehouse
 
       return { result: dk_or_r_or_missing(value), display_value: value } if dk_or_r_or_missing(value)
 
-      { result: :continue, display_value: value - 100 }
+      { result: :no, display_value: value - 100 }
     end
 
     def self.homeless_duration_sufficient(enrollment, date: enrollment.EntryDate)
@@ -369,7 +369,7 @@ module GrdaWarehouse
       },
       6 => {
         title: 'Total months homeless',
-        descriptions: ['If >= 12, CH = YES. STOP processing.', 'If 1, 2, or 3 times, CH = NO. STOP processing.', 'If 8 or 9 then CH = DK/R. STOP processing', 'If 99 then CH = missing. STOP processing'],
+        descriptions: ['If >= 12, CH = YES. STOP processing.', 'If 1 to 11 months, CH = NO. STOP processing.', 'If 8 or 9 then CH = DK/R. STOP processing', 'If 99 then CH = missing. STOP processing'],
       },
       9 => {
         title: 'Prior Living Situation (3.917B Homeless Situation)',
@@ -385,7 +385,7 @@ module GrdaWarehouse
       },
       12 => {
         title: 'Total months homeless',
-        descriptions: ['If >= 12, CH = YES. STOP processing.', 'If 1, 2, or 3 times, CH = NO. STOP processing.', 'If 8 or 9 then CH = DK/R. STOP processing', 'If 99 then CH = missing. STOP processing'],
+        descriptions: ['If >= 12, CH = YES. STOP processing.', 'If 1 to 11 months, CH = NO. STOP processing.', 'If 8 or 9 then CH = DK/R. STOP processing', 'If 99 then CH = missing. STOP processing'],
       },
       14 => {
         title: 'Prior Living Situation (3.917B Institutional Situation)',
@@ -409,7 +409,7 @@ module GrdaWarehouse
       },
       19 => {
         title: 'Total months homeless',
-        descriptions: ['If >= 12, CH = YES. STOP processing.', 'If 1, 2, or 3 times, CH = NO. STOP processing.', 'If 8 or 9 then CH = DK/R. STOP processing', 'If 99 then CH = missing. STOP processing'],
+        descriptions: ['If >= 12, CH = YES. STOP processing.', 'If 1 to 11 months, CH = NO. STOP processing.', 'If 8 or 9 then CH = DK/R. STOP processing', 'If 99 then CH = missing. STOP processing'],
       },
       21 => {
         title: 'Prior Living Situation (3.917B Temporary, Permanent, and Other Situations:)',

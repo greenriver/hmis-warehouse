@@ -26,6 +26,7 @@
 class Hmis::Form::Definition < ::GrdaWarehouseBase
   self.table_name = :hmis_form_definitions
   acts_as_paranoid
+  include ::Hmis::Concerns::HmisArelHelper
 
   # There is no need to track the JSON blob, because form should be immutable once they are managed through the Form Editor config tool.
   # When changes are needed, they will be applied to a duplicated Hmis::Form::Definition with a bumped `version`.
@@ -82,9 +83,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     :CE_EVENT,
     :CE_ASSESSMENT,
     :CASE_NOTE,
-    # Would be nice if we could use instances to enable/disable the referral feature (instead of using permissions for it).
-    # That would mean creating an Instance for this form for each non-Direct Entry program.
-    # Maybe less cumbersome than dealing with data access groups, but we'd need that anyway to handle Direct Enrollment permission?
+    :REFERRAL,
     :REFERRAL_REQUEST,
     :EXTERNAL_FORM,
   ].freeze
@@ -179,6 +178,12 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       owner_class: 'HmisExternalApis::AcHmis::ReferralRequest',
       permission: :can_manage_incoming_referrals,
     },
+    REFERRAL: {
+      owner_class: 'HmisExternalApis::AcHmis::ReferralPosting',
+      # Note: this permission should be checked against the project that is _sending_ the referral,
+      # not the project that is receiving it.
+      permission: :can_manage_outgoing_referrals,
+    },
     CURRENT_LIVING_SITUATION: {
       owner_class: 'Hmis::Hud::CurrentLivingSituation',
       permission: :can_edit_enrollments,
@@ -229,34 +234,37 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   scope :with_role, ->(role) { where(role: role) }
 
   # Finding the appropriate form definition for a project:
-  #  * find the definitions for the required role (i.e. INTAKE)
-  #    ** in the future we might apply status filter here to exclude "draft" definitions
+  #  * find the active published definitions for the required role (i.e. INTAKE)
   #  * choose the form instance with the most specific match that is also associated with any of those definitions
-  #  * of the definitions with that identifier, choose the one with the highest version
-  scope :for_project, ->(project:, role:, service_type: nil, version: nil) do
-    # Consider all instances for this role (and service type, if applicable)
-    definition_scope = Hmis::Form::Definition.with_role(role)
-    if version
-      # restrict to a specific version
-      definition_scope = definition_scope.where(version: version).order(:id) if version
-    else
-      # order so that detect_best_instance_for_project will use version as a tie-breaker if multiple instances match
-      definition_scope = definition_scope.order(version: :desc, id: :desc)
-    end
+  #  * return the published version of the definition that is referenced by that instance
+  def self.for_project(project:, role:, service_type: nil)
+    # Consider all Active, Published Forms for this Role
+    definition_scope = Hmis::Form::Definition.with_role(role).
+      active. # Drop definitions that have no active rules
+      latest_versions # TODO(#6147): Switch from `latest_versions` to `published` scope
+
+    # Filter by Service Type if specified
     definition_scope = definition_scope.for_service_type(service_type) if service_type.present?
-    base_scope = Hmis::Form::Instance.joins(:definition).merge(definition_scope)
 
-    # Choose the first scope that has any records. Prefer more specific instances.
-    instance = base_scope.detect_best_instance_for_project(project: project)
-    instance ? where(identifier: instance.definition_identifier) : none
+    # Scope of active Instances (Rules) that are are associated with the eligible definitions
+    instance_scope = Hmis::Form::Instance.joins(:definition).merge(definition_scope).active
+    # Choose the Instance that is the "best match" for this Project (e.g. prefer project-specific rule, then org-specific, default rule, etc.)
+    selected_instance = instance_scope.detect_best_instance_for_project(project: project)
+    return unless selected_instance # No match found. This is OK for non-system roles, like CurrentLivingSituation.
+
+    # Safe to use `find_by` because definition_scope is already restricted to published versions,
+    # and there can be at most 1 published FormDefinition per identifier.
+    definition_scope.find_by(identifier: selected_instance.definition_identifier)
   end
 
-  scope :non_static, -> do
-    where.not(role: STATIC_FORM_ROLES)
-  end
+  # Helper scope to drop forms that are not valid, because their role is outside of FORM_ROLES.
+  # This is just to help with local development when switching between branches that support different roles.
+  scope :valid, -> { where(role: FORM_ROLES) }
+
+  scope :non_static, -> { where.not(role: STATIC_FORM_ROLES) }
 
   scope :active, -> do
-    joins(:instance).merge(Hmis::Form::Instance.active)
+    where(identifier: Hmis::Form::Instance.active.select(:definition_identifier))
   end
 
   scope :for_service_type, ->(service_type) do
@@ -301,22 +309,32 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     Hmis::Filter::FormDefinitionFilter.new(input).filter_scope(self)
   end
 
-  def self.find_definition_for_role(role, project: nil, version: nil)
-    scope = Hmis::Form::Definition.all
-    if project.present?
-      scope = scope.for_project(project: project, role: role, version: version)
+  def self.find_definition_for_role(role, project: nil)
+    selected_definition = if project.present?
+      # Chooses the published FormDefinition that is "most relevant" for the Project (via an active FormInstance)
+      Hmis::Form::Definition.for_project(project: project, role: role)
     else
-      scope = scope.with_role(role)
-      scope = scope.where(version: version) if version.present?
+      # Project was not specified, so return the "default" FormDefinition for the role (if any)
+      # TODO(#6147): Switch from `latest_versions` to `published` scope
+      scope = Hmis::Form::Definition.with_role(role).latest_versions
+      # Only consider forms that have an active "default" rule, meaning there is no project criteria on the rule
+      scope = scope.joins(:instances).merge(Hmis::Form::Instance.defaults.active)
+
+      # Prefer forms with non-system rules.
+      # (Handles case where there are two CLIENT forms that both have active default rules,
+      #  but one of them is the default form and the other is custom)
+      scope.order(fi_t[:system].asc, fd_t[:id].desc).first
     end
 
-    scope.order(version: :desc).first
+    # Raise an error if no definition was found for a system role (like CLIENT, PROJECT, etc).
+    # System role forms are required for the HMIS to function. There should be system Instances that prevent this from happening.
+    raise `No Definition found for System form #{role}` if role.to_sym.in?(SYSTEM_FORM_ROLES) && selected_definition.nil?
+
+    selected_definition
   end
 
   def self.find_definition_for_service_type(service_type, project:)
-    Hmis::Form::Definition.
-      for_project(project: project, role: :SERVICE, service_type: service_type).
-      order(version: :desc).first
+    Hmis::Form::Definition.for_project(project: project, role: :SERVICE, service_type: service_type)
   end
 
   # Validate JSON definition when loading, to ensure no duplicate link IDs

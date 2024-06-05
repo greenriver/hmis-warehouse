@@ -20,6 +20,7 @@ module HmisExternalApis::AcHmis
 
       data_source = HmisExternalApis::AcHmis.data_source
       projects = Hmis::Hud::Project.where(data_source: data_source)
+      failed_updates = 0
       with_locks do
         projects.find_each do |project|
           force_update(project) if force
@@ -32,9 +33,14 @@ module HmisExternalApis::AcHmis
             )
             # track sync version
             sync.update!(synced_version: sync.local_version)
+          rescue HmisErrors::ApiError
+            # The error body itself already gets sent to Sentry from the LinkApi. Here, just count the # of failures.
+            failed_updates += 1
           end
         end
       end
+
+      handle_alert("Failed to sync #{failed_updates} capacity updates to LINK.") if failed_updates.positive?
       # If changes were tracked during processing, requeue job
       # FIXME: this check should no longer be necessary once we move to a cron job
       requeue_job if local_changes?(projects)
@@ -67,11 +73,11 @@ module HmisExternalApis::AcHmis
     end
 
     def local_changes?(projects)
-      HmisExternalApis::AcHmis::UnitAvailabilitySync
-        .joins(:project)
-        .merge(projects)
-        .dirty
-        .any?
+      HmisExternalApis::AcHmis::UnitAvailabilitySync.
+        joins(:project).
+        merge(projects).
+        dirty.
+        any?
     end
 
     def with_locks
@@ -124,10 +130,10 @@ module HmisExternalApis::AcHmis
     def query_capacity(project, unit_type)
       # ideally this would be one query to eliminate the possibility of inconsistent reads
       total = project.units.where(unit_type: unit_type).count
-      assigned = project.units.where(unit_type: unit_type)
-        .joins(:unit_occupancies)
-        .merge(Hmis::UnitOccupancy.active)
-        .count('distinct(hmis_units.id)')
+      assigned = project.units.where(unit_type: unit_type).
+        joins(:unit_occupancies).
+        merge(Hmis::UnitOccupancy.active).
+        count('distinct(hmis_units.id)')
       [total, assigned]
     end
   end
