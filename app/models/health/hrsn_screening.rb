@@ -6,6 +6,8 @@
 
 module Health
   class HrsnScreening < HealthBase
+    include ArelHelper
+
     acts_as_paranoid
 
     belongs_to :instrument, polymorphic: true
@@ -33,7 +35,10 @@ module Health
     end
 
     scope :newest_first, -> do
-      order(created_at: :desc)
+      h_screening_t = arel_table
+      h_thrive_t = HealthThriveAssessment::Assessment.arel_table
+      left_outer_joins(:ssm, :thrive).
+        order(cl(h_thrive_t[:completed_on], h_ssm_t[:completed_at], h_screening_t[:created_at]).desc)
     end
 
     scope :completed_within, ->(range) do

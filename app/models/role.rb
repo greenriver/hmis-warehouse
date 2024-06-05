@@ -4,6 +4,18 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# Participates in both the "new" and "legacy" permissions systems
+#
+# Roles define what actions a user can perform within the system. Not all permissions grant abilities, some are
+# subtractive. The permissions are applied to a set of entities such as projects or organizations.
+#
+# Roles that are related to an AccessControl are part of the "new" system; roles that are related to a
+# user through user_roles are part of the legacy system.
+#
+#
+# Adding a role: first define it in the "permissions_with_descriptions" config below. Then, within a migration call:
+#   Role.ensure_permissions_exist
+#
 class Role < ApplicationRecord
   acts_as_paranoid
   has_paper_trail
@@ -60,14 +72,6 @@ class Role < ApplicationRecord
     r_t = Role.arel_table
     where_clause = perms.map { |perm| r_t[perm.to_sym].eq(true) }.reduce(:or)
     where(where_clause)
-  end
-
-  scope :with_editable_permissions, -> do
-    with_any_permissions(*permissions_for_access(:editable))
-  end
-
-  scope :with_viewable_permissions, -> do
-    with_any_permissions(*permissions_for_access(:viewable))
   end
 
   def self.system_user_role
@@ -135,10 +139,6 @@ class Role < ApplicationRecord
 
   def self.administrative? permission:
     permissions_with_descriptions.merge(health_permissions_with_descriptions)[permission][:administrative] rescue true # rubocop:disable Style/RescueModifier
-  end
-
-  def self.permissions_for_access(access)
-    permissions_with_descriptions.select { |_k, attrs| attrs[:access].include?(access) }.keys
   end
 
   def self.permissions_by_group
@@ -903,6 +903,12 @@ class Role < ApplicationRecord
         administrative: false,
         category: 'Administration',
         sub_category: 'Site Configuration',
+      },
+      can_view_client_name: {
+        description: 'Can view client names',
+        administrative: false,
+        category: 'Client Access',
+        sub_category: 'General Client Access',
       },
     }
   end

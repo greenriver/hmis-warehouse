@@ -8,6 +8,8 @@ module ClientLocationHistory
   class ClientsController < ApplicationController
     include ClientController
     include ClientPathGenerator
+    include ClientDependentControllers
+
     before_action :require_can_view_clients!
     before_action :require_can_view_client_locations!
     before_action :set_client

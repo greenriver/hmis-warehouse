@@ -201,7 +201,7 @@ module ClientAccessControl
     end
     # END_ACL
 
-    # Analogous to visible_client_scope, execpt returns any enrollments where the
+    # Analogous to visible_client_scope, except returns any enrollments where the
     # the user has access directly, or because of an ROI instead of clients
     # NOTE: authoritative clients won't have enrollments, so they are not included
     def enrollments_visible_to(user, client_ids: nil)

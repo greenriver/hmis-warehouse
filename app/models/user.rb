@@ -8,6 +8,7 @@
 
 require 'memery'
 class User < ApplicationRecord
+  include Memery
   include UserConcern
   include RailsDrivers::Extensions
 
@@ -69,18 +70,6 @@ class User < ApplicationRecord
       send(permission)
     end
 
-    define_method("#{permission}_for?") do |entity|
-      return false unless send("#{permission}?")
-
-      access_group_ids = GroupViewableEntity.includes_entity(entity).pluck(:access_group_id)
-
-      raise "Invalid entity '#{entity.class.name}'" if access_group_ids.nil?
-
-      role_ids = roles.where(permission => true).pluck(:id)
-
-      access_controls.where(access_group_id: access_group_ids, role_id: role_ids).exists?
-    end
-
     # Provide a scope for each permission to get any user who qualifies
     # e.g. User.can_administer_health
     scope permission, -> do
@@ -129,7 +118,7 @@ class User < ApplicationRecord
     end
   end
 
-  def viewable_project_ids(context)
+  memoize def viewable_project_ids(context)
     return GrdaWarehouse::Hud::Project.project_ids_viewable_by(self, permission: context) if Rails.env.test?
 
     Rails.cache.fetch("#{user_project_id_prefix}_#{context}", expires_in: EXPIRY_MINUTES.minutes) do
@@ -224,5 +213,9 @@ class User < ApplicationRecord
     return legacy_roles.map(&:name).uniq unless using_acls?
 
     roles.map(&:name).uniq
+  end
+
+  memoize def policies
+    GrdaWarehouse::AuthPolicies::PolicyProvider.new(self)
   end
 end
