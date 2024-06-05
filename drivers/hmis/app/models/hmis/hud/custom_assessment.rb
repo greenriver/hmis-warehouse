@@ -22,7 +22,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
-  include ::Hmis::Hud::Concerns::HasCustomDataElements
+  include ::Hmis::Hud::Concerns::FormSubmittable
 
   SORT_OPTIONS = [:assessment_date, :date_updated].freeze
 

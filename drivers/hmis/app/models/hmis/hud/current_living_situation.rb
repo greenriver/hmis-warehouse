@@ -12,7 +12,7 @@ class Hmis::Hud::CurrentLivingSituation < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
   include ::Hmis::Hud::Concerns::ServiceHistoryQueuer
-  include ::Hmis::Hud::Concerns::HasCustomDataElements
+  include ::Hmis::Hud::Concerns::FormSubmittable
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true

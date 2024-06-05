@@ -8,7 +8,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   extend OrderAsSpecified
   include ::HmisStructure::Client
   include ::Hmis::Hud::Concerns::Shared
-  include ::Hmis::Hud::Concerns::HasCustomDataElements
+  include ::Hmis::Hud::Concerns::FormSubmittable
   include ::HudConcerns::Client
   include ::HudChronicDefinition
   include ClientSearch
