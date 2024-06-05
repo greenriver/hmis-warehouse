@@ -82,6 +82,7 @@ class Hmis::Hud::Client < Hmis::Hud::Base
   validates_with Hmis::Hud::Validators::ClientValidator, on: [:client_form, :new_client_enrollment_form]
 
   attr_accessor :image_blob_id
+  # Order is: before_save => save => after_create|after_update > after_save
   after_create :warehouse_identify_duplicate_clients
   after_update :warehouse_match_existing_clients
   before_save :set_source_hash
@@ -415,5 +416,19 @@ class Hmis::Hud::Client < Hmis::Hud::Base
         on_duplicate_key_update: { conflict_target: [:id], columns: [:source_hash] },
       )
     end
+  end
+
+  # Assign the HUD Client name fields (FirstName, LastName) from the primary CustomClientName record
+  # Note: for clients created/updated via form submissions, the ClientProcessor handles updating th Client name fields based on the Primary name submitted
+  def assign_primary_name_fields
+    return unless primary_name
+
+    assign_attributes(
+      first_name: primary_name.first,
+      last_name: primary_name.last,
+      middle_name: primary_name.middle,
+      name_suffix: primary_name.suffix,
+      name_data_quality: primary_name.name_data_quality || 99,
+    )
   end
 end
