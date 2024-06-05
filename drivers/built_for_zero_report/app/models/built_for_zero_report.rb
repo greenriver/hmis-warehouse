@@ -13,7 +13,7 @@ module BuiltForZeroReport
     {
       veterans: 'Veterans Section',
       chronic_veterans: 'Chronic Veterans Section',
-      chronic: 'Chronic Section',
+      chronic: 'Chronic Section (Adult-Only Households)',
       adults: 'All Single Adults (Individuals) Section',
       youth: 'Youth Section',
       families: 'Family Section',
@@ -26,7 +26,7 @@ module BuiltForZeroReport
     cohort_keys = {
       veterans: :veteran_cohort,
       chronic_veterans: :chronic_cohort,
-      chronic: :chronic_cohort,
+      chronic: :chronic_adult_only_cohort,
       adults: :adult_only_cohort,
       youth: :youth_cohort,
       families: :adult_and_child_cohort,
