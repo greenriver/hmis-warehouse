@@ -211,7 +211,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               input.delete(:enrollment_id)
             end
 
-            e1.update(processed_as: 'PROCESSED', processed_hash: 'PROCESSED') if input[:record_id].present?
+            # delete processing jobs that would have been queued from factory record creation
+            Delayed::Job.jobs_for_class(['GrdaWarehouse::Tasks::ServiceHistory::Enrollment', 'GrdaWarehouse::Tasks::IdentifyDuplicates']).delete_all
+            # mark enrollment record as processed
+            e1.update!(processed_as: 'PROCESSED', processed_hash: 'PROCESSED') if input[:record_id].present?
 
             record, errors = submit_form(input)
             record_id = record['id']
