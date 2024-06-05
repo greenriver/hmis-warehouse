@@ -21,6 +21,8 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   belongs_to :definition, class_name: 'Hmis::Form::Definition', optional: true
 
   # Related records that were created/updated from this form
+  # Note: these do not have dependent:destroy because we need to be able to clean up forms without
+  # deleting records during migration. Deletion of related records happens with `destroy_dependent_records!`
   belongs_to :health_and_dv, class_name: 'Hmis::Hud::HealthAndDv', optional: true, autosave: true
   belongs_to :income_benefit, class_name: 'Hmis::Hud::IncomeBenefit', optional: true, autosave: true
   belongs_to :physical_disability, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
@@ -140,7 +142,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   end
 
   def store_assessment_questions!
-    return unless owner_type == Hmis::Hud::CustomAssessment.sti_name && ce_assessment?
+    return unless custom_assessment? && ce_assessment?
 
     # Queue up job to store CE Assessment responses in the HUD CE AssessmentQuestions table
     # Rspec test isolation interferes with delayed job transaction
@@ -442,7 +444,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       :current_living_situation,
       :ce_assessment,
       :ce_event,
-    ].map { |assoc| send(assoc)&.destroy! }.compact
+    ].each { |assoc| send(assoc)&.destroy! }.compact
   end
 
   # Pull out the Assessment Date from the values hash
