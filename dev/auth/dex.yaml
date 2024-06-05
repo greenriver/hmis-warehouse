@@ -1,0 +1,51 @@
+# https://github.com/oauth2-proxy/oauth2-proxy/blob/master/contrib/local-environment/dex.yaml
+# This configuration is intended to be used with the docker-compose testing
+# environment.
+# This should configure Dex to run on port 4443 and provides a static login
+issuer: http://dex.dev.test:4443/dex
+storage:
+  type: etcd
+  config:
+    endpoints:
+    - http://etcd:2379
+    namespace: dex/
+web:
+  http: 0.0.0.0:4443
+  # https: 0.0.0.0:4443
+  # tlsCert: /etc/certs/dev.test.crt
+  # tlsKey: /etc/certs/dev.test.key
+  # tlsClientCA: /etc/certs/root-ca.pem
+  # headers:
+  #   X-Frame-Options: "DENY"
+  #   X-Content-Type-Options: "nosniff"
+  #   X-XSS-Protection: "1; mode=block"
+  #   Content-Security-Policy: "default-src 'self'"
+  #   Strict-Transport-Security: "max-age=31536000; includeSubDomains"
+oauth2:
+  skipApprovalScreen: true
+expiry:
+  signingKeys: "4h"
+  idTokens: "1h"
+staticClients:
+- id: hmis-warehouse
+  redirectURIs:
+  # These redirect URIs point to the `--redirect-url` for OAuth2 proxy.
+  - 'http://hmis-warehouse.dev.test/oauth2/callback' # For basic proxy example.
+  # - 'http://oauth2-proxy.oauth2-proxy.localhost/oauth2/callback' # For nginx and traefik example.
+  name: 'HMIS Warehouse'
+  secret: b2F1dGgyLXByb3h5LWNsaWVudC1zZWNyZXQK
+enablePasswordDB: true
+staticPasswords:
+- email: "admin@example.com"
+  # bcrypt hash of the string "password"
+  hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
+  username: "admin"
+  userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"
+- email: "noreply@example.com"
+  # bcrypt hash of the string "password"
+  # bash $(echo password | htpasswd -BinC 10 admin | cut -d: -f2)
+  # hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
+  # bash $(echo 'fix-this-password-55-*' | htpasswd -BinC 10 admin | cut -d: -f2)
+  hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
+  username: "admin-user"
+  userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"

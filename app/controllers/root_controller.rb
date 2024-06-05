@@ -7,6 +7,9 @@
 class RootController < ApplicationController
   skip_before_action :authenticate_user!
   def index
+    # Handle oauth2-proxy logins
+    login_jwt_user if valid_jwt? && ! user_signed_in?
+
     # custom_content = lookup_context.exists?('homepage_content', ['root'], true)
     return unless current_user
 
