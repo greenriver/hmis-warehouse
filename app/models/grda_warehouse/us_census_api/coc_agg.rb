@@ -26,13 +26,13 @@ module GrdaWarehouse
           puts agg.results
 
           if agg.results.good + agg.results.bad + agg.results.no_data == 0
-            raise "Looks like you don't have any data yet. Stopping"
+            puts "Looks like you don't have any data yet. Stopping"
             exit 1
           end
         end
       end
 
-      def initialize(coc:, candidates: nil)
+      def initialize(coc:, candidates: nil) # rubocop:disable Lint/UnusedMethodArgument
         self.coc = coc
         self.value_tally = {}
 
@@ -44,9 +44,9 @@ module GrdaWarehouse
         self.num_pieces = 0
         self.area_sum = 0.0
         self.results = Struct.new(:good, :bad, :no_data).new
-        self.results.good = 0
-        self.results.bad = 0
-        self.results.no_data = 0
+        results.good = 0
+        results.bad = 0
+        results.no_data = 0
       end
 
       def run!
@@ -58,14 +58,11 @@ module GrdaWarehouse
       private
 
       def _sanity_check!
-        if coc.send(self.candidates).none?
-          raise "It doesn't make sense for a CoC to have no candidatae counties/block-groups/etc. Are you sure you loaded all the shapes for this state?"
-        end
+        raise "It doesn't make sense for a CoC to have no candidate counties/block-groups/etc. Are you sure you loaded all the shapes for this state?" if coc.send(self.candidates).none?
       end
 
       def _collect_data!
         coc.send(self.candidates).find_each do |piece_of_coc|
-
           intersection = coc.geom.intersection(piece_of_coc.geom)
 
           next if intersection.nil?
@@ -76,9 +73,9 @@ module GrdaWarehouse
             else
               # We have to exclude points and lines that have no area
               intersection.
-              reject { |shape| shape.geometry_type.in?([RGeo::Feature::LineString, RGeo::Feature::Point]) }.
-              map { |shape| GrdaWarehouse::Shape::SpatialRefSys.to_meters(shape).area }.
-              sum
+                reject { |shape| shape.geometry_type.in?([RGeo::Feature::LineString, RGeo::Feature::Point]) }.
+                map { |shape| GrdaWarehouse::Shape::SpatialRefSys.to_meters(shape).area }.
+                sum
             end
 
           area_of_piece_of_coc = GrdaWarehouse::Shape::SpatialRefSys.to_meters(piece_of_coc.geom).area
@@ -89,9 +86,7 @@ module GrdaWarehouse
           # piece_of_coc.update_attribute(:aland, percentage)
 
           # want all the overlaps to be mostly inside or mostly outside.
-          if 0.2 < percentage && percentage < 0.8
-            puts "Found a geometry that isn't clearly in any particular CoC (#{(percentage*100).round}%)."
-          end
+          puts "Found a geometry that isn't clearly in any particular CoC (#{(percentage * 100).round}%)." if percentage > 0.2 && percentage < 0.8
 
           # Skip over slivers that are computational artifacts
           next if percentage < 0.001
@@ -117,29 +112,26 @@ module GrdaWarehouse
         # With all the rounding and transforms, expect to be within 0.1%
         # don't sweat it when the result is very tiny.
         allowed_error = [_coc_area / 1_000_000 * 0.001, 0.001].max
-
-        if area_diff_sq_km > allowed_error
-          raise "The areas didn't match up: #{area_diff_sq_km} with allowed error of #{allowed_error}"
-        end
+        raise "The areas didn't match up: #{area_diff_sq_km} with allowed error of #{allowed_error}" if area_diff_sq_km > allowed_error
 
         rows = []
 
         value_tally.each do |census_variable_id, values|
           if values.length != num_pieces
-            #puts "FAIL: #{CensusVariable.find(census_variable_id).internal_name}"
+            # puts "FAIL: #{CensusVariable.find(census_variable_id).internal_name}"
             results.bad += 1
-          elsif values.length == 0
+          elsif values.empty?
             # Don't set sum to 0 when there's no data!
             results.no_data += 1
           else
-            #puts "GOOD: #{CensusVariable.find(census_variable_id).internal_name} with #{values.length} values"
+            # puts "GOOD: #{CensusVariable.find(census_variable_id).internal_name} with #{values.length} values"
             results.good += 1
             rows << [
               coc.full_geoid,
               'CUSTOM',
               values.sum,
               census_variable_id,
-              now
+              now,
             ]
           end
         end
@@ -147,8 +139,11 @@ module GrdaWarehouse
         CensusValue.import(
           ['full_geoid', 'census_level', 'value', 'census_variable_id', 'created_on'],
           rows,
-          on_duplicate_key_update: {conflict_target: ['full_geoid', 'census_variable_id'], columns: [:value]},
-          raise_error: true
+          on_duplicate_key_update: {
+            conflict_target: ['full_geoid', 'census_variable_id'],
+            columns: [:value],
+          },
+          raise_error: true,
         )
       end
 

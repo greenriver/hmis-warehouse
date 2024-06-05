@@ -20,7 +20,7 @@ namespace :us_census_api do
       ].join(':')
     end.split(':')
 
-    @state_codes = ENV.fetch('RELEVANT_COC_STATE').split(',')
+    @state_codes = GrdaWarehouse::Config.relevant_state_codes
     @years = ENV.fetch('US_CENSUS_API_YEARS') { 2012.upto(Date.today.year - 2).map(&:to_s).join(',') }.split(/,/).map(&:to_i)
     @datasets = ENV.fetch('US_CENSUS_API_DATASETS') { 'acs5' }.split(/,/).filter { |d| d.match(/acs5|sf1/) }
   end

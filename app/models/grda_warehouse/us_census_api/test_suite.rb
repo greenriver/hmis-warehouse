@@ -13,8 +13,8 @@ module GrdaWarehouse
       include Aggregates
 
       def self.run_all!
-        @@errors ||= []
-        @@oks ||= []
+        @errors ||= []
+        @oks ||= []
 
         TestSuite.new.tap do |suite|
           suite.methods.grep(/^test/).sort.each do |meth|
@@ -22,50 +22,50 @@ module GrdaWarehouse
           end
         end
 
-        STDOUT.print "\n"
-        Array.wrap(@@oks).each do |ok|
-          STDOUT.puts ok
+        $stdout.print "\n"
+        Array.wrap(@oks).each do |ok|
+          $stdout.puts ok
         end
-        Array.wrap(@@errors).each do |error|
-          STDOUT.puts error
+        Array.wrap(@errors).each do |error|
+          $stdout.puts error
         end
       end
 
-      #def test_uniform_names
+      # def test_uniform_names
       #  if UsCensusApi::CensusVariable.where.not(dataset: 'sf1').group(:internal_name).having('count(*) = 1').any?
       #    # sf1 is excluded because the dicennial dataset has variables we don't
       #    # get elsewhere and we only have one year at the moment. After we have
       #    # 2020 data, we might be able to take that bit out.
       #    puts '[FAIL] There should be more than one of each variable since we have many years of data for the acs datasets'
       #  end
-      #end
+      # end
 
       def test_00_state_chosen
         if ENV['RELEVANT_COC_STATE'].blank?
-          $stdout.puts "[FAIL] Set RELEVANT_COC_STATE"
+          $stdout.puts '[FAIL] Set RELEVANT_COC_STATE'
           exit 1
         else
-          puts "[OK] state is set"
+          puts '[OK] state is set'
         end
       end
 
       def test_non_zeros
-        if CensusValue.where("value < 0").any?
-          puts "[FAIL] Found a negative census value."
+        if CensusValue.where('value < 0').any?
+          puts '[FAIL] Found a negative census value.'
         else
-          puts "[OK] No negative census values."
+          puts '[OK] No negative census values.'
         end
       end
 
-      define_method("test_counties") do
+      define_method('test_counties') do
         _test_generic_sum!(ALL_PEOPLE, _counties)
       end
 
-      define_method("test_CoC") do
+      define_method('test_CoC') do
         _test_generic_sum!(ALL_PEOPLE, _cocs)
       end
 
-      define_method("test_zip_codes") do
+      define_method('test_zip_codes') do
         _test_generic_sum!(ALL_PEOPLE, _zip_codes)
       end
 
@@ -87,18 +87,18 @@ module GrdaWarehouse
         end
       end
 
-      def _test_generic_sum!(var=ALL_PEOPLE, components=_counties)
+      def _test_generic_sum!(var = ALL_PEOPLE, components = _counties)
         failure = false
         name = components.first.class.name
         _years.each do |year|
           _states.each do |state|
             total = Finder.new(geometry: state, year: year, internal_names: var).best_value.val
 
-            total = components.sum do |component|
+            total_sum = components.sum do |component|
               result = Finder.new(geometry: component, year: year, internal_names: var).best_value
               if result.error
-                if component.id == 3311 && var == ["POP::ASIAN_ALONE"]
-                  binding.irb
+                if component.id == 3311 && var == ['POP::ASIAN_ALONE']
+                  # binding.irb
                   exit
                 end
                 puts "[FAIL] #{name} #{component.id} didn't have a population in #{year} for #{var}"
@@ -109,8 +109,8 @@ module GrdaWarehouse
               end
             end
 
-            if total != (total)
-              puts "[FAIL] #{name} didn't sum to state for #{year}: #{(total.to_i - total.to_i).abs}"
+            if total != (total_sum)
+              puts "[FAIL] #{name} didn't sum to state for #{year}: #{(total.to_i - total_sum.to_i).abs}"
               failure = true
             end
           end
@@ -120,7 +120,7 @@ module GrdaWarehouse
       end
 
       def _states
-        Shape::State.my_states.first
+        Shape::State.my_states
       end
 
       def _counties
@@ -143,11 +143,11 @@ module GrdaWarehouse
 
       def puts str
         if str.match?(/FAIL/)
-          @@errors << str
-          STDOUT.print('!')
+          @errors << str
+          $stdout.print('!')
         else
-          @@oks << str
-          STDOUT.print('.')
+          @oks << str
+          $stdout.print('.')
         end
       end
 
