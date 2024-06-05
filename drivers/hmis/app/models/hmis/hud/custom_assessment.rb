@@ -22,7 +22,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
-  include ::Hmis::Hud::Concerns::HasCustomDataElements
+  include ::Hmis::Hud::Concerns::FormSubmittable
 
   SORT_OPTIONS = [:assessment_date, :date_updated].freeze
 
@@ -30,7 +30,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments, optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
 
-  has_one :form_processor, class_name: 'Hmis::Form::FormProcessor', dependent: :destroy
+  has_one :form_processor, class_name: 'Hmis::Form::FormProcessor', as: :owner, dependent: :destroy
   has_one :definition, through: :form_processor
   has_one :health_and_dv, through: :form_processor
   has_one :income_benefit, through: :form_processor

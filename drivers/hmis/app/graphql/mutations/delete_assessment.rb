@@ -43,7 +43,7 @@ module Mutations
             end
           end,
           after_delete: -> do
-            record.form_processor.related_records.each(&:destroy!)
+            record.form_processor.destroy_related_records!
 
             # Deleting the Exit Assessment "un-exits" the client by deleting the Exit record,
             # and moving the referral back to "accepted" status

@@ -94,7 +94,7 @@ module Mutations
       errors.push(*form_validations)
 
       # Run processor to create/update related records
-      assessment.form_processor.run!(owner: assessment, user: current_user)
+      assessment.form_processor.run!(user: current_user)
 
       # Run validations
       is_valid = assessment.valid?(:form_submission)
