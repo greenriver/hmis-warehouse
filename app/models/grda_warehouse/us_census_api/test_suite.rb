@@ -13,8 +13,8 @@ module GrdaWarehouse
       include Aggregates
 
       def self.run_all!
-        @errors ||= []
-        @oks ||= []
+        @@errors ||= [] # rubocop:disable Style/ClassVars
+        @@oks ||= [] # rubocop:disable Style/ClassVars
 
         TestSuite.new.tap do |suite|
           suite.methods.grep(/^test/).sort.each do |meth|
@@ -23,10 +23,10 @@ module GrdaWarehouse
         end
 
         $stdout.print "\n"
-        Array.wrap(@oks).each do |ok|
+        Array.wrap(@@oks).each do |ok|
           $stdout.puts ok
         end
-        Array.wrap(@errors).each do |error|
+        Array.wrap(@@errors).each do |error|
           $stdout.puts error
         end
       end
@@ -110,7 +110,7 @@ module GrdaWarehouse
             end
 
             if total != (total_sum)
-              puts "[FAIL] #{name} didn't sum to state for #{year}: #{(total.to_i - total_sum.to_i).abs}"
+              puts "[FAIL] #{name} didn't sum to state for #{year}: expected #{total.to_i} to equal sum #{total_sum.to_i}"
               failure = true
             end
           end
@@ -143,10 +143,10 @@ module GrdaWarehouse
 
       def puts str
         if str.match?(/FAIL/)
-          @errors << str
+          @@errors << str
           $stdout.print('!')
         else
-          @oks << str
+          @@oks << str
           $stdout.print('.')
         end
       end
