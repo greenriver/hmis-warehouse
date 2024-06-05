@@ -52863,13 +52863,6 @@ CREATE INDEX index_hmis_form_processors_on_mental_health_disorder_id ON public.h
 
 
 --
--- Name: index_hmis_form_processors_on_owner; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_hmis_form_processors_on_owner ON public.hmis_form_processors USING btree (owner_type, owner_id);
-
-
---
 -- Name: index_hmis_form_processors_on_physical_disability_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -58365,6 +58358,13 @@ CREATE UNIQUE INDEX one_entity_per_type_per_user_allows_delete ON public.user_vi
 
 
 --
+-- Name: one_form_processor_per_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX one_form_processor_per_owner ON public.hmis_form_processors USING btree (owner_id, owner_type);
+
+
+--
 -- Name: organization_export_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -62551,6 +62551,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240603185124'),
 ('20240603190227'),
 ('20240603191431'),
-('20240603191721');
+('20240603191721'),
+('20240605155445');
 
 
