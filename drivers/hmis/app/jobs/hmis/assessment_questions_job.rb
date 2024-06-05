@@ -71,7 +71,7 @@ module Hmis
 
     def form_definitions_by_id
       @form_definitions_by_id ||= begin
-        definition_ids = Hmis::Form::FormProcessor.where(custom_assessment_id: @custom_assessment_ids).pluck(:definition_id).uniq
+        definition_ids = Hmis::Form::FormProcessor.where(owner_type: Hmis::Hud::CustomAssessment.sti_name, owner_id: @custom_assessment_ids).pluck(:definition_id).uniq
         Hmis::Form::Definition.where(id: definition_ids).index_by(&:id)
       end
     end

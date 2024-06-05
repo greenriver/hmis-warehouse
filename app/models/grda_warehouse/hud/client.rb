@@ -1477,33 +1477,6 @@ module GrdaWarehouse::Hud
       work_phone
     end
 
-    def self.no_image_on_file_image
-      return File.read(Rails.root.join('public', 'no_photo_on_file.jpg'))
-    end
-
-    def image_for_source_client(cache_for = 10.minutes) # rubocop:disable Lint/UnusedMethodArgument
-      return '' unless GrdaWarehouse::Config.get(:eto_api_available) && source?
-
-      image_data = nil
-      return fake_client_image_data || self.class.no_image_on_file_image unless Rails.env.production?
-      return nil unless GrdaWarehouse::Config.get(:eto_api_available)
-
-      api_configs = EtoApi::Base.api_configs
-      eto_client_lookups.detect do |c_lookup|
-        api_key = api_configs.select { |_k, v| v['data_source_id'] == c_lookup.data_source_id }&.keys&.first
-        return nil unless api_key.present?
-
-        api ||= EtoApi::Base.new(api_connection: api_key).tap(&:connect)
-        image_data = api.client_image( # rubocop:disable Style/RescueModifier
-          client_id: c_lookup.participant_site_identifier,
-          site_id: c_lookup.site_id,
-        ) rescue nil
-        image_data&.length&.positive?
-      end
-      set_local_client_image_cache(image_data)
-      image_data || self.class.no_image_on_file_image
-    end
-
     def accessible_via_qaaws?
       GrdaWarehouse::Config.get(:eto_api_available) && source_eto_client_lookups.exists?
     end

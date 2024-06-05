@@ -128,7 +128,7 @@ module Types
     def current_living_situations(**args)
       check_enrollment_details_access
 
-      resolve_assessments(object.current_living_situations, dangerous_skip_permission_check: true, **args)
+      resolve_current_living_situations(object.current_living_situations, dangerous_skip_permission_check: true, **args)
     end
 
     def organization
