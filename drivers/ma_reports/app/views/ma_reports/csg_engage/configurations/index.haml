@@ -1,0 +1,24 @@
+= render 'ma_reports/csg_engage/tabs', selected_path: ma_reports_csg_engage_configurations_path
+
+- @agencies.each do |agency|
+  %section.o-section-card
+  %h3=agency.name
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Project Name
+          %th Clarity Name
+          %th CSG Engage Name
+          %th Import Keyword
+          %th Include in Reports
+          %th Last Transmitted
+      %tbody
+        - agency.program_mappings.each do |mapping|
+          %tr
+            %td=mapping.project.project_name
+            %td=mapping.clarity_name
+            %td=mapping.csg_engage_name
+            %td=mapping.csg_engage_import_keyword
+            %td=mapping.include_in_export ? 'Yes' : 'No'
+            %td=mapping.program_reports.pluck(:completed_at).compact.max

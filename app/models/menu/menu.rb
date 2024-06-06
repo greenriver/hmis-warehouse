@@ -471,6 +471,16 @@ class Menu::Menu
         title: 'Imports',
       ),
     )
+    if RailsDrivers.loaded.include?(:ma_reports)
+      menu.add_child(
+        Menu::Item.new(
+          user: user,
+          visible: ->(user) { user.can_view_imports? },
+          path: ma_reports_csg_engage_reports_path,
+          title: 'CSG Engage',
+        ),
+      )
+    end
     menu.add_child(
       Menu::Item.new(
         user: user,
