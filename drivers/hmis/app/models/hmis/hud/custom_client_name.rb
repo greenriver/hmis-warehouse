@@ -22,10 +22,6 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
     :maiden,
   ].freeze
 
-  after_save do
-    update_client_name if primary?
-  end
-
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
   belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
@@ -49,16 +45,6 @@ class Hmis::Hud::CustomClientName < Hmis::Hud::Base
 
   def full_name
     [first, middle, last, suffix].compact.join(' ')
-  end
-
-  def update_client_name
-    client.update(
-      first_name: first,
-      last_name: last,
-      middle_name: middle,
-      name_suffix: suffix,
-      name_data_quality: name_data_quality || 99,
-    )
   end
 
   def self.hud_key
