@@ -20,6 +20,18 @@ module MaReports::CsgEngage
       report
     end
 
+    def self.run_if_ready
+      cred = MaReports::CsgEngage::Credential.first
+      return unless cred.present?
+      return unless DateTime.current.hour == cred.hour
+      return if last_report.present? && last_report.started_at > DateTime.current - 20.hours
+
+      MaReports::CsgEngage::Agency.find_each do |agency|
+        report = MaReports::CsgEngage::Report.build(agency)
+        report.delay.run
+      end
+    end
+
     def program_mappings
       @program_mappings ||= agency.program_mappings.
         preload(:project, :agency).
@@ -28,7 +40,7 @@ module MaReports::CsgEngage
     end
 
     def run
-      return unless not_started?
+      return if started?
 
       update(started_at: Time.zone.now, failed_at: nil, completed_at: nil)
 

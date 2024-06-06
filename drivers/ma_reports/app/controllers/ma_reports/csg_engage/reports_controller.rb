@@ -6,6 +6,7 @@
 
 module MaReports::CsgEngage
   class ReportsController < ApplicationController
+    before_action :require_can_view_imports!
     before_action :set_report, only: [:show]
 
     def index

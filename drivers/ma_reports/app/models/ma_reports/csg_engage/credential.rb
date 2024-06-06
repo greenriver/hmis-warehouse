@@ -11,12 +11,19 @@ module MaReports::CsgEngage
   class Credential < ::GrdaWarehouse::RemoteCredential
     # Docs: TODO
     alias_attribute :apikey, :password
+    alias_attribute :options, :additional_headers
+
+    DEFAULT_HOUR = 4
+
+    def hour
+      options&.[]('hour') || DEFAULT_HOUR
+    end
 
     def post(body)
       url = URI("#{endpoint}/Import")
       https = Net::HTTP.new(url.host, url.port)
       https.use_ssl = true
-      file = Multipart::Post::UploadIO.new(StringIO.new(body.to_json), 'application/json', 'test.json')
+      file = Multipart::Post::UploadIO.new(StringIO.new(body.to_json), 'application/json', "csg_export_#{Time.zone.now.to_i}.json")
 
       request = Net::HTTP::Post::Multipart.new(url, file: file)
       request['import_api_key'] = import_api_key

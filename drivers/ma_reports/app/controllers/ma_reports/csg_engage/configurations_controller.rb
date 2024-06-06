@@ -6,6 +6,8 @@
 
 module MaReports::CsgEngage
   class ConfigurationsController < ApplicationController
+    before_action :require_can_view_imports!
+
     def index
       @agencies = MaReports::CsgEngage::Agency.all.preload(program_mappings: [:project, :program_reports])
     end

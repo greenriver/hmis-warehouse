@@ -19,17 +19,19 @@ module MaReports::CsgEngage::Concerns::HasReportStatus
 
     def status
       return :completed if completed_at.present?
-      return :failed if failed_at.present?
+      return :failed if failed_at.present? || started_at < 1.days.ago && !completed_at.present?
       return :in_progress if started_at.present?
       return :created if created_at.present?
 
       return :unknown
     end
 
-    def not_started?
-      return false if completed? || failed? || in_progress? || unknown?
+    def started?
+      started_at.present?
+    end
 
-      true
+    def not_started?
+      ! started?
     end
 
     def status_text
