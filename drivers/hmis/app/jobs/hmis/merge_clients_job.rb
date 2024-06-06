@@ -120,11 +120,12 @@ module Hmis
       name_scope.sort_by(&:id).each do |name|
         client_val = [client_to_retain.first_name, client_to_retain.middle_name, client_to_retain.last_name, client_to_retain.name_suffix]
         custom_client_name_val = [name.first, name.middle, name.last, name.suffix]
+        # consider this name "primary" it matches the name on the client_to_retain's Client record
         primary = (client_val == custom_client_name_val) && !primary_found
 
         name.client = client_to_retain
         name.primary = primary ? true : false
-        name.save!(validate: false) # if primary, this save will update the Client name attributes (FirstName, LastName, etc)
+        name.save!(validate: false)
 
         primary_found = true if name.primary
       end

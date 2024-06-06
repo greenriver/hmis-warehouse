@@ -17,6 +17,7 @@ module ApplicationHelper
       current_user.try(permission)
     end
   end
+
   # END Permissions
 
   # Backwards compatible translations for views so we don't have to
@@ -245,7 +246,7 @@ module ApplicationHelper
       else
         content_tag(:em, sn, class: "ds-color-#{id}") + " #{full_name}"
       end
-    end.uniq
+    end
   end
 
   def human_locale(locale)

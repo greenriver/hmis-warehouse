@@ -37,8 +37,7 @@ RSpec.describe Hmis::Form::Definition, type: :model do
 
     # cruft: form has active rules but only has a draft version
     let!(:draft_only_intake) { create :hmis_form_definition, identifier: 'draft-only-intake', role: role, version: 6, status: :draft }
-    # TODO(#6147): Re-enable when switch from `latest_versions` to `published` scope
-    # let!(:draft_only_intake_rule) { create :hmis_form_instance, definition: draft_only_intake, entity: p1, active: true }
+    let!(:draft_only_intake_rule) { create :hmis_form_instance, definition_identifier: 'draft-only-intake', entity: p1, active: true }
 
     # cruft: form only has inactive rules
     let!(:inactive_intake) { create :hmis_form_definition, identifier: 'inactive-intake', role: role, version: 7, status: :published }
