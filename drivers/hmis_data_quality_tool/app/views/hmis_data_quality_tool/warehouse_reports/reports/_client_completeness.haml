@@ -1,0 +1,15 @@
+.page-break-avoid
+  %h2.mt-2 Client Completeness
+  .completeness-chart.jChart{class: "completeness-chart-clients"}
+    %p.jLoading Loading
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      var completeness_clients = new App.DataQualityReports.Completeness(
+        #{@report.completeness('Clients').to_json.html_safe},
+        '.completeness-chart-clients',
+        '#{by_chart_hmis_data_quality_tool_warehouse_reports_report_path}'
+        );
+      completeness_clients.build_chart();
+    })(jQuery);

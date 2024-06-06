@@ -13,8 +13,9 @@ module HmisDataQualityTool::WarehouseReports
     include HistoryFilter
 
     before_action :require_can_access_some_version_of_clients!, only: [:details, :items]
-    before_action :set_report, only: [:show, :by_client, :destroy, :details, :items]
+    before_action :set_report, only: [:show, :by_client, :by_chart, :destroy, :details, :items]
     before_action :set_pdf_export, only: [:show]
+    before_action :set_chart_pdf_export, only: [:by_chart]
     before_action :set_excel_export, only: [:show]
     before_action :set_excel_by_client_export, only: [:by_client]
 
@@ -51,6 +52,9 @@ module HmisDataQualityTool::WarehouseReports
           headers['Content-Disposition'] = "attachment; filename=#{filename}"
         end
       end
+    end
+
+    def by_chart
     end
 
     def create
@@ -127,6 +131,10 @@ module HmisDataQualityTool::WarehouseReports
     end
 
     private def set_pdf_export
+      @pdf_export = HmisDataQualityTool::DocumentExports::ReportExport.new
+    end
+
+    private def set_chart_pdf_export
       @pdf_export = HmisDataQualityTool::DocumentExports::ReportExport.new
     end
 

@@ -380,6 +380,57 @@ module HmisDataQualityTool
       sum / count
     end
 
+    def average_time_to_enter(user = nil)
+      @average_time_to_enter ||= begin
+        # these need to be padded front and back for chart js to correctly show the goal
+        labels = ['', 'Days to Entry', '']
+        data = {}
+        goal = [timeliness_entry_goal, timeliness_entry_goal, timeliness_entry_goal]
+        report_projects.each do |project|
+          count = time_to_enter_by_project_id[project.project_id] || 0
+          denominator = entering_clients.where(project_id: project.project_id).count
+          average_timeliness = begin
+                                 (count.to_f / denominator).round
+                               rescue StandardError
+                                 0
+                               end
+          data[project.id] = [0, average_timeliness, 0]
+        end
+        data = re_key_on_project_name(data, user)
+        {
+          labels: labels,
+          data: data.merge('Goal' => goal),
+          projects: projects.map { |p| [p.name(user), p.id] }.to_h,
+        }
+      end
+    end
+
+    def timeliness_entry_goal
+      goal_config.entry_date_entered_length # days
+    end
+
+    def timeliness_exit_goal
+      goal_config.exit_date_entered_length # days
+    end
+
+    def completeness(category)
+      @completeness ||= {}
+      @completeness[category] ||= begin
+        completeness_data = results.group_by(&:category)[category]
+        labels = completeness_data.map(&:title)
+        columns = completeness_data.map(&:slug)
+        data = {
+          'Valid': completeness_data.map(&:percent_valid),
+          'Invalid': completeness_data.map(&:percent_invalid),
+        }
+        {
+          labels: labels,
+          data: data,
+          columns: columns,
+        }
+      end
+    end
+
     private def result_groups
       {
         'Clients' => {
