@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-module Hmis::Hud::Concerns::FormSubmittable
+module Hmis::Hud::Concerns::HasCustomDataElements
   extend ActiveSupport::Concern
 
   included do
