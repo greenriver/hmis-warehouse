@@ -26,7 +26,7 @@ module Mutations
       # to match the expected format.
       # 2. The JSON Form Editor (old), which sends keys as a JSON string in the expected format and doesn't need
       # to be transformed, but calling recursively_transform on it is not harmful either.
-      definition.definition = recursively_transform(JSON.parse(input.definition))
+      definition.definition = recursively_transform(JSON.parse(input.definition)) if input.definition
 
       errors = HmisErrors::Errors.new
       ::HmisUtil::JsonForms.new.tap do |builder|
