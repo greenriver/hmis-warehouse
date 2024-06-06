@@ -18532,7 +18532,7 @@ CREATE TABLE public.hmis_form_processors (
     mental_health_disorder_id bigint,
     substance_use_disorder_id bigint,
     exit_id bigint,
-    custom_assessment_id integer NOT NULL,
+    custom_assessment_id integer,
     definition_id integer,
     "values" jsonb,
     hud_values jsonb,
@@ -18540,7 +18540,9 @@ CREATE TABLE public.hmis_form_processors (
     employment_education_id integer,
     current_living_situation_id integer,
     ce_assessment_id bigint,
-    ce_event_id bigint
+    ce_event_id bigint,
+    owner_type character varying NOT NULL,
+    owner_id bigint NOT NULL
 );
 
 
@@ -22486,7 +22488,7 @@ CREATE VIEW public.project_collection_members AS
              LEFT JOIN public."Organization" ON ((("Organization"."DateDeleted" IS NULL) AND ("Organization".data_source_id = "Project".data_source_id) AND (("Organization"."OrganizationID")::text = ("Project"."OrganizationID")::text))))
              LEFT JOIN public.project_project_groups ON ((project_project_groups.project_id = "Project".id)))
              LEFT JOIN public.project_groups ON (((project_groups.deleted_at IS NULL) AND (project_groups.id = project_project_groups.project_group_id))))
-          WHERE ("Project"."DateDeleted" IS NULL)) targets ON (((group_viewable_entities.deleted_at IS NULL) AND ((((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (group_viewable_entities.entity_id = targets.data_source_id)) OR (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::Project'::text) AND (group_viewable_entities.entity_id = targets.project_id)) OR (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::Organization'::text) AND (group_viewable_entities.entity_id = targets.organization_id)) OR (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::ProjectGroup'::text) AND (group_viewable_entities.entity_id = targets.project_group_id))))))
+          WHERE ("Project"."DateDeleted" IS NULL)) targets ON (((group_viewable_entities.deleted_at IS NULL) AND ((((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::DataSource'::text) AND (group_viewable_entities.entity_id = targets.data_source_id)) OR (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::Project'::text) AND (group_viewable_entities.entity_id = targets.project_id)) OR (((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::Hud::Organization'::text) AND (group_viewable_entities.entity_id = targets.organization_id)) OR ((((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::ProjectAccessGroup'::text) OR ((group_viewable_entities.entity_type)::text = 'GrdaWarehouse::ProjectGroup'::text)) AND (group_viewable_entities.entity_id = targets.project_group_id))))))
   WHERE ((group_viewable_entities.deleted_at IS NULL) AND (group_viewable_entities.collection_id IS NOT NULL))
   GROUP BY targets.project_id, group_viewable_entities.collection_id;
 
@@ -59779,6 +59781,13 @@ CREATE UNIQUE INDEX one_entity_per_type_per_user_allows_delete ON public.user_vi
 
 
 --
+-- Name: one_form_processor_per_owner; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX one_form_processor_per_owner ON public.hmis_form_processors USING btree (owner_id, owner_type);
+
+
+--
 -- Name: organization_export_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -62990,6 +62999,12 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240526045112'),
 ('20240529195902'),
 ('20240529202928'),
-('20240529205526');
+('20240529205526'),
+('20240531152432'),
+('20240603185124'),
+('20240603190227'),
+('20240603191431'),
+('20240603191721'),
+('20240605155445');
 
 
