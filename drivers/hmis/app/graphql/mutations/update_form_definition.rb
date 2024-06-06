@@ -18,7 +18,7 @@ module Mutations
       raise 'not found' unless definition
       raise 'not allowed to change identifier' if input.identifier.present? && input.identifier != definition.identifier
 
-      definition.assign_attributes(**input.to_attributes)
+      definition.assign_attributes(**input.to_attributes) unless input.to_attributes.empty?
 
       # This definition could be coming from one of two places:
       # 1. The Form Builder (new), which sends input as a json-stringified Typescript object. Its keys are camelCase,
