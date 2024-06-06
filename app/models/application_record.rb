@@ -16,15 +16,6 @@ class ApplicationRecord < ActiveRecord::Base
     ActiveRecord::Migration.check_pending!
   end
 
-  # Determine whether the given search term is possibly a Primary Key (it's numeric and less than 4 bytes)
-  def self.possibly_pk?(search_term) # could add optional arg for 4 byte vs 8 byte, if needed later
-    numeric = /[\d-]+/.match(search_term).try(:[], 0) == search_term
-    return false unless numeric
-
-    max_pk = 2_147_483_648 # PK is a 4 byte signed INT (2 ** ((4 * 8) - 1))
-    search_term.to_i < max_pk
-  end
-
   def self.replace_scope(name, body, &block)
     singleton_class.undef_method name
     scope name, body, &block
