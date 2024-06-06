@@ -249,6 +249,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
       pluck(p_t[:data_source_id])
   end
 
+  # NOTE: CoC codes need to pull the data sources from the project CoC records
+  # so this differs from projects and organizations
   def self.data_source_ids_from_cocs(user, permission)
     return [] unless user.present?
     return [] unless user.send("#{permission}?")
