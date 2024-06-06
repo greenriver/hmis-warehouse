@@ -23,6 +23,10 @@ module WarehouseReports::Publish
       ]
     end
 
+    def publish_summary?
+      false
+    end
+
     def publish_warning
       previously_published = self.class.published(path)
       return nil if previously_published.blank?

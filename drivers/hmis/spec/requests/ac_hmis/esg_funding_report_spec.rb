@@ -24,7 +24,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:e2) { create :hmis_hud_enrollment, data_source: ds1, project: p2, client: c1, relationship_to_ho_h: 1, household_id: '1', user: u1 }
   let!(:e3) do
     e = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, relationship_to_ho_h: 1, household_id: '1', user: u1
-    e.save_in_progress
+    e.save_in_progress!
     e
   end
   let!(:c2) { create :hmis_hud_client, dob: Date.current - 1.year, data_source: ds1, user: u1 }
@@ -38,7 +38,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   let!(:cs3) { create(:hmis_custom_service, client: c1, enrollment: e1, custom_service_type: cst2, data_source: ds1, user: u1) }
   let!(:cs4) { create(:hmis_custom_service, client: c2, enrollment: c2_e1, custom_service_type: cst, data_source: ds1, user: u1) }
   let!(:cs5) { create(:hmis_custom_service, client: c1, enrollment: e3, custom_service_type: cst, data_source: ds1, user: u1) }
-
+  let!(:cded1) { create(:hmis_custom_data_element_definition, key: 'payment_type', data_source: ds1, user: u1) }
+  let!(:cde1) { create(:hmis_custom_data_element, data_element_definition: cded1, value_string: 'xyz payment', owner: cs1) }
   let!(:access_control) { create_access_control(hmis_user, p1) }
 
   let(:query) do
@@ -114,7 +115,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(response.status).to eq 200
       expect(result.dig('data', 'esgFundingReport')).to contain_exactly(
         # show cs1: viewable, is the right custom service type, and 18+
-        include('id' => cs1.id.to_s, 'clientId' => c1.id.to_s, 'projectId' => p1.project_id),
+        include(
+          'id' => cs1.id.to_s,
+          'clientId' => c1.id.to_s,
+          'projectId' => p1.project_id,
+          'customDataElements' => include(a_hash_including('key' => cded1.key, 'value' => a_hash_including('valueString' => cde1.value_string))),
+        ),
         # show cs2: not viewable, is right service type, and is 18+
         include('id' => cs2.id.to_s, 'clientId' => c1.id.to_s, 'projectId' => p2.project_id),
         # don't show cs3: not the right service type

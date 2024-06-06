@@ -61,4 +61,14 @@ class Users::SessionsController < Devise::SessionsController
   private def clean_code
     user_params[:otp_attempt].gsub(/[^0-9a-z]/, '')
   end
+
+  # override devise to add 'allow_other_host: true' so we can redirect to okta
+  if ENV['OKTA_DOMAIN']
+    def respond_to_on_destroy
+      respond_to do |format|
+        format.all { head :no_content }
+        format.any(*navigational_formats) { redirect_to after_sign_out_path_for(resource_name), status: Devise.responder.redirect_status, allow_other_host: true }
+      end
+    end
+  end
 end

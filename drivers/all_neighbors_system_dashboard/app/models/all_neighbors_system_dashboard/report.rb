@@ -80,8 +80,8 @@ module AllNeighborsSystemDashboard
       AllNeighborsSystemDashboard::Header.cache_data(self)
       AllNeighborsSystemDashboard::HousingTotalPlacementsData.cache_data(self)
       AllNeighborsSystemDashboard::TimeToObtainHousing.cache_data(self)
+      AllNeighborsSystemDashboard::ReturnsToHomelessness.cache_data(self)
       # Disabled until these tabs come back to speed up report runtime
-      # AllNeighborsSystemDashboard::ReturnsToHomelessness.cache_data(self)
       # AllNeighborsSystemDashboard::UnhousedPopulation.cache_data(self)
     end
 
@@ -90,6 +90,7 @@ module AllNeighborsSystemDashboard
         :enrollment,
         :client,
         :project,
+        client_head_of_household: :warehouse_client_source,
       ).find_in_batches do |batch|
         report_enrollments = {}
         ce_infos = ce_infos_for_batch(filter, batch)
@@ -109,15 +110,20 @@ module AllNeighborsSystemDashboard
           move_in_date = nil if move_in_date.present? && move_in_date > filter.end_date
 
           exit_type = exit_type(filter, enrollment)
+          exit_date = exit_date(filter, enrollment)
           diversion_enrollment = enrollment.project.id.in?(filter.secondary_project_ids)
 
           placed_date = if diversion_enrollment && exit_type == 'Permanent'
-            exit_date(filter, enrollment)
+            exit_date
           elsif enrollment.project.ph?
             move_in_date
           end
           # Exclude any client who doesn't have a placement
           next unless placed_date.present?
+
+          # Adjust the placed date to be inside the enrolment, pre-entry moves to entry date, post exit, moves to exit date
+          placed_date = enrollment.entry_date if placed_date < enrollment.entry_date
+          placed_date = exit_date if exit_date.present? && placed_date > exit_date
 
           # Exclude any records where the placement occurred outside of the report range
           next unless placed_date.in?(filter.range)
@@ -136,7 +142,7 @@ module AllNeighborsSystemDashboard
             enrollment_id: source_enrollment.enrollment_id,
             entry_date: enrollment.first_date_in_program,
             move_in_date: move_in_date,
-            exit_date: exit_date(filter, enrollment),
+            exit_date: exit_date,
             placed_date: placed_date,
             adjusted_exit_date: adjusted_exit_date(filter, enrollment),
             exit_type: exit_type,
@@ -155,7 +161,7 @@ module AllNeighborsSystemDashboard
             return_date: return_dates[enrollment.id],
             project_id: enrollment.project.id,
             project_name: enrollment.project.name, # get from project directly to handle project confidentiality
-            project_type: enrollment.computed_project_type,
+            project_type: enrollment.project_type,
           )
         end
         Enrollment.import!(report_enrollments.values)
@@ -193,7 +199,8 @@ module AllNeighborsSystemDashboard
     # 3. PH without services move-in (Project Type 9)
     # 4. RRH move-in (Project Type 13)
     # 5. Diversion
-    # 6. Latest entry date
+    # 6. Latest exit date
+    # 7. Latest entry date
     def deduplicate_universe!
       # NOTE: we aren't using the simple report universe anywhere else, using enrollments is way easier.
       cols = [
@@ -232,9 +239,16 @@ module AllNeighborsSystemDashboard
           keep[client_id] ||= row
           next if row[:id] == keep[client_id][:id]
 
-          # if we have the same project type, pick the later entry date
           if row[:project_type] == keep[client_id][:project_type]
+            # if we have the same project type, pick the later entry date
             keep[client_id] = row if row[:entry_date] > keep[client_id][:entry_date]
+
+            # if we have the same project type, pick the later exit date, prefer an open enrolment
+            if row[:exit_date].blank? && keep[client_id][:exit_date].present?
+              keep[client_id] = row
+            elsif row[:exit_date].present? && keep[client_id][:exit_date].present? && row[:exit_date] > keep[client_id][:exit_date]
+              keep[client_id] = row
+            end
           else
             # Sort by project type priority, set any diversion to 100 (max PH will be 3)
             row_project_type_index = priority_project_type_order.index(row[:project_type]) || 100
@@ -293,9 +307,9 @@ module AllNeighborsSystemDashboard
               'icons.woff',
               'icons.woff2',
             ].each do |filename|
-              css.gsub!("url(/assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
+              css.gsub!("url(#{Rails.application.config.assets.prefix}/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
               # Also replace development version of assets url
-              css.gsub!("url(/assets/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
+              css.gsub!("url(#{Rails.application.config.assets.prefix}/#{Rails.application.assets[filename].digest_path}", "url(#{filename}")
             end
             css
           },
@@ -328,27 +342,27 @@ module AllNeighborsSystemDashboard
         },
         {
           name: 'bar.js',
-          content: -> { File.read(asset_path('bar.js.es6')) },
+          content: -> { File.read(per_page_js_asset_path('all_neighbors_system_dashboard_bar.js')) },
           type: 'text/javascript',
         },
         {
           name: 'donut.js',
-          content: -> { File.read(asset_path('donut.js.es6')) },
+          content: -> { File.read(per_page_js_asset_path('all_neighbors_system_dashboard_donut.js')) },
           type: 'text/javascript',
         },
         {
           name: 'filters.js',
-          content: -> { File.read(asset_path('filters.js.es6')) },
+          content: -> { File.read(per_page_js_asset_path('all_neighbors_system_dashboard_filters.js')) },
           type: 'text/javascript',
         },
         {
           name: 'line.js',
-          content: -> { File.read(asset_path('line.js.es6')) },
+          content: -> { File.read(per_page_js_asset_path('all_neighbors_system_dashboard_line.js')) },
           type: 'text/javascript',
         },
         {
           name: 'stack.js',
-          content: -> { File.read(asset_path('stack.js.es6')) },
+          content: -> { File.read(per_page_js_asset_path('all_neighbors_system_dashboard_stack.js')) },
           type: 'text/javascript',
         },
       ]
@@ -359,8 +373,13 @@ module AllNeighborsSystemDashboard
       "<iframe width='800' height='1200' src='#{generate_publish_url}' frameborder='0'><a href='#{generate_publish_url}'>#{instance_title}</a></iframe>"
     end
 
-    private def asset_path(asset)
-      Rails.root.join('app', 'assets', 'javascripts', 'warehouse_reports', 'all_neighbors_system_dashboard', asset)
+    private def per_page_js_asset_path(asset)
+      return Rails.root.join('app', 'assets', 'builds', asset) if Rails.env.development?
+
+      ext = File.extname(asset)
+      asset_name = File.basename(asset, ext)
+      asset_path = Rails.root.join('public', 'assets', "#{asset_name}-*#{ext}")
+      Dir.glob(asset_path).first
     end
   end
 end

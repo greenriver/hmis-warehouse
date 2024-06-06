@@ -25,6 +25,7 @@ module ClaimsReporting::WarehouseReports
         options: {
           start: dates.min.iso8601,
           end: dates.max.iso8601,
+          enforce_one_year_range: false,
         }.merge(report_params),
       )
       @report.save
@@ -40,7 +41,7 @@ module ClaimsReporting::WarehouseReports
       respond_to do |format|
         format.html
         format.xlsx do
-          headers['Content-Disposition'] = "attachment; filename=Patient Engagement Trends #{Time.current.to_s(:db)}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=Patient Engagement Trends #{Time.current.to_fs(:db)}.xlsx"
         end
       end
     end

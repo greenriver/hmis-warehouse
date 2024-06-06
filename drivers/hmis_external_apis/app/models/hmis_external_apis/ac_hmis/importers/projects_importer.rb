@@ -5,16 +5,18 @@
 ###
 
 module HmisExternalApis::AcHmis::Importers
-  class CsvTransformer2022to2024 < HudTwentyTwentyTwoToTwentyTwentyFour::CsvTransformer
-    def self.destination_headers(target_class)
-      case [target_class]
-      when [GrdaWarehouse::Hud::Project]
-        super(target_class) + ['Walkin']
-      else
-        super(target_class)
-      end
-    end
-  end
+  # Leaving commented-out in case we need to do something similar for 2024=>2026
+  #
+  # class CsvTransformer2022to2024 < HudTwentyTwentyTwoToTwentyTwentyFour::CsvTransformer
+  #   def self.destination_headers(target_class)
+  #     case [target_class]
+  #     when [GrdaWarehouse::Hud::Project]
+  #       super(target_class) + ['Walkin']
+  #     else
+  #       super(target_class)
+  #     end
+  #   end
+  # end
 
   class ProjectsImporter
     JOB_LOCK_NAME = 'hmis_project_importer'.freeze
@@ -38,19 +40,7 @@ module HmisExternalApis::AcHmis::Importers
       timeout_seconds = 60
       success = false
       Hmis::HmisBase.with_advisory_lock(JOB_LOCK_NAME, timeout_seconds: timeout_seconds) do
-        # transform data files to HUD 2024
-        case infer_hud_version_from_project_cols
-        when '2022'
-          Dir.mktmpdir do |hud_dir|
-            CsvTransformer2022to2024.up(dir, hud_dir)
-            _run(hud_dir)
-          end
-        when '2024'
-          Sentry.capture_message("#{self.class.name} skipping 2024 transformation. Check if the 2024 transform can be removed.")
-          _run(dir)
-        else
-          raise 'could not infer hud version'
-        end
+        _run(dir)
         success = true
       end
       raise "Could not acquire lock within #{timeout_seconds} seconds" unless success
@@ -76,11 +66,14 @@ module HmisExternalApis::AcHmis::Importers
       sanity_check
       ProjectsImportAttempt.transaction do
         run_in_dir(hud_dir) do
-          upsert_funders
-          upsert_orgs
+          upsert_hud_file(file: 'Organization.csv', klass: GrdaWarehouse::Hud::Organization)
           upsert_projects
-          upsert_walkins
-          upsert_inventory
+          upsert_walkins # import flag indicating which projects accept walk-ins
+          upsert_hud_file(file: 'Funder.csv', klass: GrdaWarehouse::Hud::Funder)
+          upsert_hud_file(file: 'Inventory.csv', klass: GrdaWarehouse::Hud::Inventory)
+          upsert_hud_file(file: 'ProjectCoC.csv', klass: GrdaWarehouse::Hud::ProjectCoc)
+          upsert_hud_file(file: 'HMISParticipation.csv', klass: GrdaWarehouse::Hud::HmisParticipation)
+          upsert_hud_file(file: 'CEParticipation.csv', klass: GrdaWarehouse::Hud::CeParticipation)
         end
         run_in_dir(dir) do
           upsert_project_unit_type_mappings
@@ -88,7 +81,6 @@ module HmisExternalApis::AcHmis::Importers
         Hmis::ProjectUnitTypeMapping.freshen_project_units(user: sys_user)
         cleanup_project_dates
         cleanup_dangling_funders
-        apply_project_overrides
       end
       analyze
       finish
@@ -96,6 +88,7 @@ module HmisExternalApis::AcHmis::Importers
       @notifier.ping('Failure in project importer', { exception: e })
       Rails.logger.fatal e.message
       Rails.logger.fatal 'ProjectsImporter aborted before it finished.'
+      raise e if Rails.env.test?
     end
 
     def start
@@ -109,10 +102,18 @@ module HmisExternalApis::AcHmis::Importers
     def sanity_check
       msg = []
 
-      msg << 'Funder.csv was not present.' unless File.exist?("#{dir}/Funder.csv")
-      msg << 'Organization.csv was not present.' unless File.exist?("#{dir}/Organization.csv")
-      msg << 'Project.csv was not present.' unless File.exist?("#{dir}/Project.csv")
-      msg << 'Inventory.csv was not present.' unless File.exist?("#{dir}/Inventory.csv")
+      [
+        'Funder.csv',
+        'Organization.csv',
+        'Project.csv',
+        'Inventory.csv',
+        'ProjectCoC.csv',
+        'HMISParticipation.csv',
+        'CEParticipation.csv',
+        'ProjectUnitTypes.csv',
+      ].each do |file|
+        msg << "#{file} was not present." unless File.exist?("#{dir}/#{file}")
+      end
 
       return unless msg.present?
 
@@ -126,38 +127,24 @@ module HmisExternalApis::AcHmis::Importers
       raise AbortImportException, msg
     end
 
-    def upsert_funders
-      file = 'Funder.csv'
+    def upsert_hud_file(file:, klass:)
+      hud_key = klass.hud_key&.to_s
+      raise 'hud_key not found' unless hud_key
 
       check_columns(
         file: file,
-        expected_columns: GrdaWarehouse::Hud::Funder.hmis_configuration(version: '2024').keys.map(&:to_s),
-        critical_columns: ['FunderID'],
-      )
-
-      generic_upsert(
-        file: 'Funder.csv',
-        conflict_target: ['"FunderID"', 'data_source_id'],
-        klass: GrdaWarehouse::Hud::Funder,
-      )
-    end
-
-    def upsert_orgs
-      file = 'Organization.csv'
-
-      check_columns(
-        file: file,
-        expected_columns: GrdaWarehouse::Hud::Organization.hmis_configuration(version: '2024').keys.map(&:to_s),
-        critical_columns: ['OrganizationID'],
+        expected_columns: klass.hmis_configuration(version: '2024').keys.map(&:to_s),
+        critical_columns: [hud_key],
       )
 
       generic_upsert(
         file: file,
-        conflict_target: ['"OrganizationID"', 'data_source_id'],
-        klass: GrdaWarehouse::Hud::Organization,
+        conflict_target: ["\"#{hud_key}\"", 'data_source_id'],
+        klass: klass,
       )
     end
 
+    # Doesn't match HUD spec exactly, has additional column 'Walkin'
     def upsert_projects
       file = 'Project.csv'
 
@@ -168,7 +155,7 @@ module HmisExternalApis::AcHmis::Importers
         critical_columns: ['ProjectID'],
       )
 
-      @project_result = generic_upsert(
+      generic_upsert(
         file: file,
         conflict_target: ['"ProjectID"', 'data_source_id'],
         klass: GrdaWarehouse::Hud::Project,
@@ -178,13 +165,14 @@ module HmisExternalApis::AcHmis::Importers
 
     def upsert_walkins
       Rails.logger.info 'Upserting walkins'
-      project_ids = @project_result.ids
-      walkin = records_from_csv('Project.csv').map { |x| x['Walkin'] }
+      project_id_to_pk = Hmis::Hud::Project.hmis.pluck(:ProjectID, :id).to_h
 
-      project_ids.length != walkin.length and raise(AbortImportException, 'Project upsert should have been the same length as the parsed csv')
-
-      project_ids.zip(walkin).each do |(project_id, bool_str)|
+      records_from_csv('Project.csv').each do |row|
+        bool_str = row['Walkin']
         next unless bool_str.present?
+
+        project_id = project_id_to_pk[row['ProjectID']]
+        raise "ProjectID #{row['ProjectID']} not found" unless project_id
 
         cde = Hmis::Hud::CustomDataElement.
           where(
@@ -204,22 +192,6 @@ module HmisExternalApis::AcHmis::Importers
             end,
         )
       end
-    end
-
-    def upsert_inventory
-      file = 'Inventory.csv'
-
-      check_columns(
-        file: file,
-        expected_columns: GrdaWarehouse::Hud::Inventory.hmis_configuration(version: '2024').keys.map(&:to_s),
-        critical_columns: ['InventoryID'],
-      )
-
-      generic_upsert(
-        file: file,
-        conflict_target: ['"InventoryID"', 'data_source_id'],
-        klass: GrdaWarehouse::Hud::Inventory,
-      )
     end
 
     def upsert_project_unit_type_mappings
@@ -297,26 +269,6 @@ module HmisExternalApis::AcHmis::Importers
       dangling_funders.each(&:destroy!)
     end
 
-    # Apply overrides that can be set in the Warehouse
-    def apply_project_overrides
-      overrides = {
-        project_type: :act_as_project_type,
-        operating_start_date: :operating_start_date_override,
-        operating_end_date: :operating_end_date_override,
-      }
-
-      Hmis::Hud::Project.where(id: @project_result.ids).map do |project|
-        overrides.each do |key, override_key|
-          override = project.send(override_key)
-          next unless override.present?
-
-          project.write_attribute(key, override)
-        end
-
-        project.save!(validate: false) if project.changed?
-      end
-    end
-
     def analyze
       Rails.logger.info 'Analyzing imported tables'
       ProjectsImportAttempt.connection.exec_query('ANALYZE "Funder", "Project", "Organization", "CustomDataElements";')
@@ -375,16 +327,27 @@ module HmisExternalApis::AcHmis::Importers
 
       csv = records_from_csv(file)
 
-      columns_to_update = csv.headers - conflict_target - ignore_columns
+      # Fix known issues in CSV headers
+      header_fixes = {
+        'HousingAssessmemnt' => 'HousingAssessment',
+        'ZIP' => 'Zip',
+      }
+      csv_headers = csv.headers.map { |val| header_fixes[val] || val }
+      columns_to_update = csv_headers - conflict_target - ignore_columns
 
       records = csv.each.map(&:to_h)
 
       records.each do |r|
         r['data_source_id'] = data_source.id
+
+        # Fix issues with hash keys (ZIP=>Zip)
+        header_fixes.each do |file_col, db_col|
+          r[db_col] = r.delete file_col if r[file_col]
+        end
       end
 
       # Validate format of all dates before attempting import, so we don't import them incorrectly
-      date_columns = csv.headers.filter { |h| h.end_with?('Date') }
+      date_columns = csv_headers.filter { |h| h.end_with?('Date') }
       if date_columns.any?
         date_columns.each do |col|
           records.each do |r|
@@ -415,8 +378,13 @@ module HmisExternalApis::AcHmis::Importers
         end
       end
 
+      # Drop records with duplicate conflict targets (HUD keys)
+      unique_records = records.index_by do |record|
+        conflict_target.map { |col| record[col.gsub(/\"/, '')] }.join(':')
+      end.values.flatten
+
       result = klass.import(
-        records,
+        unique_records,
         validate: false,
         batch_size: 1_000,
         on_duplicate_key_update: {
@@ -460,16 +428,18 @@ module HmisExternalApis::AcHmis::Importers
       @sys_user ||= Hmis::Hud::User.system_user(data_source_id: data_source.id)
     end
 
-    def infer_hud_version_from_project_cols
-      headers = run_in_dir(dir) do
-        records_from_csv('Project.csv', row_limit: 1).first.to_h.keys.to_set
-      end
-      if headers.include?('RRHSubType')
-        '2024'
-      elsif headers.include?('ResidentialAffiliation') || headers.include?('TrackingMethod')
-        '2022'
-      end
-    end
+    # Leaving commented-out in case we need to do something similar for 2024=>2026
+    #
+    # def infer_hud_version_from_project_cols
+    #   headers = run_in_dir(dir) do
+    #     records_from_csv('Project.csv', row_limit: 1).first.to_h.keys.to_set
+    #   end
+    #   if headers.include?('RRHSubType')
+    #     '2024'
+    #   elsif headers.include?('ResidentialAffiliation') || headers.include?('TrackingMethod')
+    #     '2022'
+    #   end
+    # end
 
     # Validate date format 'YYYY-MM-DD'
     def valid_date?(str)

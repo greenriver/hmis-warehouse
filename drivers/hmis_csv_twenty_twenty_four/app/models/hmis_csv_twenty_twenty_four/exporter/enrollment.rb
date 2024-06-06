@@ -41,6 +41,7 @@ module HmisCsvTwentyTwentyFour::Exporter
         enrollment_scope.
           modified_within_range(range: (export.start_date..export.end_date))
       end
+
       note_involved_user_ids(scope: export_scope, export: export)
 
       export_scope.distinct.preload(:user, :project, client: :warehouse_client_source)

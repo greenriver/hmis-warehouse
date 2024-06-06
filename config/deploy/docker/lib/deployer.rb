@@ -4,6 +4,7 @@ require 'English'
 require_relative 'roll_out'
 require_relative 'aws_sdk_helpers'
 require_relative 'asset_compiler'
+require_relative 'blue_green'
 
 class Deployer
   include AwsSdkHelpers::Helpers
@@ -47,6 +48,8 @@ class Deployer
 
   attr_accessor :service_registry_arns
 
+  attr_accessor :skip_remote_git_check
+
   attr_accessor :args
 
   def initialize(args)
@@ -61,6 +64,7 @@ class Deployer
     self.web_options              = args.fetch(:web_options)
     self.registry_id              = args.fetch(:registry_id)
     self.repo_name                = args.fetch(:repo_name)
+    self.skip_remote_git_check    = args.fetch(:skip_remote_git_check, false)
     self.variant                  = 'web'
     self.version                  = `git rev-parse --short=7 HEAD`.chomp
     self.args                     = OpenStruct.new(args)
@@ -119,7 +123,7 @@ class Deployer
   def _initial_steps
     # _ensure_clean_repo!
     _set_revision!
-    _check_that_you_pushed_to_remote!
+    _check_that_you_pushed_to_remote! unless skip_remote_git_check
     _docker_login!
     _wait_for_image_ready
     _check_secrets!
@@ -332,10 +336,16 @@ class Deployer
   def _target_group_arn
     return @target_group_arn unless @target_group_arn.nil?
 
-    results = elbv2.describe_target_groups
+    if ENV['USE_LEGACY_TARGET_GROUP_ARN_BEHAVIOR'] == 'true'
+      results = elbv2.describe_target_groups
 
-    @target_group_arn = results.target_groups.find do |tg|
-      tg.target_group_name == target_group_name
-    end.target_group_arn
+      @target_group_arn = results.target_groups.find do |tg|
+        tg.target_group_name == target_group_name
+      end.target_group_arn
+    else
+      bg = BlueGreen.new(target_group_name)
+      bg.check!
+      @target_group_arn = bg.target_group_to_deploy_to.target_group_arn
+    end
   end
 end

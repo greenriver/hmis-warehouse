@@ -7,10 +7,15 @@
         %th Generated From
     %tbody
       - @items.each.map do |item|
-        - next unless item.generator_url
+        - url = nil
+        -# Attempt to fetch the url, sometimes the original item has been deleted, just remove showing those.
+        - begin
+          - url = item.generator_url
+        - rescue
+        - next unless url
         %tr
           %td
             = link_to item.download_title, item.download_url, download: 'download'
           %td
-            = item.created_at.to_s(:long)
+            = item.created_at.to_fs(:long)
           %td= link_to 'Report', "#{item.generator_url}?#{item.query_string}"

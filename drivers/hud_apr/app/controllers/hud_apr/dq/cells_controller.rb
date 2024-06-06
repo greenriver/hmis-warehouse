@@ -7,6 +7,8 @@
 module HudApr::Dq
   class CellsController < HudApr::CellsController
     include DqConcern
+    # Make sure @generator is available.  TODO: maybe make `generator` a helper method with lazy load?
+    before_action :generator
     before_action :set_report
     before_action :set_question
 

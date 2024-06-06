@@ -132,6 +132,10 @@ module HudUtility2024
     [:es, :so, :sh, :th, :ph].freeze
   end
 
+  def spm_project_type_numbers
+    residential_project_type_numbers_by_code.values_at(*spm_project_type_codes).flatten.freeze
+  end
+
   def path_project_type_codes
     [:so, :services_only].freeze
   end

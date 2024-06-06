@@ -18,7 +18,7 @@ require 'zip'
 #
 # # Put the zip file into s3
 # config = GrdaWarehouse::CustomImports::Config.find_by(import_type: 'Financial::Import')
-# config.s3.store(content: File.read('drivers/financial/spec/fixtures/initial_import.zip'), name: "development/combined/#{Time.current.to_s(:number)}-initial_import.zip")
+# config.s3.store(content: File.read('drivers/financial/spec/fixtures/initial_import.zip'), name: "development/combined/#{Time.current.to_fs(:number)}-initial_import.zip")
 #
 # # Run the various importers
 # config = GrdaWarehouse::CustomImports::Config.find_by(import_type: 'Financial::Import'); config.import!
@@ -27,7 +27,7 @@ require 'zip'
 # config = GrdaWarehouse::CustomImports::Config.find_by(import_type: 'Financial::TransactionImport'); config.import!
 #
 # # Store the second import file and re-run imports
-# config.s3.store(content: File.read('drivers/financial/spec/fixtures/second_import.zip'), name: "development/combined/#{Time.current.to_s(:number)}-second_import.zip")
+# config.s3.store(content: File.read('drivers/financial/spec/fixtures/second_import.zip'), name: "development/combined/#{Time.current.to_fs(:number)}-second_import.zip")
 module Financial
   class Import < ::GrdaWarehouse::CustomImports::ImportFile
     alias_attribute :filename, :file
@@ -92,7 +92,7 @@ module Financial
             summary << csv_name
             csv_config = config.class.active.find_by(import_type: klass.name)
 
-            dated_csv = File.join([extract_path, "#{Time.current.to_s(:number)}-#{csv_name}"])
+            dated_csv = File.join([extract_path, "#{Time.current.to_fs(:number)}-#{csv_name}"])
             FileUtils.mv(local_csv_file, dated_csv)
             csv_config.s3.put(file_name: dated_csv.to_s, prefix: csv_config.s3_prefix)
           end

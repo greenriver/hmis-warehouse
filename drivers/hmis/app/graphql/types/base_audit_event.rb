@@ -6,7 +6,7 @@
 
 module Types
   class BaseAuditEvent < BaseObject
-    def self.build(node_class, field_permissions: nil, excluded_keys: nil, transform_changes: nil)
+    def self.build(node_class, excluded_keys: nil, transform_changes: nil)
       dynamic_name = "#{node_class.graphql_name}AuditEvent"
       klass = Class.new(self) do
         graphql_name(dynamic_name)
@@ -23,13 +23,6 @@ module Types
           return transform_changes.call(object, changes) if transform_changes.present?
 
           changes
-        end
-
-        define_method(:authorize_field) do |record, key|
-          return true unless field_permissions[key].present?
-
-          # Check if user has permission to view audit history for this particular field (for example SSN/DOB on Client)
-          current_user.permissions_for?(record, *Array.wrap(field_permissions[key]))
         end
       end
 
@@ -91,9 +84,10 @@ module Types
         definition_id = item_attributes['data_element_definition_id']
         custom_data_element_labels_by_id[definition_id] || 'Custom Data Element'
       when 'Hmis::Hud::CustomAssessment'
-        # Try to label Assessment by name (eg "Exit Assessment")
-        # This would need adjustment to support naming fully custom assessments (eg "SPDAT Assessment")
-        HudUtility2024.assessment_name_by_data_collection_stage[item_attributes['DataCollectionStage']] || 'Assessment'
+        # Label Assessment by name (eg "Exit Assessment")
+        HudUtility2024.assessment_name_by_data_collection_stage[item_attributes['DataCollectionStage']] ||
+          custom_assessment_title ||
+          'Assessment'
       else
         object.item_type.demodulize.gsub(/^Custom(Client)?/, '').
           underscore.humanize.titleize
@@ -108,6 +102,11 @@ module Types
       else
         object.item_type.demodulize.gsub(/^Custom/, '')
       end
+    end
+
+    private def custom_assessment_title
+      ca = load_ar_scope(scope: Hmis::Hud::CustomAssessment.with_deleted, id: object.item_id)
+      ca ? load_ar_association(ca, :definition)&.title : nil
     end
 
     # NOTE: will be nil if this is a 'destroy' event
@@ -173,9 +172,6 @@ module Types
 
         # Skip if changes are empty, or if the change is `nil=>99` or `99=>nil`. This is not meaningful to show in the UI.
         next if values.map { |v| v == 99 ? nil : v }.compact.empty?
-
-        # hide certain changes (SSN/DOB) if unauthorized
-        values = 'changed' if changed_record && !authorize_field(changed_record, key)
 
         [
           field_name,

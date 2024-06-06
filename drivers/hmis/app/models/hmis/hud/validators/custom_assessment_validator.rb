@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+# TODO: This validator is no longer used as an ActiveRecord validator, but just holds the date validator function
+# that's called when the assessment form is submitted. It could be refactored to reduce confusion
 class Hmis::Hud::Validators::CustomAssessmentValidator < Hmis::Hud::Validators::BaseValidator
   def self.already_has_annual_full_message(date)
     "Client already has an annual assessment on the same date (#{date.strftime('%m/%d/%Y')})"
@@ -13,7 +15,9 @@ class Hmis::Hud::Validators::CustomAssessmentValidator < Hmis::Hud::Validators::
     "Client already has an update assessment on the same date (#{date.strftime('%m/%d/%Y')})"
   end
 
-  # Validate assessment date
+  # Note that this function is NOT called when we call `.valid?` on an assessment.
+  # `.valid?` checks whether the *record* is valid, but this function checks validity from the perspective of the
+  # assessment at the moment when it's submitted by the HMIS
   def self.validate_assessment_date(assessment, household_members: nil, options: {})
     date = assessment.assessment_date
     errors = HmisErrors::Errors.new

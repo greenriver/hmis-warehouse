@@ -24,8 +24,8 @@
 
     - models = (@data_source.import_aggregators.keys + @data_source.import_cleanups.keys).uniq.sort
     - if models.present?
-      %p The following extensions are enabled on this data source, and will cause changes during the import process
-      %table.table.table-striped
+      %p The following extensions are enabled on this data source, and will cause changes during the import process.
+      %table.table.table-striped.mb-4
         %thead
           %tr
             %th Model
@@ -40,6 +40,13 @@
                 - cleanups = @data_source.import_cleanups[model]&.map do |cleanup|
                   - cleanup.constantize.description
                 #{((aggregators || []) + (cleanups || [])).sort.join(', ')}.
+- if RailsDrivers.loaded.include?(:hmis_csv_importer)
+  - overrides = HmisCsvImporter::ImportOverride.where(data_source: @data_source).sorted.select { |override| override.applies?(@item) }
+  - if overrides.any?
+    .well
+      %p The following import overrides are in effect for this record.
+      .mb-4
+        = render 'hmis_csv_importer/import_overrides/table', overrides: overrides, data_source: @data_source, editable: false, show_associated_project: true
 
 .card
   %table.table.table-striped

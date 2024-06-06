@@ -98,6 +98,11 @@
             {
               "variable": "projectOtherFunders",
               "operator": "INCLUDE",
+              "value": "HAP Shallow Rent"
+            },
+            {
+              "variable": "projectOtherFunders",
+              "operator": "INCLUDE",
               "value": "HAP Penn Free Bridge RRH"
             },
             {

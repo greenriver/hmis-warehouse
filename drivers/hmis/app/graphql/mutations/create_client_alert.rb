@@ -16,6 +16,11 @@ module Mutations
       errors = HmisErrors::Errors.new
       errors.add :note, :required if input.note.blank?
       errors.add :priority, :required unless input.priority
+      errors.add :expiration_date, :required unless input.expiration_date
+      errors.add :expiration_date, :invalid, full_message: 'Expiration date must be in the future.' if input.expiration_date && !input.expiration_date.future?
+      # Use 3650 days (not 10 years) to match simple 'offset' logic in static form
+      errors.add :expiration_date, :invalid, full_message: 'Expiration date must not be more than 10 years in the future.' if input.expiration_date && input.expiration_date > Date.today + 3650.days
+
       return { errors: errors } if errors.any?
 
       if alert.valid?

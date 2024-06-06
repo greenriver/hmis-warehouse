@@ -132,6 +132,56 @@ module Health
     has_many :qualifying_activities
     has_many :status_dates
 
+    has_many :housing_statuses
+    has_one :recent_housing_status, -> do
+      merge(Health::HousingStatus.as_of(date: Date.current))
+    end, class_name: 'Health::HousingStatus'
+
+    # Record the housing status for a client on a date (default to current).
+    # If there is already a housing status on the date, update it, otherwise create a new one
+    #
+    # Note that this is often called in an after_save hook, so care needs to be take not to create cycles
+    def record_housing_status(status, on_date: Date.current)
+      return unless status.present? && on_date.present?
+
+      prior_housing_status = recent_housing_status
+      housing_status = if prior_housing_status&.collected_on == on_date
+        # The housing status string is recorded, for detail, but is mostly treated as a boolean
+        # Don't overwrite an existing status if the patient would lose homeless status
+        prior_housing_status.update(status: status) unless prior_housing_status.positive_for_homelessness? && ! status.in?(Health::HousingStatus::HOMELESS_STATUSES)
+        prior_housing_status
+      else
+        housing_statuses.create(collected_on: on_date, status: status)
+      end
+
+      generate_daily_hrsn_qa(housing_status) if prior_housing_status.present? && on_date > '2024-03-01'.to_date
+      housing_status
+    end
+
+    private def generate_daily_hrsn_qa(housing_status)
+      return unless engaged? # Daily HRSNs are not produced until the patient is engaged
+
+      previous_status = Health::HousingStatus.as_of(date: housing_status.collected_on - 1.day).first
+      return unless housing_status.positive_for_homelessness? && previous_status.present? && ! previous_status.positive_for_homelessness? # Only record no -> yes
+
+      return if Health::QualifyingActivity.find_by(date_of_activity: housing_status.collected_on, activity: :sdoh_positive).present? # Don't duplicate QAs
+      return if housing_status.collected_on < Health::QualifyingActivityV2::EFFECTIVE_DATE_RANGE.first # SDoH QAs added in CP 2.0
+
+      user = User.system_user # Mark created QAs as from the system
+      ::Health::QualifyingActivity.create!(
+        source_type: housing_status.class.name,
+        source_id: housing_status.id,
+        user_id: user.id,
+        user_full_name: user.name_with_email,
+        date_of_activity: housing_status.collected_on,
+        mode_of_contact: nil, # There are no contact modifiers listed in the QA specification
+        reached_client: nil,
+        patient_id: id,
+        activity: :sdoh_positive,
+        follow_up: 'Patient SDoH Screening Positive',
+      )
+    end
+
     scope :pilot, -> { where pilot: true }
     scope :hpc, -> { where pilot: false }
     scope :bh_cp, -> { where pilot: false }
@@ -306,8 +356,9 @@ module Health
     # CP 2 relaxed the requirements for the PCTP so that it required in-house clinical approval instead of needing
     # to be approved by the patients PCP.
     # Oct 31, 2023: simplified engagement to be based on PCTP being sent to PCP in the last year
+    # May 7, 2024: Removed requirement that the PCTP had to be sent in the last year, leaving just that it had to be sent
     def self.cp_2_engagement(on) # rubocop:disable Naming/MethodParameterName
-      where(id: Health::PctpCareplan.recent.sent_within(on - 365.days .. on).select(:patient_id))
+      where(id: Health::PctpCareplan.sent_within(.. on).select(:patient_id))
     end
 
     scope :engagement_required_by, ->(date) do
@@ -470,7 +521,7 @@ module Health
     end
 
     def contributing_enrollment_start_date
-      patient_referrals.contributing.minimum(:enrollment_start_date)
+      @contributing_enrollment_start_date ||= patient_referrals.contributing.minimum(:enrollment_start_date)
     end
 
     def current_days_enrolled
@@ -552,22 +603,22 @@ module Health
     end
 
     def reenroll!(referral)
-      # Create a "Care Plan Complete QA" if the patient has an unexpired care plan as of the enrollment start date
-      return unless pctp_careplans.completed_within(referral.enrollment_start_date - 1.year ..).exists?
-
-      user = User.setup_system_user
-      qualifying_activities.create(
-        activity: :pctp_signed,
-        date_of_activity: referral.enrollment_start_date,
-
-        user_id: user.id,
-        user_full_name: user.name,
-        source: referral,
-        follow_up: 'None',
-        mode_of_contact: :other,
-        mode_of_contact_other: 'MassHealth re-enrollment',
-        reached_client: :yes,
-      )
+      # # Create a "Care Plan Complete QA" if the patient has an unexpired care plan as of the enrollment start date
+      # return unless pctp_careplans.completed_within(referral.enrollment_start_date - 1.year ..).exists?
+      #
+      # user = User.setup_system_user
+      # qualifying_activities.create(
+      #   activity: :pctp_signed,
+      #   date_of_activity: referral.enrollment_start_date,
+      #
+      #   user_id: user.id,
+      #   user_full_name: user.name,
+      #   source: referral,
+      #   follow_up: 'None',
+      #   mode_of_contact: :other,
+      #   mode_of_contact_other: 'MassHealth re-enrollment',
+      #   reached_client: :yes,
+      # )
     end
 
     def age(on_date:)
@@ -959,7 +1010,7 @@ module Health
     end
 
     def engaged?
-      self.class.engaged.where(id: id).exists?
+      @engaged ||= self.class.engaged.where(id: id).exists?
       # ssms? && participation_forms.reviewed.exists? && release_forms.reviewed.exists? && comprehensive_health_assessments.reviewed.exists?
     end
 
@@ -1337,8 +1388,8 @@ module Health
       patient_scope.where(where)
     end
 
-    def sdoh_icd10_codes
-      homelessness_unspecified = recent_hrsn_screening&.instrument&.positive_for_homelessness?
+    def sdoh_icd10_codes(on_date: Date.current)
+      homelessness_unspecified = housing_statuses.as_of(date: on_date).first&.positive_for_homelessness?
 
       [].tap do |codes|
         codes << 'Z5900' if homelessness_unspecified

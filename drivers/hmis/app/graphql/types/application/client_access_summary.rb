@@ -14,6 +14,7 @@ module Types
     field :client_name, String, null: true
 
     def client_name
+      # not checking for name permission access, because can_audit_users is required here
       client&.brief_name
     end
 

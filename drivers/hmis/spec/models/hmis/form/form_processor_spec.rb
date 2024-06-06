@@ -22,6 +22,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
   before(:all) do
     cleanup_test_environment
+    ::HmisUtil::JsonForms.seed_all
   end
   after(:all) do
     cleanup_test_environment
@@ -594,7 +595,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       assessment.save_not_in_progress
 
       old_entry_date = assessment.enrollment.entry_date
-      new_entry_date = '2024-03-14'
+      new_entry_date = 1.week.ago.strftime('%Y-%m-%d')
       expect(old_entry_date).not_to be_nil
 
       assessment.reload.form_processor.hud_values = {
@@ -856,10 +857,10 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         expect(client.name_data_quality).to eq(1)
         # Ensure all names persisted
         expect(client.names.count).to eq(2)
-        expect(client.names.map(&:attributes)).to match([
-                                                          a_hash_including(primary_name.excluding(:nameDataQuality).stringify_keys),
-                                                          a_hash_including(secondary_name.excluding(:nameDataQuality).stringify_keys),
-                                                        ])
+        expect(client.names.map(&:attributes)).to contain_exactly(
+          a_hash_including(primary_name.excluding(:nameDataQuality).stringify_keys),
+          a_hash_including(secondary_name.excluding(:nameDataQuality).stringify_keys),
+        )
         expect(client.dob.strftime('%Y-%m-%d')).to eq('2000-03-29')
         expect(client.dob_data_quality).to eq(1)
         expect(client.ssn).to eq('XXXXX1234')
@@ -1022,10 +1023,10 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       # Ensure all names persisted
       expect(client.names.size).to eq(2)
       expect(client.names.pluck(:id)).not_to include(old_secondary_name.id)
-      expect(client.names.map(&:attributes)).to match([
-                                                        a_hash_including({ first: 'Atticus Changed', primary: false, id: old_primary_name.id }.stringify_keys),
-                                                        a_hash_including({ first: 'Charlotte', primary: true }.stringify_keys),
-                                                      ])
+      expect(client.names.map(&:attributes)).to contain_exactly(
+        a_hash_including({ first: 'Atticus Changed', primary: false, id: old_primary_name.id }.stringify_keys),
+        a_hash_including({ first: 'Charlotte', primary: true }.stringify_keys),
+      )
     end
 
     it 'handles "deleting" primary name' do
@@ -1346,6 +1347,38 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
       expect do
         process_record(record: p1, hud_values: hud_values, user: hmis_user, save: false, definition: definition)
       end.to raise_error(RuntimeError, /Project.confidential.*Not a submittable field/)
+    end
+
+    # affiliations are processed in a special case in ProjectProcessor
+    it 'adds/removes records for affiliated projects' do
+      p2 = create(:hmis_hud_project, data_source: ds1, organization: o1)
+      p3 = create(:hmis_hud_project, data_source: ds1, organization: o1)
+      p4 = create(:hmis_hud_project, data_source: ds1, organization: o1)
+
+      hud_values = empty_hud_values.merge(
+        'residentialAffiliation' => 'YES',
+        'residentialAffiliationProjectIds' => [p2.id.to_s, p3.id.to_s],
+      )
+      process_record(record: p1, hud_values: hud_values, user: hmis_user, definition: definition)
+      expect(p1.residential_affiliation).to eq(1)
+      expect(p1.residential_projects).to contain_exactly(p2, p3), 'add new affiliations'
+
+      # Re-process with 1 affiliation removed and 1 added
+      hud_values = empty_hud_values.merge(
+        'residentialAffiliation' => 'YES',
+        'residentialAffiliationProjectIds' => [p2.id.to_s, p4.id.to_s],
+      )
+      process_record(record: p1, hud_values: hud_values, user: hmis_user, definition: definition)
+      expect(p1.reload.residential_projects).to contain_exactly(p2, p4), 'add and remove affiliations'
+
+      # Re-process with all affiliations removed
+      hud_values = empty_hud_values.merge(
+        'residentialAffiliation' => 'NO',
+        'residentialAffiliationProjectIds' => HIDDEN,
+      )
+      process_record(record: p1, hud_values: hud_values, user: hmis_user, definition: definition)
+      expect(p1.reload.residential_affiliation).to eq(0)
+      expect(p1.residential_projects).to be_empty, 'remove all affiliations'
     end
   end
 
@@ -1808,7 +1841,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         data_source: ds1,
         enrollment_id: e1.enrollment_id,
         personal_id: e1.personal_id,
-        custom_service_type: hud_service_type,
+        custom_service_type_id: hud_service_type.id, # initializer sets record type and type provided on Service
       )
 
       [existing_record, new_record].each do |record|
@@ -1818,7 +1851,6 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         hmis_service = Hmis::Hud::HmisService.find_by(owner: record.owner)
         expect(hmis_service.hud_service?).to eq(true)
         expect(hmis_service.custom_service?).to eq(false)
-        expect(hmis_service.service_type).to eq(hud_service_type)
         expect(hmis_service.record_type).to eq(hud_service.record_type)
         expect(hmis_service.type_provided).to eq(hud_service.type_provided)
         expect(hmis_service.fa_amount).to eq(200)
@@ -1832,7 +1864,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         data_source: ds1,
         enrollment_id: e1.enrollment_id,
         personal_id: e1.personal_id,
-        custom_service_type: cst1,
+        custom_service_type_id: cst1.id,
       )
       [existing_record, new_record].each do |record|
         process_record(record: record, hud_values: custom_service_values, user: hmis_user, save: false, definition: definition)
@@ -1841,7 +1873,7 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         hmis_service = Hmis::Hud::HmisService.find_by(owner: record.owner)
         expect(hmis_service.hud_service?).to eq(false)
         expect(hmis_service.custom_service?).to eq(true)
-        expect(hmis_service.service_type).to eq(cst1)
+        expect(hmis_service.custom_service_type_id).to eq(cst1.id)
         expect(hmis_service.record_type).to be nil
         expect(hmis_service.type_provided).to be nil
         expect(hmis_service.fa_amount).to eq(100)
@@ -1927,6 +1959,14 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
         end.
           to not_change(e1.reload.events, :count).
           and change { assessment.reload.ce_event.event }.to(1) # value updated
+      end
+
+      it 'should find the CE event related record' do
+        process_assessment
+        related_records = assessment.form_processor.related_records
+        expect(related_records.length).to eq(2)
+        expect(related_records).to include(e1)
+        expect(related_records).to include(assessment.ce_event)
       end
 
       describe 'and all CE Event fields are hidden:' do
@@ -2087,6 +2127,36 @@ RSpec.describe Hmis::Form::FormProcessor, type: :model do
 
       expect(assessment.ce_assessment.assessment_questions.count).to eq(1)
       expect(assessment.ce_assessment.assessment_questions.find_by(assessment_question: 'assessment_question').assessment_answer).to eq('answer')
+    end
+
+    it 'should truncate if an answer is too long' do
+      # note: definition is loaded in test environment because it is in the form_data/test/ directory
+      definition = Hmis::Form::Definition.find_by(identifier: 'housing_needs_assessment')
+      create(:hmis_custom_data_element_definition, key: 'assessment_question', owner_type: 'Hmis::Hud::CustomAssessment')
+      extra_long_string = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque ac turpis congue, '\
+        'placerat felis id, porta leo. Sed volutpat nunc mi, pretium aliquet enim imperdiet sed.Aliquam et facilisis '\
+        'quam, in pulvinar elit. Mauris egestas arcu eu turpis fermentum laoreet. Phasellus molestie lorem quam, sit '\
+        'amet efficitur lorem egestas in. Duis rutrum dolor a ligula ultrices, at elementum sem lobortis. Vestibulum '\
+        'fermentum nisi sem, eu maximus sem mollis at. Pellentesque dapibus quam tempor sapien semper aliquet. Quisque '\
+        'lobortis eros magna, id facilisis augue faucibus eget. Nullam sit amet erat et ipsum ullamcorper condimentum '\
+        'eget quis ipsum. Curabitur et gravida erat. Pellentesque ullamcorper euismod justo a vehicula. '\
+        'Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Ut et lacus vel dui '\
+        'molestie bibendum et id velit. Suspendisse porttitor nibh eget ante imperdiet, ut ultrices neque laoreet. Donec '\
+        'varius feugiat interdum. Nulla molestie eu erat sit amet varius. Ut suscipit tellus efficitur nulla semper, id '\
+        'congue dui gravida. Pellentesque blandit, elit et malesuada auctor, urna est faucibus risus, non dictum magna '\
+        'arcu et ex. Praesent molestie commodo nibh nec blandit. Pellentesque lacinia massa sapien, vel mattis arcu '\
+        'ultricies sed. Praesent libero lacus, efficitur non orci ac, euismod pretium libero.'
+      expect(extra_long_string.length).to be > 500
+      hud_values.merge!({ 'assessment_question' => extra_long_string })
+
+      assessment = build(:hmis_wip_custom_assessment, client: c1, enrollment: e1, data_source: ds1, user: u1)
+      process_record(record: assessment, hud_values: hud_values, user: hmis_user, definition: definition)
+      assessment.form_processor.store_assessment_questions!
+
+      expect(assessment.ce_assessment.assessment_questions.count).to eq(1)
+      saved_answer = assessment.ce_assessment.assessment_questions.find_by(assessment_question: 'assessment_question').assessment_answer
+      expect(saved_answer.length).to eq(500), 'should truncate to 500 characters'
+      expect(saved_answer[-3..]).to eq('...'), 'should indicate truncated answer with ellipsis'
     end
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
@@ -22,33 +24,56 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       @table_names = []
     end
 
+    def runnable?
+      clobber ? true : supports_upsert?
+    end
+
+    def filename
+      raise 'define filename in subclass'
+    end
+
     protected
 
     def supports_upsert?
       false
     end
 
-    def runnable?
-      clobber ? true : supports_upsert?
-    end
-
-    DATE_FMT = '%Y-%m-%d'.freeze
+    DATE_FMT = '%Y-%m-%d'
     DATE_RGX = /\A\d{4}-\d{2}-\d{2}\z/
 
     # 'YYYY-MM-DDT00:00:00.0000000'
-    DATE_TIME_FMT = '%Y-%m-%dT%H:%M:%S.%N'.freeze
+    DATE_TIME_FMT = '%Y-%m-%dT%H:%M:%S.%N'
     DATE_TIME_RGX = /\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{7}\z/
 
-    def parse_date(str)
+    def parse_date(value)
+      return unless value
+
+      case value
+      when Date, Time
+        value
+      when DATE_RGX
+        Date.strptime(value, DATE_FMT)
+      when DATE_TIME_RGX
+        DateTime.strptime(value, DATE_TIME_FMT)
+      else
+        raise ArgumentError, "Invalid date or date-time format: '#{value}'"
+      end
+    end
+
+    MINUTES_RGX = /\d+/
+    HOURS_MINUTES_RGX = /(\d*):(\d{2})/
+    def parse_duration(str)
       return unless str
 
+      str.strip!
       case str
-      when DATE_RGX
-        Date.strptime(str, DATE_FMT)
-      when DATE_TIME_RGX
-        DateTime.strptime(str, DATE_TIME_FMT)
+      when MINUTES_RGX
+        str.to_i
+      when HOURS_MINUTES_RGX
+        match = str.match(HOURS_MINUTES_RGX)
+        match[1] * 60 + match[2]
       else
-        raise ArgumentError, "Invalid date or date-time format: '#{str}'"
+        raise ArgumentError, "Invalid duration format: '#{str}'"
       end
     end
 
@@ -85,10 +110,13 @@ module HmisExternalApis::TcHmis::Importers::Loaders
 
     def yn_boolean(str)
       case str
-      when /^(y|yes)$/i
+      when /^(t|y|yes)$/i
         true
-      when /^(n|no)$/i
+      when /^(f|n|no)$/i
         false
+      when '.'
+        # for element 12180 in the HAT, the dot appears to mean 'true'
+        true
       when nil
         nil
       else
@@ -134,6 +162,69 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       self.class.name
     end
 
+    def placeholder_service_category
+      @placeholder_service_category ||= Hmis::Hud::CustomServiceCategory.where(data_source: data_source, name: 'placeholder service category').first_or_create! do |cat|
+        cat.UserID = system_hud_user.user_id
+      end
+    end
+
+    def clear_invalid_enrollment_ids(rows, enrollment_id_field:)
+      raise 'array expected' unless rows.is_a?(Array)
+
+      row_enrollment_ids = rows.map { |row| row_enrollment_id(row) }.compact
+      valid_enrollment_ids = Hmis::Hud::Enrollment.
+        where(data_source: data_source).
+        where(EnrollmentID: row_enrollment_ids).
+        pluck(:EnrollmentID).to_set
+
+      cleared = 0
+      rows.each do |row|
+        enrollment_id = row_enrollment_id(row)
+        next unless enrollment_id # ignore if missing
+        next if enrollment_id.in?(valid_enrollment_ids) # ignore if valid
+
+        # if the row references an enrollment_id that does not exist, remove the row enrollment_id
+        row.row[enrollment_id_field] = nil
+        cleared += 1
+      end
+      log_info("Cleared #{cleared} invalid enrollment ids")
+    end
+
+    def extrapolate_missing_enrollment_ids(rows, enrollment_id_field:)
+      raise 'array expected' unless rows.is_a?(Array)
+
+      # it would be better if we had project identifier instead of name
+      program_name_map = Hmis::Hud::Project.
+        where(data_source: data_source).
+        pluck(:ProjectName, :ProjectID).to_h
+
+      missing = {}
+      rows.each do |row|
+        next if row_enrollment_id(row)
+
+        personal_id = row_personal_id(row)
+        date = row_date_provided(row)
+        project_id = program_name_map[row.field_value('Program Name')]
+
+        next unless personal_id && date && project_id
+
+        missing[personal_id] ||= []
+        missing[personal_id] << [date, project_id, row]
+      end
+
+      matched = 0
+      Hmis::Hud::Client.where(data_source: data_source, personal_id: missing.keys).preload(enrollments: :exit).find_each do |client|
+        missing[client.personal_id].each do |date, project_id, row|
+          match = client.enrollments.detect { |e| e.project_id == project_id && (e.EntryDate <= date && (e.exit&.ExitDate.blank? || e.exit.ExitDate > date)) }
+          next unless match
+
+          row.row[enrollment_id_field] = match.enrollment_id
+          matched += 1
+        end
+      end
+      log_info("Extrapolation matched #{matched} of #{missing.values.map(&:size).sum} missing enrollment ids")
+    end
+
     # some record sets can't be bulk inserted. Disabling paper trial reduces runtime when
     # we have to fallback to individual inserts
     def without_paper_trail
@@ -146,15 +237,19 @@ module HmisExternalApis::TcHmis::Importers::Loaders
       end
     end
 
-    def log_skipped_row(row, field:)
+    def log_skipped_row(row, field:, prefix: nil)
       value = row.field_value(field)
-      log_info "#{row.context} could not resolve \"#{field}\":\"#{value}\""
+      log_info "#{row.context} #{prefix} could not resolve \"#{field}\":\"#{value}\""
     end
 
     def log_processed_result(name: nil, expected:, actual:)
       name ||= model_class.name
       rate = expected.zero? ? 0 : (actual.to_f / expected).round(3)
-      log_info("processed #{name}: #{actual} of #{expected} records (#{(1.0 - rate) * 100}% skipped)")
+      log_info("processed #{name}: #{actual} of #{expected} records (#{((1.0 - rate) * 100).round(2)}% skipped)")
+    end
+
+    def normalize_uuid(str)
+      str&.gsub(/[^a-z0-9]/i, '')&.upcase
     end
   end
 end

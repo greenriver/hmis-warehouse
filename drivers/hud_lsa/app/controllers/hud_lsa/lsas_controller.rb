@@ -14,6 +14,10 @@ module HudLsa
       report
     end
 
+    def new_hic
+      report
+    end
+
     def create
       if @filter.valid?
         @report = report_class.from_filter(@filter, report_name, build_for_questions: generator.questions.keys)
@@ -33,7 +37,7 @@ module HudLsa
         format.html {}
         format.zip do
           file = @report.result_file
-          filename = "#{@report.report_filename}-#{@report.created_at.to_s(:db)}.zip"
+          filename = "#{@report.report_filename}-#{@report.created_at.to_fs(:db)}.zip"
           send_data file.download, filename: filename, type: file.content_type, disposition: 'attachment'
         end
       end
@@ -44,7 +48,7 @@ module HudLsa
         format.html {}
         format.zip do
           file = @report.intermediate_file
-          filename = "Support for #{@report.class.generic_title}-#{@report.created_at.to_s(:db)}.zip"
+          filename = "Support for #{@report.class.generic_title}-#{@report.created_at.to_fs(:db)}.zip"
           send_data file.download, filename: filename, type: file.content_type, disposition: 'attachment'
         end
       end

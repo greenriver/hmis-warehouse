@@ -38,6 +38,7 @@ module Types
     available_filter_options do
       arg :project, [ID]
       arg :organization, [ID]
+      arg :service_in_range, Types::HmisSchema::ServiceRangeFilter
     end
 
     description 'HUD Client'
@@ -80,6 +81,12 @@ module Types
     field :phone_numbers, [HmisSchema::ClientContactPoint], null: false
     field :email_addresses, [HmisSchema::ClientContactPoint], null: false
     field :hud_chronic, Boolean, null: true
+
+    field :active_enrollment, Types::HmisSchema::Enrollment, null: true do
+      argument :project_id, ID, required: true
+      argument :open_on_date, GraphQL::Types::ISO8601Date, required: true
+    end
+
     enrollments_field filter_args: { omit: [:search_term, :bed_night_on_date], type_name: 'EnrollmentsForClient' } do
       # Option to include enrollments that the user has "limited" access to
       argument :include_enrollments_with_limited_access, Boolean, required: false
@@ -98,10 +105,6 @@ module Types
     scan_card_codes_field
     field :merge_audit_history, Types::HmisSchema::MergeAuditEvent.page_type, null: false
     audit_history_field(
-      field_permissions: {
-        'SSN' => :can_view_full_ssn,
-        'DOB' => :can_view_dob,
-      },
       excluded_keys: ['owner_type'],
       filter_args: { omit: [:enrollment_record_type], type_name: 'ClientAuditEvent' },
       # Transform race and gender fields
@@ -143,6 +146,8 @@ module Types
     access_field do
       can :view_partial_ssn
       can :view_full_ssn
+      can :view_client_name
+      can :view_client_photo
       can :view_dob
       can :view_enrollment_details
       can :edit_enrollments
@@ -183,6 +188,14 @@ module Types
       has_some_detailed_access = current_permission?(permission: :can_view_enrollment_details, entity: object)
       scope = object.enrollments.viewable_by(current_user, include_limited_access_enrollments: has_some_detailed_access)
       resolve_enrollments(scope, **args, dangerous_skip_permission_check: true)
+    end
+
+    def active_enrollment(project_id:, open_on_date:)
+      load_open_enrollment_for_client(
+        object,
+        project_id: project_id,
+        open_on_date: open_on_date,
+      )
     end
 
     def income_benefits(**args)
@@ -228,6 +241,8 @@ module Types
     end
 
     def image
+      return unless current_permission?(permission: :can_view_client_photo, entity: object)
+
       files = load_ar_association(object, :client_files, scope: GrdaWarehouse::ClientFile.client_photos.newest_first)
       file = files.first&.client_file
       file&.download ? file : nil
@@ -256,7 +271,28 @@ module Types
       object.dob if current_permission?(permission: :can_view_dob, entity: object)
     end
 
+    def first_name
+      return object.masked_name unless can_view_name
+
+      object.first_name
+    end
+
+    def middle_name
+      object.middle_name if can_view_name
+    end
+
+    def last_name
+      object.last_name if can_view_name
+    end
+
+    def name_suffix
+      object.name_suffix if can_view_name
+    end
+
     def names
+      # initialize a dummy CustomClientName with masked name
+      return [object.names.new(first: object.masked_name)] unless can_view_name
+
       names = load_ar_association(object, :names)
       return names unless names.empty?
 
@@ -264,19 +300,31 @@ module Types
       [object.build_primary_custom_client_name]
     end
 
+    private def can_view_name
+      current_permission?(permission: :can_view_client_name, entity: object)
+    end
+
     def contact_points
+      return [] unless current_permission?(permission: :can_view_client_contact_info, entity: object)
+
       load_ar_association(object, :contact_points)
     end
 
     def phone_numbers
+      return [] unless current_permission?(permission: :can_view_client_contact_info, entity: object)
+
       load_ar_association(object, :contact_points).filter { |r| r.system == 'phone' }
     end
 
     def email_addresses
+      return [] unless current_permission?(permission: :can_view_client_contact_info, entity: object)
+
       load_ar_association(object, :contact_points).filter { |r| r.system == 'email' }
     end
 
     def addresses
+      return [] unless current_permission?(permission: :can_view_client_contact_info, entity: object)
+
       load_ar_association(object, :addresses)
     end
 
@@ -300,6 +348,7 @@ module Types
         Hmis::Hud::CustomClientName.sti_name,
         Hmis::Hud::CustomClientAddress.sti_name,
         Hmis::Hud::CustomClientContactPoint.sti_name,
+        Hmis::ClientAlert.sti_name,
       ]
 
       # Also include CustomDataElements that are linked to clients.

@@ -135,11 +135,12 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   end
 
   def store_assessment_questions!
+    # Queue up job to store CE Assessment responses in the HUD CE AssessmentQuestions table
     # Rspec test isolation interferes with delayed job transaction
     if Rails.env.test?
-      ::Hmis::AssessmentQuestionsJob.perform_now(id)
+      ::Hmis::AssessmentQuestionsJob.perform_now(custom_assessment_ids: custom_assessment_id)
     else
-      ::Hmis::AssessmentQuestionsJob.perform_later(id)
+      ::Hmis::AssessmentQuestionsJob.perform_later(custom_assessment_ids: custom_assessment_id)
     end
   end
 
@@ -151,7 +152,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     # If this is a form just for collecting CLS, it is the owner
     return owner if owner.is_a? Hmis::Hud::CurrentLivingSituation
 
-    self.current_living_situation ||= enrollment_factory.current_living_situations.build(user_id: custom_assessment&.user_id) if create
+    return current_living_situation if current_living_situation.present? || !create
+
+    self.current_living_situation = enrollment_factory.current_living_situations.build(user_id: custom_assessment&.user_id)
   end
 
   def service_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
@@ -208,13 +211,17 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   def ce_assessment_factory(create: true)
     return owner if owner.is_a? Hmis::Hud::Assessment
 
-    self.ce_assessment ||= enrollment_factory.assessments.build(user_id: custom_assessment&.user_id) if create
+    return ce_assessment if ce_assessment.present? || !create
+
+    self.ce_assessment = enrollment_factory.assessments.build(user_id: custom_assessment&.user_id)
   end
 
   def ce_event_factory(create: true)
     return owner if owner.is_a? Hmis::Hud::Event
 
-    self.ce_event ||= enrollment_factory.events.build(user_id: custom_assessment&.user_id) if create
+    return ce_event if ce_event.present? || !create
+
+    self.ce_event = enrollment_factory.events.build(user_id: custom_assessment&.user_id)
   end
 
   def health_and_dv_factory(create: true)
@@ -341,6 +348,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       HmisParticipation: Hmis::Hud::Processors::HmisParticipationProcessor,
       File: Hmis::Hud::Processors::FileProcessor,
       ReferralRequest: Hmis::Hud::Processors::ReferralRequestProcessor,
+      ReferralPosting: Hmis::Hud::Processors::ReferralPostingProcessor,
       YouthEducationStatus: Hmis::Hud::Processors::YouthEducationStatusProcessor,
       EmploymentEducation: Hmis::Hud::Processors::EmploymentEducationProcessor,
       CurrentLivingSituation: Hmis::Hud::Processors::CurrentLivingSituationProcessor,

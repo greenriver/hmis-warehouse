@@ -173,10 +173,11 @@ module Types
 
     field :record_form_definition, Types::Forms::FormDefinition, 'Get the most relevant Form Definition to use for record viewing/editing', null: true do
       argument :role, Types::Forms::Enums::RecordFormRole, required: true
-      argument :project_id, ID, required: false, description: 'Optional Project to apply rule filtering (e.g. show/hide questions based on Project applicability)'
+      argument :project_id, ID, required: false, description: 'Optional Project to select the relevant form, and to apply rule filtering (e.g. show/hide questions based on Project applicability)'
     end
     def record_form_definition(role:, project_id: nil)
       raise 'Not supported, use serviceFormDefinition to look up service forms' if role == 'SERVICE'
+      raise 'unexpected role' unless Hmis::Form::Definition::FORM_ROLES.include?(role.to_sym)
 
       project = Hmis::Hud::Project.find_by(id: project_id) if project_id.present?
       record = Hmis::Form::Definition.find_definition_for_role(role, project: project)
@@ -193,6 +194,7 @@ module Types
     end
     def assessment_form_definition(project_id:, id: nil, role: nil, assessment_date: nil)
       raise 'id or role required' if id.nil? && role.nil?
+      raise 'unexpected role' if role && !Hmis::Form::Definition::ASSESSMENT_FORM_ROLES.include?(role.to_sym)
 
       project = Hmis::Hud::Project.find(project_id)
       # Ensure that user can view enrollments for this project. There is no need to expose assessment forms otherwise.
@@ -373,6 +375,17 @@ module Types
       Hmis::Hud::CustomServiceCategory.all
     end
 
+    field :service_types, Types::HmisSchema::ServiceType.page_type, null: false do
+      filters_argument HmisSchema::ServiceType
+    end
+    def service_types(filters: nil)
+      raise 'Access denied' unless current_user.can_configure_data_collection?
+
+      scope = Hmis::Hud::CustomServiceType.all
+      scope = scope.apply_filters(filters) if filters
+      scope.order(:name, :id)
+    end
+
     field :form_definition, Types::Forms::FormDefinition, null: true do
       argument :id, ID, required: true
     end
@@ -385,20 +398,51 @@ module Types
       Hmis::Form::Definition.find(id)
     end
 
-    field :form_definitions, Types::Forms::FormDefinition.page_type, null: false
-    def form_definitions
+    field :external_form_definition, Types::Forms::FormDefinition, null: true do
+      argument :identifier, String, required: true
+    end
+    def external_form_definition(identifier:)
+      raise 'Access denied' unless current_user.can_manage_external_form_submissions?
+
+      Hmis::Form::Definition.with_role(:EXTERNAL_FORM).where(identifier: identifier).order(version: :desc).first
+    end
+
+    field :form_definitions, Types::Forms::FormDefinition.page_type, null: false, deprecation_reason: 'replaced by FormIdentifiers query' do
+      filters_argument Forms::FormDefinition
+    end
+    def form_definitions(filters:)
       raise 'Access denied' unless current_user.can_configure_data_collection?
 
-      # TODO: add ability to sort and filter definitions
-      Hmis::Form::Definition.non_static.order(updated_at: :desc)
+      scope = Hmis::Form::Definition.non_static
+      scope = scope.apply_filters(filters) if filters
+      scope.order(updated_at: :desc)
+    end
+
+    field :form_identifier, Types::Forms::FormIdentifier, null: true do
+      argument :identifier, String, required: true
+    end
+    def form_identifier(identifier:)
+      raise 'Access denied' unless current_user.can_configure_data_collection?
+
+      Hmis::Form::Definition.non_static.latest_versions.where(identifier: identifier).first
+    end
+
+    field :form_identifiers, Types::Forms::FormIdentifier.page_type, null: false do
+      filters_argument Forms::FormIdentifier
+    end
+    def form_identifiers(filters: nil)
+      raise 'Access denied' unless current_user.can_configure_data_collection?
+
+      scope = Hmis::Form::Definition.non_static.valid.latest_versions
+      scope = scope.apply_filters(filters) if filters
+      scope.order(updated_at: :desc)
     end
 
     form_rules_field
     def form_rules(**args)
       raise 'Access denied' unless current_user.can_configure_data_collection?
 
-      # Only resolve non-service rules. Service rules are resolved on the service category.
-      resolve_form_rules(Hmis::Form::Instance.not_for_services, **args)
+      resolve_form_rules(Hmis::Form::Instance.all, **args)
     end
 
     field :form_rule, Types::Admin::FormRule, null: true do
@@ -410,11 +454,11 @@ module Types
       Hmis::Form::Instance.find_by(id: id)
     end
 
-    field :auto_exit_configs, Types::HmisSchema::AutoExitConfig.page_type, null: false
-    def auto_exit_configs
+    field :project_configs, Types::HmisSchema::ProjectConfig.page_type, null: false
+    def project_configs
       raise 'not allowed' unless current_user.can_configure_data_collection?
 
-      Hmis::AutoExitConfig.all
+      Hmis::ProjectConfig.all
     end
 
     field :client_detail_forms, [Types::HmisSchema::OccurrencePointForm], null: false, description: 'Custom forms for collecting and/or displaying custom details for a Client (outside of the Client demographics form)'

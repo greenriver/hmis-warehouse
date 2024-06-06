@@ -12,7 +12,8 @@ module Importers::HmisAutoMigrate
       data_source_id:,
       deidentified: false,
       allowed_projects: false,
-      file_path: 'tmp/hmis_import'
+      file_path: 'tmp/hmis_import',
+      project_cleanup: true
     )
       setup_notifier('HMIS Local AutoMigrate Importer')
       @data_source_id = data_source_id
@@ -20,6 +21,7 @@ module Importers::HmisAutoMigrate
       @allowed_projects = allowed_projects
       @file_path = file_path
       @local_path = File.join(file_path, @data_source_id.to_s, Time.current.to_i.to_s)
+      @project_cleanup = project_cleanup
     end
 
     def import!
@@ -30,6 +32,7 @@ module Importers::HmisAutoMigrate
         deidentified: @deidentified,
         allowed_projects: @allowed_projects,
         file_path: @file_path,
+        project_cleanup: @project_cleanup,
       ).import!
     end
 
@@ -41,7 +44,7 @@ module Importers::HmisAutoMigrate
 
     private def compress_and_upload
       # rezip files
-      zip_file_path = File.join(@file_path, "#{@data_source_id}_#{Time.current.to_s(:db)}.zip")
+      zip_file_path = File.join(@file_path, "#{@data_source_id}_#{Time.current.to_fs(:db)}.zip")
       files = Dir.glob(File.join(@file_path, '*')).map { |f| File.basename(f) }
       Zip::File.open(zip_file_path, Zip::File::CREATE) do |zipfile|
         files.each do |filename|

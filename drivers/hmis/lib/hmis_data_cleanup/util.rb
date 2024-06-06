@@ -18,43 +18,135 @@ module HmisDataCleanup
     # This should be done after an HMIS migration, otherwise ServiceHistoryService generation will behave incorrectly
     def self.clear_enrollment_export_ids!
       without_papertrail_or_timestamps do
-        Hmis::Hud::Enrollment.hmis.update_all(ExportID: nil)
+        rows_affected = Hmis::Hud::Enrollment.hmis.where.not(ExportID: nil).update_all(ExportID: nil)
+        Rails.logger.info "Nullified ExportID on #{rows_affected} Enrollments"
+      end
+    end
+
+    # Set the EnrollmentCoC field for all HMIS Enrollments.
+    # This could eventually be updated to learn the CoC based on the Project's ProjectCoC record. We don't need that yet since
+    # we are dealing with a single-CoC installation at the time of writing this.
+    def self.update_all_enrollment_cocs!(coc_code)
+      without_papertrail_or_timestamps do
+        rows_affected = Hmis::Hud::Enrollment.hmis.where.not(EnrollmentCoC: coc_code).update_all(EnrollmentCoC: coc_code)
+        Rails.logger.info "Updated EnrollmentCoC on #{rows_affected} enrollments"
       end
     end
 
     # Assign Household ID where missing
-    #
-    # Note: If this gets to be a large number, an upsert is probably worth doing.
-    # We could `scope.find_in_batches` and then enrollment.assign_attributes and finally "import" the batch with a conflict key of id.
     def self.assign_missing_household_ids!
-      scope = Hmis::Hud::Enrollment.hmis.where(household_id: nil)
-      Rails.logger.info "Assigning household id to #{scope.size} enrollments"
-      scope.each do |enrollment|
-        hh_id = Hmis::Hud::Base.generate_uuid
-        without_papertrail_or_timestamps do
-          enrollment.update_columns(household_id: hh_id) # skips callbacks
+      Hmis::Hud::Enrollment.hmis.where(household_id: [nil, '']).find_in_batches do |batch|
+        batch.each do |enrollment|
+          enrollment.HouseholdID = Digest::MD5.hexdigest([enrollment.EnrollmentID, enrollment.PersonalID, enrollment.ProjectID].join('__'))
+        end
+
+        result = Hmis::Hud::Enrollment.import(
+          batch,
+          validate: false,
+          timestamps: false,
+          on_duplicate_key_update: { conflict_target: [:id], columns: [:HouseholdID] },
+        )
+        raise "Failed: #{result.failed_instances}" if result.failed_instances.present?
+
+        Rails.logger.info "Assigned HouseholdID to #{result.ids.count} Enrollments"
+      end
+    end
+
+    # Reassign household IDs that are duplicated across projects.
+    def self.reassign_duplicate_household_ids!
+      hh_ids = Hmis::Hud::Enrollment.hmis.group(:household_id).
+        having('count(distinct "Enrollment"."ProjectID") > 1').
+        pluck(:HouseholdID)
+
+      hh_id_to_enrollments = Hmis::Hud::Enrollment.hmis.where(household_id: hh_ids).group_by(&:household_id)
+
+      Hmis::Hud::Enrollment.without_optimistic_locking do
+        hh_id_to_enrollments.each do |hh_id, enrollments|
+          Rails.logger.info "Processing HouseholdID #{hh_id}..."
+          enrollments.group_by(&:project_id).each do |project_id, enrollments_in_project|
+            id = Hmis::Hud::Base.generate_uuid
+            Rails.logger.info "[HouseholdID #{hh_id}][ProjectID #{project_id}] Reassigning Enrollments with ids: [#{enrollments_in_project.map(&:id).join(',')}] to new HouseholdID (#{id})"
+            enrollments_in_project.each { |en| en.update_columns(household_id: id) }
+          end
         end
       end
     end
 
     # Find any single-member households that do not have a HoH, and make that person the HoH
     def self.make_sole_member_hoh!
-      single_member_households = Hmis::Hud::Enrollment.hmis.
+      single_member_households = Hmis::Hud::Enrollment.hmis.where.not(household_id: nil).
         group(:household_id).
         having(nf('COUNT', [:HouseholdID]).eq(1)).
-        pluck(:household_id)
-
-      num = Hmis::Hud::Enrollment.hmis.
-        where(household_id: single_member_households).
-        where.not(relationship_to_hoh: 1).size
-
-      Rails.logger.info "Assigning HoH to #{num} single-member households"
+        select(:household_id)
 
       without_papertrail_or_timestamps do
-        Hmis::Hud::Enrollment.hmis.
-          where(household_id: single_member_households).
+        rows_affected = Hmis::Hud::Enrollment.hmis.where(household_id: single_member_households).
           where.not(relationship_to_hoh: 1).
           update_all(relationship_to_hoh: 1) # skips callbacks
+
+        Rails.logger.info "Set HoH in #{rows_affected} single-member households"
+      end
+    end
+
+    # Fix any instances of enrollment-related records where the PersonalID does not match the Enrollment's PersonalIDs
+    def self.fix_incorrect_personal_id_references!(classes: nil, dry_run: false)
+      classes&.each do |klass|
+        raise "Invalid class: #{klass.name}" unless Hmis::Hud::Enrollment.hmis_enrollment_related_classes.include?(klass)
+      end
+
+      classes ||= Hmis::Hud::Enrollment.hmis_enrollment_related_classes
+      data_source_id = GrdaWarehouse::DataSource.hmis.first.id
+
+      Hmis::Hud::Base.transaction do
+        classes.each do |klass|
+          Rails.logger.info "[#{klass.name}] Processing"
+
+          if dry_run
+            records_needing_update = klass.where(data_source_id: data_source_id).
+              left_outer_joins(:enrollment).
+              where(GrdaWarehouse::Hud::Enrollment.arel_table[:id].eq(nil)).
+              count
+
+            Rails.logger.info "[#{klass.name}] #{records_needing_update} records with bad PersonalID"
+            next
+          end
+
+          klass.where(data_source_id: data_source_id).left_outer_joins(:enrollment).
+            where(GrdaWarehouse::Hud::Enrollment.arel_table[:id].eq(nil)).
+            find_in_batches do |batch|
+            Rails.logger.info "[#{klass.name}] Processing batch"
+
+            # map {EnrollmentID=>PersonalID} for each enrollment referenced by this batch of records
+            eid_to_pid = GrdaWarehouse::Hud::Enrollment.where(
+              data_source_id: data_source_id,
+              EnrollmentID: batch.map(&:EnrollmentID),
+            ).pluck(:EnrollmentID, :PersonalID).to_h
+
+            values = []
+            batch.each do |record|
+              real_personal_id = eid_to_pid[record.EnrollmentID]
+              next unless real_personal_id # enrollment not found, so we cant update the PersonalID
+              next if record.PersonalID == real_personal_id # this shouldn't be true, but check anyway
+
+              record.PersonalID = real_personal_id
+              values << record
+            end
+
+            if values.any?
+              Rails.logger.info "[#{klass.name}] change batch: #{values.map { |r| [r.id, r.PersonalID_was, r.PersonalID] }.inspect}"
+              result = klass.import(
+                values,
+                validate: false,
+                timestamps: false,
+                on_duplicate_key_update: { conflict_target: [:id], columns: [:PersonalID] },
+              )
+
+              raise "Failed: #{result.failed_instances}" if result.failed_instances.present?
+
+              Rails.logger.info "[#{klass.name}] updated #{result.ids.count} records"
+            end
+          end
+        end
       end
     end
 
@@ -83,35 +175,43 @@ module HmisDataCleanup
       GrdaWarehouse::Hud::Exit.where(id: ids_to_delete).update_all(DateDeleted: Time.current, source_hash: nil)
     end
 
-    # Transform all-uppercase client names to camel-cased client names
-    # WARNING! Doesn't skips callbacks. Should probably be modified if we ever need to use this again.
-    def self.humanize_client_names!
-      name_fields = [:first_name, :middle_name, :last_name, :name_suffix]
-      scope = Hmis::Hud::Client.hmis.where('"Client"."FirstName" = upper("Client"."FirstName")')
-      # scope = Hmis::Hud::Client.hmis
-      scope.in_batches(of: 5_000) do |batch|
-        Rails.logger.info 'Next batch..'
-        values = []
-        batch.pluck(:id, *name_fields).each do |id_and_names|
-          id = id_and_names.first
-          names_arr = id_and_names.drop(1)
-          names = name_fields.zip(names_arr).to_h.compact_blank
-          next unless names.any?
+    # This cleanup routine was added because duplicate EnrollmentIDs were leading to uniqueness violation constraints
+    # when Client records were merged.
+    #
+    # 1) Hard-delete deleted enrollments where there is any NON-deleted Enrollment that shares an EnrollmentID
+    # 2) Hard-delete deleted all but 1 enrollment where there is a set of deleted Enrollments that share an EnrollmentID
+    def self.hard_delete_duplicate_deleted_enrollments!
+      data_source_id = GrdaWarehouse::DataSource.hmis.first.id
+      result = GrdaWarehouse::Hud::Enrollment.with_deleted.
+        where(data_source_id: data_source_id).
+        group(:EnrollmentID, :ProjectID).
+        having('count(*) >1').
+        select('"Enrollment"."EnrollmentID", array_agg("Enrollment"."id") as enrollment_ids')
 
-          # puts "old: #{names.values.join(' ')}"
-          names = names.transform_values { |s| s.downcase.gsub(/(\s+\w)|(^\w)/, &:upcase) }
-          # puts "new: #{names.values.join(' ')}"
-          names[:id] = id
-          values << names
+      result.in_groups_of(500) do |group|
+        batch = group.compact
+        Rails.logger.info 'Processing batch'
+        enrollments_by_id = Hmis::Hud::Enrollment.with_deleted.
+          where(id: batch.map(&:enrollment_ids).flatten).index_by(&:id)
+
+        enrollments_to_delete = []
+        batch.each do |res|
+          # processing duplicates for res.EnrollmentID
+          enrollments = res.enrollment_ids.map { |id| enrollments_by_id[id] }
+          raise 'not found' if enrollments.any?(&:nil?)
+
+          # if any are NOT deleted, hard-delete all the deleted ones
+          if enrollments.any? { |e| e.DateDeleted.nil? }
+            enrollments_to_delete.push(*enrollments.select { |e| e.DateDeleted.present? })
+          else
+            # otherwise they are all deleted, so keep 1 of them
+            to_keep = enrollments.max_by(&:DateUpdated)
+            enrollments_to_delete.push(*enrollments.reject { |e| e.id == to_keep.id })
+          end
         end
 
-        grouped_clients = values.index_by { |client| client[:id] }
-
-        # without papertrail so it doesn't show up in Client Audit History
-        without_papertrail_or_timestamps do
-          Hmis::Hud::Client.update(grouped_clients.keys, grouped_clients.values)
-          Rails.logger.info "Updated #{grouped_clients.size} clients"
-        end
+        Rails.logger.info "Deleting duplicate ids: #{enrollments_to_delete.inspect}"
+        GrdaWarehouse::Hud::Enrollment.only_deleted.where(id: enrollments_to_delete.map(&:id)).delete_all
       end
     end
 
@@ -138,15 +238,52 @@ module HmisDataCleanup
       end
     end
 
-    def self.write_project_unit_summary(filename: 'hmis_project_summary.csv')
+    # Write a file summarizing the Enrollment and Assessment counts for each project. This is helpful to review
+    # prior to a final data migration, to spot any unexpected values, and/or allow fixing issues in the external system prior to migration.
+    def self.write_project_enrollment_summary(filename: "hmis_project_summary_#{Date.current.strftime('%Y-%m-%d')}.csv")
+      open_projects = Hmis::Hud::Project.hmis.open_on_date.pluck(:id)
+
+      rows = Hmis::Hud::Project.hmis.preload(:organization).map do |project|
+        project_assessments = Hmis::Hud::CustomAssessment.joins(:enrollment).merge(project.enrollments).distinct
+
+        num_empty_intakes = project_assessments.intakes.joins(:form_processor).where(form_processor: { health_and_dv_id: nil, income_benefit_id: nil, physical_disability_id: nil, developmental_disability_id: nil, chronic_health_condition_id: nil, hiv_aids_id: nil, mental_health_disorder_id: nil, substance_use_disorder_id: nil }).count
+
+        {
+          OrganizationID: project.organization.OrganizationID,
+          OrganizationName: project.organization.OrganizationName,
+          ProjectID: project.ProjectID,
+          ProjectName: project.ProjectName,
+          ProjectType: HudUtility2024.project_type_briefs[project.project_type],
+          ProjectStatus: open_projects.include?(project.id) ? 'open' : 'closed', # project status
+          HMISParticipationStatus: project.hmis_participations.where(HMISParticipationType: 1).exists? ? 'participating' : 'non-participating / unknown',
+          TotalEnrollmentCount: project.enrollments.count, # num enrollments
+          TotalHouseholdCount: project.enrollments.pluck(:household_id).uniq.size, # num households
+          OpenEnrollmentCount: project.enrollments.open_on_date.count, # num open enrollments
+          ExitedEnrollmentCount: project.enrollments.exited.count, # num exited enrollments
+          IntakeAssessmentCount: project_assessments.intakes.count, # num intakes
+          EmptyIntakeAssessmentCount: num_empty_intakes, # num "empty" intakes
+          UpdateAssessmentCount: project_assessments.where(data_collection_stage: 2).count, # num updates
+          AnnualAssessmentCount: project_assessments.where(data_collection_stage: 5).count, # num annuals
+          ExitAssessmentCount: project_assessments.where(data_collection_stage: 3).count, # num exits
+          PostExitAssessmentCount: project_assessments.where(data_collection_stage: 6).count, # num post-exits
+        }
+      end
+
+      CSV.open(filename, 'wb+', write_headers: true, headers: rows.first.keys.map(&:to_s).map(&:titleize)) do |writer|
+        rows.each do |row|
+          writer << row.values
+        end
+      end
+    end
+
+    # Write a file summarizing the Unit and Referral assignments per project
+    def self.write_project_unit_summary(filename: 'hmis_project_unit_summary.csv')
       direct_entry_cded = Hmis::Hud::CustomDataElementDefinition.find_by(key: :direct_entry)
       project_pk_to_walkin_status = direct_entry_cded.values.pluck(:owner_id, :value_boolean).to_h if direct_entry_cded
 
       rows = []
       Hmis::Hud::Project.hmis.each do |project|
         next if project.project_id.size == 32 # Skip internal projects
-
-        wip_enrollments = project.wip_enrollments.pluck(:id)
 
         open_enrollments = project.enrollments.open_on_date.pluck(:id)
         open_enrollments_with_referral = project.enrollments.open_on_date.joins(:source_postings).pluck(:id)
@@ -167,7 +304,7 @@ module HmisDataCleanup
           OpenEnrollments: open_enrollments.size,
           OpenEnrollmentsWithoutReferral: open_enrollments_missing_referral.size,
           OpenEnrollmentsWithoutUnit: open_enrollments_missing_unit.size,
-          AcceptedPendingIncompleteEnrollments: wip_enrollments.size,
+          AcceptedPendingIncompleteEnrollments: project.enrollments.in_progress.count,
         }
 
         if direct_entry_cded
@@ -187,6 +324,8 @@ module HmisDataCleanup
       end
     end
 
+    # Write a file with all potential duplicates in HMIS. This uses the same logic as the "Review Potential Duplicates" page on the Admin
+    # client merge screen in HMIS. Reviewing a CSV can be helpful prior to migration if there are lots of dups and bulk merge is needed.
     def self.write_potential_duplicates(filename: 'hmis_client_potential_duplicates.csv', variant: 'all', full_name: true)
       Rails.logger.info("Finding potential duplicates (variant: #{variant})")
 
@@ -342,8 +481,10 @@ module HmisDataCleanup
 
       Rails.logger.info "Updating #{record_to_personal_id.size} records..."
       without_papertrail_or_timestamps do
-        record_to_personal_id.each do |id, personal_id|
-          dangling_records_by_id[id].update_columns(personal_id: personal_id)
+        klass.without_optimistic_locking do
+          record_to_personal_id.each do |id, personal_id|
+            dangling_records_by_id[id].update_columns(personal_id: personal_id)
+          end
         end
       end
 
@@ -352,6 +493,55 @@ module HmisDataCleanup
         Rails.logger.info 'Success: all dangling records fixed!'
       else
         Rails.logger.info "WARNING: #{remaining_dangling} dangling records remain"
+      end
+    end
+
+    # Write a CSV with all the Enrollments that were deleted in a given date range.
+    # This can be useful to keep a record after an Import that deleted lots of records.
+    def write_deleted_enrollments_in_range(range, filename = "#{Date.current.strftime('%Y-%m-%d')}_deleted_enrollments_in_range.csv")
+      project_names = Hmis::Hud::Project.hmis.pluck(:ProjectID, :ProjectName).to_h
+      org_names = Hmis::Hud::Project.hmis.joins(:organization).pluck(:ProjectID, Hmis::Hud::Organization.arel_table[:OrganizationName]).to_h
+
+      rows = []
+      Hmis::Hud::Enrollment.hmis.only_deleted.where(DateDeleted: range).in_batches(of: 5_000) do |batch|
+        Rails.logger.info 'Processing...'
+        batch.each do |enrollment|
+          rows << {
+            Organization: org_names[enrollment.ProjectID],
+            Project: project_names[enrollment.ProjectID],
+            **enrollment.slice(:ProjectID, :EnrollmentID, :PersonalID, :HouseholdID, :ExportID, :id),
+            EntryDate: enrollment.EntryDate&.strftime('%Y-%m-%d'),
+            DateDeleted: enrollment.DateDeleted.strftime('%Y-%m-%dT%H%M '),
+          }.stringify_keys
+        end
+      end
+
+      CSV.open(filename, 'wb+', write_headers: true, headers: rows.first.keys) do |writer|
+        rows.each do |row|
+          writer << row.values
+        end
+      end
+
+      # s3.put(file_name: filename, prefix: 'initial-migration')
+    end
+
+    def self.write_duplicate_custom_assessments(file_name: "#{Date.current.strftime('%Y-%m-%d')}_duplicate_custom_assessments.txt")
+      data_source = GrdaWarehouse::DataSource.hmis.first.id
+      dupes = HmisDataCleanup::DuplicateRecordsReport.new.duplicate_custom_assessments(data_source)
+      File.open(file_name, 'w') do |file|
+        dupes.each do |row|
+          file.puts row.join(',')
+        end
+      end
+    end
+
+    def self.write_duplicate_custom_services(file_name: "#{Date.current.strftime('%Y-%m-%d')}_duplicate_custom_services.txt")
+      data_source = GrdaWarehouse::DataSource.hmis.first.id
+      dupes = HmisDataCleanup::DuplicateRecordsReport.new.duplicate_custom_services(data_source)
+      File.open(file_name, 'w') do |file|
+        dupes.each do |row|
+          file.puts row.join(',')
+        end
       end
     end
 

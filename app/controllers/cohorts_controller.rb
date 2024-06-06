@@ -68,7 +68,7 @@ class CohortsController < ApplicationController
         @excel_export = GrdaWarehouse::Cohorts::DocumentExports::CohortExcelExport.new
         @visible_columns = [CohortColumns::Meta.new]
         @visible_columns += @cohort.visible_columns(user: current_user)
-        delete_column = if params[:population] == 'deleted'
+        delete_column = if @cohort.deleted_clients_tab?(@population)
           CohortColumns::Delete.new(title: 'Restore')
         else
           CohortColumns::Delete.new
@@ -114,7 +114,7 @@ class CohortsController < ApplicationController
         end
 
         # included so the excel download can be regenerated when the visible columns change
-        digest = Digest::MD5.hexdigest(@visible_columns.to_s + @cohort.search_clients(population: params[:population], user: current_user).count.to_s)
+        digest = Digest::MD5.hexdigest(@visible_columns.to_s + @cohort.search_clients(population: @population, user: current_user).count.to_s)
         params['cache_key'] = digest
       end
     end
@@ -249,7 +249,7 @@ class CohortsController < ApplicationController
   end
 
   def load_cohort_names
-    @cohort_names ||= cohort_source.pluck(:id, :name, :short_name).  # rubocop:disable  Naming/MemoizedInstanceVariableName
+    @cohort_names ||= cohort_source.pluck(:id, :name, :short_name). # rubocop:disable  Naming/MemoizedInstanceVariableName
       map do |id, name, short_name|
       [id, short_name.presence || name]
     end.to_h

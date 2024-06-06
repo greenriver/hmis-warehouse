@@ -8,14 +8,12 @@
 .o-page
   .o-page__title
     %h1= content_for :title
+= render 'admin/user_groups/description', entity_type: 'HMIS'
 .row
-  .col-sm-12
+  .col-sm-6.align-items-start
     = simple_form_for @user_group, as: :user_group, url: hmis_admin_user_groups_path do |f|
-      = f.error_notification
-      .form-inputs
-        .row
-          .col-8
-            = f.input :name
-
+      = render 'form', f: f
       .form_actions.mt-4
-        = f.button :submit, value: 'Create User Group'
+      = f.button :submit, value: 'Create User Group'
+  .col-sm-6
+    = render 'admin/user_groups/helper_text'

@@ -15,30 +15,21 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
     cleanup_test_environment
   end
 
-  describe 'in progress assessments' do
+  include_context 'hmis base setup'
+
+  describe 'destroying WIP assessment' do
     let!(:assessment) { create(:hmis_wip_custom_assessment) }
 
-    it 'cleans up dependent processor after destroy' do
-      assessment.reload
-      expect(assessment.wip).to eq(true)
+    it 'cleans up dependent processor' do
+      assessment.destroy!
 
-      assessment.destroy
-      assessment.reload
-      expect(assessment.form_processor).not_to be_present
-    end
-  end
-
-  describe 'submitted assessments' do
-    let!(:assessment) { create(:hmis_custom_assessment) }
-
-    before(:each) do
-      assessment.save_not_in_progress
+      expect(assessment.reload).to be_deleted
+      expect(assessment.form_processor).to be_nil
     end
 
-    it 'preserve shared data after destroy' do
-      assessment.destroy
+    it 'preserves shared data' do
+      assessment.destroy!
       assessment.reload
-
       [
         :enrollment,
         :client,
@@ -46,6 +37,51 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
       ].each do |assoc|
         expect(assessment.send(assoc)).to be_present, "expected #{assoc} to be present"
       end
+    end
+  end
+
+  describe 'destroying submitted assessments' do
+    let!(:assessment) { create(:hmis_custom_assessment) }
+
+    it 'cleans up dependent processor' do
+      assessment.destroy!
+
+      expect(assessment.reload).to be_deleted
+      expect(assessment.form_processor).to be_nil
+    end
+
+    it 'preserves shared data' do
+      assessment.destroy!
+      assessment.reload
+      [
+        :enrollment,
+        :client,
+        :user,
+      ].each do |assoc|
+        expect(assessment.send(assoc)).to be_present, "expected #{assoc} to be present"
+      end
+    end
+
+    it 'preserves records linked through FormProcessor' do
+      health_and_dv = create(:hmis_health_and_dv, **assessment.slice(:data_source, :client, :enrollment, :user))
+      assessment.form_processor.update(health_and_dv: health_and_dv)
+      expect(assessment.health_and_dv).to eq(health_and_dv)
+
+      assessment.destroy!
+
+      expect(assessment.reload).to be_deleted
+      expect(health_and_dv.reload).not_to be_deleted
+    end
+
+    it 'soft-deletes associated CustomDataElements' do
+      cded = create(:hmis_custom_data_element_definition, data_source: assessment.data_source, owner_type: 'Hmis::Hud::CustomAssessment')
+      cde_value = create(:hmis_custom_data_element, owner: assessment, data_element_definition: cded, data_source: assessment.data_source, owner_type: 'Hmis::Hud::CustomAssessment')
+      expect(assessment.custom_data_elements).to contain_exactly(cde_value)
+
+      assessment.destroy!
+
+      expect(cde_value.reload).to be_deleted
+      expect(cde_value.date_deleted).to be_present
     end
   end
 
@@ -71,7 +107,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
       it "should error if assessment date is missing (#{role})" do
         apply_assessment_date(nil)
         validations = Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(assessment).map(&:to_h)
-        expect(validations).to match([a_hash_including(severity: :error, type: :required)])
+        expect(validations).to contain_exactly(a_hash_including(severity: :error, type: :required))
       end
 
       it "should succeed if assessment date is the same as entry date (#{role})" do
@@ -86,7 +122,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
         if assessment.intake?
           expect(validations).to be_empty
         else
-          expect(validations).to match([a_hash_including(severity: :error, message: Hmis::Hud::Validators::BaseValidator.before_entry_message(e1.entry_date))])
+          expect(validations).to contain_exactly(a_hash_including(severity: :error, message: Hmis::Hud::Validators::BaseValidator.before_entry_message(e1.entry_date)))
         end
       end
 
@@ -96,7 +132,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
         if assessment.exit?
           expect(validations).to be_empty
         else
-          expect(validations).to match([a_hash_including(severity: :error, message: Hmis::Hud::Validators::BaseValidator.after_exit_message(e1_exit.exit_date))])
+          expect(validations).to contain_exactly(a_hash_including(severity: :error, message: Hmis::Hud::Validators::BaseValidator.after_exit_message(e1_exit.exit_date)))
         end
       end
     end
@@ -121,11 +157,11 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
 
         # Validate HoH
         validations = Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(assessment).map(&:to_h)
-        expect(validations).to match([a_hash_including(severity: :warning, message: Hmis::Hud::Validators::ExitValidator.hoh_exits_before_others)])
+        expect(validations).to contain_exactly(a_hash_including(severity: :warning, message: Hmis::Hud::Validators::ExitValidator.hoh_exits_before_others))
 
         # Validate other member
         validations = Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(assessment2).map(&:to_h)
-        expect(validations).to match([a_hash_including(severity: :warning, message: Hmis::Hud::Validators::ExitValidator.member_exits_after_hoh(e1.exit_date))])
+        expect(validations).to contain_exactly(a_hash_including(severity: :warning, message: Hmis::Hud::Validators::ExitValidator.member_exits_after_hoh(e1.exit_date)))
       end
 
       it 'should warn if HoH exit date is before other members (unpersisted)' do
@@ -141,11 +177,11 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
 
         # Validate HoH
         validations = Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(assessment, household_members: [e1, e2]).map(&:to_h)
-        expect(validations).to match([a_hash_including(severity: :warning, message: Hmis::Hud::Validators::ExitValidator.hoh_exits_before_others)])
+        expect(validations).to contain_exactly(a_hash_including(severity: :warning, message: Hmis::Hud::Validators::ExitValidator.hoh_exits_before_others))
 
         # Validate other member
         validations = Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(assessment2, household_members: [e1, e2]).map(&:to_h)
-        expect(validations).to match([a_hash_including(severity: :warning, message: Hmis::Hud::Validators::ExitValidator.member_exits_after_hoh(e1.exit_date))])
+        expect(validations).to contain_exactly(a_hash_including(severity: :warning, message: Hmis::Hud::Validators::ExitValidator.member_exits_after_hoh(e1.exit_date)))
       end
     end
   end
@@ -175,7 +211,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
     end
 
     it 'groups intake assessments on WIP enrollments' do
-      e1.save_in_progress
+      e1.save_in_progress!
       a1 = create(:hmis_wip_custom_assessment, data_collection_stage: 1, data_source: ds1, enrollment: e1, client: e1.client)
       a2 = create(:hmis_custom_assessment, data_collection_stage: 1, data_source: ds1, enrollment: e2, client: e2.client)
 
@@ -189,7 +225,7 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
     end
 
     it 'groups annual assessments by date' do
-      e1.save_in_progress
+      e1.save_in_progress!
       e1_a1 = create(:hmis_custom_assessment, assessment_date: 2.years.ago, data_collection_stage: 5, data_source: ds1, enrollment: e1, client: e1.client)
 
       _e2_a1 = create(:hmis_wip_custom_assessment, assessment_date: 6.months.ago, data_collection_stage: 5, data_source: ds1, enrollment: e2, client: e2.client)
@@ -233,6 +269,88 @@ RSpec.describe Hmis::Hud::CustomAssessment, type: :model do
         assessment_id: e3_a1.id,
       )
       expect(grouped).to contain_exactly(e3_a1, e2_a2)
+    end
+  end
+
+  describe 'assessment role scope' do
+    let!(:intake_assessment) { create(:hmis_custom_assessment) }
+    let!(:custom_assessment) { create(:hmis_custom_assessment, data_collection_stage: 99) }
+
+    it 'correctly returns custom assessments' do
+      result = Hmis::Hud::CustomAssessment.with_role('CUSTOM_ASSESSMENT')
+      expect(result).to contain_exactly(custom_assessment)
+    end
+  end
+
+  describe 'save_submitted_assessment! function' do
+    context 'when re-submitting Intake on Enrollment' do
+      let!(:enrollment) { create(:hmis_hud_enrollment, project: p1, data_source: ds1, date_created: 1.month.ago) }
+      let!(:assessment) { create(:hmis_custom_assessment, data_collection_stage: 1, enrollment: enrollment, data_source: ds1, assessment_date: 2.weeks.ago) }
+
+      it 'does not change DateCreated, does not adjust WIP status' do
+        old_date_created = enrollment.DateCreated
+        assessment.save_submitted_assessment!(current_user: hmis_user)
+
+        expect(enrollment.date_created.to_s).to eq(old_date_created.to_s)
+        expect(enrollment).not_to be_in_progress
+        expect(assessment).not_to be_wip
+      end
+    end
+
+    context 'new Intake on WIP Enrollment' do
+      let!(:enrollment) { create(:hmis_hud_wip_enrollment, project: p1, data_source: ds1, date_created: 1.month.ago) }
+      let!(:assessment) { build(:hmis_custom_assessment, data_collection_stage: 1, enrollment: enrollment, data_source: ds1) }
+
+      it 'does not change DateCreated when saving intake as WIP' do
+        old_date_created = enrollment.DateCreated
+        assessment.save_submitted_assessment!(current_user: hmis_user, as_wip: true)
+
+        # DateCreated is not updated
+        expect(enrollment.date_created.to_s).to eq(old_date_created.to_s)
+        # Enrollment is still WIP
+        expect(enrollment).to be_in_progress
+        expect(assessment).to be_wip
+      end
+
+      it 'does change DateCreated when submitting intake' do
+        old_date_created = enrollment.DateCreated
+        assessment.save_submitted_assessment!(current_user: hmis_user)
+
+        # DateCreated is updated to the current time
+        expect(enrollment.date_created.to_s).not_to eq(old_date_created.to_s)
+        expect(enrollment.date_created).to be > old_date_created
+        # Enrollment is no longer WIP
+        expect(enrollment).not_to be_in_progress
+        expect(assessment).not_to be_wip
+      end
+    end
+
+    context 'WIP Intake on WIP Enrollment' do
+      let!(:enrollment) { create(:hmis_hud_wip_enrollment, project: p1, data_source: ds1, date_created: 1.month.ago) }
+      let!(:assessment) { create(:hmis_wip_custom_assessment, data_collection_stage: 1, enrollment: enrollment, data_source: ds1) }
+
+      it 'does not change DateCreated when saving intake as WIP' do
+        old_date_created = enrollment.DateCreated
+        assessment.save_submitted_assessment!(current_user: hmis_user, as_wip: true)
+
+        # DateCreated is not updated
+        expect(enrollment.date_created.to_s).to eq(old_date_created.to_s)
+        # Enrollment is still WIP
+        expect(enrollment).to be_in_progress
+        expect(assessment).to be_wip
+      end
+
+      it 'does change DateCreated when submitting intake' do
+        old_date_created = enrollment.DateCreated
+        assessment.save_submitted_assessment!(current_user: hmis_user)
+
+        # DateCreated is updated to the current time
+        expect(enrollment.date_created.to_s).not_to eq(old_date_created.to_s)
+        expect(enrollment.date_created).to be > old_date_created
+        # Enrollment is no longer WIP
+        expect(enrollment).not_to be_in_progress
+        expect(assessment).not_to be_wip
+      end
     end
   end
 end

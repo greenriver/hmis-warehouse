@@ -11,15 +11,12 @@ class Hmis::Hud::Service < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
+  include ::Hmis::Hud::Concerns::HasCustomDataElements
   include ::Hmis::Hud::Concerns::ServiceHistoryQueuer
 
-  belongs_to :enrollment, **hmis_enrollment_relation, optional: true
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :services
+  belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :services
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
-  has_many :custom_data_elements, as: :owner, dependent: :destroy
-
-  accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
   validates_with Hmis::Hud::Validators::ServiceValidator
 
@@ -33,8 +30,13 @@ class Hmis::Hud::Service < Hmis::Hud::Base
 
   after_commit :warehouse_trigger_processing
 
+  def matches_custom_service_type?(custom_service_type)
+    record_type == custom_service_type.hud_record_type &&
+      type_provided == custom_service_type.hud_type_provided
+  end
+
   private def warehouse_trigger_processing
-    return unless warehouse_columns_changed?
+    return unless enrollment && warehouse_columns_changed?
 
     # NOTE: we only really need to do this for bed-nights at the moment, but this is future-proofing against
     # pre-processing all services

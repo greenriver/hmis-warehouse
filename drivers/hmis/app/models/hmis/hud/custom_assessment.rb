@@ -22,15 +22,13 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
+  include ::Hmis::Hud::Concerns::HasCustomDataElements
 
   SORT_OPTIONS = [:assessment_date, :date_updated].freeze
 
-  belongs_to :enrollment, **hmis_enrollment_relation, optional: true
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments
+  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :assessments, optional: true
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
-
-  has_many :custom_data_elements, as: :owner, dependent: :destroy
 
   has_one :form_processor, class_name: 'Hmis::Form::FormProcessor', dependent: :destroy
   has_one :definition, through: :form_processor
@@ -48,8 +46,6 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
   has_one :current_living_situation, through: :form_processor
   has_one :ce_assessment, through: :form_processor
   has_one :ce_event, through: :form_processor
-
-  accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
 
   # Alias fields that are not part of the Assessment schema
   alias_to_underscore [:DataCollectionStage]
@@ -72,6 +68,11 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     where(data_collection_stage: stages)
   end
 
+  scope :with_form_definition_identifier, ->(form_identifiers) do
+    # TODO(#187248703): simplify this query to just look at custom_assessment.definition_identifier and avoid the join
+    joins(:definition).merge(Hmis::Form::Definition.where(identifier: form_identifiers))
+  end
+
   scope :with_project_type, ->(project_types) do
     joins(:project).merge(Hmis::Hud::Project.with_project_type(project_types))
   end
@@ -85,9 +86,9 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
     case option
     when :assessment_date
-      order(assessment_date: :desc, date_created: :desc)
+      order(assessment_date: :desc, date_created: :desc, id: :desc)
     when :date_updated
-      order(date_updated: :desc)
+      order(date_updated: :desc, id: :desc)
     else
       raise NotImplementedError
     end
@@ -107,6 +108,10 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
 
   def in_progress?
     wip
+  end
+
+  def hud_assessment?
+    HudUtility2024.data_collection_stages.keys.include?(data_collection_stage)
   end
 
   def intake?
@@ -129,6 +134,14 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     data_collection_stage == 2
   end
 
+  def title
+    title = HudUtility2024.assessment_name_by_data_collection_stage[data_collection_stage]
+    # TODO(#187248703): replace with `definition.title` via definition_identifier column once that relationship exists
+    title ||= form_processor&.definition&.title
+    title ||= 'Custom Assessment'
+    title
+  end
+
   def save_submitted_assessment!(current_user:, as_wip: false)
     Hmis::Hud::CustomAssessment.transaction do
       # Save FormProcessor to save wip values and/or related records
@@ -147,7 +160,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
         enrollment.save!
         enrollment.touch # Update even if no changes to Enrollment
         # Move Enrollment out of WIP if this is a submitted intake
-        enrollment.save_not_in_progress if intake?
+        enrollment.save_not_in_progress! if intake?
         # If this is an exit, release the unit
         enrollment.release_unit!(enrollment.exit_date, user: current_user) if exit?
         # Accept referral in LINK if submitted intake (HoH)
@@ -166,7 +179,7 @@ class Hmis::Hud::CustomAssessment < Hmis::Hud::Base
     new_assessment = new(
       user_id: user.user_id,
       assessment_date: assessment_date,
-      data_collection_stage: Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[form_definition.role.to_sym] || 99,
+      data_collection_stage: Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES[form_definition.role.to_sym],
       **enrollment.slice(:data_source_id, :personal_id, :enrollment_id),
     )
     new_assessment.build_form_processor(definition: form_definition)

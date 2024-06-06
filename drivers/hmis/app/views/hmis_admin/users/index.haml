@@ -1,6 +1,10 @@
 - content_for :title, 'HMIS User Administration'
 %h1= content_for :title
 = render 'hmis_admin/tabs', active_tab: :users
+- @prompt = 'Search users...'
+.o-page__controls
+  .o-page__search
+    = render 'search_form'
 - if @users.blank?
   %p No HMIS users present.
 - else

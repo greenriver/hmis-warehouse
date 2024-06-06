@@ -6,33 +6,22 @@
         %th Date Completed
         %th Case Manager
     %tbody
-      - @patient&.thrive_assessments&.each do |assessment|
+      - @patient.hrsn_screenings.newest_first.find_each do |screening|
+        - instrument = screening.instrument
         %tr
-          %td
-            = link_to client_health_thrive_assessment_assessment_path(@client, assessment), data: { loads_in_pjax_modal: true } do
-              %h4.mb-0.mt-0 THRIVE
-          %td= assessment.completed_on || 'in progress'
-          %td= assessment&.user&.name || assessment.external_name
-      - @patient&.ssms&.each do |form|
-        %tr
-          - if form.is_a? Health::SelfSufficiencyMatrixForm
+          - if instrument.is_a? Health::SelfSufficiencyMatrixForm # CP1 Instrument
             %td
-              = link_to polymorphic_path(self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: form.id), data: { loads_in_pjax_modal: true } do
+              = link_to polymorphic_path(self_sufficiency_matrix_form_path_generator, client_id: @client.id, id: instrument.id), data: { loads_in_pjax_modal: true } do
                 %h4.mb-0.mt-0 SSM
-            %td= form.completed_at&.to_date || 'in progress'
-            %td= form&.user&.name
-          - if form.is_a? GrdaWarehouse::HmisForm
+            %td= instrument.completed_at&.to_date || 'in progress'
+            %td= instrument.user&.name
+          - else
             %td
-              = link_to health_assessment_client_path(id: form.id), data: { loads_in_pjax_modal: true } do
-                %h4=form.assessment_type
-                .pl-2 From Eto
-          - if form.is_a? Health::EpicSsm
+              = link_to client_health_thrive_assessment_assessment_path(@client, instrument), data: { loads_in_pjax_modal: true } do
+                %h4.mb-0.mt-0 THRIVE
             %td
-              = link_to polymorphic_path(health_path_generator + [:epic_ssm], id: form.id), data: { loads_in_pjax_modal: true } do
-                %h4.mb-0.mt-0 SSM
-                .pl-2 From Epic
-            %td= form.ssm_updated_at&.to_date
-            %td= form.staff
-
+              = instrument.completed_on || 'in progress'
+            %td
+              = instrument.case_manager
 - else
   %p.no-data No HRSNs on file

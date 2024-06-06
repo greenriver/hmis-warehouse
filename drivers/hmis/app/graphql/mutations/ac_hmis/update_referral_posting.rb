@@ -42,8 +42,10 @@ module Mutations
         # if moving from assigned to accepted_pending, enroll household and assign to unit
         if errors.empty? && posting_status_change == ['assigned_status', 'accepted_pending_status']
           # choose any available unit of type, error if none available
-          unit_to_assign = posting.project&.units&.unoccupied_on&.find_by(unit_type_id: posting.unit_type_id)
-          errors.add :base, :invalid, full_message: "Unable to accept this referral because there are no #{posting.unit_type.description} units available." unless unit_to_assign.present?
+          if posting.unit_type_id
+            unit_to_assign = posting.project&.units&.unoccupied_on&.find_by(unit_type_id: posting.unit_type_id)
+            errors.add :base, :invalid, full_message: "Unable to accept this referral because there are no #{posting.unit_type.description} units available." unless unit_to_assign.present?
+          end
           raise ActiveRecord::Rollback if errors.any?
 
           # build new household of WIP enrollments
@@ -51,8 +53,8 @@ module Mutations
           build_enrollments(posting).each do |enrollment|
             enrollment.household_id = household_id
             if enrollment.valid?
-              enrollment.assign_unit(unit: unit_to_assign, start_date: enrollment.entry_date, user: current_user)
-              enrollment.save_in_progress # this method will unset projectID and calls enrollment.save!
+              enrollment.assign_unit(unit: unit_to_assign, start_date: enrollment.entry_date, user: current_user) if posting.unit_type_id
+              enrollment.save_in_progress! # this method will unset projectID and calls enrollment.save!
             else
               handle_error('Could not create valid enrollments')
             end

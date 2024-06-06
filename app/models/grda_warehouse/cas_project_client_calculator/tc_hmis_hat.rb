@@ -34,6 +34,7 @@ module GrdaWarehouse::CasProjectClientCalculator
       [
         :ssvf_eligible,
         :child_in_household,
+        :default_shelter_agency_contacts,
       ].freeze
     end
 
@@ -59,6 +60,8 @@ module GrdaWarehouse::CasProjectClientCalculator
         required_number_of_bedrooms: 'Bedrooms required to house household',
         required_minimum_occupancy: 'Number of household members',
         child_in_household: 'Is the client a member of a household with at least one minor child',
+        cas_pregnancy_status: 'Are you currently pregnant?',
+        default_shelter_agency_contacts: '',
       }.freeze
     end
 
@@ -94,6 +97,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         legal_custody: :hat_a9_custody,
         future_custody: :hat_a10_future_custody,
         household_size: :hat_a8_household_size,
+        cas_pregnancy_status: :hat_e9_pregnant,
       }.freeze
     end
     memoize :assessment_keys
@@ -118,6 +122,7 @@ module GrdaWarehouse::CasProjectClientCalculator
         :site_case_management_required,
         :ongoing_case_management_required,
         :currently_fleeing,
+        :cas_pregnancy_status,
       ].freeze
     end
     memoize :boolean_lookups
@@ -193,7 +198,10 @@ module GrdaWarehouse::CasProjectClientCalculator
       single_parent = for_boolean(client, :single_parent_child_over_ten)
       custody_now = for_boolean(client, :legal_custody)
       custody_later = for_boolean(client, :future_custody)
+      pregnant = for_boolean(client, :cas_pregnancy_status)
 
+      # Pregnant clients are always considered a family
+      return true if pregnant
       # There is a child, but the parent doesn't, and won't have custody
       return false if single_parent && (!custody_now && !custody_later)
       # Client indicated the household is adult only
@@ -263,14 +271,14 @@ module GrdaWarehouse::CasProjectClientCalculator
 
     private def days_homeless_in_last_three_years_cached(client)
       days = 0
-      days += client.tc_hat_additional_days_homeless
+      days += (client.tc_hat_additional_days_homeless || 0)
 
       days + (client.processed_service_history&.days_homeless_last_three_years || 0)
     end
 
     private def literally_homeless_last_three_years_cached(client)
       days = 0
-      days += client.tc_hat_additional_days_homeless
+      days += (client.tc_hat_additional_days_homeless || 0)
 
       days + (client.processed_service_history&.literally_homeless_last_three_years || 0)
     end
@@ -311,6 +319,15 @@ module GrdaWarehouse::CasProjectClientCalculator
       project_types = HudUtility2024.residential_project_type_numbers_by_codes(:so, :es, :sh, :th, :ph)
       client.service_history_enrollments.ongoing.in_project_type(project_types).
         where(she_t[:age].lt(18).or(she_t[:other_clients_under_18].eq(true))).exists?
+    end
+
+    private def default_shelter_agency_contacts(client)
+      # Email of most recent assessor
+      email = cas_assessment(client)&.user&.user_email
+      # if we don't know the assessor, and the assessment was added by the system, ignore it
+      return nil if email == User.system_user.email
+
+      Array.wrap(email)
     end
   end
 end

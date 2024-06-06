@@ -696,7 +696,7 @@ class GrdaWarehouse::WarehouseClientsProcessed < GrdaWarehouseBase
           exit_within_date_range(start_date: 3.months.ago.to_date, end_date: Date.current).
           joins(enrollment: :exit).
           order(last_date_in_program: :desc).
-          pluck(:client_id, :destination, ex_t[:OtherDestination], :last_date_in_program, :computed_project_type).
+          pluck(:client_id, :destination, ex_t[:OtherDestination], :last_date_in_program, :project_type).
           each do |id, destination, other_destination, last_date_in_program, project_type|
             destination_code = destination || 99
             destination_string = if destination_code == 17

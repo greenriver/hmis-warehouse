@@ -48,7 +48,7 @@ module WarehouseReports::HealthEmergency
     end
 
     private def render_pdf!
-      file_name = "Medical Restrictions #{DateTime.current.to_s(:db)}"
+      file_name = "Medical Restrictions #{DateTime.current.to_fs(:db)}"
       send_data pdf, filename: "#{file_name}.pdf", type: 'application/pdf'
     end
 

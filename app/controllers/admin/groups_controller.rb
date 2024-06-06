@@ -43,6 +43,15 @@ module Admin
       redirect_to({ action: :index }, notice: "Group #{@group.name} removed.")
     end
 
+    def download
+      respond_to do |format|
+        format.xlsx do
+          filename = "Access Details - #{Time.current.to_fs(:db)}.xlsx"
+          headers['Content-Disposition'] = "attachment; filename=#{filename}"
+        end
+      end
+    end
+
     private def access_group_scope
       AccessGroup.general
     end

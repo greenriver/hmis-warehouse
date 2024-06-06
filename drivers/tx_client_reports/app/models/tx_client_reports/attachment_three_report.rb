@@ -13,6 +13,15 @@ module TxClientReports
       @filter = filter
     end
 
+    def self.viewable_by(user)
+      GrdaWarehouse::WarehouseReports::ReportDefinition.where(url: url).
+        viewable_by(user).exists?
+    end
+
+    def self.url
+      'tx_client_reports/warehouse_reports/attachment_three_client_data_reports'
+    end
+
     def attachment_three_headers
       [
         'Row Number',
@@ -65,7 +74,7 @@ module TxClientReports
           ('1' if row[:genders].include?(1)), # Male
           ('1' if row[:genders].include?(0)), # Female
           ('1' if row[:ethnicity] == 1),
-          ('1' if row[:ethnicity] == 0), # rubocop:disable Style/NumericPredicate
+          ('1' if row[:ethnicity] == 0),
           ('1' if row[:races] == ['AmIndAKNative']),
           ('1' if row[:races] == ['Asian']),
           ('1' if row[:races] == ['BlackAfAmerican']),
@@ -99,6 +108,7 @@ module TxClientReports
         'HoH Monthly Income',
         'AMI %',
         'Gender of Applicant',
+        'Ethnicity',
         'Race of Household',
         'Veteran in Household?',
         'Older Adult (62+) in household?',
@@ -114,6 +124,11 @@ module TxClientReports
 
     def household_report_rows
       rows.map.with_index do |row, index|
+        ethnicity = if row[:ethnicity] == 1
+          'Hispanic/Latin(a)(o)(x)'
+        elsif row[:ethnicity] == 0
+          'Non-Hispanic/Non-Latin(a)(o)(x)'
+        end
         [
           index + 1,
           row[:client_id],
@@ -127,6 +142,7 @@ module TxClientReports
           '', # % AMI
           # TODO: this needs to be updated in the receiving system before we update here
           row[:genders].map { |k| ::HudUtility2024.gender(k) }.join(', '),
+          ethnicity,
           row[:races].map { |f| ::HudUtility2024.race(f) }.join(', '),
           (if row[:any_veterans] then 'Yes' else 'No' end),
           (if row[:over_62_in_household] then 'Yes' else 'No' end),
@@ -187,7 +203,8 @@ module TxClientReports
           street_address: enrollment.project.project_cocs&.first&.Address1, # Shelter address
           age: enrollment.age, # Age at project entry to keep report stable
           genders: client.gender_multi,
-          races: client.race_fields,
+          ethnicity: client.hispanic_latinaeo,
+          races: client.race_fields - ['HispanicLatinaeo'],
           race_description: client.race_description,
           disabled: client_disabled?(client),
           hh_size: household.count,

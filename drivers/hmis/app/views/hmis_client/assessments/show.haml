@@ -1,0 +1,46 @@
+- title = @assessment.title
+- content_for :modal_title, title
+= content_for :crumbs do
+  = link_to appropriate_client_path(@client) do
+    &laquo; Client
+
+- related_ce_assessment = GrdaWarehouse::Hud::Assessment.find_by(id: @assessment.form_processor&.ce_assessment_id)
+.well
+  .d-flex
+    .assessment
+      %h3 Assessment Details
+      %dl
+        %dt Project
+        %dd= @assessment.enrollment.project.warehouse_project.name(current_user)
+        %dt Assessment Date
+        %dd= @assessment.AssessmentDate
+        - if related_ce_assessment.present?
+          %dt Assessment Level
+          %dd= HudUtility2024.assessment_level related_ce_assessment.AssessmentLevel
+          %dt Assessment Type
+          %dd= HudUtility2024.assessment_type related_ce_assessment.AssessmentType
+          %dt Prioritization Status
+          %dd= HudUtility2024.prioritization_status related_ce_assessment.PrioritizationStatus
+        %dt Created
+        %dd= @assessment.DateCreated
+        %dt Updated
+        %dd= @assessment.DateUpdated
+- if @assessment.custom_data_elements.any?
+  %h2 Questions
+  .well
+    - @assessment.custom_data_elements.group_by(&:data_element_definition).each do |cded, cdes|
+      -# values of the CustomDataElement(s)
+      - values_arr = cdes.map(&:value)
+      - display_value = values_arr.join(', ')
+      - display_value = yes_no(values_arr.first) if [true, false].include?(values_arr.first) && values_arr.size == 1
+      %dl
+        %dt= cded.label # label of the CustomDataElementDefinition
+        %dd= display_value
+- elsif !@assessment.hud_assessment?
+  .none-found No questions provided.
+-# Always link to HMIS for HUD Assessments, since the majority of data is non-Custom so wont be shown here.
+- if @assessment.hud_assessment?
+  .none-found
+    %a{href: @assessment.data_source.hmis_url_for(@assessment), target: :blank}
+      Open in HMIS
+      %i.icon-link-ext.ml-2{style: 'color: inherit; font-size: inherit;'}

@@ -41,7 +41,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   end
   let!(:hmis_hud_service1) do
     hmis_service = Hmis::Hud::HmisService.find_by(owner: s1)
-    hmis_service.custom_service_type = Hmis::Hud::CustomServiceType.find_by(hud_record_type: s1.record_type, hud_type_provided: s1.type_provided)
+    hmis_service.custom_service_type_id = Hmis::Hud::CustomServiceType.find_by(hud_record_type: s1.record_type, hud_type_provided: s1.type_provided).id
     hmis_service
   end
   let!(:file1) { create :file, client: c2, enrollment: e1, blob: blob, user_id: hmis_user.id, tags: [tag] }
@@ -102,11 +102,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             ... on CeParticipation {
               id
             }
+            ... on ReferralPosting {
+              id
+            }
           }
           #{error_fields}
         }
       }
     GRAPHQL
+  end
+
+  def submit_form(input)
+    response, result = post_graphql(input: { input: input }) { mutation }
+    expect(response.status).to eq(200), result&.inspect
+    record = result.dig('data', 'submitForm', 'record')
+    errors = result.dig('data', 'submitForm', 'errors')
+    [record, errors]
   end
 
   describe 'SubmitForm' do
@@ -126,6 +137,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       :CE_ASSESSMENT,
       :CE_EVENT,
       :CASE_NOTE,
+      :REFERRAL,
     ].each do |role|
       describe "for #{role.to_s.humanize}" do
         let(:definition) { Hmis::Form::Definition.find_by(role: role) }
@@ -138,8 +150,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             service_type_id: hmis_hud_service1.custom_service_type_id,
             client_id: c2.id,
             confirmed: true, # ignore warnings, they are tested separately
-            **completed_form_values_for_role(role) do |values|
+            **mock_form_values_for_definition(definition) do |values|
               if role == :FILE
+                # FIXME make this not depend on specific Link IDs in the file form
                 values[:values]['file-blob-id'] = blob.id.to_s
                 values[:hud_values]['fileBlobId'] = blob.id.to_s
               end
@@ -200,14 +213,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
             e1.update(processed_as: 'PROCESSED', processed_hash: 'PROCESSED') if input[:record_id].present?
 
-            response, result = post_graphql(input: { input: input }) { mutation }
-            record_id = result.dig('data', 'submitForm', 'record', 'id')
-            errors = result.dig('data', 'submitForm', 'errors')
+            record, errors = submit_form(input)
+            record_id = record['id']
 
             aggregate_failures 'checking response' do
-              expect(response.status).to eq(200), result&.inspect
               expect(errors).to be_empty
-              expect(record_id).to be_present
+              expect(record).to be_present
+              record_id = record['id']
               expect(record_id).to eq(input[:record_id].to_s) if input[:record_id].present?
               record = definition.owner_class.find_by(id: record_id)
               expect(record).to be_present
@@ -238,17 +250,15 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             values: test_input[:values].merge(required_item.link_id => nil),
             hud_values: test_input[:hud_values].merge(required_item.mapping.field_name => nil),
           )
-          response, result = post_graphql(input: { input: input }) { mutation }
-          record = result.dig('data', 'submitForm', 'record')
-          errors = result.dig('data', 'submitForm', 'errors')
+
           expected_error = {
             type: :required,
             attribute: required_item.mapping.field_name,
             severity: :error,
           }
+          record, errors = submit_form(input)
 
           aggregate_failures 'checking response' do
-            expect(response.status).to eq(200), result&.inspect
             expect(record).to be_nil
             expect(errors).to include(
               a_hash_including(**expected_error.transform_keys(&:to_s).transform_values(&:to_s)),
@@ -258,10 +268,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
         it 'should fail if user lacks permission' do
           remove_permissions(access_control, *definition.record_editing_permissions)
-          expect_gql_error post_graphql(input: { input: test_input }) { mutation }
+          expect_gql_error post_graphql(input: { input: test_input }) { mutation }, message: 'access denied'
         end
 
         it 'should update user correctly' do
+          next if role == :REFERRAL # skip for referral, tested separately
+
           if role == :ENROLLMENT
             _response, result = post_graphql(input: { input: test_input.merge(record_id: e1.id) }) { mutation }
           else
@@ -272,6 +284,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
           record_id = result.dig('data', 'submitForm', 'record', 'id')
           record = definition.owner_class.find_by(id: record_id)
 
+          # FIXME refactor this out to its own file test
           if role == :FILE
             expect(record.user).to eq(hmis_user)
             expect(record.updated_by).to eq(hmis_user)
@@ -303,7 +316,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       {
         form_definition_id: definition.id,
         record_id: p1.id,
-        **completed_form_values_for_role(:PROJECT),
+        **mock_form_values_for_definition(definition),
         confirmed: false,
       }
     end
@@ -312,27 +325,40 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       input.merge(hud_values: input[:hud_values].merge(*args))
     end
 
-    it 'should warn if changing the end date for a project with open enrollments' do
-      # Set end dates on inventory and funder, so that we don't get warnings about them
-      i1.update!(inventory_end_date: '2030-01-01')
-      f1.update!(end_date: '2030-01-01')
+    context 'with open enrollments' do
+      let(:today) { Date.current }
+      let!(:project) { create :hmis_hud_project, data_source: ds1, organization: o1, with_coc: true, operating_end_date: nil }
+      let!(:enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: project, entry_date: 1.month.ago }
+      let!(:exited_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: project, entry_date: 1.month.ago, exit_date: 2.days.ago }
 
-      input = merge_hud_values(
-        test_input.merge(confirmed: false),
-        'operatingEndDate' => Date.current.strftime('%Y-%m-%d'),
-      )
+      def close_project(date = today, proj = project)
+        input = merge_hud_values(
+          test_input.merge(confirmed: false, record_id: proj.id),
+          'operatingEndDate' => date.strftime('%Y-%m-%d'),
+        )
+        post_graphql(input: { input: input }) { mutation }
+      end
 
-      response, result = post_graphql(input: { input: input }) { mutation }
-      record_id = result.dig('data', 'submitForm', 'record', 'id')
-      errors = result.dig('data', 'submitForm', 'errors')
-      p1.reload
-      aggregate_failures 'checking response' do
-        expect(response.status).to eq(200), result&.inspect
-        expect(record_id).to be_nil
-        expect(p1.operating_end_date).to be_nil
-        expect(errors).to match([
-                                  a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => Hmis::Hud::Validators::ProjectValidator.open_enrollments_message(1)),
-                                ])
+      it 'should warn if changing the end date for a project with open enrollments' do
+        response, result = close_project
+        record_id = result.dig('data', 'submitForm', 'record', 'id')
+        errors = result.dig('data', 'submitForm', 'errors')
+        project.reload
+        aggregate_failures 'checking response' do
+          expect(response.status).to eq(200), result&.inspect
+          expect(record_id).to be_nil
+          expect(project.operating_end_date).to be_nil # didn't update
+          expect(errors).to contain_exactly(include('severity' => 'warning', 'type' => 'information', 'fullMessage' => Hmis::Hud::Validators::ProjectValidator.open_enrollments_message(1)))
+        end
+      end
+
+      it 'should not warn about enrollments that exited today' do
+        # exit the enrollment today
+        create(:hmis_hud_exit, enrollment: enrollment, client: enrollment.client, data_source: ds1, exit_date: today)
+
+        _, result = close_project
+        errors = result.dig('data', 'submitForm', 'errors')
+        expect(errors).to be_empty
       end
     end
 
@@ -392,10 +418,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expect(response.status).to eq(200), result&.inspect
         expect(record_id).to be_nil
         expect(p1.operating_end_date).to be_nil
-        expect(errors).to match([
-                                  a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => Hmis::Hud::Validators::ProjectValidator.open_funders_message(1)),
-                                  a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => Hmis::Hud::Validators::ProjectValidator.open_inventory_message(1)),
-                                ])
+        expect(errors).to contain_exactly(
+          a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => Hmis::Hud::Validators::ProjectValidator.open_funders_message(1)),
+          a_hash_including('severity' => 'warning', 'type' => 'information', 'fullMessage' => Hmis::Hud::Validators::ProjectValidator.open_inventory_message(1)),
+        )
         expect(i1.reload.inventory_end_date).to be nil
         expect(f1.reload.end_date).to be nil
       end
@@ -432,7 +458,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let(:test_input) do
       {
         form_definition_id: definition.id,
-        **completed_form_values_for_role(:ENROLLMENT),
+        **mock_form_values_for_definition(definition),
         project_id: p2.id,
         client_id: c3.id,
         confirmed: false,
@@ -521,37 +547,57 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let(:test_input) do
       {
         form_definition_id: definition.id,
-        **completed_form_values_for_role(:ENROLLMENT),
+        **mock_form_values_for_definition(definition),
         project_id: p1.id,
         client_id: c2.id,
         confirmed: false,
       }
     end
 
-    def submit_enrollment_form(input)
-      _response, result = post_graphql(input: { input: input }) { mutation }
-      record = result.dig('data', 'submitForm', 'record')
-      errors = result.dig('data', 'submitForm', 'errors')
-      [record, errors]
-    end
-
     it 'should save new enrollment as WIP' do
-      record, _errors = submit_enrollment_form(test_input)
+      record, _errors = submit_form(test_input)
       expect(record['inProgress']).to eq(true)
     end
 
     it 'should not change WIP status (WIP enrollment)' do
       input = test_input.merge(record_id: wip_e1.id)
-      submit_enrollment_form(input)
+      submit_form(input)
       wip_e1.reload
       expect(wip_e1.in_progress?).to eq(true)
     end
 
     it 'should not change WIP status (non-WIP enrollment)' do
       input = test_input.merge(record_id: e1.id)
-      submit_enrollment_form(input)
+      submit_form(input)
       e1.reload
       expect(e1.in_progress?).to eq(false)
+    end
+  end
+
+  describe 'SubmitForm for Enrollment on project with ProjectAutoEnterConfig' do
+    let(:definition) { Hmis::Form::Definition.find_by(role: :ENROLLMENT) }
+    let!(:aec) { create :hmis_project_auto_enter_config, project: p1 }
+    let(:test_input) do
+      {
+        form_definition_id: definition.id,
+        **mock_form_values_for_definition(definition),
+        project_id: p1.id,
+        client_id: c1.id,
+        confirmed: false,
+      }
+    end
+
+    it 'should save new enrollment without WIP status' do
+      record, errors = submit_form(test_input)
+      expect(errors).to be_empty
+
+      enrollment = Hmis::Hud::Enrollment.find_by(id: record['id'])
+      expect(enrollment).to be_present
+      expect(enrollment.in_progress?).to eq(false)
+      expect(enrollment.intake_assessment).to be_present
+      expect(enrollment.intake_assessment.assessment_date).to eq(enrollment.entry_date)
+      expect(enrollment.intake_assessment.wip).to eq(false)
+      expect(enrollment.intake_assessment.form_processor).to be_present
     end
   end
 
@@ -560,7 +606,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     let(:test_input) do
       {
         form_definition_id: definition.id,
-        **completed_form_values_for_role(:NEW_CLIENT_ENROLLMENT),
+        **mock_form_values_for_definition(definition),
         project_id: p2.id,
         confirmed: true,
       }
@@ -568,14 +614,6 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
     def merge_hud_values(input, *args)
       input.merge(hud_values: input[:hud_values].merge(*args))
-    end
-
-    def submit_form(input)
-      response, result = post_graphql(input: { input: input }) { mutation }
-      expect(response.status).to eq(200), result&.inspect
-      record = result.dig('data', 'submitForm', 'record')
-      errors = result.dig('data', 'submitForm', 'errors')
-      [record, errors]
     end
 
     it 'creates client and enrollment' do
@@ -604,6 +642,144 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       )
       _, errors = submit_form(input)
       expect(errors).to contain_exactly(include({ 'attribute' => 'dob', 'type' => 'out_of_range' }))
+    end
+  end
+
+  describe 'SubmitForm for creating a ReferralPosting' do
+    let(:definition_json) do
+      {
+        "item": [
+          {
+            # Unit Type
+            "type": 'CHOICE',
+            "required": false,
+            "link_id": 'referral_unit_type',
+            "text": 'Unit Type',
+            "pick_list_reference": 'AVAILABLE_UNIT_TYPES',
+            "mapping": {
+              "field_name": 'unitTypeId',
+            },
+          },
+          {
+            # Notes
+            "type": 'TEXT',
+            "required": false,
+            "link_id": 'referral_resource_coordinator_notes',
+            "text": 'Referral Notes',
+            "mapping": {
+              "field_name": 'resourceCoordinatorNotes',
+            },
+          },
+          {
+            # Custom Data Element
+            "type": 'STRING',
+            "required": false,
+            "link_id": 'referral_custom_question',
+            "mapping": {
+              "custom_field_key": 'referral_custom_question',
+            },
+          },
+        ],
+      }
+    end
+    let!(:definition) { create :hmis_form_definition, role: :REFERRAL, definition: definition_json }
+    # Custom Data Element definition on referral
+    let!(:cded) { create :hmis_custom_data_element_definition, owner_type: 'HmisExternalApis::AcHmis::ReferralPosting', key: :referral_custom_question, data_source: ds1, field_type: :string }
+    # Unit type to refer to
+    let!(:unit_type) { create :hmis_unit_type }
+    # Available unit to refer to in receiving project
+    let!(:unit) { create :hmis_unit, project: p2, unit_type: unit_type }
+
+    # "Source" household being referred from p1
+    let!(:hoh) { create :hmis_hud_enrollment, data_source: ds1, project: p1 }
+    let!(:other_member) { create :hmis_hud_enrollment, data_source: ds1, project: p1, household_id: hoh.household_id, relationship_to_hoh: 99 }
+
+    let(:test_input) do
+      {
+        form_definition_id: definition.id,
+        values: {},
+        hud_values: {
+          'unitTypeId' => unit_type.id.to_s,
+          'resourceCoordinatorNotes' => 'note here',
+          'referral_custom_question' => 'custom response',
+        },
+        enrollment_id: hoh.id,
+        project_id: p2.id,
+        confirmed: true,
+      }
+    end
+
+    it 'creates referral posting with unit type, notes, and custom data element' do
+      record, errors = submit_form(test_input)
+      expect(errors).to be_empty
+      expect(record).to be_present
+
+      posting = HmisExternalApis::AcHmis::ReferralPosting.find(record['id'])
+      # Validate ReferralPosting
+      expect(posting.identifier).to be_nil
+      expect(posting.unit_type_id).to eq(unit_type.id)
+      expect(posting.project).to eq(p2)
+      expect(posting.household_id).to be_nil # only gets filled when referral is accepted
+      expect(posting.status).to eq('assigned_status')
+      expect(posting.resource_coordinator_notes).to eq('note here')
+      expect(posting.status_updated_by_id).to eq(hmis_user.id)
+      # Validate Referral
+      expect(posting.referral.service_coordinator).to eq(hmis_user.name)
+      expect(posting.referral.enrollment).to eq(hoh)
+      # Validate Household members
+      expect(posting.referral.household_members.pluck(:client_id)).to contain_exactly(hoh.client.id, other_member.client.id)
+      # Validate Custom Data Element
+      expect(posting.custom_data_elements.count).to eq(1)
+      expect(posting.custom_data_elements.first.value_string).to eq('custom response')
+      expect(posting.custom_data_elements.first.data_element_definition).to eq(cded)
+    end
+
+    it 'fails if unit type does not exist in project' do
+      unit.destroy!
+      record, errors = submit_form(test_input)
+      expect(errors).to contain_exactly(
+        include('attribute' => 'unitTypeId', 'fullMessage' => 'Unit type is not available in the selected project'),
+      )
+      expect(record).to be_nil
+      expect(HmisExternalApis::AcHmis::ReferralPosting.count).to eq(0)
+    end
+    it 'fails if unit type exists but is occupied' do
+      create(:hmis_unit_occupancy, unit: unit)
+      record, errors = submit_form(test_input)
+      expect(errors).to contain_exactly(
+        include('attribute' => 'unitTypeId', 'fullMessage' => 'Unit type is not available in the selected project'),
+      )
+      expect(record).to be_nil
+      expect(HmisExternalApis::AcHmis::ReferralPosting.count).to eq(0)
+    end
+    it 'succeeds if optional fields are not included (unit type and notes)' do
+      record, errors = submit_form(test_input.merge(hud_values: {}))
+      expect(errors).to be_empty
+
+      posting = HmisExternalApis::AcHmis::ReferralPosting.find(record['id'])
+      expect(posting.referral.enrollment).to eq(hoh)
+      expect(posting.project).to eq(p2)
+      expect(posting.status).to eq('assigned_status')
+    end
+
+    context 'referral permissions' do
+      before(:each) { access_control.destroy! } # remove blanket access
+
+      [:can_manage_outgoing_referrals, :can_view_enrollment_details, :can_view_project].each do |permission|
+        it "fails when referer lacks #{permission} in source project" do
+          create_access_control(hmis_user, p1, without_permission: permission)
+          expect_gql_error post_graphql(input: { input: test_input }) { mutation }, message: 'access denied'
+        end
+      end
+
+      it 'succeeds when referer lacks access to receiving project' do
+        # User has access to refer from p1, but no access to p2
+        create_access_control(hmis_user, p1, with_permission: [:can_manage_outgoing_referrals, :can_view_project, :can_view_enrollment_details])
+        expect(Hmis::Hud::Project.viewable_by(hmis_user).where(id: p2.id).exists?).to be false # confirm setup
+
+        _, errors = submit_form(test_input)
+        expect(errors).to be_empty
+      end
     end
   end
 end

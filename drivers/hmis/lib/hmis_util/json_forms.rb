@@ -6,6 +6,9 @@
 
 module HmisUtil
   class JsonForms
+    JsonFormException = Class.new(StandardError)
+    private_constant :JsonFormException
+
     DATA_DIR = 'drivers/hmis/lib/form_data'.freeze
 
     def self.seed_all
@@ -240,14 +243,24 @@ module HmisUtil
       # Apply any client-specific patches
       apply_all_patches!(form_definition, identifier: identifier)
       # Validate final definition
-      validate_definition(form_definition, role)
+      begin
+        validate_definition(form_definition, role)
+      rescue JsonFormException => e
+        # If there was an error, _try_ to print out the exact value that failed by traversing the json path
+        match_path = /property '(.*)'/.match(e.to_s)
+        if match_path&.size == 2
+          dig_path = match_path[1].split('/').map(&:presence).compact.map { |s| Integer(s, exception: false) || s }
+          problem_item = form_definition.dig(*dig_path)
+        end
+        raise "Failed to validate #{role}/#{identifier} (item##{problem_item || 'unknown'}): #{e}"
+      end
 
       # Create or update definition
       record = Hmis::Form::Definition.where(
         identifier: identifier,
         role: role,
         version: 0,
-        status: 'draft',
+        status: Hmis::Form::Definition::DRAFT,
       ).first_or_create!(title: title || role.to_s.humanize)
       record.definition = form_definition
       record.title = title if title.present?
@@ -399,8 +412,10 @@ module HmisUtil
 
     public def seed_static_forms
       Hmis::Form::Definition::STATIC_FORM_ROLES.each do |role|
-        filename = "#{role.to_s.downcase}.json"
-        file = File.read("#{DATA_DIR}/static/#{filename}")
+        filename = "#{DATA_DIR}/static/#{role.to_s.downcase}.json"
+        next unless File.exist?(filename) # skip deprecated roles
+
+        file = File.read(filename)
         form_definition = JSON.parse(file)
         load_definition(
           form_definition: form_definition,
@@ -413,7 +428,7 @@ module HmisUtil
 
     # on_error allows customization of error handling incase we want to collect them instead of raising
     public def validate_definition(json, role = nil)
-      on_error = ->(err) { block_given? ? yield(err) : raise(err) }
+      on_error = ->(err) { block_given? ? yield(err) : raise(JsonFormException, err) }
       Hmis::Form::Definition.validate_json(json, valid_pick_lists: valid_pick_lists, &on_error)
       schema_errors = Hmis::Form::Definition.validate_schema(json)
       return unless schema_errors.present?

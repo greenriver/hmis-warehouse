@@ -55,7 +55,7 @@ module Mutations
         # allow if no permission check defined
         allowed = true
       end
-      raise HmisErrors::ApiError, 'Access Denied' unless allowed
+      access_denied! unless allowed
 
       # Build FormProcessor
       # It wont be persisted, but it handles validation and updating the relevant record(s)
@@ -95,11 +95,16 @@ module Mutations
         when HmisExternalApis::AcHmis::ReferralRequest
           HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(record)
         when Hmis::Hud::Enrollment
-          record.client.save! if record.client.changed? # Enrollment form may create or update client
-          if record.new_record? || record.in_progress?
-            record.save_in_progress
+          enrollment = record
+          # Enrollment form may create or update client, so we need to save that
+          enrollment.client.save! if enrollment.client.changed?
+
+          if enrollment.new_record?
+            enrollment.save_new_enrollment!
+          elsif enrollment.in_progress?
+            enrollment.save_in_progress!
           else
-            record.save!
+            enrollment.save!
           end
         else
           record.save!
@@ -157,7 +162,7 @@ module Mutations
       when 'Hmis::Hud::Funder', 'Hmis::Hud::ProjectCoc', 'Hmis::Hud::Inventory', 'Hmis::Hud::CeParticipation', 'Hmis::Hud::HmisParticipation'
         [project, klass.new({ project_id: project&.project_id, **ds })]
       when 'Hmis::Hud::Enrollment'
-        [project, klass.new({ project_id: project&.project_id, personal_id: client&.personal_id, **ds })]
+        [project, klass.new({ project_id: project&.project_id, project_pk: project&.id, personal_id: client&.personal_id, **ds })]
       when 'Hmis::Hud::CurrentLivingSituation'
         [enrollment, klass.new({ personal_id: enrollment&.personal_id, enrollment_id: enrollment&.enrollment_id, **ds })]
       when 'Hmis::Hud::HmisService'
@@ -171,6 +176,19 @@ module Mutations
         ]
       when 'HmisExternalApis::AcHmis::ReferralRequest'
         [project, klass.new({ project_id: project&.id })]
+      when 'HmisExternalApis::AcHmis::ReferralPosting'
+        # Look up the receiving project without `viewable_by` scope, since referrer may not have access to receiving project
+        receiving_project = Hmis::Hud::Project.find_by(id: input.project_id)
+        access_denied! unless enrollment.present? && receiving_project.present?
+
+        referral_posting = HmisExternalApis::AcHmis::ReferralPosting.new_with_referral(
+          enrollment: enrollment, # enrollment at the source project
+          receiving_project: receiving_project,
+          user: current_user,
+        )
+        # Evaluate permission (can manage outgoing referrals) against the source project, not the receiving project
+        source_project = enrollment.project
+        [source_project, referral_posting]
       when 'Hmis::File'
         [client, klass.new({ client_id: client&.id, enrollment_id: enrollment&.id })]
       when 'Hmis::Hud::Assessment', 'Hmis::Hud::CustomCaseNote', 'Hmis::Hud::Event'

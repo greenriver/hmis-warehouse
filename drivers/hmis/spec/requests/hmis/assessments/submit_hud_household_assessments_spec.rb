@@ -43,19 +43,16 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     [assessment1, assessment2, assessment3].each do |assessment|
       enrollment = assessment.enrollment
       project = assessment1.enrollment.project # all use the same project
-      enrollment.update(household_id: assessment1.enrollment.household_id, project_id: project.project_id)
+      enrollment.update!(household_id: assessment1.enrollment.household_id, project_id: project.project_id, project_pk: project.id)
 
       # Save enrollment as WIP
-      if role == :INTAKE
-        enrollment.build_wip(client: enrollment.client, date: enrollment.entry_date, project_id: project.id)
-        enrollment.save_in_progress
-      end
+      enrollment.save_in_progress! if role == :INTAKE
 
       definition = Hmis::Form::Definition.find_by(role: role)
       raise "No definition for role #{role}" unless definition.present?
 
       # Save assessment as WIP with minimum needed values
-      assessment.update(data_collection_stage: role == :INTAKE ? 1 : 3)
+      assessment.update!(data_collection_stage: role == :INTAKE ? 1 : 3)
       assessment.form_processor.update(definition: definition, **build_minimum_values(definition, assessment_date: assessment.assessment_date))
       assessment.definition = definition
       assessment.save!
@@ -89,7 +86,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       }
       _resp, result = post_graphql(input: input) { submit_assessment_mutation }
       errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
-      expect(errors).to match([a_hash_including('severity' => 'error', 'fullMessage' => 'Please include the head of household. Other household members cannot be entered without the HoH.')])
+      expect(errors).to contain_exactly(a_hash_including('severity' => 'error', 'fullMessage' => 'Please include the head of household. Other household members cannot be entered without the HoH.'))
     end
 
     it 'succeeds if (WIP) HoH is included' do
@@ -120,7 +117,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       }
       _resp, result = post_graphql(input: input) { submit_assessment_mutation }
       errors = result.dig('data', 'submitHouseholdAssessments', 'errors')
-      expect(errors).to match([a_hash_including('severity' => 'error', 'fullMessage' => 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH, or exit all open enrollments.')])
+      expect(errors).to contain_exactly(a_hash_including('severity' => 'error', 'fullMessage' => 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH, or exit all open enrollments.'))
     end
 
     it 'succeeds if all members are present' do

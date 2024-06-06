@@ -1,4 +1,6 @@
 - if @pagy.count.positive?
+  .text-right.mb-4
+    = render 'report_downloads/report_download', export: @pdf_export, excel_export: @excel_export, excel_download_path: nil
   = render 'common/pagination_top', item_name: 'user'
   .card.warehouse-reports__user-directory
     %table.table.table-fixed.table-striped
@@ -8,6 +10,9 @@
           %th Email
           %th Phone
           %th Agency
+          %th Roles 
+          %th Status
+          %th Last Login
       %tbody
         - @users.each do |user|
           %tr
@@ -15,6 +20,12 @@
             %td= user.email
             %td= user.phone_for_directory
             %td= user.agency_name
+            %td 
+              - user.unique_role_names.sort.each do |name| 
+                .role-name= name
+              
+            %td= user.active ? 'Active': 'Inactive'
+            %td= user.last_sign_in_at
   = render 'common/pagination_bottom', item_name: 'user'
 - else
   .none-found No users found.

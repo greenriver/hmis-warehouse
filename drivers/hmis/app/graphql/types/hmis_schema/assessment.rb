@@ -12,7 +12,7 @@ module Types
     include Types::HmisSchema::HasHudMetadata
 
     available_filter_options do
-      arg :type, [Types::Forms::Enums::AssessmentRole]
+      arg :assessment_name, [String]
       arg :project_type, [Types::HmisSchema::Enums::ProjectType]
       arg :project, [ID]
     end
@@ -53,7 +53,7 @@ module Types
     end
 
     def role
-      Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES.invert[object.data_collection_stage]&.to_s || 'CUSTOM_ASSESSMENT'
+      Hmis::Form::Definition::FORM_DATA_COLLECTION_STAGES.invert[object.data_collection_stage]&.to_s
     end
 
     # EXPENSIVE! Do not use in batch

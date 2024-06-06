@@ -256,12 +256,13 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   # HUD reporting Project Type overlay
+  # Now controlled by import overrides
   scope :hud_project_type, ->(project_types) do
-    where(computed_project_type: project_types)
+    where(project_type: project_types)
   end
 
   scope :in_project_type, ->(project_types) do
-    where(project_type_column => project_types)
+    where(project_type: project_types)
   end
 
   # uses actual Projects.id not ProjectID (which is stored in the table and requires data_source_id)
@@ -434,17 +435,11 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   # 13: Rapid Re-Housing (PH)
   # 14: Coordinated Entry
   def service_type
-    ::HudUtility2024.project_type(computed_project_type)
+    ::HudUtility2024.project_type(project_type)
   end
 
   def service_type_brief
-    ::HudUtility2024.project_type_brief(computed_project_type)
-  end
-
-  def computed_project_type_group_es
-    pt = computed_project_type
-    pt = 1 if computed_project_type&.zero?
-    pt
+    ::HudUtility2024.project_type_brief(project_type)
   end
 
   def start_time
@@ -493,11 +488,7 @@ class GrdaWarehouse::ServiceHistoryEnrollment < GrdaWarehouseBase
   end
 
   def self.project_type_column
-    if GrdaWarehouse::Config.get(:project_type_override)
-      :computed_project_type
-    else
-      :project_type
-    end
+    :project_type
   end
 
   def self.available_age_ranges

@@ -35,13 +35,23 @@ module HudConcerns::Enrollment
       joins(:project).where(p_t[:id].in(project_ids))
     end
 
+    def open_during_range?(range)
+      self.EntryDate <= range.last && (exit&.ExitDate.blank? || exit.ExitDate > range.first)
+    end
+
+    def open_on_date?(date)
+      open_during_range?(date..date)
+    end
+
     def self.invalidate_processing!
       update_all(processed_as: nil, processed_hash: nil)
     end
 
     def invalidate_processing!
       # use update_columns to avoid stale object errors when this method is called from Service after_commit hooks
-      update_columns(processed_as: nil, processed_hash: nil)
+      self.class.without_optimistic_locking do
+        update_columns(processed_as: nil, processed_hash: nil)
+      end
     end
   end
 end

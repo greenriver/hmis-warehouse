@@ -1,14 +1,17 @@
 - content_for :title, 'HMIS Collection Administration'
-%h1= content_for :title
-= render 'hmis_admin/tabs', active_tab: :groups
+.o-page
+  .o-page__title
+    %h1= content_for :title
+    = render 'hmis_admin/tabs', active_tab: :groups
+  = render 'admin/collections/description', entity_type: 'HMIS'
 
-.alert.alert-info
-  %i.icon-warning.mr-4
-  %p Collections are be used to aggregate sets of data.  Access to this data is then governed through Access Controls where Collections are combined with Roles and User Groups.
-.text-right
-  = link_to new_hmis_admin_group_path, class: 'btn btn-primary mb-2' do
-    %span.icon-plus
-    Add Collection
+  .d-flex
+    = link_to new_hmis_admin_group_path, class: 'btn btn-primary mb-2 mr-auto' do
+      %span.icon-plus
+      Add a Collection
+    .w-50.ml-auto
+      - @prompt = 'Search collections...'
+      = render 'search_form'
 - if @pagy.count.positive?
   = render 'common/pagination_top', item_name: 'group'
   .table-responsive
@@ -16,13 +19,17 @@
       %thead
         %tr
           %th Collection Name
-          %th Collection Access
+          %th Description
+          -# %th Collection Summary
+          %th # Projects Included
           %th
       %tbody
         - @groups.each do |group|
           %tr
-            %td= link_to group.name, edit_hmis_admin_group_path(group)
-            %td= group.summary_descriptions.join(', ')
+            %td= link_to group.name, hmis_admin_group_path(group)
+            %td= group.description
+            -# %td= group.summary_descriptions.join(', ')
+            %td= "#{group.overall_project_count} projects"
             %td
               - unless group.access_controls.count.positive?
                 = link_to hmis_admin_group_path(group),  method: :delete, data: {confirm: "Would you really like to delete the group #{group.name}?"}, class: ['btn', 'btn-sm', 'btn-danger'] do

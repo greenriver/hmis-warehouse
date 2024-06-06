@@ -8,198 +8,174 @@ module AllNeighborsSystemDashboard
   class ReturnsToHomelessness < DashboardData
     def self.cache_data(report)
       instance = new(report)
-      instance.stacked_data
+      instance.returns_data
     end
 
-    def data(title, id, type, options: {})
-      keys = (options[:types] || []).map { |key| to_key(key) }
-      identifier = "#{@report.cache_key}/#{cache_key(id, type, options)}/#{__method__}"
-      existing = @report.datasets.find_by(identifier: identifier)
-      return existing.data.with_indifferent_access if existing.present?
+    # Date should be the first of the month, range will extend through the month
+    def clients_for_date(date:, count_level:, project_type:)
+      count_item = count_one_client_per_date_arel
+      scope = returned_total_scope
+      scope = filter_for_type(scope, project_type)
+      scope = filter_for_count_level(scope, count_level)
+      scope = filter_for_date(scope, date)
+      scope.pluck(count_item)
+    end
 
-      data = {
-        title: title,
-        id: id,
-        demographics: demographics.map do |demo|
-          bars = ['Exited', 'Returned']
-          demo_names_meth = "demographic_#{demo.gsub(' ', '').underscore}".to_sym
-          demo_colors_meth = "demographic_#{demo.gsub(' ', '').underscore}_colors".to_sym
-          names = send(demo_names_meth)
-          keys = names.map { |key| to_key(key) }
-          colors = send(demo_colors_meth)
-          scope = enrollment_scope
-          scope = filter_for_year(scope, Date.new(options[:year]))
-          scope = filter_for_count_level(scope, 'Households')
-          exited_household_count = scope.count
-          # NOTE: we filter return date on write and only add if the client returned within a year
-          returned_household_count = scope.where.not(return_date: nil).count
-          {
-            demographic: demo,
-            config: {
-              keys: keys,
-              names: keys.map.with_index { |key, i| [key, names[i]] }.to_h,
-              colors: keys.map.with_index { |key, i| [key, colors[i]] }.to_h,
-              label_colors: keys.map.with_index { |key, i| [key, label_color(colors[i])] }.to_h,
-            },
-            series: send(type, { bars: bars, demographic: demo, types: names, year: options[:year] }),
-            exited_household_count: exited_household_count,
-            returned_household_count: returned_household_count,
-          }
-        end,
-      }
-      @report.datasets.create!(
-        identifier: identifier,
-        data: data,
+    def project_types_with_data
+      ['All'] + returned_total_scope.find_each.map do |enrollment|
+        bucketed_project_type(enrollment)
+      end.uniq
+    end
+
+    # Count once per client per day
+    # NOTE: the enrollments table will never have more than one enrollment
+    # per client per day
+    private def count_one_client_per_date_arel
+      nf(
+        'concat',
+        [
+          Enrollment.arel_table[:destination_client_id],
+          ' ',
+          Enrollment.arel_table[:placed_date],
+        ],
       )
-      data
     end
 
-    def stacked_data
-      relevant_years.map do |year|
-        cohort_name = "Exited #{year}"
-
-        data(
-          cohort_name,
-          to_key(cohort_name),
-          :stack,
-          options: { year: year },
-        )
+    private def aggregate(series)
+      total_count = 0
+      series.map do |date, counts|
+        total_count += counts
+        [
+          date,
+          total_count,
+        ]
       end
     end
 
-    def stack(options)
-      project_type = options[:project_type]
-      demographic = options[:demographic]
-      bars = project_type.present? ? [project_type] + options[:bars] : options[:bars]
-      bars.map do |bar|
-        {
-          name: bar,
-          series: relevant_date_range.map do |date|
-            next unless date.year == options[:year]
+    private def filter_for_date(scope, date, start_date: date.beginning_of_month)
+      range = start_date .. date.end_of_month
+      scope.placed_in_range(range)
+    end
 
-            {
-              date: date.strftime('%Y-%-m-%-d'),
-              values: options[:types].map { |label| stack_value(date, bar, demographic, label) },
-              household_count: 1, # NOTE: not used, just for JS compatability
-            }
-          end.compact,
+    # Example format of options: {:types=>['Adult Only', 'Adults and Children', 'Unknown Household Type'], :colors=>["#E6B70F", "#B2803F", "#1865AB"], :project_type=>"All", :count_level=>"Individuals"}
+    def returns(options, count_item:, **)
+      project_type = options[:project_type] || options[:homelessness_status]
+      dates = date_range.map do |date|
+        counts_for_placed = options[:types].map do |type|
+          # denominator is everyone who was placed AND subsequently exited
+          placed_and_exited_scope = housed_total_scope.where.not(exit_date: nil).select(count_item)
+          placed_and_exited_scope = filter_for_type(placed_and_exited_scope, project_type)
+          placed_and_exited_scope = filter_for_type(placed_and_exited_scope, type)
+          placed_and_exited_scope = filter_for_count_level(placed_and_exited_scope, options[:count_level])
+          placed_and_exited_scope = filter_for_date(placed_and_exited_scope, date)
+          placed_and_exited_count = mask_small_populations(placed_and_exited_scope.count, mask: @report.mask_small_populations?)
+          placed_and_exited_count = options[:hide_others_when_not_all] && project_type != 'All' && type != project_type ? 0 : placed_and_exited_count
+          placed_and_exited_count
+        end
+        counts_for_returns = options[:types].map do |type|
+          return_scope = returned_total_scope.select(Enrollment.arel_table[:return_date])
+          return_scope = filter_for_type(return_scope, project_type)
+          return_scope = filter_for_type(return_scope, type)
+          return_scope = filter_for_count_level(return_scope, options[:count_level])
+          return_scope = filter_for_date(return_scope, date)
+          return_count = mask_small_populations(return_scope.count, mask: @report.mask_small_populations?)
+          return_count = options[:hide_others_when_not_all] && project_type != 'All' && type != project_type ? 0 : return_count
+          return_count
+        end
+        {
+          date: date.strftime('%Y-%-m-%-d'),
+          values: [
+            counts_for_placed,
+            counts_for_returns,
+          ],
         }
       end
+      dates
     end
 
-    # This tab is only relevant for years that completed over a year ago because it looks at returns within a year of exiting
-    def relevant_date_range
-      max_date = Date.current.beginning_of_year - 1.years
-      # strictly less than the beginning of the prior year
-      date_range.select { |date| date < max_date }
-    end
-
-    # This tab is only relevant for years that completed over a year ago because it looks at returns within a year of exiting
-    def relevant_years
-      max_year = (Date.current.beginning_of_year - 1.years).year
-      # strictly less than the beginning of the prior year
-      years.select { |year| year < max_year }
-    end
-
-    private def filter_for_date(scope, date)
-      # NOTE: even though we aggregate at the year level, we calculate the month range and let JS do the aggregation
-      range = date.beginning_of_month .. date.end_of_month
-      where_clause = date_query(range)
-      scope.where(where_clause)
-    end
-
-    private def date_query(range)
-      en_t = Enrollment.arel_table
-      en_t[:exit_date].between(range).and(en_t[:exit_type].eq('Permanent'))
-    end
-
-    private def filter_for_year(scope, date)
-      range = date.beginning_of_year .. date.end_of_year
-      where_clause = date_query(range)
-      scope.where(where_clause)
-    end
-
-    private def enrollment_scope
-      report_enrollments_enrollment_scope.
-        distinct.
-        select(:destination_client_id)
-    end
-
-    def stack_value(date, bar, demographic, label)
-      scope = enrollment_scope
-      # NOTE: there is no picker for households, so we're always using individuals
-      scope = filter_for_count_level(scope, 'Individuals')
-      scope = filter_for_year(scope, date)
-      scope = scope.where(exit_type: 'Permanent')
-
-      scope = case bar
-      when 'Returned'
-        # NOTE: we filter return date on write and only add if the client returned within a year
-        scope.where.not(return_date: nil)
-      else
-        # NOTE: date filter enforces exit type is permanent since everyone in the page
-        # has to have exited to a permanent destination (or moved in)
-        scope
-      end
-
-      scope = case demographic
-      when 'Race'
-        scope.where(Enrollment.arel_table[:race_list].matches("%#{label}%"))
-      when 'Age', 'Gender'
-        filter_for_type(scope, label)
-      when 'Household Type'
-        scope.where(household_type: label)
-      end
-      count = mask_small_populations(scope.count, mask: @report.mask_small_populations?)
-      count
-    end
-
-    def bars
-      identifier = "#{@report.cache_key}/#{self.class.name}/#{__method__}"
+    #   {
+    #     projectType: 'All',
+    #     countLevel: 'Individuals',
+    #     demographics: 'All',
+    #   } => {
+    #     config: {
+    #       names: ['Placements', 'Returns'],
+    #       colors: ['#336770', '#E6B70F'],
+    #       label_colors: ['#ffffff', '#000000'],
+    #     },
+    #     series: [
+    #       {
+    #         date: '2020-01-01',
+    #         values: [10, 3],
+    #       },
+    #       {
+    #         date: '2020-02-01',
+    #         values: [12, 2],
+    #       },
+    #     ],
+    #   },
+    # }
+    def returns_data
+      identifier = "#{@report.cache_key}/#{cache_key('returns', 'returns', {})}/#{__method__}"
       existing = @report.datasets.find_by(identifier: identifier)
-      return existing.data.with_indifferent_access if existing.present?
+      return existing.data if existing.present?
 
-      cohort_keys = relevant_years.map { |year| "Exited #{year}" }
-      scope = enrollment_scope
-      # NOTE: there is no picker on this page currently, but this could be updated if necessary
-      scope = filter_for_count_level(scope, 'Individuals')
-      exited_counts = {}
-      returned_counts = {}
-      # Make sure there are no missing years
-      relevant_years.each do |year|
-        start_of_year = Date.new(year)
-        exited_scope = scope.where(exit_date: start_of_year..start_of_year.end_of_year)
-        # NOTE: we filter return date on write and only add if the client returned within a year
-        returned_scope = exited_scope.where.not(return_date: nil)
+      r_data = [].tap do |data|
+        project_types.each do |project_type|
+          count_levels.each do |count_level|
+            (['All'] + demographics).each do |demo|
+              key = {
+                projectType: project_type,
+                countLevel: count_level,
+                demographics: demo,
+              }
+              categories = case demo
+              when 'All'
+                []
+              when 'Race'
+                demographic_race
+              when 'Age'
+                demographic_age
+              when 'Gender'
+                demographic_gender
+              when 'Household Type'
+                household_types
+              end
+              # always include the All category
+              categories = ['All'] + categories
 
-        exited_counts[year] = mask_small_populations(exited_scope.count, mask: @report.mask_small_populations?)
-        returned_counts[year] = mask_small_populations(returned_scope.count, mask: @report.mask_small_populations?)
+              names = ['Housed, completed program', 'Returns']
+              colors = ['#336770', '#884D01']
+              # for right now, we're moving the chart labels off the bar so we can always show them
+              # label_colors = names.zip(colors).to_h.transform_values { |v| label_color(v) }
+              label_colors = names.zip(colors).to_h.transform_values { |_| label_color('#FFFFFF') }
+              data << [
+                key,
+                {
+                  config: {
+                    names: names,
+                    colors: names.zip(colors).to_h,
+                    label_colors: label_colors,
+                    axis: {
+                      x: {
+                        type: 'category',
+                        categories: categories,
+                      },
+                    },
+                  },
+                  series: returns({ types: categories, project_type: project_type, count_level: count_level }, count_item: count_one_client_per_date_arel),
+                },
+              ]
+            end
+          end
+        end
       end
-      rates_of_return = returned_counts.values.zip(exited_counts.values).map do |returns, exits|
-        rate = exits.zero? ? 0 : (returns.to_f / exits * 100).round(1)
-        "#{rate}%"
-      end
-      data = {
-        title: 'Returns to Homelessness',
-        id: 'returns_to_homelessness',
-        config: {
-          colors: {
-            exited: ['#336770', '#884D01'],
-            returned: ['#85A4A9', '#B48F5F'],
-          },
-          keys: cohort_keys,
-        },
-        series: [
-          { name: 'exited', values: exited_counts.values },
-          { name: 'returned', values: returned_counts.values },
-          { name: 'rate', values: rates_of_return, table_only: true },
-        ],
-      }
+
       @report.datasets.create!(
         identifier: identifier,
-        data: data,
+        data: r_data,
       )
-      data
+      r_data
     end
   end
 end

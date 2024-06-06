@@ -1,3 +1,10 @@
+:css
+  .show-on-row-hover {
+    display: none
+  }
+  tr:hover .show-on-row-hover {
+    display: block;
+  }
 = render 'breadcrumbs'
 -# confidentiality status ignored because page is not visible to users who can't see confidential project names
 - content_for :title, "#{@project.name(ignore_confidential_status: true)} at #{@project.organization.name(ignore_confidential_status: true)}"
@@ -22,11 +29,6 @@
           %th Project Type
           %td
             = HudUtility2024.project_type(@project.ProjectType)
-            - if @project.act_as_project_type.present?
-              %br
-              %em
-                Acts as:
-                = HudUtility2024.project_type(@project.act_as_project_type)
             - if @project.active_homeless_status_override.present?
               %br
               %em
@@ -40,31 +42,16 @@
           %td.d-flex
             .project__operating-start-date
               = @project.OperatingStartDate&.to_date
-            - if @project.operating_start_date_override.present?
-              .ml-2
-                Overridden as:
-                %em
-                  = @project.operating_start_date_override.to_date
         %tr
           %th Operating End Date
           %td.d-flex
             .project__operating-start-date
               = @project.OperatingEndDate&.to_date || 'ongoing'
-            - if @project.operating_end_date_override.present?
-              .ml-2
-                Overridden as:
-                %em
-                  = @project.operating_end_date_override.to_date
         %tr
           %th Continuum Project
           %td.d-flex
             .project__continuum-project
               = checkmark(@project.ContinuumProject == 1)
-            - if ! @project.hud_continuum_funded.nil?
-              .ml-2
-                %em
-                  Overridden
-                  = checkmark_or_x @project.hud_continuum_funded
         %tr
           %th Housing Type
           %td.d-flex
@@ -72,16 +59,6 @@
               - if @project.HousingType.present?
                 = HudUtility2024.housing_type(@project.HousingType)
                 (#{@project.HousingType})
-            - if @project.housing_type_override
-              .ml-2
-                %em
-                  Overridden as
-                  = HudUtility2024.housing_type(@project.housing_type_override)
-        %tr
-          %th
-            %span{data: {toggle: :tooltip, title: 'This has no affect currently'}}
-              Uses Move-in Date
-          %td= checkmark(@project.uses_move_in_date)
         - if can_view_imports?
           %tr
             %th Project Contacts
@@ -135,11 +112,6 @@
           %th Target Population
           %td
             = HudUtility2024.target_population(@project.TargetPopulation)
-            - if @project.target_population_override.present?
-              .mt-2
-                Overridden as:
-                %br
-                %em= HudUtility2024.target_population(@project.target_population_override)
         %tr
           %th Household Type
           %td
@@ -148,6 +120,11 @@
         %tr
           %th PIT Count
           %td= @project.PITCount
+- overrides = HmisCsvImporter::ImportOverride.where(data_source: @project.data_source).sorted.select { |override| override.applies?(@project) }
+- if overrides.any?
+  %p The following import overrides are in effect for this project.
+  .mb-4.card
+    = render 'hmis_csv_importer/import_overrides/table', overrides: overrides, data_source: @project.data_source, editable: false, show_associated_project: false
 - if @show_census
   = render 'census'
 = render 'funders', funders: @project.funders

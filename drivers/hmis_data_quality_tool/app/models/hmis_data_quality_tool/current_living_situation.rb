@@ -50,6 +50,8 @@ module HmisDataQualityTool
             current_living_situation: current_living_situation,
             report: report,
           )
+          next unless item.present?
+
           sections(report).each do |_, calc|
             section_title = calc[:title]
             intermediate[section_title] ||= { denominator: {}, invalid: {} }
@@ -82,19 +84,21 @@ module HmisDataQualityTool
 
       project = current_living_situation.enrollment.project
       client = current_living_situation.enrollment.client
+      return unless client.present?
+
       report_item = new(
         report_id: report.id,
         current_living_situation_id: current_living_situation.id,
       )
-      report_item.client_id = client.id
-      report_item.personal_id = client.PersonalID
+      report_item.client_id = client&.id
+      report_item.personal_id = client&.PersonalID
       report_item.situation = current_living_situation.CurrentLivingSituation
       report_item.enrollment_id = current_living_situation.enrollment.id
-      report_item.first_name = client.FirstName
-      report_item.last_name = client.LastName
+      report_item.first_name = client&.FirstName
+      report_item.last_name = client&.LastName
       report_item.project_name = project.name(report.user)
       report_item.project_id = project.id
-      report_item.destination_client_id = client.warehouse_client_source.destination_id
+      report_item.destination_client_id = client&.warehouse_client_source&.destination_id
       report_item.hmis_current_living_situation_id = current_living_situation.CurrentLivingSitID
       report_item.data_source_id = current_living_situation.data_source_id
       report_item.information_date = current_living_situation.InformationDate

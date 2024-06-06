@@ -8,6 +8,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   include ::HmisStructure::Enrollment
   include ::Hmis::Hud::Concerns::Shared
   include ::HudConcerns::Enrollment
+  include ::Hmis::Hud::Concerns::HasCustomDataElements
   include ::Hmis::Hud::Concerns::ServiceHistoryQueuer
 
   self.table_name = :Enrollment
@@ -27,8 +28,12 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   delegate :exit_date, to: :exit, allow_nil: true
 
-  # CAUTION: enrollment.project accessor is overridden below
-  belongs_to :project, **hmis_relation(:ProjectID, 'Project'), optional: true
+  # CAUTION: unlike the warehouse models, the HMIS Enrollment-to-Project relationship does not use the HUD ProjectID
+  # field. It uses a conventional db PK relationship "Enrollment.project_pk" instead. This allows us to have
+  # enrollments in a "WIP" or in-progress state; these wip enrollments have a NULL ProjectID but are still related via
+  # the project pk
+  belongs_to :project, foreign_key: :project_pk, optional: true, class_name: 'Hmis::Hud::Project'
+
   has_one :exit, **hmis_enrollment_relation('Exit'), inverse_of: :enrollment, dependent: :destroy
 
   # HUD services
@@ -69,10 +74,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_many :files, class_name: '::Hmis::File', dependent: :destroy, inverse_of: :enrollment
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :enrollments
+  belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :enrollments
   belongs_to :household, **hmis_relation(:HouseholdID, 'Household'), inverse_of: :enrollments, optional: true
-  has_one :wip, class_name: 'Hmis::Wip', as: :source, dependent: :destroy
-  has_many :custom_data_elements, as: :owner, dependent: :destroy
 
   # Unit occupancy
   # All unit occupancies, including historical
@@ -80,8 +83,14 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   has_one :active_unit_occupancy, -> { active }, class_name: 'Hmis::UnitOccupancy', inverse_of: :enrollment
   has_one :current_unit, through: :active_unit_occupancy, class_name: 'Hmis::Unit', source: :unit
 
-  accepts_nested_attributes_for :custom_data_elements, allow_destroy: true
   accepts_nested_attributes_for :move_in_addresses, allow_destroy: true
+
+  before_validation :set_hud_project_id_from_project_pk_unless_wip, if: :project_pk_changed?
+  def set_hud_project_id_from_project_pk_unless_wip
+    return unless project_id
+
+    self.project_id = project.project_id
+  end
 
   validates_with Hmis::Hud::Validators::EnrollmentValidator
   validate :client_is_valid, on: :new_client_enrollment_form
@@ -114,11 +123,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   scope :with_access, ->(user, *permissions, **kwargs) do
     return none unless user.permissions?(*permissions)
 
-    project_ids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).pluck(:id, :ProjectID)
-    viewable_wip = wip_t[:project_id].in(project_ids.map(&:first))
-    viewable_enrollment = e_t[:ProjectID].in(project_ids.map(&:second))
-
-    left_outer_joins(:wip).where(viewable_wip.or(viewable_enrollment))
+    project_ids = Hmis::Hud::Project.with_access(user, *permissions, **kwargs).order(:id).pluck(:id)
+    where(project_pk: project_ids)
   end
 
   # Enrollments that this user has access to. By default, only returns enrollments that the user has full
@@ -130,14 +136,11 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     return none unless user.permissions?(:can_view_enrollment_details, :can_view_limited_enrollment_details, mode: 'any')
 
     # Projects where the user has full enrollment access
-    full_access_project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details, :can_view_project, mode: 'all').pluck(:id, :ProjectID)
+    full_access_project_ids = Hmis::Hud::Project.with_access(user, :can_view_enrollment_details, :can_view_project, mode: 'all').pluck(:id)
     # Projects where the user has limited enrollment access
-    limited_access_project_ids = Hmis::Hud::Project.with_access(user, :can_view_limited_enrollment_details).pluck(:id, :ProjectID)
+    limited_access_project_ids = Hmis::Hud::Project.with_access(user, :can_view_limited_enrollment_details).pluck(:id)
 
-    viewable_wip = wip_t[:project_id].in(full_access_project_ids.map(&:first) + limited_access_project_ids.map(&:first))
-    viewable_enrollment = e_t[:ProjectID].in(full_access_project_ids.map(&:second) + limited_access_project_ids.map(&:second))
-
-    left_outer_joins(:wip).where(viewable_wip.or(viewable_enrollment))
+    where(project_pk: (full_access_project_ids + limited_access_project_ids).uniq.sort)
   end
 
   # Free-text search for Enrollment
@@ -178,19 +181,13 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   scope :not_in_progress, -> { where.not(project_id: nil) }
 
-  scope :with_projects_where, ->(query) do
-    wip_enrollments = joins(wip: :project).where(query).pluck(wip_t[:source_id])
-    nonwip_enrollments = joins(:project).where(query).pluck(:id)
-
-    where(id: wip_enrollments + nonwip_enrollments)
-  end
-
   scope :with_project_type, ->(project_types) do
-    with_projects_where(p_t[:project_type].in(project_types))
+    project_pks = Hmis::Hud::Project.where(project_type: project_types).pluck(:id)
+    where(project_pk: project_pks)
   end
 
-  scope :with_project, ->(project_ids) do
-    with_projects_where(p_t[:id].in(project_ids))
+  scope :with_project, ->(project_pks) do
+    where(project_pk: project_pks)
   end
 
   scope :in_age_group, ->(start_age: 0, end_age: nil) do
@@ -241,10 +238,6 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   after_create :warehouse_trigger_processing
   after_update :warehouse_trigger_processing
 
-  def project
-    super || Hmis::Hud::Project.find_by(id: wip.project_id)
-  end
-
   def self.sort_by_option(option)
     raise NotImplementedError unless SORT_OPTIONS.include?(option)
 
@@ -255,21 +248,22 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
         ex_t[:ExitDate].eq(nil).desc, # active enrollments
         EntryDate: :desc,
         date_created: :desc,
+        id: :desc,
       )
     when :household_id
-      order(household_id: :asc, date_created: :desc)
+      order(household_id: :asc, date_created: :desc, id: :desc)
     when :last_name_a_to_z
-      joins(:client).order(c_t[:last_name].asc.nulls_last)
+      joins(:client).order(c_t[:last_name].asc.nulls_last, id: :desc)
     when :last_name_z_to_a
-      joins(:client).order(c_t[:last_name].desc.nulls_last)
+      joins(:client).order(c_t[:last_name].desc.nulls_last, id: :desc)
     when :first_name_a_to_z
-      joins(:client).order(c_t[:first_name].asc.nulls_last)
+      joins(:client).order(c_t[:first_name].asc.nulls_last, id: :desc)
     when :first_name_z_to_a
-      joins(:client).order(c_t[:first_name].desc.nulls_last)
+      joins(:client).order(c_t[:first_name].desc.nulls_last, id: :desc)
     when :age_youngest_to_oldest
-      joins(:client).order(c_t[:dob].desc.nulls_last)
+      joins(:client).order(c_t[:dob].desc.nulls_last, id: :desc)
     when :age_oldest_to_youngest
-      joins(:client).order(c_t[:dob].asc.nulls_last)
+      joins(:client).order(c_t[:dob].asc.nulls_last, id: :desc)
     else
       raise NotImplementedError
     end
@@ -287,31 +281,39 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     generate_uuid
   end
 
-  def save_in_progress
-    saved_project_id = project.id
+  def save_new_enrollment!
+    raise 'Unexpected: save_new_enrollment called on a persisted enrollment' if persisted?
 
-    self.project_id = nil
-    self.wip = Hmis::Wip.find_or_create_by(
-      {
-        source: self,
-        project_id: saved_project_id,
-        client_id: client.id,
-        date: entry_date,
-      },
-    )
-    save!(validate: false)
-  end
-
-  def save_not_in_progress
-    transaction do
-      self.project_id = project_id || project.project_id
-      wip&.destroy
-      save!
+    if Hmis::ProjectAutoEnterConfig.detect_best_config_for_project(project)
+      # If auto-enter is configured for this project, save as non-WIP and generate an empty intake.
+      save_not_in_progress!
+      build_synthetic_intake_assessment.save!
+    else
+      # Otherwise, save as WIP
+      save_in_progress!
     end
   end
 
+  def save_in_progress!
+    raise 'cannot unset ProjectID on enrollment that is missing project_pk' unless project_pk
+
+    # "WIP" Enrollments have a null ProjectID column, so that they aren't included in reporting.
+    self.project_id = nil
+    save!(validate: false)
+  end
+  alias save_in_progress save_in_progress!
+
+  def save_not_in_progress!
+    # If this enrollment is being moved from WIP=>non-WIP, then set the DateCreated to now. This is to get the desired time for timeliness reports.
+    self.date_created = Time.current if persisted? && in_progress?
+    # Set ProjectID to the actual HUD ProjectID, to indicate that this is no longer WIP (and can be used in reporting)
+    self.project_id = project.project_id
+    save!
+  end
+  alias save_not_in_progress save_not_in_progress!
+
   def in_progress?
-    project_id.nil?
+    self.ProjectID.nil?
   end
 
   def exit_in_progress?
@@ -380,6 +382,23 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
 
   def unit_occupied_on(date = Date.current)
     Hmis::UnitOccupancy.active(date).where(enrollment: self).first&.unit
+  end
+
+  def build_synthetic_intake_assessment
+    assessment = Hmis::Hud::CustomAssessment.new(
+      CustomAssessmentID: Hmis::Hud::Base.generate_uuid,
+      enrollment_id: enrollment_id,
+      personal_id: personal_id,
+      assessment_date: entry_date,
+      user_id: user_id || Hmis::Hud::User.system_user(data_source_id: data_source_id)&.user_id,
+      data_source_id: data_source_id,
+      data_collection_stage: 1, # Intake
+      wip: false,
+    )
+    # Build a FormProcessor. It has no references since no records are created. It is not necessary
+    # to link a Form Definition, because a Form Definition will be selected when/if the form is opened for editing.
+    assessment.build_form_processor
+    assessment
   end
 
   # When submitting a new_client_enrollment form, we validate the client too, with the same validation contexts

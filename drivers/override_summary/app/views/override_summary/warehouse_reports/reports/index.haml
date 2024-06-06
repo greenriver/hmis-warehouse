@@ -14,19 +14,27 @@
     - content_for :panel_collapse_content, flush: true do
       - projects.each do |project_name, data|
         .mb-6
-          %h3= project_name
+          %h3= link_to project_name, project_path(data[:project]), target: :_blank
           - if data[:projects]
             - data[:projects].each do |project|
-              .mb-2= link_to project.name(ignore_confidential_status: true), project_path(project), target: :_blank
-              = render 'table', klass: GrdaWarehouse::Hud::Project, object: project
+              .mb-4.card
+                = render 'hmis_csv_importer/import_overrides/table', overrides: project.import_overrides, data_source: project.data_source, editable: false, show_associated_project: false
           - if data[:inventories]
             - data[:inventories].each do |inventory|
-              = link_to 'Inventory', edit_inventory_path(inventory), target: :_blank
-              = render 'table', klass: GrdaWarehouse::Hud::Inventory, object: inventory
+              .mb-4.card
+                = render 'hmis_csv_importer/import_overrides/table', overrides: inventory.import_overrides, data_source: inventory.data_source, editable: false, show_associated_project: false
           - if data[:project_cocs]
             - data[:project_cocs].each do |project_coc|
-              = link_to 'Project CoC', edit_project_coc_path(project_coc), target: :_blank
-              = render 'table', klass: GrdaWarehouse::Hud::ProjectCoc, object: project_coc
+              .mb-4.card
+                = render 'hmis_csv_importer/import_overrides/table', overrides: project_coc.import_overrides, data_source: project_coc.data_source, editable: false, show_associated_project: false
+          - if data[:funders]
+            - data[:funders].each do |funder|
+              .mb-4.card
+                = render 'hmis_csv_importer/import_overrides/table', overrides: funder.import_overrides, data_source: funder.data_source, editable: false, show_associated_project: false
+          - if data[:affiliations]
+            - data[:affiliations].each do |affiliation|
+              .mb-4.card
+                = render 'hmis_csv_importer/import_overrides/table', overrides: affiliation.import_overrides, data_source: affiliation.data_source, editable: false, show_associated_project: false
     = render 'common/panel_collapse', id: organization_name.parameterize, title: organization_name
 - else
   .none-found No overrides found

@@ -144,6 +144,14 @@ module GrdaWarehouse
       end
     end
 
+    def deleted_clients_tab?(population)
+      return true if population.to_s == 'deleted' # backwards compatibility
+
+      tab = cohort_tabs.find_by(name: population)
+      # If the source of the clients on this tab looks for deleted clients
+      tab&.base_scope == 'only_deleted'
+    end
+
     private def active_tab(user, population)
       tab = cohort_tabs.find_by(name: population)
       return tab if tab&.show_for?(user)
@@ -183,6 +191,7 @@ module GrdaWarehouse
                 :most_recent_pathways_or_rrh_assessment,
                 :most_recent_2023_pathways_assessment,
                 :most_recent_2023_transfer_assessment,
+                most_recent_ce_assessment: { assessment_questions: :lookup },
               ],
             },
           ],
@@ -331,6 +340,8 @@ module GrdaWarehouse
         ::CohortColumns::DateDocumentReady.new,
         ::CohortColumns::DaysHomelessLastThreeYears.new,
         ::CohortColumns::DaysLiterallyHomelessLastThreeYears.new,
+        ::CohortColumns::ShelteredDaysHomelessLastThreeYears.new,
+        ::CohortColumns::UnshelteredDaysHomelessLastThreeYears.new,
         ::CohortColumns::EnrolledHomelessShelter.new,
         ::CohortColumns::EnrolledHomelessUnsheltered.new,
         ::CohortColumns::EnrolledPermanentHousing.new,
@@ -386,6 +397,8 @@ module GrdaWarehouse
         ::CohortColumns::MostRecentDateToStreet.new,
         ::CohortColumns::DaysHomelessPathways.new,
         ::CohortColumns::MostRecentClsSheltered.new,
+        ::CohortColumns::CeAssessmentDate.new,
+        ::CohortColumns::CeAssessmentName.new,
         ::CohortColumns::UserString1.new,
         ::CohortColumns::UserString2.new,
         ::CohortColumns::UserString3.new,
@@ -394,6 +407,28 @@ module GrdaWarehouse
         ::CohortColumns::UserString6.new,
         ::CohortColumns::UserString7.new,
         ::CohortColumns::UserString8.new,
+        ::CohortColumns::UserString9.new,
+        ::CohortColumns::UserString10.new,
+        ::CohortColumns::UserString11.new,
+        ::CohortColumns::UserString12.new,
+        ::CohortColumns::UserString13.new,
+        ::CohortColumns::UserString14.new,
+        ::CohortColumns::UserString15.new,
+        ::CohortColumns::UserString16.new,
+        ::CohortColumns::UserString17.new,
+        ::CohortColumns::UserString18.new,
+        ::CohortColumns::UserString19.new,
+        ::CohortColumns::UserString20.new,
+        ::CohortColumns::UserString21.new,
+        ::CohortColumns::UserString22.new,
+        ::CohortColumns::UserString23.new,
+        ::CohortColumns::UserString24.new,
+        ::CohortColumns::UserString25.new,
+        ::CohortColumns::UserString26.new,
+        ::CohortColumns::UserString27.new,
+        ::CohortColumns::UserString28.new,
+        ::CohortColumns::UserString28.new,
+        ::CohortColumns::UserString30.new,
         ::CohortColumns::UserBoolean1.new,
         ::CohortColumns::UserBoolean2.new,
         ::CohortColumns::UserBoolean3.new,
@@ -568,6 +603,8 @@ module GrdaWarehouse
             days_homeless_plus_overrides: days_homeless_plus_overrides(cc.client),
             individual_in_most_recent_homeless_enrollment: individual_in_most_recent_homeless_enrollment(cc.client),
             most_recent_date_to_street: most_recent_date_to_street(cc.client),
+            sheltered_days_homeless_last_three_years: sheltered_days_homeless_last_three_years(cc.client),
+            unsheltered_days_homeless_last_three_years: unsheltered_days_homeless_last_three_years(cc.client),
           )
           rows << cc
         end
@@ -586,6 +623,8 @@ module GrdaWarehouse
               :days_homeless_plus_overrides,
               :individual_in_most_recent_homeless_enrollment,
               :most_recent_date_to_street,
+              :sheltered_days_homeless_last_three_years,
+              :unsheltered_days_homeless_last_three_years,
             ],
           },
         )
@@ -601,6 +640,14 @@ module GrdaWarehouse
 
       # TODO, make this work on a batch of clients
       # Convert GrdaWarehouse::WarehouseClientsProcessed.homeless_counts to accept client_ids and a date
+    end
+
+    private def sheltered_days_homeless_last_three_years(client)
+      client.sheltered_days_homeless_last_three_years
+    end
+
+    private def unsheltered_days_homeless_last_three_years(client)
+      client.unsheltered_days_homeless_last_three_years
     end
 
     private def days_homeless_last_three_years(client)
@@ -621,7 +668,7 @@ module GrdaWarehouse
       client.permanent_source_exits_from_homelessness.
         where(ex_t[:ExitDate].gteq(90.days.ago.to_date)).
         pluck(:ExitDate, :Destination).map do |exit_date, destination|
-          "<span class='hidden'>#{exit_date.to_s(:db)}</span>#{exit_date} to #{HudUtility2024.destination(destination)}"
+          "<span class='hidden'>#{exit_date.to_fs(:db)}</span>#{exit_date} to #{HudUtility2024.destination(destination)}"
         end.join('; ')
     end
 

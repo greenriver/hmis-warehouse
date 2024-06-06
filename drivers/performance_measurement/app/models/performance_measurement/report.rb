@@ -23,8 +23,6 @@ module PerformanceMeasurement
 
     attr_accessor :households
 
-    acts_as_paranoid
-
     belongs_to :user
     belongs_to :goal_configuration, class_name: 'PerformanceMeasurement::Goal'
     has_many :clients
@@ -48,11 +46,11 @@ module PerformanceMeasurement
     end
 
     def reporting_spm_id
-      @reporting_spm_id ||= clients&.first&.reporting_spm_id
+      @reporting_spm_id ||= clients.detect { |c| c.reporting_spm_id.present? }&.reporting_spm_id
     end
 
     def comparison_spm_id
-      @comparison_spm_id ||= clients&.first&.comparison_spm_id
+      @comparison_spm_id ||= clients.detect { |c| c.comparison_spm_id.present? }&.comparison_spm_id
     end
 
     def self.default_project_type_codes

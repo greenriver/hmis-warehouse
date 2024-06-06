@@ -228,77 +228,81 @@ module AllNeighborsSystemDashboard
         enrollments_by_hoh = ce_project_enrollments.
           distinct.
           preload(:client).
-          group_by { |enrollment| [enrollment.client.personal_id, enrollment.data_source_id] }
+          group_by(&:client_id) # Use destination ID to allow lookup across source clients
 
         # Find the events for HoHs associated with the CE project enrollments above.
         # Due to the possibility of finding enrollments with the same id from other data sources, this may pull
         # more events than required, but they will end up in unused groups.
         ce_events = GrdaWarehouse::Hud::Event.
-          where(enrollment_id: ce_project_enrollments.pluck(:enrollment_group_id), event: SERVICE_CODE_IDS, event_date: filter.range).
+          where(
+            enrollment_id: ce_project_enrollments.pluck(:enrollment_group_id),
+            event: SERVICE_CODE_IDS,
+            event_date: filter.range,
+          ).
+          joins(client: :warehouse_client_source).
+          preload(client: :warehouse_client_source).
           order(event_date: :asc).
-          group_by { |event| [event.personal_id, event.data_source_id] }
+          group_by { |event| event.client.warehouse_client_source.destination_id } # Use destination ID to allow lookup across source clients
 
         {}.tap do |h|
           batch.each do |housing_enrollment|
-            ce_enrollment = enrollments_by_hoh[[housing_enrollment.head_of_household_id, housing_enrollment.data_source_id]]&.
+            hoh_destination_id = housing_enrollment.client_head_of_household&.warehouse_client_source&.destination_id || housing_enrollment.client_id
+            ce_enrollment = enrollments_by_hoh[hoh_destination_id]&.
               select { |enrollment| enrollment.entry_date <= housing_enrollment.entry_date }&.
               first
             next unless ce_enrollment&.enrollment.present? && ce_enrollment&.client.present?
 
             h[housing_enrollment.id] = OpenStruct.new(
               entry_date: ce_enrollment&.entry_date,
-              ce_event: ce_events[[ce_enrollment.client.personal_id, ce_enrollment.enrollment.data_source_id]],
+              ce_event: ce_events[hoh_destination_id],
             )
           end
         end
       end
 
+      # Returns are calculated against placements not clients, all placements potentially include a return.
       def return_dates_for_batch(filter, batch)
         # Find enrollments in the batch by client with an exit to a permanent destination as defined in SPM M2
         exited_enrollments = batch.
           select do |enrollment|
-          enrollment.exit_date.present? &&
-            enrollment.destination.in?(HudUtility2024::SITUATION_PERMANENT_RANGE) # From SPM M2
-        end.sort_by(&:exit_date).
-          index_by(&:client_id) # Index by selects the last item, should be chronologically the last exit
+            # You have to have exited to be eligible for a return
+            next false unless enrollment.exit_date.present?
 
-        # Find the any enrollments entered by the clients within the reporting period and the year after so we can find anyone who returned with a year of exiting
+            # you have a move-in date (you are not homeless)
+            enrollment.move_in_date.present? ||
+            # or you exited to a permanent destination (no longer homeless)
+            enrollment.destination.in?(HudUtility2024::SITUATION_PERMANENT_RANGE) # From SPM M2
+          end.
+          sort_by(&:exit_date).
+          group_by(&:client_id)
+
+        # Find any enrollments that started within the reporting period and the subsequent year, so we can find anyone who returned with a year of exiting
         enrollments_by_client = GrdaWarehouse::ServiceHistoryEnrollment.
           homeless.
           entry.
-          where(client_id: exited_enrollments.values.map(&:client_id), entry_date: (filter.start_date .. filter.end_date + 1.years)).
+          where(client_id: exited_enrollments.keys, entry_date: (filter.start_date .. filter.end_date + 1.years)).
           group_by(&:client_id)
 
         # Select the enrollments for the client that are candidates for return
-        re_enrollments = enrollments_by_client.map do |client_id, enrollments|
-          housed_exit_date = exited_enrollments[client_id].exit_date
-          re_enrollment = enrollments.sort_by(&:entry_date).detect do |enrollment|
-            candidate_for_return?(housed_exit_date, enrollment)
-          end
-          [client_id, re_enrollment] if re_enrollment.present? # Only include clients with candidates
-        end.compact.to_h
-
-        # Build a hash of exited enrollments to the earliest date of the clients return to homelessness
-        {}.tap do |h|
-          exited_enrollments.values.each do |housing_enrollment|
-            candidate = re_enrollments[housing_enrollment.client_id]
-            next unless candidate.present?
-
-            h[housing_enrollment.id] = candidate.entry_date
+        {}.tap do |re_enrollments|
+          enrollments_by_client.each do |client_id, enrollments|
+            exited_enrollments[client_id].each do |housed_exited_enrollment|
+              housed_exit_date = housed_exited_enrollment.exit_date
+              # earliest first
+              re_enrollment = enrollments.sort_by(&:entry_date).detect do |enrollment|
+                candidate_for_return?(housed_exit_date, enrollment)
+              end
+              re_enrollments[housed_exited_enrollment.id] = re_enrollment.entry_date if re_enrollment.present? # Only include clients with candidates
+            end
           end
         end
       end
 
-      # To be a candidate for return, the entry must be at last 14 days after the exit, unless the
-      # exit is from PH, in which case there doesn't need to be a gap.
+      # To be a candidate for return, the entry must be on or after the exit
+      # This differs from the definition in the SPM, which requires a gap for some situations
       # Additionally, the re-entry must be within 365 days of the exit
       private def candidate_for_return?(housed_exit_date, enrollment)
-        re_entry_window_start = if enrollment.project_type.in?(HudUtility2024.residential_project_type_numbers_by_code[:ph])
-          housed_exit_date
-        else
-          housed_exit_date + 14.days
-        end
-        re_entry_window = (re_entry_window_start .. housed_exit_date + 1.years)
+        re_entry_window = (housed_exit_date .. housed_exit_date + 1.years)
         enrollment.entry_date.in?(re_entry_window)
       end
     end

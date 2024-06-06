@@ -30,7 +30,7 @@ module HmisCsvTwentyTwentyFour::Exporter::ExportConcern
 
     def self.simple_override(row, hud_field:, override_field:, default_value: nil)
       row[hud_field] ||= default_value if default_value.present?
-      return row if row.send(override_field).blank?
+      return row if override_field.blank? || row.send(override_field).blank?
 
       row[hud_field] = row.send(override_field)
       row
@@ -38,6 +38,25 @@ module HmisCsvTwentyTwentyFour::Exporter::ExportConcern
 
     def self.replace_blank(row, hud_field:, default_value:)
       row[hud_field] ||= default_value
+      row
+    end
+
+    def self.round_value(row, hud_field:, rounding:, positive:)
+      return row unless row[hud_field].present?
+
+      row[hud_field] = case rounding
+      when :money
+        rounded = row[hud_field].to_f.round(2)
+        if positive
+          rounded.positive? ? rounded : nil
+        else
+          rounded
+        end
+      when :integer
+        row[hud_field].to_f.round(0) # Use to_f to round .9 to 1
+      else
+        row[hud_field]
+      end
       row
     end
 
@@ -113,6 +132,7 @@ module HmisCsvTwentyTwentyFour::Exporter::ExportConcern
       row = assign_export_id(row)
       row = self.class.adjust_keys(row, @options[:export])
       row = enforce_lengths(row)
+      row = enforce_rounding(row)
 
       row
     end
@@ -131,9 +151,23 @@ module HmisCsvTwentyTwentyFour::Exporter::ExportConcern
       row
     end
 
+    def enforce_rounding(row)
+      rounded_columns.each do |k, opts|
+        self.class.round_value(row, hud_field: k, rounding: opts[:check], positive: opts[:positive])
+      end
+
+      row
+    end
+
     def length_limited_columns
       @length_limited_columns ||= HmisCsvTwentyTwentyFour::Exporter::Base.hmis_class_for(self.class).hmis_configuration(version: '2024').select do |col, m|
         m.key?(:limit) && ! hashed_column?(col)
+      end
+    end
+
+    def rounded_columns
+      @rounded_columns ||= HmisCsvTwentyTwentyFour::Exporter::Base.hmis_class_for(self.class).hmis_configuration(version: '2024').select do |_, m|
+        m[:check].in?([:money, :integer])
       end
     end
 

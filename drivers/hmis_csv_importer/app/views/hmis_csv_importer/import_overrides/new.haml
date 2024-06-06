@@ -1,0 +1,58 @@
+= content_for :crumbs do
+  = link_to hmis_csv_importer_data_source_import_overrides_path(data_source_id: @data_source) do
+    &laquo; #{@data_source.name} Overrides
+
+%h1 Add Override for #{@data_source.name}
+= simple_form_for :override, url: hmis_csv_importer_data_source_import_overrides_path(@data_source) do |f|
+  = f.error_notification
+  .row
+    .col-md-6
+      .well
+        .form-inputs
+          = f.input :file_name, collection: HmisCsvImporter::ImportOverride.available_classes, label: 'File', as: :select_two, include_blank: false
+          = f.input :matched_hud_key, label: 'Matched HMIS ID', hint: 'Given the chosen table, should we only replace data in rows with this matching ID? If blank, all rows will be replaced.  For example if you would like all enrollments to have the same EnrollmentCoC, leave this blank.  If you would like to change the type of a single project, enter the value of the ProjectID for that project here.', required: false
+          = f.input :replaces_column, label: 'Column to replace', as: :select_two, include_blank: true, hint: 'EnrollmentCoC or ProjectID in the above examples.'
+          = f.input :replaces_value, label: 'Value to replace', hint: 'Leave this blank to replace the column on all matching rows.  If you only want to replace one value, for example to change all 99s in ContinuumProject to 0, since 99 is not allowed, enter 99 here.', required: false
+          = f.input :replacement_value, label: 'Replacement value', hint: 'Enter the value you would like instead of the exsiting value here. Entering a value of :NULL: will remove the matching values. In the above example for ContinuumProject, enter 0.'
+        .form-actions
+          = f.button :submit, class: 'btn btn-primary', value: 'Add Override'
+
+- content_for :page_js do
+  - available_classes = HmisCsvImporter::ImportOverride.file_name_keys
+  :javascript
+    $(document).ready(function(e) {
+      var file_input = $('#override_file_name')
+      file_input.on('change', function(e) {
+        var hud_key_label = $('#override_matched_hud_key').siblings('label')
+        var column_input = $('#override_replaces_column')
+        // get the selected filetype and associated data from the json list
+        var matched_column = #{available_classes.to_json.html_safe}[e.target.value]
+
+        // Set the hud key input based on the selected file type
+        hud_key_label.html('Matched ' + matched_column.key)
+
+        // Set the available columns based on the selected file type
+        column_input.empty().trigger('change')
+        matched_column.columns.forEach(col => {
+          var option = new Option(col, col, true, true);
+          column_input.append(option);
+        })
+        // clear the selection for the new set of data
+        column_input.val(null).trigger('change')
+      });
+      
+      // set file type from querystring if it exists
+      file_type_param_value = "#{params[:file_type] if params.has_key?(:file_type)}" 
+      if($('#override_file_name option[value="' + file_type_param_value + '"]').length > 0) {
+        file_input.val(file_type_param_value)
+      }
+
+      // set hmis id from querystring if it exists
+      hmis_param_value = "#{params[:hmis_value] if params.has_key?(:hmis_value)}" 
+      if(hmis_param_value) {
+        $('#override_matched_hud_key').val(hmis_param_value)
+      }
+      
+      // trigger the dropdown change to occur once on page load
+      file_input.trigger('change')
+    });

@@ -31,9 +31,18 @@ module Types
     field :update_units, mutation: Mutations::UpdateUnits
     field :delete_units, mutation: Mutations::DeleteUnits
 
-    field :create_service, mutation: Mutations::CreateService
     field :delete_service, mutation: Mutations::DeleteService
-    field :update_bed_nights, mutation: Mutations::UpdateBedNights
+    field :bulk_assign_service, mutation: Mutations::BulkAssignService
+    field :bulk_remove_service, mutation: Mutations::BulkRemoveService
+
+    field :create_service_category, mutation: Mutations::CreateServiceCategory
+    field :delete_service_category, mutation: Mutations::DeleteServiceCategory
+    field :rename_service_category, mutation: Mutations::RenameServiceCategory
+
+    field :create_service_type, mutation: Mutations::CreateServiceType
+    field :delete_service_type, mutation: Mutations::DeleteServiceType
+    field :rename_service_type, mutation: Mutations::UpdateServiceType, deprecation_reason: 'Renamed to updateServiceType'
+    field :update_service_type, mutation: Mutations::UpdateServiceType
 
     field :save_assessment, mutation: Mutations::SaveAssessment
     field :submit_assessment, mutation: Mutations::SubmitAssessment
@@ -48,7 +57,7 @@ module Types
     field :clear_mci, mutation: Mutations::AcHmis::ClearMci
     field :void_referral_request, mutation: Mutations::AcHmis::VoidReferralRequest
     field :update_referral_posting, mutation: Mutations::AcHmis::UpdateReferralPosting
-    field :create_outgoing_referral_posting, mutation: Mutations::AcHmis::CreateOutgoingReferralPosting
+    field :create_outgoing_referral_posting, mutation: Mutations::AcHmis::CreateOutgoingReferralPosting, deprecation_reason: 'Moved to SubmitForm'
     field :delete_custom_case_note, mutation: Mutations::DeleteCustomCaseNote
 
     field :merge_clients, mutation: Mutations::MergeClients
@@ -61,9 +70,9 @@ module Types
     field :create_form_rule, mutation: Mutations::CreateFormRule
     field :update_form_rule, mutation: Mutations::UpdateFormRule
 
-    field :create_auto_exit_config, mutation: Mutations::CreateAutoExitConfig
-    field :update_auto_exit_config, mutation: Mutations::UpdateAutoExitConfig
-    field :delete_auto_exit_config, mutation: Mutations::DeleteAutoExitConfig
+    field :create_project_config, mutation: Mutations::CreateProjectConfig
+    field :update_project_config, mutation: Mutations::UpdateProjectConfig
+    field :delete_project_config, mutation: Mutations::DeleteProjectConfig
 
     field :create_scan_card_code, mutation: Mutations::CreateScanCardCode
     field :delete_scan_card_code, mutation: Mutations::DeleteScanCardCode
@@ -71,5 +80,8 @@ module Types
 
     field :create_client_alert, mutation: Mutations::CreateClientAlert
     field :delete_client_alert, mutation: Mutations::DeleteClientAlert
+
+    field :update_external_form_submission, mutation: Mutations::UpdateExternalFormSubmission
+    field :delete_external_form_submission, mutation: Mutations::DeleteExternalFormSubmission
   end
 end

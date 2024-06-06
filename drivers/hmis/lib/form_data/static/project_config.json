@@ -1,0 +1,62 @@
+{
+  "item": [
+    {
+      "type": "CHOICE",
+      "link_id": "configType",
+      "text": "Config Type",
+      "pick_list_reference": "ProjectConfigType",
+      "mapping": {
+        "field_name": "configType"
+      },
+      "component": "DROPDOWN",
+      "required": true
+    },
+    {
+      "type": "CHOICE",
+      "required": false,
+      "link_id": "projectType",
+      "text": "Project Type",
+      "pick_list_reference": "ProjectType",
+      "mapping": {
+        "field_name": "projectType"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "required": false,
+      "link_id": "projectId",
+      "text": "Project",
+      "pick_list_reference": "PROJECT",
+      "mapping": {
+        "field_name": "projectId"
+      }
+    },
+    {
+      "type": "CHOICE",
+      "required": false,
+      "link_id": "organizationId",
+      "text": "Organization",
+      "pick_list_reference": "ORGANIZATION",
+      "mapping": {
+        "field_name": "organizationId"
+      }
+    },
+    {
+      "link_id": "lengthOfAbsenceDays",
+      "required": true,
+      "type": "INTEGER",
+      "text": "Length of Absence (Days)",
+      "mapping": {
+        "field_name": "lengthOfAbsenceDays"
+      },
+      "enable_behavior": "ALL",
+      "enable_when": [
+        {
+          "question": "configType",
+          "operator": "EQUAL",
+          "answer_code": "AUTO_EXIT"
+        }
+      ]
+    }
+  ]
+}

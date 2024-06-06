@@ -7,6 +7,7 @@
 class Hmis::Hud::Project < Hmis::Hud::Base
   include ::HmisStructure::Project
   include ::Hmis::Hud::Concerns::Shared
+  include ::Hmis::Hud::Concerns::HasCustomDataElements
   include ActiveModel::Dirty
 
   has_paper_trail(meta: { project_id: :id })
@@ -17,7 +18,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :organization, **hmis_relation(:OrganizationID, 'Organization')
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :projects
+  belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :projects
 
   # Affiliations to residential projects. This should only be present if this project is SSO or RRH Services Only.
   has_many :affiliations, **hmis_relation(:ProjectID, 'Affiliation'), inverse_of: :project
@@ -32,41 +33,29 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
   has_many :hmis_participations, **hmis_relation(:ProjectID, 'HmisParticipation'), inverse_of: :project, dependent: :destroy
   has_many :ce_participations, **hmis_relation(:ProjectID, 'CeParticipation'), inverse_of: :project, dependent: :destroy
-  # Enrollments in this Project, NOT including WIP Enrollments
-  has_many :enrollments, **hmis_relation(:ProjectID, 'Enrollment'), inverse_of: :project, dependent: :destroy
-  # WIP records representing Enrollments for this Project
-  has_many :enrollment_wips, -> { where(source_type: Hmis::Hud::Enrollment.sti_name) }, class_name: 'Hmis::Wip'
-  # WIP Enrollments for this Project
-  has_many :wip_enrollments, class_name: 'Hmis::Hud::Enrollment', through: :enrollment_wips, source: :source, source_type: Hmis::Hud::Enrollment.sti_name
+  # Enrollments in this Project, including WIP Enrollments
+  has_many :enrollments, foreign_key: :project_pk, inverse_of: :project, dependent: :destroy, class_name: 'Hmis::Hud::Enrollment'
 
   has_many :project_cocs, **hmis_relation(:ProjectID, 'ProjectCoc'), inverse_of: :project, dependent: :destroy
   has_many :inventories, **hmis_relation(:ProjectID, 'Inventory'), inverse_of: :project, dependent: :destroy
   has_many :funders, **hmis_relation(:ProjectID, 'Funder'), inverse_of: :project, dependent: :destroy
   has_many :units, -> { active }, dependent: :destroy
   has_many :unit_type_mappings, dependent: :destroy, class_name: 'Hmis::ProjectUnitTypeMapping'
-  has_many :custom_data_elements, as: :owner, dependent: :destroy
-
-  has_many :client_projects
-  has_many :clients_including_wip, through: :client_projects, source: :client
-  has_many :enrollments_including_wip, through: :client_projects, source: :enrollment
 
   has_many :group_viewable_entity_projects
   has_many :group_viewable_entities, through: :group_viewable_entity_projects, source: :group_viewable_entity
 
-  accepts_nested_attributes_for :custom_data_elements, :affiliations, allow_destroy: true
+  has_many :households, foreign_key: :project_pk, inverse_of: :project
+  has_many :custom_assessments, through: :enrollments
+  has_many :services, through: :enrollments
+  has_many :custom_services, through: :enrollments
+  has_many :clients, through: :enrollments
+  has_many :hmis_services, through: :enrollments
+  has_many :current_living_situations, through: :enrollments
 
-  # Households in this Project, NOT including WIP Enrollments
-  has_many :households, through: :enrollments
+  has_one :warehouse_project, class_name: 'GrdaWarehouse::Hud::Project', foreign_key: :id, primary_key: :id
 
-  has_many :services, through: :enrollments_including_wip
-  has_many :custom_services, through: :enrollments_including_wip
-
-  # FIXME: joining services through enrollments confounds postgres. On larger projects, the query might take many
-  # minutes. It needs optimization; for now we use a class method instead of a AR association
-  # has_many :hmis_services, through: :enrollments_including_wip
-  def hmis_services
-    Hmis::Hud::HmisService.joins(:project).where(Hmis::Hud::Project.arel_table[:id].eq(id))
-  end
+  accepts_nested_attributes_for :affiliations, allow_destroy: true
 
   has_and_belongs_to_many :project_groups,
                           class_name: 'GrdaWarehouse::ProjectGroup',
@@ -156,7 +145,7 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     when :name
       order(:ProjectName)
     when :organization_and_name
-      joins(:organization).order(o_t[:OrganizationName], p_t[:ProjectName])
+      joins(:organization).order(o_t[:OrganizationName], p_t[:ProjectName], id: :desc)
     else
       raise NotImplementedError
     end
@@ -172,11 +161,8 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     operating_end_date >= Date.current
   end
 
-  def households_including_wip
-    # correlated subquery for performance
-    cp_t = Hmis::Hud::ClientProject.arel_table
-    subquery = client_projects.where(cp_t[:HouseholdID].eq(hh_t[:HouseholdID]))
-    Hmis::Hud::Household.where(data_source_id: data_source_id).where(subquery.arel.exists)
+  def name
+    project_name
   end
 
   def close_related_funders_and_inventory!
@@ -234,6 +220,22 @@ class Hmis::Hud::Project < Hmis::Hud::Base
     end.compact
   end
 
+  # Service types that are collected in this project. They are collected if they have an active form definition and instance.
+  def available_service_types
+    # Find form rules for services that are applicable to this project
+    ids = Hmis::Form::Instance.for_services.
+      active.
+      for_project_through_entities(self).
+      joins(:definition).
+      where(fd_t[:role].eq(:SERVICE)).
+      pluck(:custom_service_type_id, :custom_service_category_id)
+
+    type_matches = cst_t[:id].in(ids.map(&:first))
+    category_matches = cst_t[:custom_service_category_id].in(ids.map(&:last))
+
+    Hmis::Hud::CustomServiceType.where(type_matches.or(category_matches))
+  end
+
   # Occurrence Point Form Instances that are enabled for this project (e.g. Move In Date form)
   def occurrence_point_form_instances
     # All instances for Occurrence Point forms
@@ -247,6 +249,10 @@ class Hmis::Hud::Project < Hmis::Hud::Base
       scope = base_scope.where(definition_identifier: identifier).order(updated_at: :desc)
       scope.detect_best_instance_for_project(project: self)
     end.compact
+  end
+
+  def uniq_coc_codes
+    @uniq_coc_codes ||= project_cocs.pluck(:CoCCode).uniq.compact_blank.sort
   end
 
   include RailsDrivers::Extensions

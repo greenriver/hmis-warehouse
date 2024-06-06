@@ -324,6 +324,14 @@ module Health
       activity == 'outreach'
     end
 
+    def screening?
+      positive_screen? || activity == 'sdoh_negative'
+    end
+
+    def positive_screen?
+      activity == 'sdoh_positive'
+    end
+
     def modifiers
       qa_version.modifiers
     end
@@ -674,6 +682,10 @@ module Health
       activities.select do |_, act|
         in_first_three_months_procedure_codes.include?(act[:code].to_s)
       end.keys
+    end
+
+    def place_of_service
+      qa_version.place_of_service.to_s
     end
   end
 end

@@ -12,11 +12,12 @@ module Types
       extend ActiveSupport::Concern
 
       class_methods do
-        def organizations_field(name = :organizations, description = nil, **override_options, &block)
+        def organizations_field(name = :organizations, description = nil, filter_args: {}, **override_options, &block)
           default_field_options = { type: Types::HmisSchema::Organization.page_type, null: false, description: description }
           field_options = default_field_options.merge(override_options)
           field(name, **field_options) do
             argument :sort_order, Types::HmisSchema::OrganizationSortOption, required: false
+            filters_argument HmisSchema::Organization, **filter_args
             instance_eval(&block) if block_given?
           end
         end
@@ -32,8 +33,9 @@ module Types
 
       private
 
-      def scoped_organizations(scope, user: current_user, sort_order: nil)
+      def scoped_organizations(scope, user: current_user, sort_order: nil, filters: nil)
         scope = scope.viewable_by(user)
+        scope = scope.apply_filters(filters) if filters.present?
         scope = scope.sort_by_option(sort_order) if sort_order.present?
         scope
       end

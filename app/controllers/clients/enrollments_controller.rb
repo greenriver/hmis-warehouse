@@ -10,7 +10,7 @@ module Clients
     include ClientPathGenerator
     include ClientDependentControllers
 
-    before_action :require_can_view_enrollment_details_tab!
+    before_action :require_can_view_enrollment_details!
     before_action :set_enrollment
 
     def show

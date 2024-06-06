@@ -24,7 +24,15 @@ module ClientFileBase
     end
 
     scope :client_photos, -> do
-      tagged_with('Client Headshot')
+      # NOTE: tagged_with does not work correctly in testing
+      # tagged_with('Client Headshot')
+      tag_id = ActsAsTaggableOn::Tag.where(
+        name: 'Client Headshot',
+      ).pluck(:id)
+      tagging_ids = ActsAsTaggableOn::Tagging.where(tag_id: tag_id).
+        pluck(:taggable_id)
+
+      where(id: tagging_ids)
     end
 
     def tags

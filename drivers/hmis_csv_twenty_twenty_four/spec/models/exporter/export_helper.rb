@@ -12,13 +12,15 @@ def setup_data
   @data_source = create :source_data_source
   @user = create :user
   @projects = create_list :hud_project, 5, data_source_id: @data_source.id
+  @projects.first.update(ProjectType: 3, ExportID: 1) # ensure the first project is PH
   @organizations = create_list :hud_organization, 5, data_source_id: @data_source.id
   @inventories = create_list :hud_inventory, 5, data_source_id: @data_source.id
   @affiliations = create_list :hud_affiliation, 5, data_source_id: @data_source.id
-  @project_cocs = create_list :hud_project_coc, 5, data_source_id: @data_source.id
+  @project_cocs = create_list :hud_project_coc, 5, data_source_id: @data_source.id, CoCCode: 'XX-500'
   @funders = create_list :hud_funder, 5, data_source_id: @data_source.id
 
-  @enrollments = create_list :hud_enrollment, 5, data_source_id: @data_source.id, EntryDate: 2.weeks.ago, PreferredLanguageDifferent: 'a' * 200
+  @enrollments = create_list :hud_enrollment, 5, data_source_id: @data_source.id, EntryDate: 2.weeks.ago, PreferredLanguageDifferent: 'a' * 200, EnrollmentCoC: 'XX-500'
+
   @clients = create_list(
     :hud_client,
     5,
@@ -62,6 +64,19 @@ def setup_data
   @enrollment_class = HmisCsvTwentyTwentyFour::Exporter::Enrollment
   @client_class = HmisCsvTwentyTwentyFour::Exporter::Client
   @exit_class = HmisCsvTwentyTwentyFour::Exporter::Exit
+  @income_benefit_class = HmisCsvTwentyTwentyFour::Exporter::IncomeBenefit
+
+  # Create a loader record for the project that isn't PH to test project_type_overridden_as_ph?
+  project = @projects.first
+  columns = project.class.hmis_structure(version: '2024').keys.map(&:to_s)
+  attributes = project.attributes.slice(*columns)
+  attributes.merge!(
+    'ProjectType' => '1',
+    'data_source_id' => project.data_source_id,
+    'loaded_at' => DateTime.current - 1.days,
+    'loader_id' => 1,
+  )
+  HmisCsvTwentyTwentyFour::Loader::Project.create(attributes)
 end
 
 def project_classes

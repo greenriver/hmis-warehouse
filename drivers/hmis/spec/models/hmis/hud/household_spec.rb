@@ -17,53 +17,84 @@ RSpec.describe Hmis::Hud::Household, type: :model do
 
   include_context 'hmis base setup'
 
-  let!(:e1) { create(:hmis_hud_enrollment, project: p1, client: c1, user: u1, data_source: ds1, household_id: '123', entry_date: Date.current) }
+  describe 'basic tests' do
+    let!(:e1) { create(:hmis_hud_enrollment, project: p1, client: c1, user: u1, data_source: ds1, household_id: '123', entry_date: Date.current) }
 
-  it 'has the right associations' do
-    hh = Hmis::Hud::Household.first
-    expect(Hmis::Hud::Household.all).to contain_exactly(hh)
-    expect(hh.project).to eq(p1)
-    expect(hh.enrollments).to contain_exactly(e1)
-    expect(hh.clients).to contain_exactly(c1)
-    expect(hh.household_size).to eq(1)
+    it 'has the right associations' do
+      hh = Hmis::Hud::Household.first
+      expect(Hmis::Hud::Household.all).to contain_exactly(hh)
+      expect(hh.project).to eq(p1)
+      expect(hh.enrollments).to contain_exactly(e1)
+      expect(hh.clients).to contain_exactly(c1)
+      expect(hh.household_size).to eq(1)
+    end
+
+    describe 'scope tests' do
+      let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Test', last_name: 'User' }
+      let!(:e2) { create :hmis_hud_enrollment, project: p1, client: c2, user: u1, data_source: ds1, household_id: '456', entry_date: Date.yesterday }
+
+      it 'should handle text search correctly' do
+        expect(Hmis::Hud::Household.client_matches_search_term('user')).to contain_exactly(Hmis::Hud::Household.find_by(HouseholdID: e2.household_id))
+      end
+
+      it 'should handle open on correctly' do
+        e3 = create(:hmis_hud_enrollment, project: p1, user: u1, data_source: ds1, household_id: '789', entry_date: Date.current - 1.week, client: c2)
+        create(:hmis_hud_exit, data_source: ds1, enrollment: e3, client: c2, exit_date: Date.yesterday)
+
+        expect(Hmis::Hud::Household.open_on_date(Date.current)).to contain_exactly(e1.household, e2.household)
+        expect(Hmis::Hud::Household.open_on_date(Date.yesterday)).to contain_exactly(e2.household, e3.household)
+        expect(Hmis::Hud::Household.open_on_date(Date.current - 3.days)).to contain_exactly(e3.household)
+      end
+
+      it 'should handle enrollment limit correctly' do
+        e2.save_in_progress!
+
+        expect(Hmis::Hud::Household.in_progress).to contain_exactly(e2.household)
+        expect(Hmis::Hud::Household.not_in_progress).to contain_exactly(e1.household)
+      end
+    end
+
+    it 'should do nothing on delete' do
+      hh = Hmis::Hud::Household.first
+
+      # Should be a no-op
+      expect { hh.destroy! }.to raise_error(ActiveRecord::ReadOnlyRecord)
+
+      expect(e1.persisted?)
+      expect(c1.persisted?)
+      expect(p1.persisted?)
+      expect(u1.persisted?)
+
+      expect(Hmis::Hud::Household.all).to contain_exactly(Hmis::Hud::Household.find_by(HouseholdID: e1.household_id))
+    end
   end
 
-  describe 'scope tests' do
-    let!(:c2) { create :hmis_hud_client, data_source: ds1, user: u1, first_name: 'Test', last_name: 'User' }
-    let!(:e2) { create :hmis_hud_enrollment, project: p1, client: c2, user: u1, data_source: ds1, household_id: '456', entry_date: Date.yesterday }
+  describe 'sort tests' do
+    let!(:client_a) { create :hmis_hud_client, first_name: 'A', last_name: 'Z', data_source: ds1, user: u1 }
+    let!(:client_b) { create :hmis_hud_client, first_name: 'B', last_name: 'Y', data_source: ds1, user: u1 }
+    let!(:client_c) { create :hmis_hud_client, first_name: 'C', last_name: 'X', data_source: ds1, user: u1 }
+    let!(:client_d) { create :hmis_hud_client, first_name: 'D', last_name: 'W', data_source: ds1, user: u1 }
 
-    it 'should handle text search correctly' do
-      expect(Hmis::Hud::Household.client_matches_search_term('user')).to contain_exactly(Hmis::Hud::Household.find_by(HouseholdID: e2.household_id))
+    # A and D are enrolled together, A is the HoH
+    let!(:e_a) { create(:hmis_hud_enrollment, project: p1, client: client_a, user: u1, data_source: ds1, household_id: '1', RelationshipToHoH: 1, entry_date: Date.current) }
+    let!(:e_d) { create(:hmis_hud_enrollment, project: p1, client: client_d, user: u1, data_source: ds1, household_id: '1', RelationshipToHoH: 2, entry_date: Date.current) }
+
+    # B and C are enrolled together, B is the HoH
+    let!(:e_b) { create(:hmis_hud_enrollment, project: p1, client: client_b, user: u1, data_source: ds1, household_id: '2', RelationshipToHoH: 1, entry_date: Date.current) }
+    let!(:e_c) { create(:hmis_hud_enrollment, project: p1, client: client_c, user: u1, data_source: ds1, household_id: '2', RelationshipToHoH: 2, entry_date: Date.current) }
+
+    it 'should sort by head of household first name' do
+      ordered = Hmis::Hud::Household.sort_by_option(:hoh_first_name_a_to_z)
+      expect(ordered.count).to eq(2)
+      expect(ordered.first.household_id).to eq('1')
+      expect(ordered.second.household_id).to eq('2')
     end
 
-    it 'should handle open on correctly' do
-      e3 = create(:hmis_hud_enrollment, project: p1, user: u1, data_source: ds1, household_id: '789', entry_date: Date.current - 1.week, client: c2)
-      create(:hmis_hud_exit, data_source: ds1, enrollment: e3, client: c2, exit_date: Date.yesterday)
-
-      expect(Hmis::Hud::Household.open_on_date(Date.current)).to contain_exactly(e1.household, e2.household)
-      expect(Hmis::Hud::Household.open_on_date(Date.yesterday)).to contain_exactly(e2.household, e3.household)
-      expect(Hmis::Hud::Household.open_on_date(Date.current - 3.days)).to contain_exactly(e3.household)
+    it 'should sort by head of household last name' do
+      ordered = Hmis::Hud::Household.sort_by_option(:hoh_last_name_a_to_z)
+      expect(ordered.count).to eq(2)
+      expect(ordered.first.household_id).to eq('2')
+      expect(ordered.second.household_id).to eq('1')
     end
-
-    it 'should handle enrollment limit correctly' do
-      e2.save_in_progress
-
-      expect(Hmis::Hud::Household.in_progress).to contain_exactly(e2.household)
-      expect(Hmis::Hud::Household.not_in_progress).to contain_exactly(e1.household)
-    end
-  end
-
-  it 'should do nothing on delete' do
-    hh = Hmis::Hud::Household.first
-
-    # Should be a no-op
-    expect { hh.destroy! }.to raise_error(ActiveRecord::ReadOnlyRecord)
-
-    expect(e1.persisted?)
-    expect(c1.persisted?)
-    expect(p1.persisted?)
-    expect(u1.persisted?)
-
-    expect(Hmis::Hud::Household.all).to contain_exactly(Hmis::Hud::Household.find_by(HouseholdID: e1.household_id))
   end
 end

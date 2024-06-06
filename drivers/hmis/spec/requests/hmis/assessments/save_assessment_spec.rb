@@ -33,7 +33,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     {
       enrollment_id: e1.id.to_s,
       form_definition_id: fd1.id,
-      values: { 'linkid-date' => test_assessment_date },
+      values: { 'linkid_date' => test_assessment_date },
       hud_values: { 'informationDate' => test_assessment_date },
     }
   end
@@ -119,7 +119,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     new_information_date = (e1.entry_date + 1.week).strftime('%Y-%m-%d')
     input = test_input.merge({
                                assessment_id: assessment_id,
-                               values: { 'linkid-date' => new_information_date },
+                               values: { 'linkid_date' => new_information_date },
                                hud_values: { 'informationDate' => new_information_date },
                              })
 
@@ -228,7 +228,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       it test_name do
         input = test_input.merge(
           hud_values: { 'informationDate' => date&.strftime('%Y-%m-%d') },
-          values: { 'linkid-date' => date&.strftime('%Y-%m-%d') },
+          values: { 'linkid_date' => date&.strftime('%Y-%m-%d') },
         )
         response, result = post_graphql(input: { input: input }) { mutation }
         errors = result.dig('data', 'saveAssessment', 'errors')
@@ -236,7 +236,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         expected_match = expected_errors.map do |h|
           a_hash_including(**h, 'readableAttribute' => 'Information Date',
                                 'attribute' => 'informationDate',
-                                'linkId' => 'linkid-date')
+                                'linkId' => 'linkid_date')
         end
         expect(errors).to match(expected_match)
       end

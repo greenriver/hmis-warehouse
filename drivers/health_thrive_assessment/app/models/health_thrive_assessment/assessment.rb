@@ -19,6 +19,9 @@ module HealthThriveAssessment
 
     scope :in_progress, -> { where(completed_on: nil) }
     scope :completed_within, ->(range) { where(completed_on: range) }
+    scope :newest_first, -> do
+      order(arel_table[:completed_on].desc.nulls_first)
+    end
 
     scope :allowed_for_engagement, -> do
       joins(patient: :patient_referrals).
@@ -53,8 +56,28 @@ module HealthThriveAssessment
         interested_in_education?
     end
 
+    after_save :record_housing_status
+
+    def record_housing_status
+      # If we don't have a patient, or the assessment hasn't been completed, don't record the change
+      return unless patient.present? && completed?
+
+      housing_status = if homeless?
+        'Homeless'
+      elsif at_risk?
+        'At Risk'
+      else
+        'Housing with No Supports'
+      end
+      patient.record_housing_status(housing_status, on_date: completed_on.to_date)
+    end
+
     def positive_for_homelessness?
       homeless?
+    end
+
+    def case_manager
+      user&.name || external_name
     end
 
     enum reporter: {

@@ -11,92 +11,90 @@ module Types
     include Types::HmisSchema::HasCustomDataElements
     include Types::HmisSchema::HasHudMetadata
 
-    def self.configuration
-      Hmis::Hud::IncomeBenefit.hmis_configuration(version: '2024')
-    end
-
     field :id, ID, null: false
     field :enrollment, HmisSchema::Enrollment, null: false
     field :client, HmisSchema::Client, null: false
     field :information_date, GraphQL::Types::ISO8601Date, null: true
 
     # Income
-    hud_field :income_from_any_source, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
-    hud_field :total_monthly_income
+    field :income_from_any_source, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    # TODO: We arbitrarily resolve some currency values as Floats and some as Strings.
+    # This was based on the IncomeBenefit hmis_configuration. They should be reviewed and standardized.
+    field :total_monthly_income, String, null: true
 
     # Income Booleans
-    hud_field :earned, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :unemployment, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :ssi, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :ssdi, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :va_disability_service, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :va_disability_non_service, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :private_disability, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :workers_comp, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :tanf, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :ga, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :soc_sec_retirement, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :pension, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :child_support, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :alimony, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :other_income_source, HmisSchema::Enums::Hud::NoYesMissing
+    field :earned, HmisSchema::Enums::Hud::NoYesMissing
+    field :unemployment, HmisSchema::Enums::Hud::NoYesMissing
+    field :ssi, HmisSchema::Enums::Hud::NoYesMissing
+    field :ssdi, HmisSchema::Enums::Hud::NoYesMissing
+    field :va_disability_service, HmisSchema::Enums::Hud::NoYesMissing
+    field :va_disability_non_service, HmisSchema::Enums::Hud::NoYesMissing
+    field :private_disability, HmisSchema::Enums::Hud::NoYesMissing
+    field :workers_comp, HmisSchema::Enums::Hud::NoYesMissing
+    field :tanf, HmisSchema::Enums::Hud::NoYesMissing
+    field :ga, HmisSchema::Enums::Hud::NoYesMissing
+    field :soc_sec_retirement, HmisSchema::Enums::Hud::NoYesMissing
+    field :pension, HmisSchema::Enums::Hud::NoYesMissing
+    field :child_support, HmisSchema::Enums::Hud::NoYesMissing
+    field :alimony, HmisSchema::Enums::Hud::NoYesMissing
+    field :other_income_source, HmisSchema::Enums::Hud::NoYesMissing
 
     # Income Amounts
-    hud_field :earned_amount
-    hud_field :unemployment_amount
-    hud_field :ssi_amount
-    hud_field :ssdi_amount
-    hud_field :va_disability_service_amount
-    hud_field :va_disability_non_service_amount
-    hud_field :private_disability_amount
-    hud_field :workers_comp_amount
-    hud_field :tanf_amount
-    hud_field :ga_amount
-    hud_field :soc_sec_retirement_amount
-    hud_field :pension_amount
-    hud_field :child_support_amount
-    hud_field :alimony_amount
-    hud_field :other_income_amount
-    hud_field :other_income_source_identify
+    field :earned_amount, Float, null: true
+    field :unemployment_amount, Float, null: true
+    field :ssi_amount, Float, null: true
+    field :ssdi_amount, Float, null: true
+    field :va_disability_service_amount, Float, null: true
+    field :va_disability_non_service_amount, Float, null: true
+    field :private_disability_amount, Float, null: true
+    field :workers_comp_amount, Float, null: true
+    field :tanf_amount, Float, null: true
+    field :ga_amount, Float, null: true
+    field :soc_sec_retirement_amount, Float, null: true
+    field :pension_amount, Float, null: true
+    field :child_support_amount, Float, null: true
+    field :alimony_amount, Float, null: true
+    field :other_income_amount, Float, null: true
+    field :other_income_source_identify, String, null: true
 
     # Benefits
-    hud_field :benefits_from_any_source, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
-    hud_field :snap, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :wic, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :tanf_child_care, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :tanf_transportation, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :other_tanf, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :other_benefits_source, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :other_benefits_source_identify
+    field :benefits_from_any_source, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    field :snap, HmisSchema::Enums::Hud::NoYesMissing
+    field :wic, HmisSchema::Enums::Hud::NoYesMissing
+    field :tanf_child_care, HmisSchema::Enums::Hud::NoYesMissing
+    field :tanf_transportation, HmisSchema::Enums::Hud::NoYesMissing
+    field :other_tanf, HmisSchema::Enums::Hud::NoYesMissing
+    field :other_benefits_source, HmisSchema::Enums::Hud::NoYesMissing
+    field :other_benefits_source_identify, String
 
     # Health
-    hud_field :insurance_from_any_source, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
-    hud_field :medicaid, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :no_medicaid_reason, HmisSchema::Enums::Hud::ReasonNotInsured
-    hud_field :medicare, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :no_medicare_reason, HmisSchema::Enums::Hud::ReasonNotInsured
-    hud_field :schip, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :no_schip_reason, HmisSchema::Enums::Hud::ReasonNotInsured
-    hud_field :vha_services, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :no_vha_reason, HmisSchema::Enums::Hud::ReasonNotInsured
-    hud_field :employer_provided, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :no_employer_provided_reason, HmisSchema::Enums::Hud::ReasonNotInsured
-    hud_field :cobra, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :no_cobra_reason, HmisSchema::Enums::Hud::ReasonNotInsured
-    hud_field :private_pay, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :no_private_pay_reason, HmisSchema::Enums::Hud::ReasonNotInsured
-    hud_field :state_health_ins, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :no_state_health_ins_reason, HmisSchema::Enums::Hud::ReasonNotInsured
-    hud_field :indian_health_services, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :no_indian_health_services_reason, HmisSchema::Enums::Hud::ReasonNotInsured
-    hud_field :other_insurance, HmisSchema::Enums::Hud::NoYesMissing
-    hud_field :other_insurance_identify
+    field :insurance_from_any_source, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    field :medicaid, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :no_medicaid_reason, HmisSchema::Enums::Hud::ReasonNotInsured, null: true
+    field :medicare, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :no_medicare_reason, HmisSchema::Enums::Hud::ReasonNotInsured, null: true
+    field :schip, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :no_schip_reason, HmisSchema::Enums::Hud::ReasonNotInsured, null: true
+    field :vha_services, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :no_vha_reason, HmisSchema::Enums::Hud::ReasonNotInsured, null: true
+    field :employer_provided, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :no_employer_provided_reason, HmisSchema::Enums::Hud::ReasonNotInsured, null: true
+    field :cobra, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :no_cobra_reason, HmisSchema::Enums::Hud::ReasonNotInsured, null: true
+    field :private_pay, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :no_private_pay_reason, HmisSchema::Enums::Hud::ReasonNotInsured, null: true
+    field :state_health_ins, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :no_state_health_ins_reason, HmisSchema::Enums::Hud::ReasonNotInsured, null: true
+    field :indian_health_services, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :no_indian_health_services_reason, HmisSchema::Enums::Hud::ReasonNotInsured, null: true
+    field :other_insurance, HmisSchema::Enums::Hud::NoYesMissing, null: true
+    field :other_insurance_identify, String, null: true
 
-    hud_field :adap, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
-    hud_field :no_adap_reason, HmisSchema::Enums::Hud::NoAssistanceReason
-    hud_field :ryan_white_med_dent, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
-    hud_field :no_ryan_white_reason, HmisSchema::Enums::Hud::NoAssistanceReason
-    hud_field :connection_with_soar, HmisSchema::Enums::Hud::NoYesReasonsForMissingData
+    field :adap, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    field :no_adap_reason, HmisSchema::Enums::Hud::NoAssistanceReason, null: true
+    field :ryan_white_med_dent, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
+    field :no_ryan_white_reason, HmisSchema::Enums::Hud::NoAssistanceReason, null: true
+    field :connection_with_soar, HmisSchema::Enums::Hud::NoYesReasonsForMissingData, null: true
 
     field :data_collection_stage, HmisSchema::Enums::Hud::DataCollectionStage, null: false, default_value: Types::BaseEnum::INVALID_VALUE
 

@@ -289,7 +289,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       input = { enrollment_id: hoh_enrollment.id, form_definition_id: definition.id, **build_minimum_values(definition) }
       _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
       errors = result.dig('data', 'submitAssessment', 'errors')
-      expect(errors).to match([a_hash_including('severity' => 'error', 'fullMessage' => 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH.')])
+      expect(errors).to contain_exactly(a_hash_including('severity' => 'error', 'fullMessage' => 'Cannot exit head of household because there are existing open enrollments. Please assign a new HoH.'))
     end
 
     it 'succeeds if exiting non-HoH member' do
@@ -313,30 +313,22 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
       errors = result.dig('data', 'submitAssessment', 'errors')
       assessment_id = result.dig('data', 'submitAssessment', 'assessment', 'id')
-      expect(errors).to match([a_hash_including('severity' => 'error', 'fullMessage' => 'An exit assessment for this enrollment already exists.')])
+      expect(errors).to contain_exactly(a_hash_including('severity' => 'error', 'fullMessage' => 'An exit assessment for this enrollment already exists.'))
       expect(assessment_id).to eq(nil)
     end
   end
 
   describe 'Submitting an Intake assessment in a WIP household' do
-    let!(:hoh_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, user: u1, entry_date: '2000-01-01' }
-    let!(:other_enrollment) { create :hmis_hud_enrollment, data_source: ds1, project: p1, user: u1, entry_date: '2000-01-01', household_id: hoh_enrollment.household_id, relationship_to_ho_h: 99 }
+    let!(:hoh_enrollment) { create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, user: u1, entry_date: '2000-01-01' }
+    let!(:other_enrollment) { create :hmis_hud_wip_enrollment, data_source: ds1, project: p1, user: u1, entry_date: '2000-01-01', household_id: hoh_enrollment.household_id, relationship_to_ho_h: 99 }
     let(:assessment_date) { '2005-03-02' }
     let(:definition) { Hmis::Form::Definition.find_by(role: :INTAKE) }
-
-    before(:each) do
-      hoh_enrollment.build_wip(client: hoh_enrollment.client, date: hoh_enrollment.entry_date, project_id: hoh_enrollment.project.id)
-      hoh_enrollment.save_in_progress
-
-      other_enrollment.build_wip(client: other_enrollment.client, date: other_enrollment.entry_date, project_id: other_enrollment.project.id)
-      other_enrollment.save_in_progress
-    end
 
     it 'fails if entering non-HoH member' do
       input = { enrollment_id: other_enrollment.id, form_definition_id: definition.id, **build_minimum_values(definition) }
       _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
       errors = result.dig('data', 'submitAssessment', 'errors')
-      expect(errors).to match([a_hash_including('severity' => 'error', 'fullMessage' => 'Cannot submit intake assessment because the Head of Household\'s intake has not yet been completed.')])
+      expect(errors).to contain_exactly(a_hash_including('severity' => 'error', 'fullMessage' => 'Cannot submit intake assessment because the Head of Household\'s intake has not yet been completed.'))
     end
 
     it 'succeeds if entering HoH' do
@@ -407,19 +399,20 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       _resp, result = post_graphql(input: { input: input }) { submit_assessment_mutation }
       errors = result.dig('data', 'submitAssessment', 'errors')
       assessment_id = result.dig('data', 'submitAssessment', 'assessment', 'id')
-      expect(errors).to match([a_hash_including('severity' => 'error', 'fullMessage' => 'An intake assessment for this enrollment already exists.')])
+      expect(errors).to contain_exactly(a_hash_including('severity' => 'error', 'fullMessage' => 'An intake assessment for this enrollment already exists.'))
       expect(assessment_id).to eq(nil)
     end
   end
 
   it 'Resolves errors from IncomeBenefit ActiveRecord validation' do
     definition = Hmis::Form::Definition.find_by(role: :ANNUAL)
+    insurance_item = definition.link_id_item_hash.values.find { |item| item.mapping&.field_name == 'insuranceFromAnySource' }
     input = {
       enrollment_id: e1.id,
       form_definition_id: definition.id,
       **build_minimum_values(
         definition,
-        values: { '4.04.2': 'YES' },
+        values: { insurance_item.link_id => 'YES' },
         hud_values: { 'IncomeBenefit.insuranceFromAnySource': 'YES' },
       ),
       confirmed: false,
@@ -431,12 +424,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       'attribute' => 'insuranceFromAnySource',
       'fullMessage' => Hmis::Hud::Validators::IncomeBenefitValidator::INSURANCE_SOURCES_UNSPECIFIED,
     }
-    expect(errors).to match([a_hash_including(expected_error)])
+    expect(errors).to contain_exactly(a_hash_including(expected_error))
 
     # Ensure using validate_only gives the same error
     _resp, result = post_graphql(input: { input: input.merge(validate_only: true) }) { submit_assessment_mutation }
     errors = result.dig('data', 'submitAssessment', 'errors')
-    expect(errors).to match([a_hash_including(expected_error)])
+    expect(errors).to contain_exactly(a_hash_including(expected_error))
   end
 end
 

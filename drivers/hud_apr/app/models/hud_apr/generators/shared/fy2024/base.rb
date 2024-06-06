@@ -227,8 +227,8 @@ module HudApr::Generators::Shared::Fy2024
             chronic_disability_exit: disabilities_at_exit.detect(&:chronic?)&.DisabilityResponse,
             chronic_disability_latest: disabilities_latest.detect(&:chronic?)&.DisabilityResponse,
             chronic_disability: disabilities.detect(&:chronic?).present?,
-            chronically_homeless: chronic_source[:chronic_status],
-            chronically_homeless_detail: chronic_source[:chronic_detail],
+            chronically_homeless: chronic_source.try(:[], :chronic_status) || false,
+            chronically_homeless_detail: chronic_source.try(:[], :chronic_detail) || {},
             currently_fleeing: health_and_dv&.CurrentlyFleeing,
             date_homeless: enrollment.DateToStreetESSH,
             date_of_engagement: last_service_history_enrollment.enrollment.DateOfEngagement,
@@ -333,7 +333,7 @@ module HudApr::Generators::Shared::Fy2024
             prior_length_of_stay: enrollment.LengthOfStay,
             prior_living_situation: enrollment.LivingSituation,
             project_tracking_method: last_service_history_enrollment.project_tracking_method,
-            project_type: last_service_history_enrollment.computed_project_type,
+            project_type: last_service_history_enrollment.project_type,
             race_multi: source_client.race_multi.sort.join(','),
             relationship_to_hoh: enrollment.RelationshipToHoH,
             sexual_orientation: enrollment.sexual_orientation,
@@ -569,7 +569,7 @@ module HudApr::Generators::Shared::Fy2024
           # hoh_enrollment = hoh_enrollments[get_hoh_id(hh_id)]
           # If the HoH exited and no one else was designated as the HoH, and the client doesn't have an exit date, use the HoH exit date
           # enrollment.last_date_in_program ||= hoh_enrollment&.last_date_in_program
-          enrolled = case enrollment.computed_project_type
+          enrolled = case enrollment.project_type
           when 3, 13 # PSH/RRH
             enrollment.first_date_in_program <= pit_date &&
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program > pit_date) && # Exclude exit date
@@ -584,7 +584,7 @@ module HudApr::Generators::Shared::Fy2024
               (enrollment.last_date_in_program.nil? || enrollment.last_date_in_program >= pit_date) # Include the exit date
           end
           next false unless enrolled
-          next true if enrollment.computed_project_type != 1 || enrollment.project_tracking_method != 3 # Not ES or ES and not NbN
+          next true if enrollment.project_type != 1 || enrollment.project_tracking_method != 3 # Not ES or ES and not NbN
 
           enrollment.service_history_services.bed_night.on_date(pit_date).exists?
         end.map do |enrollment|

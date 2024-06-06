@@ -14,17 +14,13 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   end
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
 
-  belongs_to :enrollment, **hmis_enrollment_relation, optional: true
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
-  belongs_to :user, **hmis_relation(:UserID, 'User'), inverse_of: :services
+  belongs_to :user, **hmis_relation(:UserID, 'User'), optional: true, inverse_of: :services
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
   belongs_to :owner, polymorphic: true # Service or CustomService
-  belongs_to :custom_service_type
-  has_many :custom_service_categories, through: :custom_service_type
 
   validate :service_is_valid
 
-  alias_attribute :service_type, :custom_service_type
   alias_to_underscore [:DateProvided, :EnrollmentID, :PersonalID]
 
   after_initialize :initialize_owner, if: :new_record?
@@ -59,13 +55,23 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
     define_method(hud_field_name) { hud_service&.send(hud_field_name) }
   end
 
-  scope :with_service_type, ->(service_type_id) do
-    where(custom_service_type_id: service_type_id)
-  end
+  scope :with_service_type, ->(csts) do
+    conds = csts.map do |cst|
+      if cst.hud_service?
+        # the arel is hard to parse, but this is just:
+        # custom_service_type_id = ? OR ("RecordType" = ? AND "TypeProvided" = ?)
+        arel_table[:custom_service_type_id].eq(cst.id).
+          or(
+            arel_table[:RecordType].eq(cst.hud_record_type).
+              or(arel_table[:TypeProvided].eq(cst.hud_type_provided)),
+          )
+      else
+        arel_table[:custom_service_type_id].eq(cst.id)
+      end
+    end
+    return where(conds.reduce(&:or)) if conds.any?
 
-  scope :in_service_category, ->(category_id) do
-    type_ids = Hmis::Hud::CustomServiceType.where(custom_service_category_id: category_id).pluck(:id)
-    with_service_type(type_ids)
+    return none
   end
 
   scope :with_project_type, ->(project_types) do
@@ -76,15 +82,6 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
     joins(:enrollment).merge(Hmis::Hud::Enrollment.with_project(project_ids))
   end
 
-  scope :matching_search_term, ->(search_term) do
-    return none unless search_term.present?
-
-    search_term.strip!
-    query = "%#{search_term}%"
-    joins(:custom_service_type, :custom_service_categories).
-      where(cst_t[:name].matches(query).or(csc_t[:name].matches(query)))
-  end
-
   def self.apply_filters(input)
     Hmis::Filter::ServiceFilter.new(input).filter_scope(self)
   end
@@ -93,12 +90,18 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
     true
   end
 
+  # Helper to initialize the "owner" (Service or CustomService) based on a specified custom_service_type_id.
+  # Initialization happens in SubmitForm when submitting a new service, and in BulkAssignService.
   private def initialize_owner
-    raise 'Cannot initialize HmisService without a CustomServiceType' unless custom_service_type.present?
+    raise 'Cannot initialize HmisService without a custom_service_type_id' unless custom_service_type_id.present?
 
-    attrs = [:enrollment_id, :personal_id, :user_id, :data_source_id].map { |k| [k, send(k)] }.to_h
+    custom_service_type = Hmis::Hud::CustomServiceType.find(custom_service_type_id)
+    attrs = [:enrollment_id, :personal_id, :user_id, :data_source_id, :date_provided].map { |k| [k, send(k)] }.to_h
     if custom_service_type.hud_service?
-      self.owner = Hmis::Hud::Service.new(**attrs)
+      # If this is a HUD service, set RecordType and TypeProvided on the HUD Service record
+      record_type = custom_service_type.hud_record_type
+      type_provided = custom_service_type.hud_type_provided
+      self.owner = Hmis::Hud::Service.new(**attrs, record_type: record_type, type_provided: type_provided)
     else
       self.owner = Hmis::Hud::CustomService.new(**attrs, custom_service_type: custom_service_type)
     end
@@ -135,19 +138,19 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
 
     case option
     when :date_provided
-      order(DateProvided: :desc)
+      order(DateProvided: :desc, id: :desc)
     when :last_name_a_to_z
-      joins(enrollment: :client).order(c_t[:LastName].asc.nulls_last)
+      joins(enrollment: :client).order(c_t[:LastName].asc.nulls_last, id: :desc)
     when :last_name_z_to_a
-      joins(enrollment: :client).order(c_t[:LastName].desc.nulls_last)
+      joins(enrollment: :client).order(c_t[:LastName].desc.nulls_last, id: :desc)
     when :first_name_a_to_z
-      joins(enrollment: :client).order(c_t[:FirstName].asc.nulls_last)
+      joins(enrollment: :client).order(c_t[:FirstName].asc.nulls_last, id: :desc)
     when :first_name_z_to_a
-      joins(enrollment: :client).order(c_t[:FirstName].desc.nulls_last)
+      joins(enrollment: :client).order(c_t[:FirstName].desc.nulls_last, id: :desc)
     when :age_youngest_to_oldest
-      joins(enrollment: :client).order(c_t[:dob].asc.nulls_last)
+      joins(enrollment: :client).order(c_t[:dob].asc.nulls_last, id: :desc)
     when :age_oldest_to_youngest
-      joins(enrollment: :client).order(c_t[:dob].desc.nulls_last)
+      joins(enrollment: :client).order(c_t[:dob].desc.nulls_last, id: :desc)
     else
       raise NotImplementedError
     end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ###
 # Copyright 2016 - 2023 Green River Data Analysis, LLC
 #
@@ -9,6 +11,10 @@ module HmisExternalApis::TcHmis::Importers::Loaders
     attr_reader :dir
     def initialize(dir)
       @dir = dir
+    end
+
+    def glob(pattern)
+      Dir.glob("#{dir}/#{pattern}").map { |n| File.basename(n) }
     end
 
     def file_present?(filename)

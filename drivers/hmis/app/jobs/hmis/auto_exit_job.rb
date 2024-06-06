@@ -9,7 +9,7 @@ module Hmis
     include NotifierConfig
 
     def self.enabled?
-      Hmis::AutoExitConfig.exists?
+      Hmis::ProjectAutoExitConfig.exists?
     end
 
     def perform
@@ -20,7 +20,7 @@ module Hmis
       auto_exit_count = 0
 
       Hmis::Hud::Project.hmis.each do |project|
-        config = Hmis::AutoExitConfig.config_for_project(project)
+        config = Hmis::ProjectAutoExitConfig.detect_best_config_for_project(project)
         next unless config.present?
         raise "Auto-exit config unusually low: #{config.length_of_absence_days}" if config.length_of_absence_days < 30
 
@@ -44,15 +44,13 @@ module Hmis
 
           auto_exit_count += 1
           auto_exit_projects.add(project.id)
-          auto_exit(enrollment, most_recent_contact)
+          Hmis::Hud::Base.transaction do
+            auto_exit(enrollment, most_recent_contact)
+          end
         end
       end
 
       @notifier&.ping("Auto-exited #{auto_exit_count} Enrollments in #{auto_exit_projects.size} Projects")
-    rescue StandardError => e
-      puts e.message
-      @notifier.ping('Failure in auto-exit job', { exception: e })
-      Rails.logger.fatal e.message
     end
 
     private

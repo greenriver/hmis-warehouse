@@ -134,13 +134,13 @@ jobs:
             libgcc libstdc++ libx11 glib libxrender libxext libintl ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-freefont \
             chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
             lftp postgresql tmux postgis geos geos-dev \
-            shared-mime-info
+            shared-mime-info gpg gpg-agent
 
           echo "postgres:5432:*:postgres:postgres" > ~/.pgpass
           chmod 600 ~/.pgpass
 
           yarn install --frozen-lockfile
-          gem install bundler --version=2.4.6
+          gem install bundler --version=2.5.7
 
       - name: Install gems
         run: |
@@ -176,7 +176,7 @@ jobs:
         uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
           command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_02_2024 }}
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2024 }}
           destination: ./drivers/datalab_testkit/spec/fixtures/inputs/
           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
@@ -192,7 +192,7 @@ jobs:
         uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
           command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_02_2024 }}
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_FIXPOINT_PATH_FY_2024 }}
           destination: ./drivers/datalab_testkit/spec/fixpoints/
           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
@@ -203,7 +203,7 @@ jobs:
         uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
           command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_01_2024 }} # NOTE: new source, no new results 2/2024
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_RESULTS_PATH_FY_2024 }}
           destination: ./drivers/datalab_testkit/spec/fixtures/results/
           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
@@ -214,7 +214,7 @@ jobs:
         uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
           command: cp
-          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_02_2024 }}/merged/source
+          source: ${{ secrets.AWS_S3_ACTION_BUCKET }}${{ vars.AWS_S3_ACTIONS_SOURCE_PATH_FY_2024 }}/merged/source
           destination: ./drivers/hud_twenty_twenty_two_to_twenty_twenty_four/spec/fixtures/in/
           aws_access_key_id: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}

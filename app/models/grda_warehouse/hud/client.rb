@@ -42,6 +42,16 @@ module GrdaWarehouse::Hud
     has_one :ce_assessment, -> do
       merge(GrdaWarehouse::CoordinatedEntryAssessment::Base.active)
     end, class_name: 'GrdaWarehouse::CoordinatedEntryAssessment::Base', inverse_of: :client
+
+    # operates on source_clients only
+    has_one :most_recent_ce_assessment, -> do
+      one_for_column(
+        :AssessmentDate,
+        source_arel_table: as_t,
+        group_on: [:PersonalID, :data_source_id],
+      )
+    end, **hud_assoc(:PersonalID, 'Assessment')
+
     # operates on source_clients only
     has_one :most_recent_pathways_or_rrh_assessment, -> do
       one_for_column(
@@ -346,9 +356,16 @@ module GrdaWarehouse::Hud
         where(housing_release_status: [full_release_string, partial_release_string])
       when :active_clients
         range = GrdaWarehouse::Config.cas_sync_range
-        # Homeless or Coordinated Entry
-        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.in_project_type([0, 1, 2, 4, 8, 14]).
-          with_service_between(start_date: range.first, end_date: range.last)
+
+        # Homeless and Coordinated Entry Projects
+        homeless_ce_project_ids = GrdaWarehouse::Hud::Project.with_project_type(HudUtility2024.homeless_project_types + [14]).pluck(:id)
+        # Projects with override to consider enrolled clients as actively homeless for CAS and Cohorts
+        override_project_ids = GrdaWarehouse::Hud::Project.where(active_homeless_status_override: true).pluck(:id)
+
+        service_options = { start_date: range.first, end_date: range.last }
+        service_options[:service_scope] = GrdaWarehouse::ServiceHistoryService.service_excluding_extrapolated unless GrdaWarehouse::Config.get(:ineligible_uses_extrapolated_days)
+        enrollment_scope = GrdaWarehouse::ServiceHistoryEnrollment.in_project(homeless_ce_project_ids + override_project_ids).
+          with_service_between(**service_options)
         where(id: enrollment_scope.select(:client_id))
       when :project_group
         project_ids = GrdaWarehouse::Config.cas_sync_project_group&.projects&.ids
@@ -974,16 +991,16 @@ module GrdaWarehouse::Hud
         ongoing
     end
 
-    def scope_for_other_enrollments
-      service_history_enrollments.
-        entry.
-        hud_non_residential
+    def scope_for_other_enrollments(user)
+      active_consent_model.scope_for_other_enrollments(user)
     end
 
-    def scope_for_residential_enrollments
-      service_history_enrollments.
-        entry.
-        hud_residential
+    def scope_for_residential_enrollments(user)
+      active_consent_model.scope_for_residential_enrollments(user)
+    end
+
+    def active_consent_model
+      @active_consent_model ||= GrdaWarehouse::Config.active_consent_class.new(client: self)
     end
 
     attr_accessor :merge
@@ -1023,25 +1040,24 @@ module GrdaWarehouse::Hud
     # and maintained in the warehouse
     def self.full_release_string
       # Return the untranslated string, but force the translator to see it
-      if GrdaWarehouse::Config.implicit_roi?
-        Translation.translate('Implicit Release')
-        'Implicit Release'
-      else
-        Translation.translate('Full HAN Release')
-        'Full HAN Release'
-      end
+      release_string = GrdaWarehouse::Config.active_consent_class.full_release_string
+      Translation.translate(release_string)
+      release_string
     end
 
     def self.partial_release_string
       # Return the untranslated string, but force the translator to see it
-      Translation.translate('Limited CAS Release')
-      'Limited CAS Release'
+      release_string = GrdaWarehouse::Config.active_consent_class.partial_release_string
+      Translation.translate(release_string)
+      release_string
+    end
+
+    def self.revoked_consent_string
+      GrdaWarehouse::Config.active_consent_class.revoked_consent_string
     end
 
     def self.no_release_string
-      return 'Consent revoked' if GrdaWarehouse::Config.implicit_roi?
-
-      'None on file'
+      GrdaWarehouse::Config.active_consent_class.no_release_string
     end
 
     def self.consent_validity_period
@@ -1075,25 +1091,7 @@ module GrdaWarehouse::Hud
     end
 
     def release_current_status
-      consent_text = if housing_release_status.blank?
-        self.class.no_release_string
-      elsif release_duration.in?(['One Year', 'Two Years'])
-        if consent_form_valid?
-          "Valid Until #{consent_form_signed_on + self.class.consent_validity_period}"
-        else
-          'Expired'
-        end
-      elsif release_duration == 'Use Expiration Date'
-        if consent_form_valid?
-          "Valid Until #{consent_expires_on}"
-        else
-          'Expired'
-        end
-      else
-        Translation.translate(housing_release_status)
-      end
-      consent_text += " in #{consented_coc_codes.to_sentence}" if consented_coc_codes&.any?
-      consent_text
+      active_consent_model.release_current_status
     end
 
     def release_duration
@@ -1154,7 +1152,7 @@ module GrdaWarehouse::Hud
     end
 
     def apply_housing_release_status
-      return unless GrdaWarehouse::Config.implicit_roi?
+      return unless GrdaWarehouse::Config.implied_consent?
 
       self.housing_release_status = GrdaWarehouse::Hud::Client.full_release_string
     end
@@ -1418,32 +1416,42 @@ module GrdaWarehouse::Hud
     end
 
     def email
-      return unless hmis_client_response.present?
+      # Fetch the data from the source clients if we are a destination client
+      return source_clients.map(&:email).reject(&:blank?).first if destination?
 
-      data = hmis_client_response['Email']
-      return data if data
-      return unless hmis_client.processed_fields
-
-      hmis_client.processed_fields['email']
+      # Look for value from OP HMIS
+      value = most_recent_email_hmis if HmisEnforcement.hmis_enabled?
+      # Look for value from other HMIS integrations
+      value ||= hmis_client_response['Email'] if hmis_client_response.present?
+      value ||= hmis_client.processed_fields['email'] if hmis_client&.processed_fields
+      value
     end
 
     def home_phone
-      return unless hmis_client_response.present?
+      # Fetch the data from the source clients if we are a destination client
+      return source_clients.map(&:home_phone).reject(&:blank?).first if destination?
 
-      hmis_client_response['HomePhone']
+      value = most_recent_home_phone_hmis if HmisEnforcement.hmis_enabled?
+      value ||= hmis_client_response['HomePhone'] if hmis_client_response.present?
+      value
     end
 
     def cell_phone
-      return unless hmis_client_response.present?
+      # Fetch the data from the source clients if we are a destination client
+      return source_clients.map(&:cell_phone).reject(&:blank?).first if destination?
 
-      data = hmis_client_response['CellPhone']
-      return data if data
-      return unless hmis_client.processed_fields
-
-      hmis_client.processed_fields['phone']
+      value = most_recent_cell_or_other_phone_hmis if HmisEnforcement.hmis_enabled?
+      value ||= hmis_client_response['CellPhone'] if hmis_client_response.present?
+      value ||= hmis_client.processed_fields['phone'] if hmis_client&.processed_fields
+      value
     end
 
     def work_phone
+      # Fetch the data from the source clients if we are a destination client
+      return source_clients.map(&:work_phone).reject(&:blank?).first if destination?
+
+      value = most_recent_work_or_school_phone_hmis if HmisEnforcement.hmis_enabled?
+      return value if value
       return unless hmis_client_response.present?
 
       work_phone = hmis_client_response['WorkPhone']
@@ -1711,6 +1719,13 @@ module GrdaWarehouse::Hud
 
     def date_of_last_homeless_service
       processed_service_history&.last_homeless_date
+    end
+
+    def services_for_rollup
+      custom_services.
+        preload(:warehouse_project, enrollment: [:project, :client], custom_service_type: [:custom_service_category]).
+        order(date_provided: :desc).
+        order(id: :desc)
     end
 
     def confidential_project_ids
@@ -2003,11 +2018,29 @@ module GrdaWarehouse::Hud
       HudUtility2024.race_none(self.RaceNone)
     end
 
+    def pit_gender
+      gm = gender_multi.map { |k| ::HudUtility2024.gender(k) }
+      return 'GenderNone' if gm.count.zero?
+      return 'More Than One Gender' if gm.count > 1
+
+      return HudUtility2024.gender(gm.first)
+    end
+
     def pit_race
       return 'RaceNone' if race_fields.count.zero?
-      return 'MultiRacial' if race_fields.count > 1
 
-      race_fields.first
+      race_fields_minus_latin = race_fields.reject { |x| x.include?('HispanicLatinaeo') }
+
+      return 'Hispanic/Latina/e/o (only)' if race_fields_minus_latin.count.zero? && race_fields.include?('HispanicLatinaeo')
+
+      # if the race fields didn't include latinx add "only", otherwise note that the client also falls into the latinx category
+      suffix = race_fields == race_fields_minus_latin ? ' (only)' : ' & Hispanic/Latina/e/o'
+      # if latinx wasn't one of the races, and there were more than two races, the client will be in the multi-racial category
+      suffix = ' (all other)' if race_fields == race_fields_minus_latin && race_fields_minus_latin.count > 1
+
+      return 'Multi-Racial' + suffix if race_fields_minus_latin.count > 1
+
+      return HudUtility2024.race(race_fields_minus_latin.first) + suffix
     end
 
     # call this on GrdaWarehouse::Hud::Client.new() instead of self, to take
@@ -2976,7 +3009,7 @@ module GrdaWarehouse::Hud
         enrollment.last_date_in_program
       else
         enrollments.select do |m|
-          m.computed_project_type == enrollment.computed_project_type &&
+          m.project_type == enrollment.project_type &&
             m.first_date_in_program > enrollment.first_date_in_program
         end.
           sort_by(&:first_date_in_program)&.first&.first_date_in_program || enrollment.last_date_in_program
@@ -2992,7 +3025,7 @@ module GrdaWarehouse::Hud
     private def residential_dates enrollments:
       @non_homeless_types ||= HudUtility2024.residential_project_type_numbers_by_code[:ph]
       @residential_dates ||= enrollments.select do |e|
-        @non_homeless_types.include?(e.computed_project_type)
+        @non_homeless_types.include?(e.project_type)
       end.map do |e|
         # Use select to allow for preloading
         e.service_history_services.select do |s|
@@ -3003,7 +3036,7 @@ module GrdaWarehouse::Hud
 
     private def homeless_dates enrollments:
       @homeless_dates ||= enrollments.select do |e|
-        e.computed_project_type.in?(HudUtility2024.residential_project_type_ids)
+        e.project_type.in?(HudUtility2024.residential_project_type_ids)
       end.map do |e|
         # Use select to allow for preloading
         e.service_history_services.select do |s|
@@ -3020,7 +3053,7 @@ module GrdaWarehouse::Hud
     # If we haven't been in a literally homeless project type (ES, SH, SO) in the last 30 days, this is a new episode
     # You aren't currently housed in PH, and you've had at least a week of being housed in the last 90 days
     def new_episode? enrollments:, enrollment:
-      return false unless HudUtility2024.chronic_project_types.include?(enrollment.computed_project_type)
+      return false unless HudUtility2024.chronic_project_types.include?(enrollment.project_type)
 
       entry_date = enrollment.first_date_in_program
       thirty_days_ago = entry_date - 30.days

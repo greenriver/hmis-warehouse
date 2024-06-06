@@ -34,7 +34,7 @@ FactoryBot.define do
     LastName { Faker::Name.last_name }
     NameSuffix { Faker::Name.suffix }
     NameDataQuality { 1 }
-    SSN { Faker::IDNumber.valid.gsub(/[^0-9]/, '') }
+    SSN { Faker::IdNumber.valid.gsub(/[^0-9]/, '') }
     SSNDataQuality { 1 }
     DOB { '1999-12-01' }
     DOBDataQuality { 1 }

@@ -35,29 +35,18 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::ProjectsImporter, type: :mod
     expect(GrdaWarehouse::Hud::Funder.count).to eq(1)
     expect(GrdaWarehouse::Hud::Organization.count).to eq(1)
     expect(GrdaWarehouse::Hud::Inventory.count).to eq(20)
+    expect(GrdaWarehouse::Hud::ProjectCoc.count).to eq(1)
+    expect(GrdaWarehouse::Hud::HmisParticipation.count).to eq(1)
+    expect(GrdaWarehouse::Hud::CeParticipation.count).to eq(1)
     expect(Hmis::Hud::CustomDataElement.count).to eq(1)
     expect(Hmis::Hud::CustomDataElement.first.value_boolean).to be(false)
     expect(Hmis::ProjectUnitTypeMapping.count).to eq(2)
     expect(Hmis::Unit.count).to eq(10)
     expect(Hmis::Unit.where(unit_type: active_unit_type).count).to eq(10)
-  end
 
-  it 'updates existing project, and applies overrides' do
-    # p1 ProjectID matches the fixture file
-    start_date_override = 1.year.ago.to_date
-    end_date_override = Date.yesterday
-    p1 = create(:hmis_hud_project, data_source: ds, project_type: 0, project_id: '1000', act_as_project_type: 1, operating_start_date_override: start_date_override, operating_end_date_override: end_date_override)
-
-    Dir.chdir(dir) do
-      importer = HmisExternalApis::AcHmis::Importers::ProjectsImporter.new(dir: '.', key: 'data.zip', etag: '12345')
-      importer.run!
-    end
-
-    expect(GrdaWarehouse::Hud::Project.count).to eq(1)
-    p1.reload
-    expect(p1.project_type).to eq(1)
-    expect(p1.operating_start_date).to eq(start_date_override)
-    expect(p1.operating_end_date).to eq(end_date_override)
+    # fixes incorrect hmis format
+    expect(GrdaWarehouse::Hud::ProjectCoc.first.zip).to eq('11111')
+    expect(GrdaWarehouse::Hud::CeParticipation.first.HousingAssessment).to eq(1)
   end
 
   it 'fails when funder dates are formatted incorrectly' do
@@ -65,10 +54,11 @@ RSpec.describe HmisExternalApis::AcHmis::Importers::ProjectsImporter, type: :mod
 
     Dir.chdir(invalid_data_dir) do
       importer = HmisExternalApis::AcHmis::Importers::ProjectsImporter.new(dir: '.', key: 'data.zip', etag: '12345')
-      importer.run!
+      expect do
+        importer.run!
+      end.to raise_error(StandardError, /Incorrectly formatted date in Funder.csv StartDate: 01-JUL-20/)
     end
 
-    expect(Rails.logger).to have_received(:fatal).with('Incorrectly formatted date in Funder.csv StartDate: 01-JUL-20')
     expect(Rails.logger).to have_received(:fatal).with('ProjectsImporter aborted before it finished.')
     expect(GrdaWarehouse::Hud::Project.count).to eq(0)
     expect(GrdaWarehouse::Hud::Funder.count).to eq(0)

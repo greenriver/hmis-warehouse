@@ -17,7 +17,7 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
   describe 'for night-by-night shelter' do
     let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 1 }
     let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
-    let!(:aec) { create :hmis_auto_exit_config, length_of_absence_days: 30 }
+    let!(:aec) { create :hmis_project_auto_exit_config, length_of_absence_days: 30, project: p1 }
 
     it 'should exit correctly based on most recent bed night' do
       e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
@@ -51,7 +51,7 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
   describe 'for other project types (not ES NBN)' do
     let!(:p1) { create :hmis_hud_project, data_source: ds1, organization: o1, user: u1, project_type: 6 }
     let!(:c1) { create :hmis_hud_client, data_source: ds1, user: u1 }
-    let!(:aec) { create :hmis_auto_exit_config, length_of_absence_days: 30 }
+    let!(:aec) { create :hmis_project_auto_exit_config, length_of_absence_days: 30, project: p1 }
 
     it 'should exit correctly for a service' do
       contact_date = Date.current - 31.days
@@ -131,18 +131,15 @@ RSpec.describe Hmis::AutoExitJob, type: :model do
     c1 = create :hmis_hud_client, data_source: ds1, user: u1
 
     # We want to set the length_of_absence_days to 29 to test logic in the job, but there is an AR validation on this too, so set it without validating
-    aec = create :hmis_auto_exit_config, length_of_absence_days: 30
+    aec = create :hmis_project_auto_exit_config, length_of_absence_days: 30, project: p1
     aec.length_of_absence_days = 29
     aec.save!(validate: false)
 
     e1 = create :hmis_hud_enrollment, data_source: ds1, project: p1, client: c1, user: u1, entry_date: Date.current - 2.months
     create :hmis_custom_service, data_source: ds1, client: c1, enrollment: e1, user: u1, date_provided: Date.current - 31.days
 
-    allow(Rails.logger).to receive(:fatal).and_return nil
-
-    Hmis::AutoExitJob.perform_now
+    expect { Hmis::AutoExitJob.perform_now }.to raise_error('Auto-exit config unusually low: 29')
 
     expect(e1.exit).to be_nil
-    expect(Rails.logger).to have_received(:fatal).with('Auto-exit config unusually low: 29')
   end
 end

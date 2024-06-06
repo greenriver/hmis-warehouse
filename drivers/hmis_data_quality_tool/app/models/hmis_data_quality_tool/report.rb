@@ -13,8 +13,6 @@ module HmisDataQualityTool
     include ActionView::Helpers::NumberHelper
     include ArelHelper
 
-    acts_as_paranoid
-
     belongs_to :user, optional: true
     has_many :clients
     has_many :enrollments
@@ -274,7 +272,7 @@ module HmisDataQualityTool
             next unless enrollment.client.present?
 
             # Make sure the age reflects the reporting age
-            she.age = enrollment.client.age_on(report_age_date)
+            she.age = enrollment.client&.age_on(report_age_date)
             households[enrollment.HouseholdID] << she
           end
       end

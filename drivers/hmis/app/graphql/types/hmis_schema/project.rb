@@ -21,6 +21,9 @@ module Types
     include Types::HmisSchema::HasHmisParticipations
     include Types::HmisSchema::HasCeParticipations
     include Types::HmisSchema::HasHudMetadata
+    include Types::HmisSchema::HasExternalFormSubmissions
+    include Types::HmisSchema::HasAssessments
+    include Types::HmisSchema::HasCurrentLivingSituations
 
     def self.configuration
       Hmis::Hud::Project.hmis_configuration(version: '2024')
@@ -54,10 +57,15 @@ module Types
     project_cocs_field
     funders_field
     units_field
+    external_form_submissions_field do
+      argument :form_definition_identifier, ID, required: true
+    end
     households_field
     hmis_participations_field
     ce_participations_field
+    assessments_field filter_args: { omit: [:project, :project_type], type_name: 'AssessmentsForProject' }
     services_field filter_args: { omit: [:project, :project_type], type_name: 'ServicesForProject' }
+    current_living_situations_field
     hud_field :operating_start_date, null: true
     hud_field :operating_end_date
     hud_field :description, String, null: true
@@ -92,22 +100,35 @@ module Types
       can :manage_incoming_referrals
       can :manage_outgoing_referrals
       can :manage_denied_referrals
+      can :manage_external_form_submissions
     end
     field :unit_types, [Types::HmisSchema::UnitTypeCapacity], null: false
     field :has_units, Boolean, null: false
 
     field :data_collection_features, [Types::HmisSchema::DataCollectionFeature], null: false, description: 'Occurrence Point data collection features that are enabled for this Project (e.g. Current Living Situations, Events)'
     field :occurrence_point_forms, [Types::HmisSchema::OccurrencePointForm], null: false, method: :occurrence_point_form_instances, description: 'Forms for individual data elements that are collected at occurrence for this Project (e.g. Move-In Date)'
+    field :service_types, [Types::HmisSchema::ServiceType], null: false, method: :available_service_types, description: 'Service types that are collected for this Project'
 
     def hud_id
       object.project_id
     end
 
     def enrollments(**args)
-      # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
-      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
+      check_enrollment_details_access
 
-      resolve_enrollments(object.enrollments_including_wip, dangerous_skip_permission_check: true, **args)
+      resolve_enrollments(object.enrollments, dangerous_skip_permission_check: true, **args)
+    end
+
+    def assessments(**args)
+      check_enrollment_details_access
+
+      resolve_assessments(object.custom_assessments, dangerous_skip_permission_check: true, **args)
+    end
+
+    def current_living_situations(**args)
+      check_enrollment_details_access
+
+      resolve_assessments(object.current_living_situations, dangerous_skip_permission_check: true, **args)
     end
 
     def organization
@@ -119,8 +140,7 @@ module Types
     end
 
     def services(**args)
-      # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
-      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
+      check_enrollment_details_access
 
       resolve_services(**args, dangerous_skip_permission_check: true)
     end
@@ -163,10 +183,9 @@ module Types
     end
 
     def households(**args)
-      # Skipping permission checks below for performance. Ensure the user can access enrollment details for this project here, and don't re-check.
-      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
+      check_enrollment_details_access
 
-      resolve_households(object.households_including_wip, **args, dangerous_skip_permission_check: true)
+      resolve_households(object.households, **args, dangerous_skip_permission_check: true)
     end
 
     def referral_requests(**args)
@@ -177,10 +196,14 @@ module Types
 
     # TODO(#186102846) support user-specified sorting/filtering
     def incoming_referral_postings(**args)
-      raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_incoming_referrals)
+      access_denied! unless current_permission?(entity: object, permission: :can_manage_incoming_referrals)
 
-      # Only show Active postings on the incoming referral table
-      scoped_referral_postings(object.external_referral_postings.active, sort_order: :oldest_to_newest, **args)
+      scoped_referral_postings(
+        object.external_referral_postings.active, # Only show Active postings on the incoming referral table
+        sort_order: :oldest_to_newest,
+        dangerous_skip_permission_check: true, # safe because its checked above
+        **args,
+      )
     end
 
     def arel
@@ -189,14 +212,32 @@ module Types
 
     # TODO(#186102846) support user-specified sorting/filtering
     def outgoing_referral_postings(**args)
-      raise HmisErrors::ApiError, 'Access denied' unless current_permission?(entity: object, permission: :can_manage_outgoing_referrals)
+      access_denied! unless current_permission?(entity: object, permission: :can_manage_outgoing_referrals)
 
       # Show all postings on the outgoing referral table
       scope = HmisExternalApis::AcHmis::ReferralPosting.
-        joins(referral: :enrollment).
+        joins(referral: :enrollment). # Find the "source" project from posting.referral.enrollment.project
         where(arel.e_t[:ProjectID].eq(object.ProjectID))
 
-      scoped_referral_postings(scope, sort_order: :relevent_status, **args)
+      scoped_referral_postings(scope, sort_order: :relevent_status, dangerous_skip_permission_check: true, **args)
+    end
+
+    def external_form_submissions(**args)
+      instances = Hmis::Form::Instance.with_role(:EXTERNAL_FORM).active.where(entity: object)
+      scope = HmisExternalApis::ExternalForms::FormSubmission.
+        joins(:definition).
+        where(definition: { identifier: instances.select(:definition_identifier) })
+
+      form_definition_identifier = args.delete(:form_definition_identifier)
+      scope = scope.where(definition: { identifier: form_definition_identifier }) if form_definition_identifier
+      resolve_external_form_submissions(scope, **args)
+    end
+
+    private def check_enrollment_details_access
+      # For resolving several associations, we want to skip permission checks that use the viewable_by scope, both for
+      # performance reasons, and so that we throw an error instead of returning an empty list.
+      # After this check it's OK to use `dangerous_skip_permission_check`
+      raise 'access denied' unless current_user.can_view_enrollment_details_for?(object)
     end
   end
 end

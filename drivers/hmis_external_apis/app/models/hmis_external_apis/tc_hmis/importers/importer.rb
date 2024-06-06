@@ -15,9 +15,13 @@ module HmisExternalApis::TcHmis::Importers
 
     attr_accessor :data_source, :dir, :extra_columns, :clobber, :table_names, :log_file
 
-    def initialize(dir:, clobber:, log_file: ENV['TC_HMIS_IMPORT_LOG_FILE'])
+    def initialize(dir:, clobber: true, log_file: ENV['TC_HMIS_IMPORT_LOG_FILE'])
       self.data_source = HmisExternalApis::TcHmis.data_source
+      raise "data source doesn't exist" unless data_source
+
       self.dir = dir
+      raise "directory doesn't exist" unless Dir.exist?(dir)
+
       self.clobber = clobber
       self.table_names = []
       self.log_file = log_file
@@ -26,9 +30,28 @@ module HmisExternalApis::TcHmis::Importers
     def perform
       start
       loaders = [
+        Loaders::ScanCardLoader,
         Loaders::SpdatLoader,
         Loaders::HatLoader,
         Loaders::UhaLoader,
+        Loaders::CustomServicesLoader,
+        Loaders::LunchServicesLoader,
+        Loaders::BreakfastServicesLoader,
+        Loaders::DinnerServicesLoader,
+        Loaders::CriticalDocumentsCmLoader,
+        Loaders::CaseManagementAssessmentLoader,
+        Loaders::MhmrCaseManagementNoteLoader,
+        Loaders::MhmrNonBillableNoteLoader,
+        Loaders::MhmrRehabilitationNoteLoader,
+        Loaders::CustomClientDemographicsLoader,
+        Loaders::NavigationNotesLoader,
+        Loaders::DiversionAssessmentLoader,
+        Loaders::AumPreventionScreeningLoader,
+        Loaders::CaseworkerExitSurveyLoader,
+        Loaders::DcsfV3Loader,
+        Loaders::DirectionHomesHousingLoader,
+        Loaders::HvrpEmploymentDetailsLoader,
+        Loaders::DocumentReadyLoader,
       ]
 
       # disable paper trail to improve importer performance
@@ -40,9 +63,11 @@ module HmisExternalApis::TcHmis::Importers
           log_file: log_file,
         )
         run_loader(loader)
+        GC.start
       end
 
       analyze_tables
+      true
     rescue StandardError => e
       # this might be swallowing the exception
       @notifier.ping("Failure in #{importer_name}") # , { exception: e })
@@ -58,7 +83,7 @@ module HmisExternalApis::TcHmis::Importers
         return
       end
 
-      Rails.logger.info "#{importer_name} running #{loader.class.name}"
+      Rails.logger.info "#{importer_name} running #{loader.class.name} at #{Time.current.to_fs(:db)}"
       loader.perform
       self.table_names += loader.table_names
     end
