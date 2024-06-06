@@ -188,6 +188,8 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     ids += data_source_ids_from_viewable_entities(user, permission)
     ids += data_source_ids_from_organizations(user, permission)
     ids += data_source_ids_from_projects(user, permission)
+    ids += data_source_ids_from_project_access_groups(user, permission)
+    ids += data_source_ids_from_cocs(user, permission)
     ids
   end
 
@@ -195,11 +197,11 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     return [] unless user.present?
     return [] unless user.send("#{permission}?")
 
-    group_ids = user.collections_for_permission(permission)
-    return [] if group_ids.empty?
+    collection_ids = user.collections_for_permission(permission)
+    return [] if collection_ids.empty?
 
     GrdaWarehouse::GroupViewableEntity.where(
-      collection_id: group_ids,
+      collection_id: collection_ids,
       entity_type: 'GrdaWarehouse::DataSource',
     ).pluck(:entity_id)
   end
@@ -208,12 +210,12 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     return [] unless user.present?
     return [] unless user.send("#{permission}?")
 
-    group_ids = user.collections_for_permission(permission)
-    return [] if group_ids.empty?
+    collection_ids = user.collections_for_permission(permission)
+    return [] if collection_ids.empty?
 
     entity_class.where(
       id: GrdaWarehouse::GroupViewableEntity.where(
-        collection_id: group_ids,
+        collection_id: collection_ids,
         entity_type: entity_class.sti_name,
       ).select(:entity_id),
     ).joins(:data_source).pluck(ds_t[:id])
@@ -225,6 +227,37 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
 
   def self.data_source_ids_from_organizations(user, permission)
     data_source_ids_from_entity_type(user, permission, GrdaWarehouse::Hud::Organization)
+  end
+
+  # NOTE: project access groups need to pull the data sources from their projects
+  # so this differs from projects and organizations
+  def self.data_source_ids_from_project_access_groups(user, permission)
+    return [] unless user.present?
+    return [] unless user.send("#{permission}?")
+
+    collection_ids = user.collections_for_permission(permission)
+    return [] if collection_ids.empty?
+
+    entity_class = GrdaWarehouse::ProjectAccessGroup
+    entity_class.where(
+      id: GrdaWarehouse::GroupViewableEntity.where(
+        collection_id: collection_ids,
+        entity_type: entity_class.sti_name,
+      ).select(:entity_id),
+    ).joins(:projects).
+      distinct.
+      pluck(p_t[:data_source_id])
+  end
+
+  def self.data_source_ids_from_cocs(user, permission)
+    return [] unless user.present?
+    return [] unless user.send("#{permission}?")
+
+    collection_ids = user.collections_for_permission(permission)
+    return [] if collection_ids.empty?
+
+    coc_codes = Collection.where(id: collection_ids).pluck(:coc_codes).reject(&:blank?).flatten
+    GrdaWarehouse::Hud::ProjectCoc.in_coc(coc_code: coc_codes).distinct.pluck(:data_source_id)
   end
 
   def self.source_data_source_ids
