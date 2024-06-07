@@ -9,7 +9,7 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
   self.sequence_name = "public.\"#{table_name}_id_seq\""
   has_paper_trail
   include ::HmisStructure::Organization
-  include ::Hmis::Hud::Concerns::HasCustomDataElements
+  include ::Hmis::Hud::Concerns::FormSubmittable
   include ::Hmis::Hud::Concerns::Shared
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'

@@ -49,7 +49,6 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
   HUD_AND_CUSTOM_ATTRIBUTES = [:fa_amount, :fa_start_date, :fa_end_date].freeze
 
   delegate(*HUD_AND_CUSTOM_ATTRIBUTES, to: :owner)
-  attr_accessor(*HUD_ATTRIBUTES)
 
   HUD_ATTRIBUTES.each do |hud_field_name|
     define_method(hud_field_name) { hud_service&.send(hud_field_name) }
@@ -88,23 +87,6 @@ class Hmis::Hud::HmisService < Hmis::Hud::Base
 
   def readonly?
     true
-  end
-
-  # Helper to initialize the "owner" (Service or CustomService) based on a specified custom_service_type_id.
-  # Initialization happens in SubmitForm when submitting a new service, and in BulkAssignService.
-  private def initialize_owner
-    raise 'Cannot initialize HmisService without a custom_service_type_id' unless custom_service_type_id.present?
-
-    custom_service_type = Hmis::Hud::CustomServiceType.find(custom_service_type_id)
-    attrs = [:enrollment_id, :personal_id, :user_id, :data_source_id, :date_provided].map { |k| [k, send(k)] }.to_h
-    if custom_service_type.hud_service?
-      # If this is a HUD service, set RecordType and TypeProvided on the HUD Service record
-      record_type = custom_service_type.hud_record_type
-      type_provided = custom_service_type.hud_type_provided
-      self.owner = Hmis::Hud::Service.new(**attrs, record_type: record_type, type_provided: type_provided)
-    else
-      self.owner = Hmis::Hud::CustomService.new(**attrs, custom_service_type: custom_service_type)
-    end
   end
 
   HUD_SERVICE_ID_PREFIX = '1'.freeze

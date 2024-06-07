@@ -7,7 +7,6 @@
 FactoryBot.define do
   factory :hmis_form_processor, class: 'Hmis::Form::FormProcessor' do
     definition { association :hmis_form_definition }
-    custom_assessment { association :hmis_custom_assessment }
   end
 
   factory :hmis_custom_assessment, class: 'Hmis::Hud::CustomAssessment' do
@@ -26,7 +25,7 @@ FactoryBot.define do
       definition { nil }
     end
     after(:build) do |assessment, evaluator|
-      assessment.form_processor = build(:hmis_form_processor, custom_assessment: assessment, values: evaluator.values, hud_values: evaluator.hud_values)
+      assessment.form_processor = build(:hmis_form_processor, owner: assessment, values: evaluator.values, hud_values: evaluator.hud_values)
       assessment.form_processor.definition = evaluator.definition if evaluator.definition
     end
     after(:create) do |assessment, evaluator|
@@ -51,7 +50,7 @@ FactoryBot.define do
       hud_values { {} }
     end
     after(:create) do |assessment, evaluator|
-      assessment.form_processor = create(:hmis_form_processor, custom_assessment: assessment, values: evaluator.values, hud_values: evaluator.hud_values)
+      assessment.form_processor = create(:hmis_form_processor, owner: assessment, values: evaluator.values, hud_values: evaluator.hud_values)
       assessment.save_in_progress
     end
   end
