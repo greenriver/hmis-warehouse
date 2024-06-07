@@ -10,9 +10,11 @@ class MigrateHmisFormData < ActiveRecord::Migration[7.0]
   end
 
   def down
+    raise 'refusing destructive rollback in production' if Rails.env.production?
+
     safety_assured do
       execute %(UPDATE hmis_form_definitions SET definition = backup_definition)
-      execute %(UPDATE hmis_form_processors SET values = backup_values)
+      execute %(UPDATE hmis_form_processors SET values = backup_values WHERE backup_values IS NOT NULL)
     end
   end
 end

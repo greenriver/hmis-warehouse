@@ -8,7 +8,7 @@ class BackupHmisFormData < ActiveRecord::Migration[7.0]
       dir.up do
         safety_assured do
           execute %(UPDATE hmis_form_definitions SET backup_definition = definition)
-          execute %(UPDATE hmis_form_processors SET backup_values = values)
+          execute %(UPDATE hmis_form_processors SET backup_values = values WHERE values IS NOT NULL)
         end
       end
     end
