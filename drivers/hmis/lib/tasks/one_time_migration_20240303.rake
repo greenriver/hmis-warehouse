@@ -51,7 +51,8 @@ class OneTimeMigration20230303
 
   def definition_valid?(definition)
     return false if definition.definition.blank?
-    errors =  []
+
+    errors = []
     validate_definition(definition.definition, role: definition.role) do |message|
       errors.push(message)
     end
