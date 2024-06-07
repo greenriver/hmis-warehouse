@@ -75,20 +75,22 @@ module Mutations
             enrollment.save_new_enrollment!
           end
 
-          # Initialize using the HmisService view. Based on the CustomServiceType, the class will initialize
-          # either a Hmis::Hud::Service or Hmis::Hud::CustomService as the `owner`
-          service = Hmis::Hud::HmisService.new(
+          # Based on the CustomServiceType, initialize a Hmis::Hud::Service or Hmis::Hud::CustomService
+          attrs = {
             client: client,
             enrollment: enrollment,
-            custom_service_type_id: cst.id,
             date_provided: input.date_provided,
             user_id: hud_user_id,
-          )
-
+          }
+          service = if cst.hud_service?
+            Hmis::Hud::Service.new(record_type: cst.hud_record_type, type_provided: cst.hud_type_provided, **attrs)
+          else
+            Hmis::Hud::CustomService.new(custom_service_type: cst, **attrs)
+          end
           # Pass form_submission context to validate uniqueness of bed nights per day.
           # Note: an improvement would be to raise a user-facing error if any service(s) were duplicates for bed nights,
           # and let other changes save successfully.
-          service.owner.save!(context: :form_submission)
+          service.save!(context: :form_submission)
         end
       end
 

@@ -10,7 +10,7 @@ class Hmis::Hud::Funder < Hmis::Hud::Base
   include ::HmisStructure::Funder
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::ProjectRelated
-  include ::Hmis::Hud::Concerns::HasCustomDataElements
+  include ::Hmis::Hud::Concerns::FormSubmittable
 
   validates_with Hmis::Hud::Validators::FunderValidator
 

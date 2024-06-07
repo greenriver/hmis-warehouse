@@ -1838,7 +1838,7 @@ module GrdaWarehouse::Hud
     # @param sorted [Boolean] order results by closest match to text
     def self.text_search(text, client_scope: nil, sorted: false)
       # Get search results from client scope. Then return the unique destination client records that map to those matching source records
-      relation = (client_scope || self)
+      relation = client_scope || self
       # with resolve_for_join_query, results are client.scope.select(:client_id, :score) suitable for subquery
       results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true)
       return relation.none if results.nil?
@@ -2239,7 +2239,7 @@ module GrdaWarehouse::Hud
         nicks = Nickname.for(self.FirstName).map(&:name)
 
         if nicks.any?
-          nicks_for_search = nicks.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',') # rubocop:disable Lint/ShadowingOuterLocalVariable
+          nicks_for_search = nicks.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',')
           similar_destinations = self.class.destination.where(
             nf('LOWER', [c_arel[:FirstName]]).in(nicks_for_search),
           ).where(c_arel['LastName'].matches("%#{self.LastName.downcase}%")).
@@ -2251,7 +2251,7 @@ module GrdaWarehouse::Hud
         alt_last_names = UniqueName.where(double_metaphone: Text::Metaphone.double_metaphone(self.LastName).to_s).map(&:name)
         alt_names = alt_first_names + alt_last_names
         if alt_names.any?
-          alt_names_for_search = alt_names.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',') # rubocop:disable Lint/ShadowingOuterLocalVariable
+          alt_names_for_search = alt_names.map { |m| GrdaWarehouse::Hud::Client.connection.quote(m) }.join(',')
           similar_destinations = self.class.destination.where(
             nf('LOWER', [c_arel[:FirstName]]).in(alt_names_for_search).
               and(nf('LOWER', [c_arel[:LastName]]).matches("#{self.LastName.downcase}%")).
@@ -2572,7 +2572,7 @@ module GrdaWarehouse::Hud
       vispdats << [internal.submitted_at, internal] if internal
       vispdats << [external.collected_at, external] if external
       # return the newest vispdat
-      vispdats.sort_by(&:first)&.last&.last
+      vispdats.sort_by(&:first)&.last&.last # rubocop:disable Style/RedundantSort
     end
 
     def most_recent_vispdat_family_vispdat?
@@ -3006,7 +3006,7 @@ module GrdaWarehouse::Hud
           m.project_type == enrollment.project_type &&
             m.first_date_in_program > enrollment.first_date_in_program
         end.
-          sort_by(&:first_date_in_program)&.first&.first_date_in_program || enrollment.last_date_in_program
+          sort_by(&:first_date_in_program)&.first&.first_date_in_program || enrollment.last_date_in_program # rubocop:disable Style/RedundantSort
       end
     end
 
