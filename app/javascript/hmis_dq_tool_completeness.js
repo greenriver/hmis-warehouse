@@ -1,10 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS102: Remove unnecessary code created because of implicit returns
- * DS207: Consider shorter variations of null checks
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/main/docs/suggestions.md
- */
-
 class HmisDqToolCompleteness {
   constructor(data, chart_selector) {
     this._set_columns = this._set_columns.bind(this);
@@ -36,7 +29,6 @@ class HmisDqToolCompleteness {
   }
 
   _calculate_height() {
-    console.log(this.data)
     return this.data.labels.length * 50;
   }
 

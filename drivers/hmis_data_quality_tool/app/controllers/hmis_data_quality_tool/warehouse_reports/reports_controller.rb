@@ -55,7 +55,10 @@ module HmisDataQualityTool::WarehouseReports
     end
 
     def by_chart
-      @per_page_js = ['hmis_dq_tool_completeness']
+      @per_page_js = [
+        'hmis_dq_tool_completeness',
+        'hmis_dq_tool_time_to_enter',
+      ]
     end
 
     def create

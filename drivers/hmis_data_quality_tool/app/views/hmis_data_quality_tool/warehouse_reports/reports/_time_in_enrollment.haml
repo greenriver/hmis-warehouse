@@ -1,0 +1,32 @@
+.page-break-avoid
+  %h2.mt-2 Time in Enrollment
+  .well
+    .row
+      .col-3
+        %h3 Average Time in Project Type
+        %ul.list-unstyled
+          - [ :es, :so, :ph ].each do |project_type_slug|
+            - next unless @report.any_enrollments_in_type?(project_type_slug)
+
+            - label = project_type_slug.upcase.to_s
+            - label << ' without a move-in date' if project_type_slug == :ph
+            %li #{pluralize(@report.average_time_in_project_type(project_type_slug), 'day')} in #{label}
+        %h3 Percent in Project Over One Year
+        %ul.list-unstyled
+          - [ :es, :so, :ph ].each do |project_type_slug|
+            - next unless @report.any_enrollments_in_type?(project_type_slug)
+
+            - label = project_type_slug.upcase.to_s
+            - label << ' without a move-in date' if project_type_slug == :ph
+            %li #{@report.percent_enrollments_over_one_year(project_type_slug)}% in #{label}
+
+      .col-sm-9
+        .time-in-program-chart.jChart
+          %p.jLoading Loading
+
+= content_for :page_js do
+  :javascript
+    (function($) {
+      var time_in_program = new App.DataQualityReports.TimeInProgram(#{@report.time_in_enrollment_chart.to_json.html_safe}, '.time-in-program-chart');
+      time_in_program.build_chart();
+    })(jQuery);

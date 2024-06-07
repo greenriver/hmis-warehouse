@@ -408,11 +408,11 @@ module HmisDataQualityTool
       when :entry
         days = average_days_to_enter_entry_date
         goal = timeliness_entry_goal
-        label = 'Days to Enter Enrollment Record'
+        label = 'Days to Record Entry'
       when :exit
         days = average_days_to_enter_exit_date
         goal = timeliness_exit_goal
-        label = 'Days to Enter Exit Record'
+        label = 'Days to Record Exit'
       else
         raise 'Unknown date type'
       end
@@ -423,7 +423,7 @@ module HmisDataQualityTool
         labels: labels,
         data: {
           'Goal' => goal,
-          'Days' => [0, days, 0],
+          'Average' => [0, days, 0],
         },
       }
     end
@@ -434,6 +434,68 @@ module HmisDataQualityTool
 
     def timeliness_exit_goal
       goal_config.exit_date_entered_length # days
+    end
+
+    def time_in_enrollment_chart
+      data = {}
+      [
+        :es,
+        :so,
+        :ph,
+      ].each do |project_type_slug|
+        next unless any_enrollments_in_type?(project_type_slug)
+
+        data[project_type_slug.upcase] = [
+          enrollments_of_length(0..30, project_type_slug),
+          enrollments_of_length(31..180, project_type_slug),
+          enrollments_of_length(181..364, project_type_slug),
+          enrollments_of_length(365.., project_type_slug),
+        ]
+      end
+      {
+        labels: ['1 month or less', '1 to 6 months', '6 to 12 months', '12 months or greater'],
+        data: data,
+        ranges: {
+          '1 month or less' => '0..30',
+          '1 to 6 months' => '31..180',
+          '6 to 12 months' => '181..364',
+          '12 months or greater' => '365..Infinity',
+        },
+      }
+    end
+
+    def any_enrollments_in_type?(project_type_slug)
+      project_types = HudUtility2024.residential_project_type_numbers_by_code[project_type_slug]
+      enrollments.where(project_type: project_types).exists?
+    end
+
+    def average_time_in_project_type(project_type_slug)
+      project_types = HudUtility2024.residential_project_type_numbers_by_code[project_type_slug]
+      scope = enrollments.where(project_type: project_types)
+      scope = scope.where(move_in_date: nil) if project_type_slug == :ph
+      count = scope.count
+      sum = scope.sum(:lot)
+      return 0 if count.zero?
+
+      sum / count
+    end
+
+    def percent_enrollments_over_one_year(project_type_slug)
+      numerator = enrollments_of_length(365.., project_type_slug)
+      project_types = HudUtility2024.residential_project_type_numbers_by_code[project_type_slug]
+      scope = enrollments.where(project_type: project_types)
+      scope = scope.where(move_in_date: nil) if project_type_slug == :ph
+      denominator = scope.count
+      return 0 if denominator.zero?
+
+      ((numerator / denominator.to_f) * 100).round
+    end
+
+    private def enrollments_of_length(range, project_type_slug)
+      project_types = HudUtility2024.residential_project_type_numbers_by_code[project_type_slug]
+      scope = enrollments.where(lot: range, project_type: project_types)
+      scope = scope.where(move_in_date: nil) if project_type_slug == :ph
+      scope.count
     end
 
     def goal_segments

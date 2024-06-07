@@ -5,35 +5,27 @@
     .row
       .col-sm-6
         %h3.text-center Time to Enter
-        %h4.text-center Goal
-        %hr
-        %p.text-center
-          %strong #{pluralize(@report.timeliness_entry_goal, 'day')} or less
+        %h4.text-center Goal: #{pluralize(@report.timeliness_entry_goal, 'day')} or less
         .time-to-enter-chart.jChart
           %p.jLoading Loading
       .col-sm-6
         %h3.text-center Time to Exit
-        %h4.text-center Goal
-        %hr
-        %p.text-center
-          %strong #{pluralize(@report.timeliness_exit_goal, 'day')} or less
+        %h4.text-center Goal: #{pluralize(@report.timeliness_exit_goal, 'day')} or less
         .time-to-exit-chart.jChart
           %p.jLoading Loading
 
 = content_for :page_js do
   :javascript
     (function($) {
-      var time_to_enter = new App.DataQualityReports.TimeToEnter(
+      var time_to_enter = new HmisDqToolTimeToEnter(
         #{@report.average_time_to_enter_date(:entry).to_json.html_safe},
         '.time-to-enter-chart',
-        '#{by_chart_hmis_data_quality_tool_warehouse_reports_report_path}'
         );
       time_to_enter.build_chart();
 
-      var time_to_exit = new App.DataQualityReports.TimeToExit(
+      var time_to_exit = new HmisDqToolTimeToEnter(
         #{@report.average_time_to_enter_date(:exit).to_json.html_safe},
         '.time-to-exit-chart',
-        '#{by_chart_hmis_data_quality_tool_warehouse_reports_report_path}'
         );
       time_to_exit.build_chart();
 
