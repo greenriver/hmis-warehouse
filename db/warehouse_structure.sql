@@ -18286,7 +18286,8 @@ CREATE TABLE public.hmis_form_definitions (
     updated_at timestamp(6) without time zone NOT NULL,
     title character varying NOT NULL,
     deleted_at timestamp without time zone,
-    external_form_object_key character varying
+    external_form_object_key character varying,
+    backup_definition jsonb
 );
 
 
@@ -18395,7 +18396,8 @@ CREATE TABLE public.hmis_form_processors (
     employment_education_id integer,
     current_living_situation_id integer,
     ce_assessment_id bigint,
-    ce_event_id bigint
+    ce_event_id bigint,
+    backup_values jsonb
 );
 
 
@@ -62748,4 +62750,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240529195902'),
 ('20240529202928'),
 ('20240529205526'),
-('20240531020035');
+('20240531020035'),
+('20240531020034');
