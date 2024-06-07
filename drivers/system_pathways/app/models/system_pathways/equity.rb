@@ -12,7 +12,7 @@ module SystemPathways
     include SystemPathways::ChartBase
     include SystemPathways::Equity::Race
     include SystemPathways::Equity::Ethnicity
-    # include SystemPathways::Equity::RaceAndEthnicity
+    include SystemPathways::Equity::RaceAndEthnicity
     include SystemPathways::Equity::Veteran
     include SystemPathways::Equity::Chronic
     include SystemPathways::Equity::InvolvesCe
