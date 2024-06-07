@@ -60,7 +60,6 @@ module HmisDataQualityTool::WarehouseReports
         'hmis_dq_tool_time_to_enter',
         'hmis_dq_tool_time_in_enrollment',
       ]
-      # render(layout: 'layouts/performance_report')
     end
 
     def create
