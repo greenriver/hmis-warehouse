@@ -58,6 +58,8 @@
   = content_for :page_js do
     :javascript
       (function($) {
+        console.log(#{@report.average_time_to_enter(current_user).to_json.html_safe})
+
         var time_to_enter = new App.DataQualityReports.TimeToEnter(#{@report.average_time_to_enter(current_user).to_json.html_safe}, '.time-to-enter-chart', '#{polymorphic_path(@support_path, @report_keys.merge({method: "average_time_to_enter"}))}');
         time_to_enter.build_chart();
 

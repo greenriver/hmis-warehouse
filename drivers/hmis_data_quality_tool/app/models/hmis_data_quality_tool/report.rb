@@ -380,29 +380,52 @@ module HmisDataQualityTool
       sum / count
     end
 
-    def average_time_to_enter(user = nil)
-      @average_time_to_enter ||= begin
-        # these need to be padded front and back for chart js to correctly show the goal
-        labels = ['', 'Days to Entry', '']
-        data = {}
-        goal = [timeliness_entry_goal, timeliness_entry_goal, timeliness_entry_goal]
-        report_projects.each do |project|
-          count = time_to_enter_by_project_id[project.project_id] || 0
-          denominator = entering_clients.where(project_id: project.project_id).count
-          average_timeliness = begin
-                                 (count.to_f / denominator).round
-                               rescue StandardError
-                                 0
-                               end
-          data[project.id] = [0, average_timeliness, 0]
-        end
-        data = re_key_on_project_name(data, user)
-        {
-          labels: labels,
-          data: data.merge('Goal' => goal),
-          projects: projects.map { |p| [p.name(user), p.id] }.to_h,
-        }
+    def average_days_to_enter_entry_date
+      count = enrollments.count
+      sum = enrollments.sum(:days_to_enter_entry_date)
+
+      return 0 if count.zero?
+
+      sum / count
+    end
+
+    def average_days_to_enter_exit_date
+      # Only count enrollments with an exit date
+      scope = enrollments.where.not(exit_date: nil)
+      count = scope.count
+      sum = scope.sum(:days_to_enter_exit_date)
+
+      return 0 if count.zero?
+
+      sum / count
+    end
+
+    def average_time_to_enter_date(date_type)
+      days = 0
+      goal = 0
+      label = ''
+      case date_type
+      when :entry
+        days = average_days_to_enter_entry_date
+        goal = timeliness_entry_goal
+        label = 'Days to Enter Enrollment Record'
+      when :exit
+        days = average_days_to_enter_exit_date
+        goal = timeliness_exit_goal
+        label = 'Days to Enter Exit Record'
+      else
+        raise 'Unknown date type'
       end
+      # these need to be padded front and back for chart js to correctly show the goal
+      labels = ['', label, '']
+      goal = [goal, goal, goal]
+      {
+        labels: labels,
+        data: {
+          'Goal' => goal,
+          'Days' => [0, days, 0],
+        },
+      }
     end
 
     def timeliness_entry_goal
@@ -411,6 +434,17 @@ module HmisDataQualityTool
 
     def timeliness_exit_goal
       goal_config.exit_date_entered_length # days
+    end
+
+    def goal_segments
+      @goal_segments ||= goal_config&.active_segments
+    end
+
+    def completeness_target
+      return nil unless goal_segments.present?
+
+      # Return the bottom of the top segment
+      goal_segments.values.map(&:first).max.inspect
     end
 
     def completeness(category)
@@ -423,6 +457,7 @@ module HmisDataQualityTool
           'Valid': completeness_data.map(&:percent_valid),
           'Invalid': completeness_data.map(&:percent_invalid),
         }
+        data['Target'] = Array.new(columns.count) { completeness_target } if completeness_target.present?
         {
           labels: labels,
           data: data,

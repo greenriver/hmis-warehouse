@@ -1,12 +1,16 @@
 .page-break-avoid
   %h2.mt-2 Enrollment Completeness
-  .completeness-chart.jChart{class: "completeness-chart-enrollments"}
-    %p.jLoading Loading
-
+  - if @pdf
+    .completeness-chart.jChart{class: "completeness-chart-enrollments"}
+      %p.jLoading Loading
+  - else
+    .prs-chart-width-container
+      .completeness-chart.jChart{class: "completeness-chart-enrollments"}
+        %p.jLoading Loading
 = content_for :page_js do
   :javascript
     (function($) {
-      var completeness_enrollments = new App.DataQualityReports.Completeness(
+      var completeness_enrollments = new HmisDqToolCompleteness(
         #{@report.completeness('Enrollments').to_json.html_safe},
         '.completeness-chart-enrollments',
         '#{by_chart_hmis_data_quality_tool_warehouse_reports_report_path}'
