@@ -1,61 +1,30 @@
-# TODO: This part is in progress. The chart is mostly together here, but the data is not linked.
 .page-break-avoid
   %h2.mt-2 Timeliness
   .well.overflow-scroll
     .row
       .col-sm-6
         %h3.text-center Time to Enter
-        .row
-          .col-sm-6
-            %h4.text-center Goal
-            %hr
-            %p.text-center
-              %strong #{pluralize(@report.timeliness_entry_goal, 'day')} or less
-          .col-sm-6
-            %h4.text-center
-              -# - if @report.report_type == :project_group
-              -#   Projects
-              -# - else
-              This Project
-            %hr
-            -# %ul.list-unstyled.text-center
-            -#   = @report.describe_completeness :describe_time_to_enter
-          .time-to-enter-chart.jChart
-            %p.jLoading Loading
+        %h4.text-center Goal: #{pluralize(@report.timeliness_entry_goal, 'day')} or less
+        .time-to-enter-chart.jChart
+          %p.jLoading Loading
       .col-sm-6
         %h3.text-center Time to Exit
-        .row
-          .col-sm-6
-            %h4.text-center Goal
-            %hr
-            %p.text-center
-              %strong #{pluralize(@report.timeliness_exit_goal, 'day')} or less
-          .col-sm-6
-            %h4.text-center
-              -# - if @report.report_type == :project_group
-              -#   Projects
-              -# - else
-              This Project
-            %hr
-            -# %ul.list-unstyled.text-center
-            -#   = @report.describe_completeness :describe_time_to_exit
-          .time-to-exit-chart.jChart
-            %p.jLoading Loading
+        %h4.text-center Goal: #{pluralize(@report.timeliness_exit_goal, 'day')} or less
+        .time-to-exit-chart.jChart
+          %p.jLoading Loading
 
 = content_for :page_js do
   :javascript
     (function($) {
-      var time_to_enter = new App.DataQualityReports.TimeToEnter(
-        #{@report.average_days_before_entry.to_json.html_safe}, 
-        '.time-to-enter-chart', 
-        '#{by_chart_hmis_data_quality_tool_warehouse_reports_report_path}'
+      var time_to_enter = new HmisDqToolTimeToEnter(
+        #{@report.average_time_to_enter_date(:entry).to_json.html_safe},
+        '.time-to-enter-chart',
         );
       time_to_enter.build_chart();
 
-      var time_to_exit = new App.DataQualityReports.TimeToExit(
-        #{@report.average_days_before_entry.to_json.html_safe}, 
-        '.time-to-exit-chart', 
-        '#{by_chart_hmis_data_quality_tool_warehouse_reports_report_path}'
+      var time_to_exit = new HmisDqToolTimeToEnter(
+        #{@report.average_time_to_enter_date(:exit).to_json.html_safe},
+        '.time-to-exit-chart',
         );
       time_to_exit.build_chart();
 
