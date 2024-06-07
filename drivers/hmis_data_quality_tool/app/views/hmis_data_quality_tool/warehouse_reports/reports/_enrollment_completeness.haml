@@ -1,13 +1,9 @@
 .page-break-avoid
   %h2.mt-2 Enrollment Completeness
   .well
-    - if @pdf
+    .prs-chart-no-legend-width-container
       .completeness-chart.jChart{class: "completeness-chart-enrollments"}
         %p.jLoading Loading
-    - else
-      .prs-chart-width-container
-        .completeness-chart.jChart{class: "completeness-chart-enrollments"}
-          %p.jLoading Loading
 = content_for :page_js do
   :javascript
     (function($) {

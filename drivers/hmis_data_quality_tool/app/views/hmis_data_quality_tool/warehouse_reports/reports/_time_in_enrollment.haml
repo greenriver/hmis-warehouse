@@ -27,6 +27,6 @@
 = content_for :page_js do
   :javascript
     (function($) {
-      var time_in_program = new App.DataQualityReports.TimeInProgram(#{@report.time_in_enrollment_chart.to_json.html_safe}, '.time-in-program-chart');
+      var time_in_program = new HmisDqToolTimeInEnrollment(#{@report.time_in_enrollment_chart.to_json.html_safe}, '.time-in-program-chart');
       time_in_program.build_chart();
     })(jQuery);
