@@ -11,13 +11,18 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   self.table_name = :hmis_form_processors
   has_paper_trail
 
-  # The assessment that was processed with this processor.
-  # If processor is being used as in-memory processor for records, this will be empty.
-  belongs_to :custom_assessment, class_name: 'Hmis::Hud::CustomAssessment', optional: false
-  # Definition that was most recently used to process this assessment
+  # The 'owner' is the primary record that is being processed. Could be a CustomAssessment, Client, Project, etc.
+  # TODO: change to optional: false
+  belongs_to :owner, polymorphic: true, optional: true
+  # TODO: remove this relation and drop the column
+  belongs_to :custom_assessment, class_name: 'Hmis::Hud::CustomAssessment', optional: true
+
+  # Definition that was most recently used to process this form
   belongs_to :definition, class_name: 'Hmis::Form::Definition', optional: true
 
-  # Related records that were created/updated from this assessment
+  # Related records that were created/updated from this form
+  # Note: these do not have dependent:destroy because we need to be able to clean up forms without
+  # deleting records during migration. Deletion of related records happens with `destroy_dependent_records!`
   belongs_to :health_and_dv, class_name: 'Hmis::Hud::HealthAndDv', optional: true, autosave: true
   belongs_to :income_benefit, class_name: 'Hmis::Hud::IncomeBenefit', optional: true, autosave: true
   belongs_to :physical_disability, class_name: 'Hmis::Hud::Disability', optional: true, autosave: true
@@ -37,11 +42,13 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   validate :hmis_records_are_valid, on: :form_submission
 
-  attr_accessor :owner, :hud_user, :current_user
+  attr_accessor :hud_user, :current_user
 
-  def run!(owner:, user:)
-    # Owner is the "base" record for the form, which could be an assessment, client, project, etc.
-    self.owner = owner
+  def custom_assessment?
+    owner_type == Hmis::Hud::CustomAssessment.sti_name
+  end
+
+  def run!(user:)
     # Set the HUD User and current user, so processors can store them on related records
     self.current_user = user
     self.hud_user = Hmis::Hud::User.from_user(user)
@@ -75,12 +82,12 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
       # If this is an assessment and all fields pertaining to this record type were hidden,
       # the related record should be destroyed. (For example, a Custom Assessment that conditionally creates a CE Event).
-      if custom_assessment.present? && containers_with_all_fields_hidden.include?(container) && processor.dependent_destroyable?
+      if custom_assessment? && containers_with_all_fields_hidden.include?(container) && processor.dependent_destroyable?
         processor.destroy_record
       else
         # This related record will be created or updated, so assign the metadata and information date.
         processor&.assign_metadata
-        processor&.information_date(custom_assessment.assessment_date) if custom_assessment.present?
+        processor&.information_date(owner.assessment_date) if custom_assessment?
       end
     end
 
@@ -135,12 +142,14 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
   end
 
   def store_assessment_questions!
+    return unless custom_assessment? && ce_assessment?
+
     # Queue up job to store CE Assessment responses in the HUD CE AssessmentQuestions table
     # Rspec test isolation interferes with delayed job transaction
     if Rails.env.test?
-      ::Hmis::AssessmentQuestionsJob.perform_now(custom_assessment_ids: custom_assessment_id)
+      ::Hmis::AssessmentQuestionsJob.perform_now(custom_assessment_ids: owner_id)
     else
-      ::Hmis::AssessmentQuestionsJob.perform_later(custom_assessment_ids: custom_assessment_id)
+      ::Hmis::AssessmentQuestionsJob.perform_later(custom_assessment_ids: owner_id)
     end
   end
 
@@ -154,20 +163,34 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
     return current_living_situation if current_living_situation.present? || !create
 
-    self.current_living_situation = enrollment_factory.current_living_situations.build(user_id: custom_assessment&.user_id)
+    self.current_living_situation = enrollment_factory.current_living_situations.build
   end
 
   def service_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
-    @service_factory ||= owner.owner if owner.is_a? Hmis::Hud::HmisService
+    @service_factory ||= owner if owner.is_a?(Hmis::Hud::Service) || owner.is_a?(Hmis::Hud::CustomService)
   end
 
   # Type Factories
+
+  # Enrollment is a special case, because it is not referenced by the FormProcessor.
+  # Enrollment can be the owner, or it can be related to the owner.
+  # Examples of forms that may update Enrollment:
+  #  - set EntryDate from intake assessment (owner_type=CustomAssessment)
+  #  - enroll an existing client (owner_type=Enrollment)
+  #  - update Move-in Date at occurrence (owner_type=Enrollment)
+  #
+  # In some other cases, the enrollment_factory is used to determine the relationship between records.
+  # An example is a CustomCaseNote form that generates a CurrentLivingSituation. The form does not update Enrollment directly,
+  # but it relies on the enrollment_factory to determine which enrollment to use when generating a new CLS (current_living_situation_factory)
   def enrollment_factory(create: true) # rubocop:disable Lint/UnusedMethodArgument
     @enrollment_factory ||= case owner
     when Hmis::Hud::CustomAssessment
       owner.enrollment
     when Hmis::Hud::Enrollment
       owner
+    else
+      # This is importantly mirrored in SubmitForm which saves the `record.enrollment` if it exists
+      owner.enrollment if owner.respond_to?(:enrollment)
     end
   end
 
@@ -187,11 +210,15 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
   end
 
+  # Common HUD Assessment-related attributes
   def common_attributes
+    data_collection_stage = owner.data_collection_stage if owner.respond_to?(:data_collection_stage)
+    personal_id = owner.personal_id if owner.respond_to?(:personal_id)
+    information_date = owner.information_date if owner.respond_to?(:information_date)
     {
-      data_collection_stage: custom_assessment&.data_collection_stage,
-      personal_id: custom_assessment&.personal_id,
-      information_date: custom_assessment&.assessment_date,
+      data_collection_stage: data_collection_stage,
+      personal_id: personal_id,
+      information_date: information_date,
     }
   end
 
@@ -202,9 +229,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       # Enrollment already has an Exit that's not tied to this processor (could occur in imported data..)
       self.exit = enrollment_factory.exit
     else
-      self.exit = enrollment_factory.build_exit(
-        user_id: custom_assessment&.user_id,
-      )
+      self.exit = enrollment_factory.build_exit
     end
   end
 
@@ -213,7 +238,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
     return ce_assessment if ce_assessment.present? || !create
 
-    self.ce_assessment = enrollment_factory.assessments.build(user_id: custom_assessment&.user_id)
+    self.ce_assessment = enrollment_factory.assessments.build
   end
 
   def ce_event_factory(create: true)
@@ -221,7 +246,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
     return ce_event if ce_event.present? || !create
 
-    self.ce_event = enrollment_factory.events.build(user_id: custom_assessment&.user_id)
+    self.ce_event = enrollment_factory.events.build
   end
 
   def health_and_dv_factory(create: true)
@@ -337,7 +362,8 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
       Exit: Hmis::Hud::Processors::ExitProcessor,
       # Form Records
       Client: Hmis::Hud::Processors::ClientProcessor,
-      HmisService: Hmis::Hud::Processors::ServiceProcessor,
+      Service: Hmis::Hud::Processors::ServiceProcessor,
+      CustomService: Hmis::Hud::Processors::ServiceProcessor,
       Organization: Hmis::Hud::Processors::OrganizationProcessor,
       Project: Hmis::Hud::Processors::ProjectProcessor,
       Inventory: Hmis::Hud::Processors::InventoryProcessor,
@@ -382,7 +408,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
   # Pull up any errors from the HMIS records
   private def hmis_records_are_valid
-    all_factories.excluding(:owner_factory, :service_factory).each do |factory_method|
+    all_factories.excluding(:owner_factory).each do |factory_method|
       record = send(factory_method, create: false)
       next unless record.present?
       next if record.valid?
@@ -391,7 +417,8 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     end
   end
 
-  def related_records
+  # All related records to validate. This includes the Enrollment record if present.
+  private def related_records
     all_factories.map do |factory_method|
       record = send(factory_method, create: false)
       # assessment is not considered a related record, other "owners" are
@@ -399,6 +426,25 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
 
       record
     end.compact.uniq
+  end
+
+  def destroy_related_records!
+    [
+      :health_and_dv,
+      :income_benefit,
+      :physical_disability,
+      :developmental_disability,
+      :chronic_health_condition,
+      :hiv_aids,
+      :mental_health_disorder,
+      :substance_use_disorder,
+      :exit,
+      :youth_education_status,
+      :employment_education,
+      :current_living_situation,
+      :ce_assessment,
+      :ce_event,
+    ].each { |assoc| send(assoc)&.destroy! }.compact
   end
 
   # Pull out the Assessment Date from the values hash
@@ -428,7 +474,7 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
           true # reject
         # Skip validations for Information Date if this is an assessment,
         # since we validate the assessment date separately using CustomAssessmentValidator
-        elsif custom_assessment.present? && e.attribute.to_s.underscore == 'information_date'
+        elsif custom_assessment? && e.attribute.to_s.underscore == 'information_date'
           true # reject
         else
           false
@@ -452,9 +498,9 @@ class Hmis::Form::FormProcessor < ::GrdaWarehouseBase
     # Collect ActiveRecord validations (as HmisErrors)
     errors = collect_active_record_errors
     # Collect validations on the Assessment Date (if this is an assessment form)
-    if custom_assessment.present?
+    if custom_assessment?
       errors.push(*Hmis::Hud::Validators::CustomAssessmentValidator.validate_assessment_date(
-        custom_assessment,
+        owner, # CustomAssessment record
         # Need to pass household members so we can validate based on their unpersisted entry/exit dates
         household_members: household_members,
       ))

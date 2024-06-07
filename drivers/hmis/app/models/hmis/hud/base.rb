@@ -107,4 +107,11 @@ class Hmis::Hud::Base < ::GrdaWarehouseBase
   def self.timestamp_attributes_for_update
     super << 'DateUpdated'
   end
+
+  MAX_PK = 2_147_483_648 # PK is a 4 byte signed INT (2 ** ((4 * 8) - 1))
+
+  # Determine whether the given search term is possibly a Primary Key (it's numeric and less than 4 bytes)
+  def self.possibly_pk?(search_term) # could add optional arg for 4 byte vs 8 byte, if needed later
+    search_term =~ /\A\d+\z/ && search_term.to_i < MAX_PK
+  end
 end

@@ -1,5 +1,5 @@
 namespace :us_census_api do
-  desc "Uses the census API to pull down all the variables we need into a usable form and then do some post-processing if needed"
+  desc 'Uses the census API to pull down all the variables we need into a usable form and then do some post-processing if needed'
   # NOTE: you can check the status of the data in the database with
   #  bin/rake us_census_api:summary
   # If for whatever reason it isn't adding a particular year, you may need to
@@ -10,7 +10,7 @@ namespace :us_census_api do
   task :all, [] => [:shapes, :vars, :import, :coc_agg, :town_agg, :summary, :test]
 
   task :setup, [] => [:environment] do
-    @levels = ENV.fetch('US_CENSUS_LEVELS') {
+    @levels = ENV.fetch('US_CENSUS_LEVELS') do
       [
         'STATE',
         'COUNTY',
@@ -18,14 +18,14 @@ namespace :us_census_api do
         'PLACE',
         # 'BG',  # block groups
       ].join(':')
-    }.split(":")
+    end.split(':')
 
-    @state_code = ENV.fetch('RELEVANT_COC_STATE')
+    @state_codes = GrdaWarehouse::Config.relevant_state_codes
     @years = ENV.fetch('US_CENSUS_API_YEARS') { 2012.upto(Date.today.year - 2).map(&:to_s).join(',') }.split(/,/).map(&:to_i)
     @datasets = ENV.fetch('US_CENSUS_API_DATASETS') { 'acs5' }.split(/,/).filter { |d| d.match(/acs5|sf1/) }
   end
 
-  desc "Ensure shapes have full geoid so they can be linked to the census values"
+  desc 'Ensure shapes have full geoid so they can be linked to the census values'
   task :shapes, [] => [:environment] do
     [
       GrdaWarehouse::Shape::BlockGroup,
@@ -41,24 +41,29 @@ namespace :us_census_api do
     end
   end
 
-  desc "Get the available variables from the US Census"
+  desc 'Get the available variables from the US Census'
   task :vars, [] => [:setup, :environment] do
-    importer = GrdaWarehouse::UsCensusApi::Importer.new(years: @years, datasets: @datasets, state_code: @state_code, levels: @levels)
+    # We need to provide a state for the importer, but it isn't actually used in bootstrap_variables!,
+    # just use the first state
+    state_code = @state_codes.first
+    importer = GrdaWarehouse::UsCensusApi::Importer.new(years: @years, datasets: @datasets, state_code: state_code, levels: @levels)
     importer.bootstrap_variables!
   end
 
-  desc "Get data from the US Census"
+  desc 'Get data from the US Census'
   task :import, [] => [:setup, :environment] do
-    importer = GrdaWarehouse::UsCensusApi::Importer.new(years: @years, datasets: @datasets, state_code: @state_code, levels: @levels)
-    importer.run!
+    @state_codes.each do |state_code|
+      importer = GrdaWarehouse::UsCensusApi::Importer.new(years: @years, datasets: @datasets, state_code: state_code, levels: @levels)
+      importer.run!
+    end
   end
 
-  desc "Aggregate values so CoC geometries can use same interface to census data"
+  desc 'Aggregate values so CoC geometries can use same interface to census data'
   task :coc_agg, [] => [:setup, :environment] do
     GrdaWarehouse::UsCensusApi::CocAgg.run!
   end
 
-  desc "Aggregate values so Town geometries can use same interface to census data"
+  desc 'Aggregate values so Town geometries can use same interface to census data'
   task :town_agg, [] => [:setup, :environment] do
     GrdaWarehouse::UsCensusApi::TownAgg.run!
   end
@@ -80,19 +85,19 @@ namespace :us_census_api do
       group by year
       order by year
     SQL
-    puts "Total number of values for each year/geometry(geography)"
-    puts "%4s %15s %15s %15s %15s %15s %15s" % ['year', 'state_count', 'county_count', 'zip_code_count', 'coc_count', 'place_count', 'town_count']
+    puts 'Total number of values for each year/geometry(geography)'
+    puts format('%4s %15s %15s %15s %15s %15s %15s', 'year', 'state_count', 'county_count', 'zip_code_count', 'coc_count', 'place_count', 'town_count')
     result.each do |row|
-      puts "%4d %15d %15d %15d %15d %15d  %15d" % [row['year'].presence || 0, row['state_count'].presence || 0, row['county_count'].presence || 0, row['zip_code_count'].presence || 0, row['coc_count'].presence || 0, row['place_count'].presence || 0, row['town_count'].presence || 0]
+      puts format('%4d %15d %15d %15d %15d %15d  %15d', row['year'].presence || 0, row['state_count'].presence || 0, row['county_count'].presence || 0, row['zip_code_count'].presence || 0, row['coc_count'].presence || 0, row['place_count'].presence || 0, row['town_count'].presence || 0)
     end
   end
 
-  desc "Run some computations that sanity check the values"
-  task :test, [] => [:environment] do |t, args|
+  desc 'Run some computations that sanity check the values'
+  task :test, [] => [:environment] do |_t, _args|
     GrdaWarehouse::UsCensusApi::TestSuite.run_all!
   end
 
-  desc "debug"
+  desc 'debug'
   task :debug, [] => [:environment] do
     report = PublicReports::HomelessPopulation.find(2)
 

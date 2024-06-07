@@ -8,7 +8,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   include ::HmisStructure::Enrollment
   include ::Hmis::Hud::Concerns::Shared
   include ::HudConcerns::Enrollment
-  include ::Hmis::Hud::Concerns::HasCustomDataElements
+  include ::Hmis::Hud::Concerns::FormSubmittable
   include ::Hmis::Hud::Concerns::ServiceHistoryQueuer
 
   self.table_name = :Enrollment
@@ -148,11 +148,10 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     search_term.strip!
 
     alpha_numeric = /[[[:alnum:]]-]+/.match(search_term).try(:[], 0) == search_term
-    numeric = /[\d-]+/.match(search_term).try(:[], 0) == search_term
 
-    # If numeric, check if it's an Enrollment primary key
-    if numeric
-      matching_enrollments = where(id: search_term)
+    # If it's a possible PK, check if it's an Enrollment primary key
+    if possibly_pk?(search_term)
+      matching_enrollments = where(id: search_term.to_i)
       return matching_enrollments if matching_enrollments.exists?
     end
 

@@ -317,6 +317,9 @@ namespace :grda_warehouse do
       Hmis::AutoExitJob.perform_now
     end
 
+    # Run CSG Engage export if ready
+    MaReports::CsgEngage::Report.run_if_ready if RailsDrivers.loaded.include?(:ma_reports)
+
     if DateTime.current.hour == 20 && HmisEnforcement.hmis_enabled? && GrdaWarehouse::DataSource.hmis.exists? && RailsDrivers.loaded.include?(:hmis_external_apis)
       # Run AC Data Warehouse exports to SFTP server at 8pm
       Rake::Task['driver:hmis_external_apis:export:ac_clients'].invoke
