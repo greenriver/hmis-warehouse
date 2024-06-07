@@ -10,7 +10,6 @@
       var completeness_clients = new HmisDqToolCompleteness(
         #{@report.completeness('Clients').to_json.html_safe},
         '.completeness-chart-clients',
-        '#{by_chart_hmis_data_quality_tool_warehouse_reports_report_path}'
         );
       completeness_clients.build_chart();
     })(jQuery);

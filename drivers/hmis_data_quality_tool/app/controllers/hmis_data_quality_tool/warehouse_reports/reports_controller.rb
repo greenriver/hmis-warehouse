@@ -60,6 +60,7 @@ module HmisDataQualityTool::WarehouseReports
         'hmis_dq_tool_time_to_enter',
         'hmis_dq_tool_time_in_enrollment',
       ]
+      # render(layout: 'layouts/performance_report')
     end
 
     def create
@@ -140,7 +141,7 @@ module HmisDataQualityTool::WarehouseReports
     end
 
     private def set_chart_pdf_export
-      @pdf_export = HmisDataQualityTool::DocumentExports::ReportExport.new
+      @pdf_export = HmisDataQualityTool::DocumentExports::ReportChartPdfExport.new
     end
 
     private def set_excel_export
