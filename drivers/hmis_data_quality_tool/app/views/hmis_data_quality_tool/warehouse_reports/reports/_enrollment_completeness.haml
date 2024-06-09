@@ -1,0 +1,15 @@
+.page-break-avoid
+  %h2.mt-2 Enrollment Completeness
+  .well
+    .prs-chart-no-legend-width-container
+      .completeness-chart.jChart{class: "completeness-chart-enrollments"}
+        %p.jLoading Loading
+= content_for :page_js do
+  :javascript
+    $(function() {
+      var completeness_enrollments = new HmisDqToolCompleteness(
+        #{@report.completeness('Enrollments').to_json.html_safe},
+        '.completeness-chart-enrollments',
+        );
+      completeness_enrollments.build_chart();
+    });
