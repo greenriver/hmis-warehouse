@@ -23,6 +23,7 @@ module HmisDataQualityTool::DocumentExports
         pdf: true,
         # Ensure we have per-page JS
         per_page_js: [
+          'hmis_dq_tool_chart',
           'hmis_dq_tool_completeness',
           'hmis_dq_tool_time_to_enter',
           'hmis_dq_tool_time_in_enrollment',

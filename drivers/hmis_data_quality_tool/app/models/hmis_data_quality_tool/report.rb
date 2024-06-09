@@ -368,7 +368,7 @@ module HmisDataQualityTool
       return 100 if denominator.zero?
       return 0 if numerator.zero?
 
-      ((numerator / denominator.to_f) * 100).round
+      percent(denominator, numerator)
     end
 
     def average_days_before_entry
@@ -377,7 +377,7 @@ module HmisDataQualityTool
 
       return 0 if count.zero?
 
-      sum / count
+      (sum / count.to_f).round
     end
 
     def average_days_to_enter_entry_date
@@ -386,7 +386,7 @@ module HmisDataQualityTool
 
       return 0 if count.zero?
 
-      sum / count
+      (sum / count.to_f).round
     end
 
     def average_days_to_enter_exit_date
@@ -397,7 +397,7 @@ module HmisDataQualityTool
 
       return 0 if count.zero?
 
-      sum / count
+      (sum / count.to_f).round
     end
 
     def average_time_to_enter_date(date_type)
@@ -477,7 +477,7 @@ module HmisDataQualityTool
       sum = scope.sum(:lot)
       return 0 if count.zero?
 
-      sum / count
+      (sum / count.to_f).round
     end
 
     def percent_enrollments_over_one_year(project_type_slug)
@@ -488,7 +488,7 @@ module HmisDataQualityTool
       denominator = scope.count
       return 0 if denominator.zero?
 
-      ((numerator / denominator.to_f) * 100).round
+      percent(denominator, numerator)
     end
 
     private def enrollments_of_length(range, project_type_slug)
@@ -506,7 +506,7 @@ module HmisDataQualityTool
       return nil unless goal_segments.present?
 
       # Return the bottom of the top segment
-      goal_segments.values.map(&:first).max.inspect
+      goal_segments.values.map(&:first).max
     end
 
     def completeness(category)

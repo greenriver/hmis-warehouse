@@ -1,5 +1,10 @@
-class HmisDqToolCompleteness {
+// Because this needs to be inlined for PDF generation, we don't actually import from
+// the base chart, we include the base chart file and use globalThis
+// import HmisDqToolChart from './hmis_dq_tool_chart'
+
+class HmisDqToolCompleteness extends HmisDqToolChart {
   constructor(data, chart_selector) {
+    super(data, chart_selector)
     this._set_columns = this._set_columns.bind(this);
     this._colors = this._colors.bind(this);
     this.data = data;
@@ -93,26 +98,6 @@ class HmisDqToolCompleteness {
         }
       }
     });
-  }
-
-  _colors(c, d) {
-    let color;
-    let key = d;
-    if (key.id != null) {
-      key = key.id;
-    }
-    const colors = ['#091f2f', '#fb4d42', '#288be4', '#d2d2d2'];
-    if (['Goal', 'Average', 'Target'].includes(key)) {
-      color = 'rgb(228, 228, 228)';
-    } else {
-      color = this.color_map[key];
-      if ((color == null)) {
-        color = colors[this.next_color++];
-        this.color_map[key] = color;
-        this.next_color = this.next_color % colors.length;
-      }
-    }
-    return color;
   }
 };
 globalThis.HmisDqToolCompleteness = HmisDqToolCompleteness;
