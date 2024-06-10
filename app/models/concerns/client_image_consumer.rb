@@ -10,14 +10,14 @@ module ClientImageConsumer
     has_many :client_files unless respond_to?(:client_files)
     has_many :source_eto_client_lookups, through: :source_clients, source: :eto_client_lookups
 
-    # Returns actual image bytes. Cache time limit not yet implemented.
-    # @return [String, nil] image data or nil
+    # Cache time limit not yet implemented
+    # @return [String, nil] actual image bytes.
     def image(_cache_for = 10.minutes)
-      # Check first for locally uploaded image or a cached ETO image
-      # Otherwise, check for an image connected to the source client
       if source?
         image_for_source_client
       else
+        # Check first for locally uploaded image or a cached ETO image
+        # Otherwise, check for an image connected to the source client
         local_client_image_data || source_clients.detect(&:image_for_source_client)&.image_for_source_client
       end
     end
