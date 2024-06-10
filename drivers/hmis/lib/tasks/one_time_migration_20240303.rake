@@ -115,8 +115,8 @@ class OneTimeMigration20230303
     return value if valid_identifier?(value)
 
     value = value.strip
-    # value is just a number
-    value = value =~ /\A[0-9]+\z/ ? "q_#{value}" : value
+    # value starts with a number
+    value = value =~ /\A[0-9]/ ? "q_#{value}" : value
     # leading number with a period seems to be HUD ref numbers like "2.02.6"
     value = value =~ /\A[^a-z]+\./i ? "hud_#{value}" : value
     # snakecase hyphenated strings or spaces
