@@ -103,7 +103,8 @@ class GrdaWarehouse::PiiProvider
   # @return [String, nil] (client.image is a string)
   def image
     result = policy.can_view_client_photo? ? record.image : nil
-    # preserving logic from view; seems like intent was to filter out junk images
+    # using length > 100 instead of present?  present? doesn't like
+    # some UTF-8/binary
     result && result.length > 100 ? result : nil
   end
 
