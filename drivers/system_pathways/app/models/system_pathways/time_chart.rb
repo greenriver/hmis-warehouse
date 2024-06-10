@@ -12,7 +12,7 @@ module SystemPathways
     include SystemPathways::ChartBase
     include SystemPathways::TimeChart::Race
     include SystemPathways::TimeChart::Ethnicity
-    # include SystemPathways::TimeChart::RaceAndEthnicity
+    include SystemPathways::TimeChart::RaceAndEthnicity
     include SystemPathways::TimeChart::Veteran
     include SystemPathways::TimeChart::Chronic
     include SystemPathways::TimeChart::InvolvesCe
