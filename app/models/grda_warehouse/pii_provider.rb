@@ -29,18 +29,19 @@ class GrdaWarehouse::PiiProvider
     @record = record
   end
 
-  PiiProviderRecordAdapter = Struct.new(:first_name, :last_name, :middle_name, :ssn, :dob, keyword_init: true)
+  PiiProviderRecordAdapter = Struct.new(:first_name, :last_name, :middle_name, :ssn, :dob, :image, keyword_init: true)
   private_constant :PiiProviderRecordAdapter
 
   # use when you don't have a client model, only ids (for example in reporting)
   # GrdaWarehouse::PiiProvider.from_attributes(policy: client_policy, dob: client_dob)
-  def self.from_attributes(policy: nil, first_name: nil, last_name: nil, middle_name: nil, dob: nil, ssn: nil)
+  def self.from_attributes(policy: nil, first_name: nil, last_name: nil, middle_name: nil, dob: nil, ssn: nil, image: nil)
     record = PiiProviderRecordAdapter.new(
       first_name: first_name,
       last_name: last_name,
       middle_name: middle_name,
       dob: dob,
       ssn: ssn,
+      image: image,
     )
     new(record, policy: policy)
   end
@@ -97,6 +98,14 @@ class GrdaWarehouse::PiiProvider
     value = record.ssn.presence
     mask = force_mask || !policy.can_view_full_ssn?
     format_ssn(value, mask: mask) if value
+  end
+
+  # @return [String, nil] (client.image is a string)
+  def image
+    result = policy.can_view_client_photo? ? record.image : nil
+    # using length > 100 instead of present?  present? doesn't like
+    # some UTF-8/binary
+    result && result.length > 100 ? result : nil
   end
 
   protected
