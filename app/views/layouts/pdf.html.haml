@@ -63,9 +63,11 @@
 
     #d3-tooltip
     = render 'layouts/ajax_modal_frame'
-    = javascript_include_tag 'application'
-    = javascript_include_tag('https://cdnjs.cloudflare.com/ajax/libs/chance/1.0.4/chance.min.js') if Rails.env.development?
 
+    = inline_javascript_include_tag 'application_esbuild', 'data-turbo-track': 'reload', defer: true
+    - if @per_page_js.present?
+      - @per_page_js.each do |js_file|
+        = inline_javascript_include_tag js_file
     = yield :page_js
     - if current_user
       = render "inactive_session_modal"
