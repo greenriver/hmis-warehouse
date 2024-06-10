@@ -15,6 +15,11 @@ module GrdaWarehouse
       CasBase.db_exists?
     end
 
+    def self.relevant_state_codes
+      # NOTE: memoized class variable, only changes on restart/redeploy
+      @relevant_state_codes ||= ENV['RELEVANT_COC_STATE']&.split(',') || ['MA']
+    end
+
     def self.available_cas_methods
       {
         'Use Available in CAS flag' => :cas_flag,

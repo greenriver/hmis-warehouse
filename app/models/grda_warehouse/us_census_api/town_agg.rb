@@ -18,7 +18,7 @@ module GrdaWarehouse
       attr_accessor :candidates
 
       def self.run!
-        Shape::Town.my_state.find_each do |town|
+        Shape::Town.my_states.find_each do |town|
           puts town.town
 
           agg = new(town: town)

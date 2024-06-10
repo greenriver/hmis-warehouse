@@ -11,5 +11,11 @@ BostonHmis::Application.routes.draw do
         get :details, on: :member
       end
     end
+
+    namespace :csg_engage do
+      get '/', to: 'base#index'
+      resources :reports, only: [:show, :index]
+      resources :configurations, only: [:index]
+    end
   end
 end

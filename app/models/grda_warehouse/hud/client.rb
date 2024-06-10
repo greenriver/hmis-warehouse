@@ -1838,7 +1838,7 @@ module GrdaWarehouse::Hud
     # @param sorted [Boolean] order results by closest match to text
     def self.text_search(text, client_scope: nil, sorted: false)
       # Get search results from client scope. Then return the unique destination client records that map to those matching source records
-      relation = client_scope || self
+      relation = (client_scope || self) # rubocop:disable Style/RedundantParentheses
       # with resolve_for_join_query, results are client.scope.select(:client_id, :score) suitable for subquery
       results = relation.searchable.text_searcher(text, sorted: sorted, resolve_for_join_query: true)
       return relation.none if results.nil?

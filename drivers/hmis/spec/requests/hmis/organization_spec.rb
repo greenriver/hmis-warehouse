@@ -68,5 +68,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(orgs.length).to eq(1)
       expect(orgs.first['organizationName']).to eq(o1.organization_name)
     end
+
+    it 'does not error when a large integer is passed' do
+      response, result = post_graphql(filters: { search_term: '73892738928' }) { query }
+      expect(response.status).to eq 200
+      orgs = result.dig('data', 'organizations', 'nodes')
+      expect(orgs.length).to eq(0)
+    end
   end
 end
