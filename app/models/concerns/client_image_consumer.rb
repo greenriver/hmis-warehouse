@@ -13,13 +13,12 @@ module ClientImageConsumer
     # Cache time limit not yet implemented
     # @return [String, nil] actual image bytes.
     def image(_cache_for = 10.minutes)
-      if source?
-        image_for_source_client
-      else
-        # Check first for locally uploaded image or a cached ETO image
-        # Otherwise, check for an image connected to the source client
-        local_client_image_data || source_clients.detect(&:image_for_source_client)&.image_for_source_client
-      end
+      # If we call `image` on a source client, return the attached image
+      return image_for_source_client if source?
+
+      # Check first for locally uploaded image or a cached ETO image
+      # Otherwise, check for an image connected to any source client
+      local_client_image_data || source_clients.detect(&:image_for_source_client)&.image_for_source_client
     end
 
     def image_for_source_client(_cache_for = 10.minutes)
