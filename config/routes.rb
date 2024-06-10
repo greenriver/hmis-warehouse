@@ -775,6 +775,8 @@ Rails.application.routes.draw do
     # END_ACL
     resources :access_controls do
        post :assign, on: :collection
+       get :import, on: :collection
+       post :upload, on: :collection
      end
     resources :access_overviews, only: [:index]
     resources :user_groups do
