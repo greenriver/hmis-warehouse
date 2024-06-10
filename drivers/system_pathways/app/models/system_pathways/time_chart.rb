@@ -11,7 +11,7 @@ module SystemPathways
     include Memery
     include SystemPathways::ChartBase
     include SystemPathways::TimeChart::Race
-    # include SystemPathways::TimeChart::Ethnicity
+    include SystemPathways::TimeChart::Ethnicity
     # include SystemPathways::TimeChart::RaceAndEthnicity
     include SystemPathways::TimeChart::Veteran
     include SystemPathways::TimeChart::Chronic
