@@ -17,6 +17,14 @@ git clone git@github.com:greenriver/hmis-warehouse.git
 brew install lima colima docker docker-compose direnv
 colima template
 ```
+Tell colima how to use `docker compose` (in addition to `docker-compose`) for docker desktop compatability
+add the following to `~/.docker/config.json`:
+```
+"cliPluginsExtraDirs": [
+  "/opt/homebrew/lib/docker/cli-plugins"
+]
+```
+
 Adjust the following settings:
 ```
 cpu: 8
