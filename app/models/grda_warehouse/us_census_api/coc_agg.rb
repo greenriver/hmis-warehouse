@@ -70,8 +70,11 @@ module GrdaWarehouse
           area_in_coc =
             if intersection.geometry_type.in?([RGeo::Feature::MultiPolygon, RGeo::Feature::Polygon])
               GrdaWarehouse::Shape::SpatialRefSys.to_meters(intersection).area
+            elsif intersection.is_a?(RGeo::Feature::LineString) || intersection.is_a?(RGeo::Feature::Point)
+              # The result can be a single degenerate geometry
+              0
             else
-              # We have to exclude points and lines that have no area
+              # We have to exclude points and lines that have no area that are part of a set of otherwise acceptable geometries
               intersection.
                 reject { |shape| shape.geometry_type.in?([RGeo::Feature::LineString, RGeo::Feature::Point]) }.
                 map { |shape| GrdaWarehouse::Shape::SpatialRefSys.to_meters(shape).area }.
