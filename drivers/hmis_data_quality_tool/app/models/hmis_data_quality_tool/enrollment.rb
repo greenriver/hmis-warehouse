@@ -95,6 +95,25 @@ module HmisDataQualityTool
         ch_at_entry: { title: 'Chronically Homeless at Entry' },
         enrollment_anniversary_date: { title: 'Enrollment anniversary' },
         annual_assessment_status: { title: 'Missing assessments', translator: ->(v) { v.map(&:humanize).join(', ') } },
+        percent_ami: { title: 'Income as a Percent of AMI', translator: ->(v) { "#{HudUtility2024.percent_ami(v)} (#{v})" } },
+        vamc_station: { title: 'VAMC Station Number' },
+        veteran: { title: 'Veteran', translator: ->(v) { "#{HudUtility2024.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        hoh_veteran: { title: 'Head of Household is a Veteran' },
+        hh_veteran_count: { title: 'Count of Veterans in Household' },
+        target_screen_required: { title: 'Homelessness Prevention Targeting Screening is Required', translator: ->(v) { "#{HudUtility2024.no_yes(v)} (#{v})" } },
+        target_screen_completed: { title: 'Homelessness Prevention Targeting Screening is Completed' },
+        total_monthly_income_at_entry: { title: 'Total Monthly Income At Entry' },
+        total_monthly_income_from_source_at_entry: { title: 'Total Income From Sources At Entry' },
+        total_monthly_income_at_exit: { title: 'Total Monthly Income At Exit' },
+        total_monthly_income_from_source_at_exit: { title: 'Total Income From Sources At Exit' },
+        afghanistan_oef: { title: 'Afghanistan (Operation Enduring Freedom)', translator: ->(v) { "#{HudUtility2024.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        iraq_oif: { title: 'Iraq (Operation Iraqi Freedom)', translator: ->(v) { "#{HudUtility2024.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        iraq_ond: { title: 'Iraq (Operation New Dawn)', translator: ->(v) { "#{HudUtility2024.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        military_branch: { title: 'Military Branch', translator: ->(v) { "#{HudUtility2024.military_branch(v)} (#{v})" } },
+        discharge_status: { title: 'Discharge Status', translator: ->(v) { "#{HudUtility2024.discharge_status(v)} (#{v})" } },
+        employed: { title: 'Employed', translator: ->(v) { "#{HudUtility2024.no_yes_reasons_for_missing_data(v)} (#{v})" } },
+        employment_type: { title: 'Employment Type', translator: ->(v) { "#{HudUtility2024.employment_type(v)} (#{v})" } },
+        not_employed_reason: { title: 'Reason Not Employed', translator: ->(v) { "#{HudUtility2024.not_employed_reason(v)} (#{v})" } },
       }.freeze
     end
 
@@ -150,7 +169,7 @@ module HmisDataQualityTool
           :income_benefits_at_exit,
           :income_benefits_annual_update,
           client: :warehouse_client_source,
-          project: :project_cocs,
+          project: [:project_cocs, :funders],
         ).
         merge(report.report_scope).distinct
     end
@@ -209,8 +228,9 @@ module HmisDataQualityTool
       report_item.data_source_id = enrollment.data_source_id
       report_item.project_id = enrollment.project.id
       report_item.project_name = enrollment.project.name(report.user)
-      project_type =  enrollment.project.project_type_to_use
+      project_type = enrollment.project.project_type
       report_item.project_type = project_type
+      report_item.funders = enrollment.project.funders.map(&:Funder).reject(&:blank?).map(&:to_i)
       report_item.entry_date = enrollment.EntryDate
       report_item.move_in_date = enrollment.MoveInDate
       report_item.exit_date = enrollment.exit&.ExitDate
@@ -231,6 +251,22 @@ module HmisDataQualityTool
       report_age_date = [enrollment.EntryDate, report.filter.start].max
       report_item.age = enrollment.client.age_on(report_age_date)
       report_item.ch_at_entry = enrollment.chronically_homeless_at_start?
+      report_item.percent_ami = enrollment.PercentAMI
+      report_item.vamc_station = enrollment.VAMCStation
+      report_item.veteran = client.veteran_status
+      report_item.afghanistan_oef = client.AfghanistanOEF
+      report_item.iraq_oif = client.IraqOIF
+      report_item.iraq_ond = client.IraqOND
+      report_item.military_branch = client.MilitaryBranch
+      report_item.discharge_status = client.DischargeStatus
+      employment_education = client.employment_educations.max_by(&:InformationDate)
+      report_item.employed = employment_education&.Employed
+      report_item.employment_type = employment_education&.EmploymentType
+      report_item.not_employed_reason = employment_education&.NotEmployedReason
+
+      # HP Targeting Criteria
+      report_item.target_screen_required = enrollment.TargetScreenReqd
+      report_item.target_screen_completed = hp_targeting_criteria_complete(enrollment)
 
       hh = report.household(enrollment.HouseholdID)
       hoh = hh&.detect(&:head_of_household?) || enrollment.service_history_enrollment
@@ -249,6 +285,9 @@ module HmisDataQualityTool
       adult_or_hoh = enrollment.RelationshipToHoH == 1 || report_item.age.present? && report_item.age >= 18
       report_item.head_of_household_count = hh&.select(&:head_of_household?)&.count || 0
       report_item.household_type = household_type(report_item.household_min_age, report_item.household_max_age)
+
+      report_item.hh_veteran_count = hh&.select { |hm| hm.client.veteran? }&.count || 0
+      report_item.hoh_veteran = hh&.any? { |hm| hm.head_of_household && hm.client.veteran? }
 
       report_item.ch_details_expected = adult_or_hoh
       report_item.health_dv_at_entry_expected = adult_or_hoh
@@ -278,8 +317,12 @@ module HmisDataQualityTool
       annual_income_assessment = annual_assessment(enrollment, hoh.first_date_in_program)
       exit_income_assessment = enrollment.income_benefits_at_exit
 
+      report_item.total_monthly_income_at_entry = entry_income_assessment&.TotalMonthlyIncome
+      report_item.total_monthly_income_from_source_at_entry = entry_income_assessment&.all_sources_and_amounts&.sum { |_k, amount| amount || 0 }
       report_item.income_from_any_source_at_entry = entry_income_assessment&.IncomeFromAnySource
       report_item.income_from_any_source_at_annual = annual_income_assessment&.IncomeFromAnySource
+      report_item.total_monthly_income_at_exit = exit_income_assessment&.TotalMonthlyIncome
+      report_item.total_monthly_income_from_source_at_exit = exit_income_assessment&.all_sources_and_amounts&.sum { |_k, amount| amount || 0 }
       report_item.income_from_any_source_at_exit = exit_income_assessment&.IncomeFromAnySource
 
       report_item.cash_income_as_expected_at_entry = income_as_expected?(
@@ -365,6 +408,34 @@ module HmisDataQualityTool
       report_item
     end
 
+    private def hp_targeting_criteria_complete(enrollment)
+      # V7 HP Targeting Criteria in https://files.hudexchange.info/resources/documents/HMIS-Data-Dictionary-2024.pdf
+      valid_yes_no_missing_options = HudUtility2024.yes_no_missing_options.keys - [99]
+      return true unless (HudUtility2024.time_to_housing_losses.keys - [99]).include?(enrollment.TimeToHousingLoss) # V7.A
+      return true unless (HudUtility2024.annual_percent_amis.keys - [99]).include?(enrollment.AnnualPercentAMI) # V7.B
+      return true unless (HudUtility2024.literal_homeless_histories.keys - [99]).include?(enrollment.LiteralHomelessHistory) # V7.C
+      return true unless valid_yes_no_missing_options.include?(enrollment.ClientLeaseholder) # V7.D
+      return true unless valid_yes_no_missing_options.include?(enrollment.HOHLeaseholder) # V7.E
+      return true unless valid_yes_no_missing_options.include?(enrollment.SubsidyAtRisk) # V7.F
+      return true unless (HudUtility2024.eviction_histories.keys - [99]).include?(enrollment.EvictionHistory) # V7.G
+      return true unless valid_yes_no_missing_options.include?(enrollment.CriminalRecord) # V7.H
+      return true unless (HudUtility2024.incarcerated_adults.keys - [99]).include?(enrollment.IncarceratedAdult) # V7.I
+      return true unless valid_yes_no_missing_options.include?(enrollment.PrisonDischarge) # V7.J
+      return true unless valid_yes_no_missing_options.include?(enrollment.SexOffender) # V7.K
+      return true unless valid_yes_no_missing_options.include?(enrollment.DisabledHoH) # V7.L
+      return true unless valid_yes_no_missing_options.include?(enrollment.CurrentPregnant) # V7.M
+      return true unless valid_yes_no_missing_options.include?(enrollment.SingleParent) # V7.N
+      return true unless (HudUtility2024.dependent_under_6_options.keys - [99]).include?(enrollment.DependentUnder6) # V7.O
+      return true unless valid_yes_no_missing_options.include?(enrollment.HH5Plus) # V7.P
+      return true unless valid_yes_no_missing_options.include?(enrollment.CoCPrioritized) # V7.Q
+
+      return false if enrollment.HPScreeningScore.blank? # V7.R
+      return false if enrollment.ThresholdScore.blank? # V7.S
+
+      # HP Targeting Criteria is complete
+      true
+    end
+
     private def annual_assessment_complete(enrollment, hoh_first_date_in_program)
       # IncomeBenefits is always required
       [].tap do |missing|
@@ -439,8 +510,12 @@ module HmisDataQualityTool
       false
     end
 
+    def self.adult?(item)
+      item.age.present? && item.age > 18
+    end
+
     def self.hoh_or_adult?(item)
-      item.age.present? && item.age > 18 || hoh?(item)
+      adult?(item) || hoh?(item)
     end
 
     def self.hoh?(item)
@@ -515,7 +590,7 @@ module HmisDataQualityTool
             return false unless hoh_or_adult?(item)
             return false if item.living_situation.blank?
 
-            ! item.living_situation.in?(HudUtility2024.valid_prior_living_situations)
+            ! (HudUtility2024.valid_prior_living_situations - [99]).include?(item.living_situation)
           },
         },
         exit_date_issues: {
@@ -618,6 +693,294 @@ module HmisDataQualityTool
 
             # If the enrollment CoC doesn't match a project CoC
             ! item.enrollment_coc.in?(item.project_coc_codes)
+          },
+        },
+        hoh_income_percent_ami: {
+          title: 'Head of Household is Missing Income as a Percent of AMI',
+          description: 'Income as a Percent of AMI is missing or not collected',
+          required_for: 'HoH in HP or RRH',
+          detail_columns: default_detail_columns + [
+            :percent_ami,
+          ],
+          denominator: ->(item) {
+            funding_sources = [
+              HudUtility2024.funder_components['VA: SSVF'],
+            ].flatten
+            in_project_types = [
+              HudUtility2024.performance_reporting[:rrh],
+              HudUtility2024.performance_reporting[:prevention],
+            ].flatten.include?(item.project_type)
+
+            # Only hohs that include the above funder(s) and project type(s)
+            hoh?(item) && in_project_types && (funding_sources & item.funders).any?
+          },
+          limiter: ->(item) {
+            return false unless hoh?(item)
+
+            # Limit to items with intersecting funders below
+            funding_sources = [
+              HudUtility2024.funder_components['VA: SSVF'],
+            ].flatten
+            return false unless (funding_sources & item.funders).any?
+
+            # Limit to items with project types below
+            return false unless [
+              HudUtility2024.performance_reporting[:rrh],
+              HudUtility2024.performance_reporting[:prevention],
+            ].flatten.include?(item.project_type)
+
+            ! (HudUtility2024.percent_amis.keys - [99]).include?(item.percent_ami)
+          },
+        },
+        hp_targeting_criteria: {
+          title: 'Head of Household is Missing HP Targeting Criteria',
+          description: 'HP Targeting Criteria is missing or not collected',
+          required_for: 'HoH in HP',
+          detail_columns: default_detail_columns + [
+            :target_screen_required,
+            :target_screen_completed,
+          ],
+          denominator: ->(item) {
+            funding_sources = [
+              HudUtility2024.funder_components['VA: SSVF'],
+            ].flatten
+            in_project_types = [
+              HudUtility2024.performance_reporting[:prevention],
+            ].flatten.include?(item.project_type)
+
+            # Only hohs that include the above funder(s) and project type(s)
+            hoh?(item) && in_project_types && (funding_sources & item.funders).any?
+          },
+          limiter: ->(item) {
+            return false unless hoh?(item)
+
+            # Limit to items with intersecting funders below
+            funding_sources = [
+              HudUtility2024.funder_components['VA: SSVF'],
+            ].flatten
+            return false unless (funding_sources & item.funders).any?
+
+            # Limit to items with project types below
+            return false unless [
+              HudUtility2024.performance_reporting[:prevention],
+            ].flatten.include?(item.project_type)
+
+            # Screening Required flag is missing
+            return true unless (HudUtility2024.yes_no_missing_options.keys - [99]).include?(item.target_screen_required)
+            # Screening is not required
+            return false if item.target_screen_required == 0
+
+            !item.target_screen_completed
+          },
+        },
+        vamc_station: {
+          title: 'VAMC Station Number is Missing',
+          description: 'VAMC Station Number is missing or not collected',
+          required_for: 'HoH and Veteran in ES (E/E), TH, PSH, SO, SH, PH-Housing Only, and RRH',
+          detail_columns: default_detail_columns + [
+            :vamc_station,
+          ],
+          denominator: ->(item) {
+            funding_sources = [
+              HudUtility2024.funder_components['HUD: HUD-VASH'],
+              HudUtility2024.funder_components['VA: SSVF'],
+              HudUtility2024.funder_components['VA: GPD'],
+              HudUtility2024.funder_components['VA: CRS Contract Residential Services'],
+              HudUtility2024.funder_components['VA: Community Contract Safe Haven'],
+            ].flatten
+            in_project_types = [
+              HudUtility2024.performance_reporting[:es_entry_exit],
+              HudUtility2024.performance_reporting[:th],
+              HudUtility2024.performance_reporting[:psh],
+              HudUtility2024.performance_reporting[:so],
+              HudUtility2024.performance_reporting[:sh],
+              HudUtility2024.performance_reporting[:oph],
+              HudUtility2024.performance_reporting[:rrh],
+            ].flatten.include?(item.project_type)
+
+            # Only hohs or veterans that include the above funder(s) and project type(s)
+            (hoh?(item) || item.veteran == 1) && in_project_types && (funding_sources & item.funders).any?
+          },
+          limiter: ->(item) {
+            # HoHs or Veterans
+            return false unless hoh?(item) || item.veteran == 1
+
+            # Limit to items with intersecting funders below
+            funding_sources = [
+              HudUtility2024.funder_components['HUD: HUD-VASH'],
+              HudUtility2024.funder_components['VA: SSVF'],
+              HudUtility2024.funder_components['VA: GPD'],
+              HudUtility2024.funder_components['VA: CRS Contract Residential Services'],
+              HudUtility2024.funder_components['VA: Community Contract Safe Haven'],
+            ].flatten
+            return false unless (funding_sources & item.funders).any?
+
+            # Limit to items with project types below
+            return false unless [
+              HudUtility2024.performance_reporting[:es_entry_exit],
+              HudUtility2024.performance_reporting[:th],
+              HudUtility2024.performance_reporting[:psh],
+              HudUtility2024.performance_reporting[:so],
+              HudUtility2024.performance_reporting[:sh],
+              HudUtility2024.performance_reporting[:oph],
+              HudUtility2024.performance_reporting[:rrh],
+            ].flatten.include?(item.project_type)
+
+            # normalize station numbers that can be converted to integers
+            vamc_number = item.vamc_station
+            vamc_number = vamc_number.to_i if Integer(vamc_number, exception: false).present?
+            ! (HudUtility2024.vamc_station_numbers.keys - [99]).include?(vamc_number)
+          },
+        },
+        homeless_living_situation_issues: {
+          title: 'HP - Homeless Living Situation',
+          description: 'Adults in Homeless Prevention should not be indicating they are homeless prior immediately prior to entry.',
+          required_for: 'Adults in HP at entry',
+          detail_columns: default_detail_columns + [
+            :living_situation,
+          ],
+          denominator: ->(item) { adult?(item) && HudUtility2024.performance_reporting[:prevention].include?(item.project_type) },
+          limiter: ->(item) {
+            return false unless adult?(item)
+            return false unless HudUtility2024.performance_reporting[:prevention].include?(item.project_type)
+
+            HOMELESS_LIVING_SITUATIONS.include?(item.living_situation)
+          },
+        },
+        non_homeless_living_situation_issues: {
+          title: 'RRH - Non-Homeless Living Situation',
+          description: 'Adults entering RRH must indicate they were homeless prior to entry.',
+          required_for: 'Adults in RRH at entry',
+          detail_columns: default_detail_columns + [
+            :living_situation,
+          ],
+          denominator: ->(item) { adult?(item) && HudUtility2024.performance_reporting[:rrh].include?(item.project_type) },
+          limiter: ->(item) {
+            return false unless adult?(item)
+            return false unless HudUtility2024.performance_reporting[:rrh].include?(item.project_type)
+
+            ! HOMELESS_LIVING_SITUATIONS.include?(item.living_situation)
+          },
+        },
+        total_monthly_income_at_entry: {
+          title: 'Total Monthly Income at Entry',
+          description: 'Total Monthly Income at entry matches Income from Any Source at entry',
+          required_for: 'Adults',
+          detail_columns: default_detail_columns + [
+            :income_from_any_source_at_entry,
+            :total_monthly_income_at_entry,
+          ],
+          denominator: ->(item) { item.income_at_entry_expected == true },
+          limiter: ->(item) {
+            return false unless item.income_at_entry_expected == true
+
+            has_any_source_of_income_at_entry = item.income_from_any_source_at_entry.present? && item.income_from_any_source_at_entry == 1
+            has_monthly_income_at_entry = item.total_monthly_income_at_entry.present? && item.total_monthly_income_at_entry > 0
+
+            has_any_source_of_income_at_entry != has_monthly_income_at_entry
+          },
+        },
+        income_source_amounts_match_total_at_entry: {
+          title: 'Total Monthly Income Matches Sources at Entry',
+          description: 'Total monthly income matches the sum of the sourced income at entry',
+          required_for: 'Adults',
+          detail_columns: default_detail_columns + [
+            :income_from_any_source_at_entry,
+            :total_monthly_income_at_entry,
+            :total_monthly_income_from_source_at_entry,
+          ],
+          denominator: ->(item) { adult?(item) },
+          limiter: ->(item) {
+            return false unless adult?(item)
+
+            total_monthly_income = item.total_monthly_income_at_entry || 0
+            source_income = item.total_monthly_income_from_source_at_entry || 0
+            total_monthly_income != source_income
+          },
+        },
+        total_monthly_income_at_exit: {
+          title: 'Total Monthly Income at Exit',
+          description: 'Total Monthly Income at exit matches Income from Any Source at exit',
+          required_for: 'Adults',
+          detail_columns: default_detail_columns + [
+            :income_from_any_source_at_exit,
+            :total_monthly_income_at_exit,
+          ],
+          denominator: ->(item) { item.income_at_exit_expected == true },
+          limiter: ->(item) {
+            return false unless item.income_at_exit_expected == true
+
+            has_any_source_of_income_at_exit = item.income_from_any_source_at_exit.present? && item.income_from_any_source_at_exit == 1
+            has_monthly_income_at_exit = item.total_monthly_income_at_exit.present? && item.total_monthly_income_at_exit > 0
+
+            # any source at exit XOR reported monthly income at exit
+            has_any_source_of_income_at_exit ^ has_monthly_income_at_exit
+          },
+        },
+        income_source_amounts_match_total_at_exit: {
+          title: 'Total Monthly Income Matches Sources at Exit',
+          description: 'Total monthly income matches the sum of the sourced income at exit',
+          required_for: 'Adults',
+          detail_columns: default_detail_columns + [
+            :income_from_any_source_at_exit,
+            :total_monthly_income_at_exit,
+            :total_monthly_income_from_source_at_exit,
+          ],
+          denominator: ->(item) { adult?(item) },
+          limiter: ->(item) {
+            return false unless adult?(item)
+
+            total_monthly_income = item.total_monthly_income_at_exit || 0
+            source_income = item.total_monthly_income_from_source_at_exit || 0
+            total_monthly_income != source_income
+          },
+        },
+        no_veteran_in_household: {
+          title: 'No Veteran in Household',
+          description: 'No member of the household is a veteran',
+          required_for: 'Household',
+          detail_columns: default_detail_columns + [
+            :hh_veteran_count,
+          ],
+          denominator: ->(item) {
+            funding_sources = [
+              HudUtility2024.funder_components['VA: SSVF'],
+            ].flatten
+            # Only items with funders intersecting the above funding source(s)
+            (funding_sources & item.funders).any?
+          },
+          limiter: ->(item) {
+            # Limit to items with intersecting funders below
+            funding_sources = [
+              HudUtility2024.funder_components['VA: SSVF'],
+            ].flatten
+            return false unless (funding_sources & item.funders).any?
+
+            item.hh_veteran_count.zero?
+          },
+        },
+        hoh_not_veteran: {
+          title: 'Head of Household is not a Veteran',
+          description: 'The Head of Household is is not a veteran',
+          required_for: 'Household',
+          detail_columns: default_detail_columns + [
+            :relationship_to_hoh,
+          ],
+          denominator: ->(item) {
+            funding_sources = [
+              HudUtility2024.funder_components['VA: SSVF'],
+            ].flatten
+            # Only items with funders intersecting the above funding source(s)
+            (funding_sources & item.funders).any?
+          },
+          limiter: ->(item) {
+            # Limit to items with intersecting funders below
+            funding_sources = [
+              HudUtility2024.funder_components['VA: SSVF'],
+            ].flatten
+            return false unless (funding_sources & item.funders).any?
+
+            !item.hoh_veteran
           },
         },
         future_entry_date_issues: {
@@ -1301,6 +1664,329 @@ module HmisDataQualityTool
           ],
           denominator: ->(item) { hoh?(item) && item.annual_expected? },
           limiter: ->(item) { hoh?(item) && item.annual_expected? && item.annual_assessment_status.present? },
+        },
+        afghanistan_oef: {
+          title: 'Afghanistan (Operation Enduring Freedom)',
+          description: 'Afghanistan (OEF) is "Data not collected" (99) or blank for veterans',
+          required_for: 'Veterans',
+          detail_columns: default_detail_columns + [
+            :veteran,
+            :afghanistan_oef,
+          ],
+          denominator: ->(item) {
+            funding_sources = [
+              HudUtility2024.funder_components['VA: SSVF'],
+            ].flatten
+
+            # Only veterans that include the above funder(s)
+            item.veteran == 1 && ! (funding_sources & item.funders).empty?
+          },
+          limiter: ->(item) {
+            # Limit to items with intersecting funders below
+            funding_sources = [
+              HudUtility2024.funder_components['VA: SSVF'],
+            ].flatten
+            return false if (funding_sources & item.funders).empty?
+
+            # Must be a veteran
+            return false unless item.veteran == 1
+
+            ! (HudUtility2024.yes_no_missing_options.keys - [99]).include?(item.afghanistan_oef)
+          },
+        },
+        iraq_oif: {
+          title: 'Iraq (Operation Iraqi Freedom)',
+          description: 'Iraq (OIF) is "Data not collected" (99) or blank for veterans',
+          required_for: 'Veterans',
+          detail_columns: default_detail_columns + [
+            :veteran,
+            :iraq_oif,
+          ],
+          denominator: ->(item) {
+            funding_sources = [
+              HudUtility2024.funder_components['VA: SSVF'],
+            ].flatten
+
+            # Only veterans that include the above funder(s)
+            item.veteran == 1 && ! (funding_sources & item.funders).empty?
+          },
+          limiter: ->(item) {
+            # Limit to items with intersecting funders below
+            funding_sources = [
+              HudUtility2024.funder_components['VA: SSVF'],
+            ].flatten
+            return false if (funding_sources & item.funders).empty?
+
+            # Must be a veteran
+            return false unless item.veteran == 1
+
+            ! (HudUtility2024.yes_no_missing_options.keys - [99]).include?(item.iraq_oif)
+          },
+        },
+        iraq_ond: {
+          title: 'Iraq (Operation New Dawn)',
+          description: 'Iraq (OND) is "Data not collected" (99) or blank for veterans',
+          required_for: 'Veterans',
+          detail_columns: default_detail_columns + [
+            :veteran,
+            :iraq_ond,
+          ],
+          denominator: ->(item) {
+            funding_sources = [
+              HudUtility2024.funder_components['VA: SSVF'],
+            ].flatten
+
+            # Only veterans that include the above funder(s)
+            item.veteran == 1 && ! (funding_sources & item.funders).empty?
+          },
+          limiter: ->(item) {
+            # Limit to items with intersecting funders below
+            funding_sources = [
+              HudUtility2024.funder_components['VA: SSVF'],
+            ].flatten
+            return false if (funding_sources & item.funders).empty?
+
+            # Must be a veteran
+            return false unless item.veteran == 1
+
+            ! (HudUtility2024.yes_no_missing_options.keys - [99]).include?(item.iraq_ond)
+          },
+        },
+        military_branch: {
+          title: 'Military Branch',
+          description: 'Military Branch is "Data not collected" (99) or blank for veterans',
+          required_for: 'Veterans',
+          detail_columns: default_detail_columns + [
+            :veteran,
+            :military_branch,
+          ],
+          denominator: ->(item) {
+            funding_sources = [
+              HudUtility2024.funder_components['VA: SSVF'],
+            ].flatten
+
+            # Only veterans that include the above funder(s)
+            item.veteran == 1 && ! (funding_sources & item.funders).empty?
+          },
+          limiter: ->(item) {
+            # Limit to items with intersecting funders below
+            funding_sources = [
+              HudUtility2024.funder_components['VA: SSVF'],
+            ].flatten
+            return false if (funding_sources & item.funders).empty?
+
+            # Must be a veteran
+            return false unless item.veteran == 1
+
+            ! (HudUtility2024.military_branches.keys - [99]).include?(item.military_branch)
+          },
+        },
+        discharge_status: {
+          title: 'Discharge Status',
+          description: 'Discharge Status is "Data not collected" (99) or blank for veterans',
+          required_for: 'Veterans',
+          detail_columns: [
+            default_detail_columns + [
+              :veteran,
+              :discharge_status,
+            ],
+          ],
+          denominator: ->(item) {
+            funding_sources = [
+              HudUtility2024.funder_components['VA: SSVF'],
+            ].flatten
+
+            # Only veterans that include the above funder(s)
+            item.veteran == 1 && ! (funding_sources & item.funders).empty?
+          },
+          limiter: ->(item) {
+            # Limit to items with intersecting funders below
+            funding_sources = [
+              HudUtility2024.funder_components['VA: SSVF'],
+            ].flatten
+            return false if (funding_sources & item.funders).empty?
+
+            # Must be a veteran
+            return false unless item.veteran == 1
+
+            ! (HudUtility2024.discharge_statuses.keys - [99]).include?(item.discharge_status)
+          },
+        },
+        employed: {
+          title: 'Employed',
+          description: 'Employed Status is "Data not collected" (99) or blank',
+          required_for: 'Adults',
+          detail_columns: default_detail_columns + [
+            :employed,
+          ],
+          denominator: ->(item) {
+            funding_sources = [
+              HudUtility2024.funder_components['HUD: HUD-VASH'],
+              HudUtility2024.funder_components['HHS: RHY'],
+              HudUtility2024.funder_components['VA: SSVF'],
+              HudUtility2024.funder_components['VA: GPD'],
+            ].flatten
+
+            in_project_types = [
+              HudUtility2024.performance_reporting[:es_entry_exit],
+              HudUtility2024.performance_reporting[:th],
+              HudUtility2024.performance_reporting[:psh],
+              HudUtility2024.performance_reporting[:so],
+              HudUtility2024.performance_reporting[:sh],
+              HudUtility2024.performance_reporting[:oph],
+              HudUtility2024.performance_reporting[:prevention],
+              HudUtility2024.performance_reporting[:rrh],
+            ].flatten.include?(item.project_type)
+
+            # Only adults that include the above funder(s) and project type(s)
+            adult?(item) && in_project_types && (funding_sources & item.funders).any?
+          },
+          limiter: ->(item) {
+            return false unless adult?(item)
+
+            # Limit to items with intersecting funders below
+            funding_sources = [
+              HudUtility2024.funder_components['HUD: HUD-VASH'],
+              HudUtility2024.funder_components['HHS: RHY'],
+              HudUtility2024.funder_components['VA: SSVF'],
+              HudUtility2024.funder_components['VA: GPD'],
+            ].flatten
+            return false unless (funding_sources & item.funders).any?
+
+            # Limit to items with project types below
+            return false unless [
+              HudUtility2024.performance_reporting[:es_entry_exit],
+              HudUtility2024.performance_reporting[:th],
+              HudUtility2024.performance_reporting[:psh],
+              HudUtility2024.performance_reporting[:so],
+              HudUtility2024.performance_reporting[:sh],
+              HudUtility2024.performance_reporting[:oph],
+              HudUtility2024.performance_reporting[:prevention],
+              HudUtility2024.performance_reporting[:rrh],
+            ].flatten.include?(item.project_type)
+
+            ! (HudUtility2024.yes_no_missing_options.keys - [99]).include?(item.employed)
+          },
+        },
+        employment_type_matches_status: {
+          title: 'Employment Type Matches Employment Status',
+          description: 'Employment status and employment type do not match expected results',
+          required_for: 'Adults',
+          detail_columns: default_detail_columns + [
+            :employed,
+            :employment_type,
+          ],
+          denominator: ->(item) {
+            funding_sources = [
+              HudUtility2024.funder_components['HUD: HUD-VASH'],
+              HudUtility2024.funder_components['HHS: RHY'],
+              HudUtility2024.funder_components['VA: SSVF'],
+              HudUtility2024.funder_components['VA: GPD'],
+            ].flatten
+
+            in_project_types = [
+              HudUtility2024.performance_reporting[:es_entry_exit],
+              HudUtility2024.performance_reporting[:th],
+              HudUtility2024.performance_reporting[:psh],
+              HudUtility2024.performance_reporting[:so],
+              HudUtility2024.performance_reporting[:sh],
+              HudUtility2024.performance_reporting[:oph],
+              HudUtility2024.performance_reporting[:prevention],
+              HudUtility2024.performance_reporting[:rrh],
+            ].flatten.include?(item.project_type)
+
+            # Only adults that include the above funder(s) and project type(s)
+            adult?(item) && in_project_types && (funding_sources & item.funders).any?
+          },
+          limiter: ->(item) {
+            return false unless adult?(item)
+
+            # Limit to items with intersecting funders below
+            funding_sources = [
+              HudUtility2024.funder_components['HUD: HUD-VASH'],
+              HudUtility2024.funder_components['HHS: RHY'],
+              HudUtility2024.funder_components['VA: SSVF'],
+              HudUtility2024.funder_components['VA: GPD'],
+            ].flatten
+            return false unless (funding_sources & item.funders).any?
+
+            # Limit to items with project types below
+            return false unless [
+              HudUtility2024.performance_reporting[:es_entry_exit],
+              HudUtility2024.performance_reporting[:th],
+              HudUtility2024.performance_reporting[:psh],
+              HudUtility2024.performance_reporting[:so],
+              HudUtility2024.performance_reporting[:sh],
+              HudUtility2024.performance_reporting[:oph],
+              HudUtility2024.performance_reporting[:prevention],
+              HudUtility2024.performance_reporting[:rrh],
+            ].flatten.include?(item.project_type)
+
+            is_employed = item.employed == 1
+            has_employment_type = ! (item.employment_type.blank? || item.employment_type == 99)
+
+            is_employed != has_employment_type
+          },
+        },
+        not_employed_reason_matches_status: {
+          title: 'Reason Not Employed Matches Employment Status',
+          description: 'Employment status and reason not employed do not match expected results',
+          required_for: 'Adults',
+          detail_columns: default_detail_columns + [
+            :employed,
+            :not_employed_reason,
+          ],
+          denominator: ->(item) {
+            funding_sources = [
+              HudUtility2024.funder_components['HUD: HUD-VASH'],
+              HudUtility2024.funder_components['HHS: RHY'],
+              HudUtility2024.funder_components['VA: SSVF'],
+              HudUtility2024.funder_components['VA: GPD'],
+            ].flatten
+
+            in_project_types = [
+              HudUtility2024.performance_reporting[:es_entry_exit],
+              HudUtility2024.performance_reporting[:th],
+              HudUtility2024.performance_reporting[:psh],
+              HudUtility2024.performance_reporting[:so],
+              HudUtility2024.performance_reporting[:sh],
+              HudUtility2024.performance_reporting[:oph],
+              HudUtility2024.performance_reporting[:prevention],
+              HudUtility2024.performance_reporting[:rrh],
+            ].flatten.include?(item.project_type)
+
+            # Only adults that include the above funder(s) and project type(s)
+            adult?(item) && in_project_types && (funding_sources & item.funders).any?
+          },
+          limiter: ->(item) {
+            return false unless adult?(item)
+
+            # Limit to items with intersecting funders below
+            funding_sources = [
+              HudUtility2024.funder_components['HUD: HUD-VASH'],
+              HudUtility2024.funder_components['HHS: RHY'],
+              HudUtility2024.funder_components['VA: SSVF'],
+              HudUtility2024.funder_components['VA: GPD'],
+            ].flatten
+            return false unless (funding_sources & item.funders).any?
+
+            # Limit to items with project types below
+            return false unless [
+              HudUtility2024.performance_reporting[:es_entry_exit],
+              HudUtility2024.performance_reporting[:th],
+              HudUtility2024.performance_reporting[:psh],
+              HudUtility2024.performance_reporting[:so],
+              HudUtility2024.performance_reporting[:sh],
+              HudUtility2024.performance_reporting[:oph],
+              HudUtility2024.performance_reporting[:prevention],
+              HudUtility2024.performance_reporting[:rrh],
+            ].flatten.include?(item.project_type)
+
+            is_not_employed = item.employed == 0
+            has_unemployed_reason = ! (item.not_employed_reason.blank? || item.not_employed_reason == 99)
+
+            is_not_employed != has_unemployed_reason
+          },
         },
       }.freeze
     end

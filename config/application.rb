@@ -63,9 +63,12 @@ module BostonHmis
       generate.test_framework :rspec
     end
 
-    require_relative('setup_logging')
-    setup_logging = SetupLogging.new(config)
-    setup_logging.run!
+    if ENV['RAILS_DISABLE_CUSTOM_LOGGING'].blank?
+      require_relative('setup_logging')
+      setup_logging = SetupLogging.new(config)
+      setup_logging.run!
+    end
+    config.colorize_logging = false if ENV['RAILS_DISABLE_COLORIZE_LOGGING'].present?
 
     # default to not be sandbox email mode
     config.sandbox_email_mode = false

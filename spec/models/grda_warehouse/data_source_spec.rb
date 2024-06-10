@@ -32,6 +32,12 @@ RSpec.describe model, type: :model do
   let!(:p7) { create :hud_project, data_source_id: ds2.id, OrganizationID: o4.OrganizationID }
   let!(:p8) { create :hud_project, data_source_id: ds2.id, OrganizationID: o4.OrganizationID }
 
+  let!(:pcoc1) { create :hud_project_coc, data_source_id: ds1.id, ProjectID: p1.ProjectID, CoCCode: 'XX-500' }
+  let!(:pcoc2) { create :hud_project_coc, data_source_id: ds2.id, ProjectID: p5.ProjectID, CoCCode: 'XX-501' }
+
+  let!(:pg1) { create :project_access_group, projects: [p1] }
+  let!(:pg2) { create :project_access_group, projects: [p1, p5] }
+
   let!(:empty_collection) { create :collection }
 
   user_ids = ->(user) { model.viewable_by(user, permission: :can_view_projects).pluck(:id).sort }
@@ -92,6 +98,32 @@ RSpec.describe model, type: :model do
         end
         it 'sees ds1 and ds2' do
           empty_collection.set_viewables({ data_sources: [ds1.id, ds2.id] })
+          setup_access_control(user, can_view_projects, empty_collection)
+          expect(user_ids[user]).to eq ids[ds1, ds2]
+        end
+      end
+
+      describe 'user assigned to projet group' do
+        it 'sees ds1' do
+          empty_collection.set_viewables({ project_access_groups: [pg1.id] })
+          setup_access_control(user, can_view_projects, empty_collection)
+          expect(user_ids[user]).to eq ids[ds1]
+        end
+        it 'sees ds1 and ds2' do
+          empty_collection.set_viewables({ project_access_groups: [pg1.id, pg2.id] })
+          setup_access_control(user, can_view_projects, empty_collection)
+          expect(user_ids[user]).to eq ids[ds1, ds2]
+        end
+      end
+
+      describe 'user assigned to CoC XX-500' do
+        it 'sees ds1' do
+          empty_collection.update(coc_codes: ['XX-500'])
+          setup_access_control(user, can_view_projects, empty_collection)
+          expect(user_ids[user]).to eq ids[ds1]
+        end
+        it 'sees ds1 and ds2' do
+          empty_collection.update(coc_codes: ['XX-500', 'XX-501'])
           setup_access_control(user, can_view_projects, empty_collection)
           expect(user_ids[user]).to eq ids[ds1, ds2]
         end
