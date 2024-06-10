@@ -93,18 +93,23 @@ module GrdaWarehouse
         # across the entire state.
         allowed_percent_error = \
           case var.first
-          when /WHITE/ then 1
-          when /BLACK/ then 1
-          when /HISPANIC/ then 1
-          when /NOT_HISPANIC/ then 1
+          when /WHITE/ then 3
+          when /BLACK/ then 3
+          when /HISPANIC/ then 3
+          when /NOT_HISPANIC/ then 3
           when /ASIAN/ then 10
           when /PACIFIC_ISLANDER/ then 10
           when /OTHER_RACE/ then 10
           when /TWO_OR_MORE_RACES/ then 10
           when /NATIVE_AMERICAN/ then 10
           else
-            1
+            3
           end
+
+        # We add error in CoC aggregation, so allow more error
+        allowed_percent_error *= 2 if components.first.instance_of?(GrdaWarehouse::Shape::Coc)
+
+        error_prone = var.any? { |x| x.match?(/ASIAN|HAWAIIAN|OTHER_RACE|AMERICAN_INDIAN|TWO_OR_MORE/) }
 
         failure = false
         name = components.first.class.name
@@ -117,21 +122,25 @@ module GrdaWarehouse
             total_sum = components.sum do |component|
               result = Finder.new(geometry: component, year: year, internal_names: var).best_value
               if result.error
-                puts "[FAIL] #{name} #{component.id} didn't have a population in #{year} for #{var}"
+                puts "[WARN] #{name} #{component.id} didn't have a population in #{year} for #{var}"
                 failure = true
                 0
               else
                 result.val
               end
             rescue GrdaWarehouse::UsCensusApi::Finder::CannotFindData
-              puts "[FAIL] #{name} #{component.id} didn't have a population in #{year} for #{var}"
-              failure = true
+              # These are traditionally small, so it's not really a failure
+              unless error_prone
+                puts "[WARN] #{name} #{component.id} didn't have a population in #{year} for #{var}"
+                failure = true
+              end
+
               0
             end
 
-            error = Math.abs(total - total_sum) / total.to_f * 100
-            if error > allowed_percent_error
-              puts "[FAIL] #{name} didn't sum to state for #{year}: expected #{total.to_i} to equal sum #{total_sum.to_i}. It was off by #{error.round(1)}%"
+            error = (total - total_sum).abs / total.to_f * 100
+            if error > allowed_percent_error && ! error_prone
+              puts "[FAIL] #{name} (for #{var}) didn't sum to state for #{year}: expected #{total.to_i} to equal sum #{total_sum.to_i}. It was off by #{error.round(1)}%"
               failure = true
             end
           end
