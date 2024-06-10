@@ -10,6 +10,7 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
       middle_name: 'Middle',
       dob: today - pii_age.years,
       ssn: '123-45-6789',
+      image: 'test-image',
     }
   end
   let(:masked_ssn) { 'XXX-XX-6789' }
@@ -53,6 +54,13 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
     end
   end
 
+  context('pii with view photo permission') do
+    let(:policy) { new_policy(can_view_client_photo: true) }
+    let(:pii) { GrdaWarehouse::PiiProvider.from_attributes(policy: policy, **pii_attributes) }
+
+    it('displays image') { expect(pii.image).to eq(pii_attributes[:image]) }
+  end
+
   context('pii with vew ssn permission') do
     let(:policy) { new_policy(can_view_full_ssn: true) }
     let(:pii) { GrdaWarehouse::PiiProvider.from_attributes(policy: policy, **pii_attributes) }
@@ -70,6 +78,7 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
     it('redacts middle_name') { expect(pii.middle_name).to eq(name_redacted) }
     it('redacts brief_name') { expect(pii.brief_name).to eq(name_redacted) }
     it('redacts full_name') { expect(pii.full_name).to eq(name_redacted) }
+    it('redacts image') { expect(pii.image).to be_nil }
     it('redacts dob') { expect(pii.dob).to be_nil }
     it('masks ssn') { expect(pii.ssn).to eq(masked_ssn) }
     it('displays age over dob') { expect(pii.dob_or_age).to eq(pii_age.to_s) }
