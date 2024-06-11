@@ -63,20 +63,21 @@
                 - names.each do |name|
                   .mb-1= name
             %td
-              -# TODO: START_ACL cleanup after ACL transition
-              - names = user.access_groups.general.order(name: :asc).distinct.map(&:name)
-              - names.uniq.sort.each do |name|
-                .mb-1= name
-            %td
-              - providers = user.oauth_identities.map(&:provider_name).sort.uniq
-              - if providers.any?
-                %div= "Sign-in provided by #{providers.to_sentence}"
-              = render 'user_invitation_status', user: user
               -# TODO: START_ACL remove after ACL transition
               - if user.using_acls?
                 .mt-2
                   = checkmark(true)
                   ACLs Enabled
+              - else
+                -# TODO: START_ACL cleanup after ACL transition
+                - names = user.access_groups.general.order(name: :asc).distinct.map(&:name)
+                - names.uniq.sort.each do |name|
+                  .mb-1= name
+            %td
+              - providers = user.oauth_identities.map(&:provider_name).sort.uniq
+              - if providers.any?
+                %div= "Sign-in provided by #{providers.to_sentence}"
+              = render 'user_invitation_status', user: user
             %td
               - if user.invitation_status != :active || user.access_locked?
                 .mb-6
