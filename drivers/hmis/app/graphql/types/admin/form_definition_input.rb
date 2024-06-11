@@ -12,9 +12,7 @@ module Types
     argument :definition, String, required: false
 
     def to_attributes
-      attrs = to_h.except(:definition)
-      attrs[:definition] = JSON.parse(definition) if definition.present?
-      attrs
+      to_h.except(:definition)
     end
   end
 end

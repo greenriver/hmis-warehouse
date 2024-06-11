@@ -28,7 +28,7 @@ FactoryBot.define do
                 'mapping': { 'field_name': 'informationDate', 'custom_field_key': 'informationDate' },
               },
               {
-                'type': 'NUMBER',
+                'type': 'INTEGER',
                 'link_id': 'linkid_required',
                 'required': true,
                 'warn_if_empty': false,
