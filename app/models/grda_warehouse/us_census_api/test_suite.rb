@@ -95,8 +95,8 @@ module GrdaWarehouse
           case var.first
           when /WHITE/ then 3
           when /BLACK/ then 3
-          when /HISPANIC/ then 3
-          when /NOT_HISPANIC/ then 3
+          when /HISPANIC/ then 5
+          when /NOT_HISPANIC/ then 5
           when /ASIAN/ then 10
           when /PACIFIC_ISLANDER/ then 10
           when /OTHER_RACE/ then 10
