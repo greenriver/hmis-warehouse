@@ -194,7 +194,7 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
   end
 
   scope :exited, -> { joins(:exit).where(ex_t[:ExitDate].not_eq(nil)) }
-  scope :auto_exited, -> { joins(:exit).merge(Hmis::Hud::Exit.auto_exited.where.not(exit_date: nil) }
+  scope :auto_exited, -> { joins(:exit).merge(Hmis::Hud::Exit.auto_exited.where.not(exit_date: nil)) }
   scope :open_including_wip, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)) }
   scope :open_excluding_wip, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)).not_in_progress }
   scope :incomplete, -> { in_progress }
