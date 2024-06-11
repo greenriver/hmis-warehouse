@@ -561,10 +561,11 @@ module HudUtility2024
     ).freeze
   end
 
-  def cocs_in_state(state)
-    return cocs if state.blank?
+  def cocs_in_state(states)
+    states = Array.wrap(states).reject(&:blank?).map(&:upcase)
+    return cocs if states.empty?
 
-    cocs.select { |code, _| code.starts_with?(state) }
+    cocs.select { |code, _| code.first(2).upcase.in?(states) }
   end
 
   # tranform up hud list for use as an enum

@@ -41,11 +41,5 @@ module Hmis::Hud::Processors
 
     def information_date(_)
     end
-
-    def assign_metadata
-      hmis_service = @processor.owner_factory
-      hmis_service.assign_attributes(user: @processor.hud_user)
-      hmis_service.owner.assign_attributes(user: @processor.hud_user)
-    end
   end
 end
