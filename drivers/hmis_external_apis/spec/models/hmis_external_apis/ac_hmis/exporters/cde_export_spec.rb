@@ -100,4 +100,15 @@ RSpec.describe HmisExternalApis::AcHmis::Exporters::CdeExport, type: :model do
       )
     end
   end
+
+  it 'reports auto-exited enrollments' do
+    exit1 = create(:hmis_hud_exit, data_source: ds, enrollment: e1, exit_date: 2.days.ago, auto_exited: Time.current - 2.days)
+    subject.run!
+    result = CSV.parse(output, headers: true)
+    unit_rows = result.map(&:to_h).select { |r| r['CustomFieldKey'] == 'auto_exit' }
+    expect(unit_rows.length).to eq(1)
+    expect(unit_rows).to contain_exactly(
+      a_hash_including({ 'ResponseID' => exit1.id.to_s, 'RecordId' => e1.id.to_s, 'Response' => 'true' }),
+    )
+  end
 end
