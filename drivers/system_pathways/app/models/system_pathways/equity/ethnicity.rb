@@ -9,7 +9,7 @@ module SystemPathways::Equity::Ethnicity
 
   private def ethnicity_chart_data
     {
-      chart: 'race',
+      chart: 'ethnicity',
       config: {
         size: {
           height: 800,

@@ -9,7 +9,7 @@ module SystemPathways::TimeChart::RaceAndEthnicity
 
   private def race_and_ethnicity_chart_data
     {
-      chart: 'race',
+      chart: 'race_and_ethnicity',
       config: {
         size: {
           height: 2400,
