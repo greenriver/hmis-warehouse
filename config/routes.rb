@@ -773,10 +773,9 @@ Rails.application.routes.draw do
        get :download, on: :collection
     end
     # END_ACL
+    resources :acl_imports, only: [:index, :create, :show, :destroy]
     resources :access_controls do
        post :assign, on: :collection
-       get :import, on: :collection
-       post :upload, on: :collection
      end
     resources :access_overviews, only: [:index]
     resources :user_groups do

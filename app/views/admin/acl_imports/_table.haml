@@ -1,0 +1,22 @@
+= render 'common/pagination_top', item_name: 'access control import'
+- if @pagy.count.positive?
+  .table-responsive
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Uploaded
+          %th Uploaded By
+          %th
+      %tbody
+        - @imports.each do |import|
+          %tr
+            %td= link_to import.created_at.to_date, admin_acl_import_path(import)
+            %td= import.user&.name_with_email
+
+            %td.nobr
+              = link_to admin_acl_import_path(import),  method: :delete, data: {confirm: "Would you really like to delete the access control import?"}, class: ['btn', 'btn-sm', 'btn-danger', 'ml-2'] do
+                %span.icon-cross
+                Delete
+  = render 'common/pagination_bottom', item_name: 'access control import'
+- else
+  .none-found No access control imports.

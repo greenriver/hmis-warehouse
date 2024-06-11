@@ -46,13 +46,6 @@ class Admin::AccessControlsController < ApplicationController
     respond_with(@access_control, location: admin_access_controls_path)
   end
 
-  # Import routines
-  def import
-  end
-
-  def upload
-  end
-
   def assign
     # TODO: this isn't built
     flash[:notice] = "TODO #{user.name} was added to selected Access Controls"

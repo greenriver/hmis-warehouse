@@ -1,0 +1,19 @@
+- content_for :title, 'Uploaded Access Control Data'
+.d-flex
+  %h1= content_for :title
+
+%p The following data was uploaded on #{@import.created_at.to_date}
+%p Proposed changes based on this file:
+%h3 Roles
+- if @import.valid_import?
+  %p Roles that match exactly on role name will replace existing permissions with those proposed.  Roles that do not exist will be created.
+  %table.table
+    %thead
+      %tr
+        - @import.roles.each do |role|
+          %th
+            = role.name
+            - if role.new_role
+              (new)
+- else
+  %p Import file is in an unexpected format.
