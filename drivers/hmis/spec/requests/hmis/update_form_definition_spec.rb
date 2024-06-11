@@ -22,6 +22,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         updateFormDefinition(id: $id, input: $input) {
           formDefinition {
             id
+            title
           }
           #{error_fields}
         }
@@ -63,5 +64,13 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     _response, result = post_graphql(id: fd1.id, input: input) { mutation }
     expect(response.status).to eq(200), result.inspect
     expect(result.dig('data', 'updateFormDefinition', 'errors')).to be_empty
+  end
+
+  it 'should work when no definition is provided' do
+    input = { title: 'a new title!' }
+    _response, result = post_graphql(id: fd1.id, input: input) { mutation }
+    expect(response.status).to eq(200), result.inspect
+    expect(result.dig('data', 'updateFormDefinition', 'errors')).to be_empty
+    expect(result.dig('data', 'updateFormDefinition', 'formDefinition', 'title')).to eq('a new title!')
   end
 end
