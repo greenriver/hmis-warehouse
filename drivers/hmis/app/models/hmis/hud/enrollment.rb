@@ -193,7 +193,8 @@ class Hmis::Hud::Enrollment < Hmis::Hud::Base
     joins(:client).merge(Hmis::Hud::Client.age_group(start_age: start_age, end_age: end_age))
   end
 
-  scope :exited, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].not_eq(nil)) }
+  scope :exited, -> { joins(:exit).where(ex_t[:ExitDate].not_eq(nil)) }
+  scope :auto_exited, -> { joins(:exit).merge(Hmis::Hud::Exit.auto_exited.where.not(exit_date: nil)) }
   scope :open_including_wip, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)) }
   scope :open_excluding_wip, -> { left_outer_joins(:exit).where(ex_t[:ExitDate].eq(nil)).not_in_progress }
   scope :incomplete, -> { in_progress }

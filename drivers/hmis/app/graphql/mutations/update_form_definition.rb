@@ -18,7 +18,8 @@ module Mutations
       raise 'not found' unless definition
       raise 'not allowed to change identifier' if input.identifier.present? && input.identifier != definition.identifier
 
-      definition.assign_attributes(**input.to_attributes)
+      # This mutation can be used to update the definition or the title/role, which is why definition is optional.
+      definition.assign_attributes(**input.to_attributes) unless input.to_attributes.blank?
 
       # This definition could be coming from one of two places:
       # 1. The Form Builder (new), which sends input as a json-stringified Typescript object. Its keys are camelCase,
@@ -26,7 +27,7 @@ module Mutations
       # to match the expected format.
       # 2. The JSON Form Editor (old), which sends keys as a JSON string in the expected format and doesn't need
       # to be transformed, but calling recursively_transform on it is not harmful either.
-      definition.definition = recursively_transform(JSON.parse(input.definition))
+      definition.definition = recursively_transform(JSON.parse(input.definition)) if input.definition
 
       errors = HmisErrors::Errors.new
       ::HmisUtil::JsonForms.new.tap do |builder|
