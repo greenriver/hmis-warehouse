@@ -773,7 +773,7 @@ Rails.application.routes.draw do
        get :download, on: :collection
     end
     # END_ACL
-    resources :acl_imports, only: [:index, :create, :show, :destroy]
+    resources :acl_imports, only: [:index, :create, :update, :show, :destroy]
     resources :access_controls do
        post :assign, on: :collection
      end

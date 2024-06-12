@@ -6,28 +6,26 @@
     &laquo; Manage Access Control Uploads
 
 %p The following data was uploaded on #{@import.created_at.to_date}
-%p Proposed changes based on this file:
-%h3 Roles
+.d-flex.well
+  %p Proposed changes based on this file are outlined below.  If everything looks good, you can import them with the import button.
+  = link_to admin_acl_import_path, method: :patch, class: 'btn btn-primary ml-auto' do
+    Complete Import
+
 - if @import.valid_import?
-  %p Roles that match exactly on role name will replace existing permissions with those proposed.  Roles that do not exist will be created.
-  %table.table
-    %thead
-      %tr
-        %th
-        - @import.roles.each do |role|
-          %th{colspan: 3}
-            = role.name
-            - if role.new_role
-              (new)
-    %tbody
-      - Role.permissions(exclude_health: true).each do |column|
-        %tr
-          %th= Role.title_for_column(column)
-          - @import.roles.each do |role|
-            - perm = role.permissions.try(:[], column)
-            %td= perm.try(:[], :existing_value)
-            %td ->
-            %td= perm.try(:[], :incoming_value)
+  %ul.nav.nav-tabs{role: :tablist}
+    %li.nav-item{role: :presentation}
+      %a{href: "#roles", 'aria-controls' => :roles, role: :tab, data: {toggle: :tab}, class: 'nav-link active'} Roles
+    %li.nav-item{role: :presentation}
+      %a{href: "#users", 'aria-controls' => :users, role: :tab, data: {toggle: :tab}, class: 'nav-link'} Users
+    %li.nav-item{role: :presentation}
+      %a{href: "#collections", 'aria-controls' => :collections, role: :tab, data: {toggle: :tab}, class: 'nav-link'} Collections
+  .tab-content#import-tab-content
+    .tab-pane.active{role: :tabpanel, id: :roles}
+      = render 'roles'
+    .tab-pane{role: :tabpanel, id: :users}
+      = render 'users'
+    .tab-pane{role: :tabpanel, id: :collections}
+      = render 'collections'
 
 - else
   %p Import file is in an unexpected format.

@@ -9,7 +9,7 @@ class Admin::AclImportsController < ApplicationController
   include ArelHelper
 
   before_action :require_can_edit_users!
-  before_action :set_import, only: [:show, :destroy]
+  before_action :set_import, only: [:show, :update, :destroy]
 
   def index
     @imports = import_scope.preload(:user)
@@ -22,6 +22,12 @@ class Admin::AclImportsController < ApplicationController
   def create
     @import = import_scope.create!(import_params.merge(user_id: current_user.id))
     respond_with(@import, location: admin_acl_imports_path)
+  end
+
+  # Completes the import using the file specified
+  def update
+    raise 'TODO; implement me'
+    # respond_with(@import, location: admin_acl_imports_path)
   end
 
   def destroy
