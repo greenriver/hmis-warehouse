@@ -1,5 +1,5 @@
 .client__main-details
-  - if @client.image
+  - if @client.pii_provider(user: current_user).image
     .client__image{ style: "background-image: url(#{ image_client_path })" }
   %section.o-section-card.mb-0
     .c-card.c-card--block.c-card--padded.c-card--flush.mb-4

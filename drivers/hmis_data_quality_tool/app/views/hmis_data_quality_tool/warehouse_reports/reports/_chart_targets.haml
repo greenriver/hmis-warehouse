@@ -1,0 +1,11 @@
+- if @report.goal_segments
+  .page-break-avoid
+    %h2.mt-2 Goals
+    .well
+      .row
+        - @report.goal_segments.values.sort_by(&:first).each do |range|
+          .col
+            .d-flex
+              .mr-2{style: "background-color: #{@report.goal_config.color_for(range.first)}; height: 2rem; width: 2rem;"}
+              %h3= @report.goal_config.name_for(range.first)
+            .ml-7 #{range.first}% - #{range.last}%

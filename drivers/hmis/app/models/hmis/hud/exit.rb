@@ -22,6 +22,8 @@ class Hmis::Hud::Exit < Hmis::Hud::Base
 
   after_save :warehouse_trigger_processing
 
+  scope :auto_exited, -> { where.not(auto_exited: nil) }
+
   def aftercare_methods
     HudUtility2024.aftercare_method_fields.select { |k| send(k) == 1 }.values
   end
