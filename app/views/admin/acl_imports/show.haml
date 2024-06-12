@@ -1,6 +1,9 @@
 - content_for :title, 'Uploaded Access Control Data'
 .d-flex
   %h1= content_for :title
+= content_for :crumbs do
+  = link_to admin_acl_imports_path do
+    &laquo; Manage Access Control Uploads
 
 %p The following data was uploaded on #{@import.created_at.to_date}
 %p Proposed changes based on this file:
@@ -10,10 +13,21 @@
   %table.table
     %thead
       %tr
+        %th
         - @import.roles.each do |role|
-          %th
+          %th{colspan: 3}
             = role.name
             - if role.new_role
               (new)
+    %tbody
+      - Role.permissions(exclude_health: true).each do |column|
+        %tr
+          %th= Role.title_for_column(column)
+          - @import.roles.each do |role|
+            - perm = role.permissions.try(:[], column)
+            %td= perm.try(:[], :existing_value)
+            %td ->
+            %td= perm.try(:[], :incoming_value)
+
 - else
   %p Import file is in an unexpected format.
