@@ -5,7 +5,7 @@
 ###
 
 module Mutations
-  class PublishForm < CleanBaseMutation
+  class PublishFormDefinition < CleanBaseMutation
     argument :id, ID, required: true
 
     field :form_definition, Types::Forms::FormDefinition, null: true
@@ -15,24 +15,21 @@ module Mutations
 
       definition = Hmis::Form::Definition.find_by(id: id)
       raise 'not found' unless definition
-      raise 'only draft forms can be published' unless definition.status == Hmis::Form::Definition::DRAFT
+      raise 'only draft forms can be published' unless definition.draft?
 
-      previous = Hmis::Form::Definition.where(
+      previous_published_form = Hmis::Form::Definition.find_by(
         identifier: definition.identifier,
         status: Hmis::Form::Definition::PUBLISHED,
       )
 
-      previous.update(status: 'retired')
+      definition.status = Hmis::Form::Definition::PUBLISHED
 
-      definition.status = 'published'
-
-      if definition.valid?
+      Hmis::Form::Definition.transaction do
+        previous_published_form&.update!(status: Hmis::Form::Definition::RETIRED)
         definition.save!
-        { form_definition: definition }
-      else
-        errors.add_ar_errors(definition.errors)
-        { errors: errors }
       end
+
+      { form_definition: definition }
     end
   end
 end

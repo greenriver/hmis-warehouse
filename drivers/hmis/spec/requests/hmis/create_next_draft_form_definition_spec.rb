@@ -21,11 +21,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     <<~GRAPHQL
       mutation CreateDraftForm($identifier: String!) {
         createDraftForm(identifier: $identifier) {
-          formIdentifier {
-            identifier
-            draftVersion {
-              id
-            }
+          formDefinition {
+            id
           }
           #{error_fields}
         }
@@ -33,18 +30,19 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     GRAPHQL
   end
 
-  it 'should fail if a draft already exists for this identifier' do
-    response, result = post_graphql(identifier: fd2.identifier) { mutation }
-    expect(response.status).to eq(500), result.inspect
-    expect(result.dig('errors', 0, 'message')).to eq('not allowed to create draft if one already exists')
-  end
-
   it 'should successfully create a new draft version' do
     response, result = post_graphql(identifier: fd1.identifier) { mutation }
     expect(response.status).to eq(200), result.inspect
-    draft_version_result = result.dig('data', 'createDraftForm', 'formIdentifier', 'draftVersion')
-    draft_version = Hmis::Form::Definition.where(identifier: fd1.identifier, status: Hmis::Form::Definition::DRAFT).first
-    expect(draft_version_result.dig('id')).to eq(draft_version.id.to_s)
-    expect(draft_version.version).to eq(fd1.version + 1)
+    definition_result = result.dig('data', 'createDraftForm', 'formDefinition')
+    created_draft = Hmis::Form::Definition.where(identifier: fd1.identifier, status: Hmis::Form::Definition::DRAFT).first
+    expect(definition_result.dig('id')).to eq(created_draft.id.to_s)
+    expect(created_draft.version).to eq(fd1.version + 1)
+  end
+
+  it 'should not create a new draft if a draft already exists for this identifier' do
+    response, result = post_graphql(identifier: fd2.identifier) { mutation }
+    expect(response.status).to eq(200), result.inspect
+    definition = result.dig('data', 'createDraftForm', 'formDefinition')
+    expect(definition.dig('id')).to eq(fd2.id.to_s)
   end
 end
