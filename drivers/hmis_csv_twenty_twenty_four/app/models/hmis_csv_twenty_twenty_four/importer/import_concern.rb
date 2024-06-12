@@ -31,7 +31,7 @@ module HmisCsvTwentyTwentyFour::Importer::ImportConcern
   ] + HMIS_DATE_FORMATS).freeze # order matters, we need to try more logical and longer patterns first
 
   included do
-    belongs_to :importer_log, optional: true
+    belongs_to :importer_log, optional: true, class_name: 'HmisCsvImporter::Importer::ImporterLog'
 
     # If the model is paranoid, include the deleted rows by default
     default_scope do
