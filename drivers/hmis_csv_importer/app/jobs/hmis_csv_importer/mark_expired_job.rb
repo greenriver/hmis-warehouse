@@ -25,37 +25,32 @@ module HmisCsvImporter
     def process_loader(model)
       candidates_for_expiration = model.
         where(data_source_id: @data_source_id).
-        select(:id, model.hud_key, :data_source_id, :DateDeleted, :loader_id)
+        select(:id, model.hud_key, :loader_id)
 
       log "#{model.table_name} total: #{candidates_for_expiration.size}"
       candidates_for_expiration.in_batches(of: 5_000) do |batch|
         cnt = 0
         benchmark "#{model.table_name} [batch #{cnt += 1}]" do
           recent_loader_ids = query_recent_import_ids(model, batch)
-          expired_ids = batch.filter do |record|
-            next false if record.loader_id.in?(retained_loader_ids)
+          expired_ids = []
+          valid_ids = []
+          batch.each do |record|
+            if record.loader_id.in?(retained_loader_ids)
+              valid_ids << record.id
+              next
+            end
 
             key = record[model.hud_key]
             preserve_ids = recent_loader_ids[key]
-            next false if preserve_ids.present? && record.loader_id.in?(preserve_ids)
-
-            # record is expired
-            true
+            if preserve_ids.present? && record.loader_id.in?(preserve_ids)
+              valid_ids << record.id
+              next
+            end
+            expired_ids << record.id
           end.map(&:id)
 
-          # micro-optimization to reduce updates
-          case expired_ids.size
-          when 0
-            # all records in batch are valid
-            batch.update_all(expired: false)
-          when batch.size
-            # all records in batch are expired
-            model.update_all(expired: true)
-          else
-            # mix of valid and expired
-            batch.where.not(id: expired_ids).update_all(expired: false)
-            model.where(id: expired_ids).update_all(expired: true)
-          end
+          model.where(id: valid_ids).update_all(expired: false) if valid_ids.any?
+          model.where(id: expired_ids).update_all(expired: true) if expired_ids.any?
         end
         # GC every 10 batches
         GC.start if cnt % 10 == 9
@@ -63,11 +58,12 @@ module HmisCsvImporter
       log "#{model.table_name} expired: #{candidates_for_expiration.where(expired: true).size}"
     end
 
-    def process_importer(model)
+    # FIXME TBD
+    # def process_importer(model)
       # candidates_for_expiration = model.
       #  where(data_source_id: @data_source_id).
       #  select(:id, model.hud_key, :data_source_id, :DateDeleted, :loader_id)
-    end
+    # end
 
     def benchmark(name)
       rr = nil
@@ -89,7 +85,6 @@ module HmisCsvImporter
         WHERE subquery.row_num <= #{@retained_imports}
       SQL
 
-      # results = benchmark("#{model.name.demodulize}") { model.connection.select_rows(sql)}
       results = model.connection.select_rows(sql)
       results.each_with_object({}) do |ary, h|
         key, id = ary
@@ -116,11 +111,11 @@ module HmisCsvImporter
       end
     end
 
-    def importer_models
-      HmisCsvImporter::Importer::Importer.importable_files.values.filter do |model|
-        # keep Export records indefinitely. There's only ever one row of metadata.
-        model.name.demodulize != 'Export'
-      end
-    end
+    #def importer_models
+    #  HmisCsvImporter::Importer::Importer.importable_files.values.filter do |model|
+    #    # keep Export records indefinitely. There's only ever one row of metadata.
+    #    model.name.demodulize != 'Export'
+    #  end
+    #end
   end
 end
