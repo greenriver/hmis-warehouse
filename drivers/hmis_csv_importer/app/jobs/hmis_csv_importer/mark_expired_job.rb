@@ -39,6 +39,7 @@ module HmisCsvImporter
             preserve_ids = recent_loader_ids[key]
             next false if preserve_ids.present? && record.loader_id.in?(preserve_ids)
 
+            # record is expired
             true
           end.map(&:id)
 
@@ -76,6 +77,7 @@ module HmisCsvImporter
     end
 
     # given a batch of loader ids, get the loader ids for the most recent X imports for each record in the batch
+    # @return [Hash] { hud_key => [..., loader_id] }
     def query_recent_import_ids(model, batch)
       key_field = model.hud_key
       sql = <<~SQL
@@ -89,7 +91,6 @@ module HmisCsvImporter
 
       # results = benchmark("#{model.name.demodulize}") { model.connection.select_rows(sql)}
       results = model.connection.select_rows(sql)
-      # hud_key => [loader_id]
       results.each_with_object({}) do |ary, h|
         key, id = ary
         h[key] ||= []
@@ -102,7 +103,7 @@ module HmisCsvImporter
     end
 
     def retained_loader_ids
-      @retained_loader_ids = HmisCsvImporter::Loader::LoaderLog.
+      @retained_loader_ids ||= HmisCsvImporter::Loader::LoaderLog.
         where(data_source_id: @data_source_id).
         where(created_at: @retain_all_records_after...).
         pluck(:id).to_set
