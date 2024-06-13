@@ -8,7 +8,9 @@ module Mutations
   class PublishFormDefinition < CleanBaseMutation
     argument :id, ID, required: true
 
-    field :form_definition, Types::Forms::FormDefinition, null: true
+    field :newly_published, Types::Forms::FormDefinition, null: false
+    field :newly_retired, Types::Forms::FormDefinition, null: false
+    field :form_identifier, Types::Forms::FormIdentifier, null: false
 
     def resolve(id:)
       access_denied! unless current_user.can_manage_forms?
@@ -29,7 +31,11 @@ module Mutations
         definition.save!
       end
 
-      { form_definition: definition }
+      {
+        newly_published: definition,
+        newly_retired: previous_published_form,
+        form_identifier: definition,
+      }
     end
   end
 end

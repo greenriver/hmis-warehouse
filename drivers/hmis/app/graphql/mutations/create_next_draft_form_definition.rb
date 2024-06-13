@@ -10,7 +10,7 @@ module Mutations
   class CreateNextDraftFormDefinition < CleanBaseMutation
     argument :identifier, String, required: true
 
-    field :form_definition, Types::Forms::FormDefinition, null: true
+    field :form_identifier, Types::Forms::FormIdentifier, null: true
 
     def resolve(identifier:)
       raise 'not allowed' unless current_user.can_manage_forms?
@@ -22,7 +22,7 @@ module Mutations
       raise 'not found' if definitions.empty?
 
       existing_drafts = definitions.where(status: Hmis::Form::Definition::DRAFT)
-      return { form_definition: existing_drafts.first } unless existing_drafts.empty?
+      return { form_identifier: existing_drafts.first } unless existing_drafts.empty?
 
       # Re-fetch the most recent version (could be published or retired) to get the full form definition
       last = Hmis::Form::Definition.find(definitions.max_by(&:version).id)
@@ -33,7 +33,7 @@ module Mutations
       definition.status = Hmis::Form::Definition::DRAFT
 
       definition.save!
-      { form_definition: definition }
+      { form_identifier: definition }
     end
   end
 end
