@@ -28,6 +28,35 @@ class AccessControlUpload < ApplicationRecord
     end.compact
   end
 
+  def users
+    users_worksheet.map do |row|
+      # First row is headers
+      next unless row.index_in_collection.positive?
+
+      # NOTE: order based on template
+      email = row.cells[2].value
+      OpenStruct.new(
+        first_name: row.cells[0].value,
+        last_name: row.cells[1].value,
+        email: email,
+        agency: row.cells[3].value,
+        existing_user_id: User.find_by(email: email)&.id,
+      )
+    end.compact
+  end
+
+  def agencies
+    {}.tap do |a|
+      users.each do |u|
+        a[u.agency] ||= OpenStruct.new(
+          existing_agency_id: Agency.find_by(name: u.agency)&.id,
+        )
+        a[u.agency].users ||= []
+        a[u.agency].users << u.email
+      end
+    end
+  end
+
   private def titles
     @titles ||= [].tap do |h|
       Role.permissions(exclude_health: true).count.times do |i|

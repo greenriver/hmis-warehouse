@@ -6,12 +6,8 @@
     &laquo; Manage Access Control Uploads
 
 %p The following data was uploaded on #{@import.created_at.to_date}
-.d-flex.well
-  %p Proposed changes based on this file are outlined below.  If everything looks good, you can import them with the import button.
-  = link_to admin_acl_import_path, method: :patch, class: 'btn btn-primary ml-auto' do
-    Complete Import
-
 - if @import.valid_import?
+  = render 'complete_import'
   %ul.nav.nav-tabs{role: :tablist}
     %li.nav-item{role: :presentation}
       %a{href: "#roles", 'aria-controls' => :roles, role: :tab, data: {toggle: :tab}, class: 'nav-link active'} Roles
@@ -19,13 +15,13 @@
       %a{href: "#users", 'aria-controls' => :users, role: :tab, data: {toggle: :tab}, class: 'nav-link'} Users
     %li.nav-item{role: :presentation}
       %a{href: "#collections", 'aria-controls' => :collections, role: :tab, data: {toggle: :tab}, class: 'nav-link'} Collections
-  .tab-content#import-tab-content
+  .tab-content#import-tab-content.mb-4
     .tab-pane.active{role: :tabpanel, id: :roles}
       = render 'roles'
     .tab-pane{role: :tabpanel, id: :users}
       = render 'users'
     .tab-pane{role: :tabpanel, id: :collections}
       = render 'collections'
-
+  = render 'complete_import'
 - else
   %p Import file is in an unexpected format.

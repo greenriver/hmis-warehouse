@@ -1,0 +1,84 @@
+.well
+  %p Upon import completion the following will occur.
+  %ul
+    %li User accounts will be created, and invitation will be sent, for users who do not exist in the system
+    %li Agencies will be created where no match is found
+    %li User groups will be created where no match is found
+    %li Users will be added to the groups indicated
+    %li Where a match for a role and collection are found, an access control will be created containing the user group, role, and collection combination outlined in the upload
+  %p Please review the following carefully, as it outlines the access that will be granted to each user.  Depending on the configuration of the upload, you may notice users are being given additional unexpected access.  The following is an example that might grant unexpected access.
+  .card
+    %table.table.table-striped
+      %thead
+        %tr
+          %th First Name
+          %th Last Name
+          %th Email
+          %th Agency
+          %th Role
+          %th User Group
+          %th Collection
+      %tbody
+        %tr
+          %td Bill
+          %td Shy
+          %td bill.shy@example.com
+          %td Shy Agency
+          %td Warehouse Administrators
+          %td XX-500 Coc Staff
+          %td All Projects
+        %tr
+          %td Bill
+          %td Shy
+          %td bill.shy@example.com
+          %td Shy Agency
+          %td Warehouse Administrators
+          %td XX-500 Coc Staff
+          %td All Reports
+        %tr
+          %td Steve
+          %td Bly
+          %td steve.bly@example.com
+          %td Bly Agency
+          %td CoC Staff
+          %td XX-500 Coc Staff
+          %td XX-500 Projects
+  %p In the above scenario, the intention is that Bill is a warehouse administrator with access to all projects and reports, Steve is a CoC admin with access to only the projects at the XX-500 CoC.  However, because the XX-500 CoC Staff User Group was used in conjunction with the "All Projects" and "All Reports" collections, and both users are in that group, Steve will also be granted access to all projects and reports.
+
+%h2 Accounts
+%p The following accounts will be created
+.card
+  %table.table.table-striped
+    %thead
+      %tr
+        %th First Name
+        %th Last Name
+        %th Email
+        %th Agency
+    %tbody
+      - @import.users.each do |user|
+        - next if user.existing_user_id
+
+        %tr
+          %td= user.first_name
+          %td= user.last_name
+          %td= user.email
+          %td= user.agency
+
+%h2 Agencies
+%p The following accounts will be created
+.card
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Agency Name
+        %th Create New?
+        %th Users
+    %tbody
+      - @import.agencies.each do |agency_name, agency|
+        %tr
+          %td= agency_name
+          %td= checkmark_or_x(agency.existing_agency_id.present?)
+          %td
+            - agency.users.uniq.each do |email|
+              .email= email

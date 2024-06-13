@@ -20,7 +20,7 @@ class Admin::AclImportsController < ApplicationController
   end
 
   def create
-    @import = import_scope.create!(import_params.merge(user_id: current_user.id))
+    @import = import_scope.create!(import_params.merge(user_id: current_user.id, status: 'pending'))
     respond_with(@import, location: admin_acl_imports_path)
   end
 
