@@ -61,6 +61,7 @@ module ClientImageConsumer
       return '' unless GrdaWarehouse::Config.get(:eto_api_available)
 
       api_configs = EtoApi::Base.api_configs
+      image_data = nil
       eto_client_lookups.detect do |c_lookup|
         api_key = api_configs.select { |_k, v| v['data_source_id'] == c_lookup.data_source_id }&.keys&.first
         return '' unless api_key.present?
@@ -72,6 +73,7 @@ module ClientImageConsumer
         ) rescue nil
         image_data&.length&.positive?
       end
+      return '' unless image_data.present?
 
       set_local_client_image_cache(image_data)
       image_data
