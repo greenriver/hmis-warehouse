@@ -60,8 +60,9 @@ module Mutations
 
       # If it's a hash, first drop unneeded keys and transform them all to snake case
       converted = form_element.
-        excluding('__typename'). # drop typescript artifact
+        excluding('__typename', ''). # drop typescript artifacts and empty keys
         compact. # drop keys with nil values
+        delete_if { |_key, value| value.is_a?(Array) && value.empty? }. # drop empty arrays
         transform_keys(&:underscore) # transform keys to snake case
 
       # Then map through all the sub-elements in the hash and return them
