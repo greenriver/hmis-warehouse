@@ -8,8 +8,6 @@ module Mutations
   class PublishFormDefinition < CleanBaseMutation
     argument :id, ID, required: true
 
-    field :newly_published, Types::Forms::FormDefinition, null: false
-    field :newly_retired, Types::Forms::FormDefinition, null: true
     field :form_identifier, Types::Forms::FormIdentifier, null: false
 
     def resolve(id:)
@@ -32,8 +30,6 @@ module Mutations
       end
 
       {
-        newly_published: definition,
-        newly_retired: previous_published_form,
         form_identifier: definition,
       }
     end
