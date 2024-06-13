@@ -23,14 +23,18 @@ RSpec.describe Hmis::GraphqlController, type: :request do
 
   let(:mutation) do
     <<~GRAPHQL
-      mutation PublishForm($id: ID!) {
-        publishForm(id: $id) {
-          formDefinition {
+      mutation PublishFormDefinition($id: ID!) {
+        publishFormDefinition(id: $id) {
+          newlyPublished {
             id
             identifier
             status
           }
-          #{error_fields}
+          newlyRetired {
+            id
+            identifier
+            status
+          }
         }
       }
     GRAPHQL
@@ -39,7 +43,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   it 'should work when there is just one draft to convert to published' do
     response, result = post_graphql(id: fd1.id) { mutation }
     expect(response.status).to eq(200), result.inspect
-    expect(result.dig('data', 'publishForm', 'formDefinition', 'status')).to eq(Hmis::Form::Definition::PUBLISHED)
+    expect(result.dig('data', 'publishFormDefinition', 'newlyPublished', 'status')).to eq(Hmis::Form::Definition::PUBLISHED)
     expect(
       Hmis::Form::Definition.where(
         identifier: fd1.identifier,
@@ -57,7 +61,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
   it 'should retire the previous published version' do
     response, result = post_graphql(id: fd3_v2.id) { mutation }
     expect(response.status).to eq(200), result.inspect
-    expect(result.dig('data', 'publishForm', 'formDefinition', 'status')).to eq(Hmis::Form::Definition::PUBLISHED)
+    expect(result.dig('data', 'publishFormDefinition', 'newlyPublished', 'status')).to eq(Hmis::Form::Definition::PUBLISHED)
+    expect(result.dig('data', 'publishFormDefinition', 'newlyRetired', 'status')).to eq(Hmis::Form::Definition::RETIRED)
 
     expect(
       Hmis::Form::Definition.where(

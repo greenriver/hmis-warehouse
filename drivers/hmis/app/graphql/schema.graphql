@@ -8664,7 +8664,7 @@ type PublishFormDefinitionPayload {
   errors: [ValidationError!]!
   formIdentifier: FormIdentifier!
   newlyPublished: FormDefinition!
-  newlyRetired: FormDefinition!
+  newlyRetired: FormDefinition
 }
 
 type Query {
