@@ -13,6 +13,8 @@ cd /app
 
 echo 'Getting secrets for the environment...'
 T1=`date +%s`
+echo "RAILS_ENV: $RAILS_ENV"
+bundle install
 bundle exec ./bin/download_secrets.rb > .env
 T2=`date +%s`
 echo "...secrets took $(expr $T2 - $T1) seconds"
