@@ -126,6 +126,7 @@ module SystemPathways::ChartBase
       scope = filter_for_race_with_filter(scope, show_filter) if show_filter
       scope = filter_for_race_with_details_filter(scope, details_filter) if details_filter&.races.present?
       scope = filter_for_ethnicity_with_details_filter(scope, details_filter) if details_filter&.ethnicities.present?
+      scope = filter_for_race_and_ethnicity_with_details_filter(scope, details_filter) if details_filter&.race_ethnicity_combinations.present?
 
       scope
     end
@@ -170,6 +171,49 @@ module SystemPathways::ChartBase
       end
     end
 
+    private def filter_for_race_and_ethnicity_with_details_filter(scope, filter)
+      base_query = races.except('MultiRacial', 'RaceNone').keys.map { |k| [k.underscore.to_sym, false] }.to_h
+      combination = filter.race_ethnicity_combinations.first
+
+      query = case combination
+      when :am_ind_ak_native
+        base_query.merge(am_ind_ak_native: true)
+      when :am_ind_ak_native_hispanic_latinaeo
+        base_query.merge(am_ind_ak_native: true, hispanic_latinaeo: true)
+      when :asian
+        base_query.merge(asian: true)
+      when :asian_hispanic_latinaeo
+        base_query.merge(asian: true, hispanic_latinaeo: true)
+      when :black_af_american
+        base_query.merge(black_af_american: true)
+      when :black_af_american_hispanic_latinaeo
+        base_query.merge(black_af_american: true, hispanic_latinaeo: true)
+      when :hispanic_latinaeo
+        base_query.merge(hispanic_latinaeo: true)
+      when :multi_racial
+        { hispanic_latinaeo: false }
+      when :multi_racial_hispanic_latinaeo
+        { hispanic_latinaeo: true }
+      when :mid_east_n_african
+        base_query.merge(mid_east_n_african: true)
+      when :mid_east_n_african_hispanic_latinaeo
+        base_query.merge(mid_east_n_african: true, hispanic_latinaeo: true)
+      when :native_hi_pacific
+        base_query.merge(native_hi_pacific: true)
+      when :native_hi_pacific_hispanic_latinaeo
+        base_query.merge(native_hi_pacific: true, hispanic_latinaeo: true)
+      when :white
+        base_query.merge(white: true)
+      when :white_hispanic_latinaeo
+        base_query.merge(white: true, hispanic_latinaeo: true)
+      when :race_none
+        base_query
+      end
+
+      scope = scope.where(id: multi_racial_clients(scope).select(:id)) if combination.in?([:multi_racial, :multi_racial_hispanic_latinaeo])
+      scope.where(query)
+    end
+
     private def multi_racial_clients(scope)
       # Looking at all races with responses of 1, where we have a sum > 1
       a_t = SystemPathways::Client.arel_table
@@ -177,6 +221,7 @@ module SystemPathways::ChartBase
         :am_ind_ak_native,
         :asian,
         :black_af_american,
+        :mid_east_n_african,
         :native_hi_pacific,
         :white,
       ].map do |col|
