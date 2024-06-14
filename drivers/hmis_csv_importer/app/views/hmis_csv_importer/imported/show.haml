@@ -13,11 +13,13 @@
           %tr
             - @klass.hmis_structure.each_key do |header|
               %th= header
+          %th Expired
         %tbody
           - @data.each do |row|
             %tr
               - row.hmis_data.each do |key, value|
                 %td= link_to_if key.to_sym == @klass.hud_key, value, source_data_path(search: {type: entry_name, id: value, data_source_id: row.data_source_id })
+              %td= row.expired ? 'Y' : 'N'
   = render 'common/pagination_bottom', item_name: entry_name
 - else
   .none-found No data found.

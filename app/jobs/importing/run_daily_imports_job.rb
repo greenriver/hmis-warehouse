@@ -168,6 +168,13 @@ module Importing
         create_statistical_matches
         generate_logging_info
 
+        GrdaWarehouse::DataSource.importable.with_deleted.each do |data_source|
+          HmisCsvImporter::Cleanup::ExpireLoadersJob.new.perform_later(data_source_id: data_source.id)
+          HmisCsvImporter::Cleanup::ExpireImportersJob.new.perform_later(data_source_id: data_source.id)
+          # disabled until we have confidence that records are correctly marked for expiration
+          # HmisCsvImporter::Cleanup::DeleteExpiredJob.new.perform_later(data_source_id: data_source.id)
+        end
+
         finish_processing
       end
     end

@@ -36,14 +36,14 @@ RSpec.describe HmisCsvImporter::Cleanup::ExpireLoadersJob, type: :model do
       expect do
         run_job(retain_after_date: run_times[1] - 1.minute, retain_log_count: 1)
       end.to change { records.where(expired: true).count }.from(0).to(1).
-      and change { records.where(expired: false).count }.from(0).to(2)
+        and change { records.where(expired: false).count }.from(0).to(2)
     end
 
     it 'retains only the last X records' do
       expect do
         run_job(retain_after_date: now, retain_log_count: 1)
       end.to change { records.where(expired: true).count }.from(0).to(2).
-      and change { records.where(expired: false).count }.from(0).to(1)
+        and change { records.where(expired: false).count }.from(0).to(1)
     end
   end
 end
