@@ -18,7 +18,7 @@ module ClientImageConsumer
 
       # Check first for locally uploaded image or a cached ETO image
       # Otherwise, check for an image connected to any source client
-      local_client_image_data || source_clients.detect(&:image_for_source_client)&.image_for_source_client
+      local_client_image_data || source_clients.detect { |sc| (sc.image_for_source_client || '').length > 100 }&.image_for_source_client
     end
 
     def image_for_source_client(_cache_for = 10.minutes)
@@ -65,6 +65,7 @@ module ClientImageConsumer
       return '' unless GrdaWarehouse::Config.get(:eto_api_available)
 
       api_configs = EtoApi::Base.api_configs
+      image_data = nil
       eto_client_lookups.detect do |c_lookup|
         api_key = api_configs.select { |_k, v| v['data_source_id'] == c_lookup.data_source_id }&.keys&.first
         return '' unless api_key.present?
@@ -76,6 +77,7 @@ module ClientImageConsumer
         ) rescue nil
         image_data&.length&.positive?
       end
+      return '' unless image_data.present?
 
       set_local_client_image_cache(image_data)
       image_data
