@@ -376,6 +376,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     role.to_sym == :EXIT
   end
 
+  def draft?
+    status == DRAFT
+  end
+
   def owner_class
     return unless FORM_ROLE_CONFIG[role.to_sym].present?
 
