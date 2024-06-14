@@ -6,8 +6,8 @@
 
 module HmisCsvTwentyTwentyFour::Loader
   class Exit < GrdaWarehouse::Hud::Base
-    include ::HmisStructure::Exit
     include LoaderConcern
+    include ::HmisStructure::Exit
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
     self.table_name = 'hmis_csv_2024_exits'
     self.primary_key = 'id'

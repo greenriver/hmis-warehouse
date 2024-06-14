@@ -6,8 +6,8 @@
 
 module HmisCsvTwentyTwentyFour::Loader
   class Event < GrdaWarehouse::Hud::Base
-    include ::HmisStructure::Event
     include LoaderConcern
+    include ::HmisStructure::Event
     # Because GrdaWarehouse::Hud::* defines the table name, we can't use table_name_prefix :(
     self.table_name = 'hmis_csv_2024_events'
     self.primary_key = 'id'
