@@ -6,7 +6,7 @@
 
 require 'rails_helper'
 
-RSpec.shared_context "HmisCsvImporter cleanup context" do
+RSpec.shared_context 'HmisCsvImporter cleanup context' do
   let(:now) { DateTime.current }
 
   let(:data_source) do
@@ -24,6 +24,4 @@ RSpec.shared_context "HmisCsvImporter cleanup context" do
       )
     end
   end
-
-
 end

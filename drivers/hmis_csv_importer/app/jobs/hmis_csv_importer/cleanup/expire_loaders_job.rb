@@ -20,7 +20,7 @@ module HmisCsvImporter::Cleanup
             next
           end
 
-          sequence_protected_ids = sequence_protected_id_map[ record[model.hud_key] ]
+          sequence_protected_ids = sequence_protected_id_map[record[model.hud_key]]
           if sequence_protected_ids.present? && record.loader_id.in?(sequence_protected_ids)
             valid_ids << record.id
             next

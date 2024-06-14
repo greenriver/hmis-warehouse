@@ -7,7 +7,7 @@
 require 'rails_helper'
 
 RSpec.describe HmisCsvImporter::Cleanup::ExpireLoadersJob, type: :model do
-  include_context "HmisCsvImporter cleanup context"
+  include_context 'HmisCsvImporter cleanup context'
 
   def records
     HmisCsvTwentyTwentyFour::Loader::Organization

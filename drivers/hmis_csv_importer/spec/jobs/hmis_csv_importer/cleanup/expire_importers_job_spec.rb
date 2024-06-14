@@ -8,7 +8,7 @@ require 'rails_helper'
 require_relative 'shared_contexts'
 
 RSpec.describe HmisCsvImporter::Cleanup::ExpireImportersJob, type: :model do
-  include_context "HmisCsvImporter cleanup context"
+  include_context 'HmisCsvImporter cleanup context'
 
   def records
     HmisCsvTwentyTwentyFour::Importer::Organization

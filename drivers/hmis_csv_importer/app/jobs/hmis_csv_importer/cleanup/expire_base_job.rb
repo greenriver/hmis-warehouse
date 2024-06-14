@@ -9,7 +9,7 @@ module HmisCsvImporter::Cleanup
       @retain_after_date = retain_after_date
 
       models.each do |model|
-        benchmark "#{model.table_name}" do
+        benchmark model.table_name.to_s do
           process_model(model)
         end
       end
