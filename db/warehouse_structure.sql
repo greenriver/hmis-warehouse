@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -11819,7 +11819,8 @@ CREATE TABLE public.hmis_2024_affiliations (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -11869,7 +11870,8 @@ CREATE TABLE public.hmis_2024_assessment_questions (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -11917,7 +11919,8 @@ CREATE TABLE public.hmis_2024_assessment_results (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -11967,7 +11970,8 @@ CREATE TABLE public.hmis_2024_assessments (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -12019,7 +12023,8 @@ CREATE TABLE public.hmis_2024_ce_participations (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -12102,7 +12107,8 @@ CREATE TABLE public.hmis_2024_clients (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -12157,7 +12163,8 @@ CREATE TABLE public.hmis_2024_current_living_situations (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -12214,7 +12221,8 @@ CREATE TABLE public.hmis_2024_disabilities (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -12266,7 +12274,8 @@ CREATE TABLE public.hmis_2024_employment_educations (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -12374,7 +12383,8 @@ CREATE TABLE public.hmis_2024_enrollments (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -12426,7 +12436,8 @@ CREATE TABLE public.hmis_2024_events (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -12507,7 +12518,8 @@ CREATE TABLE public.hmis_2024_exits (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -12563,7 +12575,8 @@ CREATE TABLE public.hmis_2024_exports (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -12612,7 +12625,8 @@ CREATE TABLE public.hmis_2024_funders (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -12667,7 +12681,8 @@ CREATE TABLE public.hmis_2024_health_and_dvs (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -12714,7 +12729,8 @@ CREATE TABLE public.hmis_2024_hmis_participations (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -12828,7 +12844,8 @@ CREATE TABLE public.hmis_2024_income_benefits (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -12887,7 +12904,8 @@ CREATE TABLE public.hmis_2024_inventories (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -12933,7 +12951,8 @@ CREATE TABLE public.hmis_2024_organizations (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -12985,7 +13004,8 @@ CREATE TABLE public.hmis_2024_project_cocs (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -13041,7 +13061,8 @@ CREATE TABLE public.hmis_2024_projects (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -13096,7 +13117,8 @@ CREATE TABLE public.hmis_2024_services (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -13143,7 +13165,8 @@ CREATE TABLE public.hmis_2024_users (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -13193,7 +13216,8 @@ CREATE TABLE public.hmis_2024_youth_education_statuses (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true
+    should_import boolean DEFAULT true,
+    expired boolean
 );
 
 
@@ -16233,7 +16257,8 @@ CREATE TABLE public.hmis_csv_2024_affiliations (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -16277,7 +16302,8 @@ CREATE TABLE public.hmis_csv_2024_assessment_questions (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -16319,7 +16345,8 @@ CREATE TABLE public.hmis_csv_2024_assessment_results (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -16363,7 +16390,8 @@ CREATE TABLE public.hmis_csv_2024_assessments (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -16409,7 +16437,8 @@ CREATE TABLE public.hmis_csv_2024_ce_participations (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -16486,7 +16515,8 @@ CREATE TABLE public.hmis_csv_2024_clients (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -16535,7 +16565,8 @@ CREATE TABLE public.hmis_csv_2024_current_living_situations (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -16586,7 +16617,8 @@ CREATE TABLE public.hmis_csv_2024_disabilities (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -16632,7 +16664,8 @@ CREATE TABLE public.hmis_csv_2024_employment_educations (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -16734,7 +16767,8 @@ CREATE TABLE public.hmis_csv_2024_enrollments (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -16780,7 +16814,8 @@ CREATE TABLE public.hmis_csv_2024_events (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -16855,7 +16890,8 @@ CREATE TABLE public.hmis_csv_2024_exits (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -16905,7 +16941,8 @@ CREATE TABLE public.hmis_csv_2024_exports (
     "ImplementationID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -16948,7 +16985,8 @@ CREATE TABLE public.hmis_csv_2024_funders (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -16997,7 +17035,8 @@ CREATE TABLE public.hmis_csv_2024_health_and_dvs (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -17038,7 +17077,8 @@ CREATE TABLE public.hmis_csv_2024_hmis_participations (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -17146,7 +17186,8 @@ CREATE TABLE public.hmis_csv_2024_income_benefits (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -17199,7 +17240,8 @@ CREATE TABLE public.hmis_csv_2024_inventories (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -17239,7 +17281,8 @@ CREATE TABLE public.hmis_csv_2024_organizations (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -17285,7 +17328,8 @@ CREATE TABLE public.hmis_csv_2024_project_cocs (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -17335,7 +17379,8 @@ CREATE TABLE public.hmis_csv_2024_projects (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -17384,7 +17429,8 @@ CREATE TABLE public.hmis_csv_2024_services (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -17425,7 +17471,8 @@ CREATE TABLE public.hmis_csv_2024_users (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -17469,7 +17516,8 @@ CREATE TABLE public.hmis_csv_2024_youth_education_statuses (
     "ExportID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL
+    loader_id integer NOT NULL,
+    expired boolean
 );
 
 
@@ -63001,10 +63049,9 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240529202928'),
 ('20240529205526'),
 ('20240531152432'),
+('20240602140933'),
 ('20240603185124'),
 ('20240603190227'),
 ('20240603191431'),
 ('20240603191721'),
 ('20240605155445');
-
-
