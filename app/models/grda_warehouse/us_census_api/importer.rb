@@ -290,7 +290,11 @@ module GrdaWarehouse
         ]
 
         GrdaWarehouse::Shape::ZipCode.in_state(state_fips).all.map(&:zcta5ce10).each_slice(50) do |slice|
-          @query_geo_params << { level: "ZCTA5:#{slice.join(',')}", within: "STATE:#{state_fips}" }
+          if current_year >= 2020
+            @query_geo_params << { level: "ZCTA5:#{slice.join(',')}" }
+          else
+            @query_geo_params << { level: "ZCTA5:#{slice.join(',')}", within: "STATE:#{state_fips}" }
+          end
         end
 
         GrdaWarehouse::Shape::County.where(statefp: state_fips).find_each do |county|
