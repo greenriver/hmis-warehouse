@@ -24,7 +24,7 @@ module MaReports::CsgEngage
       cred = MaReports::CsgEngage::Credential.first
       return unless cred.present?
       return unless DateTime.current.hour == cred.hour
-      return if last_report.present? && last_report.started_at > DateTime.current - 20.hours
+      return if latest_report.present? && latest_report.started_at > DateTime.current - 20.hours
 
       MaReports::CsgEngage::Agency.find_each do |agency|
         report = MaReports::CsgEngage::Report.build(agency)
@@ -63,6 +63,10 @@ module MaReports::CsgEngage
       return unless last_report.present?
 
       last_report.program_reports.where(imported_program_name: last_report.program_names - program_names).find_each(&:delete_from_csg)
+    end
+
+    def self.latest_report
+      where.not(completed_at: nil).order(:completed_at).last
     end
 
     def last_report
