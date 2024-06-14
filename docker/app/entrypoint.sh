@@ -11,6 +11,9 @@ curl --silent 169.254.170.2$AWS_CONTAINER_CREDENTIALS_RELATIVE_URI > role.info.l
 
 cd /app
 
+echo 'Commenting out pg_fixtures which bundler tries to load in production and staging for some reason'
+sed -i.bak '/pg_fixtures/d' Gemfile
+
 echo 'Getting secrets for the environment...'
 T1=`date +%s`
 
