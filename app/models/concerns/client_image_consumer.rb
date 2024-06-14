@@ -18,7 +18,7 @@ module ClientImageConsumer
 
       # Check first for locally uploaded image or a cached ETO image
       # Otherwise, check for an image connected to any source client
-      local_client_image_data || source_clients.detect(&:image_for_source_client)&.image_for_source_client
+      local_client_image_data || source_clients.detect { |sc| sc.image_for_source_client.length > 100 }&.image_for_source_client
     end
 
     def image_for_source_client(_cache_for = 10.minutes)
