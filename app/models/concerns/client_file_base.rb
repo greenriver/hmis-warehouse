@@ -64,13 +64,23 @@ module ClientFileBase
     def as_preview
       return client_file.download unless client_file.variable?
 
-      client_file.variant(resize_to_limit: [1920, 1080]).processed.download
+      begin
+        client_file.variant(resize_to_limit: [1920, 1080]).processed.download
+      rescue ActiveStorage::FileNotFoundError
+        Rails.logger.warn('Could not find client file')
+        return nil
+      end
     end
 
     def as_thumb
       return nil unless client_file.variable?
 
-      client_file.variant(resize_to_limit: [400, 400]).processed.download
+      begin
+        client_file.variant(resize_to_limit: [400, 400]).processed.download
+      rescue ActiveStorage::FileNotFoundError
+        Rails.logger.warn('Could not find client file')
+        return nil
+      end
     end
   end
 end
