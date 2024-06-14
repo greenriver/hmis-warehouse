@@ -878,6 +878,7 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       expect(record).to be_present
 
       referral_request = HmisExternalApis::AcHmis::ReferralRequest.find(record['id'])
+      expect(referral_request.form_processor.definition).to eq(definition)
       expect(referral_request.project).to eq(p1)
       expect(referral_request.unit_type_id).to eq(unit_type.id)
       expect(referral_request.requestor_name).to eq('Sample Admin')
