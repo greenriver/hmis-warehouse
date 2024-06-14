@@ -9,7 +9,7 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
   self.sequence_name = "public.\"#{table_name}_id_seq\""
   has_paper_trail
   include ::HmisStructure::Organization
-  include ::Hmis::Hud::Concerns::HasCustomDataElements
+  include ::Hmis::Hud::Concerns::FormSubmittable
   include ::Hmis::Hud::Concerns::Shared
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'
@@ -36,7 +36,14 @@ class Hmis::Hud::Organization < Hmis::Hud::Base
 
     search_term.strip!
     query = "%#{search_term.split(/\W+/).join('%')}%"
-    where(o_t[:OrganizationName].matches(query).or(o_t[:id].eq(search_term)).or(o_t[:organization_id].eq(search_term)))
+
+    where(
+      [
+        o_t[:OrganizationName].matches(query),
+        o_t[:organization_id].eq(search_term),
+        possibly_pk?(search_term) ? o_t[:id].eq(search_term) : nil,
+      ].compact.inject(&:or),
+    )
   end
 
   SORT_OPTIONS = [:name].freeze

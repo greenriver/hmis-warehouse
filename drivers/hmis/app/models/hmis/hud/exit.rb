@@ -11,7 +11,7 @@ class Hmis::Hud::Exit < Hmis::Hud::Base
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::EnrollmentRelated
   include ::Hmis::Hud::Concerns::ClientProjectEnrollmentRelated
-  include ::Hmis::Hud::Concerns::HasCustomDataElements
+  include ::Hmis::Hud::Concerns::FormSubmittable
   include ::Hmis::Hud::Concerns::ServiceHistoryQueuer
 
   belongs_to :client, **hmis_relation(:PersonalID, 'Client')
@@ -20,7 +20,9 @@ class Hmis::Hud::Exit < Hmis::Hud::Base
 
   validates_with Hmis::Hud::Validators::ExitValidator
 
-  after_commit :warehouse_trigger_processing
+  after_save :warehouse_trigger_processing
+
+  scope :auto_exited, -> { where.not(auto_exited: nil) }
 
   def aftercare_methods
     HudUtility2024.aftercare_method_fields.select { |k| send(k) == 1 }.values

@@ -3,6 +3,7 @@
 .form-inputs.well
   = f.input :name
   %p Choices below will add to the selection of projects.  For instance, if you choose a single project and the project type ES, you will end up with a project group with all emergency shelter projects and the single chosen project.
+  %p Confidential projects must be added individually, adding an organization, data source, or project type, will not add any confidential projects.
   .row
     .col-sm-6
       = f.input :project_ids, collection: [], as: :select_two, input_html: { multiple: true, data: { 'collection-path' => api_projects_path(selected_project_ids: @project_group.filter.project_ids) }, placeholder: 'Choose Projects'}, label: 'Projects'

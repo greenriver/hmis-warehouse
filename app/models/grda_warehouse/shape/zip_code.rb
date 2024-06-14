@@ -17,8 +17,8 @@ module GrdaWarehouse
         'geoid10'
       end
 
-      scope :my_state, -> { in_state(my_fips_state_code) }
-      scope :not_my_state, -> { where.not(id: in_state(my_fips_state_code).select(:id)) }
+      scope :my_states, -> { in_state(my_fips_state_codes) }
+      scope :not_my_states, -> { where.not(id: in_state(my_fips_state_codes).select(:id)) }
       scope :missing_assigned_county, -> { where(county_name_lower: nil) }
       scope :missing_assigned_state, -> { where(st_geoid: nil) }
 
@@ -71,7 +71,7 @@ module GrdaWarehouse
         SQL
       end
 
-      def self.calculate_counties(state_code = GrdaWarehouse::Shape::State.my_fips_state_code)
+      def self.calculate_counties(state_codes = GrdaWarehouse::Shape::State.my_fips_state_codes)
         connection.execute(<<~SQL)
           UPDATE
             shape_zip_codes AS z
@@ -81,7 +81,7 @@ module GrdaWarehouse
             shape_counties c
           WHERE
             z.county_name_lower IS NULL
-            AND z.st_geoid = '#{state_code}'
+            AND z.st_geoid in (#{state_codes.map { |m| "'#{m}'" }.join(',')})
             AND
               (
                 ST_Area(ST_Intersection(z.geom, c.geom))

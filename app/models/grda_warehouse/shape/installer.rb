@@ -43,7 +43,7 @@ module GrdaWarehouse
 
         return unless ZipCode.missing_assigned_county.any?
 
-        Rails.logger.info 'Associating zip codes with counties in YOUR state only'
+        Rails.logger.info 'Associating zip codes with counties in YOUR states only'
         GrdaWarehouse::Shape::ZipCode.calculate_counties
       end
 
@@ -64,10 +64,10 @@ module GrdaWarehouse
             next
           end
 
-          next unless klass.not_my_state.count.positive? && (klass.not_my_state.count + klass.my_state.count == klass.count)
+          next unless klass.not_my_states.count.positive? && (klass.not_my_states.count + klass.my_states.count == klass.count)
 
           Rails.logger.warn "Deleting #{klass} that are out of state"
-          klass.not_my_state.delete_all
+          klass.not_my_states.delete_all
           klass.connection.exec_query("VACUUM ANALYZE #{klass.table_name}")
         end
       end

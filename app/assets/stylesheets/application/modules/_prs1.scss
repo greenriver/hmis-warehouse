@@ -176,3 +176,10 @@
     max-width: calc(100vw - (550px));
   }
 }
+.prs-chart-no-legend-width-container {
+  max-width: calc(100vw - (100px));
+
+  @media (min-width: 1200px) {
+    max-width: calc(100vw - (200px));
+  }
+}

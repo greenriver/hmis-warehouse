@@ -1,0 +1,7 @@
+%ul.nav.nav-tabs
+  - nav_class = if selected_path == ma_reports_csg_engage_reports_path then 'active' else '' end
+  %li.nav-item{class: nav_class}
+    = link_to 'Transmissions', ma_reports_csg_engage_reports_path, class: 'nav-link'
+  - nav_class = if selected_path == ma_reports_csg_engage_configurations_path then 'active' else '' end
+  %li.nav-item{class: nav_class}
+    = link_to 'Configuration', ma_reports_csg_engage_configurations_path, class: 'nav-link'

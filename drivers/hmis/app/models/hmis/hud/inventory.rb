@@ -10,7 +10,7 @@ class Hmis::Hud::Inventory < Hmis::Hud::Base
   include ::HmisStructure::Inventory
   include ::Hmis::Hud::Concerns::Shared
   include ::Hmis::Hud::Concerns::ProjectRelated
-  include ::Hmis::Hud::Concerns::HasCustomDataElements
+  include ::Hmis::Hud::Concerns::FormSubmittable
   validates_with Hmis::Hud::Validators::InventoryValidator
 
   belongs_to :data_source, class_name: 'GrdaWarehouse::DataSource'

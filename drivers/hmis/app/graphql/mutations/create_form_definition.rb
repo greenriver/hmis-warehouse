@@ -23,7 +23,8 @@ module Mutations
 
       return { errors: errors } if errors.present?
 
-      definition = Hmis::Form::Definition.create!(version: 0, status: 'draft', **attrs)
+      # TODO(#5858) once the publish workflow is in place, we should set status to DRAFT here
+      definition = Hmis::Form::Definition.create!(version: 0, status: Hmis::Form::Definition::PUBLISHED, **attrs)
 
       if definition.valid?
         definition.save!
