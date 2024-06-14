@@ -60,7 +60,11 @@ module SystemPathways::Equity::RaceAndEthnicity
       asian_hispanic_latinaeo: ->(race_data) { single_race_latinaeo(race_data, 'asian') },
       black_af_american: ->(race_data) { single_race(race_data, 'black_af_american') },
       black_af_american_hispanic_latinaeo: ->(race_data) { single_race_latinaeo(race_data, 'black_af_american') },
-      hispanic_latinaeo: ->(race_data) { single_race_latinaeo(race_data, 'hispanic_latinaeo') },
+      hispanic_latinaeo: ->(race_data) do
+        race_data.select { |client| client['hispanic_latinaeo'] }.
+          map { |client| client.except('id').values }.
+          count { |m| m.count(true) == 1 }
+      end,
       mid_east_n_african: ->(race_data) { single_race(race_data, 'mid_east_n_african') },
       mid_east_n_african_hispanic_latinaeo: ->(race_data) { single_race_latinaeo(race_data, 'mid_east_n_african') },
       native_hi_pacific: ->(race_data) { single_race(race_data, 'native_hi_pacific') },

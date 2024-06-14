@@ -18,7 +18,7 @@ module SystemPathways::TimeChart::RaceAndEthnicity
       data: race_and_ethnicity_data,
       table: as_table(race_and_ethnicity_table_data, ['Project Type'] + race_ethnicity_combinations.values),
       link_params: {
-        columns: [[]] + race_ethnicity_combinations.values.map { |k| ['details[race_and_ethnicities][]', k] },
+        columns: [[]] + race_ethnicity_combinations.keys.map { |k| ['details[race_ethnicity_combinations][]', k] },
         rows: [[]] + detail_node_keys.map { |k| ['node', k] },
       },
     }
@@ -115,7 +115,11 @@ module SystemPathways::TimeChart::RaceAndEthnicity
       asian_hispanic_latinaeo: ->(race_data, stay_length_col) { single_race_latinaeo(race_data, 'asian', stay_length_col) },
       black_af_american: ->(race_data, stay_length_col) { single_race(race_data, 'black_af_american', stay_length_col) },
       black_af_american_hispanic_latinaeo: ->(race_data, stay_length_col) { single_race_latinaeo(race_data, 'black_af_american', stay_length_col) },
-      hispanic_latinaeo: ->(race_data, stay_length_col) { single_race_latinaeo(race_data, 'hispanic_latinaeo', stay_length_col) },
+      hispanic_latinaeo: ->(race_data, stay_length_col) do
+        race_data.select { |client| client[sp_c_t['hispanic_latinaeo']] }.
+          select { |client| client.except(sp_c_t['id'], stay_length_col).values.count(true) == 1 }.
+          map { |client| client[stay_length_col] }
+      end,
       mid_east_n_african: ->(race_data, stay_length_col) { single_race(race_data, 'mid_east_n_african', stay_length_col) },
       mid_east_n_african_hispanic_latinaeo: ->(race_data, stay_length_col) { single_race_latinaeo(race_data, 'mid_east_n_african', stay_length_col) },
       native_hi_pacific: ->(race_data, stay_length_col) { single_race(race_data, 'native_hi_pacific', stay_length_col) },
