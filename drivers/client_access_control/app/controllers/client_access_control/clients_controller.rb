@@ -116,7 +116,7 @@ class ClientAccessControl::ClientsController < ApplicationController
     response.headers['Last-Modified'] = Time.zone.now.httpdate
     expires_in max_age, public: false
     image = @client.pii_provider(user: current_user).image
-    if i!image.empty? && !Rails.env.test?
+    if !image.empty? && !Rails.env.test?
       send_data image, type: ::MimeMagic.by_magic(image), disposition: 'inline'
     else
       head(:forbidden)
