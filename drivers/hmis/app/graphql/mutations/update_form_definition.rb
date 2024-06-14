@@ -16,6 +16,7 @@ module Mutations
 
       definition = Hmis::Form::Definition.find_by(id: id)
       raise 'not found' unless definition
+      raise 'only allowed to modify draft forms' unless definition.draft?
       raise 'not allowed to change identifier' if input.identifier.present? && input.identifier != definition.identifier
 
       # This mutation can be used to update the definition or the title/role, which is why definition is optional.
@@ -59,8 +60,9 @@ module Mutations
 
       # If it's a hash, first drop unneeded keys and transform them all to snake case
       converted = form_element.
-        excluding('__typename'). # drop typescript artifact
+        excluding('__typename', ''). # drop typescript artifacts and empty keys
         compact. # drop keys with nil values
+        delete_if { |_key, value| value.is_a?(Array) && value.empty? }. # drop empty arrays
         transform_keys(&:underscore) # transform keys to snake case
 
       # Then map through all the sub-elements in the hash and return them

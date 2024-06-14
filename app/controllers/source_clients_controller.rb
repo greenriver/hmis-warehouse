@@ -13,6 +13,10 @@ class SourceClientsController < ApplicationController
   before_action :set_destination_client
   after_action :log_client, except: [:image]
 
+  # TODO: START_ACL remove when ACL transition complete
+  before_action :set_legacy_implicitly_assume_authorized_access
+  # END ACL
+
   def edit
   end
 
@@ -60,7 +64,7 @@ class SourceClientsController < ApplicationController
     end
     response.headers['Last-Modified'] = Time.zone.now.httpdate
     expires_in max_age, public: false
-    image = @client.image_for_source_client(max_age)
+    image = @client.pii_provider(user: current_user).image
     # NOTE: The test environment is really unhappy when there's no image
     if !image.empty? && !Rails.env.test?
       send_data image, type: ::MimeMagic.by_magic(image), disposition: 'inline'

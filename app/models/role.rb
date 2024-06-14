@@ -910,6 +910,12 @@ class Role < ApplicationRecord
         category: 'Client Access',
         sub_category: 'General Client Access',
       },
+      can_view_client_photo: {
+        description: 'Can view client photos',
+        administrative: false,
+        category: 'Client Access',
+        sub_category: 'General Client Access',
+      },
     }
   end
 

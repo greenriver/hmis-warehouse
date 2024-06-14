@@ -10,6 +10,8 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
       middle_name: 'Middle',
       dob: today - pii_age.years,
       ssn: '123-45-6789',
+      # random jpeg data > 100 chars
+      image: "\xFF\xD8\xFF\xE0\x00\x10\x4A\x46\x49\x46\x00\x01\x01\x01\x00\x60\x00\x60\x00\x00\xFF\xE1\x00\x16\x45\x78\x69\x66\x00\x00\x4D\x4D\x00\x2A\x00\x00\x00\x08\x00\x01\x01\x12\x00\x03\x00\x00\x00\x01\x00\x01\x00\x00\xFF\xDB\x00\x43\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\x09\x09\x08\x0A\x0C\x14\x0D\x0C\x0B\x0B\x0C\x19\x12\x13\x0F\x14\x1D\x1A\x1F\x1E\x1D\x1A\x1C\x1C\x20\x24\x2E\x27\x20\x22\x2C\x23\x1C\x1C\x28\x37\x29\x2C\x30\x31\x34",
     }
   end
   let(:masked_ssn) { 'XXX-XX-6789' }
@@ -53,6 +55,13 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
     end
   end
 
+  context('pii with view photo permission') do
+    let(:policy) { new_policy(can_view_client_photo: true) }
+    let(:pii) { GrdaWarehouse::PiiProvider.from_attributes(policy: policy, **pii_attributes) }
+
+    it('displays image') { expect(pii.image).to eq(pii_attributes[:image]) }
+  end
+
   context('pii with vew ssn permission') do
     let(:policy) { new_policy(can_view_full_ssn: true) }
     let(:pii) { GrdaWarehouse::PiiProvider.from_attributes(policy: policy, **pii_attributes) }
@@ -70,6 +79,7 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
     it('redacts middle_name') { expect(pii.middle_name).to eq(name_redacted) }
     it('redacts brief_name') { expect(pii.brief_name).to eq(name_redacted) }
     it('redacts full_name') { expect(pii.full_name).to eq(name_redacted) }
+    it('redacts image') { expect(pii.image).to be_nil }
     it('redacts dob') { expect(pii.dob).to be_nil }
     it('masks ssn') { expect(pii.ssn).to eq(masked_ssn) }
     it('displays age over dob') { expect(pii.dob_or_age).to eq(pii_age.to_s) }

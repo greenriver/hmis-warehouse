@@ -2466,7 +2466,8 @@ CREATE TABLE public.roles (
     can_edit_theme boolean DEFAULT false,
     deleted_at timestamp without time zone,
     can_edit_own_client_notes boolean DEFAULT false,
-    can_view_client_name boolean DEFAULT false
+    can_view_client_name boolean DEFAULT false,
+    can_view_client_photo boolean DEFAULT false
 );
 
 
@@ -5329,6 +5330,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240404162012'),
 ('20240502015619'),
 ('20240506135053'),
-('20240601143623');
+('20240601143623'),
+('20240610025840'),
+('20240610025921');
 
 
