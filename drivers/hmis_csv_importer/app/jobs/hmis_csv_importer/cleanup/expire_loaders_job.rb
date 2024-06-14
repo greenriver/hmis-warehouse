@@ -6,7 +6,7 @@ module HmisCsvImporter::Cleanup
       candidates = model.
         with_deleted.
         where(data_source_id: @data_source_id).
-        select(:id, model.hud_key, :loader_id)
+        select(:id, model.hud_key, :loader_id, :expired)
 
       cnt = 0
       log "#{model.table_name} total: #{candidates.size}"
@@ -15,6 +15,8 @@ module HmisCsvImporter::Cleanup
         expired_ids = []
         valid_ids = []
         batch.each do |record|
+          next if record.expired # don't update records we've already expired
+
           if record.loader_id.in?(age_protected_ids)
             valid_ids << record.id
             next
@@ -59,17 +61,14 @@ module HmisCsvImporter::Cleanup
     end
 
     def age_protected_ids
-      @age_protected_ids ||= HmisCsvImporter::Loader::LoaderLog.
+      @age_protected_ids ||= ::HmisCsvImporter::Loader::LoaderLog.
         where(data_source_id: @data_source_id).
         where(created_at: @retain_after_date...).
         pluck(:id).to_set
     end
 
     def models
-      ::HmisCsvImporter::Loader::Loader.loadable_files.values.filter do |model|
-        # keep Export records indefinitely. There's only ever one row of metadata.
-        model.name.demodulize != 'Export'
-      end
+      ::HmisCsvImporter::Loader::Loader.expiring_models
     end
   end
 end

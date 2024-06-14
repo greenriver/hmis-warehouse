@@ -100,6 +100,12 @@ module HmisCsvImporter::Loader
       @importer&.importer_log
     end
 
+    def self.expiring_models
+      loadable_files.values.filter do |model|
+        model.column_names.include?('expired')
+      end
+    end
+
     private def load_export_file
       begin
         @export ||= loadable_files['Export.csv'].load_from_csv(

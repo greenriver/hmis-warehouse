@@ -12575,8 +12575,7 @@ CREATE TABLE public.hmis_2024_exports (
     source_type character varying NOT NULL,
     dirty_at timestamp without time zone,
     clean_at timestamp without time zone,
-    should_import boolean DEFAULT true,
-    expired boolean
+    should_import boolean DEFAULT true
 );
 
 
@@ -16941,8 +16940,7 @@ CREATE TABLE public.hmis_csv_2024_exports (
     "ImplementationID" character varying,
     data_source_id integer NOT NULL,
     loaded_at timestamp without time zone NOT NULL,
-    loader_id integer NOT NULL,
-    expired boolean
+    loader_id integer NOT NULL
 );
 
 

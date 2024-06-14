@@ -13,7 +13,7 @@ RSpec.shared_context 'HmisCsvImporter cleanup context' do
     GrdaWarehouse::DataSource.create(name: 'Green River', short_name: 'GR', source_type: :sftp)
   end
 
-  def import_records(run_at:)
+  def import_csv_records(run_at:)
     Timecop.freeze(run_at) do
       import_hmis_csv_fixture(
         'drivers/hmis_csv_importer/spec/fixtures/files/twenty_twenty_four/allowed_projects',

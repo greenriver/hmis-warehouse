@@ -201,6 +201,12 @@ module HmisCsvImporter::Importer
       end
     end
 
+    def self.expiring_models
+      importable_files.values.filter do |model|
+        model.column_names.include?('expired')
+      end
+    end
+
     private def import_overrides_for(file_name, data_source_id)
       HmisCsvImporter::ImportOverride.where(file_name: file_name, data_source_id: data_source_id).to_a.
         sort_by { |o| [o.specificity, o.id] } # least specific will run first

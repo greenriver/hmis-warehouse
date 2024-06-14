@@ -29,23 +29,21 @@ RSpec.describe HmisCsvImporter::Cleanup::ExpireImportersJob, type: :model do
     end
 
     before(:each) do
-      run_times.each { |run_time| import_records(run_at: run_time) }
-    end
-
-    it 'has expected number of initial records' do
-      expect(records.count).to eq(3)
+      run_times.each { |run_time| import_csv_records(run_at: run_time) }
     end
 
     it 'retains records within period' do
       expect do
         run_job(retain_after_date: run_times[1] - 1.minute, retain_log_count: 1)
-      end.to change { records.where(expired: true).count }.to(1)
+      end.to change { records.where(expired: true).count }.from(0).to(1).
+      and change { records.where(expired: false).count }.from(0).to(2)
     end
 
     it 'retains only the last X records' do
       expect do
         run_job(retain_after_date: now, retain_log_count: 1)
-      end.to change { records.where(expired: true).count }.to(2)
+      end.to change { records.where(expired: true).count }.from(0).to(2).
+      and change { records.where(expired: false).count }.from(0).to(1)
     end
   end
 end

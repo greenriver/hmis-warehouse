@@ -8,6 +8,8 @@ class TrackCsvTableRows < ActiveRecord::Migration[7.0]
 
   def change
     tables.each do |table|
+      next if table =~ /_exports\z/
+
       add_column table, :expired, :boolean
     end
   end
