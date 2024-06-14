@@ -21,6 +21,20 @@ module HudUtility2024
     _translate map, field, reverse
   end
 
+  def ethnicities
+    {
+      hispanic_latinaeo: 'Hispanic/Latina/e/o',
+      non_hispanic_latinaeo: 'Non-Hispanic/Latina/e/o',
+      unknown: 'Unknown (Missing, Prefers not to answer, Unknown)',
+    }.freeze
+  end
+
+  def ethnicity(field, reverse = false)
+    map = ethnicities
+
+    _translate map, field, reverse
+  end
+
   def race_ethnicity_combinations
     {
       am_ind_ak_native: 'American Indian, Alaska Native, or Indigenous (only)',

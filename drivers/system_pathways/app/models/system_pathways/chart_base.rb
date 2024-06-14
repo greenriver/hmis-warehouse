@@ -124,7 +124,9 @@ module SystemPathways::ChartBase
     private def filter_for_race(scope)
       scope = filter_for_race_with_filter(scope, filter)
       scope = filter_for_race_with_filter(scope, show_filter) if show_filter
-      scope = filter_for_race_with_details_filter(scope, details_filter) if details_filter
+      scope = filter_for_race_with_details_filter(scope, details_filter) if details_filter&.races.present?
+      scope = filter_for_ethnicity_with_details_filter(scope, details_filter) if details_filter&.ethnicities.present?
+
       scope
     end
 
@@ -151,6 +153,21 @@ module SystemPathways::ChartBase
         query[column.underscore.to_sym] = true
       end
       scope.where(query)
+    end
+
+    private def filter_for_ethnicity_with_details_filter(scope, filter)
+      unknown_query = races.except('MultiRacial', 'RaceNone').keys.map { |k| [k.underscore.to_sym, false] }.to_h
+
+      # These are mutually exclusive, so, although the filter is an array, ignore multiples
+      case filter.ethnicities.first
+      when :hispanic_latinaeo
+        scope.where(hispanic_latinaeo: true)
+      when :non_hispanic_latinaeo
+        scope.where(hispanic_latinaeo: false).
+          where.not(unknown_query).except(:hispanic_latinaeo) # Must have at least one race response
+      when :unknown
+        scope.where(unknown_query)
+      end
     end
 
     private def multi_racial_clients(scope)
@@ -334,11 +351,7 @@ module SystemPathways::ChartBase
     end
 
     private def ethnicities
-      @ethnicities ||= {
-        hispanic_latinaeo: 'Hispanic/Latina/e/o',
-        non_hispanic_latinaeo: 'Non-Hispanic/Latina/e/o',
-        unknown: 'Unknown (Missing, Prefers not to answer, Unknown)',
-      }
+      @ethnicities ||= HudUtility2024.ethnicities
     end
 
     private def race_ethnicity_combinations

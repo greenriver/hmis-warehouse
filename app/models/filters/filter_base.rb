@@ -82,10 +82,8 @@ module Filters
     attribute :mask_small_populations, Boolean, default: false
     attribute :secondary_project_ids, Array, default: []
     attribute :secondary_project_group_ids, Array, default: []
-
-    # NOTE: this is needed to support old reports with existing options hashes containing ethnicities
-    # we won't actually do anything with it
     attribute :ethnicities, Array, default: []
+    attribute :race_ethnicity_combinations, Array, default: []
 
     validates_presence_of :start, :end
 
@@ -177,6 +175,8 @@ module Filters
       self.active_roi = filters.dig(:active_roi).in?(['1', 'true', true]) unless filters.dig(:active_roi).nil?
       self.secondary_project_ids = filters.dig(:secondary_project_ids)&.reject(&:blank?)&.map(&:to_i).presence || secondary_project_ids
       self.secondary_project_group_ids = filters.dig(:secondary_project_group_ids)&.reject(&:blank?)&.map(&:to_i).presence || secondary_project_group_ids
+      self.ethnicities = filters.dig(:ethnicities)&.select { |ethnicity| HudUtility2024.ethnicities.keys.include?(ethnicity.to_sym) }.presence&.map(&:to_sym) || ethnicities
+      self.race_ethnicity_combinations = filters.dig(:race_ethnicity_combinations)&.select { |value| HudUtility2024.race_ethnicity_combinations.keys.include?(value.to_sym) }.presence&.map(&:to_sym) || race_ethnicity_combinations
 
       ensure_dates_work if valid?
       self
@@ -316,6 +316,8 @@ module Filters
         optional_files: [],
         secondary_project_ids: [],
         secondary_project_group_ids: [],
+        ethnicities: [],
+        race_ethnicity_combinations: [],
       ]
     end
 
