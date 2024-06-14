@@ -66,7 +66,7 @@ class SourceClientsController < ApplicationController
     expires_in max_age, public: false
     image = @client.pii_provider(user: current_user).image
     # NOTE: The test environment is really unhappy when there's no image
-    if image && ! Rails.env.test?
+    if !image.empty? && !Rails.env.test?
       send_data image, type: ::MimeMagic.by_magic(image), disposition: 'inline'
     else
       head(:forbidden)
