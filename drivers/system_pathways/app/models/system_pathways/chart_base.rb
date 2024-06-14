@@ -124,7 +124,7 @@ module SystemPathways::ChartBase
     private def filter_for_race(scope)
       scope = filter_for_race_with_filter(scope, filter)
       scope = filter_for_race_with_filter(scope, show_filter) if show_filter
-      scope = filter_for_race_with_filter(scope, details_filter) if details_filter
+      scope = filter_for_race_with_details_filter(scope, details_filter) if details_filter
       scope
     end
 
@@ -139,6 +139,18 @@ module SystemPathways::ChartBase
       race_scope ||= scope
       race_scope = race_scope.where(id: multi_racial_clients(scope).select(:id)) if race_filter.races.include?('MultiRacial')
       scope.merge(race_scope)
+    end
+
+    private def filter_for_race_with_details_filter(scope, race_filter)
+      return scope.where(id: multi_racial_clients(scope).select(:id)) if race_filter.races.include?('MultiRacial')
+
+      query = races.except('MultiRacial', 'RaceNone').keys.map { |k| [k.underscore.to_sym, false] }.to_h
+      race_filter.races.each do |column|
+        next if column.in?(['MultiRacial', 'RaceNone'])
+
+        query[column.underscore.to_sym] = true
+      end
+      scope.where(query)
     end
 
     private def multi_racial_clients(scope)
