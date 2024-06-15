@@ -5,7 +5,7 @@
 ###
 
 require 'rails_helper'
-require_relative 'shared_contexts'
+require_relative 'shared'
 
 RSpec.describe HmisCsvImporter::Cleanup::DeleteExpiredJob, type: :model do
   include_context 'HmisCsvImporter cleanup context'
