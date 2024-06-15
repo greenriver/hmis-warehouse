@@ -89,8 +89,7 @@ module HmisCsvImporter::Cleanup
       SQL
 
       results = model.connection.select_rows(sql)
-      results.each_with_object({}) do |ary, h|
-        key, id = ary
+      results.each_with_object({}) do |(key, id), h|
         h[key] ||= []
         h[key].push(id)
       end
