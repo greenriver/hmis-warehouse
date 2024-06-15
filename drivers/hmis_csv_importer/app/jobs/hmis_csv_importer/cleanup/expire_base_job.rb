@@ -14,6 +14,7 @@
 #
 #   def models
 #   end
+#
 module HmisCsvImporter::Cleanup
   class ExpireBaseJob < ApplicationJob
     include ReportingConcern
@@ -46,24 +47,28 @@ module HmisCsvImporter::Cleanup
       candidates.in_batches(of: 5_000) do |batch|
         sequence_protected_id_map = query_sequence_protected_ids(model, batch)
         expired_ids = []
-        valid_ids = []
+        retained_ids = []
         batch.each do |record|
           next if record.expired # don't update records we've already expired
 
-          if record.send(log_id_field).in?(age_protected_ids)
-            valid_ids << record.id
+          record_log_id = record[log_id_field]
+          if record_log_id.in?(age_protected_ids)
+            # retain because log is more recent than retain_after_date
+            retained_ids << record.id
             next
           end
 
           sequence_protected_ids = sequence_protected_id_map[record[model.hud_key]]
-          if sequence_protected_ids.present? && record.send(log_id_field).in?(sequence_protected_ids)
-            valid_ids << record.id
+          if sequence_protected_ids.present? && record_log_id.in?(sequence_protected_ids)
+            # retain because log is part of recent import sequence (retain_log_count)
+            retained_ids << record.id
             next
           end
+
           expired_ids << record.id
         end.map(&:id)
 
-        model.where(id: valid_ids).update_all(expired: false) if valid_ids.any?
+        model.where(id: retained_ids).update_all(expired: false) if retained_ids.any?
         model.where(id: expired_ids).update_all(expired: true) if expired_ids.any?
         # GC every 10 batches
         cnt += 1

@@ -7,6 +7,7 @@ module HmisCsvImporter::Cleanup
       models.each do |model|
         benchmark "delete expired from #{model.table_name}" do
           expired = model.with_deleted.where(data_source_id: data_source_id).where(expired: true)
+          # delete in batches to reduce impact on db
           expired.in_batches(of: 5_000).delete_all
         end
         benchmark "vacuum #{model.table_name}" do
