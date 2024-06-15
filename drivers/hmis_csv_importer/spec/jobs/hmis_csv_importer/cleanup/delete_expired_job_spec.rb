@@ -28,7 +28,7 @@ RSpec.describe HmisCsvImporter::Cleanup::DeleteExpiredJob, type: :model do
 
     it 'deletes deleted' do
       expect do
-        HmisCsvImporter::Cleanup::DeleteExpiredJob.new.perform(data_source_id: data_source.id)
+        HmisCsvImporter::Cleanup::DeleteExpiredJob.new.perform
       end.to change { loader_records.where(expired: true).count }.from(1).to(0).
         and change { importer_records.where(expired: true).count }.from(1).to(0).
         and not_change { loader_records.where(expired: false).count }.

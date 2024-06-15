@@ -2,11 +2,10 @@ module HmisCsvImporter::Cleanup
   class DeleteExpiredJob < ApplicationJob
     include ReportingConcern
 
-    # @param data_source_id [Integer] the ID of the data source
-    def perform(data_source_id: nil)
+    def perform
       models.each do |model|
         benchmark "delete expired from #{model.table_name}" do
-          expired = model.with_deleted.where(data_source_id: data_source_id).where(expired: true)
+          expired = model.with_deleted.where(expired: true)
           # delete in batches to reduce impact on db
           expired.in_batches(of: 5_000).delete_all
         end

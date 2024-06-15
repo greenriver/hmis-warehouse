@@ -203,7 +203,7 @@ module HmisCsvImporter::Importer
 
     def self.expiring_models
       importable_files.values.filter do |model|
-        model.column_names.include?('expired')
+        model.column_names.include?('expired') && model.name.demodulize != 'Export'
       end
     end
 

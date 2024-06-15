@@ -169,10 +169,11 @@ module Importing
         generate_logging_info
 
         GrdaWarehouse::DataSource.importable.with_deleted.each do |data_source|
-          HmisCsvImporter::Cleanup::ExpireLoadersJob.new.perform_later(data_source_id: data_source.id)
-          HmisCsvImporter::Cleanup::ExpireImportersJob.new.perform_later(data_source_id: data_source.id)
+          retain_after_date = DateTime.current - 2.weeks
+          HmisCsvImporter::Cleanup::ExpireLoadersJob.perform_later(data_source_id: data_source.id, retain_after_date: retain_after_date)
+          HmisCsvImporter::Cleanup::ExpireImportersJob.perform_later(data_source_id: data_source.id, retain_after_date: retain_after_date)
           # disabled until we have confidence that records are correctly marked for expiration
-          # HmisCsvImporter::Cleanup::DeleteExpiredJob.new.perform_later(data_source_id: data_source.id)
+          # HmisCsvImporter::Cleanup::DeleteExpiredJob.perform_later
         end
 
         finish_processing

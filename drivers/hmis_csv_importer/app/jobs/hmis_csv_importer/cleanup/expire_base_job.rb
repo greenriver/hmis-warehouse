@@ -24,7 +24,7 @@ module HmisCsvImporter::Cleanup
     # @param retain_after_date [DateTime] the date after which records are retained
     def perform(data_source_id: nil, retain_log_count: 10, retain_after_date: DateTime.current)
       @data_source_id = data_source_id
-      @retain_log_count = retain_log_count * files_per_log
+      @retain_log_count = retain_log_count
       @retain_after_date = retain_after_date
 
       models.each do |model|
@@ -100,10 +100,6 @@ module HmisCsvImporter::Cleanup
         where(data_source_id: @data_source_id).
         where(created_at: @retain_after_date...).
         pluck(:id).to_set
-    end
-
-    def files_per_log
-      ::GrdaWarehouse::HmisImportConfig.active.where(data_source_id: @data_source_id).maximum(:file_count) || 1
     end
   end
 end
