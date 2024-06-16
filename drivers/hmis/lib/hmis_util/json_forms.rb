@@ -4,6 +4,8 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
+require 'hashdiff'
+
 module HmisUtil
   class JsonForms
     JsonFormException = Class.new(StandardError)
@@ -16,6 +18,9 @@ module HmisUtil
     end
 
     def seed_all
+      seed_fragments_into_db(dir: 'default', system_managed: true)
+      seed_fragments_into_db(dir: env_key, system_managed: false) if env_key
+
       # Load ALL the latest record definitions from JSON files.
       # This also ensures that any system-level instances exist.
       seed_record_form_definitions
@@ -39,25 +44,23 @@ module HmisUtil
       end
     end
 
-    def fragment_map
-      @fragment_map ||= begin
-        fragments = {}
-        Dir.glob("#{DATA_DIR}/default/fragments/*.json") do |file_path|
-          identifier = File.basename(file_path, '.json')
-          file = File.read(file_path)
-          fragments[identifier] = JSON.parse(file)
-        end
+    def seed_fragments_into_db(dir:, system_managed:)
+      lookup = Hmis::Form::DefinitionFragment.most_recent.index_by(&:identifier)
+      Dir.glob("#{DATA_DIR}/#{dir}/fragments/*.json") do |file_path|
+        identifier = File.basename(file_path, '.json')
+        record = lookup[identifier]
+        # skip if a user-managed record already exists
+        next if record && !record.system_managed
 
-        # If we're in a client env, override any fragments
-        if env_key
-          Dir.glob("#{DATA_DIR}/#{env_key}/fragments/*.json") do |file_path|
-            identifier = File.basename(file_path, '.json')
-            puts "Loading #{env_key} override for #{identifier} fragment"
-            file = File.read(file_path)
-            fragments[identifier] = JSON.parse(file)
-          end
-        end
-        fragments
+        record ||= Hmis::Form::DefinitionFragment.new(identifier: identifier)
+        json = JSON.parse(File.read(file_path))
+
+        # skip if the template contents are identical
+        next if HashDiff(record.template, json).empty?
+
+        record.system_managed = system_managed
+        record.template = json
+        record.save_as_new_version!
       end
     end
 
@@ -186,38 +189,35 @@ module HmisUtil
       children&.each { |child| walk_nodes(child, &block) }
     end
 
-    def resolve_fragment!(item, safety: 0)
+    # apply db-backed fragments to form definitions
+    def resolve_fragment(item, fragment_key, safety: 0)
       raise 'Safety count exceeded' if safety > 5
-      return unless item['fragment'].present?
 
-      fragment_key = item['fragment']&.gsub(/^#/, '')
-      fragment = fragment_map[fragment_key]
-      raise "Fragment not found #{item['fragment']}" unless fragment.present?
-
-      fragment_items = fragment['item'] || [] # child items of the fragment
+      @db_fragment_lookup ||= Hmis::Form::DefinitionFragment.most_recent.index_by(&:identifier)
+      fragment = @db_fragment_lookup.fetch(fragment_key)
+      fragment_items = fragment.template['item'] || [] # child items of the fragment
       additional_items = item['item'] || [] # any items that should be appended
 
-      # Reverse merge so that any keys specified in 'item' overried the fragment values.
+      # Reverse merge so that any keys specified in 'item' override the fragment values.
       # This can be useful in changing the link id, text, etc.
       # This is a shallow merge.
-      item.reverse_merge!(fragment)
+      item.reverse_merge!(fragment.template)
       # If this item was adding any additional items, we need to add the fragment items
       # since they wouldn't have been copied by the shallow merge
       item['item'].unshift(*fragment_items) if additional_items.any? && fragment_items.any?
 
-      # Remove the fragment field
-      item.delete('fragment')
-
-      return unless fragment['fragment'].present?
+      item['source_fragments'] ||= []
+      item['source_fragments'] << "#{fragment_key}/#{fragment.version}"
 
       # If the fragment ALSO had a fragment key on it, resolve that.
-      item['fragment'] = fragment['fragment']
-      resolve_fragment!(item, safety: safety + 1)
+      next_fragment = item.delete('fragment')
+      resolve_fragment(item, next_fragment, safety: safety + 1) if next_fragment
     end
 
-    def resolve_all_fragments!(definition)
+    def resolve_all_fragments(definition)
       walk_nodes(definition) do |item|
-        resolve_fragment!(item)
+        fragment = item.delete('fragment')
+        resolve_fragment(item, fragment) if fragment
       end
     end
 
