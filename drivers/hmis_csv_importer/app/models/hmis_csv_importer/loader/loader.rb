@@ -102,7 +102,7 @@ module HmisCsvImporter::Loader
 
     def self.expiring_models
       loadable_files.values.filter do |model|
-        model.column_names.include?('expired') && model.name.demodulize != 'Export'
+        model.column_names.include?('expired') && !model.name.demodulize.in?(['Export', 'Project'])
       end
     end
 
