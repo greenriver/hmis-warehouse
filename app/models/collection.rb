@@ -42,6 +42,7 @@ class Collection < ApplicationRecord
   belongs_to :user, optional: true
 
   validates_presence_of :name, unless: :user_id
+  validates_presence_of :collection_type, on: :create
 
   scope :general, -> do
     not_hidden.where(user_id: nil)
