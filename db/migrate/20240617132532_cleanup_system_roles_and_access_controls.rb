@@ -23,10 +23,10 @@ class CleanupSystemRolesAndAccessControls < ActiveRecord::Migration[7.0]
         next if access_controls.any? { |ac| ac.role_id == keep_id }
 
         puts "Found #{access_controls.count} Access Controls that should have been using the role #{keep_id}"
-        access_controls.min_by(&:id).update(role_id: keep_id)
+        access_controls.min_by(&:id).update!(role_id: keep_id)
       end
       AccessControl.where(role_id: delete_ids).destroy_all
-      Role.where(id: delete_ids).destroy_all
+      Role.where(id: delete_ids).each(&:destroy!)
     end
 
     # Cleanup any exact duplicate Access Controls (this is probably just a side-effect of running the
@@ -36,7 +36,7 @@ class CleanupSystemRolesAndAccessControls < ActiveRecord::Migration[7.0]
       next if access_controls.count == 1
 
       # Keep the one with the lowest ID
-      access_controls.sort_by(&:id).drop(1).each(&:destroy)
+      access_controls.sort_by(&:id).drop(1).each(&:destroy!)
     end
 
 
@@ -53,7 +53,7 @@ class CleanupSystemRolesAndAccessControls < ActiveRecord::Migration[7.0]
       when 'GrdaWarehouse::DataSource', 'GrdaWarehouse::Hud::Organization', 'GrdaWarehouse::Hud::Project'
         'Projects'
       end
-      collection.update(collection_type: collection_type)
+      collection.update!(collection_type: collection_type)
     end
   end
 end
