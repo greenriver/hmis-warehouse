@@ -18,7 +18,7 @@ class CleanupSystemRolesAndAccessControls < ActiveRecord::Migration[7.0]
         combinations[[ac.collection_id, ac.user_group_id]] ||= []
         combinations[[ac.collection_id, ac.user_group_id]] << ac
       end
-      combinations.each do |(collection_id, user_group_id), access_controls|
+      combinations.each do |(_collection_id, _user_group_id), access_controls|
         # We already have one that uses the role we want to keep
         next if access_controls.any? { |ac| ac.role_id == keep_id }
 
@@ -32,7 +32,7 @@ class CleanupSystemRolesAndAccessControls < ActiveRecord::Migration[7.0]
     # Cleanup any exact duplicate Access Controls (this is probably just a side-effect of running the
     # migration a bunch of times, but there's no harm making sure)
     controls = AccessControl.system.group_by { |ac| [ac.collection_id, ac.user_group_id, ac.role_id] }
-    controls.each do |(collection_id, user_group_id, role_id), access_controls|
+    controls.each do |(_collection_id, _user_group_id, _role_id), access_controls|
       next if access_controls.count == 1
 
       # Keep the one with the lowest ID
