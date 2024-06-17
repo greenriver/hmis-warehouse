@@ -282,13 +282,34 @@ class Collection < ApplicationRecord
 
   def self.system_collections
     {
-      hmis_reports: Collection.where(name: 'All HMIS Reports', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
-      health_reports: Collection.where(name: 'All Health Reports', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
-      cohorts: Collection.where(name: 'All Cohorts', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
-      project_groups: Collection.where(name: 'All Project Groups', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
-      data_sources: Collection.where(name: 'All Data Sources', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
-      system_user: Collection.where(name: 'Hidden System Group', must_exist: true).first_or_create { |g| g.system = ['Entities', 'Hidden'] },
-      window_data_sources: Collection.where(name: 'Window Data Sources', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
+      hmis_reports: Collection.where(name: 'All HMIS Reports', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Reports'
+      end,
+      health_reports: Collection.where(name: 'All Health Reports', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Reports'
+      end,
+      cohorts: Collection.where(name: 'All Cohorts', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Cohorts'
+      end,
+      project_groups: Collection.where(name: 'All Project Groups', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Project Groups'
+      end,
+      data_sources: Collection.where(name: 'All Data Sources', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Projects'
+      end,
+      system_user: Collection.where(name: 'Hidden System Group', must_exist: true).first_or_create do |g|
+        g.system = ['Entities', 'Hidden']
+        g.collection_type = 'Projects'
+      end,
+      window_data_sources: Collection.where(name: 'Window Data Sources', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Projects'
+      end,
     }
   end
 
