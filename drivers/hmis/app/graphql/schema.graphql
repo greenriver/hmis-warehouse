@@ -8377,7 +8377,7 @@ type Project {
   housingType: HousingType
   hudId: ID!
   id: ID!
-  incomingReferralPostings(limit: Int, offset: Int): ReferralPostingsPaginated!
+  incomingReferralPostings(filters: ReferralPostingFilterOptions, limit: Int, offset: Int): ReferralPostingsPaginated!
   inventories(limit: Int, offset: Int, sortOrder: InventorySortOption): InventoriesPaginated!
 
   """
@@ -8387,7 +8387,7 @@ type Project {
   operatingEndDate: ISO8601Date
   operatingStartDate: ISO8601Date
   organization: Organization!
-  outgoingReferralPostings(limit: Int, offset: Int): ReferralPostingsPaginated!
+  outgoingReferralPostings(filters: ReferralPostingFilterOptions, limit: Int, offset: Int): ReferralPostingsPaginated!
   projectCocs(limit: Int, offset: Int): ProjectCocsPaginated!
   projectName: String!
   projectType: ProjectType
@@ -8729,7 +8729,7 @@ type Query {
   """
   clientSearch(filters: ClientFilterOptions, input: ClientSearchInput!, limit: Int, offset: Int, sortOrder: ClientSortOption): ClientsPaginated!
   currentUser: ApplicationUser
-  deniedPendingReferralPostings(limit: Int, offset: Int): ReferralPostingsPaginated!
+  deniedPendingReferralPostings(filters: ReferralPostingFilterOptions, limit: Int, offset: Int): ReferralPostingsPaginated!
 
   """
   Enrollment lookup
@@ -9385,6 +9385,10 @@ enum ReferralPostingDenialReasonType {
   No longer interested in this program
   """
   NoLongerInterestedInThisProgram
+}
+
+input ReferralPostingFilterOptions {
+  status: [ReferralPostingStatus!]
 }
 
 input ReferralPostingInput {
