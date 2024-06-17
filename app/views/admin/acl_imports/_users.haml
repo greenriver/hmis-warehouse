@@ -44,41 +44,60 @@
           %td XX-500 Coc Staff
           %td XX-500 Projects
   %p In the above scenario, the intention is that Bill is a warehouse administrator with access to all projects and reports, Steve is a CoC admin with access to only the projects at the XX-500 CoC.  However, because the XX-500 CoC Staff User Group was used in conjunction with the "All Projects" and "All Reports" collections, and both users are in that group, Steve will also be granted access to all projects and reports.
-
-%h2 Accounts
-%p The following accounts will be created
-.card
-  %table.table.table-striped
-    %thead
-      %tr
-        %th First Name
-        %th Last Name
-        %th Email
-        %th Agency
-    %tbody
-      - @import.users.each do |user|
-        - next if user.existing_user_id
-
+.mb-4
+  %h2 Accounts
+  %p The following agencies were identified in the upload and will be created, or
+  .card
+    %table.table.table-striped
+      %thead
         %tr
-          %td= user.first_name
-          %td= user.last_name
-          %td= user.email
-          %td= user.agency
+          %th First Name
+          %th Last Name
+          %th Email
+          %th Agency
+      %tbody
+        - @import.users.each do |user|
+          - next if user.existing_user_id
 
-%h2 Agencies
-%p The following accounts will be created
-.card
-  %table.table.table-striped
-    %thead
-      %tr
-        %th Agency Name
-        %th Create New?
-        %th Users
-    %tbody
-      - @import.agencies.each do |agency_name, agency|
+          %tr
+            %td= user.first_name
+            %td= user.last_name
+            %td= user.email
+            %td= user.agency
+.mb-4
+  %h2 Agencies
+  %p The following accounts will be created or will have users added to them
+  .card
+    %table.table.table-striped
+      %thead
         %tr
-          %td= agency_name
-          %td= checkmark_or_x(agency.existing_agency_id.present?)
-          %td
-            - agency.users.uniq.each do |email|
-              .email= email
+          %th Agency Name
+          %th Create New?
+          %th Users
+      %tbody
+        - @import.agencies.each do |agency_name, agency|
+          %tr
+            %td= agency_name
+            %td= checkmark_or_x(agency.existing_agency_id.blank?)
+            %td
+              - agency.users.uniq.each do |email|
+                .email= email
+
+.mb-4
+  %h2 User Groups
+  %p The following user groups will be created or will have users added to them
+  .card
+    %table.table.table-striped
+      %thead
+        %tr
+          %th User Group Name
+          %th Create New?
+          %th Users
+      %tbody
+        - @import.user_groups.each do |user_group_name, user_group|
+          %tr
+            %td= user_group_name
+            %td= checkmark_or_x(user_group.existing_user_group_id.blank?)
+            %td
+              - user_group.users.uniq.each do |email|
+                .email= email

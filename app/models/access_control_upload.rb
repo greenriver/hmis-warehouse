@@ -40,9 +40,10 @@ class AccessControlUpload < ApplicationRecord
         last_name: row.cells[1].value,
         email: email,
         agency: row.cells[3].value,
+        user_group: row.cells[5].value,
         existing_user_id: User.find_by(email: email)&.id,
       )
-    end.compact
+    end.uniq.compact
   end
 
   def agencies
@@ -53,6 +54,18 @@ class AccessControlUpload < ApplicationRecord
         )
         a[u.agency].users ||= []
         a[u.agency].users << u.email
+      end
+    end
+  end
+
+  def user_groups
+    {}.tap do |a|
+      users.each do |u|
+        a[u.user_group] ||= OpenStruct.new(
+          existing_user_group_id: UserGroup.find_by(name: u.user_group)&.id,
+        )
+        a[u.user_group].users ||= []
+        a[u.user_group].users << u.email
       end
     end
   end
