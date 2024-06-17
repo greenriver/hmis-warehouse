@@ -49,6 +49,39 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- Name: access_control_uploads; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.access_control_uploads (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    status character varying,
+    metadata jsonb,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: access_control_uploads_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.access_control_uploads_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: access_control_uploads_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.access_control_uploads_id_seq OWNED BY public.access_control_uploads.id;
+
+
+--
 -- Name: access_controls; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3371,6 +3404,13 @@ CREATE SEQUENCE public.weighting_rules_id_seq
 
 
 --
+-- Name: access_control_uploads id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.access_control_uploads ALTER COLUMN id SET DEFAULT nextval('public.access_control_uploads_id_seq'::regclass);
+
+
+--
 -- Name: access_controls id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3767,6 +3807,14 @@ ALTER TABLE ONLY public.versions ALTER COLUMN id SET DEFAULT nextval('public.ver
 --
 
 ALTER TABLE ONLY public.warehouse_alerts ALTER COLUMN id SET DEFAULT nextval('public.warehouse_alerts_id_seq'::regclass);
+
+
+--
+-- Name: access_control_uploads access_control_uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.access_control_uploads
+    ADD CONSTRAINT access_control_uploads_pkey PRIMARY KEY (id);
 
 
 --
@@ -4253,6 +4301,13 @@ CREATE INDEX delayed_jobs_priority ON public.delayed_jobs USING btree (priority,
 --
 
 CREATE UNIQUE INDEX idx_oauth_on_provider_and_uid ON public.oauth_identities USING btree (provider, uid);
+
+
+--
+-- Name: index_access_control_uploads_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_access_control_uploads_on_user_id ON public.access_control_uploads USING btree (user_id);
 
 
 --
@@ -5332,6 +5387,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240506135053'),
 ('20240601143623'),
 ('20240610025840'),
-('20240610025921');
+('20240610025921'),
+('20240611142154'),
+('20240617132532');
 
 

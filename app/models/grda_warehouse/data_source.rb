@@ -678,6 +678,10 @@ class GrdaWarehouse::DataSource < GrdaWarehouseBase
     :data_sources
   end
 
+  def collection_type
+    'Projects'
+  end
+
   class << self
     include Memery
     def health_authoritative_id

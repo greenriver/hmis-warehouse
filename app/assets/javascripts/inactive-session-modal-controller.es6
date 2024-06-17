@@ -119,7 +119,6 @@ App.StimulusApp.register(
       // Note, when you logout state.userId is set to undefined, there seems to be
       // some situations where it is returned as the string "null", maybe a race condition?
       // For now, don't mark those as invalid
-      console.log(state)
       if (state.userId !== this.initialUserIdValue && state.userId !== 'null') {
         // another tab has logged out or changed user
         state.invalid = true;
