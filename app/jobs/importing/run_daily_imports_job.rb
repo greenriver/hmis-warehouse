@@ -168,7 +168,7 @@ module Importing
         create_statistical_matches
         generate_logging_info
 
-        GrdaWarehouse::DataSource.importable.with_deleted.each do |data_source|
+        GrdaWarehouse::DataSource.with_deleted.each do |data_source|
           retain_after_date = DateTime.current - 2.weeks
           HmisCsvImporter::Cleanup::ExpireLoadersJob.perform_later(data_source_id: data_source.id, retain_after_date: retain_after_date)
           HmisCsvImporter::Cleanup::ExpireImportersJob.perform_later(data_source_id: data_source.id, retain_after_date: retain_after_date)
