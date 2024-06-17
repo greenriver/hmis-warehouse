@@ -172,28 +172,31 @@ module SystemPathways::ChartBase
       end
     end
 
-    private def combination_query
-      @combination_query ||= begin
-        base_query = races.except('MultiRacial', 'RaceNone').keys.map { |k| [k.underscore.to_sym, false] }.to_h
+    # Enumerate the query clauses for the race and ethnicity values. (e.g., asian: all races columns must be false
+    # except for asian, which must be true)
+    private def race_column_clauses
+      @race_column_clauses ||= begin
+        all_races_false = races.except('MultiRacial', 'RaceNone').keys.map { |k| [k.underscore.to_sym, false] }.to_h
 
         combinations = {}.tap do |item|
           system_pathways_race_columns.each do |column|
-            item[column] = base_query.merge(column => true)
+            item[column] = all_races_false.merge(column => true)
             item["#{column}_hispanic_latinaeo".to_sym].merge(column => true, hispanic_latinaeo: true)
           end
         end.freeze
 
-        combinations[:hispanic_latinaeo] = base_query.merge(hispanic_latinaeo: true)
-        combinations[:multi_racial] = { hispanic_latinaeo: false }
+        # Special case clauses
+        combinations[:hispanic_latinaeo] = all_races_false.merge(hispanic_latinaeo: true) # There is no hispanic_latinaeo_hispanic_latinaeo
+        combinations[:multi_racial] = { hispanic_latinaeo: false } # Other values may be true
         combinations[:multi_racial_hispanic_latinaeo] = { hispanic_latinaeo: true }
-        combinations[:rae_none] = base_query
+        combinations[:race_none] = all_races_false
       end
     end
 
     private def filter_for_race_and_ethnicity_with_details_filter(scope, filter)
       # The combinations are mutually exclusive, so, although the filter is an array, ignore multiples
       combination = filter.race_ethnicity_combinations.first
-      query = combination_query[combination]
+      query = race_column_clauses[combination]
 
       scope = scope.where(id: multi_racial_clients(scope).select(:id)) if combination.in?([:multi_racial, :multi_racial_hispanic_latinaeo])
       scope.where(query)
