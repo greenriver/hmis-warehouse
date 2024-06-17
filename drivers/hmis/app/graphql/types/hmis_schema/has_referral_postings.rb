@@ -26,15 +26,15 @@ module Types
       def scoped_referral_postings(scope, sort_order: nil, dangerous_skip_permission_check: false, filters: nil)
         # note: viewability is based on the project that is receiving the referral
         scope = scope.viewable_by(current_user) unless dangerous_skip_permission_check
+        # filter by status
+        scope = scope.where(status: filters.status) if filters&.status.present?
 
-        Rails.logger.info(">>> filters #{filters.inspect}")
         scope = scope.preload(referral: { household_members: :client }).
           preload(:unit_type).
           preload(:status_note_updated_by).
           preload(:status_updated_by).
           preload(:project)
 
-        scope = scope.where(status: filters.status) if filters&.status.present? # make sure it doesnt override previous tho
         sort_order.present? ? scope.sort_by_option(sort_order) : scope
       end
     end

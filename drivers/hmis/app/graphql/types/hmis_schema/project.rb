@@ -198,7 +198,7 @@ module Types
       access_denied! unless current_permission?(entity: object, permission: :can_manage_incoming_referrals)
 
       statuses = HmisExternalApis::AcHmis::ReferralPosting::ACTIVE_STATUSES + [:accepted_status]
-      Rails.logger.info(">>> statuses #{statuses}")
+
       scoped_referral_postings(
         object.external_referral_postings.where(status: statuses),
         sort_order: :oldest_to_newest,
