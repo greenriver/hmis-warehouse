@@ -60,11 +60,6 @@ module SystemPathways::Equity::RaceAndEthnicity
       asian_hispanic_latinaeo: ->(race_data) { single_race_latinaeo(race_data, 'asian') },
       black_af_american: ->(race_data) { single_race(race_data, 'black_af_american') },
       black_af_american_hispanic_latinaeo: ->(race_data) { single_race_latinaeo(race_data, 'black_af_american') },
-      hispanic_latinaeo: ->(race_data) do
-        race_data.select { |client| client['hispanic_latinaeo'] }.
-          map { |client| client.except('id').values }.
-          count { |m| m.count(true) == 1 }
-      end,
       mid_east_n_african: ->(race_data) { single_race(race_data, 'mid_east_n_african') },
       mid_east_n_african_hispanic_latinaeo: ->(race_data) { single_race_latinaeo(race_data, 'mid_east_n_african') },
       native_hi_pacific: ->(race_data) { single_race(race_data, 'native_hi_pacific') },
@@ -72,16 +67,24 @@ module SystemPathways::Equity::RaceAndEthnicity
       white: ->(race_data) { single_race(race_data, 'white') },
       white_hispanic_latinaeo: ->(race_data) { single_race_latinaeo(race_data, 'white') },
 
+      # For interdependent race information, counting is u sed to determinethe number of true values
+      # recorded in a client's race hash
+      hispanic_latinaeo: ->(race_data) do
+        race_data.select { |client_race_hash| client_race_hash['hispanic_latinaeo'] }. # Hispanic/Latinaeo
+          map { |client_race_hash| client_race_hash.except('id').values }.
+          count { |m| m.count(true) == 1 } # And that is the only selected race
+      end,
+
       multi_racial: ->(race_data) do
-        race_data.reject { |client| client['hispanic_latinaeo'] }.
-          map { |client| client.except('id', 'hispanic_latinaeo').values }.
-          count { |m| m.count(true) > 1 }
+        race_data.reject { |client_race_hash| client_race_hash['hispanic_latinaeo'] }. # Not Hispanic/Latinaeo
+          map { |client_race_hash| client_race_hash.except('id', 'hispanic_latinaeo').values }.
+          count { |m| m.count(true) > 1 } # And more than one race
       end,
 
       multi_racial_hispanic_latinaeo: ->(race_data) do
-        race_data.select { |client| client['hispanic_latinaeo'] }.
-          map { |client| client.except('id', 'hispanic_latinaeo').values }.
-          count { |m| m.count(true) > 1 }
+        race_data.select { |client_race_hash| client_race_hash['hispanic_latinaeo'] }. # Hispanic/Latinaeo
+          map { |client_race_hash| client_race_hash.except('id', 'hispanic_latinaeo').values }.
+          count { |m| m.count(true) > 1 } # And more than one additional race
       end,
 
       race_none: ->(race_data) do

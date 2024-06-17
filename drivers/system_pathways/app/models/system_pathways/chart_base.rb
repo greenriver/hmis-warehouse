@@ -147,6 +147,7 @@ module SystemPathways::ChartBase
     private def filter_for_race_with_details_filter(scope, race_filter)
       return scope.where(id: multi_racial_clients(scope).select(:id)) if race_filter.races.include?('MultiRacial')
 
+      # While the DB columns are nullable, the report table is populated with true/false in the race columns
       query = races.except('MultiRacial', 'RaceNone').keys.map { |k| [k.underscore.to_sym, false] }.to_h
       race_filter.races.each do |column|
         next if column.in?(['MultiRacial', 'RaceNone'])
@@ -171,61 +172,48 @@ module SystemPathways::ChartBase
       end
     end
 
+    private def combination_query
+      @combination_query ||= begin
+        base_query = races.except('MultiRacial', 'RaceNone').keys.map { |k| [k.underscore.to_sym, false] }.to_h
+
+        combinations = {}.tap do |item|
+          system_pathways_race_columns.each do |column|
+            item[column] = base_query.merge(column => true)
+            item["#{column}_hispanic_latinaeo".to_sym].merge(column => true, hispanic_latinaeo: true)
+          end
+        end.freeze
+
+        combinations[:hispanic_latinaeo] = base_query.merge(hispanic_latinaeo: true)
+        combinations[:multi_racial] = { hispanic_latinaeo: false }
+        combinations[:multi_racial_hispanic_latinaeo] = { hispanic_latinaeo: true }
+        combinations[:rae_none] = base_query
+      end
+    end
+
     private def filter_for_race_and_ethnicity_with_details_filter(scope, filter)
-      base_query = races.except('MultiRacial', 'RaceNone').keys.map { |k| [k.underscore.to_sym, false] }.to_h
       # The combinations are mutually exclusive, so, although the filter is an array, ignore multiples
       combination = filter.race_ethnicity_combinations.first
-
-      query = case combination
-      when :am_ind_ak_native
-        base_query.merge(am_ind_ak_native: true)
-      when :am_ind_ak_native_hispanic_latinaeo
-        base_query.merge(am_ind_ak_native: true, hispanic_latinaeo: true)
-      when :asian
-        base_query.merge(asian: true)
-      when :asian_hispanic_latinaeo
-        base_query.merge(asian: true, hispanic_latinaeo: true)
-      when :black_af_american
-        base_query.merge(black_af_american: true)
-      when :black_af_american_hispanic_latinaeo
-        base_query.merge(black_af_american: true, hispanic_latinaeo: true)
-      when :hispanic_latinaeo
-        base_query.merge(hispanic_latinaeo: true)
-      when :multi_racial
-        { hispanic_latinaeo: false }
-      when :multi_racial_hispanic_latinaeo
-        { hispanic_latinaeo: true }
-      when :mid_east_n_african
-        base_query.merge(mid_east_n_african: true)
-      when :mid_east_n_african_hispanic_latinaeo
-        base_query.merge(mid_east_n_african: true, hispanic_latinaeo: true)
-      when :native_hi_pacific
-        base_query.merge(native_hi_pacific: true)
-      when :native_hi_pacific_hispanic_latinaeo
-        base_query.merge(native_hi_pacific: true, hispanic_latinaeo: true)
-      when :white
-        base_query.merge(white: true)
-      when :white_hispanic_latinaeo
-        base_query.merge(white: true, hispanic_latinaeo: true)
-      when :race_none
-        base_query
-      end
+      query = combination_query[combination]
 
       scope = scope.where(id: multi_racial_clients(scope).select(:id)) if combination.in?([:multi_racial, :multi_racial_hispanic_latinaeo])
       scope.where(query)
     end
 
-    private def multi_racial_clients(scope)
-      # Looking at all races with responses of 1, where we have a sum > 1
-      a_t = SystemPathways::Client.arel_table
-      columns = [
+    private def system_pathways_race_columns
+      [
         :am_ind_ak_native,
         :asian,
         :black_af_american,
         :mid_east_n_african,
         :native_hi_pacific,
         :white,
-      ].map do |col|
+      ].freeze
+    end
+
+    private def multi_racial_clients(scope)
+      # Looking at all races with responses of 1, where we have a sum > 1
+      a_t = SystemPathways::Client.arel_table
+      columns = system_pathways_race_columns.map do |col|
         "CASE WHEN #{a_t[col].to_sql} THEN 1 ELSE 0 END"
       end
       scope.where(Arel.sql(columns.join(' + ')).gt(1))

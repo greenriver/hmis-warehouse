@@ -115,11 +115,6 @@ module SystemPathways::TimeChart::RaceAndEthnicity
       asian_hispanic_latinaeo: ->(race_data, stay_length_col) { single_race_latinaeo(race_data, 'asian', stay_length_col) },
       black_af_american: ->(race_data, stay_length_col) { single_race(race_data, 'black_af_american', stay_length_col) },
       black_af_american_hispanic_latinaeo: ->(race_data, stay_length_col) { single_race_latinaeo(race_data, 'black_af_american', stay_length_col) },
-      hispanic_latinaeo: ->(race_data, stay_length_col) do
-        race_data.select { |client| client[sp_c_t['hispanic_latinaeo']] }.
-          select { |client| client.except(sp_c_t['id'], stay_length_col).values.count(true) == 1 }.
-          map { |client| client[stay_length_col] }
-      end,
       mid_east_n_african: ->(race_data, stay_length_col) { single_race(race_data, 'mid_east_n_african', stay_length_col) },
       mid_east_n_african_hispanic_latinaeo: ->(race_data, stay_length_col) { single_race_latinaeo(race_data, 'mid_east_n_african', stay_length_col) },
       native_hi_pacific: ->(race_data, stay_length_col) { single_race(race_data, 'native_hi_pacific', stay_length_col) },
@@ -127,21 +122,30 @@ module SystemPathways::TimeChart::RaceAndEthnicity
       white: ->(race_data, stay_length_col) { single_race(race_data, 'white', stay_length_col) },
       white_hispanic_latinaeo: ->(race_data, stay_length_col) { single_race_latinaeo(race_data, 'white', stay_length_col) },
 
+      # For interdependent race information, counting is u sed to determinethe number of true values
+      # recorded in a client's race hash.
+      # The hash is keyed using Arel here because the stay_length_col is in a joined table
+      hispanic_latinaeo: ->(race_data, stay_length_col) do
+        race_data.select { |client_race_hash| client_race_hash[sp_c_t['hispanic_latinaeo']] }.
+          select { |client_race_hash| client_race_hash.except(sp_c_t['id'], stay_length_col).values.count(true) == 1 }.
+          map { |client_race_hash| client_race_hash[stay_length_col] }
+      end,
+
       multi_racial: ->(race_data, stay_length_col) do
-        race_data.reject { |client| client[sp_c_t['hispanic_latinaeo']] }.
-          select { |client| client.except(sp_c_t['id'], sp_c_t['hispanic_latinaeo'], stay_length_col).values.count(true) > 1 }.
-          map { |client| client[stay_length_col] }
+        race_data.reject { |client_race_hash| client_race_hash[sp_c_t['hispanic_latinaeo']] }.
+          select { |client_race_hash| client_race_hash.except(sp_c_t['id'], sp_c_t['hispanic_latinaeo'], stay_length_col).values.count(true) > 1 }.
+          map { |client_race_hash| client_race_hash[stay_length_col] }
       end,
 
       multi_racial_hispanic_latinaeo: ->(race_data, stay_length_col) do
-        race_data.select { |client| client[sp_c_t['hispanic_latinaeo']] }.
-          select { |client| client.except(sp_c_t['id'], sp_c_t['hispanic_latinaeo'], stay_length_col).values.count(true) > 1 }.
-          map { |client| client[stay_length_col] }
+        race_data.select { |client_race_hash| client_race_hash[sp_c_t['hispanic_latinaeo']] }.
+          select { |client_race_hash| client_race_hash.except(sp_c_t['id'], sp_c_t['hispanic_latinaeo'], stay_length_col).values.count(true) > 1 }.
+          map { |client_race_hash| client_race_hash[stay_length_col] }
       end,
 
       race_none: ->(race_data, stay_length_col) do
-        race_data.select { |client| client.except(sp_c_t['id'], sp_c_t['hispanic_latinaeo'], stay_length_col).values.all?(false) }.
-          map { |client| client[stay_length_col] }
+        race_data.select { |client_race_hash| client_race_hash.except(sp_c_t['id'], sp_c_t['hispanic_latinaeo'], stay_length_col).values.all?(false) }.
+          map { |client_race_hash| client_race_hash[stay_length_col] }
       end,
     }.freeze
   end
