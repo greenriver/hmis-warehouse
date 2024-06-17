@@ -165,7 +165,7 @@ module SystemPathways::ChartBase
         scope.where(hispanic_latinaeo: true)
       when :non_hispanic_latinaeo
         scope.where(hispanic_latinaeo: false).
-          where.not(unknown_query).except(:hispanic_latinaeo) # Must have at least one race response
+          where.not(unknown_query.except(:hispanic_latinaeo)) # Must have at least one race response
       when :unknown
         scope.where(unknown_query)
       end
@@ -173,6 +173,7 @@ module SystemPathways::ChartBase
 
     private def filter_for_race_and_ethnicity_with_details_filter(scope, filter)
       base_query = races.except('MultiRacial', 'RaceNone').keys.map { |k| [k.underscore.to_sym, false] }.to_h
+      # The combinations are mutually exclusive, so, although the filter is an array, ignore multiples
       combination = filter.race_ethnicity_combinations.first
 
       query = case combination
