@@ -3949,6 +3949,8 @@ FormDefinition
 """
 type FormDefinition {
   cacheKey: ID!
+  dateCreated: ISO8601DateTime!
+  dateUpdated: ISO8601DateTime!
   definition: FormDefinitionJson!
   formRules(filters: FormRuleFilterOptions, limit: Int, offset: Int, sortOrder: FormRuleSortOption): FormRulesPaginated!
   id: ID!
@@ -3958,6 +3960,7 @@ type FormDefinition {
   status: FormStatus!
   system: Boolean!
   title: String!
+  updatedBy: ApplicationUser
 }
 
 type FormDefinitionForJsonResult {
