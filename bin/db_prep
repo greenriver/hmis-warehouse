@@ -39,7 +39,7 @@ def db(db_section)
 end
 
 def run_or_exit(cmd)
-  return if system(cmd)
+  return if system("alias psql='psql --single-transaction' && #{cmd}")
 
   puts 'Last command failed. Aborting.'
 
