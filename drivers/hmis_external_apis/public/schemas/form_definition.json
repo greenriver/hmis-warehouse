@@ -226,6 +226,7 @@
         "prefix": { "type": "string" },
         "brief_text": { "type": "string" },
         "text": { "type": "string" },
+        "source_fragment": { "type": "string" },
         "prefill": { "type": "boolean" },
         "readonly_text": { "type": "string" },
         "helper_text": { "type": "string" },

@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-class Hmis::Form::Fragment < ::GrdaWarehouseBase
+class Hmis::Form::DefinitionFragment < ::GrdaWarehouseBase
   self.table_name = :hmis_form_definition_fragments
   acts_as_paranoid
   include ::Hmis::Concerns::HmisArelHelper
@@ -33,7 +33,7 @@ class Hmis::Form::Fragment < ::GrdaWarehouseBase
       return self
     end
 
-    record = self.dup
+    record = dup
     record.version += 1
     record.save!
     record

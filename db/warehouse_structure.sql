@@ -265,7 +265,7 @@ CREATE FUNCTION public.service_history_service_insert_trigger() RETURNS trigger
             INSERT INTO service_history_services_2001 VALUES (NEW.*);
          ELSIF  ( NEW.date BETWEEN DATE '2000-01-01' AND DATE '2000-12-31' ) THEN
             INSERT INTO service_history_services_2000 VALUES (NEW.*);
-        
+
       ELSE
         INSERT INTO service_history_services_remainder VALUES (NEW.*);
         END IF;
@@ -18414,6 +18414,71 @@ CREATE SEQUENCE public.hmis_external_unit_availability_syncs_id_seq
 --
 
 ALTER SEQUENCE public.hmis_external_unit_availability_syncs_id_seq OWNED BY public.hmis_external_unit_availability_syncs.id;
+
+
+
+--
+-- Name: hmis_form_definition_fragments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hmis_form_definition_fragments (
+    id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    identifier character varying NOT NULL,
+    title character varying,
+    template jsonb NOT NULL,
+    deleted_at timestamp(6) without time zone,
+    system_managed boolean DEFAULT false NOT NULL,
+    version integer DEFAULT 1 NOT NULL
+);
+
+
+--
+-- Name: hmis_form_definition_fragments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hmis_form_definition_fragments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hmis_form_definition_fragments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hmis_form_definition_fragments_id_seq OWNED BY public.hmis_form_definition_fragments.id;
+
+--
+-- Name: hmis_form_definition_fragments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_form_definition_fragments ALTER COLUMN id SET DEFAULT nextval('public.hmis_form_definition_fragments_id_seq'::regclass);
+
+--
+-- Name: hmis_form_definition_fragments hmis_form_definition_fragments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hmis_form_definition_fragments
+    ADD CONSTRAINT hmis_form_definition_fragments_pkey PRIMARY KEY (id);
+
+--
+-- Name: idx_hmis_form_definition_fragments_ident; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_hmis_form_definition_fragments_ident ON public.hmis_form_definition_fragments USING btree (identifier, version);
+
+--
+-- Name: idx_hmis_form_definition_fragments_ident; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_hmis_form_definition_fragments_ident ON public.hmis_form_definition_fragments USING btree (identifier, version);
+
+
+
 
 
 --
@@ -63005,6 +63070,5 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240603190227'),
 ('20240603191431'),
 ('20240603191721'),
-('20240605155445');
-
-
+('20240605155445'),
+('20240616170915');

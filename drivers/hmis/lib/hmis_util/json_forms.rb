@@ -4,8 +4,6 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-require 'hashdiff'
-
 module HmisUtil
   class JsonForms
     JsonFormException = Class.new(StandardError)
@@ -18,8 +16,11 @@ module HmisUtil
     end
 
     def seed_all
-      seed_fragments_into_db(dir: 'default', system_managed: true)
-      seed_fragments_into_db(dir: env_key, system_managed: false) if env_key
+      sync_fragments_to_db(dir: 'default', system_managed: true)
+
+      # TODO: remove once 6160 is deployed and user_managed fragments are housed in db
+      sync_fragments_to_db(dir: env_key, system_managed: false) if env_key
+      # END TODO
 
       # Load ALL the latest record definitions from JSON files.
       # This also ensures that any system-level instances exist.
@@ -44,8 +45,8 @@ module HmisUtil
       end
     end
 
-    def seed_fragments_into_db(dir:, system_managed:)
-      lookup = Hmis::Form::DefinitionFragment.most_recent.index_by(&:identifier)
+    def sync_fragments_to_db(dir:, system_managed:)
+      lookup = Hmis::Form::DefinitionFragment.latest_versions.index_by(&:identifier)
       Dir.glob("#{DATA_DIR}/#{dir}/fragments/*.json") do |file_path|
         identifier = File.basename(file_path, '.json')
         record = lookup[identifier]
@@ -56,7 +57,7 @@ module HmisUtil
         json = JSON.parse(File.read(file_path))
 
         # skip if the template contents are identical
-        next if HashDiff(record.template, json).empty?
+        next if record.template == json
 
         record.system_managed = system_managed
         record.template = json
@@ -193,7 +194,9 @@ module HmisUtil
     def resolve_fragment(item, fragment_key, safety: 0)
       raise 'Safety count exceeded' if safety > 5
 
-      @db_fragment_lookup ||= Hmis::Form::DefinitionFragment.most_recent.index_by(&:identifier)
+      fragment_key = fragment_key&.gsub(/^#/, '')
+
+      @db_fragment_lookup ||= Hmis::Form::DefinitionFragment.latest_versions.index_by(&:identifier)
       fragment = @db_fragment_lookup.fetch(fragment_key)
       fragment_items = fragment.template['item'] || [] # child items of the fragment
       additional_items = item['item'] || [] # any items that should be appended
@@ -206,8 +209,9 @@ module HmisUtil
       # since they wouldn't have been copied by the shallow merge
       item['item'].unshift(*fragment_items) if additional_items.any? && fragment_items.any?
 
-      item['source_fragments'] ||= []
-      item['source_fragments'] << "#{fragment_key}/#{fragment.version}"
+      # track the origin of this fragment so it can be managed in the editor. Note this is not
+      # tracking the whole fragment chain, just the first one
+      item['source_fragment'] ||= "#{fragment_key}/#{fragment.version}"
 
       # If the fragment ALSO had a fragment key on it, resolve that.
       next_fragment = item.delete('fragment')
@@ -239,7 +243,7 @@ module HmisUtil
       raise "Invalid role: #{role}" unless Hmis::Form::Definition::FORM_ROLES.include?(role.to_sym)
 
       # Resolve all fragments, so we have a full definition
-      resolve_all_fragments!(form_definition)
+      resolve_all_fragments(form_definition)
       # Apply any client-specific patches
       apply_all_patches!(form_definition, identifier: identifier)
       # Validate final definition
