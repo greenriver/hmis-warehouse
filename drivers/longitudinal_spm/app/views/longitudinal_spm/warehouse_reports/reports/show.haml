@@ -3,7 +3,7 @@
 - content_for :title, @report.title
 %h1= content_for :title
 %p.mb-2= @report.description
-%p= "Created by #{@report.user.name_with_email} on #{@report.completed_at.to_date}"
+%p= "Created by #{@report.user.name_with_email} on #{@report.completed_at&.to_date}"
 
 .well.report-listing.warehouse-reports__completed.d-flex.justify-content-between
   .pl-0.w-50

@@ -151,9 +151,12 @@ module LongitudinalSpm
       return spm_generator.describe_table(measure_or_table) if cell.blank?
 
       # Don't break terribly if the SPM version has changed
-      return '' unless spms.first.hud_spm.report_name == 'System Performance Measures - FY 2023'
+      return '' unless spms.first&.hud_spm&.report_name == 'System Performance Measures - FY 2023'
 
       @sample_spm ||= spms.first.hud_spm # Just find one of the SPMs so we can get metadata
+      # Sometimes we get into a weird state where the SPMs didn't run, return so we don't throw errors
+      return '' unless @sample_spm.completed?
+
       row = cell.gsub(/\D/, '').to_i - 2 # cells are 1 based, rows 0 based and the first row is ignored
       return @sample_spm.answer(question: measure_or_table).metadata['row_labels'][row] if row_col == :row
 
