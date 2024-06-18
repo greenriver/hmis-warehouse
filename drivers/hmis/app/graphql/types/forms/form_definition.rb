@@ -30,6 +30,9 @@ module Types
     field :raw_definition, JsonObject, null: false
     field :system, Boolean, null: false
     field :status, HmisSchema::Enums::FormStatus, null: false
+    field :date_updated, GraphQL::Types::ISO8601DateTime, null: false, method: :updated_at
+    field :date_created, GraphQL::Types::ISO8601DateTime, null: false, method: :created_at
+    field :updated_by, Types::Application::User, null: true
     form_rules_field :form_rules, method: :instances
 
     # Filtering is implemented within this resolver rather than a separate concern. This
@@ -55,6 +58,10 @@ module Types
 
     def system
       load_ar_association(object, :instances).any?(&:system)
+    end
+
+    def updated_by
+      load_last_user_from_versions(object)
     end
 
     protected

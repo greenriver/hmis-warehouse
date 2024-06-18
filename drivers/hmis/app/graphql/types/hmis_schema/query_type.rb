@@ -290,7 +290,7 @@ module Types
     def denied_pending_referral_postings(**args)
       raise 'Access denied' unless current_user.can_manage_denied_referrals?
 
-      postings = HmisExternalApis::AcHmis::ReferralPosting.denied_pending_status
+      postings = HmisExternalApis::AcHmis::ReferralPosting.where(status: [:denied_pending_status, :denied_status])
 
       scoped_referral_postings(postings, **args)
     end

@@ -35,15 +35,16 @@ module Mutations
         builder.validate_definition(definition.definition) { |err| errors.add(:definition, message: err) }
       end
 
+      # Return user-facing validation errors for the form content
       return { errors: errors } if errors.present?
 
-      if definition.valid?
-        definition.save!
-        { form_definition: definition }
-      else
-        errors.add_ar_errors(definition.errors)
-        { errors: errors }
-      end
+      # Raise if the definition is not valid (invalid role/status/identifier; not expected)
+      raise "Definition invalid: #{definition.errors.full_messages}" unless definition.valid?
+
+      # Manually save a PaperTrail version, so we know who made the change. Because we `skip` the definition
+      # field, a PaperTrail record will not automatically get created if only the definition changed.
+      definition.paper_trail.save_with_version
+      { form_definition: definition }
     end
 
     private

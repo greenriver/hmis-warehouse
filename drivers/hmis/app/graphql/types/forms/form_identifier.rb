@@ -42,7 +42,7 @@ module Types
     end
 
     def all_versions
-      load_ar_association(object, :all_versions)
+      object.all_versions.order(version: :desc)
     end
 
     def display_version

@@ -10,6 +10,10 @@ module Types
 
     include Types::HmisSchema::HasCustomDataElements
 
+    available_filter_options do
+      arg :status, [HmisSchema::Enums::ReferralPostingStatus]
+    end
+
     field :id, ID, null: false
 
     # Fields that come from Referral
