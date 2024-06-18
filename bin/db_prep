@@ -50,9 +50,9 @@ def seeds_ran?(db_section)
   section = db(db_section)
   conn = PG.connect(**section)
   if db_section == "primary"
-    result = conn.exec_params('SELECT count(*) FROM translations').entries
+    result = conn.exec_params('SELECT count(*) FROM collections').entries
     num = result[0]["count"].to_i
-    num > 10
+    num > 0
   elsif db_section == "warehouse"
     result = conn.exec_params('SELECT count(*) FROM data_sources').entries
     num = result[0]["count"].to_i
