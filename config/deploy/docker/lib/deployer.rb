@@ -262,9 +262,7 @@ class Deployer
   end
 
   def _set_image_tag!
-    if ENV['IMAGE_TAG']
-      # TODO this overrides the specified revision/version - when is this used?
-      # seem like this would've already caused a mismatch with _set_revision
+    if ENV['IMAGE_TAG'] # used for debugging
       self.image_tag = ENV['IMAGE_TAG']
       self.image_tag_latest = 'latest-' + ENV['IMAGE_TAG']
     else
