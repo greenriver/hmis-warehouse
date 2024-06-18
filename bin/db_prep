@@ -108,7 +108,7 @@ Dir.chdir APP_ROOT do
   else
     puts "\n== Preparing Health Database =="
     run_or_exit('bundle exec rake db:create:health') unless DONT_CREATE_DATABASES
-    run_or_exit 'bundle exec rake health:db:schema:conditional_load'
+    run_or_exit 'DISABLE_DATABASE_ENVIRONMENT_CHECK=1 bundle exec rake health:db:schema:conditional_load'
     run_or_exit 'bundle exec rake db:migrate:health'
   end
 
