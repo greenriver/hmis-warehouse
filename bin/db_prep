@@ -65,7 +65,7 @@ end
 def db_is_initialized?(db_section)
   section = db(db_section)
   conn = PG.connect(**section)
-  tables = conn.exec_params('SELECT * FROM information_schema.tables where table_catalog = $1', [ section[:dbname] ]).entries
+  tables = conn.exec_params("SELECT * FROM information_schema.tables where table_catalog = $1 and table_type = 'BASE TABLE' and table_schema = 'public'", [ section[:dbname] ]).entries
 
   tables.length > 1
 rescue PG::ConnectionBad => e
