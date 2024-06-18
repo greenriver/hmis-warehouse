@@ -49,7 +49,9 @@
         "_comment": { "type": "string" },
         "id": { "type": "string" },
         "type": { "type": "string" },
-        "question": { "type": "string" },
+        "question": {
+          "$ref": "#/definitions/link_id"
+        },
         "value_local_constant": { "type": "string" },
         "value_number": { "type": "integer" },
         "offset": { "type": "integer" },
