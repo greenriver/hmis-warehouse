@@ -117,7 +117,7 @@ Dir.chdir APP_ROOT do
   else
     puts "\n== Preparing Reporting Database =="
     run_or_exit('bundle exec rake db:create:reporting') unless DONT_CREATE_DATABASES
-    run_or_exit 'bundle exec rake reporting:db:schema:conditional_load'
+    run_or_exit 'DISABLE_DATABASE_ENVIRONMENT_CHECK=1 bundle exec rake reporting:db:schema:conditional_load'
     run_or_exit 'bundle exec rake db:migrate:reporting'
     # Force a rebuild of this table
     run_or_exit 'bundle exec rails runner "GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!"'
