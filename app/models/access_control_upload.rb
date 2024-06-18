@@ -29,6 +29,18 @@ class AccessControlUpload < ApplicationRecord
   end
 
   def users
+    user_data.map do |user|
+      OpenStruct.new(
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        agency: user.agency,
+        existing_user_id: user.existing_user_id,
+      )
+    end.uniq.compact
+  end
+
+  private def user_data
     users_worksheet.map do |row|
       # First row is headers
       next unless row.index_in_collection.positive?
@@ -46,9 +58,22 @@ class AccessControlUpload < ApplicationRecord
     end.uniq.compact
   end
 
+  def collections
+    collections_worksheet.map do |row|
+      # First row is headers
+      next unless row.index_in_collection.positive?
+      # Skip any collections with no name
+      next unless row.cells[0].value.present?
+
+      OpenStruct.new(
+        name: row.cells[0].value,
+      )
+    end
+  end
+
   def agencies
     {}.tap do |a|
-      users.each do |u|
+      user_data.each do |u|
         a[u.agency] ||= OpenStruct.new(
           existing_agency_id: Agency.find_by(name: u.agency)&.id,
         )
@@ -60,7 +85,7 @@ class AccessControlUpload < ApplicationRecord
 
   def user_groups
     {}.tap do |a|
-      users.each do |u|
+      user_data.each do |u|
         a[u.user_group] ||= OpenStruct.new(
           existing_user_group_id: UserGroup.find_by(name: u.user_group)&.id,
         )
@@ -113,12 +138,20 @@ class AccessControlUpload < ApplicationRecord
     workbook['Users']
   end
 
+  private def collections_worksheet
+    workbook['Collections']
+  end
+
   private def valid_roles?
     roles_worksheet.cell_at('A2').value == 'Role' && roles_worksheet.cell_at('B1').value == 'Permission'
   end
 
   private def valid_users?
     users_worksheet.cell_at('A1').value == 'First Name' && users_worksheet.cell_at('B1').value == 'Last Name'
+  end
+
+  private def collections_valid?
+    collections_worksheet.cell_at('A1').value == 'Collection' && collections_worksheet.cell_at('B1').value == 'Data Sources'
   end
 
   private def existing_role(role_name)

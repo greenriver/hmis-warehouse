@@ -12,7 +12,7 @@ class Admin::AclImportsController < ApplicationController
   before_action :set_import, only: [:show, :update, :destroy]
 
   def index
-    @imports = import_scope.preload(:user)
+    @imports = import_scope.order(created_at: :desc).preload(:user)
     @pagy, @imports = pagy(@imports)
   end
 
