@@ -50,18 +50,6 @@ module LongitudinalSpm
       complete
     end
 
-    # Override the normal status method so we catch when the dependent reports don't finish
-    def status
-      return 'Failed' if ! completed? && started_at.present? && started_at < 24.hours.ago
-      return "Running for #{running_for}" unless spms&.all? { |spm| spm.hud_spm&.completed? }
-      return "Queued at #{created_at}" if started_at.blank?
-      return 'Failed' if failed?
-      return "Completed in #{run_time}" if completed?
-      return 'Failed' if started_at.present? && started_at < 24.hours.ago
-
-      "Running for #{running_for}"
-    end
-
     def start
       update(started_at: Time.current)
     end
