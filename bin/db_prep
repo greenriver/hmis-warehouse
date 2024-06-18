@@ -20,9 +20,10 @@ def db(db_section)
     end
 
   payload = {
-    host: @db[db_section]["host"],
     dbname: @db[db_section]["database"],
+    host: @db[db_section]["host"],
     password: @db[db_section]["password"],
+    user: @db[db_section]["username"],
   }
 
   if @db[db_section]["sslrootcert"] && @db[db_section]["sslmode"]
