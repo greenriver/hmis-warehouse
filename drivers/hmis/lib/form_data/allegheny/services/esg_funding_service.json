@@ -12,7 +12,7 @@
         {
           "id": "max-start-date",
           "type": "MAX",
-          "question": "fa-end-date"
+          "question": "fa_end_date"
         }
       ]
     },
@@ -28,7 +28,7 @@
         {
           "id": "min-end-date",
           "type": "MIN",
-          "question": "fa-start-date"
+          "question": "fa_start_date"
         }
       ]
     },

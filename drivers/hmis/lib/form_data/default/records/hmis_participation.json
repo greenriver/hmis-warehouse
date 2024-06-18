@@ -33,7 +33,7 @@
         {
           "id": "max-start-date-range",
           "type": "MAX",
-          "question": "2.08.3"
+          "question": "q_2_08_3"
         }
       ]
     },
@@ -59,7 +59,7 @@
         {
           "id": "max-end-date-range",
           "type": "MIN",
-          "question": "2.08.2"
+          "question": "q_2_08_2"
         }
       ]
     }

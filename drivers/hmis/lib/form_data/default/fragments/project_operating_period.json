@@ -16,7 +16,7 @@
         {
           "id": "max-start-date",
           "type": "MAX",
-          "question": "2.02.4"
+          "question": "q_2_02_4"
         }
       ]
     },
@@ -32,7 +32,7 @@
         {
           "id": "min-end-date",
           "type": "MIN",
-          "question": "2.02.3"
+          "question": "q_2_02_3"
         }
       ]
     }

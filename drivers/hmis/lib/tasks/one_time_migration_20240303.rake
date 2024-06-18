@@ -16,7 +16,6 @@ class OneTimeMigration20230303
   end
 
   # Migrate LinkIDs for all files in drivers/hmis/lib/form_data. Write changes to files.
-  # Doesn't catch everything, a few things need to be manually fixed (client-id and veteran-status)
   def update_form_data_files
     Dir.glob("#{HmisUtil::JsonForms::DATA_DIR}/**/*.json").each do |file_path|
       puts "Transforming #{file_path}..."
@@ -83,18 +82,25 @@ class OneTimeMigration20230303
   def transform_definition(definition)
     seen = Set.new
     walk_nodes(definition) do |node|
-      next unless node['link_id'].present?
+      next unless node['link_id'].present? || node['fragment'].present?
 
-      link_id = node['link_id']
-      node['link_id'] = transform_identifier(link_id) if link_id
-      raise "duplicate link_id for #{link_id}" if node['link_id'].in?(seen)
+      # If we're updating a fragment, it won't have a link_id directly on it
+      if node['link_id'].present?
+        link_id = node['link_id']
+        node['link_id'] = transform_identifier(link_id) if link_id
+        raise "duplicate link_id for #{link_id}" if node['link_id'].in?(seen)
 
-      seen.add(node['link_id'])
+        seen.add(node['link_id'])
+      end
 
       # try to find any question id references in the item definition
       node['enable_when']&.each do |props|
         props['question'] = transform_identifier(props['question']) if props['question']
         props['compare_question'] = transform_identifier(props['compare_question']) if props['compare_question']
+      end
+
+      node['bounds']&.each do |props|
+        props['question'] = transform_identifier(props['question']) if props['question']
       end
 
       node['autofill_values']&.each do |props|
