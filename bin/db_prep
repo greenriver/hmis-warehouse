@@ -10,6 +10,8 @@ require 'yaml'
 
 # path to your application root.
 APP_ROOT = Pathname.new File.expand_path('..', __dir__)
+DONT_CREATE_DATABASES = (ARGV[0] == '--no-create-databases')
+CREATE_DATABASES = ! DONT_CREATE_DATABASES
 
 def db(db_section)
   @db ||=
@@ -66,16 +68,20 @@ def db_is_initialized?(db_section)
   tables = conn.exec_params('SELECT * FROM information_schema.tables where table_catalog = $1', [ section[:dbname] ]).entries
 
   tables.length > 1
+rescue PG::ConnectionBad => e
+  if CREATE_DATABASES && e.message.match?(/database.+ does not exist/)
+    false
+  else
+    raise e
+  end
 end
-
-dont_create_databases = (ARGV[0] == '--no-create-databases')
 
 Dir.chdir APP_ROOT do
   if db_is_initialized?("primary")
     puts "\n== Primary database is set up. Skipping init =="
   else
     puts "\n== Preparing Primary Database =="
-    run_or_exit('bundle exec rake db:create:primary') unless dont_create_databases
+    run_or_exit('bundle exec rake db:create:primary') unless DONT_CREATE_DATABASES
     run_or_exit 'bundle exec rake db:schema:conditional_load'
     run_or_exit 'bundle exec rake db:migrate:primary'
   end
@@ -84,7 +90,7 @@ Dir.chdir APP_ROOT do
     puts "\n== Warehouse database is set up. Skipping init =="
   else
     puts "\n== Preparing Warehouse Database =="
-    run_or_exit('bundle exec rake db:create:warehouse') unless dont_create_databases
+    run_or_exit('bundle exec rake db:create:warehouse') unless DONT_CREATE_DATABASES
 
     # DB has objects that can't be tracked with schema.rb: types, materialized views, and triggers
     if ENV['RAILS_ENV'] == 'test'
@@ -101,7 +107,7 @@ Dir.chdir APP_ROOT do
     puts "\n== Health database is set up. Skipping init =="
   else
     puts "\n== Preparing Health Database =="
-    run_or_exit('bundle exec rake db:create:health') unless dont_create_databases
+    run_or_exit('bundle exec rake db:create:health') unless DONT_CREATE_DATABASES
     run_or_exit 'bundle exec rake health:db:schema:conditional_load'
     run_or_exit 'bundle exec rake db:migrate:health'
   end
@@ -110,7 +116,7 @@ Dir.chdir APP_ROOT do
     puts "\n== Reporting database is set up. Skipping init =="
   else
     puts "\n== Preparing Reporting Database =="
-    run_or_exit('bundle exec rake db:create:reporting') unless dont_create_databases
+    run_or_exit('bundle exec rake db:create:reporting') unless DONT_CREATE_DATABASES
     run_or_exit 'bundle exec rake reporting:db:schema:conditional_load'
     run_or_exit 'bundle exec rake db:migrate:reporting'
     # Force a rebuild of this table
