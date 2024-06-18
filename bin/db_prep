@@ -54,9 +54,9 @@ def seeds_ran?(db_section)
     num = result[0]["count"].to_i
     num > 10
   elsif db_section == "warehouse"
-    result = conn.exec_params('SELECT count(*) FROM grades').entries
+    result = conn.exec_params('SELECT count(*) FROM data_sources').entries
     num = result[0]["count"].to_i
-    num > 1
+    num > 0
   else
     raise "invalid db section of #{db_section}"
   end
