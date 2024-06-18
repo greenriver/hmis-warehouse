@@ -25,7 +25,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "hud_4_08_2",
+          "question": "q_4_08_2",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -82,7 +82,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "hud_4_08_2",
+          "question": "q_4_08_2",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -138,7 +138,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "hud_4_08_2",
+          "question": "q_4_08_2",
           "operator": "EQUAL",
           "answer_code": "YES"
         }

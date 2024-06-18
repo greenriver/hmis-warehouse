@@ -242,7 +242,7 @@
     {
       "type": "CHOICE",
       "component": "RADIO_BUTTONS",
-      "link_id": "hud_4_02_2",
+      "link_id": "q_4_02_2",
       "required": false,
       "warn_if_empty": true,
       "text": "Income from Any Source",
@@ -257,77 +257,77 @@
           "autofill_behavior": "ANY",
           "autofill_when": [
             {
-              "question": "hud_4_02_A",
+              "question": "q_4_02_A",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "hud_4_02_B",
+              "question": "q_4_02_B",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "hud_4_02_C",
+              "question": "q_4_02_C",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "hud_4_02_D",
+              "question": "q_4_02_D",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "hud_4_02_E",
+              "question": "q_4_02_E",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "hud_4_02_F",
+              "question": "q_4_02_F",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "hud_4_02_G",
+              "question": "q_4_02_G",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "hud_4_02_H",
+              "question": "q_4_02_H",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "hud_4_02_I",
+              "question": "q_4_02_I",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "hud_4_02_J",
+              "question": "q_4_02_J",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "hud_4_02_K",
+              "question": "q_4_02_K",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "hud_4_02_L",
+              "question": "q_4_02_L",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "hud_4_02_M",
+              "question": "q_4_02_M",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "hud_4_02_N",
+              "question": "q_4_02_N",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "hud_4_02_O",
+              "question": "q_4_02_O",
               "operator": "GREATER_THAN",
               "answer_number": 0
             }
@@ -343,12 +343,12 @@
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "hud_4_02_2",
+          "question": "q_4_02_2",
           "operator": "EQUAL",
           "answer_code": "YES"
         },
         {
-          "question": "hud_4_02_2",
+          "question": "q_4_02_2",
           "operator": "EXISTS",
           "answer_boolean": false
         }
@@ -356,7 +356,7 @@
       "item": [
         {
           "type": "CURRENCY",
-          "link_id": "hud_4_02_A",
+          "link_id": "q_4_02_A",
           "text": "Earned Income (i.e., employment income)",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -365,7 +365,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "hud_4_02_B",
+          "link_id": "q_4_02_B",
           "text": "Unemployment Insurance",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -374,7 +374,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "hud_4_02_C",
+          "link_id": "q_4_02_C",
           "text": "Supplemental Security Income (SSI)",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -383,7 +383,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "hud_4_02_D",
+          "link_id": "q_4_02_D",
           "text": "Social Security Disability Insurance (SSDI)",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -392,7 +392,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "hud_4_02_E",
+          "link_id": "q_4_02_E",
           "text": "VA Service-Connected Disability Compensation",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -401,7 +401,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "hud_4_02_F",
+          "link_id": "q_4_02_F",
           "text": "VA Non-Service-Connected Disability Pension",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -410,7 +410,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "hud_4_02_G",
+          "link_id": "q_4_02_G",
           "text": "Private disability insurance",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -419,7 +419,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "hud_4_02_H",
+          "link_id": "q_4_02_H",
           "text": "Worker's Compensation",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -428,7 +428,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "hud_4_02_I",
+          "link_id": "q_4_02_I",
           "text": "Temporary Assistance for Needy Families (TANF)",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -437,7 +437,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "hud_4_02_J",
+          "link_id": "q_4_02_J",
           "text": "General Assistance (GA)",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -446,7 +446,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "hud_4_02_K",
+          "link_id": "q_4_02_K",
           "text": "Retirement Income from Social Security",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -455,7 +455,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "hud_4_02_L",
+          "link_id": "q_4_02_L",
           "text": "Pension or retirement income from a former job",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -464,7 +464,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "hud_4_02_M",
+          "link_id": "q_4_02_M",
           "text": "Child support",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -473,7 +473,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "hud_4_02_N",
+          "link_id": "q_4_02_N",
           "text": "Alimony and other spousal support",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -482,7 +482,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "hud_4_02_O",
+          "link_id": "q_4_02_O",
           "text": "Other source",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -491,7 +491,7 @@
         },
         {
           "type": "STRING",
-          "link_id": "hud_4_02_P",
+          "link_id": "q_4_02_P",
           "text": "Specify other source",
           "brief_text": "Other income source",
           "required": false,
@@ -503,7 +503,7 @@
           },
           "enable_when": [
             {
-              "question": "hud_4_02_O",
+              "question": "q_4_02_O",
               "operator": "GREATER_THAN",
               "answer_number": 0
             }
@@ -525,21 +525,21 @@
 
               ],
               "sum_questions": [
-                "hud_4_02_A",
-                "hud_4_02_B",
-                "hud_4_02_C",
-                "hud_4_02_D",
-                "hud_4_02_E",
-                "hud_4_02_F",
-                "hud_4_02_G",
-                "hud_4_02_H",
-                "hud_4_02_I",
-                "hud_4_02_J",
-                "hud_4_02_K",
-                "hud_4_02_L",
-                "hud_4_02_M",
-                "hud_4_02_N",
-                "hud_4_02_O"
+                "q_4_02_A",
+                "q_4_02_B",
+                "q_4_02_C",
+                "q_4_02_D",
+                "q_4_02_E",
+                "q_4_02_F",
+                "q_4_02_G",
+                "q_4_02_H",
+                "q_4_02_I",
+                "q_4_02_J",
+                "q_4_02_K",
+                "q_4_02_L",
+                "q_4_02_M",
+                "q_4_02_N",
+                "q_4_02_O"
               ]
             }
           ]

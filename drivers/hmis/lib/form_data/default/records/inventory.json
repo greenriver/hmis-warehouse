@@ -101,7 +101,7 @@
         {
           "type": "DATE",
           "required": true,
-          "link_id": "hud_2_07_1",
+          "link_id": "q_2_07_1",
           "text": "Start Date",
           "mapping": {
             "field_name": "inventoryStartDate"
@@ -127,7 +127,7 @@
         {
           "type": "DATE",
           "required": false,
-          "link_id": "hud_2_07_2",
+          "link_id": "q_2_07_2",
           "text": "End Date",
           "mapping": {
             "field_name": "inventoryEndDate"

@@ -46,7 +46,7 @@
               "required": true,
               "text": "Event Type",
               "pick_list_reference": "CE_EVENTS",
-              "link_id": "hud_4_20_2",
+              "link_id": "q_4_20_2",
               "mapping": {
                 "record_type": "EVENT",
                 "field_name": "event"
@@ -61,7 +61,7 @@
                 "record_type": "EVENT",
                 "field_name": "probSolDivRrResult"
               },
-              "link_id": "hud_4_20_A"
+              "link_id": "q_4_20_A"
             }
           ]
         }

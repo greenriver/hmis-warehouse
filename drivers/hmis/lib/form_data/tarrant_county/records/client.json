@@ -30,7 +30,7 @@
       "fragment": "#client_photo",
       "enable_when": [
         {
-          "question": "client-id",
+          "question": "client_id",
           "operator": "EXISTS",
           "answer_boolean": false
         }

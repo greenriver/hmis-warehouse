@@ -30,7 +30,7 @@
           "required": true,
           "text": "Event Type",
           "pick_list_reference": "CE_EVENTS",
-          "link_id": "hud_4_20_2",
+          "link_id": "q_4_20_2",
           "mapping": {
             "record_type": "EVENT",
             "field_name": "event"
@@ -45,7 +45,7 @@
             "record_type": "EVENT",
             "field_name": "probSolDivRrResult"
           },
-          "link_id": "hud_4_20_A"
+          "link_id": "q_4_20_A"
         },
         {
           "type": "CHOICE",
@@ -56,12 +56,12 @@
             "record_type": "EVENT",
             "field_name": "referralCaseManageAfter"
           },
-          "link_id": "hud_4_20_B"
+          "link_id": "q_4_20_B"
         },
         {
           "type": "TEXT",
           "required": false,
-          "link_id": "hud_4_20_C",
+          "link_id": "q_4_20_C",
           "text": "Location of Crisis Housing or Permanent Housing Referral",
           "mapping": {
             "record_type": "EVENT",
@@ -74,7 +74,7 @@
           "text": "Referral Result",
           "pick_list_reference": "ReferralResult",
           "component": "RADIO_BUTTONS_VERTICAL",
-          "link_id": "hud_4_20_D",
+          "link_id": "q_4_20_D",
           "mapping": {
             "record_type": "EVENT",
             "field_name": "referralResult"
@@ -83,7 +83,7 @@
         {
           "type": "DATE",
           "required": false,
-          "link_id": "hud_4_20_E",
+          "link_id": "q_4_20_E",
           "text": "Result Date",
           "mapping": {
             "record_type": "EVENT",

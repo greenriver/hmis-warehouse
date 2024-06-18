@@ -53,17 +53,17 @@
         "enable_behavior": "ANY",
         "enable_when": [
           {
-            "question": "hud_4_02_2",
+            "question": "q_4_02_2",
             "operator": "EQUAL",
             "answer_code": "YES"
           },
           {
-            "question": "hud_4_02_2",
+            "question": "q_4_02_2",
             "operator": "EQUAL",
             "answer_code": "NO"
           },
           {
-            "question": "hud_4_02_2",
+            "question": "q_4_02_2",
             "operator": "EXISTS",
             "answer_boolean": false
           }

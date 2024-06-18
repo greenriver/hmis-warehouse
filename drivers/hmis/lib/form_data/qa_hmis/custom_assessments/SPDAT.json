@@ -8,7 +8,7 @@
         {
           "type": "DATE",
           "required": true,
-          "link_id": "hud_4_19_1",
+          "link_id": "q_4_19_1",
           "text": "Assessment Date",
           "assessment_date": true,
           "mapping": {

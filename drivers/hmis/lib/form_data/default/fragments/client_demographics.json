@@ -126,7 +126,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "veteran-status",
+          "question": "veteran_status",
           "operator": "EQUAL",
           "answer_code": "YES"
         }

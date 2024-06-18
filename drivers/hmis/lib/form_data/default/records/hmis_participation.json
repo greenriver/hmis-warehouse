@@ -4,7 +4,7 @@
       "type": "CHOICE",
       "component": "DROPDOWN",
       "required": true,
-      "link_id": "hud_2_08_1",
+      "link_id": "q_2_08_1",
       "text": "HMIS Participation Type",
       "pick_list_reference": "HMISParticipationType",
       "mapping": {
@@ -14,7 +14,7 @@
     {
       "type": "DATE",
       "required": true,
-      "link_id": "hud_2_08_2",
+      "link_id": "q_2_08_2",
       "text": "Start Date",
       "mapping": {
         "field_name": "hmisParticipationStatusStartDate"
@@ -40,7 +40,7 @@
     {
       "type": "DATE",
       "required": false,
-      "link_id": "hud_2_08_3",
+      "link_id": "q_2_08_3",
       "text": "End Date",
       "mapping": {
         "field_name": "hmisParticipationStatusEndDate"

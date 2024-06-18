@@ -26,7 +26,7 @@
             "enable_behavior": "ALL",
             "enable_when": [
               {
-                "question": "hud_3_12",
+                "question": "q_3_12",
                 "operator": "NOT_EQUAL",
                 "answer_code": "DECEASED"
               }

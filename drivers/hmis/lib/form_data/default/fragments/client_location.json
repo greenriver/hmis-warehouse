@@ -6,7 +6,7 @@
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "hud_3_16",
+      "link_id": "q_3_16",
       "prefix": "3.16",
       "text": "CoC Code for Client Location",
       "required": false,

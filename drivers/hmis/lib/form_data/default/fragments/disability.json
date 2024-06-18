@@ -6,7 +6,7 @@
   "prefill": true,
   "item": [
     {
-      "link_id": "hud_3_08",
+      "link_id": "q_3_08",
       "text": "Disabling Condition",
       "type": "CHOICE",
       "required": false,
@@ -20,7 +20,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "hud_4_05_2",
+          "question": "q_4_05_2",
           "operator": "ENABLED",
           "answer_boolean": false
         }
@@ -34,7 +34,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "hud_4_05_2",
+          "question": "q_4_05_2",
           "operator": "ENABLED",
           "answer_boolean": true
         }
@@ -245,7 +245,7 @@
           "item": [
             {
               "type": "CHOICE",
-              "link_id": "hud_4_05_2",
+              "link_id": "q_4_05_2",
               "text": "Physical Disability",
               "mapping": {
                 "record_type": "DISABILITY_GROUP",
@@ -257,7 +257,7 @@
             },
             {
               "type": "CHOICE",
-              "link_id": "hud_4_05_A",
+              "link_id": "q_4_05_A",
               "text": "Is this a disabling condition?",
               "brief_text": "Physical Disability Indefinite and Impairs",
               "mapping": {
@@ -271,7 +271,7 @@
               "enable_behavior": "ALL",
               "enable_when": [
                 {
-                  "question": "hud_4_05_2",
+                  "question": "q_4_05_2",
                   "operator": "EQUAL",
                   "answer_code": "YES"
                 }
@@ -286,7 +286,7 @@
           "item": [
             {
               "type": "CHOICE",
-              "link_id": "hud_4_06_2",
+              "link_id": "q_4_06_2",
               "required": false,
               "warn_if_empty": true,
               "text": "Developmental Disability",
@@ -298,7 +298,7 @@
             },
             {
               "type": "DISPLAY",
-              "link_id": "hud_4_06_2_info",
+              "link_id": "q_4_06_2_info",
               "text": "<i style='color:gray;'>Always considered a disabling condition.</i>"
             }
           ]
@@ -310,7 +310,7 @@
           "item": [
             {
               "type": "CHOICE",
-              "link_id": "hud_4_07_2",
+              "link_id": "q_4_07_2",
               "required": false,
               "warn_if_empty": true,
               "text": "Chronic Health Condition",
@@ -322,7 +322,7 @@
             },
             {
               "type": "CHOICE",
-              "link_id": "hud_4_07_A",
+              "link_id": "q_4_07_A",
               "required": false,
               "warn_if_empty": true,
               "text": "Is this a disabling condition?",
@@ -336,7 +336,7 @@
               "enable_behavior": "ALL",
               "enable_when": [
                 {
-                  "question": "hud_4_07_2",
+                  "question": "q_4_07_2",
                   "operator": "EQUAL",
                   "answer_code": "YES"
                 }
@@ -532,7 +532,7 @@
           "item": [
             {
               "type": "CHOICE",
-              "link_id": "hud_4_08_2",
+              "link_id": "q_4_08_2",
               "required": false,
               "warn_if_empty": true,
               "text": "HIV/AIDS",
@@ -544,7 +544,7 @@
             },
             {
               "type": "DISPLAY",
-              "link_id": "hud_4_08_2_info",
+              "link_id": "q_4_08_2_info",
               "text": "<i style='color:gray;'>Always considered a disabling condition.</i>"
             }
           ]
@@ -556,7 +556,7 @@
           "item": [
             {
               "type": "CHOICE",
-              "link_id": "hud_4_09_2",
+              "link_id": "q_4_09_2",
               "required": false,
               "warn_if_empty": true,
               "text": "Mental Health Disorder",
@@ -568,7 +568,7 @@
             },
             {
               "type": "CHOICE",
-              "link_id": "hud_4_09_A",
+              "link_id": "q_4_09_A",
               "required": false,
               "warn_if_empty": true,
               "text": "Is this a disabling condition?",
@@ -582,7 +582,7 @@
               "enable_behavior": "ALL",
               "enable_when": [
                 {
-                  "question": "hud_4_09_2",
+                  "question": "q_4_09_2",
                   "operator": "EQUAL",
                   "answer_code": "YES"
                 }
@@ -597,7 +597,7 @@
           "item": [
             {
               "type": "CHOICE",
-              "link_id": "hud_4_10_2",
+              "link_id": "q_4_10_2",
               "required": false,
               "warn_if_empty": true,
               "text": "Substance Use Disorder",
@@ -609,7 +609,7 @@
             },
             {
               "type": "CHOICE",
-              "link_id": "hud_4_10_A",
+              "link_id": "q_4_10_A",
               "required": false,
               "warn_if_empty": true,
               "text": "Is this a disabling condition?",
@@ -623,17 +623,17 @@
               "enable_behavior": "ANY",
               "enable_when": [
                 {
-                  "question": "hud_4_10_2",
+                  "question": "q_4_10_2",
                   "operator": "EQUAL",
                   "answer_code": "ALCOHOL_USE_DISORDER"
                 },
                 {
-                  "question": "hud_4_10_2",
+                  "question": "q_4_10_2",
                   "operator": "EQUAL",
                   "answer_code": "DRUG_USE_DISORDER"
                 },
                 {
-                  "question": "hud_4_10_2",
+                  "question": "q_4_10_2",
                   "operator": "EQUAL",
                   "answer_code": "BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS"
                 }
@@ -649,7 +649,7 @@
           "item": [
             {
               "type": "CHOICE",
-              "link_id": "hud_3_08_inferred",
+              "link_id": "q_3_08_inferred",
               "required": false,
               "warn_if_empty": true,
               "text": "Disabling Condition",

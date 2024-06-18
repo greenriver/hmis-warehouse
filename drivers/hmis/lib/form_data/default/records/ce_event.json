@@ -7,7 +7,7 @@
         {
           "type": "DATE",
           "required": true,
-          "link_id": "hud_4_20_1",
+          "link_id": "q_4_20_1",
           "text": "Event Date",
           "mapping": {
             "record_type": "EVENT",
@@ -39,7 +39,7 @@
           "required": true,
           "text": "Event Type",
           "pick_list_reference": "CE_EVENTS",
-          "link_id": "hud_4_20_2",
+          "link_id": "q_4_20_2",
           "mapping": {
             "record_type": "EVENT",
             "field_name": "event"
@@ -50,14 +50,14 @@
           "required": false,
           "text": "Client housed/re-housed in a safe alternative",
           "pick_list_reference": "NoYesMissing",
-          "link_id": "hud_4_20_A",
+          "link_id": "q_4_20_A",
           "mapping": {
             "record_type": "EVENT",
             "field_name": "probSolDivRrResult"
           },
           "enable_when": [
             {
-              "question": "hud_4_20_2",
+              "question": "q_4_20_2",
               "operator": "EQUAL",
               "answer_code": "PROBLEM_SOLVING_DIVERSION_RAPID_RESOLUTION_INTERVENTION_OR_SERVICE"
             }
@@ -68,14 +68,14 @@
           "required": false,
           "text": "Enrolled in Aftercare project",
           "pick_list_reference": "NoYesMissing",
-          "link_id": "hud_4_20_B",
+          "link_id": "q_4_20_B",
           "mapping": {
             "record_type": "EVENT",
             "field_name": "referralCaseManageAfter"
           },
           "enable_when": [
             {
-              "question": "hud_4_20_2",
+              "question": "q_4_20_2",
               "operator": "EQUAL",
               "answer_code": "REFERRAL_TO_POST_PLACEMENT_FOLLOW_UP_CASE_MANAGEMENT"
             }
@@ -84,7 +84,7 @@
         {
           "type": "TEXT",
           "required": false,
-          "link_id": "hud_4_20_C",
+          "link_id": "q_4_20_C",
           "text": "Location of Crisis Housing or Permanent Housing Referral",
           "mapping": {
             "record_type": "EVENT",
@@ -93,32 +93,32 @@
           "enable_behavior": "ANY",
           "enable_when": [
             {
-              "question": "hud_4_20_2",
+              "question": "q_4_20_2",
               "operator": "EQUAL",
               "answer_code": "REFERRAL_TO_EMERGENCY_SHELTER_BED_OPENING"
             },
             {
-              "question": "hud_4_20_2",
+              "question": "q_4_20_2",
               "operator": "EQUAL",
               "answer_code": "REFERRAL_TO_TRANSITIONAL_HOUSING_BED_UNIT_OPENING"
             },
             {
-              "question": "hud_4_20_2",
+              "question": "q_4_20_2",
               "operator": "EQUAL",
               "answer_code": "REFERRAL_TO_JOINT_TH_RRH_PROJECT_UNIT_RESOURCE_OPENING"
             },
             {
-              "question": "hud_4_20_2",
+              "question": "q_4_20_2",
               "operator": "EQUAL",
               "answer_code": "REFERRAL_TO_RRH_PROJECT_RESOURCE_OPENING"
             },
             {
-              "question": "hud_4_20_2",
+              "question": "q_4_20_2",
               "operator": "EQUAL",
               "answer_code": "REFERRAL_TO_PSH_PROJECT_RESOURCE_OPENING"
             },
             {
-              "question": "hud_4_20_2",
+              "question": "q_4_20_2",
               "operator": "EQUAL",
               "answer_code": "REFERRAL_TO_OTHER_PH_PROJECT_UNIT_RESOURCE_OPENING"
             }
@@ -130,7 +130,7 @@
           "text": "Referral Result",
           "pick_list_reference": "ReferralResult",
           "component": "RADIO_BUTTONS_VERTICAL",
-          "link_id": "hud_4_20_D",
+          "link_id": "q_4_20_D",
           "mapping": {
             "record_type": "EVENT",
             "field_name": "referralResult"
@@ -138,42 +138,42 @@
           "enable_behavior": "ANY",
           "enable_when": [
             {
-              "question": "hud_4_20_2",
+              "question": "q_4_20_2",
               "operator": "EQUAL",
               "answer_code": "REFERRAL_TO_EMERGENCY_SHELTER_BED_OPENING"
             },
             {
-              "question": "hud_4_20_2",
+              "question": "q_4_20_2",
               "operator": "EQUAL",
               "answer_code": "REFERRAL_TO_TRANSITIONAL_HOUSING_BED_UNIT_OPENING"
             },
             {
-              "question": "hud_4_20_2",
+              "question": "q_4_20_2",
               "operator": "EQUAL",
               "answer_code": "REFERRAL_TO_JOINT_TH_RRH_PROJECT_UNIT_RESOURCE_OPENING"
             },
             {
-              "question": "hud_4_20_2",
+              "question": "q_4_20_2",
               "operator": "EQUAL",
               "answer_code": "REFERRAL_TO_RRH_PROJECT_RESOURCE_OPENING"
             },
             {
-              "question": "hud_4_20_2",
+              "question": "q_4_20_2",
               "operator": "EQUAL",
               "answer_code": "REFERRAL_TO_PSH_PROJECT_RESOURCE_OPENING"
             },
             {
-              "question": "hud_4_20_2",
+              "question": "q_4_20_2",
               "operator": "EQUAL",
               "answer_code": "REFERRAL_TO_OTHER_PH_PROJECT_UNIT_RESOURCE_OPENING"
             },
             {
-              "question": "hud_4_20_2",
+              "question": "q_4_20_2",
               "operator": "EQUAL",
               "answer_code": "REFERRAL_TO_EMERGENCY_HOUSING_VOUCHER_EHV"
             },
             {
-              "question": "hud_4_20_2",
+              "question": "q_4_20_2",
               "operator": "EQUAL",
               "answer_code": "REFERRAL_TO_A_HOUSING_STABILITY_VOUCHER"
             }
@@ -182,7 +182,7 @@
         {
           "type": "DATE",
           "required": false,
-          "link_id": "hud_4_20_E",
+          "link_id": "q_4_20_E",
           "text": "Result Date",
           "mapping": {
             "record_type": "EVENT",
@@ -190,7 +190,7 @@
           },
           "enable_when": [
             {
-              "question": "hud_4_20_D",
+              "question": "q_4_20_D",
               "operator": "EXISTS",
               "answer_boolean": true
             }
