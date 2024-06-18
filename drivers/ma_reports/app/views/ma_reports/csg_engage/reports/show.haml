@@ -1,0 +1,21 @@
+= render 'ma_reports/csg_engage/tabs', selected_path: ma_reports_csg_engage_reports_path
+
+%h3="Report: #{@report.agency.name} - #{@report.created_at}"
+
+.table-responsive
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Program Name
+        %th Created At
+        %th Started At
+        %th Completed At
+        %th Status
+    %tbody
+      - @report.program_reports.each do |program_report|
+        %tr
+          %td=program_report.program_mapping.clarity_name
+          %td=program_report.created_at
+          %td=program_report.started_at
+          %td=program_report.completed_at
+          %td=program_report.status_text

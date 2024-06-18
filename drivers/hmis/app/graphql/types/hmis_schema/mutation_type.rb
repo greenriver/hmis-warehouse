@@ -41,7 +41,6 @@ module Types
 
     field :create_service_type, mutation: Mutations::CreateServiceType
     field :delete_service_type, mutation: Mutations::DeleteServiceType
-    field :rename_service_type, mutation: Mutations::UpdateServiceType, deprecation_reason: 'Renamed to updateServiceType'
     field :update_service_type, mutation: Mutations::UpdateServiceType
 
     field :save_assessment, mutation: Mutations::SaveAssessment
@@ -57,7 +56,6 @@ module Types
     field :clear_mci, mutation: Mutations::AcHmis::ClearMci
     field :void_referral_request, mutation: Mutations::AcHmis::VoidReferralRequest
     field :update_referral_posting, mutation: Mutations::AcHmis::UpdateReferralPosting
-    field :create_outgoing_referral_posting, mutation: Mutations::AcHmis::CreateOutgoingReferralPosting, deprecation_reason: 'Moved to SubmitForm'
     field :delete_custom_case_note, mutation: Mutations::DeleteCustomCaseNote
 
     field :merge_clients, mutation: Mutations::MergeClients
@@ -66,6 +64,8 @@ module Types
     field :create_form_definition, mutation: Mutations::CreateFormDefinition
     field :update_form_definition, mutation: Mutations::UpdateFormDefinition
     field :delete_form_definition, mutation: Mutations::DeleteFormDefinition
+    field :publish_form_definition, mutation: Mutations::PublishFormDefinition
+    field :create_next_draft_form_definition, mutation: Mutations::CreateNextDraftFormDefinition
 
     field :create_form_rule, mutation: Mutations::CreateFormRule
     field :update_form_rule, mutation: Mutations::UpdateFormRule

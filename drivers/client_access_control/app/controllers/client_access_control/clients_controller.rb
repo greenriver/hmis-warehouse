@@ -24,6 +24,10 @@ class ClientAccessControl::ClientsController < ApplicationController
   before_action :set_client_start_date, only: [:show, :rollup]
   after_action :log_client, only: [:show]
 
+  # TODO: START_ACL remove when ACL transition complete
+  before_action :set_legacy_implicitly_assume_authorized_access
+  # END ACL
+
   def index
     @show_ssn = GrdaWarehouse::Config.get(:show_partial_ssn_in_window_search_results) || can_view_full_ssn?
     # search
@@ -111,8 +115,8 @@ class ClientAccessControl::ClientsController < ApplicationController
     end
     response.headers['Last-Modified'] = Time.zone.now.httpdate
     expires_in max_age, public: false
-    image = @client.image(max_age)
-    if image && ! Rails.env.test?
+    image = @client.pii_provider(user: current_user).image
+    if !image.empty? && !Rails.env.test?
       send_data image, type: ::MimeMagic.by_magic(image), disposition: 'inline'
     else
       head(:forbidden)

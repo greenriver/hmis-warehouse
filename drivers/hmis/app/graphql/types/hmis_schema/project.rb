@@ -128,7 +128,7 @@ module Types
     def current_living_situations(**args)
       check_enrollment_details_access
 
-      resolve_assessments(object.current_living_situations, dangerous_skip_permission_check: true, **args)
+      resolve_current_living_situations(object.current_living_situations, dangerous_skip_permission_check: true, **args)
     end
 
     def organization
@@ -194,12 +194,13 @@ module Types
       scoped_referral_requests(object.external_referral_requests, **args)
     end
 
-    # TODO(#186102846) support user-specified sorting/filtering
     def incoming_referral_postings(**args)
       access_denied! unless current_permission?(entity: object, permission: :can_manage_incoming_referrals)
 
+      statuses = HmisExternalApis::AcHmis::ReferralPosting::ACTIVE_STATUSES + [:accepted_status]
+
       scoped_referral_postings(
-        object.external_referral_postings.active, # Only show Active postings on the incoming referral table
+        object.external_referral_postings.where(status: statuses),
         sort_order: :oldest_to_newest,
         dangerous_skip_permission_check: true, # safe because its checked above
         **args,
@@ -210,7 +211,6 @@ module Types
       Hmis::ArelHelper.instance
     end
 
-    # TODO(#186102846) support user-specified sorting/filtering
     def outgoing_referral_postings(**args)
       access_denied! unless current_permission?(entity: object, permission: :can_manage_outgoing_referrals)
 

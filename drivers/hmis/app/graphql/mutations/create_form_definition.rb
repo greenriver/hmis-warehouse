@@ -23,7 +23,7 @@ module Mutations
 
       return { errors: errors } if errors.present?
 
-      definition = Hmis::Form::Definition.create!(version: 0, status: 'draft', **attrs)
+      definition = Hmis::Form::Definition.create!(version: 0, status: Hmis::Form::Definition::DRAFT, **attrs)
 
       if definition.valid?
         definition.save!

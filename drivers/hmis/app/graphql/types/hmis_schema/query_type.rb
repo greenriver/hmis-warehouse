@@ -290,7 +290,7 @@ module Types
     def denied_pending_referral_postings(**args)
       raise 'Access denied' unless current_user.can_manage_denied_referrals?
 
-      postings = HmisExternalApis::AcHmis::ReferralPosting.denied_pending_status
+      postings = HmisExternalApis::AcHmis::ReferralPosting.where(status: [:denied_pending_status, :denied_status])
 
       scoped_referral_postings(postings, **args)
     end
@@ -405,17 +405,6 @@ module Types
       raise 'Access denied' unless current_user.can_manage_external_form_submissions?
 
       Hmis::Form::Definition.with_role(:EXTERNAL_FORM).where(identifier: identifier).order(version: :desc).first
-    end
-
-    field :form_definitions, Types::Forms::FormDefinition.page_type, null: false, deprecation_reason: 'replaced by FormIdentifiers query' do
-      filters_argument Forms::FormDefinition
-    end
-    def form_definitions(filters:)
-      raise 'Access denied' unless current_user.can_configure_data_collection?
-
-      scope = Hmis::Form::Definition.non_static
-      scope = scope.apply_filters(filters) if filters
-      scope.order(updated_at: :desc)
     end
 
     field :form_identifier, Types::Forms::FormIdentifier, null: true do

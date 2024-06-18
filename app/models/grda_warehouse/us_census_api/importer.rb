@@ -73,6 +73,7 @@ module GrdaWarehouse
               current_year,
               current_dataset,
               current_census_level,
+              state_fips,
             ]
           elsif results.is_a?(Hash) && results[:code] && slice_size == 1
             Rails.logger.info "Cannot get #{where_clause}: #{results[:code]} #{results[:body]}"
@@ -91,8 +92,9 @@ module GrdaWarehouse
 
       # Consider nothing downloaded
       def self.reset!
-        CensusVariable.update_all(downloaded: false, internal_name: nil)
-        CensusValue.truncate
+        ::GrdaWarehouse::UsCensusApi::CensusVariable.update_all(downloaded: false, internal_name: nil)
+        ::GrdaWarehouse::UsCensusApi::CensusValue.delete_all
+        Rails.cache.clear
       end
 
       private
@@ -223,13 +225,13 @@ module GrdaWarehouse
                   current_vars.keys.each_slice(slice_size) do |vars|
                     where_clause[:fields] = vars + ['GEO_ID']
 
-                    cache_key = Digest::MD5.hexdigest(where_clause.inspect)
+                    cache_key = Digest::MD5.hexdigest([where_clause, state_fips].inspect)
 
                     # enables restarting where we left off
                     if Rails.cache.read(cache_key)
                       print 's'
                       next
-                    elsif skip_set.include?([current_year, current_dataset, current_census_level])
+                    elsif skip_set.include?([current_year, current_dataset, current_census_level, state_fips])
                       print 's'
                     else
                       yield where_clause
@@ -288,7 +290,11 @@ module GrdaWarehouse
         ]
 
         GrdaWarehouse::Shape::ZipCode.in_state(state_fips).all.map(&:zcta5ce10).each_slice(50) do |slice|
-          @query_geo_params << { level: "ZCTA5:#{slice.join(',')}", within: "STATE:#{state_fips}" }
+          if current_year >= 2020
+            @query_geo_params << { level: "ZCTA5:#{slice.join(',')}" }
+          else
+            @query_geo_params << { level: "ZCTA5:#{slice.join(',')}", within: "STATE:#{state_fips}" }
+          end
         end
 
         GrdaWarehouse::Shape::County.where(statefp: state_fips).find_each do |county|

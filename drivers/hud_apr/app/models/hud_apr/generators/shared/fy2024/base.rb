@@ -676,22 +676,32 @@ module HudApr::Generators::Shared::Fy2024
     # where the assessment occurred within the report range
     # NOTE: there _should_ always be one of these based on the enrollment_scope and client_scope
     private def latest_ce_assessment(she_enrollment, hoh_enrollment)
-      enrollment = if she_enrollment.enrollment.assessments.present?
-        she_enrollment
-      else
-        hoh_enrollment
-      end
-      return unless enrollment&.enrollment&.assessments.present?
-
-      enrollment.enrollment.assessments.
-        select { |a| a.AssessmentDate.present? && a.AssessmentDate.between?(@report.start_date, @report.end_date) }.
-        max_by(&:AssessmentDate)
+      range = @report.start_date .. @report.end_date
+      assessments = valid_ce_assessment(she_enrollment, range).presence || valid_ce_assessment(hoh_enrollment, range)
+      assessments.max_by(&:AssessmentDate)
     end
 
+    private def valid_ce_assessment(she, range)
+      she.enrollment.assessments.select do |a|
+        in_report_range = a.AssessmentDate.present? && a.AssessmentDate.between?(range.first, range.last)
+        in_ce_participation_range = a.enrollment.project.participating_in_ce_on?(a.AssessmentDate)
+        in_report_range && in_ce_participation_range
+      end
+    end
+
+    # TODO: might want to implement something like this for latest_ce_event
+    # private def valid_ce_event(she, range)
+    #   she.client.source_events.select do |e|
+    #     in_report_range = e.EventDate.present? && e.EventDate.between?(range.first, range.last)
+    #     in_ce_participation_range = e.enrollment.project.participating_in_ce_on?(e.EventDate)
+    #     in_report_range && in_ce_participation_range
+    #   end
+    # end
+
     private def first_ce_assessment_within_90_days_after_report_range(she_enrollment)
-      she_enrollment.enrollment.assessments.
-        select { |a| a.AssessmentDate.present? && a.AssessmentDate.between?(@report.end_date, @report.end_date + 90.days) }.
-        min_by(&:AssessmentDate)
+      range = @report.start_date .. @report.end_date + 90.days
+      assessments = valid_ce_assessment(she_enrollment, range)
+      assessments.min_by(&:AssessmentDate)
     end
 
     # Returns the appropriate CE Event for the client

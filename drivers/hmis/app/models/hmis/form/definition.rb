@@ -241,7 +241,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     # Consider all Active, Published Forms for this Role
     definition_scope = Hmis::Form::Definition.with_role(role).
       active. # Drop definitions that have no active rules
-      latest_versions # TODO(#6147): Switch from `latest_versions` to `published` scope
+      published
 
     # Filter by Service Type if specified
     definition_scope = definition_scope.for_service_type(service_type) if service_type.present?
@@ -315,8 +315,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       Hmis::Form::Definition.for_project(project: project, role: role)
     else
       # Project was not specified, so return the "default" FormDefinition for the role (if any)
-      # TODO(#6147): Switch from `latest_versions` to `published` scope
-      scope = Hmis::Form::Definition.with_role(role).latest_versions
+      scope = Hmis::Form::Definition.with_role(role).published
       # Only consider forms that have an active "default" rule, meaning there is no project criteria on the rule
       scope = scope.joins(:instances).merge(Hmis::Form::Instance.defaults.active)
 
@@ -375,6 +374,10 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
   def exit?
     role.to_sym == :EXIT
+  end
+
+  def draft?
+    status == DRAFT
   end
 
   def owner_class

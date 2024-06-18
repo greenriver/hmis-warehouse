@@ -105,6 +105,9 @@ RSpec.describe Hmis::GraphqlController, type: :request do
             ... on ReferralPosting {
               id
             }
+            ... on ReferralRequest {
+              id
+            }
           }
           #{error_fields}
         }
@@ -211,7 +214,10 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               input.delete(:enrollment_id)
             end
 
-            e1.update(processed_as: 'PROCESSED', processed_hash: 'PROCESSED') if input[:record_id].present?
+            # delete processing jobs that would have been queued from factory record creation
+            Delayed::Job.jobs_for_class(['GrdaWarehouse::Tasks::ServiceHistory::Enrollment', 'GrdaWarehouse::Tasks::IdentifyDuplicates']).delete_all
+            # mark enrollment record as processed
+            e1.update!(processed_as: 'PROCESSED', processed_hash: 'PROCESSED') if input[:record_id].present?
 
             record, errors = submit_form(input)
             record_id = record['id']
@@ -222,8 +228,11 @@ RSpec.describe Hmis::GraphqlController, type: :request do
               record_id = record['id']
               expect(record_id).to eq(input[:record_id].to_s) if input[:record_id].present?
               record = definition.owner_class.find_by(id: record_id)
+              record = record.owner if record.is_a? Hmis::Hud::HmisService # we want to assert on the underlying Service/CustomService model
               expect(record).to be_present
-              expect(Hmis::Form::FormProcessor.count).to eq(0)
+
+              expect(Hmis::Form::FormProcessor.where(owner: record).count).to eq(1)
+              expect(record.form_processor).to be_present
 
               # Check that enrollment.processed_as: nil and enrollment.processed_hash: nil, but weren't nil before save
               # this should be true if exit, CLS, Service, or Enrollment changed/added/deleted
@@ -572,6 +581,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
       e1.reload
       expect(e1.in_progress?).to eq(false)
     end
+
+    it 're-submission should not create a second FormProcessor' do
+      input = test_input.merge(record_id: e1.id)
+      expect { submit_form(input) }.to change(Hmis::Form::FormProcessor, :count).by(1)
+      expect { submit_form(input) }.not_to change(Hmis::Form::FormProcessor, :count)
+    end
   end
 
   describe 'SubmitForm for Enrollment on project with ProjectAutoEnterConfig' do
@@ -780,6 +795,193 @@ RSpec.describe Hmis::GraphqlController, type: :request do
         _, errors = submit_form(test_input)
         expect(errors).to be_empty
       end
+    end
+  end
+
+  describe 'SubmitForm for creating a ReferralRequest' do
+    let(:definition_json) do
+      {
+        "item": [
+          {
+            "type": 'CHOICE',
+            "required": true,
+            "link_id": 'unitTypeId',
+            "mapping": { "field_name": 'unitTypeId' },
+          },
+          {
+            "type": 'DATE',
+            "required": true,
+            "link_id": 'neededBy',
+            "mapping": { "field_name": 'neededBy' },
+          },
+          {
+            "type": 'STRING',
+            "required": true,
+            "link_id": 'requestorName',
+            "mapping": { "field_name": 'requestorName' },
+          },
+          {
+            "type": 'STRING',
+            "required": true,
+            "link_id": 'requestorPhone',
+            "mapping": { "field_name": 'requestorPhone' },
+          },
+          {
+            "type": 'STRING',
+            "required": true,
+            "link_id": 'requestorEmail',
+            "mapping": { "field_name": 'requestorEmail' },
+          },
+        ],
+      }
+    end
+    let!(:definition) { create :hmis_form_definition, role: :REFERRAL_REQUEST, definition: definition_json }
+    let(:needed_by) { Date.current + 7.days }
+    let!(:unit_type) { create :hmis_unit_type }
+    let(:hud_values) do
+      {
+        neededBy: needed_by.strftime('%Y-%m-%d'),
+        requestorEmail: 'noreply@example.com',
+        requestorName: 'Sample Admin',
+        requestorPhone: '802-000-0000',
+        unitTypeId: unit_type.id.to_s,
+      }
+    end
+    let(:test_input) do
+      {
+        form_definition_id: definition.id,
+        project_id: p1.id,
+        confirmed: true,
+        hud_values: hud_values,
+        values: hud_values, # same because the link IDs match
+      }
+    end
+
+    let!(:link_creds) { create(:ac_hmis_link_credential) }
+    let(:mper) do
+      create(:ac_hmis_mper_credential)
+      ::HmisExternalApis::AcHmis::Mper.new
+    end
+    it 'creates a referral request' do
+      # Create external ID for Unit Type which is needed for API request
+      mper.create_external_id(source: unit_type, value: '999')
+      # Mock the API response
+      result = HmisExternalApis::OauthClientResult.new(
+        parsed_body: { 'referralRequestID' => '123' }, # External ID for the Referral Request
+      )
+      expect_any_instance_of(HmisExternalApis::OauthClientConnection).to receive(:post).
+        with('Referral/ReferralRequest', include('programID' => p1.ProjectID.to_s)).
+        and_return(result)
+
+      record, errors = submit_form(test_input)
+      expect(errors).to be_empty
+      expect(record).to be_present
+
+      referral_request = HmisExternalApis::AcHmis::ReferralRequest.find(record['id'])
+      expect(referral_request.form_processor.definition).to eq(definition)
+      expect(referral_request.project).to eq(p1)
+      expect(referral_request.unit_type_id).to eq(unit_type.id)
+      expect(referral_request.requestor_name).to eq('Sample Admin')
+      expect(referral_request.requestor_phone).to eq('802-000-0000')
+      expect(referral_request.requestor_email).to eq('noreply@example.com')
+      expect(referral_request.needed_by).to eq(needed_by)
+      expect(referral_request.identifier).to eq('123')
+    end
+  end
+
+  describe 'Creating related records' do
+    let(:information_date) { 1.week.ago.to_date }
+    let(:definition_json) do
+      {
+        "item": [
+          {
+            # CaseNote.content field
+            "type": 'TEXT',
+            "required": false,
+            "link_id": 'note',
+            "mapping": {
+              "field_name": 'content',
+            },
+          },
+          {
+            # CurrentLivingSituation.informationDate field
+            "type": 'DATE',
+            "required": false,
+            "link_id": 'date',
+            "mapping": {
+              "record_type": 'CURRENT_LIVING_SITUATION',
+              "field_name": 'informationDate',
+            },
+          },
+          {
+            # CurrentLivingSituation.currentLivingSituation field
+            "type": 'CHOICE',
+            "required": false,
+            "link_id": 'cls',
+            "mapping": {
+              "record_type": 'CURRENT_LIVING_SITUATION',
+              "field_name": 'currentLivingSituation',
+            },
+          },
+        ],
+      }
+    end
+    let!(:definition) { create :hmis_form_definition, role: :CASE_NOTE, definition: definition_json }
+    let(:test_input) do
+      {
+        form_definition_id: definition.id,
+        **mock_form_values_for_definition(definition),
+        hud_values: {
+          'content' => 'test note',
+          'CurrentLivingSituation.informationDate' => information_date.strftime('%Y-%m-%d'),
+          'CurrentLivingSituation.currentLivingSituation' => 'SAFE_HAVEN', # 118
+        },
+        enrollment_id: e1.id,
+        confirmed: true,
+      }
+    end
+
+    it 'creates new CustomCaseNote with new CurrentLivingSituation attached' do
+      record, errors = submit_form(test_input)
+      expect(errors).to be_empty
+      expect(record).to be_present
+
+      case_note = Hmis::Hud::CustomCaseNote.find(record['id'])
+      cls = case_note.form_processor.current_living_situation
+      expect(cls).to be_present
+      expect(cls.information_date).to eq(information_date)
+      expect(cls.current_living_situation).to eq(118)
+      expect(cls.form_processor).to be_nil # CLS is not the owner, so it does not have a FormProcessor
+    end
+
+    it 'updates existing CustomCaseNote and related CurrentLivingSituation' do
+      # Run once to generate the records
+      record, = submit_form(test_input)
+      case_note = Hmis::Hud::CustomCaseNote.find(record['id'])
+      cls = case_note.form_processor.current_living_situation
+      expect(cls).to be_present
+
+      # Submit another form to update the same record with different values
+      second_input = test_input.merge(
+        record_id: case_note.id.to_s,
+        hud_values: {
+          'content' => 'note updated',
+          'CurrentLivingSituation.currentLivingSituation' => 'DATA_NOT_COLLECTED', # 99
+        },
+      )
+
+      expect do
+        submit_form(second_input)
+      end.to not_change(Hmis::Form::FormProcessor, :count).
+        and not_change(Hmis::Hud::CustomCaseNote, :count).
+        and not_change(Hmis::Hud::CurrentLivingSituation, :count)
+
+      case_note.reload
+      cls.reload
+      expect(case_note.form_processor.current_living_situation).to eq(cls)
+      expect(case_note.content).to eq('note updated')
+      expect(cls.form_processor).to be_nil
+      expect(cls.current_living_situation).to eq(99)
     end
   end
 end
