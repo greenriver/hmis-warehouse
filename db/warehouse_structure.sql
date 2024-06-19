@@ -18471,14 +18471,6 @@ ALTER TABLE ONLY public.hmis_form_definition_fragments
 
 CREATE UNIQUE INDEX idx_hmis_form_definition_fragments_ident ON public.hmis_form_definition_fragments USING btree (identifier, version);
 
---
--- Name: idx_hmis_form_definition_fragments_ident; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX idx_hmis_form_definition_fragments_ident ON public.hmis_form_definition_fragments USING btree (identifier, version);
-
-
-
 
 
 --

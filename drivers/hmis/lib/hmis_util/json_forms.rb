@@ -61,7 +61,8 @@ module HmisUtil
 
         record.system_managed = system_managed
         record.template = json
-        record.save_as_new_version!
+        record.title = identifier.titleize if record.new_record?
+        Hmis::Form::DefinitionFragment.publish_new_version!(record)
       end
     end
 
