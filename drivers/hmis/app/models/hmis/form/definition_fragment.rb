@@ -4,7 +4,7 @@
 # License detail: https://github.com/greenriver/hmis-warehouse/blob/production/LICENSE.md
 ###
 
-# A form definition fragment allows for form definitions to be shared and combined across form definitions
+# form definition fragments allow for content to be shared and combined across form definitions.
 # * System-managed fragments are synced from the JSON source in "drivers/hmis/lib/form_data/default" automatically
 # * non-system managed fragments are managed through the form editor
 class Hmis::Form::DefinitionFragment < ::GrdaWarehouseBase
