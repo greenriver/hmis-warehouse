@@ -16,11 +16,11 @@ module HmisUtil
     end
 
     def seed_all
+      # seed system fragments for all installations
       sync_fragments_to_db(dir: 'default', system_managed: true)
 
-      # TODO: remove once 6160 is deployed and user_managed fragments are housed in db
+      # seed env-specific fragments files (test, qa, etc)
       sync_fragments_to_db(dir: env_key, system_managed: false) if env_key
-      # END TODO
 
       # Load ALL the latest record definitions from JSON files.
       # This also ensures that any system-level instances exist.
