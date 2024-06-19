@@ -79,7 +79,7 @@ RSpec.describe 'GrdaWarehouse::PiiProvider', type: :model do
     it('redacts middle_name') { expect(pii.middle_name).to eq(name_redacted) }
     it('redacts brief_name') { expect(pii.brief_name).to eq(name_redacted) }
     it('redacts full_name') { expect(pii.full_name).to eq(name_redacted) }
-    it('redacts image') { expect(pii.image).to be_nil }
+    it('redacts image') { expect(pii.image).to be_blank }
     it('redacts dob') { expect(pii.dob).to be_nil }
     it('masks ssn') { expect(pii.ssn).to eq(masked_ssn) }
     it('displays age over dob') { expect(pii.dob_or_age).to eq(pii_age.to_s) }
