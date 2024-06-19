@@ -192,13 +192,17 @@ module HmisUtil
     end
 
     # apply db-backed fragments to form definitions
-    def resolve_fragment(item, fragment_key, safety: 0)
+    def resolve_fragment(item, fragment_lookup, safety: 0)
       raise 'Safety count exceeded' if safety > 5
+      return item unless item.key?('fragment')
 
-      fragment_key = fragment_key&.gsub(/^#/, '')
+      fragment_key = item.delete('fragment')&.gsub(/^#/, '')
 
-      @db_fragment_lookup ||= Hmis::Form::DefinitionFragment.latest_versions.index_by(&:identifier)
-      fragment = @db_fragment_lookup.fetch(fragment_key)
+      fragment = fragment_lookup[fragment_key]
+      fragment_lookup[fragment_key] = 'resolved' # track seen
+      raise "Item #{item['link_id']} references invalid fragment #{fragment_key}" unless fragment
+      raise "Item #{item['link_id']} has duplicate fragment reference to #{fragment_key}" if fragment == 'resolved'
+
       fragment_items = fragment.template['item'] || [] # child items of the fragment
       additional_items = item['item'] || [] # any items that should be appended
 
@@ -215,14 +219,13 @@ module HmisUtil
       item['source_fragment'] ||= "#{fragment_key}/#{fragment.version}"
 
       # If the fragment ALSO had a fragment key on it, resolve that.
-      next_fragment = item.delete('fragment')
-      resolve_fragment(item, next_fragment, safety: safety + 1) if next_fragment
+      resolve_fragment(item, fragment_lookup, safety: safety + 1)
     end
 
     def resolve_all_fragments(definition)
+      fragment_lookup = Hmis::Form::DefinitionFragment.latest_versions.index_by(&:identifier)
       walk_nodes(definition) do |item|
-        fragment = item.delete('fragment')
-        resolve_fragment(item, fragment) if fragment
+        resolve_fragment(item, fragment_lookup)
       end
     end
 
