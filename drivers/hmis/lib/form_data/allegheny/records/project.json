@@ -11,9 +11,11 @@
       "item": [
         {
           "type": "BOOLEAN",
-          "link_id": "direct-entry",
+          "link_id": "direct_entry",
           "text": "Direct Entry",
-          "mapping": { "custom_field_key": "direct_entry" }
+          "mapping": {
+            "custom_field_key": "direct_entry"
+          }
         }
       ]
     }

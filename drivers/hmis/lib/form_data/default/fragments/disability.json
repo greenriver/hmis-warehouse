@@ -6,7 +6,7 @@
   "prefill": true,
   "item": [
     {
-      "link_id": "3.08",
+      "link_id": "q_3_08",
       "text": "Disabling Condition",
       "type": "CHOICE",
       "required": false,
@@ -20,7 +20,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "4.05.2",
+          "question": "q_4_05_2",
           "operator": "ENABLED",
           "answer_boolean": false
         }
@@ -28,13 +28,13 @@
     },
     {
       "type": "DISPLAY",
-      "link_id": "disability-info",
+      "link_id": "disability_info",
       "text": "The following questions help determine if there are additional housing services or benefits available for the client.<br /><br/>Select YES to 'Disabling Condition' IF (1) Expected to be of long, continued and indefinite duration, (2) Substantially impedes an individual's ability to live independently, and (3) Of such a nature that such ability could be improved by more suitable housing conditions.",
       "readonly_text": "The following questions help determine if there are additional housing services or benefits available for the client.",
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "4.05.2",
+          "question": "q_4_05_2",
           "operator": "ENABLED",
           "answer_boolean": true
         }
@@ -42,7 +42,7 @@
     },
     {
       "type": "GROUP",
-      "link_id": "disability-table",
+      "link_id": "disability_table",
       "component": "DISABILITY_TABLE",
       "rule": {
         "operator": "ANY",
@@ -240,12 +240,12 @@
       "item": [
         {
           "type": "GROUP",
-          "link_id": "disability-table-r1",
+          "link_id": "disability_table_r1",
           "text": "Physical Disability",
           "item": [
             {
               "type": "CHOICE",
-              "link_id": "4.05.2",
+              "link_id": "q_4_05_2",
               "text": "Physical Disability",
               "mapping": {
                 "record_type": "DISABILITY_GROUP",
@@ -257,7 +257,7 @@
             },
             {
               "type": "CHOICE",
-              "link_id": "4.05.A",
+              "link_id": "q_4_05_A",
               "text": "Is this a disabling condition?",
               "brief_text": "Physical Disability Indefinite and Impairs",
               "mapping": {
@@ -271,7 +271,7 @@
               "enable_behavior": "ALL",
               "enable_when": [
                 {
-                  "question": "4.05.2",
+                  "question": "q_4_05_2",
                   "operator": "EQUAL",
                   "answer_code": "YES"
                 }
@@ -281,12 +281,12 @@
         },
         {
           "type": "GROUP",
-          "link_id": "disability-table-r2",
+          "link_id": "disability_table_r2",
           "text": "Developmental Disability",
           "item": [
             {
               "type": "CHOICE",
-              "link_id": "4.06.2",
+              "link_id": "q_4_06_2",
               "required": false,
               "warn_if_empty": true,
               "text": "Developmental Disability",
@@ -298,19 +298,19 @@
             },
             {
               "type": "DISPLAY",
-              "link_id": "4.06.2-info",
+              "link_id": "q_4_06_2_info",
               "text": "<i style='color:gray;'>Always considered a disabling condition.</i>"
             }
           ]
         },
         {
           "type": "GROUP",
-          "link_id": "disability-table-r3",
+          "link_id": "disability_table_r3",
           "text": "Chronic Health Condition",
           "item": [
             {
               "type": "CHOICE",
-              "link_id": "4.07.2",
+              "link_id": "q_4_07_2",
               "required": false,
               "warn_if_empty": true,
               "text": "Chronic Health Condition",
@@ -322,7 +322,7 @@
             },
             {
               "type": "CHOICE",
-              "link_id": "4.07.A",
+              "link_id": "q_4_07_A",
               "required": false,
               "warn_if_empty": true,
               "text": "Is this a disabling condition?",
@@ -336,7 +336,7 @@
               "enable_behavior": "ALL",
               "enable_when": [
                 {
-                  "question": "4.07.2",
+                  "question": "q_4_07_2",
                   "operator": "EQUAL",
                   "answer_code": "YES"
                 }
@@ -346,7 +346,7 @@
         },
         {
           "type": "GROUP",
-          "link_id": "disability-table-r4",
+          "link_id": "disability_table_r4",
           "text": "HIV/AIDS",
           "rule": {
             "operator": "ANY",
@@ -532,7 +532,7 @@
           "item": [
             {
               "type": "CHOICE",
-              "link_id": "4.08.2",
+              "link_id": "q_4_08_2",
               "required": false,
               "warn_if_empty": true,
               "text": "HIV/AIDS",
@@ -544,19 +544,19 @@
             },
             {
               "type": "DISPLAY",
-              "link_id": "4.08.2-info",
+              "link_id": "q_4_08_2_info",
               "text": "<i style='color:gray;'>Always considered a disabling condition.</i>"
             }
           ]
         },
         {
           "type": "GROUP",
-          "link_id": "disability-table-r5",
+          "link_id": "disability_table_r5",
           "text": "Mental Health Disorder",
           "item": [
             {
               "type": "CHOICE",
-              "link_id": "4.09.2",
+              "link_id": "q_4_09_2",
               "required": false,
               "warn_if_empty": true,
               "text": "Mental Health Disorder",
@@ -568,7 +568,7 @@
             },
             {
               "type": "CHOICE",
-              "link_id": "4.09.A",
+              "link_id": "q_4_09_A",
               "required": false,
               "warn_if_empty": true,
               "text": "Is this a disabling condition?",
@@ -582,7 +582,7 @@
               "enable_behavior": "ALL",
               "enable_when": [
                 {
-                  "question": "4.09.2",
+                  "question": "q_4_09_2",
                   "operator": "EQUAL",
                   "answer_code": "YES"
                 }
@@ -592,12 +592,12 @@
         },
         {
           "type": "GROUP",
-          "link_id": "disability-table-r6",
+          "link_id": "disability_table_r6",
           "text": "Substance Use Disorder",
           "item": [
             {
               "type": "CHOICE",
-              "link_id": "4.10.2",
+              "link_id": "q_4_10_2",
               "required": false,
               "warn_if_empty": true,
               "text": "Substance Use Disorder",
@@ -609,7 +609,7 @@
             },
             {
               "type": "CHOICE",
-              "link_id": "4.10.A",
+              "link_id": "q_4_10_A",
               "required": false,
               "warn_if_empty": true,
               "text": "Is this a disabling condition?",
@@ -623,17 +623,17 @@
               "enable_behavior": "ANY",
               "enable_when": [
                 {
-                  "question": "4.10.2",
+                  "question": "q_4_10_2",
                   "operator": "EQUAL",
                   "answer_code": "ALCOHOL_USE_DISORDER"
                 },
                 {
-                  "question": "4.10.2",
+                  "question": "q_4_10_2",
                   "operator": "EQUAL",
                   "answer_code": "DRUG_USE_DISORDER"
                 },
                 {
-                  "question": "4.10.2",
+                  "question": "q_4_10_2",
                   "operator": "EQUAL",
                   "answer_code": "BOTH_ALCOHOL_AND_DRUG_USE_DISORDERS"
                 }
@@ -643,13 +643,13 @@
         },
         {
           "type": "GROUP",
-          "link_id": "disability-table-r7",
+          "link_id": "disability_table_r7",
           "text": "Overall Disabling Condition",
           "_comment": "IGNORE: HUD defines a Disabling Condition as:<ul><li>A physical, mental, or emotional impairment, including an impairment caused by alcohol or drug abuse, post-traumatic stress disorder, or brain injury that:</li><ul><li>Is expected to be long-continuing or of indefinite duration;</li><li>Substantially impedes the individual's ability to live independently; and</li><li>Could be improved by the provision of more suitable housing conditions.</li></ul></li><li>A developmental disability, as defined in section 102 of the Developmental Disabilities Assistance and Bill of Rights Act of 2000 (42 U.S.C. 15002); or</li><li>The disease of acquired immunodeficiency syndrome (AIDS) or any condition arising from the etiologic agency for acquired immunodeficiency syndrome (HIV).</li></ul>",
           "item": [
             {
               "type": "CHOICE",
-              "link_id": "3.08.inferred",
+              "link_id": "q_3_08_inferred",
               "required": false,
               "warn_if_empty": true,
               "text": "Disabling Condition",
@@ -662,7 +662,7 @@
             },
             {
               "type": "DISPLAY",
-              "link_id": "overall-placeholder",
+              "link_id": "overall_placeholder",
               "text": "This field may be auto-filled based on the above responses.",
               "readonly_text": ""
             }
