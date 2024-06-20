@@ -4,9 +4,12 @@
 = render 'timeliness'
 = render 'time_in_enrollment'
 - if @pdf
-  %div.content_is_loading
+  .content_is_loading
   = content_for :page_js do
     :javascript
       $(function() {
-        $('.content_is_loading').attr('class', 'content_has_loaded')
+        // force JS to wait long enought the charts have loaded for the PDF
+        setTimeout(() => {
+          $('.content_is_loading').addClass('content_has_loaded')
+        }, '10000');
       });
