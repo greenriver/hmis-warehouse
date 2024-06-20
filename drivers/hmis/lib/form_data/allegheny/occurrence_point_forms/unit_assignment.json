@@ -19,7 +19,7 @@
           "answer_boolean": false
         }
       ],
-      "rule": {
+      "custom_rule": {
         "operator": "ANY",
         "_comment": "special projects that support multi-unit household",
         "parts": [
@@ -73,7 +73,7 @@
       },
       "pick_list_reference": "AVAILABLE_UNITS_FOR_ENROLLMENT",
       "disabled_display": "PROTECTED_WITH_VALUE",
-      "rule": {
+      "custom_rule": {
         "operator": "ALL",
         "_comment": "hide for special projects that support multi-unit household. those projects use the above item, so that they can edit unit assignment.",
         "parts": [
