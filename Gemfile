@@ -214,7 +214,7 @@ gem 'aws-sdk-iam', '~> 1'
 gem 'aws-sdk-sns', require: false
 gem 'aws-sdk-ssm', '~> 1'
 gem 'json'
-gem 'json_schemer', '~> 2.0.0', require: false # external API validation
+gem 'json_schemer', '~> 2.3.0', require: false # external API validation
 gem 'oj'
 gem 'amazing_print'
 
