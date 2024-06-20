@@ -53,6 +53,7 @@ class UserGroup < ApplicationRecord
   def add(users)
     # Force individual queries for paper_trail
     Array.wrap(users).uniq.each do |user|
+      # should we use with_deleted to rescucitate the user_group_member if it was previously deleted?
       user_group_members.where(user_id: user.id).first_or_create!
       # Queue recomputation of external report access
       user.delay(queue: ENV.fetch('DJ_SHORT_QUEUE_NAME', :short_running)).populate_external_reporting_permissions!

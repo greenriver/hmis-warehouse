@@ -30,8 +30,16 @@ module Admin
     end
 
     def update
-      @group.update(group_params)
-      @group.save
+      users = User.where(id: group_params[:user_ids])
+      users_to_remove = @group.users - users
+      @group.add(users) # add with paper trail
+      @group.remove(users_to_remove) # destroy with paranoia
+
+      if group_params[:name]
+        @group.name = group_params[:name]
+        @group.save!
+      end
+
       respond_with(@group, location: edit_admin_user_group_path(@group))
     end
 
