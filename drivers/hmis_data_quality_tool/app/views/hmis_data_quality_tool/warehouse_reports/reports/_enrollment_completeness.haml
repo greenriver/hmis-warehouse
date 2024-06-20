@@ -7,6 +7,7 @@
 = content_for :page_js do
   :javascript
     $(function() {
+      'use strict';
       var completeness_enrollments = new HmisDqToolCompleteness(
         #{@report.completeness('Enrollments').to_json.html_safe},
         '.completeness-chart-enrollments',

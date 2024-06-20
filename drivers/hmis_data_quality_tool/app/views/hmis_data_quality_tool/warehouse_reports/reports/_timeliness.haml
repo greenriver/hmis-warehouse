@@ -16,6 +16,7 @@
 = content_for :page_js do
   :javascript
     $(function() {
+      'use strict';
       var time_to_enter = new HmisDqToolTimeToEnter(
         #{@report.average_time_to_enter_date(:entry).to_json.html_safe},
         '.time-to-enter-chart',
@@ -27,5 +28,4 @@
         '.time-to-exit-chart',
         );
       time_to_exit.build_chart();
-
     });
