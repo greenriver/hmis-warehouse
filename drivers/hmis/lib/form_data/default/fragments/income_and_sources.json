@@ -1,6 +1,6 @@
 {
   "type": "GROUP",
-  "link_id": "income-and-sources",
+  "link_id": "income_and_sources",
   "text": "Income and Sources",
   "data_collected_about": "HOH_AND_ADULTS",
   "prefill": true,
@@ -242,7 +242,7 @@
     {
       "type": "CHOICE",
       "component": "RADIO_BUTTONS",
-      "link_id": "4.02.2",
+      "link_id": "q_4_02_2",
       "required": false,
       "warn_if_empty": true,
       "text": "Income from Any Source",
@@ -257,77 +257,77 @@
           "autofill_behavior": "ANY",
           "autofill_when": [
             {
-              "question": "4.02.A",
+              "question": "q_4_02_A",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "4.02.B",
+              "question": "q_4_02_B",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "4.02.C",
+              "question": "q_4_02_C",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "4.02.D",
+              "question": "q_4_02_D",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "4.02.E",
+              "question": "q_4_02_E",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "4.02.F",
+              "question": "q_4_02_F",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "4.02.G",
+              "question": "q_4_02_G",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "4.02.H",
+              "question": "q_4_02_H",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "4.02.I",
+              "question": "q_4_02_I",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "4.02.J",
+              "question": "q_4_02_J",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "4.02.K",
+              "question": "q_4_02_K",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "4.02.L",
+              "question": "q_4_02_L",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "4.02.M",
+              "question": "q_4_02_M",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "4.02.N",
+              "question": "q_4_02_N",
               "operator": "GREATER_THAN",
               "answer_number": 0
             },
             {
-              "question": "4.02.O",
+              "question": "q_4_02_O",
               "operator": "GREATER_THAN",
               "answer_number": 0
             }
@@ -337,18 +337,18 @@
     },
     {
       "type": "GROUP",
-      "link_id": "income-sources-group",
+      "link_id": "income_sources_group",
       "component": "INPUT_GROUP",
       "text": "Income Sources and Monthly Total",
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "4.02.2",
+          "question": "q_4_02_2",
           "operator": "EQUAL",
           "answer_code": "YES"
         },
         {
-          "question": "4.02.2",
+          "question": "q_4_02_2",
           "operator": "EXISTS",
           "answer_boolean": false
         }
@@ -356,7 +356,7 @@
       "item": [
         {
           "type": "CURRENCY",
-          "link_id": "4.02.A",
+          "link_id": "q_4_02_A",
           "text": "Earned Income (i.e., employment income)",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -365,7 +365,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "4.02.B",
+          "link_id": "q_4_02_B",
           "text": "Unemployment Insurance",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -374,7 +374,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "4.02.C",
+          "link_id": "q_4_02_C",
           "text": "Supplemental Security Income (SSI)",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -383,7 +383,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "4.02.D",
+          "link_id": "q_4_02_D",
           "text": "Social Security Disability Insurance (SSDI)",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -392,7 +392,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "4.02.E",
+          "link_id": "q_4_02_E",
           "text": "VA Service-Connected Disability Compensation",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -401,7 +401,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "4.02.F",
+          "link_id": "q_4_02_F",
           "text": "VA Non-Service-Connected Disability Pension",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -410,7 +410,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "4.02.G",
+          "link_id": "q_4_02_G",
           "text": "Private disability insurance",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -419,7 +419,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "4.02.H",
+          "link_id": "q_4_02_H",
           "text": "Worker's Compensation",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -428,7 +428,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "4.02.I",
+          "link_id": "q_4_02_I",
           "text": "Temporary Assistance for Needy Families (TANF)",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -437,7 +437,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "4.02.J",
+          "link_id": "q_4_02_J",
           "text": "General Assistance (GA)",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -446,7 +446,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "4.02.K",
+          "link_id": "q_4_02_K",
           "text": "Retirement Income from Social Security",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -455,7 +455,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "4.02.L",
+          "link_id": "q_4_02_L",
           "text": "Pension or retirement income from a former job",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -464,7 +464,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "4.02.M",
+          "link_id": "q_4_02_M",
           "text": "Child support",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -473,7 +473,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "4.02.N",
+          "link_id": "q_4_02_N",
           "text": "Alimony and other spousal support",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -482,7 +482,7 @@
         },
         {
           "type": "CURRENCY",
-          "link_id": "4.02.O",
+          "link_id": "q_4_02_O",
           "text": "Other source",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -491,7 +491,7 @@
         },
         {
           "type": "STRING",
-          "link_id": "4.02.P",
+          "link_id": "q_4_02_P",
           "text": "Specify other source",
           "brief_text": "Other income source",
           "required": false,
@@ -503,7 +503,7 @@
           },
           "enable_when": [
             {
-              "question": "4.02.O",
+              "question": "q_4_02_O",
               "operator": "GREATER_THAN",
               "answer_number": 0
             }
@@ -511,7 +511,7 @@
         },
         {
           "type": "DISPLAY",
-          "link_id": "monthly-total-income",
+          "link_id": "monthly_total_income",
           "text": "Monthly Total Income",
           "mapping": {
             "record_type": "INCOME_BENEFIT",
@@ -521,23 +521,25 @@
             {
               "autofill_readonly": false,
               "autofill_behavior": "ANY",
-              "autofill_when": [],
+              "autofill_when": [
+
+              ],
               "sum_questions": [
-                "4.02.A",
-                "4.02.B",
-                "4.02.C",
-                "4.02.D",
-                "4.02.E",
-                "4.02.F",
-                "4.02.G",
-                "4.02.H",
-                "4.02.I",
-                "4.02.J",
-                "4.02.K",
-                "4.02.L",
-                "4.02.M",
-                "4.02.N",
-                "4.02.O"
+                "q_4_02_A",
+                "q_4_02_B",
+                "q_4_02_C",
+                "q_4_02_D",
+                "q_4_02_E",
+                "q_4_02_F",
+                "q_4_02_G",
+                "q_4_02_H",
+                "q_4_02_I",
+                "q_4_02_J",
+                "q_4_02_K",
+                "q_4_02_L",
+                "q_4_02_M",
+                "q_4_02_N",
+                "q_4_02_O"
               ]
             }
           ]

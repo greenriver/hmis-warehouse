@@ -1,6 +1,6 @@
 {
   "type": "GROUP",
-  "link_id": "rhy-exit",
+  "link_id": "rhy_exit",
   "text": "RHY Exit Questions",
   "data_collected_about": "HOH_AND_ADULTS",
   "_comment": "RHY exploitation questions are in a different group",

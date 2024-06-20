@@ -1,6 +1,6 @@
 {
   "data_collected_about": "HOH",
-  "link_id": "C4-group",
+  "link_id": "C4_group",
   "type": "GROUP",
   "rule": {
     "operator": "ANY",
@@ -71,11 +71,11 @@
       }
     },
     {
-      "link_id": "C4.dependents",
+      "link_id": "C4_dependents",
       "type": "GROUP",
       "item": [
         {
-          "link_id": "C4.A",
+          "link_id": "C4_A",
           "type": "CHOICE",
           "text": "Preferred Language",
           "required": false,
@@ -95,7 +95,7 @@
           ]
         },
         {
-          "link_id": "C4.B",
+          "link_id": "C4_B",
           "type": "STRING",
           "text": "Different Preferred Language",
           "required": false,
@@ -107,7 +107,7 @@
           "enable_behavior": "ANY",
           "enable_when": [
             {
-              "question": "C4.A",
+              "question": "C4_A",
               "operator": "EQUAL",
               "answer_code": "DIFFERENT_PREFERRED_LANGUAGE"
             }

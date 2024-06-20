@@ -1,6 +1,6 @@
 {
   "type": "GROUP",
-  "link_id": "3.917B",
+  "link_id": "q_3_917B",
   "text": "Prior Living Situation",
   "data_collected_about": "HOH_AND_ADULTS",
   "_comment": "For all projects EXCEPT SO, ES, and SH. This element has dependencies that hide/show items as specified.",
@@ -33,13 +33,13 @@
   "item": [
     {
       "type": "DISPLAY",
-      "link_id": "3.917B.instruction",
+      "link_id": "q_3_917B_instruction",
       "text": "Where did the client spend the night before project entry? Select the category that most closely matches the client's response.",
       "readonly_text": "Where the client spent the night before project entry."
     },
     {
       "type": "CHOICE",
-      "link_id": "3.917B.1",
+      "link_id": "q_3_917B_1",
       "required": false,
       "warn_if_empty": true,
       "text": "Prior Living Situation",
@@ -51,11 +51,11 @@
     },
     {
       "type": "GROUP",
-      "link_id": "3.917B.1.subsidy-group",
+      "link_id": "q_3_917B_1_subsidy_group",
       "item": [
         {
           "type": "CHOICE",
-          "link_id": "3.917B.1.subsidy",
+          "link_id": "q_3_917B_1_subsidy",
           "text": "Rental subsidy type",
           "required": true,
           "pick_list_reference": "RentalSubsidyType",
@@ -66,7 +66,7 @@
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "3.917B.1",
+              "question": "q_3_917B_1",
               "operator": "EQUAL",
               "answer_code": "RENTAL_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY"
             }
@@ -76,7 +76,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "3.917B.2",
+      "link_id": "q_3_917B_2",
       "required": false,
       "warn_if_empty": true,
       "text": "Length of stay in prior living situation",
@@ -91,13 +91,13 @@
       "enable_when": [
         {
           "_comment": "PriorLivingSituation has been answered",
-          "question": "3.917B.1",
+          "question": "q_3_917B_1",
           "operator": "EXISTS",
           "answer_boolean": true
         },
         {
           "_comment": "PriorLivingSituation is a non-Homeless situation",
-          "question": "3.917B.1",
+          "question": "q_3_917B_1",
           "operator": "NOT_EQUAL",
           "answer_group_code": "HOMELESS"
         }
@@ -106,12 +106,12 @@
     {
       "type": "GROUP",
       "component": "INFO_GROUP",
-      "link_id": "3.917B.break-group",
+      "link_id": "q_3_917B_break_group",
       "_comment": "breaks due to length of stay",
       "item": [
         {
           "type": "DISPLAY",
-          "link_id": "3.917B.A",
+          "link_id": "q_3_917B_A",
           "read_only": true,
           "text": "Client stayed 90+ days in an institutional setting. This is considered a \"break\" according to the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
           "readonly_text": "Client does not meet the HUD definition of chronic at entry.",
@@ -119,13 +119,13 @@
           "enable_when": [
             {
               "_comment": "PriorLivingSituation is an Instituational situation",
-              "question": "3.917B.1",
+              "question": "q_3_917B_1",
               "operator": "EQUAL",
               "answer_group_code": "INSTITUTIONAL"
             },
             {
               "_comment": "Client stayed 90+ days",
-              "question": "3.917B.2",
+              "question": "q_3_917B_2",
               "operator": "IN",
               "answer_codes": [
                 "NUM_90_DAYS_OR_MORE_BUT_LESS_THAN_ONE_YEAR",
@@ -136,32 +136,32 @@
         },
         {
           "type": "DISPLAY",
-          "link_id": "3.917B.B",
+          "link_id": "q_3_917B_B",
           "text": "Client stayed 7+ days in a Temporary, Permanent, or Other housing situation. This is considered a \"break\" according to the HUD definition of chronic homelessness. Stopping data collection for 3.917 Prior Living Situation.",
           "readonly_text": "Client does not meet the HUD definition of chronic at entry.",
           "enable_behavior": "ALL",
           "enable_when": [
             {
               "_comment": "PriorLivingSituation has been answered",
-              "question": "3.917B.1",
+              "question": "q_3_917B_1",
               "operator": "EXISTS",
               "answer_boolean": true
             },
             {
               "_comment": "PriorLivingSituation is a non-Homeless situation",
-              "question": "3.917B.1",
+              "question": "q_3_917B_1",
               "operator": "NOT_EQUAL",
               "answer_group_code": "HOMELESS"
             },
             {
               "_comment": "PriorLivingSituation is a non-Instituational situation",
-              "question": "3.917B.1",
+              "question": "q_3_917B_1",
               "operator": "NOT_EQUAL",
               "answer_group_code": "INSTITUTIONAL"
             },
             {
               "_comment": "Client stayed 7+ days",
-              "question": "3.917B.2",
+              "question": "q_3_917B_2",
               "operator": "IN",
               "answer_codes": [
                 "ONE_WEEK_OR_MORE_BUT_LESS_THAN_ONE_MONTH",
@@ -177,7 +177,7 @@
     {
       "type": "CHOICE",
       "hidden": true,
-      "link_id": "3.917B.los-threshold",
+      "link_id": "q_3_917B_los_threshold",
       "_comment": "Hidden question for 'LOSUnderThreshold' which specifies whether the length of stay is under the threshold (for non-homeless prior living situations only)",
       "mapping": {
         "record_type": "ENROLLMENT",
@@ -192,12 +192,12 @@
           "autofill_when": [
             {
               "_comment": "Institutional Break message is shown",
-              "question": "3.917B.A",
+              "question": "q_3_917B_A",
               "operator": "ENABLED"
             },
             {
               "_comment": "Temporary/Permanent/Other Break message is shown",
-              "question": "3.917B.B",
+              "question": "q_3_917B_B",
               "operator": "ENABLED"
             }
           ]
@@ -209,19 +209,19 @@
           "autofill_when": [
             {
               "_comment": "LengthOfStay has been answered",
-              "question": "3.917B.2",
+              "question": "q_3_917B_2",
               "operator": "EXISTS",
               "answer_boolean": true
             },
             {
               "_comment": "PriorLivingSituation has been answered",
-              "question": "3.917B.1",
+              "question": "q_3_917B_1",
               "operator": "EXISTS",
               "answer_boolean": true
             },
             {
               "_comment": "PriorLivingSituation is Instituational, Temporary, Permanent, or Other",
-              "question": "3.917B.1",
+              "question": "q_3_917B_1",
               "operator": "NOT_EQUAL",
               "answer_group_code": "HOMELESS"
             }
@@ -231,13 +231,15 @@
           "_comment": "LOS is null otherwise",
           "value_code": "DATA_NOT_COLLECTED",
           "autofill_behavior": "ALL",
-          "autofill_when": []
+          "autofill_when": [
+
+          ]
         }
       ]
     },
     {
       "type": "CHOICE",
-      "link_id": "3.917B.C",
+      "link_id": "q_3_917B_C",
       "required": false,
       "warn_if_empty": true,
       "pick_list_reference": "NoYesMissing",
@@ -251,49 +253,49 @@
       "enable_when": [
         {
           "_comment": "PriorLivingSituation has been answered",
-          "question": "3.917B.1",
+          "question": "q_3_917B_1",
           "operator": "EXISTS",
           "answer_boolean": true
         },
         {
           "_comment": "PriorLivingSituation is Instituational, Temporary, Permanent, or Other",
-          "question": "3.917B.1",
+          "question": "q_3_917B_1",
           "operator": "NOT_EQUAL",
           "answer_group_code": "HOMELESS"
         },
         {
           "_comment": "LengthOfStay has been answered",
-          "question": "3.917B.2",
+          "question": "q_3_917B_2",
           "operator": "EXISTS",
           "answer_boolean": true
         },
         {
           "_comment": "LengthOfStay has been answered",
-          "question": "3.917B.2",
+          "question": "q_3_917B_2",
           "operator": "NOT_EQUAL",
           "answer_code": "CLIENT_DOESN_T_KNOW"
         },
         {
           "_comment": "LengthOfStay has been answered",
-          "question": "3.917B.2",
+          "question": "q_3_917B_2",
           "operator": "NOT_EQUAL",
           "answer_code": "CLIENT_PREFERS_NOT_TO_ANSWER"
         },
         {
           "_comment": "LengthOfStay has been answered",
-          "question": "3.917B.2",
+          "question": "q_3_917B_2",
           "operator": "NOT_EQUAL",
           "answer_code": "DATA_NOT_COLLECTED"
         },
         {
           "_comment": "Institutional Break message is not shown",
-          "question": "3.917B.A",
+          "question": "q_3_917B_A",
           "operator": "ENABLED",
           "answer_boolean": false
         },
         {
           "_comment": "Temporary/Permanent/Other Break message is not shown",
-          "question": "3.917B.B",
+          "question": "q_3_917B_B",
           "operator": "ENABLED",
           "answer_boolean": false
         }
@@ -302,38 +304,38 @@
     {
       "type": "GROUP",
       "component": "INFO_GROUP",
-      "link_id": "3.917B.C.message.group",
+      "link_id": "q_3_917B_C_message_group",
       "item": [
         {
           "type": "DISPLAY",
-          "link_id": "3.917B.C.message",
+          "link_id": "q_3_917B_C_message",
           "text": "Client does not meet the HUD definition of chronic homelessness. <br /> Stopping data collection for 3.917 Prior Living Situation.",
           "readonly_text": "Client does not meet the HUD definition of chronic at entry.",
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "3.917B.C",
+              "question": "q_3_917B_C",
               "operator": "EQUAL",
               "_comment": "not homeless on the night before",
               "answer_code": "NO"
             },
             {
-              "question": "3.917B.1",
+              "question": "q_3_917B_1",
               "operator": "EXISTS",
               "answer_boolean": true
             },
             {
-              "question": "3.917B.2",
+              "question": "q_3_917B_2",
               "operator": "EXISTS",
               "answer_boolean": true
             },
             {
-              "question": "3.917B.A",
+              "question": "q_3_917B_A",
               "operator": "ENABLED",
               "answer_boolean": false
             },
             {
-              "question": "3.917B.B",
+              "question": "q_3_917B_B",
               "operator": "ENABLED",
               "answer_boolean": false
             }
@@ -343,7 +345,7 @@
     },
     {
       "type": "DATE",
-      "link_id": "3.917B.3",
+      "link_id": "q_3_917B_3",
       "required": false,
       "warn_if_empty": true,
       "mapping": {
@@ -356,13 +358,13 @@
       "enable_when": [
         {
           "_comment": "PriorLivingSituation is a Homeless situation",
-          "question": "3.917B.1",
+          "question": "q_3_917B_1",
           "operator": "EQUAL",
           "answer_group_code": "HOMELESS"
         },
         {
           "_comment": "PriorLivingSituation is not Homeless, but they were homeless on the night before entering the PLS situation",
-          "question": "3.917B.C",
+          "question": "q_3_917B_C",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -377,7 +379,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "3.917B.4",
+      "link_id": "q_3_917B_4",
       "required": false,
       "warn_if_empty": true,
       "mapping": {
@@ -391,13 +393,13 @@
       "enable_when": [
         {
           "_comment": "PriorLivingSituation is a Homeless situation",
-          "question": "3.917B.1",
+          "question": "q_3_917B_1",
           "operator": "EQUAL",
           "answer_group_code": "HOMELESS"
         },
         {
           "_comment": "PriorLivingSituation is not Homeless, but they were homeless on the night before entering the PLS situation",
-          "question": "3.917B.C",
+          "question": "q_3_917B_C",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -405,7 +407,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "3.917B.5",
+      "link_id": "q_3_917B_5",
       "required": false,
       "warn_if_empty": true,
       "mapping": {
@@ -418,7 +420,7 @@
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "3.917B.4",
+          "question": "q_3_917B_4",
           "operator": "ENABLED",
           "answer_boolean": true
         }

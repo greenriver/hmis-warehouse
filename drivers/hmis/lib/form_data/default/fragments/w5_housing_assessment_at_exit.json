@@ -83,7 +83,7 @@
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "W5.1",
+      "link_id": "W5_1",
       "text": "Housing Assessment at Exit",
       "pick_list_reference": "HousingAssessmentAtExit",
       "mapping": {
@@ -95,7 +95,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "W5.A",
+      "link_id": "W5_A",
       "text": "Subsidy Information",
       "pick_list_reference": "SubsidyInformationA",
       "mapping": {
@@ -107,7 +107,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "W5.1",
+          "question": "W5_1",
           "operator": "EQUAL",
           "answer_code": "ABLE_TO_MAINTAIN_THE_HOUSING_THEY_HAD_AT_PROJECT_ENTRY"
         }
@@ -115,7 +115,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "W5.B",
+      "link_id": "W5_B",
       "text": "Subsidy Information",
       "pick_list_reference": "SubsidyInformationB",
       "mapping": {
@@ -127,7 +127,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "W5.1",
+          "question": "W5_1",
           "operator": "EQUAL",
           "answer_code": "MOVED_TO_NEW_HOUSING_UNIT"
         }
