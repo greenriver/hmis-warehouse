@@ -42,8 +42,8 @@ class Hmis::UserGroup < ApplicationRecord
   def add(users)
     # Force individual queries for paper_trail
     Array.wrap(users).uniq.each do |user|
-      # should we use with_deleted to rescucitate the user_group_member if it was previously deleted?
-      user_group_members.where(user_id: user.id).first_or_create!
+      user = user_group_members.with_deleted.where(user_id: user.id).first_or_create!
+      user.restore if user.deleted?
     end
   end
 
