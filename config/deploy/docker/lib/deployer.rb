@@ -19,8 +19,9 @@ class Deployer
   TEST_PORT   = 9999
   WAIT_TIME   = 2
 
-  attr_accessor :version
-  attr_accessor :image_tag
+  attr_accessor :revision      # full git hash
+  attr_accessor :version       # first 7 chars of git hash
+  attr_accessor :image_tag     # ENV['IMAGE_TAG'] or "githash-#{version}"
   attr_accessor :image_tag_latest
 
   # The AWS identifier for the payload of secret environment variables
@@ -64,9 +65,10 @@ class Deployer
     self.web_options              = args.fetch(:web_options)
     self.registry_id              = args.fetch(:registry_id)
     self.repo_name                = args.fetch(:repo_name)
-    self.skip_remote_git_check    = args.fetch(:skip_remote_git_check, false)
     self.variant                  = 'web'
-    self.version                  = `git rev-parse --short=7 HEAD`.chomp
+    self.revision                 = args.fetch(:revision, `git rev-parse HEAD`.chomp)
+    self.skip_remote_git_check    = args.fetch(:revision, nil)&.present? # skip check if revision was specified
+    self.version                  = revision[0..6]
     self.args                     = OpenStruct.new(args)
 
     Dir.chdir(_root)
@@ -155,7 +157,7 @@ class Deployer
   end
 
   def _set_revision!
-    `git rev-parse HEAD > #{_assets_path}/REVISION`
+    `echo #{revision} > #{_assets_path}/REVISION`
   end
 
   def _check_that_you_pushed_to_remote!
@@ -260,7 +262,7 @@ class Deployer
   end
 
   def _set_image_tag!
-    if ENV['IMAGE_TAG']
+    if ENV['IMAGE_TAG'] # used for debugging
       self.image_tag = ENV['IMAGE_TAG']
       self.image_tag_latest = 'latest-' + ENV['IMAGE_TAG']
     else
