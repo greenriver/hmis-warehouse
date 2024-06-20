@@ -53,7 +53,6 @@ module HmisDataQualityTool::DocumentExports
             header_template: '',
             footer_template: ApplicationController.render(template: 'hmis_data_quality_tool/warehouse_reports/reports/pdf_footer', layout: false),
             wait_until: 'networkidle0',
-            # wait_for_selector: 'done',
             margin: {
               bottom: '.75in',
             },
