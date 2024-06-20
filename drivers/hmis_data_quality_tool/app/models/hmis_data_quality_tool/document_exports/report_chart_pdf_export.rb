@@ -52,7 +52,10 @@ module HmisDataQualityTool::DocumentExports
             display_header_footer: true,
             header_template: '',
             footer_template: ApplicationController.render(template: 'hmis_data_quality_tool/warehouse_reports/reports/pdf_footer', layout: false),
-            wait_until: 'networkidle0',
+            # Wait for both of the following to be true before rendering the PDF:
+            # - The 'load' event has fired: all dependent resources (i.e. images & charts) have loaded
+            # - There are no more than 0 network connections for at least `500` ms.
+            wait_until: ['load', 'networkidle0'],
             # wait_for_selector: 'done',
             margin: {
               bottom: '.75in',
