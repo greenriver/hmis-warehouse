@@ -32,7 +32,7 @@
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "R12.1",
+      "link_id": "R12_1",
       "required": false,
       "warn_if_empty": true,
       "text": "Formerly a Ward of Juvenile Justice System",
@@ -44,11 +44,11 @@
     },
     {
       "type": "GROUP",
-      "link_id": "R12.1-dependents",
+      "link_id": "R12_1_dependents",
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "R12.1",
+          "question": "R12_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -56,7 +56,7 @@
       "item": [
         {
           "type": "CHOICE",
-          "link_id": "R12.A",
+          "link_id": "R12_A",
           "required": false,
           "warn_if_empty": true,
           "text": "Number of Years",
@@ -68,7 +68,7 @@
         },
         {
           "type": "INTEGER",
-          "link_id": "R12.B",
+          "link_id": "R12_B",
           "required": false,
           "warn_if_empty": true,
           "text": "Number of Months",
@@ -79,7 +79,7 @@
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "R12.A",
+              "question": "R12_A",
               "operator": "EQUAL",
               "answer_code": "LESS_THAN_ONE_YEAR"
             }

@@ -1,6 +1,6 @@
 {
   "type": "GROUP",
-  "link_id": "non-cash-benefits",
+  "link_id": "non_cash_benefits",
   "text": "Non-Cash Benefits",
   "data_collected_about": "HOH_AND_ADULTS",
   "prefill": true,
@@ -247,7 +247,7 @@
     {
       "type": "CHOICE",
       "component": "RADIO_BUTTONS",
-      "link_id": "4.03.2",
+      "link_id": "q_4_03_2",
       "required": false,
       "warn_if_empty": true,
       "text": "Non-Cash Benefits from Any Source",
@@ -262,32 +262,32 @@
           "autofill_behavior": "ANY",
           "autofill_when": [
             {
-              "question": "4.03.3",
+              "question": "q_4_03_3",
               "operator": "EQUAL",
               "answer_code": "YES"
             },
             {
-              "question": "4.03.4",
+              "question": "q_4_03_4",
               "operator": "EQUAL",
               "answer_code": "YES"
             },
             {
-              "question": "4.03.5",
+              "question": "q_4_03_5",
               "operator": "EQUAL",
               "answer_code": "YES"
             },
             {
-              "question": "4.03.6",
+              "question": "q_4_03_6",
               "operator": "EQUAL",
               "answer_code": "YES"
             },
             {
-              "question": "4.03.7",
+              "question": "q_4_03_7",
               "operator": "EQUAL",
               "answer_code": "YES"
             },
             {
-              "question": "4.03.8",
+              "question": "q_4_03_8",
               "operator": "EQUAL",
               "answer_code": "YES"
             }
@@ -297,19 +297,19 @@
     },
     {
       "type": "GROUP",
-      "link_id": "non-cash-benefits-group",
+      "link_id": "non_cash_benefits_group",
       "component": "INPUT_GROUP",
       "text": "Select Benefit(s)",
       "readonly_text": "Non-Cash Benefit Sources",
       "enable_behavior": "ANY",
       "enable_when": [
         {
-          "question": "4.03.2",
+          "question": "q_4_03_2",
           "operator": "EQUAL",
           "answer_code": "YES"
         },
         {
-          "question": "4.03.2",
+          "question": "q_4_03_2",
           "operator": "EXISTS",
           "answer_boolean": false
         }
@@ -318,7 +318,7 @@
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
-          "link_id": "4.03.3",
+          "link_id": "q_4_03_3",
           "component": "CHECKBOX",
           "text": "Supplemental Nutrition Assistance Program (SNAP) (Previously known as Food Stamps)",
           "mapping": {
@@ -329,7 +329,7 @@
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
-          "link_id": "4.03.4",
+          "link_id": "q_4_03_4",
           "component": "CHECKBOX",
           "text": "Special Supplemental Nutrition Program for Women, Infants, and Children (WIC)",
           "mapping": {
@@ -340,7 +340,7 @@
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
-          "link_id": "4.03.5",
+          "link_id": "q_4_03_5",
           "component": "CHECKBOX",
           "text": "TANF Child Care services",
           "mapping": {
@@ -351,7 +351,7 @@
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
-          "link_id": "4.03.6",
+          "link_id": "q_4_03_6",
           "component": "CHECKBOX",
           "text": "TANF transportation services",
           "mapping": {
@@ -362,7 +362,7 @@
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
-          "link_id": "4.03.7",
+          "link_id": "q_4_03_7",
           "component": "CHECKBOX",
           "text": "Other TANF-funded services",
           "mapping": {
@@ -373,7 +373,7 @@
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesMissing",
-          "link_id": "4.03.8",
+          "link_id": "q_4_03_8",
           "component": "CHECKBOX",
           "text": "Other source",
           "mapping": {
@@ -383,7 +383,7 @@
         },
         {
           "type": "STRING",
-          "link_id": "4.03.A",
+          "link_id": "q_4_03_A",
           "text": "Specify other source",
           "brief_text": "Other benefits source",
           "required": false,
@@ -395,7 +395,7 @@
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "4.03.8",
+              "question": "q_4_03_8",
               "operator": "EQUAL",
               "answer_code": "YES"
             }

@@ -7,23 +7,29 @@
     {
       "type": "STRING",
       "required": true,
-      "link_id": "2.02.2",
+      "link_id": "q_2_02_2",
       "text": "Project Name",
-      "mapping": { "field_name": "projectName" }
+      "mapping": {
+        "field_name": "projectName"
+      }
     },
     {
       "type": "TEXT",
       "required": false,
       "link_id": "description",
       "text": "Description",
-      "mapping": { "field_name": "description" }
+      "mapping": {
+        "field_name": "description"
+      }
     },
     {
       "type": "TEXT",
       "required": false,
       "link_id": "contact",
       "text": "Contact Information",
-      "mapping": { "field_name": "contactInformation" }
+      "mapping": {
+        "field_name": "contactInformation"
+      }
     }
   ]
 }

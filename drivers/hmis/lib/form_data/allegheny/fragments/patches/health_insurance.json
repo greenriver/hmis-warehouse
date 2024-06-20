@@ -1,6 +1,6 @@
 [
   {
-    "link_id": "health-insurance",
+    "link_id": "health_insurance",
     "rule": {
       "operator": "ALL",
       "parts": [
