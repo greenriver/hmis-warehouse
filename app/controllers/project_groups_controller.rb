@@ -49,7 +49,7 @@ class ProjectGroupsController < ApplicationController
       render action: :new
       return
     end
-    respond_with(@project_group, location: edit_project_group_path)
+    respond_with(@project_group, location: edit_project_group_path(@project_group.id))
   end
 
   def edit

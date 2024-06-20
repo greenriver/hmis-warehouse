@@ -99,19 +99,6 @@ class Deployer
     roll_out.run_migrations!
   end
 
-  def bootstrap_databases!
-    _initial_steps
-
-    print "Boostrapping databases for #{target_group_name}. Are you sure? (Y/N): "
-    unsure = $stdin.readline
-    if unsure.chomp.upcase != 'Y'
-      puts 'Okay. Not running the task.'
-      exit
-    end
-
-    roll_out.bootstrap_databases!
-  end
-
   def self.check_that_you_pushed_to_remote!
     branch = `git rev-parse --abbrev-ref HEAD`.chomp
     remote = `git ls-remote origin | grep refs/heads/#{branch}$`.chomp

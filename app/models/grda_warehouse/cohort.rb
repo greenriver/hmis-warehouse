@@ -834,5 +834,9 @@ module GrdaWarehouse
     def entity_relation_type
       :cohorts
     end
+
+    def collection_type
+      'Cohorts'
+    end
   end
 end

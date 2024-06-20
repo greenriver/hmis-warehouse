@@ -33,7 +33,7 @@ class AccessControl < ApplicationRecord
   # all data sources, reports, cohorts, and project groups
   # hide previous declaration of :system (from Kernel), we'll use this one
   replace_scope :system, -> do
-    joins(:collection).merge(Collection.hidden)
+    joins(:collection).merge(Collection.system)
   end
 
   scope :not_system, -> do
