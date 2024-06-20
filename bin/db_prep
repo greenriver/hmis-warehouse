@@ -5,56 +5,139 @@
 
 require 'pathname'
 require 'fileutils'
+require 'pg'
+require 'yaml'
 
 # path to your application root.
 APP_ROOT = Pathname.new File.expand_path('..', __dir__)
+DONT_CREATE_DATABASES = (ARGV[0] == '--no-create-databases')
+CREATE_DATABASES = ! DONT_CREATE_DATABASES
+
+def db(db_section)
+  @db ||=
+    begin
+      path = APP_ROOT.join( ENV.fetch("DB_YAML_PATH", "config/database.yml") ).to_s
+      env = ENV["RAILS_ENV"]
+      YAML.load_file(path)[env]
+    end
+
+  payload = {
+    dbname: @db[db_section]["database"],
+    host: @db[db_section]["host"],
+    password: @db[db_section]["password"],
+    user: @db[db_section]["username"],
+  }
+
+  if @db[db_section]["sslrootcert"] && @db[db_section]["sslmode"]
+    payload.merge!({
+      sslrootcert: @db[db_section]["sslrootcert"],
+      sslmode: @db[db_section]["sslmode"],
+    })
+  end
+
+  payload
+end
 
 def run_or_exit(cmd)
-  return if system(cmd)
+  return if system("alias psql='psql --single-transaction' && #{cmd}")
 
   puts 'Last command failed. Aborting.'
 
   exit(1)
 end
 
-dont_create_databases = (ARGV[0] == '--no-create-databases')
+def seeds_ran?(db_section)
+  section = db(db_section)
+  conn = PG.connect(**section)
+  if db_section == "primary"
+    result = conn.exec_params('SELECT count(*) FROM collections').entries
+    num = result[0]["count"].to_i
+    num > 0
+  elsif db_section == "warehouse"
+    result = conn.exec_params('SELECT count(*) FROM data_sources').entries
+    num = result[0]["count"].to_i
+    num > 0
+  else
+    raise "invalid db section of #{db_section}"
+  end
+end
+
+def db_is_initialized?(db_section)
+  section = db(db_section)
+  conn = PG.connect(**section)
+  tables = conn.exec_params("SELECT * FROM information_schema.tables where table_catalog = $1 and table_type = 'BASE TABLE' and table_schema = 'public'", [ section[:dbname] ]).entries
+
+  tables.length > 1
+rescue PG::ConnectionBad => e
+  if CREATE_DATABASES && e.message.match?(/database.+ does not exist/)
+    false
+  else
+    raise e
+  end
+end
 
 Dir.chdir APP_ROOT do
-  puts "\n== Preparing Database =="
-  run_or_exit('bundle exec rake db:create:primary') unless dont_create_databases
-  run_or_exit 'bundle exec rake db:schema:conditional_load'
-  run_or_exit 'bundle exec rake db:migrate:primary'
-
-  puts "\n== Preparing Warehouse =="
-  run_or_exit('bundle exec rake db:create:warehouse') unless dont_create_databases
-
-  # DB has objects that can't be tracked with schema.rb: types, materialized views, and triggers
-  if ENV['RAILS_ENV'] == 'test'
-    run_or_exit 'bundle exec rake warehouse:db:schema:conditional_load'
+  if db_is_initialized?("primary")
+    puts "\n== Primary database is set up. Skipping init =="
   else
-    # FIXME: db:structure:load is deprecated and will be removed in Rails 6.2.
-    run_or_exit 'bundle exec rake warehouse:db:structure:conditional_load'
+    puts "\n== Preparing Primary Database =="
+    run_or_exit('bundle exec rake db:create:primary') unless DONT_CREATE_DATABASES
+    run_or_exit 'bundle exec rake db:schema:conditional_load'
+    run_or_exit 'bundle exec rake db:migrate:primary'
   end
 
-  run_or_exit 'bundle exec rake db:migrate:warehouse'
+  if db_is_initialized?("warehouse")
+    puts "\n== Warehouse database is set up. Skipping init =="
+  else
+    puts "\n== Preparing Warehouse Database =="
+    run_or_exit('bundle exec rake db:create:warehouse') unless DONT_CREATE_DATABASES
 
-  puts "\n== Preparing Health Database =="
-  run_or_exit('bundle exec rake db:create:health') unless dont_create_databases
-  run_or_exit 'bundle exec rake health:db:schema:conditional_load'
-  run_or_exit 'bundle exec rake db:migrate:health'
+    # DB has objects that can't be tracked with schema.rb: types, materialized views, and triggers
+    if ENV['RAILS_ENV'] == 'test'
+      run_or_exit 'bundle exec rake warehouse:db:schema:conditional_load'
+    else
+      # FIXME: db:structure:load is deprecated and will be removed in Rails 6.2.
+      run_or_exit 'bundle exec rake warehouse:db:structure:conditional_load'
+    end
 
-  puts "\n== Preparing Reporting Database =="
-  run_or_exit('bundle exec rake db:create:reporting') unless dont_create_databases
-  run_or_exit 'bundle exec rake reporting:db:schema:conditional_load'
-  run_or_exit 'bundle exec rake db:migrate:reporting'
-  # Force a rebuild of this table
-  run_or_exit 'bundle exec rails runner "GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!"'
+    run_or_exit 'bundle exec rake db:migrate:warehouse'
+  end
+
+  if db_is_initialized?("health")
+    puts "\n== Health database is set up. Skipping init =="
+  else
+    puts "\n== Preparing Health Database =="
+    run_or_exit('bundle exec rake db:create:health') unless DONT_CREATE_DATABASES
+    run_or_exit 'DISABLE_DATABASE_ENVIRONMENT_CHECK=1 bundle exec rake health:db:schema:conditional_load'
+    run_or_exit 'bundle exec rake db:migrate:health'
+  end
+
+  if db_is_initialized?("reporting")
+    puts "\n== Reporting database is set up. Skipping init =="
+  else
+    puts "\n== Preparing Reporting Database =="
+    run_or_exit('bundle exec rake db:create:reporting') unless DONT_CREATE_DATABASES
+    run_or_exit 'DISABLE_DATABASE_ENVIRONMENT_CHECK=1 bundle exec rake reporting:db:schema:conditional_load'
+    run_or_exit 'bundle exec rake db:migrate:reporting'
+    # Force a rebuild of this table
+    run_or_exit 'bundle exec rails runner "GrdaWarehouse::ServiceHistoryServiceMaterialized.rebuild!"'
+  end
 
   if ENV['RAILS_ENV'] != 'test'
-    puts "\n== Seeding Database =="
-    run_or_exit 'bundle exec rake db:seed'
-    run_or_exit 'bundle exec rake grda_warehouse:seed_grades'
-    run_or_exit 'bundle exec rake grda_warehouse:seed_file_types'
+    if seeds_ran?("primary")
+      puts "\n== Seeds ran. Skipping initial seeding of primary database =="
+    else
+      puts "\n== Seeding Database =="
+      run_or_exit 'bundle exec rake db:seed'
+    end
+
+    if seeds_ran?("warehouse")
+      puts "\n== Warehouse seeds ran. Skipping initial seeding of warehouse database =="
+    else
+      run_or_exit 'bundle exec rake grda_warehouse:seed_grades'
+      run_or_exit 'bundle exec rake grda_warehouse:seed_file_types'
+    end
+
   else
     puts "\n== NOT Seeding test Database =="
   end
