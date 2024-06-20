@@ -11,17 +11,16 @@ module Mutations
     field :form_definition, Types::Forms::FormDefinition, null: true
 
     def resolve(id:)
-      raise 'not allowed' unless current_user.can_manage_forms?
+      access_denied! unless current_user.can_manage_forms?
 
       definition = Hmis::Form::Definition.find_by(id: id)
       raise 'not found' unless definition
-      raise "can't delete definition with active rules" if definition.instances.active.exists?
+      raise 'can only delete draft forms' unless definition.draft?
 
       definition.destroy!
 
       {
         form_definition: definition,
-        errors: [],
       }
     end
   end
