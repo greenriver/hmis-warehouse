@@ -81,7 +81,6 @@ module Admin
       begin
         User.transaction do
           @user.skip_reconfirmation!
-          existing_system_user_group_ids = @user.user_groups.system.pluck(:id)
           # Associations don't play well with acts_as_paranoid, so manually clean up user ACLs
           @user.user_group_members.where.not(user_group_id: assigned_user_group_ids).destroy_all
 
@@ -99,8 +98,6 @@ module Admin
           end
           # END_ACL
           @user.disable_2fa! if user_params[:otp_required_for_login] == 'false'
-          # User params will never include system user groups in user_group_ids, re-add any of those before saving
-          user_params[:user_group_ids] += existing_system_user_group_ids
           @user.update!(user_params)
           # if we have a user to copy user groups from, add them
           copy_user_groups if @user.using_acls?
@@ -229,14 +226,19 @@ module Admin
         # END_ACL
         contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role],
       ).
-        # TODO: START_ACL remove when ACL transition complete
+
         tap do |result|
+          # TODO: START_ACL remove when ACL transition complete
           result[:coc_codes] ||= []
           # re-add system groups so we don't remove them here
           result[:access_group_ids] ||= []
           result[:access_group_ids] += @user.access_groups.system.pluck(:id).map(&:to_s)
+          # END_ACL
+
+          # User params will never include system user groups in user_group_ids, re-add any of those before saving
+          result[:user_group_ids] ||= []
+          result[:user_group_ids] += @user.user_groups.system.pluck(:id)
         end
-      # END_ACL
     end
 
     private def confirmation_params
