@@ -7,17 +7,26 @@ task :truncate_csv_and_loader_tables, [:year, :confirm] => :environment do |_tas
   year = args.year
   raise 'valid year required' unless year =~ /\A202\d\z/
 
-  connection = HmisCsvImporter::Importer::ImporterLog.connection
-  tables = connection.tables.
-    # matches hmis_csv_2024_project_cocs and hmis_2024_project_cocs
-    grep(/\Ahmis_(csv_)?#{year}_[a-z_]+\z/).
-    # keep projects and export tables
-    grep_v(/#{year}_(projects|exports)\z/).
-    sort
+  models = []
+  case year
+  when '2020'
+    HmisCsvTwentyTwenty.importable_files_map.values.each do |name|
+      next if name =~ /\A(Project|Export)\z/
 
-  raise "no tables found for year:#{year}" if tables.empty?
+      models << "HmisCsvTwentyTwenty::Loader::#{name}".constantize
+      models << "HmisCsvTwentyTwenty::Importer::#{name}".constantize
+    end
+  when '2022'
+    HmisCsvTwentyTwentyTwo.importable_files_map.values.each do |name|
+      next if name =~ /\A(Project|Export)\z/
 
-  summary_message = "Truncating #{tables.size} tables from \"#{connection.current_database}\": #{tables.join(', ')}"
+      models << "HmisCsvTwentyTwentyTwo::Loader::#{name}".constantize
+      models << "HmisCsvTwentyTwentyTwo::Importer::#{name}".constantize
+    end
+  end
+  raise "no tables found for year:#{year}" if models.empty?
+
+  summary_message = "Truncating #{models.size} tables: #{models.map(&:table_name).sort.join(', ')}"
   if args.confirm != 'confirmed'
     puts summary_message
     puts 'Are you sure you want to proceed? (yes/no)'
@@ -30,8 +39,8 @@ task :truncate_csv_and_loader_tables, [:year, :confirm] => :environment do |_tas
   end
   Rails.logger.info summary_message
 
-  tables.each do |table|
-    connection.execute("TRUNCATE #{table} RESTART IDENTITY RESTRICT")
+  models.each do |model|
+    model.connection.execute("TRUNCATE #{model.table_name} RESTART IDENTITY RESTRICT")
     # note: according to postgres docs, disk space is reclaimed immediately after truncate without requiring a vacuum
   end
 end
