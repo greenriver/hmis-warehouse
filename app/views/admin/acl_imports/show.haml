@@ -12,16 +12,20 @@
     %li.nav-item{role: :presentation}
       %a{href: "#roles", 'aria-controls' => :roles, role: :tab, data: {toggle: :tab}, class: 'nav-link active'} Roles
     %li.nav-item{role: :presentation}
+      %a{href: "#collections", 'aria-controls' => :collections, role: :tab, data: {toggle: :tab}, class: 'nav-link'} Collections
+    %li.nav-item{role: :presentation}
       %a{href: "#users", 'aria-controls' => :users, role: :tab, data: {toggle: :tab}, class: 'nav-link'} Users
     %li.nav-item{role: :presentation}
-      %a{href: "#collections", 'aria-controls' => :collections, role: :tab, data: {toggle: :tab}, class: 'nav-link'} Collections
+      %a{href: "#access_controls", 'aria-controls' => :access_controls, role: :tab, data: {toggle: :tab}, class: 'nav-link'} Access Controls
   .tab-content#import-tab-content.mb-4
     .tab-pane.active{role: :tabpanel, id: :roles}
       = render 'roles'
-    .tab-pane{role: :tabpanel, id: :users}
-      = render 'users'
     .tab-pane{role: :tabpanel, id: :collections}
       = render 'collections'
+    .tab-pane{role: :tabpanel, id: :users}
+      = render 'users'
+    .tab-pane{role: :tabpanel, id: :access_controls}
+      = render 'access_controls'
   = render 'complete_import'
 - else
   %p Import file is in an unexpected format.

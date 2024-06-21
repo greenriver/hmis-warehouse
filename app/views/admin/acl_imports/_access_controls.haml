@@ -1,0 +1,16 @@
+%p Access Controls will be made for each role, user group, collection combination on the Users tab of the uploaded file.
+.card
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Role
+        %th User Group
+        %th Collection
+        %th Create New?
+    %tbody
+      - @import.access_controls.each do |access_control|
+        %tr
+          %td= access_control.role
+          %td= access_control.user_group
+          %td= access_control.collection
+          %td= checkmark_or_x(access_control.new_access_control)

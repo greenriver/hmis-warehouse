@@ -40,6 +40,59 @@ class AccessControlUpload < ApplicationRecord
     end.uniq.compact
   end
 
+  def collections
+    {}.tap do |col|
+      collections_worksheet.each do |row|
+        # First row is headers
+        next unless row.index_in_collection.positive?
+        # Skip any collections with no name
+        next unless row.cells[0].value.present?
+
+        name = row.cells.first.value
+        existing_collection = existing_collection(name)
+        col[name] ||= OpenStruct.new(
+          name: name,
+          new_collection: existing_collection.blank?,
+        )
+
+        collection_relations.each.with_index do |(relation, existing_method), i|
+          col[name][relation] ||= []
+          column_number = i + 1
+          item_name = row.cells[column_number]&.value
+          next unless item_name.present?
+
+          col[name].send(relation) << OpenStruct.new(
+            name: item_name,
+            found: send(existing_method).include?(item_name),
+          )
+        end
+      end
+    end.values
+  end
+
+  def access_controls
+    Set.new.tap do |acls|
+      users_worksheet.each do |row|
+        # First row is headers
+        next unless row.index_in_collection.positive?
+
+        # NOTE: order based on template
+        role_name = row.cells[4].value
+        user_group_name = row.cells[5].value
+        collection_name = row.cells[6].value
+        next unless role_name && user_group_name && collection_name
+
+        existing_acl = existing_acls.include?([role_name, user_group_name, collection_name])
+        acls << OpenStruct.new(
+          role: role_name,
+          user_group: user_group_name,
+          collection: collection_name,
+          new_access_control: existing_acl.blank?,
+        )
+      end
+    end
+  end
+
   private def user_data
     users_worksheet.map do |row|
       # First row is headers
@@ -58,17 +111,18 @@ class AccessControlUpload < ApplicationRecord
     end.uniq.compact
   end
 
-  def collections
-    collections_worksheet.map do |row|
-      # First row is headers
-      next unless row.index_in_collection.positive?
-      # Skip any collections with no name
-      next unless row.cells[0].value.present?
-
-      OpenStruct.new(
-        name: row.cells[0].value,
-      )
-    end
+  # NOTE: order based on template
+  def collection_relations
+    {
+      data_sources: :existing_data_sources,
+      organizations: :existing_organizations,
+      project: :existing_projects,
+      project_groups_for_projects: :existing_project_groups,
+      cocs: :existing_cocs,
+      cohorts: :existing_cohorts,
+      reports: :existing_reports,
+      project_groups_for_project_groups: :existing_project_groups,
+    }
   end
 
   def agencies
@@ -160,5 +214,51 @@ class AccessControlUpload < ApplicationRecord
 
   private def existing_roles
     @existing_roles ||= Role.editable.index_by(&:name)
+  end
+
+  private def existing_collection(collection_name)
+    existing_collections[collection_name]
+  end
+
+  private def existing_collections
+    @existing_collections ||= Collection.general.index_by(&:name)
+  end
+
+  private def existing_data_sources
+    @existing_data_sources ||= GrdaWarehouse::DataSource.pluck(:name).to_set
+  end
+
+  private def existing_organizations
+    @existing_organizations ||= GrdaWarehouse::Hud::Organization.pluck(:name).to_set
+  end
+
+  private def existing_projects
+    @existing_projects ||= GrdaWarehouse::Hud::Project.pluck(:name).to_set
+  end
+
+  private def existing_project_groups
+    @existing_project_groups ||= GrdaWarehouse::ProjectGroup.pluck(:name).to_set
+  end
+
+  private def existing_cohorts
+    @existing_cohorts ||= GrdaWarehouse::Cohort.pluck(:name).to_set
+  end
+
+  private def existing_reports
+    @existing_reports ||= GrdaWarehouse::WarehouseReports::ReportDefinition.pluck(:name).to_set
+  end
+
+  private def existing_cocs
+    @existing_cocs ||= GrdaWarehouse::Hud::ProjectCoc.pluck(:coc_code).to_set
+  end
+
+  private def existing_acls
+    r_t = Role.arel_table
+    ug_t = UserGroup.arel_table
+    c_t = Collection.arel_table
+    @existing_acls ||= AccessControl.
+      joins(:role, :user_group, :collection).
+      pluck(r_t[:name], ug_t[:name], c_t[:name]).
+      to_set
   end
 end

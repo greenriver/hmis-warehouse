@@ -72,16 +72,16 @@
       %thead
         %tr
           %th Agency Name
-          %th Create New?
           %th Users
+          %th Create New?
       %tbody
         - @import.agencies.each do |agency_name, agency|
           %tr
             %td= agency_name
-            %td= checkmark_or_x(agency.existing_agency_id.blank?)
             %td
               - agency.users.uniq.each do |email|
                 .email= email
+            %td= checkmark_or_x(agency.existing_agency_id.blank?)
 
 .mb-4
   %h2 User Groups
@@ -91,13 +91,13 @@
       %thead
         %tr
           %th User Group Name
-          %th Create New?
           %th Users
+          %th Create New?
       %tbody
         - @import.user_groups.each do |user_group_name, user_group|
           %tr
             %td= user_group_name
-            %td= checkmark_or_x(user_group.existing_user_group_id.blank?)
             %td
               - user_group.users.uniq.each do |email|
                 .email= email
+            %td= checkmark_or_x(user_group.existing_user_group_id.blank?)

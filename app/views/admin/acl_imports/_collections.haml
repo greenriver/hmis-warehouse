@@ -1,0 +1,29 @@
+%p Collections that match exactly on name will replace existing entities with those proposed.  Collections that do not exist will be created.
+.card
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Collection Name
+        %th Data Sources
+        %th Organizations
+        %th Projects
+        %th Project Groups (for projects)
+        %th CoCs
+        %th Cohorts
+        %th Reports
+        %th Project Groups (for project groups)
+        %th Create new?
+    %tbody
+      - @import.collections.each do |collection|
+        %tr
+          %th= collection.name
+          - @import.collection_relations.each do |relation, _|
+            %td
+              - collection.send(relation).each do |item|
+                - if item.found
+                  .item= item.name
+                - else
+                  .item
+                    %s= item.name
+                    (NOT FOUND)
+          %td= checkmark_or_x(collection.new_collection)
