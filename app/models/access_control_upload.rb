@@ -10,7 +10,23 @@ class AccessControlUpload < ApplicationRecord
   belongs_to :user
 
   def valid_import?
-    valid_roles? && valid_users?
+    valid_roles? && valid_users? && valid_collections?
+  end
+
+  def imported?
+    status == 'Import Complete'
+  end
+
+  def import!
+    self.class.transaction do
+      import_roles!
+      import_agencies! # NOTE: agencies need to be imported before users
+      import_users! # NOTE: users need to be imported before user groups
+      import_user_groups!
+      import_collections!
+      import_access_controls! # NOTE: this must come last
+      update(status: 'Import Complete')
+    end
   end
 
   def roles
@@ -83,11 +99,24 @@ class AccessControlUpload < ApplicationRecord
         next unless role_name && user_group_name && collection_name
 
         existing_acl = existing_acls.include?([role_name, user_group_name, collection_name])
+
+        known_role_names = roles.map(&:name) + existing_roles.keys
+        known_collection_names = collections.map(&:name) + existing_collections.keys
+        known_user_group_names = user_groups.keys + existing_user_groups.keys
+        role_error = known_role_names.exclude?(role_name)
+        user_group_error = known_user_group_names.exclude?(user_group_name)
+        collection_error = known_collection_names.exclude?(collection_name)
+        access_control_error = role_error || user_group_error || collection_error
+
         acls << OpenStruct.new(
           role: role_name,
+          role_error: role_error,
           user_group: user_group_name,
+          user_group_error: user_group_error,
           collection: collection_name,
+          collection_error: collection_error,
           new_access_control: existing_acl.blank?,
+          error: access_control_error,
         )
       end
     end
@@ -116,12 +145,12 @@ class AccessControlUpload < ApplicationRecord
     {
       data_sources: :existing_data_sources,
       organizations: :existing_organizations,
-      project: :existing_projects,
-      project_groups_for_projects: :existing_project_groups,
-      cocs: :existing_cocs,
+      projects: :existing_projects,
+      project_access_groups: :existing_project_groups, # project groups for projects
+      coc_codes: :existing_cocs,
       cohorts: :existing_cohorts,
       reports: :existing_reports,
-      project_groups_for_project_groups: :existing_project_groups,
+      project_groups: :existing_project_groups, # project groups for project groups
     }
   end
 
@@ -142,10 +171,79 @@ class AccessControlUpload < ApplicationRecord
       user_data.each do |u|
         a[u.user_group] ||= OpenStruct.new(
           existing_user_group_id: UserGroup.find_by(name: u.user_group)&.id,
+          name: u.user_group,
         )
         a[u.user_group].users ||= []
         a[u.user_group].users << u.email
       end
+    end
+  end
+
+  # NOTE: roles from user tab MUST match existing role names, or names on the roles tab
+  private def import_roles!
+    roles.each do |item|
+      role = Role.where(name: item.name).first_or_create!
+      permissions = item.permissions.map { |column, row| [column, row[:incoming_value]] }.to_h
+      role.update(**permissions)
+    end
+  end
+
+  private def import_agencies!
+    agencies.select { |_k, v| v.existing_agency_id.blank? }.each_key do |name|
+      Agency.where(name: name).first_or_create!
+    end
+  end
+
+  # Add new users, update agencies and names for existing users, set everyone to using ACLs
+  private def import_users!
+    agency_ids = Agency.pluck(:name, :id).to_h
+    users.each do |item|
+      user = User.with_deleted.where(email: item.email).first_or_initialize do |u|
+        u.password = Faker::Internet.password(min_length: 16)
+      end
+      user.first_name = item.first_name
+      user.last_name = item.last_name
+      user.agency_id = agency_ids[item.agency]
+      user.permission_context = 'acls'
+      user.restore if user.deleted?
+      user.save!
+    end
+  end
+
+  private def import_user_groups!
+    user_groups.values.each do |item|
+      group = UserGroup.where(name: item.name).first_or_create!
+      user_ids = User.where(email: item.users).pluck(:id)
+      group.update(user_ids: user_ids)
+    end
+  end
+
+  private def import_collections!
+    collections.each do |item|
+      collection = Collection.where(name: item.name, collection_type: collection_type(item)).first_or_create!
+      collection_relations.each_key do |relation|
+        names = item.send(relation).select(&:found).map(&:name)
+        ids = case relation
+        when :coc_codes
+          names
+        else
+          collection.class_name_for_viewable_type(relation).constantize.where(name: names).pluck(:id)
+        end
+        collection.set_viewables({ relation => ids }) if ids.present?
+      end
+    end
+  end
+
+  private def import_access_controls!
+    # Make sure we know about roles, collections, and user groups we created earlier
+    clear_cache
+    access_controls.select { |acl| acl.existing_user_id.blank? }.each do |item|
+      next if item.error
+
+      role = existing_role(item.role)
+      collection = existing_collection(item.collection)
+      user_group = existing_user_group(item.user_group)
+      AccessControl.create!(role: role, collection: collection, user_group: user_group)
     end
   end
 
@@ -204,7 +302,7 @@ class AccessControlUpload < ApplicationRecord
     users_worksheet.cell_at('A1').value == 'First Name' && users_worksheet.cell_at('B1').value == 'Last Name'
   end
 
-  private def collections_valid?
+  private def valid_collections?
     collections_worksheet.cell_at('A1').value == 'Collection' && collections_worksheet.cell_at('B1').value == 'Data Sources'
   end
 
@@ -221,7 +319,21 @@ class AccessControlUpload < ApplicationRecord
   end
 
   private def existing_collections
-    @existing_collections ||= Collection.general.index_by(&:name)
+    @existing_collections ||= Collection.all.index_by(&:name)
+  end
+
+  private def existing_user_group(group_name)
+    existing_user_groups[group_name]
+  end
+
+  private def clear_cache
+    @existing_roles = nil
+    @existing_collections = nil
+    @existing_user_groups = nil
+  end
+
+  private def existing_user_groups
+    @existing_user_groups ||= UserGroup.all.index_by(&:name)
   end
 
   private def existing_data_sources
@@ -260,5 +372,12 @@ class AccessControlUpload < ApplicationRecord
       joins(:role, :user_group, :collection).
       pluck(r_t[:name], ug_t[:name], c_t[:name]).
       to_set
+  end
+
+  # NOTE: the spreadsheet must obey the collection types for Access Controls
+  private def collection_type(item)
+    # Find the first relation that contains any data, we'll use that to determine type
+    relation = collection_relations.keys.detect { |r| item.send(r).present? }
+    Collection.collection_type_from(relation)
   end
 end

@@ -20,14 +20,14 @@ class Admin::AclImportsController < ApplicationController
   end
 
   def create
-    @import = import_scope.create!(import_params.merge(user_id: current_user.id, status: 'pending'))
+    @import = import_scope.create!(import_params.merge(user_id: current_user.id, status: 'Ready for Review'))
     respond_with(@import, location: admin_acl_imports_path)
   end
 
   # Completes the import using the file specified
   def update
-    raise 'TODO; implement me'
-    # respond_with(@import, location: admin_acl_imports_path)
+    @import.import!
+    respond_with(@import, location: admin_acl_imports_path)
   end
 
   def destroy
