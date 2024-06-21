@@ -32,10 +32,9 @@ class Hmis::Form::DefinitionItemFilter
     # return items if Rails.env.development?
 
     items.filter do |item|
-      true_for_hud_rule = eval_rule(item['rule'])            # HUD system rules that cannot be overridden
-      true_for_custom_rule = eval_rule(item['custom_rule'])  # Custom rules that can be managed by admins
-
-      if true_for_hud_rule || true_for_custom_rule
+      # 'rule' is HUD system rule that cannot be overridden
+      # 'custom_rule' is custom rule that can be managed by admins
+      if eval_rule(item['rule']) || eval_rule(item['custom_rule'])
         if item['item']
           # filter children
           item['item'] = eval_items(item['item'])
@@ -61,9 +60,6 @@ class Hmis::Form::DefinitionItemFilter
     # that can be hidden when creating a Client in the context of a non-Veteran program,
     # but should always be shown when creating/editing a Client outside of a project context.
     return true if project.nil?
-
-    # TODO we should probably add an "always show" override. there are workarounds e.g. selecting all project types
-    # return true if rule.fetch('all_projects', false) == true
 
     operator = rule.fetch('operator')
     case operator
