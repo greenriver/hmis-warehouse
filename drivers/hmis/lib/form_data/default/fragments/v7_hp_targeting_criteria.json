@@ -32,7 +32,7 @@
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "V7.1",
+      "link_id": "V7_1",
       "required": false,
       "warn_if_empty": true,
       "text": "Is Homelessness Prevention Targeting Screener required?",
@@ -44,7 +44,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "V7.A",
+      "link_id": "V7_A",
       "required": false,
       "warn_if_empty": true,
       "text": "Housing loss expected within...",
@@ -56,7 +56,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "V7.1",
+          "question": "V7_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -64,7 +64,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "V7.B",
+      "link_id": "V7_B",
       "required": false,
       "warn_if_empty": true,
       "text": "Current household income",
@@ -76,7 +76,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "V7.1",
+          "question": "V7_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -84,7 +84,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "V7.C",
+      "link_id": "V7_C",
       "required": false,
       "warn_if_empty": true,
       "text": "Past experience of Homelessness (street/shelter/transitional housing) (any adult)",
@@ -96,7 +96,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "V7.1",
+          "question": "V7_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -104,7 +104,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "V7.D",
+      "link_id": "V7_D",
       "required": false,
       "warn_if_empty": true,
       "text": "Head of Household is not  a current leaseholder/renter of unit",
@@ -116,7 +116,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "V7.1",
+          "question": "V7_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -124,7 +124,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "V7.E",
+      "link_id": "V7_E",
       "required": false,
       "warn_if_empty": true,
       "text": "Head of Household has never been a leaseholder/renter of unit",
@@ -136,7 +136,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "V7.1",
+          "question": "V7_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -144,7 +144,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "V7.F",
+      "link_id": "V7_F",
       "required": false,
       "warn_if_empty": true,
       "text": "Currently at risk of losing a tenant-based housing subsidy or housing in a subsidized building or unit (household)",
@@ -156,7 +156,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "V7.1",
+          "question": "V7_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -164,7 +164,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "V7.G",
+      "link_id": "V7_G",
       "required": false,
       "warn_if_empty": true,
       "text": "Rental Evictions within the past 7 years (any adult)",
@@ -176,7 +176,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "V7.1",
+          "question": "V7_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -184,7 +184,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "V7.H",
+      "link_id": "V7_H",
       "required": false,
       "warn_if_empty": true,
       "text": "Criminal record for arson, drug dealing or manufacture, or felony offense against persons or property (any adult)",
@@ -196,7 +196,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "V7.1",
+          "question": "V7_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -204,7 +204,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "V7.I",
+      "link_id": "V7_I",
       "required": false,
       "warn_if_empty": true,
       "text": "Incarcerated as adult (any adult in household)",
@@ -216,7 +216,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "V7.1",
+          "question": "V7_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -224,7 +224,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "V7.J",
+      "link_id": "V7_J",
       "required": false,
       "warn_if_empty": true,
       "text": "Discharged from jail or prison within last six months after incarceration of 90 days or more (adults)",
@@ -236,7 +236,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "V7.1",
+          "question": "V7_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -244,7 +244,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "V7.K",
+      "link_id": "V7_K",
       "required": false,
       "warn_if_empty": true,
       "text": "Registered sex offender (any household members)",
@@ -256,7 +256,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "V7.1",
+          "question": "V7_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -264,7 +264,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "V7.L",
+      "link_id": "V7_L",
       "required": false,
       "warn_if_empty": true,
       "text": "Head of Household with disabling condition (physical health, mental health, substance use) that directly affects ability to secure/maintain housing",
@@ -276,7 +276,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "V7.1",
+          "question": "V7_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -284,7 +284,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "V7.M",
+      "link_id": "V7_M",
       "required": false,
       "warn_if_empty": true,
       "text": "Currently pregnant (any household member)",
@@ -296,7 +296,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "V7.1",
+          "question": "V7_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -304,7 +304,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "V7.N",
+      "link_id": "V7_N",
       "required": false,
       "warn_if_empty": true,
       "text": "Single parent/guardian household with minor child(ren)",
@@ -316,7 +316,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "V7.1",
+          "question": "V7_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -324,7 +324,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "V7.O",
+      "link_id": "V7_O",
       "required": false,
       "warn_if_empty": true,
       "text": "Household includes one or more young children (age six or under), or a child who requires significant care",
@@ -336,7 +336,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "V7.1",
+          "question": "V7_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -344,7 +344,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "V7.P",
+      "link_id": "V7_P",
       "required": false,
       "text": "Household size of 5 or more requiring at least 3 bedrooms (due to age/gender mix)",
       "pick_list_reference": "NoYesMissing",
@@ -355,7 +355,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "V7.1",
+          "question": "V7_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -363,7 +363,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "V7.Q",
+      "link_id": "V7_Q",
       "required": false,
       "text": "Household includes one or more members of an overrepresented population in the homlessness system when compared to the general population",
       "pick_list_reference": "NoYesMissing",
@@ -374,7 +374,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "V7.1",
+          "question": "V7_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -382,7 +382,7 @@
     },
     {
       "type": "INTEGER",
-      "link_id": "V7.R",
+      "link_id": "V7_R",
       "required": false,
       "text": "HP applicant total points",
       "mapping": {
@@ -392,7 +392,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "V7.1",
+          "question": "V7_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }
@@ -400,7 +400,7 @@
     },
     {
       "type": "INTEGER",
-      "link_id": "V7.S",
+      "link_id": "V7_S",
       "required": false,
       "text": "Grantee targeting threshold score",
       "mapping": {
@@ -410,7 +410,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "V7.1",
+          "question": "V7_1",
           "operator": "EQUAL",
           "answer_code": "YES"
         }

@@ -2,7 +2,7 @@
   "item": [
     {
       "type": "DATE",
-      "link_id": "fa-start-date",
+      "link_id": "fa_start_date",
       "required": true,
       "text": "Start Date",
       "mapping": {
@@ -12,13 +12,13 @@
         {
           "id": "max-start-date",
           "type": "MAX",
-          "question": "fa-end-date"
+          "question": "fa_end_date"
         }
       ]
     },
     {
       "type": "DATE",
-      "link_id": "fa-end-date",
+      "link_id": "fa_end_date",
       "required": false,
       "text": "End Date",
       "mapping": {
@@ -28,14 +28,14 @@
         {
           "id": "min-end-date",
           "type": "MIN",
-          "question": "fa-start-date"
+          "question": "fa_start_date"
         }
       ]
     },
     {
       "type": "CHOICE",
       "required": true,
-      "link_id": "funding-source",
+      "link_id": "funding_source",
       "text": "Funding Source",
       "mapping": {
         "custom_field_key": "funding_source"
@@ -56,7 +56,7 @@
     {
       "type": "CHOICE",
       "required": false,
-      "link_id": "payment-type",
+      "link_id": "payment_type",
       "text": "Payment Type",
       "mapping": {
         "custom_field_key": "payment_type"

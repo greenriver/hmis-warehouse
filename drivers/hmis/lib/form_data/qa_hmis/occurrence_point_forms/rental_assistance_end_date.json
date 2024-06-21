@@ -2,7 +2,7 @@
   "item": [
     {
       "_comment": "Example of an occurrence point collecting a custom field. CustomDataElementDefinition with key 'rental_assistance_end_date' must be present for it to work.",
-      "link_id": "rental-assistance-end-date",
+      "link_id": "rental_assistance_end_date",
       "type": "DATE",
       "text": "Rental Assistance End Date",
       "mapping": {

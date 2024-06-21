@@ -2,9 +2,11 @@
   "item": [
     {
       "type": "STRING",
-      "link_id": "client-id",
+      "link_id": "client_id",
       "hidden": true,
-      "mapping": { "field_name": "id" }
+      "mapping": {
+        "field_name": "id"
+      }
     },
     {
       "fragment": "#client_name"
@@ -22,7 +24,7 @@
       "fragment": "#client_photo",
       "enable_when": [
         {
-          "question": "client-id",
+          "question": "client_id",
           "operator": "EXISTS",
           "answer_boolean": false
         }

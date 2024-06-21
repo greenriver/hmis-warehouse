@@ -41,7 +41,7 @@ class Role < ApplicationRecord
   end
 
   replace_scope :system, -> do
-    not_system.where(system: true)
+    where(system: true)
   end
 
   scope :not_system, -> do

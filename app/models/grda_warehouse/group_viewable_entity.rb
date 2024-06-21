@@ -10,6 +10,7 @@
 module GrdaWarehouse
   class GroupViewableEntity < GrdaWarehouseBase
     acts_as_paranoid
+    has_paper_trail
 
     # records with a access_group_id are part of the "legacy" permission system
     belongs_to :access_group, optional: true

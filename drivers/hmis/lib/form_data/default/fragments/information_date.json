@@ -1,14 +1,16 @@
 {
   "type": "GROUP",
-  "link_id": "information-date",
+  "link_id": "information_date",
   "text": "Information Date",
   "data_collected_about": "ALL_CLIENTS",
   "item": [
     {
       "type": "DATE",
-      "link_id": "information-date-input",
+      "link_id": "information_date_input",
       "text": "Date Collected",
-      "mapping": { "field_name": "assessmentDate" },
+      "mapping": {
+        "field_name": "assessmentDate"
+      },
       "required": true,
       "warn_if_empty": false,
       "assessment_date": true,

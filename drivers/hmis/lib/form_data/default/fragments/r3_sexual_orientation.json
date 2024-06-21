@@ -62,7 +62,7 @@
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "R3.1",
+      "link_id": "R3_1",
       "required": false,
       "warn_if_empty": true,
       "text": "Sexual Orientation",
@@ -74,11 +74,11 @@
     },
     {
       "type": "GROUP",
-      "link_id": "R31.conditionals",
+      "link_id": "R31_conditionals",
       "item": [
         {
           "type": "STRING",
-          "link_id": "R3.A",
+          "link_id": "R3_A",
           "required": false,
           "warn_if_empty": true,
           "text": "If other, please describe",
@@ -89,7 +89,7 @@
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "R3.1",
+              "question": "R3_1",
               "operator": "EQUAL",
               "answer_code": "OTHER"
             }
