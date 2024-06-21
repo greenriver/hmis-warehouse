@@ -2,7 +2,7 @@ wb = xlsx_package.workbook
 wb.add_worksheet(name: 'Users') do |sheet|
   sheet.add_row(['First Name', 'Last Name', 'Email', 'Agency', 'Role', 'Account Created', 'Last Login', 'Active'])
   User.joins(:agency).preload(:legacy_roles, :agency).find_each do |user|
-    user.legacy_roles.uniq.each do |role|
+    user.legacy_roles.editable.uniq.each do |role|
       sheet.add_row(
         [
           user.first_name,
@@ -23,7 +23,7 @@ wb.add_worksheet(name: 'Roles') do |sheet|
   permissions = Role.permissions_with_descriptions
   labels = permissions.map { |key, permission| permission.try(:[], :title) || key.to_s.humanize }
   sheet.add_row(['Role ID', 'Role Name'] + labels)
-  Role.find_each do |role|
+  Role.editable.find_each do |role|
     active_permissions = permissions.keys.map { |perm| role.send(perm) ? 'X' : '' }
     sheet.add_row([role.id, role.name] + active_permissions)
   end
