@@ -18542,9 +18542,9 @@ CREATE TABLE public.hmis_form_processors (
     current_living_situation_id integer,
     ce_assessment_id bigint,
     ce_event_id bigint,
-    backup_values jsonb,
     owner_type character varying NOT NULL,
-    owner_id bigint NOT NULL
+    owner_id bigint NOT NULL,
+    backup_values jsonb
 );
 
 
@@ -63002,8 +63002,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20240529195902'),
 ('20240529202928'),
 ('20240529205526'),
-('20240531020035'),
 ('20240531020034'),
+('20240531020035'),
 ('20240531152432'),
 ('20240603185124'),
 ('20240603190227'),
