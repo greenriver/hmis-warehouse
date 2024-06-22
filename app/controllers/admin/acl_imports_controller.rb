@@ -37,6 +37,10 @@ class Admin::AclImportsController < ApplicationController
     respond_with(@import, location: admin_acl_imports_path)
   end
 
+  def sample
+    send_file('spec/fixtures/files/access_control_imports/access_control_upload.xlsx', type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', disposition: 'attachment')
+  end
+
   private def import_scope
     AccessControlUpload.all
   end

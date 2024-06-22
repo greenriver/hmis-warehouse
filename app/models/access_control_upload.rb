@@ -295,13 +295,13 @@ class AccessControlUpload < ApplicationRecord
       collection = Collection.where(name: item[:name], collection_type: collection_type(item)).first_or_create!
       collection_relations.each_key do |relation|
         names = item[relation].select { |m| m[:found] }.map { |r| r[:name] }
-        ids = case relation
+        case relation
         when :coc_codes
-          names
+          collection.update(coc_codes: names) if names.present?
         else
-          collection.class_name_for_viewable_type(relation).constantize.where(name: names).pluck(:id)
+          ids = collection.class_name_for_viewable_type(relation).constantize.where(name: names).pluck(:id)
+          collection.set_viewables({ relation => ids }) if ids.present?
         end
-        collection.set_viewables({ relation => ids }) if ids.present?
       end
     end
   end
