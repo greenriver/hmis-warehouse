@@ -10,11 +10,14 @@ class Hmis::Form::DefinitionValidator
     new.perform(...)
   end
 
+  # @param [Hash] document is a form definition document {'item' => [{...}] }
+  # @param [Hash] valid_pick_lists validate that pick list references are in this set
   def perform(document, valid_pick_lists: [])
     @issues = []
-    all_ids = check_ids(document, valid_pick_lists)
-    dependencies = check_references(document, all_ids)
-    check_cycles(dependencies)
+    all_ids = check_ids(document, valid_pick_lists.to_set)
+    check_references(document, all_ids)
+    # we have cyclic dependencies and they seem to be supported by the front-end
+    # check_cycles(dependencies)
     @issues
   end
 
@@ -46,47 +49,31 @@ class Hmis::Form::DefinitionValidator
   end
 
   def check_references(document, all_ids)
-    dep_map = {}
     link_check = lambda do |item|
       (item['item'] || []).each do |child_item|
         link_id = child_item['link_id']
-        references = []
-        references += child_item.fetch('bounds', []).map{ |h| h['question']}
-        references.compact.each do |reference|
-          add_issue("Invalid link ID reference: #{reference} in #{link_id}") unless all_ids.include?(reference)
-          dep_map[reference] ||= []
-          dep_map[reference].push(link_id)
+
+        if child_item.key?('bounds')
+          child_item['bounds'].map { |h| h['question'] }.compact.each do |reference|
+            add_issue("Invalid link ID reference: #{reference} in 'bounds' prop of #{link_id}") unless all_ids.include?(reference)
+          end
+        end
+
+        if child_item.key?('enable_when')
+          child_item['enable_when'].flat_map{ |h| h.values_at('question', 'compare_question') }.compact.each do |reference|
+            add_issue("Invalid link ID reference: #{reference} in 'enable_when' prop of #{link_id}") unless all_ids.include?(reference)
+          end
+        end
+
+        if child_item.key?('autofill_values')
+          child_item['autofill_values'].map { |h| h.values_at('value_question', 'sum_questions') }.flatten.compact.each do |reference|
+            add_issue("Invalid link ID reference: #{reference} in 'autofill_values' prop of #{link_id}") unless all_ids.include?(reference)
+          end
         end
 
         link_check.call(child_item)
       end
     end
     link_check.call(document)
-    dep_map
-  end
-
-  # detect cycles in the dependencies
-  #   has_cycles({ 'x1' => ['x2'], 'x2' => ['x3'], 'x3' => ['x1']})
-  def check_cycles(dependencies)
-    visited = Set.new
-    stack = Set.new
-
-    cyclic = lambda do |node|
-      return false if !dependencies.key?(node) || dependencies[node].empty?
-      return true if stack.include?(node)
-      return false if visited.include?(node)
-
-      visited.add(node)
-      stack.add(node)
-
-      result = dependencies[node].any? { |dependent| cyclic.call(dependent) }
-
-      stack.delete(node)
-      result
-    end
-
-    dependencies.each_key do |node|
-      add_issue("cyclic dependency in : #{node}") if cyclic.call(node)
-    end
   end
 end
