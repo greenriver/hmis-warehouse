@@ -154,6 +154,9 @@ module HmisUtil
 
         applied_patches << id
         children, patch_to_apply = patch.partition { |k, _| ['append_items', 'prepend_items'].include?(k) }.map(&:to_h)
+
+        # if patch replaces references with options, remove the reference to avoid schema violation
+        node.delete('pick_list_reference') if patch_to_apply.key?('pick_list_options')
         # Could also be deep merge. This is probably more intuitive though
         node.merge!(patch_to_apply).compact!
 
@@ -244,7 +247,6 @@ module HmisUtil
       apply_all_patches!(form_definition, identifier: identifier)
       # Validate final definition
       begin
-        puts "validating #{identifier} #{role} #{title}"
         validate_definition(form_definition, role)
       rescue JsonFormException => e
         # If there was an error, _try_ to print out the exact value that failed by traversing the json path
