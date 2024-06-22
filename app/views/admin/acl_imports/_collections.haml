@@ -16,14 +16,14 @@
     %tbody
       - @import.collections.each do |collection|
         %tr
-          %th= collection.name
+          %th= collection[:name]
           - @import.collection_relations.each do |relation, _|
             %td
-              - collection.send(relation).each do |item|
-                - if item.found
-                  .item= item.name
+              - collection[relation].each do |item|
+                - if item[:found]
+                  .item= item[:name]
                 - else
                   .item
-                    %s= item.name
+                    %s= item[:name]
                     (NOT FOUND)
-          %td= checkmark_or_x(collection.new_collection)
+          %td= checkmark_or_x(collection[:new_collection])

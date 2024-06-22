@@ -57,13 +57,13 @@
           %th Agency
       %tbody
         - @import.users.each do |user|
-          - next if user.existing_user_id
+          - next if user[:existing_user_id]
 
           %tr
-            %td= user.first_name
-            %td= user.last_name
-            %td= user.email
-            %td= user.agency
+            %td= user[:first_name]
+            %td= user[:last_name]
+            %td= user[:email]
+            %td= user[:agency]
 .mb-4
   %h2 Agencies
   %p The following agencies were identified in the upload and will be created, or will have users added to them.
@@ -79,9 +79,9 @@
           %tr
             %td= agency_name
             %td
-              - agency.users.uniq.each do |email|
+              - agency[:users].uniq.each do |email|
                 .email= email
-            %td= checkmark_or_x(agency.existing_agency_id.blank?)
+            %td= checkmark_or_x(agency[:existing_agency_id].blank?)
 
 .mb-4
   %h2 User Groups
@@ -98,6 +98,6 @@
           %tr
             %td= user_group_name
             %td
-              - user_group.users.uniq.each do |email|
+              - user_group[:users].uniq.each do |email|
                 .email= email
-            %td= checkmark_or_x(user_group.existing_user_group_id.blank?)
+            %td= checkmark_or_x(user_group[:existing_user_group_id].blank?)

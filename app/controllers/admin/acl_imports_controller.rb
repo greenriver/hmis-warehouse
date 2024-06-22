@@ -20,13 +20,15 @@ class Admin::AclImportsController < ApplicationController
   end
 
   def create
-    @import = import_scope.create!(import_params.merge(user_id: current_user.id, status: 'Ready for Review'))
+    @import = import_scope.create!(import_params.merge(user_id: current_user.id, status: AccessControlUpload::UPLOADED))
+    @import.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).pre_process!
     respond_with(@import, location: admin_acl_imports_path)
   end
 
   # Completes the import using the file specified
   def update
-    @import.import!
+    @import.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).import!
+    @import.update(status: AccessControlUpload::IMPORTING)
     respond_with(@import, location: admin_acl_imports_path)
   end
 

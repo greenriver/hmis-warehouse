@@ -8,13 +8,33 @@ require 'rubyXL'
 class AccessControlUpload < ApplicationRecord
   has_one_attached :file
   belongs_to :user
+  has_many :datasets, class_name: '::GrdaWarehouse::Dataset', as: :source
+
+  IMPORT_COMPLETE = 'Import Complete'.freeze
+  PROCESSED = 'Ready for Review'.freeze
+  UPLOADED = 'Pending Processing'.freeze
+  IMPORTING = 'Import Processing'.freeze
 
   def valid_import?
     valid_roles? && valid_users? && valid_collections?
   end
 
   def imported?
-    status == 'Import Complete'
+    status == IMPORT_COMPLETE
+  end
+
+  def accessible?
+    status.in?([IMPORT_COMPLETE, PROCESSED])
+  end
+
+  def pre_process!
+    roles
+    agencies
+    users
+    user_groups
+    collections
+    access_controls
+    update(status: PROCESSED)
   end
 
   def import!
@@ -25,38 +45,90 @@ class AccessControlUpload < ApplicationRecord
       import_user_groups!
       import_collections!
       import_access_controls! # NOTE: this must come last
-      update(status: 'Import Complete')
+      update(status: IMPORT_COMPLETE)
     end
   end
 
+  def delete_cached_values!
+    datasets.delete_all
+  end
+
   def roles
+    calculate(:roles)
+  end
+
+  def users
+    calculate(:users)
+  end
+
+  def collections
+    calculate(:collections)
+  end
+
+  def access_controls
+    calculate(:access_controls)
+  end
+
+  def agencies
+    calculate(:agencies)
+  end
+
+  def user_groups
+    calculate(:user_groups)
+  end
+
+  # This method caches the results of the underlying processing in a dataset in the database
+  # If the cached data exists, it returns it, otherwise it runs the calculation
+  private def calculate(method)
+    identifier = cache_key(method)
+    existing = datasets.find_by(identifier: identifier)
+    # make the JSON version of the data equivalent to the ruby version
+    existing_data = if existing&.data.is_a?(Array)
+      existing.data.map(&:with_indifferent_access)
+    elsif existing&.data.is_a?(Hash)
+      existing.data.with_indifferent_access
+    else
+      existing&.data
+    end
+    return existing_data if existing_data
+
+    data = send("calculate_#{method}")
+
+    datasets.create!(
+      identifier: identifier,
+      data: data,
+    )
+    data
+  end
+
+  private def calculate_roles
     roles_worksheet.map do |row|
       # First two rows are headers
       next unless row.index_in_collection > 1
 
       name = row.cells.first.value
       existing_role = existing_role(name)
-      OpenStruct.new(
+      {
         name: name,
         new_role: existing_role.blank?,
         permissions: permissions_for_row(row, existing_role),
-      )
+      }
     end.compact
   end
 
-  def users
+  private def calculate_users
     user_data.map do |user|
-      OpenStruct.new(
-        first_name: user.first_name,
-        last_name: user.last_name,
-        email: user.email,
-        agency: user.agency,
-        existing_user_id: user.existing_user_id,
-      )
+      {
+        first_name: user[:first_name],
+        last_name: user[:last_name],
+        email: user[:email],
+        agency: user[:agency],
+        existing_user_id: user[:existing_user_id],
+      }
     end.uniq.compact
   end
 
-  def collections
+  private def calculate_collections
     {}.tap do |col|
       collections_worksheet.each do |row|
         # First row is headers
@@ -66,10 +138,10 @@ class AccessControlUpload < ApplicationRecord
 
         name = row.cells.first.value
         existing_collection = existing_collection(name)
-        col[name] ||= OpenStruct.new(
+        col[name] ||= {
           name: name,
           new_collection: existing_collection.blank?,
-        )
+        }
 
         collection_relations.each.with_index do |(relation, existing_method), i|
           col[name][relation] ||= []
@@ -77,16 +149,16 @@ class AccessControlUpload < ApplicationRecord
           item_name = row.cells[column_number]&.value
           next unless item_name.present?
 
-          col[name].send(relation) << OpenStruct.new(
+          col[name][relation] << {
             name: item_name,
             found: send(existing_method).include?(item_name),
-          )
+          }
         end
       end
     end.values
   end
 
-  def access_controls
+  private def calculate_access_controls
     Set.new.tap do |acls|
       users_worksheet.each do |row|
         # First row is headers
@@ -100,15 +172,15 @@ class AccessControlUpload < ApplicationRecord
 
         existing_acl = existing_acls.include?([role_name, user_group_name, collection_name])
 
-        known_role_names = roles.map(&:name) + existing_roles.keys
-        known_collection_names = collections.map(&:name) + existing_collections.keys
+        known_role_names = roles.map { |r| r[:name] } + existing_roles.keys
+        known_collection_names = collections.map { |r| r[:name] } + existing_collections.keys
         known_user_group_names = user_groups.keys + existing_user_groups.keys
         role_error = known_role_names.exclude?(role_name)
         user_group_error = known_user_group_names.exclude?(user_group_name)
         collection_error = known_collection_names.exclude?(collection_name)
         access_control_error = role_error || user_group_error || collection_error
 
-        acls << OpenStruct.new(
+        acls << {
           role: role_name,
           role_error: role_error,
           user_group: user_group_name,
@@ -117,7 +189,7 @@ class AccessControlUpload < ApplicationRecord
           collection_error: collection_error,
           new_access_control: existing_acl.blank?,
           error: access_control_error,
-        )
+        }
       end
     end
   end
@@ -129,14 +201,14 @@ class AccessControlUpload < ApplicationRecord
 
       # NOTE: order based on template
       email = row.cells[2].value
-      OpenStruct.new(
+      {
         first_name: row.cells[0].value,
         last_name: row.cells[1].value,
         email: email,
         agency: row.cells[3].value,
         user_group: row.cells[5].value,
         existing_user_id: User.find_by(email: email)&.id,
-      )
+      }
     end.uniq.compact
   end
 
@@ -154,27 +226,27 @@ class AccessControlUpload < ApplicationRecord
     }
   end
 
-  def agencies
+  private def calculate_agencies
     {}.tap do |a|
       user_data.each do |u|
-        a[u.agency] ||= OpenStruct.new(
-          existing_agency_id: Agency.find_by(name: u.agency)&.id,
-        )
-        a[u.agency].users ||= []
-        a[u.agency].users << u.email
+        a[u[:agency]] ||= {
+          existing_agency_id: Agency.find_by(name: u[:agency])&.id,
+        }
+        a[u[:agency]][:users] ||= []
+        a[u[:agency]][:users] << u[:email]
       end
     end
   end
 
-  def user_groups
+  private def calculate_user_groups
     {}.tap do |a|
       user_data.each do |u|
-        a[u.user_group] ||= OpenStruct.new(
-          existing_user_group_id: UserGroup.find_by(name: u.user_group)&.id,
-          name: u.user_group,
-        )
-        a[u.user_group].users ||= []
-        a[u.user_group].users << u.email
+        a[u[:user_group]] ||= {
+          existing_user_group_id: UserGroup.find_by(name: u[:user_group])&.id,
+          name: u[:user_group],
+        }
+        a[u[:user_group]][:users] ||= []
+        a[u[:user_group]][:users] << u[:email]
       end
     end
   end
@@ -182,14 +254,14 @@ class AccessControlUpload < ApplicationRecord
   # NOTE: roles from user tab MUST match existing role names, or names on the roles tab
   private def import_roles!
     roles.each do |item|
-      role = Role.where(name: item.name).first_or_create!
-      permissions = item.permissions.map { |column, row| [column, row[:incoming_value]] }.to_h
+      role = Role.where(name: item[:name]).first_or_create!
+      permissions = item[:permissions].map { |column, row| [column, row[:incoming_value]] }.to_h
       role.update(**permissions)
     end
   end
 
   private def import_agencies!
-    agencies.select { |_k, v| v.existing_agency_id.blank? }.each_key do |name|
+    agencies.select { |_k, v| v[:existing_agency_id].blank? }.each_key do |name|
       Agency.where(name: name).first_or_create!
     end
   end
@@ -198,12 +270,12 @@ class AccessControlUpload < ApplicationRecord
   private def import_users!
     agency_ids = Agency.pluck(:name, :id).to_h
     users.each do |item|
-      user = User.with_deleted.where(email: item.email).first_or_initialize do |u|
+      user = User.with_deleted.where(email: item[:email]).first_or_initialize do |u|
         u.password = Faker::Internet.password(min_length: 16)
       end
-      user.first_name = item.first_name
-      user.last_name = item.last_name
-      user.agency_id = agency_ids[item.agency]
+      user.first_name = item[:first_name]
+      user.last_name = item[:last_name]
+      user.agency_id = agency_ids[item[:agency]]
       user.permission_context = 'acls'
       user.restore if user.deleted?
       user.save!
@@ -212,17 +284,17 @@ class AccessControlUpload < ApplicationRecord
 
   private def import_user_groups!
     user_groups.values.each do |item|
-      group = UserGroup.where(name: item.name).first_or_create!
-      user_ids = User.where(email: item.users).pluck(:id)
+      group = UserGroup.where(name: item[:name]).first_or_create!
+      user_ids = User.where(email: item[:users]).pluck(:id)
       group.update(user_ids: user_ids)
     end
   end
 
   private def import_collections!
     collections.each do |item|
-      collection = Collection.where(name: item.name, collection_type: collection_type(item)).first_or_create!
+      collection = Collection.where(name: item[:name], collection_type: collection_type(item)).first_or_create!
       collection_relations.each_key do |relation|
-        names = item.send(relation).select(&:found).map(&:name)
+        names = item[relation].select { |m| m[:found] }.map { |r| r[:name] }
         ids = case relation
         when :coc_codes
           names
@@ -237,12 +309,12 @@ class AccessControlUpload < ApplicationRecord
   private def import_access_controls!
     # Make sure we know about roles, collections, and user groups we created earlier
     clear_cache
-    access_controls.select { |acl| acl.existing_user_id.blank? }.each do |item|
-      next if item.error
+    access_controls.select { |acl| acl[:existing_user_id].blank? }.each do |item|
+      next if item[:error]
 
-      role = existing_role(item.role)
-      collection = existing_collection(item.collection)
-      user_group = existing_user_group(item.user_group)
+      role = existing_role(item[:role])
+      collection = existing_collection(item[:collection])
+      user_group = existing_user_group(item[:user_group])
       AccessControl.create!(role: role, collection: collection, user_group: user_group)
     end
   end
@@ -377,7 +449,15 @@ class AccessControlUpload < ApplicationRecord
   # NOTE: the spreadsheet must obey the collection types for Access Controls
   private def collection_type(item)
     # Find the first relation that contains any data, we'll use that to determine type
-    relation = collection_relations.keys.detect { |r| item.send(r).present? }
+    relation = collection_relations.keys.detect { |r| item[r].present? }
     Collection.collection_type_from(relation)
+  end
+
+  def cache_key(type)
+    [
+      self.class.name,
+      id,
+      type,
+    ].join('/')
   end
 end
