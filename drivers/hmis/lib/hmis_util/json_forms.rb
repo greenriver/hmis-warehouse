@@ -244,6 +244,7 @@ module HmisUtil
       apply_all_patches!(form_definition, identifier: identifier)
       # Validate final definition
       begin
+        puts "validating #{identifier} #{role} #{title}"
         validate_definition(form_definition, role)
       rescue JsonFormException => e
         # If there was an error, _try_ to print out the exact value that failed by traversing the json path

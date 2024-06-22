@@ -64,7 +64,7 @@
       ]
     },
     {
-      "type": "CHOICE",
+      "type": "STRING",
       "required": false,
       "hidden": true,
       "repeats": false,

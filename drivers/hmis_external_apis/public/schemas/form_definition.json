@@ -187,43 +187,146 @@
     },
 
     "form_node": {
+      "type": "object",
+      "properties": { "type": { "enum":
+          [
+            "BOOLEAN",
+            "CHOICE",
+            "CURRENCY",
+            "DATE",
+            "DISPLAY",
+            "FILE",
+            "GROUP",
+            "IMAGE",
+            "INTEGER",
+            "OBJECT",
+            "OPEN_CHOICE",
+            "STRING",
+            "TEXT",
+            "TIME_OF_DAY"
+          ]
+        }
+      },
       "allOf": [
         {
           "if": {
-            "type": "object",
-            "properties": { "type": { "const": "CHOICE" } },
-            "required": [ "type" ]
+            "required": [ "type" ],
+            "properties": { "type": { "const": "BOOLEAN" } }
           },
-          "then": {
-            "$ref": "#/$defs/choice_form_node"
-          }
+          "then": { "$ref": "#/$defs/boolean_form_node" }
         },
         {
           "if": {
-            "type": "object",
-            "properties": { "type": { "const": "GROUP" } },
-            "required": [ "type" ]
+            "required": [ "type" ],
+            "properties": { "type": { "const": "CHOICE" } }
           },
-          "then": {
-            "$ref": "#/$defs/group_form_node"
-          }
+          "then": { "$ref": "#/$defs/choice_form_node" }
+        },
+        {
+          "if": {
+            "required": [ "type" ],
+            "properties": { "type": { "const": "CURRENCY" } }
+          },
+          "then": { "$ref": "#/$defs/currency_form_node" }
+        },
+        {
+          "if": {
+            "required": [ "type" ],
+            "properties": { "type": { "const": "DATE" } }
+          },
+          "then": { "$ref": "#/$defs/date_form_node" }
+        },
+        {
+          "if": {
+            "required": [ "type" ],
+            "properties": { "type": { "const": "DISPLAY" } }
+          },
+          "then": { "$ref": "#/$defs/display_form_node" }
+        },
+        {
+          "if": { "properties": {
+              "required": [ "type" ],
+              "type": { "const": "FILE" } }
+          },
+          "then": { "$ref": "#/$defs/file_form_node" }
+        },
+        {
+          "if": {
+            "required": [ "type" ],
+            "properties": { "type": { "const": "GROUP" } }
+          },
+          "then": { "$ref": "#/$defs/group_form_node" }
+        },
+        {
+          "if": {
+            "required": [ "type" ],
+            "properties": { "type": { "const": "IMAGE" } }
+          },
+          "then": { "$ref": "#/$defs/image_form_node" }
+        },
+        {
+          "if": {
+            "required": [ "type" ],
+            "properties": { "type": { "const": "INTEGER" } }
+          },
+          "then": { "$ref": "#/$defs/integer_form_node" }
+        },
+        {
+          "if": {
+            "required": [ "type" ],
+            "properties": { "type": { "const": "OBJECT" } }
+          },
+          "then": { "$ref": "#/$defs/object_form_node" }
+        },
+        {
+          "if": {
+            "required": [ "type" ],
+            "properties": { "type": { "const": "OPEN_CHOICE" } }
+          },
+          "then": { "$ref": "#/$defs/open_choice_form_node" }
+        },
+        {
+          "if": {
+            "required": [ "type" ],
+            "properties": { "type": { "const": "STRING" } }
+          },
+          "then": { "$ref": "#/$defs/string_form_node" }
+        },
+        {
+          "if": {
+            "required": [ "type" ],
+            "properties": { "type": { "const": "TEXT" } }
+          },
+          "then": { "$ref": "#/$defs/string_form_node" }
+        },
+        {
+          "if": {
+            "required": [ "type" ],
+            "properties": { "type": { "const": "TIME_OF_DAY" } }
+          },
+          "then": { "$ref": "#/$defs/time_of_day_form_node" }
         }
       ]
     },
 
-    "choice_form_node": {
+    "boolean_form_node": {
+      "unevaluatedProperties": false,
       "allOf": [
+        { "$ref": "#/$defs/input_form_node" }
+      ]
+    },
+
+    "choice_form_node": {
+      "unevaluatedProperties": false,
+      "allOf": [
+        { "$ref": "#/$defs/input_form_node" },
         {
-          "$ref": "#/$defs/input_form_node"
-        },
-        {
-          "required": [ "text" ],
+          "type": "object",
           "oneOf": [
             { "required": [ "pick_list_reference" ] },
             { "required": [ "pick_list_options" ] }
           ],
           "properties": {
-            "type": { "const": "CHOICE" },
             "pick_list_reference": { "type": "string" },
             "pick_list_options": {
               "type": "array",
@@ -231,6 +334,7 @@
             },
             "component": {
               "enum": [
+                "CHECKBOX",
                 "DROPDOWN",
                 "RADIO_BUTTONS",
                 "RADIO_BUTTONS_VERTICAL"
@@ -238,12 +342,35 @@
             }
           }
         }
-      ],
-      "unevaluatedProperties": false
+      ]
     },
-
+    "currency_form_node": {
+      "unevaluatedProperties": false,
+      "allOf": [
+        { "$ref": "#/$defs/input_form_node" }
+      ]
+    },
+    "date_form_node": {
+      "unevaluatedProperties": false,
+      "allOf": [
+        { "$ref": "#/$defs/input_form_node" }
+      ]
+    },
+    "display_form_node": {
+      "unevaluatedProperties": false,
+      "allOf": [
+        { "$ref": "#/$defs/base_form_node" }
+      ]
+    },
+    "file_form_node": {
+      "unevaluatedProperties": false,
+      "allOf": [
+        { "$ref": "#/$defs/input_form_node" }
+      ]
+    },
     "group_form_node": {
       "$comment": "Group form nodes",
+      "unevaluatedProperties": false,
       "allOf": [
         { "$ref": "#/$defs/base_form_node" },
         {
@@ -251,6 +378,12 @@
           "required": [ "type", "item" ],
           "properties": {
             "type": { "const": "GROUP" },
+            "component": { "enum": [
+              "DISABILITY_TABLE",
+              "HORIZONTAL_GROUP",
+              "INFO_GROUP",
+              "INPUT_GROUP"
+              ] },
             "item": {
               "type": "array",
               "minItems": 1,
@@ -270,16 +403,28 @@
         }
       ]
     },
+    "image_form_node": {
+      "unevaluatedProperties": false,
+      "allOf": [
+        { "$ref": "#/$defs/input_form_node" }
+      ]
+    },
 
-    "input_form_node": {
+    "integer_form_node": {
+      "unevaluatedProperties": false,
+      "allOf": [
+        { "$ref": "#/$defs/input_form_node" }
+      ]
+    },
+
+    "object_form_node": {
       "unevaluatedProperties": false,
       "allOf": [
         { "$ref": "#/$defs/base_form_node" },
         {
-          "type": "object",
-          "required": [ "link_id" ],
           "properties": {
-            "link_id": { "type": "string" },
+            "type": { "const": "OBJECT" },
+            "hidden": { "type": "boolean" },
             "prefix": { "type": "string" },
             "brief_text": { "type": "string" },
             "text": { "type": "string" },
@@ -288,14 +433,85 @@
             "required": { "type": "boolean" },
             "assessment_date": { "type": "boolean" },
             "read_only": { "type": "boolean" },
-            "hidden": { "type": "boolean" },
             "warn_if_empty": { "type": "boolean" },
             "pick_list_reference": { "type": "string" },
             "mapping": { "$ref": "#/$defs/mapping" },
             "project_types_excluded": { "type": "array", "items": { "type": "string" } },
-            "enable_when": { "type": "array", "items": { "$ref": "#/$defs/enable_when" } },
-            "rule": { "$ref": "#/$defs/rule" },
-            "disabled_display": { "type": "string" },
+            "bounds": { "type": "array", "items": { "$ref": "#/$defs/bounds" } },
+            "repeats": { "type": "boolean" },
+            "size": { "type": "string" },
+            "service_detail_type": { "type": "string" },
+            "initial": { "type": "array", "items": { "$ref": "#/$defs/initial" } },
+            "component": {
+              "enum": [
+                "NAME",
+                "ADDRESS",
+                "PHONE",
+                "EMAIL"
+              ]
+            },
+            "autofill_values": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/autofill_values" }
+            }
+          }
+        }
+      ]
+    },
+
+    "open_choice_form_node": {
+      "unevaluatedProperties": false,
+      "allOf": [
+        { "$ref": "#/$defs/input_form_node" }
+      ]
+    },
+    "string_form_node": {
+      "unevaluatedProperties": false,
+      "allOf": [
+        { "$ref": "#/$defs/input_form_node" },
+        {
+          "type": "object",
+          "properties": {
+            "component": { "enum": [ "EMAIL", "PHONE", "SSN" ] }
+          }
+        }
+      ]
+    },
+    "time_of_day_form_node": {
+      "unevaluatedProperties": false,
+      "allOf": [
+        { "$ref": "#/$defs/input_form_node" }
+      ]
+    },
+    "input_form_node": {
+      "$comment": "Base properties for form inputs",
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/$defs/base_form_node" },
+        {
+          "$comment": "Inputs must have a text field unless hidden",
+          "if": {
+            "not": {
+              "properties": { "hidden": { "const": true } },
+              "required": [ "hidden" ]
+            }
+          },
+          "then": { "required": [ "text" ] }
+        },
+        {
+          "properties": {
+            "hidden": { "type": "boolean" },
+            "prefix": { "type": "string" },
+            "brief_text": { "type": "string" },
+            "text": { "type": "string" },
+            "readonly_text": { "type": "string" },
+            "helper_text": { "type": "string" },
+            "required": { "type": "boolean" },
+            "assessment_date": { "type": "boolean" },
+            "read_only": { "type": "boolean" },
+            "warn_if_empty": { "type": "boolean" },
+            "mapping": { "$ref": "#/$defs/mapping" },
+            "project_types_excluded": { "type": "array", "items": { "type": "string" } },
             "bounds": { "type": "array", "items": { "$ref": "#/$defs/bounds" } },
             "repeats": { "type": "boolean" },
             "size": { "type": "string" },
@@ -309,10 +525,10 @@
         }
       ]
     },
-
     "base_form_node": {
       "type": "object",
       "$comment": "Base properties for all form nodes",
+      "required": [ "link_id" ],
       "properties": {
         "_comment": { "type": "string" },
         "link_id": { "type": "string" },
@@ -321,105 +537,6 @@
         "enable_when": { "type": "array", "items": { "$ref": "#/$defs/enable_when" } },
         "rule": { "$ref": "#/$defs/rule" },
         "disabled_display": { "type": "string" }
-      }
-    },
-
-    "x_form_node": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [ "type", "link_id" ],
-      "properties": {
-        "_comment": { "type": "string" },
-        "item": {
-          "type": "array",
-          "minItems": 1,
-          "items": { "$ref": "#/$defs/form_node" }
-        },
-        "enable_behavior": { "enum": [ "ALL", "ANY" ] },
-        "data_collected_about": {
-          "enum": [
-            "ALL_CLIENTS",
-            "ALL_VETERANS",
-            "HOH",
-            "HOH_AND_ADULTS",
-            "VETERAN_HOH"
-          ]
-        },
-        "type": {
-          "enum": [
-            "GROUP",
-            "BOOLEAN",
-            "CHOICE",
-            "CURRENCY",
-            "DATE",
-            "DISPLAY",
-            "TIME_OF_DAY",
-            "FILE",
-            "IMAGE",
-            "INTEGER",
-            "OBJECT",
-            "OPEN_CHOICE",
-            "STRING",
-            "TEXT"
-          ]
-        },
-        "link_id": { "type": "string" },
-        "prefix": { "type": "string" },
-        "brief_text": { "type": "string" },
-        "text": { "type": "string" },
-        "prefill": { "type": "boolean" },
-        "readonly_text": { "type": "string" },
-        "helper_text": { "type": "string" },
-        "required": { "type": "boolean" },
-        "assessment_date": { "type": "boolean" },
-        "read_only": { "type": "boolean" },
-        "hidden": { "type": "boolean" },
-        "warn_if_empty": { "type": "boolean" },
-        "pick_list_reference": { "type": "string" },
-        "mapping": { "$ref": "#/$defs/mapping" },
-        "project_types_excluded": { "type": "array", "items": { "type": "string" } },
-        "enable_when": { "type": "array", "items": { "$ref": "#/$defs/enable_when" } },
-        "rule": { "$ref": "#/$defs/rule" },
-        "disabled_display": { "type": "string" },
-        "bounds": { "type": "array", "items": { "$ref": "#/$defs/bounds" } },
-        "repeats": { "type": "boolean" },
-        "size": { "type": "string" },
-        "service_detail_type": { "type": "string" },
-        "pick_list_options": {
-          "type": "array",
-          "items": { "$ref": "#/$defs/pick_list_option" }
-        },
-        "initial": { "type": "array", "items": { "$ref": "#/$defs/initial" } },
-        "autofill_values": {
-          "type": "array",
-          "items": { "$ref": "#/$defs/autofill_values" }
-        },
-        "component": {
-          "enum": [
-            "INPUT_GROUP",
-            "HORIZONTAL_GROUP",
-            "INFO_GROUP",
-            "ADDRESS",
-            "ALERT_ERROR",
-            "ALERT_INFO",
-            "ALERT_SUCCESS",
-            "ALERT_WARNING",
-            "CHECKBOX",
-            "DISABILITY_TABLE",
-            "TABLE",
-            "DROPDOWN",
-            "EMAIL",
-            "MCI",
-            "NAME",
-            "PHONE",
-            "RADIO_BUTTONS",
-            "RADIO_BUTTONS_VERTICAL",
-            "SSN",
-            "SIGNATURE_GROUP",
-            "SIGNATURE",
-            "MINUTES_DURATION"
-          ]
-        }
       }
     }
   }
