@@ -3,9 +3,9 @@ Rails.application.routes.draw do
   get 'oauth/user-data', to: 'oauth#user'
 
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
-  match "/404", to: "errors#not_found", via: :all
-  match "/422", to: "errors#unacceptable", via: :all
-  match "/500", to: "errors#internal_server_error", via: :all
+  match '/404', to: 'errors#not_found', via: :all
+  match '/422', to: 'errors#unacceptable', via: :all
+  match '/500', to: 'errors#internal_server_error', via: :all
 
   class OnlyXhrRequest
     def matches?(request)
@@ -22,7 +22,7 @@ Rails.application.routes.draw do
     match 'users/invitations/confirm', via: :post
     match 'logout_talentlms' => 'users/sessions#destroy', via: :get
     if ENV['OKTA_DOMAIN'].present?
-      get "/users/auth/okta/callback" => "users/omniauth_callbacks#okta" if ENV['OKTA_CLIENT_ID']
+      get '/users/auth/okta/callback' => 'users/omniauth_callbacks#okta' if ENV['OKTA_CLIENT_ID']
     end
   end
 
@@ -37,7 +37,7 @@ Rails.application.routes.draw do
 
   get '/user_training', to: 'user_training#index'
 
-  def healthcare_routes(window:)
+  def healthcare_routes
     namespace :health do
       resources :patient, only: [:index, :update], controller: '/health/patient'
       resources :utilization, only: [:index], controller: '/health/utilization'
@@ -140,7 +140,6 @@ Rails.application.routes.draw do
 
   match 'filter', to: 'filters#show', via: [:post]
 
-
   resources :reports do
     resources :report_results, path: 'results', only: [:index, :show, :create, :update, :destroy] do
       get :download_support, on: :member
@@ -210,22 +209,22 @@ Rails.application.routes.draw do
     resources :recidivism, only: [:index]
     resources :expiring_consent, only: [:index]
     resources :export_covid_impact_assessments, only: [:index]
-    resources :rrh, only: [:index], defaults: {scope: :rrh}, controller: :outcomes do
+    resources :rrh, only: [:index], defaults: { scope: :rrh }, controller: :outcomes do
       collection do
         get :clients
       end
     end
-    resources :psh, only: [:index], defaults: {scope: :psh}, controller: :outcomes do
+    resources :psh, only: [:index], defaults: { scope: :psh }, controller: :outcomes do
       collection do
         get :clients
       end
     end
-    resources :shelter, only: [:index], defaults: {scope: :es}, controller: :outcomes do
+    resources :shelter, only: [:index], defaults: { scope: :es }, controller: :outcomes do
       collection do
         get :clients
       end
     end
-    resources :th, only: [:index], defaults: {scope: :th}, controller: :outcomes do
+    resources :th, only: [:index], defaults: { scope: :th }, controller: :outcomes do
       collection do
         get :clients
       end
@@ -472,9 +471,9 @@ Rails.application.routes.draw do
     resources :vispdats, controller: 'clients/vispdats' do
       member do
         put :add_child
-          delete :remove_child
-          put :upload_file
-          delete :destroy_file
+        delete :remove_child
+        put :upload_file
+        delete :destroy_file
       end
     end
     resources :coordinated_entry_assessments, controller: 'clients/coordinated_entry_assessments'
@@ -510,7 +509,7 @@ Rails.application.routes.draw do
     resources :anomalies, except: [:show], controller: 'clients/anomalies'
     resources :audits, only: [:index], controller: 'clients/audits'
     resources :hud_lots, only: [:index], controller: 'clients/hud_lots'
-    healthcare_routes(window: false)
+    healthcare_routes
     namespace :he do
       get :boston_covid_19
       get :covid_19_vaccinations_only
@@ -554,19 +553,19 @@ Rails.application.routes.draw do
   namespace :performance_dashboards do
     resources :overview, only: [:index] do
       get :details, on: :collection
-      get 'section/:partial', on: :collection, to: "overview#section", as: :section
+      get 'section/:partial', on: :collection, to: 'overview#section', as: :section
       get :filters, on: :collection
       get :download, on: :collection
     end
     resources :household, only: [:index] do
       get :details, on: :collection
-      get 'section/:partial', on: :collection, to: "household#section", as: :section
+      get 'section/:partial', on: :collection, to: 'household#section', as: :section
       get :filters, on: :collection
       get :download, on: :collection
     end
     resources :project_type, only: [:index] do
       get :details, on: :collection
-      get 'section/:partial', on: :collection, to: "project_type#section", as: :section
+      get 'section/:partial', on: :collection, to: 'project_type#section', as: :section
       get :filters, on: :collection
       get :download, on: :collection
     end
@@ -607,7 +606,6 @@ Rails.application.routes.draw do
     resource :hmis_import_config do
       get :download
     end
-
   end
   resources :ad_hoc_data_sources do
     resources :uploads, except: [:edit], controller: 'ad_hoc_data_sources/uploads' do
@@ -769,16 +767,16 @@ Rails.application.routes.draw do
       resources :users, only: [:create, :destroy], controller: 'roles/users'
     end
     resources :groups do
-       resources :users, only: [:create, :destroy], controller: 'groups/users'
-       get :download, on: :collection
+      resources :users, only: [:create, :destroy], controller: 'groups/users'
+      get :download, on: :collection
     end
     # END_ACL
     resources :acl_imports, only: [:index, :create, :update, :show, :destroy] do
       get :sample, on: :collection
     end
     resources :access_controls do
-       post :assign, on: :collection
-     end
+      post :assign, on: :collection
+    end
     resources :access_overviews, only: [:index]
     resources :user_groups do
       resources :users, only: [:create, :destroy], controller: 'user_groups/users'
