@@ -5,7 +5,6 @@
 ###
 
 class Hmis::Form::DefinitionValidator
-
   def self.perform(...)
     new.perform(...)
   end
@@ -27,7 +26,7 @@ class Hmis::Form::DefinitionValidator
     @issues.push(msg)
   end
 
-  def check_ids(document,  valid_pick_lists)
+  def check_ids(document, valid_pick_lists)
     seen_link_ids = Set.new
 
     recur_check = lambda do |item|
@@ -60,7 +59,7 @@ class Hmis::Form::DefinitionValidator
         end
 
         if child_item.key?('enable_when')
-          child_item['enable_when'].flat_map{ |h| h.values_at('question', 'compare_question') }.compact.each do |reference|
+          child_item['enable_when'].flat_map { |h| h.values_at('question', 'compare_question') }.compact.each do |reference|
             add_issue("Invalid link ID reference: #{reference} in 'enable_when' prop of #{link_id}") unless all_ids.include?(reference)
           end
         end
