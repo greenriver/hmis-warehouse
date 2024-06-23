@@ -6,7 +6,7 @@
   "item": [
     {
       "type": "BOOLEAN",
-      "link_id": "see-dob",
+      "link_id": "see_dob",
       "hidden": true,
       "initial": [
         {
@@ -17,7 +17,7 @@
     },
     {
       "type": "GROUP",
-      "link_id": "dob-horizontal-group",
+      "link_id": "dob_horizontal_group",
       "component": "HORIZONTAL_GROUP",
       "item": [
         {
@@ -31,7 +31,7 @@
           },
           "enable_when": [
             {
-              "question": "see-dob",
+              "question": "see_dob",
               "operator": "EQUAL",
               "answer_boolean": true
             }
@@ -47,12 +47,12 @@
         {
           "type": "GROUP",
           "component": "INFO_GROUP",
-          "link_id": "dob-group",
+          "link_id": "dob_group",
           "item": [
             {
               "type": "CHOICE",
               "required": false,
-              "link_id": "dob-dq",
+              "link_id": "dob_dq",
               "text": "DOB Data Quality",
               "mapping": {
                 "record_type": "CLIENT",
@@ -63,7 +63,7 @@
           ],
           "enable_when": [
             {
-              "question": "see-dob",
+              "question": "see_dob",
               "operator": "EQUAL",
               "answer_boolean": true
             }
@@ -73,7 +73,7 @@
     },
     {
       "type": "BOOLEAN",
-      "link_id": "see-ssn",
+      "link_id": "see_ssn",
       "hidden": true,
       "initial": [
         {
@@ -84,7 +84,7 @@
     },
     {
       "type": "GROUP",
-      "link_id": "ssn-horizontal-group",
+      "link_id": "ssn_horizontal_group",
       "component": "HORIZONTAL_GROUP",
       "item": [
         {
@@ -99,7 +99,7 @@
           "component": "SSN",
           "enable_when": [
             {
-              "question": "see-ssn",
+              "question": "see_ssn",
               "operator": "EQUAL",
               "answer_boolean": true
             }
@@ -108,12 +108,12 @@
         {
           "type": "GROUP",
           "component": "INFO_GROUP",
-          "link_id": "ssn-group",
+          "link_id": "ssn_group",
           "item": [
             {
               "type": "CHOICE",
               "required": false,
-              "link_id": "ssn-dq",
+              "link_id": "ssn_dq",
               "text": "SSN Data Quality",
               "mapping": {
                 "record_type": "CLIENT",
@@ -124,7 +124,7 @@
           ],
           "enable_when": [
             {
-              "question": "see-ssn",
+              "question": "see_ssn",
               "operator": "EQUAL",
               "answer_boolean": true
             }
@@ -136,12 +136,12 @@
   "enable_behavior": "ANY",
   "enable_when": [
     {
-      "question": "see-dob",
+      "question": "see_dob",
       "operator": "EQUAL",
       "answer_boolean": true
     },
     {
-      "question": "see-ssn",
+      "question": "see_ssn",
       "operator": "EQUAL",
       "answer_boolean": true
     }

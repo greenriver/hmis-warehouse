@@ -434,7 +434,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     @definition_struct ||= Oj.load(definition.to_json, mode: :compat, object_class: OpenStruct)
   end
 
-  # Hash { link_id => FormItem }
+  # Hash { link_id => FormItem }. Excludes group items
   def link_id_item_hash
     @link_id_item_hash ||= begin
       item_map = {}

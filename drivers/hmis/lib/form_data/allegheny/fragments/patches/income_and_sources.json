@@ -1,6 +1,6 @@
 [
   {
-    "link_id": "income-and-sources",
+    "link_id": "income_and_sources",
     "rule": {
       "operator": "ALL",
       "parts": [
@@ -43,7 +43,7 @@
     },
     "append_items": [
       {
-        "link_id": "ac-federal-poverty-level",
+        "link_id": "ac_federal_poverty_level",
         "text": "Federal Poverty Level",
         "type": "CHOICE",
         "mapping": {
@@ -53,17 +53,17 @@
         "enable_behavior": "ANY",
         "enable_when": [
           {
-            "question": "4.02.2",
+            "question": "q_4_02_2",
             "operator": "EQUAL",
             "answer_code": "YES"
           },
           {
-            "question": "4.02.2",
+            "question": "q_4_02_2",
             "operator": "EQUAL",
             "answer_code": "NO"
           },
           {
-            "question": "4.02.2",
+            "question": "q_4_02_2",
             "operator": "EXISTS",
             "answer_boolean": false
           }
@@ -121,7 +121,7 @@
       {
         "type": "GROUP",
         "required": false,
-        "link_id": "es-allowance",
+        "link_id": "es_allowance",
         "rule": {
           "operator": "ANY",
           "parts": [
@@ -152,7 +152,7 @@
             "type": "CHOICE",
             "required": false,
             "warn_if_empty": true,
-            "link_id": "es-allowance-referral",
+            "link_id": "es_allowance_referral",
             "text": "Was the client referred to the County Assistance Office for the Emergency Shelter Allowance Grant?",
             "brief_text": "Referred for ES Allowance Grant",
             "readonly_text": "Referred to the County Assistance Office Emergency Shelter Allowance Grant?",
@@ -180,13 +180,13 @@
           },
           {
             "type": "GROUP",
-            "link_id": "es-allowance-grant-conditionals",
+            "link_id": "es_allowance_grant_conditionals",
             "item": [
               {
                 "type": "CHOICE",
                 "required": false,
                 "warn_if_empty": true,
-                "link_id": "es-allowance-received",
+                "link_id": "es_allowance_received",
                 "text": "Did the client receive funding?",
                 "brief_text": "Received ES Allowance Grant",
                 "readonly_text": "Received Emergency Shelter Allowance Grant funding?",
@@ -197,7 +197,7 @@
                 "enable_behavior": "ALL",
                 "enable_when": [
                   {
-                    "question": "es-allowance-referral",
+                    "question": "es_allowance_referral",
                     "operator": "EQUAL",
                     "answer_code": "Yes"
                   }
@@ -224,7 +224,7 @@
                 "type": "CURRENCY",
                 "required": false,
                 "warn_if_empty": true,
-                "link_id": "es-allowance-amount",
+                "link_id": "es_allowance_amount",
                 "text": "How much?",
                 "brief_text": "ES Allowance Grant amount",
                 "readonly_text": "Amount received",
@@ -235,12 +235,12 @@
                 "enable_behavior": "ALL",
                 "enable_when": [
                   {
-                    "question": "es-allowance-referral",
+                    "question": "es_allowance_referral",
                     "operator": "EQUAL",
                     "answer_code": "Yes"
                   },
                   {
-                    "question": "es-allowance-received",
+                    "question": "es_allowance_received",
                     "operator": "EQUAL",
                     "answer_code": "Yes"
                   }
@@ -250,7 +250,7 @@
                 "type": "CHOICE",
                 "required": false,
                 "warn_if_empty": true,
-                "link_id": "es-allowance-not-received-reason",
+                "link_id": "es_allowance_not_received_reason",
                 "text": "Why not?",
                 "brief_text": "Reason ES Allowance Grant not received",
                 "readonly_text": "Reason ES Allowance Grant not received",
@@ -261,7 +261,7 @@
                 "enable_behavior": "ALL",
                 "enable_when": [
                   {
-                    "question": "es-allowance-referral",
+                    "question": "es_allowance_referral",
                     "operator": "EQUAL",
                     "answer_code": "No"
                   }

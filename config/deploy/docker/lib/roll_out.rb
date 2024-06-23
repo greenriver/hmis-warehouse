@@ -153,24 +153,6 @@ class RollOut
     end
   end
 
-  def bootstrap_databases!
-    name = target_group_name + '-deploy-tasks'
-
-    environment = default_environment.dup
-    environment << { 'name' => 'BOOTSTRAP_DATABASES', 'value' => 'true' }
-
-    _register_task!(
-      soft_mem_limit_mb: DEFAULT_SOFT_RAM_MB,
-      image: image_base,
-      environment: environment,
-      name: name,
-      command: ['/app/bin/deploy_tasks.sh'],
-      variant: 'deploy',
-    )
-
-    _run_task!
-  end
-
   def run_deploy_tasks!
     name = target_group_name + '-deploy-tasks'
 

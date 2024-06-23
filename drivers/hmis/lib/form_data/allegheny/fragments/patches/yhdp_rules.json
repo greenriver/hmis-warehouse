@@ -1,6 +1,6 @@
 [
   {
-    "link_id": "c3-youth-education-status",
+    "link_id": "c3_youth_education_status",
     "rule": {
       "operator": "ALL",
       "parts": [

@@ -63,12 +63,12 @@ task :form_definition_psde_alignment_report, [:start_date] => :environment do |_
         organization_name: project.organization.organization_name,
         project_name: project.project_name,
 
-        income_and_sources_link_id: 'income-and-sources'.in?(link_ids),
-        non_cash_benefits_link_id: 'non-cash-benefits'.in?(link_ids),
-        health_insurance_link_id: 'health-insurance'.in?(link_ids),
-        disability_table_link_id: 'disability-table'.in?(link_ids),
-        disability_table_8_link_id: 'disability-table-r4'.in?(link_ids), # hiv/aids
-        health_and_dvs_link_id: '4.11'.in?(link_ids),
+        income_and_sources_link_id: 'income_and_sources'.in?(link_ids),
+        non_cash_benefits_link_id: 'non_cash_benefits'.in?(link_ids),
+        health_insurance_link_id: 'health_insurance'.in?(link_ids),
+        disability_table_link_id: 'disability_table'.in?(link_ids),
+        disability_table_8_link_id: 'disability_table_r4'.in?(link_ids), # hiv/aids
+        health_and_dvs_link_id: 'q_4_11'.in?(link_ids),
 
         income_benefits_count: filter_scope(project.income_benefits).count,
         disability_count: filter_scope(project.disabilities.where.not(DisabilityType: [nil, 8])).count,
