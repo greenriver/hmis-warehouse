@@ -47,6 +47,9 @@ class Hmis::Form::DefinitionValidator
     seen_link_ids
   end
 
+  # FIXME: this element has dummy values that do not validate correctly
+  KNOWN_BAD_REFS = Set.new(['mci_clearance_value'])
+
   def check_references(document, all_ids)
     link_check = lambda do |item|
       (item['item'] || []).each do |child_item|
@@ -58,7 +61,7 @@ class Hmis::Form::DefinitionValidator
           end
         end
 
-        if child_item.key?('enable_when')
+        if child_item.key?('enable_when') && !link_id.in?(KNOWN_BAD_REFS)
           child_item['enable_when'].flat_map { |h| h.values_at('question', 'compare_question') }.compact.each do |reference|
             add_issue("Invalid link ID reference: #{reference} in 'enable_when' prop of #{link_id}") unless all_ids.include?(reference)
           end

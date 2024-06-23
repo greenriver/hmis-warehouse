@@ -1,8 +1,8 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Form Definition",
   "type": "object",
-  "unevaluatedProperties": false,
+  "additionalProperties": false,
   "required": [
     "item"
   ],
@@ -21,7 +21,7 @@
   "$defs": {
     "mapping": {
       "type": "object",
-      "unevaluatedProperties": false,
+      "additionalProperties": false,
       "properties": {
         "_comment": {
           "type": "string"
@@ -55,7 +55,7 @@
     },
     "pickListOption": {
       "type": "object",
-      "unevaluatedProperties": false,
+      "additionalProperties": false,
       "required": [
         "code"
       ],
@@ -88,7 +88,7 @@
     },
     "bounds": {
       "type": "object",
-      "unevaluatedProperties": false,
+      "additionalProperties": false,
       "required": [
         "id",
         "type"
@@ -107,7 +107,7 @@
           ]
         },
         "question": {
-          "type": "string"
+          "$ref": "#/$defs/linkId"
         },
         "value_local_constant": {
           "type": "string"
@@ -134,7 +134,7 @@
       "oneOf": [
         {
           "type": "object",
-          "unevaluatedProperties": false,
+          "additionalProperties": false,
           "properties": {
             "_comment": {
               "type": "string"
@@ -155,7 +155,7 @@
         },
         {
           "type": "object",
-          "unevaluatedProperties": false,
+          "additionalProperties": false,
           "properties": {
             "_comment": {
               "type": "string"
@@ -178,7 +178,7 @@
         },
         {
           "type": "object",
-          "unevaluatedProperties": false,
+          "additionalProperties": false,
           "properties": {
             "_comment": {
               "type": "string"
@@ -217,7 +217,7 @@
         },
         {
           "type": "object",
-          "unevaluatedProperties": false,
+          "additionalProperties": false,
           "properties": {
             "_comment": {
               "type": "string"
@@ -256,7 +256,7 @@
         },
         {
           "type": "object",
-          "unevaluatedProperties": false,
+          "additionalProperties": false,
           "properties": {
             "_comment": {
               "type": "string"
@@ -279,7 +279,7 @@
         },
         {
           "type": "object",
-          "unevaluatedProperties": false,
+          "additionalProperties": false,
           "properties": {
             "_comment": {
               "type": "string"
@@ -358,7 +358,7 @@
     },
     "initial": {
       "type": "object",
-      "unevaluatedProperties": false,
+      "additionalProperties": false,
       "required": [
         "initial_behavior"
       ],
@@ -388,16 +388,16 @@
     },
     "enableWhen": {
       "type": "object",
-      "unevaluatedProperties": false,
+      "additionalProperties": false,
       "properties": {
         "_comment": {
           "type": "string"
         },
         "question": {
-          "type": "string"
+          "$ref": "#/$defs/linkId"
         },
         "compare_question": {
-          "type": "string"
+          "$ref": "#/$defs/linkId"
         },
         "local_constant": {
           "type": "string"
@@ -438,7 +438,7 @@
     },
     "autofillValues": {
       "type": "object",
-      "unevaluatedProperties": false,
+      "additionalProperties": false,
       "required": [
         "autofill_behavior",
         "autofill_when"
@@ -457,7 +457,7 @@
           "type": "boolean"
         },
         "value_question": {
-          "type": "string"
+          "$ref": "#/$defs/linkId"
         },
         "autofill_readonly": {
           "type": "boolean"
@@ -477,33 +477,16 @@
         "sum_questions": {
           "type": "array",
           "items": {
-            "type": "string"
+            "$ref": "#/$defs/linkId"
           }
         }
       }
     },
     "formNode": {
       "type": "object",
-      "properties": {
-        "type": {
-          "enum": [
-            "BOOLEAN",
-            "CHOICE",
-            "CURRENCY",
-            "DATE",
-            "DISPLAY",
-            "FILE",
-            "GROUP",
-            "IMAGE",
-            "INTEGER",
-            "OBJECT",
-            "OPEN_CHOICE",
-            "STRING",
-            "TEXT",
-            "TIME_OF_DAY"
-          ]
-        }
-      },
+      "required": [
+        "type"
+      ],
       "allOf": [
         {
           "if": {
@@ -517,7 +500,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/inputFormNode"
+            "$ref": "#/$defs/booleanFormNode"
           }
         },
         {
@@ -547,7 +530,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/inputFormNode"
+            "$ref": "#/$defs/genericInputFormNode"
           }
         },
         {
@@ -562,7 +545,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/inputFormNode"
+            "$ref": "#/$defs/genericInputFormNode"
           }
         },
         {
@@ -592,7 +575,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/inputFormNode"
+            "$ref": "#/$defs/genericInputFormNode"
           }
         },
         {
@@ -622,7 +605,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/inputFormNode"
+            "$ref": "#/$defs/genericInputFormNode"
           }
         },
         {
@@ -667,7 +650,7 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/inputFormNode"
+            "$ref": "#/$defs/choiceFormNode"
           }
         },
         {
@@ -712,16 +695,16 @@
             }
           },
           "then": {
-            "$ref": "#/$defs/inputFormNode"
+            "$ref": "#/$defs/genericInputFormNode"
           }
         }
-      ]
+      ],
+      "unevaluatedProperties": false
     },
     "choiceFormNode": {
-      "unevaluatedProperties": false,
       "allOf": [
         {
-          "$ref": "#/$defs/inputFormNode"
+          "$ref": "#/$defs/genericInputFormNode"
         },
         {
           "type": "object",
@@ -760,8 +743,24 @@
         }
       ]
     },
+    "booleanFormNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/genericInputFormNode"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "component": {
+              "enum": [
+                "CHECKBOX"
+              ]
+            }
+          }
+        }
+      ]
+    },
     "displayFormNode": {
-      "unevaluatedProperties": false,
       "allOf": [
         {
           "$ref": "#/$defs/baseFormNode"
@@ -769,6 +768,18 @@
         {
           "type": "object",
           "properties": {
+            "autofill_values": {
+              "$comment": "used for display that includes calculations",
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/autofillValues"
+              }
+            },
+            "read_only": {
+              "$comment": "TODO: unclear what this means in a GROUP, add docs",
+              "type": "boolean"
+            },
             "component": {
               "enum": [
                 "ALERT_ERROR",
@@ -776,28 +787,58 @@
                 "ALERT_INFO",
                 "ALERT_WARNING"
               ]
+            },
+            "initial": {
+              "$comment": "used for display that includes calculations",
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/initial"
+              }
+            },
+            "mapping": {
+              "$comment": "used for display that includes calculations",
+              "$ref": "#/$defs/mapping"
+            },
+            "readonly_text": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
             }
           }
         }
       ]
     },
+    "dataCollectedAbout": {
+      "type": "object",
+      "properties": {
+        "data_collected_about": {
+          "enum": [
+            "ALL_CLIENTS",
+            "ALL_VETERANS",
+            "HOH",
+            "HOH_AND_ADULTS",
+            "VETERAN_HOH"
+          ]
+        }
+      }
+    },
     "groupFormNode": {
       "$comment": "Group form nodes",
-      "unevaluatedProperties": false,
       "allOf": [
         {
           "$ref": "#/$defs/baseFormNode"
         },
         {
+          "$ref": "#/$defs/dataCollectedAbout"
+        },
+        {
           "type": "object",
           "required": [
-            "type",
             "item"
           ],
           "properties": {
-            "type": {
-              "const": "GROUP"
-            },
             "component": {
               "enum": [
                 "DISABILITY_TABLE",
@@ -816,24 +857,21 @@
             "text": {
               "type": "string"
             },
-            "data_collected_about": {
-              "enum": [
-                "ALL_CLIENTS",
-                "ALL_VETERANS",
-                "HOH",
-                "HOH_AND_ADULTS",
-                "VETERAN_HOH"
-              ]
+            "readonly_text": {
+              "type": "string"
+            },
+            "prefill": {
+              "$comment": "TODO: unclear what this means in a GROUP, add docs",
+              "type": "boolean"
             }
           }
         }
       ]
     },
     "integerFormNode": {
-      "unevaluatedProperties": false,
       "allOf": [
         {
-          "$ref": "#/$defs/inputFormNode"
+          "$ref": "#/$defs/genericInputFormNode"
         },
         {
           "type": "object",
@@ -848,79 +886,12 @@
       ]
     },
     "objectFormNode": {
-      "unevaluatedProperties": false,
       "allOf": [
         {
-          "$ref": "#/$defs/baseFormNode"
+          "$ref": "#/$defs/baseInputFormNode"
         },
         {
           "properties": {
-            "type": {
-              "const": "OBJECT"
-            },
-            "hidden": {
-              "type": "boolean"
-            },
-            "prefix": {
-              "type": "string"
-            },
-            "brief_text": {
-              "type": "string"
-            },
-            "text": {
-              "type": "string"
-            },
-            "readonly_text": {
-              "type": "string"
-            },
-            "helper_text": {
-              "type": "string"
-            },
-            "required": {
-              "type": "boolean"
-            },
-            "assessment_date": {
-              "type": "boolean"
-            },
-            "read_only": {
-              "type": "boolean"
-            },
-            "warn_if_empty": {
-              "type": "boolean"
-            },
-            "pick_list_reference": {
-              "type": "string"
-            },
-            "mapping": {
-              "$ref": "#/$defs/mapping"
-            },
-            "project_types_excluded": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "bounds": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/bounds"
-              }
-            },
-            "repeats": {
-              "type": "boolean"
-            },
-            "size": {
-              "type": "string"
-            },
-            "service_detail_type": {
-              "type": "string"
-            },
-            "initial": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/initial"
-              }
-            },
             "component": {
               "enum": [
                 "NAME",
@@ -928,22 +899,15 @@
                 "PHONE",
                 "EMAIL"
               ]
-            },
-            "autofill_values": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/autofillValues"
-              }
             }
           }
         }
       ]
     },
     "stringFormNode": {
-      "unevaluatedProperties": false,
       "allOf": [
         {
-          "$ref": "#/$defs/inputFormNode"
+          "$ref": "#/$defs/genericInputFormNode"
         },
         {
           "type": "object",
@@ -960,32 +924,47 @@
         }
       ]
     },
-    "inputFormNode": {
-      "$comment": "Base properties for form inputs",
+    "textLabelRequired": {
+      "$comment": "Inputs must have a text field unless hidden",
+      "if": {
+        "not": {
+          "properties": {
+            "hidden": {
+              "const": true
+            }
+          },
+          "required": [
+            "hidden"
+          ]
+        }
+      },
+      "then": {
+        "required": [
+          "text"
+        ]
+      }
+    },
+    "genericInputFormNode": {
+      "$comment": "Generic form input",
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/baseInputFormNode"
+        },
+        {
+          "$ref": "#/$defs/textLabelRequired"
+        }
+      ]
+    },
+    "baseInputFormNode": {
+      "$comment": "Generic form input",
       "type": "object",
       "allOf": [
         {
           "$ref": "#/$defs/baseFormNode"
         },
         {
-          "$comment": "Inputs must have a text field unless hidden",
-          "if": {
-            "not": {
-              "properties": {
-                "hidden": {
-                  "const": true
-                }
-              },
-              "required": [
-                "hidden"
-              ]
-            }
-          },
-          "then": {
-            "required": [
-              "text"
-            ]
-          }
+          "$ref": "#/$defs/dataCollectedAbout"
         },
         {
           "properties": {
@@ -1024,12 +1003,14 @@
             },
             "project_types_excluded": {
               "type": "array",
+              "minItems": 1,
               "items": {
                 "type": "string"
               }
             },
             "bounds": {
               "type": "array",
+              "minItems": 1,
               "items": {
                 "$ref": "#/$defs/bounds"
               }
@@ -1045,12 +1026,14 @@
             },
             "initial": {
               "type": "array",
+              "minItems": 1,
               "items": {
                 "$ref": "#/$defs/initial"
               }
             },
             "autofill_values": {
               "type": "array",
+              "minItems": 1,
               "items": {
                 "$ref": "#/$defs/autofillValues"
               }
@@ -1065,12 +1048,18 @@
       "required": [
         "link_id"
       ],
+      "dependentRequired": {
+        "$comment": "when enable_behavior is set, require enable_when",
+        "enable_behavior": [
+          "enable_when"
+        ]
+      },
       "properties": {
         "_comment": {
           "type": "string"
         },
         "link_id": {
-          "type": "string"
+          "$ref": "#/$defs/linkId"
         },
         "hidden": {
           "type": "boolean"
@@ -1094,6 +1083,11 @@
           "type": "string"
         }
       }
+    },
+    "linkId": {
+      "$comment": "TODO should be a valid identifier",
+      "type": "string",
+      "pattern": "^[a-zA-Z_$][a-zA-Z0-9_$]*$"
     }
   }
 }
