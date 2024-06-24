@@ -3,7 +3,7 @@
   "item": [
     {
       "type": "DATE",
-      "link_id": "project-start",
+      "link_id": "project_start",
       "hidden": true,
       "initial": [
         {
@@ -14,7 +14,7 @@
     },
     {
       "type": "DATE",
-      "link_id": "project-end",
+      "link_id": "project_end",
       "hidden": true,
       "initial": [
         {
@@ -26,7 +26,7 @@
     {
       "type": "GROUP",
       "text": "Inventory Details",
-      "link_id": "inventory-detail",
+      "link_id": "inventory_detail",
       "required": false,
       "item": [
         {
@@ -35,7 +35,9 @@
           "link_id": "coc",
           "text": "CoC Code",
           "pick_list_reference": "COC",
-          "mapping": { "field_name": "cocCode" }
+          "mapping": {
+            "field_name": "cocCode"
+          }
         },
         {
           "type": "CHOICE",
@@ -44,16 +46,20 @@
           "component": "DROPDOWN",
           "text": "Household Type",
           "pick_list_reference": "HouseholdType",
-          "mapping": { "field_name": "householdType" }
+          "mapping": {
+            "field_name": "householdType"
+          }
         },
         {
           "type": "CHOICE",
           "required": false,
-          "link_id": "es-availability",
+          "link_id": "es_availability",
           "component": "RADIO_BUTTONS",
           "text": "Availability",
           "pick_list_reference": "Availability",
-          "mapping": { "field_name": "availability" },
+          "mapping": {
+            "field_name": "availability"
+          },
           "enable_behavior": "ANY",
           "enable_when": [
             {
@@ -71,11 +77,13 @@
         {
           "type": "CHOICE",
           "required": false,
-          "link_id": "es-bed-type",
+          "link_id": "es_bed_type",
           "component": "RADIO_BUTTONS",
           "text": "ES Bed Type",
           "pick_list_reference": "BedType",
-          "mapping": { "field_name": "esBedType" },
+          "mapping": {
+            "field_name": "esBedType"
+          },
           "enable_behavior": "ANY",
           "enable_when": [
             {
@@ -93,48 +101,52 @@
         {
           "type": "DATE",
           "required": true,
-          "link_id": "2.07.1",
+          "link_id": "q_2_07_1",
           "text": "Start Date",
-          "mapping": { "field_name": "inventoryStartDate" },
+          "mapping": {
+            "field_name": "inventoryStartDate"
+          },
           "bounds": [
             {
               "id": "min-start-date",
               "type": "MIN",
-              "question": "project-start"
+              "question": "project_start"
             },
             {
               "id": "max-start-date-project-end",
               "type": "MAX",
-              "question": "project-end"
+              "question": "project_end"
             },
             {
               "id": "max-start-date-inventory-end",
               "type": "MAX",
-              "question": "2.07.2"
+              "question": "q_2_07_2"
             }
           ]
         },
         {
           "type": "DATE",
           "required": false,
-          "link_id": "2.07.2",
+          "link_id": "q_2_07_2",
           "text": "End Date",
-          "mapping": { "field_name": "inventoryEndDate" },
+          "mapping": {
+            "field_name": "inventoryEndDate"
+          },
           "bounds": [
             {
               "id": "min-end-date",
               "type": "MIN",
-              "question": "project-start"
+              "question": "project_start"
             },
             {
               "id": "max-end-date-project-end",
               "type": "MAX",
-              "question": "project-end"
+              "question": "project_end"
             },
             {
               "id": "max-end-date-inventory-start",
               "type": "MIN",
-              "question": "2.07.1"
+              "question": "q_2_07_1"
             }
           ]
         }
@@ -143,68 +155,86 @@
     {
       "type": "GROUP",
       "text": "Beds and Units",
-      "link_id": "beds-and-units",
+      "link_id": "beds_and_units",
       "item": [
         {
           "type": "INTEGER",
           "link_id": "unit",
           "text": "Unit Inventory",
-          "mapping": { "field_name": "unitInventory" },
+          "mapping": {
+            "field_name": "unitInventory"
+          },
           "required": true
         },
         {
           "type": "GROUP",
-          "link_id": "beds-group",
+          "link_id": "beds_group",
           "component": "INPUT_GROUP",
           "text": "Bed Inventory",
           "item": [
             {
               "type": "INTEGER",
-              "link_id": "ch-beds",
+              "link_id": "ch_beds",
               "text": "Chronic",
-              "mapping": { "field_name": "chBedInventory" }
+              "mapping": {
+                "field_name": "chBedInventory"
+              }
             },
             {
               "type": "INTEGER",
-              "link_id": "vet-beds",
+              "link_id": "vet_beds",
               "text": "Veteran",
-              "mapping": { "field_name": "vetBedInventory" }
+              "mapping": {
+                "field_name": "vetBedInventory"
+              }
             },
             {
               "type": "INTEGER",
-              "link_id": "ch-vet-beds",
+              "link_id": "ch_vet_beds",
               "text": "Chronic Veteran",
-              "mapping": { "field_name": "chVetBedInventory" }
+              "mapping": {
+                "field_name": "chVetBedInventory"
+              }
             },
             {
               "type": "INTEGER",
-              "link_id": "youth-beds",
+              "link_id": "youth_beds",
               "text": "Youth",
-              "mapping": { "field_name": "youthBedInventory" }
+              "mapping": {
+                "field_name": "youthBedInventory"
+              }
             },
             {
               "type": "INTEGER",
-              "link_id": "youth-vet-beds",
+              "link_id": "youth_vet_beds",
               "text": "Youth Veteran",
-              "mapping": { "field_name": "youthVetBedInventory" }
+              "mapping": {
+                "field_name": "youthVetBedInventory"
+              }
             },
             {
               "type": "INTEGER",
-              "link_id": "ch-youth-beds",
+              "link_id": "ch_youth_beds",
               "text": "Chronic Youth",
-              "mapping": { "field_name": "chYouthBedInventory" }
+              "mapping": {
+                "field_name": "chYouthBedInventory"
+              }
             },
             {
               "type": "INTEGER",
-              "link_id": "other-beds",
+              "link_id": "other_beds",
               "text": "Other",
-              "mapping": { "field_name": "otherBedInventory" }
+              "mapping": {
+                "field_name": "otherBedInventory"
+              }
             },
             {
               "type": "DISPLAY",
               "link_id": "sum",
               "text": "Total Bed Count",
-              "mapping": { "field_name": "bedInventory" },
+              "mapping": {
+                "field_name": "bedInventory"
+              },
               "required": true,
               "initial": [
                 {
@@ -216,15 +246,17 @@
                 {
                   "autofill_readonly": true,
                   "autofill_behavior": "ANY",
-                  "autofill_when": [],
+                  "autofill_when": [
+
+                  ],
                   "sum_questions": [
-                    "ch-beds",
-                    "vet-beds",
-                    "ch-vet-beds",
-                    "youth-beds",
-                    "youth-vet-beds",
-                    "ch-youth-beds",
-                    "other-beds"
+                    "ch_beds",
+                    "vet_beds",
+                    "ch_vet_beds",
+                    "youth_beds",
+                    "youth_vet_beds",
+                    "ch_youth_beds",
+                    "other_beds"
                   ]
                 }
               ]

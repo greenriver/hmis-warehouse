@@ -42,6 +42,7 @@ class Collection < ApplicationRecord
   belongs_to :user, optional: true
 
   validates_presence_of :name, unless: :user_id
+  validates_presence_of :collection_type, on: :create
 
   scope :general, -> do
     not_hidden.where(user_id: nil)
@@ -183,6 +184,19 @@ class Collection < ApplicationRecord
     entity_types.slice(*relevant_types)
   end
 
+  def self.collection_type_from(relation)
+    case relation
+    when :data_sources, :organizations, :project_access_groups, :coc_codes, :projects
+      'Projects'
+    when :project_groups
+      'Project Groups'
+    when :reports
+      'Reports'
+    when :cohorts
+      'Cohorts'
+    end
+  end
+
   def overall_project_count
     @overall_project_count ||= Set.new.tap do |ids|
       ids.merge projects.pluck(:id)
@@ -281,13 +295,34 @@ class Collection < ApplicationRecord
 
   def self.system_collections
     {
-      hmis_reports: Collection.where(name: 'All HMIS Reports', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
-      health_reports: Collection.where(name: 'All Health Reports', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
-      cohorts: Collection.where(name: 'All Cohorts', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
-      project_groups: Collection.where(name: 'All Project Groups', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
-      data_sources: Collection.where(name: 'All Data Sources', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
-      system_user: Collection.where(name: 'Hidden System Group', must_exist: true).first_or_create { |g| g.system = ['Entities', 'Hidden'] },
-      window_data_sources: Collection.where(name: 'Window Data Sources', must_exist: true).first_or_create { |g| g.system = ['Entities'] },
+      hmis_reports: Collection.where(name: 'All HMIS Reports', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Reports'
+      end,
+      health_reports: Collection.where(name: 'All Health Reports', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Reports'
+      end,
+      cohorts: Collection.where(name: 'All Cohorts', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Cohorts'
+      end,
+      project_groups: Collection.where(name: 'All Project Groups', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Project Groups'
+      end,
+      data_sources: Collection.where(name: 'All Data Sources', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Projects'
+      end,
+      system_user: Collection.where(name: 'Hidden System Group', must_exist: true).first_or_create do |g|
+        g.system = ['Entities', 'Hidden']
+        g.collection_type = 'Projects'
+      end,
+      window_data_sources: Collection.where(name: 'Window Data Sources', must_exist: true).first_or_create do |g|
+        g.system = ['Entities']
+        g.collection_type = 'Projects'
+      end,
     }
   end
 
@@ -480,6 +515,10 @@ class Collection < ApplicationRecord
 
   def associated_entity_set
     @associated_entity_set ||= group_viewable_entities.pluck(:entity_type, :entity_id).sort.to_set
+  end
+
+  def class_name_for_viewable_type(type)
+    viewable_types[type]
   end
 
   private def viewable_types

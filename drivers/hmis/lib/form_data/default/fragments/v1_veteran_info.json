@@ -57,7 +57,7 @@
   "item": [
     {
       "type": "INTEGER",
-      "link_id": "V1.1",
+      "link_id": "V1_1",
       "required": false,
       "text": "Year Entered Military Service",
       "mapping": {
@@ -67,7 +67,7 @@
     },
     {
       "type": "INTEGER",
-      "link_id": "V1.2",
+      "link_id": "V1_2",
       "required": false,
       "text": "Year Separated from Military Service",
       "mapping": {
@@ -77,14 +77,14 @@
     },
     {
       "type": "GROUP",
-      "link_id": "theater-of-operations-group",
+      "link_id": "theater_of_operations_group",
       "text": "Theater of Operations",
       "item": [
         {
           "type": "CHOICE",
           "pick_list_reference": "NoYesReasonsForMissingData",
           "component": "RADIO_BUTTONS",
-          "link_id": "V1.3",
+          "link_id": "V1_3",
           "text": "World War II",
           "mapping": {
             "record_type": "CLIENT",
@@ -95,7 +95,7 @@
           "type": "CHOICE",
           "pick_list_reference": "NoYesReasonsForMissingData",
           "component": "RADIO_BUTTONS",
-          "link_id": "V1.4",
+          "link_id": "V1_4",
           "text": "Korean War",
           "mapping": {
             "record_type": "CLIENT",
@@ -106,7 +106,7 @@
           "type": "CHOICE",
           "pick_list_reference": "NoYesReasonsForMissingData",
           "component": "RADIO_BUTTONS",
-          "link_id": "V1.5",
+          "link_id": "V1_5",
           "text": "Vietnam War",
           "mapping": {
             "record_type": "CLIENT",
@@ -117,7 +117,7 @@
           "type": "CHOICE",
           "pick_list_reference": "NoYesReasonsForMissingData",
           "component": "RADIO_BUTTONS",
-          "link_id": "V1.6",
+          "link_id": "V1_6",
           "text": "Persian Gulf War (Operation Desert Storm)",
           "mapping": {
             "record_type": "CLIENT",
@@ -128,7 +128,7 @@
           "type": "CHOICE",
           "pick_list_reference": "NoYesReasonsForMissingData",
           "component": "RADIO_BUTTONS",
-          "link_id": "V1.7",
+          "link_id": "V1_7",
           "text": "Afghanistan (Operation Enduring Freedom)",
           "mapping": {
             "record_type": "CLIENT",
@@ -139,7 +139,7 @@
           "type": "CHOICE",
           "pick_list_reference": "NoYesReasonsForMissingData",
           "component": "RADIO_BUTTONS",
-          "link_id": "V1.8",
+          "link_id": "V1_8",
           "text": "Iraq (Operation Iraqi Freedom)",
           "mapping": {
             "record_type": "CLIENT",
@@ -150,7 +150,7 @@
           "type": "CHOICE",
           "pick_list_reference": "NoYesReasonsForMissingData",
           "component": "RADIO_BUTTONS",
-          "link_id": "V1.9",
+          "link_id": "V1_9",
           "text": "Iraq (Operation New Dawn)",
           "mapping": {
             "record_type": "CLIENT",
@@ -161,7 +161,7 @@
           "type": "CHOICE",
           "pick_list_reference": "NoYesReasonsForMissingData",
           "component": "RADIO_BUTTONS",
-          "link_id": "V1.10",
+          "link_id": "V1_10",
           "text": "Other Peace-keeping Operations or Military Interventions (such as Lebanon, Panama, Somalia, Bosnia, Kosovo)",
           "mapping": {
             "record_type": "CLIENT",
@@ -172,7 +172,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "V1.11",
+      "link_id": "V1_11",
       "required": false,
       "text": "Branch of the Military",
       "pick_list_reference": "MilitaryBranch",
@@ -183,7 +183,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "V1.12",
+      "link_id": "V1_12",
       "required": false,
       "text": "Discharge Status",
       "pick_list_reference": "DischargeStatus",

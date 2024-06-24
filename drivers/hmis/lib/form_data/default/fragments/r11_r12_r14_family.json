@@ -1,6 +1,6 @@
 {
   "type": "GROUP",
-  "link_id": "rhy-entry",
+  "link_id": "rhy_entry",
   "text": "Family",
   "data_collected_about": "HOH_AND_ADULTS",
   "prefill": true,

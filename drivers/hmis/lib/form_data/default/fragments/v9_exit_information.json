@@ -17,7 +17,7 @@
   "item": [
     {
       "type": "CHOICE",
-      "link_id": "V9.1",
+      "link_id": "V9_1",
       "required": false,
       "text": "Case Management Exit Reason",
       "pick_list_reference": "CmExitReason",

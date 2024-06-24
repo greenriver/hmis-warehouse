@@ -1,6 +1,6 @@
 [
   {
-    "link_id": "non-cash-benefits",
+    "link_id": "non_cash_benefits",
     "rule": {
       "operator": "ALL",
       "parts": [
