@@ -67,7 +67,7 @@ module SystemPathways::Equity::RaceAndEthnicity
       white: ->(race_data) { single_race(race_data, 'white') },
       white_hispanic_latinaeo: ->(race_data) { single_race_latinaeo(race_data, 'white') },
 
-      # For interdependent race information, counting is u sed to determinethe number of true values
+      # For interdependent race information, counting is used to determine the number of true values
       # recorded in a client's race hash
       hispanic_latinaeo: ->(race_data) do
         race_data.select { |client_race_hash| client_race_hash['hispanic_latinaeo'] }. # Hispanic/Latinaeo
