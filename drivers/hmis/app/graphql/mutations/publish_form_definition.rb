@@ -26,6 +26,7 @@ module Mutations
 
       Hmis::Form::Definition.transaction do
         previous_published_form&.update!(status: Hmis::Form::Definition::RETIRED)
+        definition.set_hud_requirements # ensure hud req's. may modify form
         definition.save!
       end
 

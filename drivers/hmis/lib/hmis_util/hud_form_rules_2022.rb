@@ -296,6 +296,15 @@ module HmisUtil
       },
     }.freeze
 
+    def role_to_link_ids
+      @role_to_link_ids ||= HUD_LINK_ID_RULES.each_with_object({}) do |(link_id, config), hash|
+        config[:stages].each do |role|
+          hash[role] ||= []
+          hash[role] << link_id
+        end
+      end
+    end
+
     def hud_data_element?(form_role, link_id)
       HUD_LINK_ID_RULES.key?(link_id) && HUD_LINK_ID_RULES[link_id][:stages].include?(form_role)
     end
@@ -304,6 +313,10 @@ module HmisUtil
       return unless hud_data_element?(form_role, link_id)
 
       HUD_LINK_ID_RULES[link_id][:rule]
+    end
+
+    def required_link_ids_for_role(role)
+      role_to_link_ids[role] || []
     end
   end
 end

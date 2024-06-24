@@ -75,12 +75,6 @@ module Mutations
         converted[key] = recursively_transform(converted[key])
       end
 
-      # If this is an Item and it is a HUD Item, set the basic rule to ensure it wasn't changed?
-      if converted.key?('link_id')
-        hud_rule = HmisUtil::HudFormRules2022.hud_data_element_rule(definition.role, converted['link_id'])
-        converted['rule'] = hud_rule if hud_rule
-      end
-
       converted
     end
   end
