@@ -33,6 +33,7 @@ module Mutations
       # Find or create record
       if input.record_id.present?
         record = klass.viewable_by(current_user).find_by(id: input.record_id)
+        record = record.owner if record.is_a?(Hmis::Hud::HmisService)
         record.lock_version = record_lock_version if record_lock_version
         entity_for_permissions = record # If we're editing an existing record, always use that as the permission base
       else
@@ -57,13 +58,12 @@ module Mutations
       end
       access_denied! unless allowed
 
-      # Build FormProcessor
-      # It wont be persisted, but it handles validation and updating the relevant record(s)
-      form_processor = Hmis::Form::FormProcessor.new(
-        definition: definition,
-        values: input.values,
-        hud_values: input.hud_values,
-      )
+      # Use existing FormProcessor or build a new one. The FormProcessor handles validating + processing the values into the database,
+      # updating any related record(s), and storing references to related records.
+      form_processor = record.form_processor || record.build_form_processor
+      form_processor.definition = definition # Definition could be different from the last time this record was submitted
+      form_processor.values = input.values # Values keyed by link_id are used for validating against the FormDefinition
+      form_processor.hud_values = input.hud_values # Fields keyed by field name are saved to the database
 
       # Validate based on FormDefinition
       errors = HmisErrors::Errors.new
@@ -71,8 +71,7 @@ module Mutations
       errors.push(*form_validations)
 
       # Run processor to assign attributes to the record(s)
-      form_processor.run!(owner: record, user: current_user)
-
+      form_processor.run!(user: current_user)
       # Validate record. Pass 2 contexts: 1 for general form submission, 1 for this specific role.
       is_valid = record.valid?([:form_submission, "#{definition.role.to_s.downcase}_form".to_sym])
 
@@ -87,11 +86,7 @@ module Mutations
       if is_valid
         # Perform any side effects
         perform_side_effects(record)
-
         case record
-        when Hmis::Hud::HmisService
-          record.owner.save! # Save the actual service record
-          record = Hmis::Hud::HmisService.find_by(owner: record.owner) # Refresh from View
         when HmisExternalApis::AcHmis::ReferralRequest
           HmisExternalApis::AcHmis::CreateReferralRequestJob.perform_now(record)
         when Hmis::Hud::Enrollment
@@ -111,10 +106,13 @@ module Mutations
           record.touch
         end
 
+        # Save FormProcessor, which may save any related records
+        form_processor.save!
+
         if record.respond_to?(:enrollment)
           # Update DateUpdated on the Enrollment, if record is Enrollment-related
           record.enrollment&.touch
-          # Update Enrollment itself in case this form changed any fields on Enrollment
+          # Save Enrollment, in case this form changed any fields on Enrollment
           record.enrollment&.save!
         end
       else
@@ -122,8 +120,13 @@ module Mutations
         record = nil
       end
 
-      # Reload to get changes from post_save actions, such as newly created MCI ID.
-      record&.reload
+      # resolve service as view model
+      if record.is_a?(Hmis::Hud::Service) || record.is_a?(Hmis::Hud::CustomService)
+        record = Hmis::Hud::HmisService.find_by(owner: record)
+      else
+        # Reload to get changes from post_save actions, such as newly created MCI ID.
+        record&.reload
+      end
 
       {
         record: record,
@@ -166,14 +169,15 @@ module Mutations
       when 'Hmis::Hud::CurrentLivingSituation'
         [enrollment, klass.new({ personal_id: enrollment&.personal_id, enrollment_id: enrollment&.enrollment_id, **ds })]
       when 'Hmis::Hud::HmisService'
-        [
-          enrollment, klass.new({
-                                  enrollment_id: enrollment&.EnrollmentID,
-                                  personal_id: enrollment&.PersonalID,
-                                  custom_service_type_id: custom_service_type&.id,
-                                  **ds,
-                                })
-        ]
+        raise 'cannot create service without custom service type' unless custom_service_type.present?
+
+        attrs = { enrollment_id: enrollment&.EnrollmentID, personal_id: enrollment&.PersonalID, **ds }
+        service = if custom_service_type.hud_service?
+          Hmis::Hud::Service.new(record_type: custom_service_type.hud_record_type, type_provided: custom_service_type.hud_type_provided, **attrs)
+        else
+          Hmis::Hud::CustomService.new(custom_service_type: custom_service_type, **attrs)
+        end
+        [enrollment, service]
       when 'HmisExternalApis::AcHmis::ReferralRequest'
         [project, klass.new({ project_id: project&.id })]
       when 'HmisExternalApis::AcHmis::ReferralPosting'

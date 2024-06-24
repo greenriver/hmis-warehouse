@@ -7,7 +7,7 @@
 class Hmis::Hud::Project < Hmis::Hud::Base
   include ::HmisStructure::Project
   include ::Hmis::Hud::Concerns::Shared
-  include ::Hmis::Hud::Concerns::HasCustomDataElements
+  include ::Hmis::Hud::Concerns::FormSubmittable
   include ActiveModel::Dirty
 
   has_paper_trail(meta: { project_id: :id })
@@ -121,7 +121,14 @@ class Hmis::Hud::Project < Hmis::Hud::Base
 
     search_term.strip!
     query = "%#{search_term.split(/\W+/).join('%')}%"
-    where(p_t[:ProjectName].matches(query).or(p_t[:id].eq(search_term)).or(p_t[:project_id].eq(search_term)))
+
+    where(
+      [
+        p_t[:ProjectName].matches(query),
+        p_t[:project_id].eq(search_term),
+        possibly_pk?(search_term) ? p_t[:id].eq(search_term) : nil,
+      ].compact.inject(&:or),
+    )
   end
 
   SORT_OPTIONS = [:organization_and_name, :name].freeze

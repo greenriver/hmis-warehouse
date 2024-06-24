@@ -9,8 +9,8 @@ module GrdaWarehouse
     module StateScopes
       extend ActiveSupport::Concern
       included do
-        scope :my_state, -> { where(statefp: my_fips_state_code) }
-        scope :not_my_state, -> { where.not(statefp: my_fips_state_code) }
+        scope :my_states, -> { where(statefp: my_fips_state_codes) }
+        scope :not_my_states, -> { where.not(statefp: my_fips_state_codes) }
       end
     end
   end

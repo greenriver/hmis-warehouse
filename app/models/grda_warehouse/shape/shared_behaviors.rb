@@ -62,8 +62,8 @@ module GrdaWarehouse
           'geoid'
         end
 
-        def my_fips_state_code
-          @my_fips_state_code ||= State.find_by!(stusps: ENV['RELEVANT_COC_STATE']).geoid
+        def my_fips_state_codes
+          @my_fips_state_codes ||= State.where(stusps: GrdaWarehouse::Config.relevant_state_codes).map(&:geoid)
         end
 
         def all_we_need?
