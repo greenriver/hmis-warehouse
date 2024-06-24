@@ -40,18 +40,12 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     response, result = post_graphql(id: fd1.id) { mutation }
     expect(response.status).to eq(200), result.inspect
     expect(result.dig('data', 'publishFormDefinition', 'formIdentifier', 'publishedVersion', 'id')).to eq(fd1.id.to_s)
-    expect(
-      Hmis::Form::Definition.where(
-        identifier: fd1.identifier,
-        status: Hmis::Form::Definition::DRAFT,
-      ),
-    ).to be_empty
+    expect(fd1.reload.status).to eq(Hmis::Form::Definition::PUBLISHED)
+    expect(Hmis::Form::Definition.where(identifier: fd1.identifier).draft).to be_empty
   end
 
   it 'should fail if the definition is not a draft' do
-    response, result = post_graphql(id: fd2.id) { mutation }
-    expect(response.status).to eq(500), result.inspect
-    expect(result.dig('errors', 0, 'message')).to eq('only draft forms can be published')
+    expect_gql_error post_graphql(id: fd2.id) { mutation }, message: 'only draft forms can be published'
   end
 
   it 'should retire the previous published version' do
@@ -59,25 +53,8 @@ RSpec.describe Hmis::GraphqlController, type: :request do
     expect(response.status).to eq(200), result.inspect
     expect(result.dig('data', 'publishFormDefinition', 'formIdentifier', 'publishedVersion', 'id')).to eq(fd3_v2.id.to_s)
 
-    expect(
-      Hmis::Form::Definition.where(
-        identifier: fd3_v2.identifier,
-        status: Hmis::Form::Definition::DRAFT,
-      ),
-    ).to be_empty
-
-    expect(
-      Hmis::Form::Definition.where(
-        identifier: fd3_v2.identifier,
-        status: Hmis::Form::Definition::PUBLISHED,
-      ).first.id,
-    ).to eq(fd3_v2.id)
-
-    expect(
-      Hmis::Form::Definition.where(
-        identifier: fd3_v2.identifier,
-        status: Hmis::Form::Definition::RETIRED,
-      ).last.id,
-    ).to eq(fd3_v1.id), 'the one that was previously published should now be retired'
+    expect(fd3_v2.reload.status).to eq(Hmis::Form::Definition::PUBLISHED)
+    expect(fd3_v1.reload.status).to eq(Hmis::Form::Definition::RETIRED), 'the one that was previously published should now be retired'
+    expect(Hmis::Form::Definition.where(identifier: fd3_v2.identifier).draft).to be_empty
   end
 end
