@@ -5,9 +5,14 @@
 ###
 
 module HmisUtil
-  class HudFormRules2022
+  class HudFormRules2024
     # Keys match Link IDs in our Form Definition fragments for HUD data elements
     HUD_LINK_ID_RULES = {
+      # CoC Code for Client Location
+      q_3_16: {
+        stages: [:INTAKE],
+        data_collected_about: :HOH,
+      },
       # Prior Living Situation A
       q_3_917A: {
         # Data Collection Stages you are required to collect per HUD (only required if rule matches)
@@ -306,17 +311,23 @@ module HmisUtil
     end
 
     def hud_data_element?(form_role, link_id)
-      HUD_LINK_ID_RULES.key?(link_id) && HUD_LINK_ID_RULES[link_id][:stages].include?(form_role)
+      HUD_LINK_ID_RULES.key?(link_id.to_sym) && HUD_LINK_ID_RULES[link_id.to_sym][:stages].include?(form_role.to_sym)
     end
 
     def hud_data_element_rule(form_role, link_id)
-      return unless hud_data_element?(form_role, link_id)
+      return unless hud_data_element?(form_role.to_sym, link_id.to_sym)
 
-      HUD_LINK_ID_RULES[link_id][:rule]
+      HUD_LINK_ID_RULES[link_id.to_sym][:rule]
+    end
+
+    def hud_data_element_data_collected_about(form_role, link_id)
+      return unless hud_data_element?(form_role.to_sym, link_id.to_sym)
+
+      HUD_LINK_ID_RULES[link_id.to_sym][:data_collected_about]
     end
 
     def required_link_ids_for_role(role)
-      role_to_link_ids[role] || []
+      role_to_link_ids[role.to_sym] || []
     end
   end
 end

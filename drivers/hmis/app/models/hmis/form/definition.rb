@@ -605,27 +605,35 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     cded_records
   end
 
-  def set_hud_requirements(year: '2022')
+  def set_hud_requirements(year: '2024')
     rule_module = case year
-    when '2022'
-      HmisUtil::HudFormRules2022.new
+    when '2024'
+      HmisUtil::HudFormRules2024.new
     else
       raise "Unsupported year: #{year}"
     end
 
     walk_definition_items do |item|
-      # rule will only return if the role represents a data collection stage that REQUIRES this data element (per HUD)
+      # Rule will only return if the role represents a data collection stage that requires this data element (per HUD)
       hud_rule = rule_module.hud_data_element_rule(role, item['link_id'])
-
       item['rule'] = hud_rule if hud_rule
-      # TODO: set Data Collected About too
+
+      # Set Data Collected About, or ensure current value doesn't violate HUD requirements
+      required_dca = rule_module.hud_data_element_data_collected_about(role, item['link_id'])
+      next unless required_dca
+
+      # choose the less strict "data collected about". e.g. if HUD requires it for HOH, it's OK to collect it for HOH and Adults
+      current_dca = item['data_collected_about']
+      chosen_dca = [required_dca, current_dca].compact.min_by { |val| Hmis::Form::InstanceEnrollmentMatch::MATCHES.find_index(val.to_s) }&.to_s
+
+      item['data_collected_about'] = chosen_dca
     end
 
     # Fail if there are link_ids that are required for this role that aren't present in the form (e.g. destination missing on Exit)
     # This should probably move to the validator
-    required_link_ids = rule_module.required_link_ids_for_role(role)
-    present_link_ids = link_id_item_hash.keys
-    missing_link_ids = required_link_ids - present_link_ids
-    raise "Missing required link IDs for role #{role}: #{missing_link_ids}" if missing_link_ids.any?
+    # required_link_ids = rule_module.required_link_ids_for_role(role)
+    # present_link_ids = link_id_item_hash.keys
+    # missing_link_ids = required_link_ids - present_link_ids
+    # raise "Missing required link IDs for role #{role}: #{missing_link_ids}" if missing_link_ids.any?
   end
 end

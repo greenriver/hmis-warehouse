@@ -19,8 +19,6 @@ module Mutations
       raise 'only allowed to modify draft forms' unless definition.draft?
       raise 'not allowed to change identifier' if input.identifier.present? && input.identifier != definition.identifier
 
-      # TODO: enforce that you can't change the rule fields?
-
       # This mutation can be used to update the definition or the title/role, which is why definition is optional.
       definition.assign_attributes(**input.to_attributes) unless input.to_attributes.blank?
 
