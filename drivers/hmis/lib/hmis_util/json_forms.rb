@@ -241,8 +241,6 @@ module HmisUtil
       # Resolve all fragments, so we have a full definition
       resolve_all_fragments!(form_definition)
 
-      # TODO: Apply rules from HmisUtil::HudFormRules2022::HUD_LINK_ID_RULES and remove them from default fragment json files
-
       # Apply any client-specific patches
       apply_all_patches!(form_definition, identifier: identifier)
 

@@ -34,8 +34,6 @@ module Mutations
 
       errors = HmisErrors::Errors.new
       ::HmisUtil::JsonForms.new.tap do |builder|
-        # TODO: validation should check that Data Collected About was not restricted beyond the HUD minimum, and show a nice warning about it.
-        # (For example if you are required to collected health insurance for ALL_CLIENTS by HUD, you can't restrict it to just HOH_AND_ADULTS)
         builder.validate_definition(definition.definition) { |err| errors.add(:definition, message: err) }
       end
 
