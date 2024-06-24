@@ -118,9 +118,9 @@ module SystemPathways::WarehouseReports
         else
           'Served by Homeless System'
         end
-        @clients = @clients.preload(:client)
         @details_title = "#{@source_title} → #{@target}"
       end
+      @clients = @clients.preload(:client)
     end
 
     private def filtering_show?
