@@ -27,6 +27,7 @@
       "text": "Current Living Situation",
       "pick_list_reference": "CURRENT_LIVING_SITUATION",
       "mapping": {
+        "record_type": "CURRENT_LIVING_SITUATION",
         "field_name": "currentLivingSituation"
       }
     }

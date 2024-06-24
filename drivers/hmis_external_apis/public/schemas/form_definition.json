@@ -22,6 +22,18 @@
     "mapping": {
       "type": "object",
       "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "field_name"
+          ]
+        },
+        {
+          "required": [
+            "custom_field_key"
+          ]
+        }
+      ],
       "properties": {
         "_comment": {
           "type": "string"
@@ -777,7 +789,6 @@
               }
             },
             "read_only": {
-              "$comment": "TODO: unclear what this means in a GROUP, add docs",
               "type": "boolean"
             },
             "component": {
@@ -861,7 +872,7 @@
               "type": "string"
             },
             "prefill": {
-              "$comment": "TODO: unclear what this means in a GROUP, add docs",
+              "$comment": "Enables the 'fill' button (select a previous assessment to populate from). It's only used on HUD assessments and only on top-level nodes",
               "type": "boolean"
             }
           }
@@ -1001,13 +1012,6 @@
             "mapping": {
               "$ref": "#/$defs/mapping"
             },
-            "project_types_excluded": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
-                "type": "string"
-              }
-            },
             "bounds": {
               "type": "array",
               "minItems": 1,
@@ -1085,7 +1089,6 @@
       }
     },
     "linkId": {
-      "$comment": "TODO should be a valid identifier",
       "type": "string",
       "pattern": "^[a-zA-Z_$][a-zA-Z0-9_$]*$"
     }

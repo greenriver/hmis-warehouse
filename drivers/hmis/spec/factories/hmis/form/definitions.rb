@@ -25,7 +25,7 @@ FactoryBot.define do
                 'warn_if_empty': false,
                 'text': 'Information Date',
                 'assessment_date': true,
-                'mapping': { 'field_name': 'informationDate', 'custom_field_key': 'informationDate' },
+                'mapping': { 'field_name': 'informationDate' },
               },
               {
                 'type': 'INTEGER',
@@ -33,7 +33,7 @@ FactoryBot.define do
                 'required': true,
                 'warn_if_empty': false,
                 'brief_text': 'The Required Field',
-                'mapping': { 'field_name': 'fieldOne', 'custom_field_key': 'fieldOne' },
+                'mapping': { 'field_name': 'fieldOne' },
               },
               {
                 'type': 'CHOICE',
@@ -41,7 +41,7 @@ FactoryBot.define do
                 'required': false,
                 'warn_if_empty': true,
                 'text': 'Choice field',
-                'mapping': { 'field_name': 'fieldTwo', 'custom_field_key': 'fieldTwo' },
+                'mapping': { 'field_name': 'fieldTwo' },
               },
             ],
           },
