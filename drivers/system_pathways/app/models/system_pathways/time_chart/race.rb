@@ -12,7 +12,7 @@ module SystemPathways::TimeChart::Race
       chart: 'race',
       config: {
         size: {
-          height: 2400,
+          height: project_type_node_names.count * race_columns.count * 30,
         },
       },
       data: race_data,

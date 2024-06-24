@@ -12,7 +12,7 @@ module SystemPathways::TimeChart::RaceAndEthnicity
       chart: 'race_and_ethnicity',
       config: {
         size: {
-          height: 2400,
+          height: project_type_node_names.count * race_ethnicity_combinations.count * 30,
         },
       },
       data: race_and_ethnicity_data,

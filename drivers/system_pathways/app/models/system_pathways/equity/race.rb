@@ -12,10 +12,10 @@ module SystemPathways::Equity::Race
       chart: 'race',
       config: {
         size: {
-          height: 800,
+          height: node_names.count * 30,
         },
       },
-      data: race_data,
+      data: race_data.merge(stack: { normalize: true }),
       table: as_table(race_counts, ['Project Type'] + races.values),
       link_params: {
         columns: [[]] + races.keys.map { |k| ['details[races][]', k] },

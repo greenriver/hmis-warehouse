@@ -12,10 +12,10 @@ module SystemPathways::Equity::RaceAndEthnicity
       chart: 'race_and_ethnicity',
       config: {
         size: {
-          height: 800,
+          height: node_names.count * 30,
         },
       },
-      data: race_and_ethnicity_data,
+      data: race_and_ethnicity_data.merge(stack: { normalize: true }),
       table: as_table(race_and_ethnicity_counts, ['Project Type'] + race_ethnicity_combinations.values),
       link_params: {
         columns: [[]] + race_ethnicity_combinations.keys.map { |k| ['details[race_ethnicity_combinations][]', k] },
