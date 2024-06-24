@@ -448,6 +448,10 @@ module SystemPathways::ChartBase
       @report.race_col_lookup.map { |k, hud_k| [k, HudUtility2024.race(hud_k)] }.to_h
     end
 
+    private def known_individual_race_columns
+      race_columns.except('race_none', 'multi_racial')
+    end
+
     private def race_col_lookup
       @report.race_col_lookup
     end

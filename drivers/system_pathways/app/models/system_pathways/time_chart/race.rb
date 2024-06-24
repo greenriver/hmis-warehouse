@@ -91,7 +91,7 @@ module SystemPathways::TimeChart::Race
       # Get rid of the distinct from node_clients
       stay_length_col = sp_c_t[:days_to_return]
       scope = SystemPathways::Enrollment.joins(:client).where(id: node_clients(label).select(:id)).where(stay_length_col.not_eq(nil))
-      race_data = pluck_to_hash(race_columns.except('race_none', 'multi_racial').map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Days to Return'), scope)
+      race_data = pluck_to_hash(known_individual_race_columns.map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Days to Return'), scope)
       race_data_except_latin = pluck_to_hash(columns.except('race_none', 'hispanic_latinaeo', 'multi_racial').map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Days to Return'), scope)
 
       columns.each do |k, race|

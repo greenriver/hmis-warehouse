@@ -42,7 +42,7 @@ module SystemPathways::TimeChart::Ethnicity
         # Get rid of the distinct from node_clients
         stay_length_col = sp_e_t[:stay_length]
         scope = SystemPathways::Enrollment.joins(:client).where(id: node_clients(label).select(:id))
-        race_data = pluck_to_hash(race_columns.except('race_none', 'multi_racial').map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Stay Length'), scope)
+        race_data = pluck_to_hash(known_individual_race_columns.map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Stay Length'), scope)
 
         data = race_data.select { |row| row[hispanic_latinaeo_column] }.map { |m| m[stay_length_col] }
         counts[:hispanic_latinaeo] = average(data.sum, data.count).round
@@ -68,7 +68,7 @@ module SystemPathways::TimeChart::Ethnicity
         # Get rid of the distinct from node_clients
         stay_length_col = sp_e_t[:days_to_move_in]
         scope = SystemPathways::Enrollment.joins(:client).where(id: node_clients(p_type).select(:id)).where(stay_length_col.not_eq(nil))
-        race_data = pluck_to_hash(race_columns.except('race_none', 'multi_racial').map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Days to Move-In'), scope)
+        race_data = pluck_to_hash(known_individual_race_columns.map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Days to Move-In'), scope)
 
         data = race_data.select { |row| row[hispanic_latinaeo_column] }.map { |m| m[stay_length_col] }
         counts[:hispanic_latinaeo] = average(data.sum, data.count).round
@@ -94,7 +94,7 @@ module SystemPathways::TimeChart::Ethnicity
       # Get rid of the distinct from node_clients
       stay_length_col = sp_c_t[:days_to_return]
       scope = SystemPathways::Enrollment.joins(:client).where(id: node_clients(label).select(:id)).where(stay_length_col.not_eq(nil))
-      race_data = pluck_to_hash(race_columns.except('race_none', 'multi_racial').map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Days to Return'), scope)
+      race_data = pluck_to_hash(known_individual_race_columns.map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Days to Return'), scope)
 
       data = race_data.select { |row| row[hispanic_latinaeo_column] }.map { |m| m[stay_length_col] }
       counts[:hispanic_latinaeo] = average(data.sum, data.count).round
