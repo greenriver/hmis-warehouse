@@ -27,6 +27,10 @@ class AccessControlUpload < ApplicationRecord
     status.in?([IMPORT_COMPLETE, PROCESSED])
   end
 
+  def pending_import?
+    status == PROCESSED
+  end
+
   def pre_process!
     roles
     agencies
@@ -286,7 +290,7 @@ class AccessControlUpload < ApplicationRecord
     user_groups.values.each do |item|
       group = UserGroup.where(name: item[:name]).first_or_create!
       user_ids = User.where(email: item[:users]).pluck(:id)
-      group.update(user_ids: user_ids)
+      group.update!(user_ids: user_ids)
     end
   end
 
@@ -297,7 +301,7 @@ class AccessControlUpload < ApplicationRecord
         names = item[relation].select { |m| m[:found] }.map { |r| r[:name] }
         case relation
         when :coc_codes
-          collection.update(coc_codes: names) if names.present?
+          collection.update!(coc_codes: names) if names.present?
         else
           ids = collection.class_name_for_viewable_type(relation).constantize.where(name: names).pluck(:id)
           collection.set_viewables({ relation => ids }) if ids.present?
@@ -332,11 +336,15 @@ class AccessControlUpload < ApplicationRecord
     {}.tap do |p|
       Role.permissions(exclude_health: true).count.times do |i|
         title = titles[i]
-        value = case row[2 + i]&.value
-        when 'X', 'x', 'Y', 'y', 'TRUE', 'true'
+        value = case row[2 + i]&.value&.strip&.presence
+        when /\A(?:x|y|yes|true)\z/i
           true
-        else
+        when /\A(?:n|no|false)\z/i
           false
+        when nil
+          false
+        else
+          raise ArgumentError, "Unknown value: #{row[2 + i]&.value}"
         end
         perm = Role.permission_from_title(title)
         next unless perm
@@ -383,7 +391,7 @@ class AccessControlUpload < ApplicationRecord
   end
 
   private def existing_roles
-    @existing_roles ||= Role.editable.index_by(&:name)
+    @existing_roles ||= Role.editable.order(:id).index_by(&:name)
   end
 
   private def existing_collection(collection_name)
@@ -391,7 +399,7 @@ class AccessControlUpload < ApplicationRecord
   end
 
   private def existing_collections
-    @existing_collections ||= Collection.all.index_by(&:name)
+    @existing_collections ||= Collection.all.order(:id).index_by(&:name)
   end
 
   private def existing_user_group(group_name)
@@ -405,7 +413,7 @@ class AccessControlUpload < ApplicationRecord
   end
 
   private def existing_user_groups
-    @existing_user_groups ||= UserGroup.all.index_by(&:name)
+    @existing_user_groups ||= UserGroup.all.order(:id).index_by(&:name)
   end
 
   private def existing_data_sources

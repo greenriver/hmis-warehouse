@@ -7,6 +7,7 @@
           %th Uploaded
           %th Uploaded By
           %th Status
+          %th File Name
           %th
       %tbody
         - @imports.each do |import|
@@ -14,6 +15,7 @@
             %td= link_to_if import.accessible?, import.created_at.to_date, admin_acl_import_path(import)
             %td= import.user&.name_with_email
             %td= link_to_if import.accessible?, import.status, admin_acl_import_path(import)
+            %td= link_to_if import.accessible?, import.file&.filename, admin_acl_import_path(import)
 
             %td.nobr
               = link_to admin_acl_import_path(import),  method: :delete, data: {confirm: "Would you really like to delete the access control import? This will not revert changes caused by this import."}, class: ['btn', 'btn-sm', 'btn-danger', 'ml-2'] do

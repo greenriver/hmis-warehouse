@@ -27,13 +27,17 @@ class Admin::AclImportsController < ApplicationController
 
   # Completes the import using the file specified
   def update
-    @import.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).import!
-    @import.update(status: AccessControlUpload::IMPORTING)
+    if @import.pending_import?
+      @import.delay(queue: ENV.fetch('DJ_LONG_QUEUE_NAME', :long_running)).import!
+      @import.update(status: AccessControlUpload::IMPORTING)
+    else
+      flash[:notice] = 'This import is not ready to be processed, or has already been completed.'
+    end
     respond_with(@import, location: admin_acl_imports_path)
   end
 
   def destroy
-    @import.destroy
+    @import.destroy!
     respond_with(@import, location: admin_acl_imports_path)
   end
 

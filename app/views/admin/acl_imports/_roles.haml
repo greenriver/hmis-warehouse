@@ -20,8 +20,8 @@
         %tr
           %th.border-right= Role.title_for_column(column)
           - @import.roles.each do |role|
-            - perm = role[:permissions].try(:[], column)
-            %td.text-right= checkmark_or_x(perm.try(:[], :existing_value))
+            - perm = role[:permissions].dig(column)
+            %td.text-right= checkmark_or_x(perm.dig(:existing_value))
             %td.text-center
               %i.icon-arrow-right
-            %td.border-right= checkmark_or_x(perm.try(:[], :incoming_value))
+            %td.border-right= checkmark_or_x(perm.dig(:incoming_value))

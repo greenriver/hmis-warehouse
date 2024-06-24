@@ -2,7 +2,7 @@ wb = xlsx_package.workbook
 wb.add_worksheet(name: 'Users') do |sheet|
   sheet.add_row(['First Name', 'Last Name', 'Email', 'Agency', 'Role', 'Account Created', 'Last Login', 'Active'])
   User.joins(:agency).preload(:legacy_roles, :agency).find_each do |user|
-    user.legacy_roles.editable.uniq.each do |role|
+    user.legacy_roles.select(&:editable?).uniq.each do |role|
       sheet.add_row(
         [
           user.first_name,

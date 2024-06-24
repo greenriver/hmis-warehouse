@@ -17,7 +17,7 @@
       - @import.collections.each do |collection|
         %tr
           %th= collection[:name]
-          - @import.collection_relations.each do |relation, _|
+          - @import.collection_relations.each_key do |relation|
             %td
               - collection[relation].each do |item|
                 - if item[:found]
