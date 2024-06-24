@@ -5,13 +5,107 @@
 ###
 
 module HmisUtil
-  class HudFormRules2024
-    # Keys match Link IDs in our Form Definition fragments for HUD data elements
+  class HudAssessmentFormRules2024
+    # Keys match Link IDs in our default HUD Assessments.
+    # Doesn't feel ideal to key off Link ID since it's meant to be internal to the form, but we are avoiding
+    # adding a new field to the form.
     HUD_LINK_ID_RULES = {
       # CoC Code for Client Location
       q_3_16: {
         stages: [:INTAKE],
         data_collected_about: :HOH,
+      },
+      # r1_referral_source
+      R1: {
+        stages: [:INTAKE],
+        data_collected_about: :HOH_AND_ADULTS,
+        rule: {
+          "operator": 'ANY',
+          "parts": [
+            {
+              "variable": 'projectFunders',
+              "operator": 'INCLUDE',
+              "_comment": 'All YHDP',
+              "value": 43,
+            },
+            {
+              "operator": 'ALL',
+              "_comment": 'HHS: RHY – Collection required for all components except for Street Outreach',
+              "parts": [
+                {
+                  "variable": 'projectFunderComponents',
+                  "operator": 'INCLUDE',
+                  "value": 'HHS: RHY',
+                },
+                {
+                  "variable": 'projectType',
+                  "operator": 'NOT_EQUAL',
+                  "value": 4,
+                },
+              ],
+            },
+          ],
+        },
+      },
+      # c4_translation_assistance
+      C4_group: {
+        stages: [:INTAKE],
+        data_collected_about: :HOH,
+        rule: {
+          "operator": 'ANY',
+          "parts": [
+            {
+              "_comment": 'HUD: CoC – Collection required for all components',
+              "variable": 'projectFunderComponents',
+              "operator": 'INCLUDE',
+              "value": 'HUD: CoC',
+            },
+            {
+              "_comment": 'HUD: ESG – Collection required for all components ',
+              "variable": 'projectFunderComponents',
+              "operator": 'INCLUDE',
+              "value": 'HUD: ESG',
+            },
+            {
+              "operator": 'ALL',
+              "_comment": 'HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach',
+              "parts": [
+                {
+                  "variable": 'projectFunderComponents',
+                  "operator": 'INCLUDE',
+                  "value": 'HUD: ESG RUSH',
+                },
+                {
+                  "variable": 'projectType',
+                  "operator": 'NOT_EQUAL',
+                  "value": 0,
+                },
+                {
+                  "variable": 'projectType',
+                  "operator": 'NOT_EQUAL',
+                  "value": 1,
+                },
+                {
+                  "variable": 'projectType',
+                  "operator": 'NOT_EQUAL',
+                  "value": 4,
+                },
+              ],
+            },
+            {
+              "_comment": 'HUD: Unsheltered Special NOFO – Collection required for all components',
+              "variable": 'projectFunderComponents',
+              "operator": 'INCLUDE',
+              "value": 'HUD: Unsheltered Special NOFO',
+            },
+            {
+              "_comment": 'HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry',
+              "variable": 'projectFunders',
+              "operator": 'INCLUDE',
+              "value": 55,
+            },
+          ],
+        },
       },
       # Prior Living Situation A
       q_3_917A: {
@@ -295,6 +389,151 @@ module HmisUtil
               "variable": 'projectFunders',
               "operator": 'INCLUDE',
               "value": 43,
+            },
+          ],
+        },
+      },
+      # r3_sexual_orientation
+      R3: {
+        stages: [:INTAKE],
+        data_collected_about: :HOH_AND_ADULTS,
+        rule: {
+          "operator": 'ANY',
+          "parts": [
+            {
+              "_comment": 'HUD: CoC – Youth Homeless Demonstration Program (YHDP) – collection required for all components',
+              "variable": 'projectFunders',
+              "operator": 'INCLUDE',
+              "value": 43,
+            },
+            {
+              "_comment": 'HHS: RHY – Collection required for all components',
+              "variable": 'projectFunderComponents',
+              "operator": 'INCLUDE',
+              "value": 'HHS: RHY',
+            },
+            {
+              "_comment": 'HUD: CoC – Permanent Supportive Housing',
+              "variable": 'projectFunders',
+              "operator": 'INCLUDE',
+              "value": 2,
+            },
+            {
+              "operator": 'ALL',
+              "_comment": 'HUD: Unsheltered Special NOFO – Collection required for Permanent Supportive Housing',
+              "parts": [
+                {
+                  "variable": 'projectFunderComponents',
+                  "operator": 'INCLUDE',
+                  "value": 'HUD: Unsheltered Special NOFO',
+                },
+                {
+                  "variable": 'projectType',
+                  "operator": 'EQUAL',
+                  "value": 3,
+                },
+              ],
+            },
+            {
+              "operator": 'ALL',
+              "_comment": 'HUD: Rural Special NOFO – Collection required for Permanent Supportive Housing',
+              "parts": [
+                {
+                  "variable": 'projectFunderComponents',
+                  "operator": 'INCLUDE',
+                  "value": 'HUD: Rural Special NOFO',
+                },
+                {
+                  "variable": 'projectType',
+                  "operator": 'EQUAL',
+                  "value": 3,
+                },
+              ],
+            },
+          ],
+        },
+      },
+      # r11_ward_of_child_welfare
+      R11: {
+        stages: [:INTAKE],
+        data_collected_about: :HOH_AND_ADULTS,
+        rule: {
+          "operator": 'ANY',
+          "parts": [
+            {
+              "operator": 'ALL',
+              "_comment": 'HHS: RHY – Collection required for all components except for Street Outreach',
+              "parts": [
+                {
+                  "variable": 'projectFunderComponents',
+                  "operator": 'INCLUDE',
+                  "value": 'HHS: RHY',
+                },
+                {
+                  "variable": 'projectType',
+                  "operator": 'NOT_EQUAL',
+                  "value": 4,
+                },
+              ],
+            },
+            {
+              "_comment": 'Included in YHDP Supplemental CSV. Recommended for YHDP projects.',
+              "variable": 'projectFunders',
+              "operator": 'INCLUDE',
+              "value": 43,
+            },
+          ],
+        },
+      },
+      # r12_ward_of_juvenile_justice
+      R12: {
+        stages: [:INTAKE],
+        data_collected_about: :HOH_AND_ADULTS,
+        rule: {
+          "operator": 'ANY',
+          "parts": [
+            {
+              "operator": 'ALL',
+              "_comment": 'HHS: RHY – Collection required for all components except for Street Outreach',
+              "parts": [
+                {
+                  "variable": 'projectFunderComponents',
+                  "operator": 'INCLUDE',
+                  "value": 'HHS: RHY',
+                },
+                {
+                  "variable": 'projectType',
+                  "operator": 'NOT_EQUAL',
+                  "value": 4,
+                },
+              ],
+            },
+            {
+              "_comment": 'Included in YHDP Supplemental CSV. Recommended for YHDP projects.',
+              "variable": 'projectFunders',
+              "operator": 'INCLUDE',
+              "value": 43,
+            },
+          ],
+        },
+      },
+      # r13_family_critical_issues
+      R13: {
+        stages: [:INTAKE],
+        data_collected_about: :HOH_AND_ADULTS,
+        rule: {
+          "operator": 'ALL',
+          "_comment": 'HHS: RHY – Collection required for all components except for Street Outreach',
+          "parts": [
+            {
+              "variable": 'projectFunderComponents',
+              "operator": 'INCLUDE',
+              "value": 'HHS: RHY',
+            },
+            {
+              "variable": 'projectType',
+              "operator": 'NOT_EQUAL',
+              "value": 4,
             },
           ],
         },

@@ -608,7 +608,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   def set_hud_requirements(year: '2024')
     rule_module = case year
     when '2024'
-      HmisUtil::HudFormRules2024.new
+      HmisUtil::HudAssessmentFormRules2024.new
     else
       raise "Unsupported year: #{year}"
     end
