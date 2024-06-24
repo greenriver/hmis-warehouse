@@ -1,6 +1,6 @@
 {
   "type": "GROUP",
-  "link_id": "3.917A",
+  "link_id": "q_3_917A",
   "text": "Prior Living Situation",
   "data_collected_about": "HOH_AND_ADULTS",
   "_comment": "For SO, ES, and SH. This element requires no dependencies, and all fields are to be visible and entered by the HMIS end user.",
@@ -33,13 +33,13 @@
   "item": [
     {
       "type": "DISPLAY",
-      "link_id": "3.917A.instruction",
+      "link_id": "q_3_917A_instruction",
       "text": "Where did the client spend the night before project entry? Select the category that most closely matches the client's response.",
       "readonly_text": "Where the client spent the night before project entry."
     },
     {
       "type": "CHOICE",
-      "link_id": "3.917A.1",
+      "link_id": "q_3_917A_1",
       "required": false,
       "warn_if_empty": true,
       "text": "Prior Living Situation",
@@ -51,11 +51,11 @@
     },
     {
       "type": "GROUP",
-      "link_id": "3.917A.1.subsidy-group",
+      "link_id": "q_3_917A_1_subsidy_group",
       "item": [
         {
           "type": "CHOICE",
-          "link_id": "3.917A.1.subsidy",
+          "link_id": "q_3_917A_1_subsidy",
           "text": "Rental subsidy type",
           "required": true,
           "pick_list_reference": "RentalSubsidyType",
@@ -66,7 +66,7 @@
           "enable_behavior": "ALL",
           "enable_when": [
             {
-              "question": "3.917A.1",
+              "question": "q_3_917A_1",
               "operator": "EQUAL",
               "answer_code": "RENTAL_BY_CLIENT_WITH_ONGOING_HOUSING_SUBSIDY"
             }
@@ -76,7 +76,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "3.917A.2",
+      "link_id": "q_3_917A_2",
       "required": false,
       "warn_if_empty": true,
       "text": "Length of stay in prior living situation",
@@ -89,7 +89,7 @@
     },
     {
       "type": "DATE",
-      "link_id": "3.917A.3",
+      "link_id": "q_3_917A_3",
       "required": false,
       "warn_if_empty": true,
       "mapping": {
@@ -107,7 +107,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "3.917A.4",
+      "link_id": "q_3_917A_4",
       "required": false,
       "warn_if_empty": true,
       "mapping": {
@@ -120,7 +120,7 @@
     },
     {
       "type": "CHOICE",
-      "link_id": "3.917A.5",
+      "link_id": "q_3_917A_5",
       "required": false,
       "warn_if_empty": true,
       "mapping": {

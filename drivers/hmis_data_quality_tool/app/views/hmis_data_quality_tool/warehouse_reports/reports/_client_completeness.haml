@@ -7,6 +7,7 @@
 = content_for :page_js do
   :javascript
     $(function() {
+      'use strict';
       var completeness_clients = new HmisDqToolCompleteness(
         #{@report.completeness('Clients').to_json.html_safe},
         '.completeness-chart-clients',

@@ -2,7 +2,7 @@
   "item": [
     {
       "type": "DATE",
-      "link_id": "date-provided",
+      "link_id": "date_provided",
       "text": "Date Provided",
       "mapping": {
         "field_name": "dateProvided"
@@ -21,7 +21,7 @@
       ]
     },
     {
-      "link_id": "flex-funds-type",
+      "link_id": "flex_funds_type",
       "type": "CHOICE",
       "repeats": true,
       "text": "Direct financial assistance provided (check all that apply)",
@@ -74,7 +74,7 @@
     },
     {
       "type": "TEXT",
-      "link_id": "ff-other-describe",
+      "link_id": "ff_other_describe",
       "text": "Describe other assistance provided",
       "brief_text": "Other assistance",
       "mapping": {
@@ -83,7 +83,7 @@
       "enable_behavior": "ALL",
       "enable_when": [
         {
-          "question": "flex-funds-type",
+          "question": "flex_funds_type",
           "operator": "INCLUDES",
           "answer_code": "Other"
         }

@@ -10,6 +10,7 @@
 module Hmis
   class GroupViewableEntity < GrdaWarehouseBase
     acts_as_paranoid
+    has_paper_trail
 
     # TODO: rename AccessGroup class to `Collection`, update all references
     belongs_to :collection, class_name: 'Hmis::AccessGroup', inverse_of: :group_viewable_entities

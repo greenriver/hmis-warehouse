@@ -30,7 +30,7 @@ mountType: virtiofs
 Setup docker so that `docker compose` will work even if docker desktop isn't installed.  (Note you may need to adjust the location of `docker-compose` (`which docker-compose` should give you the path.)
 ```
 mkdir -p ~/.docker/cli-plugins
-ln -sfn /opt/homebrew/bin/docker-compose ~/.docker/cli-plugins/docker-compos
+ln -sfn /opt/homebrew/bin/docker-compose ~/.docker/cli-plugins/docker-compose
 ```
 
 Setup colima to start on boot

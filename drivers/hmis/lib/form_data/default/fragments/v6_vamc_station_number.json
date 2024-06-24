@@ -57,7 +57,7 @@
   },
   "item": [
     {
-      "link_id": "V6.1",
+      "link_id": "V6_1",
       "type": "CHOICE",
       "required": false,
       "warn_if_empty": true,

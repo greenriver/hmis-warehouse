@@ -310,5 +310,9 @@ module GrdaWarehouse
     def entity_relation_type
       :project_groups
     end
+
+    def collection_type
+      'Project Groups'
+    end
   end
 end
