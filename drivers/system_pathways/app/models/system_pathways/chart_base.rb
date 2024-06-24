@@ -41,6 +41,8 @@ module SystemPathways::ChartBase
         :chronic_status,
         :disabling_condition,
         :chronic_status, # don't ask, but we use this in the details section
+        :race_ethnicity_combinations,
+        :ethnicities,
       ]
     end
 
@@ -181,16 +183,17 @@ module SystemPathways::ChartBase
         combinations = {}.tap do |item|
           system_pathways_race_columns.each do |column|
             item[column] = all_races_false.merge(column => true)
-            item["#{column}_hispanic_latinaeo".to_sym].merge(column => true, hispanic_latinaeo: true)
+            item["#{column}_hispanic_latinaeo".to_sym] = all_races_false.merge(column => true, hispanic_latinaeo: true)
           end
-        end.freeze
+        end
 
         # Special case clauses
         combinations[:hispanic_latinaeo] = all_races_false.merge(hispanic_latinaeo: true) # There is no hispanic_latinaeo_hispanic_latinaeo
         combinations[:multi_racial] = { hispanic_latinaeo: false } # Other values may be true
         combinations[:multi_racial_hispanic_latinaeo] = { hispanic_latinaeo: true }
         combinations[:race_none] = all_races_false
-      end
+        combinations
+      end.freeze
     end
 
     private def filter_for_race_and_ethnicity_with_details_filter(scope, filter)

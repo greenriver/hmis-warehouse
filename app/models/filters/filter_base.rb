@@ -205,6 +205,7 @@ module Filters
           genders: genders,
           sub_population: sub_population,
           races: races,
+          ethnicities: ethnicities,
           project_group_ids: project_group_ids,
           cohort_ids: cohort_ids,
           secondary_cohort_ids: secondary_cohort_ids,
@@ -244,6 +245,7 @@ module Filters
           mask_small_populations: mask_small_populations,
           secondary_project_ids: secondary_project_ids,
           secondary_project_group_ids: secondary_project_group_ids,
+          race_ethnicity_combinations: race_ethnicity_combinations,
         },
       }
     end
@@ -346,6 +348,7 @@ module Filters
       household_type: 'Household Type',
       age_ranges: 'Age Ranges',
       races: 'Races',
+      ethnicities: 'Ethnicity',
       genders: 'Genders',
       veteran_statuses: 'Veteran Statuses',
       length_of_time: 'Length of Time',
@@ -373,6 +376,7 @@ module Filters
       mask_small_populations: 'Mask Small Populations',
       secondary_projects: 'Secondary Projects',
       secondary_project_groups: 'Secondary Project Groups',
+      race_ethnicity_combinations: 'Race & Ethnicity',
     }.freeze
 
     private def label(key, labels)
@@ -402,6 +406,7 @@ module Filters
         opts[label(:household_type, labels)] = chosen_household_type if household_type
         opts[label(:age_ranges, labels)] = chosen_age_ranges if age_ranges.any?
         opts[label(:races, labels)] = chosen_races if races.any?
+        opts[label(:ethnicities, labels)] = chosen_ethnicities if ethnicities.any?
         opts[label(:genders, labels)] = chosen_genders if genders.any?
         opts[label(:veteran_statuses, labels)] = chosen_veteran_statuses if veteran_statuses.any?
         opts[label(:length_of_time, labels)] = length_of_times if length_of_times.any?
@@ -427,6 +432,7 @@ module Filters
         opts[label(:mask_small_populations, labels)] = 'Yes' if mask_small_populations
         opts[label(:secondary_projects, labels)] = project_names(secondary_project_ids) if secondary_project_ids.any?
         opts[label(:secondary_project_groups, labels)] = project_names(secondary_project_group_ids) if secondary_project_group_ids.any?
+        opts[label(:race_ethnicity_combinations, labels)] = chosen_race_ethnicity_combinations if race_ethnicity_combinations.any?
       end
     end
 
@@ -1182,6 +1188,10 @@ module Filters
         chosen_age_ranges
       when :races
         chosen_races
+      when :ethnicities
+        chosen_ethnicities
+      when :race_ethnicity_combinations
+        chosen_race_ethnicity_combinations
       when :genders
         chosen_genders
       when :coc_codes
@@ -1283,6 +1293,18 @@ module Filters
     def chosen_races
       races.map do |race|
         HudUtility2024.race(race, multi_racial: true)
+      end
+    end
+
+    def chosen_race_ethnicity_combinations
+      race_ethnicity_combinations.map do |combination|
+        HudUtility2024.race_ethnicity_combination(combination)
+      end
+    end
+
+    def chosen_ethnicities
+      ethnicities.map do |ethnicity|
+        HudUtility2024.ethnicity(ethnicity)
       end
     end
 
