@@ -1,0 +1,6 @@
+- unless @import.imported?
+  .d-flex.well
+    %p Proposed changes based on this file are outlined below.  If everything looks good, you can import them with the Complete Import button.
+    .ml-auto
+      = button_to admin_acl_import_path, method: :patch, class: 'btn btn-primary', data: { confirm: 'Completing the import will make all changes indicated in the tabs below, are you sure you would like to contineu?  There is no single undo button.'} do
+        Complete Import
