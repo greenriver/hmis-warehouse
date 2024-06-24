@@ -226,14 +226,19 @@ module Admin
         # END_ACL
         contact_attributes: [:id, :first_name, :last_name, :phone, :email, :role],
       ).
-        # TODO: START_ACL remove when ACL transition complete
+
         tap do |result|
+          # TODO: START_ACL remove when ACL transition complete
           result[:coc_codes] ||= []
           # re-add system groups so we don't remove them here
           result[:access_group_ids] ||= []
           result[:access_group_ids] += @user.access_groups.system.pluck(:id).map(&:to_s)
+          # END_ACL
+
+          # User params will never include system user groups in user_group_ids, re-add any of those before saving
+          result[:user_group_ids] ||= []
+          result[:user_group_ids] += @user.user_groups.system.pluck(:id)
         end
-      # END_ACL
     end
 
     private def confirmation_params

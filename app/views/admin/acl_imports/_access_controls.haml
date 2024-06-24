@@ -1,0 +1,29 @@
+%p Access Controls will be made for each role, user group, collection combination on the Users tab of the uploaded file.
+.card
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Role
+        %th User Group
+        %th Collection
+        %th Create New?
+        %th Error
+    %tbody
+      - @import.access_controls.each do |access_control|
+        %tr
+          %td
+            - if access_control[:role_error]
+              %i.icon-warning{data: {toggle: :tooltip, title: 'Role Not Matched'}}
+            = access_control[:role]
+          %td
+            - if access_control[:user_group_error]
+              %i.icon-warning{data: {toggle: :tooltip, title: 'User Group Not Matched'}}
+            = access_control[:user_group]
+          %td
+            - if access_control[:collection_error]
+              %i.icon-warning{data: {toggle: :tooltip, title: 'Collection Not Matched'}}
+            = access_control[:collection]
+          %td= checkmark_or_x(access_control[:new_access_control])
+          %td
+            - if access_control[:error]
+              %i.icon-warning{data: {toggle: :tooltip, title: 'This Access Control Cannot be Imported'}}
