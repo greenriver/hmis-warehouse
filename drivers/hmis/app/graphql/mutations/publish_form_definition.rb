@@ -58,7 +58,7 @@ module Mutations
         owner_type: definition.owner_class.sti_name,
         form_definition_identifier: definition.identifier,
         data_source: data_source,
-        user_id: Hmis::Hud::User.system_user(data_source_id: data_source.id).UserID,
+        user_id: Hmis::Hud::User.from_user(current_user).user_id,
       }
 
       # Walk Definition to initialize CustomDataElementDefinitions for any questions that don't already have a mapping
