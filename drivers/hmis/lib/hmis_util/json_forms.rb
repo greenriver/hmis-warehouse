@@ -240,20 +240,9 @@ module HmisUtil
 
       # Resolve all fragments, so we have a full definition
       resolve_all_fragments!(form_definition)
+
       # Apply any client-specific patches
       apply_all_patches!(form_definition, identifier: identifier)
-      # Validate final definition
-      begin
-        validate_definition(form_definition, role)
-      rescue JsonFormException => e
-        # If there was an error, _try_ to print out the exact value that failed by traversing the json path
-        match_path = /property '(.*)'/.match(e.to_s)
-        if match_path&.size == 2
-          dig_path = match_path[1].split('/').map(&:presence).compact.map { |s| Integer(s, exception: false) || s }
-          problem_item = form_definition.dig(*dig_path)
-        end
-        raise "Failed to validate #{role}/#{identifier} (item##{problem_item || 'unknown'}): #{e}"
-      end
 
       # Create or update definition
       record = Hmis::Form::Definition.where(
@@ -264,6 +253,23 @@ module HmisUtil
       record.definition = form_definition
       record.title = title if title.present?
       record.status = Hmis::Form::Definition::PUBLISHED
+
+      # Ensure HUD rules are set
+      record.set_hud_requirements
+
+      # Validate final definition
+      begin
+        validate_definition(record.definition, role)
+      rescue JsonFormException => e
+        # If there was an error, _try_ to print out the exact value that failed by traversing the json path
+        match_path = /property '(.*)'/.match(e.to_s)
+        if match_path&.size == 2
+          dig_path = match_path[1].split('/').map(&:presence).compact.map { |s| Integer(s, exception: false) || s }
+          problem_item = record.definition.dig(*dig_path)
+        end
+        raise "Failed to validate #{role}/#{identifier} (item##{problem_item || 'unknown'}): #{e}"
+      end
+
       record.save!
     end
 

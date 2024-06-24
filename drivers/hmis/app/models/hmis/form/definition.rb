@@ -526,9 +526,22 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     end
   end
 
+  # Walk definition items as hashes
+  def walk_definition_items(&block)
+    definition.dig('item').each do |node|
+      walk_definition_item(node, &block)
+    end
+  end
+
   protected def walk_definition_node(node, &block)
     # if item has children, recur into them first
     node.item&.each { |child| walk_definition_node(child, &block) }
+    block.call(node)
+  end
+
+  protected def walk_definition_item(node, &block)
+    # if item has children, recur into them first
+    node['item']&.each { |child| walk_definition_item(child, &block) }
     block.call(node)
   end
 
@@ -590,5 +603,29 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     end
 
     cded_records
+  end
+
+  def set_hud_requirements(year: '2022')
+    rule_module = case year
+    when '2022'
+      HmisUtil::HudFormRules2022.new
+    else
+      raise "Unsupported year: #{year}"
+    end
+
+    walk_definition_items do |item|
+      # rule will only return if the role represents a data collection stage that REQUIRES this data element (per HUD)
+      hud_rule = rule_module.hud_data_element_rule(role, item['link_id'])
+
+      item['rule'] = hud_rule if hud_rule
+      # TODO: set Data Collected About too
+    end
+
+    # Fail if there are link_ids that are required for this role that aren't present in the form (e.g. destination missing on Exit)
+    # This should probably move to the validator
+    required_link_ids = rule_module.required_link_ids_for_role(role)
+    present_link_ids = link_id_item_hash.keys
+    missing_link_ids = required_link_ids - present_link_ids
+    raise "Missing required link IDs for role #{role}: #{missing_link_ids}" if missing_link_ids.any?
   end
 end
