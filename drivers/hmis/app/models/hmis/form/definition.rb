@@ -549,32 +549,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     block.call(node)
   end
 
-  def self.infer_cded_field_type(item_type)
-    case item_type
-    when 'STRING', 'TEXT', 'CHOICE', 'TIME_OF_DAY', 'OPEN_CHOICE'
-      'string'
-    when 'BOOLEAN'
-      'boolean'
-    when 'DATE'
-      'date'
-    when 'INTEGER'
-      'integer'
-    when 'CURRENCY'
-      'float'
-    # when 'DISPLAY', 'GROUP'
-    #   raise 'cant add CDED for non-question item'
-    else
-      raise "unable to determine cded type for #{item_type}"
-    end
-  end
-
-  def self.generate_cded_field_label(item)
-    label = item.readonly_text || item.brief_text || item.text || key.humanize
-    ActionView::Base.full_sanitizer.sanitize(label)[0..100].strip
-  end
-
   # Find and/or initialize CustomDataElementDefinitions that are collected by this form. Eventually this should be done as part of the
   # Form Editor admin tool. For now, it is called by a rake task manually.
+  # TODO remove?
   def introspect_custom_data_element_definitions(set_definition_identifier: false)
     owner_type = owner_class.sti_name
     raise "unable to determine owner class for form role: #{role}" unless owner_type
@@ -586,8 +563,13 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
     cded_records = []
     walk_definition_nodes do |item|
-      # skip unless custom_field_key specified for this item
+      # Skip non-questions items (Groups and Display items)
+      next unless NON_QUESTION_ITEM_TYPES.include?(item.type)
+      # Skip items that already map to a standard (HUD) field
+      next if item.mapping&.field_name
+
       key = item.mapping&.custom_field_key
+      # Skip items that already map to a custom data element
       next unless key
 
       # find CDED if it exists, or initialize a new one with defaults
@@ -608,5 +590,29 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     end
 
     cded_records
+  end
+
+  # Helper for determining CustomDataElementDefinition attributes
+  def self.infer_cded_field_type(item_type)
+    case item_type
+    when 'STRING', 'TEXT', 'CHOICE', 'TIME_OF_DAY', 'OPEN_CHOICE'
+      'string'
+    when 'BOOLEAN'
+      'boolean'
+    when 'DATE'
+      'date'
+    when 'INTEGER'
+      'integer'
+    when 'CURRENCY'
+      'float'
+    else
+      raise "unable to determine cded type for #{item_type}"
+    end
+  end
+
+  # Helper for determining CustomDataElementDefinition attributes
+  def self.generate_cded_field_label(item)
+    label = item.readonly_text || item.brief_text || item.text || key.humanize
+    ActionView::Base.full_sanitizer.sanitize(label)[0..100].strip
   end
 end
