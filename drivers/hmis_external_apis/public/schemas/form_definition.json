@@ -577,10 +577,10 @@
         },
         {
           "if": {
+            "required": [
+              "type"
+            ],
             "properties": {
-              "required": [
-                "type"
-              ],
               "type": {
                 "const": "FILE"
               }
