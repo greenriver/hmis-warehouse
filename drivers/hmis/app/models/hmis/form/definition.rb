@@ -214,6 +214,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     POST_EXIT: 6,
     CUSTOM_ASSESSMENT: 99,
   }.freeze
+  NON_QUESTION_ITEM_TYPES = ['DISPLAY', 'GROUP'].freeze
 
   # All form roles
   use_enum_with_same_key :form_role_enum_map, FORM_ROLES.excluding(:CE)
@@ -381,6 +382,8 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def owner_class
+    return Hmis::Hud::CustomAssessment if ASSESSMENT_FORM_ROLES.include?(role.to_sym)
+
     return unless FORM_ROLE_CONFIG[role.to_sym].present?
 
     FORM_ROLE_CONFIG[role.to_sym][:owner_class].constantize
@@ -520,9 +523,17 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     super(value.blank? ? nil : value.strip)
   end
 
+  # Walk definition items as OpenStructs
   def walk_definition_nodes(&block)
     definition_struct&.item&.each do |node|
       walk_definition_node(node, &block)
+    end
+  end
+
+  # Walk definition items as hashes
+  def walk_definition_items(&block)
+    definition.dig('item').each do |node|
+      walk_definition_item(node, &block)
     end
   end
 
@@ -532,14 +543,40 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     block.call(node)
   end
 
+  protected def walk_definition_item(node, &block)
+    # if item has children, recur into them first
+    node['item']&.each { |child| walk_definition_item(child, &block) }
+    block.call(node)
+  end
+
+  def self.infer_cded_field_type(item_type)
+    case item_type
+    when 'STRING', 'TEXT', 'CHOICE', 'TIME_OF_DAY', 'OPEN_CHOICE'
+      'string'
+    when 'BOOLEAN'
+      'boolean'
+    when 'DATE'
+      'date'
+    when 'INTEGER'
+      'integer'
+    when 'CURRENCY'
+      'float'
+    # when 'DISPLAY', 'GROUP'
+    #   raise 'cant add CDED for non-question item'
+    else
+      raise "unable to determine cded type for #{item_type}"
+    end
+  end
+
+  def self.generate_cded_field_label(item)
+    label = item.readonly_text || item.brief_text || item.text || key.humanize
+    ActionView::Base.full_sanitizer.sanitize(label)[0..100].strip
+  end
+
   # Find and/or initialize CustomDataElementDefinitions that are collected by this form. Eventually this should be done as part of the
   # Form Editor admin tool. For now, it is called by a rake task manually.
   def introspect_custom_data_element_definitions(set_definition_identifier: false)
-    owner_type = if ASSESSMENT_FORM_ROLES.include?(role.to_sym)
-      Hmis::Hud::CustomAssessment.sti_name
-    else
-      FORM_ROLE_CONFIG.dig(role.to_sym, :owner_class)
-    end
+    owner_type = owner_class.sti_name
     raise "unable to determine owner class for form role: #{role}" unless owner_type
 
     data_source = GrdaWarehouse::DataSource.hmis.first # TODO: needs adjustment to support multiple data sources
@@ -556,32 +593,13 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
       # find CDED if it exists, or initialize a new one with defaults
       cded = cdeds_by_key[key] || cded_scope.new(key: key, UserID: hud_user_id)
 
-      field_type = case item.type
-      when 'STRING', 'TEXT', 'CHOICE', 'TIME_OF_DAY', 'OPEN_CHOICE'
-        'string'
-      when 'BOOLEAN'
-        'boolean'
-      when 'DATE'
-        'date'
-      when 'INTEGER'
-        'integer'
-      when 'CURRENCY'
-        'float'
-      when 'DISPLAY', 'GROUP'
-        puts "Skipping unexpected custom_field_key on non-question item. Unable to determine type. form: #{identifier}, link_id: #{item.link_id}, key: #{key}"
-        next
-      else
-        # nil
-        raise "unable to determine cded type for #{item&.type} (#{key})"
-      end
-
       # Infer CDED attributes based on Item
       cded.owner_type = owner_type
-      cded.field_type = field_type
+      cded.field_type = self.class.infer_cded_field_type(item.type)
       cded.repeats = item.repeats || false
 
       # Infer label for CustomDataElementDefinition based on various labels
-      cded.label = ActionView::Base.full_sanitizer.sanitize(item.readonly_text || item.brief_text || item.text || key.humanize)
+      cded.label = self.class.generate_cded_field_label(item)
 
       # If specified, set the definition identifier to specify that this CustomDataElementDefinition is ONLY collected by this form type.
       cded.form_definition_identifier = identifier if set_definition_identifier
