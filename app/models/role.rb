@@ -91,6 +91,10 @@ class Role < ApplicationRecord
     health_role
   end
 
+  def editable?
+    system == false && health_role == false
+  end
+
   def has_super_admin_permissions? # rubocop:disable Naming/PredicateName
     Role.permissions.each do |permission,|
       return true if Role.super_admin_permissions.include?(permission) && self[permission]
@@ -168,6 +172,24 @@ class Role < ApplicationRecord
 
   def fg_color
     @fg_color ||= GrdaWarehouse::SystemColor.new.calculated_foreground_color(bg_color)
+  end
+
+  def self.permission_from_title(title)
+    return unless title.present?
+
+    # Attempt to find by explicit title, or by a snake cased version of the title
+    # NOTE: this hasn't actually been implemented in the permissions_with_descriptions yet,
+    # but it allows us to use more descriptive titles in the future
+    column_from_title = title.parameterize.underscore.to_sym
+    column, perm = permissions_with_descriptions.detect { |col, perm| perm[:title] == title || col == column_from_title }
+    { column: column, perm: perm }
+  end
+
+  def self.title_for_column(column)
+    perm = permissions_with_descriptions[column.to_sym]
+    return perm[:title] if perm[:title].present?
+
+    column.to_s.humanize
   end
 
   def self.permissions_with_descriptions

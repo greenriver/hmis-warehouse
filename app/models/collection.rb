@@ -184,6 +184,19 @@ class Collection < ApplicationRecord
     entity_types.slice(*relevant_types)
   end
 
+  def self.collection_type_from(relation)
+    case relation
+    when :data_sources, :organizations, :project_access_groups, :coc_codes, :projects
+      'Projects'
+    when :project_groups
+      'Project Groups'
+    when :reports
+      'Reports'
+    when :cohorts
+      'Cohorts'
+    end
+  end
+
   def overall_project_count
     @overall_project_count ||= Set.new.tap do |ids|
       ids.merge projects.pluck(:id)
@@ -502,6 +515,10 @@ class Collection < ApplicationRecord
 
   def associated_entity_set
     @associated_entity_set ||= group_viewable_entities.pluck(:entity_type, :entity_id).sort.to_set
+  end
+
+  def class_name_for_viewable_type(type)
+    viewable_types[type]
   end
 
   private def viewable_types
