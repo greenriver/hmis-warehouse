@@ -14,7 +14,33 @@ RSpec.describe 'JSON Schema validation', type: :model do
 
   describe 'against a valid definition' do
     let(:document) do
-      { 'item' => [{ 'text' => 'hello world', 'type' => 'STRING', 'link_id' => 'node1' }] }
+      # { 'item' => [{ 'text' => 'hello world', 'type' => 'STRING', 'link_id' => 'node_1' }] }
+      {
+        "item": [
+          {
+            "item": [
+              {
+                "link_id": 'link_1',
+                "type": 'DATE',
+                "text": 'Assessment Date',
+                "required": false,
+                "warn_if_empty": false,
+                "hidden": false,
+                "read_only": false,
+                "repeats": false,
+                "assessment_date": true,
+                "disabled_display": 'HIDDEN',
+              },
+            ],
+            "link_id": 'event_group',
+            "type": 'GROUP',
+            "text": 'SPDAT',
+            "hidden": false,
+            "prefill": false,
+            "disabled_display": 'HIDDEN',
+          },
+        ],
+      }
     end
     it 'should be valid' do
       expect(HmisExternalApis::JsonValidator.perform(document, schema)).to be_empty

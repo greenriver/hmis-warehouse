@@ -16,7 +16,7 @@ FactoryBot.define do
         'item': [
           {
             'type': 'GROUP',
-            'link_id': '1',
+            'link_id': 'q1',
             'item': [
               {
                 'type': 'DATE',
@@ -33,6 +33,7 @@ FactoryBot.define do
                 'required': true,
                 'warn_if_empty': false,
                 'brief_text': 'The Required Field',
+                'text': 'A required field',
                 'mapping': { 'field_name': 'fieldOne' },
               },
               {
@@ -41,6 +42,7 @@ FactoryBot.define do
                 'required': false,
                 'warn_if_empty': true,
                 'text': 'Choice field',
+                "pick_list_reference": 'NoYesMissing',
                 'mapping': { 'field_name': 'fieldTwo' },
               },
             ],

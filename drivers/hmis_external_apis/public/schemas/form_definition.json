@@ -496,9 +496,6 @@
     },
     "formNode": {
       "type": "object",
-      "required": [
-        "type"
-      ],
       "allOf": [
         {
           "if": {
@@ -1084,7 +1081,11 @@
           "$ref": "#/$defs/rule"
         },
         "disabled_display": {
-          "type": "string"
+          "enum": [
+            "HIDDEN",
+            "PROTECTED",
+            "PROTECTED_WITH_VALUE"
+          ]
         }
       }
     },
