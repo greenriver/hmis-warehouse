@@ -10,10 +10,37 @@
       "fragment": "#w5_housing_assessment_at_exit"
     },
     {
-      "fragment": "#rhy_exit"
+      "type": "GROUP",
+      "link_id": "rhy_exit",
+      "text": "RHY Exit Questions",
+      "data_collected_about": "HOH_AND_ADULTS",
+      "_comment": "RHY exploitation questions are in a different group",
+      "item": [
+        {
+          "fragment": "#r17_project_completion_status"
+        },
+        {
+          "fragment": "#r18_counseling"
+        },
+        {
+          "fragment": "#r19_safe_and_appropriate_exit"
+        }
+      ]
     },
     {
-      "fragment": "#r15_r16_exploitation"
+      "type": "GROUP",
+      "link_id": "exploitation",
+      "text": "Exploitation",
+      "data_collected_about": "HOH_AND_ADULTS",
+      "prefill": true,
+      "item": [
+        {
+          "fragment": "#r15_sexual_exploitation"
+        },
+        {
+          "fragment": "#r16_labor_exploitation"
+        }
+      ]
     },
     {
       "fragment": "#c3_youth_education_status"
@@ -37,7 +64,21 @@
       "fragment": "#disability"
     },
     {
-      "fragment": "#r7_r8_r9_health"
+      "type": "GROUP",
+      "link_id": "rhy_health_status",
+      "text": "Health Status",
+      "data_collected_about": "HOH_AND_ADULTS",
+      "item": [
+        {
+          "fragment": "#r7_general_health"
+        },
+        {
+          "fragment": "#r8_dental_health"
+        },
+        {
+          "fragment": "#r9_mental_health"
+        }
+      ]
     }
   ]
 }
