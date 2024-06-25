@@ -1,7 +1,63 @@
 {
   "item": [
     {
-      "fragment": "#entry"
+      "type": "GROUP",
+      "link_id": "entry_date_group",
+      "text": "Project Entry",
+      "item": [
+        {
+          "data_collected_about": "ALL_CLIENTS",
+          "type": "DATE",
+          "link_id": "entry_date",
+          "text": "Entry Date",
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "entryDate"
+          },
+          "required": true,
+          "assessment_date": true,
+          "initial": [
+            {
+              "initial_behavior": "OVERWRITE",
+              "value_local_constant": "$entryDate"
+            }
+          ],
+          "bounds": [
+            {
+              "id": "max-entry",
+              "_comment": "entry date cannot be in the future",
+              "type": "MAX",
+              "value_local_constant": "$today"
+            },
+            {
+              "id": "max-entry-exit",
+              "_comment": "entry date cannot be after exit date",
+              "type": "MAX",
+              "value_local_constant": "$exitDate"
+            }
+          ]
+        },
+        {
+          "data_collected_about": "HOH",
+          "type": "CHOICE",
+          "link_id": "q_3_16",
+          "prefix": "3.16",
+          "text": "CoC Code for Client Location",
+          "required": true,
+          "mapping": {
+            "record_type": "ENROLLMENT",
+            "field_name": "enrollmentCoc"
+          },
+          "brief_text": "Location",
+          "pick_list_reference": "COC"
+        },
+        {
+          "fragment": "#r1_referral_source"
+        },
+        {
+          "fragment": "#c4_translation_assistance"
+        }
+      ]
     },
     {
       "fragment": "#prior_living_situation_a"
