@@ -38,6 +38,15 @@ module MaReports::CsgEngage
         imported_import_keyword: program_mapping.csg_engage_import_keyword,
       )
       report.respond_to_program_report_update(reload)
+    rescue Net::ReadTimeout
+      update(
+        completed_at: Time.zone.now,
+        raw_result: nil,
+        json_result: nil,
+        imported_program_name: program_mapping.csg_engage_name,
+        imported_import_keyword: program_mapping.csg_engage_import_keyword,
+      )
+      report.respond_to_program_report_update(reload)
     end
 
     def delete_from_csg
@@ -51,6 +60,14 @@ module MaReports::CsgEngage
 
     def cleanup_last_report
       report.last_report&.program_reports&.find_by(program_mapping_id: program_mapping_id)&.delete_from_csg
+    end
+
+    def completed_without_response?
+      completed? && raw_result.nil?
+    end
+
+    def other_status_text
+      return 'Completed without response' if completed_without_response?
     end
   end
 end

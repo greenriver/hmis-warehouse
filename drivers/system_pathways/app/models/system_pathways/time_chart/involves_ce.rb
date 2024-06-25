@@ -12,7 +12,7 @@ module SystemPathways::TimeChart::InvolvesCe
       chart: 'involves_ce',
       config: {
         size: {
-          height: 900,
+          height: project_type_node_names.count * involves_ces.count * 30,
         },
       },
       data: involves_ce_data,

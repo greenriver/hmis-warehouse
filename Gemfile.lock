@@ -534,7 +534,8 @@ GEM
     jsbundling-rails (1.3.0)
       railties (>= 6.0.0)
     json (2.7.1)
-    json_schemer (2.0.0)
+    json_schemer (2.3.0)
+      bigdecimal
       hana (~> 1.3)
       regexp_parser (~> 2.0)
       simpleidn (~> 0.2)
@@ -768,7 +769,7 @@ GEM
       redis-store (>= 1.2, < 2)
     redis-store (1.10.0)
       redis (>= 4, < 6)
-    regexp_parser (2.9.0)
+    regexp_parser (2.9.2)
     reline (0.5.0)
       io-console (~> 0.5)
     request_store (1.6.0)
@@ -906,8 +907,7 @@ GEM
       simplecov_json_formatter (~> 0.1)
     simplecov-html (0.12.3)
     simplecov_json_formatter (0.1.4)
-    simpleidn (0.2.1)
-      unf (~> 0.1.4)
+    simpleidn (0.2.3)
     slack-notifier (2.4.0)
     snaky_hash (2.0.1)
       hashie
@@ -961,9 +961,6 @@ GEM
     todo_or_die (0.1.1)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
-    unf (0.1.4)
-      unf_ext
-    unf_ext (0.0.9.1)
     unicode-display_width (2.5.0)
     uri (0.13.0)
     validate_url (1.0.15)
@@ -1139,7 +1136,7 @@ DEPENDENCIES
   jquery-ui-rails!
   jsbundling-rails (~> 1.1)
   json
-  json_schemer (~> 2.0.0)
+  json_schemer (~> 2.3.0)
   kaminari
   kiba
   kiba-common
