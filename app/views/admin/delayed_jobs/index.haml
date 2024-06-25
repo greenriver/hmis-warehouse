@@ -4,6 +4,7 @@
 = render partial: 'menus/admin_tabs'
 
 - if @jobs.any?
+  - users = User.active.map { |u| [u.id, u.name_with_email] }.to_h
   %p Showing #{pluralize(@jobs.count, 'job')}
   .card.table-responsive
     %table.table.table-striped.mb-0
@@ -16,21 +17,24 @@
         %th
       %tbody
         - @jobs.each do |job|
+          - describe = DescribeJob.new(job)
           %tr
             %td
               %strong= job.id
               %br
-              = job.name.split(' ').first
-              - user_id = if job.payload_object.respond_to?(:job_data) && job.payload_object.respond_to?(:job_data).try(:[], 'arguments').try(:first).is_a?(Hash) then job.payload_object.job_data['arguments'].first.try(:[], 'user_id') else 'unknown' end
-              - arguments = if job.payload_object.respond_to?(:job_data) then job.payload_object.job_data.try(:[], 'arguments').try(:first) else nil end
-              - detail = if arguments.is_a?(Hash) then arguments.try(:[], 'report_class') else arguments end
+              = describe.job_name
+              - user_id = describe.user_id
               - if user_id
                 %br
-                %strong Run by user id:
-                = user_id
+                %strong Run by user:
+                = users[user_id] || user_id
+
+              - detail = describe.job_class
               - if detail
                 %br
                 = detail
+                - if describe.created_at
+                  Requested: #{describe.created_at}
               %br
               %strong Run after:
               = job.run_at
