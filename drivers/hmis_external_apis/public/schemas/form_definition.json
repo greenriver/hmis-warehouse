@@ -1080,6 +1080,9 @@
         "rule": {
           "$ref": "#/$defs/rule"
         },
+        "custom_rule": {
+          "$ref": "#/$defs/rule"
+        },
         "disabled_display": {
           "enum": [
             "HIDDEN",
