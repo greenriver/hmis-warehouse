@@ -537,9 +537,9 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     block.call(node)
   end
 
-  # Find and/or initialize CustomDataElementDefinitions that are collected by this form. Eventually this should be done as part of the
-  # Form Editor admin tool. For now, it is called by a rake task manually.
-  # TODO remove?
+  # Find and/or initialize CustomDataElementDefinitions that are collected by this form.
+  # This is used by PublishExternalFormsJob.
+  # This should eventually be removed as we're now moving towards relying on Publish Form to generate CDEDs.
   def introspect_custom_data_element_definitions(set_definition_identifier: false)
     owner_type = owner_class.sti_name
     raise "unable to determine owner class for form role: #{role}" unless owner_type
@@ -552,14 +552,11 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
     cded_records = []
     walk_definition_nodes do |item|
       # Skip non-questions items (Groups and Display items)
-      next unless NON_QUESTION_ITEM_TYPES.include?(item.type)
+      next if NON_QUESTION_ITEM_TYPES.include?(item.type)
       # Skip items that already map to a standard (HUD) field
       next if item.mapping&.field_name
 
       key = item.mapping&.custom_field_key
-      # Skip items that already map to a custom data element
-      next unless key
-
       # find CDED if it exists, or initialize a new one with defaults
       cded = cdeds_by_key[key] || cded_scope.new(key: key, UserID: hud_user_id)
 
