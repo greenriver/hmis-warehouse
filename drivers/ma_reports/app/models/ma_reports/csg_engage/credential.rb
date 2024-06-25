@@ -14,7 +14,7 @@ module MaReports::CsgEngage
     alias_attribute :options, :additional_headers
 
     DEFAULT_HOUR = 4
-    DEFAULT_READ_TIMEOUT = 7200
+    DEFAULT_READ_TIMEOUT = 7_200 # 2 hours
 
     def hour
       options&.[]('hour') || DEFAULT_HOUR

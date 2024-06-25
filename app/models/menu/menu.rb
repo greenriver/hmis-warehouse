@@ -471,7 +471,7 @@ class Menu::Menu
         title: 'Imports',
       ),
     )
-    if RailsDrivers.loaded.include?(:ma_reports) && MaReports::CsgEngage::Credential.present?
+    if RailsDrivers.loaded.include?(:ma_reports) && MaReports::CsgEngage::Credential.active.present?
       menu.add_child(
         Menu::Item.new(
           user: user,
