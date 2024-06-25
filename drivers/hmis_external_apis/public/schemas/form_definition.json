@@ -1,91 +1,228 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Form Definition",
   "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "item"
+  ],
   "properties": {
-    "name": { "type": "string" },
+    "name": {
+      "type": "string"
+    },
     "item": {
       "type": "array",
       "minItems": 1,
-      "items": { "$ref": "#/definitions/form_node" }
+      "items": {
+        "$ref": "#/$defs/formNode"
+      }
     }
   },
-  "definitions": {
+  "$defs": {
     "mapping": {
       "type": "object",
       "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "field_name"
+          ]
+        },
+        {
+          "required": [
+            "custom_field_key"
+          ]
+        }
+      ],
       "properties": {
-        "_comment": { "type": "string" },
-        "record_type": { "type": "string" },
-        "field_name": { "type": "string" },
-        "custom_field_key": { "type": "string" }
+        "_comment": {
+          "type": "string"
+        },
+        "record_type": {
+          "enum": [
+            "ASSESSMENT",
+            "CLIENT",
+            "CURRENT_LIVING_SITUATION",
+            "DISABILITY_GROUP",
+            "EMPLOYMENT_EDUCATION",
+            "ENROLLMENT",
+            "EVENT",
+            "EXIT",
+            "HEALTH_AND_DV",
+            "INCOME_BENEFIT",
+            "PROJECT",
+            "ORGANIZATION",
+            "CE PARTICIPATION",
+            "SERVICE",
+            "YOUTH_EDUCATION_STATUS"
+          ]
+        },
+        "field_name": {
+          "type": "string"
+        },
+        "custom_field_key": {
+          "type": "string"
+        }
       }
     },
-    "pick_list_option": {
+    "pickListOption": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["code"],
+      "required": [
+        "code"
+      ],
       "properties": {
-        "code": { "type": "string" },
-        "label": { "type": "string" },
-        "secondary_label": { "type": "string" },
-        "group_code": { "type": "string" },
-        "group_label": { "type": "string" },
-        "helper_text": { "type": "string" },
-        "numeric_value": { "type": "integer" },
-        "initial_selected": { "type": "string" }
+        "code": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "secondary_label": {
+          "type": "string"
+        },
+        "group_code": {
+          "type": "string"
+        },
+        "group_label": {
+          "type": "string"
+        },
+        "helper_text": {
+          "type": "string"
+        },
+        "numeric_value": {
+          "type": "integer"
+        },
+        "initial_selected": {
+          "type": "boolean"
+        }
       }
     },
     "bounds": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "type"],
+      "required": [
+        "id",
+        "type"
+      ],
       "properties": {
-        "_comment": { "type": "string" },
-        "id": { "type": "string" },
-        "type": { "type": "string" },
-        "question": { "type": "string" },
-        "value_local_constant": { "type": "string" },
-        "value_number": { "type": "integer" },
-        "offset": { "type": "integer" },
-        "severity": { "enum": ["error", "warning"] }
+        "_comment": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "MAX",
+            "MIN"
+          ]
+        },
+        "question": {
+          "$ref": "#/$defs/linkId"
+        },
+        "value_local_constant": {
+          "type": "string"
+        },
+        "value_number": {
+          "type": "integer"
+        },
+        "offset": {
+          "type": "integer"
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning"
+          ]
+        }
       }
     },
     "rule": {
       "type": "object",
-      "required": ["operator"],
+      "required": [
+        "operator"
+      ],
       "oneOf": [
         {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "_comment": { "type": "string" },
-            "operator": { "enum": ["ANY", "ALL"] },
-            "parts": { "type": "array", "items": { "$ref": "#/definitions/rule" } }
+            "_comment": {
+              "type": "string"
+            },
+            "operator": {
+              "enum": [
+                "ANY",
+                "ALL"
+              ]
+            },
+            "parts": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/rule"
+              }
+            }
           }
         },
         {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "_comment": { "type": "string" },
-            "variable": { "enum": ["projectId"] },
-            "operator": { "enum": ["EQUAL", "NOT_EQUAL"] },
-            "value": { "type": "string" }
+            "_comment": {
+              "type": "string"
+            },
+            "variable": {
+              "enum": [
+                "projectId"
+              ]
+            },
+            "operator": {
+              "enum": [
+                "EQUAL",
+                "NOT_EQUAL"
+              ]
+            },
+            "value": {
+              "type": "string"
+            }
           }
         },
         {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "_comment": { "type": "string" },
-            "variable": { "enum": ["projectType"] },
-            "operator": { "enum": ["EQUAL", "NOT_EQUAL"] },
+            "_comment": {
+              "type": "string"
+            },
+            "variable": {
+              "enum": [
+                "projectType"
+              ]
+            },
+            "operator": {
+              "enum": [
+                "EQUAL",
+                "NOT_EQUAL"
+              ]
+            },
             "value": {
               "type": "integer",
               "enum": [
-                0, 1, 2, 3, 4, 6, 8, 9, 7, 10, 11, 12, 13, 14
+                0,
+                1,
+                2,
+                3,
+                4,
+                6,
+                8,
+                9,
+                7,
+                10,
+                11,
+                12,
+                13,
+                14
               ]
             }
           }
@@ -94,45 +231,139 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "_comment": { "type": "string" },
-            "variable": { "enum": ["projectFunderComponents"] },
-            "operator": { "enum": ["INCLUDE", "NOT_INCLUDE"] },
-            "value": {"type": "string", "enum": [
-              "HHS: PATH",
-              "HHS: RHY",
-              "HUD: CoC",
-              "HUD: ESG",
-              "HUD: ESG RUSH",
-              "HUD: HOPWA",
-              "HUD: HUD-VASH",
-              "HUD: PFS",
-              "HUD: Rural Special NOFO",
-              "HUD: Unsheltered Special NOFO",
-              "VA: CRS Contract Residential Services",
-              "VA: Community Contract Safe Haven",
-              "VA: GPD",
-              "VA: SSVF"
-            ] }
+            "_comment": {
+              "type": "string"
+            },
+            "variable": {
+              "enum": [
+                "projectFunderComponents"
+              ]
+            },
+            "operator": {
+              "enum": [
+                "INCLUDE",
+                "NOT_INCLUDE"
+              ]
+            },
+            "value": {
+              "type": "string",
+              "enum": [
+                "HHS: PATH",
+                "HHS: RHY",
+                "HUD: CoC",
+                "HUD: ESG",
+                "HUD: ESG RUSH",
+                "HUD: HOPWA",
+                "HUD: HUD-VASH",
+                "HUD: PFS",
+                "HUD: Rural Special NOFO",
+                "HUD: Unsheltered Special NOFO",
+                "VA: CRS Contract Residential Services",
+                "VA: Community Contract Safe Haven",
+                "VA: GPD",
+                "VA: SSVF"
+              ]
+            }
           }
         },
         {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "_comment": { "type": "string" },
-            "variable": { "enum": ["projectOtherFunders"] },
-            "operator": { "enum": ["INCLUDE", "NOT_INCLUDE"] },
-            "value": {"type": "string" }
+            "_comment": {
+              "type": "string"
+            },
+            "variable": {
+              "enum": [
+                "projectOtherFunders"
+              ]
+            },
+            "operator": {
+              "enum": [
+                "INCLUDE",
+                "NOT_INCLUDE"
+              ]
+            },
+            "value": {
+              "type": "string"
+            }
           }
         },
         {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "_comment": { "type": "string" },
-            "variable": { "enum": ["projectFunders"] },
-            "operator": { "enum": ["INCLUDE", "NOT_INCLUDE"] },
-            "value": {"type": "integer", "enum": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 30, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55] }
+            "_comment": {
+              "type": "string"
+            },
+            "variable": {
+              "enum": [
+                "projectFunders"
+              ]
+            },
+            "operator": {
+              "enum": [
+                "INCLUDE",
+                "NOT_INCLUDE"
+              ]
+            },
+            "value": {
+              "type": "integer",
+              "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24,
+                25,
+                26,
+                27,
+                30,
+                32,
+                33,
+                34,
+                35,
+                36,
+                37,
+                38,
+                39,
+                40,
+                41,
+                42,
+                43,
+                44,
+                45,
+                46,
+                47,
+                48,
+                49,
+                50,
+                51,
+                52,
+                53,
+                54,
+                55
+              ]
+            }
           }
         }
       ]
@@ -140,61 +371,456 @@
     "initial": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["initial_behavior"],
+      "required": [
+        "initial_behavior"
+      ],
       "properties": {
-        "_comment": { "type": "string" },
-        "initial_behavior": { "type": "string" },
-        "value_local_constant": { "type": "string" },
-        "value_code": { "type": "string" },
-        "value_number": { "type": "integer" },
-        "value_boolean": { "type": "boolean" }
-      }
-    },
-    "enable_when": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "_comment": { "type": "string" },
-        "question": { "type": "string" },
-        "compare_question": { "type": "string" },
-        "local_constant": { "type": "string" },
-        "operator": { "type": "string" },
-        "answer_code": { "type": "string" },
-        "answer_codes": { "type": "array", "items": { "type": "string" } },
-        "answer_number": { "type": "integer" },
-        "answer_boolean": { "type": "boolean" },
-        "answer_group_code": { "type": "string" }
-      }
-    },
-    "autofill_values": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["autofill_behavior", "autofill_when"],
-      "properties": {
-        "_comment": { "type": "string" },
-        "value_code": { "type": "string" },
-        "value_number": { "type": "integer" },
-        "value_boolean": { "type": "boolean" },
-        "value_question": { "type": "string" },
-        "autofill_readonly": { "type": "boolean" },
-        "autofill_behavior": { "type": "string" },
-        "autofill_when": { "type": "array", "items": { "$ref": "#/definitions/enable_when" } },
-        "formula": { "type": "string" },
-        "sum_questions": { "type": "array", "items": { "type": "string" } }
-      }
-    },
-    "form_node": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["type", "link_id"],
-      "properties": {
-        "_comment": { "type": "string" },
-        "item": {
-          "type": "array",
-          "minItems": 1,
-          "items": { "$ref": "#/definitions/form_node" }
+        "_comment": {
+          "type": "string"
         },
-        "enable_behavior": { "enum": ["ALL", "ANY"] },
+        "initial_behavior": {
+          "enum": [
+            "IF_EMPTY",
+            "OVERWRITE"
+          ]
+        },
+        "value_local_constant": {
+          "type": "string"
+        },
+        "value_code": {
+          "type": "string"
+        },
+        "value_number": {
+          "type": "integer"
+        },
+        "value_boolean": {
+          "type": "boolean"
+        }
+      }
+    },
+    "enableWhen": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "_comment": {
+          "type": "string"
+        },
+        "question": {
+          "$ref": "#/$defs/linkId"
+        },
+        "compare_question": {
+          "$ref": "#/$defs/linkId"
+        },
+        "local_constant": {
+          "type": "string"
+        },
+        "operator": {
+          "enum": [
+            "EQUAL",
+            "EXISTS",
+            "ENABLED",
+            "IN",
+            "INCLUDES",
+            "GREATER_THAN",
+            "GREATER_THAN_EQUAL",
+            "LESS_THAN",
+            "LESS_THAN_EQUAL",
+            "NOT_EQUAL"
+          ]
+        },
+        "answer_code": {
+          "type": "string"
+        },
+        "answer_codes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "answer_number": {
+          "type": "integer"
+        },
+        "answer_boolean": {
+          "type": "boolean"
+        },
+        "answer_group_code": {
+          "type": "string"
+        }
+      }
+    },
+    "autofillValues": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "autofill_behavior",
+        "autofill_when"
+      ],
+      "properties": {
+        "_comment": {
+          "type": "string"
+        },
+        "value_code": {
+          "type": "string"
+        },
+        "value_number": {
+          "type": "integer"
+        },
+        "value_boolean": {
+          "type": "boolean"
+        },
+        "value_question": {
+          "$ref": "#/$defs/linkId"
+        },
+        "autofill_readonly": {
+          "type": "boolean"
+        },
+        "autofill_behavior": {
+          "type": "string"
+        },
+        "autofill_when": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/enableWhen"
+          }
+        },
+        "formula": {
+          "type": "string"
+        },
+        "sum_questions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/linkId"
+          }
+        }
+      }
+    },
+    "formNode": {
+      "type": "object",
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "BOOLEAN"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/booleanFormNode"
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "CHOICE"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/choiceFormNode"
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "CURRENCY"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/genericInputFormNode"
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "DATE"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/genericInputFormNode"
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "DISPLAY"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/displayFormNode"
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "FILE"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/genericInputFormNode"
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "GROUP"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/groupFormNode"
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "IMAGE"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/genericInputFormNode"
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "INTEGER"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/integerFormNode"
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "OBJECT"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/objectFormNode"
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "OPEN_CHOICE"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/choiceFormNode"
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "STRING"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/stringFormNode"
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "TEXT"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/stringFormNode"
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "TIME_OF_DAY"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/$defs/genericInputFormNode"
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "choiceFormNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/genericInputFormNode"
+        },
+        {
+          "type": "object",
+          "oneOf": [
+            {
+              "required": [
+                "pick_list_reference"
+              ]
+            },
+            {
+              "required": [
+                "pick_list_options"
+              ]
+            }
+          ],
+          "properties": {
+            "pick_list_reference": {
+              "type": "string"
+            },
+            "pick_list_options": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/pickListOption"
+              }
+            },
+            "component": {
+              "enum": [
+                "CHECKBOX",
+                "DROPDOWN",
+                "RADIO_BUTTONS",
+                "RADIO_BUTTONS_VERTICAL"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "booleanFormNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/genericInputFormNode"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "component": {
+              "enum": [
+                "CHECKBOX"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "displayFormNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/baseFormNode"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "autofill_values": {
+              "$comment": "used for display that includes calculations",
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/autofillValues"
+              }
+            },
+            "read_only": {
+              "type": "boolean"
+            },
+            "component": {
+              "enum": [
+                "ALERT_ERROR",
+                "ALERT_SUCCESS",
+                "ALERT_INFO",
+                "ALERT_WARNING"
+              ]
+            },
+            "initial": {
+              "$comment": "used for display that includes calculations",
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/initial"
+              }
+            },
+            "mapping": {
+              "$comment": "used for display that includes calculations",
+              "$ref": "#/$defs/mapping"
+            },
+            "readonly_text": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "dataCollectedAbout": {
+      "type": "object",
+      "properties": {
         "data_collected_about": {
           "enum": [
             "ALL_CLIENTS",
@@ -203,83 +829,269 @@
             "HOH_AND_ADULTS",
             "VETERAN_HOH"
           ]
+        }
+      }
+    },
+    "groupFormNode": {
+      "$comment": "Group form nodes",
+      "allOf": [
+        {
+          "$ref": "#/$defs/baseFormNode"
         },
-        "type": {
+        {
+          "$ref": "#/$defs/dataCollectedAbout"
+        },
+        {
+          "type": "object",
+          "required": [
+            "item"
+          ],
+          "properties": {
+            "component": {
+              "enum": [
+                "DISABILITY_TABLE",
+                "HORIZONTAL_GROUP",
+                "INFO_GROUP",
+                "INPUT_GROUP"
+              ]
+            },
+            "item": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/formNode"
+              }
+            },
+            "text": {
+              "type": "string"
+            },
+            "readonly_text": {
+              "type": "string"
+            },
+            "prefill": {
+              "$comment": "Enables the 'fill' button (select a previous assessment to populate from). It's only used on HUD assessments and only on top-level nodes",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
+    "integerFormNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/genericInputFormNode"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "component": {
+              "enum": [
+                "MINUTES_DURATION"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "objectFormNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/baseInputFormNode"
+        },
+        {
+          "properties": {
+            "component": {
+              "enum": [
+                "NAME",
+                "ADDRESS",
+                "PHONE",
+                "EMAIL"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "stringFormNode": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/genericInputFormNode"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "component": {
+              "enum": [
+                "EMAIL",
+                "PHONE",
+                "MCI",
+                "SSN"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "textLabelRequired": {
+      "$comment": "Inputs must have a text field unless hidden",
+      "if": {
+        "not": {
+          "properties": {
+            "hidden": {
+              "const": true
+            }
+          },
+          "required": [
+            "hidden"
+          ]
+        }
+      },
+      "then": {
+        "required": [
+          "text"
+        ]
+      }
+    },
+    "genericInputFormNode": {
+      "$comment": "Generic form input",
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/baseInputFormNode"
+        },
+        {
+          "$ref": "#/$defs/textLabelRequired"
+        }
+      ]
+    },
+    "baseInputFormNode": {
+      "$comment": "Generic form input",
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/baseFormNode"
+        },
+        {
+          "$ref": "#/$defs/dataCollectedAbout"
+        },
+        {
+          "properties": {
+            "hidden": {
+              "type": "boolean"
+            },
+            "prefix": {
+              "type": "string"
+            },
+            "brief_text": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            },
+            "readonly_text": {
+              "type": "string"
+            },
+            "helper_text": {
+              "type": "string"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "assessment_date": {
+              "type": "boolean"
+            },
+            "read_only": {
+              "type": "boolean"
+            },
+            "warn_if_empty": {
+              "type": "boolean"
+            },
+            "mapping": {
+              "$ref": "#/$defs/mapping"
+            },
+            "bounds": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/bounds"
+              }
+            },
+            "repeats": {
+              "type": "boolean"
+            },
+            "size": {
+              "type": "string"
+            },
+            "service_detail_type": {
+              "type": "string"
+            },
+            "initial": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/initial"
+              }
+            },
+            "autofill_values": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/autofillValues"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "baseFormNode": {
+      "type": "object",
+      "$comment": "Base properties for all form nodes",
+      "required": [
+        "link_id"
+      ],
+      "dependentRequired": {
+        "$comment": "when enable_behavior is set, require enable_when",
+        "enable_behavior": [
+          "enable_when"
+        ]
+      },
+      "properties": {
+        "_comment": {
+          "type": "string"
+        },
+        "link_id": {
+          "$ref": "#/$defs/linkId"
+        },
+        "hidden": {
+          "type": "boolean"
+        },
+        "enable_behavior": {
           "enum": [
-            "GROUP",
-            "BOOLEAN",
-            "CHOICE",
-            "CURRENCY",
-            "DATE",
-            "DISPLAY",
-            "TIME_OF_DAY",
-            "FILE",
-            "IMAGE",
-            "INTEGER",
-            "OBJECT",
-            "OPEN_CHOICE",
-            "STRING",
-            "TEXT"
+            "ALL",
+            "ANY"
           ]
         },
-        "link_id": { "type": "string" },
-        "prefix": { "type": "string" },
-        "brief_text": { "type": "string" },
-        "text": { "type": "string" },
-        "prefill": { "type": "boolean" },
-        "readonly_text": { "type": "string" },
-        "helper_text": { "type": "string" },
-        "required": { "type": "boolean" },
-        "assessment_date": { "type": "boolean" },
-        "read_only": { "type": "boolean" },
-        "hidden": { "type": "boolean" },
-        "warn_if_empty": { "type": "boolean" },
-        "pick_list_reference": { "type": "string" },
-        "mapping": { "$ref": "#/definitions/mapping" },
-        "project_types_excluded": { "type": "array", "items": { "type": "string" } },
-        "enable_when": { "type": "array", "items": { "$ref": "#/definitions/enable_when" } },
-        "rule": { "$ref": "#/definitions/rule" },
-        "disabled_display": { "type": "string" },
-        "bounds": { "type": "array", "items": { "$ref": "#/definitions/bounds" } },
-        "repeats": { "type": "boolean" },
-        "size": { "type": "string" },
-        "service_detail_type": { "type": "string" },
-        "pick_list_options": {
+        "enable_when": {
           "type": "array",
-          "items": { "$ref": "#/definitions/pick_list_option" }
+          "items": {
+            "$ref": "#/$defs/enableWhen"
+          }
         },
-        "initial": { "type": "array", "items": { "$ref": "#/definitions/initial" } },
-        "autofill_values": {
-          "type": "array",
-          "items": { "$ref": "#/definitions/autofill_values" }
+        "rule": {
+          "$ref": "#/$defs/rule"
         },
-        "component": {
+        "disabled_display": {
           "enum": [
-            "INPUT_GROUP",
-            "HORIZONTAL_GROUP",
-            "INFO_GROUP",
-            "ADDRESS",
-            "ALERT_ERROR",
-            "ALERT_INFO",
-            "ALERT_SUCCESS",
-            "ALERT_WARNING",
-            "CHECKBOX",
-            "DISABILITY_TABLE",
-            "TABLE",
-            "DROPDOWN",
-            "EMAIL",
-            "MCI",
-            "NAME",
-            "PHONE",
-            "RADIO_BUTTONS",
-            "RADIO_BUTTONS_VERTICAL",
-            "SSN",
-            "SIGNATURE_GROUP",
-            "SIGNATURE",
-            "MINUTES_DURATION"
+            "HIDDEN",
+            "PROTECTED",
+            "PROTECTED_WITH_VALUE"
           ]
         }
       }
+    },
+    "linkId": {
+      "type": "string",
+      "pattern": "^[a-zA-Z_$][a-zA-Z0-9_$]*$"
     }
   }
 }

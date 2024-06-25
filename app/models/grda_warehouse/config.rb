@@ -150,6 +150,7 @@ module GrdaWarehouse
         'Tarrant HAT' => 'GrdaWarehouse::CasProjectClientCalculator::TcHat',
         'Tarrant HMIS HAT' => 'GrdaWarehouse::CasProjectClientCalculator::TcHmisHat',
         'Housing Forward' => 'GrdaWarehouse::CasProjectClientCalculator::Mdha',
+        'Springfield' => 'GrdaWarehouse::CasProjectClientCalculator::Springfield',
         'Default' => 'GrdaWarehouse::CasProjectClientCalculator::Default',
       }
     end

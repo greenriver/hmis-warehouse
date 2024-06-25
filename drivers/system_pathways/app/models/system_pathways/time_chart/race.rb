@@ -12,7 +12,7 @@ module SystemPathways::TimeChart::Race
       chart: 'race',
       config: {
         size: {
-          height: 2400,
+          height: project_type_node_names.count * race_columns.count * 30,
         },
       },
       data: race_data,
@@ -31,22 +31,24 @@ module SystemPathways::TimeChart::Race
     flat_counts
   end
 
-  def race_counts
+  def race_counts # rubocop:disable Metrics/AbcSize
     @race_counts ||= {}.tap do |r_counts|
       project_type_counts = project_type_node_names.map do |label|
-        counts = race_columns.values.map { |m| [m, 0] }.to_h
+        columns = race_columns.merge('multi_racial' => 'Multi-Racial')
+        counts = columns.values.map { |m| [m, 0] }.to_h
         # Get rid of the distinct from node_clients
         stay_length_col = sp_e_t[:stay_length]
-        # scope = SystemPathways::Client.where(id: node_clients(label).select(:id)).joins(:enrollments).where(stay_length_col.not_eq(nil))
-        # race_data = pluck_to_hash(race_columns.except('race_none').merge(stay_length_col => 'Stay Length'), scope)
         scope = SystemPathways::Enrollment.joins(:client).where(id: node_clients(label).select(:id)).where(stay_length_col.not_eq(nil))
-        race_data = pluck_to_hash(race_columns.except('race_none').map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Stay Length'), scope)
+        race_data = pluck_to_hash(columns.except('race_none', 'multi_racial').map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Stay Length'), scope)
+        race_data_except_latin = pluck_to_hash(columns.except('race_none', 'hispanic_latinaeo', 'multi_racial').map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Stay Length'), scope)
 
-        race_columns.each do |k, race|
+        columns.each do |k, race|
           data = if k == 'race_none'
             race_data.select { |row| row.except(stay_length_col).values.all?(false) }.map { |m| m[stay_length_col] }
+          elsif k == 'multi_racial'
+            race_data_except_latin.select { |row| row.except(stay_length_col).values.count(true) > 1 }.map { |m| m[stay_length_col] }
           else
-            race_data.select { |r| r[sp_c_t[k]] == true }.map { |m| m[stay_length_col] }
+            race_data.select { |r| r[sp_c_t[k]] == true && r.except(stay_length_col).values.count(true) == 1 }.map { |m| m[stay_length_col] }
           end
           counts[race] = average(data.sum, data.count).round
         end
@@ -58,22 +60,24 @@ module SystemPathways::TimeChart::Race
       r_counts[:project_type_counts] = project_type_counts
 
       ph_counts = ph_projects.map do |p_type, p_label|
-        counts = race_columns.values.map { |m| [m, 0] }.to_h
+        columns = race_columns.merge('multi_racial' => 'Multi-Racial')
+        counts = columns.values.map { |m| [m, 0] }.to_h
         # Get rid of the distinct from node_clients
         stay_length_col = sp_e_t[:days_to_move_in]
-        # scope = SystemPathways::Client.where(id: node_clients(p_type).select(:id)).joins(:enrollments).where(stay_length_col.not_eq(nil))
-        # race_data = pluck_to_hash(race_columns.except('race_none').merge(stay_length_col => 'Days to Move-In'), scope)
         scope = SystemPathways::Enrollment.joins(:client).where(id: node_clients(p_type).select(:id)).where(stay_length_col.not_eq(nil))
-        race_data = pluck_to_hash(race_columns.except('race_none').map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Days to Move-In'), scope)
-        race_columns.each do |k, race|
+        race_data = pluck_to_hash(columns.except('race_none', 'multi_racial').map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Days to Move-In'), scope)
+        race_data_except_latin = pluck_to_hash(columns.except('race_none', 'hispanic_latinaeo', 'multi_racial').map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Days to Move-In'), scope)
+
+        columns.each do |k, race|
           data = if k == 'race_none'
             race_data.select { |row| row.except(stay_length_col).values.all?(false) }.map { |m| m[stay_length_col] }
+          elsif k == 'multi_racial'
+            race_data_except_latin.select { |row| row.except(stay_length_col).values.count(true) > 1 }.map { |m| m[stay_length_col] }
           else
-            race_data.select { |r| r[sp_c_t[k]] == true }.map { |m| m[stay_length_col] }
+            race_data.select { |r| r[sp_c_t[k]] == true && r.except(stay_length_col).values.count(true) == 1 }.map { |m| m[stay_length_col] }
           end
           counts[race] = average(data.sum, data.count).round
         end
-
         [
           p_label,
           counts,
@@ -82,18 +86,21 @@ module SystemPathways::TimeChart::Race
       r_counts[:ph_counts] = ph_counts
 
       label = 'Served by Homeless System'
-      counts = race_columns.values.map { |m| [m, 0] }.to_h
+      columns = race_columns.merge('multi_racial' => 'Multi-Racial')
+      counts = columns.values.map { |m| [m, 0] }.to_h
       # Get rid of the distinct from node_clients
       stay_length_col = sp_c_t[:days_to_return]
-      # scope = SystemPathways::Client.where(id: node_clients(label).select(:id)).where(stay_length_col.not_eq(nil))
-      # race_data = pluck_to_hash(race_columns.except('race_none').merge(stay_length_col => 'Days to Return'), scope)
       scope = SystemPathways::Enrollment.joins(:client).where(id: node_clients(label).select(:id)).where(stay_length_col.not_eq(nil))
-      race_data = pluck_to_hash(race_columns.except('race_none').map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Days to Return'), scope)
-      race_columns.each do |k, race|
+      race_data = pluck_to_hash(known_individual_race_columns.map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Days to Return'), scope)
+      race_data_except_latin = pluck_to_hash(columns.except('race_none', 'hispanic_latinaeo', 'multi_racial').map { |k, v| [sp_c_t[k], v] }.to_h.merge(stay_length_col => 'Days to Return'), scope)
+
+      columns.each do |k, race|
         data = if k == 'race_none'
           race_data.select { |row| row.except(stay_length_col).values.all?(false) }.map { |m| m[stay_length_col] }
+        elsif k == 'multi_racial'
+          race_data_except_latin.select { |row| row.except(stay_length_col).values.count(true) > 1 }.map { |m| m[stay_length_col] }
         else
-          race_data.select { |r| r[sp_c_t[k]] == true }.map { |m| m[stay_length_col] }
+          race_data.select { |r| r[sp_c_t[k]] == true && r.except(stay_length_col).values.count(true) == 1 }.map { |m| m[stay_length_col] }
         end
         counts[race] = average(data.sum, data.count).round
       end
@@ -128,7 +135,7 @@ module SystemPathways::TimeChart::Race
       ph_counts = race_counts[:ph_counts]
       return_counts = race_counts[:return_counts]
 
-      race_columns.each_value.with_index do |race, i|
+      races.each_value.with_index do |race, i|
         row = [race]
         # Time in project
         project_type_node_names.each do |label|

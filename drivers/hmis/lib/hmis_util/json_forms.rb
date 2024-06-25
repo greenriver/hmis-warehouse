@@ -154,6 +154,9 @@ module HmisUtil
 
         applied_patches << id
         children, patch_to_apply = patch.partition { |k, _| ['append_items', 'prepend_items'].include?(k) }.map(&:to_h)
+
+        # if patch replaces references with options, remove the reference to avoid schema violation
+        node.delete('pick_list_reference') if patch_to_apply.key?('pick_list_options')
         # Could also be deep merge. This is probably more intuitive though
         node.merge!(patch_to_apply).compact!
 
