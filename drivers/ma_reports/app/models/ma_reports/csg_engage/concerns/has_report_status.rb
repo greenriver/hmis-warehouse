@@ -35,6 +35,8 @@ module MaReports::CsgEngage::Concerns::HasReportStatus
     end
 
     def status_text
+      return other_status_text if respond_to?(:other_status_text) && other_status_text.present?
+
       {
         completed: 'Completed',
         failed: 'Failed',

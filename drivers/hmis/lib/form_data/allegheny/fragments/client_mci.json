@@ -1,6 +1,5 @@
 {
   "type": "GROUP",
-  "required": false,
   "link_id": "mci_clearance",
   "text": "MCI ID",
   "item": [
@@ -38,7 +37,7 @@
         },
         {
           "question": "first_name",
-          "_comment": "dummy dependency to enable reset when field changes",
+          "_comment": "dummy dependency to enable reset when field changes. FIXME: first_name is not a valid reference; it doesn't exist in the form",
           "operator": "ENABLED",
           "answer_boolean": true
         },

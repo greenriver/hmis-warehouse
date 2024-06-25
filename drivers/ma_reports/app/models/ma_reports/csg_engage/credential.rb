@@ -14,15 +14,21 @@ module MaReports::CsgEngage
     alias_attribute :options, :additional_headers
 
     DEFAULT_HOUR = 4
+    DEFAULT_READ_TIMEOUT = 7_200 # 2 hours
 
     def hour
       options&.[]('hour') || DEFAULT_HOUR
+    end
+
+    def read_timeout
+      options&.[]('read_timeout') || DEFAULT_READ_TIMEOUT
     end
 
     def post(body)
       url = URI("#{endpoint}/Import")
       https = Net::HTTP.new(url.host, url.port)
       https.use_ssl = true
+      https.read_timeout = read_timeout
       file = Multipart::Post::UploadIO.new(StringIO.new(body.to_json), 'application/json', "csg_export_#{Time.zone.now.to_i}.json")
 
       request = Net::HTTP::Post::Multipart.new(url, file: file)
