@@ -7,537 +7,1093 @@
 module HmisUtil
   class HudAssessmentFormRules2024
     # Keys match Link IDs in our default HUD Assessments.
-    # Doesn't feel ideal to key off Link ID since it's meant to be internal to the form, but we are avoiding
-    # adding a new field to the form.
+
+    # def walk_definition_item(node, &block)
+    #   # if item has children, recur into them first
+    #   node['item']&.each { |child| walk_definition_item(child, &block) }
+    #   block.call(node)
+    # end
+    # default_rules = {}
+    # def process_item(default_rules, item)
+    #   return unless item['data_collected_about'] || item['rule']
+
+    #   key = item['link_id'].to_sym
+    #   default_rules[key] ||= {}
+    #   default_rules[key][:stages] ||= []
+    #   default_rules[key][:data_collected_about] ||= item['data_collected_about']
+    #   default_rules[key][:rule] ||= item['rule']
+    # end
+    # HmisUtil::JsonForms.new.send(:fragment_map).map do |_k, fragment|
+    #   process_item(default_rules, fragment)
+    #   proc = Proc.new { |item| process_item(default_rules, item) }
+    #   walk_definition_item(fragment, &proc)
+    # end
+    # default_rules
+
     HUD_LINK_ID_RULES = {
-      # CoC Code for Client Location
-      q_3_16: {
-        stages: [:INTAKE],
-        data_collected_about: :HOH,
-      },
-      # r1_referral_source
-      R1: {
-        stages: [:INTAKE],
-        data_collected_about: :HOH_AND_ADULTS,
-        rule: {
-          "operator": 'ANY',
-          "parts": [
-            {
-              "variable": 'projectFunders',
-              "operator": 'INCLUDE',
-              "_comment": 'All YHDP',
-              "value": 43,
-            },
-            {
-              "operator": 'ALL',
-              "_comment": 'HHS: RHY – Collection required for all components except for Street Outreach',
-              "parts": [
-                {
-                  "variable": 'projectFunderComponents',
-                  "operator": 'INCLUDE',
-                  "value": 'HHS: RHY',
-                },
-                {
-                  "variable": 'projectType',
-                  "operator": 'NOT_EQUAL',
-                  "value": 4,
-                },
-              ],
-            },
-          ],
-        },
-      },
-      # c4_translation_assistance
-      C4_group: {
-        stages: [:INTAKE],
-        data_collected_about: :HOH,
-        rule: {
-          "operator": 'ANY',
-          "parts": [
-            {
-              "_comment": 'HUD: CoC – Collection required for all components',
-              "variable": 'projectFunderComponents',
-              "operator": 'INCLUDE',
-              "value": 'HUD: CoC',
-            },
-            {
-              "_comment": 'HUD: ESG – Collection required for all components ',
-              "variable": 'projectFunderComponents',
-              "operator": 'INCLUDE',
-              "value": 'HUD: ESG',
-            },
-            {
-              "operator": 'ALL',
-              "_comment": 'HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach',
-              "parts": [
-                {
-                  "variable": 'projectFunderComponents',
-                  "operator": 'INCLUDE',
-                  "value": 'HUD: ESG RUSH',
-                },
-                {
-                  "variable": 'projectType',
-                  "operator": 'NOT_EQUAL',
-                  "value": 0,
-                },
-                {
-                  "variable": 'projectType',
-                  "operator": 'NOT_EQUAL',
-                  "value": 1,
-                },
-                {
-                  "variable": 'projectType',
-                  "operator": 'NOT_EQUAL',
-                  "value": 4,
-                },
-              ],
-            },
-            {
-              "_comment": 'HUD: Unsheltered Special NOFO – Collection required for all components',
-              "variable": 'projectFunderComponents',
-              "operator": 'INCLUDE',
-              "value": 'HUD: Unsheltered Special NOFO',
-            },
-            {
-              "_comment": 'HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry',
-              "variable": 'projectFunders',
-              "operator": 'INCLUDE',
-              "value": 55,
-            },
-          ],
-        },
-      },
-      # Prior Living Situation A
-      q_3_917A: {
-        # Data Collection Stages you are required to collect per HUD (only required if rule matches)
-        stages: [:INTAKE],
-        # Client groups you are required to collect about per HUD (only required if rule matches)
-        data_collected_about: :HOH_AND_ADULTS,
-        # Project/Funders required to collect, per HUD
-        rule: {
-          "operator": 'ANY',
-          "parts": [
-            {
-              "variable": 'projectType',
-              "operator": 'EQUAL',
-              "value": 0,
-            },
-            {
-              "variable": 'projectType',
-              "operator": 'EQUAL',
-              "value": 1,
-            },
-            {
-              "variable": 'projectType',
-              "operator": 'EQUAL',
-              "value": 4,
-            },
-            {
-              "variable": 'projectType',
-              "operator": 'EQUAL',
-              "value": 8,
-            },
-          ],
-        },
-      },
-      # Prior Living Situation B
-      q_3_917B: {
-        stages: [:INTAKE],
-        data_collected_about: :HOH_AND_ADULTS,
-        rule: {
-          "operator": 'ALL',
-          "parts": [
-            {
-              "variable": 'projectType',
-              "operator": 'NOT_EQUAL',
-              "value": 0,
-            },
-            {
-              "variable": 'projectType',
-              "operator": 'NOT_EQUAL',
-              "value": 1,
-            },
-            {
-              "variable": 'projectType',
-              "operator": 'NOT_EQUAL',
-              "value": 4,
-            },
-            {
-              "variable": 'projectType',
-              "operator": 'NOT_EQUAL',
-              "value": 8,
-            },
-          ],
-        },
-      },
-      health_insurance: {
-        stages: [:INTAKE, :UPDATE, :ANNUAL, :EXIT],
-        data_collected_about: :ALL_CLIENTS,
-        rule: {
-          "operator": 'ANY',
-          "parts": [
-            {
-              "operator": 'ALL',
-              "_comment": 'HUD: CoC – Collection required for all components except SSO Coordinated Entry',
-              "parts": [
-                {
-                  "variable": 'projectFunderComponents',
-                  "operator": 'INCLUDE',
-                  "value": 'HUD: CoC',
-                },
-                {
-                  "variable": 'projectType',
-                  "operator": 'NOT_EQUAL',
-                  "value": 6,
-                },
-                {
-                  "variable": 'projectType',
-                  "operator": 'NOT_EQUAL',
-                  "value": 14,
-                },
-              ],
-            },
-            {
-              "operator": 'ALL',
-              "_comment": 'HUD: ESG – Collection required for all components except ES-NbN',
-              "parts": [
-                {
-                  "variable": 'projectFunderComponents',
-                  "operator": 'INCLUDE',
-                  "value": 'HUD: ESG',
-                },
-                {
-                  "variable": 'projectType',
-                  "operator": 'NOT_EQUAL',
-                  "value": 1,
-                },
-              ],
-            },
-            {
-              "operator": 'ALL',
-              "_comment": 'HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach',
-              "parts": [
-                {
-                  "variable": 'projectFunderComponents',
-                  "operator": 'INCLUDE',
-                  "value": 'HUD: ESG RUSH',
-                },
-                {
-                  "variable": 'projectType',
-                  "operator": 'NOT_EQUAL',
-                  "value": 0,
-                },
-                {
-                  "variable": 'projectType',
-                  "operator": 'NOT_EQUAL',
-                  "value": 1,
-                },
-                {
-                  "variable": 'projectType',
-                  "operator": 'NOT_EQUAL',
-                  "value": 4,
-                },
-              ],
-            },
-            {
-              "_comment": 'HUD: HOPWA – Collection required for all components',
-              "variable": 'projectFunderComponents',
-              "operator": 'INCLUDE',
-              "value": 'HUD: HOPWA',
-            },
-            {
-              "operator": 'ALL',
-              "_comment": 'HUD: Unsheltered Special NOFO – Collection required for all components except SSO Coordinated Entry',
-              "parts": [
-                {
-                  "variable": 'projectFunderComponents',
-                  "operator": 'INCLUDE',
-                  "value": 'HUD: Unsheltered Special NOFO',
-                },
-                {
-                  "variable": 'projectType',
-                  "operator": 'NOT_EQUAL',
-                  "value": 6,
-                },
-                {
-                  "variable": 'projectType',
-                  "operator": 'NOT_EQUAL',
-                  "value": 14,
-                },
-              ],
-            },
-            {
-              "operator": 'ALL',
-              "_comment": 'HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry',
-              "parts": [
-                {
-                  "variable": 'projectFunderComponents',
-                  "operator": 'INCLUDE',
-                  "value": 'HUD: Rural Special NOFO',
-                },
-                {
-                  "variable": 'projectType',
-                  "operator": 'NOT_EQUAL',
-                  "value": 6,
-                },
-                {
-                  "variable": 'projectType',
-                  "operator": 'NOT_EQUAL',
-                  "value": 14,
-                },
-              ],
-            },
-            {
-              "_comment": 'HUD: HUD-VASH – Collection required for HUD VASH Collaborative Case Management',
-              "variable": 'projectFunderComponents',
-              "operator": 'INCLUDE',
-              "value": 'HUD: HUD-VASH',
-            },
-            {
-              "operator": 'ALL',
-              "_comment": 'HUD: PFS – Collection required for all permanent housing projects',
-              "parts": [
-                {
-                  "variable": 'projectFunderComponents',
-                  "operator": 'INCLUDE',
-                  "value": 'HUD: PFS',
-                },
-                {
-                  "operator": 'ANY',
-                  "parts": [
-                    {
-                      "variable": 'projectType',
-                      "operator": 'EQUAL',
-                      "value": 3,
-                    },
-                    {
-                      "variable": 'projectType',
-                      "operator": 'EQUAL',
-                      "value": 9,
-                    },
-                    {
-                      "variable": 'projectType',
-                      "operator": 'EQUAL',
-                      "value": 10,
-                    },
-                    {
-                      "variable": 'projectType',
-                      "operator": 'EQUAL',
-                      "value": 13,
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              "_comment": 'HHS: PATH – Collection required for all components',
-              "variable": 'projectFunderComponents',
-              "operator": 'INCLUDE',
-              "value": 'HHS: PATH',
-            },
-            {
-              "_comment": 'HHS: RHY – Collection required for all components',
-              "variable": 'projectFunderComponents',
-              "operator": 'INCLUDE',
-              "value": 'HHS: RHY',
-            },
-            {
-              "operator": 'ALL',
-              "_comment": 'VA: SSVF – Collection required for RRH and Homelessness Prevention',
-              "parts": [
-                {
-                  "variable": 'projectFunderComponents',
-                  "operator": 'INCLUDE',
-                  "value": 'VA: SSVF',
-                },
-                {
-                  "operator": 'ANY',
-                  "parts": [
-                    {
-                      "variable": 'projectType',
-                      "operator": 'EQUAL',
-                      "value": 12,
-                    },
-                    {
-                      "variable": 'projectType',
-                      "operator": 'EQUAL',
-                      "value": 13,
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              "_comment": 'VA: GPD – Collection required for all components',
-              "variable": 'projectFunderComponents',
-              "operator": 'INCLUDE',
-              "value": 'VA: GPD',
-            },
-            {
-              "_comment": 'VA: Community Contract Safe Haven',
-              "variable": 'projectFunders',
-              "operator": 'INCLUDE',
-              "value": 30,
-            },
-            {
-              "variable": 'projectFunderComponents',
-              "operator": 'INCLUDE',
-              "value": 'VA: CRS Contract Residential Services',
-            },
-            {
-              "_comment": 'YHDP',
-              "variable": 'projectFunders',
-              "operator": 'INCLUDE',
-              "value": 43,
-            },
-          ],
-        },
-      },
-      # r3_sexual_orientation
-      R3: {
-        stages: [:INTAKE],
-        data_collected_about: :HOH_AND_ADULTS,
-        rule: {
-          "operator": 'ANY',
-          "parts": [
-            {
-              "_comment": 'HUD: CoC – Youth Homeless Demonstration Program (YHDP) – collection required for all components',
-              "variable": 'projectFunders',
-              "operator": 'INCLUDE',
-              "value": 43,
-            },
-            {
-              "_comment": 'HHS: RHY – Collection required for all components',
-              "variable": 'projectFunderComponents',
-              "operator": 'INCLUDE',
-              "value": 'HHS: RHY',
-            },
-            {
-              "_comment": 'HUD: CoC – Permanent Supportive Housing',
-              "variable": 'projectFunders',
-              "operator": 'INCLUDE',
-              "value": 2,
-            },
-            {
-              "operator": 'ALL',
-              "_comment": 'HUD: Unsheltered Special NOFO – Collection required for Permanent Supportive Housing',
-              "parts": [
-                {
-                  "variable": 'projectFunderComponents',
-                  "operator": 'INCLUDE',
-                  "value": 'HUD: Unsheltered Special NOFO',
-                },
-                {
-                  "variable": 'projectType',
-                  "operator": 'EQUAL',
-                  "value": 3,
-                },
-              ],
-            },
-            {
-              "operator": 'ALL',
-              "_comment": 'HUD: Rural Special NOFO – Collection required for Permanent Supportive Housing',
-              "parts": [
-                {
-                  "variable": 'projectFunderComponents',
-                  "operator": 'INCLUDE',
-                  "value": 'HUD: Rural Special NOFO',
-                },
-                {
-                  "variable": 'projectType',
-                  "operator": 'EQUAL',
-                  "value": 3,
-                },
-              ],
-            },
-          ],
-        },
-      },
-      # r11_ward_of_child_welfare
-      R11: {
-        stages: [:INTAKE],
-        data_collected_about: :HOH_AND_ADULTS,
-        rule: {
-          "operator": 'ANY',
-          "parts": [
-            {
-              "operator": 'ALL',
-              "_comment": 'HHS: RHY – Collection required for all components except for Street Outreach',
-              "parts": [
-                {
-                  "variable": 'projectFunderComponents',
-                  "operator": 'INCLUDE',
-                  "value": 'HHS: RHY',
-                },
-                {
-                  "variable": 'projectType',
-                  "operator": 'NOT_EQUAL',
-                  "value": 4,
-                },
-              ],
-            },
-            {
-              "_comment": 'Included in YHDP Supplemental CSV. Recommended for YHDP projects.',
-              "variable": 'projectFunders',
-              "operator": 'INCLUDE',
-              "value": 43,
-            },
-          ],
-        },
-      },
-      # r12_ward_of_juvenile_justice
-      R12: {
-        stages: [:INTAKE],
-        data_collected_about: :HOH_AND_ADULTS,
-        rule: {
-          "operator": 'ANY',
-          "parts": [
-            {
-              "operator": 'ALL',
-              "_comment": 'HHS: RHY – Collection required for all components except for Street Outreach',
-              "parts": [
-                {
-                  "variable": 'projectFunderComponents',
-                  "operator": 'INCLUDE',
-                  "value": 'HHS: RHY',
-                },
-                {
-                  "variable": 'projectType',
-                  "operator": 'NOT_EQUAL',
-                  "value": 4,
-                },
-              ],
-            },
-            {
-              "_comment": 'Included in YHDP Supplemental CSV. Recommended for YHDP projects.',
-              "variable": 'projectFunders',
-              "operator": 'INCLUDE',
-              "value": 43,
-            },
-          ],
-        },
-      },
-      # r13_family_critical_issues
-      R13: {
-        stages: [:INTAKE],
-        data_collected_about: :HOH_AND_ADULTS,
-        rule: {
-          "operator": 'ALL',
-          "_comment": 'HHS: RHY – Collection required for all components except for Street Outreach',
-          "parts": [
-            {
-              "variable": 'projectFunderComponents',
-              "operator": 'INCLUDE',
-              "value": 'HHS: RHY',
-            },
-            {
-              "variable": 'projectType',
-              "operator": 'NOT_EQUAL',
-              "value": 4,
-            },
-          ],
-        },
-      },
+      q_4_11: { stages: ['INTAKE', 'UPDATE'],
+                data_collected_about: nil, # should be 'HOH_AND_ADULTS',
+                rule: { 'operator' => 'ANY',
+                        'parts' =>
+        [
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: CoC – Collection required for all components except SSO Coordinated Entry',
+            'parts' =>
+                     [
+                       { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: CoC' },
+                       { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
+                       { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
+                     ] },
+          { '_comment' => 'HUD: ESG – Collection required for all components ',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HUD: ESG' },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach',
+            'parts' =>
+          [
+            { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: ESG RUSH' },
+            { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 0 },
+            { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 1 },
+            { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+          ] },
+          { '_comment' => 'HUD: HOPWA – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HUD: HOPWA' },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: Unsheltered Special NOFO – Collection required for all components except SSO Coordinated Entry',
+            'parts' =>
+          [
+            { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: Unsheltered Special NOFO' },
+            { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
+            { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
+          ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry',
+            'parts' =>
+          [
+            { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: Rural Special NOFO' },
+            { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
+            { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
+          ] },
+          { '_comment' => 'HUD: HUD-VASH – Collection required for HUD VASH Collaborative Case Management',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HUD: HUD-VASH' },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: PFS – Collection required for all permanent housing projects',
+            'parts' =>
+          [
+            { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: PFS' },
+            { 'operator' => 'ANY',
+              'parts' =>
+            [
+              { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 3 },
+              { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 9 },
+              { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 10 },
+              { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 13 },
+            ] },
+          ] },
+          { '_comment' => 'HHS: PATH – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HHS: PATH' },
+          { 'operator' => 'ALL',
+            '_comment' => 'VA: SSVF – Collection required for RRH and Homelessness Prevention',
+            'parts' =>
+          [
+            { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: SSVF' },
+            { 'operator' => 'ANY',
+              'parts' =>
+            [
+              { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 12 },
+              { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 13 },
+            ] },
+          ] },
+          { '_comment' => 'VA: GPD – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'VA: GPD' },
+          { '_comment' => 'VA: Community Contract Safe Haven', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 30 },
+          { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: CRS Contract Residential Services' },
+          { '_comment' => 'YHDP', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 43 },
+        ] } },
+      c3_youth_education_status: { stages: ['INTAKE', 'EXIT'],
+                                   data_collected_about: 'HOH',
+                                   rule: { 'operator' => 'ALL',
+                                           '_comment' => 'YHDP-funded program should collect this instead of R5',
+                                           'parts' => [{ 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 43 }] } },
+      C4_group: { stages: ['INTAKE'],
+                  data_collected_about: 'HOH',
+                  rule: { 'operator' => 'ANY',
+                          'parts' =>
+        [
+          { '_comment' => 'HUD: CoC – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HUD: CoC' },
+          { '_comment' => 'HUD: ESG – Collection required for all components ',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HUD: ESG' },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: ESG RUSH' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 0 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 1 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+            ] },
+          { '_comment' => 'HUD: Unsheltered Special NOFO – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HUD: Unsheltered Special NOFO' },
+          { '_comment' => 'HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry',
+            'variable' => 'projectFunders',
+            'operator' => 'INCLUDE',
+            'value' => 55 },
+        ] } },
+      location: { stages: ['INTAKE'], data_collected_about: 'HOH', rule: nil },
+      destination: { stages: ['EXIT'], data_collected_about: 'ALL_CLIENTS', rule: nil },
+      # 3.08 disabling condition
+      disability: { stages: ['INTAKE'], data_collected_about: 'ALL_CLIENTS', rule: nil },
+      # 4.08 hiv aids
+      disability_table_r4: { stages: ['INTAKE', 'UPDATE', 'EXIT'],
+                             data_collected_about: 'ALL_CLIENTS',
+                             rule: { 'operator' => 'ANY',
+                                     'parts' =>
+        [
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: CoC – Collection required for all components except SSO Coordinated Entry',
+            'parts' =>
+                     [
+                       { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: CoC' },
+                       { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
+                       { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
+                     ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: ESG – Collection required for all components except ES-NbN',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: ESG' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 1 },
+            ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: ESG RUSH' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 0 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 1 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+            ] },
+          { '_comment' => 'HUD: HOPWA – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HUD: HOPWA' },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: Unsheltered Special NOFO – Collection required for all components except SSO Coordinated Entry',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: Unsheltered Special NOFO' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
+            ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 55 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
+            ] },
+          { '_comment' => 'HUD: HUD-VASH – Collection required for HUD VASH Collaborative Case Management',
+            'variable' => 'projectFunders',
+            'operator' => 'INCLUDE',
+            'value' => 20 },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: PFS – Collection required for all permanent housing projects',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 35 },
+              { 'operator' => 'ANY',
+                'parts' =>
+                [
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 3 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 9 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 10 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 13 },
+                ] },
+            ] },
+          { '_comment' => 'VA: GPD – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'VA: GPD' },
+          { '_comment' => 'VA: Community Contract Safe Haven', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 30 },
+          { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: CRS Contract Residential Services' },
+          { '_comment' => 'YHDP', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 43 },
+        ] } },
+      disability_table: { stages: ['INTAKE', 'UPDATE', 'EXIT'],
+                          data_collected_about: 'ALL_CLIENTS',
+                          rule: { 'operator' => 'ANY',
+                                  'parts' =>
+        [
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: CoC – Collection required for all components except SSO Coordinated Entry',
+            'parts' =>
+                     [
+                       { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: CoC' },
+                       { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
+                       { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
+                     ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: ESG – Collection required for all components except ES-NbN',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: ESG' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 1 },
+            ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: ESG RUSH' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 0 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 1 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+            ] },
+          { '_comment' => 'HUD: HOPWA – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HUD: HOPWA' },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: Unsheltered Special NOFO – Collection required for all components except SSO Coordinated Entry',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: Unsheltered Special NOFO' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
+            ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 55 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
+            ] },
+          { '_comment' => 'HUD: HUD-VASH – Collection required for HUD VASH Collaborative Case Management',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HUD: HUD-VASH' },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: PFS – Collection required for all permanent housing projects',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 35 },
+              { 'operator' => 'ANY',
+                'parts' =>
+                [
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 3 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 9 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 10 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 13 },
+                ] },
+            ] },
+          { '_comment' => 'HHS: PATH – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HHS: PATH' },
+          { '_comment' => 'HHS: RHY – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HHS: RHY' },
+          { '_comment' => 'VA: GPD – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'VA: GPD' },
+          { '_comment' => 'VA: Community Contract Safe Haven',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'VA: Community Contract Safe Haven' },
+          { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: CRS Contract Residential Services' },
+          { '_comment' => 'YHDP', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 43 },
+        ] } },
+      # enrollment coc
+      q_3_16: { stages: ['INTAKE'], data_collected_about: 'HOH', rule: nil },
+      health_insurance: { stages: ['INTAKE', 'UPDATE', 'ANNUAL', 'EXIT'],
+                          data_collected_about: 'ALL_CLIENTS',
+                          rule: { 'operator' => 'ANY',
+                                  'parts' =>
+        [
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: CoC – Collection required for all components except SSO Coordinated Entry',
+            'parts' =>
+                     [
+                       { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: CoC' },
+                       { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
+                       { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
+                     ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: ESG – Collection required for all components except ES-NbN',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: ESG' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 1 },
+            ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: ESG RUSH' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 0 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 1 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+            ] },
+          { '_comment' => 'HUD: HOPWA – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HUD: HOPWA' },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: Unsheltered Special NOFO – Collection required for all components except SSO Coordinated Entry',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: Unsheltered Special NOFO' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
+            ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: Rural Special NOFO' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
+            ] },
+          { '_comment' => 'HUD: HUD-VASH – Collection required for HUD VASH Collaborative Case Management',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HUD: HUD-VASH' },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: PFS – Collection required for all permanent housing projects',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: PFS' },
+              { 'operator' => 'ANY',
+                'parts' =>
+                [
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 3 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 9 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 10 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 13 },
+                ] },
+            ] },
+          { '_comment' => 'HHS: PATH – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HHS: PATH' },
+          { '_comment' => 'HHS: RHY – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HHS: RHY' },
+          { 'operator' => 'ALL',
+            '_comment' => 'VA: SSVF – Collection required for RRH and Homelessness Prevention',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: SSVF' },
+              { 'operator' => 'ANY',
+                'parts' =>
+                [
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 12 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 13 },
+                ] },
+            ] },
+          { '_comment' => 'VA: GPD – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'VA: GPD' },
+          { '_comment' => 'VA: Community Contract Safe Haven', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 30 },
+          { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: CRS Contract Residential Services' },
+          { '_comment' => 'YHDP', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 43 },
+        ] } },
+      income_and_sources: { stages: ['INTAKE', 'UPDATE', 'ANNUAL', 'EXIT'],
+                            data_collected_about: 'HOH_AND_ADULTS',
+                            rule: { 'operator' => 'ANY',
+                                    'parts' =>
+        [
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: CoC – Collection required for all components except SSO Coordinated Entry',
+            'parts' =>
+                     [
+                       { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: CoC' },
+                       { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
+                       { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
+                     ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: ESG – Collection required for all components except ES-NbN',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: ESG' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 1 },
+            ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: ESG RUSH' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 0 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 1 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+            ] },
+          { '_comment' => 'HUD: HOPWA – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HUD: HOPWA' },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: Unsheltered Special NOFO – Collection required for all components except SSO Coordinated Entry',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: Unsheltered Special NOFO' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
+            ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: Rural Special NOFO' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
+            ] },
+          { '_comment' => 'HUD: HUD-VASH – Collection required for HUD VASH Collaborative Case Management',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HUD: HUD-VASH' },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: PFS – Collection required for all permanent housing projects',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: PFS' },
+              { 'operator' => 'ANY',
+                'parts' =>
+                [
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 3 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 9 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 10 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 13 },
+                ] },
+            ] },
+          { '_comment' => 'HHS: PATH – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HHS: PATH' },
+          { '_comment' => 'HHS: RHY – Collection only required for MGH, TLP, and Demo',
+            'operator' => 'ANY',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 23 },
+              { 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 24 },
+              { 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 26 },
+            ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'VA: SSVF – Collection required for RRH and Homelessness Prevention',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: SSVF' },
+              { 'operator' => 'ANY',
+                'parts' =>
+                [
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 12 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 13 },
+                ] },
+            ] },
+          { '_comment' => 'VA: GPD – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'VA: GPD' },
+          { '_comment' => 'VA: Community Contract Safe Haven', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 30 },
+          { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: CRS Contract Residential Services' },
+          { '_comment' => 'YHDP', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 43 },
+        ] } },
+      non_cash_benefits: { stages: ['INTAKE', 'UPDATE', 'ANNUAL', 'EXIT'],
+                           data_collected_about: 'HOH_AND_ADULTS',
+                           rule: { 'operator' => 'ANY',
+                                   'parts' =>
+        [
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: CoC – Collection required for all components except SSO Coordinated Entry',
+            'parts' =>
+                     [
+                       { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: CoC' },
+                       { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
+                       { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
+                     ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: ESG – Collection required for all components except ES-NbN',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: ESG' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 1 },
+            ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: ESG RUSH – Collection required for all components except Emergency Shelter or Street Outreach',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: ESG RUSH' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 0 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 1 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+            ] },
+          { '_comment' => 'HUD: HOPWA – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HUD: HOPWA' },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: Unsheltered Special NOFO – Collection required for all components except SSO Coordinated Entry',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: Unsheltered Special NOFO' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
+            ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: Rural Special NOFO – Collection required for all components except SSO Coordinated Entry',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: Rural Special NOFO' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 6 },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 14 },
+            ] },
+          { '_comment' => 'HUD: HUD-VASH – Collection required for HUD VASH Collaborative Case Management',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HUD: HUD-VASH' },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: PFS – Collection required for all permanent housing projects',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: PFS' },
+              { 'operator' => 'ANY',
+                'parts' =>
+                [
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 3 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 9 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 10 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 13 },
+                ] },
+            ] },
+          { '_comment' => 'HHS: PATH – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HHS: PATH' },
+          { '_comment' => 'HHS: RHY – Collection only required for BCP (HP and ES), MGH, TLP, and Demo',
+            'operator' => 'ANY',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 22 },
+              { 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 23 },
+              { 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 24 },
+              { 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 26 },
+            ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'VA: SSVF – Collection required for RRH and Homelessness Prevention',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: SSVF' },
+              { 'operator' => 'ANY',
+                'parts' =>
+                [
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 12 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 13 },
+                ] },
+            ] },
+          { '_comment' => 'VA: GPD – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'VA: GPD' },
+          { '_comment' => 'VA: Community Contract Safe Haven', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 30 },
+          { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: CRS Contract Residential Services' },
+          { '_comment' => 'YHDP', 'variable' => 'projectFunders', 'operator' => 'INCLUDE', 'value' => 43 },
+        ] } },
+      P4_1: { stages: ['INTAKE', 'UPDATE', 'ANNUAL', 'EXIT'],
+              data_collected_about: nil, # should be 'HOH_AND_ADULTS',
+              rule: { 'operator' => 'ANY',
+                      'parts' =>
+        [
+          { '_comment' => 'HHS: PATH – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HHS: PATH' },
+          { 'operator' => 'ALL',
+            '_comment' => 'VA: SSVF – Collection required for RRH and Homelessness Prevention',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: SSVF' },
+              { 'operator' => 'ANY',
+                'parts' =>
+                [
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 12 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 13 },
+                ] },
+            ] },
+        ] } },
+      q_3_917A: { stages: ['INTAKE'],
+                  data_collected_about: 'HOH_AND_ADULTS',
+                  rule: { 'operator' => 'ANY',
+                          'parts' =>
+        [
+          { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 0 },
+          { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 1 },
+          { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 4 },
+          { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 8 },
+        ] } },
+      q_3_917B: { stages: ['INTAKE'],
+                  data_collected_about: 'HOH_AND_ADULTS',
+                  rule: { 'operator' => 'ALL',
+                          'parts' =>
+        [
+          { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 0 },
+          { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 1 },
+          { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+          { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 8 },
+        ] } },
+      R10: { stages: ['INTAKE', 'UPDATE'],
+             data_collected_about: 'HOH_AND_ADULTS',
+             rule: { 'operator' => 'ANY',
+                     'parts' =>
+        [
+          { '_comment' => 'HHS: RHY – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HHS: RHY' },
+          { '_comment' => 'Included in YHDP Supplemental CSV. Recommended for YHDP projects.',
+            'variable' => 'projectFunders',
+            'operator' => 'INCLUDE',
+            'value' => 43 },
+        ] } },
+      R11: { stages: ['INTAKE'],
+             data_collected_about: 'HOH_AND_ADULTS',
+             rule: { 'operator' => 'ANY',
+                     'parts' =>
+        [
+          { 'operator' => 'ALL',
+            '_comment' => 'HHS: RHY – Collection required for all components except for Street Outreach',
+            'parts' =>
+                     [
+                       { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HHS: RHY' },
+                       { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+                     ] },
+          { '_comment' => 'Included in YHDP Supplemental CSV. Recommended for YHDP projects.',
+            'variable' => 'projectFunders',
+            'operator' => 'INCLUDE',
+            'value' => 43 },
+        ] } },
+      R12: { stages: ['INTAKE'],
+             data_collected_about: 'HOH_AND_ADULTS',
+             rule: { 'operator' => 'ANY',
+                     'parts' =>
+        [
+          { 'operator' => 'ALL',
+            '_comment' => 'HHS: RHY – Collection required for all components except for Street Outreach',
+            'parts' =>
+                     [
+                       { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HHS: RHY' },
+                       { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+                     ] },
+          { '_comment' => 'Included in YHDP Supplemental CSV. Recommended for YHDP projects.',
+            'variable' => 'projectFunders',
+            'operator' => 'INCLUDE',
+            'value' => 43 },
+        ] } },
+      family_critical_issues: { stages: ['INTAKE'],
+                                data_collected_about: 'HOH_AND_ADULTS',
+                                rule: { 'operator' => 'ALL',
+                                        '_comment' => 'HHS: RHY – Collection required for all components except for Street Outreach',
+                                        'parts' =>
+        [
+          { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HHS: RHY' },
+          { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+        ] } },
+      R15: { stages: ['EXIT'],
+             data_collected_about: 'HOH_AND_ADULTS',
+             rule: { 'operator' => 'ALL',
+                     '_comment' => 'HHS: RHY – Collection required for all components except for Street Outreach',
+                     'parts' =>
+        [
+          { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HHS: RHY' },
+          { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+        ] } },
+      R16: { stages: ['EXIT'],
+             data_collected_about: 'HOH_AND_ADULTS',
+             rule: { '_comment' => 'HHS: RHY – Collection required for all components',
+                     'variable' => 'projectFunderComponents',
+                     'operator' => 'INCLUDE',
+                     'value' => 'HHS: RHY' } },
+      R17: { stages: ['EXIT'],
+             data_collected_about: 'HOH_AND_ADULTS',
+             rule: { 'operator' => 'ANY',
+                     'parts' =>
+        [
+          { 'operator' => 'ALL',
+            '_comment' => 'HHS: RHY – Collection required for all components except for Street Outreach and BCP-Prevention',
+            'parts' =>
+                     [
+                       { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HHS: RHY' },
+                       { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', '_comment' => 'street outreach', 'value' => 4 },
+                       { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', '_comment' => 'prevention', 'value' => 12 },
+                     ] },
+          { '_comment' => 'Included in YHDP Supplemental CSV. Recommended for YHDP projects.',
+            'variable' => 'projectFunders',
+            'operator' => 'INCLUDE',
+            'value' => 43 },
+        ] } },
+      R18: { stages: ['EXIT'],
+             data_collected_about: 'HOH_AND_ADULTS',
+             rule: { 'operator' => 'ALL',
+                     '_comment' => 'HHS: RHY – Collection required for all components except for Street Outreach',
+                     'parts' =>
+        [
+          { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HHS: RHY' },
+          { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+        ] } },
+      R19: { stages: ['EXIT'],
+             data_collected_about: 'HOH_AND_ADULTS',
+             rule: { 'operator' => 'ANY',
+                     'parts' =>
+        [
+          { 'operator' => 'ALL',
+            '_comment' =>
+                     'HHS: RHY – Collection required for all components except for Street Outreach and Homelessness Prevention',
+            'parts' =>
+                     [
+                       { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HHS: RHY' },
+                       { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+                       { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 12 },
+                     ] },
+          { '_comment' => 'Included in YHDP Supplemental CSV. Recommended for YHDP projects.',
+            'variable' => 'projectFunders',
+            'operator' => 'INCLUDE',
+            'value' => 43 },
+        ] } },
+      R1: { stages: ['INTAKE'],
+            data_collected_about: 'HOH_AND_ADULTS',
+            rule: { 'operator' => 'ANY',
+                    'parts' =>
+        [
+          { 'variable' => 'projectFunders', 'operator' => 'INCLUDE', '_comment' => 'All YHDP', 'value' => 43 },
+          { 'operator' => 'ALL',
+            '_comment' => 'HHS: RHY – Collection required for all components except for Street Outreach',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HHS: RHY' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+            ] },
+        ] } },
+      R20: { stages: ['POST_EXIT'],
+             data_collected_about: 'HOH_AND_ADULTS',
+             rule: { 'operator' => 'ALL',
+                     '_comment' => 'HHS: RHY – Collection required for all components except for Street Outreach',
+                     'parts' =>
+        [
+          { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HHS: RHY' },
+          { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+        ] } },
+      R2: { stages: ['INTAKE'],
+            data_collected_about: 'ALL_CLIENTS',
+            rule: { '_comment' => 'HHS: RHY – Collection required for BCP only',
+                    'variable' => 'projectFunders',
+                    'operator' => 'INCLUDE',
+                    'value' => 22 } },
+      R3: { stages: ['INTAKE'],
+            data_collected_about: 'HOH_AND_ADULTS',
+            rule: { 'operator' => 'ANY',
+                    'parts' =>
+        [
+          { '_comment' => 'HUD: CoC – Youth Homeless Demonstration Program (YHDP) – collection required for all components',
+            'variable' => 'projectFunders',
+            'operator' => 'INCLUDE',
+            'value' => 43 },
+          { '_comment' => 'HHS: RHY – Collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HHS: RHY' },
+          { '_comment' => 'HUD: CoC – Permanent Supportive Housing',
+            'variable' => 'projectFunders',
+            'operator' => 'INCLUDE',
+            'value' => 2 },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: Unsheltered Special NOFO – Collection required for Permanent Supportive Housing',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: Unsheltered Special NOFO' },
+              { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 3 },
+            ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: Rural Special NOFO – Collection required for Permanent Supportive Housing',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: Rural Special NOFO' },
+              { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 3 },
+            ] },
+        ] } },
+      R4: { stages: ['INTAKE', 'EXIT'],
+            data_collected_about: nil,
+            rule: { 'operator' => 'ANY',
+                    'parts' =>
+        [
+          { '_comment' => 'HUD: HUD-VASH – – Collection required for HUD/VASH- Continuum',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HUD: HUD-VASH' },
+          { 'operator' => 'ALL',
+            '_comment' => 'HHS: RHY – Collection required for all components except for Street Outreach',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HHS: RHY' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+            ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'VA: SSVF – Collection required for RRH and Homelessness Prevention',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: SSVF' },
+              { 'operator' => 'ANY',
+                '_comment' => 'RRH or HP',
+                'parts' =>
+                [
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 12 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 13 },
+                ] },
+            ] },
+        ] } },
+      R5: { stages: ['INTAKE', 'EXIT'],
+            data_collected_about: nil,
+            rule: { 'operator' => 'ALL',
+                    '_comment' => 'HHS: RHY – Collection required for all components except for Street Outreach',
+                    'parts' =>
+        [
+          { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HHS: RHY' },
+          { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+        ] } },
+      R6: { stages: ['INTAKE', 'EXIT'],
+            data_collected_about: nil,
+            rule: { 'operator' => 'ANY',
+                    'parts' =>
+        [
+          { '_comment' => 'HUD: HUD-VASH – – Collection required for HUD/VASH- Continuum',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HUD: HUD-VASH' },
+          { 'operator' => 'ALL',
+            '_comment' => 'HHS: RHY – Collection required for all components except for Street Outreach',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HHS: RHY' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+            ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'VA: SSVF – Collection required for RRH and Homelessness Prevention',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: SSVF' },
+              { 'operator' => 'ANY',
+                '_comment' => 'RRH or HP',
+                'parts' =>
+                [
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 12 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 13 },
+                ] },
+            ] },
+          { '_comment' => 'VA: GPD – collection required for all components',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'VA: GPD' },
+        ] } },
+      R7: { stages: ['INTAKE', 'EXIT'],
+            data_collected_about: nil,
+            rule: { 'operator' => 'ANY',
+                    'parts' =>
+        [
+          { '_comment' => 'HUD: HUD-VASH – Collection required for HUD/VASH-Continuum',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HUD: HUD-VASH' },
+          { 'operator' => 'ALL',
+            '_comment' => 'HHS: RHY – Collection required for all components except for Street Outreach',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HHS: RHY' },
+              { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+            ] },
+          { '_comment' => 'Included in YHDP Supplemental CSV. Recommended for YHDP projects.',
+            'variable' => 'projectFunders',
+            'operator' => 'INCLUDE',
+            'value' => 43 },
+        ] } },
+      rhy_health_status: { stages: [], data_collected_about: 'HOH_AND_ADULTS', rule: nil },
+      R8: { stages: ['INTAKE', 'EXIT'],
+            data_collected_about: nil,
+            rule: { 'operator' => 'ANY',
+                    'parts' =>
+        [
+          { 'operator' => 'ALL',
+            '_comment' => 'HHS: RHY – Collection required for all components except for Street Outreach',
+            'parts' =>
+                     [
+                       { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HHS: RHY' },
+                       { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+                     ] },
+          { '_comment' => 'Included in YHDP Supplemental CSV. Recommended for YHDP projects.',
+            'variable' => 'projectFunders',
+            'operator' => 'INCLUDE',
+            'value' => 43 },
+        ] } },
+      R9: { stages: ['INTAKE', 'EXIT'],
+            data_collected_about: nil,
+            rule: { 'operator' => 'ANY',
+                    'parts' =>
+        [
+          { 'operator' => 'ALL',
+            '_comment' => 'HHS: RHY – Collection required for all components except for Street Outreach',
+            'parts' =>
+                     [
+                       { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HHS: RHY' },
+                       { 'variable' => 'projectType', 'operator' => 'NOT_EQUAL', 'value' => 4 },
+                     ] },
+          { '_comment' => 'Included in YHDP Supplemental CSV. Recommended for YHDP projects.',
+            'variable' => 'projectFunders',
+            'operator' => 'INCLUDE',
+            'value' => 43 },
+        ] } },
+      # :V1=>
+      #  {:stages=>[],
+      #   :data_collected_about=>"ALL_CLIENTS",
+      #   :rule=>
+      #    {"operator"=>"ANY",
+      #     "parts"=>
+      #      [{"variable"=>"projectFunderComponents", "operator"=>"INCLUDE", "value"=>"HUD: HUD-VASH"},
+      #       {"operator"=>"ALL",
+      #        "_comment"=>"VA: SSVF – Collection required for RRH and Homelessness Prevention",
+      #        "parts"=>
+      #         [{"variable"=>"projectFunderComponents", "operator"=>"INCLUDE", "value"=>"VA: SSVF"},
+      #          {"operator"=>"ANY",
+      #           "parts"=>
+      #            [{"variable"=>"projectType", "operator"=>"EQUAL", "value"=>12},
+      #             {"variable"=>"projectType", "operator"=>"EQUAL", "value"=>13}]}]},
+      #       {"variable"=>"projectFunderComponents", "operator"=>"INCLUDE", "value"=>"VA: GPD"},
+      #       {"variable"=>"projectFunderComponents", "operator"=>"INCLUDE", "value"=>"VA: Community Contract Safe Haven"},
+      #       {"variable"=>"projectFunderComponents", "operator"=>"INCLUDE", "value"=>"VA: CRS Contract Residential Services"}]}},
+      V4: { stages: ['INTAKE'],
+            data_collected_about: 'HOH',
+            rule: { 'operator' => 'ANY',
+                    'parts' =>
+        [
+          { 'operator' => 'ALL',
+            '_comment' => 'VA: SSVF – Collection required for RRH and Homelessness Prevention',
+            'parts' =>
+                     [
+                       { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: SSVF' },
+                       { 'operator' => 'ANY',
+                         'parts' =>
+                         [
+                           { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 12 },
+                           { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 13 },
+                         ] },
+                     ] },
+        ] } },
+      V6: { stages: ['INTAKE'],
+            data_collected_about: 'HOH',
+            rule: { 'operator' => 'ANY',
+                    'parts' =>
+        [
+          { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: HUD-VASH' },
+          { 'operator' => 'ALL',
+            '_comment' => 'VA: SSVF – Collection required for RRH and Homelessness Prevention',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: SSVF' },
+              { 'operator' => 'ANY',
+                'parts' =>
+                [
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 12 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 13 },
+                ] },
+            ] },
+          { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: GPD' },
+          { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: Community Contract Safe Haven' },
+          { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: CRS Contract Residential Services' },
+        ] } },
+      V7: { stages: ['INTAKE'],
+            data_collected_about: 'HOH',
+            rule: { 'operator' => 'ANY',
+                    'parts' =>
+        [
+          { 'operator' => 'ALL',
+            '_comment' => 'VA: SSVF – Collection required for Homelessness Prevention',
+            'parts' =>
+                     [
+                       { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'VA: SSVF' },
+                       { 'operator' => 'ANY', 'parts' => [{ 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 12 }] },
+                     ] },
+        ] } },
+      V9: { stages: ['EXIT'],
+            data_collected_about: 'HOH',
+            rule: { 'operator' => 'ANY',
+                    'parts' =>
+        [
+          { '_comment' => 'HUD: HUD-VASH – Collection required for HUD VASH Collaborative Case Management',
+            'variable' => 'projectFunderComponents',
+            'operator' => 'INCLUDE',
+            'value' => 'HUD: HUD-VASH' },
+        ] } },
+      # W3
+      medical_assistance: { stages: ['INTAKE', 'UPDATE', 'EXIT'],
+                            data_collected_about: 'ALL_CLIENTS',
+                            rule: { '_comment' => 'HUD: HOPWA – Collection required for all components',
+                                    'variable' => 'projectFunderComponents',
+                                    'operator' => 'INCLUDE',
+                                    'value' => 'HUD: HOPWA' } },
+      # w4 and w6. w6 not required at annual though
+      hopwa_disability: { stages: ['INTAKE', 'UPDATE', 'ANNUAL', 'EXIT'],
+                          data_collected_about: nil,
+                          rule: { 'operator' => 'ALL', 'parts' => [{ 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: HOPWA' }] } },
+      W5: { stages: ['EXIT'],
+            data_collected_about: 'ALL_CLIENTS',
+            rule: { 'operator' => 'ANY',
+                    'parts' =>
+        [
+          { 'operator' => 'ALL',
+            '_comment' =>
+                     'HUD: CoC – Collection required only for Homelessness Prevention component; HUD: ESG – Collection required only for Homelessness Prevention component; HUD: ESG-RUSH – Collection required for Homelessness Prevention component',
+            'parts' =>
+                     [
+                       { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 12 },
+                       { 'operator' => 'ANY',
+                         'parts' =>
+                         [
+                           { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: CoC' },
+                           { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: ESG' },
+                           { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: ESG RUSH' },
+                         ] },
+                     ] },
+          { 'operator' => 'ALL',
+            '_comment' => 'HUD: HOPWA – Collection required for all components',
+            'parts' =>
+            [
+              { 'variable' => 'projectFunderComponents', 'operator' => 'INCLUDE', 'value' => 'HUD: HOPWA' },
+              { 'operator' => 'ANY',
+                'parts' =>
+                [
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 0 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 2 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 3 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 6 },
+                  { 'variable' => 'projectType', 'operator' => 'EQUAL', 'value' => 12 },
+                ] },
+            ] },
+        ] } },
     }.freeze
 
     def role_to_link_ids
@@ -550,23 +1106,23 @@ module HmisUtil
     end
 
     def hud_data_element?(form_role, link_id)
-      HUD_LINK_ID_RULES.key?(link_id.to_sym) && HUD_LINK_ID_RULES[link_id.to_sym][:stages].include?(form_role.to_sym)
+      HUD_LINK_ID_RULES.key?(link_id.to_sym) && HUD_LINK_ID_RULES[link_id.to_sym][:stages].include?(form_role.to_s)
     end
 
     def hud_data_element_rule(form_role, link_id)
-      return unless hud_data_element?(form_role.to_sym, link_id.to_sym)
+      return unless hud_data_element?(form_role.to_s, link_id.to_sym)
 
       HUD_LINK_ID_RULES[link_id.to_sym][:rule]
     end
 
     def hud_data_element_data_collected_about(form_role, link_id)
-      return unless hud_data_element?(form_role.to_sym, link_id.to_sym)
+      return unless hud_data_element?(form_role.to_s, link_id.to_sym)
 
       HUD_LINK_ID_RULES[link_id.to_sym][:data_collected_about]
     end
 
     def required_link_ids_for_role(role)
-      role_to_link_ids[role.to_sym] || []
+      role_to_link_ids[role.to_s] || []
     end
   end
 end

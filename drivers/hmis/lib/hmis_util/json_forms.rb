@@ -255,7 +255,8 @@ module HmisUtil
       record.status = Hmis::Form::Definition::PUBLISHED
 
       # Ensure HUD rules are set
-      record.set_hud_requirements
+      changed = record.set_hud_requirements
+      raise "hud rules wrong for #{identifier}" if changed
 
       # Validate final definition
       begin

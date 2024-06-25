@@ -606,6 +606,7 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
   end
 
   def set_hud_requirements(year: '2024')
+    changed = false
     rule_module = case year
     when '2024'
       HmisUtil::HudAssessmentFormRules2024.new
@@ -615,19 +616,33 @@ class Hmis::Form::Definition < ::GrdaWarehouseBase
 
     walk_definition_items do |item|
       # Rule will only return if the role represents a data collection stage that requires this data element (per HUD)
-      hud_rule = rule_module.hud_data_element_rule(role, item['link_id'])
-      item['rule'] = hud_rule if hud_rule
+      link_id = item['link_id']
+      hud_rule = rule_module.hud_data_element_rule(role, link_id)
+      # Hashdiff.diff(hud_rule, item['rule'], ignore_keys: "_comment")
+      puts ">>>no rule found #{link_id}" if item['rule'] && !hud_rule
+      if hud_rule && hud_rule.to_json != item['rule'].to_json
+        # binding.pry
+        puts "changing #{link_id}"
+        puts Hashdiff.diff(hud_rule, item['rule'], ignore_keys: '_comment')
+        item['rule'] = hud_rule
+        changed = true
+      end
 
       # Set Data Collected About, or ensure current value doesn't violate HUD requirements
-      required_dca = rule_module.hud_data_element_data_collected_about(role, item['link_id'])
+      required_dca = rule_module.hud_data_element_data_collected_about(role, link_id)
       next unless required_dca
 
       # choose the less strict "data collected about". e.g. if HUD requires it for HOH, it's OK to collect it for HOH and Adults
       current_dca = item['data_collected_about']
       chosen_dca = [required_dca, current_dca].compact.min_by { |val| Hmis::Form::InstanceEnrollmentMatch::MATCHES.find_index(val.to_s) }&.to_s
 
-      item['data_collected_about'] = chosen_dca
+      if chosen_dca != current_dca.to_s
+        item['data_collected_about'] = chosen_dca
+        puts "changing dca for #{link_id} (#{current_dca}=>#{chosen_dca})"
+        changed = true unless current_dca.nil? && chosen_dca == 'ALL_CLIENTS'
+      end
     end
+    changed
 
     # Fail if there are link_ids that are required for this role that aren't present in the form (e.g. destination missing on Exit)
     # This should probably move to the validator
