@@ -120,7 +120,6 @@
       },
       {
         "type": "GROUP",
-        "required": false,
         "link_id": "es_allowance",
         "rule": {
           "operator": "ANY",

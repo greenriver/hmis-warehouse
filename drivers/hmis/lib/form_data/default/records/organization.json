@@ -3,7 +3,6 @@
     {
       "type": "GROUP",
       "link_id": "organization",
-      "required": false,
       "item": [
         {
           "type": "STRING",

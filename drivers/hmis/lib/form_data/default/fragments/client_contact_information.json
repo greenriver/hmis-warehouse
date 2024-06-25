@@ -2,7 +2,6 @@
   "type": "GROUP",
   "link_id": "contact",
   "text": "Contact Information",
-  "required": false,
   "item": [
     {
       "type": "OBJECT",
