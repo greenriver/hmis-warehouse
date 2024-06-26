@@ -240,12 +240,10 @@ module Types
     end
     def parsed_form_definition(input:)
       json = JSON.parse(input)
-      errors = []
-      Hmis::Form::Definition.validate_schema(json) { |err| errors << err }
+      errors = Hmis::Form::Definition.validate_schema(json)
+      return { errors: errors } if errors.present?
 
-      return { errors: errors, definition: nil } if errors.present?
-
-      return { errors: [], definition: json }
+      { definition: json, errors: [] }
     end
 
     field :pick_list, [Types::Forms::PickListOption], 'Get list of options for pick list', null: false do
